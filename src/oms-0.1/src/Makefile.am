@@ -1,0 +1,11 @@
+OMS_SUBDIRS = liboms
+
+if BUILD_DAEMON
+OMS_SUBDIRS += omsd
+endif
+
+#if BUILD_CODESYS_LIB
+#OMS_SUBDIRS += codesys
+#endif
+
+SUBDIRS=$(OMS_SUBDIRS)

@@ -1,0 +1,68 @@
+\hypertarget{ctmain_8h}{}\section{inc/ctparts/ctmain.h File Reference}
+\label{ctmain_8h}\index{inc/ctparts/ctmain.\+h@{inc/ctparts/ctmain.\+h}}
+
+
+Config tool main function for modular config tools.  
+
+
+{\ttfamily \#include \char`\"{}ctutil/param\+\_\+handling.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ctutil/resource\+\_\+handling.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ctutil/error\+\_\+codes.\+h\char`\"{}}\newline
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{error__codes_8h_a50e860d763800e548a09e65eda82a79e}{exit\+Code\+\_\+t} \hyperlink{ctmain_8h_ac1182bb2b1599db4fd42b9da901a2997}{ctparts\+\_\+ct\+Main} (int const argc, char $\ast$const argv\mbox{[}$\,$\mbox{]}, \hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} const $\ast$const pst\+Options, \hyperlink{resource__handling_8h_a2124531eef8a84759db04cdc101c55f1}{ctutil\+\_\+\+Resources\+\_\+t} const $\ast$const pst\+Resources)
+\begin{DoxyCompactList}\small\item\em Main function for config tool core functionality (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Config tool main function for modular config tools. 
+
+\begin{DoxyAuthor}{Author}
+P\+En\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
+\end{DoxyAuthor}
+
+
+\subsection{Function Documentation}
+\hypertarget{ctmain_8h_ac1182bb2b1599db4fd42b9da901a2997}{}\label{ctmain_8h_ac1182bb2b1599db4fd42b9da901a2997} 
+\index{ctmain.\+h@{ctmain.\+h}!ctparts\+\_\+ct\+Main@{ctparts\+\_\+ct\+Main}}
+\index{ctparts\+\_\+ct\+Main@{ctparts\+\_\+ct\+Main}!ctmain.\+h@{ctmain.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+ct\+Main()}{ctparts\_ctMain()}}
+{\footnotesize\ttfamily \hyperlink{error__codes_8h_a50e860d763800e548a09e65eda82a79e}{exit\+Code\+\_\+t} ctparts\+\_\+ct\+Main (\begin{DoxyParamCaption}\item[{int const}]{argc,  }\item[{char $\ast$const}]{argv\mbox{[}$\,$\mbox{]},  }\item[{\hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} const $\ast$const}]{pst\+Options,  }\item[{\hyperlink{resource__handling_8h_a2124531eef8a84759db04cdc101c55f1}{ctutil\+\_\+\+Resources\+\_\+t} const $\ast$const}]{pst\+Resources }\end{DoxyParamCaption})}
+
+
+
+Main function for config tool core functionality (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype for specific config tool main function.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em argc} & Argument count, directly forwarded from outer main function. \\
+\hline
+{\em argv} & Argument vector, directly forwarded from outer main function. \\
+\hline
+{\em pst\+Options} & Option structure pointer with common and specific application options. \\
+\hline
+{\em pst\+Resources} & Resource structure pointer with common and specific application resources.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Application exit code, \hyperlink{error__codes_8h_a41e4f74e0cfc3ae46c62155bcab23330}{C\+T\+U\+T\+I\+L\+\_\+\+E\+X\+I\+T\+\_\+\+S\+U\+C\+C\+E\+SS} on success, error code otherwise. The provided exit code should be positive and never a forward from a status code. The provided exit code should be between \hyperlink{error__codes_8h_a783b7d37bedcfe0f7fa36d331bce75d3}{C\+T\+U\+T\+I\+L\+\_\+\+E\+X\+I\+T\+\_\+\+M\+IN} and \hyperlink{error__codes_8h_a531ff9281d1adef56b5756f26bb0a20b}{C\+T\+U\+T\+I\+L\+\_\+\+E\+X\+I\+T\+\_\+\+M\+AX}. The provided exit code should honor the common exit code defines and avoid any conflict.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+exit\+\_\+codes.\+h 
+
+\hyperlink{error__codes_8h_a783b7d37bedcfe0f7fa36d331bce75d3}{C\+T\+U\+T\+I\+L\+\_\+\+E\+X\+I\+T\+\_\+\+M\+IN} 
+
+\hyperlink{error__codes_8h_a531ff9281d1adef56b5756f26bb0a20b}{C\+T\+U\+T\+I\+L\+\_\+\+E\+X\+I\+T\+\_\+\+M\+AX} 
+
+\hyperlink{error__codes_8h_a41e4f74e0cfc3ae46c62155bcab23330}{C\+T\+U\+T\+I\+L\+\_\+\+E\+X\+I\+T\+\_\+\+S\+U\+C\+C\+E\+SS} 
+
+\hyperlink{error__codes_8h_a34d48ef7f82b38a434d927405a92e9bc}{C\+T\+U\+T\+I\+L\+\_\+\+E\+X\+I\+T\+\_\+\+G\+E\+N\+E\+R\+A\+L\+\_\+\+E\+R\+R\+OR} 
+\end{DoxySeeAlso}

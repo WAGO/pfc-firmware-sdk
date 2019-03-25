@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#SOUCRE=$1 
+#DEST=$2
+
+SOURCE2=`echo "$1""2"`
+DEST2=`echo "$2""2"`
+#echo SOURCE1 $SOURCE1
+#echo DEST1 $DEST1
+
+echo "Creating home filesystem $2..."
+sudo /bin/umount $DEST2 > /dev/null 2>&1
+#sudo /usr/bin/flock /etc/homepartition /usr/sbin/sfdisk --force -N2 -uB -C 15 -S 63 -H 256 $2 < /etc/homepartition > /dev/null 2>&1
+sudo /sbin/mke2fs $DEST2 > /dev/null 2>&1
+echo "Copying home folder..."
+mount $DEST2 /mnt
+cp -r /home/* /mnt
+chown user:users /mnt/user
+chown guest:users /mnt/guest
+sync
+umount /mnt
+echo "done"

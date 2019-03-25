@@ -1,0 +1,12 @@
+eclipse.preferences.version=1
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/BUILDCONFIG/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/BUILDCONFIG/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/BUILDCONFIG/value=Debug
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/ENABLE_TESTS/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/ENABLE_TESTS/operation=append
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/ENABLE_TESTS/value=T
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/LD_SKIP_TESTS_WHEN_ALLOWED/delimiter=\:
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/LD_SKIP_TESTS_WHEN_ALLOWED/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/LD_SKIP_TESTS_WHEN_ALLOWED/value=T
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/append=true
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.1585488656/appendContributed=true

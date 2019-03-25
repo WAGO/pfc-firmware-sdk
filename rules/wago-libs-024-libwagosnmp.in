@@ -1,0 +1,10 @@
+## SECTION=wago_specific_libs
+
+config LIBWAGOSNMP
+	tristate
+	select NET_SNMP
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	prompt "libwagosnmp"
+	help
+	  FIXME

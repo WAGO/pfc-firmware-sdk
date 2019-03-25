@@ -1,0 +1,122 @@
+From ef695e1e8e57c15f38610893a637460af9d81c77 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 30 Aug 2018 15:56:52 +0200
+Subject: [PATCH 077/144] arm: dts: am3xxx: nandparts: fix typo
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am3xxx-pfc-nandparts.dtsi | 100 ++++++++++++++++-----------------
+ 1 file changed, 50 insertions(+), 50 deletions(-)
+
+diff --git a/arch/arm/dts/am3xxx-pfc-nandparts.dtsi b/arch/arm/dts/am3xxx-pfc-nandparts.dtsi
+index a7a51b3..00a2ade 100644
+--- a/arch/arm/dts/am3xxx-pfc-nandparts.dtsi
++++ b/arch/arm/dts/am3xxx-pfc-nandparts.dtsi
+@@ -10,54 +10,54 @@
+  */
+ 
+ &nand {
+-	        /* 4 x 128k MLOs */
+-		partition@0 {
+-			label = "mlo0";
+-			reg = <0x0 0x20000>;
+-		};
+-
+-		partition@1 {
+-			label = "mlo1";
+-			reg = <0x20000 0x20000>;
+-		};
+-
+-		partition@2 {
+-			label = "mlo2";
+-			reg = <0x40000 0x20000>;
+-		};
+-
+-		partition@3 {
+-			label = "mlo3";
+-			reg = <0x60000 0x20000>;
+-		};
+-
+-	        /* 16 x 128k: 4 x stage2 (4x128k) */
+-		partition@4 {
+-			label = "boot0";
+-			reg = <0x80000 0x80000>;
+-		};
+-
+-		partition@5 {
+-			label = "boot1";
+-			reg = <0x100000 0x80000>;
+-		};
+-
+-		partition@6 {
+-			label = "boot2";
+-			reg = <0x180000 0x80000>;
+-		};
+-
+-		partition@7 {
+-			label = "boot3";
+-			reg = <0x200000 0x80000>;
+-		};
+-
+-		partition@8 {
+-			label = "ubidata";
+-			/*
+-			 * Size 0x0 extends partition to
+-			 * end of nand flash.
+-			 */
+-			reg = <0x280000 0x0>;
+-		};
++        /* 4 x 128k MLOs */
++	partition@0 {
++		label = "mlo0";
++		reg = <0x0 0x20000>;
++	};
++
++	partition@1 {
++		label = "mlo1";
++		reg = <0x20000 0x20000>;
++	};
++
++	partition@2 {
++		label = "mlo2";
++		reg = <0x40000 0x20000>;
++	};
++
++	partition@3 {
++		label = "mlo3";
++		reg = <0x60000 0x20000>;
++	};
++
++        /* 16 x 128k: 4 x stage2 (4x128k) */
++	partition@4 {
++		label = "boot0";
++		reg = <0x80000 0x80000>;
++	};
++
++	partition@5 {
++		label = "boot1";
++		reg = <0x100000 0x80000>;
++	};
++
++	partition@6 {
++		label = "boot2";
++		reg = <0x180000 0x80000>;
++	};
++
++	partition@7 {
++		label = "boot3";
++		reg = <0x200000 0x80000>;
++	};
++
++	partition@8 {
++		label = "ubidata";
++		/*
++		 * Size 0x0 extends partition to
++		 * end of nand flash.
++		 */
++		reg = <0x280000 0x0>;
++	};
+ };
+-- 
+2.7.4
+

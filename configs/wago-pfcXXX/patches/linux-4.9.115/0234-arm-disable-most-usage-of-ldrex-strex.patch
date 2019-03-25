@@ -1,0 +1,111 @@
+From 9e44d00e13ebf689b8a07f37996bbbfd5779b132 Mon Sep 17 00:00:00 2001
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date: Thu, 17 May 2018 18:15:12 +0200
+Subject: [PATCH 234/261] arm: disable most usage of ldrex/strex
+
+It appears to be broken on AM3517. The only remaining one is in
+swp_handlder and kuser_cmpxchg helper.
+
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+---
+ arch/arm/Kconfig                | 2 +-
+ arch/arm/include/asm/atomic.h   | 2 +-
+ arch/arm/include/asm/cmpxchg.h  | 8 ++++----
+ arch/arm/include/asm/spinlock.h | 2 ++
+ arch/arm/lib/bitops.h           | 2 +-
+ 5 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 5715844..4f3a18f 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -19,7 +19,7 @@ config ARM
+ 	select EDAC_SUPPORT
+ 	select EDAC_ATOMIC_SCRUB
+ 	select GENERIC_ALLOCATOR
+-	select GENERIC_ATOMIC64 if (CPU_V7M || CPU_V6 || !CPU_32v6K || !AEABI)
++	select GENERIC_ATOMIC64 if (CPU_V7M || CPU_V6 || CPU_32v6K || !AEABI)
+ 	select GENERIC_CLOCKEVENTS_BROADCAST if SMP
+ 	select GENERIC_EARLY_IOREMAP
+ 	select GENERIC_IDLE_POLL_SETUP
+diff --git a/arch/arm/include/asm/atomic.h b/arch/arm/include/asm/atomic.h
+index 66d0e21..8d8eb6b 100644
+--- a/arch/arm/include/asm/atomic.h
++++ b/arch/arm/include/asm/atomic.h
+@@ -30,7 +30,7 @@
+ #define atomic_read(v)	READ_ONCE((v)->counter)
+ #define atomic_set(v,i)	WRITE_ONCE(((v)->counter), (i))
+ 
+-#if __LINUX_ARM_ARCH__ >= 6
++#if 0
+ 
+ /*
+  * ARMv6 UP and SMP safe atomic ops.  We use load exclusive and
+diff --git a/arch/arm/include/asm/cmpxchg.h b/arch/arm/include/asm/cmpxchg.h
+index 97882f9..63ce6f2 100644
+--- a/arch/arm/include/asm/cmpxchg.h
++++ b/arch/arm/include/asm/cmpxchg.h
+@@ -5,7 +5,7 @@
+ #include <linux/prefetch.h>
+ #include <asm/barrier.h>
+ 
+-#if defined(CONFIG_CPU_SA1100) || defined(CONFIG_CPU_SA110)
++#if defined(CONFIG_CPU_SA1100) || defined(CONFIG_CPU_SA110) || 1
+ /*
+  * On the StrongARM, "swp" is terminally broken since it bypasses the
+  * cache totally.  This means that the cache becomes inconsistent, and,
+@@ -31,14 +31,14 @@ static inline unsigned long __xchg(unsigned long x, volatile void *ptr, int size
+ #ifdef swp_is_buggy
+ 	unsigned long flags;
+ #endif
+-#if __LINUX_ARM_ARCH__ >= 6
++#if 0
+ 	unsigned int tmp;
+ #endif
+ 
+ 	prefetchw((const void *)ptr);
+ 
+ 	switch (size) {
+-#if __LINUX_ARM_ARCH__ >= 6
++#if 0
+ #ifndef CONFIG_CPU_V6 /* MIN ARCH >= V6K */
+ 	case 1:
+ 		asm volatile("@	__xchg1\n"
+@@ -120,7 +120,7 @@ static inline unsigned long __xchg(unsigned long x, volatile void *ptr, int size
+ 
+ #include <asm-generic/cmpxchg-local.h>
+ 
+-#if __LINUX_ARM_ARCH__ < 6
++#if 1
+ /* min ARCH < ARMv6 */
+ 
+ #ifdef CONFIG_SMP
+diff --git a/arch/arm/include/asm/spinlock.h b/arch/arm/include/asm/spinlock.h
+index 4bec454..d1684f9 100644
+--- a/arch/arm/include/asm/spinlock.h
++++ b/arch/arm/include/asm/spinlock.h
+@@ -5,6 +5,8 @@
+ #error SMP not supported on pre-ARMv6 CPUs
+ #endif
+ 
++#error Can't use spinlocks
++
+ #include <linux/prefetch.h>
+ #include <asm/barrier.h>
+ #include <asm/processor.h>
+diff --git a/arch/arm/lib/bitops.h b/arch/arm/lib/bitops.h
+index 7d807cf..e017860 100644
+--- a/arch/arm/lib/bitops.h
++++ b/arch/arm/lib/bitops.h
+@@ -1,7 +1,7 @@
+ #include <asm/assembler.h>
+ #include <asm/unwind.h>
+ 
+-#if __LINUX_ARM_ARCH__ >= 6
++#if 0
+ 	.macro	bitop, name, instr
+ ENTRY(	\name		)
+ UNWIND(	.fnstart	)
+-- 
+2.7.4
+

@@ -1,0 +1,8 @@
+<webserver-configuration> 
+	<webserver-port-nr> 8080 </webserver-port-nr>
+	<target-port-nr> 2455 </target-port-nr>
+	<target-ip-address> localhost </target-ip-address>
+	<use-file-upload-dir> true </use-file-upload-dir>
+	<file-upload-dir> /home/codesys </file-upload-dir>
+	<use-intel-byte-order> true </use-intel-byte-order>
+</webserver-configuration>

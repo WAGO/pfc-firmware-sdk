@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!DOCTYPE diagnostic SYSTEM "diagnostics.dtd">
+<diagnostic>
+  <eventclass  class_range="x0000" name="common">
+    <event id="x0000" name="common_system_error" persistent="no">
+      <string>
+        <en>Common System Error </en>
+      </string>
+    </event>
+    <event id="x0001" name="ip_set_by_switch" persistent="yes">
+    <led name="SYS" state="BLINK_YLW" >
+      <on>500</on>
+      <off>500</off>
+    </led>
+      <string>
+        <en>Temporarily set IP address of eth0 to 192.168.1.17</en>
+      </string>
+    </event>
+    <event id="x00C0" name="system_start" persistent="yes">
+      <string>
+        <en>System Booted</en>
+      </string>
+    </event>
+    <event id="x0003" name="Reset_all" persistent="yes">
+      <string>
+        <en>Perform Hard System Reset</en>
+      </string>
+    </event>
+    <event id="x0004" name="EthernetIP-Notloaded">
+      <comment>
+        Until we have no Ethernet/IP-Driver we use this ID 
+      </comment>
+      <led name="NS" state="STATIC_OFF" />
+      <string>
+        <en>Ethernet/IP driver is not loaded</en>
+      </string>
+    </event>
+    <event id="x0005" name="DoubleIP_br0">
+      <string>
+        <en>ipwatchd: Duplicate IP address detected in network attached to socket X1</en>
+      </string>
+    </event>
+    <event id="x0006" name="DoubleIP_br1">
+      <string>
+        <en>ipwatchd: Duplicate IP address detected in network attached to socket X2</en>
+      </string>
+    </event>
+    <event id="x0007" name="factory_reset_mode">
+      <led name="SYS" state="BLINK_GRN_RED" >
+        <on>500</on>
+        <off>500</off>
+      </led>      
+      <string>
+        <en>factory reset initiated by OMS</en>
+      </string>
+    </event>
+    <event id="x0008" name="runtime_crash">
+      <led name="RUN" state="STATIC_OFF">
+      </led>
+      <string>
+        <en>unexpected stop of runtime</en>
+      </string>
+    </event>
+    <event id="x0009" name="runtime_crash_2">
+      <led name="IO" state="STATIC_OFF">
+      </led>
+      <string>
+        <en>unexpected stop of runtime</en>
+      </string>
+    </event>
+    <event id="x000A" name="firmware_copy">
+      <led name="SYS" state="BLINK_GRN_RED" >
+        <on>1000</on>
+        <off>1000</off>
+      </led>
+      <string>
+        <en>copy firmware</en>
+      </string>
+    </event>
+    <event id="x000B" name="extended_error_code">
+      <comment>
+        If their is no extended error code active we use this ID 
+      </comment>
+      <led name="MS" state="STATIC_OFF" />
+      <string>
+        <en>no extended error code active</en>
+      </string>
+    </event>
+    <event id="x000C" name="rtc_error">
+      <comment>
+        If the RTC detects an interruption (e.g. oscillator interruption or voltage drop) this error is recorded 
+      </comment>
+      <string>
+        <en>RTC interruption detected, please check and adjust date and time</en>
+      </string>
+    </event>
+  </eventclass>
+</diagnostic>

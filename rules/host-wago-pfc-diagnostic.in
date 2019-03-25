@@ -1,0 +1,7 @@
+## SECTION=wago_specific_tools
+
+config HOST_WAGO_PFC_DIAGNOSTIC
+	tristate
+	prompt "host-wago-pfc-diagnostic"
+	help
+	  FIXME

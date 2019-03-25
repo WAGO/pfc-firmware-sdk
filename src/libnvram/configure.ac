@@ -1,0 +1,22 @@
+AC_INIT([libnvram],[0.1],[john.ogness@linutronix.de])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AC_PROG_CC
+AC_PROG_LIBTOOL
+AC_PROG_INSTALL
+AC_LANG([C])
+AC_CANONICAL_HOST
+AC_CANONICAL_BUILD
+
+save_CFLAGS="$CFLAGS"
+save_CPPFLAGS="$CPPFLAGS"
+CFLAGS="$CFLAGS"
+CPPFLAGS="$CPPFLAGS"
+CFLAGS="$save_CFLAGS"
+CPPFLAGS="$save_CPPFLAGS"
+
+AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_FILES([Makefile src/Makefile])
+
+m4_pattern_allow([AM_PROG_AR])
+AM_PROG_AR
+AC_OUTPUT

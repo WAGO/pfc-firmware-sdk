@@ -1,0 +1,98 @@
+From 20770a2b8e10182c785bb8ed3f23d243ee77c9b1 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 12 Sep 2018 10:20:21 +0200
+Subject: [PATCH 081/144] boards: pfc-am3xxx: rename nandslots
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 17 ++++++-----------
+ arch/arm/boards/wago-pfc-am35xx/board.c | 19 +++++--------------
+ 2 files changed, 11 insertions(+), 25 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index 4294b3c..be77fca 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -51,19 +51,14 @@ static int pfc_coredevice_init(void)
+ }
+ coredevice_initcall(pfc_coredevice_init);
+ 
+-static struct omap_barebox_part pfc_barebox_part = {
+-	.nand_offset = SZ_512K,
+-	.nand_size = SZ_512K,
+-};
+-
+-static char *xloadslots[] = {
++static char *mlo_nandslots[] = {
+ 	"/dev/nand0.mlo0.bb",
+ 	"/dev/nand0.mlo1.bb",
+ 	"/dev/nand0.mlo2.bb",
+ 	"/dev/nand0.mlo3.bb"
+ };
+ 
+-static char *nandslots[] = {
++static char *boot_nandslots[] = {
+ 	"/dev/nand0.boot0.bb",
+ 	"/dev/nand0.boot1.bb",
+ 	"/dev/nand0.boot2.bb",
+@@ -174,10 +169,10 @@ static int pfc_devices_init(void)
+ 	am33xx_bbu_emmc_register_handler("boot.emmc", boot_emmcslots,
+ 						ARRAY_SIZE(boot_emmcslots));
+ 
+-	am33xx_bbu_nand_xloadslots_register_handler("mlo.nand",
+-					xloadslots, ARRAY_SIZE(xloadslots));
+-	am33xx_bbu_nand_slots_register_handler("barebox.nand", nandslots,
+-							ARRAY_SIZE(nandslots));
++	am33xx_bbu_nand_xloadslots_register_handler("mlo.nand", mlo_nandslots,
++						ARRAY_SIZE(mlo_nandslots));
++	am33xx_bbu_nand_slots_register_handler("boot.nand", boot_nandslots,
++						ARRAY_SIZE(boot_nandslots));
+ 
+ 	of_device_enable_path("/chosen/environment-sd");
+ 	omap_set_barebox_part(&pfc_barebox_part);
+diff --git a/arch/arm/boards/wago-pfc-am35xx/board.c b/arch/arm/boards/wago-pfc-am35xx/board.c
+index 1546759..efa2bbc 100644
+--- a/arch/arm/boards/wago-pfc-am35xx/board.c
++++ b/arch/arm/boards/wago-pfc-am35xx/board.c
+@@ -54,23 +54,14 @@
+ #include <globalvar.h>
+ #include <xsection.h>
+ 
+-#include "pfcxxx.h"
+-
+-#define PFCXXX_AM35XX_GPIO_SEL_RS232_EN 176 /* 0:RS485 1:RS232 */
+-
+-static struct omap_barebox_part pfc_barebox_part = {
+-	.nand_offset = SZ_512K,
+-	.nand_size = SZ_512K,
+-};
+-
+-static char *xloadslots[] = {
++static char *mlo_nandslots[] = {
+ 	"/dev/nand0.mlo0.bb",
+ 	"/dev/nand0.mlo1.bb",
+ 	"/dev/nand0.mlo2.bb",
+ 	"/dev/nand0.mlo3.bb"
+ };
+ 
+-static char *nandslots[] = {
++static char *boot_nandslots[] = {
+ 	"/dev/nand0.boot0.bb",
+ 	"/dev/nand0.boot1.bb",
+ 	"/dev/nand0.boot2.bb",
+@@ -260,9 +251,9 @@ static int pfc200_devices_init(void)
+ 
+ 	am33xx_bbu_emmc_mlo_register_handler("mlo.emmc", "/dev/mmc1");
+ 	am33xx_bbu_nand_xloadslots_register_handler("mlo.nand",
+-					xloadslots, ARRAY_SIZE(xloadslots));
+-	am33xx_bbu_nand_slots_register_handler("barebox.nand", nandslots,
+-							ARRAY_SIZE(nandslots));
++					mlo_nandslots, ARRAY_SIZE(mlo_nandslots));
++	am33xx_bbu_nand_slots_register_handler("boot.nand", boot_nandslots,
++							ARRAY_SIZE(boot_nandslots));
+ 
+ 	printf("register davinci emac driver via old method\n");
+ 	platform_device_register(&pfc_emac_device);
+-- 
+2.7.4
+

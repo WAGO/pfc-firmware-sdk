@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+CERT_DIR=${1:-"."}
+DOMAIN_FILE=${CERT_DIR}/server
+
+passphrase=$(dd if=/dev/urandom bs=128 count=1 | uuencode - | grep -v '^end' | sed ':a;N;$!ba;s/\n//g')
+
+# Generate RSA key
+echo "${passphrase}" | openssl genrsa -des3 -out ${DOMAIN_FILE}.key -passout stdin 1024 || exit 1
+
+# Generate Certificate Request
+subj=/C='DE'/ST='Germany'/CN='WAGO-PFC200'/O='Wago Kontakttechnik GmbH & Co. KG'/localityName='Minden'/emailAddress='info@wago.com' 
+echo "${passphrase}" | openssl req -new -batch -subj "${subj}" -key ${DOMAIN_FILE}.key -out ${DOMAIN_FILE}.csr -passin stdin || exit 2
+
+# Strip passphrase out of RSA-Key to not get prompted on startup
+
+cp ${DOMAIN_FILE}.key ${DOMAIN_FILE}.key.org || exit 3
+echo ${passphrase} | openssl rsa -in ${DOMAIN_FILE}.key.org -out ${DOMAIN_FILE}.key -passin stdin || exit 4
+
+# Generate Certificate
+days_valid=$(echo "2038 01 18" | awk '{dt=mktime($$0 " 00 00 00")-systime(); print int(dt/86400);}')
+openssl x509 -req -days ${days_valid} -in ${DOMAIN_FILE}.csr -signkey ${DOMAIN_FILE}.key -out ${DOMAIN_FILE}.crt || exit 5

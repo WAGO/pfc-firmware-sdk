@@ -1,0 +1,46 @@
+\hypertarget{api__export_8h}{\section{inc/wc/api\+\_\+export.h File Reference}
+\label{api__export_8h}\index{inc/wc/api\+\_\+export.\+h@{inc/wc/api\+\_\+export.\+h}}
+}
+
+
+A\+P\+I export define.  
+
+
+{\ttfamily \#include \char`\"{}wc/compiler.\+h\char`\"{}}\\*
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A\+P\+I export define. 
+
+\begin{DoxyAuthor}{Author}
+Patrick Enns \+: W\+A\+G\+O Kontakttechnik Gmb\+H \& Co. K\+G 
+\end{DoxyAuthor}
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}{\index{api\+\_\+export.\+h@{api\+\_\+export.\+h}!W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T@{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}}
+\index{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T@{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}!api\+\_\+export.\+h@{api\+\_\+export.\+h}}
+\subsubsection[{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}}\label{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}
+Define to set public function/method/class visibilty (export symbols).
+
+This macro is {\bfseries not} intended to be used directly in front of your function/method or class. Instead of using it directly declare your project specific define (e. g. {\itshape M\+Y\+L\+I\+B\+\_\+\+A\+P\+I}) as empty define when not yet defined\+:
+
+\begin{quote}
+\#ifndef M\+Y\+L\+I\+B\+\_\+\+A\+P\+I~\newline
+\#define M\+Y\+L\+I\+B\+\_\+\+A\+P\+I~\newline
+\#endif \end{quote}
+
+
+\begin{quote}
+M\+Y\+L\+I\+B\+\_\+\+A\+P\+I int My\+Func(int param); \end{quote}
+
+
+To publish the marked A\+P\+I declare your project specific define to be equal to {\itshape W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T} in front of your build process like the following\+:
+
+\begin{quote}
+gcc mylib.\+c -\/\+D\+M\+Y\+L\+I\+B\+\_\+\+A\+P\+I=W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T \end{quote}

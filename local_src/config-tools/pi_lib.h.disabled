@@ -1,0 +1,41 @@
+//------------------------------------------------------------------------------
+/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+///
+/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// the subject matter of this material. All manufacturing, reproduction,
+/// use, and sales rights pertaining to this subject matter are governed
+/// by the license agreement. The recipient of this software implicitly
+/// accepts the terms of the license.
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+///
+///  \file     pi_lib.h
+///
+///  \version  $Revision: 6731 $1
+///
+///  \brief    
+///
+///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+//------------------------------------------------------------------------------
+
+#ifndef _pi_h_
+
+#define _pi_h_
+
+// allow unit test?
+#define TEST                                0
+
+
+int ReadPi(char* pAddressString,
+           char* pFormatString,
+           char* pLengthString);
+
+int WritePi(char* pAddressString,
+            char* pFormatString,
+            char* pValueString);
+
+#if TEST
+void Test(void);
+#endif 
+
+#endif

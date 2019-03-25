@@ -1,0 +1,9 @@
+## SECTION=wago_specific_libs
+		
+config LIBUTIL
+	bool
+	default n
+	select LIBOSAL	
+	prompt "libutil"
+	help
+	  Build WAGO basic functionality utility collection.

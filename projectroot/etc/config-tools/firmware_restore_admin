@@ -1,0 +1,164 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------
+# Script-name: firmware_restore_admin
+#
+# Start firmware restore process as a background task.
+# Read state of firmware restore process.
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+# Set error on use of undefined shell variables
+set -u
+
+
+RESTORE_PROCESS_STATUS_TMP_FILE="/tmp/restore_process_status"
+FIRMWARE_RESTORE="$CONFIG_TOOLS_PATH/firmware_restore"
+DAEMON_PID_FILE="/var/run/firmware_restore.pid"
+
+
+function PrintUsage
+{
+    echo "Usage:"
+    echo " -s|--status"
+    echo " -d|--daemonize <firmware-restore-args>" 
+    echo " -h|--help"
+    echo
+    echo "return restore state to stdout: <started|finished|failed>"
+    echo
+    echo "return 0 in case of success, a value greater 0 in case of error."
+}
+
+
+function DaemonIsRunning
+{
+    local isRunning=1 # false
+
+    if [[ -e $DAEMON_PID_FILE ]]; then
+        local daemon_pid=$(< $DAEMON_PID_FILE)
+        [[ "$daemon_pid" && -d /proc/$daemon_pid ]] && isRunning=0
+    fi
+
+    return $isRunning
+}
+
+
+function StartDaemon
+{
+    local status=$SUCCESS
+    local restore_status="started"
+
+    # Check if daemon is already running.
+    if ! DaemonIsRunning ; then
+        [[ -e $RESTORE_PROCESS_STATUS_TMP_FILE ]] && rm $RESTORE_PROCESS_STATUS_TMP_FILE
+        [[ -e $DAEMON_PID_FILE ]] && rm $DAEMON_PID_FILE
+
+        /usr/sbin/daemonize -p $DAEMON_PID_FILE $FIRMWARE_RESTORE "$@"
+        
+        local timeout=10000000 # 10 sec in usec
+        local delta=200000
+        while [[ $timeout -gt 0 && ! -e $RESTORE_PROCESS_STATUS_TMP_FILE ]]; do
+            usleep $delta
+            timeout=$((timeout-delta))
+        done
+
+        if [[ -e $RESTORE_PROCESS_STATUS_TMP_FILE ]]; then
+            local content=$(< $RESTORE_PROCESS_STATUS_TMP_FILE)
+            restore_status=${content:-failed}
+            [[ "failed" == $restore_status ]] && status=$INTERNAL_ERROR
+        else
+            # Reached timeout
+            status=$INTERNAL_ERROR
+            restore_status="failed"
+        fi
+    else
+        [[ "failed" == $restore_status ]] && status=$INTERNAL_ERROR
+    fi
+
+    echo -n "$restore_status"
+    return $status
+}
+
+
+function GetRestoreState
+{
+    local status=$SUCCESS
+    local restore_status="false"
+
+    if [[ -e $RESTORE_PROCESS_STATUS_TMP_FILE ]]; then
+        # No reboot has occurred yet.
+        restore_status=$(< $RESTORE_PROCESS_STATUS_TMP_FILE)
+    elif [[ -e "$DEFAULT_SETTINGS_DIR/$autoRestoreStatusFile" ]]; then
+        # Exactly one reboot has occurred yet.
+        restore_status="started"
+    else
+        # All necessary reboots are done.
+        restore_status="finished"
+    fi
+
+    echo -n "$restore_status"
+
+    [[ $status != $SUCCESS ]] && SetLastError $status
+    
+    return $status
+}
+
+
+#-------------- main ---------------------------------------------------------#
+
+status=$SUCCESS
+
+if [[ $# == 0 ]]; then
+    PrintUsage
+    status=$MISSING_PARAMETER
+else
+    case $1 in
+        -s)
+            ret=$(GetRestoreState)
+            status=$?
+            echo $ret
+            ;;
+        --status)
+            ret=$(GetRestoreState)
+            status=$?
+            echo $ret
+            ;;
+        -d)
+            shift # skip the operation argument
+            ret=$(StartDaemon "$@")
+            status=$?
+            echo $ret
+            ;;
+        --daemonize)
+            shift # skip the operation argument
+            ret=$(StartDaemon "$@")
+            status=$?
+            echo $ret
+            ;;
+        -h)
+            PrintUsage
+            ;;
+        --help)
+            PrintUsage
+            ;;
+        *)
+            PrintUsage
+            status=$INVALID_PARAMETER
+            ;;
+    esac
+fi
+
+exit $status

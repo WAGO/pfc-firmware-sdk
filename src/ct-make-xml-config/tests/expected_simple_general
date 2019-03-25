@@ -1,0 +1,9 @@
+<frontend id="wbm">
+    <level id="information">
+        <nav ressource="state.php" text="Information"/>
+        <level id="coupler_details">
+            <nav text="Coupler Details"/>
+            <page_element url="coupler_details.inc.php"/>
+        </level>
+    </level>
+</frontend>

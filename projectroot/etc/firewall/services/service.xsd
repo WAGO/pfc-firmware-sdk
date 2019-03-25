@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<xs:schema targetNamespace="http://www.wago.com/security/firewall"
+           elementFormDefault="qualified"
+           xmlns="http://www.wago.com/security/firewall"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!--
+    README:
+
+    Please note that there are several arbitrary choosen restrictions put on
+    the service's firewall configuration:
+    - maximum count of interfaces used,
+    - maximum count of filter rules.
+    All numbers are not dictated by any specific reasoning except for the need
+    for such a limit to exists - for security reasons. All of them may be
+    freely changed but they should not be set to 'unbounded' value.
+ -->
+
+<xs:include schemaLocation="../patterns.xsd"/>
+
+<xs:element name="firewall">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="ipv4" type="ipv4" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+
+<xs:complexType name="ipv4">
+    <xs:sequence>
+        <xs:element name="service" type="service" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="service_content">
+    <xs:sequence>
+        <xs:element name="interfaces" type="interfaces" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="rules" type="rules" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="service">
+    <xs:complexContent>
+        <xs:extension base="service_content">
+            <xs:attribute name="name" type="name" use="required"/>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="interfaces">
+    <xs:annotation>
+        <xs:documentation>
+            The section contains all the interfaces on which a given service
+            should be functioning, but only to the one which are in 'on' state.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+        <xs:element name="interface" type="interface" minOccurs="0" maxOccurs="20"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="interface">
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="if" type="ifname" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="rules">
+    <xs:annotation>
+        <xs:documentation>
+            The section contains rules required for a given service to properly
+            function. Each of this rules will be applied to each active interface
+            from the interfaces section.
+            Please note that each of these rules has an implicit 'accept' policy
+            active due to the firewall's overall whitelist approach.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+        <xs:element name="rule" type="rule" minOccurs="0" maxOccurs="20"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="rule">
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="proto" type="tcpudp" use="required"/>
+    <xs:attribute name="src_port" type="port_range" use="optional"/>
+    <xs:attribute name="dst_port" type="port_range" use="required"/>
+</xs:complexType>
+
+</xs:schema>
+

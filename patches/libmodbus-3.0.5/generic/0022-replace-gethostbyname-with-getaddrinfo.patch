@@ -1,0 +1,141 @@
+Index: libmodbus-3.0.5/src/modbus-tcp.c
+===================================================================
+--- libmodbus-3.0.5.orig/src/modbus-tcp.c	2015-05-18 08:06:23.000000000 +0000
++++ libmodbus-3.0.5/src/modbus-tcp.c	2015-05-18 10:37:13.000000000 +0000
+@@ -229,6 +229,43 @@
+     return 0;
+ }
+ 
++static int _ip_get_host_addr_by_name(modbus_t *ctx, const char* hostname, in_addr_t *s_addr)
++{
++    static const struct addrinfo hints = {
++        .ai_family = AF_UNSPEC,
++        .ai_flags = 0,
++        .ai_socktype = 0,
++        .ai_protocol = 0,
++        .ai_canonname = NULL,
++        .ai_addr = NULL,
++        .ai_next = NULL
++    };
++    struct addrinfo *rp;
++    struct addrinfo *result;
++    int res;
++
++    res = getaddrinfo(hostname, NULL, &hints, &result);
++    if (res != 0)
++    {
++        if (ctx->debug) printf("getaddrinfo(%s): %s\n", hostname, gai_strerror(res));
++        return -1;
++    }
++
++    res = -1;
++    for(rp = result; rp != NULL; rp = result->ai_next)
++    {
++        if (rp->ai_family & AF_INET && rp->ai_addr != NULL && rp->ai_addrlen == sizeof(struct sockaddr_in))
++        {
++            *s_addr = ((struct sockaddr_in*) rp->ai_addr)->sin_addr.s_addr;
++            res = 0;
++            break;
++        }
++    }
++
++    freeaddrinfo(result);
++    return res;
++}
++
+ /* Establishes a modbus TCP connection with a Modbus server. */
+ static int _modbus_tcp_connect(modbus_t *ctx)
+ {
+@@ -255,18 +292,14 @@
+ 
+     if (ctx->debug) printf("Connecting to %s TCP port %d\n", ctx_tcp->ip, ctx_tcp->port);
+ 
+-    struct hostent *host = gethostbyname(ctx_tcp->ip);
+-    if(host == NULL)
++    if(_ip_get_host_addr_by_name(ctx, ctx_tcp->ip, &addr.sin_addr.s_addr))
+     {
+-        if (h_errno)
+-            errno = h_errno + EMBHERRBASE-1;
+         if (ctx->debug) printf("Couldn't resolve hostname: %s\n", ctx_tcp->ip);
+         return -1;
+     }
+ 
+     addr.sin_family = AF_INET;
+     addr.sin_port = htons(ctx_tcp->port);
+-    addr.sin_addr.s_addr = *(unsigned long*)host->h_addr;
+     rc = connect(ctx->s, (struct sockaddr *)&addr,
+                  sizeof(struct sockaddr_in));
+     if (rc == -1) {
+@@ -750,32 +783,31 @@
+ ssize_t _modbus_udp_send(modbus_t *ctx, const uint8_t *req, int req_length)
+ {
+ 	struct sockaddr_in addr;
++
+ 	modbus_udp_t *ctx_udp = ctx->backend_data;
+ 
+-  if (((ctx_udp->recv_dst >> 24) & 224) == 224)
+-  {
+-    if (ctx->debug) printf("skip multicast response\n");
+-    return req_length;
+-  }
++    if (((ctx_udp->recv_dst >> 24) & 224) == 224)
++    {
++        if (ctx->debug) printf("skip multicast response\n");
++        return req_length;
++    }
+ 
+ 	if (ctx_udp->recv_src && ctx_udp->recv_port)
+ 	{
+-	  addr.sin_port = htons(ctx_udp->recv_port);
+-	  addr.sin_addr.s_addr = htonl(ctx_udp->recv_src);
++	   addr.sin_port = htons(ctx_udp->recv_port);
++	   addr.sin_addr.s_addr = htonl(ctx_udp->recv_src);
+ 	}
+ 	else
+ 	{
+-	  struct hostent *host = gethostbyname(ctx_udp->ip);
+-	  if (host == NULL)
+-	  {
+-	    if (ctx->debug) printf("Couldn't resolve hostname: %s\n", ctx_udp->ip);
+-	    return -1;
+-	  }
+-	  addr.sin_port = htons(ctx_udp->port);
+-	  addr.sin_addr.s_addr = *(unsigned long*)host->h_addr;
++	   if (_ip_get_host_addr_by_name(ctx, ctx_udp->ip, &addr.sin_addr.s_addr))
++	   {
++	       if (ctx->debug) printf("Couldn't resolve hostname: %s\n", ctx_udp->ip);
++	       return -1;
++	   }
++	   addr.sin_port = htons(ctx_udp->port);
+ 	}
+ 
+-  addr.sin_family = AF_INET;
++    addr.sin_family = AF_INET;
+ 	if (ctx->debug) printf("UDP send to %s\n", inet_ntoa(addr.sin_addr));
+ 	return sendto(ctx->s, (const char*)req, req_length, 0, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+ }
+@@ -1233,12 +1265,12 @@
+ {
+     int rc;
+     modbus_udp_t *ctx_udp = ctx->backend_data;
+-    struct hostent *host = gethostbyname(ctx_udp->ip);
+-    if (!host) {
++    in_addr_t s_addr;
++    if (_ip_get_host_addr_by_name(ctx, ctx_udp->ip, &s_addr)) {
+       rc = FALSE;
+     }
+     else {
+-      uint32_t naddr = ntohl(*(unsigned long*)host->h_addr);
++      uint32_t naddr = ntohl(s_addr);
+       rc = (((naddr >> 24) & 224) == 224) ? TRUE : FALSE;
+     }
+     return rc;
+@@ -1384,7 +1416,7 @@
+ 	if (ctx && address && length)
+ 	{
+ 		struct sockaddr_in sClientaddr;
+-		switch(ctx->backend->backend_type) 
++		switch(ctx->backend->backend_type)
+ 		{
+ 		case _MODBUS_BACKEND_TYPE_TCP:
+ 		{

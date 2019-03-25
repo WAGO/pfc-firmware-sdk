@@ -1,0 +1,313 @@
+## SECTION=wago_specific_custom
+
+menuconfig WAGO_CUSTOM_INSTALL
+	bool "Wago Custom Install          "
+	default n
+	help
+	  Install ...
+
+if WAGO_CUSTOM_INSTALL
+
+config WAGO_CUSTOM_INITRAMFS_FIRMWARE_INSTALL
+	bool
+	default n
+	prompt "install /etc/install-firmware.sh to initramfs"
+	help
+	  This installs the firmware install script to initramfs
+	  (used for production and factory reset setup).
+
+
+config WAGO_CUSTOM_INITRAMFS_INIT
+	bool
+	default n
+	prompt "install /init.sh to initramfs"
+	help
+	  This installs an init script to initramfs.
+
+config WAGO_CUSTOM_ROOTFS_SCREEN_INIT_STARTSCRIPT
+       bool
+       select SCREEN
+       depends on USE_SCREEN_WINDOWS
+       default n
+       prompt "install /etc/init.d/screen_init"
+       help
+         This startscript starts a new screen session
+	 with the name 'wago' and creates a shell-window with the title 'bash'
+	 and the window-ID '2'. Other screen-windows can be startet later separately.
+	 This is the basis for the Wago screensaver operation.
+
+config WAGO_CUSTOM_LOG_SYSTEMSTART_INIT_STARTSCRIPT
+	bool
+	default n
+	prompt "install /etc/init.d/logsystemstart"
+	help
+	  This installs a startscript for sending a logid to he permanen log for marking system boot.
+
+config WAGO_CUSTOM_ROOTFS_INSTALL_HOME_USER_GUEST
+       bool
+       default n
+       prompt "install /home/user, /home/guest and /home/admin"
+
+config WAGO_CUSTOM_ROOTFS_INSTALL_CHECK_FOR_DEFAULT_PASSWORD
+       bool
+       default n
+       prompt "warn user when he didn't change the default password"
+
+config WAGO_CUSTOM_ROOTFS_MOUNTRW_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/remountrw"
+
+config WAGO_CUSTOM_ROOTFS_MOUNTVARLOG_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/mountvarlog"
+
+config WAGO_CUSTOM_FINALIZE_ROOT_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/finalize_root"
+
+config WAGO_CUSTOM_CONFIG_SERIAL_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/config_serial"
+
+config WAGO_CUSTOM_CONFIG_USB_GADGET_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/config_usb_gadget"
+
+config WAGO_CUSTOM_SHUTDOWN_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/shutdown"
+
+config WAGO_CUSTOM_ROOTFS_AUTOFIRMREST_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/auto_firmware_restore"
+
+config WAGO_CUSTOM_ROOTFS_MOUNTHD2_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/mounthd2"
+
+config WAGO_CUSTOM_ROOTFS_PERMISSIONS_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/permissions"
+
+config WAGO_CUSTOM_ROOTFS_KBUSPRIO_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/cfg-kbus-irq.sh and /etc/init.d/kbusprio"
+
+config WAGO_CUSTOM_WATCH_IP_CHANGE_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/watch_ip_change"
+
+config WAGO_CUSTOM_ROOTFS_CFCARD_TOOL
+       bool
+       default n
+       prompt "install /usr/sbin/cp_cfcard"
+
+config WAGO_CUSTOM_ROOTFS_UPDATE_BOOT_TOOL
+       bool
+       default n
+       prompt "install /usr/sbin/update_boot"
+
+config WAGO_CUSTOM_ROOTFS_UPDATE_FW_TOOL
+       bool
+       default n
+       prompt "install /usr/sbin/update_fw"
+
+config WAGO_CUSTOM_ROOTFS_UPDATE_MBR_GRUB_TOOL
+       bool
+       default n
+       prompt "install /usr/sbin/update_mbr_grub"
+
+config WAGO_CUSTOM_ROOTFS_CREATE_HOME_INT_TOOL
+       bool
+       default n
+       prompt "install /usr/sbin/create_home_int"
+
+config WAGO_CUSTOM_ROOTFS_REVISIONS
+       bool
+       default n
+       prompt "install /etc/REVISIONS"
+
+config WAGO_CUSTOM_ROOTFS_SHELLS
+       bool
+       default n
+       prompt "install /etc/shells"
+       
+config WAGO_CUSTOM_CRONJOBS_ROOT
+       bool
+       depends on BUSYBOX_CROND
+       default n
+       prompt "install /var/spool/cron/crontabs/root"
+
+config WAGO_CUSTOM_ROOTFS_CONFIGS_PARTITIONS
+       bool
+       default n
+       prompt "install bootpartition, rootpartition, homepartition in etc/"
+
+config WAGO_CUSTOM_ROOTFS_COPY_SD_INTERN
+       bool
+       default n
+       prompt "init script copying the sd card to internal flash"
+       
+config WAGO_CUSTOM_DIAGNOSTICS
+       bool
+       depends on WAGO_PFC_DIAGNOSTIC || LED_SERVER_LEGACY
+       default n
+       prompt "install /etc/diagnostic.xml"
+
+config WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_STARTSCRIPT
+       bool
+       depends on CT_MULTI_PRODUCT_CONFIG
+       default n
+       prompt "install /etc/init.d/cbm_set_config"
+
+config WAGO_CUSTOM_WBM_MULTI_PRODUCT_CONFIG_STARTSCRIPT
+       bool
+       depends on CT_MULTI_PRODUCT_CONFIG
+       default n
+       prompt "install /etc/init.d/wbm_set_config"
+
+config WAGO_CUSTOM_RUNTIME_STARTSCRIPT
+       bool
+       depends on CODESYS3
+       select WAGO_CUSTOM_INSTALL_RTSVERSION 
+       default n
+       prompt "install /etc/init.d/runtime"
+       
+config WAGO_CUSTOM_OMS_CONFIG_STARTSCRIPT
+       bool
+       depends on OMS_OMSD
+       default n
+       prompt "install /etc/init.d/omsdaemon"
+
+config WAGO_CUSTOM_PAC100_ETH_WORKAROUND
+       bool
+       default n
+       prompt "PAC100: reset ethernet switch on boot"
+
+config WAGO_CUSTOM_INSTALL_OPENSSH_DEFAULT_KEYS
+       bool
+       depends on OPENSSH_SSHD
+       default n
+       prompt "openssh: install default RSA/DSA keys"
+
+config WAGO_CUSTOM_INSTALL_LIGHTTPD_PASSWD_COPY
+    bool
+    depends on LIGHTTPD && CONFIG_TOOLS
+    default n
+    prompt "lighttpd: install copy of htpasswd"
+    help
+ 	 Install copy of default htpasswd file to check for password changes
+
+config WAGO_CUSTOM_INSTALL_LINKIN_DEVS
+    bool
+    default n
+    prompt "install /etc/init.d/link_devices"
+    help
+ 	 Install script to create links to devices in sys-fs.
+	 E.g. eeprom is located in /sys/class/.../eeprom. The 
+	 script will create a link in /dev/eeprom.
+
+if WAGO_CUSTOM_INSTALL_LINKIN_DEVS
+
+config WAGO_CUSTOM_INSTALL_LINKIN_DEVS_NAMES
+    prompt "device-names to link"
+    string
+    help
+	 space separeted list of device-names that will be linked
+	 under /dev/...
+endif
+
+config WAGO_CUSTOM_INSTALL_3G_MODEM_VERSION_INFO_FILE
+    bool
+    default n
+    prompt "install /etc/specific/modem_version"
+    help
+	 Install info file that holds the actual 3g modem version
+	 for PFC200 3G Telecontrol (750-8207)
+
+if WAGO_CUSTOM_INSTALL_3G_MODEM_VERSION_INFO_FILE
+
+config WAGO_CUSTOM_INSTALL_3G_MODEM_VERSION
+    string
+    prompt "modem-version" 
+    default "UC20EQAR03A04M1024"
+    help
+	 The modem version that is stored in /etc/specific/modem_version file
+
+endif
+
+config WAGO_CUSTOM_INSTALL_DETERMINE_HOSTNAME
+    bool
+    default n
+    prompt "install /etc/init.d/determine_hostname"
+    help
+ 	 Install script to configure the hostname based on
+	 order-number and eeprom mac-addr.
+
+config WAGO_CUSTOM_INSTALL_CHECK_RTC
+    bool
+    default n
+    prompt "install /etc/init.d/check_rtc"
+    help
+    Install script to check RTC on startup.
+    On RTC error a least valid date will be set.
+
+config WAGO_CUSTOM_INSTALL_RTSVERSION
+    bool
+    default n
+    prompt "install /etc/specific/rtsversion"
+    help
+	 Install info file that holds the currently active PLC runtime version.
+
+config WAGO_ADJUST_DEFAULT_SETTINGS
+    bool
+    default n
+    prompt "adjust default settings on first boot"
+    help
+      Install a script that adjusts default settings based on the order number.
+      Needed if a product variant is to be shipped with non-standard defaults.
+      
+config WAGO_CUSTOM_INSTALL_BACKUP_ACCOUNT_SETTINGS
+    bool
+    default n
+    prompt "backup and restore account settings and groups"
+    help
+    Install a script that performs backup and restore account settings and groups.
+    
+config WAGO_CUSTOM_INSTALL_BACKUP_SETTINGS
+    bool
+    default n
+    prompt "backup and restore settings"
+    help
+    Install a script that performs backup and restore settings.    
+
+config WAGO_CUSTOM_INSTALL_BOOT_WDG
+    bool
+    default n
+    prompt "install /etc/init.d/boot_wdg"
+    help
+ 	 Install script to disable the interal soc watchdog, that is used by the 
+	 bootloader during boot up from bootloader -> kernel -> userspace.
+
+if WAGO_CUSTOM_INSTALL_BOOT_WDG
+
+config WAGO_CUSTOM_INSTALL_BOOT_WDG_DEVICE
+    string
+    prompt "watchdog device"
+    default "/dev/watchdog0"
+    help
+	The watchdog device that should be disabled
+endif
+
+endif

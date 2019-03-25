@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Firewall: snmp demon events handler
+#
+
+enabled=`/etc/config-tools/firewall firewall --is-enabled`
+[ "enabled" != "$enabled" ] && exit 0
+
+
+start()
+{
+    running=`/etc/config-tools/get_port_state snmp`
+
+    if [ "enabled" == "$running" ] ; then
+        v1v2state=`/etc/config-tools/get_snmp_data v1-v2c-state`
+        if [ "enabled" == "$v1v2state" ] ; then
+            /etc/config-tools/firewall snmp --apply up >/dev/null 2>&1
+        else
+            /etc/config-tools/firewall snmps --apply up >/dev/null 2>&1
+        fi
+    else
+        stop
+    fi
+}
+
+stop()
+{
+    /etc/config-tools/firewall snmp --apply down >/dev/null 2>&1
+    /etc/config-tools/firewall snmps --apply down >/dev/null 2>&1
+}
+
+case "$1" in
+    start|config)
+        start;;
+    stop)
+        stop;;
+    *)
+        ;;
+esac

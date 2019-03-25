@@ -1,0 +1,64 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: determine_hostname
+#
+# $Revision$
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------#
+
+set -u
+
+# load general definitions and functions
+. /etc/config-tools/config_tool_lib
+
+function DefaultHostname
+{
+  local localstatus=$SUCCESS
+  macAddress=$(/etc/config-tools/get_typelabel_value MAC)
+  if [ "$SUCCESS" != "$?" -o -z "$macAddress" ]; then
+    localstatus=$EXECUTABLE_ERROR
+  else
+    # cut last two parts of mac address and remove ':' characters
+    targetName=$(GetTargetName | tr 'a-z' 'A-Z')
+    macAddress=$(echo $macAddress | awk -F: '{printf("%s%s%s", $4, $5, $6)}')
+    echo "${targetName}-${macAddress}"
+  fi
+  return $localstatus
+}
+
+status=$SUCCESS
+
+if [ $# -ge 1 ]; then
+  # show help-text if requested
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Determine hostname *"
+    echo
+    echo "Usage: determine_hostname                 print configured hostname"
+    echo "       determine_hostname -d | --default  print default hostname"
+    echo "       determine_hostname -h | --help     print this message"
+    echo
+    exit $status
+
+  elif [ "$1" = "-d" ] || [ "$1" = "--default" ]; then
+    DefaultHostname
+    exit $SUCCESS
+  fi
+fi
+
+HOSTNAME=
+[ -f /etc/specific/host.conf ] && . /etc/specific/host.conf
+
+# if we couldn't get a hostname by configfile - build our own
+if [ -z "$HOSTNAME" ]; then
+  HOSTNAME=$(DefaultHostname)
+fi
+
+printf "$HOSTNAME"
+exit $status

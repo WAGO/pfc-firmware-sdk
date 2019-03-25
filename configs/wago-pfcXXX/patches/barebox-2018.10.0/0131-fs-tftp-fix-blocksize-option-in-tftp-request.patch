@@ -1,0 +1,44 @@
+From 0383effc70291401b8a80c118b7a8c29856f627c Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 18 Oct 2018 10:02:11 +0000
+Subject: [PATCH 131/144] fs: tftp: fix blocksize option in tftp request
+
+A hardcoded blocksize of 1432 is being delivered in every
+tftp request although a private data variable is dedicated
+to hold this value. By this the makro TFTP_BLOCK_SIZE is
+totally neglected. I'm wonadering why it yet worked without
+any transmission failures.
+
+Fix this by encapsulating priv->blocksize into the tftp
+request.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ fs/tftp.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/fs/tftp.c b/fs/tftp.c
+index 0d9ee6e..5afb052 100644
+--- a/fs/tftp.c
++++ b/fs/tftp.c
+@@ -138,14 +138,15 @@ static int tftp_send(struct file_priv *priv)
+ 				"tsize%c"
+ 				"%d%c"
+ 				"blksize%c"
+-				"1432",
++				"%d",
+ 				priv->filename + 1, 0,
+ 				0,
+ 				0,
+ 				TIMEOUT, 0,
+ 				0,
+ 				priv->filesize, 0,
+-				0);
++				0,
++				priv->blocksize);
+ 		pkt++;
+ 		len = pkt - xp;
+ 		break;
+-- 
+2.7.4
+

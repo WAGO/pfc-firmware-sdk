@@ -1,0 +1,35 @@
+Index: pv-1.4.12/src/pv/display.c
+===================================================================
+
+Normalize progress display for inaccurate --size values:
+Never go over 100%, always end at 100%.
+
+Author: Andrej Gantvorg, 20.03.2018
+
+--- pv-1.4.12.orig/src/pv/display.c
++++ pv-1.4.12/src/pv/display.c
+@@ -46,7 +46,7 @@ static long pv__calc_percentage(long lon
+ 	so_far *= 100;
+ 	so_far /= total;
+ 
+-	return (long) so_far;
++	return (long) (so_far > 99 ? 99 : so_far);
+ }
+ 
+ 
+@@ -429,8 +429,13 @@ static char *pv__format(pvstate_t state,
+ 		 * the percentage (numeric mode or a progress bar),
+ 		 * calculate the percentage completion.
+ 		 */
+-		state->percentage =
+-		    pv__calc_percentage(total_bytes, state->size);
++
++		if(bytes_since_last < 0) {
++			state->percentage = 100;
++		} else {
++			state->percentage =
++				pv__calc_percentage(total_bytes, state->size);
++		}
+ 	}
+ 
+ 	/*

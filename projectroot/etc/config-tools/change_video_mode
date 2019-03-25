@@ -1,0 +1,120 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: change_video_mode
+#
+# Change the video-mode
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the video-mode *"
+  echo
+  echo "Usage: change_video_mode < video-mode=video-mode-value | video-string=video-string-value >"
+  echo
+  echo "video-mode-value: hex-value of the required video-mode, e.g. \"0x301\""
+  echo "video-mode-string-value: cleartext of video-mode, e.g. \"640x480, 256 color\""
+  echo
+  exit $SUCCESS
+fi
+
+
+# filename of file with the video-mode definitions
+VIDEO_MODES_FILENAME="/etc/VIDEO_MODES"
+
+newVideoMode=`GetParameterValue video-mode $*`
+newVideoString=`GetParameterValue video-string $*`
+#echo "newVideoMode:"$newVideoMode "newVideoString:"$newVideoString
+
+# if the video-mode-string is given, first the according video-mode-number must be figured out
+if [ -n "$newVideoString" ]; then
+
+  # check whether config-file exists and can be written
+  if [ ! -e $VIDEO_MODES_FILENAME ]; then
+    ReportError $CONFIG_FILE_MISSING "($VIDEO_MODES_FILENAME)"
+    SetLastError "Video-modes-file is missing"
+    exit $CONFIG_FILE_MISSING
+  fi
+
+  # search after the line with the specified video-mode-string
+  videoModeLine=`grep "$newVideoString" $VIDEO_MODES_FILENAME`
+  #echo "videoModeLine:"$videoModeLine
+
+  # filter the number of the video-mode
+  newVideoMode=${videoModeLine%%:*}
+  #echo "newVideoMode:"$newVideoMode
+
+  # change new video-mode to hex
+  newVideoMode=0x`echo $newVideoMode | awk '{printf "%x", $1}'`  
+  #echo "newVideoMode:"$newVideoMode
+
+fi
+
+# get old video-mode
+oldVideoMode=`${CONFIG_TOOLS_PATH}show_video_mode number`
+#echo "oldVideoMode:"$oldVideoMode
+
+if [ -n "$newVideoMode" ] && [ "$newVideoMode" != "$oldVideoMode" ]; then
+
+  # check if syntax of video-mode is ok
+  echo $newVideoMode | grep -e "\<0x[0-9a-f]\{3\}\>" > /dev/null 2> /dev/null
+
+  if [ $? != "$SUCCESS" ]; then
+    ReportError $INVALID_PARAMETER "($newVideoMode)"
+    SetLastError "Video-Mode invalid"
+    exit $INVALID_PARAMETER
+  fi
+
+  # check whether config-file exists and can be written and we got a value for the old video-mode
+  if [ ! -f $MENU_LST ]; then
+    ReportError $CONFIG_FILE_MISSING "($MENU_LST)"
+    SetLastError "Can't write config-file"
+    exit $CONFIG_FILE_MISSING
+  fi
+
+  # check if we got a value for the old video-mode
+  if [ -z "$oldVideoMode" ]; then
+    ReportError $INVALID_PARAMETER "old video-mode"
+    SetLastError "Can't change config-file"
+    exit $INVALID_PARAMETER
+  fi
+
+  # change old video-mode to new video-mode in menu.lst file
+  sudo $SED -i '/kernel/ s/vga='$oldVideoMode'/vga='$newVideoMode'/g' $MENU_LST
+
+  if [ "$SUCCESS" != $? ]; then
+    ReportError $EXECUTABLE_ERROR "(write new hostname to file)"
+    SetLastError "Can't write config-file"
+    exit $EXECUTABLE_ERROR
+  else
+  
+    # write buffered filesystem-blocks to disk
+    sync
+
+    # send a signal to init-process so that it uses the new configuration
+    sudo $KILL -HUP 1 
+    if [ $? != "$SUCCESS" ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(kill -HUP 1)"
+      SetLastError "Error while execution"
+    fi
+  fi
+fi
+
+exit $SUCCESS

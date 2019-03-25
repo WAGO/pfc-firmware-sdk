@@ -1,0 +1,13 @@
+/** \mainpage
+
+\section summary Overview
+This is the documentation for the modular-config-tools project.<br>
+The modular-config-tools project is a framework for modular unit testable config tools.
+
+\section intro Introduction
+For an introduction how to use the modular-config-tools framework take a look at the
+<a href="md_doc_introduction.html">introduction page</a>.<br>
+For an example config tool take a look at the
+<a href="examples.html">examples page</a>.
+
+*/

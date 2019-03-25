@@ -1,0 +1,12 @@
+[Ethernet Switch Port 0]
+state=on
+autoneg=on
+speed=100M
+duplex=full
+
+[Ethernet Switch Port 1]
+state=on
+autoneg=on
+speed=100M
+duplex=full
+

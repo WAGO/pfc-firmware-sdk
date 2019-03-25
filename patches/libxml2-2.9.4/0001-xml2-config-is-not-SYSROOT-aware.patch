@@ -1,0 +1,26 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Sat, 4 Sep 2010 20:14:51 +0200
+Subject: [PATCH] xml2-config is not $SYSROOT aware
+
+This patch adds $SYSROOT support to xml2-config.
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ xml2-config.in |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/xml2-config.in b/xml2-config.in
+index 2989325..4e170b6 100644
+--- a/xml2-config.in
++++ b/xml2-config.in
+@@ -1,6 +1,6 @@
+ #! /bin/sh
+ 
+-prefix=@prefix@
++prefix=${SYSROOT}@prefix@
+ exec_prefix=@exec_prefix@
+ includedir=@includedir@
+ libdir=@libdir@
+-- 
+1.7.1
+

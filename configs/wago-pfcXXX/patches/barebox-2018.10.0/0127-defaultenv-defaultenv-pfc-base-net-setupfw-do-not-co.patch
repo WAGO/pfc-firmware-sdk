@@ -1,0 +1,26 @@
+From 65123a43d1ef1125c3bc2e5531e7acf405ff37b8 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 19 Oct 2018 08:29:25 +0200
+Subject: [PATCH 127/144] defaultenv: defaultenv-pfc-base: net-setupfw: do not
+ configure dyn.ip param
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/boot/net-setupfw | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/boot/net-setupfw b/defaultenv/defaultenv-pfc-base/boot/net-setupfw
+index dd47ef5..a28eca3 100644
+--- a/defaultenv/defaultenv-pfc-base/boot/net-setupfw
++++ b/defaultenv/defaultenv-pfc-base/boot/net-setupfw
+@@ -15,7 +15,6 @@ if [ ${eth0.ipaddr} != "0.0.0.0" ] && [ ${eth0.serverip} != "0.0.0.0" ] &&
+ 
+ 	tftp ${global.dhcp.bootfile}
+ 	if [ "$?" = 0 ]; then
+-		global.linux.bootargs.dyn.ip="ip=$eth0.ipaddr:$eth0.serverip:$eth0.gateway:$eth0.netmask::eth0:"
+ 
+ 		# Flash PFC200v3 G2 EMMC
+ 		if [ -e "${global.pfc.emmc}" ]; then
+-- 
+2.7.4
+

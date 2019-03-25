@@ -1,0 +1,1 @@
+KERNEL=="null", MODE="0666"

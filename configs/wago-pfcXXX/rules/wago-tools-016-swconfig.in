@@ -1,0 +1,12 @@
+## SECTION=wago_specific_tools
+
+config SWCONFIG
+	bool
+	default y
+	prompt "swconfig"
+	select LIBUCI
+	select LIBNL3
+	select KERNEL
+	help
+	  Userspace switch configuration interface that uses netlink
+	  to communicate with the kernel.

@@ -1,0 +1,153 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+### BEGIN INIT INFO
+# Provides:          firewall
+# Required-Start:    mountkernfs $local_fs ebtables
+# Required-Stop:     $local_fs
+# Default-Start:     S
+# Default-Stop:
+# X-Start-Before:    networking ifupdown
+# X-Stop-After:      networking ifupdown
+# Short-Description: set iptables framework
+# Description:       the script set's the firewall framework.
+#                    usage:   
+#                     - start firewall framework during booting: firewall start 
+#                     - stop firewall framework:  firewall stop
+#                     - restart firewall framework after changing firewalls settings (turn on/off a service, etc):
+#                       firewall restart|reload|force-reload  
+### END INIT INFO
+
+
+DEFAULT_CONF=/etc/firewall/firewall
+FIREWALL_CONF=/etc/firewall/firewall.conf # get general firewall state [enabled|disabled]
+WAGO_ST_DIR="/usr/sbin"
+
+. "$WAGO_ST_DIR/fwupdate_basic_defines"
+if [ -f "${WAGO_FW_UPDATE_FIRST_BOOT_MARKER}" ]; then
+    echo "$WAGO_CT_SYSTEM_MODULE Refuse any network access during first boot"
+    iptables -I INPUT -j DROP
+    exit 0
+fi
+
+if [ ! -s $DEFAULT_CONF ]; then
+    echo "$DEFAULT_CONF is missing - can't execute."
+    exit 1
+fi
+
+. $DEFAULT_CONF
+
+if [ ! -s $FIREWALL_CONF ]; then
+    echo "$FIREWALL_CONF is missing - can't execute."
+    exit 1
+fi
+
+. $FIREWALL_CONF
+
+
+enable_firewall()
+{
+    local result=0
+
+    if [ -s $FW_DIR/validate_if.sh ]; then
+        sh $FW_DIR/validate_if.sh
+    fi
+
+    if [ -s $FW_EB/ebfirewall.sh ]; then
+        sh $FW_EB/ebfirewall.sh
+    else
+        eblog "err" "$FW_EB/ebfirewall.sh is missing - can't execute."
+        result=1
+    fi
+
+    if [ -s $FW_IP/ipfirewall.sh ]; then
+        sh $FW_IP/ipfirewall.sh
+    else
+        eblog "err" "$FW_IP/ipfirewall.sh is missing - can't execute."
+        result=1
+    fi
+
+    if [ "$result" -ne "0" ]; then
+        exit $result
+    fi
+}
+
+enable_firewall_services()
+{
+    local result=0
+
+    if [ -s $FW_IP/ipfirewall.sh ]; then
+        sh $FW_IP/ipfirewall.sh --services
+    else
+        eblog "err" "$FW_IP/ipfirewall.sh is missing - can't execute."
+        result=1
+    fi
+
+    if [ "$result" -ne "0" ]; then
+        exit $result
+    fi
+}
+
+disable_firewall()
+{
+    local result=0
+
+    if [ -s $FW_EB/ebfirewall.sh ]; then
+        sh $FW_EB/ebfirewall.sh --disable
+    else
+        eblog "err" "$FW_EB/ebfirewall.sh is missing - can't execute."
+        result=1
+    fi
+
+    if [ -s $FW_IP/ipfirewall.sh ]; then
+        sh $FW_IP/ipfirewall.sh --disable
+    else
+        eblog "err" "$FW_IP/ipfirewall.sh is missing - can't execute."
+        result=1
+    fi
+
+    if [ "$result" -ne "0" ]; then
+        exit $result
+    fi
+}
+
+
+case "$1" in
+start)
+    if [[ "$FIREWALL_GENERAL_STATE" == "enabled" ]]; then
+	enable_firewall
+    elif [[ "$FIREWALL_GENERAL_STATE" == "disabled" ]]; then
+	disable_firewall
+    else
+        eblog "err" "Failed reading firewall state."
+    fi
+    ;;
+
+restart|reload|force-reload)
+    if [[ "$FIREWALL_GENERAL_STATE" == "enabled" ]]; then
+	enable_firewall
+	enable_firewall_services
+    elif [[ "$FIREWALL_GENERAL_STATE" == "disabled" ]]; then
+	disable_firewall
+    else
+	eblog "err" "Failed reading firewall state."
+    fi
+    ;;
+
+stop)
+    disable_firewall
+    ;;
+
+*)
+    echo "Usage: $0 {stop|start|restart|reload|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

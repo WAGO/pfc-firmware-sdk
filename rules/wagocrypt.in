@@ -1,0 +1,19 @@
+## SECTION=wago_specific_libs
+
+config WAGOCRYPT
+	bool
+	select OPENSSL
+	select PLCLINUXRT
+	prompt "wagocrypt"
+	help
+	  External Codesys V2.3 library "WagoLibCrypt.lib" wrapper on openssl "EVP" API.
+
+if WAGOCRYPT
+
+config WAGOCRYPT_TESTS
+	bool
+	prompt "install tests"
+	help
+	  Install test application
+
+endif

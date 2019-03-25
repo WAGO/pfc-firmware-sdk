@@ -1,0 +1,93 @@
+From 274c31634166e792ece2bc33e376a06911f42f20 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 17 Nov 2016 07:07:15 +0000
+Subject: [PATCH 004/261] ksz8863: cfg: remove dsa code
+
+---
+ drivers/net/phy/ksz8863-cfg.c | 42 +++++-------------------------------------
+ 1 file changed, 5 insertions(+), 37 deletions(-)
+
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index f68c49c..114799b 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -22,6 +22,8 @@
+ 
+ #include <linux/ksz8863.h>
+ 
++#define GC1_TAIL_TAG_MODE_ENABLE_SHIFT                  6
++
+ #define KSZ8863_CPU_PORT                2
+ #define KSZ8863_NUM_PORTS               3
+ #define KSZ8863_NUM_VLANS               16
+@@ -88,24 +90,6 @@ static int ksz8863_setup_dflt_cfg(int flags)
+         if ((ret = ksz8863_soft_reset()))
+                 return ret;
+ 
+-#ifdef CONFIG_NET_DSA_KSZ8863
+-	if (is_dsa_enabled()) {
+-        // Tail tagging - enable
+-#define GC1_TAIL_TAG_MODE_ENABLE_SHIFT                  6
+-                if ((ret = ksz8863_nread(GlobalControl1, reg_val, 1)))
+-                        return ret;
+-                *reg_val |= 1 << GC1_TAIL_TAG_MODE_ENABLE_SHIFT;
+-                if ((ret = ksz8863_nwrite(GlobalControl1, reg_val, 1)))
+-                        return ret;
+-		/* if dsa configured than by default set ports 1 + 2 into listening state */
+-		reg_val[0] = reg_val[1] = 0x1; /* disable address learning */
+-		if ((ret = ksz8863_nwrite(Port1Control2, &reg_val[0], 1)))
+-			return ret;
+-		if ((ret = ksz8863_nwrite(Port2Control2, &reg_val[1], 1)))
+-			return ret;
+-        }
+-#endif
+-
+ 	/* Turn on IGMP Snooping */
+         if ((ret = ksz8863_nread(GlobalControl3, reg_val, 1)))
+                 return ret;
+@@ -121,12 +105,8 @@ static int ksz8863_setup_dflt_cfg(int flags)
+ 
+ 	// clear default port bits
+ 	*reg_val &= ~(7 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT);
+-	if (is_dsa_enabled())
+-		// Unknown MAC @ddress - broadcoast only to cpu port (needed for multicast traffic)
+-		*reg_val |= 4 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT;
+-	else
+-		// Unknown MAC @ddress - broadcoast to every ports
+-		*reg_val |= 7 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT;
++        // Unknown MAC @ddress - broadcoast to every ports
++        *reg_val |= 7 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT;
+ 
+         if ((ret = ksz8863_nwrite(GlobalControl12, reg_val, 1)))
+                 return ret;
+@@ -185,18 +165,6 @@ static int ksz8863_setup_dflt_cfg(int flags)
+ 			return ret;
+ 	}
+ 
+-	if (is_dsa_enabled()) {
+-		/* Setup STP Settings */
+-		*reg_val = 0x3; 	/* RX Enable, Learning disable */
+-		if ((ret = ksz8863_nwrite(Port1Control2, reg_val, 1))) /* X2 */
+-			return ret;
+-		if ((ret = ksz8863_nwrite(Port2Control2, reg_val, 1))) /* X1 */
+-			return ret;
+-		*reg_val = 0x5; 	/* RX Enable, Learning disable */
+-		if ((ret = ksz8863_nwrite(Port3Control2, reg_val, 1))) /* CPU */
+-			return ret;
+-	}
+-
+         return 0;
+ }
+ 
+@@ -1302,7 +1270,7 @@ static inline int ksz8863_sw_get_dsa_enable(struct switch_dev *dev,
+ 					    const struct switch_attr *attr,
+ 					    struct switch_val *val)
+ {
+-        val->value.i = is_dsa_enabled();
++        val->value.i = 0;
+ 
+         return 0;
+ }
+-- 
+2.7.4
+

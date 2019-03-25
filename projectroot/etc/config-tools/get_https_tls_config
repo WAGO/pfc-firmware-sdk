@@ -1,0 +1,69 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_https_tls_config
+#
+# Read status of cipher list: standard or strong
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# make use of undefined variables an error
+set -u
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+if [ "$#" -eq "0" ]; then
+    SetLastError "Missing argument"
+    exit $MISSING_PARAMETER
+fi
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" -o "$1" = "--help" ]; then
+    echo
+    echo "* Get https tls parameter value *"
+    echo
+    echo "Usage: $0 <cipher-list>"
+    echo "       Returns standard or strong on stdout"
+    echo
+    exit $status
+fi
+
+SYMLINK="/etc/lighttpd/tls.conf"
+LINKTARGET=""
+
+case "$1" in
+    cipher-list)
+        LINKTARGET=$(readlink $SYMLINK)
+        status=$?
+        if [ "$status" -eq "$SUCCESS" ]; then
+        case $LINKTARGET in
+            tls-standard.conf)
+                printf standard
+                ;;
+            tls-strong.conf)
+                printf strong
+                ;;
+        esac
+        else
+            SetLastError "readlink failed"
+        fi
+        ;;
+    *)
+        SetLastError "Unknown argument \"$1\""
+        status=$INVALID_PARAMETER
+        ;;
+esac
+
+exit $status

@@ -1,0 +1,340 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   get_systeminfo
+#
+# Brief:    This config tool returns system information:
+#             - numner, active, configured and state (see info text)
+#
+# Author:   Maxim Laschinsky: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [[ ! -f "/etc/config-tools/config_tool_lib" ]]; then
+  echo "missing dependencies!"
+  exit 64
+fi
+source "/etc/config-tools/config_tool_lib"
+
+declare readonly BAREBOX_STATE=/usr/sbin/barebox-state_failsafe.sh
+declare -i PARAM_GET_ACTIVE_SYSTEM=0
+declare -i PARAM_GET_INACTIVE_SYSTEM=0
+declare -i PARAM_SHOWHELP=0
+declare -i PARAM_SYS_NUM=0
+declare    PARAM_INFO_ITEM=""
+declare -i PARAM_JSON=0
+readonly MAX_SYSTEMS=2
+
+declare NUMBER="system-number"
+declare ACTIVE="active"
+declare CONFIGURED="configured"
+declare STATE="state"
+declare -a INFO_ITEMS=($NUMBER $ACTIVE $CONFIGURED $STATE)
+
+declare -i ACTIVE_SYSTEM_NUMBER
+declare -i INACTIVE_SYSTEM_NUMBER
+declare -i CONFIGURED_SYSTEM_NUMBER
+
+#-----------------------------------------------------------------------------#
+# Prints info about this config tool.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function print_info
+{
+  printf "
+* Prints all system information items if no paramter specified *\n
+Usage:\n
+\tget_systeminfo [SYSTEM-NUMBER] [INFO-ITEM] [options]
+\tget_systeminfo [COMMAND]\n
+Possible info items:
+\tsystem-number - Number of the system (starting with 1)
+\tactive        - Currently booted system: true - active, false - inactive
+\tconfigured    - Next booted system: true - configured, false- unconfigured
+\tstate         - Bootable state of the system (good|bad)\n
+Commands:
+\tactive-system-number     - returns the number of active system
+\tinactive-system-number   - returns the number of inactive system
+\tconfigured-system-number - returns the number of configured (active on next boot) system\n
+Options:
+\t-h/--help     - Printf help iformation about this config tool
+\t-j/--json     - Printf output in JSON format (default is text format)\n
+Examples:
+\t/etc/config-tools/get_systeminfo --json
+\t/etc/config-tools/get_systeminfo 1 configured
+\t/etc/config-tools/get_systeminfo active-system-number\n"
+}
+
+#-----------------------------------------------------------------------------#
+# Used to update the activation system number variables from barebox-state.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function update_activation_system_numbers
+{ 
+    eval $($BAREBOX_STATE -n bootstate --dump-shell)
+    
+    local rootfs1_prio=$bootstate_rootfs_1_priority
+    local rootfs2_prio=$bootstate_rootfs_2_priority
+    local last_chosen=$bootstate_last_chosen
+    
+    if [[ $rootfs1_prio -ge $rootfs2_prio ]]; then
+        CONFIGURED_SYSTEM_NUMBER=1
+    else
+        CONFIGURED_SYSTEM_NUMBER=2
+    fi
+    
+    if [[ "$SD_CARD" == "$(/etc/config-tools/get_filesystem_data active-partition-medium)" ]]; then
+        ACTIVE_SYSTEM_NUMBER=$CONFIGURED_SYSTEM_NUMBER
+    else
+        # Extract active system from barebox (note: "rauc status" command is too slow)
+        ACTIVE_SYSTEM_NUMBER=$last_chosen
+    fi
+    INACTIVE_SYSTEM_NUMBER=$(( (ACTIVE_SYSTEM_NUMBER == 1) ? 2 : 1 ))
+}
+
+
+#-----------------------------------------------------------------------------#
+# Prints the system number of specified system to stdout.
+#
+# Param 1: system number [1..2]
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function system-number
+{
+  echo -n $1
+}
+
+#-----------------------------------------------------------------------------#
+# Prints if the specified system is active (true|false) to stdout.
+#
+# Param 1: system number [1..2]
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function active
+{
+    if [[ $1 -eq $ACTIVE_SYSTEM_NUMBER ]]; then
+        echo -n "true"
+    else
+        echo -n "false"
+    fi
+}
+
+#-----------------------------------------------------------------------------#
+# Prints if the specified system is configured (true|false) to stdout.
+#
+# Param 1: system number [1..2]
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function configured
+{
+    if [[ $1 -eq $CONFIGURED_SYSTEM_NUMBER ]]; then
+        echo -n "true"
+    else
+        echo -n "false"
+    fi
+}
+
+#-----------------------------------------------------------------------------#
+# Prints the state (bad|good) of specified system to stdout.
+#
+# Param 1: system number [1..2]
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function state
+{
+    local system=$1
+    local -i state
+    local -i result
+    state=$($BAREBOX_STATE --name bootstate --get rootfs.${system}.remaining_attempts)
+    result=$?
+    if [[ $result -eq 0 ]]; then
+        if [[ $state -eq 0 ]]; then
+            [[ $PARAM_JSON -eq 1 ]] && echo -n "\"bad\"" || echo -n "bad"
+        else
+            [[ $PARAM_JSON -eq 1 ]] && echo -n "\"good\"" || echo -n "good"
+        fi
+    fi
+    return $result
+}
+
+#-----------------------------------------------------------------------------#
+# Prints all system info items to stdout in JSON format.
+#
+# Param 1..n: no parameters expected, uses PARAM_INFO_ITEM as input
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function get_system_info_item
+{
+    local item_value
+    local result
+    item_value=$($PARAM_INFO_ITEM $PARAM_SYS_NUM)
+    result=$?
+    echo -n $item_value 
+    return $result
+}
+
+#-----------------------------------------------------------------------------#
+# Prints all system info items to stdout in JSON format.
+#
+# Param 1..n: no parameters expected
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function get_system_info_all
+{
+    for i in {1..2}; do
+        if [[ $PARAM_JSON -eq 1 ]]; then
+            [[ $i -eq 1 ]] && printf "["
+            [[ $i -ne 1 ]] && printf ", "
+            printf "{"
+            for item in ${INFO_ITEMS[@]}; do
+               printf "\"${item}\":$(${item} ${i})"
+               [[ ! $item == ${INFO_ITEMS[$((${#INFO_ITEMS[@]}-1))]} ]] && printf ", "
+            done
+            printf "}"
+            [[ $i -eq $MAX_SYSTEMS ]] && printf "]"
+        else
+            for item in ${INFO_ITEMS[@]}; do
+               printf "system${i}_${item}=$(${item} ${i})\n"
+               [[ $item == ${INFO_ITEMS[$((${#INFO_ITEMS[@]}-1))]} ]] && printf "\n"
+            done
+        fi
+    done
+    return 0
+}
+
+#-----------------------------------------------------------------------------#
+# This function checks if specified info item is valid and prints the result
+# (true|false) to stdout.
+#
+# Param 1: system number [1..2]
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function is_valid_item
+{ 
+    for item in ${INFO_ITEMS[@]} ; do 
+        if [[ "$item" == "$1" ]]; then
+            echo -n "true"
+            return 0
+        fi
+    done
+    echo -n "false"
+    return 0
+}
+
+#-----------------------------------------------------------------------------#
+# Function to evaluate tool/script parameters.
+# This function uses globally defined script option variables.
+#
+# Param 1..n: Script parameters
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+evaluate_params()
+{
+    #if no paramters passed (default -> print all in text format)
+    [[ $# -eq 0 ]] && return 0
+    
+    #try to match one parameter (help or json)
+    if [[ $# -eq 1 ]]; then
+        PARAM_SHOWHELP=$(get_parameter_option "-h" "--help" "$1")
+        if [[ $PARAM_SHOWHELP -ne 1 ]]; then
+            PARAM_JSON=$(get_parameter_option "-j" "--json" "$1")
+            if [[ $PARAM_JSON -ne 1 ]]; then
+                case "$1" in
+                    "active-system-number")
+                        PARAM_GET_ACTIVE_SYSTEM=1
+                        ;;
+                    "inactive-system-number")
+                        PARAM_GET_INACTIVE_SYSTEM=1
+                        ;;
+                    "configured-system-number")
+                        PARAM_GET_CONFIGURED_SYSTEM=1
+                        ;;
+                  *)
+                    return $INVALID_PARAMETER
+                    ;;
+                esac
+            fi
+        fi
+        return 0;
+    fi
+    
+    #try to match two parameters (1: system nr, 2: info item)
+    if [[ $# -eq 2 && $1 -le $MAX_SYSTEMS && $1 -gt 0 && $(is_valid_item $2) == "true" ]]; then
+        PARAM_SYS_NUM=$1
+        PARAM_INFO_ITEM=$2
+        return 0;
+    fi
+    
+    #return invalid paramter if no match was found above
+    return $INVALID_PARAMETER
+}
+
+#-----------------------------------------------------------------------------#
+# Main tool/script function.
+#
+# Param 1..n: Script parameters
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+main()
+{
+    # Evaluate parameters
+    evaluate_params "$@"
+    if [[ $? -ne 0 ]]; then
+        report_error "Error on config tool parameter evaluation"
+        return "$INVALID_PARAMETER"
+    fi
+
+    # Print help if requested and exit
+    if [[ $PARAM_SHOWHELP -ne 0 ]]; then
+        print_info
+        return $result
+    else
+        update_activation_system_numbers
+        if [[ $PARAM_GET_ACTIVE_SYSTEM -ne 0 ]]; then
+            echo -n $ACTIVE_SYSTEM_NUMBER
+            return $?
+        fi
+        
+        if [[ $PARAM_GET_INACTIVE_SYSTEM -ne 0 ]]; then
+            echo -n $INACTIVE_SYSTEM_NUMBER
+            return $?
+        fi
+        
+        if [[ $PARAM_GET_CONFIGURED_SYSTEM -ne 0 ]]; then
+            echo -n $CONFIGURED_SYSTEM_NUMBER
+            return $?
+        fi
+        
+        if [[ -z $PARAM_INFO_ITEM ]]; then
+            get_system_info_all
+            return $?
+        else
+            get_system_info_item
+            return $?
+        fi
+    fi
+   
+    return 0
+}
+
+# Start main function
+main "$@"
+exit $?

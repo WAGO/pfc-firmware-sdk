@@ -1,0 +1,51 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_iocheckport_config
+#
+# Config Tools: Get state of iocheck port access.
+#
+# Author: HJH, WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+. /etc/config-tools/config_tool_lib
+INETD_CONF="/etc/inetd.conf"
+
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter).
+#--------------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Get state of iocheck port access. *"
+    echo
+    echo "Usage: get_iocheckport_config -h, --help or"
+    echo "       get_iocheckport_config state"
+    echo
+    echo "Returns \"enabled\" or \"disabled\""
+    echo
+    exit $SUCCESS
+fi
+
+#--------------------------------------------------------------------
+# main - Get state
+#--------------------------------------------------------------------
+
+status=$SUCCESS
+if [ "$1" = "state" ]; then
+    if egrep -q "^wago-serv-tcp" $INETD_CONF; then
+        state="enabled"
+    else
+        state="disabled"
+    fi
+    printf $state
+else
+    SetLastError "Invalid input parameter ($1)"
+    status=$INVALID_PARAMETER
+fi
+exit $status

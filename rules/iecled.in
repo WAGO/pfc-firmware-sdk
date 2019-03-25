@@ -1,0 +1,18 @@
+## SECTION=wago_specific_libs
+
+config IECLED
+	bool
+	prompt "iecled"
+	select PLCLINUXRT
+	help
+	  IEC61131 library to use the USER LEDs of the PFC200
+
+if IECLED
+
+config IECLED_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+endif

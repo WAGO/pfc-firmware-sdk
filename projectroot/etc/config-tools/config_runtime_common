@@ -1,0 +1,146 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_runtime_common
+#
+# Configuration of the PLC runtime common functions and definitions.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+CTDIR=/etc/config-tools
+
+# Load general definitions and functions.
+if [ ! -f "$CTDIR/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. $CTDIR/config_tool_lib
+
+# DEFINITIONS
+RUNTIME_CONFIG="/etc/specific/runtimes.conf"
+CDS_WEBSERVER_PORT="8080"
+
+# Mapping of config parameter name to config tool set command. Used by build_set_command.
+SETCMD_DEFAULT_WEBPAGE="$CTDIR/change_default_webserver default-webserver="
+SETCMD_V2_WEBSERVER_STATE="$CTDIR/config_port port=codesys-webserver state="
+SETCMD_V2_SERVICE_DISABLED="$CTDIR/change_rts_config area=PLC disable-tcpip="
+SETCMD_V2_SERVICE_PORT_NO="$CTDIR/change_rts_config area=PLC TcpIpPort="
+SETCMD_V2_PORT_AUTH="$CTDIR/change_rts_config area=PASSWORD USEPWD="
+SETCMD_V3_WEBSERVER_STATE="cds3_webserverstate "
+SETCMD_V3_PORT_AUTH="cds3_port_auth "
+SETCMD_V3_SERIAL_PROGRAMMING="cds3_set_serial_programming"
+SETCMD_V2_SERIAL_PROGRAMMING="cds2_set_serial_programming"
+
+# Mapping of config parameter name to config tool get command. Used by build_get_command only.
+GETCMD_DEFAULT_WEBPAGE="$CTDIR/get_coupler_details default-webserver"
+GETCMD_CODESYS_HOMEDIR_SDCARD="get_rts_home"
+GETCMD_V2_WEBSERVER_STATE="$CTDIR/get_port_state codesys-webserver"
+GETCMD_V2_SERVICE_DISABLED="$CTDIR/get_rts3scfg_value PLC DisableTcpIpProgramming"
+GETCMD_V2_SERVICE_PORT_NO="$CTDIR/get_rts3scfg_value PLC TcpIpPort"
+GETCMD_V2_PORT_AUTH="$CTDIR/get_rts3scfg_value PASSWORD USEPWD"
+GETCMD_V3_WEBSERVER_STATE="$CTDIR/get_port_state codesys3-webserver"
+GETCMD_V3_PORT_AUTH="$CTDIR/get_rts3scfg_value PASSWORD USEPWD"
+GETCMD_V3_SERIAL_PROGRAMMING="cds3_get_serial_programming"
+GETCMD_V2_SERIAL_PROGRAMMING="cds2_get_serial_programming"
+
+# FUNCTIONS
+# Build config tool command to get a parameter.
+build_get_command()
+{
+    local valname=$1
+
+    CMD_NAME="GETCMD_$valname"
+    echo "${!CMD_NAME}"
+}
+
+# Create config file /etc/specific/runtimes.conf
+read_config_data()
+{
+    local params="DEFAULT_WEBPAGE CODESYS_HOMEDIR_SDCARD V2_WEBSERVER_STATE V2_SERVICE_DISABLED V2_SERVICE_PORT_NO V2_PORT_AUTH"
+    params="$params V3_WEBSERVER_STATE V3_PORT_AUTH V2_SERIAL_PROGRAMMING V3_SERIAL_PROGRAMMING"
+
+    echo "# Generated file. Created by config_runtime or get_runtime_config" > $RUNTIME_CONFIG
+    echo "# Cache of PLC runtime systems configuration data" >> $RUNTIME_CONFIG
+    echo "# Holds configuration data of codesys2 (V2_*) and e!Runtime aka codesys3 (V3_*)." >> $RUNTIME_CONFIG
+    echo  >> $RUNTIME_CONFIG
+
+    for parname in $params; do
+        cmd=$(build_get_command $parname)
+        parvalue=$($cmd)
+        echo "$parname=\"$parvalue\"" >> $RUNTIME_CONFIG
+    done
+}
+
+# Check argument value against a selection of values.
+arg_assert()
+{
+    local arg=$1
+    local sel=$2
+    local msg=$3
+    local valid=""
+
+    for val in $sel; do
+        if [ $arg = $val ]; then
+            valid=1
+            break
+        fi
+    done
+    if [ ! $valid ]; then
+        status=$INVALID_PARAMETER
+        SetLastError "$msg"
+        exit $status
+    fi
+}
+
+cds3_get_serial_programming()
+{
+    if [ -a /usr/lib/libCmpBlkDrvCom.so ]
+    then
+        echo "1"
+    else
+        echo "0"
+    fi
+}
+
+cds2_get_serial_programming()
+{
+    #the config key says DISABLE = YES but we want ENABLE = YES
+    # so the result must be inverted!
+    local VALUE=$($CTDIR/get_rts3scfg_value PLC DisableSerialProgramming)
+    if [ "$VALUE" == "YES" ]
+    then
+        echo "0"
+    else
+        echo "1"
+    fi
+}
+
+# Read link to see if rts homedir external is set.
+get_rts_home()
+{
+    local home_extern="disabled"
+    if [ -L /home/codesys ]; then
+        if readlink /home/codesys | grep -q "/media/sd"; then
+            home_extern="enabled"
+        fi
+    fi
+    echo $home_extern
+}
+
+# ACTIONS
+CURRENT_RUNTIME_VERSION=$($CTDIR/get_plc_config)
+
+# if on first run no config file exists create and import it.
+if [ ! -e $RUNTIME_CONFIG ]; then
+    read_config_data
+    sync
+fi
+. $RUNTIME_CONFIG
+
+status=$SUCCESS

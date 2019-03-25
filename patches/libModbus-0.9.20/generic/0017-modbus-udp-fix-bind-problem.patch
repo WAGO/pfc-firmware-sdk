@@ -1,0 +1,44 @@
+Index: libModbus-0.9.20/src/modbus-ip-slave.c
+===================================================================
+--- libModbus-0.9.20.orig/src/modbus-ip-slave.c	2016-10-13 15:20:36.082447787 +0000
++++ libModbus-0.9.20/src/modbus-ip-slave.c	2016-10-14 09:58:31.142533933 +0000
+@@ -363,22 +363,25 @@
+ static int start_udp_socket(struct mb_socket *mbs)
+ {
+ 	struct sockaddr_in sin;
+-	int res, sd;
++	int res, sd, opt = 1;
++
++	sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
++	if (sd < 0)
++		return sd;
+ 
+ 	memset(&sin, 0, sizeof(sin));
+ 	sin.sin_family = AF_INET;
+ 	sin.sin_addr.s_addr = htonl(mbs->bindaddr);
+ 	sin.sin_port = htons(mbs->port);
+ 
+-	sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+-	if (sd < 0)
+-		return sd;
+-
+ 	res = bind(sd, (struct sockaddr *) &sin, sizeof (sin));
+ 	if (res < 0)
+-		close(sd);
++		goto err;
+ 
+ 	return sd;
++err:
++	close(sd);
++	return res;
+ }
+ 
+ /*
+@@ -542,7 +545,6 @@
+ 	if (!mbs->enabled)
+ 		return;
+ 
+-
+ repeat:
+ 	pthread_mutex_lock(&mbs->lock);
+ 	mbs->stop = 1;

@@ -1,0 +1,334 @@
+From 7cda7bba578fa8fbd75a3bcb3d343ff4921db6fb Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Tue, 13 May 2014 14:29:17 +0200
+Subject: [PATCH] add fc08 for master
+
+---
+ src/modbus-private.h |  18 +++++++
+ src/modbus.c         | 134 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ src/modbus.h         |   2 +
+ 3 files changed, 142 insertions(+), 12 deletions(-)
+
+diff --git a/src/modbus-private.h b/src/modbus-private.h
+index 7891004..9655751 100644
+--- a/src/modbus-private.h
++++ b/src/modbus-private.h
+@@ -59,12 +59,30 @@ MODBUS_BEGIN_DECLS
+ #define _FC_WRITE_SINGLE_COIL         0x05
+ #define _FC_WRITE_SINGLE_REGISTER     0x06
+ #define _FC_READ_EXCEPTION_STATUS     0x07
++#define _FC_DIAGNOSTICS               0x08
+ #define _FC_WRITE_MULTIPLE_COILS      0x0F
+ #define _FC_WRITE_MULTIPLE_REGISTERS  0x10
+ #define _FC_REPORT_SLAVE_ID           0x11
+ #define _FC_MASK_WRITE_REGISTER       0x16
+ #define _FC_WRITE_AND_READ_REGISTERS  0x17
+ 
++/* Subfunction codes of _FC_DIAGNOSTICS */
++#define _SFC_RETURN_QUERY_DATA                       0x00
++#define _SFC_RESTART_COMMUNICATIONS_OPTION           0x01
++#define _SFC_RETURN_DIAGNOSTIC_REGISTER              0x02
++#define _SFC_CHANGE_ASCII_INPUT_DELIMITER            0x03
++#define _SFC_FORCE_LISTEN_ONLY_MODE                  0x04
++#define _SFC_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER  0x0A
++#define _SFC_RETURN_BUS_MESSAGE_COUNT                0x0B
++#define _SFC_RETURN_BUS_COMMUNICATION_ERROR_COUNT    0x0C
++#define _SFC_RETURN_BUS_EXCEPTION_ERROR_COUNT        0x0D
++#define _SFC_RETURN_SERVER_MESSAGE_COUNT             0x0E
++#define _SFC_RETURN_SERVER_NO_RESPONSE_COUNT         0x0F
++#define _SFC_RETURN_NAK_COUNT                        0x10
++#define _SFC_RETURN_SERVER_BUSY_COUNT                0x11
++#define _SFC_RETURN_BUS_CHARACTER_OVERRUN_COUNT      0x12
++#define _SFC_CLEAR_OVERRUN_COUNTER_AND_FLAG          0x14
++
+ typedef enum {
+     _MODBUS_BACKEND_TYPE_RTU=0,
+     _MODBUS_BACKEND_TYPE_TCP,
+diff --git a/src/modbus.c b/src/modbus.c
+index 2e7dcc8..a208dd3 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -146,8 +146,48 @@ int modbus_flush(modbus_t *ctx)
+     return rc;
+ }
+ 
++/* Computes the length of FC08 subfunctions */
++static int compute_subfunction_length(modbus_t *ctx, uint8_t *msg,
++                                      int msg_length)
++{
++    int length;
++    int subfunction = msg[ctx->backend->header_length + 1] << 8
++                    | msg[ctx->backend->header_length + 2];
++
++    switch (subfunction) {
++    case _SFC_RETURN_QUERY_DATA:
++        if(msg_length == MSG_LENGTH_UNDEFINED)
++            return MSG_LENGTH_UNDEFINED;
++        else
++            length = msg_length - ctx->backend->header_length - 1;
++        break;
++    case _SFC_RESTART_COMMUNICATIONS_OPTION:
++    case _SFC_RETURN_DIAGNOSTIC_REGISTER:
++    case _SFC_CHANGE_ASCII_INPUT_DELIMITER:
++    case _SFC_FORCE_LISTEN_ONLY_MODE:
++    case _SFC_CLEAR_COUNTERS_AND_DIAGNOSTIC_REGISTER:
++    case _SFC_RETURN_BUS_MESSAGE_COUNT:
++    case _SFC_RETURN_BUS_COMMUNICATION_ERROR_COUNT:
++    case _SFC_RETURN_BUS_EXCEPTION_ERROR_COUNT:
++    case _SFC_RETURN_SERVER_MESSAGE_COUNT:
++    case _SFC_RETURN_SERVER_NO_RESPONSE_COUNT:
++    case _SFC_RETURN_NAK_COUNT:
++    case _SFC_RETURN_SERVER_BUSY_COUNT:
++    case _SFC_RETURN_BUS_CHARACTER_OVERRUN_COUNT:
++    case _SFC_CLEAR_OVERRUN_COUNTER_AND_FLAG:
++        length = 2;
++        break;
++    default:
++        return MSG_LENGTH_UNDEFINED;
++    }
++
++    return length;
++}
++
+ /* Computes the length of the expected response */
+-static unsigned int compute_response_length_from_request(modbus_t *ctx, uint8_t *req)
++static unsigned int compute_response_length_from_request(modbus_t *ctx,
++                                                         uint8_t *req,
++                                                         int req_length)
+ {
+     int length;
+     const int offset = ctx->backend->header_length;
+@@ -172,6 +212,11 @@ static unsigned int compute_response_length_from_request(modbus_t *ctx, uint8_t
+     case _FC_MASK_WRITE_REGISTER:
+         length = 7;
+         break;
++    case _FC_DIAGNOSTICS:
++        length = compute_subfunction_length(ctx, req, req_length) + 3;
++        if(length == MSG_LENGTH_UNDEFINED)
++            return MSG_LENGTH_UNDEFINED;
++        break;
+     case _FC_REPORT_SLAVE_ID:
+         /* The response is device specific (the header provides the
+            length) */
+@@ -278,6 +323,8 @@ static uint8_t compute_meta_length_after_function(int function,
+     if (msg_type == MSG_INDICATION) {
+         if (function <= _FC_WRITE_SINGLE_REGISTER) {
+             length = 4;
++        } else if (function == _FC_DIAGNOSTICS) {
++            length = 2;
+         } else if (function == _FC_WRITE_MULTIPLE_COILS ||
+                    function == _FC_WRITE_MULTIPLE_REGISTERS) {
+             length = 5;
+@@ -292,6 +339,9 @@ static uint8_t compute_meta_length_after_function(int function,
+     } else {
+         /* MSG_CONFIRMATION */
+         switch (function) {
++        case _FC_DIAGNOSTICS:
++            length = 2;
++            break;
+         case _FC_WRITE_SINGLE_COIL:
+         case _FC_WRITE_SINGLE_REGISTER:
+         case _FC_WRITE_MULTIPLE_COILS:
+@@ -325,6 +375,12 @@ static int compute_data_length_after_meta(modbus_t *ctx, uint8_t *msg,
+         case _FC_WRITE_AND_READ_REGISTERS:
+             length = msg[ctx->backend->header_length + 9];
+             break;
++        case _FC_DIAGNOSTICS: {
++            length = compute_subfunction_length(ctx, msg, MSG_LENGTH_UNDEFINED);
++            if(length == MSG_LENGTH_UNDEFINED)
++                return MSG_LENGTH_UNDEFINED;
++            break;
++        }
+         default:
+             length = 0;
+         }
+@@ -334,6 +390,10 @@ static int compute_data_length_after_meta(modbus_t *ctx, uint8_t *msg,
+             function == _FC_REPORT_SLAVE_ID ||
+             function == _FC_WRITE_AND_READ_REGISTERS) {
+             length = msg[ctx->backend->header_length + 1];
++        } else if (function == _FC_DIAGNOSTICS) {
++            length = compute_subfunction_length(ctx, msg, MSG_LENGTH_UNDEFINED);
++            if(length == MSG_LENGTH_UNDEFINED)
++                return MSG_LENGTH_UNDEFINED;
+         } else {
+             length = 0;
+         }
+@@ -472,7 +532,8 @@ static int receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
+             }
+         }
+ 
+-        if (length_to_read > 0 && ctx->byte_timeout.tv_sec != -1) {
++        if ((length_to_read > 0 || length_to_read == MSG_LENGTH_UNDEFINED)
++            && ctx->byte_timeout.tv_sec != -1) {
+             /* If there is no character in the buffer, the allowed timeout
+                interval between two consecutive bytes is defined by
+                byte_timeout */
+@@ -507,7 +568,7 @@ int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp)
+     return receive_msg(ctx, rsp, MSG_CONFIRMATION);
+ }
+ 
+-static int check_confirmation(modbus_t *ctx, uint8_t *req,
++static int check_confirmation(modbus_t *ctx, uint8_t *req, int req_length,
+                               uint8_t *rsp, int rsp_length)
+ {
+     int rc;
+@@ -524,7 +585,8 @@ static int check_confirmation(modbus_t *ctx, uint8_t *req,
+         }
+     }
+ 
+-    rsp_length_computed = compute_response_length_from_request(ctx, req);
++    rsp_length_computed = compute_response_length_from_request(ctx, req,
++                                                               req_length);
+ 
+     /* Check length */
+     if (rsp_length == rsp_length_computed ||
+@@ -571,6 +633,9 @@ static int check_confirmation(modbus_t *ctx, uint8_t *req,
+             req_nb_value = (req[offset + 3] << 8) + req[offset + 4];
+             rsp_nb_value = (rsp[offset + 3] << 8) | rsp[offset + 4];
+             break;
++        case _FC_DIAGNOSTICS:
++            req_nb_value = rsp_nb_value = rsp_length - offset - 3;
++            break;
+         case _FC_REPORT_SLAVE_ID:
+             /* Report slave ID (bytes received) */
+             req_nb_value = rsp_nb_value = rsp[offset + 1];
+@@ -1430,7 +1495,7 @@ static int read_io_status(modbus_t *ctx, int function,
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1529,7 +1594,7 @@ static int read_registers(modbus_t *ctx, int function, int addr, int nb,
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1605,7 +1670,7 @@ static int write_single(modbus_t *ctx, int function, int addr, int value)
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+     }
+ 
+     return rc;
+@@ -1644,7 +1709,7 @@ int modbus_write_mask_register(modbus_t *ctx, int addr, int and, int or)
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+     }
+ 
+     return rc;
+@@ -1702,7 +1767,7 @@ int modbus_write_bits(modbus_t *ctx, int addr, int nb, const uint8_t *src)
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+     }
+ 
+ 
+@@ -1748,7 +1813,7 @@ int modbus_write_registers(modbus_t *ctx, int addr, int nb, const uint16_t *src)
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+     }
+ 
+     return rc;
+@@ -1811,7 +1876,7 @@ int modbus_write_and_read_registers(modbus_t *ctx,
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1828,6 +1893,51 @@ int modbus_write_and_read_registers(modbus_t *ctx,
+     return rc;
+ }
+ 
++/* Send a diagnostic related message which is specified by the subfunction code
++   in detail */
++int modbus_diagnostics(modbus_t *ctx, int subfunction,
++                       int nb_src, const uint16_t *src,
++                       int nb_dest, uint16_t *dest)
++{
++    int rc;
++    int i;
++    int offset;
++    int req_length;
++    uint8_t req[MAX_MESSAGE_LENGTH];
++
++    req_length = ctx->backend->build_request_basis(ctx, _FC_DIAGNOSTICS,
++                                                   subfunction, 0, req);
++
++    /* HACKISH, count is not used */
++    req_length -= 2;
++
++    for (i = 0; i < nb_src; i++) {
++        req[req_length++] = src[i] >> 8;
++        req[req_length++] = src[i] & 0x00FF;
++    }
++
++    rc = send_msg(ctx, req, req_length);
++    if (rc > 0) {
++        uint8_t rsp[MAX_MESSAGE_LENGTH];
++
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        if (rc == -1)
++            return -1;
++
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
++
++        offset = ctx->backend->header_length;
++
++        for (i = 0; i < MIN(rc,nb_dest*2); i++) {
++            /* shift reg hi_byte to temp OR with lo_byte */
++            dest[i] = (rsp[offset + 3 + (i << 1)] << 8) |
++                rsp[offset + 4 + (i << 1)];
++        }
++    }
++
++    return rc;
++}
++
+ /* Send a request to get the slave ID of the device (only available in serial
+    communication). */
+ int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest)
+@@ -1852,7 +1962,7 @@ int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest)
+         if (rc == -1)
+             return -1;
+ 
+-        rc = check_confirmation(ctx, req, rsp, rc);
++        rc = check_confirmation(ctx, req, req_length, rsp, rc);
+         if (rc == -1)
+             return -1;
+ 
+diff --git a/src/modbus.h b/src/modbus.h
+index c2119c1..9d7b68c 100644
+--- a/src/modbus.h
++++ b/src/modbus.h
+@@ -183,6 +183,8 @@ int modbus_write_registers(modbus_t *ctx, int addr, int nb, const uint16_t *data
+ int modbus_write_and_read_registers(modbus_t *ctx, int write_addr, int write_nb,
+                                     const uint16_t *src, int read_addr, int read_nb,
+                                     uint16_t *dest);
++int modbus_diagnostics(modbus_t *ctx, int subfunction, int nb_src, const uint16_t *src,
++                       int nb_dest, uint16_t *dest);
+ int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest);
+ 
+ modbus_mapping_t* modbus_mapping_new(int nb_coil_status, int nb_input_status,
+-- 
+1.9.0
+

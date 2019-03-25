@@ -1,0 +1,376 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2014-2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   mounthd2
+#
+# Brief:    Script to mount target specific devices and folders.
+#
+# Author:   HT:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+fail_exit=112
+
+# check which is our root device
+ACTIVE_ROOT_PARTITION="$(cat /proc/cmdline | grep -o 'root=/[^[:space:]]\+' | cut -d= -f2)"
+if [ -z "$ACTIVE_ROOT_PARTITION" ]; then
+  ACTIVE_ROOT_PARTITION="$(cat /proc/cmdline | grep -o 'root=ubi[^[:space:]]\+' | cut -d= -f2)"
+  ACTIVE_ROOT_PARTITION="$(echo "$ACTIVE_ROOT_PARTITION" | sed 's#ubi0:rootfs.1#/dev/ubi0_0#g')"
+  ACTIVE_ROOT_PARTITION="$(echo "$ACTIVE_ROOT_PARTITION" | sed 's#ubi0:rootfs.2#/dev/ubi0_2#g')"
+fi
+
+function echo_error
+{
+  echo "$@" 1>&2
+}
+
+function mount_partition
+{
+  local fstype="$1"
+  local dev="$2"
+  local mntpoint="$3"
+  local options="$4"
+  local result=0
+
+  if check_mounted "${mntpoint}" >/dev/null 2>&1; then
+    echo "Already mounted: ${mntpoint}"
+  else
+    echo -n "Mounting ${dev} to ${mntpoint}..."
+    mkdir -p "${mntpoint}"
+    result=$?
+    if [ "$result" -eq "0" ]; then
+      mount -t "${fstype}" "${dev}" "${mntpoint}" -o "${options}" >/dev/null 2>&1
+      result=$?
+    fi
+    if [ "$result" -eq "0" ]; then
+      echo "done."
+    else
+      echo "failed."
+    fi
+  fi
+}
+
+function mount_folder
+{
+  local folder="$1"
+  local mntpoint="$2"
+  local options="$3"
+  local result=0
+
+  if check_mounted "${mntpoint}" >/dev/null 2>&1; then
+    echo "Already mounted: ${mntpoint}"
+  else
+    echo -n "Mounting ${folder} to ${mntpoint}..."
+    mkdir -p "${folder}"
+    result=$?
+    if [ "$result" -eq "0" ]; then
+      mkdir -p "${mntpoint}"
+      result=$?
+    fi
+    if [ "$result" -eq "0" ]; then
+      mount --bind "${folder}" "${mntpoint}" -o "${options}" >/dev/null 2>&1
+      result=$?
+    fi
+    if [ "$result" -eq "0" ]; then
+      echo "done."
+    else
+      echo "failed."
+    fi
+  fi
+}
+
+function umount_point
+{
+  local mntpoint="$1"
+
+  if check_mounted "${mntpoint}" >/dev/null 2>&1; then
+    # Synchronize file systems to enhance chance to unmount
+    sync
+
+    # Try to unmount
+    echo -n "Unmounting ${mntpoint}..."
+    local timeout=3
+    while [ "$timeout" -gt "0" ] && check_mounted "${mntpoint}" >/dev/null 2>&1; do
+      umount "${mntpoint}" >/dev/null 2>&1
+      sleep 1
+      timeout=$(( $timeout - 1 ))
+    done
+
+    if check_mounted "${mntpoint}" >/dev/null 2>&1; then
+      echo "failed."
+    else
+      echo "done."
+    fi
+  else
+    echo "Not mounted: ${mntpoint}"
+  fi
+
+  return 0
+}
+
+function mount_on_internal_emmc
+{
+  local BOOT_PARTITION_EMMC="/dev/mmcblk1p1"
+  local SETTINGS_PARTITION_EMMC="/dev/mmcblk1p6"
+  local LOG_PARTITION_EMMC="/dev/mmcblk1p5"
+  local ROOT_PARTITION_EMMC="$ACTIVE_ROOT_PARTITION"
+  
+  if [[ "$ACTIVE_ROOT_PARTITION" == "/dev/mmcblk1p7" ]]; then
+      local HOME_PARTITION_EMMC="/dev/mmcblk1p8"
+      local INACTIVE_ROOT_PARTITION_EMMC="/dev/mmcblk1p10"
+      local INACTIVE_HOME_PARTITION_EMMC="/dev/mmcblk1p9"
+  else
+      local HOME_PARTITION_EMMC="/dev/mmcblk1p9"
+      local INACTIVE_ROOT_PARTITION_EMMC="/dev/mmcblk1p7"
+      local INACTIVE_HOME_PARTITION_EMMC="/dev/mmcblk1p8"
+  fi
+  mount_partition auto "${BOOT_PARTITION_EMMC}" "/boot/loader" defaults
+  mount_partition auto "${HOME_PARTITION_EMMC}" "/home" defaults
+  mount_partition auto "${SETTINGS_PARTITION_EMMC}" "/settings" defaults
+  mount_partition auto "${LOG_PARTITION_EMMC}" "/log" defaults
+  ln -s "${ROOT_PARTITION_EMMC}" "/dev/rootfs_active"
+  ln -s "${HOME_PARTITION_EMMC}" "/dev/home_active"
+  ln -s "${INACTIVE_ROOT_PARTITION_EMMC}" "/dev/rootfs_inactive"
+  ln -s "${INACTIVE_HOME_PARTITION_EMMC}" "/dev/home_inactive"
+
+  return 0
+}
+
+function mount_on_internal_nand
+{
+  local ROOT_PARTITION_UBI="$ACTIVE_ROOT_PARTITION"
+  local HOME_PARTITION_UBI="/dev/ubi0_1"
+  local SETTINGS_FOLDER_UBI="/home/settings"
+  local LOG_FOLDER_UBI="/home/log"
+  local INACTIVE_ROOT_PARTITION_UBI="$(if [[ "$ROOT_PARTITION_UBI" == "/dev/ubi0_0" ]]; then echo "/dev/ubi0_2"; else echo "/dev/ubi0_0"; fi)"
+
+  rm -f "/boot/loader"
+  ln -s "/boot/loader-backup" "/boot/loader"
+  mount_partition ubifs "${HOME_PARTITION_UBI}" "/home" sync
+  mount_folder "${SETTINGS_FOLDER_UBI}" "/settings" defaults
+  mount_folder "${LOG_FOLDER_UBI}" "/log" defaults
+  ln -s "${ROOT_PARTITION_UBI}" "/dev/rootfs_active"
+  ln -s "${HOME_PARTITION_UBI}" "/dev/home_active"
+  ln -s "${INACTIVE_ROOT_PARTITION_UBI}" "/dev/rootfs_inactive"
+
+  return 0
+}
+
+function mount_on_sd_card
+{
+  local BOOT_PARTITION_SD="/dev/mmcblk0p1"
+  local ROOT_PARTITION_SD="$ACTIVE_ROOT_PARTITION"
+  mount_partition auto "${BOOT_PARTITION_SD}" "/boot/loader" defaults
+  ln -s "${ROOT_PARTITION_SD}" "/dev/rootfs_active"
+
+  return 0
+}
+
+function check_mounted
+{
+  local folder="$1"
+  local parent="$folder/.."
+  local result=0
+
+  local folder_device_id=$(find "$folder" -maxdepth 0 -printf "%D" 2>/dev/null)
+  local parent_device_id=$(find "$parent" -maxdepth 0 -printf "%D" 2>/dev/null)
+  if [ -z "$folder_device_id" ]; then
+    result=$fail_exit
+    echo_error "[ FAIL ] Unable to get device ID for: \"$folder\""
+  elif [ -z "$parent_device_id" ]; then
+    result=$fail_exit
+    echo_error "[ FAIL ] Unable to get device ID for: \"$parent\""
+  elif [ "$folder_device_id" -eq "$parent_device_id" ]; then
+    result=$fail_exit
+    echo_error "[ FAIL ] Folder not mounted: \"$folder\""
+  fi
+
+  if [ "$result" -eq "0" ]; then
+    echo "[  OK  ] Folder mounted: \"$folder\""
+  fi
+
+  return $result
+}
+
+function check_symlink
+{
+  local symlink="$1"
+  local target="$(readlink "$symlink")"
+  local result=0
+
+  if [ ! -h "$symlink" ]; then
+    result=$fail_exit
+    echo_error "[ FAIL ] No symbolic link: \"$symlink\""
+  elif [ -z "$target" ]; then
+    result=$fail_exit
+    echo_error "[ FAIL ] Symbolic link target unknown for: \"$symlink\""
+  elif [ ! -e "$target" ]; then
+    result=$fail_exit
+    echo_error "[ FAIL ] Symbolic link target does not exist: \"$symlink\" (symbolic link) -> \"$target\" (target)"
+  fi
+
+  if [ "$result" -eq "0" ]; then
+    echo "[  OK  ] Symbolic link working: \"$symlink\" (symbolic link) -> \"$target\" (target)"
+  fi
+
+  return $result
+}
+
+function status_on_internal_emmc
+{
+  local result=0
+
+  check_mounted "/boot/loader"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_mounted "/home"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_mounted "/settings"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_mounted "/log"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/rootfs_active"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/home_active"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/rootfs_inactive"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/home_inactive"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+
+  return $result
+}
+
+function status_on_internal_nand
+{
+  local result=0
+
+  check_symlink "/boot/loader"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_mounted "/home"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_mounted "/settings"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_mounted "/log"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/rootfs_active"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/home_active"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/rootfs_inactive"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+
+  return $result
+}
+
+function status_on_sd_card
+{
+  local result=0
+
+  check_mounted "/boot/loader"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+  check_symlink "/dev/rootfs_active"
+  result=$(( $? != 0 ? $fail_exit : $result ))
+
+  return $result
+}
+
+######################################################
+#                        MAIN                        #
+######################################################
+RESULT=0
+case $1 in
+
+  start)
+    case "${ACTIVE_ROOT_PARTITION}" in
+      *mmcblk0*)
+        mount_on_sd_card
+        RESULT=$?
+        ;;
+
+      *mmcblk1*)
+        mount_on_internal_emmc
+        RESULT=$?
+        ;;
+
+      *ubi0*)
+        mount_on_internal_nand
+        RESULT=$?
+        ;;
+
+      *)
+        echo "Unknown root device!"
+        RESULT=$fail_exit
+        ;;
+    esac
+    ;;
+
+  stop)
+    case "${ACTIVE_ROOT_PARTITION}" in
+      *mmcblk0*)
+        umount_point "/boot/loader"
+        ;;
+
+      *mmcblk1*)
+        umount_point "/home"
+        umount_point "/boot/loader"
+        umount_point "/settings"
+        umount_point "/log"
+        ;;
+
+      *ubi0*)
+        umount_point "/home"
+        rm -f "/boot/loader"
+        umount_point "/settings"
+        umount_point "/log"
+        ;;
+
+      *)
+        echo "Unknown root device!"
+        RESULT=$fail_exit
+        ;;
+    esac
+    # remove symlinks for active/inactive partitions
+    rm -f "/dev/rootfs_"* "/dev/home_"*
+    ;;
+
+  status)
+    case "${ACTIVE_ROOT_PARTITION}" in
+      *mmcblk0*)
+        status_on_sd_card
+        RESULT=$?
+        ;;
+
+      *mmcblk1*)
+        status_on_internal_emmc
+        RESULT=$?
+        ;;
+
+      *ubi0*)
+        status_on_internal_nand
+        RESULT=$?
+        ;;
+      *)
+        echo "Unknown root device!"
+        RESULT=$fail_exit
+        ;;
+    esac
+    ;;
+
+  *)
+    echo "Usage:"
+    echo "$(basename "$0") start|stop|status"
+    RESULT=$fail_exit
+    ;;
+esac
+
+exit $RESULT

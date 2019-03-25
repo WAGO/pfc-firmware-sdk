@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<firewall xmlns="http://www.wago.com/security/firewall"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.wago.com/security/firewall service.xsd">
+    <ipv4>
+        <service name="modbus_tcp">
+            <interfaces>
+                <interface state="on"  if="X1"/>
+                <interface state="on"  if="X2"/>
+                <interface state="off" if="WAN"/>
+                <interface state="on"  if="VPN"/>
+            </interfaces>
+            <rules>
+                <rule state="on" proto="tcp" dst_port="502"/>
+            </rules>
+        </service>
+    </ipv4>
+</firewall>

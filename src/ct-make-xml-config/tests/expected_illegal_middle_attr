@@ -1,0 +1,7 @@
+Error parsing line
+
+level.illegal:
+
+No level.illegal in XSD configuration.
+
+make-xml-config: Error processing node CT_MENU_WBM_COUPLER_DETAILS in file test_menu_illegal_middle_attr.in(line 81)

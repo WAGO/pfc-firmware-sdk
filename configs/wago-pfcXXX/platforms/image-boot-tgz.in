@@ -1,0 +1,31 @@
+## SECTION=image2
+
+menuconfig IMAGE_BOOT_TAR
+	tristate
+	prompt "Generate images/boot.tgz"
+	help
+	  Generate an boot.tgz wich contains all oftrees,
+	  kernel, setupfw + oftree and additionally
+	  configurable files. This file is used to generate
+	  data.ubi
+
+if IMAGE_BOOT_TAR
+
+config IMAGE_BOOT_TAR_PLAT_SUFFIX
+	string
+	prompt "platform-suffix"
+	help
+	  List of plaform suffix (e.g. pfc200 pfc100). This
+	  indicates which files need to put in this image and
+	  how many images need to be generated. If no suffix
+	  is given, we create only one image wich is called
+	  'boot.tgz'
+
+config IMAGE_BOOT_TAR_ADDITIONAL_FILES
+	string
+	prompt "additional files"
+	help
+	  List of files with paths that need to
+	  be added to boot.tgz
+
+endif

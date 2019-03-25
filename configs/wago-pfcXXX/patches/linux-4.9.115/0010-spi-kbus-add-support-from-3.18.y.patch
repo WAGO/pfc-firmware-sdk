@@ -1,0 +1,751 @@
+From c3c759fdfe872f9f15dc4484ca66110aa8e78327 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 17 Nov 2016 16:07:04 +0000
+Subject: [PATCH 010/261] spi: kbus: add support from 3.18.y
+
+kbus: fix build errors
+---
+ drivers/spi/Kconfig           |  16 +++
+ drivers/spi/Makefile          |   1 +
+ drivers/spi/spi-omap2-mcspi.c | 297 ++++++++++++++++++++++++++++++++++++++----
+ include/linux/spi/kbus.h      | 150 +++++++++++++++++++++
+ 4 files changed, 437 insertions(+), 27 deletions(-)
+ create mode 100644 include/linux/spi/kbus.h
+
+diff --git a/drivers/spi/Kconfig b/drivers/spi/Kconfig
+index b799547..49e6fdf 100644
+--- a/drivers/spi/Kconfig
++++ b/drivers/spi/Kconfig
+@@ -441,6 +441,16 @@ config SPI_TI_QSPI
+ 	  This device supports single, dual and quad read support, while
+ 	  it only supports single write mode.
+ 
++config SPI_KBUS_OMAP_EXTENSION
++       bool "KBUS Extension for OMAP MCSPI Driver (Read Notes!)"
++       depends on SPI_OMAP24XX
++       help
++         KBUS Extension for the McSPI OMAP driver.
++         It implements the communication protocol for the infineon XE164 Chip
++         which does the communication with the KBUS logic.
++         ATTENTION: This disbles the use of a worker thread (work queue).
++         In its current state only one userspace process is allowed.
++
+ config SPI_OMAP_100K
+ 	tristate "OMAP SPI 100K"
+ 	depends on ARCH_OMAP850 || ARCH_OMAP730 || COMPILE_TEST
+@@ -755,6 +765,12 @@ config SPI_TLE62X0
+ 	  sysfs interface, with each line presented as a kind of GPIO
+ 	  exposing both switch control and diagnostic feedback.
+ 
++config SPI_KBUS
++        select SPI_KBUS_OMAP_EXTENSION
++        tristate "Wago KBUS Driver"
++        help
++          This is driver provides access to the KBUS interface.
++
+ #
+ # Add new SPI protocol masters in alphabetical order above this line
+ #
+diff --git a/drivers/spi/Makefile b/drivers/spi/Makefile
+index aa939d9..6a3805c 100644
+--- a/drivers/spi/Makefile
++++ b/drivers/spi/Makefile
+@@ -102,3 +102,4 @@ obj-$(CONFIG_SPI_XILINX)		+= spi-xilinx.o
+ obj-$(CONFIG_SPI_XLP)			+= spi-xlp.o
+ obj-$(CONFIG_SPI_XTENSA_XTFPGA)		+= spi-xtensa-xtfpga.o
+ obj-$(CONFIG_SPI_ZYNQMP_GQSPI)		+= spi-zynqmp-gqspi.o
++obj-$(CONFIG_SPI_KBUS)                  += spi-kbus.o
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index a47cf63..e901786 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -39,6 +39,20 @@
+ 
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ 
++#include <linux/errno.h>
++
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++#include <linux/sched.h>
++#endif
++
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++#include <linux/spi/kbus.h>
++#include <misc/wago-tests.h>
++#define PXC_SPI_KBUS_TRACER
++#include <trace/events/pxc.h>
++static int kbusdelay = 0;	/* KBUS Inter-Frame-Delay in nanoseconds */
++#endif
++
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
+ #define OMAP2_MCSPI_MAX_DIVIDER		4096
+ #define OMAP2_MCSPI_MAX_FIFODEPTH	64
+@@ -291,6 +305,25 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+ 	ctx->modulctrl = l;
+ }
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_SET_SPIDAT_DIR
++static void omap2_mcspi_set_spidat_direction(struct spi_master *master)
++{
++	u32 l;
++
++#define OMAP2_MCSPI_SYST_SPIDATDIR0_INPUT_EN      BIT(8)
++#define OMAP2_MCSPI_SYST_SPIDATDIR1_INPUT_EN      BIT(9)
++	l = mcspi_read_reg(master, OMAP2_MCSPI_SYST);
++	pr_info("%s: read-OMAP2_MCSPI_SYST: 0x%x\n", __func__, l);
++	l &= ~(OMAP2_MCSPI_SYST_SPIDATDIR0_INPUT_EN | OMAP2_MCSPI_SYST_SPIDATDIR1_INPUT_EN);
++	l |= OMAP2_MCSPI_SYST_SPIDATDIR0_INPUT_EN;
++	pr_info("%s: write-OMAP2_MCSPI_SYST: 0x%x\n", __func__, l);
++	mcspi_write_reg(master, OMAP2_MCSPI_SYST, l);
++
++	l = mcspi_read_reg(master, OMAP2_MCSPI_SYST);
++	pr_info("%s: (update) read-OMAP2_MCSPI_SYST: 0x%x\n", __func__, l);
++}
++#endif
++
+ static void omap2_mcspi_set_fifo(const struct spi_device *spi,
+ 				struct spi_transfer *t, int enable)
+ {
+@@ -390,6 +423,11 @@ static void omap2_mcspi_rx_callback(void *data)
+ 	/* We must disable the DMA RX request */
+ 	omap2_mcspi_set_dma_req(spi, 1, 0);
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	if (spi->dev.driver == &kbus_driver.driver)
++		trace_pxc_kbus(__func__, "DMA: RX completed!");
++#endif
++
+ 	complete(&mcspi_dma->dma_rx_completion);
+ }
+ 
+@@ -402,6 +440,11 @@ static void omap2_mcspi_tx_callback(void *data)
+ 	/* We must disable the DMA TX request */
+ 	omap2_mcspi_set_dma_req(spi, 0, 0);
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	if (spi->dev.driver == &kbus_driver.driver)
++		trace_pxc_kbus(__func__, "DMA: TX completed!");
++#endif
++
+ 	complete(&mcspi_dma->dma_tx_completion);
+ }
+ 
+@@ -434,6 +477,7 @@ static void omap2_mcspi_tx_dma(struct spi_device *spi,
+ 			/* FIXME: fall back to PIO? */
+ 		}
+ 	}
++
+ 	dma_async_issue_pending(mcspi_dma->dma_tx);
+ 	omap2_mcspi_set_dma_req(spi, 0, 1);
+ 
+@@ -534,6 +578,12 @@ omap2_mcspi_rx_dma(struct spi_device *spi, struct spi_transfer *xfer,
+ 
+ 	wait_for_completion(&mcspi_dma->dma_rx_completion);
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	if (spi->dev.driver == &kbus_driver.driver)
++		if (xfer->rx_buf && ((char *) xfer->rx_buf)[96-1] == 0x66)
++			trace_pxc_kbus(__func__, "DMA: RX Data MATCH (0x66)");
++#endif
++
+ 	for (x = 0; x < nb_sizes; x++)
+ 		kfree(sg_out[x]);
+ 
+@@ -606,6 +656,12 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ 	void __iomem            *irqstat_reg;
+ 	int			wait_res;
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	trace_pxc_kbus(__func__, "enter");
++
++	kbus_boost_dma_task(1);
++#endif
++
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+ 	l = mcspi_cached_chconf0(spi);
+@@ -683,6 +739,11 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ 				dev_err(&spi->dev, "EOT timed out\n");
+ 		}
+ 	}
++
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	trace_pxc_kbus(__func__, "leave");
++#endif
++
+ 	return count;
+ }
+ 
+@@ -704,6 +765,13 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 	c = count;
+ 	word_len = cs->word_len;
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	trace_pxc_kbus(__func__, "enter");
++	kbus_dbg("%s[%d]: count: %d\n", __func__,__LINE__, count);
++
++	kbus_boost_dma_task(0);
++#endif
++
+ 	l = mcspi_cached_chconf0(spi);
+ 
+ 	/* We store the pre-calculated register addresses on stack to speed
+@@ -725,6 +793,9 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 		do {
+ 			c -= 1;
+ 			if (tx != NULL) {
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				kbus_wago_mpoint(); /* MX */
++#endif
+ 				if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_TXS) < 0) {
+ 					dev_err(&spi->dev, "TXS timed out\n");
+@@ -732,9 +803,15 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				}
+ 				dev_vdbg(&spi->dev, "write-%d %02x\n",
+ 						word_len, *tx);
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				trace_pxc_kbusdump(__func__, "write", word_len, *tx);
++#endif
+ 				writel_relaxed(*tx++, tx_reg);
+ 			}
+ 			if (rx != NULL) {
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				kbus_wago_mpoint(); /* MX */
++#endif
+ 				if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
+ 					dev_err(&spi->dev, "RXS timed out\n");
+@@ -747,6 +824,9 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					*rx++ = readl_relaxed(rx_reg);
+ 					dev_vdbg(&spi->dev, "read-%d %02x\n",
+ 						    word_len, *(rx - 1));
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++					trace_pxc_kbusdump(__func__, "readtb", word_len, *(rx - 1));
++#endif
+ 					if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
+ 						dev_err(&spi->dev,
+@@ -759,8 +839,14 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				}
+ 
+ 				*rx++ = readl_relaxed(rx_reg);
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				kbus_wago_mpoint(); /* MX */
++#endif
+ 				dev_vdbg(&spi->dev, "read-%d %02x\n",
+ 						word_len, *(rx - 1));
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				trace_pxc_kbusdump(__func__, "read", word_len, *(rx - 1));
++#endif
+ 			}
+ 		} while (c);
+ 	} else if (word_len <= 16) {
+@@ -769,22 +855,34 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 
+ 		rx = xfer->rx_buf;
+ 		tx = xfer->tx_buf;
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++		kbus_wago_mpoint(); /* MX */
++#endif
+ 		do {
+ 			c -= 2;
+ 			if (tx != NULL) {
+ 				if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_TXS) < 0) {
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++					trace_pxc_kbus(__func__, "TXS timed out");
++#endif
+ 					dev_err(&spi->dev, "TXS timed out\n");
+ 					goto out;
+ 				}
+ 				dev_vdbg(&spi->dev, "write-%d %04x\n",
+ 						word_len, *tx);
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				trace_pxc_kbusdump(__func__, "write", word_len, *tx);
++#endif
+ 				writel_relaxed(*tx++, tx_reg);
+ 			}
+ 			if (rx != NULL) {
+ 				if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
+ 					dev_err(&spi->dev, "RXS timed out\n");
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++					trace_pxc_kbus(__func__, "RXS timed out");
++#endif
+ 					goto out;
+ 				}
+ 
+@@ -794,6 +892,9 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					*rx++ = readl_relaxed(rx_reg);
+ 					dev_vdbg(&spi->dev, "read-%d %04x\n",
+ 						    word_len, *(rx - 1));
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++					trace_pxc_kbusdump(__func__, "readtb", word_len, *(rx - 1));
++#endif
+ 					if (mcspi_wait_for_reg_bit(chstat_reg,
+ 						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
+ 						dev_err(&spi->dev,
+@@ -805,11 +906,28 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 					omap2_mcspi_set_enable(spi, 0);
+ 				}
+ 
++				/* INFO:
++				 *    We have a timing problem here!!!
++				 *    During extensive spi traffic some bytes were lost
++				 *    during read. Some tests also showed that the Infineon
++				 *    needs some more time between the spi words.
++				 */
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				if (kbusdelay)
++					ndelay(kbusdelay); /* 400: With this delay we did a test over 14h successfully! */
++#endif
++
+ 				*rx++ = readl_relaxed(rx_reg);
+ 				dev_vdbg(&spi->dev, "read-%d %04x\n",
+ 						word_len, *(rx - 1));
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++				trace_pxc_kbusdump(__func__, "read", word_len, *(rx - 1));
++#endif
+ 			}
+ 		} while (c >= 2);
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++		kbus_wago_mpoint(); /* MX */
++#endif
+ 	} else if (word_len <= 32) {
+ 		u32		*rx;
+ 		const u32	*tx;
+@@ -876,6 +994,10 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 	}
+ out:
+ 	omap2_mcspi_set_enable(spi, 1);
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	kbus_wago_mpoint(); /* MX */
++	trace_pxc_kbus(__func__, "leave");
++#endif
+ 	return count - c;
+ }
+ 
+@@ -934,6 +1056,9 @@ static int omap2_mcspi_setup_transfer(struct spi_device *spi,
+ 		l &= ~OMAP2_MCSPI_CHCONF_IS;
+ 		l &= ~OMAP2_MCSPI_CHCONF_DPE1;
+ 		l |= OMAP2_MCSPI_CHCONF_DPE0;
++#ifdef CONFIG_SPI_KBUS_OMAP_SET_SPIDAT_DIR
++		omap2_mcspi_set_spidat_direction(spi->master);
++#endif
+ 	} else {
+ 		l |= OMAP2_MCSPI_CHCONF_IS;
+ 		l |= OMAP2_MCSPI_CHCONF_DPE1;
+@@ -1031,6 +1156,12 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 	struct omap2_mcspi_dma	*mcspi_dma;
+ 	struct omap2_mcspi_cs	*cs = spi->controller_state;
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	if (spi->max_speed_hz < (OMAP2_MCSPI_MAX_FREQ >> 15) ||
++	    spi->max_speed_hz > OMAP2_MCSPI_MAX_FREQ)
++		return -EINVAL;
++#endif
++
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+ 
+ 	if (!cs) {
+@@ -1124,41 +1255,26 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 	struct omap2_mcspi_dma		*mcspi_dma;
+ 	struct omap2_mcspi_cs		*cs;
+ 	struct omap2_mcspi_device_config *cd;
+-	int				par_override = 0;
+ 	int				status = 0;
+ 	u32				chconf;
++	struct kbus_drv_data            *kdrvdata = NULL;
++
++	trace_pxc_kbus(__func__, "enter");
++	kbus_wago_mpoint(); /* M4 */
+ 
+ 	mcspi = spi_master_get_devdata(master);
+ 	mcspi_dma = mcspi->dma_channels + spi->chip_select;
+ 	cs = spi->controller_state;
+ 	cd = spi->controller_data;
+ 
+-	/*
+-	 * The slave driver could have changed spi->mode in which case
+-	 * it will be different from cs->mode (the current hardware setup).
+-	 * If so, set par_override (even though its not a parity issue) so
+-	 * omap2_mcspi_setup_transfer will be called to configure the hardware
+-	 * with the correct mode on the first iteration of the loop below.
+-	 */
+-	if (spi->mode != cs->mode)
+-		par_override = 1;
++	if (spi->dev.driver == &kbus_driver.driver)
++		kdrvdata = spi_get_drvdata(spi);
+ 
+ 	omap2_mcspi_set_enable(spi, 0);
+ 
+ 	if (gpio_is_valid(spi->cs_gpio))
+ 		omap2_mcspi_set_cs(spi, spi->mode & SPI_CS_HIGH);
+ 
+-	if (par_override ||
+-	    (t->speed_hz != spi->max_speed_hz) ||
+-	    (t->bits_per_word != spi->bits_per_word)) {
+-		par_override = 1;
+-		status = omap2_mcspi_setup_transfer(spi, t);
+-		if (status < 0)
+-			goto out;
+-		if (t->speed_hz == spi->max_speed_hz &&
+-		    t->bits_per_word == spi->bits_per_word)
+-			par_override = 0;
+-	}
+ 	if (cd && cd->cs_per_word) {
+ 		chconf = mcspi->ctx.modulctrl;
+ 		chconf &= ~OMAP2_MCSPI_MODULCTRL_SINGLE;
+@@ -1186,11 +1302,17 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 
+ 	if (t->len) {
+ 		unsigned	count;
++		int                 i;
+ 
++#ifndef CONFIG_SPI_KBUS_OMAP_EXTENSION
++		/* FIXME
++		   At this moment keep fifo disabled due to some issues
++		   that were coming up with large kbus nodes. */
+ 		if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
+ 		    master->cur_msg_mapped &&
+ 		    master->can_dma(master, spi, t))
+ 			omap2_mcspi_set_fifo(spi, t, 1);
++#endif
+ 
+ 		omap2_mcspi_set_enable(spi, 1);
+ 
+@@ -1199,10 +1321,40 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 			writel_relaxed(0, cs->base
+ 					+ OMAP2_MCSPI_TX0);
+ 
++                /*
++                 * kbus:
++                 *  release irq and check the sync signal
++                 *  before sending data
++                 */
++                if (kdrvdata && t->tx_buf) {
++                        /*
++                         * XE164 should be ready a long time ago (several us).
++                         * Otherwise something is wrong with the controller!
++                         */
++                        for (i = 0; i < PAC_KBUS_SYNC_CYCLES; i++) {
++                                if (gpio_get_value(kdrvdata->gpio_nsync)) /* active low */
++                                        continue;
++                                break;
++                        }
++
++                        if (i >= PAC_KBUS_SYNC_CYCLES) {
++                                trace_pxc_kbus(__func__, "err: sync pin is always high [-EBUSY(-16)]!");
++                                status = -EBUSY;
++                                goto out;
++                        }
++
++                        /* release the irq pin */
++                        gpio_set_value(kdrvdata->gpio_nirq, 1);
++
++                }
++
+ 		if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
+ 		    master->cur_msg_mapped &&
+-		    master->can_dma(master, spi, t))
++		    master->can_dma(master, spi, t)) {
++                        if (kdrvdata)
++                                trace_pxc_kbus(__func__, "DMA: TXRX: Trigger DMA Transfer.");
+ 			count = omap2_mcspi_txrx_dma(spi, t);
++                }
+ 		else
+ 			count = omap2_mcspi_txrx_pio(spi, t);
+ 
+@@ -1217,12 +1369,88 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 	if (mcspi->fifo_depth > 0)
+ 		omap2_mcspi_set_fifo(spi, t, 0);
+ 
++        /*
++         * Special KBUS Treatment
++         *
++         */
++        if (kdrvdata) {
++                static u16 *kcmd_txbuf = NULL;
++                int tmp_ret;
++
++                kbus_wago_mpoint(); /* MX */
++                if (t->tx_buf) { /* after tx transfer */
++                        kcmd_txbuf = (u16 *) t->tx_buf;
++                        /* wait for READYn IRQ from xe164 */
++
++                        trace_pxc_kbus(__func__, "TX0");
++                        kbus_dbg("%s: irq timeout is %dms\n",
++                                 __func__, kdrvdata->timeout_ms);
++                        tmp_ret = wait_event_interruptible_timeout(kdrvdata->kbus_irq_wq,
++                                                                   kdrvdata->kbus_irq_state == 0,
++                                                                   msecs_to_jiffies(kdrvdata->timeout_ms));
++
++                        if (tmp_ret == 0 && kdrvdata->kbus_irq_state) {
++                                status = -ETIMEDOUT;
++                                trace_pxc_kbus(__func__, "TX0: IRQ timeout!");
++                                goto out;
++                        }
++                        if (kbus_error() < 0) {
++                                status = -ENODATA;
++                                trace_pxc_kbus(__func__, "TX0: KBUS ERROR.");
++                                goto out;
++                        }
++                        trace_pxc_kbus(__func__, "TX0: IRQ received");
++                }
++
++                if (kdrvdata->cmdsel) { /* special treatment in command mode */
++                        /* We're getting the data in two nibbles.
++                         * First: 6 bytes header where we get the length for the rest.
++                         * Second: The remaining N bytes.
++                         */
++                        if (t->rx_buf == kdrvdata->rx_buf) { /* This RX0 */
++                                u16 *kcmd_hdr = (u16 *) t->rx_buf;
++                                u8 lb_cmd = kcmd_hdr[0] & 0xff;
++                                u8 hb_cmd_inv = ~(kcmd_hdr[0] >> 8) & 0xff;
++                                u8 lb_wlen = kcmd_hdr[2] & 0xff;
++                                u8 hb_wlen_inv = ~(kcmd_hdr[2] >> 8) & 0xff;
++                                unsigned byte_len;
++                                struct spi_transfer *kcmd_tnext;
++
++                                trace_pxc_kbus(__func__, "RX0");
++
++                                /* validate header data here */
++                                if (lb_cmd != (kcmd_txbuf[0] & 0xff) ||
++                                    hb_cmd_inv != lb_cmd ||
++                                    hb_wlen_inv != lb_wlen) {
++                                        trace_pxc_kbus(__func__, "RX0: RX0 HDR not valid.");
++                                        kbus_dbg("%s[%d]: RX0 HDR not valid: 0x%.4x(TX:0x%.2x)|0x%.4x|0x%.4x\n",
++                                                 __func__,__LINE__, kcmd_hdr[0], kcmd_txbuf[0] & 0xff,
++                                                 kcmd_hdr[1], kcmd_hdr[2]);
++                                        status = -EPROTO;
++                                        goto out;
++                                }
++
++                                /* get next transfer entry */
++                                kcmd_tnext = list_entry(t->transfer_list.next,
++                                                        struct spi_transfer, transfer_list);
++
++                                /* regard word (16bit) count */
++                                byte_len = (kcmd_hdr[2] & 0xff) << 1;
++                                if (byte_len < kcmd_tnext->len) {
++                                        kcmd_tnext->len = byte_len;
++                                        trace_pxc_kbus(__func__, "RX0: RX1 len updated.");
++                                }
++
++                                kbus_dbg("%s[%d]: RX1 len set to: %d\n",
++                                         __func__,__LINE__, kcmd_tnext->len);
++                        } else if (t->rx_buf != NULL) {
++                                trace_pxc_kbus(__func__, "RX1");
++                        }
++                }
++                kbus_wago_mpoint(); /* MX */
++        }
++
+ out:
+-	/* Restore defaults if they were overriden */
+-	if (par_override) {
+-		par_override = 0;
+-		status = omap2_mcspi_setup_transfer(spi, NULL);
+-	}
+ 
+ 	if (cd && cd->cs_per_word) {
+ 		chconf = mcspi->ctx.modulctrl;
+@@ -1372,11 +1600,13 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 		u32 num_cs = 1; /* default number of chipselect */
+ 		pdata = match->data;
+ 
++		master->rt = of_property_read_bool(node, "spi-rt");
+ 		of_property_read_u32(node, "ti,spi-num-cs", &num_cs);
+ 		master->num_chipselect = num_cs;
+ 		master->bus_num = bus_num++;
+ 		if (of_get_property(node, "ti,pindir-d0-out-d1-in", NULL))
+ 			mcspi->pin_dir = MCSPI_PINDIR_D0_OUT_D1_IN;
++
+ 	} else {
+ 		pdata = dev_get_platdata(&pdev->dev);
+ 		master->num_chipselect = pdata->num_cs;
+@@ -1434,6 +1664,16 @@ static int omap2_mcspi_probe(struct platform_device *pdev)
+ 	if (status < 0)
+ 		goto disable_pm;
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	dev_dbg(&pdev->dev, "kbusdelay=%d, %s interframe gap delay.\n",
++		kbusdelay, kbusdelay ? "using" : "NOT using");
++#endif
++
++#if 0 /* #ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION */
++	if (omap2_mcspi_enable_clocks(mcspi) < 0)
++		goto free_master;
++#endif
++
+ 	return status;
+ 
+ disable_pm:
+@@ -1519,4 +1759,7 @@ static struct platform_driver omap2_mcspi_driver = {
+ };
+ 
+ module_platform_driver(omap2_mcspi_driver);
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
++core_param(kbusdelay, kbusdelay, int, 0000);
++#endif
+ MODULE_LICENSE("GPL");
+diff --git a/include/linux/spi/kbus.h b/include/linux/spi/kbus.h
+new file mode 100644
+index 0000000..60c70c87
+--- /dev/null
++++ b/include/linux/spi/kbus.h
+@@ -0,0 +1,150 @@
++/*
++ * include/linux/spi/kbus.h
++ *
++ * Copyright (C) 2012 WAGO
++ *	Heinrich Toews <heinrich.toews@wago.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef KBUS_H
++#define KBUS_H
++
++#include <linux/types.h>
++
++
++#define KBUS_DRIVER_MAJOR                240
++#define KBUS_IRQ_TIMEOUT                  10   /* wait for a max. of 10 ms */
++
++#define KBUS__DEFAULT_SPEED         12000000
++#define KBUS_READYN_IRQ
++#define KBUS_DATA_FULLDPX
++
++#undef KBUS__WAIT_ACTIVE
++#undef KBUS_IRQN_IRQ
++
++/*---------------------------------------------------------------------------*/
++
++#define PAC_KBUS_SYNC_CYCLES            3
++#define SPI_MODE_MASK		(SPI_CPHA | SPI_CPOL | SPI_CS_HIGH \
++				| SPI_LSB_FIRST | SPI_3WIRE | SPI_LOOP \
++				| SPI_NO_CS | SPI_READY)
++
++#define KBUS__MAX_BUF_LEN       PAGE_SIZE /* FIXME */
++
++#define KBUS_TESTING         0 	/* enable when gpio testing wanted */
++
++#define KBUS__USE_DMA_ONLY   0
++
++#if KBUS_TESTING
++#define kbus_wago_mpoint(k) \
++	wago_mpoint()
++#define kbus_dbg(format, arg...)		\
++	printk(KERN_DEBUG "kbus-dbg:"format, ##arg)
++#else
++#define kbus_wago_mpoint(k)	\
++({				\
++	if (0)			\
++		wago_mpoint();	\
++	0;			\
++})
++#define kbus_dbg(format, arg...)				\
++({								\
++	if (0)							\
++		printk(KERN_DEBUG "kbus-dbg:"format, ##arg);	\
++	0;							\
++})
++#endif
++
++#define KBUS_ENABLE_IRQ(irq) if (irq != -1) enable_irq(irq)
++#define KBUS_DISABLE_IRQ(irq) if (irq != -1) disable_irq(irq)
++
++struct kbus_drv_data {
++	u8               cmdsel; /* 0: data, 1: cmd mode */
++	int              kbus_err;
++	int              kbus_err_state;
++	u8		 *tx_buf;
++	u8		 *rx_buf;
++	bool             use_dma;
++	u32              timeout_ms;
++	dma_addr_t       tx_buf_dma;
++	dma_addr_t       rx_buf_dma;
++	int              kbus_irq;
++	int              kbus_irq_enabled;
++	int              kbus_irq_state;
++	struct task_struct *dma_task;      /* task pointer to boost the dma task if necessary */
++	bool             kbus_dma_boost_en;
++	u8               kbus_dma_boost_prio;
++	const char	 *kbus_dma_boost_irq_thread;
++	u8               kbus_dma_normal_prio;
++
++	/* gpios */
++	int              gpio_nrdy;
++	int              gpio_nrst;
++	int              gpio_nsync;
++	int              gpio_cmdsel;
++	int              gpio_nirq;
++	int              gpio_nerr;
++	int              gpio_errst[4];
++
++	bool             nrst_alow;
++
++	wait_queue_head_t kbus_irq_wq;
++	struct spi_device *spi;
++	const char	  *kbus_tty_device_name;
++};
++
++/* For userspace ioctl communication */
++struct kbus_data {
++	__u8 __user     *tx_buf;
++	__u8 __user     *rx_buf;
++	__u32		byte_len;
++	__u8 __user     *err; 	/* will only be set when err occurs! */
++	__u8 __user     *err_state;
++	__u32           timeout_ms;
++};
++
++struct kbus_cmd {
++	__u8 __user     *tx_buf;
++	__u8 __user     *rx_buf;
++	__u32		byte_len_tx;
++	__u32		byte_len_rx;
++	__u8 __user     *err; 	/* will only be set when err occurs! */
++	__u8 __user     *err_state;
++	__u32           timeout_ms;
++};
++
++struct kbus_spi_config {
++	__u8		bits_per_word; /* bits_per_word */
++	__u8		mode;	       /* see SPI_ mode bits in spi.h */
++	__u32		max_speed_hz;
++};
++
++extern int kbus_wait_for_irq(void);
++extern int kbus_wait_for_event(int *event);
++extern int kbus_error(void);
++extern int kbus_wait_for_gpio(int gpio);
++extern void kbus_boost_dma_task(u8 enable);
++
++/* IOCTL commands */
++#define KBUS_IOC_MAGIC			'K'
++#define KBUS_IOC_DATA			_IOW(KBUS_IOC_MAGIC, 1, struct kbus_data)
++#define KBUS_IOC_CMD			_IOW(KBUS_IOC_MAGIC, 2, struct kbus_cmd)
++#define KBUS_IOC_CONFIG			_IOW(KBUS_IOC_MAGIC, 3, struct kbus_spi_config)
++#define KBUS_IOC_BINARY			_IOW(KBUS_IOC_MAGIC, 4, struct kbus_data)
++
++extern struct spi_driver kbus_driver; /* used by spi-omap2-mcspi to recognize the kbus device */
++
++#endif /* KBUS_H */
+-- 
+2.7.4
+

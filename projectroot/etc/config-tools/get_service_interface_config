@@ -1,0 +1,425 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+. /etc/config-tools/config_tool_lib
+
+function getConfiguredServices
+{
+   local services=""
+  if [ "$ACTIVATE_WSERVICE" == "1" ]
+  then
+    services="wago"
+  fi
+  if [ "$ACTIVATE_CODESYS2" == "1" ]
+  then
+    services="$services codesys2"
+  fi
+  if [ "$ACTIVATE_CODESYS3" == "1" ]
+  then
+    services="$services eruntime"
+  fi
+  if [ "$ACTIVATE_SHELL" == "1" ]
+  then
+    services="$services linux"
+  fi
+  if [ "$services" = "" ]
+  then
+    services="none"
+  fi
+  echo $services
+}
+
+function getRunningServices
+{
+ # PID=xargs -0 < /proc/$(pidof ttydispatcherd)/cmdline
+  local PID=$(pidof ttydispatcherd)
+  if [ "$PID" == "" ]
+  then
+    echo none
+    return 1
+  fi
+  local ARGS=$(xargs -0 < /proc/$PID/cmdline)
+  local linux=0
+  local cds2=0
+  local cds3=0
+  local wago=0
+  bakifs=$IFS
+  IFS=' '
+  for parameter in $ARGS; do
+    case $parameter in
+      "-l")
+        linux=1
+        ;;
+      "-w")
+        wago=1
+        ;;
+      "-c2")
+        cds2=1
+        ;;
+      "-c3")
+        cds3=1
+        ;;
+      "-c32"|"-c23")
+        cds2=1
+        cds3=1
+        ;;
+        esac
+  done
+  IFS=$bakifs
+  local services=""
+  if [ "$wago" == "1" ]
+  then
+    services="wago"
+  fi
+  if [ "$cds2" == "1" ]
+  then
+    services="$services codesys2"
+  fi
+  if [ "$cds3" == "1" ]
+  then
+    services="$services eruntime"
+  fi
+  if [ "$linux" == "1" ]
+  then
+    services="$services linux"
+  fi
+  echo $services
+}
+
+getParity()
+{
+  local SETTINGS=$1
+  echo $SETTINGS | grep '\-parenb' &> /dev/null
+  if [ "$?" == "0" ]
+  then
+    echo None
+    return 0
+  fi
+  
+  echo $SETTINGS | grep '\-parodd' &> /dev/null
+  if [ "$?" == "0" ]
+  then
+    echo Even
+    return 0
+  fi
+  
+  echo Odd
+  return 0
+}
+
+undefined()
+{
+  local SERVICES=$1
+  local BAUD=$2
+  local PARITY=$3
+  if [ $JSON -eq 0 ]
+  then
+    echo "undefined ($SERVICES;$BAUD;8;$PARITY;1)"
+  else
+    echo "undefined"
+  fi
+}
+
+printMode()
+{
+  local ONLINE
+  local CONFIGURED
+  #BAUD_ONLINE=""
+  #PARITY_ONLINE=""
+  #SERVICES_ONLINE=""
+  #BAUD_CONFIG=""
+  #PARITY_CONFIG=""
+  #SERVICES_CONFIG=""
+  
+  if [ "$SERVICES_ONLINE" = "linux" ] && [ "$BAUD_ONLINE" = "115200" ] && [ "$PARITY_ONLINE" == "None" ]
+  then
+    ONLINE="linux"
+  elif [ "$SERVICES_ONLINE" = "wago" ] &&  [ "$BAUD_ONLINE" = "19200" ] && [ "$PARITY_ONLINE" == "Even" ]
+  then
+    ONLINE="service"
+  elif [ "$SERVICES_ONLINE" = "none" ]
+  then
+    ONLINE="free"
+  else
+    ONLINE=$(undefined "$SERVICES_ONLINE" $BAUD_ONLINE $PARITY_ONLINE)
+  fi
+  
+  if [ "$SERVICES_CONFIG" = "linux" ] && [ "$BAUD_CONFIG" = "115200" ] && [ "$PARITY_CONFIG" = "None" ]
+  then
+    CONFIGURED="linux"
+  elif [ "$SERVICES_CONFIG" = "wago" ] &&  [ "$BAUD_CONFIG" = "19200" ] && [ "$PARITY_CONFIG" == "Even" ]
+  then
+    CONFIGURED="service"
+  elif [ "$SERVICES_CONFIG" = "none" ]
+  then
+    CONFIGURED="free"
+  else
+    CONFIGURED=$(undefined "$SERVICES_CONFIG" $BAUD_CONFIG $PARITY_CONFIG)
+  fi
+  
+  if [ $JSON -eq 0 ]
+  then
+    if [ $BACKUP -eq 0 ]
+    then
+        echo "Active: $ONLINE"
+        echo "Configured: $CONFIGURED"
+    else
+        echo $CONFIGURED
+    fi
+  else
+    echo -n "{\"ActiveMode\":\"$ONLINE\",\"ActiveConfig\":{"
+    echo -n "\"Services\":["
+    ifsbak=$IFS
+    once=0
+    for service in $SERVICES_ONLINE
+    do
+      if [ $once -eq 1 ]
+      then 
+	echo -n ","
+      fi
+      once=1
+      echo -n "\"$service\""
+    done
+    IFC=$ifsbak
+    echo -n "],\"Baud\":\"$BAUD_ONLINE\",\"Parity\":\"$PARITY_ONLINE\""
+    echo -n "},\"ConfiguredMode\":\"$CONFIGURED\",\"ConfiguredConfig\":{"
+    echo -n "\"Services\":["
+    ifsbak=$IFS
+    once=0
+    for service in $SERVICES_CONFIG
+    do
+      if [ $once -eq 1 ]
+      then 
+	echo -n ","
+      fi
+      once=1
+      echo -n "\"$service\""
+    done
+    IFC=$ifsbak
+    echo -n "],\"Baud\":\"$BAUD_CONFIG\",\"Parity\":\"$PARITY_CONFIG\""
+    echo -n "}}"
+  fi
+  
+  return 0
+}
+
+
+###################### MAIN ########################
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get settings of the service Interface *"
+  echo
+  echo "Usage: get_service_interface_config [-j] [baud] [services] [services-after-reboot] "
+  echo "-j        : get output in json format"
+  echo "mode      : get mode of interface and exit"
+  echo "          Modes are:"
+  echo "          service: the interface is configured to be used by codesys eruntime"
+  echo "          and wago-service"
+  echo "          (e.g. EthernetSettings, IO-Check ...) (19200;8;E;1)"
+  echo "          linux  : the interface comes up as linux-console with (115200;8;N;1)"
+  echo "          free   : the interface is configure to be used by applications"
+  echo "          undefined (<settings>): the mode does not fit into a "
+  echo "          definition see <settings>"  
+  echo "baud      : get the actual baudrate"
+  echo "parity    : get the actual parity"
+  echo "services  : get the actual running services"
+  echo "baud-after-reboot: get the new configured baudrate"
+  echo "parity-after-reboot: get the new configured parity"
+  echo "services-after-reboot: get the services which are active after reboot"
+  echo ""
+  exit $status
+fi
+
+#baud=$(GetParameterValue baud $*)
+#services=$(GetParameterValue services $*)
+#baudReboot=$(GetParameterValue baud-after-reboot $*)
+#servicesReboot=$(GetParameterValue services-after-reboot $*)
+
+BAUD_ONLINE=""
+PARITY_ONLINE=""
+SERVICES_ONLINE=""
+BAUD_CONFIG=""
+PARITY_CONFIG=""
+SERVICES_CONFIG=""
+JSON=0
+MODE=0
+BACKUP=0
+ALL=0
+GetParameterValue baud $* &> /dev/null
+WANT_BAUT=$?
+GetParameterValue parity $* &> /dev/null
+WANT_PARITY=$?
+GetParameterValue services $* &> /dev/null
+WANT_SERVICES=$?
+GetParameterValue baud-after-reboot $* &> /dev/null
+WANT_BAUD_CONFIG=$?
+GetParameterValue parity-after-reboot $* &> /dev/null
+WANT_PARITY_CONFIG=$?
+GetParameterValue services-after-reboot $* &> /dev/null
+WANT_SERVICES_CONFIG=$?
+GetParameterValue "-j" $* &> /dev/null
+if [ "$?" = "1" ]
+then
+  JSON=1
+  ALL=1
+fi
+
+GetParameterValue mode $* &> /dev/null
+if [ "$?" = "1" ]
+then
+  MODE=1
+  ALL=1
+fi
+
+GetParameterValue "-a" $* &> /dev/null
+if [ "$?" = "1" ]
+then
+  ALL=1
+fi
+
+# print mode in a format usable for settings_backup
+GetParameterValue "-b" $* &> /dev/null
+if [ "$?" = "1" ]
+then
+  BACKUP=1
+fi
+
+
+
+if [ $ALL -eq 1 ]
+then
+  WANT_BAUT="1"
+  WANT_PARITY="1"
+  WANT_SERVICES="1"
+  WANT_BAUD_CONFIG="1"
+  WANT_PARITY_CONFIG="1"
+  WANT_SERVICES_CONFIG="1"
+fi
+
+
+
+stty -aF $(readlink /dev/service) > /tmp/serviceSettings 2>/dev/null
+SETTINGS=$(cat /tmp/serviceSettings)
+rm /tmp/serviceSettings &> /dev/null
+
+
+if [ "$WANT_BAUT" = "1" ]
+then
+  BAUD_ONLINE=$(echo $SETTINGS | grep speed | cut -d' ' -f2)
+fi
+
+if [ "$WANT_PARITY" = "1" ]
+then
+  PARITY_ONLINE=$(getParity "$SETTINGS")
+fi
+
+if [ "$WANT_SERVICES" = "1" ]
+then
+  SERVICES_ONLINE=$(getRunningServices)
+fi
+
+. /etc/serial_dispatcher.conf
+
+if [ "$WANT_BAUD_CONFIG" = "1" ]
+then
+  BAUD_CONFIG=$BAUD
+fi
+
+if [ "$WANT_PARITY_CONFIG" = "1" ]
+then
+  case $PARITY in
+    1)PARITY_CONFIG="Odd";;
+    2)PARITY_CONFIG="Even";;
+    *)PARITY_CONFIG="None";;
+  esac
+fi
+
+if [ "$WANT_SERVICES_CONFIG" = "1" ]
+then
+  SERVICES_CONFIG=$(getConfiguredServices)
+fi
+
+if [ $MODE -eq 1 ]
+then
+  printMode 
+  exit 0
+fi
+
+if [ $JSON -eq 1 ]
+then
+  echo -n "{ "
+  echo -n "\"ServicesOnline\":["
+  ifsbak=$IFS
+  once=0
+  for service in $SERVICES_ONLINE
+  do
+    if [ $once -eq 1 ]
+    then 
+      echo -n ","
+    fi
+    once=1
+    echo -n "\"$service\""
+  done
+  IFC=$ifsbak
+  echo -n "],"
+  echo -n "\"InterfaceOnline\":{"
+  echo -n "\"Baud\":\"$BAUD_ONLINE\","
+  echo -n "\"Parity\":\"$PARITY_ONLINE\""
+  echo -n "},"
+  echo -n "\"ServicesConfigured\":["
+  ifsbak=$IFS
+  once=0
+  for service in $SERVICES_CONFIG
+  do
+    if [ $once -eq 1 ]
+    then 
+      echo -n ","
+    fi
+    once=1
+    echo -n "\"$service\""
+  done
+  IFC=$ifsbak
+  echo -n "],"
+  echo -n "\"InterfaceConfigured\":{"
+  echo -n "\"Baud\":\"$BAUD_CONFIG\","
+  echo -n "\"Parity\":\"$PARITY_CONFIG\""
+  echo -n "}"
+  echo -n "}"
+  exit 0
+fi
+
+if [ "$BAUD_ONLINE" != "" ]
+then
+  echo "BAUD=$BAUD_ONLINE"
+fi
+if [ "$PARITY_ONLINE" != "" ]
+then
+  echo "PARITY=$PARITY_ONLINE"
+fi
+if [ "$WANT_SERVICES" != "0" ]
+then
+  echo "SERVICES=\"$SERVICES_ONLINE\""
+fi
+if [ "$BAUD_CONFIG" != "" ]
+then
+  echo "BAUD_AFTER_REBOOT=$BAUD_CONFIG"
+fi
+if [ "$PARITY_CONFIG" != "" ]
+then
+  echo "PARITY_AFTER_REBOOT=$PARITY_CONFIG"
+fi
+if [ "$WANT_SERVICES_CONFIG" != "0" ]
+then
+  echo "SERVICES_AFTER_REBOOT=\"$SERVICES_CONFIG\""
+fi
+
+exit $status

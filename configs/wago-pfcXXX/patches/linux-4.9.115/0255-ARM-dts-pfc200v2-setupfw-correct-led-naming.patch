@@ -1,0 +1,26 @@
+From a68a9c66030f4616cd81c57a3e3a72cbc8c5bef4 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 17 Oct 2018 07:21:48 +0200
+Subject: [PATCH 255/261] ARM: dts: pfc200v2: setupfw: correct led naming
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts b/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts
+index ddea28e..f375dd0 100644
+--- a/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts
++++ b/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts
+@@ -31,7 +31,7 @@
+ 			 * we assume, that every led has to colors (red, green).
+ 			 * so we only allow the colors red,green,orange
+ 			 */
+-			led_array_red = "u1:u2:u3:u4:dia:bf:sys:run:io:ms:ns:can";
++			led_array_red = "u1:u2:u3:u4:u5:u6:sys:run:io:ms:ns:u7";
+ 		};
+ 	};
+ };
+-- 
+2.7.4
+

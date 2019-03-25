@@ -1,0 +1,32 @@
+Index: libModbus-0.9.20/src/Makefile.am
+===================================================================
+--- libModbus-0.9.20.orig/src/Makefile.am
++++ libModbus-0.9.20/src/Makefile.am
+@@ -3,7 +3,7 @@ libModbus_la_SOURCES = modbus-slave.c mo
+ libModbus_la_SOURCES += modbus_intern.h modbusip_intern.h
+ libModbus_la_SOURCES += crc16.c crc16.h
+ libModbus_la_CFLAGS  = -W -Wall -Wwrite-strings -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
+-libModbus_la_LDFLAGS = -version-info 1:18:0 -release $(VERSION)
++libModbus_la_LDFLAGS = -version-info 1:19:0 -release $(VERSION)
+ lib_LIBRARIES = libModbus.a 
+ libModbus_a_SOURCES = $(libModbus_la_SOURCES)
+ libModbus_a_CFLAGS = $(libModbus_la_CFLAGS)
+Index: libModbus-0.9.20/src/modbus-ip-slave.c
+===================================================================
+--- libModbus-0.9.20.orig/src/modbus-ip-slave.c
++++ libModbus-0.9.20/src/modbus-ip-slave.c
+@@ -66,12 +66,12 @@ static void mb_print_req(struct mb_socke
+ 		p += printed;
+ 		len += printed;
+ 		if (len >= 76) {
+-			p += sprintf(--p, "\n");
++			*(p-1) = '\n';
+ 			len = 0;
+ 		}
+ 	}
+ 	if (len)
+-		p += sprintf(--p, "\n");
++		*(p-1) = '\n';
+ 
+ 	mb_log(mbs, MB_LOG_DATA, "%s", logbuf);
+ 	free(logbuf);

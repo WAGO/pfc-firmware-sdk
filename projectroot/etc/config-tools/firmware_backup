@@ -1,0 +1,263 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: firmware_backup
+#
+# Process backup of firmware data
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+statusFile="/var/www/wbm/firmware_backup_status"
+DEFAULTDESTDIR="/mnt/__destination_dir"
+
+function SavePartition
+{
+
+  local mode=$1 # 'rootfs' or 'codesys'
+  local filename=$2
+  local destinationDir=$3
+  local callMode=${4:-""}
+
+  local status=$SUCCESS
+
+  if [[ "$callMode" == "cbm" ]]; then
+    # provide no status file -> display progress bar in terminal
+    /usr/sbin/${BOARD_ID}_save_partition.sh $mode $filename $destinationDir
+    status=$?
+  else
+     /usr/sbin/${BOARD_ID}_save_partition.sh $mode $filename $destinationDir $statusFile
+    status=$?
+  fi
+
+
+  return $status
+}
+
+function do_cleanup
+{
+  # check if destination directory was mounted and if so, unmount it
+  if mount | grep -q "${DEFAULTDESTDIR}"; then
+    umount "${DEFAULTDESTDIR}"
+  fi
+
+  # check if directory used for mounting is existing and if so, remove it
+  if [[ -d "${DEFAULTDESTDIR}" ]]; then
+    rm -rf "${DEFAULTDESTDIR}"
+  fi
+
+  # remove status file
+  rm $statusFile > /dev/null 2> /dev/null
+}
+
+
+#-------------- main-programm ------------------------#
+
+trap do_cleanup EXIT
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Process backup of firmware data *"
+  echo
+  echo "Usage: firmware_backup < package-settings=value package-system=value package-codesys=value device-medium=value > [ auto-update=value ] [ download-dir=value ]"
+  echo
+  echo "package-settings, package-system, package-codesys: 1, if package should be saved, else parameter can be absent"
+
+  mediumCnt=1
+  mediumName=$(/etc/config-tools/get_filesystem_data medium-by-index $mediumCnt)
+
+  echo -n "device-medium: "
+
+  while [ -n "$mediumName" ]; do
+
+    # NAND is an illegal target
+    if [[ "$mediumName" != "$INTERNAL_FLASH_NAND" ]]; then
+      echo -n "$mediumName | "
+    fi
+
+    mediumCnt=$(($mediumCnt+1))
+    mediumName=$(/etc/config-tools/get_filesystem_data medium-by-index $mediumCnt)
+  done
+
+  echo "network"
+
+  echo "auto-update: 1, if auto update should be activated, else it can fall away"
+  echo "download-dir: directory to save the backup file if the device medium is network"
+  exit $status
+fi
+
+# filter input parmeter of input-string
+packageAll=`GetParameterValue package-all $*`
+packageCodesys=`GetParameterValue package-codesys $*`
+packageSettings=`GetParameterValue package-settings $*`
+packageSystem=`GetParameterValue package-system $*`
+callMode=$(GetParameterValue callMode $*)
+#echo "packageAll:"$packageAll "packageCodesys:"$packageCodesys "packageSettings:"$packageSettings "packageSystem:"$packageSystem
+
+deviceMedium=`GetParameterValue device-medium $*`
+activateAutoUpdate=`GetParameterValue auto-update $*`
+#echo "deviceMedium:"$deviceMedium "activateAutoUpdate:"$activateAutoUpdate
+
+if [ -n "$packageAll" ] && [ "$packageAll" = "1" ]; then
+  packageCodesys=1
+  packageSettings=1
+  packageSystem=1
+fi
+
+# check input parameter
+if [ "$packageCodesys" != "1" ] && [ "$packageSettings" != "1" ] && [ "$packageSystem" != "1" ]; then
+  SetLastError "No package selected"
+  exit $INVALID_PARAMETER
+fi
+
+# check input for device medium; must be included in DEVICE_MEDIA configuration or network 
+if [ "$deviceMedium" != "$NETWORK" ]; then
+  sourceDevice=$(/etc/config-tools/get_device_data name $deviceMedium)
+  if [[ "$sourceDevice" == "" ]]; then
+    SetLastError "Invalid device medium"
+    exit $INVALID_PARAMETER
+  fi
+
+  # blkid returns 2 if the source device has no valid file system
+  if ! blkid /dev/$(DevToPart $sourceDevice 1) 2>&1 > /dev/null; then
+    SetLastError "Invalid device medium (no file system found)"
+    exit $INVALID_PARAMETER
+  fi
+fi
+
+# no backup to our own device
+activePartitionMedium=`/etc/config-tools/get_filesystem_data active-partition-medium`
+if [ "$activePartitionMedium" = "$deviceMedium" ]; then
+  SetLastError "Invalid device medium"
+  exit $INVALID_PARAMETER
+fi
+
+# no backup to NAND
+if [ "$INTERNAL_FLASH_NAND" = "$deviceMedium" ]; then
+  SetLastError "Invalid device medium"
+  exit $INVALID_PARAMETER
+fi
+
+echo "Start firmware backup" > $statusFile
+
+# set filename appendix for auto update feature if requested
+autoUpdateAppendix=""
+if [ "$activateAutoUpdate" = 1 ]; then
+  autoUpdateAppendix="auto_"
+fi
+
+# destination device is network -> an input parameter must specify the directory for saving the backup file
+if [ "$deviceMedium" = "$NETWORK" ]; then
+
+  # filter directory name of parameter string and check if it is really given
+  destinationDir=`GetParameterValue download-dir $*`
+  #echo "destinationDir:${destinationDir}"
+
+  if [ -z "$destinationDir" ]; then
+    status=$MISSING_PARAMETER
+    SetLastError "Firmware backup (1): Error while execution"
+    ReportError $status "(download-dir)"
+
+  else
+
+    # make sure, that directory is existing (if not, we try to create it oneself)
+    if [ ! -d "$destinationDir" ]; then
+      mkdir -p $destinationDir
+    fi
+
+    # already not existing? Can't do our work at all...
+    if [ ! -d "$destinationDir" ]; then
+      status=$FILE_NOT_WRITEABLE
+      ReportError $status $downloadDir
+    fi
+  fi
+
+# destination medium is not network but another device -> we must mount it before we can save the data therefore transfer via network (
+else
+  # get the device string of the destination medium, so that we can access it
+  destinationDevice=`/etc/config-tools/get_device_data name "$deviceMedium"`
+
+  # assume that the destination device has a single (FAT) partition, i.e. USB stick
+  destinationPartition=$(DevToPart $destinationDevice 1)
+ 
+  # destination partition already mounted? Then take the mount point for destination dir
+  destinationDir=$(df | awk -v part="^/dev/$destinationPartition " 'match($0,part) {print $6}' | head -n1)
+  status=$SUCCESS
+
+  if [[ "$destinationDir" == "" ]]; then
+
+    # unlikely when automount is enabled via udev config
+
+    # create the destination directory for mounting (p = make parent directory if not existing)
+    destinationDir=${DEFAULTDESTDIR}
+
+    mkdir -p $destinationDir
+    if [ "$?" != 0 ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(mkdir -p $destinationDir)"
+      SetLastError "Firmware backup (2): Error while execution"
+    else
+
+      DoMount /dev/$destinationPartition $destinationDir
+      status=$?
+    fi
+  fi
+fi
+
+# now we should have any directory to save our data and can continue with generating it
+if [ "$status" = "$SUCCESS" ]; then
+
+  # settings must be saved -> use special script to create settings file and move it directly to destination (device or directory for download)
+  if [ "$packageSettings" = "1" ]; then 
+    #echo "save settings destinationDir:${destinationDir}"
+    echo "Saving settings" > $statusFile
+
+    /etc/config-tools/settings_backup save ${destinationDir}/${autoUpdateAppendix}${SETTINGS_FILENAME} #> /dev/null 2> /dev/null
+    if [ "$?" != $SUCCESS ]; then
+      status=$EXECUTABLE_ERROR
+      ReportError $status "(settings_backup)"
+    fi
+  fi
+
+  # complete codesys image must be saved -> create image, zip it and copy it to destination
+  if [ "$status" = "$SUCCESS" ] && [ "$packageCodesys" = "1" ]; then
+    #echo "save codesys"
+    SavePartition "codesys" ${autoUpdateAppendix}${CODESYS_FILENAME} $destinationDir $callMode
+    status=$?
+  fi
+
+  # complete system image must be saved -> create image, zip it and copy it to destination
+  if [ "$status" = "$SUCCESS" ] && [ "$packageSystem" = "1" ]; then
+    SavePartition "rootfs" ${autoUpdateAppendix}${SYSTEM_FILENAME} $destinationDir $callMode
+    status=$?
+  fi
+
+fi
+
+trap - EXIT
+
+do_cleanup
+
+sync
+
+if [[ "$status" == "$NOT_ENOUGH_SPACE_ERROR" ]]; then
+  SetLastError "Not enough space on target."
+fi
+
+exit $status

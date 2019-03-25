@@ -1,0 +1,169 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_ssh_config
+#
+# Get configuration of SSH server 
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+DROPBEAR_LINK_NAME="/etc/rc.d/S16dropbear"
+DROPBEAR_INITFILE_NAME="/etc/init.d/dropbear"
+DROPBEAR_CONFIGFILE_NAME="/etc/dropbear/dropbear.conf"
+DROPBEAR_DEAMON="dropbear"
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter)
+#--------------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get configuration of SSH server *"
+  echo
+  echo "Usage: get_ssh_config [ \"state\" | \"root-access-state\" | \"password-request-state\" | 
+\"port-number\" ]"
+  echo 
+  exit $SUCCESS
+fi
+
+
+function GetSshState
+{
+  sshState="disabled"
+  
+  #ls $DROPBEAR_LINK_NAME > /dev/null 2> /dev/null
+  pidof $DROPBEAR_DEAMON > /dev/null 2> /dev/null
+  if [ "$SUCCESS" = $? ]; then
+    sshState="enabled"
+  fi
+  
+  printf "$sshState"
+}
+
+
+function GetRootAccessState
+{
+  rootAccessState="disabled"
+  
+  # search line with definition of dropbear args in configuration file
+ # dropbearArgsLine=`grep "^ *DROPBEAR_EXTRA_ARGS=\".*\"$" $DROPBEAR_INITFILE_NAME`
+  
+  # search after parameter '-w' - root access is allowed, if parameter is given
+ # echo $dropbearArgsLine | grep " -w" > /dev/null 2> /dev/null
+  if [ $ROOT_LOGIN = true ]; then
+    rootAccessState="enabled"
+  fi
+  
+  printf "$rootAccessState"
+}
+
+
+function GetPasswordRequestState
+{
+  passwordRequestState="disabled"
+  
+  # search line with definition of dropbear args in configuration file
+  #dropbearArgsLine=`grep "^ *DROPBEAR_EXTRA_ARGS=\".*\"$" $DROPBEAR_INITFILE_NAME`
+  
+  # search after parameter '-s' - password request is enabled, if parameter is NOT given
+ # echo $dropbearArgsLine | grep " -s" > /dev/null 2> /dev/null
+  if [ $PASSWORD_LOGIN = true ]; then
+    passwordRequestState="enabled"
+  fi
+  
+  printf "$passwordRequestState"
+}
+
+function GetPortNumber
+{
+  portNumber="22"
+
+  # search line with definition of port configuration file
+  #portLine=`egrep "^ *DROPBEAR_PORT=[0-9]+ *$" $DROPBEAR_INITFILE_NAME`
+  if [ "$PORT" != "" ]; then
+    portNumber=$PORT
+  fi
+  
+  printf "$portNumber"
+}
+
+function GetPublicKey
+{
+  publicKey=""
+  
+  # get content of private key file, in case of error (file is not existing) > key is not existing
+  # sudo access is necessary, because key file is only readable by root
+  #publicKey=`cat /home/.ssh/authorized_keys 2> /dev/null`
+  publicKey=`sudo sed -n '1p' /home/.ssh/authorized_keys 2> /dev/null`
+
+  printf "$publicKey"
+}
+
+#--------------------------------------------------------------------
+# main programm
+#--------------------------------------------------------------------
+
+status=$SUCCESS
+
+# read input parameter
+paramName=$1
+#echo "paramName:${paramName}" #> /etc/config-tools/output
+
+# check for missing input parameter
+if [ -z "$paramName" ]; then
+  status=$MISSING_PARAMETER
+  SetLastError "Missing input parameter"
+  exit $status
+fi
+
+#check whether config-file exists 
+if [ ! -f $DROPBEAR_CONFIGFILE_NAME ]; then
+  status=$CONFIG_FILE_MISSING
+  SetLastError "Config file is missing."
+  exit $status
+fi
+. $DROPBEAR_CONFIGFILE_NAME
+if [ "state" = "$paramName" ]; then
+  actualState=`GetSshState`
+  status=$?
+  printf "$actualState"
+  
+elif [ "root-access-state" = "$paramName" ]; then
+  rootAccessState=`GetRootAccessState`
+  status=$?
+  printf "$rootAccessState"
+
+elif [ "password-request-state" = "$paramName" ]; then
+  passwordRequestState=`GetPasswordRequestState`
+  status=$?
+  printf "$passwordRequestState"
+
+elif [ "port-number" = "$paramName" ]; then
+  portNumber=`GetPortNumber`
+  status=$?
+  printf "$portNumber"
+  
+elif [ "public-key" = "$paramName" ]; then
+  publicKey=`GetPublicKey`
+  status=$?
+  printf "$publicKey"
+    
+else
+  status=$INVALID_PARAMETER
+  SetLastError "Invalid parameter ($paramName)"
+fi
+
+exit $status

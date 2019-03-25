@@ -1,0 +1,151 @@
+From 9ee888975ad4d1cb830629ae534e67e47678fcc4 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 28 Sep 2018 11:45:05 +0200
+Subject: [PATCH 102/144] boards: wago-pfc-am335x: simplify code
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 73 +++++++++++----------------------
+ 1 file changed, 25 insertions(+), 48 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index 25ddf88..f152e36 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -97,29 +97,6 @@ static int pfc_set_ethaddr(void)
+ 	return 0;
+ }
+ 
+-static int pfc_export_board_variant(char *board_variant)
+-{
+-	struct device_node *root;
+-	int ret;
+-	char const *variant;
+-
+-	root = of_get_root_node();
+-	if (!root) {
+-		ret = -ENOENT;
+-		goto out;
+-	}
+-
+-	ret = of_property_read_string(root, "board-variant", &variant);
+-	if (ret < 0)
+-		goto out;
+-
+-	board_variant = (char *)variant;
+-	ret = globalvar_add_simple("board.variant", variant);
+-
+-out:
+-	return ret < 0 ? ret : 0;
+-}
+-
+ static int pfc_rewrite_compatible(void)
+ {
+ 	struct device_node *root;
+@@ -158,48 +135,40 @@ out:
+ static int pfc_devices_init(void)
+ {
+ 	int ret;
++	const char *s;
+ 	struct device_node *node;
+-	struct omap_board_info board;
+-
+-	bitmap_zero(board.boot_devices, NUM_BOOT_DEVICES);
++	struct omap_board_info *board;
+ 
+ 	if (!of_machine_is_compatible("wago,am335x-pfc"))
+ 		return 0;
+ 
++	board = xzalloc(sizeof(*board));
++
+ 	/* Do this also in mlo, because the pfc startup code needs this
+ 	 * information to get the right barebox image.
+ 	 */
+-	ret = pfc_export_board_variant(board.board_variant);
+-	if (ret < 0)
+-		pr_err("failed to export board.variant\n");
++	ret = of_property_read_string(of_get_root_node(), "board-variant", &s);
++	if (!ret) {
++		board->board_variant = xstrdup(s);
++		globalvar_add_simple("board.variant", board->board_variant);
++	} else {
++		pr_err("failed to get board.variant from oftree\n");
++	}
+ 
+ 	node = of_find_node_by_alias(of_get_root_node(), "sd");
+ 	if (node)
+ 		if (of_device_is_available(node))
+-			set_bit(HAS_SD, board.boot_devices);
++			set_bit(HAS_SD, board->boot_devices);
+ 
+ 	node = of_find_node_by_alias(of_get_root_node(), "emmc");
+ 	if (node)
+ 		if (of_device_is_available(node))
+-			set_bit(HAS_EMMC, board.boot_devices);
++			set_bit(HAS_EMMC, board->boot_devices);
+ 
+ 	node = of_find_node_by_alias(of_get_root_node(), "nand");
+ 	if (node)
+ 		if (of_device_is_available(node))
+-			set_bit(HAS_NAND, board.boot_devices);
+-
+-	/* copy in case of mlo boot, board information to get the information
+-	 * in the xload-pfc module
+-	 */
+-	if (IS_ENABLED(CONFIG_SHELL_NONE)) {
+-		struct omap_board_info *board_info = xzalloc(sizeof(
+-							struct omap_board_info));
+-
+-		memcpy(board_info, &board, sizeof(*board_info));
+-		bitmap_copy(board_info->boot_devices, board.boot_devices,
+-								NUM_BOOT_DEVICES);
+-		omap_set_board_info(board_info);
+-	}
++			set_bit(HAS_NAND, board->boot_devices);
+ 
+ 	if (bootsource_get() == BOOTSOURCE_MMC) {
+ 		if (bootsource_get_instance() == 0)
+@@ -208,13 +177,13 @@ static int pfc_devices_init(void)
+ 			omap_set_bootmmc_devname("mmc1");
+ 	}
+ 
+-	if (test_bit(HAS_EMMC, board.boot_devices)) {
++	if (test_bit(HAS_EMMC, board->boot_devices)) {
+ 		am33xx_bbu_emmc_mlo_register_handler("mlo.emmc", "/dev/mmc1");
+ 		am33xx_bbu_emmc_register_handler("boot.emmc", boot_emmcslots,
+ 						ARRAY_SIZE(boot_emmcslots));
+ 	}
+ 
+-	if (test_bit(HAS_NAND, board.boot_devices)) {
++	if (test_bit(HAS_NAND, board->boot_devices)) {
+ 		am33xx_bbu_nand_xloadslots_register_handler("mlo.nand",
+ 						mlo_nandslots,
+ 						ARRAY_SIZE(mlo_nandslots));
+@@ -242,8 +211,13 @@ static int pfc_devices_init(void)
+ 		}
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_SHELL_NONE))
++	/* dont free in case of mlo boot. We need the board information in the
++	 * xload-pfc module
++	 */
++	if (IS_ENABLED(CONFIG_SHELL_NONE)) {
++		omap_set_board_info(board);
+ 		return am33xx_of_register_bootdevice();
++	}
+ 
+ 	/* Rewrite the compatible string in the internal barebox device-tree
+ 	 * (located in ram), and add the eeprom devconf as suffix. This string
+@@ -257,6 +231,9 @@ static int pfc_devices_init(void)
+ 				"with devconf from eeprom \n");
+ 	}
+ 
++	free(board->board_variant);
++	free(board);
++
+ 	return 0;
+ }
+ device_initcall(pfc_devices_init);
+-- 
+2.7.4
+

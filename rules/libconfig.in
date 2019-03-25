@@ -1,0 +1,8 @@
+## SECTION=system_libraries
+
+config LIBCONFIG
+	bool
+	prompt "libconfig"
+        default n
+	help
+	  FIXME

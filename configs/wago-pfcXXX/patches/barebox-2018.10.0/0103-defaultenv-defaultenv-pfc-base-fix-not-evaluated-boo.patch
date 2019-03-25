@@ -1,0 +1,95 @@
+From 004df8040ea084a8225e94b0afa8c5ebe2a9e150 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 28 Sep 2018 14:35:26 +0200
+Subject: [PATCH 103/144] defaultenv: defaultenv-pfc-base: fix not evaluated
+ boot-mode-id bug
+
+Command let needs hex values represented by an 0x prefix when using hex values
+above 0x9. Otherwise let fails when using "a" instead "0xa". Fix this by
+prepending "0x" when operating on the boot-mode-id.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart | 2 +-
+ defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode      | 4 ++--
+ defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode     | 4 ++--
+ defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console    | 2 +-
+ defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console | 4 ++--
+ 5 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart b/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
+index 791ea2a..79d4feb 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
+@@ -3,7 +3,7 @@
+ source env/data/print-msg-formats
+ 
+ let debug_mode_mask="(1<<0)"
+-let debug_mode_enable="${global.pfc.boot_mode_id} & ${debug_mode_mask}"
++let debug_mode_enable="0x${global.pfc.boot_mode_id} & 0x${debug_mode_mask}"
+ 
+ if [ "${debug_mode_enable}" = "${debug_mode_mask}" ]; then
+ 	echo -e ${warning} "uart debug mode active"
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode b/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode
+index 30ed364..bb26941c 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode
+@@ -25,9 +25,9 @@ if [ "${mode}" = "unknown" ]; then
+ fi
+ 
+ if [ "${mode}" = "enable" ]; then
+-	let debug_enable="${global.pfc.boot_mode_id} | ${debug_mask}"
++	let debug_enable="0x${global.pfc.boot_mode_id} | 0x${debug_mask}"
+ else
+-	let debug_enable="${global.pfc.boot_mode_id} & ~${debug_mask}"
++	let debug_enable="0x${global.pfc.boot_mode_id} & ~0x${debug_mask}"
+ fi
+ 
+ # write persistent to eeprom
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode b/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
+index 4188879..bfc24a4 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
+@@ -3,8 +3,8 @@
+ source env/data/print-msg-formats
+ 
+ let setup_fw_mask="(1 << 5)"
+-let setup_fw_enable="${global.pfc.boot_mode_id} & ${setup_fw_mask}"
+-let setup_fw_disable="${global.pfc.boot_mode_id} & ~${setup_fw_mask}"
++let setup_fw_enable="0x${global.pfc.boot_mode_id} & 0x${setup_fw_mask}"
++let setup_fw_disable="0x${global.pfc.boot_mode_id} & ~0x${setup_fw_mask}"
+ 
+ pfc-validate-ethaddr
+ 
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console b/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
+index 6b407aa..a2bc7ab 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
+@@ -3,7 +3,7 @@
+ source env/data/print-msg-formats
+ 
+ let uart_mask="(1<<1)"
+-let uart_enable="${global.pfc.boot_mode_id} & ${uart_mask}"
++let uart_enable="0x${global.pfc.boot_mode_id} & 0x${uart_mask}"
+ 
+ if [ "${uart_enable}" = "${uart_mask}" ]; then
+         global.linux.bootargs.console="console=ttyO${global.pfc.linux_uart},115200n8"
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console b/defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console
+index aa96a73..7a0d30d 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console
+@@ -25,9 +25,9 @@ if [ "${mode}" = "unknown" ]; then
+ fi
+ 
+ if [ "${mode}" = "enable" ]; then
+-	let uart_enable="${global.pfc.boot_mode_id} | ${uart_mask}"
++	let uart_enable="0x${global.pfc.boot_mode_id} | 0x${uart_mask}"
+ else
+-	let uart_enable="${global.pfc.boot_mode_id} & ~${uart_mask}"
++	let uart_enable="0x${global.pfc.boot_mode_id} & ~0x${uart_mask}"
+ fi
+ 
+ # write persistent to eeprom
+-- 
+2.7.4
+

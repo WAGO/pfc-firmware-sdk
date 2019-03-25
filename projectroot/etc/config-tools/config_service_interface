@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+. /etc/config-tools/config_tool_lib
+
+function SetServiceConfig
+{
+  local KEY=$1
+  local VALUE=$2
+  grep $KEY /etc/serial_dispatcher.conf &>/dev/null
+  if [ $? -eq 0 ]
+  then
+    sudo $SED -i 's/^\('"$KEY"'=\).*/\1'"$VALUE"'/' "/etc/serial_dispatcher.conf"
+  else
+    sudo echo $KEY=$VALUE >> /etc/serial_dispatcher.conf
+  fi
+}
+
+###################### MAIN ########################
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Configure the owner and its settings of the service Interface *"
+  echo "* Changes will take effect after reboot                    *"
+  echo
+  echo "Usage: config_service_interface [exclusive=<exclusive-value>] [wago=<value> linux=<value>][baud=<bautrate>]"
+  echo "mode:      <service|linux|free>"
+  echo "           mode overwrites all other settings!"
+  echo "exclusive: <wago|linux|none|default>: set interface exclusive. "
+  echo "           If exclusive is used other keys (wago,codesys2 etc) are ignored."
+  echo "wago:      <1|0> : activate WAGO-Service-Protocol (Ethernet-Settings, IO-Check etc."
+  echo "linux:     <1|0> : activate Linux Console with magic key \"console\" (settings: 19200;8;E;1)"
+  echo ""
+  echo "baud:      <baudrate>: set baudrate for the interface (recommended: 19200)"
+  echo "parity:    <baudrate>: set parity for the interface (recommended: 2)"
+  exit $status
+fi
+
+mode=$(GetParameterValue mode $*)
+exclusive=$(GetParameterValue exclusive $*)
+serviceWago=$(GetParameterValue wago $*)
+serviceLinux=$(GetParameterValue linux $*)
+baud=$(GetParameterValue baud $*)
+parity=$(GetParameterValue parity $*)
+
+
+if [ "$exclusive" != "" ]
+then
+  case $exclusive in 
+   "wago")
+      serviceWago="1"
+      serviceCDS2="0"
+      serviceCDS3="0"
+      serviceLinux="0"
+    ;;
+    "linux")
+      serviceWago="0"
+      serviceCDS2="0"
+      serviceCDS3="0"
+      serviceLinux="1"
+    ;;
+    "none")
+      serviceWago="0"
+      serviceCDS2="0"
+      serviceCDS3="0"
+      serviceLinux="0"
+    ;;
+    "default")
+      serviceWago="1"
+      serviceCDS2="1"
+      serviceCDS3="1"
+      serviceLinux="0"
+    ;;
+    *)exit $INVALID_PARAMETER
+    ;;
+  esac
+fi
+
+if [ "$mode" != "" ]
+then
+  case $mode in 
+   "service")
+      serviceWago="1"
+      serviceCDS2="0"
+      serviceCDS3="0"
+      serviceLinux="0"
+      baud="19200"
+      parity=2
+    ;;
+    "linux")
+      serviceWago="0"
+      serviceCDS2="0"
+      serviceCDS3="0"
+      serviceLinux="1"
+      baud="115200"
+      parity=0
+    ;;
+    "free")
+      serviceWago="0"
+      serviceCDS2="0"
+      serviceCDS3="0"
+      serviceLinux="0"
+      baud="115200"
+      parity=0
+    ;;
+    *)exit $INVALID_PARAMETER
+    ;;
+  esac
+fi
+
+if [ "$serviceWago"  != "" ]
+then
+  SetServiceConfig "ACTIVATE_WSERVICE" $serviceWago;
+fi
+
+if [ "$serviceLinux"  != "" ]
+then
+  SetServiceConfig "ACTIVATE_SHELL" $serviceLinux;
+fi 
+
+if [ "$baud" != "" ]
+then
+  SetServiceConfig "BAUD" $baud;
+fi
+
+if [ "$parity" != "" ]
+then
+  SetServiceConfig "PARITY" $parity;
+fi
+sync
+
+exit $status

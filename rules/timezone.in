@@ -1,0 +1,320 @@
+## SECTION=core
+
+# comment "Time zone support doesn't work with OSELAS.Toolchain-1.1.0"
+# comment "and prio versions, hence marked as broken for now"
+
+menuconfig TIMEZONE
+	tristate
+	prompt "Timezone Files                "
+	depends on GLIBC
+	select HOST_TZ_DATABASE if TIMEZONE_LOCAL_DATABASE
+	help
+	  installs timezone files
+
+comment "Timezone support"
+	depends on TIMEZONE
+
+config GLIBC_LOCALTIME_LINK
+	prompt "Link of /etc/localtime"
+	depends on TIMEZONE
+	default "/usr/share/zoneinfo/Europe/Berlin"
+	string
+	help
+	  Where should /etc/localtime point to.
+	  (e.g. /usr/share/zoneinfo/Europe/Berlin)
+
+config TIMEZONE_LOCAL_DATABASE
+	bool
+	prompt "Use local build timezone database"
+	depends on TIMEZONE
+	default y
+	help
+	  Don't use the timezone info provided by the toolchain
+	  but a locally build from source
+
+config TIMEZONE_AFRICA
+	bool
+	prompt "Africa"
+	depends on TIMEZONE
+
+config TIMEZONE_ATLANTIC
+	bool
+	prompt "Atlantic"
+	depends on TIMEZONE
+
+config TIMEZONE_EUROPE
+	bool
+	prompt "Europe"
+	depends on TIMEZONE
+
+config TIMEZONE_EST5EDT
+	bool
+	prompt "EST5EDT"
+	depends on TIMEZONE
+
+config TIMEZONE_CANADA
+	bool
+	prompt "Canada"
+	depends on TIMEZONE
+
+config TIMEZONE_FACTORY
+	bool
+	prompt "Factory"
+	depends on TIMEZONE
+
+config TIMEZONE_GMT0
+	bool
+	prompt "GMT-0"
+	depends on TIMEZONE
+
+config TIMEZONE_ICELAND
+	bool
+	prompt "Iceland"
+	depends on TIMEZONE
+
+config TIMEZONE_JAPAN
+	bool
+	prompt "Japan"
+	depends on TIMEZONE
+
+config TIMEZONE_MST7MDT
+	bool
+	prompt "MST7MDT"
+	depends on TIMEZONE
+
+config TIMEZONE_NAVAJO
+	bool
+	prompt "Navajo"
+	depends on TIMEZONE
+
+config TIMEZONE_WSU
+	bool
+	prompt "W-SU"
+	depends on TIMEZONE
+
+config TIMEZONE_AMERICA
+	bool
+	prompt "America"
+	depends on TIMEZONE
+
+config TIMEZONE_AUSTRALIA
+	bool
+	prompt "Australia"
+	depends on TIMEZONE
+
+config TIMEZONE_CHILE
+	bool
+	prompt "Chile"
+	depends on TIMEZONE
+
+config TIMEZONE_EGYPT
+	bool
+	prompt "Egypt"
+	depends on TIMEZONE
+
+config TIMEZONE_GB
+	bool
+	prompt "GB"
+	depends on TIMEZONE
+
+config TIMEZONE_GMT0
+	bool
+	prompt "GMT0"
+	depends on TIMEZONE
+
+config TIMEZONE_INDIAN
+	bool
+	prompt "Indian"
+	depends on TIMEZONE
+
+config TIMEZONE_KWAJALEIN
+	bool
+	prompt "Kwajalein"
+	depends on TIMEZONE
+
+config TIMEZONE_MEXICO
+	bool
+	prompt "Mexico"
+	depends on TIMEZONE
+
+config TIMEZONE_PRC
+	bool
+	prompt "PRC"
+	depends on TIMEZONE
+
+config TIMEZONE_ROC
+	bool
+	prompt "ROC"
+	depends on TIMEZONE
+
+config TIMEZONE_UCT
+	bool
+	prompt "UCT"
+	depends on TIMEZONE
+
+config TIMEZONE_WET
+	bool
+	prompt "WET"
+	depends on TIMEZONE
+
+config TIMEZONE_ANTARCTICA
+	bool
+	prompt "Antarctica"
+	depends on TIMEZONE
+
+config TIMEZONE_BRAZIL
+	bool
+	prompt "Brazil"
+	depends on TIMEZONE
+
+config TIMEZONE_CUBA
+	bool
+	prompt "Cuba"
+	depends on TIMEZONE
+
+config TIMEZONE_EIRE
+	bool
+	prompt "Eire"
+	depends on TIMEZONE
+
+config TIMEZONE_IRAN
+	bool
+	prompt "Iran"
+	depends on TIMEZONE
+
+config TIMEZONE_LIBYA
+	bool
+	prompt "Libya"
+	depends on TIMEZONE
+
+config TIMEZONE_MIDEAST
+	bool
+	prompt "Mideast"
+	depends on TIMEZONE
+
+config TIMEZONE_PST8PDT
+	bool
+	prompt "PST8PDT"
+	depends on TIMEZONE
+
+config TIMEZONE_ROK
+	bool
+	prompt "ROK"
+	depends on TIMEZONE
+
+config TIMEZONE_US
+	bool
+	prompt "US"
+	depends on TIMEZONE
+
+config TIMEZONE_ZULU
+	bool
+	prompt "Zulu"
+	depends on TIMEZONE
+
+config TIMEZONE_ARCTIC
+	bool
+	prompt "Arctic"
+	depends on TIMEZONE
+
+config TIMEZONE_CET
+	bool
+	prompt "CET"
+	depends on TIMEZONE
+
+config TIMEZONE_EET
+	bool
+	prompt "EET"
+	depends on TIMEZONE
+
+config TIMEZONE_ETC
+	bool
+	prompt "Etc"
+	depends on TIMEZONE
+
+config TIMEZONE_GMT
+	bool
+	prompt "GMT"
+	depends on TIMEZONE
+
+config TIMEZONE_HST
+	bool
+	prompt "HST"
+	depends on TIMEZONE
+
+config TIMEZONE_ISRAEL
+	bool
+	prompt "Israel"
+	depends on TIMEZONE
+
+config TIMEZONE_MET
+	bool
+	prompt "MET"
+	depends on TIMEZONE
+
+config TIMEZONE_NZ
+	bool
+	prompt "NZ"
+	depends on TIMEZONE
+
+config TIMEZONE_PACIFIC
+	bool
+	prompt "Pacific"
+	depends on TIMEZONE
+
+config TIMEZONE_SINGAPORE
+	bool
+	prompt "Singapore"
+	depends on TIMEZONE
+
+config TIMEZONE_UTC
+	bool
+	prompt "UTC"
+	depends on TIMEZONE
+
+config TIMEZONE_ASIA
+	bool
+	prompt "Asia"
+	depends on TIMEZONE
+
+config TIMEZONE_CST6CDT
+	bool
+	prompt "CST6CDT"
+	depends on TIMEZONE
+
+config TIMEZONE_EST
+	bool
+	prompt "EST"
+	depends on TIMEZONE
+
+config TIMEZONE_GMT0
+	bool
+	prompt "GMT+0"
+	depends on TIMEZONE
+
+config TIMEZONE_HONGKONG
+	bool
+	prompt "Hongkong"
+	depends on TIMEZONE
+
+config TIMEZONE_JAMAICA
+	bool
+	prompt "Jamaica"
+	depends on TIMEZONE
+
+config TIMEZONE_MST
+	bool
+	prompt "MST"
+	depends on TIMEZONE
+
+config TIMEZONE_NZ_CHAT
+	bool
+	prompt "NZ-CHAT"
+	depends on TIMEZONE
+
+config TIMEZONE_UNIVERSAL
+	bool
+	prompt "Universal"
+	depends on TIMEZONE
+
+

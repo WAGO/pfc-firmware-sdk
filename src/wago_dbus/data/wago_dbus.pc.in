@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: wago_dbus
+Description: WAGO integration for the free desktop message bus
+Version: @PACKAGE_VERSION@
+Requires: dbus-glib-1
+Libs: -L${libdir} -lwago_dbus -lrt
+Cflags: -I${includedir}
+
+

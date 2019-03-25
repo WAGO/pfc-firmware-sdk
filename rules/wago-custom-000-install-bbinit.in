@@ -1,0 +1,175 @@
+## SECTION=initmethod_bbinit
+
+comment "Wago custom rc.d links ---"
+
+config WAGO_CUSTOM_ROOTFS_MOUNTRW_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_ROOTFS_MOUNTRW_STARTSCRIPT
+	prompt "mountrw"
+	default "S01_mountrw"
+
+config WAGO_CUSTOM_ROOTFS_MOUNTVARLOG_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_ROOTFS_MOUNTVARLOG_STARTSCRIPT
+	prompt "mountvarlog"
+	default "S02_mountvarlog"
+
+config WAGO_CUSTOM_LINK_DEVICES_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_INSTALL_LINKIN_DEVS
+	prompt "link_devices"
+	default "S01_link_devices"
+
+config WAGO_CUSTOM_DETERMINE_HOSTNAME_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_INSTALL_DETERMINE_HOSTNAME
+	prompt "determine_hostname"
+	default "S02_determine_hostname"
+
+config WAGO_CUSTOM_CHECK_RTC_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_INSTALL_CHECK_RTC
+	prompt "check_rtc"
+	default "S00_check_rtc"
+
+config WAGO_CUSTOM_AUTOFIRMREST_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_ROOTFS_AUTOFIRMREST_STARTSCRIPT
+	prompt "auto_firmware_restore"
+	default "S04_auto_firmware_restore"
+
+config WAGO_CUSTOM_MOUNTHD2_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_ROOTFS_MOUNTHD2_STARTSCRIPT
+	prompt "mounthd2"
+	default "S14_mounthd2"
+
+config WAGO_CUSTOM_PERMISSIONS_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_ROOTFS_PERMISSIONS_STARTSCRIPT
+	prompt "permissions"
+	default "S49_permissions"
+
+config WAGO_CUSTOM_KBUSPRIO_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_ROOTFS_KBUSPRIO_STARTSCRIPT
+	prompt "kbusprio"
+	default "S50_kbusprio"
+
+config LED_SERVER_BBINIT_LINK
+	string
+	depends on LED_SERVER_2_STARTSCRIPT || LED_SERVER_LEGACY_STARTSCRIPT
+	prompt "led_server init"
+	default "S20_ledserver"
+
+config LOGFORWARD_BBINIT_LINK
+	string
+	depends on LOGFORWARD_STARTSCRIPT
+	prompt "logforward init"
+	default "S21_logforward"
+
+config WAGO_CUSTOM_ROOTFS_SCREEN_INIT_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_ROOTFS_SCREEN_INIT_STARTSCRIPT
+	prompt "screen_init"
+	default "S94_screen_init"
+
+config WAGO_CUSTOM_LOG_SYSTEMSTART_LINK
+	string
+	depends on WAGO_CUSTOM_LOG_SYSTEMSTART_INIT_STARTSCRIPT
+	prompt "log system boot via LOG id"
+	default "S05_logsystemstart"
+
+config SCREENSAVER_SCREEND_BBINIT_LINK
+	string
+	depends on SCREENSAVER_SCREEND_STARTSCRIPT
+	prompt "screensaver"
+	default "S96_screensaver"
+
+#config PLCLINUXRT_CODESYS_LINK
+#	string
+#	depends on PLCLINUXRT_CODESYS_STARTSCRIPT
+#	prompt "codesys"
+#	default "S98_codesys"
+
+#config CODESYS3_RC_LINK
+#	string
+#	depends on CODESYS3
+#	prompt "CODESYS v3"
+#	default "S98_codesys3"
+
+config PROGEXEC_BBINIT_LINK
+	string
+	depends on PROGEXECD
+	prompt "Program starter daemon"
+	default "S95_progexec"
+
+config RUNTIME_RC_LINK
+	string
+	depends on CODESYS3
+	prompt "PLC runtime"
+	default "S98_runtime"
+
+config WAGO_CUSTOM_FINALIZE_ROOT_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_FINALIZE_ROOT_STARTSCRIPT
+	prompt "finalize root partition"
+	default "S99_finalize_root"
+
+config WAGO_CUSTOM_CONFIG_SERIAL_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_CONFIG_SERIAL_STARTSCRIPT
+	prompt "configure serial interface owner"
+	default "S90_config_serial"
+
+config WAGO_CUSTOM_CONFIG_USB_GADGET_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_CONFIG_USB_GADGET_STARTSCRIPT
+	prompt "configure usb gadget modules"
+	default "S00_config_usb_gadget"
+
+config WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_STARTSCRIPT
+	prompt "CBM: set product-specific config"
+	default "S90_cbm_set_config"
+
+config WAGO_CUSTOM_WBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_WBM_MULTI_PRODUCT_CONFIG_STARTSCRIPT
+	prompt "WBM: set product-specific config"
+	default "S90_wbm_set_config"
+
+config WAGO_CUSTOM_OMS_CONFIG_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_OMS_CONFIG_STARTSCRIPT
+	prompt "Install startscript for operating mode switch daemon"
+	default "S01_omsdaemon"
+
+config WAGO_CUSTOM_MDMD_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_MDMD_STARTSCRIPT
+	prompt "mdmd"
+	default "S60_mdmd"
+	
+config WAGO_CUSTOM_WATCH_IP_CHANGE_BBINIT_LINK
+  string
+  depends on WAGO_CUSTOM_WATCH_IP_CHANGE_STARTSCRIPT
+  prompt "set watching IP change"
+  default "S97_watch_ip_change"
+
+
+config WAGO_CUSTOM_RAUC_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_RAUC_STARTSCRIPT
+	prompt "rauc"
+	default "S16_rauc"
+
+config WAGO_CUSTOM_BOOT_WDG_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_INSTALL_BOOT_WDG
+	prompt "boot watchdog"
+	default "S15_boot_wdg"
+
+
+comment ""

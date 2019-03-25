@@ -1,0 +1,48 @@
+From 50aa03157d7e56f9066285469235f14a2f3def5c Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Mon, 29 Oct 2018 15:15:30 +0000
+Subject: [PATCH 136/144] omap: xload: fix wrong usage of the bootfile variable
+
+Dedicate a static variable to hold the legacy bootfile string
+to not break the code path.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/mach-omap/xload-pfc.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap/xload-pfc.c b/arch/arm/mach-omap/xload-pfc.c
+index 467eb9c..aab6662 100644
+--- a/arch/arm/mach-omap/xload-pfc.c
++++ b/arch/arm/mach-omap/xload-pfc.c
+@@ -192,6 +192,7 @@ static void *pfc_xload_boot_mmc(char *bootfile)
+ static __noreturn int pfc_xload(void)
+ {
+ 	char *bootfile = NULL;
++	char *bootfile_legacy = "barebox.img";
+ 	void *barebox = NULL;
+ 	enum bootsource bootsource;
+ 
+@@ -234,15 +235,14 @@ static __noreturn int pfc_xload(void)
+ 					bootfile, omap_get_bootmmc_devname());
+ 
+ 			/* legacy support for FW < 05 */
+-			free(bootfile);
+-			bootfile = basprintf("barebox.img");
+-			barebox = pfc_xload_boot_mmc(bootfile);
++			barebox = pfc_xload_boot_mmc(bootfile_legacy);
+ 			if (barebox) {
+ 				/* skip uimage header */
+ 				barebox += UIMAGE_HEADER_SIZE;
+ 			} else {
+-				pr_info("%s: file %s not found on %s\n", __func__,
+-						bootfile, omap_get_bootmmc_devname());
++				pr_info("%s: file %s not found on %s\n",
++						__func__, bootfile_legacy,
++						omap_get_bootmmc_devname());
+ 			}
+ 		}
+ 	}
+-- 
+2.7.4
+

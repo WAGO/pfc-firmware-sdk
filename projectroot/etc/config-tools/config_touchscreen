@@ -1,0 +1,151 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_touchscreen
+#
+# Change the configuration of the touchscreen
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+TS_CALIBRATE_FLAG_FILE="/etc/config-tools/ts_calibrate_flag_file"
+TOUCHSCREEN_DRIVER_FILENAME="/etc/ts.conf"
+
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the configuration of the touchscreen *"
+  echo
+  echo "Usage: config_touchscreen [ calibrate-touchscreen=calibrate-touchscreen-value ] [ device-name=device-name-value driver-name=driver-name-value ]"
+  echo
+  echo "calibrate-touchscreen-value: \"yes\" | \"no\" | \"-\" (= maintain old value)"
+  echo "                          note: if the parameter is not given at all, it hat the same meaning as \"no\""
+  echo "device-name: name of a device from ts.conf-file which should set active and be connected with \"driver-name\""
+  echo "driver-name: name of the driver which should be attached to \"device-name\" in devices-file; must be existing in devices-file. The script breaks up, if the driver-name includes the string \"not available\" "
+  echo 
+  exit $status
+fi
+
+
+# filter input parmeter of input-string 
+calibrateTouchscreen=`GetParameterValue calibrate-touchscreen $*`
+newDeviceName=`GetParameterValue device-name $*`
+newDriverName=`GetParameterValue driver-name $*`
+#echo "calibrateTouchscreen:"$calibrateTouchscreen "newDeviceName:"$newDeviceName "newDriverName:"$newDriverName
+
+# get the actual values for device-name and driver-name
+actualDeviceName=`/etc/config-tools/get_touchscreen_config device-name`
+actualDriverName=`/etc/config-tools/get_touchscreen_config driver-name`
+#echo "actualDeviceName:"$actualDeviceName "actualDriverName:"$actualDriverName
+
+
+# process parameter for calibrate-touchscreen 
+case "$calibrateTouchscreen" in
+
+  # value = "yes" -> create flag-file if it is not existing
+  "Yes" | "yes")      if [ ! -f $TS_CALIBRATE_FLAG_FILE ]; then
+                        touch $TS_CALIBRATE_FLAG_FILE
+                      fi
+                      ;;
+
+  # parameter is not(!) given or is "no" -> remove flag-file if is not existing
+  "No"  | "no" | "" ) if [ -f $TS_CALIBRATE_FLAG_FILE ]; then
+                        rm $TS_CALIBRATE_FLAG_FILE
+                      fi
+                      ;;
+
+  # parameter is '-' -> don't change the actual configuration, do nothing
+  "-")                ;;
+
+  *)                  status=$INVALID_PARAMETER;
+                      ReportError $status "($calibrateTouchscreen)"
+                      exit $status
+                      ;;
+esac
+
+
+
+# check if values for the assign of device-name and driver-name are given 
+if [ -n "$newDeviceName" ] && [ -n "$newDriverName" ]; then
+
+  # check if at least one of the values is different from the actual
+  if [ "$newDeviceName" != "$actualDeviceName" ] || [ "$newDriverName" != "$actualDriverName" ]; then
+
+    # check if the specified device-name is one which is not available at this time (special string is included in name)
+    echo "$newDeviceName" | grep "not available" > /dev/null 2> /dev/null
+    if [ "$?" = "$SUCCESS" ]; then
+      SetLastError "Device is currently not available"
+    else
+      # all checked - now we really start to change the settings 
+ 
+      # remove the present active driver (add a comment-character in front of the line) 
+      sudo $SED -i 's/^ *module_raw/# module_raw/g' $TOUCHSCREEN_DRIVER_FILENAME 
+
+      # search the line with the definition of the requested drivername
+      numberedLine=`egrep -n "drivername: $newDriverName" $TOUCHSCREEN_DRIVER_FILENAME 2> /dev/null`
+      if [ -n "$numberedLine" ]; then
+
+        # cut line-number from grep-output-line and calculate line-numbers where devicename-definition and module-raw-line should be
+        driverNameLineNr=${numberedLine%%:*}
+        deviceNameLineNr=$(($driverNameLineNr - 1))
+        moduleRawLineNr=$(($driverNameLineNr + 1))
+        
+        # read the lines once and then check if devicename and module-raw are really include in them
+        deviceNameLine=`sed -n ''$deviceNameLineNr'p' $TOUCHSCREEN_DRIVER_FILENAME`
+        moduleRawLine=`sed -n ''$moduleRawLineNr'p' $TOUCHSCREEN_DRIVER_FILENAME`
+
+        deviceNameLine=`echo $deviceNameLine | egrep "# devicename:"`
+        moduleRawLine=`echo $moduleRawLine | egrep "module_raw"`
+
+        # if the lines not really include what we supposed -> error
+        if [ -z "$deviceNameLine" ] || [ -z "$moduleRawLine" ]; then
+          status=$CONFIG_FILE_INCONSISTENT
+          ReportError $status "($TOUCHSCREEN_DRIVER_FILENAME)"
+          SetLastError "Error while execution"
+
+        # yeah - we got the right line-numbers for the lines we want to change
+        else
+
+          # write new devicename into devicename-line, check error          
+          sudo $SED -i ''$deviceNameLineNr'c\# devicename: '"$newDeviceName"'' $TOUCHSCREEN_DRIVER_FILENAME 
+          if [ "$?" != "$SUCCESS" ]; then
+            status=$WRITE_FILE_ERROR
+            ReportError $status "($TOUCHSCREEN_DRIVER_FILENAME)"
+            SetLastError "Error while execution"
+
+          else
+
+            # remove the possible comment-character in front of module-raw-line (replace comment-character with nothing by sed)
+            sudo $SED -i ''$moduleRawLineNr's/# *//' $TOUCHSCREEN_DRIVER_FILENAME
+            if [ "$?" != "$SUCCESS" ]; then
+              status=$WRITE_FILE_ERROR
+              ReportError $status "($TOUCHSCREEN_DRIVER_FILENAME)"
+              SetLastError "Error while execution"
+            fi
+          fi
+        fi
+      fi
+    fi
+  fi
+fi
+
+# write buffered filesystem-blocks to disk
+sync
+
+exit $status

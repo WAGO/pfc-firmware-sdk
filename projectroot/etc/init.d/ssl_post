@@ -1,0 +1,52 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+### BEGIN INIT INFO
+# Provides:          ssl_post
+# Required-Start:    lighttpd, pureftpd
+# Required-Stop:     lighttpd, pureftpd
+# Default-Start:     S
+# Default-Stop:
+# X-Start-Before:    
+# X-Stop-After:      
+# Short-Description: Fire events start/stop for http, https, ftp and ftps demons.
+# Description:       Separation of start/stop events from their proper starts
+#                    scripts comes from the lack of single place where ssl related
+#                    events could be emitted.
+#
+### END INIT INFO
+
+
+start_ssl()
+{
+    [[ -d /etc/config-tools/events/ssl/ ]] && run-parts -a start /etc/config-tools/events/ssl/ >/dev/null 2>&1
+}
+
+stop_ssl()
+{
+    [[ -d /etc/config-tools/events/ssl/ ]] && run-parts -a stop /etc/config-tools/events/ssl/ >/dev/null 2>&1
+}
+
+
+case "$1" in
+start|restart|reload|force-reload)
+    start_ssl
+    ;;
+
+stop)
+    stop_ssl
+    ;;
+
+*)
+    echo "Usage: $0 {start|stop|restart|reload|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

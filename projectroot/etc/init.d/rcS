@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# /etc/init.d/rcS
+#
+
+mount -t proc none /proc
+
+# no kernel messages on the console at runtime
+echo "3 4 1 7" > /proc/sys/kernel/printk
+
+# disable ipv6 on all interfaces
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+
+if grep -q "quiet" /proc/cmdline; then
+        exec 1>/dev/null
+fi
+
+echo -n "mounting filesystems..."
+mount -a 2>/dev/null
+echo "done."
+
+# loadkmap < /etc/boottime.kmap
+
+echo "running rc.d services..."
+run-parts -a start /etc/rc.d

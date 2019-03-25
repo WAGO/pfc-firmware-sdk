@@ -1,0 +1,28 @@
+## SECTION=wago_specific_libs
+
+config WAGO_DBUS
+	bool
+    default n
+	prompt "wago_dbus"
+	select DBUS
+	select DBUS_GLIB
+	help
+	  This is a wago-spezific dbus-library for communikating in WAGO-Products
+
+if WAGO_DBUS
+
+config WAGO_DBUS_INSTALL_TEST_TOOL
+	bool
+    default n
+	prompt "install testtool for the library"
+	help
+	  Buid and install the Test-Tool for the Library
+
+config WAGO_DBUS_TRUNK
+	bool
+    default n
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+endif

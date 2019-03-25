@@ -1,0 +1,26 @@
+# -*- mode:outline; outline-regexp:"{{{" -*-
+
+{{{ 2008-09-10T16:27:34+0200 /home/u011514/lib/ptxdist-1.99.5/bin/ptxdist menuconfig
+
+}}} 2008-09-10T16:27:34+0200 /home/u011514/lib/ptxdist-1.99.5/bin/ptxdist menuconfig; (exit value: 1)
+
+
+
+{{{ 2008-09-26T13:44:51+0200 /home/u011514/lib/ptxdist-1.99.5/bin/ptxdist go
+
+}}} 2008-09-26T13:44:51+0200 /home/u011514/lib/ptxdist-1.99.5/bin/ptxdist go; (exit value: 1)
+
+
+
+{{{ 2008-09-30T09:27:17+0200 /home/u011514/lib/ptxdist-1.99.5/bin/ptxdist clean root
+
+}}} 2008-09-30T09:27:17+0200 /home/u011514/lib/ptxdist-1.99.5/bin/ptxdist clean root; (exit value: 1)
+
+
+
+{{{ 2009-02-23T12:33:54+0100 /home/u010896/lib/ptxdist-1.99.5/bin/ptxdist menu
+
+}}} 2009-02-23T12:34:05+0100 /home/u010896/lib/ptxdist-1.99.5/bin/ptxdist menu; (exit value: 0)
+
+
+

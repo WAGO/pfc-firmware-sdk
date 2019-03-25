@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# drm
+#
+case $1 in
+
+        start)
+                mkdir -p /run/drm
+                /usr/bin/drm /run/drm -s -o allow_other,gid=119
+                ;;
+
+esac

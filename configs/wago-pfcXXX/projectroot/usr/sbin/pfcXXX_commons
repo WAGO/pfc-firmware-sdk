@@ -1,0 +1,133 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2014-2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   pfcXXX_commons
+#
+# Brief:    Common functions for pfcXXX_* scripts.
+#
+# Author:   HT:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   LS:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+set -o nounset
+set -o errexit
+
+if [ ! -f "/etc/config-tools/board_specific_defines" ]; then
+    echo "Missing dependency board_specific_defines"
+    exit 64
+fi
+source "/etc/config-tools/board_specific_defines"
+source /usr/sbin/${BOARD_ID}_defines
+
+#
+# Default handling for fatal errors in platform-dependent scripts.
+# Can be overridden by overwriting the trap inside the script.
+#
+
+function _common_exit_handler
+{
+  local lastline=$1
+  local lasterr=$2
+  local lastcmd=$3
+
+  # LAST_ERROR_SET: an exception in a script occured that sets a custom error message
+  # for the UI => don't overwrite it with the generic "internal error" msg.
+  if [[ "${lasterr}" != "$SUCCESS" ]] && [[ "${lasterr}" != "$LAST_ERROR_SET" ]] ; then
+    ReportError "Error $lasterr in $0 near line $lastline (command $lastcmd)"
+    SetLastError "Internal error"
+  fi
+}
+
+trap '_common_exit_handler ${LINENO} ${?} ${BASH_COMMAND}' EXIT
+
+
+function print_dbg
+{
+  if [[ "${DO_PRINT_DBG}" == "yes" ]]; then
+    echo "$@"
+  fi
+}
+
+function GetBootMode
+{
+  if [[ -f "${G_BOOT_MODE_FILE}" ]]; then
+    cat ${G_BOOT_MODE_FILE}
+  fi
+}
+
+function LabelToPort
+{
+  case $1 in
+    $G_ETH_PORT0_LABEL)
+      echo 0;;
+    $G_ETH_PORT1_LABEL)
+      echo 1;
+  esac
+}
+
+# do a self-test:
+# check assumptions made about the hw layout and file locations
+
+if [[ "$BASH_SOURCE" == "$0" ]]; then
+
+. $(dirname $0)/${BOARD_ID}_tests.sh
+
+set +o errexit
+
+echo_title "Testing if ${G_UBIFS_MTD_DEV} exists"
+
+test -e ${G_UBIFS_MTD_DEV}
+
+eval_result
+
+
+echo_title "Testing if ${G_UBIFS_MTD_DEV} contains ubifs (= has an ubifs label)"
+
+cat /proc/mtd | grep -q ubifs
+
+eval_result
+
+
+echo_title "Testing if /dev/${G_UBIFS_ROOT_ID} exists"
+
+test -e /dev/${G_UBIFS_ROOT_ID}
+
+eval_result
+
+
+echo_title "Testing if /dev/${G_UBIFS_HOME_VOL} is home volume"
+
+[[ "$(ubinfo /dev/${G_UBIFS_HOME_VOL} | grep "Name" | awk '{print $2}')" == "$G_UBIFS_HOME_LABEL" ]]
+
+eval_result
+
+
+echo_title "Testing if /dev/${G_UBIFS_ROOT1_VOL} is root1 volume"
+
+[[ "$(ubinfo /dev/${G_UBIFS_ROOT1_VOL} | grep "Name" | awk '{print $2}')" == "$G_UBIFS_ROOT1_LABEL" ]]
+
+eval_result
+
+
+echo_title "Testing if /dev/${G_UBIFS_ROOT2_VOL} is root2 volume"
+
+[[ "$(ubinfo /dev/${G_UBIFS_ROOT2_VOL} | grep "Name" | awk '{print $2}')" == "$G_UBIFS_ROOT2_LABEL" ]]
+
+eval_result
+
+echo_title "Testing if wago sysfs nodes are present"
+[[ -e /sys/class/wago/system/ ]] && [[ -e /sys/class/wago/system/pac_boot_mode ]]
+
+eval_result
+fi

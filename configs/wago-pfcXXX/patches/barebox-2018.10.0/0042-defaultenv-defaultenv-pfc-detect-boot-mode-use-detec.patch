@@ -1,0 +1,28 @@
+From 7530101dba6587dff27112aace3ae54dcef36624 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 8 Aug 2018 11:31:45 +0200
+Subject: [PATCH 042/144] defaultenv: defaultenv-pfc: detect-boot-mode: use
+ detected boot-mode from bootmatrix driver
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode b/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
+index 1791def..4188879 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
+@@ -29,9 +29,6 @@ elif [ -e "${global.pfc.sd}" ]; then
+ elif [ "${setup_fw_enable}" = "${setup_fw_mask}" ]; then
+         global.pfc.boot_mode="setupfw"
+ 	xsection.boot_mode_id="${setup_fw_disable}"
+-
+-else
+-        global.pfc.boot_mode="default"
+ fi
+ 
+ echo -e ${info} "detected boot_mode: ${global.pfc.boot_mode}"
+-- 
+2.7.4
+

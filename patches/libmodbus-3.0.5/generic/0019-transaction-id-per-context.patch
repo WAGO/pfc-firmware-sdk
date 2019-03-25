@@ -1,0 +1,57 @@
+From e193b613088234249c5adabe6bd4441610487b6d Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Mon, 13 Oct 2014 09:54:20 +0200
+Subject: [PATCH] transaction id per context
+
+---
+ src/modbus-private.h |  2 ++
+ src/modbus-tcp.c     | 18 +++++-------------
+ 2 files changed, 7 insertions(+), 13 deletions(-)
+
+diff --git a/src/modbus-private.h b/src/modbus-private.h
+index 17dbac3..8acde53 100644
+--- a/src/modbus-private.h
++++ b/src/modbus-private.h
+@@ -128,6 +128,8 @@ struct _modbus {
+     int slave;
+     /* Socket or file descriptor */
+     int s;
++    /* Transaction ID for TCP and UDP */
++    uint16_t t_id;
+     int debug;
+     int error_recovery;
+     struct timeval response_timeout;
+diff --git a/src/modbus-tcp.c b/src/modbus-tcp.c
+index 465f0b8..1bebf36 100644
+--- a/src/modbus-tcp.c
++++ b/src/modbus-tcp.c
+@@ -101,21 +101,13 @@ int _modbus_tcp_build_request_basis(modbus_t *ctx, int function,
+                                     int addr, int nb,
+                                     uint8_t *req)
+ {
+-
+-    /* Extract from MODBUS Messaging on TCP/IP Implementation Guide V1.0b
+-       (page 23/46):
+-       The transaction identifier is used to associate the future response
+-       with the request. So, at a time, on a TCP connection, this identifier
+-       must be unique. */
+-    static uint16_t t_id = 0;
+-
+     /* Transaction ID */
+-    if (t_id < UINT16_MAX)
+-        t_id++;
++    if (ctx->t_id < UINT16_MAX)
++        ctx->t_id++;
+     else
+-        t_id = 0;
+-    req[0] = t_id >> 8;
+-    req[1] = t_id & 0x00ff;
++        ctx->t_id = 0;
++    req[0] = ctx->t_id >> 8;
++    req[1] = ctx->t_id & 0x00ff;
+ 
+     /* Protocol Modbus */
+     req[2] = 0;
+-- 
+1.9.0
+

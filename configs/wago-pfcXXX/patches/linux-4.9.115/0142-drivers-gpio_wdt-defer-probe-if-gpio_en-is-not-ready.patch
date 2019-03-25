@@ -1,0 +1,36 @@
+From 455be9677607e8ab9f191d43eb4a945039b7f0eb Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 17 Jan 2018 14:49:11 +0100
+Subject: [PATCH 142/261] drivers: gpio_wdt: defer probe if gpio_en is not
+ ready
+
+	Its possible, that in some cases the corresponding gpio (gpio_en)
+	resource is not available when the probe function is called (e.g. we use
+	an gpio-io expander over i2c that is probed later). So interpret the
+	return value of the gpio-framework and defer the probing in case of an
+	-EPROBEDEFER return value.
+---
+ drivers/watchdog/gpio_wdt.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/watchdog/gpio_wdt.c b/drivers/watchdog/gpio_wdt.c
+index 46cd245..c07b881 100644
+--- a/drivers/watchdog/gpio_wdt.c
++++ b/drivers/watchdog/gpio_wdt.c
+@@ -223,7 +223,12 @@ static int gpio_wdt_probe(struct platform_device *pdev)
+ 
+ 	priv->gpio_en = of_get_named_gpio_flags(pdev->dev.of_node, "gpio-en", 0, &flags);
+ 	if (!gpio_is_valid(priv->gpio_en)) {
+-		dev_err(&pdev->dev, "gpio-en property not found. Assume WDT is already enabled.\n");
++		if (priv->gpio_en == -EPROBE_DEFER) {
++			dev_warn(&pdev->dev, "gpio-en not ready, retry.\n");
++			return -EPROBE_DEFER;
++		} else {
++			dev_err(&pdev->dev, "gpio-en property not found. Assume WDT is already enabled.\n");
++		}
+ 	}
+ 
+ 	priv->active_low_en = flags & OF_GPIO_ACTIVE_LOW;
+-- 
+2.7.4
+

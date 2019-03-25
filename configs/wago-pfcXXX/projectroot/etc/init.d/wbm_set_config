@@ -1,0 +1,108 @@
+#!/bin/sh
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+# detect_hw_variant 
+#
+
+#
+# detect_hw_variant makes product-specific settings
+# (i.e. hiding serial port settings in wbm/cbm on devices
+# w/o a serial port)
+#
+
+function SetWBMConfig
+{
+    echo -n "Setting WBM configuration to "
+
+    local product=$(/etc/config-tools/get_typelabel_value DEVCONF)
+    local org_file=""
+    local link="/var/www/wbm/frontend_config_wbm.xml"
+
+    case $product in
+    0x000A) # 750-8203
+      org_file=/var/www/wbm/xml/750-8203_wbm.xml
+      echo "750-8203"
+      ;;
+    0x000C) # 750-8*02
+      # order number (example value: 8212)
+      local order=$(/etc/config-tools/get_typelabel_value ORDER | awk -F/ '{print $1}')
+      
+      # suborder number (example value: 0000-0100)
+      local subOrder=$(/etc/config-tools/get_typelabel_value ORDER | awk -F/ '{print $2}')
+      
+      # suborder number exists?
+      if [ -n "$subOrder" ]
+      then
+          # check that file exists
+          if [ -f /var/www/wbm/xml/${order}_${subOrder}_wbm.xml ]
+          then 
+              # use full order number ('/' = '_')
+              order=$(printf "%s_%s" $order $subOrder)
+          fi
+      fi
+      
+      org_file=/var/www/wbm/xml/${order}_wbm.xml
+      echo "${order}"
+      ;;
+    0x000E) # 750-8204
+      org_file=/var/www/wbm/xml/750-8204_wbm.xml
+      echo "750-8204"
+      ;;
+    0x000F) # 750-8206
+      org_file=/var/www/wbm/xml/750-8206_wbm.xml
+      echo "750-8206"
+      ;;
+    0x001C) # 750-8207
+      org_file=/var/www/wbm/xml/750-8207_wbm.xml
+      echo "750-8207"
+      ;;
+    0x004E) # 750-8208
+      org_file=/var/www/wbm/xml/750-8208_wbm.xml
+      echo "750-8208"
+      ;;
+    0x0182) # 750-8215
+      org_file=/var/www/wbm/xml/750-8215_wbm.xml
+      echo "750-8215"
+      ;;
+    0x0008) # 750-8100
+      org_file=/var/www/wbm/xml/750-8100_wbm.xml
+      echo "750-8100"
+      ;;
+    0x0028) # 750-8101
+      org_file=/var/www/wbm/xml/750-8101_wbm.xml
+      echo "750-8101"
+      ;;
+    0x108E) # 762-4303
+      org_file=/var/www/wbm/xml/762-4303_wbm.xml
+      echo "762-4303"
+      ;;
+
+    *)
+      org_file=/var/www/wbm/xml/750-8206_wbm.xml
+      echo "DEFAULT (750-8206)"
+      ;;
+    esac
+
+    #only write a new config-file if it differs
+    if [ -e $link ]; then
+      #use readlink to get the linked file
+      local file=`readlink $link`
+      if [ $file == $org_file ]; then
+        return 0;
+      fi
+    fi
+
+    ln -fs $org_file $link
+}
+
+case $1 in
+
+  start)
+    SetWBMConfig
+  ;;
+esac

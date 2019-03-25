@@ -1,0 +1,7 @@
+Error parsing line
+
+.ressource:
+
+No parent found for attribute .ressource
+
+make-xml-config: Error processing node CT_MENU_WBM_COUPLER_DETAILS in file test_menu_orphaned_attr.in(line 82)

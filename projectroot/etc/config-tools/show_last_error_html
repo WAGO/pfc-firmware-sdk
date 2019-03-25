@@ -1,0 +1,39 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: show_last_error_html
+#
+# Write html-error-message with error-text of the last processing script to stdout.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+status=$SUCCESS
+
+# check whether error-file exists and can be read (else we have nothing to do)
+if [ -f $LAST_ERROR_FILENAME ]; then
+
+  # write error-message for html-page to stdout
+  echo "<p class=\"error\">"
+  cat $LAST_ERROR_FILENAME
+  echo "</p>"
+
+  # delete last-error-file
+  rm $LAST_ERROR_FILENAME
+
+fi  
+
+exit $status

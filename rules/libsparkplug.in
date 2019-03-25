@@ -1,0 +1,9 @@
+## SECTION=networking
+
+menuconfig LIBSPARKPLUG
+	bool
+	prompt "libsparkplug"
+	help
+		Client library related to sparkplug specification
+
+

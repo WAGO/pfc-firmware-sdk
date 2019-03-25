@@ -1,0 +1,386 @@
+Version History
+
+ATTENTION: Since V1.3.0.0 of the 2nd Stage Loader, parameters can only be 
+           configured through the tag list using Hilscher Tag List Editor.
+           Patching parameters using Bootwizard has been removed and is not
+           supported anymore.
+
+V1.4.17.0 (30.09.2014)
+-----------------
+Changed:
+ - netX51/52: Introduce separate 2nd Stage Loader binary for each chip type
+ - netX52: 2nd Stage Loader binary uses SQIROM by default
+
+Added:
+ - netX51/52: Added flag to hardware parameters to tell the firmware, that a valid flash device label has been found
+ - Pass MAC-Address via hardware parameters to firmware
+
+Bugfix:
+ - netX51/52: MMIO configuration gets corrupted if break signal is initiated on the UART during startup phase
+ - SD cards which do not respond to mandatory command CMD1 (SEND_OP_COND) are rejected
+ - netX52: UART boot mode broken due to invalid default MMIO configuration
+ - netX100/500: Error during license check may stall bootloader in startup phase
+ - SD/MMC restore operation creates invalid short filename if extension of long filename has fewer than 3 characters
+ - netX50/51/52: System channel signals system error although security memory is disabled via tag list
+ - Restore operation creates corrupt files on target media if backup size exceeds target capacity
+
+V1.4.16.0 (19.02.2014)
+----------------------
+Bugfix:
+ - netX51/52: DPM settings for DPM_IF_CFG and address comparator in DPM_ADDR_CFG are not setup correctly
+
+V1.4.15.0 (28.01.2014)
+----------------------
+Added:
+ - netX51/52: Support for device label stored in last flash sector
+
+V1.4.14.0 (06.01.2014)
+----------------------
+Bugfix:
+ - Self-Flashing Option does not work for flashes not supporting single page erase, but only sector erase
+ - netX10/50/51: After software reset security memory access may be 10times slower depending on used firmware
+
+V1.4.13.0 (02.10.2013)
+----------------------
+Changed:
+ - netX51/52: 8/16 Bit DPM mode detection pin updated
+    netX50    compatibility mode   WIF=HIF PIO35 / D17
+    netX51/52 native mode          WIF=SIRQ
+ - netX51/52: DPM configuration registers (IRQ enable, reset, etc.) are now shown at end of 64kB DPM (default configuration)
+ - Parallel flash from Manufacturer other than Intel/Spansion are not detected
+
+Added:
+ - netX51/52: Allow booting firmware to internal RAM with following limitations:
+    * Firmware must be loaded beyond the 2nd Stage loader (current limit is 96kB Offset from start of INTRAM0)
+    * Firmware must be located between 96kB of INTRAM start and start of INTRAM7
+    * Maximum used RAM size during load must not exceed 416kB
+ - Passing of bHwAssemblyFeatures in boottokens
+ - Support for AT45DB312E (only test first 2 bytes of JEDEC identifier)
+
+Bugfix:
+ - Some MMC4.x cards might not be recognized correctly
+
+V1.4.12.0 (12.06.2013)
+----------------------
+Bugfix:
+ - MMIO Pins for UART may not be set to UART function if a spurious BREAK is detected 
+   (RXD low on HW during startup)
+ - Some / Older MMC cards may not work, if they need longer for CMD8 (SEND_OPCOND).
+   Observed with old 64MB cards delivered with some evaluation boards
+
+V1.4.11.0 (29.04.2013)
+----------------------
+ - Reduced maximum serial flash clock speeds for Winbond W25QXXX from 80 to 33 MHz in standard read mode
+ - netX52: Disable netX50 compatibility mode to ensure external SDRAM and SPI DPM 
+           works at the same time
+           ATTENTION: Wrong wiring may cause permanent hardware damage
+ - netX52: Default USB ProductID is automatically adjusted to 0x200 if netX52 is being detected
+ - SDHC/SDXC support added (may not work for all available cards, if they don't support SPI interface)
+ - Boottoken list contains a broken token on hardwares without security memory,
+   which results in a unparsable tokenlist
+
+V1.4.10.0 (21.12.2012)
+----------------------
+Bugfix:
+ - netX51 MMIO settings passed via taglist are not evaluated
+ - netX51 HIF parameters passed via taglist are not evaluated
+ - netX10/51 Automatic serial DPM detection changes memory 
+   interface configuration unintentionally
+ - Firmware validation does not work on netX10/51 running in XiP/SQIROM mode
+   (A wrong firmware may be downloaded and will illegally be started)
+ - RCX_HW_IDENTIFY_REQ now also detects netX52
+
+Added:
+ - 2nd Stage Loader version information is now passed to firmware via boottoken
+ - netX52 support
+
+V1.4.9.0 (11.07.2012)
+---------------------
+Added:
+ - netX51 support
+ - Allow customer specific serial flash via taglist (ATTENTION: This flash must
+   support page erase to work)
+ - Pass serial flash parameters to firmware via tokenlist
+ - Support for Winbond W25Q128 serial flash
+
+Bugfix:
+ - netX100/500 MRAM may not be accessible to due a netX bug
+
+V1.4.8.0 (06.02.2012)
+---------------------
+Changed:
+ - netX10 DPM auto-detection changed to support serial DPM via DIRQ pin. See the
+   following truth table:
+       DIRQ   SIRQ    Mode
+        0      X      Serial DPM (Mode 3)
+        1      0      Parallel DPM (16 Bit)
+        1      1      Parallel DPM (8 Bit)
+
+V1.4.7.0 (16.01.2012)
+---------------------
+Bugfix:
+ - Firmwares ending on a cluster boundary (filesize is a multiple of cluster size)
+   are not started.
+
+V1.4.6.0 (16.12.2011)
+---------------------
+Changed:
+ - Disable USB at start to allow host to detect disconnection during restart
+ - MRAM data is now inserted into System Status Block of DPM
+
+Bugfix:
+ - MRAM may not be mapped correctly
+
+V1.4.5.0 (06.12.2011)
+---------------------
+Added:
+ - Mapping of PCI target 2 (MRAM on 2nd memory bar)
+ - netX10: USB communication changed to prevent FIFO problems (now using special protocol over USB).
+   ATTENTION: This needs a special USB Driver (netx10ser.sys V6.0.2.0 or later)
+
+V1.4.4.0 (16.09.2011)
+---------------------
+Bugfix:
+ - netX10: Host interrupt was not correctly enabled for DPM Targets.
+ - netX10: Host handshake cells were not zeroed correctly on system start (NSF_RESET)
+ - netX10: Backup Partition did not work in SQIROM Mode
+ - netX10: SDRAM Parameters from Taglist may not be used, depending on tag list element order
+           (HIF and SDRAM depend on each other)
+ - Bootloader update on SQI Flashes that don't support Page Erase does not work
+
+Changed:
+ - netX10: Generic 2nd Stage Loader binary now always uses SQIROM mode 
+           (pre-activated in taglist)
+
+V1.4.3.0 (14.09.2011)
+---------------------
+Added:
+ - BOOTTOKEN_HARDWARE_FLAGS_CUSTOM_MMIO_MAPPING is now passed to firmware in 
+   Boottoken BOOTTOKEN_HARDWARE_FLAGS, to tell the firmware a custom MMIO
+   mapping has already been setup by 2nd Stage Loader and Firmware does not
+   need to change it again
+
+Bugfix:   
+ - netX50 may erroneously detect a break signal on fiber-optics hardware
+   and enters serial boot mode instead of starting the firmware or correctly 
+   returning from a system reset via DPM
+
+ - netX50 UART does not work if Fast-Startup mode is not enabled due to wrong
+   MMIO configuration
+
+Changed
+ - UART is now checked for incoming transport packets in main loop. This allows
+   to talk via UART with the 2nd Stage Loader even without asserting a break signal
+   at coldstart
+   ATTENTION: If a connection established via UART/USB/DPM all other connections
+              will be disabled. This means if a connection via UART is established
+              no access via DPM or USB will be possible until device being reset
+
+V1.4.2.0 (11.08.2011)
+---------------------
+Changed:
+ - All DPM Windows are now disable before firmware is started. This makes sure that the firmware
+   can use the internal RAM for code/data completely, without the host destroying program code,
+   before new DPM mapping is set up
+ - USB core is now always disabled before firmware is started
+ - AIFX now read with 4kHz
+ - netX10 DPM timings updated for comX compatibility
+
+Added:
+ - RCX_FORMAT_REQ added to format flash disk
+ - Restore from SD/MMC card will restore files to serial flash disk,
+   even when default medium is set to par. flash.
+ - new MMIO pinning for fast startup added (selectable via Tag List Editor)
+ - Support for SPI flash Numonyx M45PE16
+ - Support for Backup Partition (netX50/100, or netX10 with SDRAM). Currently not supported for netX10 SQIROM Mode
+
+Bugfix:
+ - 2nd Stage Loader may write to flash when booting a firmware
+ - Creating default filesystem may fail after first reset (yellow LED permanent on)
+
+V1.4.1.0 (22.11.2010)
+---------------------
+Bugfix:
+ - SDRAM Parameters from TAG List may be ignored
+ - Parallel Flash mode was always expecting a XiP Firmware
+ - AIFX Modules may not work correctly
+
+Changed:
+ - Reset SYSTIME unit to power on defaults for netX10
+ - Reducing MAX Frequency of AT45DB642D to 25/33MHz as 50MHz does not work on every HW design
+
+V1.4.0.0 (26.10.2010)
+---------------------
+ Added:
+  - netX10 support
+  - MMIO configuration added to Taglist
+  - USB descriptor added to Taglist
+  - Disk position and offset added to Taglist
+
+V1.3.1.0 (03.08.2010)
+---------------------
+ Added:
+  - Packets to read/write physical addresses
+
+V1.3.0.0 (11.11.2009)
+---------------------
+ Added:
+  - Filesystem type can now be configured through security memory zone 1, 
+    starting with structure revision 3
+  - Rotary Switches are always read if Security Memory contains DEV_CLASS_CIFX (for every manufacturer)
+  
+ Bugfix:
+  - Slow SDMMC cards were sometimes not correctly detected
+
+V1.0.0.0 (05.11.2009)
+--------------------------
+ Added:
+  - Firmwarevalidation according to Hilscher Firmware startup concept
+
+V0.915 (31.07.2009)
+--------------------------
+ Added:
+  - Additional packets added:
+    * RCX_HW_HARDWARE_INFO_REQ
+   	* RCX_HW_LICENSE_INFO_REQ
+   	* RCX_SYSTEM_INFORMATION_BLOCK_REQ
+   	* RCX_CHANNEL_INFORMATION_BLOCK_REQ
+   	* RCX_SYSTEM_CONTROL_BLOCK_REQ
+   	* RCX_SYSTEM_STATUS_BLOCK_REQ
+  - Tag list included for configuration
+  - Parallel Flash support, without filesystem added
+  - Support for USB Enable pin added (via Tag list)
+  - Support for PCI Enable pin added (via Tag list)
+  - ISA Mode added
+  - Rotary switch support for cifX 50 added
+  - New filed added in system status block (ulBootError) to show why a firmware has not been booted
+  
+Known Bugs:
+ - Taglist is not yet working correctly. Bugfix needed.
+
+V0.914 (FSU Release)
+-------------------
+ Added:
+  - HilFileHeader V3 included 
+  - PCI support (cifX, .NFX files only)
+  - RAM Based device support (when no flash is available)
+    This feature needs the cifX Toolkit which downloads all neccessary files at runtime
+  - Additional Bootheaders parameter (ulUserParams)
+     * Bitmask 
+     		BOOTLOADER_FORCE_RAMDISK 	0x10
+     		BOOTLOADER_FORCE_SERFLASH 0x20
+     		BOOTLOADER_FORCE_PARFLASH 0x40
+     * BOOTLOADER_FORCE_NXF_SDRAM_PARAMS (0x200), to force usage of SDRAM parameters from .NXF file
+     * BOOTLOADER_FORCE_FLASHING (0x80) to force flashing when loaded via DPM/PCI
+	- SD/MMC update support added (can be used to restore the flash file system)
+  
+ Changed:
+  - When UART is enabled and a break is being detected, the bootloader will only enter
+    the serial console if the break signal goes away within 100ms after sending a zero character
+  - SDRAM Parameter usage order changed
+     1. Crypto flash (always used if available)
+     2. Bootloader header (only used when no cryptoflash is available)
+     3. .NXF file header (only used when neither crypto nor bootheader contains SDRAM information)
+
+V0.913 (04.12.2008)
+-------------------
+ Changed:
+  - Bootheaders user parameter is now evaluated and used to disable bootloader interfaces
+    It contains a mask of disabled interfaces
+     * 0x01 = UART
+     * 0x02 = USB
+     * 0x04 = HIF 
+ Bugfix:
+  - Cryptoflash read/write does expect inverted data anymore, so the user can just pass
+  	the raw data structure (as described in manual)
+  - Cryptoflash write did not work (wrong buffer was written)
+  - Download in extended Mailbox did only use the first 80 byte chunks for data transfer 
+ Added:
+  - Restore Flash File System from SD/MMC
+  - Enable Flash File System Restore from SD/MMC in User Flags
+  - Configure SD/MMC Insertion pin in User Flags
+  - License Download
+
+V0.912 (25.04.2008)
+-------------------
+ Bugfix:
+  * netX100/500
+   - Cryptoflash license code readout could result in total netX crash (due to internal XC problems)
+
+V0.911 (18.04.2008)
+-------------------
+ Bugfix:
+  - Buffer overflow in Serial/USB communication fixed
+  - Bootloader did not enter HIF mode, if first host action was a Reset via DPM
+  - USB connection was only checked once, and entered HIF Boot mode afterwards.
+  - Reading crypto flash always returned invalid CRC, causing SDRAM Parameters can only be used from NXF file
+    and not from crypto.
+  - DPMAS_IFCONF1 was not written correctly for standard configuration
+  - Removed incompatible serial Flash types (which do not support "page erase" or "page erase and program" opcode
+  - USB did abort packet transfer due to internal core problems
+  
+ Changed:
+  - Per Default only GPIO0 (netx100/500) or MMIO34 (netX50) is placed in Uart RXD state. 
+    TXD/(GPIO1 or MMIO35) is only enabled, if a break signal is detected on the serial line. 
+    GPIO2/3 or MMIO36/37) (CTS/RTS) are never used
+  - Only try to read crypto flash license codes, if it was detected before
+  - Changed Name to "Second Stage Loader (netX100/500)" and "Second Stage Loader (netX50)"
+
+  * netX50
+   - Only try to detect crypto flash if we are in PCI Bootmode (external SYSSTA value) 
+  
+ Added:
+  - netX50 support (MMIO's will be kept in default configuration)
+  - Hilscher file header added
+
+TODO: 
+  - License code readout for netX50 (currently not possible)
+
+V0.910 (18.02.2008)
+-------------------
+Changed:
+ - The default DPM Timings have changed, to meet the comX requirements. 
+   The following settings have changed (if no special parameters are patched):
+
+Bugfix:
+ - RCX_FILE_XFER_SERIAL_FLASH did not work if the pagesize if the serial flash 
+   is larger than mailbox/block size
+ - Extended Mailbox did not work, as it internally expected 16 Bit Handshake cells
+
+WAIT_DRV        1 : Push/pull output
+WAIT_MODE       0 : WAIT / BUSY mode function. A active signal shows the the host system that the current access is not ready.
+WAIT_POLARITY   0 : low active polarity output
+IRQ_MODE        2 : Push / pull output
+IRQ_POLARITY    0 : low active polarity output
+
+V0.905 (13.09.2007)
+-------------------
+Bugfix:
+ - Error when trying to mount a filesystem on serial flashes with page size < 512 bytes
+ - Enable IRQ mask adjusted to channel specific interrupts (loader did enable all IRQs before)
+
+V0.904 (27.07.2007)
+-------------------
+Added:
+ - Download via DPM will flash the boot loader to serial flash
+ - Update via DPM (rcX Packet Download to serial flash)
+ - Enter boot loader mode from FW/ROM Loader (via bit in host handshake flags)
+ 
+V0.903 (04.06.2007)
+-------------------
+Bugfix:
+ - Download errors were overwritten by TLR_E_FAIL and did not reflect the real error reason
+
+V0.902 (internal Development version)
+-------------------
+Bugfix:
+ - Flashes with page size < 512 bytes did not work (e.g. DB500SYS)
+
+V0.901 (02.05.2007)
+-------------------
+Bugfix:
+ - Sequence error in up-/download if the filelength is multiple of transfer block size
+
+V0.900 (25.04.2007)
+-------------------
+ - initial version

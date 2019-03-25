@@ -1,0 +1,3813 @@
+<?xml version="1.0"?>
+<diagnostic>
+<eventclass class_range="x0000" name="common">
+  <event id="x0000" name="common_system_error">
+    <string>
+        <en>Common System Error </en>
+      </string>
+    
+  </event>
+  <event id="x0001" name="ip_set_by_switch" persistent="yes">
+    <led name="SYS" state="BLINK_YLW">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>Temporarily set IP address of eth0 to 192.168.1.17</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="Reset_all" persistent="yes">
+    <string>
+        <en>Perform Hard System Reset</en>
+      </string>
+    
+  </event>
+  <event id="x0004" name="EthernetIP-Notloaded">
+    <led name="NS" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>Ethernet/IP driver is not loaded</en>
+      </string>
+    
+  </event>
+  <event id="x0005" name="DoubleIP_br0">
+    <string>
+        <en>ipwatchd: Duplicate IP address detected in network attached to socket X1</en>
+      </string>
+    
+  </event>
+  <event id="x0006" name="DoubleIP_br1">
+    <string>
+        <en>ipwatchd: Duplicate IP address detected in network attached to socket X2</en>
+      </string>
+    
+  </event>
+  <event id="x0007" name="factory_reset_mode">
+    <led name="SYS" state="BLINK_GRN_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>factory reset initiated by OMS</en>
+      </string>
+    
+  </event>
+  <event id="x0008" name="runtime_crash">
+    <led name="RUN" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>unexpected stop of runtime</en>
+      </string>
+    
+  </event>
+  <event id="x0009" name="runtime_crash_2">
+    <led name="IO" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>unexpected stop of runtime</en>
+      </string>
+    
+  </event>
+  <event id="x000A" name="firmware_copy">
+    <led name="SYS" state="BLINK_GRN_RED">
+      <on>1000</on>
+      <off>1000</off>
+    </led>
+    <string>
+        <en>copy firmware</en>
+      </string>
+    
+  </event>
+  <event id="x000B" name="extended_error_code">
+    <led name="MS" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>no extended error code active</en>
+      </string>
+    
+  </event>
+  <event id="x000C" name="rtc_error">
+    <string>
+        <en>RTC interruption detected, please check and adjust date and time</en>
+      </string>
+    
+  </event>
+  <event id="x00C0" name="system_start" persistent="yes">
+    <string>
+        <en>System Booted</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0001" name="led">
+  <event id="x0000" name="user1_static_off" persistent="none">
+    <led name="U1" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>User LED 1 is turned "off"</en>
+      </string>
+    
+  </event>
+  <event id="x0001" name="user1_static_grn" persistent="none">
+    <led name="U1" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>User LED 1 is turned "green"</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="user1_static_red" persistent="none">
+    <led name="U1" state="STATIC_RED">
+    </led>
+    <string>
+        <en>User LED 1 is turned "red"</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="user1_static_ylw" persistent="none">
+    <led name="U1" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>User LED 1 is turned "yellow"</en>
+      </string>
+    
+  </event>
+  <event id="x0013" name="error_unknown">
+    <string>
+        <en>ERROR: LED-Name $1 called by ID $2 is not defined in /etc/led.conf</en>
+      </string>
+    
+  </event>
+  <event id="x0014" name="error_invalid_number">
+    <string>
+        <en>ERROR: LED-Number $1 defined in /etc/led.conf as $2 is invalid for this device</en>
+      </string>
+    
+  </event>
+  <event id="x0015" name="error_bad_parameter">
+    <string>
+        <en>ERROR: LED-State-Parameter for LED $1 of ID $2 is invalid</en>
+      </string>
+    
+  </event>
+  <event id="x0016" name="error_xml_file" persistent="yes">
+    <string>
+        <en>ERROR: diagnostic.xml was not parsed successfully </en>
+      </string>
+    
+  </event>
+  <event id="x0017" name="LED_on_Default" persistent="none">
+    <string>
+        <en>LED-Default-Value</en>
+      </string>
+    
+  </event>
+  <event id="x0018" name="BROKEN_ID_INFO" persistent="none">
+    <string>
+        <en>No information available</en>
+      </string>
+    
+  </event>
+  <event id="x0040" name="user1_blink_off_grn" persistent="none">
+    <led name="U1" state="BLINK_OFF_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0041" name="user1_blink_off_red" persistent="none">
+    <led name="U1" state="BLINK_OFF_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0042" name="user1_blink_off_ylw" persistent="none">
+    <led name="U1" state="BLINK_OFF_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0043" name="user1_blink_grn" persistent="none">
+    <led name="U1" state="BLINK_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0044" name="user1_blink_grn_red" persistent="none">
+    <led name="U1" state="BLINK_GRN_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0045" name="user1_blink_grn_ylw" persistent="none">
+    <led name="U1" state="BLINK_GRN_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0046" name="user1_blink_red" persistent="none">
+    <led name="U1" state="BLINK_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0047" name="user1_blink_red_grn" persistent="none">
+    <led name="U1" state="BLINK_RED_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0048" name="user1_blink_red_ylw" persistent="none">
+    <led name="U1" state="BLINK_RED_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0049" name="user1_blink_ylw" persistent="none">
+    <led name="U1" state="BLINK_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x004A" name="user1_blink_ylw_grn" persistent="none">
+    <led name="U1" state="BLINK_YLW_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x004B" name="user1_blink_ylw_red" persistent="none">
+    <led name="U1" state="BLINK_YLW_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 1 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0080" name="user1_blink_seq_750" persistent="none">
+    <led name="U1" state="BLINK_SEQ_750">
+      <blinkcode>$1</blinkcode>
+      <blinkarg>$2</blinkarg>
+    </led>
+    <string>
+        <en>User LED 1 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    
+  </event>
+  <event id="x0081" name="user1_flash_off_grn" persistent="none">
+    <led name="U1" state="FLASH_OFF_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0082" name="user1_flash_off_red" persistent="none">
+    <led name="U1" state="FLASH_OFF_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0083" name="user1_flash_off_ylw" persistent="none">
+    <led name="U1" state="FLASH_OFF_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0084" name="user1_flash_grn_off" persistent="none">
+    <led name="U1" state="FLASH_GRN_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0085" name="user1_flash_grn_red" persistent="none">
+    <led name="U1" state="FLASH_GRN_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0086" name="user1_flash_grn_ylw" persistent="none">
+    <led name="U1" state="FLASH_GRN_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0087" name="user1_flash_red_off" persistent="none">
+    <led name="U1" state="FLASH_RED_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0088" name="user1_flash_red_grn" persistent="none">
+    <led name="U1" state="FLASH_RED_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0089" name="user1_flash_red_ylw" persistent="none">
+    <led name="U1" state="FLASH_RED_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x008A" name="user1_flash_ylw_off" persistent="none">
+    <led name="U1" state="FLASH_YLW_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x008B" name="user1_flash_ylw_grn" persistent="none">
+    <led name="U1" state="FLASH_YLW_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x008C" name="user1_flash_ylw_red" persistent="none">
+    <led name="U1" state="FLASH_YLW_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 1 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x00BF" name="user1_blink_seq_reset" persistent="none">
+    <led name="U1" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset All ErrorCodes for user LED 1</en>
+      </string>
+    
+  </event>
+  <event id="x0100" name="user2_static_off" persistent="none">
+    <led name="U2" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>User LED 2 is turned "off"</en>
+      </string>
+    
+  </event>
+  <event id="x0101" name="user2_static_grn" persistent="none">
+    <led name="U2" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>User LED 2 is turned "green"</en>
+      </string>
+    
+  </event>
+  <event id="x0102" name="user2_static_red" persistent="none">
+    <led name="U2" state="STATIC_RED">
+    </led>
+    <string>
+        <en>User LED 2 is turned "red"</en>
+      </string>
+    
+  </event>
+  <event id="x0103" name="user2_static_ylw" persistent="none">
+    <led name="U2" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>User LED 2 is turned "yellow"</en>
+      </string>
+    
+  </event>
+  <event id="x0140" name="user2_blink_off_grn" persistent="none">
+    <led name="U2" state="BLINK_OFF_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0141" name="user2_blink_off_red" persistent="none">
+    <led name="U2" state="BLINK_OFF_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0142" name="user2_blink_off_ylw" persistent="none">
+    <led name="U2" state="BLINK_OFF_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0143" name="user2_blink_grn" persistent="none">
+    <led name="U2" state="BLINK_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0144" name="user2_blink_grn_red" persistent="none">
+    <led name="U2" state="BLINK_GRN_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0145" name="user2_blink_grn_ylw" persistent="none">
+    <led name="U2" state="BLINK_GRN_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0146" name="user2_blink_red" persistent="none">
+    <led name="U2" state="BLINK_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0147" name="user2_blink_red_grn" persistent="none">
+    <led name="U2" state="BLINK_RED_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0148" name="user2_blink_red_ylw" persistent="none">
+    <led name="U2" state="BLINK_RED_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0149" name="user2_blink_ylw" persistent="none">
+    <led name="U2" state="BLINK_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x014A" name="user2_blink_ylw_grn" persistent="none">
+    <led name="U2" state="BLINK_YLW_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x014B" name="user2_blink_ylw_red" persistent="none">
+    <led name="U2" state="BLINK_YLW_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 2 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0180" name="user2_blink_seq_750" persistent="none">
+    <led name="U2" state="BLINK_SEQ_750">
+      <blinkcode>$1</blinkcode>
+      <blinkarg>$2</blinkarg>
+    </led>
+    <string>
+        <en>User LED 2 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    
+  </event>
+  <event id="x0181" name="user2_flash_off_grn" persistent="none">
+    <led name="U2" state="FLASH_OFF_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0182" name="user2_flash_off_red" persistent="none">
+    <led name="U2" state="FLASH_OFF_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0183" name="user2_flash_off_ylw" persistent="none">
+    <led name="U2" state="FLASH_OFF_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0184" name="user2_flash_grn_off" persistent="none">
+    <led name="U2" state="FLASH_GRN_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0185" name="user2_flash_grn_red" persistent="none">
+    <led name="U2" state="FLASH_GRN_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0186" name="user2_flash_grn_ylw" persistent="none">
+    <led name="U2" state="FLASH_GRN_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0187" name="user2_flash_red_off" persistent="none">
+    <led name="U2" state="FLASH_RED_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0188" name="user2_flash_red_grn" persistent="none">
+    <led name="U2" state="FLASH_RED_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0189" name="user2_flash_red_ylw" persistent="none">
+    <led name="U2" state="FLASH_RED_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x018A" name="user2_flash_ylw_off" persistent="none">
+    <led name="U2" state="FLASH_YLW_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x018B" name="user2_flash_ylw_grn" persistent="none">
+    <led name="U2" state="FLASH_YLW_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x018C" name="user2_flash_ylw_red" persistent="none">
+    <led name="U2" state="FLASH_YLW_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 2 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x01BF" name="user2_blink_seq_reset" persistent="none">
+    <led name="U2" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset All ErrorCodes for user LED 2</en>
+      </string>
+    
+  </event>
+  <event id="x0200" name="user3_static_off" persistent="none">
+    <led name="U3" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>User LED 3 is turned "off"</en>
+      </string>
+    
+  </event>
+  <event id="x0201" name="user3_static_grn" persistent="none">
+    <led name="U3" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>User LED 3 is turned "green"</en>
+      </string>
+    
+  </event>
+  <event id="x0202" name="user3_static_red" persistent="none">
+    <led name="U3" state="STATIC_RED">
+    </led>
+    <string>
+        <en>User LED 3 is turned "red"</en>
+      </string>
+    
+  </event>
+  <event id="x0203" name="user3_static_ylw" persistent="none">
+    <led name="U3" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>User LED 3 is turned "yellow"</en>
+      </string>
+    
+  </event>
+  <event id="x0240" name="user3_blink_off_grn" persistent="none">
+    <led name="U3" state="BLINK_OFF_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0241" name="user3_blink_off_red" persistent="none">
+    <led name="U3" state="BLINK_OFF_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0242" name="user3_blink_off_ylw" persistent="none">
+    <led name="U3" state="BLINK_OFF_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0243" name="user3_blink_grn" persistent="none">
+    <led name="U3" state="BLINK_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0244" name="user3_blink_grn_red" persistent="none">
+    <led name="U3" state="BLINK_GRN_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0245" name="user3_blink_grn_ylw" persistent="none">
+    <led name="U3" state="BLINK_GRN_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0246" name="user3_blink_red" persistent="none">
+    <led name="U3" state="BLINK_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0247" name="user3_blink_red_grn" persistent="none">
+    <led name="U3" state="BLINK_RED_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0248" name="user3_blink_red_ylw" persistent="none">
+    <led name="U3" state="BLINK_RED_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0249" name="user3_blink_ylw" persistent="none">
+    <led name="U3" state="BLINK_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x024A" name="user3_blink_ylw_grn" persistent="none">
+    <led name="U3" state="BLINK_YLW_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x024B" name="user3_blink_ylw_red" persistent="none">
+    <led name="U3" state="BLINK_YLW_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 3 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0280" name="user3_blink_seq_750" persistent="none">
+    <led name="U3" state="BLINK_SEQ_750">
+      <blinkcode>$1</blinkcode>
+      <blinkarg>$2</blinkarg>
+    </led>
+    <string>
+        <en>User LED 3 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    
+  </event>
+  <event id="x0281" name="user3_flash_off_grn" persistent="none">
+    <led name="U3" state="FLASH_OFF_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0282" name="user3_flash_off_red" persistent="none">
+    <led name="U3" state="FLASH_OFF_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0283" name="user3_flash_off_ylw" persistent="none">
+    <led name="U3" state="FLASH_OFF_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0284" name="user3_flash_grn_off" persistent="none">
+    <led name="U3" state="FLASH_GRN_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0285" name="user3_flash_grn_red" persistent="none">
+    <led name="U3" state="FLASH_GRN_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0286" name="user3_flash_grn_ylw" persistent="none">
+    <led name="U3" state="FLASH_GRN_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0287" name="user3_flash_red_off" persistent="none">
+    <led name="U3" state="FLASH_RED_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0288" name="user3_flash_red_grn" persistent="none">
+    <led name="U3" state="FLASH_RED_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0289" name="user3_flash_red_ylw" persistent="none">
+    <led name="U3" state="FLASH_RED_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x028A" name="user3_flash_ylw_off" persistent="none">
+    <led name="U3" state="FLASH_YLW_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x028B" name="user3_flash_ylw_grn" persistent="none">
+    <led name="U3" state="FLASH_YLW_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x028C" name="user3_flash_ylw_red" persistent="none">
+    <led name="U3" state="FLASH_YLW_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 3 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x02BF" name="user3_blink_seq_reset" persistent="none">
+    <led name="U3" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset All ErrorCodes for user LED 3</en>
+      </string>
+    
+  </event>
+  <event id="x0300" name="user4_static_off" persistent="none">
+    <led name="U4" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>User LED 4 is turned "off"</en>
+      </string>
+    
+  </event>
+  <event id="x0301" name="user4_static_grn" persistent="none">
+    <led name="U4" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>User LED 4 is turned "green"</en>
+      </string>
+    
+  </event>
+  <event id="x0302" name="user4_static_red" persistent="none">
+    <led name="U4" state="STATIC_RED">
+    </led>
+    <string>
+        <en>User LED 4 is turned "red"</en>
+      </string>
+    
+  </event>
+  <event id="x0303" name="user4_static_ylw" persistent="none">
+    <led name="U4" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>User LED 4 is turned "yellow"</en>
+      </string>
+    
+  </event>
+  <event id="x0340" name="user4_blink_off_grn" persistent="none">
+    <led name="U4" state="BLINK_OFF_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0341" name="user4_blink_off_red" persistent="none">
+    <led name="U4" state="BLINK_OFF_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0342" name="user4_blink_off_ylw" persistent="none">
+    <led name="U4" state="BLINK_OFF_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0343" name="user4_blink_grn" persistent="none">
+    <led name="U4" state="BLINK_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0344" name="user4_blink_grn_red" persistent="none">
+    <led name="U4" state="BLINK_GRN_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0345" name="user4_blink_grn_ylw" persistent="none">
+    <led name="U4" state="BLINK_GRN_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0346" name="user4_blink_red" persistent="none">
+    <led name="U4" state="BLINK_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0347" name="user4_blink_red_grn" persistent="none">
+    <led name="U4" state="BLINK_RED_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0348" name="user4_blink_red_ylw" persistent="none">
+    <led name="U4" state="BLINK_RED_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0349" name="user4_blink_ylw" persistent="none">
+    <led name="U4" state="BLINK_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x034A" name="user4_blink_ylw_grn" persistent="none">
+    <led name="U4" state="BLINK_YLW_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x034B" name="user4_blink_ylw_red" persistent="none">
+    <led name="U4" state="BLINK_YLW_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 4 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0380" name="user4_blink_seq_750" persistent="none">
+    <led name="U4" state="BLINK_SEQ_750">
+      <blinkcode>$1</blinkcode>
+      <blinkarg>$2</blinkarg>
+    </led>
+    <string>
+        <en>User LED 4 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    
+  </event>
+  <event id="x0381" name="user4_flash_off_grn" persistent="none">
+    <led name="U4" state="FLASH_OFF_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0382" name="user4_flash_off_red" persistent="none">
+    <led name="U4" state="FLASH_OFF_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0383" name="user4_flash_off_ylw" persistent="none">
+    <led name="U4" state="FLASH_OFF_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0384" name="user4_flash_grn_off" persistent="none">
+    <led name="U4" state="FLASH_GRN_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0385" name="user4_flash_grn_red" persistent="none">
+    <led name="U4" state="FLASH_GRN_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0386" name="user4_flash_grn_ylw" persistent="none">
+    <led name="U4" state="FLASH_GRN_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0387" name="user4_flash_red_off" persistent="none">
+    <led name="U4" state="FLASH_RED_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0388" name="user4_flash_red_grn" persistent="none">
+    <led name="U4" state="FLASH_RED_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0389" name="user4_flash_red_ylw" persistent="none">
+    <led name="U4" state="FLASH_RED_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x038A" name="user4_flash_ylw_off" persistent="none">
+    <led name="U4" state="FLASH_YLW_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x038B" name="user4_flash_ylw_grn" persistent="none">
+    <led name="U4" state="FLASH_YLW_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x038C" name="user4_flash_ylw_red" persistent="none">
+    <led name="U4" state="FLASH_YLW_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 4 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x03BF" name="user4_blink_seq_reset" persistent="none">
+    <led name="U4" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset All ErrorCodes for user LED 4</en>
+      </string>
+    
+  </event>
+  <event id="x0400" name="user5_static_off" persistent="none">
+    <led name="U5" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>User LED 5 is turned "off"</en>
+      </string>
+    
+  </event>
+  <event id="x0401" name="user5_static_grn" persistent="none">
+    <led name="U5" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>User LED 5 is turned "green"</en>
+      </string>
+    
+  </event>
+  <event id="x0402" name="user5_static_red" persistent="none">
+    <led name="U5" state="STATIC_RED">
+    </led>
+    <string>
+        <en>User LED 5 is turned "red"</en>
+      </string>
+    
+  </event>
+  <event id="x0403" name="user5_static_ylw" persistent="none">
+    <led name="U5" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>User LED 5 is turned "yellow"</en>
+      </string>
+    
+  </event>
+  <event id="x0440" name="user5_blink_off_grn" persistent="none">
+    <led name="U5" state="BLINK_OFF_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0441" name="user5_blink_off_red" persistent="none">
+    <led name="U5" state="BLINK_OFF_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0442" name="user5_blink_off_ylw" persistent="none">
+    <led name="U5" state="BLINK_OFF_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0443" name="user5_blink_grn" persistent="none">
+    <led name="U5" state="BLINK_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0444" name="user5_blink_grn_red" persistent="none">
+    <led name="U5" state="BLINK_GRN_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0445" name="user5_blink_grn_ylw" persistent="none">
+    <led name="U5" state="BLINK_GRN_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0446" name="user5_blink_red" persistent="none">
+    <led name="U5" state="BLINK_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0447" name="user5_blink_red_grn" persistent="none">
+    <led name="U5" state="BLINK_RED_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0448" name="user5_blink_red_ylw" persistent="none">
+    <led name="U5" state="BLINK_RED_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0449" name="user5_blink_ylw" persistent="none">
+    <led name="U5" state="BLINK_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x044A" name="user5_blink_ylw_grn" persistent="none">
+    <led name="U5" state="BLINK_YLW_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x044B" name="user5_blink_ylw_red" persistent="none">
+    <led name="U5" state="BLINK_YLW_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 5 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0480" name="user5_blink_seq_750" persistent="none">
+    <led name="U5" state="BLINK_SEQ_750">
+      <blinkcode>$1</blinkcode>
+      <blinkarg>$2</blinkarg>
+    </led>
+    <string>
+        <en>User LED 5 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    
+  </event>
+  <event id="x0481" name="user5_flash_off_grn" persistent="none">
+    <led name="U5" state="FLASH_OFF_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0482" name="user5_flash_off_red" persistent="none">
+    <led name="U5" state="FLASH_OFF_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0483" name="user5_flash_off_ylw" persistent="none">
+    <led name="U5" state="FLASH_OFF_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0484" name="user5_flash_grn_off" persistent="none">
+    <led name="U5" state="FLASH_GRN_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0485" name="user5_flash_grn_red" persistent="none">
+    <led name="U5" state="FLASH_GRN_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0486" name="user5_flash_grn_ylw" persistent="none">
+    <led name="U5" state="FLASH_GRN_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0487" name="user5_flash_red_off" persistent="none">
+    <led name="U5" state="FLASH_RED_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0488" name="user5_flash_red_grn" persistent="none">
+    <led name="U5" state="FLASH_RED_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0489" name="user5_flash_red_ylw" persistent="none">
+    <led name="U5" state="FLASH_RED_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x048A" name="user5_flash_ylw_off" persistent="none">
+    <led name="U5" state="FLASH_YLW_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x048B" name="user5_flash_ylw_grn" persistent="none">
+    <led name="U5" state="FLASH_YLW_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x048C" name="user5_flash_ylw_red" persistent="none">
+    <led name="U5" state="FLASH_YLW_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 5 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x04BF" name="user5_blink_seq_reset" persistent="none">
+    <led name="U5" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset All ErrorCodes for user LED 5</en>
+      </string>
+    
+  </event>
+  <event id="x0500" name="user6_static_off" persistent="none">
+    <led name="U6" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>User LED 6 is turned "off"</en>
+      </string>
+    
+  </event>
+  <event id="x0501" name="user6_static_grn" persistent="none">
+    <led name="U6" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>User LED 6 is turned "green"</en>
+      </string>
+    
+  </event>
+  <event id="x0502" name="user6_static_red" persistent="none">
+    <led name="U6" state="STATIC_RED">
+    </led>
+    <string>
+        <en>User LED 6 is turned "red"</en>
+      </string>
+    
+  </event>
+  <event id="x0503" name="user6_static_ylw" persistent="none">
+    <led name="U6" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>User LED 6 is turned "yellow"</en>
+      </string>
+    
+  </event>
+  <event id="x0540" name="user6_blink_off_grn" persistent="none">
+    <led name="U6" state="BLINK_OFF_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0541" name="user6_blink_off_red" persistent="none">
+    <led name="U6" state="BLINK_OFF_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0542" name="user6_blink_off_ylw" persistent="none">
+    <led name="U6" state="BLINK_OFF_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0543" name="user6_blink_grn" persistent="none">
+    <led name="U6" state="BLINK_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0544" name="user6_blink_grn_red" persistent="none">
+    <led name="U6" state="BLINK_GRN_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0545" name="user6_blink_grn_ylw" persistent="none">
+    <led name="U6" state="BLINK_GRN_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0546" name="user6_blink_red" persistent="none">
+    <led name="U6" state="BLINK_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0547" name="user6_blink_red_grn" persistent="none">
+    <led name="U6" state="BLINK_RED_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0548" name="user6_blink_red_ylw" persistent="none">
+    <led name="U6" state="BLINK_RED_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0549" name="user6_blink_ylw" persistent="none">
+    <led name="U6" state="BLINK_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x054A" name="user6_blink_ylw_grn" persistent="none">
+    <led name="U6" state="BLINK_YLW_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x054B" name="user6_blink_ylw_red" persistent="none">
+    <led name="U6" state="BLINK_YLW_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 6 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0580" name="user6_blink_seq_750" persistent="none">
+    <led name="U6" state="BLINK_SEQ_750">
+      <blinkcode>$1</blinkcode>
+      <blinkarg>$2</blinkarg>
+    </led>
+    <string>
+        <en>User LED 6 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    
+  </event>
+  <event id="x0581" name="user6_flash_off_grn" persistent="none">
+    <led name="U6" state="FLASH_OFF_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0582" name="user6_flash_off_red" persistent="none">
+    <led name="U6" state="FLASH_OFF_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0583" name="user6_flash_off_ylw" persistent="none">
+    <led name="U6" state="FLASH_OFF_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0584" name="user6_flash_grn_off" persistent="none">
+    <led name="U6" state="FLASH_GRN_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0585" name="user6_flash_grn_red" persistent="none">
+    <led name="U6" state="FLASH_GRN_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0586" name="user6_flash_grn_ylw" persistent="none">
+    <led name="U6" state="FLASH_GRN_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0587" name="user6_flash_red_off" persistent="none">
+    <led name="U6" state="FLASH_RED_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0588" name="user6_flash_red_grn" persistent="none">
+    <led name="U6" state="FLASH_RED_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0589" name="user6_flash_red_ylw" persistent="none">
+    <led name="U6" state="FLASH_RED_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x058A" name="user6_flash_ylw_off" persistent="none">
+    <led name="U6" state="FLASH_YLW_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x058B" name="user6_flash_ylw_grn" persistent="none">
+    <led name="U6" state="FLASH_YLW_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x058C" name="user6_flash_ylw_red" persistent="none">
+    <led name="U6" state="FLASH_YLW_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 6 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x05BF" name="user6_blink_seq_reset" persistent="none">
+    <led name="U6" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset All ErrorCodes for user LED 6</en>
+      </string>
+    
+  </event>
+  <event id="x0600" name="user7_static_off" persistent="none">
+    <led name="U7" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>User LED 7 is turned "off"</en>
+      </string>
+    
+  </event>
+  <event id="x0601" name="user7_static_grn" persistent="none">
+    <led name="U7" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>User LED 7 is turned "green"</en>
+      </string>
+    
+  </event>
+  <event id="x0602" name="user7_static_red" persistent="none">
+    <led name="U7" state="STATIC_RED">
+    </led>
+    <string>
+        <en>User LED 7 is turned "red"</en>
+      </string>
+    
+  </event>
+  <event id="x0603" name="user7_static_ylw" persistent="none">
+    <led name="U7" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>User LED 7 is turned "yellow"</en>
+      </string>
+    
+  </event>
+  <event id="x0640" name="user7_blink_off_grn" persistent="none">
+    <led name="U7" state="BLINK_OFF_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0641" name="user7_blink_off_red" persistent="none">
+    <led name="U7" state="BLINK_OFF_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0642" name="user7_blink_off_ylw" persistent="none">
+    <led name="U7" state="BLINK_OFF_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0643" name="user7_blink_grn" persistent="none">
+    <led name="U7" state="BLINK_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0644" name="user7_blink_grn_red" persistent="none">
+    <led name="U7" state="BLINK_GRN_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0645" name="user7_blink_grn_ylw" persistent="none">
+    <led name="U7" state="BLINK_GRN_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0646" name="user7_blink_red" persistent="none">
+    <led name="U7" state="BLINK_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0647" name="user7_blink_red_grn" persistent="none">
+    <led name="U7" state="BLINK_RED_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0648" name="user7_blink_red_ylw" persistent="none">
+    <led name="U7" state="BLINK_RED_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0649" name="user7_blink_ylw" persistent="none">
+    <led name="U7" state="BLINK_YLW">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x064A" name="user7_blink_ylw_grn" persistent="none">
+    <led name="U7" state="BLINK_YLW_GRN">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x064B" name="user7_blink_ylw_red" persistent="none">
+    <led name="U7" state="BLINK_YLW_RED">
+      <on>$1</on>
+      <off>$2</off>
+    </led>
+    <string>
+        <en>User LED 7 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    
+  </event>
+  <event id="x0680" name="user7_blink_seq_750" persistent="none">
+    <led name="U7" state="BLINK_SEQ_750">
+      <blinkcode>$1</blinkcode>
+      <blinkarg>$2</blinkarg>
+    </led>
+    <string>
+        <en>User LED 7 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    
+  </event>
+  <event id="x0681" name="user7_flash_off_grn" persistent="none">
+    <led name="U7" state="FLASH_OFF_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0682" name="user7_flash_off_red" persistent="none">
+    <led name="U7" state="FLASH_OFF_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0683" name="user7_flash_off_ylw" persistent="none">
+    <led name="U7" state="FLASH_OFF_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0684" name="user7_flash_grn_off" persistent="none">
+    <led name="U7" state="FLASH_GRN_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0685" name="user7_flash_grn_red" persistent="none">
+    <led name="U7" state="FLASH_GRN_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0686" name="user7_flash_grn_ylw" persistent="none">
+    <led name="U7" state="FLASH_GRN_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0687" name="user7_flash_red_off" persistent="none">
+    <led name="U7" state="FLASH_RED_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0688" name="user7_flash_red_grn" persistent="none">
+    <led name="U7" state="FLASH_RED_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x0689" name="user7_flash_red_ylw" persistent="none">
+    <led name="U7" state="FLASH_RED_YLW">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x068A" name="user7_flash_ylw_off" persistent="none">
+    <led name="U7" state="FLASH_YLW_OFF">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x068B" name="user7_flash_ylw_grn" persistent="none">
+    <led name="U7" state="FLASH_YLW_GRN">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x068C" name="user7_flash_ylw_red" persistent="none">
+    <led name="U7" state="FLASH_YLW_RED">
+      <on>$1</on>
+    </led>
+    <string>
+        <en>User LED 7 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    
+  </event>
+  <event id="x06BF" name="user7_blink_seq_reset" persistent="none">
+    <led name="U7" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset All ErrorCodes for user LED 7</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0003" name="iocheck">
+  <event id="x0000" name="start-eth">
+    <string>
+        <en>IO-Check was started from Ethernet-Port</en>
+      </string>
+    
+  </event>
+  <event id="x0001" name="start-serial">
+    <string>
+        <en>IO-Check was started from serial port</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="Bad-Param">
+    <string>
+        <en>Bad parameter: $X1</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="No-Param">
+    <string>
+        <en>Started without any parameter</en>
+      </string>
+    
+  </event>
+  <event id="x0004" name="Package-Received">
+    <string>
+        <en>Received Package: 
+         ID:                      $X1
+         sequencyNo.:             $X2 
+         Actual Fragment:         $X3
+         Total No Of Frag:        $X4
+         Error No:                $X5
+         stateBits:               $X6
+         dataLenght:              $X7
+         errorNo:</en>
+      </string>
+    
+  </event>
+  <event id="x0005" name="tcp-error">
+    <string>
+        <en>Error while reading TCP-package: $1</en>
+      </string>
+    
+  </event>
+  <event id="x0006" name="KDbus-Error">
+    <string>
+        <en>Error while communicating with kbus</en>
+      </string>
+    
+  </event>
+  <event id="x0007" name="Dbus-Error">
+    <string>
+        <en>DBus communication error</en>
+      </string>
+    
+  </event>
+  <event id="x0008" name="service1288">
+    <string>
+        <en>Call 1288 Service: $X1</en>
+      </string>
+    
+  </event>
+  <event id="x0009" name="no-tz-dst">
+    <string>
+        <en>Warning TZ and DST will not be set</en>
+      </string>
+    
+  </event>
+  <event id="x000A" name="service1279">
+    <string>
+        <en>Call 1279 Service: $X1</en>
+      </string>
+    
+  </event>
+  <event id="x000B" name="SerErr">
+    <string>
+        <en>Error on Serial Line: Poll failed</en>
+      </string>
+    
+  </event>
+  <event id="x000C" name="PollErr">
+    <string>
+        <en>Error on Serial Line: Poll returned Error-Flag</en>
+      </string>
+    
+  </event>
+  <event id="x000D" name="PollTimeout">
+    <string>
+        <en>Polling on an FD occured Timeout</en>
+      </string>
+    
+  </event>
+  <event id="x000E" name="SerWriteErr">
+    <string>
+        <en>Write in Serial Line Failed</en>
+      </string>
+    
+  </event>
+  <event id="x000F" name="KDbus-Error-Get-PI-Mode">
+    <string>
+        <en>Error while getting Process Image Mode from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0010" name="KDbus-Error-Get-Ext-State">
+    <string>
+        <en>Error while getting Extension State from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0011" name="KDbus-Error-Set-Ext-State">
+    <string>
+        <en>Error while setting Extension State from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0012" name="KDbus-Error-Set-PI-Mode">
+    <string>
+        <en>Error while setting Process Image Mode from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0013" name="KDbus-Error-Get-State">
+    <string>
+        <en>Error while getting State from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0014" name="KDbus-Error-Get-Timing">
+    <string>
+        <en>Error while getting timing information from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0015" name="KDbus-Error-Reset">
+    <string>
+        <en>Error while resetting KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0016" name="KDbus-Error-Get-Table-Info">
+    <string>
+        <en>Error while getting information from Terminal $1 and Table $2 from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0017" name="KDbus-Error-Get-Register">
+    <string>
+        <en>Error while getting data from Terminal $1,Table $2 Register $3 from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0018" name="KDbus-Error-Set-Register">
+    <string>
+        <en>Error while setting data in Terminal $1,Table $2 Register $3 from KBus</en>
+      </string>
+    
+  </event>
+  <event id="x0019" name="TCP-Connection_lost">
+    <string>
+        <en>Lost connection while performing TCP-request</en>
+      </string>
+    
+  </event>
+  <event id="x001a" name="KDbus-Error-Set-Tcm">
+    <string>
+        <en>Error while setting Terminal specific Control Mode</en>
+      </string>
+    
+  </event>
+  <event id="x001b" name="KDbus-Error-Get-Tcm">
+    <string>
+        <en>Error while getting Terminal specific Control Mode</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0004" name="codesys">
+  <event id="x0000" name="Prg_Running">
+    <led name="RUN" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>PLC-Program is running</en>
+      </string>
+    <rststr>
+        <en>PLC-Program stopped</en>
+      </rststr>
+  </event>
+  <event id="x0001" name="Reset-Warm">
+    <led name="RUN" state="FLASH_OFF_RED">
+      <on>300</on>
+    </led>
+    <string>
+        <en>warm reset performed</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="Reset-Cold">
+    <led name="RUN" state="FLASH_OFF_RED">
+      <on>1000</on>
+    </led>
+    <string>
+        <en>cold reset performed</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="PLC-up">
+    <led name="RUN" default="only" state="STATIC_RED">
+    </led>
+    <string>
+        <en>PLC is ready and stopped</en>
+      </string>
+    
+  </event>
+  <event id="x0004" name="PLC-down">
+    <led name="RUN" default="yes" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>PLC is shut down</en>
+      </string>
+    
+  </event>
+  <event id="x0005" name="PLC-at-bp">
+    <led name="RUN" state="BLINK_GRN">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>PLC-Program stopped at Breakpoint</en>
+      </string>
+    
+  </event>
+  <event id="x0006" name="PLC-switchstop-at-bp">
+    <led name="RUN" state="BLINK_GRN_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>PLC-Program stopped at Breakpoint</en>
+      </string>
+    
+  </event>
+  <event id="x0007" name="PLC-no-Bootproject">
+    <led name="SYS" state="BLINK_GRN">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>No Bootproject loaded</en>
+      </string>
+    
+  </event>
+  <event id="x0008" name="BootFailure">
+    <led name="RUN" state="BLINK_RED">
+      <on>50</on>
+      <off>50</off>
+    </led>
+    <string>
+        <en>PLC-Boot Failure</en>
+      </string>
+    
+  </event>
+  <event id="x0009" name="Reset-Warm-run">
+    <led name="RUN" state="FLASH_OFF_GRN">
+      <on>300</on>
+    </led>
+    <string>
+        <en>warm reset performed but PLC is already running</en>
+      </string>
+    
+  </event>
+  <event id="x000A" name="Reset-Cold-run">
+    <led name="RUN" state="FLASH_OFF_GRN">
+      <on>1000</on>
+    </led>
+    <string>
+        <en>cold reset performed but PLC is already running</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0005" name="IEC-Custom">
+  <event id="x0000" name="Custom-LogId">
+    <string>
+        <en>Example log entry</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0006" name="DPS">
+  <event id="x0000" name="PROCESS_PLC_CONFIGURATION" persistent="none">
+    <led name="DIA" state="STATIC_GRN">
+    </led>
+    <string><en>The PROFIBUS DP processes configuration data received from the PLC</en></string>
+    
+  </event>
+  <event id="x0001" name="PB_PRM_INV_DPV1_STAT_BYTES">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>The DP-V1 status bytes are invalid. Check the parameterization</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="DEVICE_OPENED">
+    <string>
+        <en>The PROFIBUS DP device has been opened</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="WAIT_FOR_PLC_CONFIGURATION">
+    <led name="DIA" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The PROFIBUS DP waits for configuration data from the PLC</en>
+      </string>
+    
+  </event>
+  <event id="x0004" name="WAIT_FOR_PLC_CONFIGURATION_BF_LED" persistent="none">
+    <led name="BF" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The PROFIBUS DP waits for configuration data from the PLC</en>
+      </string>
+    
+  </event>
+  <event id="x0005" name="C0_WD_STATE_BAUD_SEARCH">
+    <string>
+        <en>The PROFIBUS DP C0 watchdog changed to the state "BAUD_SEARCH"</en>
+      </string>
+    
+  </event>
+  <event id="x0006" name="DP_STATE_DATA_EXCH_ENTERED">
+    <string>
+      	<en>The PROFIBUS DP state changed to "DATA_EXCHANGE"</en>
+      </string>
+    
+  </event>
+  <event id="x0007" name="DP_STATE_NO_DATA_EXCH_ENTERED">
+    <string>
+      	<en>The PROFIBUS DP has left the state "DATA_EXCHANGE"</en>
+      </string>
+    
+  </event>
+  <event id="x0008" name="C0_WD_STATE_NO_BAUD_SEARCH">
+    <string>
+      	<en>The PROFIBUS DP C0 watchdog has left the state "BAUD_SEARCH"</en>
+      </string>
+    
+  </event>
+  <event id="x0009" name="PB_PRM_INV_MAX_DIAG_TGM_DATA_LEN">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>Invalid maximum length of the station diagnostic. Check the parameterization</en>
+      </string>
+    
+  </event>
+  <event id="x000A" name="PB_PRM_INV_ALARM_RELEASE">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>Invalid alarm release in the DP-V0 mode. Check the parameterization</en>
+      </string>
+    
+  </event>
+  <event id="x000B" name="PB_CFG_TOO_MANY_REAL_CFG_SLOTS">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>There are more slots in the actual configuration than the expexted one. Please check the configuration</en>
+      </string>
+    
+  </event>
+  <event id="x000C" name="PB_CFG_TOO_FEW_REAL_CFG_SLOTS">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>There are less slots in the actual configuration than the expexted one. Please check the configuration</en>
+      </string>
+    
+  </event>
+  <event id="x000D" name="PB_CFG_INV_IN_PI_LEN">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>There are different output process image data lengths defined in the expected and real configuration</en>
+      </string>
+    
+  </event>
+  <event id="x000E" name="PB_CFG_INV_OUT_PI_LEN">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>There are different input process image data lengths defined in the expected and real configuration</en>
+      </string>
+    
+  </event>
+  <event id="x000F" name="PB_CFG_INV_DATA_TYPE">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>There are different process image data types defined in the expected and real configuration</en>
+      </string>
+    
+  </event>
+  <event id="x0010" name="EXT_DIAG_FLAG_CLEARED" persistent="none">
+    <led name="DIA" state="STATIC_GRN">
+    </led>
+    <string><en>The PROFIBUS DP extended diagnostics flag has been cleared</en></string>
+    
+  </event>
+  <event id="x0011" name="BF_LED_STATIC_OFF" persistent="none">
+    <led name="BF" state="STATIC_OFF">
+    </led>
+    <string><en>The PROFIBUS DP "BF" LED is turned "off"</en></string>
+    
+  </event>
+  <event id="x0012" name="BF_LED_STATIC_RED" persistent="none">
+    <led name="BF" state="STATIC_RED">
+    </led>
+    <string><en>The PROFIBUS DP "BF" LED is turned "red"</en></string>
+    
+  </event>
+  <event id="x0013" name="BF_LED_STATIC_GREEN" persistent="none">
+    <led name="BF" state="STATIC_GRN">
+    </led>
+    <string><en>The PROFIBUS DP "BF" LED is turned "green"</en></string>
+    
+  </event>
+  <event id="x0014" name="BF_LED_FLASH_RED" persistent="none">
+    <led name="BF" state="BLINK_RED">
+      <on>714</on>
+      <off>714</off>
+    </led>
+    <string><en>The PROFIBUS DP "BF" LED is flashing "red"</en></string>
+    
+  </event>
+  <event id="x0015" name="EXT_DIAG_FLAG_SET" persistent="none">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string><en>The PROFIBUS DP extended diagnostics flag has been set</en></string>
+    
+  </event>
+  <event id="x0016" name="INT_SYS_ERROR">
+    <string>
+        <en>An internal system error in the PROFIBUS DP slave subsystem has occurred</en>
+      </string>
+    
+  </event>
+  <event id="x0017" name="INT_SYS_ERROR_BF_LED" persistent="none">
+    <led name="BF" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string><en>An internal system error has occurred (switch BF LED)</en></string>
+    
+  </event>
+  <event id="x0018" name="INT_SYS_ERROR_DIA_LED" persistent="none">
+    <led name="DIA" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string><en>An internal system error has occurred (switch DIA LED)</en></string>
+    
+  </event>
+  <event id="x0019" name="CLOSE_DEVICE">
+    <string>
+        <en>The PROFIBUS DP device has been closed</en>
+      </string>
+    
+  </event>
+  <event id="x001A" name="PB_CFG_TOO_MUCH_IN_PI">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>In the expected configuration are too much input process data available</en>
+      </string>
+    
+  </event>
+  <event id="x001B" name="PB_CFG_TOO_MUCH_OUT_PI">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>In the expected configuration are too much output process data available</en>
+      </string>
+    
+  </event>
+  <event id="x001C" name="DPS_NOT_INIT_BF_LED">
+    <led name="BF" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The PROFIBUS DP device has not been opened</en>
+      </string>
+    
+  </event>
+  <event id="x001D" name="DPS_NOT_INIT_DIA_LED">
+    <led name="DIA" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The PROFIBUS DP device has not been opened</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0008" name="DPM">
+  <event id="x0000" name="_BF_CLOSE_" persistent="none">
+    <led name="BF" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The PROFIBUS DP master is closed</en>
+      </string>
+    
+  </event>
+  <event id="x0001" name="_DIA_CLOSE_" persistent="none">
+    <led name="DIA" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The PROFIBUS DP master is closed</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="_OPENED_">
+    <string>
+        <en>The PROFIBUS DP master has been opened</en>
+      </string>
+    
+  </event>
+  <event id="x0010" name="_BF_SYSTEM_STARTUP_" persistent="none">
+    <led name="BF" state="STATIC_RED">
+    </led>
+    <string><en>PROFIBUS DP master startup</en></string>
+    
+  </event>
+  <event id="x0011" name="_DIA_SYSTEM_STARTUP_" persistent="none">
+    <led name="DIA" state="STATIC_GRN">
+    </led>
+    <string><en>PROFIBUS DP master startup</en></string>
+    
+  </event>
+  <event id="x0020" name="_BF_RUN_">
+    <led name="BF" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>PROFIBUS DP master communication successfully</en>
+      </string>
+    
+  </event>
+  <event id="x0021" name="_DIA_RUN_" persistent="none">
+    <led name="DIA" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>PROFIBUS DP master communication successfully</en>
+      </string>
+    
+  </event>
+  <event id="x0030" name="_BF_BUS_DIAG_" persistent="none">
+    <led name="BF" state="STATIC_RED">
+    </led>
+    <string>
+        <en>The PROFIBUS DP master enters the bus fault state</en>
+      </string>
+    
+  </event>
+  <event id="x0031" name="_DIA_BUS_DIAG_" persistent="none">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>The PROFIBUS DP master enters the bus fault state</en>
+      </string>
+    
+  </event>
+  <event id="x0040" name="_BF_SLAVE_DIAG_" persistent="none">
+    <led name="BF" state="BLINK_RED">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+        <en>The PROFIBUS DP master enters the slave fault state.</en>
+      </string>
+    
+  </event>
+  <event id="x0041" name="_DIA_SLAVE_DIAG_" persistent="none">
+    <led name="DIA" state="BLINK_RED">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+      	<en>The PROFIBUS DP master enters the slave fault state</en>
+      </string>
+    
+  </event>
+  <event id="x0045" name="_BF_SLAVE_MISSING_" persistent="none">
+    <led name="BF" state="BLINK_RED">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+        <en>The PROFIBUS DP master is missing at least one slave.</en>
+      </string>
+    
+  </event>
+  <event id="x0046" name="_BF_SLAVE_MISSING_ALL_" persistent="none">
+    <led name="BF" state="STATIC_RED">
+    </led>
+    <string>
+        <en>The PROFIBUS DP master is missing all slaves</en>
+      </string>
+    
+  </event>
+  <event id="x0047" name="_DIA_SLAVE_MISSING_" persistent="none">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>The PROFIBUS DP master is missing slaves</en>
+      </string>
+    
+  </event>
+  <event id="x0050" name="_BF_PLC_BLOCKING_">
+    <led name="BF" state="BLINK_GRN">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+        <en>PROFIBUS DP master communication released by PLC</en>
+      </string>
+    
+  </event>
+  <event id="x0051" name="_DIA_PLC_BLOCKING_" persistent="none">
+    <led name="DIA" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>PROFIBUS DP master communication released by PLC</en>
+      </string>
+    
+  </event>
+  <event id="x0060" name="_BF_INTERNAL_ERROR_" persistent="none">
+    <led name="BF" state="STATIC_OFF">
+    </led>
+    <string>
+      		<en>PROFIBUS DP master internal system error</en>
+      </string>
+    
+  </event>
+  <event id="x0061" name="_DIA_INTERNAL_ERROR_" persistent="none">
+    <led name="DIA" state="BLINK_RED">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+      	<en>PROFIBUS DP master internal system error</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0009" name="MBS">
+  <event id="x0000" name="LOAD_SUCCESS">
+    <string>
+      	<en>Modbus Slave library loaded</en>
+      </string>
+    
+  </event>
+  <event id="x0001" name="CLOSE_SUCCESS">
+    <string>
+      	<en>Modbus Slave library closed</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="TCP_START_SUCCESS">
+    <string>
+      	<en>Modbus Slave TCP started</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="TCP_START_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave TCP start failed</en>
+      </string>
+    
+  </event>
+  <event id="x0004" name="TCP_TERMINATED">
+    <string>
+      	<en>Modbus Slave TCP terminated</en>
+      </string>
+    
+  </event>
+  <event id="x0005" name="UDP_START_SUCCESS">
+    <string>
+      	<en>Modbus Slave UDP started</en>
+      </string>
+    
+  </event>
+  <event id="x0006" name="UDP_START_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave UDP start failed</en>
+      </string>
+    
+  </event>
+  <event id="x0007" name="UDP_TERMINATED">
+    <string>
+      	<en>Modbus Slave UDP terminated</en>
+      </string>
+    
+  </event>
+  <event id="x0008" name="RTU_START_SUCCESS">
+    <string>
+      	<en>Modbus Slave RTU started</en>
+      </string>
+    
+  </event>
+  <event id="x0009" name="RTU_START_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave RTU start failed</en>
+      </string>
+    
+  </event>
+  <event id="x000A" name="RTU_TERMINATED">
+    <string>
+      	<en>Modbus Slave RTU terminated</en>
+      </string>
+    
+  </event>
+  <event id="x000B" name="DATA_EXCHANGE_START">
+    <string>
+      	<en>Modbus Slave data exchange started by PLC</en>
+      </string>
+    
+  </event>
+  <event id="x000C" name="DATA_EXCHANGE_STOP">
+    <string>
+      	<en>Modbus Slave data exchange stopped by PLC</en>
+      </string>
+    
+  </event>
+  <event id="x000D" name="PLC_WD_ACTIVE">
+    <string>
+        <en>Modbus Slave PLC Watchdog activated</en>
+      </string>
+    
+  </event>
+  <event id="x000E" name="PLC_WD_INACTIVE">
+    <string>
+        <en>Modbus Slave PLC Watchdog deactivated</en>
+      </string>
+    
+  </event>
+  <event id="x000F" name="PLC_WDT_EXPIRED" persistent="yes">
+    <string>
+      	<en>Modbus Slave PLC watchdog timer expired</en>
+      </string>
+    
+  </event>
+  <event id="x0010" name="TCP_START_DISABLED">
+    <string>
+        <en>Modbus Slave TCP disabled</en>
+      </string>
+    
+  </event>
+  <event id="x0011" name="UDP_START_DISABLED">
+    <string>
+        <en>Modbus Slave UDP disabled</en>
+      </string>
+    
+  </event>
+  <event id="x0012" name="RTU_START_DISABLED">
+    <string>
+        <en>Modbus Slave RTU disabled</en>
+      </string>
+    
+  </event>
+  <event id="x0100" name="CONFIG_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave common configuration failed</en>
+      </string>
+    
+  </event>
+  <event id="x0101" name="TCP_CONFIG_SUCCESS">
+    <string>
+        <en>Modbus Slave TCP configured successfully</en>
+      </string>
+    
+  </event>
+  <event id="x0102" name="TCP_CONFIG_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave TCP configuration failed</en>      	
+      </string>
+    
+  </event>
+  <event id="x0103" name="UDP_CONFIG_SUCCESS">
+    <string>
+      	<en>Modbus Slave UDP configured successfully</en>
+      </string>
+    
+  </event>
+  <event id="x0104" name="UDP_CONFIG_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave UDP configuration failed</en>
+      </string>
+    
+  </event>
+  <event id="x0105" name="RTU_CONFIG_SUCCESS">
+    <string>
+      	<en>Modbus Slave RTU configured successfully</en>
+      </string>
+    
+  </event>
+  <event id="x0106" name="RTU_CONFIG_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave RTU configuration failed</en>
+      </string>
+    
+  </event>
+  <event id="x0107" name="RTU_CONFIG_COMPORT_NOT_FREE" persistent="yes">
+    <string>
+      	<en>Modbus Slave RTU port not free</en>
+      </string>
+    
+  </event>
+  <event id="x0108" name="RTU_CONFIG_485_MODE_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave RTU configuration in RS485 mode failed</en>
+      </string>
+    
+  </event>
+  <event id="x0200" name="MODBUS_WD_ACTIVE">
+    <string>
+      	<en>Modbus Slave Watchdog activated</en>
+      </string>
+    
+  </event>
+  <event id="x0201" name="MODBUS_WD_INACTIVE">
+    <string>
+      	<en>Modbus Slave Watchdog deactivated</en>
+      </string>
+    
+  </event>
+  <event id="x0202" name="MODBUS_WDT_EXPIRED" persistent="yes">
+    <string>
+      	<en>Modbus Slave Watchdog Timer expired</en>
+      </string>
+    
+  </event>
+  <event id="x0203" name="WD_CLOSE_TCP_ALL" persistent="yes">
+    <string>
+      	<en>Modbus Slave Watchdog close TCP connections</en>
+      </string>
+    
+  </event>
+  <event id="x0204" name="STATISTICS_SUCCESS">
+    <string>
+        <en>Modbus Slave Statistics read successfully</en>
+      </string>
+    
+  </event>
+  <event id="x0205" name="STATISTICS_FAILED" persistent="yes">
+    <string>
+        <en>Modbus Slave Statistics read successfully</en>
+      </string>
+    
+  </event>
+  <event id="x0300" name="SYSRES_REQ_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave system resource allocation failed</en>
+      </string>
+    
+  </event>
+  <event id="x0301" name="SYSRES_PROCESS_FAILED" persistent="yes">
+    <string>
+      	<en>Modbus Slave system resource access failed</en>
+      </string>
+    
+  </event>
+  <event id="x0302" name="DEVCFG_READ_FAILED" persistent="yes">
+    <string>
+        <en>Modbus Slave device parameter read failed</en>
+      </string>
+    
+  </event>
+  <event id="x0303" name="DEVCFG_PARAM_INVALID" persistent="yes">
+    <string>
+        <en>Modbus Slave device parameter value invalid</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x000C" name="CANOPEN">
+  <event id="x0000" name="LED_OFF">
+    <led name="CAN" state="STATIC_OFF">
+    </led>
+    <string>
+        	<en>CAN device has not been opened</en>
+        	<de>CAN Treiber nicht geladen</de>
+      	</string>
+    
+  </event>
+  <event id="x0001" name="CAN_OPENED">
+    <led name="CAN" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The CAN device has been opened</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="LED_CONFIG">
+    <led name="CAN" state="BLINK_GRN_RED">
+      <on>50</on>
+      <off>50</off>
+    </led>
+    <string>
+        	<en>CAN processes configuration data received from the PLC</en>
+      	</string>
+    
+  </event>
+  <event id="x0003" name="LED_CONFIG_ERROR">
+    <led name="CAN" state="BLINK_GRN_RED">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+        	<en>CAN configuration failed</en>
+      	</string>
+    
+  </event>
+  <event id="x0004" name="LED_STOPPED">
+    <led name="CAN" state="BLINK_GRN">
+      <on>200</on>
+      <off>800</off>
+    </led>
+    <string>
+        	<en>CAN State Stop</en>
+      	</string>
+    
+  </event>
+  <event id="x0005" name="LED_PREOP_NOERR">
+    <led name="CAN" state="BLINK_GRN">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+        	<en>CAN Preoperational</en>
+      	</string>
+    
+  </event>
+  <event id="x0006" name="LED_PREOP_ERR_1">
+    <led name="CAN" state="SPECIAL_BLINK">
+      <blinkcode>1</blinkcode>
+      <blinkarg>0</blinkarg>
+    </led>
+    <string>
+        	<en>CAN Preoperational - Warning Level</en>
+      	</string>
+    
+  </event>
+  <event id="x0007" name="LED_PREOP_ERR_2">
+    <led name="CAN" state="SPECIAL_BLINK">
+      <blinkcode>1</blinkcode>
+      <blinkarg>1</blinkarg>
+    </led>
+    <string>
+        	<en>CAN Preoperational - Guard Error</en>
+      	</string>
+    
+  </event>
+  <event id="x0008" name="LED_PREOP_ERR_3">
+    <led name="CAN" state="SPECIAL_BLINK">
+      <blinkcode>1</blinkcode>
+      <blinkarg>2</blinkarg>
+    </led>
+    <string>
+        	<en>CAN Preoperational - Sync Error</en>
+      	</string>
+    
+  </event>
+  <event id="x0009" name="LED_OP_NOERR">
+    <led name="CAN" state="STATIC_GRN">
+    </led>
+    <string>
+        	<en>CAN Operational</en>
+      	</string>
+    
+  </event>
+  <event id="x000A" name="LED_OP_ERR_1">
+    <led name="CAN" state="SPECIAL_BLINK">
+      <blinkcode>1</blinkcode>
+      <blinkarg>3</blinkarg>
+    </led>
+    <string>
+        	<en>CAN Operational - Warning Level</en>
+      	</string>
+    
+  </event>
+  <event id="x000B" name="LED_OP_ERR_2">
+    <led name="CAN" state="SPECIAL_BLINK">
+      <blinkcode>1</blinkcode>
+      <blinkarg>4</blinkarg>
+    </led>
+    <string>
+        	<en>CAN Operational - Guard Error</en>
+      	</string>
+    
+  </event>
+  <event id="x000C" name="LED_OP_ERR_3">
+    <led name="CAN" state="SPECIAL_BLINK">
+      <blinkcode>1</blinkcode>
+      <blinkarg>5</blinkarg>
+    </led>
+    <string>
+        	<en>CAN Operational - Sync Error</en>
+      	</string>
+    
+  </event>
+  <event id="x000D" name="LED_ERROR">
+    <led name="CAN" state="STATIC_RED">
+    </led>
+    <string>
+        <en>CAN Busoff</en>
+      </string>
+    
+  </event>
+  <event id="x000E" name="LED_FATAL_ERROR">
+    <led name="CAN" state="BLINK_RED">
+      <on>200</on>
+      <off>200</off>
+    </led>
+    <string>
+            <en>CAN internal or config error</en>
+        </string>
+    
+  </event>
+  <event id="x000F" name="WATCHDOG" persistent="yes">
+    <string>
+        <en>PLC watchdog expired</en>
+      </string>
+    
+  </event>
+  <event id="x0010" name="CAN_CLOSED">
+    <led name="CAN" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>The CAN device has been closed</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x000D" name="cpulimit">
+  <event id="x0000" name="cpu_usage_low" persistent="none">
+    <led name="SYS" state="STATIC_GRN">
+    </led>
+    <string>
+            <en>CPU usage is low $1%.</en>
+        </string>
+    
+  </event>
+  <event id="x0001" name="cpu_usage_med" persistent="none">
+    <led name="SYS" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>CPU usage is medium $1%</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="cpu_usage_high">
+    <led name="SYS" state="STATIC_RED">
+    </led>
+    <string>
+        <en>High CPU usage detected $1%</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0010" name="3GMM">
+  <event id="x0001" name="ERR_NOSIM" persistent="yes">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>1</blinkarg>
+    </led>
+    <string>
+      	<en>Modem SIM card not inserted or not readable</en>
+      	<de>Modem SIM-Karte nicht eingelegt oder nicht lesbar</de>
+      </string>
+    
+  </event>
+  <event id="x0002" name="ERR_SIMAUTH" persistent="yes">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>2</blinkarg>
+    </led>
+    <string>
+      	<en>Modem SIM card not valid or locked</en>
+      	<de>Modem SIM-Karte nicht gültig oder gesperrt</de>
+      </string>
+    
+  </event>
+  <event id="x0003" name="ERR_PORT_NOT_READY" persistent="yes">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>2</blinkcode>
+      <blinkarg>1</blinkarg>
+    </led>
+    <string>
+      	<en>Modem port timeout</en>
+      	<de>Modem Schnittstelle nicht verfügbar</de>
+      </string>
+    
+  </event>
+  <event id="x0004" name="ERR_INIT_FAIL" persistent="yes">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>2</blinkcode>
+      <blinkarg>2</blinkarg>
+    </led>
+    <string>
+      	<en>Modem initialization failed</en>
+      	<de>Modem Initialisierung fehlgeschlagen</de>
+      </string>
+    
+  </event>
+  <event id="x0005" name="ERR_RESET_FAIL" persistent="yes">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>2</blinkcode>
+      <blinkarg>3</blinkarg>
+    </led>
+    <string>
+      	<en>Modem reset failed</en>
+      	<de>Modem Zurücksetzen fehlgeschlagen</de>
+      </string>
+    
+  </event>
+  <event id="x0006" name="ERR_MODEM_VERSION" persistent="yes">
+    <string>
+        <en>The firmware version of the modem is incompatible with the firmware of the controller</en>
+        <de>Die Firmware Version des Modems ist inkompatibel zur Firmware der Steuerung</de>
+      </string>
+    
+  </event>
+  <event id="x0010" name="OPER_NO_NET">
+    <led name="NET" state="STATIC_RED">
+    </led>
+    <string>
+      	<en>Radio access network not registered</en>
+      	<de>Mobilfunknetz nicht verbunden</de>
+      </string>
+    
+  </event>
+  <event id="x0011" name="OPER_NET_2G">
+    <led name="NET" state="STATIC_YLW">
+    </led>
+    <string>
+      	<en>2G radio access network registered</en>
+      	<de>2G Mobilfunknetz verbunden</de>
+      </string>
+    
+  </event>
+  <event id="x0012" name="OPER_NET_3G">
+    <led name="NET" state="STATIC_GRN">
+    </led>
+    <string>
+      	<en>3G radio access network registered</en>
+      	<de>3G Mobilfunknetz verbunden</de>
+      </string>
+    
+  </event>
+  <event id="x0013" name="OPER_SIGNAL_1_OFF">
+    <led name="S1" state="STATIC_OFF">
+    </led>
+    <string>
+      	<en>Signal strength 0</en>
+      	<de>Signalstärke 0</de>
+      </string>
+    
+  </event>
+  <event id="x0014" name="OPER_SIGNAL_1_ON">
+    <led name="S1" state="STATIC_YLW">
+    </led>
+    <string>
+      	<en>Signal strength 1 or above</en>
+      	<de>Signalstärke 1 oder höher</de>
+      </string>
+    
+  </event>
+  <event id="x0015" name="OPER_SIGNAL_2_OFF">
+    <led name="S1" state="STATIC_YLW">
+    </led>
+    <string>
+      	<en>Signal strength below 2</en>
+      	<de>Signalstärke unter 2</de>
+      </string>
+    
+  </event>
+  <event id="x0016" name="OPER_SIGNAL_2_ON">
+    <led name="S1" state="STATIC_GRN">
+    </led>
+    <string>
+      	<en>Signal strength 2 or above</en>
+      	<de>Signalstärke 2 oder höher</de>
+      </string>
+    
+  </event>
+  <event id="x0017" name="OPER_SIGNAL_3_OFF">
+    <led name="S2" state="STATIC_OFF">
+    </led>
+    <string>
+      	<en>Signal strength below 3</en>
+      	<de>Signalstärke unter 3</de>
+      </string>
+    
+  </event>
+  <event id="x0018" name="OPER_SIGNAL_3_ON">
+    <led name="S2" state="STATIC_GRN">
+    </led>
+    <string>
+      	<en>Signal strength 3 or above</en>
+      	<de>Signalstärke 3 oder höher</de>
+      </string>
+    
+  </event>
+  <event id="x0019" name="OPER_SIGNAL_4_OFF">
+    <led name="S3" state="STATIC_OFF">
+    </led>
+    <string>
+      	<en>Signal strength below 4</en>
+      	<de>Signalstärke unter 4</de>
+      </string>
+    
+  </event>
+  <event id="x001A" name="OPER_SIGNAL_4_ON">
+    <led name="S3" state="STATIC_GRN">
+    </led>
+    <string>
+      	<en>Signal strength 4 or above</en>
+      	<de>Signalstärke 4 oder höher</de>
+      </string>
+    
+  </event>
+  <event id="x001B" name="OPER_SIGNAL_5_OFF">
+    <led name="S4" state="STATIC_OFF">
+    </led>
+    <string>
+      	<en>Signal strength below 5</en>
+      	<de>Signalstärke unter 5</de>
+      </string>
+    
+  </event>
+  <event id="x001C" name="OPER_SIGNAL_5_ON">
+    <led name="S4" state="STATIC_GRN">
+    </led>
+    <string>
+      	<en>Signal strength 5 or above</en>
+      	<de>Signalstärke 5 oder höher</de>
+      </string>
+    
+  </event>
+  <event id="x001D" name="OPER_SIGNAL_6_OFF">
+    <led name="S5" state="STATIC_OFF">
+    </led>
+    <string>
+      	<en>Signal strength below 6</en>
+      	<de>Signalstärke unter 6</de>
+      </string>
+    
+  </event>
+  <event id="x001E" name="OPER_SIGNAL_6_ON">
+    <led name="S5" state="STATIC_GRN">
+    </led>
+    <string>
+      	<en>Signal strength 6 or above</en>
+      	<de>Signalstärke 6 oder höher</de>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0011" name="codesys3">
+  <event id="x0000" name="PLC-Online">
+    <led name="RUN" state="BLINK_GRN">
+      <on>250</on>
+      <off>750</off>
+    </led>
+    <string>
+        <en>PLC is online and no program is loaded</en>
+      </string>
+    
+  </event>
+  <event id="x0001" name="PLC-Offline">
+    <led name="RUN" default="yes" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>PLC is shut down</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="Warm-Reset">
+    <led name="RUN" state="FLASH_OFF_RED">
+      <on>300</on>
+    </led>
+    <string>
+        <en>Warm reset performed</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="Cold-Reset">
+    <led name="RUN" state="FLASH_OFF_RED">
+      <on>1000</on>
+    </led>
+    <string>
+        <en>Cold reset performed</en>
+      </string>
+    
+  </event>
+  <event id="x0004" name="debug">
+    <led name="RUN" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>PLC-Program is in state debug</en>
+      </string>
+    
+  </event>
+  <event id="x0005" name="App-loaded-and-Stop">
+    <led name="RUN" state="STATIC_RED">
+    </led>
+    <string>
+        <en>Application stopped</en>
+      </string>
+    
+  </event>
+  <event id="x0006" name="App-loaded-and-Run">
+    <led name="RUN" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>Application is running</en>
+      </string>
+    
+  </event>
+  <event id="x0007" name="Task-in-exception">
+    <led name="RUN" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>One Application stopped because of exception</en>
+      </string>
+    
+  </event>
+  <event id="x0008" name="overload-sill-one">
+    <led name="RUN" state="BLINK_YLW_GRN">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>CPU Overload</en>
+      </string>
+    
+  </event>
+  <event id="x0009" name="signature-missing">
+    <string>
+        <en>signature not found in typelable</en>
+      </string>
+    
+  </event>
+  <event id="x000A" name="deviceid-missing">
+    <string>
+        <en>device-id not found in typelable</en>
+      </string>
+    
+  </event>
+  <event id="x000B" name="target-id-mismatch" persistent="yes">
+    <string>
+        <en>SysTarget signature mismatch!</en>
+      </string>
+    
+  </event>
+  <event id="x000C" name="App-run-and-stop">
+    <led name="RUN" state="BLINK_GRN_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>RTS ind run and Stop state</en>
+      </string>
+    
+  </event>
+  <event id="x0010" name="EDEC_KBUS_conf_mismatch">
+    <led name="MS" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>5</blinkarg>
+    </led>
+    <string>
+        <en>PLC: KBUS configuration mismatch</en>
+        <de>SPS: KBUS-Sollkonfigurationsabweichung</de>
+      </string>
+    <rststr>
+        <en>no extended error code active</en>
+        <de>keine erweiterte Fehlerkennung aktiv</de>
+      </rststr>
+  </event>
+</eventclass>
+<eventclass class_range="x0012" name="PROFINET">
+  <event id="x0001" name="BF_OFF">
+    <led name="BF" default="yes" state="STATIC_OFF">
+    </led>
+    <string>
+        <en> PROFINET: Not Active.</en>
+        <de> PROFINET: Nicht aktiv.</de>
+      </string>
+    
+  </event>
+  <event id="x0002" name="NO_LINK">
+    <led name="BF" default="yes" state="STATIC_RED">
+    </led>
+    <string>
+        <en>PROFINET: No Link detected or MAU-Type incorrect.</en>
+        <de>PROFINET: Kein Link detektiert oder MAU-Typ fehlerhaft.</de>
+      </string>
+    
+  </event>
+  <event id="x0003" name="LINK">
+    <led name="BF" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>PROFINET: Link detected with correct MAU-Type.</en>
+        <de>PROFINET: Link wurde mit korrektem MAU-Typ detektiert.</de>
+      </string>
+    
+  </event>
+  <event id="x0004" name="AR_ESTABLISHED">
+    <led name="BF" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>PROFINET: Application Relation(AR) established.</en>
+        <de>PROFINET: Application Relation(AR) etabliert.</de>
+      </string>
+    
+  </event>
+  <event id="x0005" name="DIAG_OK">
+    <led name="DIA" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>PROFINET: No Maintenance or Fault Diagnosis is available.</en>
+        <de>PROFINET: Es steht keine Wartungs- oder Fehlermeldung an.</de>
+      </string>
+    
+  </event>
+  <event id="x0006" name="DIAG_MAINTENANCE">
+    <led name="DIA" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>PROFINET: Maintenance Diagnosis is available.</en>
+        <de>PROFINET: Eine Wartungsmeldung steht an.</de>
+      </string>
+    
+  </event>
+  <event id="x0007" name="DIAG_FAULT">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>PROFINET: Fault Diagnosis is available.</en>
+        <de>PROFINET: Eine Fehlermeldung steht an.</de>
+      </string>
+    
+  </event>
+  <event id="x0008" name="DCPSIGNAL">
+    <led name="BF" state="BLINK_GRN">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>PROFINET: DCP Signal received.</en>
+        <de>PROFINET: Ein DCP Signal wurde empfangen.</de>
+      </string>
+    
+  </event>
+  <event id="x0009" name="MODULEDIFF">
+    <led name="DIA" state="STATIC_RED">
+    </led>
+    <string>
+        <en>PROFINET: Expected module configuration doesn't match real one.</en>
+        <de>PROFINET: Die Soll-Konfiguraion enspricht nicht der Ist-Konfiguration.</de>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x0015" name="DRM">
+  <event id="x000C" name="licensed">
+    <led name="SYS" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>drm licensed</en>
+      </string>
+    
+  </event>
+  <event id="x000D" name="eval_mode">
+    <led name="SYS" state="BLINK_YLW_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>drm eval-mode active</en>
+      </string>
+    
+  </event>
+  <event id="x000E" name="expired">
+    <led name="SYS" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>drm eval-mode expired</en>
+      </string>
+    
+  </event>
+</eventclass>
+<eventclass class_range="x2FFF" name="KBUS">
+  <event id="x0000" name="OPERATIONAL">
+    <led name="IO" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>KBus is operational</en>
+        <de>KBus ist betriebsbereit.</de>
+      </string>
+    
+  </event>
+  <event id="x0001" name="BOOTING">
+    <led name="IO" state="BLINK_YLW">
+      <on>40</on>
+      <off>40</off>
+    </led>
+    <string>
+	      <en>KBus is booting</en>
+	      <de>KBus fährt hoch.</de>
+	    </string>
+    
+  </event>
+  <event id="x0002" name="FAILURE_UNRECOVERABLE">
+    <led name="IO" state="STATIC_RED">
+    </led>
+    <string>
+      <en>Unrecoverable error</en>
+      <de>Nicht-behebbarer Fehler.</de>
+    </string>
+    
+  </event>
+  <event id="x0003" name="FAILURE_RECOVERABLE">
+    <led name="IO" default="yes" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+      <en>Recoverable error</en>
+      <de>Behebbarer Fehler.</de>
+    </string>
+    
+  </event>
+  <event id="x0004" name="FAILURE_INTERNAL_LIMIT">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>1</blinkarg>
+    </led>
+    <string>
+        <en>Internal memory limit surpassed.</en>
+        <de>Interne Speichergrenze überschritten.</de>
+    </string>
+    
+  </event>
+  <event id="x0005" name="FAILURE_UNSUPPORTED_TERMINAL">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>2</blinkarg>
+    </led>
+    <string>
+        <en>Terminal not supported</en>
+        <de>Busklemme nicht unterstützt.</de>
+    </string>
+    
+  </event>
+  <event id="x0006" name="FAILURE_UNEXPECTED_RAIL_CHANGE">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>6</blinkarg>
+    </led>
+    <string>
+        <en>Rail did change during operation</en>
+        <de>Klemmenaufbau hat sich geändert.</de>
+    </string>
+    
+  </event>
+  <event id="x0007" name="FAILURE_RAIL_TOO_LARGE">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>16</blinkarg>
+    </led>
+    <string>
+        <en>Number of I/O modules exceeds maximum.</en>
+        <de>Maximale Klemmenanzahl überschritten.</de>
+    </string>
+    
+  </event>
+  <event id="x0008" name="FAILURE_RAIL_COMMUNICATION">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>3</blinkcode>
+      <blinkarg>0</blinkarg>
+    </led>
+    <string>
+        <en>Rail communication malfunctioning</en>
+        <de>Buskommunikation gestört.</de>
+    </string>
+    <rststr>
+        <en>Rail communication re-established</en>
+        <de>Buskommunikation wieder hergestellt.</de>        
+    </rststr>
+  </event>
+  <event id="x0009" name="FAILURE_RAIL_FAILED_AT">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>4</blinkcode>
+      <blinkarg>$1</blinkarg>
+    </led>
+    <string>
+        <en>Rail communication malfunctioning at terminal $1</en>
+        <de>Buskommunikation gestört bei Klemme $1.</de>
+    </string>
+    <rststr>
+        <en>Rail communication re-established</en>
+        <de>Buskommunikation wieder hergestellt.</de>        
+    </rststr>
+  </event>
+  <event id="x000A" name="FAILURE_TERMINAL_FAILED">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>5</blinkcode>
+      <blinkarg>$1</blinkarg>
+    </led>
+    <string>
+        <en>Request for terminal $1 failed</en>
+        <de>Abfrage der Busklemme $1 ist gescheitert.</de>
+    </string>
+    
+  </event>
+  <event id="x000B" name="FAILURE_TOO_MANY_MBX_TERMINALS">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>11</blinkcode>
+      <blinkarg>1</blinkarg>
+    </led>
+    <string>
+        <en>Too many gateway terminals on rail</en>
+        <de>Zu viele Gateway-Klemmen gesteckt.</de>
+    </string>
+    
+  </event>
+  <event id="x000C" name="FAILURE_MBX_SIZE_TOO_LARGE">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>11</blinkcode>
+      <blinkarg>2</blinkarg>
+    </led>
+    <string>
+        <en>Terminal mailbox size too large</en>
+        <de>Maximale Mailbox-Größe überschritten.</de>
+    </string>
+    
+  </event>
+  <event id="x000D" name="NOT_OPERATIONAL">
+    <led name="IO" default="yes" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>KBus is not operational</en>
+        <de>KBus ist nicht betriebsbereit.</de>
+      </string>
+    
+  </event>
+  <event id="x000E" name="FAILURE_UNSUPPORTED_TERMINAL_ECO">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>7</blinkcode>
+      <blinkarg>$1</blinkarg>
+    </led>
+    <string>
+        <en>Terminal at position $1 not supported</en>
+        <de>Busklemme an Position $1 wird nicht unterstützt.</de>
+    </string>
+    
+  </event>
+  <event id="x000F" name="FAILURE_PI_TOO_LARGE">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>2</blinkcode>
+      <blinkarg>2</blinkarg>
+    </led>
+    <string>
+        <en>The process image is larger than the existing buffer.</en>
+        <de>Das Prozessabbild ist größer als der vorhandene Puffer.</de>
+    </string>
+    
+  </event>
+  <event id="x0010" name="RESET_ERROR">
+    <led name="IO" state="BLINK_SEQ_RESET">
+    </led>
+    <string>
+        <en>Reset kbus error codes.</en>
+        <de>Kbus-Fehler löschen.</de>
+    </string>
+    
+  </event>
+  <event id="x0011" name="BOOTING_END">
+    <led name="IO" default="only" state="STATIC_GRN">
+    </led>
+    <string>
+      <en>KBus has booted.</en>
+      <de>KBus ist initialisiert.</de>
+    </string>
+    
+  </event>
+  <event id="x0012" name="WDT_EXPIRED" persistent="yes">
+    <led name="IO" state="BLINK_SEQ_750">
+      <blinkcode>9</blinkcode>
+      <blinkarg>5</blinkarg>
+    </led>
+    <string>
+      <en>KBus watchdog timer expired</en>
+      <de>KBus-Zeitüberwachung hat ausgelöst</de>
+    </string>
+    
+  </event>
+  <event id="xFFFF" name="DRIVER_NOT_OPENED">
+    <string>
+        <en>KBus device has not been opened</en>
+        <de>KBus-Treiber nicht geladen oder nicht geöffnet.</de>
+    </string>
+    
+  </event>
+</eventclass>
+
+</diagnostic>

@@ -1,0 +1,66 @@
+## SECTION=networking
+menuconfig NTPCLIENT
+	tristate
+	prompt "ntpclient                     "
+	select LIBC_RT if NTPCLIENT_BUILD_NTPCLIENT
+	help
+	  ntpclient is a small and efficient client to the NTP protocol.
+
+	  Description by Larry Doolittle:
+	  ntpclient is an NTP (RFC-1305) client for unix-alike computers.
+	  Its functionality is a small subset of xntpd, but IMHO performs
+	  better (or at least has the potential to function better) within
+	  that limited scope. Since it is much smaller than xntpd, it is
+	  also more relevant for embedded computers.
+
+	  ntpclient is Copyright 1997, 1999, 2000, 2003 Larry Doolittle,
+	  and may be freely used and copied according to the terms of the
+	  GNU General Public License, version 2.
+
+	  See http://doolittle.icarus.com/ntpclient/ for details.
+
+
+if NTPCLIENT
+
+comment "build options   ---"
+
+config NTPCLIENT_BUILD_DEBUG
+	bool
+	prompt "add debug output"
+	help
+	  Make the program more noisy
+
+config NTPCLIENT_BUILD_REPLAY_OPTION
+	bool
+	prompt "add replay option"
+	help
+	  Replay analysis code based on stdin. More intended for debugging.
+
+comment "install options   ---"
+
+config NTPCLIENT_BUILD_NTPCLIENT
+	bool
+	prompt "ntpclient"
+	default y
+	help
+	  Builds the ntpclient binary
+
+config NTPCLIENT_BUILD_ADJTIMEX
+	bool
+	depends on !BUSYBOX_ADJTIMEX || ALLYES
+	prompt "adjtimex"
+	default y
+	help
+	  Builds the adjtimex binary to control system time
+
+comment "BusyBox' adjtimex is in use"
+	depends on BUSYBOX_ADJTIMEX
+
+comment "runtime options   ---"
+
+config NTPCLIENT_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/ntpclient"
+
+endif

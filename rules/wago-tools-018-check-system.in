@@ -1,0 +1,28 @@
+## SECTION=wago_specific_tools
+
+#
+#   This file contains the main config tools target needed by ptxdist to
+#   process ${__THIS_FILENAME__}.make as well as the common configuration
+#   entries for the config tools meta package: the feature entries, the config
+#   file entries and the config tool entries.  
+#
+#   The feature targets are visible in the ptxdist menu. They are used to
+#   enable or disable menu entries in all frontends (i.e. eth1 settings may be
+#   disabled if the feature "Ethernet Switch" is active).  
+#
+
+
+# This is the target corresponding to ${__THIS_FILENAME__}.make
+# ptxdist won't build modular-config-tools package if it is inactive
+
+menuconfig CHECKSYSTEM
+  bool
+  default y
+  prompt "WAGO System Check"
+  select SYSLOGNG
+  select BUSYBOX
+  select BUSYBOX_AWK
+  select BUSYBOX_PIDOF
+  help
+    System check script and configuration.
+

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Firewall: dhcpd demon events handler
+#
+
+enabled=`/etc/config-tools/firewall firewall --is-enabled`
+[ "enabled" != "$enabled" ] && exit 0
+
+
+start()
+{
+    # This check should be changed into a call of a tool directly
+    # interpreting JSON. Otherwise it may be flawed if format changes.
+    running=`/etc/config-tools/get_dhcpd_config --json | tr -d " '\"\t\n\r\v" | grep -i -e 'dhcpdState:enabled'`
+
+    if [ "x" != "x${running}" ] ; then
+        action="up"
+    else
+        action="down"
+    fi
+
+    /etc/config-tools/firewall dhcpd --apply ${action} >/dev/null 2>&1
+}
+
+stop()
+{
+    /etc/config-tools/firewall dhcpd --apply down >/dev/null 2>&1
+}
+
+case "$1" in
+    start|config)
+        start;;
+    stop)
+        stop;;
+    *)
+        ;;
+esac

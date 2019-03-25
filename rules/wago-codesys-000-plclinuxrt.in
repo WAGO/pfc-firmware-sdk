@@ -1,0 +1,295 @@
+## SECTION=wago_specific_codesys_2
+
+config PLCLINUXRT
+	bool "CODESYS v2"
+	default n
+	select FREETYPE      if PLCLINUXRT_TARGETVISU
+	select EXPAT  	     if PLCLINUXRT_TARGETVISU
+	select CT_IPC_MSG_HEADER if CONFIG_TOOLS
+	select DAL
+	select LIBLIBLOADER
+	select DBUS_GLIB
+	select LIBOSLINUX
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select LIBNVRAM
+	select TYPELABEL
+	select LIBDBUSKBUSCOMMON
+	select LIBPACKBUS
+	select ROOTFS_PASSWD_ADMIN
+	select LIBPTHREADCGROUP
+	help
+		Builds and installs the CODESYS v2 plc.
+
+if PLCLINUXRT
+
+menu "Build and Compiler Settings"
+
+config PLCLINUXRT_BUILD_CFG_PROFILING_ENABLE
+	bool "Compile and link with -fprofile-arcs"
+	default n
+	help
+	  Adds code to the program to record branch decisions during runtime. Allows for feedback based optimization.
+
+config PLCLINUXRT_BUILD_CFG_USE_FEEDBACK_BASED_OPTIMZATION
+	bool "Compile with feedback based optimization"
+	default n
+	help
+	  Uses the branch prediction data from a profiling run for optimzation. (--use-profile)
+
+
+config PLCLINUXRT_BUILD_CFG_DEBUG_LEVEL
+	string "Debug level"
+	default "g"
+	help
+		Sets the debug level used for compilation. Leave empty to use the makefile's default.
+
+config PLCLINUXRT_BUILD_CFG_OPTIMIZATION
+	string "Optimization level (Os,O0,O1,O2,O3)"
+	default "O0"
+	help
+	  Configures the optimization level used for compilation. Leave it empty to use the makefile's default.
+
+endmenu
+endif
+
+if PLCLINUXRT
+menuconfig PLCLINUXRT_INSTALL_RTS3S_CFG
+	bool "Configure Codesys (rts3s.cfg)"
+	default y
+	help
+	  Installs /etc/rts3s.cfg
+
+if PLCLINUXRT_INSTALL_RTS3S_CFG
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_TCP_IP_PORT
+		  string
+	prompt "TCP/IP Port"
+	default "1200"
+	help
+	  Sets the TcpIpPort paramter in /etc/rts3s.cfg
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_RS232_PORT
+		  string
+	prompt "RS232 Port"
+	default "1"
+	help
+	  Sets the PORT paramter in /etc/rts3s.cfg
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_MODBUS_RTU_INTERFACE
+		  string
+	prompt "Modbus Interface"
+	default "/dev/ttyS0"
+	help
+	  Sets the Interface paramter in /etc/rts3s.cfg
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_FILE_PATH
+		  string
+		  prompt "Default path for Bootproject"
+		  default "/home/codesys/"
+		  help
+			 Set the FILES Parameter in /etc/rts.cfg
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_TTY_DEVICEFILE
+	string
+	prompt "Default RS232/RS485 device file (Modbus/Codesys)"
+	default "/dev/ttyO0"
+	help
+	Sets the path to the default terminal.
+
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_WATCHDOG_INTERVAL_MS
+	string
+	prompt "Device Watchdog Interval [msec]"
+	default "10000"
+	help
+		Sets the default watchdog interval, that codesys uses to parametrize the DAL devices with. The unit is milli seconds. The watchdog times out after factor times interval milliseconds.
+		  Settings this to zero disables the watchdog.
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_WATCHDOG_FACTOR
+	string
+	prompt "Device Watchdog Factor"
+	default "3"
+	help
+		  Configures the watchdog factor.
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_WATCHDOG_TASK_CYCLE_TIME_MS
+	string
+	prompt "Watchdog Task Cycle Time [msec]"
+	default "2000"
+	help
+		 Configures the cycle time in which the codesys rts triggers the device watchdog. The value should be well below the configured watchdog interval. Default is one-fifth of the watchdog interval.
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_MIN_IO_TASK_INTERVAL_US
+	string
+	prompt "Min IO Task Interval [usec]"
+	default "2000"
+	help
+		 Configures the minimal interval time for IEC tasks using i/o.
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_MIN_TASK_INTERVAL
+        string
+    prompt "Min. Task Interval"
+    default "100000"
+    help
+      Sets the minimal task interval paramter in /etc/rts3s.cfg
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_TASK_JITTER
+        string
+    prompt "Task Jitter"
+    default "200000"
+    help
+      Sets the TaskJitter paramter in /etc/rts3s.cfg
+
+config PLCLINUXRT_INSTALL_RTS3S_CFG_KBUS_TIMEOUT
+        string
+    prompt "Kbus Timeout"
+    default "50000"
+    help
+      Sets the KbusTimeout paramter in /etc/rts3s.cfg
+
+config PLCLINUXRT_RTS_CGROUPS_SUPPORT
+	bool "Preload libpthreadcgroups to intercept creation of threads"
+	default n
+    depends on LIBPTHREADCGROUP
+	help
+		Adds LD_PRELOAD environment variable to the init script.
+
+endif
+
+comment ""
+
+config PLCLINUXRT_TARGETVISU
+		bool "TargetVISU"
+		default y
+		select FREETYPE
+		select EXPAT
+		 help
+	 This enables Microwindows.
+
+config PLCLINUXRT_WEBSERVER
+	bool
+	prompt "Webserver (3S)"
+	help
+	  Builds the 3S Webserver for codesys.
+
+
+#config PLCLINUXRT_FIELDBUS_EC1
+#       bool "Fieldbus (EC1)"
+#       default y
+#       help
+#	 This enables usage of libmodbus library.
+
+comment ""
+
+#config PLCLINUXRT_CODESYS_STARTSCRIPT
+#		 bool "install codesys startscripts"
+#		 default y
+#		 help
+#	 Installs codesys startscripts /etc/init.d/codesys and /etc/init.d/codesys_screen.
+#	 The latter was added to set up codesys within a new screen session and to leave manipulation
+#	 of /etc/init.d/codesys by WBM (config-tools) unchanged.
+
+config PLCLINUXRT_CODESYS_HOME
+		 bool "install /home/codesys"
+		 default y
+		 help
+	 Installs Codesys fonts and other files into /home/codesys
+
+#config PLCLINUXRT_USE_SCREEN
+#		 bool "Start Codesys in screen"
+#		 select PLCLINUXRT_CODESYS_STARTSCRIPT
+#		depends on USE_SCREEN_WINDOWS
+#		 default y
+#		 help
+#		Say yes here if you want to start some programs (e.g. Codesys) in seperate screens.
+endif
+
+
+menu "Codesys 2 IEC Libraries"
+
+config CODESYS_KBUS_LIBRARIES
+	bool "Install IEC Kbus libraries: (Terminaldiag, Sercomm, modcom, WagoLibKBus)"
+	select LIBSERCOMM
+	select LIBTERMINALDIAG
+  select LIBMODCOM
+  select LIBWAGOLIBKBUS
+	default y
+	help
+
+config IEC_SNMP_LIBRARIES
+	bool "Install IEC SNMP libraries: (snmp_manager, snmp_agent)"
+	select PLCSNMP_MANAGER
+	select PLCSNMP_AGENT
+	default y
+	help
+
+config IEC_IECSSL_LIBRARY
+	bool "Install IEC SSL library"
+    select IECSSL
+    default y
+    help
+
+config IEC_IECLED_LIBRARY
+	bool "Install IEC led library"
+    select IECLED
+    default y
+    help
+
+config IEC_IECDIAGNOSTICL_LIBRARY
+	bool "Install IEC diagnostic library"
+    select IECDIAGNOSTIC
+    default y
+    help
+
+config IEC_CONFIGTOOLLIB_LIBRARY
+	bool "Install IEC config tool library"
+    select CONFIGTOOLLIB
+    default y
+    help
+
+config IEC_LIBWIDECPULIMIT_LIBRARY
+	bool "Install IEC cpu usage library"
+    select LIBWIDECPULIMIT
+    default y
+    help
+
+config IEC_LIBWIDEOMS_LIBRARY
+	bool "Install IEC Operating Mode Switch library"
+    select LIBWIDEOMS
+    default y
+    help
+
+endmenu
+
+menu "Codesys 2 I/O driver extension libraries (configuration libraries)"
+
+config CDS2_IODRVEXT_LIBMBSWIDE_LIBRARY
+	bool "Install modbus slave I/O driver configuration library for codesys 2"
+	select LIBMBSWIDE
+	default y
+	help
+		Meta package to build and install the libwidembs.so
+
+config CDS2_IODRVEXT_LIBWIDEPACKBUS_LIBRARY
+	bool "Install kbus I/O driver configuration library for codesys 2"
+	select LIBWIDEPACKBUS
+	default y
+	help
+		Meta package to build and install the libwidepackbus.so
+
+config CDS2_IODRVEXT_LIBWIDEDPS_LIBRARY
+	bool "Install profibus dp slave I/O driver configuration library for codesys 2"
+	select LIBDPSWIDE
+	default y
+	help
+		Meta package to build and install the libdpswide.so
+
+config CDS2_IODRVEXT_LIBWIDEPBDPM_LIBRARY
+	bool "Install profibus dp master I/O driver configuration library for codesys 2"
+	select LIBWIDEPBDPM
+	default n
+	help
+		Meta package to build and install the libwidepbdom.so
+
+endmenu

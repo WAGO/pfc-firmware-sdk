@@ -1,0 +1,9 @@
+## SECTION=wago_specific_libs
+
+config LIBMODBUS
+	tristate "libmodbus"
+	help
+      libmodbus is a free software library to send/receive data according to the
+      Modbus protocol. This library is written in C and supports RTU (serial)
+      and TCP (Ethernet) communications. (http://libmodbus.org)
+

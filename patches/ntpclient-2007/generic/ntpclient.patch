@@ -1,0 +1,15 @@
+--- ntpclient/ntpclient.c~	2008-01-01 03:16:10.000000000 +0100
++++ ntpclient/ntpclient.c	2009-02-03 12:30:42.000000000 +0100
+@@ -673,9 +673,9 @@
+ 		exit(1);
+ 	}
+ 
+-	if (ntpc.set_clock && !ntpc.live && !ntpc.goodness && !ntpc.probe_count) {
+-		ntpc.probe_count = 1;
+-	}
++//	if (ntpc.set_clock && !ntpc.live && !ntpc.goodness && !ntpc.probe_count) {
++//		ntpc.probe_count = 1;
++//	}
+ 
+ 	/* respect only applicable MUST of RFC-4330 */
+ 	if (ntpc.probe_count != 1 && ntpc.cycle_time < MIN_INTERVAL) {

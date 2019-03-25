@@ -1,0 +1,1 @@
+rw ide=no root=/dev/mtd1 a b cd e=f

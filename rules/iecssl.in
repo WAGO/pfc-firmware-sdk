@@ -1,0 +1,19 @@
+## SECTION=wago_specific_libs
+
+config IECSSL
+	bool
+	prompt "iecssl"
+	select PLCLINUXRT
+	select OPENSSL
+	help
+	  IEC61161 library to use SSL-Stack out of an IEC-Program
+
+if IECSSL
+
+config IECSSL_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+endif

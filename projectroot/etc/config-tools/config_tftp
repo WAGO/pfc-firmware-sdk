@@ -1,0 +1,229 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_tftp
+#
+# Change configuration of TFTP server 
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+INETD_CONFIG_FILE="/etc/inetd.conf"
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter)
+#--------------------------------------------------------------------
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get and set configuration of TFTP server *"
+  echo
+  echo "Usage: config_tftp < parameter-name=parameter-value > [ \"state\"=\"enabled\" | \"disabled\" ] [ \"download-dir\"=download-directory-value"
+  echo
+  exit $SUCCESS
+fi
+
+
+function EnableTftp
+{
+  status=$SUCCESS
+
+  # if file includes a line with TFTP configuration (comment char irrelevant)
+  grep "^#* *tftp" $INETD_CONFIG_FILE > /dev/null 2> /dev/null
+  if [ "$SUCCESS" = $? ]; then
+    
+    # remove comment char (in case of already missing comment character, no changes will be made)
+    sed -i '/^# *tftp/ s/# *tftp /tftp /' $INETD_CONFIG_FILE
+    if [ $SUCCESS != $? ]; then
+      status=$WRITE_FILE_ERROR
+      SetLastError "Error while writing configuration file"
+    fi 
+
+  # no line with TFTP configuration found - write it new at the end of the file  
+  else
+    echo "tftp dgram udp wait nobody /sbin/tftpd tftpd -l /home" >> $INETD_CONFIG_FILE
+    if [ $SUCCESS != $? ]; then
+      status=$WRITE_FILE_ERROR
+      SetLastError "Error while writing configuration file"
+    fi 
+  fi
+  
+  return $status
+}
+
+
+function DisableTftp
+{
+  status=$SUCCESS
+
+  # if file includes a line with TFTP configuration (comment char irrelevant)
+  grep "^#* *tftp" $INETD_CONFIG_FILE > /dev/null 2> /dev/null
+  if [ "$SUCCESS" = $? ]; then
+
+    # add comment char (in case of already existing comment character, no changes will be made)
+    sed -i 's/^ *tftp /#tftp /'  $INETD_CONFIG_FILE
+    if [ $SUCCESS != $? ]; then
+      status=$WRITE_FILE_ERROR
+      SetLastError "Error while writing configuration file"
+    fi
+  fi
+  
+  # else (file includes no TFTP configuration) - no changes necessary
+
+  return $status
+}
+
+
+function SetDownloadDir
+{
+  status=$SUCCESS
+  newDownloadDir=$1
+  
+  actualDownloadDir=`/etc/config-tools/get_tftp_config download-dir`
+  #echo "newDownloadDir:"$newDownloadDir > /etc/config-tools/output
+  #echo "actualDownloadDir:"$actualDownloadDir
+  
+  # input parameter new download directory is missing
+  if [ -z "$newDownloadDir" ]; then
+    status=$MISSING_PARAMETER
+    SetLastError "Missing input parameter"
+  
+  else
+    # check for invalid characters in directory name
+    echo $newDownloadDir | grep [\"*] > /dev/null 2> /dev/null
+    if [ "$SUCCESS" = $? ]; then
+      status=$INVALID_PARAMETER
+      SetLastError "Invalid download directory"
+    fi
+
+    if [[ ! -d "$newDownloadDir" ]]; then
+      status=$INVALID_PARAMETER
+      SetLastError "Directory does not exist."
+    fi
+  fi
+ 
+  if [ "$SUCCESS" = "$status" ]; then
+  
+    # CASE 1 - download directory is configured actually - change old one to new one
+    if [ -n "$actualDownloadDir" ]; then
+      sed -i '/^#* *tftp/ s?'$actualDownloadDir'?'$newDownloadDir'?g' $INETD_CONFIG_FILE
+      if [ "$SUCCESS" != $? ]; then
+        status=$WRITE_FILE_ERROR
+        ReportError $status "($INETD_CONFIG_FILE by sed)"
+        SetLastError "Error while writing configuration file"
+      fi
+
+    # no download directory is configured
+    else
+    
+      # CASE 2 - general TFTP configuration (according line) is existing without download dir option
+      tftpLine=`grep "^#* *tftp" $INETD_CONFIG_FILE 2> /dev/null`
+      if [ "$SUCCESS" = $? ]; then
+        # append download directory option at the end of tftp line
+        sed -i '/^#* *tftp/ c\'"$tftpLine"' -l '$newDownloadDir'' $INETD_CONFIG_FILE
+        if [ "$SUCCESS" != $? ]; then
+          status=$WRITE_FILE_ERROR
+          ReportError $status "($INETD_CONFIG_FILE by sed)"
+          SetLastError "Error while writing configuration file"
+        fi
+        
+      # CASE 3 - no TFTP configuration at all - write complete new line with disabled TFTP
+      else
+        echo "#tftp dgram udp wait nobody /sbin/tftpd tftpd -l $newDownloadDir" >> $INETD_CONFIG_FILE
+        if [ "$SUCCESS" != $? ]; then
+          status=$WRITE_FILE_ERROR
+          ReportError $status "($INETD_CONFIG_FILE by echo)"
+          SetLastError "Error while writing configuration file"
+        fi
+      fi
+    fi
+  fi
+  
+  return $status  
+}
+
+#--------------------------------------------------------------------
+# main programm
+#--------------------------------------------------------------------
+
+status=$SUCCESS
+
+# get parameter from input
+newState=`GetParameterValue state $*`
+newDownloadDir=`GetParameterValue download-dir $*`
+
+actualState=`/etc/config-tools/get_tftp_config state`
+actualDownloadDir=`/etc/config-tools/get_tftp_config download-dir`
+
+# check if parameter for download directory is given, but is an empty string
+#echo $* | grep "download-dir=" > /dev/null 2> /dev/null
+#if [ "$SUCCESS" = $? ] && [ -z "$newDownloadDir" ]; then
+#  status=$INVALID_PARAMETER
+#  SetLastError "Invalid input for download directory"
+#  exit $status
+#fi
+
+#echo "newstate:${newState}" "newDownloadDir:${newDownloadDir}" #> /etc/config-tools/output
+#echo "actualState:${actualState} actualDownloadDir:${actualDownloadDir}" #> /etc/config-tools/output
+
+#check whether config-file exists 
+if [ ! -f $TFTP_CONFIG_FILE ]; then
+  status=$CONFIG_FILE_MISSING
+  ReportError $status "($TFTP_CONFIG_FILE)"
+  SetLastError "Config file is missing"
+  exit $status
+fi
+
+restartRequired=0
+
+# change state
+if [ "$SUCCESS" = "$status" ] && [ -n "$newState" ] && [ "$newState" != "$actualState" ]; then
+
+  restartRequired=1
+  
+  if [ "enabled" = "$newState" ]; then
+    EnableTftp
+    status=$?
+    
+  elif [ "disabled" = "$newState" ]; then
+    DisableTftp
+    status=$?
+    
+  else
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid input parameter ($newState)"
+  fi
+fi
+  
+# change download directory
+if [ "$SUCCESS" = "$status" ] && [ -n "$newDownloadDir" ] && [ "$newDownloadDir" != "$actualDownloadDir" ]; then
+  restartRequired=1
+  SetDownloadDir "$newDownloadDir"
+  status=$?
+fi
+
+if [ 1 = "$restartRequired" ] && [ "$SUCCESS" = "$status" ]; then
+  /etc/init.d/inetd restart > /dev/null 2> /dev/null
+  if [ "$SUCCESS" != $? ]; then
+    status=$SHELL_ERROR
+    ReportError $status "(/etc/init.d/inetd restart)"
+    SetLastError "Error while restart of service."
+  fi
+elif [ "x${SUCCESS}" = "x${status}" ] ; then
+  [[ -d /etc/config-tools/events/tftp/ ]] && run-parts -a config /etc/config-tools/events/tftp/
+fi
+
+exit $status

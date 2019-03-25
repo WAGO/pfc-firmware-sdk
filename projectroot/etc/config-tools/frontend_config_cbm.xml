@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configtool_config>
+  <frontend id="cbm" uid="MAIN">
+    <simple_level ressource="information.sh" text="Information" uid="INFO">
+      <simple_level ressource="info_controller_details.sh" text="Controller Details" uid="INFO_CPL_DET"/>
+      <simple_level ressource="info_actual_tcpip_switch.sh" text="Network Details" uid="INFO_NET_DET_SWITCH"/>
+    </simple_level>
+    <simple_level ressource="codesys.sh" text="PLC Runtime" uid="CODESYS">
+      <simple_level ressource="codesys_info.sh" text="Information" uid="CODESYS_INFO">
+        <simple_level ressource="codesys_info_eruntime.sh" text="Information" uid="CODESYS_INFO_ERUNTIME">
+          <simple_level ressource="codesys_info_eruntime_version.sh" text="Runtime Version" uid="CODESYS_INFO_VERSION"/>
+        </simple_level>
+        <simple_level ressource="codesys_info_cds2.sh" text="Information" uid="CODESYS_INFO_CDS2">
+          <simple_level ressource="codesys_info_cds2_version.sh" text="Runtime Version" uid="CODESYS_INFO_CDS2_VERSION"/>
+          <simple_level ressource="codesys_info_cds2_webserver_version.sh" text="Webserver Version" uid="CODESYS_INFO_CDS2_WEBSERVER_VERSION"/>
+          <simple_level ressource="codesys_info_cds2_state.sh" text="State" uid="CODESYS_INFO_CDS2_STATE"/>
+          <simple_level ressource="codesys_info_cds2_nr_tasks.sh" text="Number of Tasks" uid="CODESYS_INFO_CDS2_NR_TASKS"/>
+          <simple_level ressource="codesys_info_cds2_project.sh" text="Project Details" uid="CODESYS_INFO_CDS2_PROJECT_DETAILS"/>
+          <simple_level ressource="codesys_info_cds2_tasks.sh" text="Tasks" uid="CODESYS_INFO_CDS2_PROJECT_TASKS"/>
+        </simple_level>
+      </simple_level>
+      <simple_level ressource="codesys_config.sh" text="General Configuration" uid="CODESYS_CONFIG"/>
+      <simple_level ressource="codesys_webserver.sh" text="WebVisu" uid="CODESYS_WEBSERVER"/>
+    </simple_level>
+    <simple_level ressource="networking.sh" text="Networking" uid="NETWORKING">
+      <simple_level ressource="tcpip_hostname.sh" text="Host-/Domain Name" uid="NETWORKING_HOSTNAME"/>
+      <simple_level ressource="tcpip.sh" text="TCP/IP" uid="NETWORKING_TCPIP">
+        <simple_level ressource="tcpip_switch.sh" text="IP Address" uid="NETWORKING_SWITCH"/>
+        <simple_level ressource="tcpip_default_gateway.sh" text="Default Gateway" uid="NETWORKING_DEF_GW"/>
+        <simple_level ressource="tcpip_dns_server.sh" text="DNS Server" uid="NETWORKING_DNS_SRV"/>
+      </simple_level>
+      <simple_level ressource="tcpip_ethernet.sh" text="Ethernet" uid="ETHERNET">
+        <simple_level ressource="tcpip_dsa.sh" text="Switch Configuration" uid="NETWORKING_DSA"/>
+        <simple_level ressource="tcpip_ethernet_ports.sh" text="Ethernet Ports" uid="ETHERNET_PORTS"/>
+      </simple_level>
+    </simple_level>
+    <simple_level ressource="firewall.sh" text="Firewall" uid="FIREWALL">
+      <simple_level ressource="firewall_general.sh" text="General Configuration" uid="FIREWALL_GENERAL"/>
+      <simple_level ressource="firewall_macaddfl.sh" text="MAC Address Filter" uid="FIREWALL_MAC_ADDRESS_FILTER"/>
+      <simple_level ressource="firewall_userfl.sh" text="User Filter" uid="FIREWALL_USER_FILTER"/>
+    </simple_level>
+    <simple_level ressource="clock.sh" text="Clock" uid="CLOCK"/>
+    <simple_level ressource="administration.sh" text="Administration" uid="ADMIN">
+      <simple_level ressource="adm_users.sh" text="Users" uid="ADMIN_USERS"/>
+      <simple_level ressource="adm_bootable_image.sh" text="Create Image" uid="ADMIN_IMG"/>
+      <simple_level ressource="adm_rs232.sh" text="Owner of Serial Interface" dyn_state_ressource="adm_rs232_state.sh" uid="ADMIN_RS232">
+        <simple_level ressource="adm_rs232_linux.sh" text="Linux Console" dyn_state_ressource="adm_rs232_linux_state.sh" uid="ADMIN_RS232_LINUX"/>
+        <simple_level ressource="adm_rs232_none.sh" text="Unassigned (Applications, CODESYS)" dyn_state_ressource="adm_rs232_none_state.sh" uid="ADMIN_RS232_NONE"/>
+      </simple_level>
+      <simple_level ressource="adm_reboot_ipc.sh" text="Reboot Controller" uid="ADMIN_REBOOT"/>
+    </simple_level>
+    <simple_level ressource="package_server.sh" text="Package Server" uid="PKGSRV">
+      <simple_level ressource="pkgsrv_backup.sh" text="Firmware Backup" uid="PKGSRV_BACKUP"/>
+      <simple_level ressource="pkgsrv_restore.sh" text="Firmware Restore" uid="PKGSRV_RESTORE"/>
+      <simple_level ressource="pkgsrv_system_partition.sh" text="System Partition" uid="PKGSRV_SYSPART"/>
+    </simple_level>
+    <simple_level ressource="mass_storage.sh" text="Mass Storage" uid="MASSSTORAGE"/>
+    <simple_level ressource="downloads.sh" text="Software Uploads" uid="DL">
+      <simple_level ressource="downloads_upd.sh" text="Update Script......" dyn_state_ressource="downloads_upd_state.sh" uid="DL_SCRIPT"/>
+    </simple_level>
+    <simple_level ressource="port.sh" text="Ports and Services" uid="PORT">
+      <simple_level ressource="port_telnet.sh" text="Telnet............." dyn_state_ressource="port_telnet_state.sh" uid="PORT_TELNET"/>
+      <simple_level ressource="port_ftp.sh" text="FTP................" dyn_state_ressource="port_ftp_state.sh" uid="PORT_FTP"/>
+      <simple_level ressource="port_ftps.sh" text="FTPS..............." dyn_state_ressource="port_ftps_state.sh" uid="PORT_FTPS"/>
+      <simple_level ressource="port_http.sh" text="HTTP..............." dyn_state_ressource="port_http_state.sh" uid="PORT_HTTP"/>
+      <simple_level ressource="port_https.sh" text="HTTPS.............." dyn_state_ressource="port_https_state.sh" uid="PORT_HTTPS"/>
+      <simple_level ressource="port_ntp.sh" text="NTP................" dyn_state_ressource="port_ntp_state.sh" uid="PORT_NTP"/>
+      <simple_level ressource="port_ssh.sh" text="SSH................" dyn_state_ressource="port_ssh_state.sh" uid="PORT_SSH"/>
+      <simple_level ressource="port_tftp.sh" text="TFTP..............." dyn_state_ressource="port_tftp_state.sh" uid="PORT_TFTP"/>
+      <simple_level ressource="port_dhcpd.sh" text="DHCPD.............." dyn_state_ressource="port_dhcpd_state.sh" uid="PORT_DHCPD"/>
+      <simple_level ressource="port_dns.sh" text="DNS................" dyn_state_ressource="port_dns_state.sh" uid="PORT_DNS"/>
+      <simple_level ressource="port_iocheck.sh" text="IOCHECK PORT......." dyn_state_ressource="port_iocheck_state.sh" uid="PORT_IOCHECK"/>
+      <simple_level ressource="port_modbus_tcp.sh" text="Modbus TCP........." dyn_state_ressource="port_modbus_tcp_state.sh" uid="PORT_MODBUS_TCP"/>
+      <simple_level ressource="port_modbus_udp.sh" text="Modbus UDP........." dyn_state_ressource="port_modbus_udp_state.sh" uid="PORT_MODBUS_UDP"/>
+      <simple_level ressource="port_opcua.sh" text="OPC UA............." dyn_state_ressource="port_opcua_state.sh" uid="PORT_OPCUA"/>
+      <simple_level ressource="port_codesys_main.sh" text="PLC Runtime Services" uid="PORT_CODESYS_MAIN">
+        <simple_level ressource="port_codesys_general.sh" text="General Configuration" uid="PORT_GENERAL_CONFIG"/>
+        <simple_level ressource="port_codesys_version2.sh" text="CODESYS 2" uid="PORT_CODESYS2"/>
+        <simple_level ressource="port_codesys_eruntime.sh" text="e!RUNTIME" uid="PORT_ERUNTIME"/>
+        <simple_level ressource="port_codesysr_interfaces.sh" text="Change CODESYS Runtime firewalling settings" uid="PORT_CODESYSR_FIREWALL"/>
+        <simple_level ressource="port_codesysw_interfaces.sh" text="Change CODESYS WebVisu firewalling settings" uid="PORT_CODESYSW_FIREWALL"/>
+      </simple_level>
+    </simple_level>
+    <simple_level ressource="snmp.sh" text="SNMP" uid="SNMP"/>
+  </frontend>
+</configtool_config>

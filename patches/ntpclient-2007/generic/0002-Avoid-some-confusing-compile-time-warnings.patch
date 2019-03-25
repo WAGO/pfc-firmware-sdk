@@ -1,0 +1,33 @@
+From cb4ef6d4101d3a558647c8d9e84f67a81b1d1bd2 Mon Sep 17 00:00:00 2001
+From: Juergen Beisert <juergen@kreuzholzen.de>
+Date: Wed, 20 Jan 2010 00:04:56 +0100
+Subject: [PATCH 2/3] Avoid some confusing compile time warnings
+
+We are compiling ntpclient on a GNU based system. This patch avoids the
+following warning:
+
+ntpclient.c:447: warning: implicit declaration of function 'herror'
+ntpclient.c:447: warning: nested extern declaration of 'herror'
+
+Signed-off-by: Juergen Beisert <juergen@kreuzholzen.de>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ ntpclient.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/ntpclient.c b/ntpclient.c
+index 61254e2..73d9fa6 100644
+--- a/ntpclient.c
++++ b/ntpclient.c
+@@ -32,8 +32,6 @@
+  *  labelled "XXX fixme - non-automatic build configuration".
+  */
+ 
+-#define _POSIX_C_SOURCE 199309
+-
+ #ifdef USE_OBSOLETE_GETTIMEOFDAY
+ #define _BSD_SOURCE
+ #endif
+-- 
+1.6.6
+

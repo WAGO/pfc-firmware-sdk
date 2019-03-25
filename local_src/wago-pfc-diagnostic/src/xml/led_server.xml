@@ -1,0 +1,2383 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!DOCTYPE diagnostic SYSTEM "diagnostics.dtd">
+<diagnostic>
+  <eventclass  class_range="x0001" name="led" >
+    <event id="x0000" name="user1_static_off" persistent="none">
+      <comment>
+        LED 1 will be set to static "off"
+      </comment>
+      <led name="U1" state="STATIC_OFF" />
+      <string>
+        <en>User LED 1 is turned "off"</en>
+      </string>
+    </event>
+    <event id="x0100" name="user2_static_off" persistent="none">
+      <comment>
+        LED 2 will be set to static "off"
+      </comment>
+      <led name="U2" state="STATIC_OFF" />
+      <string>
+        <en>User LED 2 is turned "off"</en>
+      </string>
+    </event>
+    <event id="x0200" name="user3_static_off" persistent="none">
+      <comment>
+        LED 3 will be set to static "off"
+      </comment>
+      <led name="U3" state="STATIC_OFF" />
+      <string>
+        <en>User LED 3 is turned "off"</en>
+      </string>
+    </event>
+    <event id="x0300" name="user4_static_off" persistent="none">
+      <comment>
+        LED 4 will be set to static "off"
+      </comment>
+      <led name="U4" state="STATIC_OFF" />
+      <string>
+        <en>User LED 4 is turned "off"</en>
+      </string>
+    </event>
+    <event id="x0400" name="user5_static_off" persistent="none">
+      <comment>
+        LED 5 will be set to static "off"
+      </comment>
+      <led name="U5" state="STATIC_OFF" />
+      <string>
+        <en>User LED 5 is turned "off"</en>
+      </string>
+    </event>
+    <event id="x0500" name="user6_static_off" persistent="none">
+      <comment>
+        LED 6 will be set to static "off"
+      </comment>
+      <led name="U6" state="STATIC_OFF" />
+      <string>
+        <en>User LED 6 is turned "off"</en>
+      </string>
+    </event>
+    <event id="x0600" name="user7_static_off" persistent="none">
+      <comment>
+        LED 7 will be set to static "off"
+      </comment>
+      <led name="U7" state="STATIC_OFF" />
+      <string>
+        <en>User LED 7 is turned "off"</en>
+      </string>
+    </event>
+    <event id="x0001" name="user1_static_grn" persistent="none">
+      <comment>
+        LED 1 will be set to static "green"
+      </comment>
+      <led name="U1" state="STATIC_GRN" />
+      <string>
+        <en>User LED 1 is turned "green"</en>
+      </string>
+    </event>
+    <event id="x0101" name="user2_static_grn" persistent="none">
+      <comment>
+        LED 2 will be set to static "green"
+      </comment>
+      <led name="U2" state="STATIC_GRN" />
+      <string>
+        <en>User LED 2 is turned "green"</en>
+      </string>
+    </event>
+    <event id="x0201" name="user3_static_grn" persistent="none">
+      <comment>
+        LED 3 will be set to static "green"
+      </comment>
+      <led name="U3" state="STATIC_GRN" />
+      <string>
+        <en>User LED 3 is turned "green"</en>
+      </string>
+    </event>
+    <event id="x0301" name="user4_static_grn" persistent="none">
+      <comment>
+        LED 4 will be set to static "green"
+      </comment>
+      <led name="U4" state="STATIC_GRN" />
+      <string>
+        <en>User LED 4 is turned "green"</en>
+      </string>
+    </event>
+    <event id="x0401" name="user5_static_grn" persistent="none">
+      <comment>
+        LED 5 will be set to static "green"
+      </comment>
+      <led name="U5" state="STATIC_GRN" />
+      <string>
+        <en>User LED 5 is turned "green"</en>
+      </string>
+    </event>
+    <event id="x0501" name="user6_static_grn" persistent="none">
+      <comment>
+        LED 6 will be set to static "green"
+      </comment>
+      <led name="U6" state="STATIC_GRN" />
+      <string>
+        <en>User LED 6 is turned "green"</en>
+      </string>
+    </event>
+    <event id="x0601" name="user7_static_grn" persistent="none">
+      <comment>
+        LED 7 will be set to static "green"
+      </comment>
+      <led name="U7" state="STATIC_GRN" />
+      <string>
+        <en>User LED 7 is turned "green"</en>
+      </string>
+    </event>
+    <event id="x0002" name="user1_static_red" persistent="none">
+      <comment>
+        LED 1 will be set to static "red"
+      </comment>
+      <led name="U1" state="STATIC_RED" />
+      <string>
+        <en>User LED 1 is turned "red"</en>
+      </string>
+    </event>
+    <event id="x0102" name="user2_static_red" persistent="none">
+      <comment>
+        LED 2 will be set to static "red"
+      </comment>
+      <led name="U2" state="STATIC_RED" />
+      <string>
+        <en>User LED 2 is turned "red"</en>
+      </string>
+    </event>
+    <event id="x0202" name="user3_static_red" persistent="none">
+      <comment>
+        LED 3 will be set to static "red"
+      </comment>
+      <led name="U3" state="STATIC_RED" />
+      <string>
+        <en>User LED 3 is turned "red"</en>
+      </string>
+    </event>
+    <event id="x0302" name="user4_static_red" persistent="none">
+      <comment>
+        LED 4 will be set to static "red"
+      </comment>
+      <led name="U4" state="STATIC_RED" />
+      <string>
+        <en>User LED 4 is turned "red"</en>
+      </string>
+    </event>
+    <event id="x0402" name="user5_static_red" persistent="none">
+      <comment>
+        LED 5 will be set to static "red"
+      </comment>
+      <led name="U5" state="STATIC_RED" />
+      <string>
+        <en>User LED 5 is turned "red"</en>
+      </string>
+    </event>
+    <event id="x0502" name="user6_static_red" persistent="none">
+      <comment>
+        LED 6 will be set to static "red"
+      </comment>
+      <led name="U6" state="STATIC_RED" />
+      <string>
+        <en>User LED 6 is turned "red"</en>
+      </string>
+    </event>
+    <event id="x0602" name="user7_static_red" persistent="none">
+      <comment>
+        LED 7 will be set to static "red"
+      </comment>
+      <led name="U7" state="STATIC_RED" />
+      <string>
+        <en>User LED 7 is turned "red"</en>
+      </string>
+    </event>
+    <event id="x0003" name="user1_static_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to static "yellow"
+      </comment>
+      <led name="U1" state="STATIC_YLW" />
+      <string>
+        <en>User LED 1 is turned "yellow"</en>
+      </string>
+    </event>
+    <event id="x0103" name="user2_static_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to static "yellow"
+      </comment>
+      <led name="U2" state="STATIC_YLW" />
+      <string>
+        <en>User LED 2 is turned "yellow"</en>
+      </string>
+    </event>
+    <event id="x0203" name="user3_static_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to static "yellow"
+      </comment>
+      <led name="U3" state="STATIC_YLW" />
+      <string>
+        <en>User LED 3 is turned "yellow"</en>
+      </string>
+    </event>
+    <event id="x0303" name="user4_static_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to static "yellow"
+      </comment>
+      <led name="U4" state="STATIC_YLW" />
+      <string>
+        <en>User LED 4 is turned "yellow"</en>
+      </string>
+    </event>
+    <event id="x0403" name="user5_static_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to static "yellow"
+      </comment>
+      <led name="U5" state="STATIC_YLW" />
+      <string>
+        <en>User LED 5 is turned "yellow"</en>
+      </string>
+    </event>
+    <event id="x0503" name="user6_static_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to static "yellow"
+      </comment>
+      <led name="U6" state="STATIC_YLW" />
+      <string>
+        <en>User LED 6 is turned "yellow"</en>
+      </string>
+    </event>
+    <event id="x0603" name="user7_static_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to static "yellow"
+      </comment>
+      <led name="U7" state="STATIC_YLW" />
+      <string>
+        <en>User LED 7 is turned "yellow"</en>
+      </string>
+    </event>
+    <event id="x0040" name="user1_blink_off_grn" persistent="none">
+      <comment>
+        LED 1 will be set to blink "off" "green"
+      </comment>
+      <led name="U1" state="BLINK_OFF_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0140" name="user2_blink_off_grn" persistent="none">
+      <comment>
+        LED 2 will be set to blink "off" "green"
+      </comment>
+      <led name="U2" state="BLINK_OFF_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0240" name="user3_blink_off_grn" persistent="none">
+      <comment>
+        LED 3 will be set to blink "off" "green"
+      </comment>
+      <led name="U3" state="BLINK_OFF_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0340" name="user4_blink_off_grn" persistent="none">
+      <comment>
+        LED 4 will be set to blink "off" "green"
+      </comment>
+      <led name="U4" state="BLINK_OFF_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0440" name="user5_blink_off_grn" persistent="none">
+      <comment>
+        LED 5 will be set to blink "off" "green"
+      </comment>
+      <led name="U5" state="BLINK_OFF_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0540" name="user6_blink_off_grn" persistent="none">
+      <comment>
+        LED 6 will be set to blink "off" "green"
+      </comment>
+      <led name="U6" state="BLINK_OFF_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0640" name="user7_blink_off_grn" persistent="none">
+      <comment>
+        LED 7 will be set to blink "off" "green"
+      </comment>
+      <led name="U7" state="BLINK_OFF_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "off" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0041" name="user1_blink_off_red" persistent="none">
+      <comment>
+        LED 1 will be set to blink "off" "red"
+      </comment>
+      <led name="U1" state="BLINK_OFF_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0141" name="user2_blink_off_red" persistent="none">
+      <comment>
+        LED 2 will be set to blink "off" "red"
+      </comment>
+      <led name="U2" state="BLINK_OFF_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0241" name="user3_blink_off_red" persistent="none">
+      <comment>
+        LED 3 will be set to blink "off" "red"
+      </comment>
+      <led name="U3" state="BLINK_OFF_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0341" name="user4_blink_off_red" persistent="none">
+      <comment>
+        LED 4 will be set to blink "off" "red"
+      </comment>
+      <led name="U4" state="BLINK_OFF_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0441" name="user5_blink_off_red" persistent="none">
+      <comment>
+        LED 5 will be set to blink "off" "red"
+      </comment>
+      <led name="U5" state="BLINK_OFF_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0541" name="user6_blink_off_red" persistent="none">
+      <comment>
+        LED 6 will be set to blink "off" "red"
+      </comment>
+      <led name="U6" state="BLINK_OFF_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0641" name="user7_blink_off_red" persistent="none">
+      <comment>
+        LED 7 will be set to blink "off" "red"
+      </comment>
+      <led name="U7" state="BLINK_OFF_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "off" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0042" name="user1_blink_off_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to blink "off" "yellow"
+      </comment>
+      <led name="U1" state="BLINK_OFF_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0142" name="user2_blink_off_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to blink "off" "yellow"
+      </comment>
+      <led name="U2" state="BLINK_OFF_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0242" name="user3_blink_off_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to blink "off" "yellow"
+      </comment>
+      <led name="U3" state="BLINK_OFF_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0342" name="user4_blink_off_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to blink "off" "yellow"
+      </comment>
+      <led name="U4" state="BLINK_OFF_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0442" name="user5_blink_off_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to blink "off" "yellow"
+      </comment>
+      <led name="U5" state="BLINK_OFF_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0542" name="user6_blink_off_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to blink "off" "yellow"
+      </comment>
+      <led name="U6" state="BLINK_OFF_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0642" name="user7_blink_off_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to blink "off" "yellow"
+      </comment>
+      <led name="U7" state="BLINK_OFF_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "off" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0043" name="user1_blink_grn" persistent="none">
+      <comment>
+        LED 1 will be set to blink "green" "off"
+      </comment>
+      <led name="U1" state="BLINK_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0143" name="user2_blink_grn" persistent="none">
+      <comment>
+        LED 2 will be set to blink "green" "off"
+      </comment>
+      <led name="U2" state="BLINK_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0243" name="user3_blink_grn" persistent="none">
+      <comment>
+        LED 3 will be set to blink "green" "off"
+      </comment>
+      <led name="U3" state="BLINK_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0343" name="user4_blink_grn" persistent="none">
+      <comment>
+        LED 4 will be set to blink "green" "off"
+      </comment>
+      <led name="U4" state="BLINK_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0443" name="user5_blink_grn" persistent="none">
+      <comment>
+        LED 5 will be set to blink "green" "off"
+      </comment>
+      <led name="U5" state="BLINK_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0543" name="user6_blink_grn" persistent="none">
+      <comment>
+        LED 6 will be set to blink "green" "off"
+      </comment>
+      <led name="U6" state="BLINK_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0643" name="user7_blink_grn" persistent="none">
+      <comment>
+        LED 7 will be set to blink "green" "off"
+      </comment>
+      <led name="U7" state="BLINK_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between  "green" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0044" name="user1_blink_grn_red" persistent="none">
+      <comment>
+        LED 1 will be set to blink "green" "red"
+      </comment>
+      <led name="U1" state="BLINK_GRN_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0144" name="user2_blink_grn_red" persistent="none">
+      <comment>
+        LED 2 will be set to blink "green" "red"
+      </comment>
+      <led name="U2" state="BLINK_GRN_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0244" name="user3_blink_grn_red" persistent="none">
+      <comment>
+        LED 3 will be set to blink "green" "red"
+      </comment>
+      <led name="U3" state="BLINK_GRN_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0344" name="user4_blink_grn_red" persistent="none">
+      <comment>
+        LED 4 will be set to blink "green" "red"
+      </comment>
+      <led name="U4" state="BLINK_GRN_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0444" name="user5_blink_grn_red" persistent="none">
+      <comment>
+        LED 5 will be set to blink "green" "red"
+      </comment>
+      <led name="U5" state="BLINK_GRN_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0544" name="user6_blink_grn_red" persistent="none">
+      <comment>
+        LED 6 will be set to blink "green" "red"
+      </comment>
+      <led name="U6" state="BLINK_GRN_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0644" name="user7_blink_grn_red" persistent="none">
+      <comment>
+        LED 7 will be set to blink "green" "red"
+      </comment>
+      <led name="U7" state="BLINK_GRN_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "green" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0045" name="user1_blink_grn_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to blink "green" "yellow"
+      </comment>
+      <led name="U1" state="BLINK_GRN_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0145" name="user2_blink_grn_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to blink "green" "yellow"
+      </comment>
+      <led name="U2" state="BLINK_GRN_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0245" name="user3_blink_grn_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to blink "green" "yellow"
+      </comment>
+      <led name="U3" state="BLINK_GRN_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0345" name="user4_blink_grn_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to blink "green" "yellow"
+      </comment>
+      <led name="U4" state="BLINK_GRN_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0445" name="user5_blink_grn_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to blink "green" "yellow"
+      </comment>
+      <led name="U5" state="BLINK_GRN_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0545" name="user6_blink_grn_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to blink "green" "yellow"
+      </comment>
+      <led name="U6" state="BLINK_GRN_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0645" name="user7_blink_grn_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to blink "green" "yellow"
+      </comment>
+      <led name="U7" state="BLINK_GRN_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "green" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0046" name="user1_blink_red" persistent="none">
+      <comment>
+        LED 1 will be set to blink "red" "off"
+      </comment>
+      <led name="U1" state="BLINK_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0146" name="user2_blink_red" persistent="none">
+      <comment>
+        LED 2 will be set to blink "red" "off"
+      </comment>
+      <led name="U2" state="BLINK_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0246" name="user3_blink_red" persistent="none">
+      <comment>
+        LED 3 will be set to blink "red" "off"
+      </comment>
+      <led name="U3" state="BLINK_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0346" name="user4_blink_red" persistent="none">
+      <comment>
+        LED 4 will be set to blink "red" "off"
+      </comment>
+      <led name="U4" state="BLINK_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0446" name="user5_blink_red" persistent="none">
+      <comment>
+        LED 5 will be set to blink "red" "off"
+      </comment>
+      <led name="U5" state="BLINK_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0546" name="user6_blink_red" persistent="none">
+      <comment>
+        LED 6 will be set to blink "red" "off"
+      </comment>
+      <led name="U6" state="BLINK_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0646" name="user7_blink_red" persistent="none">
+      <comment>
+        LED 7 will be set to blink "red" "off"
+      </comment>
+      <led name="U7" state="BLINK_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between  "red" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0047" name="user1_blink_red_grn" persistent="none">
+      <comment>
+        LED 1 will be set to blink "red" "green"
+      </comment>
+      <led name="U1" state="BLINK_RED_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0147" name="user2_blink_red_grn" persistent="none">
+      <comment>
+        LED 2 will be set to blink "red" "green"
+      </comment>
+      <led name="U2" state="BLINK_RED_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0247" name="user3_blink_red_grn" persistent="none">
+      <comment>
+        LED 3 will be set to blink "red" "green"
+      </comment>
+      <led name="U3" state="BLINK_RED_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0347" name="user4_blink_red_grn" persistent="none">
+      <comment>
+        LED 4 will be set to blink "red" "green"
+      </comment>
+      <led name="U4" state="BLINK_RED_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0447" name="user5_blink_red_grn" persistent="none">
+      <comment>
+        LED 5 will be set to blink "red" "green"
+      </comment>
+      <led name="U5" state="BLINK_RED_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0547" name="user6_blink_red_grn" persistent="none">
+      <comment>
+        LED 6 will be set to blink "red" "green"
+      </comment>
+      <led name="U6" state="BLINK_RED_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0647" name="user7_blink_red_grn" persistent="none">
+      <comment>
+        LED 7 will be set to blink "red" "green"
+      </comment>
+      <led name="U7" state="BLINK_RED_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "red" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0048" name="user1_blink_red_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to blink "red" "yellow"
+      </comment>
+      <led name="U1" state="BLINK_RED_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0148" name="user2_blink_red_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to blink "red" "yellow"
+      </comment>
+      <led name="U2" state="BLINK_RED_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0248" name="user3_blink_red_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to blink "red" "yellow"
+      </comment>
+      <led name="U3" state="BLINK_RED_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0348" name="user4_blink_red_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to blink "red" "yellow"
+      </comment>
+      <led name="U4" state="BLINK_RED_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0448" name="user5_blink_red_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to blink "red" "yellow"
+      </comment>
+      <led name="U5" state="BLINK_RED_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0548" name="user6_blink_red_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to blink "red" "yellow"
+      </comment>
+      <led name="U6" state="BLINK_RED_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0648" name="user7_blink_red_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to blink "red" "yellow"
+      </comment>
+      <led name="U7" state="BLINK_RED_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "red" ($1ms) and "yellow"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0049" name="user1_blink_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to blink "yellow" "off"
+      </comment>
+      <led name="U1" state="BLINK_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0149" name="user2_blink_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to blink "yellow" "off"
+      </comment>
+      <led name="U2" state="BLINK_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0249" name="user3_blink_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to blink "yellow" "off"
+      </comment>
+      <led name="U3" state="BLINK_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0349" name="user4_blink_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to blink "yellow" "off"
+      </comment>
+      <led name="U4" state="BLINK_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0449" name="user5_blink_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to blink "yellow" "off"
+      </comment>
+      <led name="U5" state="BLINK_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0549" name="user6_blink_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to blink "yellow" "off"
+      </comment>
+      <led name="U6" state="BLINK_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0649" name="user7_blink_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to blink "yellow" "off"
+      </comment>
+      <led name="U7" state="BLINK_YLW" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between  "yellow" ($1ms) and "off"($2ms)</en>
+      </string>
+    </event>
+    <event id="x004A" name="user1_blink_ylw_grn" persistent="none">
+      <comment>
+        LED 1 will be set to blink "yellow" "green"
+      </comment>
+      <led name="U1" state="BLINK_YLW_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x014A" name="user2_blink_ylw_grn" persistent="none">
+      <comment>
+        LED 2 will be set to blink "yellow" "green"
+      </comment>
+      <led name="U2" state="BLINK_YLW_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x024A" name="user3_blink_ylw_grn" persistent="none">
+      <comment>
+        LED 3 will be set to blink "yellow" "green"
+      </comment>
+      <led name="U3" state="BLINK_YLW_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x034A" name="user4_blink_ylw_grn" persistent="none">
+      <comment>
+        LED 4 will be set to blink "yellow" "green"
+      </comment>
+      <led name="U4" state="BLINK_YLW_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x044A" name="user5_blink_ylw_grn" persistent="none">
+      <comment>
+        LED 5 will be set to blink "yellow" "green"
+      </comment>
+      <led name="U5" state="BLINK_YLW_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x054A" name="user6_blink_ylw_grn" persistent="none">
+      <comment>
+        LED 6 will be set to blink "yellow" "green"
+      </comment>
+      <led name="U6" state="BLINK_YLW_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x064A" name="user7_blink_ylw_grn" persistent="none">
+      <comment>
+        LED 7 will be set to blink "yellow" "green"
+      </comment>
+      <led name="U7" state="BLINK_YLW_GRN" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "yellow" ($1ms) and "green"($2ms)</en>
+      </string>
+    </event>
+    <event id="x004B" name="user1_blink_ylw_red" persistent="none">
+      <comment>
+        LED 1 will be set to blink "yellow" "red"
+      </comment>
+      <led name="U1" state="BLINK_YLW_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 1 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x014B" name="user2_blink_ylw_red" persistent="none">
+      <comment>
+        LED 2 will be set to blink "yellow" "red"
+      </comment>
+      <led name="U2" state="BLINK_YLW_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 2 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x024B" name="user3_blink_ylw_red" persistent="none">
+      <comment>
+        LED 3 will be set to blink "yellow" "red"
+      </comment>
+      <led name="U3" state="BLINK_YLW_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 3 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x034B" name="user4_blink_ylw_red" persistent="none">
+      <comment>
+        LED 4 will be set to blink "yellow" "red"
+      </comment>
+      <led name="U4" state="BLINK_YLW_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 4 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x044B" name="user5_blink_ylw_red" persistent="none">
+      <comment>
+        LED 5 will be set to blink "yellow" "red"
+      </comment>
+      <led name="U5" state="BLINK_YLW_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 5 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x054B" name="user6_blink_ylw_red" persistent="none">
+      <comment>
+        LED 6 will be set to blink "yellow" "red"
+      </comment>
+      <led name="U6" state="BLINK_YLW_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 6 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x064B" name="user7_blink_ylw_red" persistent="none">
+      <comment>
+        LED 7 will be set to blink "yellow" "red"
+      </comment>
+      <led name="U7" state="BLINK_YLW_RED" >
+        <on>$1</on>
+        <off>$2</off>
+      </led>
+      <string>
+        <en>User LED 7 alternates between "yellow" ($1ms) and "red"($2ms)</en>
+      </string>
+    </event>
+    <event id="x0080" name="user1_blink_seq_750" persistent="none">
+      <comment>
+        LED 1 will be set into an error Blinking code state
+      </comment>
+      <led name="U1" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>User LED 1 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
+    <event id="x0180" name="user2_blink_seq_750" persistent="none">
+      <comment>
+        LED 2 will be set into an error Blinking code state
+      </comment>
+      <led name="U2" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>User LED 2 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
+    <event id="x0280" name="user3_blink_seq_750" persistent="none">
+      <comment>
+        LED 3 will be set into an error Blinking code state
+      </comment>
+      <led name="U3" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>User LED 3 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
+    <event id="x0380" name="user4_blink_seq_750" persistent="none">
+      <comment>
+        LED 4 will be set into an error Blinking code state
+      </comment>
+      <led name="U4" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>User LED 4 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
+    <event id="x0480" name="user5_blink_seq_750" persistent="none">
+      <comment>
+        LED 5 will be set into an error Blinking code state
+      </comment>
+      <led name="U5" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>User LED 5 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
+    <event id="x0580" name="user6_blink_seq_750" persistent="none">
+      <comment>
+        LED 6 will be set into an error Blinking code state
+      </comment>
+      <led name="U6" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>User LED 6 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
+    <event id="x0680" name="user7_blink_seq_750" persistent="none">
+      <comment>
+        LED 7 will be set into an error Blinking code state
+      </comment>
+      <led name="U7" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>User LED 7 is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
+    <event id="x00BF" name="user1_blink_seq_reset" persistent="none">
+      <comment>
+        If LED 1 is Blining Errorcode, it will be resettet completely
+      </comment>
+      <led name="U1" state="BLINK_SEQ_RESET" />
+      <string>
+        <en>Reset All ErrorCodes for user LED 1</en>
+      </string>
+    </event>
+    <event id="x01BF" name="user2_blink_seq_reset" persistent="none">
+      <comment>
+        If LED 2 is Blining Errorcode, it will be resettet completely
+      </comment>
+      <led name="U2" state="BLINK_SEQ_RESET" />
+      <string>
+        <en>Reset All ErrorCodes for user LED 2</en>
+      </string>
+    </event>
+    <event id="x02BF" name="user3_blink_seq_reset" persistent="none">
+      <comment>
+        If LED 3 is Blining Errorcode, it will be resettet completely
+      </comment>
+      <led name="U3" state="BLINK_SEQ_RESET" />
+      <string>
+        <en>Reset All ErrorCodes for user LED 3</en>
+      </string>
+    </event>
+    <event id="x03BF" name="user4_blink_seq_reset" persistent="none">
+      <comment>
+        If LED 4 is Blining Errorcode, it will be resettet completely
+      </comment>
+      <led name="U4" state="BLINK_SEQ_RESET" />
+      <string>
+        <en>Reset All ErrorCodes for user LED 4</en>
+      </string>
+    </event>
+    <event id="x04BF" name="user5_blink_seq_reset" persistent="none">
+      <comment>
+        If LED 5 is Blining Errorcode, it will be resettet completely
+      </comment>
+      <led name="U5" state="BLINK_SEQ_RESET" />
+      <string>
+        <en>Reset All ErrorCodes for user LED 5</en>
+      </string>
+    </event>
+    <event id="x05BF" name="user6_blink_seq_reset" persistent="none">
+      <comment>
+        If LED 6 is Blining Errorcode, it will be resettet completely
+      </comment>
+      <led name="U6" state="BLINK_SEQ_RESET" />
+      <string>
+        <en>Reset All ErrorCodes for user LED 6</en>
+      </string>
+    </event>
+    <event id="x06BF" name="user7_blink_seq_reset" persistent="none">
+      <comment>
+        If LED 7 is Blining Errorcode, it will be resettet completely
+      </comment>
+      <led name="U7" state="BLINK_SEQ_RESET" />
+      <string>
+        <en>Reset All ErrorCodes for user LED 7</en>
+      </string>
+    </event>
+    <event id="x0081" name="user1_flash_off_grn" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "off" and than to static "green"
+      </comment>
+      <led name="U1" state="FLASH_OFF_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0181" name="user2_flash_off_grn" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "off" and than to static "green"
+      </comment>
+      <led name="U2" state="FLASH_OFF_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0281" name="user3_flash_off_grn" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "off" and than to static "green"
+      </comment>
+      <led name="U3" state="FLASH_OFF_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0381" name="user4_flash_off_grn" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "off" and than to static "green"
+      </comment>
+      <led name="U4" state="FLASH_OFF_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0481" name="user5_flash_off_grn" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "off" and than to static "green"
+      </comment>
+      <led name="U5" state="FLASH_OFF_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0581" name="user6_flash_off_grn" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "off" and than to static "green"
+      </comment>
+      <led name="U6" state="FLASH_OFF_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0681" name="user7_flash_off_grn" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "off" and than to static "green"
+      </comment>
+      <led name="U7" state="FLASH_OFF_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "off" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0082" name="user1_flash_off_red" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "off" and than to static "red"
+      </comment>
+      <led name="U1" state="FLASH_OFF_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0182" name="user2_flash_off_red" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "off" and than to static "red"
+      </comment>
+      <led name="U2" state="FLASH_OFF_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0282" name="user3_flash_off_red" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "off" and than to static "red"
+      </comment>
+      <led name="U3" state="FLASH_OFF_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0382" name="user4_flash_off_red" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "off" and than to static "red"
+      </comment>
+      <led name="U4" state="FLASH_OFF_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0482" name="user5_flash_off_red" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "off" and than to static "red"
+      </comment>
+      <led name="U5" state="FLASH_OFF_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0582" name="user6_flash_off_red" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "off" and than to static "red"
+      </comment>
+      <led name="U6" state="FLASH_OFF_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0682" name="user7_flash_off_red" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "off" and than to static "red"
+      </comment>
+      <led name="U7" state="FLASH_OFF_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "off" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0083" name="user1_flash_off_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "off" and than to static "yellow"
+      </comment>
+      <led name="U1" state="FLASH_OFF_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0183" name="user2_flash_off_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "off" and than to static "yellow"
+      </comment>
+      <led name="U2" state="FLASH_OFF_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0283" name="user3_flash_off_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "off" and than to static "yellow"
+      </comment>
+      <led name="U3" state="FLASH_OFF_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0383" name="user4_flash_off_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "off" and than to static "yellow"
+      </comment>
+      <led name="U4" state="FLASH_OFF_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0483" name="user5_flash_off_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "off" and than to static "yellow"
+      </comment>
+      <led name="U5" state="FLASH_OFF_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0583" name="user6_flash_off_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "off" and than to static "yellow"
+      </comment>
+      <led name="U6" state="FLASH_OFF_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0683" name="user7_flash_off_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "off" and than to static "yellow"
+      </comment>
+      <led name="U7" state="FLASH_OFF_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "off" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0084" name="user1_flash_grn_off" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "green" and than to static "off"
+      </comment>
+      <led name="U1" state="FLASH_GRN_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0184" name="user2_flash_grn_off" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "green" and than to static "off"
+      </comment>
+      <led name="U2" state="FLASH_GRN_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0284" name="user3_flash_grn_off" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "green" and than to static "off"
+      </comment>
+      <led name="U3" state="FLASH_GRN_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0384" name="user4_flash_grn_off" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "green" and than to static "off"
+      </comment>
+      <led name="U4" state="FLASH_GRN_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0484" name="user5_flash_grn_off" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "green" and than to static "off"
+      </comment>
+      <led name="U5" state="FLASH_GRN_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0584" name="user6_flash_grn_off" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "green" and than to static "off"
+      </comment>
+      <led name="U6" state="FLASH_GRN_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0684" name="user7_flash_grn_off" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "green" and than to static "off"
+      </comment>
+      <led name="U7" state="FLASH_GRN_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "green" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0085" name="user1_flash_grn_red" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "green" and than to static "red"
+      </comment>
+      <led name="U1" state="FLASH_GRN_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0185" name="user2_flash_grn_red" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "green" and than to static "red"
+      </comment>
+      <led name="U2" state="FLASH_GRN_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0285" name="user3_flash_grn_red" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "green" and than to static "red"
+      </comment>
+      <led name="U3" state="FLASH_GRN_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0385" name="user4_flash_grn_red" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "green" and than to static "red"
+      </comment>
+      <led name="U4" state="FLASH_GRN_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0485" name="user5_flash_grn_red" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "green" and than to static "red"
+      </comment>
+      <led name="U5" state="FLASH_GRN_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0585" name="user6_flash_grn_red" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "green" and than to static "red"
+      </comment>
+      <led name="U6" state="FLASH_GRN_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0685" name="user7_flash_grn_red" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "green" and than to static "red"
+      </comment>
+      <led name="U7" state="FLASH_GRN_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "green" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x0086" name="user1_flash_grn_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "green" and than to static "yellow"
+      </comment>
+      <led name="U1" state="FLASH_GRN_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0186" name="user2_flash_grn_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "green" and than to static "yellow"
+      </comment>
+      <led name="U2" state="FLASH_GRN_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0286" name="user3_flash_grn_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "green" and than to static "yellow"
+      </comment>
+      <led name="U3" state="FLASH_GRN_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0386" name="user4_flash_grn_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "green" and than to static "yellow"
+      </comment>
+      <led name="U4" state="FLASH_GRN_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0486" name="user5_flash_grn_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "green" and than to static "yellow"
+      </comment>
+      <led name="U5" state="FLASH_GRN_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0586" name="user6_flash_grn_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "green" and than to static "yellow"
+      </comment>
+      <led name="U6" state="FLASH_GRN_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0686" name="user7_flash_grn_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "green" and than to static "yellow"
+      </comment>
+      <led name="U7" state="FLASH_GRN_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "green" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0087" name="user1_flash_red_off" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "red" and than to static "off"
+      </comment>
+      <led name="U1" state="FLASH_RED_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0187" name="user2_flash_red_off" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "red" and than to static "off"
+      </comment>
+      <led name="U2" state="FLASH_RED_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0287" name="user3_flash_red_off" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "red" and than to static "off"
+      </comment>
+      <led name="U3" state="FLASH_RED_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0387" name="user4_flash_red_off" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "red" and than to static "off"
+      </comment>
+      <led name="U4" state="FLASH_RED_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0487" name="user5_flash_red_off" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "red" and than to static "off"
+      </comment>
+      <led name="U5" state="FLASH_RED_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0587" name="user6_flash_red_off" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "red" and than to static "off"
+      </comment>
+      <led name="U6" state="FLASH_RED_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0687" name="user7_flash_red_off" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "red" and than to static "off"
+      </comment>
+      <led name="U7" state="FLASH_RED_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "red" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x0088" name="user1_flash_red_grn" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "red" and than to static "green"
+      </comment>
+      <led name="U1" state="FLASH_RED_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0188" name="user2_flash_red_grn" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "red" and than to static "green"
+      </comment>
+      <led name="U2" state="FLASH_RED_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0288" name="user3_flash_red_grn" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "red" and than to static "green"
+      </comment>
+      <led name="U3" state="FLASH_RED_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0388" name="user4_flash_red_grn" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "red" and than to static "green"
+      </comment>
+      <led name="U4" state="FLASH_RED_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0488" name="user5_flash_red_grn" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "red" and than to static "green"
+      </comment>
+      <led name="U5" state="FLASH_RED_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0588" name="user6_flash_red_grn" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "red" and than to static "green"
+      </comment>
+      <led name="U6" state="FLASH_RED_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0688" name="user7_flash_red_grn" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "red" and than to static "green"
+      </comment>
+      <led name="U7" state="FLASH_RED_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "red" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x0089" name="user1_flash_red_ylw" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "red" and than to static "yellow"
+      </comment>
+      <led name="U1" state="FLASH_RED_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0189" name="user2_flash_red_ylw" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "red" and than to static "yellow"
+      </comment>
+      <led name="U2" state="FLASH_RED_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0289" name="user3_flash_red_ylw" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "red" and than to static "yellow"
+      </comment>
+      <led name="U3" state="FLASH_RED_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0389" name="user4_flash_red_ylw" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "red" and than to static "yellow"
+      </comment>
+      <led name="U4" state="FLASH_RED_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0489" name="user5_flash_red_ylw" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "red" and than to static "yellow"
+      </comment>
+      <led name="U5" state="FLASH_RED_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0589" name="user6_flash_red_ylw" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "red" and than to static "yellow"
+      </comment>
+      <led name="U6" state="FLASH_RED_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x0689" name="user7_flash_red_ylw" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "red" and than to static "yellow"
+      </comment>
+      <led name="U7" state="FLASH_RED_YLW" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "red" ($1ms) , then turned "yellow" constantly</en>
+      </string>
+    </event>
+    <event id="x008A" name="user1_flash_ylw_off" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "yellow" and than to static "off"
+      </comment>
+      <led name="U1" state="FLASH_YLW_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x018A" name="user2_flash_ylw_off" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "yellow" and than to static "off"
+      </comment>
+      <led name="U2" state="FLASH_YLW_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x028A" name="user3_flash_ylw_off" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "yellow" and than to static "off"
+      </comment>
+      <led name="U3" state="FLASH_YLW_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x038A" name="user4_flash_ylw_off" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "yellow" and than to static "off"
+      </comment>
+      <led name="U4" state="FLASH_YLW_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x048A" name="user5_flash_ylw_off" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "yellow" and than to static "off"
+      </comment>
+      <led name="U5" state="FLASH_YLW_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x058A" name="user6_flash_ylw_off" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "yellow" and than to static "off"
+      </comment>
+      <led name="U6" state="FLASH_YLW_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x068A" name="user7_flash_ylw_off" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "yellow" and than to static "off"
+      </comment>
+      <led name="U7" state="FLASH_YLW_OFF" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "yellow" ($1ms) , then turned "off" constantly</en>
+      </string>
+    </event>
+    <event id="x008B" name="user1_flash_ylw_grn" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "yellow" and than to static "green"
+      </comment>
+      <led name="U1" state="FLASH_YLW_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x018B" name="user2_flash_ylw_grn" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "yellow" and than to static "green"
+      </comment>
+      <led name="U2" state="FLASH_YLW_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x028B" name="user3_flash_ylw_grn" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "yellow" and than to static "green"
+      </comment>
+      <led name="U3" state="FLASH_YLW_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x038B" name="user4_flash_ylw_grn" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "yellow" and than to static "green"
+      </comment>
+      <led name="U4" state="FLASH_YLW_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x048B" name="user5_flash_ylw_grn" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "yellow" and than to static "green"
+      </comment>
+      <led name="U5" state="FLASH_YLW_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x058B" name="user6_flash_ylw_grn" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "yellow" and than to static "green"
+      </comment>
+      <led name="U6" state="FLASH_YLW_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x068B" name="user7_flash_ylw_grn" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "yellow" and than to static "green"
+      </comment>
+      <led name="U7" state="FLASH_YLW_GRN" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "yellow" ($1ms) , then turned "green" constantly</en>
+      </string>
+    </event>
+    <event id="x008C" name="user1_flash_ylw_red" persistent="none">
+      <comment>
+        LED 1 will be set to Flash "yellow" and than to static "red"
+      </comment>
+      <led name="U1" state="FLASH_YLW_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 1 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x018C" name="user2_flash_ylw_red" persistent="none">
+      <comment>
+        LED 2 will be set to Flash "yellow" and than to static "red"
+      </comment>
+      <led name="U2" state="FLASH_YLW_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 2 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x028C" name="user3_flash_ylw_red" persistent="none">
+      <comment>
+        LED 3 will be set to Flash "yellow" and than to static "red"
+      </comment>
+      <led name="U3" state="FLASH_YLW_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 3 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x038C" name="user4_flash_ylw_red" persistent="none">
+      <comment>
+        LED 4 will be set to Flash "yellow" and than to static "red"
+      </comment>
+      <led name="U4" state="FLASH_YLW_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 4 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x048C" name="user5_flash_ylw_red" persistent="none">
+      <comment>
+        LED 5 will be set to Flash "yellow" and than to static "red"
+      </comment>
+      <led name="U5" state="FLASH_YLW_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 5 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x058C" name="user6_flash_ylw_red" persistent="none">
+      <comment>
+        LED 6 will be set to Flash "yellow" and than to static "red"
+      </comment>
+      <led name="U6" state="FLASH_YLW_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 6 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+    <event id="x068C" name="user7_flash_ylw_red" persistent="none">
+      <comment>
+        LED 7 will be set to Flash "yellow" and than to static "red"
+      </comment>
+      <led name="U7" state="FLASH_YLW_RED" >
+        <on>$1</on>
+      </led>
+      <string>
+        <en>User LED 7 flashes "yellow" ($1ms) , then turned "red" constantly</en>
+      </string>
+    </event>
+
+    <event id="x0013" name="error_unknown">
+    <comment>
+    	$1 means the name of the LED given from the diagnostics.conf
+    	$2 means the ID from where the bad definition came 
+    </comment>
+      <string>
+        <en>ERROR: LED-Name $1 called by ID $2 is not defined in /etc/led.conf</en>
+      </string>
+    </event>
+    <event id="x0014" name="error_invalid_number">
+    <comment>
+    	$1 means the number of the LED given from the led.conf
+    	$2 means the name for the LED 
+    </comment>
+      <string>
+        <en>ERROR: LED-Number $1 defined in /etc/led.conf as $2 is invalid for this device</en>
+      </string>
+    </event>
+    <event id="x0015" name="error_bad_parameter">
+    <comment>
+    	$1 the name of the LED
+    	$2 the ID where the bad definition was found 
+    </comment>
+      <string>
+        <en>ERROR: LED-State-Parameter for LED $1 of ID $2 is invalid</en>
+      </string>
+    </event>
+    <event id="x0016" name="error_xml_file" persistent="yes">
+      <comment>
+      	the file diagnostic.xml was not parsed successfully
+      </comment>
+      <string>
+        <en>ERROR: diagnostic.xml was not parsed successfully </en>
+      </string>
+    </event>
+    <event id="x0017" name="LED_on_Default" persistent="none">
+      <string>
+        <en>LED-Default-Value</en>
+      </string>
+    </event>
+    <event id="x0018" name="BROKEN_ID_INFO" persistent="none">
+      <string>
+        <en>No information available</en>
+      </string>
+    </event>
+  </eventclass>
+</diagnostic>

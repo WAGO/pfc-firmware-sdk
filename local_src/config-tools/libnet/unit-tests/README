@@ -1,0 +1,1 @@
+_RUN_ON_HOST=yes _SYSROOT=$(readlink -f ../../../../)/platform-wago-pfc200/sysroot-target/  CPPUTEST_HOME=$(readlink -f ../../../../)/ptxproj.2013.03.0/platform-wago-pfc200/build-host/cpputest-3.1 make network-interfaces.xml all

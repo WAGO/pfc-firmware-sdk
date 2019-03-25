@@ -1,0 +1,47 @@
+--- libModbus-0.9.20.base/src/modbusip.h	2014-11-04 13:46:51.141777000 +0100
++++ libModbus-0.9.20/src/modbusip.h	2014-11-05 16:16:42.586722904 +0100
+@@ -32,6 +32,8 @@
+ 	struct mb_list		*childs;
+ 	pthread_mutex_t		lock;
+   unsigned short    rsp_delay;
++	void			(*cb_service_up)(struct mb_socket *mbs);
++	void			(*cb_service_down)(struct mb_socket *mbs);
+ };
+ 
+ #define MODBUS_PORT		502
+--- libModbus-0.9.20.base/src/modbus-ip-slave.c	2014-11-04 13:46:51.141777000 +0100
++++ libModbus-0.9.20/src/modbus-ip-slave.c	2014-11-05 10:41:55.383418410 +0100
+@@ -312,6 +312,8 @@
+ 	if (sd < 0)
+ 		goto out;
+ 
++    if (mbs->cb_service_up) mbs->cb_service_up(mbs);
++
+ 	mbs->status = MODBUS_THREAD_RUNNING;
+ 	mbs->sd = sd;
+ 	mbs->childs = NULL;
+@@ -330,6 +332,7 @@
+ 		spawn_tcp_thread(mbs, csd);
+ 	}
+ 	mb_log(mbs, MB_LOG_THREAD, "modbus_tcp_socket: end accept loop\n");
++    if (mbs->cb_service_down) mbs->cb_service_down(mbs);
+ 	close(sd);
+ out:
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+@@ -381,6 +384,8 @@
+ 	if (sd < 0)
+ 		goto out;
+ 
++    if (mbs->cb_service_up) mbs->cb_service_up(mbs);
++
+ 	mbs->status = MODBUS_THREAD_RUNNING;
+ 	mbs->sd = sd;
+ 
+@@ -436,6 +441,7 @@
+ 		mbs->events++;
+ 	}
+ 	mb_log(mbs, MB_LOG_CONNECT, "modbus_udp_socket: stop receive loop\n");
++    if (mbs->cb_service_down) mbs->cb_service_down(mbs);
+ 	close(sd);
+ out:
+ 	mbs->status = MODBUS_THREAD_TERMINATED;

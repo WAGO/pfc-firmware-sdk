@@ -1,0 +1,13 @@
+# device describtion file for pentium
+# format: device; describtion string for processing; describtion string for frontend
+
+hda=@HDA_MEM_TYPE@
+hdb=@HDB_MEM_TYPE@
+sda=@SDA_USB_NO@
+sdb=@SDB_USB_NO@
+sdc=@SDC_USB_NO@
+sdd=@SDD_USB_NO@
+sde=@SDE_USB_NO@
+sdf=@SDF_USB_NO@
+sdg=@SDG_USB_NO@
+sdh=@SDH_USB_NO@

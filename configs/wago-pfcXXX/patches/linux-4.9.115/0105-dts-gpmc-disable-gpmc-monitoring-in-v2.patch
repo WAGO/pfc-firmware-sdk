@@ -1,0 +1,39 @@
+From 0d5432df1fbba6d28fc147b1f287182a40bf1bd5 Mon Sep 17 00:00:00 2001
+From: Peter Galka <peter.galka@wago.com>
+Date: Mon, 11 Sep 2017 14:25:43 +0200
+Subject: [PATCH 105/261] dts: gpmc: disable gpmc monitoring  in v2
+
+---
+ arch/arm/boot/dts/wago-pfc200-dpc31.dtsi  | 2 --
+ arch/arm/boot/dts/wago-pfc200v2-netx.dtsi | 2 --
+ 2 files changed, 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi b/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi
+index 5a20eba..b1695a6 100644
+--- a/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi
+@@ -102,8 +102,6 @@
+ 		gpmc,clk-activation-ns = <0>;
+ 		gpmc,wait-monitoring-ns = <0>;
+ 
+-		gpmc,wait-pin = <1>;
+-
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 	};
+diff --git a/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi b/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi
+index b15f7b8..0d4a898 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi
+@@ -75,8 +75,6 @@
+ 		gpmc,clk-activation-ns = <0>;	/* First rising edge of GPMC_CLK at start access time */
+ 		gpmc,wait-monitoring-ns = <0>; 	/* =1, WAIT pin is monitored one GPMC_CLK cycle before valid data */
+ 
+-		gpmc,wait-pin = <0>;			/* WAIT input pin is WAIT0 */
+-
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 	};
+-- 
+2.7.4
+

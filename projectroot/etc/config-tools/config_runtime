@@ -1,0 +1,524 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_runtime
+#
+# configuration of the PLC runtime.
+# This script abstracts the usage of different config tools to set
+# CODESYS runtime parameters for CODESYS2 as well as CODESYS3.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# Build config tool command to change a parameter.
+build_set_command()
+{
+    local varname=$1
+    local value=$2
+
+    CMD_NAME="SETCMD_$varname"
+    echo "${!CMD_NAME}$value"
+}
+
+# Called when codesys2 is not active.
+write_cds2config()
+{
+    local parname=$1
+    local parvalue="$2"
+    local configfile="/etc/rts3s.cfg"
+
+    case $parname in
+        V2_SERVICE_DISABLED)
+            if [ "$parvalue" = "YES" ]; then
+                sed -i "/^DisableTcpIpProgramming/cDisableTcpIpProgramming=YES" $configfile
+            else
+                sed -i "/^DisableTcpIpProgramming/cDisableTcpIpProgramming=NO" $configfile
+            fi
+            ;;
+            
+        V2_SERIAL_PROGRAMMING)
+            if [ "$parvalue" = "1" ]; then
+                sed -i "/^DisableSerialProgramming/cDisableSerialProgramming=NO" $configfile
+            else
+                sed -i "/^DisableSerialProgramming/cDisableSerialProgramming=YES" $configfile
+            fi
+            ;;
+
+        V2_SERVICE_PORT_NO)
+            sed -i "/^TcpIpPort/cTcpIpPort=$parvalue" $configfile
+            sed -i 's/<target-port-nr>.*$/<target-port-nr> '$parvalue' <\/target-port-nr>/' /etc/webserver_conf.xml
+            ;;
+
+        V2_PORT_AUTH)
+            sed -i "/^USEPWD/cUSEPWD=$parvalue" $configfile
+    esac
+}
+
+# Convert enabled/disabled to a webserver port number.
+cds3_webserverport()
+{
+    local port_no
+    if [ "$1" = "enabled" ]; then
+        port_no=$CDS_WEBSERVER_PORT
+    else
+        port_no=0
+    fi
+    echo $port_no
+}
+
+chplcconfig_wrapper()
+{
+    local local_status
+
+    /usr/bin/chplcconfig -o -s $1 -k $2 -v $3
+    local_status=$?
+    if [ "$local_status" != "0" ]; then
+        if [ "$local_status" = "1" ]; then
+            # ignore warning
+            local_status=0
+        elif [ "$local_status" = "2" ]; then
+            POST_ACTION="post_action_need_restart"
+            local_status=0
+        else
+            SetLastError "Parameter change failed"
+            local_status=1
+        fi
+    fi
+    return $local_status
+}
+
+# Called when codesys3 is not active.
+write_cds3config()
+{    
+    local parname=$1
+    local parvalue="$2"
+    local bootmedia
+    local newPath
+
+    case $parname in
+        V3_WEBSERVER_STATE)
+            port_no=$(cds3_webserverport $parvalue)
+            chplcconfig_wrapper CmpWebServer WebServerPortNr $port_no
+            ;;
+
+        V3_PORT_AUTH)
+            chplcconfig_wrapper TscUserDB SecureLogin $parvalue
+    esac
+}
+
+# Set error message and status because config change requires a controller restart
+post_action_need_restart()
+{
+    SetLastError "Configuration change needs controller restart"
+    status=$INTERNAL_ERROR
+}
+
+# Wrapper function to set the webserver state for codesys3 to enabled or disabled.
+# Keeps arguments for CDS2 and CDs3 the same.
+cds3_webserverstate()
+{
+    local newstate=$1
+    local port_no
+    local local_status
+
+    port_no=$(cds3_webserverport $newstate)
+    chplcconfig_wrapper CmpWebServer WebServerPortNr $port_no
+}
+
+cds3_port_auth()
+{
+    chplcconfig_wrapper TscUserDB SecureLogin $1
+}
+
+# Check version, update config file and perform parameter change.
+# Arg 1 is the codesys version to be changed.
+# Arg 2 is the parameter name ala V2_WEBSERVER_STATE.
+# Arg 3 is the new value.
+# Arg 4 is an optional prefix for the parname
+# Arg 5 is an optional postfix to the command
+do_update()
+{
+    local version=$1
+    local parname=$2
+    local newvalue=$3
+    local vprefix=$4
+    local cpostfix=$5
+    local local_status=$SUCCESS
+
+    curvalue=${!parname}
+    if [ "$curvalue" != "$newvalue" ]; then
+        if [ "$CURRENT_RUNTIME_VERSION" = "$version" ]; then
+            cmd=$(build_set_command $vprefix$parname $newvalue)
+            $cmd $cpostfix
+            local_status=$?
+        else
+            # Write value to codesys config file.
+            if [ "$version" = "2" ]; then
+                write_cds2config $parname "$newvalue"
+            else
+                write_cds3config $parname "$newvalue"
+            fi
+        fi
+        if [ "$local_status" = "$SUCCESS" ]; then
+            sed -i "/^$parname=/c$parname=\"$newvalue\"" $RUNTIME_CONFIG
+        fi
+    fi
+    return $local_status
+}
+
+waitrtsstop()
+{
+    local start=$(date +%s)
+    local end=$((start+$1))
+    local akt=$start
+
+    while [ $end -gt $akt ]
+    do
+        (  flock -xn 200 || exit 1;  ) 200>/var/run/dal.lock
+        if [ $? -eq 0 ]
+        then
+            break
+        fi
+        usleep 100000
+        akt=$(date +%s)
+    done
+    if [ $end -le $akt ]
+    then
+        if [ "$2" == "kill" ]
+        then
+            killall -9 codesys3 &
+            killall -9 plclinux_rt &
+        fi
+    fi
+}
+
+reset_origin()
+{
+    rm -rf /home/codesys/*
+}
+
+clear_runtime()
+{
+    rm /tmp/clr_runtime &> /dev/null
+    rm /var/run/runtime &> /dev/null
+   
+    if [ -f /etc/rc.d/S98_runtime ]; then
+        #/etc/rc.d/S98_runtime stop &> /dev/null
+        killall plclinux_rt &> /dev/null
+        killall codesys3 &> /dev/null
+        rm /etc/rc.d/S98_runtime &> /dev/null
+        echo 0 > /etc/specific/rtsversion
+    fi
+    reset_origin
+    if [ $CURRENT_RUNTIME_VERSION -eq 2 ]; then
+        rm -f /etc/rc.d/S56_codesys_webserver
+        /etc/init.d/codesys_webserver stop &> /dev/null &
+    fi
+}
+
+wait_start_runtime()
+{
+    local start=$(date +%s)
+    local end=$((start+$1))
+    local akt=$start
+    local link="$2"
+    waitrtsstop 5 kill
+    if [ $akt -le $end ]
+    then
+        echo $NEW_RUNTIME_VERSION > /etc/specific/rtsversion
+        if [ "$NEW_RUNTIME_VERSION" != "0" ]
+        then
+            ln -s /etc/init.d/runtime /etc/rc.d/S98_runtime &> /dev/null
+            /etc/rc.d/S98_runtime start &> /dev/null &
+        fi
+    fi
+}
+
+bg_cds_webserver()
+{
+    rm /tmp/cds_webserver &> /dev/null
+    $CTDIR/config_port port=codesys-webserver state=$V2_WEBSERVER_STATE
+    touch /tmp/cds_webserver
+}
+
+bg_wbm_webserver()
+{
+    local restart=$1
+    rm /tmp/wbm_webserver &> /dev/null
+    $CTDIR/change_default_webserver default-webserver=$DEFAULT_WEBPAGE $restart
+    touch /tmp/wbm_webserver
+}
+
+check_rts_running()
+{
+    local RTS=$(/etc/config-tools/get_rts_info state)
+    local RET=0
+    if [ -z "$(pidof codesys3)" -a -z "$(pidof plclinux_rt)" ]; then
+        echo $RET
+        return
+    fi
+    case $RTS in 
+        'STOP' | 'STOP WATCHDOG' | 'STOP ERROR' | 'NOT CONFIGURED' | 'ILLEGAL/UNKNOWN' ) RET=0 ;;
+        *) RET=1 ;;
+    esac
+    echo $RET
+}
+
+checkrts()
+{
+    RUN_STOP=$(/etc/config-tools/get_run_stop_switch_value)
+    if [ "$RUN_STOP" == "stop" ]; then
+        RET=0
+    elif [ "$CURRENT_RUNTIME_VERSION" = "0" ]; then
+        RET=0
+    else
+        RET=$(check_rts_running)
+    fi
+    echo $RET
+}
+
+cds3_config_serial_programming()
+{
+  if [ "$1" == "0" ]
+  then
+    rm -f /usr/lib/libCmpBlkDrvCom.so &>/dev/null
+  else
+    ln -sf /usr/lib/libCmpBlkDrvCom.so.* /usr/lib/libCmpBlkDrvCom.so
+  fi
+  return $?
+}
+
+cds2_config_serial_programming()
+{
+  write_cds2config V2_SERIAL_PROGRAMMING $1
+  return $?
+}
+
+print_possible_rts()
+{
+  local REQUEST=$@
+  local FIRST=0
+  local POSSIBLE_RUNTIMES=$(/etc/config-tools/get_possible_runtimes)
+  for POSSIBLE in $POSSIBLE_RUNTIMES
+  do
+    if [[ $REQUEST == *$POSSIBLE* ]]
+    then
+      if [ $FIRST -eq 1 ]
+      then
+        printf " | "
+      fi
+      printf "%s" $POSSIBLE
+      FIRST=1
+    fi
+  done
+}
+
+###################### MAIN ############################
+
+# show help-text if requested
+if [ "$1" = "-h" -o "$1" = "--help" ]; then
+    echo
+    echo "* Change PLC runtime configuration *"
+    echo
+    echo "Usage: config_runtime [-w|--wait] runtime-version=<runtime-version-value> [restart-server=NO]"
+    echo "or     config_runtime default-webpage=<default-webpage-value> [restart-server=NO]"
+    echo "or     config_runtime homedir-on-sdcard=<homedir-on-sdcard-value>"
+    echo "or     config_runtime [cfg-version=<cfg-version-value>] webserver-state=<webserver-state-value>"
+    echo "or     config_runtime [cfg-version=<cfg-version-value>] authentication=<authentication-value>"
+    echo "or     config_runtime [cfg-version=<cfg-version-value>] serial-programming=<serial-programming-value>"
+    echo "or     config_runtime [cfg-version=<cfg-version-value>] service-state=<service-state-value>"
+    echo "or     config_runtime [cfg-version=<cfg-version-value>] comm-port=<comm-port-value>"
+    echo
+    echo "-w|--wait                   on start of the runtime wait for termination of init script"
+    echo "<runtime-version-value>     = $(print_possible_rts 0 2 3)   Run the requested PLC runtime or none if arg = 0."
+    echo "                                          If -w|--wait option is present, config_runtime waits"
+    echo "                                          until the runtime is started. Otherwise startup of"
+    echo "                                          runtime occurs in background."
+    echo "<default-webpage-value>     = WBM | Webvisu"
+    echo "<restart-server-value>      = YES | NO    Restart system webserver. Defaults to YES."
+    echo "<cfg-version-value>         = $(print_possible_rts 2 3)  Change config of given PLC runtime version."
+    echo "                                          Defaults to running version"
+    echo "<homedir-on-sdcard-value>   = enabled | disabled"
+    echo "<webserver-state-value>     = enabled | disabled"
+    echo "<authentication-value>      = enabled | disabled"
+    echo "<serial-programming-value>  = enabled | disabled"
+    echo "<service-state-value>       = enabled | disabled"
+    echo "<comm-port-value>           = port number 1 to 65535"
+    echo
+    exit 0
+fi 
+
+# load general definitions and functions
+. /etc/config-tools/config_runtime_common
+
+# check for wait option
+WAIT_OPTION=
+if [ "$1" = "-w" ] || [ "$1" = "--wait" ]; then
+    WAIT_OPTION=1
+    shift
+fi
+
+POST_ACTION=
+NEW_RUNTIME_VERSION=$(GetParameterValue "runtime-version" $*)
+FORCE_NEW_VERSION=$(GetParameterValue "force-new-version" $*)
+NEW_HOMEDIR_SD=$(GetParameterValue "homedir-on-sdcard" $*)
+NEW_DEFAULT_WEBPAGE=$(GetParameterValue "default-webpage" $*)
+NEW_WEBSERVER_STATE=$(GetParameterValue "webserver-state" $*)
+NEW_PORT_AUTH=$(GetParameterValue "authentication" $*)
+SERIAL_PROGRAMMING=$(GetParameterValue "serial-programming" $*)
+NEW_SERVICE_DISABLED=$(GetParameterValue "service-state" $*)
+NEW_SERVICE_PORT_NO=$(GetParameterValue "comm-port" $*)
+CFG_VERSION=$(GetParameterValue "cfg-version" $*)
+RESTART_SERVER=$(GetParameterValue "restart-server" $*)
+
+# Check restart system webserver flag and make command line argument for change_default_webserver
+if [ "$RESTART_SERVER" ]; then
+    arg_assert "$RESTART_SERVER" "YES NO" "Invalid restart-server value."
+    RESTART_SERVER="restart-server=$RESTART_SERVER"
+fi
+
+# Get and check the runtime version the configuration is for.
+if [ ! "$NEW_RUNTIME_VERSION" -a ! "$NEW_DEFAULT_WEBPAGE" -a ! "$NEW_HOMEDIR_SD" ]; then
+    CONFIG_SET=${CFG_VERSION:-$CURRENT_RUNTIME_VERSION}
+    if [ "$CONFIG_SET" != "2" -a "$CONFIG_SET" != "3" ]; then
+        status=$INVALID_PARAMETER
+        SetLastError "Need valid runtime version to change config for"
+        exit $status
+    fi
+fi
+
+# See which parameter was set and call appropriate config tool.
+if [ "$NEW_HOMEDIR_SD" -a "$NEW_HOMEDIR_SD" != "$CODESYS_HOMEDIR_SDCARD" ]; then
+    arg_assert $NEW_HOMEDIR_SD "enabled disabled" "Invalid external home dir param"
+    sed -i "/^CODESYS_HOMEDIR_SDCARD=/cCODESYS_HOMEDIR_SDCARD=\"$NEW_HOMEDIR_SD\"" $RUNTIME_CONFIG
+
+elif [ "$NEW_WEBSERVER_STATE" ]; then
+    arg_assert "$NEW_WEBSERVER_STATE" "enabled disabled" "Invalid runtime webserver state"
+    VARNAME="V${CONFIG_SET}_WEBSERVER_STATE"
+    do_update $CONFIG_SET $VARNAME $NEW_WEBSERVER_STATE
+    status=$?
+
+elif [ "$NEW_PORT_AUTH" ]; then
+    arg_assert "$NEW_PORT_AUTH" "enabled disabled 0 1" "Invalid port authentication"
+    VARNAME="V${CONFIG_SET}_PORT_AUTH"
+    case $NEW_PORT_AUTH in
+        enabled)    NEW_PORT_AUTH=1 ;;
+        disabled)   NEW_PORT_AUTH=0 ;;
+    esac
+    do_update $CONFIG_SET $VARNAME $NEW_PORT_AUTH
+    status=$?
+
+#ENABLE/DISABLE Serial programming
+elif [ "$SERIAL_PROGRAMMING" ]; then
+    arg_assert "$SERIAL_PROGRAMMING" "enabled disabled 0 1" "Invalid serial programming value"
+    VARNAME="V${CONFIG_SET}_SERIAL_PROGRAMMING"
+    case $SERIAL_PROGRAMMING in
+        enabled)    SERIAL_PROGRAMMING=1 ;;
+        disabled)   SERIAL_PROGRAMMING=0 ;;
+    esac
+    #do_update $CONFIG_SET $VARNAME $SERIAL_PROGRAMMING
+    if [ "$CONFIG_SET" == "2" ]
+    then
+      cds2_config_serial_programming $SERIAL_PROGRAMMING
+    else
+      cds3_config_serial_programming $SERIAL_PROGRAMMING
+    fi
+    status=$?
+    if [ "$status" = "$SUCCESS" ]; then
+      sed -i "/^$VARNAME=/c$VARNAME=\"$SERIAL_PROGRAMMING\"" $RUNTIME_CONFIG
+    fi
+
+
+elif [ "$NEW_SERVICE_DISABLED" ]; then
+    # External argument is service-active. Swapped because of internal disable semantics
+    arg_assert $CONFIG_SET 2 "Service active parameter only valid for runtime version 2"
+    arg_assert "$NEW_SERVICE_DISABLED" "enabled disabled" "Invalid service state value"
+    VARNAME="V${CONFIG_SET}_SERVICE_DISABLED"
+    case $NEW_SERVICE_DISABLED in
+        enabled)    NEW_SERVICE_DISABLED=NO  ;;
+        disabled)   NEW_SERVICE_DISABLED=YES ;;
+    esac
+    do_update $CONFIG_SET $VARNAME $NEW_SERVICE_DISABLED
+    status=$?
+
+elif [ "$NEW_SERVICE_PORT_NO" ]; then
+    arg_assert $CONFIG_SET 2 "Port number only valid for codesys runtime"
+    arg_assert $(($NEW_SERVICE_PORT_NO < 65536)) 1 "Invalid port number"
+    VARNAME="V${CONFIG_SET}_SERVICE_PORT_NO"
+    do_update $CONFIG_SET $VARNAME $NEW_SERVICE_PORT_NO
+    status=$?
+
+elif [ "$NEW_DEFAULT_WEBPAGE" ]; then
+    # Accept former Webserver value due to restore to factory settings from
+    # earlier firmware versions.
+    arg_assert "$NEW_DEFAULT_WEBPAGE" "WBM Webserver Webvisu" "Invalid default web page"
+
+    # Map Default Webpage because of current config tool definition
+    if [ "$NEW_DEFAULT_WEBPAGE" = "WBM" ]; then
+        NEW_DEFAULT_WEBPAGE="Webserver"
+    fi
+    do_update $CURRENT_RUNTIME_VERSION DEFAULT_WEBPAGE "$NEW_DEFAULT_WEBPAGE" "" "$RESTART_SERVER"
+    status=$?
+
+elif [ "$NEW_RUNTIME_VERSION" ] && [ "$NEW_RUNTIME_VERSION" != "$CURRENT_RUNTIME_VERSION" ]; then
+   
+    if [[ "${FORCE_NEW_VERSION}" != "yes" ]]; then 
+        RTS_RUN=$(checkrts)
+        if [ "$RTS_RUN" != "0" ]
+        then
+            echo "Runtime not in STOP state!" > $LAST_ERROR_FILENAME
+            exit $INTERNAL_ERROR
+        fi
+    fi
+
+    # Check if signature is present in electronic typelabel when requesting codesys 3
+    rts_possible=$($CTDIR/get_possible_runtimes -$NEW_RUNTIME_VERSION)
+    if [ "$rts_possible" != "true" ]; then
+        echo "Runtime not supported by device"  > $LAST_ERROR_FILENAME
+        exit $INVALID_PARAMETER
+    fi
+
+    #1. If there is a runtime running: stop it
+    if [ $CURRENT_RUNTIME_VERSION -ne 0 ]; then
+        clear_runtime &
+    else
+        touch /tmp/clr_runtime
+    fi
+
+    # Optionally start the new runtime, also switch default webpage.
+    case $NEW_RUNTIME_VERSION in
+        0)  $CTDIR/change_default_webserver default-webserver=$DEFAULT_WEBPAGE $RESTART_SERVER
+            ;;
+
+        2)  bg_cds_webserver &
+            bg_wbm_webserver "$RESTART_SERVER" &
+            sleep 2
+            wait_start_runtime 8 /etc/init.d/runtime
+            [ "$WAIT_OPTION" ] && wait
+            ;;
+
+        3)  bg_wbm_webserver "$RESTART_SERVER" &
+            sleep 2
+            wait_start_runtime 8 /etc/init.d/runtime
+            if [ "$WAIT_OPTION" ]; then
+                wait
+                sleep 5
+            fi
+            ;;
+
+        *)  SetLastError "Invalid runtime version argument"
+            exit $INVALID_PARAMETER
+            ;;
+    esac
+
+    status=$SUCCESS
+fi
+eval $POST_ACTION
+sync
+exit $status
+

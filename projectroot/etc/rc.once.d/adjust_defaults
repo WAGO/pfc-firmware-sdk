@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Change defaults settings selectively for some devices.
+# To be executed on first boot.
+#
+
+#
+# FLEXROOM-SPECIFIC STUFF
+#
+
+ORDER_NR_FLEXROOM=("750-8202/0000-0011" "750-8202/0000-0012" "750-8202/0000-0013" "750-8202/0000-0014" "750-8202/0000-0015")
+
+function is_flexroom_device()
+{
+    local order_nr
+    for order_nr in ${ORDER_NR_FLEXROOM[@]}; do
+        if [[ "$1" == "${order_nr}" ]]; then
+            return 0
+        fi
+    done
+
+    false
+}
+
+function adjust_defaults_flexroom()
+{
+    printf "\t=> setting default webserver to Webvisu..." 
+    /etc/config-tools/config_runtime cfg-version=3 default-webpage=Webvisu 
+    eval_result $?
+
+    printf "\t=> activating Webvisu..."
+    /etc/config-tools/config_runtime cfg-version=3 webserver-state=enabled
+    eval_result $?
+
+    printf "\t=> activating e!RUNTIME..."
+    /etc/config-tools/config_runtime runtime-version=3
+    eval_result $?
+
+    printf "\t=> activating FTPS..."
+    /etc/config-tools/config_port port=ftps state=enabled
+    eval_result $?
+}
+
+#
+# GENERIC FUNCTIONS
+#
+
+function eval_result()
+{
+    if [[ "$1" == "0" ]]; then
+        echo "done"
+    else
+        echo "failed"
+    fi
+}
+
+function main()
+{
+    
+    local order_nr="UNKNOWN"
+
+    if [[ -x /etc/config-tools/get_typelabel_value ]]; then
+        order_nr=$(/etc/config-tools/get_typelabel_value ORDER)
+    fi
+
+    echo " o adjusting default settings for '${order_nr}':"
+    
+    if is_flexroom_device ${order_nr}; then
+
+        adjust_defaults_flexroom
+
+    elif [[ "${order_nr}" == "UNKNOWN" ]]; then
+
+       printf "\t=> Error - cannot read order number.\n"
+       exit 1
+
+    fi
+
+}
+
+main $@

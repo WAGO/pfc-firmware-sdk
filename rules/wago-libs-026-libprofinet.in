@@ -1,0 +1,17 @@
+## SECTION=wago_specific_libs
+
+config LIBPROFINET
+	tristate
+	select LIBNL3
+	select NET_SNMP
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select BOOST
+	select WAGO_PFC_DIAGNOSTIC
+	select TYPELABEL
+	select PROGEXECD
+	select LIBPCAP
+	select READLINE
+	prompt "libprofinet"
+	help
+	  Builds and installs the PROFINET Library

@@ -1,0 +1,14 @@
+## SECTION=wago_specific_codesys_3_wagocmp
+
+config CDS3_TSCSECURE
+  bool
+  prompt "Component to import secure API to runtime "
+  default n
+  select GOOGLETEST
+  select HOST_CT_BUILD
+  select CDS3_INCLUDES
+  select CDS3_RTS_TESTS
+  select OPENSSL
+  select GLIB
+  help
+    "This Component import secure APIs to runtime system."

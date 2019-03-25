@@ -1,0 +1,127 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate_basic_defines
+#
+# Brief:    General definitions for WAGO firmware update.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   Maxim Laschinsky: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+#bash "include guard"
+if [[ ${FWUPDATE_BASIC_DEFINES_:-} != "fwupdate_basic_defines" ]]; then
+readonly FWUPDATE_BASIC_DEFINES_="fwupdate_basic_defines"
+
+# General defines
+readonly RAUC="/usr/sbin/rauc_failsafe.sh"
+readonly WAGO_CT_SYSTEM_MODULE="WAGO Firmware Update"
+readonly WAGO_CT_DIR="/etc/config-tools"
+
+# FW-Update log prefix
+# Log prefix is needed when executable does not contain "fwupdate"
+readonly WAGO_FW_UPDATE_LOG_PREFIX=$(if [[ "${0##*/}" == *"fwupdate"* ]]; then echo -n ""; else echo -n "fwupdate:"; fi)
+
+# FW-Update exit code defines
+readonly WAGO_FW_UPDATE_SUCCESS=0
+readonly WAGO_FW_UPDATE_NOT_ACTIVATED=95
+readonly WAGO_FW_UPDATE_RUNNING=94
+readonly WAGO_FW_UPDATE_NOT_SUCCESSFUL=93
+readonly WAGO_FW_UPDATE_UPDATE_FILE_NOT_FOUND=92
+readonly WAGO_FW_UPDATE_NO_RESOURCES=91
+readonly WAGO_FW_UPDATE_ALREADY_ACTIVE=90
+readonly WAGO_FW_UPDATE_INVALID_CANCEL=89
+readonly WAGO_FW_UPDATE_INVALID_CLEAR=88
+readonly WAGO_FW_UPDATE_LOGFILE_NOT_FOUND=87
+readonly WAGO_FW_UPDATE_UNEXPECTED_SYSTEM_CONFIG=86
+readonly WAGO_FW_UPDATE_NO_SETTINGS_SPACE=85
+readonly WAGO_FW_UPDATE_NOT_IMPLEMENTED=84
+readonly WAGO_FW_UPDATE_KEY_NOT_FOUND=83
+
+# FW-Update data access defines
+readonly WAGO_FW_UPDATE_SERVICE_LINK="S15_fwupdate_service"
+readonly WAGO_FW_UPDATE_PERSISTENCE_DIR="/settings"
+readonly WAGO_FW_UPDATE_PANIC_FILE="$WAGO_FW_UPDATE_PERSISTENCE_DIR/fwupdate_panic"
+readonly WAGO_FW_UPDATE_DATA="$WAGO_FW_UPDATE_PERSISTENCE_DIR/fwupdate_data"
+readonly WAGO_FW_UPDATE_DATA_MIN_SPACE_KB=8
+readonly WAGO_FW_UPDATE_DATA_LOCK="/var/lock/fwupdate.lock"
+readonly WAGO_FW_UPDATE_DATA_LOCK_FD=200
+readonly WAGO_FW_UPDATE_DEFAULT_TIMEOUT=10
+readonly WAGO_FW_UPDATE_DEFAULT_WORK_DIR="/root/fwupdate"
+readonly WAGO_FW_UPDATE_DEFAULT_TMP_DIR="/tmp/fwupdate"
+readonly WAGO_FW_UPDATE_SETTINGS_FILE_WORK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate-settings.cfg"
+readonly WAGO_FW_UPDATE_ACCOUNTS_DIR_WORK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate-accounts"
+readonly WAGO_FW_UPDATE_SETTINGS_MOD_FILE_WORK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate-settings-mod.cfg"
+readonly WAGO_FW_UPDATE_PREINSTALL_HOOK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate_hook_preinstall.sh"
+readonly WAGO_FW_UPDATE_HOOK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate_hook.sh"
+readonly WAGO_FW_UPDATE_SETTINGS_FILE="$WAGO_FW_UPDATE_PERSISTENCE_DIR/fwupdate-settings.cfg"
+readonly WAGO_FW_UPDATE_ACCOUNTS_DIR="$WAGO_FW_UPDATE_PERSISTENCE_DIR/fwupdate-accounts"
+readonly WAGO_FW_UPDATE_SETTINGS_MOD_FILE="$WAGO_FW_UPDATE_PERSISTENCE_DIR/fwupdate-settings-mod.cfg"
+readonly WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/install_progress"
+readonly WAGO_FW_UPDATE_INCOMPLETE_MARKER="/fwupdate_incomplete"
+readonly WAGO_FW_UPDATE_FIRST_BOOT_MARKER="/fwupdate_first_boot"
+readonly WAGO_FW_UPDATE_STORAGE_MIN_SPACE_KB=4
+readonly WAGO_FW_UPDATE_PERSISTENCE_LOG_DIR="/log"
+readonly WAGO_FW_UPDATE_LOG_FILE="$WAGO_FW_UPDATE_PERSISTENCE_LOG_DIR/fwupdate.log"
+readonly WAGO_FW_UPDATE_TIMEOUT_PID_FILE="/var/run/fwupdate-timeout-watcher.pid"
+
+# FW-Update progress and state defines
+# Do not use character '#' or '"' (double quotes) for [sub] state name
+readonly WAGO_FW_UPDATE_MAX_PROGRESS=1000
+readonly WAGO_FW_UPDATE_INVALID_STATE="unknown"
+readonly WAGO_FW_UPDATE_NOT_AVAILABLE_STATE="not available"
+readonly WAGO_FW_UPDATE_INACTIVE_STATE="inactive"
+readonly WAGO_FW_UPDATE_INIT_STATE="init"
+readonly WAGO_FW_UPDATE_PREPARED_STATE="prepared"
+readonly WAGO_FW_UPDATE_STARTED_STATE="update started"
+readonly WAGO_FW_UPDATE_UNCONFIRMED_STATE="unconfirmed"
+readonly WAGO_FW_UPDATE_CONFIRMED_STATE="confirmed"
+readonly WAGO_FW_UPDATE_FINISHED_STATE="finished"
+readonly WAGO_FW_UPDATE_ERROR_STATE="error"
+readonly WAGO_FW_UPDATE_REVERT_STATE="revert"
+readonly WAGO_FW_UPDATE_INVALID_SUB_STATE="unknown"
+readonly WAGO_FW_UPDATE_INIT_READY_FOR_MAINTENANCE_SUB_STATE="ready for maintenance"
+readonly WAGO_FW_UPDATE_STARTED_PREINSTALL_SUB_STATE="pre install"
+readonly WAGO_FW_UPDATE_STARTED_RAUCINSTALL_SUB_STATE="rauc install"
+readonly WAGO_FW_UPDATE_STARTED_INSTALLED_SUB_STATE="installed"
+readonly WAGO_FW_UPDATE_STARTED_FIRSTBOOT_SUB_STATE="first boot"
+readonly WAGO_FW_UPDATE_STARTED_SETTINGSRESTORE_SUB_STATE="settings restore"
+readonly WAGO_FW_UPDATE_STARTED_SETTINGSBOOT_SUB_STATE="settings boot"
+readonly WAGO_FW_UPDATE_STARTED_SELFCHECK_SUB_STATE="selfcheck"
+readonly WAGO_FW_UPDATE_CONFIRMED_MARKED_SUB_STATE="marked"
+readonly WAGO_FW_UPDATE_CONFIRMED_PREPARED_SUB_STATE="prepared finish"
+readonly WAGO_FW_UPDATE_REVERT_CANCELREQUEST_SUB_STATE="canceled"
+readonly WAGO_FW_UPDATE_REVERT_FINISH_SUB_STATE="finish"
+readonly WAGO_FW_UPDATE_STACK_CHAR="#"
+
+# State timeout values
+readonly WAGO_FW_UPDATE_PREPARED_STATE_TIMEOUT=$(( 30 * 60 ))
+readonly WAGO_FW_UPDATE_UNCONFIRMED_STATE_TIMEOUT=$(( 10 * 60 ))
+
+# FW update group
+readonly WAGO_FW_UPDATE_GROUP="admin"
+
+# Activate this option to reboot for return to normal operation
+readonly WAGO_FW_UPDATE_REBOOT_FOR_NORMAL_OPERATION=false
+
+# Activate this option to stop immediately on panic
+readonly WAGO_FW_UPDATE_HOLD_ON_PANIC=false
+
+# Marker for bootloader backup installation
+readonly WAGO_FW_BOOTLOADER_BACKUP_INSTALL=9
+
+# Watchdog used by check system
+readonly WAGO_CHECK_SYSTEM_WDT="/usr/sbin/watchdog"
+
+# Check system watchdog control
+readonly WAGO_CHECK_SYSTEM_WDT_CONTROL="/etc/init.d/watchdog"
+
+fi #if [[ ${FWUPDATE_BASIC_DEFINES_:-} != "fwupdate_basic_defines" ]]

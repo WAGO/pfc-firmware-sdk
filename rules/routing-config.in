@@ -1,0 +1,16 @@
+## SECTION=separated_config_tools
+
+config ROUTING_CONFIG
+	bool
+	select FIREWALL_CONFIG
+	prompt "Routing Configuration Tools"
+	help
+	  This package provides config-tools supporting configuration of static routing, IP-masquerading and port-forwarding.
+
+config ROUTING_CONFIG_RC_LINK
+    string
+    depends on ROUTING_CONFIG && INITMETHOD_BBINIT
+    prompt "install a start link to /etc/rc.d"
+# The firewall has to be started before network -> choose a name which 
+# alphanumerically preceeds the networking start script!!
+    default "S70_routing"

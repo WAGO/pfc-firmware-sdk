@@ -1,0 +1,10 @@
+## SECTION=wago_specific_libs
+
+config LIBWIDEPBDPM
+	bool
+	default n
+	prompt "libwidepbdpm"
+	select LIBPBDPM
+	select PLCLINUXRT
+	help
+	  This library implements the codesys part for the PROFIBUS-DPM.

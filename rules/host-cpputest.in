@@ -1,0 +1,9 @@
+## SECTION=hosttools
+config HOST_CPPUTEST
+	bool
+   default n
+	prompt "cpputest"
+	help
+     Simple framework for C/C++ unit tests. Host version can be used to run
+     unit tests on the host machine early on, when the target hw is not yet
+     available (see DAL sources for examples).

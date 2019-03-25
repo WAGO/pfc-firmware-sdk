@@ -1,0 +1,701 @@
+--- libModbus-0.9.20.base/src/modbus-slave.c	2015-09-21 13:10:31.112092000 +0200
++++ libModbus-0.9.20/src/modbus-slave.c	2015-09-22 12:41:44.670214422 +0200
+@@ -456,7 +456,10 @@
+ 
+ int mb_get_header_size(unsigned int fid)
+ {
+-	return mb_functions[fid].hlen;
++	if (mb_func_id_has_callback(fid))
++		return mb_functions[fid].hlen;
++
++	return -1;
+ }
+ 
+ int mb_get_var_payload(struct mb_api_object *ao, void **payload_start)
+--- libModbus-0.9.20.base/src/modbus-serial-slave.c	2015-09-21 13:10:31.140092000 +0200
++++ libModbus-0.9.20/src/modbus-serial-slave.c	2015-09-23 10:46:46.045687534 +0200
+@@ -31,8 +31,10 @@
+ 
+ #include "crc16.h"
+ 
+-static void mb_log(struct mb_serial *mbs, unsigned long what,
+-		   const char *fmt, ...)
++#define LOG_SCOPE  ("MBS RTU")
++#define THREAD_NAME ("mb_rtu")
++
++static void mb_log(struct mb_serial *mbs, unsigned long what, const char *fmt, ...)
+ {
+ 	va_list args;
+ 
+@@ -46,33 +48,74 @@
+ 
+ #define MB_MAX_LOG_LEN (3 * sizeof(struct mb_tcp_packet) + 256)
+ 
+-static void mb_print_req(struct mb_serial *mbs, void *obj,
+-			 unsigned long objlen)
++static void mb_log_data(struct mb_serial *mbs, void const * const pData, size_t nDataSize, const char *fmt, ...)
+ {
+-	uint8_t *bf = obj;
+-	char *logbuf, *p;
+-	int printed, len = 0;
++	va_list args;
++	unsigned long const what = MB_LOG_DATA;
++	char *logbuf;
++	char *p;
++	int result;
++	size_t logsize = MB_MAX_LOG_LEN;
+ 
+-	if (!mbs->logger || !(mbs->log_options & MB_LOG_DATA))
++	if (!mbs->logger || !(mbs->log_options & what))
+ 		return;
+ 
+-	logbuf = malloc(MB_MAX_LOG_LEN);
++	logbuf = malloc(logsize);
+ 	if (!logbuf)
+ 		return;
+ 
+-	for (p = logbuf; objlen > 0; objlen--) {
+-		printed = sprintf(p, "%02x ", *bf++);
+-		p += printed;
+-		len += printed;
+-		if (len >= 76) {
+-			p += sprintf(--p, "\n");
+-			len = 0;
++	va_start(args, fmt);
++	result = vsnprintf(logbuf, logsize, fmt, args);
++	va_end(args);
++
++	if (result > 0)
++	{
++		p = logbuf + result;
++		logsize -= result; //result of vsnprintf must be less than logsize
++		if ((*(p-1) != '\n') && (logsize > 1))
++		{
++			*p = '\n';
++			++p;
++			*p = '\0';
++			--logsize;
+ 		}
+ 	}
+-	if (len)
+-		p += sprintf(--p, "\n");
++	else
++	{
++		p = logbuf;
++	}
+ 
+-	mb_log(mbs, MB_LOG_DATA, "%s", logbuf);
++	if (nDataSize > 0)
++	{
++		size_t linelen = 0;
++		unsigned int i;
++		uint8_t *bf = (uint8_t *)pData;
++		for (i = 0; i < nDataSize; i++)
++		{
++			result = snprintf(p, logsize, "%02x ", *bf++);
++			if (result > 0)
++			{
++				p += result;
++				logsize -= result;
++				linelen += result;
++				if (linelen >= 78)
++				{
++					*(p-1) = '\n';
++					linelen = 0;
++				}
++			}
++			else
++			{
++				i = nDataSize;//break;
++			}
++		}
++		*(p-1) = '\n';
++	}
++	
++	if (p != logbuf)
++	{
++		mb_log(mbs, what, "%s", logbuf);
++	}
+ 	free(logbuf);
+ }
+ 
+@@ -99,12 +142,18 @@
+ 		if (res < 0) {
+ 			if (errno == EINTR) {
+ 				if (mbs->stop)
++				{
++					mb_log(mbs, MB_LOG_SERIAL,
++							"[%s] poll interrupted by stop.\n",
++							LOG_SCOPE);
+ 					return -1;
+-				continue;
++				}
++				continue; //other interrupt, poll again
+ 			}
+ 
+ 			mb_log(mbs, MB_LOG_SERIAL,
+-					"read poll: %s\n", strerror(errno));
++					"[%s] poll error: %s\n",
++					LOG_SCOPE, strerror(errno));
+ 			return -1;
+ 		}
+ 
+@@ -114,7 +163,8 @@
+ 
+ 		if (!(fds[0].revents & POLLIN)) {
+ 			mb_log(mbs, MB_LOG_SERIAL,
+-					"poll returned without POLLIN.\n");
++					"[%s] poll returned without POLLIN.\n",
++					LOG_SCOPE);
+ 			return -1;
+ 		}
+ 
+@@ -122,10 +172,16 @@
+ 		if (res < 0) {
+ 			if (errno == EINTR) {
+ 				if (mbs->stop)
++				{
++					mb_log(mbs, MB_LOG_SERIAL,
++							"[%s] read interrupted by stop.\n",
++							LOG_SCOPE);
+ 					return -1;
++				}
+ 			}
+ 			mb_log(mbs, MB_LOG_SERIAL,
+-				"read error: %s\n", strerror(errno));
++					"[%s] read error: %s\n",
++					LOG_SCOPE, strerror(errno));
+ 			return -1;
+ 		}
+ 
+@@ -146,16 +202,17 @@
+ 	flags = fcntl(dev->fd, F_GETFL);
+ 	if (flags < 0) {
+ 		mb_log(mbs, MB_LOG_SERIAL,
+-				"write: get file flags error: %s.\n",
+-				strerror(errno));
+-		flags = 0;
++				"[%s] get fd flags failed: %s.\n",
++				LOG_SCOPE, strerror(errno));
++		return -1;
+ 	}
+ 	flags &= ~O_NONBLOCK;
+ 	res = fcntl(dev->fd, F_SETFL, flags);
+ 	if (res < 0) {
+ 		mb_log(mbs, MB_LOG_SERIAL,
+-				"write: set file flags error: %s.\n",
+-				strerror(errno));
++				"[%s] set fd flags failed: %s.\n",
++				LOG_SCOPE, strerror(errno));
++		return -1;
+ 	}
+ 
+ 	while (wrote < len) {
+@@ -164,8 +221,8 @@
+ 		if (res < 0) {
+ 			if (errno != EINTR) {
+ 				mb_log(mbs, MB_LOG_SERIAL,
+-						"write error (%d): %s. Wrote %ld of %ld bytes\n",
+-						errno, strerror(errno), wrote, len);
++						"[%s] write error: %s. %ld of %ld bytes written.\n",
++						LOG_SCOPE, strerror(errno), wrote, len);
+ 				flags |= O_NONBLOCK;
+ 				fcntl(dev->fd, F_SETFL, flags);
+ 				return -1;
+@@ -177,39 +234,21 @@
+ 	/* Wait until all characters are transmitted */
+ 	tcdrain(dev->fd);
+ 	flags |= O_NONBLOCK;
+-	fcntl(dev->fd, F_SETFL, flags);
+-	return 0;
+-}
+-
+-static int is_valid_node(int node_number) {
+-
+-	if (!node_number)
+-		/* boradcast */
+-		return 1;
+-
+-	if (node_number >= 1 && node_number <= 247)
+-		/* Slave individual address */
+-		return 1;
+-
+-	/* 248 .. 255 is reserved */
++	res = fcntl(dev->fd, F_SETFL, flags);
++	if (res < 0) {
++		mb_log(mbs, MB_LOG_SERIAL,
++				"[%s] reset fd flags failed: %s.\n",
++				LOG_SCOPE, strerror(errno));
++		return -1;
++	}
+ 	return 0;
+ }
+ 
+-static int valid_api_header(struct mb_api_header *ah)
+-{
+-	if (!is_valid_node(ah->node_id))
+-		return 0;
+-
+-	if (!mb_func_id_has_callback(ah->function_id))
+-		return 0;
+-
+-	return 1;
+-}
+ 
+ /*
+  * Modbus serial line thread
+  */
+-static void *modbus_serial_line(void *arg)
++static void *modbus_serial_main(void *arg)
+ {
+ 	struct mb_serial *mbs = arg;
+ 	struct mb_serial_packet sp;
+@@ -219,19 +258,21 @@
+ 	unsigned char *packet_buff = (unsigned char *)api_header;
+ 	sigset_t mask;
+ 
+-	pthread_setname_np(pthread_self(), "mb_rtu");
++	pthread_setname_np(pthread_self(), THREAD_NAME);
+ 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+ 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+ 
+ 	sigfillset(&mask);
+ 	pthread_sigmask(SIG_SETMASK, &mask, NULL);
+ 	mbs->status = MODBUS_THREAD_RUNNING;
++	mb_log(mbs, MB_LOG_THREAD,
++			"[%s] thread %s running\n",
++			LOG_SCOPE, THREAD_NAME);
+ 
+ 	while (1) {
+ 		int total_paket_size;
+ 		int header_size;
+ 		int var_payload;
+-		int ret;
+ 		void *payload_start;
+ 		unsigned short wire_crc_le;
+ 		unsigned short computed_crc;
+@@ -248,152 +289,180 @@
+ 		if (reclen < 0)
+ 			break;
+ 
+-		if (reclen == 0)
+-			continue;
+-
+ 		if (reclen < 2)
+ 			continue;
+ 
+-		if (!valid_api_header(api_header)) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"valid_api_header failed (%d 0x%02x)\n",
+-					api_header->node_id, api_header->function_id);
+-			continue;
+-		}
+-
+ 		total_paket_size = 2;
+ 		/* the header of the specific function */
+ 		header_size = mb_get_header_size(api_header->function_id);
++		if (header_size < 0) {
++			mb_log(mbs, MB_LOG_SERIAL,
++					"[%s] get header size failed for func %02x\n",
++					LOG_SCOPE, api_header->function_id);
++			tcflush(mbs->dev.fd, TCIFLUSH);
++			continue;
++		}
+ 		reclen = tty_read(mbs, function_header, header_size, mbs->timeout);
+ 		if (reclen < 0)
+-			continue;
++			break;
+ 
+ 		if (reclen < header_size) {
+ 			mb_log(mbs, MB_LOG_SERIAL,
+-					"Failed to read header. Got %d instead of %d for function 0x%02x\n",
+-					reclen, header_size, api_header->function_id);
++					"[%s] read header failed for func 0x%02x: received %d instead of %d\n",
++					LOG_SCOPE, api_header->function_id, reclen, header_size);
++			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+-
+ 		total_paket_size += header_size;
+ 
+ 		/* the variable payload if available */
+ 		var_payload = mb_get_var_payload(&sp.api_object, &payload_start);
+ 		if (var_payload < 0) {
+ 			mb_log(mbs, MB_LOG_SERIAL,
+-					"Variable payload size for func %02x is negative.\n",
+-					api_header->function_id);
++					"[%s] get payload size failed for func %02x\n",
++					LOG_SCOPE, api_header->function_id);
++			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+ 
+ 		reclen = tty_read(mbs, payload_start, var_payload, mbs->timeout);
+ 		if (reclen < 0)
+-			continue;
++			break;
+ 
+ 		if (reclen < var_payload) {
+ 			mb_log(mbs, MB_LOG_SERIAL,
+-				"Failed to read variable payload. Got %d instead of %d for function %02x\n",
+-					reclen, var_payload, api_header->function_id);
++					"[%s] read payload failed for func %02x: received %d instead of %d\n",
++					LOG_SCOPE, api_header->function_id, reclen, var_payload);
++			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+-
+ 		total_paket_size += var_payload;
+-		mb_print_req(mbs, api_obj, total_paket_size);
+ 
+ 		/* the last piece of the message is the crc */
+ 		reclen = tty_read(mbs, &wire_crc_le, sizeof(wire_crc_le), mbs->timeout);
+ 		if (reclen < 0)
+-			continue;
++			break;
+ 
+ 		if (reclen < 2) {
+ 			mb_log(mbs, MB_LOG_SERIAL,
+-				"Got only %d bytes for CRC.\n",
+-					reclen);
++					"[%s] read CRC failed for func %02x: received %d instead of 2\n",
++					LOG_SCOPE, api_header->function_id, reclen);
++			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+ 
+ 		computed_crc = crc16(&sp, total_paket_size);
+ 		if (computed_crc != __le16_to_cpu(wire_crc_le)) {
+-			mb_log(mbs, MB_LOG_SERIAL, "Computed CRC: %04x Wire CRC: %04x. "
+-					"Data len: %d function: 0x%02x\n",
+-					computed_crc, __le16_to_cpu(wire_crc_le),
+-					total_paket_size, api_header->function_id);
++			mb_log(mbs, MB_LOG_SERIAL,
++					"[%s] CRC check failed for func %02x, len %d: received %04x instead of %04x\n",
++					LOG_SCOPE, api_header->function_id, total_paket_size, computed_crc, __le16_to_cpu(wire_crc_le));
+ 			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+ 
+ 		if ((sp.api_object.api_header.node_id != mbs->node_id) &&
+ 				(sp.api_object.api_header.node_id != MB_NODE_ID_BROADCAST)) {
+-			mb_log(mbs, MB_LOG_SERIAL, "Ignoring Request for node %d (I am %d)\n",
+-					sp.api_object.api_header.node_id, mbs->node_id);
++			mb_log(mbs, MB_LOG_SERIAL,
++					"[%s] ignore request for node %d (expected %d or broadcast %d)\n",
++					LOG_SCOPE, sp.api_object.api_header.node_id, mbs->node_id, MB_NODE_ID_BROADCAST);
+ 			continue;
+ 		}
+ 
++		mbs->events++;
++		mb_log_data(mbs, api_obj, total_paket_size,
++				"[%s] req #%08x, len %d:",
++				LOG_SCOPE, mbs->events, total_paket_size);
++
+ 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+ 		response_len = modbus_handle_request(mbs->functions, api_obj);
+ 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+ 		if (response_len <= 0)
++		{
++			mb_log(mbs, MB_LOG_SERIAL,
++					"[%s] handle request failed for func %02x\n",
++					LOG_SCOPE, api_header->function_id);
+ 			continue;
++		}
+ 
+-		mb_print_req(mbs, api_obj, response_len);
++		mb_log_data(mbs, api_obj, response_len,
++				"[%s] rsp #%08x, len %d:",
++				LOG_SCOPE, mbs->events, response_len);
+ 
+-		mb_log(mbs, MB_LOG_SERIAL, "Function 0x%02x done. Sent %d bytes\n",
+-				api_header->function_id, response_len);
+ 		/* send the ack of the packet unless it is a broadcast */
+ 		if (sp.api_object.api_header.node_id == MB_NODE_ID_BROADCAST) {
+-			mbs->events++;
+ 			continue;
+ 		}
+ 
+ 		computed_crc = crc16(&sp, response_len);
+ 		*((unsigned short int *)&packet_buff[response_len]) = computed_crc;
+ 		response_len += 2;
+-
+-		ret = tty_write(mbs, api_header, response_len);
+-		if (ret < 0)
+-			continue;
+-
+-		mbs->events++;
++		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
++		(void)tty_write(mbs, api_header, response_len);
++		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+ 	}
+ 
++	mb_log(mbs, MB_LOG_THREAD,
++			"[%s] thread %s terminated\n",
++			LOG_SCOPE, THREAD_NAME);
++
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+ 	return NULL;
+ }
+ 
+-static void tty_close(struct ttydev *dev) {
++static void tty_close(struct mb_serial *mbs)
++{
++	struct ttydev *dev = &mbs->dev;
++	int ret;
++
++	if (dev->fd < 0)
++		return;
+ 
++	// disabled modbus mode of the omap_serial driver
+ #if defined(TIOCSMBRTU)
+ 	ioctl(dev->fd, TIOCSMBRTU, 0);
+ #endif
+-
+-	if (dev->fd >= 0) {
+-		tcflush(dev->fd, TCIFLUSH);
+-		tcsetattr(dev->fd, TCSANOW, &dev->oldtio);
+-		tcflush(dev->fd, TCIOFLUSH);
+-		close(dev->fd);
+-		dev->fd = -1;
++	tcflush(dev->fd, TCIFLUSH);
++	ret = tcsetattr(dev->fd, TCSANOW, &dev->oldtio);
++	tcflush(dev->fd, TCIOFLUSH);
++	if (ret < 0) {
++		mb_log(mbs, MB_LOG_CONNECT,
++				"[%s] Set old terminal device attributes failed: %s\n",
++				LOG_SCOPE, strerror(errno));
+ 	}
++	close(dev->fd);
++	mb_log(mbs, MB_LOG_CONNECT,
++			"[%s] device %s (fd %d) closed.\n",
++			LOG_SCOPE, dev->name, dev->fd);
++	dev->fd = -1;
+ }
+ 
+ static int tty_open(struct mb_serial *mbs)
+ {
+-	int fd;
+ 	struct ttydev *dev = &mbs->dev;
+ 	int ret;
+ 	struct termios term_current;
+ 
+ 	/* open port */
+-	fd = open(dev->name, O_RDWR | O_NOCTTY | O_NONBLOCK | O_NDELAY);
+-	if (fd < 0) {
++	dev->fd = open(dev->name, O_RDWR | O_NOCTTY | O_NONBLOCK | O_NDELAY);
++	if (dev->fd < 0) {
+ 		dev->fd = -1;
+ 		mb_log(mbs, MB_LOG_CONNECT,
+-				"Failed to open device %s: %s\n", dev->name,
+-				strerror(errno));
++				"[%s] open device %s failed: %s\n",
++				LOG_SCOPE, dev->name, strerror(errno));
+ 		return -1;
+ 	}
+ 
+-	tcgetattr(fd, &dev->oldtio);
+-	dev->fd = fd;
++	ret = tcgetattr(dev->fd, &dev->oldtio);
++	if (ret < 0) {
++		mb_log(mbs, MB_LOG_CONNECT,
++				"[%s] Get old terminal device attribute failed: %s\n",
++				LOG_SCOPE, strerror(errno));
++		close(dev->fd);
++		return -1;
++	}
++	mb_log(mbs, MB_LOG_CONNECT,
++			"[%s] device %s opened: fd %d.\n",
++			LOG_SCOPE, dev->name, dev->fd);
+ 
+ 	memset(&dev->newtio, 0, sizeof(struct termios));
+ 
+@@ -435,21 +504,10 @@
+ 	}
+ 
+ 	switch (dev->flowctrl) {
+-	case FLOW_CTRL_NONE:
+-		break;
+-
+-	case FLOW_CTRL_SW:
+-		dev->newtio.c_iflag |= IXON | IXOFF;
+-		break;
+-
+-	case FLOW_CTRL_HW:
+-		 dev->newtio.c_cflag |= CRTSCTS;
+-		break;
+-
+-	default:
+-		mb_log(mbs, MB_LOG_CONNECT,
+-			"Wront value for flow control '%d'.", dev->flowctrl);
+-		goto out_err;
++		case FLOW_CTRL_SW:      dev->newtio.c_iflag |= IXON | IXOFF; break;
++		case FLOW_CTRL_HW:      dev->newtio.c_cflag |= CRTSCTS; break;
++		case FLOW_CTRL_NONE:
++		default:                break;
+ 	}
+ 
+ 
+@@ -462,20 +520,24 @@
+ 	dev->newtio.c_cc[VMIN] = 0;
+ 	dev->newtio.c_cc[VTIME] = 0;
+ 
+-	tcflush(fd, TCIFLUSH);
+-	ret = tcsetattr(fd, TCSANOW, &dev->newtio);
+-	tcflush(fd, TCIOFLUSH);
++	tcflush(dev->fd, TCIFLUSH);
++	ret = tcsetattr(dev->fd, TCSANOW, &dev->newtio);
++	tcflush(dev->fd, TCIOFLUSH);
+ 	if (ret < 0) {
+ 		mb_log(mbs, MB_LOG_CONNECT,
+-				"Can't set new TERMIOS settings: %s.", strerror(errno));
+-		goto out_err;
++				"[%s] Set new terminal device attribute failed: %s\n",
++				LOG_SCOPE, strerror(errno));
++		tty_close(mbs);
++		return -1;
+ 	}
+ 
+-	ret = tcgetattr(fd, &term_current);
++	ret = tcgetattr(dev->fd, &term_current);
+ 	if (ret < 0) {
+ 		mb_log(mbs, MB_LOG_CONNECT,
+-				"Can't get current TERMIOS settings: %s.", strerror(errno));
+-		goto out_err;
++				"[%s] Get new terminal device attribute failed: %s\n",
++				LOG_SCOPE, strerror(errno));
++		tty_close(mbs);
++		return -1;
+ 	}
+ 
+ 	if (	(dev->newtio.c_iflag != term_current.c_iflag) ||
+@@ -484,36 +546,25 @@
+ 		(dev->newtio.c_lflag != term_current.c_lflag) ) {
+ 
+ 		mb_log(mbs, MB_LOG_CONNECT,
+-			"Retrieved TERMIOS settings do match those which were requested.\n");
+-		mb_log(mbs, MB_LOG_CONNECT,
+-			"Requsted: iflag: %08x oflag: %08x cflag: %08x lflag: %08x\n",
+-			dev->newtio.c_iflag, dev->newtio.c_oflag,
+-			dev->newtio.c_cflag, dev->newtio.c_lflag);
+-
+-		mb_log(mbs, MB_LOG_CONNECT,
+-			"Retrieved: iflag: %08x oflag: %08x cflag: %08x lflag: %08x\n",
+-			term_current.c_iflag, term_current.c_oflag,
+-			term_current.c_cflag, term_current.c_lflag);
++				"[%s] Terminal device attributes not fully set.\n",
++				LOG_SCOPE);
+ 
+ 		if ((dev->newtio.c_cflag & CRTSCTS) && (!(term_current.c_cflag & CRTSCTS))) {
+ 			mb_log(mbs, MB_LOG_CONNECT,
+-			"HW Flow control is not supported by the term_current.c_cflag driver.\n");
++					"[%s] HW Flow control flag is not supported by terminal device.\n",
++					LOG_SCOPE);
+ 
+ 		}
+-		goto out_err;
++		tty_close(mbs);
++		return -1;
+ 	}
+ 
+ 	// enable modbus mode of the omap_serial driver
+ #if defined(TIOCSMBRTU) && defined(TIOCSMBRTUADDR)
+-	ioctl(fd, TIOCSMBRTU, 1);
+-	ioctl(fd, TIOCSMBRTUADDR, mbs->node_id);
++	ioctl(dev->fd, TIOCSMBRTU, 1);
++	ioctl(dev->fd, TIOCSMBRTUADDR, mbs->node_id);
+ #endif
+-
+ 	return 0;
+-
+-out_err:
+-	tty_close(dev);
+-	return -1;
+ }
+ 
+ void mbus_serial_tty_init(struct mb_serial *mbs, const char *name, int baud,
+@@ -528,6 +579,7 @@
+ 	dev->parity = parity;
+ 	dev->datab = datab;
+ 	dev->stopb = stopb;
++	dev->fd = -1;
+ }
+ 
+ /*
+@@ -538,11 +590,20 @@
+ 	pthread_attr_t tattr;
+ 	int res;
+ 
+-	if (!mbs->enabled)
++	if (!mbs->enabled) {
++		mb_log(mbs, MB_LOG_THREAD,
++				"[%s] thread is not enabled to start\n",
++				LOG_SCOPE);
+ 		return 0;
++	}
++
++	if ((mbs->node_id < 1) || (mbs->node_id > 247)) {
++		mb_log(mbs, MB_LOG_CONNECT,
++				"[%s] Invalid node id %d.",
++				LOG_SCOPE, mbs->node_id);
+ 
+-	if (!mbs->node_id)
+ 		return -EINVAL;
++	}
+ 
+ 	res = tty_open(mbs);
+ 
+@@ -552,33 +613,42 @@
+ 	if (!mbs->timeout)
+ 		mbs->timeout = 2 * 1000;
+ 
++	mb_log(mbs, MB_LOG_THREAD,
++			"[%s] starting thread %s\n",
++			LOG_SCOPE, THREAD_NAME);
++	mbs->status = MODBUS_THREAD_STARTING;
++	mbs->stop = 0;
++
+ 	pthread_attr_init(&tattr);
+ 	pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_JOINABLE);
+-	res = pthread_create(&mbs->thread, &tattr, modbus_serial_line, mbs);
++	res = pthread_create(&mbs->thread, &tattr, modbus_serial_main, mbs);
+ 	pthread_attr_destroy(&tattr);
+ 
+-	if (res)
+-		tty_close(&mbs->dev);
+-
+-	mb_log(mbs, MB_LOG_THREAD,
+-	       "modbus_socket_start: pthread_create %d\n", res);
++	if (res != 0) {
++		mb_log(mbs, MB_LOG_THREAD,
++				"[%s] create thread failed: %s\n",
++				LOG_SCOPE, strerror(res));
++		tty_close(mbs);
++	}
+ 	return res;
+ }
+ 
+ void modbus_serial_stop(struct mb_serial *mbs)
+ {
+-	mb_log(mbs, MB_LOG_THREAD,
+-	       "%s: stop thread\n", __func__);
+-
+ 	if (!mbs->enabled) {
+ 		mb_log(mbs, MB_LOG_THREAD,
+-				"%s: thread isn't enabled\n", __func__);
++				"[%s] thread is not enabled, don't stop\n",
++				LOG_SCOPE);
+ 		return;
+ 	}
+ 
++	mb_log(mbs, MB_LOG_THREAD,
++			"[%s] stop thread %s\n",
++			LOG_SCOPE, THREAD_NAME);
++
+ 	mbs->stop = 1;
+ 	pthread_cancel(mbs->thread);
+ 	pthread_join(mbs->thread, NULL);
+-	tty_close(&mbs->dev);
++	tty_close(mbs);
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+ }

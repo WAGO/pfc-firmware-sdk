@@ -1,0 +1,4 @@
+# This is a generated file, do not edit.
+# DIP_SWITCH_VALUE holds the value of the dip switches on reset.
+# The value is 0 if systems has no dip switch.
+DIP_SWITCH_VALUE=0

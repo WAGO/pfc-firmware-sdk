@@ -1,0 +1,177 @@
+From 0d7b240cee478b65a295f98afb2ad01277c6a247 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 3 Jul 2017 09:53:05 +0200
+Subject: [PATCH 077/261] net: dsa: use descriptor based gpio interface for
+ reset
+
+---
+ arch/arm/boot/dts/wago-pfc100.dtsi      |  2 +-
+ arch/arm/boot/dts/wago-pfc200.dtsi      |  2 +-
+ arch/arm/boot/dts/wago-pfc200v2.dtsi    |  2 +-
+ arch/arm/boot/dts/wago-pfc200v3.dtsi    |  6 +-----
+ arch/arm/boot/dts/wago-src-ksz8863.dtsi |  2 +-
+ arch/arm/boot/dts/wago-src.dtsi         |  2 +-
+ drivers/net/dsa/ksz8863.c               | 29 ++++++++++-------------------
+ 7 files changed, 16 insertions(+), 29 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc100.dtsi b/arch/arm/boot/dts/wago-pfc100.dtsi
+index fb9efc1..7bf5da1 100644
+--- a/arch/arm/boot/dts/wago-pfc100.dtsi
++++ b/arch/arm/boot/dts/wago-pfc100.dtsi
+@@ -73,7 +73,7 @@
+ 		status = "okay";
+ 
+ 		ksz,reset-switch;
+-		ksz,gpio-reset = <&gpio2 21 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
++		ksz,reset-gpio = <&gpio2 21 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
+ 		ksz,disable-internal-ldo;
+ 		ksz,mii-bus = <&bitbang_mdio0>;
+ 	};
+diff --git a/arch/arm/boot/dts/wago-pfc200.dtsi b/arch/arm/boot/dts/wago-pfc200.dtsi
+index 88c00eb..112d6f5 100644
+--- a/arch/arm/boot/dts/wago-pfc200.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200.dtsi
+@@ -35,7 +35,7 @@
+ 		status = "okay";
+ 
+ 		ksz,reset-switch;
+-		ksz,gpio-reset = <&gpio5 8 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
++		ksz,reset-gpio = <&gpio5 8 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
+ 		//ksz,disable-internal-ldo;
+ 		ksz,mii-bus = <&bitbang_mdio0>;
+ 	};
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index fa11f1f..acb0b88 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -59,7 +59,7 @@
+ 		status = "okay";
+ 
+ 		ksz,reset-switch;
+-		ksz,gpio-reset = <&gpio3 10 GPIO_ACTIVE_LOW>;
++		ksz,reset-gpio = <&gpio3 10 GPIO_ACTIVE_LOW>;
+ 		ksz,disable-internal-ldo;
+ 		ksz,mii-bus = <&bitbang_mdio0>;
+ 	};
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 5cee07d..db6a5f2 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -13,10 +13,6 @@
+ 	model = "WAGO PFC200 V3 (AM33XX)";
+ 	compatible = "wago,pfc200v3", "ti,am33xx";
+ 
+- chosen {
+-                bootargs = "rw root=/dev/mmcblk0p2 rootfstype=ext3 rootwait console=ttyO1,115200  pxc_boot_id=0x82 bootversion=2014.11.0-w02.02.00_00 devconf=0xc mac=00:30:de:40:22:44";
+-        };
+-
+ 	cpus {
+ 		cpu_0: cpu@0 {
+ 			cpu0-supply = <&dcdc2_reg>;
+@@ -62,7 +58,7 @@
+ 		status = "okay";
+ 	
+ 		ksz,reset-switch;
+-		ksz,gpio-reset = <&io_expander_20 4 GPIO_ACTIVE_LOW>;
++		ksz,reset-gpio = <&io_expander_20 4 GPIO_ACTIVE_LOW>;
+ 		ksz,disable-internal-ldo;
+ 		ksz,mii-bus = <&bitbang_mdio0>;
+ 	};
+diff --git a/arch/arm/boot/dts/wago-src-ksz8863.dtsi b/arch/arm/boot/dts/wago-src-ksz8863.dtsi
+index d372921..25d7ea1 100644
+--- a/arch/arm/boot/dts/wago-src-ksz8863.dtsi
++++ b/arch/arm/boot/dts/wago-src-ksz8863.dtsi
+@@ -18,7 +18,7 @@
+ 		status = "okay";
+ 
+ 		ksz,reset-switch;
+-		ksz,gpio-reset = <&gpio3 10 GPIO_ACTIVE_HIGH>; /*L18 MII1_RX_CLKgpio3[10] / RMII2.EN-PHY */
++		ksz,reset-gpio = <&gpio3 10 GPIO_ACTIVE_HIGH>; /*L18 MII1_RX_CLKgpio3[10] / RMII2.EN-PHY */
+ 		ksz,disable-internal-ldo;
+ 		ksz,mii-bus = <&bitbang_mdio0>;
+ 	};
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index e895ba1..bf6d168 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -67,7 +67,7 @@
+ 		status = "okay";
+ 
+ 		ksz,reset-switch;
+-		ksz,gpio-reset = <&gpio3 10 GPIO_ACTIVE_HIGH>; /*L18 MII1_RX_CLKgpio3[10] / RMII2.EN-PHY */
++		ksz,reset-gpio = <&gpio3 10 GPIO_ACTIVE_HIGH>; /*L18 MII1_RX_CLKgpio3[10] / RMII2.EN-PHY */
+ 		ksz,disable-internal-ldo;
+ 		ksz,mii-bus = <&bitbang_mdio0>;
+ 	};
+diff --git a/drivers/net/dsa/ksz8863.c b/drivers/net/dsa/ksz8863.c
+index 3cc8f67..2234d09 100644
+--- a/drivers/net/dsa/ksz8863.c
++++ b/drivers/net/dsa/ksz8863.c
+@@ -31,7 +31,7 @@
+ struct ksz8863_info {
+ 	struct device *dev;
+ 	struct mii_bus *mii_bus;
+-	int reset_gpio;
++	struct gpio_desc *reset_gpio;
+ 	bool disable_internal_ldo;
+ 	bool reset;
+ };
+@@ -42,10 +42,10 @@ struct ksz8863_fns_t *ksz8863_fns = &ksz8863_fns_data;
+ 
+ static void ksz8863_hw_reset(struct ksz8863_info *ksz_info)
+ {
+-	dev_info(ksz_info->dev, "Going to reset gpio%d\n", ksz_info->reset_gpio);
+-	gpio_set_value(ksz_info->reset_gpio, 0);
+-	mdelay(100);
+-	gpio_set_value(ksz_info->reset_gpio, 1);
++	dev_info(ksz_info->dev, "Going to reset gpio%d\n", desc_to_gpio(ksz_info->reset_gpio));
++	gpiod_set_value_cansleep(ksz_info->reset_gpio, 1);
++	msleep(100);
++	gpiod_set_value_cansleep(ksz_info->reset_gpio, 0);
+ 	dev_info(ksz_info->dev, "KSZ8863 Switch resetted!\n");
+ }
+ 
+@@ -284,7 +284,6 @@ struct ksz8863_info *of_get_ksz8863_pdata(struct device *dev)
+ 
+ 	ksz_info->reset = false;
+ 	ksz_info->disable_internal_ldo = false;
+-	ksz_info->reset_gpio = 0;
+ 
+ 	if (np) {
+ 
+@@ -295,27 +294,19 @@ struct ksz8863_info *of_get_ksz8863_pdata(struct device *dev)
+ 		if (of_find_property(np, "ksz,disable-internal-ldo", NULL))
+ 			ksz_info->disable_internal_ldo = true;
+ 
+-		ksz_info->reset_gpio = of_get_named_gpio(np, "ksz,gpio-reset", 0);
+-		if (ksz_info->reset_gpio == -EPROBE_DEFER)
+-			return ERR_PTR(-EPROBE_DEFER);
++		ksz_info->reset_gpio = devm_gpiod_get_optional(dev, "ksz,reset", GPIOD_OUT_HIGH);
++		if (IS_ERR(ksz_info->reset_gpio) && PTR_ERR(ksz_info->reset_gpio) == -EPROBE_DEFER)
++			return ERR_PTR(PTR_ERR(ksz_info->reset_gpio));
+ 
+-		if (ksz_info->reset_gpio < 0) {
+-			dev_err(dev, "No gpio reset pin given\n");
++		if (IS_ERR(ksz_info->reset_gpio)) {
+ 			ksz_info->reset = false;
++			dev_warn(dev, "No gpio reset pin given\n");
+ 			goto skip_reset;
+ 		}
+ 
+ 		if (of_find_property(np, "ksz,reset-switch", NULL))
+ 			ksz_info->reset = true;
+ 
+-		ret = devm_gpio_request_one(dev, ksz_info->reset_gpio,
+-					    GPIOF_OUT_INIT_HIGH | GPIOF_EXPORT_DIR_FIXED,
+-					    "GPIO Switch Reset Pin");
+-		if (ret < 0) {
+-			dev_err(dev, "failed to claim gpio-reset pin\n");
+-			return NULL;
+-		}
+-
+ 	skip_reset:
+ 
+ 		dev_warn(dev, "Switch will %s resetted.\n",
+-- 
+2.7.4
+

@@ -1,0 +1,36 @@
+From 138e2cb48889ea0f1b76c397d69e10aaf1757a5f Mon Sep 17 00:00:00 2001
+From: Marc Oestermann <marc.oestermann@wago.com>
+Date: Fri, 10 Aug 2018 10:32:37 +0000
+Subject: [PATCH 229/261] dts: 750-8215: Rename led from pn to bf
+
+Signed-off-by: Marc Oestermann <marc.oestermann@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8215.dts | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215.dts b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+index cc6b1f3..9ecb28c 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8215.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+@@ -218,14 +218,14 @@
+ };
+ 
+ &led_bar0 {
+-	pn_r: pn-red@0 {
+-		label = "pn-red";
++	bf_r: bf-red@0 {
++		label = "bf-red";
+ 		reg = <0>;
+ 		linux,default-trigger = "none";
+ 	};
+ 
+-	pn_g: pn-green@1 {
+-		label = "pn-green";
++	bf_g: bf-green@1 {
++		label = "bf-green";
+ 		reg = <1>;
+ 		linux,default-trigger = "none";
+ 	};
+-- 
+2.7.4
+

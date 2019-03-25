@@ -1,0 +1,57 @@
+--- libmodbus-3.0.5.latest/src/modbus.c	2014-07-04 15:04:40.780826000 +0200
++++ libmodbus-3.0.5/src/modbus.c	2014-07-04 15:09:31.801167643 +0200
+@@ -469,9 +469,6 @@
+     int msg_length = 0;
+     _step_t step;
+ 
+-    if(modbus_is_multicast(ctx)) /* don't expect answer */
+-        return 0;
+-
+     if (ctx->debug) {
+         if (msg_type == MSG_INDICATION) {
+             printf("Waiting for a indication...\n");
+@@ -628,8 +625,12 @@
+     int rsp_length_computed;
+     const int offset = ctx->backend->header_length;
+ 
+-    if(modbus_is_multicast(ctx)) /* don't expect answer */
+-        return 0;
++    if(modbus_is_multicast(ctx)) { /* don't expect answer */
++      if (ctx->debug) {
++          printf("unexpected confirmation from slave %d\n", ctx->slave);
++      }
++      return 0;
++    }
+ 
+     if (ctx->backend->pre_check_confirmation) {
+         rc = ctx->backend->pre_check_confirmation(ctx, req, rsp, rsp_length);
+@@ -1179,7 +1180,13 @@
+     }
+ 
+     wait_response_delay();
+-    if (rsp_xl) {
++    if ((_MODBUS_BACKEND_TYPE_RTU == ctx->backend->backend_type) && (MODBUS_BROADCAST_ADDRESS == slave))
++    { /* No response on RTU broadcasts */
++        rc = 0;
++        if (rsp_xl)
++          free(rsp_xl);
++    }
++    else if (rsp_xl) {
+         rc = send_msg(ctx, rsp_xl, rsp_length);
+         free(rsp_xl);
+     }
+@@ -1636,7 +1643,13 @@
+     }
+ 
+     wait_response_delay();
+-    if (rsp_xl) {
++    if ((_MODBUS_BACKEND_TYPE_RTU == ctx->backend->backend_type) && (MODBUS_BROADCAST_ADDRESS == slave))
++    { /* No response on RTU broadcasts */
++        rc = 0;
++        if (rsp_xl)
++          free(rsp_xl);
++    }
++    else if (rsp_xl) {
+         rc = send_msg(ctx, rsp_xl, rsp_length);
+         free(rsp_xl);
+     }

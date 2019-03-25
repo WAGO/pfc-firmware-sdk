@@ -1,0 +1,20 @@
+--- bootpc-0.64/bootpc.c	1998-12-18 00:38:00.000000000 +0100
++++ bootpc.c	2010-02-04 13:26:41.000000000 +0100
+@@ -283,7 +283,7 @@
+     }
+   }
+   if (!received_packet) {
+-    logMessage("No response from BOOTP server");
++    //    logMessage("No response from BOOTP server");
+     return BootpFatal();
+   }
+ 
+@@ -301,7 +301,7 @@
+     logMessage("In BootpFatal(), errno was %d", errno) ;
+ 
+   if (returniffail) {
+-    logMessage("bootpc failed to locate a network address") ;
++    //    logMessage("bootpc failed to locate a network address") ;
+     return 1 ;
+   }
+ 

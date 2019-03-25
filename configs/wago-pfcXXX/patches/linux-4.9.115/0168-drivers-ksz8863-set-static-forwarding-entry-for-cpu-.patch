@@ -1,0 +1,203 @@
+From df1a4052ba3e662d0d4e8f8eae5c1aec85a51d07 Mon Sep 17 00:00:00 2001
+From: Peter Galka <peter.galka@wago.com>
+Date: Mon, 19 Mar 2018 11:02:38 +0100
+Subject: [PATCH 168/261] drivers: ksz8863: set static forwarding entry for cpu
+ port
+
+---
+ drivers/net/dsa/ksz8863.c     |   4 +-
+ drivers/net/phy/ksz8863-cfg.c | 102 ++++++++++++++++++++++++++++++++++++------
+ include/linux/ksz8863.h       |   1 +
+ 3 files changed, 92 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/net/dsa/ksz8863.c b/drivers/net/dsa/ksz8863.c
+index 878ca5b..51db0c8 100644
+--- a/drivers/net/dsa/ksz8863.c
++++ b/drivers/net/dsa/ksz8863.c
+@@ -141,10 +141,10 @@ static void ksz8863_flush_mac_tables(void)
+ 	ksz8863_nwrite(Port2Control2, &reg_val, 1);
+ 	ksz8863_nwrite(Port3Control2, &reg_val, 1);
+ 
+-	/* flush now dynamic and static mac table */
++	/* flush dynamic mac table */
+         if (ksz8863_nread(GlobalControl0, &reg_val, 1))
+ 		return;
+-	reg_val |= 0x30;
++	reg_val |= 0x20;
+ 	ksz8863_nwrite(GlobalControl0, &reg_val, 1);
+ 
+ 	/*  restore port states */
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index eb39795..b523741 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -59,6 +59,82 @@
+ 
+ #define DFLT_CFG_FLAGS                  KSZ8863_CFG_PWRDOWN_FLAG
+ 
++#define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
++
++struct static_mac_tbl_e {
++        unsigned long long mac:48;
++        unsigned forward_ports:3;
++        unsigned valid:1;
++        unsigned override:1;
++        unsigned use_fid:1;
++        unsigned fid:4;
++} __attribute__((packed));
++
++static u8 host_mac[6] = {0,0,0,0,0,0}; /* own mac address parsed from kernel command line */
++
++static int tbl_nwrite(unsigned table, u16 addr, u8 *buf, unsigned len);
++
++static int cmdline_args_cb(char *param, char *val, const char *unused, void *arg)
++{
++	int m[6];
++
++	if (!strncmp(param, "macaddr", 8)) {
++		if (sscanf(val, MAC_FMT, &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]) != 6)
++			return -1;
++		host_mac[0] = (u8) m[0];
++		host_mac[1] = (u8) m[1];
++		host_mac[2] = (u8) m[2];
++		host_mac[3] = (u8) m[3];
++		host_mac[4] = (u8) m[4];
++		host_mac[5] = (u8) m[5];
++	}
++    return 0;
++}
++
++
++#define KSZ8863_HOST_PORT_MASK (0x4u)
++
++static int ksz8863_set_host_mac(void)
++{
++	struct static_mac_tbl_e e;
++	u8 buf[sizeof(struct static_mac_tbl_e)];
++	int i;
++	u8 *p = (u8*) &e;
++
++	if (host_mac[0] == 0 && host_mac[1] == 0 && host_mac[2] == 0 &&
++		host_mac[3] == 0 && host_mac[4] == 0 && host_mac[5] == 0) {
++		printk("ksz8863: mac address parsing error, static forwarding entry not set\n");
++		return -1;
++	}
++	p[0] = host_mac[5];
++	p[1] = host_mac[4];
++	p[2] = host_mac[3];
++	p[3] = host_mac[2];
++	p[4] = host_mac[1];
++	p[5] = host_mac[0];
++
++	e.forward_ports = KSZ8863_HOST_PORT_MASK;
++	e.valid = 1;
++	e.override = 1;
++	e.use_fid = 0;
++	e.fid = 0;
++
++	pr_info("%s:%d,"MAC_FMT",0x%x,%d,%d,%d,%d\n", __func__,
++	       0,
++	       p[5], p[4], p[3], p[2], p[1], p[0],
++	       e.forward_ports,
++	       e.valid,
++	       e.override,
++	       e.use_fid,
++	       e.fid);
++
++	for (i = 0; i < sizeof(struct static_mac_tbl_e); i++)
++		buf[i] = ((u8 *)&e)[sizeof(struct static_mac_tbl_e) - 1 - i];
++
++	return tbl_nwrite(IAC0_TBL_SEL_STATIC_MAC, 0, buf, sizeof(struct static_mac_tbl_e));
++}
++
++
+ static int ksz8863_soft_reset(void)
+ {
+         u8 v;
+@@ -77,7 +153,11 @@ static int ksz8863_soft_reset(void)
+                         return ret;
+         } while(v & rmask && time_after(time, jiffies));
+ 
+-        return (v & rmask) ? -1 : 0;
++		if (v & rmask)
++			return -1;
++		if (ksz8863_set_host_mac())
++			return -2;
++		return 0;
+ }
+ 
+ static int ksz8863_setup_dflt_cfg(int flags)
+@@ -308,17 +388,6 @@ static int get_dyn_mac_e(unsigned idx, struct dyn_mac_tbl_e *entry)
+         return 0;
+ }
+ 
+-/**
+- * Static MAC Address Table
+- */
+-struct static_mac_tbl_e {
+-        unsigned long long mac:48;
+-        unsigned forward_ports:3;
+-        unsigned valid:1;
+-        unsigned override:1;
+-        unsigned use_fid:1;
+-        unsigned fid:4;
+-} __attribute__((packed));
+ 
+ static int get_static_mac_e(unsigned idx, struct static_mac_tbl_e *entry)
+ {
+@@ -520,7 +589,6 @@ static int ksz8863_sw_get_vlan_table(struct switch_dev *dev,
+         return 0;
+ }
+ 
+-#define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
+ static int ksz8863_sw_get_dynmacs(struct switch_dev *dev,
+                                   const struct switch_attr *attr,
+                                   struct switch_val *val)
+@@ -597,6 +665,7 @@ static int ksz8863_sw_get_staticmacs(struct switch_dev *dev,
+         return 0;
+ }
+ 
++
+ static int ksz8863_sw_set_staticmacs(struct switch_dev *dev,
+ 				     const struct switch_attr *attr,
+ 				     struct switch_val *val)
+@@ -1691,10 +1760,12 @@ static struct switch_dev *ksz8863_of_get_swdev(struct device *dev)
+ 	return ERR_PTR(ret);
+ }
+ 
++
+ static int ksz8863_cfg_probe(struct platform_device *pdev)
+ {
+ 	struct switch_dev *swdev;
+         int err;
++	char *cmdline;
+ 
+ 	if (pdev->dev.of_node) {
+ 		swdev = ksz8863_of_get_swdev(&pdev->dev);
+@@ -1713,6 +1784,11 @@ static int ksz8863_cfg_probe(struct platform_device *pdev)
+ 	pdev->dev.platform_data = swdev;
+ 
+         ksz8863_fns->setup_dflt_cfg = ksz8863_setup_dflt_cfg;
++	ksz8863_fns->set_host_mac = ksz8863_set_host_mac;
++
++	cmdline = kstrdup(saved_command_line, GFP_KERNEL);
++	parse_args("macaddr", cmdline, NULL, 0, 0, 0, NULL, cmdline_args_cb);
++	kfree(cmdline);
+ 
+ 	dev_info(&pdev->dev, "SWCONFIG: %s Driver probed\n", pdev->name);
+ 
+diff --git a/include/linux/ksz8863.h b/include/linux/ksz8863.h
+index c534b9d..dbc5c87 100644
+--- a/include/linux/ksz8863.h
++++ b/include/linux/ksz8863.h
+@@ -41,6 +41,7 @@ struct ksz8863_fns_t {
+         int (*nread)(u8 reg, u8 *rxbuf, int len);
+         int (*nwrite)(u8 reg, u8 *txbuf, int len);
+         int (*setup_dflt_cfg)(int flags);
++        int (*set_host_mac)(void);
+ };
+ extern struct ksz8863_fns_t *ksz8863_fns;
+ 
+-- 
+2.7.4
+

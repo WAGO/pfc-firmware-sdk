@@ -1,0 +1,11 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: WAGO SNMP Abstraction
+Description: WAGO Specific Abstraction for SNMP
+Version: 0.0.1
+Requires: 
+Libs: -L${libdir} -lnetsnmp -lwagosnmp
+Cflags: 

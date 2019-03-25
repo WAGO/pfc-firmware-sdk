@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_dhcpd_config
+#
+# Get configuration of DHCPD server.
+#
+# Author: Hans-Josef Hoffmann
+# $Id: get_dhcpd_config 36657 2019-02-08 13:47:27Z hans-florian.scholz@wago.com $
+#-----------------------------------------------------------------------------#
+
+DHCPD_CONFIG_C="/etc/config-tools/config_dnsmasq_c -d"
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter)
+#--------------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get configuration of DHCPD server *"
+  echo
+  echo "Usage: get_dhcpd_config -p, --port=<port> -g, --get-config [ dhcpd-state ] [ dhcpd-range ] [ dhcpd-lease-time ] [ dhcpd-fix-host ]"
+  echo "Or     get_dhcpd_config -j, --json"
+  echo 
+  echo "JSON data is for all ports"
+  echo
+  exit $SUCCESS
+fi
+
+sudo $DHCPD_CONFIG_C $*

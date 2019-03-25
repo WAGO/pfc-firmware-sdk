@@ -1,0 +1,3 @@
+dnp3=enabled
+iec60870_5_104=enabled
+iec61850_mms=enabled

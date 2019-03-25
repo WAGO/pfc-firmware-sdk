@@ -1,0 +1,51 @@
+--- libmodbus-3.0.5.base/src/modbus-tcp.c	2015-11-03 09:58:49.134948000 +0100
++++ libmodbus-3.0.5/src/modbus-tcp.c	2015-11-03 11:02:45.660052041 +0100
+@@ -1073,43 +1073,11 @@
+ 
+ int _modbus_udp_flush(modbus_t *ctx)
+ {
+-    int rc, flags;
+-    int rc_sum = 0;
+-	modbus_udp_t *ctx_udp = ctx->backend_data;
+-
+-    do {
+-        /* Extract the garbage from the socket */
+-#ifndef OS_WIN32
+-		flags = MSG_TRUNC | MSG_DONTWAIT;
+-		rc = recvfrom(ctx->s, (void *)ctx_udp->data_buf, _MODBUS_UDP_RECV_BUFFER_SIZE, flags, 0, 0);
+-#else
+-        /* On Win32, it's a bit more complicated to not wait */
+-        fd_set rfds;
+-        struct timeval tv;
+-
+-        tv.tv_sec = 0;
+-        tv.tv_usec = 0;
+-        FD_ZERO(&rfds);
+-        FD_SET(ctx->s, &rfds);
+-        rc = select(ctx->s+1, &rfds, NULL, NULL, &tv);
+-        if (rc == -1) {
+-            return -1;
+-        }
+-        if (rc > 0) {
+-            /* There is data to flush */
+-        	flags = MSG_TRUNC;
+-        	rc = recvfrom(ctx->s, (void *)ctx_udp->data_buf, _MODBUS_UDP_RECV_BUFFER_SIZE, flags, 0, 0);
+-        }
+-#endif
+-        if (rc > 0) {
+-            rc_sum += rc;
+-        }
+-    } while (rc >= _MODBUS_UDP_RECV_BUFFER_SIZE);
+-
+-	ctx_udp->data_size = 0;
+-	ctx_udp->data_begin = ctx_udp->data_buf;
+-
+-    return rc_sum;
++  /*Bugfix WAT17353: the socket should not be flushed, maybe there are packets from multiple sources*/
++  modbus_udp_t *ctx_udp = ctx->backend_data;
++  ctx_udp->data_size = 0;
++  ctx_udp->data_begin = ctx_udp->data_buf;
++  return 0;
+ }
+ 
+ int _modbus_udp_select(modbus_t *ctx, fd_set *rfds, struct timeval *tv, int length_to_read)

@@ -1,0 +1,6 @@
+# device description file for pac200
+# format: device; description string for processing; description string for frontend
+
+mmcblk0=sd-card
+mmcblk1=internal-flash-emmc
+mtd8=internal-flash-nand

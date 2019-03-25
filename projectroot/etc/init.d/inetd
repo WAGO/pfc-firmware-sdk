@@ -1,0 +1,61 @@
+#!/bin/sh
+#
+# This is an inetd init.d script which ist called by init(1) with [start|stop] as argument
+#
+
+PATH=/sbin:/bin:/usr/bin:/usr/sbin
+BINARY=/usr/sbin/inetd
+
+# --- nothing to change after this line ---
+
+test -f $BINARY || { echo "$BINARY not found" >&2 ; exit 1; }
+
+start_proc() {
+	echo -n "starting inetd..."
+	$BINARY
+	[[ -d /etc/config-tools/events/tftp/ ]] && run-parts -a start /etc/config-tools/events/tftp/ >/dev/null 2>&1
+	[[ -d /etc/config-tools/events/iocheckport/ ]] && run-parts -a start /etc/config-tools/events/iocheckport/ >/dev/null 2>&1
+	echo "done"
+}
+
+stop_proc() {
+	echo -n "stopping inetd..."
+	[[ -d /etc/config-tools/events/tftp/ ]] && run-parts -a stop /etc/config-tools/events/tftp/ >/dev/null 2>&1
+	[[ -d /etc/config-tools/events/iocheckport/ ]] && run-parts -a stop /etc/config-tools/events/iocheckport/ >/dev/null 2>&1
+	for PID in `pidof inetd`
+	do
+		if [ $$ -ne $PID ]
+		then
+			kill $PID
+		fi
+	done
+	
+	echo "done"
+}
+
+
+case "$1" in
+		start)
+			start_proc
+		;;
+		stop)
+			stop_proc
+			;;
+		restart|force-reload)
+			echo -n "restarting inetd..."
+			stop_proc
+			start_proc
+			echo "done"
+			;;
+		reload)
+			echo "Not supported" >&2
+			exit 1
+			;;
+		*)
+			echo "Usage: $0 {start|stop|restart|force-reload}"
+			exit 1
+			;;
+esac
+
+exit 0
+

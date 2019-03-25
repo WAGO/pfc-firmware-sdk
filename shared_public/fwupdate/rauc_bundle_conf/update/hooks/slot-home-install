@@ -1,0 +1,93 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package rauc_bundle_conf).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   slot-home-install
+#
+# Brief:    WAGO firmware update RAUC hook to migrate the home partition.
+#
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Load needed firmware functionality
+if [ ! -f "$WAGO_ST_DIR/${BOARD_ID}_defines" ]; then
+    echo "Missing dependency ${BOARD_ID}_defines"
+    exit 64
+fi
+source "$WAGO_ST_DIR/${BOARD_ID}_defines"
+if [ ! -f "$WAGO_ST_DIR/${BOARD_ID}_copy_data_emmc_extensions.sh" ]; then
+    echo "Missing dependency ${BOARD_ID}_copy_data_emmc_extensions.sh"
+    exit 64
+fi
+source "$WAGO_ST_DIR/${BOARD_ID}_copy_data_emmc_extensions.sh"
+
+
+# Hook routine called in context of RAUC setup to migrate the home partition.
+# Hint: Process is exited with WAGO_FW_UPDATE_NOT_SUCCESSFUL in case of abort.
+#
+# Log prefix is needed because executable (hooks.sh) does not contain
+# "fwupdate" in name
+#
+# Param 1: Platform type (e.g. 'PFC100', 'PFC200v2', etc.)
+#          Used to migrate the home partition.
+#
+# Return: 0 on success
+#-----------------------------------------------------------------------------#
+function hook_routine
+{
+    local result=0
+
+    if [[ "$($WAGO_CT_DIR/get_filesystem_data active-partition-medium)" == "internal-flash-emmc" ]]; then
+        fwupdate_report_info "Start home migration hook"
+        local new_home=/tmp/fwupdate_new_home
+
+        local device="$(/usr/bin/readlink "/dev/home_inactive")"
+        local label="$(/sbin/blkid | grep "${device}:" | sed -n 's/.*LABEL=\"\(\S\+\)\".*/\1/p')"
+        local index=0
+        local found_label=false
+        for partition_label in "${EMMC_PARTITION_LABELS[@]}"; do
+            if [[ "$partition_label" == "$label" ]]; then
+                 found_label=true
+                 break
+            fi
+            index=$(( $index + 1 ))
+        done
+        if ! $found_label; then
+            result=$INTERNAL_ERROR
+            report_error "Failed to identify inactive home device" "$WAGO_FW_UPDATE_LOG_PREFIX"
+        else
+            local fs_type="${EMMC_PARTITION_FS_TYPES[${index}]}"
+            report_info "Format inactive home device \"$device\" ($fs_type)" "$WAGO_FW_UPDATE_LOG_PREFIX"
+            do_mkfs /dev/home_inactive "$label" "$fs_type"
+        fi
+
+        if [[ $result -eq 0 ]]; then
+            mkdir "$new_home" &&
+                mount -t auto /dev/home_inactive "$new_home" -o sync &&
+                cp -a /home/. ${new_home}/
+            result=$?
+        fi
+
+        umount "$new_home" &&
+            rm -rf "$new_home"
+
+        if [[ $result -eq 0 ]]; then
+            fwupdate_report_info "Migrating home done"
+        else
+            fwupdate_report_warning "Failed to migrate home partition"
+        fi
+    else
+        fwupdate_report_info "No need to migrate home"
+    fi
+
+    return $result
+}

@@ -1,0 +1,8 @@
+## SECTION=wago_specific_libs
+
+config LIBOSAL
+	bool
+	default n
+	prompt "libosal"
+	help
+	  Os Abstraction Layer for Linux.

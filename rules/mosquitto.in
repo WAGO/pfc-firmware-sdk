@@ -1,0 +1,45 @@
+## SECTION=networking
+
+menuconfig MOSQUITTO
+	bool
+	select HOST_CMAKE
+	select OPENSSL
+	select LIBC_PTHREAD
+	prompt "mosquitto"
+	help
+		Eclipse Mosquitto provides a lightweight server implementation of the MQTT protocol that is suitable for all situations from full power machines to embedded and 
+		low power machines. Sensors and actuators, which are often the sources and destinations of MQTT messages, can be very small and lacking in power. 
+		This also applies to the embedded machines to which they are connected, which is where Mosquitto could be run.
+
+#if MOSQUITTO
+
+#TODO: Add mosquitto specific options
+
+#config AZURE_HTTP
+#	bool
+#	default y
+#	prompt "with HTTP support"
+
+#config AZURE_MQTT
+#	bool
+#	default y
+#	prompt "with MQTT support"
+
+#config AZURE_AMQP
+#	bool
+#	default y
+#	prompt "with AMQP support"
+
+#config AZURE_WSIO
+#	bool
+#	prompt "with WebSocket support"
+
+#config AZURE_SAMPLES
+#	bool
+#	prompt "install sample applications"
+
+#endif
+
+
+
+

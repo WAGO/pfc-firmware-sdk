@@ -1,0 +1,29 @@
+## SECTION=wago_specific_libs
+
+menuconfig LIBWIDECPULIMIT
+	bool
+	prompt "cpu limit - watches cpu usage."
+	select PLCLINUXRT
+	select LIBOSLINUX
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select GLIB
+	select LIBCGROUPCPULOAD
+	help
+	  Shared library implementing a cpu usage monitor for the codesys runtime.
+	  Also contains a IEC function block to read the usage.
+
+if LIBWIDECPULIMIT
+ config LIBWIDECPULIMIT_BUILD_CFG_DEBUG_LEVEL
+ 	string "Debug level"
+ 	default "g"
+ 	help
+ 		Sets the debug level used for compilation. Leave empty to use the makefile's default.
+
+ config LIBWIDECPULIMIT_BUILD_CFG_OPTIMIZATION
+ 	string "Optimization level (Os,O0,O1,O2,O3)"
+ 	default "O0"
+ 	help
+ 	  Configures the optimization level used for compilation. Leave it empty to use the makefile's default.
+
+endif

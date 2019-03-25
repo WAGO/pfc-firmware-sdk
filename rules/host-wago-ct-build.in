@@ -1,0 +1,12 @@
+## SECTION=wago_specific
+
+config HOST_CT_BUILD
+  bool
+  select GLIBC
+  select GCCLIBS
+  select VALGRIND
+  select USR_ROOTFS
+  prompt "Cross Toolchain Build"
+  default n
+  help 
+    Cross toolchain build scripts

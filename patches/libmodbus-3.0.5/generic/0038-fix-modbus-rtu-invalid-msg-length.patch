@@ -1,0 +1,97 @@
+Index: libmodbus-3.0.5/src/modbus.c
+===================================================================
+--- libmodbus-3.0.5.orig/src/modbus.c	2017-09-01 09:41:06.293483297 +0000
++++ libmodbus-3.0.5/src/modbus.c	2017-09-01 09:41:06.301483196 +0000
+@@ -2050,6 +2050,7 @@
+         int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rsp_length == -1)
+             return -1;
++        req_length = rc;
+ 
+         rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+@@ -2123,6 +2124,7 @@
+         int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rsp_length == -1)
+             return -1;
++        req_length = rc;
+ 
+         rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+@@ -2209,6 +2211,7 @@
+         int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rsp_length == -1)
+             return -1;
++        req_length = rc;
+ 
+         rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+@@ -2254,6 +2257,7 @@
+             int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+             if (rsp_length == -1)
+                 return -1;
++            req_length = rc;
+ 
+             rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+@@ -2300,6 +2304,7 @@
+             int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+             if (rsp_length == -1)
+                 return -1;
++            req_length = rc;
+ 
+             rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+@@ -2363,6 +2368,7 @@
+             int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+             if (rsp_length == -1)
+                 return -1;
++            req_length = rc;
+ 
+             rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+@@ -2413,6 +2419,7 @@
+             int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+             if (rsp_length == -1)
+                 return -1;
++            req_length = rc;
+ 
+             rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+@@ -2477,6 +2484,7 @@
+         int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rsp_length == -1)
+             return -1;
++        req_length = rc;
+ 
+         rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+@@ -2551,6 +2559,7 @@
+         rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rsp_length == -1)
+             return -1;
++        req_length = rc;
+ 
+         rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+@@ -2603,6 +2612,7 @@
+         int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rsp_length == -1)
+             return -1;
++        req_length = rc;
+ 
+         rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+Index: libmodbus-3.0.5/configure.ac
+===================================================================
+--- libmodbus-3.0.5.orig/configure.ac	2017-09-01 11:33:59.787976751 +0000
++++ libmodbus-3.0.5/configure.ac	2017-09-01 11:35:42.094690625 +0000
+@@ -41,7 +41,7 @@
+ # ABI version
+ # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+ LIBMODBUS_LD_CURRENT=750
+-LIBMODBUS_LD_REVISION=37
++LIBMODBUS_LD_REVISION=38
+ LIBMODBUS_LD_AGE=0
+ LIBMODBUS_LT_VERSION_INFO=$LIBMODBUS_LD_CURRENT:$LIBMODBUS_LD_REVISION:$LIBMODBUS_LD_AGE
+ AC_SUBST(LIBMODBUS_LT_VERSION_INFO)

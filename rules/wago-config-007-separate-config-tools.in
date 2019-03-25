@@ -1,0 +1,11 @@
+## SECTION=wago_specific_config
+
+# This section lists config-tools not part of the config-tool-suite to provide a fine-grained selection of packages.
+
+comment "------------------------------------"
+comment "Separate Config-Tools"
+
+source "generated/separated_config_tools.in"
+
+comment "------------------------------------"
+

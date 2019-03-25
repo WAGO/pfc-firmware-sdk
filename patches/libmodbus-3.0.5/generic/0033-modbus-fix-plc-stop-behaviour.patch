@@ -1,0 +1,83 @@
+--- libmodbus-3.0.5.base/src/modbus.h	2016-05-19 12:36:22.049369747 +0200
++++ libmodbus-3.0.5/src/modbus.h	2016-05-19 12:42:04.649366068 +0200
+@@ -217,7 +217,7 @@
+ int modbus_reply_exception2(modbus_t *ctx, const uint8_t *req,
+                            unsigned int exception_code,
+                            int *reply_filtered);
+-void modbus_set_alternate_data(modbus_t *ctx, int enabled, uint8_t value);
++void modbus_set_alternate_data(modbus_t *ctx, uint8_t value);
+ int modbus_is_multicast(modbus_t *ctx);
+ void modbus_set_response_delay(uint16_t value);
+ int modbus_filter_request(modbus_t *ctx, const uint8_t *req);
+--- libmodbus-3.0.5.base/src/modbus.c	2016-05-19 12:36:22.053369747 +0200
++++ libmodbus-3.0.5/src/modbus.c	2016-05-19 12:44:44.905364347 +0200
+@@ -59,9 +59,9 @@
+     _STEP_DATA
+ } _step_t;
+ 
+-void modbus_set_alternate_data(modbus_t *ctx, int enabled, uint8_t value)
++void modbus_set_alternate_data(modbus_t *ctx, uint8_t value)
+ {
+-  ctx->alternate_data_enabled = enabled;
++  ctx->alternate_data_enabled = TRUE;
+   ctx->alternate_data_value = value;
+ }
+ 
+@@ -1368,6 +1368,7 @@
+             } else {
+                 modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
++                ctx->alternate_data_enabled = FALSE;
+             }
+         }
+     }
+@@ -1406,6 +1407,7 @@
+             } else {
+                 modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
++                ctx->alternate_data_enabled = FALSE;
+             }
+         }
+     }
+@@ -1445,6 +1447,7 @@
+             } else {
+                 modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
++                ctx->alternate_data_enabled = FALSE;
+             }
+         }
+     }
+@@ -1486,6 +1489,7 @@
+             } else {
+                 modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
++                ctx->alternate_data_enabled = FALSE;
+             }
+         }
+     }
+@@ -1709,6 +1713,7 @@
+             } else {
+                 modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
++                ctx->alternate_data_enabled = FALSE;
+             }
+         }
+     }
+@@ -1749,6 +1754,7 @@
+             } else {
+                 modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
++                ctx->alternate_data_enabled = FALSE;
+             }
+         }
+     }
+--- libmodbus-3.0.5.base/configure.ac	2016-05-19 12:36:22.053369747 +0200
++++ libmodbus-3.0.5/configure.ac	2016-05-19 12:46:32.241361360 +0200
+@@ -42,7 +42,7 @@
+ # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+ LIBMODBUS_LD_CURRENT=750
+-LIBMODBUS_LD_REVISION=0
++LIBMODBUS_LD_REVISION=33
+ LIBMODBUS_LD_AGE=0
+ LIBMODBUS_LT_VERSION_INFO=$LIBMODBUS_LD_CURRENT:$LIBMODBUS_LD_REVISION:$LIBMODBUS_LD_AGE
+ AC_SUBST(LIBMODBUS_LT_VERSION_INFO)

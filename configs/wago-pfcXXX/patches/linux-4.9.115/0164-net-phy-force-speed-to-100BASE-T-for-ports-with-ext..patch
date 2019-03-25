@@ -1,0 +1,158 @@
+From 5352b41e0996215a10bfb856ed1b06a843a5d468 Mon Sep 17 00:00:00 2001
+From: "Schmidt, Andreas" <Andreas.Schmidt@wago.com>
+Date: Mon, 19 Mar 2018 10:48:03 +0000
+Subject: [PATCH 164/261] net:phy: force speed to 100BASE-T for ports with ext.
+ phys
+
+The max. allowed speed for ports with external phy on
+mv88e6321 switch is 100 BASE-T. This patch force the
+speed to 100 BASE-T for both ports.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/mv88e6321-cfg.c | 121 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 109 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index a486607..2319dd8 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -127,6 +127,107 @@ static inline int mv88e6321_sw_reset(struct switch_dev *dev)
+         return mv88e6321_soft_reset();
+ }
+ 
++
++static int mv88e6321_sw_force_speed_external_phys(struct switch_dev *dev,
++						  int ext_phy_addr)
++{
++	u16 reg_val;
++	int ret;
++
++	mutex_lock(&global_chip->reg_lock);
++
++	/* 1.     PHY Register 0x00 bit[11] = 1 Power Down */
++	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0,
++					&reg_val);
++	if (ret < 0)
++		goto out;
++
++	reg_val |= BIT(11);
++	ret = global_chip->info->ops->phy_write(global_chip, ext_phy_addr, 0,
++					reg_val);
++	if (ret < 0)
++		goto out;
++
++	/* 2.     PHY Register 0x09 bit[9:8] = 00 Disable 1000BASE-T */
++	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0x09,
++					&reg_val);
++	if (ret < 0)
++		goto out;
++
++	reg_val &= ~(3UL<<8);
++	ret = global_chip->info->ops->phy_write(global_chip, ext_phy_addr, 0x09,
++					reg_val);
++	if (ret < 0)
++		goto out;
++
++	/* 3. Switch Register Port Status 0x00 bit 12=0 PHY Detect */
++	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr + 0x10,
++					       0, &reg_val);
++	if (ret < 0)
++		goto out;
++
++	reg_val &= ~BIT(12);
++	ret = global_chip->info->ops->phy_write(global_chip,
++						ext_phy_addr + 0x10,
++						0, reg_val);
++	if (ret < 0)
++		goto out;
++
++	/* 4. Switch Register Port Control 0x01 - ForceSpeed bit[1:0] = 0xb01 */
++	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr + 0x10,
++					       0x01, &reg_val);
++	if (ret < 0)
++		goto out;
++
++	reg_val &= ~(PORT_PCS_CTRL_100<<1);
++	ret = global_chip->info->ops->phy_write(global_chip,
++						ext_phy_addr + 0x10,
++						0x01, reg_val);
++	if (ret < 0)
++		goto out;
++
++	/* 5. Switch Register Port Status 0x00 bit 12=1 PHY Detect */
++	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr + 0x10,
++					       0, &reg_val);
++	if (ret < 0)
++		goto out;
++
++	reg_val |= BIT(12);
++	ret = global_chip->info->ops->phy_write(global_chip,
++						ext_phy_addr + 0x10,
++						0, reg_val);
++	if (ret < 0)
++		goto out;
++
++
++	/* 6.     PHY Register 0x00 bit[9] = 1 Restart Auto Negotiation */
++	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0,
++					&reg_val);
++	if (ret < 0)
++		goto out;
++
++	reg_val |= BIT(9);
++	ret = global_chip->info->ops->phy_write(global_chip, ext_phy_addr, 0,
++					reg_val);
++	if (ret < 0)
++		goto out;
++
++	/* 7.     PHY Register 0x00 bit[11] = 0 Power Down */
++	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0,
++					&reg_val);
++	if (ret < 0)
++		goto out;
++
++	reg_val &= ~BIT(11);
++	ret = global_chip->info->ops->phy_write(global_chip, ext_phy_addr, 0,
++					reg_val);
++out:
++	mutex_unlock(&global_chip->reg_lock);
++
++	return ret;
++}
++
++
+ static int mv88e6321_sw_force_speed_internal_phys(struct switch_dev *dev,
+ 						int int_phy_addr)
+ {
+@@ -192,19 +293,15 @@ static int mv88e6321_sw_setup_dflt_cfg(struct switch_dev *dev,
+ {
+ 	int ret, i;
+ 
+-	/* set PHY-detect bit for external PHYs */
+-	for (i = 0; i < 2; ++i) {
+-		u16 reg_val = 0;
+-
+-		ret = mdiobus_read(dev->mii_bus, MV88E6321_SW_PORT0_REG + i, 0x0);
+-		if (ret < 0)
+-			return ret;
++	ret = mv88e6321_sw_force_speed_external_phys(dev,
++						MV88E6321_EXTERNAL_PHY0);
++	if (ret < 0)
++		return ret;
+ 
+-		reg_val = (u16)(ret | 0x1000);
+-		ret = mdiobus_write(dev->mii_bus, MV88E6321_SW_PORT0_REG + i, 0x0, reg_val);
+-		if (ret)
+-			return ret;
+-	}
++	ret = mv88e6321_sw_force_speed_external_phys(dev,
++						MV88E6321_EXTERNAL_PHY1);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = mv88e6321_sw_force_speed_internal_phys(dev,
+ 						MV88E6321_INTERNAL_PHY3);
+-- 
+2.7.4
+

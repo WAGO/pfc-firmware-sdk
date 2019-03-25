@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# codesys_screen
+#
+case $1 in
+
+    start)
+
+	# We have to call /etc/init.d/codesys within the new screen window to avoid
+	# getting lost of the environment setup when starting codesys.
+	# /etc/init.d/codesys is manipulated by config-tools (WBM) so we keep the path unchanged.
+	# In future we should move all environment setup into separate config files.
+	echo "Attatching new screen window #2 to session 'wago'..."
+	screen -S wago -X screen -t PLC 2 /etc/init.d/codesys
+        ;;
+
+    stop)
+
+	/etc/init.d/codesys stop
+	;;
+
+esac

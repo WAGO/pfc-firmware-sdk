@@ -1,0 +1,107 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2014-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   pfcXXX_defines
+#
+# Brief:    Common defines for pfcXXX_* scripts. No behavior change if sourcing
+#           this file.
+#
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+source /etc/config-tools/config_tool_lib
+
+# MLO/Barebox configuration
+G_MLO_FILE_BASE=/boot/loader/mlo
+G_BAREBOX_FILE_BASE=/boot/loader/barebox.bin
+
+G_MLO_DEV0=/dev/mtd0
+G_MLO_DEV1=/dev/mtd1
+G_MLO_DEV2=/dev/mtd2
+G_MLO_DEV3=/dev/mtd3
+
+mlo_device_list=(${G_MLO_DEV0} ${G_MLO_DEV1} ${G_MLO_DEV2} ${G_MLO_DEV3})
+
+G_BAREBOX_DEV0=/dev/mtd4
+G_BAREBOX_DEV1=/dev/mtd5
+G_BAREBOX_DEV2=/dev/mtd6
+G_BAREBOX_DEV3=/dev/mtd7
+
+barebox_device_list=(${G_BAREBOX_DEV0} ${G_BAREBOX_DEV1} ${G_BAREBOX_DEV2} ${G_BAREBOX_DEV3})
+
+G_UBIFS_MTD_DEV_NR=8
+G_UBIFS_MTD_DEV=/dev/mtd${G_UBIFS_MTD_DEV_NR}
+G_UBIFS_ROOT_ID=ubi0
+
+G_UBIFS_ROOT1_VOL=${G_UBIFS_ROOT_ID}_0
+G_UBIFS_ROOT1_DEV=/dev/$G_UBIFS_ROOT1_VOL
+G_UBIFS_ROOT1_LABEL="rootfs.1"
+G_UBIFS_ROOT1_SIZE_LEB=730
+
+G_UBIFS_HOME_VOL=${G_UBIFS_ROOT_ID}_1
+G_UBIFS_HOME_DEV=/dev/$G_UBIFS_HOME_VOL
+G_UBIFS_HOME_LABEL="home"
+G_UBIFS_HOME_SIZE_LEB=522
+
+G_UBIFS_ROOT2_VOL=${G_UBIFS_ROOT_ID}_2
+G_UBIFS_ROOT2_DEV=/dev/$G_UBIFS_ROOT2_VOL
+G_UBIFS_ROOT2_LABEL="rootfs.2"
+G_UBIFS_ROOT2_SIZE_LEB=730    # Size: (don't care -> will take the rest of the LABs)
+
+ubifs_volume_numbers=(0                         1                        2)
+ubifs_volume_labels=( ${G_UBIFS_ROOT1_LABEL}    ${G_UBIFS_HOME_LABEL}    ${G_UBIFS_ROOT2_LABEL})
+ubifs_volume_sizes=(  ${G_UBIFS_ROOT1_SIZE_LEB} ${G_UBIFS_HOME_SIZE_LEB} ${G_UBIFS_ROOT2_SIZE_LEB})
+ubifs_volume_devices=("ubi0_0"                  "ubi0_1"                 "ubi0_2")
+
+# SD card layout
+G_PART_ALIGNMENT_MB=8
+G_BOOT_PART_SIZE_MB=16
+
+G_SD_BOOT_DEV=/dev/mmcblk0p1
+G_SD_ROOT_DEV=/dev/mmcblk0p2
+
+# EMMC layout (in addition to the SD alignment above)
+# Note! Use space " ", not empty string "", in SIZEs and FS_TYPEs if no value specified!
+EMMC_PARTITION_LABELS=(  "boot"          ""          "log_backup" "settings"  "rootfs.1"   "home1"     "home2"      "rootfs.2"   "reserved")
+EMMC_PARTITION_SIZES=(   16              " "         7            7           303          1535        1535         303          " ")
+EMMC_PARTITION_DEVICES=( "mmcblk1p1"     ""          "mmcblk1p5"  "mmcblk1p6" "mmcblk1p7"  "mmcblk1p8" "mmcblk1p9"  "mmcblk1p10" "")
+ 
+# sfdisk format: b=DOS, L=Linux, E=Extended
+EMMC_PARTITION_TYPES=(   "b"             "E"        "L"           "L"        "L"           "L"         "L"          "L"          "L")
+EMMC_PARTITION_FS_TYPES=("vfat"          " "        "ext4"        "ext4"     "ext4"        "ext4"      "ext4"       "ext4"       " ")
+EMMC_PARTITION_MOUNTPTS=("/boot/loader"  ""         ""            ""         "/"           "/home"     ""           ""           "")
+
+G_EMMC_BOOT_DEV=/dev/mmcblk1p1
+G_EMMC_ROOT1_DEV=/dev/mmcblk1p7
+G_EMMC_ROOT2_DEV=/dev/mmcblk1p10
+
+# Devices with a partition having this label are ignored by the automount
+# mechanism
+VFAT_OPTIONS=("-i 7761676F")
+
+# -j: add journal
+# -i: set time intervall before auto-fsck
+# -c: set mount count before auto-fsck
+#
+# Setting them to 0 disables auto-fsck altogether
+EXT3_OPTIONS=("-i 0" "-c 0" "-j")
+# ext4 already has a journal by default
+EXT4_OPTIONS=("-i 0" "-c 0")
+
+G_BOOT_MODE_FILE=/sys/class/wago/system/boot_mode
+G_BOOT_MODE_KERNEL0=default
+G_BOOT_MODE_KERNEL1=recover
+
+G_ETH_PORT0_LABEL="X2"
+G_ETH_PORT1_LABEL="X1"
+
+DO_PRINT_DBG=yes

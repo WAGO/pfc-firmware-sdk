@@ -1,0 +1,39 @@
+/***************************************************************************************/
+/**
+ * @mainpage OSAL LINUX Software Manual
+ *
+ * @image html wagologo.jpg
+ * @htmlinclude impress.html
+ *
+ * @section section_intro Introduction
+ *
+ * This Manual describes the source code of the OSAL LINUX component. The component
+ * specifies the Operating System Abstraction Layer (OSAL) for the LINUX operating
+ * system. It provides the complete documentation of the component's internals as
+ * well as the detailed descriptions of the functions and structures exported to
+ * programmers such the application interface.
+ *
+ * For more information about this software component follow the links at the bottom of
+ * this page or the tree control on the left side.
+ *
+ * @image html osal.jpg
+ *
+ * @section section_purpose Purpose
+ *
+ * The purpose of the manual is to provide a comprehensive description of the component
+ * software. The main section of this documentation focuses on the application interface
+ * of the OSAL.
+ *
+ * @section section_functionality Functionality
+ *
+ * To integrate the LINUX OSAL into your software application the following files are
+ * needed:
+ *      \arg libosal.a - the library file containing the compiled source code of the OSAL
+ *      \arg os_api.h  - the interface header containing the application interface of the 
+ *                       OSAL including standard defines (packaging, memory models, ...)
+ *                       Macros and function prototypes.
+ */
+
+
+/****************************************************************************************/
+/* end of source */

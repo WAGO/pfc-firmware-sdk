@@ -1,0 +1,557 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: cbm 
+#
+# Menu-controlled script to configure a coupler over console.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+TITLE="WAGO Console Based Management Tool"
+
+#DEBUG="yes"
+
+function exit_handler
+{
+  set +e; 
+  set +u; 
+  local last_cmd=${BASH_COMMAND}
+  if [[ "${last_cmd}" != "exit 0" ]]; then
+    echo Error executing \"${last_cmd}\" \(${BASH_SOURCE[1]}\:\:${FUNCNAME[1]}\(\)\) >> ./ERRORS; 
+    clear; 
+    cat ./ERRORS;
+    rm -f ./ERRORS
+  fi
+}
+
+if [[ -n "${DEBUG}" ]]; then
+
+  set -o errexit # abort if any command returns a non-0 value
+  set -o nounset # abort if an unset variable is evaluated
+
+  exec 2> ERRORS
+
+  # With errexit set, the script is aborted as soon as any command returns
+  # anything but 0. In this case, the trap handler is called that appends the
+  # command, the file and the function where the error appeared to a file called
+  # ERRORS. 
+  # Unfortuantely, the LINENO variable is set file-wide, so that after
+  # leaving the sourced script we cannot determine the line where the error
+  # occured.  
+
+  trap 'exit_handler' EXIT
+  #trap 'echo ${BASH_SOURCE[0]} ${FUNCNAME[0]} > ERRORS' EXIT
+
+fi
+###############################################################################
+
+# load general definitions and functions
+if [ ! -f "config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. config_tool_lib
+
+ERROR=-1
+
+errorText=""
+
+# new defines for XML-controlled version
+
+__LOCAL_SUSE=${__LOCAL_SUSE-"no"}
+
+if [[ "${__LOCAL_SUSE}" == "yes" ]]; then
+  XMLSTARLET=$(which 2> /dev/null xml)
+  CONFIG_FILE="./frontend_config_cbm.xml"
+  SUBMENU_DIR="./cbm-script-modules"
+else
+  XMLSTARLET=$(which 2> /dev/null xmlstarlet)
+  CONFIG_FILE="/etc/config-tools/frontend_config_cbm.xml"
+  SUBMENU_DIR="/etc/config-tools/cbm-script-modules"
+fi
+
+function ReplaceSpaces
+#
+# Mask (replace) the spaces in a specified string with the '+' character, like it is handled in an html-request.
+# This is necessairy to call the config-tools with strings including spaces.
+#
+{
+  local inString=$*
+  outString=`echo $inString | sed 's/ /+/g'`
+  printf $outString
+}
+
+
+function ShowLastError
+#
+# Show a window with the error-text of the last occured error, if there exists one
+#
+{
+  # if error-file is existing, read error-text, show it and delete error-file
+  if [ -f $LAST_ERROR_FILENAME ]; then
+
+    errorText=`cat $LAST_ERROR_FILENAME`
+
+    # replace linefeeds in error-text with tab as seperator, to let the output-window split it in several lines
+    ifsBackup=$IFS
+    IFS=$'\t'
+
+    # write the several lines of error-text one by one in a new string with the new seperator
+    # it is impossible to do that with a single simple sed-command - sed works incorrect here an does not replace the character '\n'
+    lineCount=`echo $errorText | wc -l`
+    actualLineNr=1
+    newErrorText=""
+    while (( "$actualLineNr" <= "$lineCount" )); do
+      line=`echo $errorText | sed -n ''$actualLineNr'p'`
+      newErrorText=`printf "%s%s$IFS" "$newErrorText" "$line"`
+      actualLineNr=$(($actualLineNr + 1))
+    done
+
+    ./wdialog "--msgbox" "$TITLE" "Error" " " $newErrorText " "
+    IFS=$ifsBackup
+
+    rm $LAST_ERROR_FILENAME
+  fi
+}
+
+
+function GetPartitionMediumOutputText
+#
+# Get text for device medium for output on screen
+#
+{
+  partitionMedium=$1
+  outputText=""
+
+  case "$partitionMedium" in
+    
+    "$CF_CARD")              outputText="CF Card";; 
+    "$SD_CARD")              outputText="SD Card";; 
+    "$INTERNAL_FLASH")       outputText="Internal Flash";;
+    "$INTERNAL_FLASH_NAND")  outputText="Internal Flash";;
+    "$INTERNAL_FLASH_EMMC")  outputText="Internal Flash";;
+    "$USB_1")                outputText="USB1";;
+    "$USB_2")                outputText="USB2";;
+    "$USB_3")                outputText="USB3";;
+    "$USB_4")                outputText="USB4";;
+    "$USB_5")                outputText="USB5";;
+    "$USB_6")                outputText="USB6";;
+    "$USB_7")                outputText="USB7";;
+    "$USB_8")                outputText="USB8";;
+    *)                       outputText="Medium unknown";;
+    
+  esac
+  
+  echo "$outputText"
+}
+
+function ShowProcessingDataWindow
+#
+# Show a window that the coupler is processing
+#
+{
+  ./wdialog "--infobox" "$TITLE" "$@" " "  "Processing Data..."  " "
+}
+
+function ShowEvaluateDataWindow
+#
+# Show a window that the coupler is reading data
+#
+{
+  ./wdialog "--infobox" "$TITLE" "$@" " "  "Evaluating Data..."  " "
+}
+
+function CheckXMLStarletVersion
+#
+# Evaluate the XMLStarlet version to work around a quotes parsing bug:
+#
+# Until v1.0.4, xmlstarlet fails to interpret '"'-enclosed strings in xpath
+# queries.  The workaround is to use &quot; notation which in turn doesn't work
+# with newer xmlstarlet versions.
+#
+# 
+# TODO: production version will have a new xmlstarlet version => this is only
+# for testing on SuSE and has to be removed later!
+#
+
+#
+{
+  local XMLStarletVersionString=$(${XMLSTARLET} --version | grep '^[0-9]*\.[0-9]*\.[0-9]*')
+  local major=$(echo ${XMLStarletVersionString} | sed 's+\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)+\1+')
+  local minor=$(echo ${XMLStarletVersionString} | sed 's+\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)+\2+')
+  local patch=$(echo ${XMLStarletVersionString} | sed 's+\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)+\3+')
+
+  # Note: global vars!
+  __XMLStarlet_QUOTE='&quot;'
+  __XMLStarlet_QUOTE_ESC='&quot;' # BUGME: do we really need it?
+
+  if [[ $(( ${major}*100 + ${minor}*10 + ${patch})) -ge 104 ]]; then
+    __XMLStarlet_QUOTE='"'
+    __XMLStarlet_QUOTE_ESC='\"' # BUGME: do we really need it?
+  fi
+}
+
+function Quoted
+{
+  return ${__XMLStarlet_QUOTE}${1}${__XMLStarlet_QUOTE}
+}
+
+#
+#  'set -o errexit' is set globally. wdialog --menu/--inputbox returns non-0
+#  values to signal which menu option has been chosen. WdialogWrapper
+#  resets errexit option and sets it again after wdialog returns.  The first
+#  argument has to be the one where the return value is stored, i.e. selection.
+#
+
+function GetParentMenuName
+{
+    local selfname=$1
+    QUOTED_SELF_NAME=${__XMLStarlet_QUOTE}$(basename ${selfname})${__XMLStarlet_QUOTE}
+    echo $(${XMLSTARLET} sel -t -m "//simple_level[@ressource = ${QUOTED_SELF_NAME}]/.." -v "@text" ${CONFIG_FILE})
+}
+
+function GetSelfMenuName
+{
+    local selfname=$1
+    QUOTED_SELF_NAME=${__XMLStarlet_QUOTE}$(basename ${selfname})${__XMLStarlet_QUOTE}
+    echo $(${XMLSTARLET} sel -t -m "//simple_level[@ressource = ${QUOTED_SELF_NAME}]" -v "@text" ${CONFIG_FILE})
+}
+
+function WdialogWrapper
+{
+  local mode=$1
+  __resultvar=$2
+  shift 2
+
+  [[ -n "${DEBUG}" ]] && set +e
+  ./wdialog ${mode} "$@" 
+  local result=$?
+  [[ -n "${DEBUG}" ]] && set -e
+
+  eval $__resultvar="'$result'"
+}
+
+function ShowGenericMenu
+{
+  local menu_name=$1 # is only used to see if we build the main menu which is handled differently
+
+  local menu_ressource=${2:-"main.sh"} # Dummy
+  local menu_ressource_quoted=${__XMLStarlet_QUOTE}${menu_ressource}${__XMLStarlet_QUOTE}
+
+  # currently, the only known option is 
+  # "show_once": return to upper layer after the action the user chose has been carried out
+  local option=${2:-""}
+
+  local forced_parent=${3:-""}
+
+  local menu_entry_back
+  
+  local menu_lines_list
+  # Each entry has the form 'bla.sh bla_state.sh' (if bla_state.sh exists)
+  local menu_scripts_list
+
+  local entry_cnt=0
+  local quit="$FALSE"
+
+  local selection
+
+  local menu_lines_array
+  local menu_scripts_array
+
+  local menu_titles_array
+  local state_scripts_array
+
+  # Build ':'-separated lists of menu lines and sub-script/state script names.
+  
+  # Main menu is handled differently in that only top-level lines are evaluated;
+  # first menu line is "Quit" instead of "Back"
+  
+  case $menu_name in
+    "Main"|"Main Menu")
+      menu_entry_back="Quit"
+      
+      menu_lines_list=$(${XMLSTARLET} sel -t -m "/configtool_config/frontend/simple_level" -v "@text" -o ":" ${CONFIG_FILE})
+      menu_scripts_list=$(${XMLSTARLET} sel -t -m "/configtool_config/frontend/simple_level" \
+                                               -v "@ressource" -i "@dyn_state_ressource" -o '@' -v "@dyn_state_ressource" -b -o ":" ${CONFIG_FILE})
+
+    ;;
+    *)
+      local parent=
+      if [[ "$forced_parent" != "" ]]; then
+          parent=$forced_parent
+      else
+        # NOTE: @ressource is unique; @text isn't!
+        parent=$(${XMLSTARLET} sel -t -m "//simple_level[@ressource = ${menu_ressource_quoted}]/.." -v "@text" ${CONFIG_FILE})
+      fi
+      menu_name=$(${XMLSTARLET} sel -t -m "//simple_level[@ressource = ${menu_ressource_quoted}]" -v "@text" ${CONFIG_FILE})
+
+      if [[ "$parent" == "" ]]; then
+        menu_entry_back="Back to Main Menu"
+      else
+        menu_entry_back="Back to $parent Menu"
+      fi
+
+      menu_lines_list=$(${XMLSTARLET} sel -t -m "//simple_level[@ressource=${menu_ressource_quoted}]/simple_level" -v "@text" -o ":" ${CONFIG_FILE})
+      menu_scripts_list=$(${XMLSTARLET} sel -t -m "//simple_level[@ressource=${menu_ressource_quoted}]/simple_level" \
+                                               -v "@ressource" -i "@dyn_state_ressource" -o '@' -v "@dyn_state_ressource" -b -o ":" ${CONFIG_FILE})
+
+    ;;
+  esac
+
+  menu_lines_array[0]="0. ${menu_entry_back}"
+  menu_scripts_array[0]="dummy_fn"
+  state_scripts_array[0]=""
+
+  # first put the script modules for each line to the array so that we can
+  # reference them after the user makes his choice
+
+  local ifsBackup=$IFS
+  
+  entry_cnt=1
+  IFS=":"
+  for entry in ${menu_scripts_list}; do
+    menu_scripts_array[${entry_cnt}]="${SUBMENU_DIR}/"${entry};
+    entry_cnt=$((${entry_cnt}+1));
+  done
+  IFS=${ifsBackup}
+
+  # now separate menu_lines_list tuples (main_script@state_script) into different arrays
+
+  entry_cnt=1
+  IFS=":"
+  for entry in ${menu_scripts_list}; do
+
+    case "${entry}" in
+      *@*)
+        menu_scripts_array[${entry_cnt}]=${SUBMENU_DIR}/${entry%%@*}; # cut everything after '@'
+        state_scripts_array[${entry_cnt}]=${SUBMENU_DIR}/${entry##*@}; # cut everything before '@'
+        ;;
+        *)
+        menu_scripts_array[${entry_cnt}]=${SUBMENU_DIR}/${entry};
+        state_scripts_array[${entry_cnt}]=""
+        ;;
+    esac
+
+    entry_cnt=$((${entry_cnt}+1));
+  done
+  IFS=${ifsBackup}
+ 
+  # create static menu lines
+
+  IFS=":"
+
+  entry_cnt=1
+  for entry in ${menu_lines_list}; do
+    
+    if [[ "" == "${state_scripts_array[${entry_cnt}]}" ]]; then
+      menu_lines_array[${entry_cnt}]="${entry_cnt}. ${entry}";
+    else
+      menu_lines_array[${entry_cnt}]=""
+    fi
+
+    entry_cnt=$((${entry_cnt}+1));
+
+  done
+  IFS=${ifsBackup}
+
+  while [ "${quit}" = "$FALSE" ]; do
+    
+    # we have to rebuild the menu lines each time because of the dynamic lines,
+    # i.e. Telnet....enabled
+    local ifsBackup=$IFS
+    IFS=":"
+  
+    local state=""
+    entry_cnt=1
+    local state_script=""
+    for entry in ${menu_lines_list}; do
+      # Dynamic lines have mini-scripts defined to compute the dynamic part.
+      # These mini-scripts are set in the XML config as dyn_state_ressource
+      # attributes.  We have to look for these attributes, source them and append
+      # the result to the line if available
+    
+      state_script=${state_scripts_array[${entry_cnt}]}
+      if [[ "${state_script}" != "" ]]; then
+        state=$(source ${state_script})
+      fi
+
+      menu_lines_array[${entry_cnt}]="${entry_cnt}. ${entry}${state}";
+
+      state="" 
+      entry_cnt=$((${entry_cnt}+1));
+    done
+    IFS=${ifsBackup}
+
+    # show the menu
+
+    WdialogWrapper "--menu" selection "${TITLE}" "${menu_name}" "${menu_lines_array[@]}"
+
+    # evaluate the user's choice
+
+    if [ ${selection} -eq 0 ]; then
+      quit="$TRUE";
+    elif [ ${selection} -lt ${#menu_scripts_array[@]} ]; then
+      source ${menu_scripts_array[$selection]};
+    else
+      quit="$TRUE";
+      errorText="Error in wdialog" 
+    fi
+
+    case "$option" in
+      show_once)
+        quit="$TRUE";;
+    esac
+
+  done
+
+}
+
+# Join all not empty values in an array into one string
+# Input:  $1 = array name $2 = delimiter
+# Output: String on stdout.
+
+function ct_array_join
+{
+  local aname="$1[@]"
+  local delim=$2
+  local result=""  
+  local item
+
+  for item in ${!aname}; do
+    if [ -n "$item" ]; then
+      if [ -n "$result" ]; then
+        result="$result$delim$item"
+      else
+        result="$item"
+      fi
+    fi
+  done
+  echo $result
+}
+
+# Get an array item from true index $2 not using $2 as array subscript.
+# Input:  $1 = array name, $2 = index
+# Output: String on stdout.
+
+function ct_array_item_by_index
+{
+  local aname="$1[@]"
+  local search=$2
+  local item
+  local index=0
+  local result=""
+
+  for item in ${!aname}; do
+    if [ $index -eq $search ]; then
+      result=$item
+      break
+    fi
+    index=$(($index + 1))
+  done
+  echo $result
+}
+
+# Generic function to edit/delete a variable menu entry value.
+# input: $1 = Number of the selected array item, starting from 0.
+#        Expects array varMenuValueList with list of values.
+#        Requires the following text variables set:
+#               editSubmenuHeading  = Title of the submenu
+#               editHeading         = Title of the edit menu
+#               editField           = Header above the edit field
+#               editFieldLength     = Edit field length, max 66 characters
+# Example of usage in cbm-script-modules/port_dns.sh
+
+function MenuItemEdit
+{
+    local itemIndex=$1
+    local arrayIndex=0
+    local item
+    local selectedValue=""
+
+    # get the selected value.
+    selectedValue=$(ct_array_item_by_index varMenuValueList $itemIndex)
+
+    if [ -n "$selectedValue" ]; then
+        # loop until user wants to go back to previous menu or item was deleted.
+        local quit=$FALSE
+        local selection
+        while [ "$quit" = "$FALSE" ]; do
+            WdialogWrapper "--menu" selection \
+                "$TITLE" \
+                "$editSubmenuHeading $selectedValue" \
+                "0. Back to previous Menu" \
+                "1. Edit" \
+                "2. Delete"
+
+            # analyse user selection and do according processing
+            case "$selection" in
+                0)  # Quit was selected -> end loop and get back to superior menu
+                    quit=$TRUE;;
+
+                1)  # Edit was selected -> show input-box to edit the current value.
+                    WdialogWrapper "--inputbox" retUnused "$TITLE" "$editHeading" \
+                        "$editField" $editFieldLength $selectedValue 2> temp
+                    newSelectedValue=`cat temp`
+                    rm temp
+            
+                    # if new value was given - change it in array varMenuValueList.
+                    if [ -n "$newSelectedValue" ] && [ "$newSelectedValue" != "$selectedValue" ]; then
+                        MenuListChange "$selectedValue" "$newSelectedValue"
+                        selectedValue=$newSelectedValue
+                    fi
+                    ;;
+
+                2)  # Delete was selected - delete item in array varMenuValueList.
+                    # Return immediately to upper menu
+                    MenuListChange "$selectedValue" ""
+                    quit=$TRUE
+                    ;;
+
+                *)  errorText="Error in wdialog"
+                    quit=TRUE;;
+            esac
+        done
+    fi
+} # end of MenuItemEdit
+
+#-------------- main-programm ------------------------
+
+# abort if not run as root or admin
+if [[ "$(id -u)" != "0" ]] && \
+   [[ "$(id -nu)" != "admin" ]]; then
+  echo "$0 must be run as root"
+  exit 1
+fi
+
+# TODO: move to a start script
+# Suppress kernel info messages on console
+CONSOLE_MSG_LVL=$(awk '{print $1}' < /proc/sys/kernel/printk)
+echo 4 2>/dev/null > /proc/sys/kernel/printk
+
+# sanity checks
+CheckXMLStarletVersion
+
+# Clear error message from previous instances 
+rm -f $LAST_ERROR_FILENAME
+
+# Processing of main-menu
+
+ShowGenericMenu "Main Menu"
+
+clear
+if [ -n "$errorText" ]; then
+  echo $errorText
+fi
+
+#TODO: dedicated start script
+echo $CONSOLE_MSG_LVL 2>/dev/null > /proc/sys/kernel/printk 
+
+exit 0
+

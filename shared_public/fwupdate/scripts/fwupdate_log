@@ -1,0 +1,268 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate_log
+#
+# Brief:    Tool to get WAGO firmware update log.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Load firmware update definitions and functions.
+readonly WAGO_ST_DIR="/usr/sbin"
+if [ ! -f "$WAGO_ST_DIR/fwupdate_common" ]; then
+    echo "Missing dependency fwupdate_common"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_common"
+
+# General defines
+readonly WAGO_CT_NAME="fwupdate_log"
+readonly WAGO_CT_TITLE="* Get status of $WAGO_CT_SYSTEM_MODULE *"
+
+readonly DEFAULT_NUMBER_OF_LINES=255
+readonly MAX_NUMBER_OF_LINES=$DEFAULT_NUMBER_OF_LINES
+LINES=$DEFAULT_NUMBER_OF_LINES
+
+# Set default parameter values
+QUIET=0
+SHOWHELP=0
+URIENCODE=0
+TEXTOUT=0
+JSONOUT=0
+
+
+# Main tool/script function.
+#
+# Param 1..n: Script parameters
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+main()
+{
+    local RESULT=0
+
+    # Evaluate parameters
+    evaluate_params "$@"
+    RESULT=$?
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_report_error "Error on config tool parameter evaluation"
+        if [ "$RESULT" -ne "$MISSING_PARAMETER" -a "$RESULT" -ne "$INVALID_PARAMETER" ]; then
+            RESULT="$INVALID_PARAMETER"
+        fi
+        return $RESULT
+    fi
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help
+        fi
+        exit $RESULT
+    fi
+
+    # Get FW-Update log
+    get_log
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to print general tool/script information.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_info()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "For detailed usage information use:"
+    echo "  $WAGO_CT_NAME --help"
+
+    return 0
+}
+
+# Function to evaluate tool/script parameters.
+# This function uses globally defined script option variables.
+#
+# Param 1..n: Script parameters
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+evaluate_params()
+{
+    local RESULT=0
+
+    # First evaluate early parameters
+    # (maybe influencing other parameters)
+    QUIET=$(get_parameter_option "-q" "--quiet" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    if [ "$URIENCODE" -ne 0 ]; then
+        fwupdate_report_error "Option -x/--extract-from-uri-encoding currently not supported and will be ignored"
+    fi
+
+    # Evaluate other parameters
+    SHOWHELP=$(get_parameter_option "-h" "--help" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    TEXTOUT=$(get_parameter_option "-t" "--text" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    JSONOUT=$(get_parameter_option "-j" "--json" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    LINES=$(get_parameter_value "-n" "--number" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+
+    # Validate line number argument and adjust if necessary
+    if [ -z "$LINES" ]; then
+        LINES=$DEFAULT_NUMBER_OF_LINES
+    fi
+    if (( $LINES > $MAX_NUMBER_OF_LINES )); then
+        LINES=$MAX_NUMBER_OF_LINES
+    fi
+
+    # If both options are not set, report output as text
+    if [ "$TEXTOUT" -eq "0" ] && [ "$JSONOUT" -eq "0" ]; then
+        TEXTOUT=1;
+    fi
+
+    return $RESULT
+}
+
+# Function to print tool/script help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME <script options> [<param>]"
+    echo
+    echo "Script options:"
+    print_general_command_options
+    echo "  --number                              -n   Print given number of (last) log lines"
+    echo
+    echo "Additional information:"
+    echo "Default/maximal number of log lines: 255"
+    echo
+    echo "Examples:"
+    echo "fwupdate_log --number 100"
+
+    return 0
+}
+
+# Function to get maximal line number of a log file
+#
+# Param1: filename
+#
+# Return(put to std) max number of lines
+#         0, if file is not found or file is empty
+# Return:  0
+#-----------------------------------------------------------------------------#
+get_max_line_number()
+{
+    local file="$1"
+    local max_line_number=0
+
+    if [  -f "$file" ]; then
+        max_line_number=$(wc -l < "$file")
+    fi
+    echo "$max_line_number"
+
+    return 0
+}
+
+# Function to put on std (last) n lines of log file either in JSON or as text
+# This function uses globally defined variables.
+#
+# Return: Exit code, 0 on success,
+#         WAGO_FW_UPDATE_LOGFILE_NOT_FOUND (87), if log file is not found
+#         (log message will be saved in file "/var/log/messages" too),
+#-----------------------------------------------------------------------------#
+get_log()
+{
+    local result=$SUCCESS
+    local count=2
+    local log_file=" "
+    local log_temp_buffer=" "
+    local max_line_number=0
+    local is_1st_found=true
+    local current_line_number=0
+    local LOG="$WAGO_FW_UPDATE_LOG_FILE"
+    local LOG_1="$WAGO_FW_UPDATE_LOG_FILE.1"
+    local LOG_2="$WAGO_FW_UPDATE_LOG_FILE.2"
+
+    if [ ! -f "$LOG" ] && [ ! -f "$LOG_1" ] && [ ! -f "$LOG_2" ]; then
+        fwupdate_report_error "Log file not found"
+        result=$WAGO_FW_UPDATE_LOGFILE_NOT_FOUND
+    else
+        while [ $count -ge 0 ]; do
+            if [ $count -eq 0 ]; then
+                log_file="$LOG"
+            else
+                log_file="$LOG.$count"
+            fi
+
+            if [ -f "$log_file" ]; then
+                if [ "$is_1st_found" = "true" ]; then
+                    # Copy log files to buffer
+                    log_temp_buffer="$(cat "$log_file")"
+                    is_1st_found=false
+                else
+                    # Copy log files to buffer and concat
+                    log_temp_buffer+="$(echo -e "\n$(cat "$log_file")")"
+                fi
+            fi
+
+            current_line_number=$(get_max_line_number "$log_file")
+            max_line_number=$((max_line_number + current_line_number))
+            count=$((count - 1))
+        done
+
+        local start_line=" "
+
+        if (( $LINES > $max_line_number )); then
+            # Print all available lines
+            start_line=1
+        else
+            start_line=$((max_line_number - LINES + 1))
+        fi
+
+        # Generate output either in JSON or as text
+        if [ $QUIET -eq 0 ]; then
+            echo -e "\n$WAGO_CT_SYSTEM_MODULE log:\n--------------------------------------------------"
+        fi
+        if (( $LINES > 0 )); then
+            report_start
+            while read -r line;
+            do
+                report_array "$line";
+            done  < <(printf '%s\n' "$log_temp_buffer" | sed -n ''$start_line','$max_line_number'p')
+            report_end "array"
+        else
+            fwupdate_report_error "Log files are empty"
+            result=$WAGO_FW_UPDATE_LOGFILE_NOT_FOUND
+        fi
+        if [ $QUIET -eq 0 ]; then
+            echo -e "\n--------------------------------------------------"
+        fi
+    fi
+
+    return $result
+}
+
+# Start main function
+main "$@"
+exit $?

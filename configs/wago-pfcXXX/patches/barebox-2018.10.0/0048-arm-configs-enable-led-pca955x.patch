@@ -1,0 +1,25 @@
+From 77980c8b13ed6f49e94f2e26771a89287e47720c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 11 Jul 2018 11:59:56 +0200
+Subject: [PATCH 048/144] arm: configs: enable led pca955x
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/configs/am335x_pfc_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/configs/am335x_pfc_defconfig b/arch/arm/configs/am335x_pfc_defconfig
+index 3e40a6a..5ae8ad3 100644
+--- a/arch/arm/configs/am335x_pfc_defconfig
++++ b/arch/arm/configs/am335x_pfc_defconfig
+@@ -136,6 +136,7 @@ CONFIG_LED=y
+ CONFIG_LED_GPIO=y
+ CONFIG_LED_GPIO_OF=y
+ CONFIG_LED_TRIGGERS=y
++CONFIG_LED_PCA955X=y
+ CONFIG_EEPROM_AT24=y
+ CONFIG_WATCHDOG=y
+ CONFIG_WATCHDOG_OMAP=y
+-- 
+2.7.4
+

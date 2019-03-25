@@ -1,0 +1,24 @@
+From 53ee5ff58c594973bf731278ef7cf61a67cb7377 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Thu, 18 Jun 2015 12:37:09 +0200
+Subject: [PATCH] init udp port properly
+
+---
+ src/modbus-tcp.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/modbus-tcp.c b/src/modbus-tcp.c
+index b11fd23..eb6a293 100644
+--- a/src/modbus-tcp.c
++++ b/src/modbus-tcp.c
+@@ -1353,6 +1353,7 @@ modbus_t* modbus_new_udp(const char *ip, int port)
+     ctx_udp->port = port;
+     ctx_udp->data_size = 0;
+     ctx_udp->recv_dst = 0;
++    ctx_udp->recv_port = 0;
+     return ctx;
+ }
+ 
+-- 
+1.9.1
+

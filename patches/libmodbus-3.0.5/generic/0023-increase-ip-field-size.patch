@@ -1,0 +1,62 @@
+Index: libmodbus-3.0.5/src/modbus-tcp-private.h
+===================================================================
+--- libmodbus-3.0.5.orig/src/modbus-tcp-private.h	2015-05-18 11:28:51.000000000 +0000
++++ libmodbus-3.0.5/src/modbus-tcp-private.h	2015-05-18 11:28:51.000000000 +0000
+@@ -25,7 +25,7 @@
+ 
+ #define _MODBUS_TCP_CHECKSUM_LENGTH    0
+ 
+-#define _MODBUS_IP_LENGTH             16
++#define _MODBUS_IP_LENGTH             NI_MAXHOST
+ 
+ typedef struct _modbus_tcp {
+     /* TCP port */
+Index: libmodbus-3.0.5/src/modbus-tcp.c
+===================================================================
+--- libmodbus-3.0.5.orig/src/modbus-tcp.c	2015-05-18 11:35:55.000000000 +0000
++++ libmodbus-3.0.5/src/modbus-tcp.c	2015-05-18 11:38:10.000000000 +0000
+@@ -670,7 +670,6 @@
+ {
+     modbus_t *ctx;
+     modbus_tcp_t *ctx_tcp;
+-    size_t dest_size;
+     size_t ret_size;
+ 
+ #if defined(OS_BSD)
+@@ -697,8 +696,7 @@
+     ctx->backend_data = (modbus_tcp_t *) malloc(sizeof(modbus_tcp_t));
+     ctx_tcp = (modbus_tcp_t *)ctx->backend_data;
+ 
+-    dest_size = sizeof(char) * _MODBUS_IP_LENGTH;
+-    ret_size = strlcpy(ctx_tcp->ip, ip, dest_size);
++    ret_size = strlcpy(ctx_tcp->ip, ip, sizeof(ctx_tcp->ip));
+     if (ret_size == 0) {
+         if (ctx->debug) fprintf(stderr, "The IP string is empty\n");
+         modbus_free(ctx);
+@@ -706,7 +704,7 @@
+         return NULL;
+     }
+ 
+-    if (ret_size >= dest_size) {
++    if (ret_size >= sizeof(ctx_tcp->ip)) {
+         if (ctx->debug) fprintf(stderr, "The IP string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+@@ -1337,7 +1335,7 @@
+     ctx->backend_data = (void *) malloc(sizeof(modbus_udp_t));
+     ctx_udp = (modbus_udp_t *)ctx->backend_data;
+ 
+-    ret_size = strlcpy(ctx_udp->ip, ip, _MODBUS_IP_LENGTH);
++    ret_size = strlcpy(ctx_udp->ip, ip, sizeof(ctx_udp->ip));
+     if (ret_size == 0) {
+         if (ctx->debug) fprintf(stderr, "The UDP/IP string is empty\n");
+         modbus_free(ctx);
+@@ -1345,7 +1343,7 @@
+         return NULL;
+     }
+ 
+-    if (ret_size >= _MODBUS_IP_LENGTH) {
++    if (ret_size >= sizeof(ctx_udp->ip)) {
+         if (ctx->debug) fprintf(stderr, "The UDP/IP string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;

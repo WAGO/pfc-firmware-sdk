@@ -1,0 +1,96 @@
+Index: php-5.6.27/configure
+===================================================================
+--- php-5.6.27.orig/configure	2016-09-15 21:43:51.000000000 +0000
++++ php-5.6.27/configure	2016-09-22 11:46:15.811307808 +0000
+@@ -36580,10 +36580,9 @@
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for strcasestr" >&5
+ $as_echo_n "checking for strcasestr... " >&6; }
+   if test "$cross_compiling" = yes; then :
+-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-as_fn_error $? "cannot run test program while cross compiling
+-See \`config.log' for more details" "$LINENO" 5 ; }
++  { $as_echo "$as_me:${as_lineno-$LINENO}: cannot run test program while cross compiling, assume true" >&5
++$as_echo_n "cannot run test program while cross compiling, assume true" >&6; }
++  PHP_FILEINFO_STRCASESTR_SUPPORT="yes"
+ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+@@ -36615,7 +36614,10 @@
+ 
+ _ACEOF
+ if ac_fn_c_try_run "$LINENO"; then :
++  PHP_FILEINFO_STRCASESTR_SUPPORT="yes"
++fi
+ 
++if test "$PHP_FILEINFO_STRCASESTR_SUPPORT" != "no"; then
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+ $as_echo "yes" >&6; }
+ 
+@@ -109867,7 +109869,7 @@
+ 
+ 	if test $supports_anon_versioning = yes; then
+ 	  archive_expsym_cmds='$echo "{ global:" > $output_objdir/$libname.ver~
+-  cat $export_symbols | sed -e "s/\(.*\)/\1;/" >> $output_objdir/$libname.ver~
++  cat $export_symbols | sed -e "s/\(.*\)/'"$ac_symprfx"'\1;/" >> $output_objdir/$libname.ver~
+   $echo "local: *; };" >> $output_objdir/$libname.ver~
+ 	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
+ 	fi
+@@ -110721,7 +110723,7 @@
+   sys_lib_search_path_spec="/lib /usr/lib /usr/local/lib"
+ fi
+ need_lib_prefix=unknown
+-hardcode_into_libs=no
++hardcode_into_libs="no"
+ 
+ # when you set need_version to no, make sure it does not cause -set_version
+ # flags to be left without arguments
+@@ -112259,16 +112261,16 @@
+ hardcode_action=$hardcode_action
+ 
+ # Whether we should hardcode library paths into libraries.
+-hardcode_into_libs=$hardcode_into_libs
++hardcode_into_libs="no"
+ 
+ # Flag to hardcode \$libdir into a binary during linking.
+ # This must work even if \$libdir does not exist.
+-hardcode_libdir_flag_spec=$lt_hardcode_libdir_flag_spec
++hardcode_libdir_flag_spec=""
+ 
+ # If ld is used when linking, flag to hardcode \$libdir into
+ # a binary during linking. This must work even if \$libdir does
+ # not exist.
+-hardcode_libdir_flag_spec_ld=$lt_hardcode_libdir_flag_spec_ld
++hardcode_libdir_flag_spec_ld=""
+ 
+ # Whether we need a single -rpath flag with a separated argument.
+ hardcode_libdir_separator=$lt_hardcode_libdir_separator
+@@ -114355,7 +114357,7 @@
+ sys_lib_dlsearch_path_spec="/lib /usr/lib"
+ 
+ need_lib_prefix=unknown
+-hardcode_into_libs=no
++hardcode_into_libs="no"
+ 
+ # when you set need_version to no, make sure it does not cause -set_version
+ # flags to be left without arguments
+@@ -115283,16 +115285,16 @@
+ hardcode_action=$hardcode_action_CXX
+ 
+ # Whether we should hardcode library paths into libraries.
+-hardcode_into_libs=$hardcode_into_libs
++hardcode_into_libs="no"
+ 
+ # Flag to hardcode \$libdir into a binary during linking.
+ # This must work even if \$libdir does not exist.
+-hardcode_libdir_flag_spec=$lt_hardcode_libdir_flag_spec_CXX
++hardcode_libdir_flag_spec=""
+ 
+ # If ld is used when linking, flag to hardcode \$libdir into
+ # a binary during linking. This must work even if \$libdir does
+ # not exist.
+-hardcode_libdir_flag_spec_ld=$lt_hardcode_libdir_flag_spec_ld_CXX
++hardcode_libdir_flag_spec_ld=""
+ 
+ # Whether we need a single -rpath flag with a separated argument.
+ hardcode_libdir_separator=$lt_hardcode_libdir_separator_CXX

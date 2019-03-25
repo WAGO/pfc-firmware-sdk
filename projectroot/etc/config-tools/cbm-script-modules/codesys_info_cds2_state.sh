@@ -1,0 +1,18 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+function MainCODESYSState
+#
+# Show window with information about CODESYS state
+#
+{
+  ./wdialog "--msgbox" \
+            "$TITLE " \
+            "PLC Runtime" \
+            "State........`./get_rts_info state`"
+}
+
+MainCODESYSState

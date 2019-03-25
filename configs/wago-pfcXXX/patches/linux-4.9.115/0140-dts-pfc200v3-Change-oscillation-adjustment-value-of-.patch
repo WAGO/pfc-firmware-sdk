@@ -1,0 +1,25 @@
+From 9bd84190dea38ef828ea0e200b76a1990e1222df Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Mon, 8 Jan 2018 10:34:07 +0000
+Subject: [PATCH 140/261] dts: pfc200v3: Change oscillation adjustment value of
+ RTC
+
+---
+ arch/arm/boot/dts/wago-pfc200v3.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 2476b7a..4b08af0 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -720,6 +720,7 @@
+ 		reg = <0x32>;
+ 		interrupt-parent = <&gpio3>;
+ 		interrupts = <21 IRQ_TYPE_LEVEL_LOW>;
++		trim-data = <0 1 31>;
+ 	};
+ 
+ 	tps65218@24 {	/* Power Managment IC  */
+-- 
+2.7.4
+

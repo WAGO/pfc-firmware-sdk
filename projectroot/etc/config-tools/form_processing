@@ -1,0 +1,68 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: form_processing
+#
+# Process the several data from the forms of the WBM-html-pages
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# errors
+SUCCESS=0
+UNKNOWN_FORM=-1
+SCRIPT_MISSING=-2
+EXECUTION_ERROR=-3
+
+FORM_NAME_STRING=form-name
+
+status=$SUCCESS
+
+#echo "form_processing-input:" $*
+
+firstParameterCouple=$1
+firstParameter=${firstParameterCouple%%=*}
+#echo "firstParameter:" $firstParameter
+
+if [ "$firstParameter" == "$FORM_NAME_STRING" ]; then
+
+  formName=${firstParameterCouple##*=}
+
+  # evaluate own directory and put it together with the name of form-processing script
+  ownFilename=$0
+  path=${ownFilename%/*}
+
+  scriptFilename=`echo $path"/"$formName`
+
+  #echo "scriptFilename:" $scriptFilename
+
+  # check whether form-processing script is existing
+  if [ -f $scriptFilename ]; then
+
+    # cut form-name and sumit-string from input-parameter-string, we don't need them in the processing script
+    shift
+    parameter=$*
+    exeParameter=${parameter%SUBMIT=SUBMIT}
+
+    # call script with script-parameter
+    $scriptFilename $exeParameter
+
+    # error while execution? 
+    if [ "$?" -ne 0 ]; then
+      status=$EXECUTION_ERROR
+    fi   
+
+  else
+    status=$SCRIPT_MISSING
+  fi
+
+else
+  status=$UNKNOWN_FORM
+fi
+
+exit $status

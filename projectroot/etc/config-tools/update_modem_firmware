@@ -1,0 +1,205 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: update_modem_firmware
+#
+# Update .
+#
+# $Revision$
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------#
+
+VERBOSE_MODE=yes
+
+# TODO: move to config_tool_lib?
+TTY=ttyUSB0
+QCHECK=/usr/bin/qcheck/qcheck
+QFLASH=/usr/bin/qflash/qflash
+
+
+if [[ "${VERBOSE_MODE}" != "yes" ]]; then
+    exec &>/dev/null
+fi
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+if [ ! -f "/etc/config-tools/config_tool_defines" ]; then
+  echo "config_tool_defines missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_defines
+
+#-------------- main-programm ------------------------#
+
+
+# show help-text if requested
+
+function show_help
+{
+  echo
+  echo "* Update modem firmware *"
+  echo
+  echo -n "Usage: $0 [Firmware Image File]"
+  echo
+  echo
+  exit $status
+}
+
+function is_mdmd_port_enabled
+{
+    if [[ "$(/etc/config-tools/config_mdmd --get --port | grep "PortState")" == "PortState=ENABLED" ]]; then
+        true
+    else
+        false
+    fi
+}
+
+
+function activate_modem_daemon
+{
+    if ! is_mdmd_port_enabled; then
+        /etc/config-tools/config_mdmd --set --port PortState=ENABLED
+    fi
+
+    for i in 0 1 3 5; do
+        sleep $i
+        if is_mdmd_port_enabled; then
+            return 0 #true
+        else
+            continue
+        fi
+    done
+
+    false
+}
+
+function deactivate_modem_daemon
+{
+    if is_mdmd_port_enabled; then
+        /etc/config-tools/config_mdmd --set --port PortState=DISABLED
+    fi
+
+    for i in 0 1 3 5; do
+        sleep $i
+        if is_mdmd_port_enabled; then
+            continue
+        else
+            return 0 #true
+        fi
+    done
+
+    false
+}
+
+# exit code is true (0) if firmware fits modem type
+function is_valid_fw_version
+{
+    local fw_version=$1
+
+    $QCHECK --valid $fw_version
+}
+
+function is_fw_version_different
+{
+    local fw_version=$1
+
+    local result=$(${QCHECK} ${fw_version})
+
+    if [[ "${result}" == "OK" ]]; then
+        false
+    else
+        true
+    fi
+}
+
+function map_qflash_retval
+{
+    case ${1} in
+    0)        echo $SUCCESS;;
+    *)        echo $EXECUTABLE_ERROR;;
+    esac
+}
+
+function __main
+{
+    local status=$SUCCESS
+
+    local fw_file=$1
+    local progress_log_file=${2:-"/tmp/$(basename $0).log"}
+
+    touch ${progress_log_file}
+
+    if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
+        show_help
+        exit $status
+    fi
+
+    if [[ ${fw_file} == "" ]]; then
+        show_help
+        exit $INVALID_PARAMETER
+    fi
+
+    if [[ ! -x "${QCHECK}" ]]; then
+        ReportError $INTERNAL_ERROR "(qcheck not found)"
+        exit $INTERNAL_ERROR
+    fi
+
+    if [[ ! -x "${QFLASH}" ]]; then
+        ReportError $INTERNAL_ERROR "(qflash not found)"
+        exit $INTERNAL_ERROR
+    fi
+
+    if deactivate_modem_daemon; then
+    
+        local result
+        local fw_version=$(basename ${fw_file} .bin)
+        
+        if is_fw_version_different ${fw_version}; then
+            if is_valid_fw_version ${fw_version}; then
+                ${QFLASH} -f ${fw_file} -p ${TTY} &>${progress_log_file}
+                result=$?
+            else
+                SetLastError "Firmware version '${fw_version}' does not match device."
+            fi
+        else
+            SetLastError "Firmware version '${fw_version}' is already installed."
+        fi
+
+        trap - INT TERM EXIT
+
+        if activate_modem_daemon; then
+            result=$(map_qflash_retval ${result})
+        else
+            result=$INTERNAL_ERROR
+            ReportError $INTERNAL_ERROR "(could not restart mdmd)"
+            SetLastError "Error: Could not restart mdmd."
+        fi
+
+
+    else
+        result=$INTERNAL_ERROR
+        ReportError $INTERNAL_ERROR "(could not stop mdmd)"
+        SetLastError "Error: Could not stop mdmd."
+    fi
+
+    rm -f UPGRADE*.log
+    rm -f ${progress_log_file}
+
+    exit $result
+}
+
+__main $@
+
+

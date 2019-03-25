@@ -1,0 +1,66 @@
+From ae116500146d4750e40603511863939d340ec2de Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 22 Nov 2016 11:46:39 +0100
+Subject: [PATCH 017/261] dts: pfc100 usb: disable usb1 per default; enable it
+ in specific targets
+
+---
+ arch/arm/boot/dts/wago-pfc100-musb.dtsi   | 15 ++++++++++++---
+ arch/arm/boot/dts/wago-pfc100-setupfw.dts |  8 ++++++++
+ 2 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc100-musb.dtsi b/arch/arm/boot/dts/wago-pfc100-musb.dtsi
+index 295e210..a23eb1b 100644
+--- a/arch/arm/boot/dts/wago-pfc100-musb.dtsi
++++ b/arch/arm/boot/dts/wago-pfc100-musb.dtsi
+@@ -23,13 +23,22 @@
+ 	status = "okay";
+ };
+ 
+-&usb1_phy {
++&usb0_phy {
++	status = "okay";
++};
++
++&usb0 {
+ 	status = "okay";
++	dr_mode = "peripheral";
++};
++
++&usb1_phy {
++	status = "disabled";
+ };
+ 
+ /* usb1 - host */
+ &usb1 {
+-	status        = "okay";
++	status        = "disabled";
+ 	dr_mode       = "host";
+ 	pinctrl-names = "default";
+ 	pinctrl-0     = <&usb_otg_pins>;
+@@ -40,5 +49,5 @@
+ 
+ 	interface-type = <0>;	/* ULPI */
+ 	mode           = <1>;	/* HOST Mode */
+-	power          = <250>;	/* can supply 100mA when operating in host mode */
++	power          = <250>;	/* can supply 250mA when operating in host mode */
+ };
+diff --git a/arch/arm/boot/dts/wago-pfc100-setupfw.dts b/arch/arm/boot/dts/wago-pfc100-setupfw.dts
+index 482174d..11b7dd5 100644
+--- a/arch/arm/boot/dts/wago-pfc100-setupfw.dts
++++ b/arch/arm/boot/dts/wago-pfc100-setupfw.dts
+@@ -77,3 +77,11 @@
+ 	/* disable oms driver for cmtest gpio test */
+ 	status = "disabled";
+ };
++
++&usb1_phy {
++	status = "okay";
++};
++
++&usb1 {
++	status = "okay";
++};
+-- 
+2.7.4
+

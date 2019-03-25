@@ -1,0 +1,54 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# config_rs232 
+#
+
+# config_rs232 edits the config files to set the serial interface owner
+# according to the /etc/config-tools/owner-RS232 file which can be
+# changed via wbm or config-tools
+
+if [[ ! -f "/etc/config-tools/RS232_OWNER" ]]; then
+  echo "Error: /etc/config-tools/RS232-OWNER not found."
+  exit 1
+fi
+
+case $1 in
+
+  start)
+    # RS232 settings are stored partially in the EEPROM (UART bit) and partially
+    # in the firmware (RS232_OWNER file).
+    # When the settings are made but not applied before another firmware with a different RS232_OWNER
+    # file is used (i.e. from a backup), an inconsistent state occurs. 
+
+    # With the if-clause below we detect this case and fix the inconsistency.
+    
+    if [[ "$(eeprom-xsection -R -h | awk '/use serial console/ {print $5}')" == "no" ]] && \
+       [[ "$(cat /etc/config-tools/RS232_OWNER)" != "None" ]]; then
+
+       echo "None" > /etc/config-tools/RS232_OWNER
+    elif [[ "$(eeprom-xsection -R -h | awk '/use serial console/ {print $5}')" == "yes" ]] && \
+         [[ "$(cat /etc/config-tools/RS232_OWNER)" != "Linux" ]]; then
+       
+       echo "Linux" > /etc/config-tools/RS232_OWNER
+  
+    fi
+
+    rs232_owner=$(cat /etc/config-tools/RS232_OWNER)
+
+    echo -n "setting RS232 owner to $rs232_owner..."
+    if /etc/config-tools/config_RS232 start; then
+      echo "done"
+    else
+      echo "ERROR"
+    fi
+  ;;
+  stop)
+  ;;
+esac

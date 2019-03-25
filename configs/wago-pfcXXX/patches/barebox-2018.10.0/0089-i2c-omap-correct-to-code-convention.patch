@@ -1,0 +1,27 @@
+From fddc004a19fbe3b2bb62a92e219fc1d6018013f9 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 21 Sep 2018 13:24:00 +0200
+Subject: [PATCH 089/144] i2c-omap: correct to code convention
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ drivers/i2c/busses/i2c-omap.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 96e90e2..61ddf43 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1121,7 +1121,8 @@ i2c_omap_probe(struct device_d *pdev)
+ 	 * Also since the omap_i2c_read_reg uses reg_map_ip_* a
+ 	 * raw_readw is done.
+ 	 */
+-	if (!of_machine_is_compatible("ti,omap3") && !of_machine_is_compatible("ti,omap2"))
++	if (!of_machine_is_compatible("ti,omap3") &&
++					!of_machine_is_compatible("ti,omap2"))
+ 		rev = __raw_readw(i2c_omap->base + 0x04);
+ 	else
+ 		rev = 0;
+-- 
+2.7.4
+

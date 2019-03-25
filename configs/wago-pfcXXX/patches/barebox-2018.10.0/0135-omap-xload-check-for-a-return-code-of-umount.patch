@@ -1,0 +1,29 @@
+From 545bb8d63617241f7405656af0a4b6f1854c36b9 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Mon, 5 Nov 2018 13:12:10 +0000
+Subject: [PATCH 135/144] omap: xload: check for a return code of umount
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/mach-omap/xload-pfc.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap/xload-pfc.c b/arch/arm/mach-omap/xload-pfc.c
+index 43f91e0..467eb9c 100644
+--- a/arch/arm/mach-omap/xload-pfc.c
++++ b/arch/arm/mach-omap/xload-pfc.c
+@@ -181,7 +181,10 @@ static void *pfc_xload_boot_mmc(char *bootfile)
+ 		pr_info("%s found on %s\n", bootfile_path, diskdev);
+ 
+ 	free(bootfile_path);
+-	umount("/");
++	ret = umount("/");
++	if (ret)
++		pr_err("%s: umount on '/' returned with errno %d.\n",
++				__func__, ret);
+ 
+ 	return buf;
+ }
+-- 
+2.7.4
+

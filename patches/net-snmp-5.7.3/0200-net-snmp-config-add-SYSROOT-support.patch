@@ -1,0 +1,52 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Sun, 10 Jan 2010 00:33:45 +0100
+Subject: [PATCH] net-snmp-config; add SYSROOT support
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+
+Adapted to 5.6.1
+
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+
+Adapted to 5.7.2
+
+Signed-off-by: Alexander Dahl <post@lespocky.de>
+---
+ net-snmp-config.in | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/net-snmp-config.in b/net-snmp-config.in
+index d55872cdd50a..c8611bcc7ebe 100644
+--- a/net-snmp-config.in
++++ b/net-snmp-config.in
+@@ -54,7 +54,7 @@ NSC_LAGENTLIBS="@LAGENTLIBS@ @PERLLDOPTS_FOR_APPS@"
+ NSC_LMIBLIBS="@LMIBLIBS@"
+ 
+ NSC_INCLUDEDIR=${includedir}
+-NSC_LIBDIR=-L${libdir}
++NSC_LIBDIR=-L${SYSROOT}${libdir}
+ 
+ NSC_SNMPLIBS="-lnetsnmp ${NSC_LNETSNMPLIBS}"
+ NSC_SUBAGENTLIBS="-lnetsnmpagent ${NSC_LAGENTLIBS} ${NSC_SNMPLIBS}"
+@@ -138,10 +138,10 @@ else
+       ;;
+     #################################################### compile
+     --base-cflags)
+-      echo @CFLAGS@ @CPPFLAGS@ -I${NSC_INCLUDEDIR}
++      echo @CFLAGS@ @CPPFLAGS@ -I${SYSROOT}${NSC_INCLUDEDIR}
+       ;;
+     --cflags|--cf*)
+-      echo @CFLAGS@ @DEVFLAGS@ @CPPFLAGS@ -I. -I${NSC_INCLUDEDIR}
++      echo @CFLAGS@ @DEVFLAGS@ @CPPFLAGS@ -I. -I${SYSROOT}${NSC_INCLUDEDIR}
+       ;;
+     --srcdir)
+       echo $NSC_SRCDIR
+@@ -598,7 +598,7 @@ EOF
+         echo "Ack.  Can't create $tmpfile."
+ 	exit 1
+       fi
+-      cmd="@CC@ $cflags @CFLAGS@ @DEVFLAGS@ -I. -I${NSC_INCLUDEDIR} -o $outname $tmpfile $cfiles $NSC_LDFLAGS $NSC_LIBDIR $NSC_BASE_AGENT_LIBS $NSC_AGENTLIBS $ldflags"
++      cmd="@CC@ $cflags @CFLAGS@ @DEVFLAGS@ -I. -I${SYSROOT}${NSC_INCLUDEDIR} -o $outname $tmpfile $cfiles $NSC_LDFLAGS $NSC_LIBDIR $NSC_BASE_AGENT_LIBS $NSC_AGENTLIBS $ldflags"
+       echo "running: $cmd"
+       `$cmd`
+       if test "x$norm" != "x1" ; then

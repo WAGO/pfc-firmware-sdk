@@ -1,0 +1,99 @@
+## SECTION=initmethod
+
+if INITMETHOD_BBINIT
+
+config INITMETHOD_BBINIT_ETC_INITD_MODULES
+	bool
+	prompt "install /etc/init.d/modules"
+	default y
+	help
+	  Look at /etc/modules and load all modules specified there.
+
+config INITMETHOD_BBINIT_ETC_INITD_LOGROTATE
+	bool
+	prompt "install /etc/init.d/logrotate"
+	default y
+	help
+	  The /etc/init.d/logrotate script is a minimal logrotator.
+
+config INITMETHOD_BBINIT_ETC_INITD_NETWORKING
+	bool
+	default y
+	prompt "install /etc/init.d/networking"
+	select BUSYBOX_IFUP 			if BUSYBOX
+	select BUSYBOX_IFDOWN 			if BUSYBOX
+	select BUSYBOX_IFCONFIG			if BUSYBOX
+	select BUSYBOX_FEATURE_IFUPDOWN_IP	if BUSYBOX
+	help
+	  When enabled, this option installs the generic /etc/init.d/networking
+	  file. This script starts your network interfaces by calling 'ifup -a'.
+	  To run this script you will need the shell commands 'grep',
+	  'ifup'/'ifdown' and 'ifconfig'
+
+config INITMETHOD_BBINIT_ETC_INITD_NETWORKING_FINISH
+	bool
+	depends on INITMETHOD_BBINIT_ETC_INITD_NETWORKING
+	default n
+	prompt "install /etc/init.d/networking-finish"
+	help
+	  When enabled, this option installs a second network init script.
+	  Task is to wait a few seconds for network links to become up,
+          assuring subsequent send operations to succeed. E.g. to send
+	  gratuitous ARP's or DHCP requests.
+
+config INITMETHOD_BBINIT_ETC_INITD_NETWORKING_ROUTES
+    bool
+    depends on INITMETHOD_BBINIT_ETC_INITD_NETWORKING
+    default n
+    prompt "install /etc/network/if-up.d/routes"
+    help
+       Install /etc/network/if-up.d/routes file
+
+config INITMETHOD_BBINIT_ETC_INITD_RT_SET_BANDWIDTH
+	bool
+	prompt "install /etc/init.d/rt-set-bandwidth"
+	select ROOTFS_VAR
+	select ROOTFS_VAR_RUN
+	default y
+	help
+	  The /etc/init.d/rt-set-bandwidth script configures the bandwidth feature
+	  of linux-rt. Default is to disable it.
+
+menu "service startup configuration "
+
+source "generated/initmethod_bbinit.in"
+
+config INITMETHOD_BBINIT_LINK_LOGROTATE
+	string
+	depends on INITMETHOD_BBINIT_ETC_INITD_LOGROTATE
+	prompt "logrotate"
+	default "S98logrotate"
+
+config INITMETHOD_BBINIT_LINK_MODULES
+	string
+	depends on INITMETHOD_BBINIT_ETC_INITD_MODULES
+	prompt "modules"
+	default "S98modules"
+
+config INITMETHOD_BBINIT_LINK_NETWORKING
+	string
+	depends on INITMETHOD_BBINIT_ETC_INITD_NETWORKING
+	prompt "networking"
+	default "S26networking"
+
+config INITMETHOD_BBINIT_LINK_NETWORKING_FINISH
+	string
+	depends on INITMETHOD_BBINIT_ETC_INITD_NETWORKING_FINISH
+	prompt "networking-finish"
+	default "S27networking-finish"
+
+config INITMETHOD_BBINIT_LINK_RT_SET_BANDWIDTH
+	string
+	depends on INITMETHOD_BBINIT_ETC_INITD_RT_SET_BANDWIDTH
+	prompt "rt-set-bandwidth"
+	default "S03rt-set-bandwidth"
+
+endmenu
+
+endif
+

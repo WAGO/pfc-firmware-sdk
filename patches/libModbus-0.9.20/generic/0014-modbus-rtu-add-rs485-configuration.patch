@@ -1,0 +1,145 @@
+--- libModbus-0.9.20.base/src/modbus_serial.h	2010-03-05 08:53:57.000000000 +0100
++++ libModbus-0.9.20/src/modbus_serial.h	2016-04-29 11:57:51.642717291 +0200
+@@ -4,6 +4,7 @@
+ #include <pthread.h>
+ #include <stdarg.h>
+ #include <termios.h>
++#include <linux/serial.h>
+ 
+ #include <modbus.h>
+ 
+@@ -25,6 +26,11 @@
+ #define FLOW_CTRL_NONE	0
+ #define FLOW_CTRL_SW	1
+ #define FLOW_CTRL_HW	2
++  int   rs485mode;
++#define RS485MODE_DISABLED 0
++#define RS485MODE_ENABLED  1
++  struct serial_rs485 oldRS485conf;
++  struct serial_rs485 newRS485conf;
+ };
+ 
+ struct mb_serial {
+--- libModbus-0.9.20.base/src/modbus-serial-slave.c	2016-04-29 10:25:43.821163000 +0200
++++ libModbus-0.9.20/src/modbus-serial-slave.c	2016-04-29 13:00:29.995262358 +0200
+@@ -417,9 +417,21 @@
+ 	if (dev->fd < 0)
+ 		return;
+ 
+-	// disabled modbus mode of the omap_serial driver
++#if defined(TIOCSRS485) && defined (TIOCGRS485)
++  ret = ioctl(dev->fd, TIOCSRS485, &dev->oldRS485conf);
++  if (ret < 0) {
++    mb_log(mbs, MB_LOG_CONNECT,
++           "[%s] Set old RS485 configuration failed: %s\n",
++           LOG_SCOPE, strerror(errno));
++  }
++#endif
+ #if defined(TIOCSMBRTU)
+-	ioctl(dev->fd, TIOCSMBRTU, 0);
++  ret = ioctl(dev->fd, TIOCSMBRTU, 0);
++  if (ret < 0) {
++    mb_log(mbs, MB_LOG_CONNECT,
++           "[%s] Disable Modbus RTU mode failed: %s\n",
++           LOG_SCOPE, strerror(errno));
++  }
+ #endif
+ 	tcflush(dev->fd, TCIFLUSH);
+ 	ret = tcsetattr(dev->fd, TCSANOW, &dev->oldtio);
+@@ -460,6 +472,18 @@
+ 		close(dev->fd);
+ 		return -1;
+ 	}
++#if defined(TIOCSRS485) && defined (TIOCGRS485)
++  ret = ioctl(dev->fd, TIOCGRS485, &dev->oldRS485conf);
++  if (ret < 0) {
++    mb_log(mbs, MB_LOG_CONNECT,
++           "[%s] Get old RS485 configuration failed: %s\n",
++           LOG_SCOPE, strerror(errno));
++    close(dev->fd);
++    return -1;
++  }
++  memset(&dev->newRS485conf, 0x0, sizeof(struct serial_rs485));
++#endif
++
+ 	mb_log(mbs, MB_LOG_CONNECT,
+ 			"[%s] device %s opened: fd %d.\n",
+ 			LOG_SCOPE, dev->name, dev->fd);
+@@ -503,13 +527,28 @@
+ 		default:                dev->newtio.c_iflag |= IGNPAR;
+ 	}
+ 
+-	switch (dev->flowctrl) {
+-		case FLOW_CTRL_SW:      dev->newtio.c_iflag |= IXON | IXOFF; break;
+-		case FLOW_CTRL_HW:      dev->newtio.c_cflag |= CRTSCTS; break;
+-		case FLOW_CTRL_NONE:
+-		default:                break;
+-	}
+-
++  if (RS485MODE_ENABLED == dev->rs485mode)
++  {
++#if defined(TIOCSRS485) && defined (TIOCGRS485)
++    dev->newRS485conf.flags = SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND;
++#else
++    errno = ENOTSUP;
++    mb_log(mbs, MB_LOG_CONNECT,
++           "[%s] RS485 configuration not supported\n",
++           LOG_SCOPE);
++    close(dev->fd);
++    return -1;
++#endif
++  }
++  else
++  {
++    switch (dev->flowctrl) {
++      case FLOW_CTRL_SW:      dev->newtio.c_iflag |= IXON | IXOFF; break;
++      case FLOW_CTRL_HW:      dev->newtio.c_cflag |= CRTSCTS; break;
++      case FLOW_CTRL_NONE:    break;
++      default:                break;
++    }
++  }
+ 
+ 	if (dev->stopb == 2)
+ 		dev->newtio.c_cflag |= CSTOPB;
+@@ -559,11 +598,37 @@
+ 		return -1;
+ 	}
+ 
+-	// enable modbus mode of the omap_serial driver
+-#if defined(TIOCSMBRTU) && defined(TIOCSMBRTUADDR)
+-	ioctl(dev->fd, TIOCSMBRTU, 1);
+-	ioctl(dev->fd, TIOCSMBRTUADDR, mbs->node_id);
++#if defined(TIOCSMBRTU)
++  ret = ioctl(dev->fd, TIOCSMBRTU, 1);
++  if (ret < 0) {
++    mb_log(mbs, MB_LOG_CONNECT,
++           "[%s] Enable Modbus RTU mode failed: %s\n",
++           LOG_SCOPE, strerror(errno));
++    tty_close(mbs);
++    return -1;
++  }
++#endif
++#if defined(TIOCSMBRTUADDR)
++  ret = ioctl(dev->fd, TIOCSMBRTUADDR, mbs->node_id);
++  if (ret < 0) {
++    mb_log(mbs, MB_LOG_CONNECT,
++           "[%s] Set Modbus RTU address failed: %s\n",
++           LOG_SCOPE, strerror(errno));
++    tty_close(mbs);
++    return -1;
++	}
+ #endif
++#if defined(TIOCSRS485) && defined (TIOCGRS485)
++  ret = ioctl(dev->fd, TIOCSRS485, &dev->newRS485conf);
++  if (ret < 0) {
++    mb_log(mbs, MB_LOG_CONNECT,
++           "[%s] Set new RS485 configuration failed: %s\n",
++           LOG_SCOPE, strerror(errno));
++    tty_close(mbs);
++    return -1;
++  }
++#endif
++
+ 	return 0;
+ }
+ 

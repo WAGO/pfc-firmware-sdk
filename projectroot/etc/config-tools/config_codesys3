@@ -1,0 +1,172 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_codesys3
+#
+# Config Tools: Change configuration of codesys3.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+DEFAULT_PORT=8080
+CTDIR="/etc/config-tools"
+status=$SUCCESS
+
+# Stop runtime and wait max 5 seconds for termination.
+stop_cds3()
+{
+    local retries=50
+
+    /etc/init.d/codesys3 stop > /dev/null 2>&1
+    while [ $retries -gt 0 ]; do
+        ONLINE=$(pidof codesys3)
+        if [ "$ONLINE" == "" ]; then
+            break
+        fi
+        usleep 100000
+        retries=$(($retries - 1))
+    done
+    if [ $retries -le 0 ]; then
+        killall -9 codesys3
+    fi
+}
+
+# Check if runtime application is active.
+# Returns 0 if not.
+is_app_stopped()
+{
+    RUN_STOP=$(/etc/config-tools/get_run_stop_switch_value)
+    if [ $RUN_STOP == "stop" ]; then
+        RET=0
+    else
+        # Operating mode switch is in state run. Check actual RTS and its state.
+        LED=$(/usr/bin/getledstate RUN | cut -d' ' -f2)
+        case $LED in
+            "BLINK_RED"|"OFF"|"RED") RET=0 ;;
+            *) RET=1 ;; 
+        esac
+    fi
+    return $RET
+}
+
+
+setCs3WebServerState()
+{
+    local state=$1
+    local status=$SUCCESS
+    if [ "$state" = "enabled" ]; then
+      chplcconfig -o -s CmpWebServer -k WebServerPortNr -v $DEFAULT_PORT
+    else
+      chplcconfig -o -s CmpWebServer -k WebServerPortNr -v 0
+    fi
+    return $status
+}
+
+# Change boot project location for codesys 3.
+setCs3FilePath()
+{
+    local newDir=$1     # CARD:// or HOME://
+    local bootmedia=$(./get_filesystem_data active-partition-medium)
+    local newPath=
+
+    if [ "$bootmedia" = "sd-card" ]; then
+        newPath="/home/codesys3"
+    else
+        if [ "$newDir" = "HOME://" ]; then
+            newPath="/home/codesys3"
+        else
+            newPath="/media/sd"
+        fi
+    fi 
+
+    chplcconfig -o -s SysFile -k FilePath -v $newPath
+}
+
+# Arg 1 is new state. Value 1 for enabled or 0 for disabled.
+setCs3SecureLogin()
+{
+    local state=$1
+    local status=$SUCCESS
+    if [ "$state" = "0" -o "$state" = "1" ]; then
+        chplcconfig -o -s TscUserDB -k SecureLogin -v $state
+    else
+        status=$INVALID_PARAMETER
+    fi
+    return $status
+}
+
+# help text (requested with specified parameter).
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Set configuration of codesys3 *"
+    echo
+    echo "Usage: config_codesys3 -h / --help"
+    echo "or     config_codesys3 codesys3-webserver-state=state-value"
+    echo "or     config_codesys3 boot-project=boot-project-value"
+    echo "or     config_codesys3 port-auth=port-auth-value"
+    echo
+    echo "state-value:        \"enabled\" | \"disabled\""
+    echo "boot-project-value: \"HOME://\" | \"CARD://\""
+    echo "port-auth-value:    \"0\" | \"1\""
+    echo
+    exit $SUCCESS
+fi
+
+# Check that codesys3 is running
+if [ "$($CTDIR/get_plc_config)" != "3" ];then
+    status=$INTERNAL_ERROR
+    emessage="No e!RUNTIME active. Cannot change configuration."
+    ReportError $status $emessage
+    SetLastError $emessage
+    exit $status    
+fi
+
+# Get configuration parameters
+newState=$(GetParameterValue codesys3-webserver-state $*)
+newBootProjectLocation=$(GetParameterValue boot-project $*)
+newPortAuth=$(GetParameterValue port-auth $*)
+
+# Assure no application is active.
+if [ "$newState" -o "$newBootProjectLocation" -o "$newPortAuth" ]; then
+    if ! is_app_stopped; then
+        emessage="Application active. Cannot change configuration"
+        status=$INTERNAL_ERROR
+        ReportError $status "$emessage"
+        SetLastError "$emessage"
+        exit $status
+    fi
+    stop_cds3
+fi
+
+# Do the config changes.
+if [ "$newState" ]; then
+    emessage="Setting e!RUNTIME webserver state failed."
+    setCs3WebServerState $newState
+elif [ "$newBootProjectLocation" ]; then
+    emessage="Setting e!RUNTIME boot project location failed."
+    setCs3FilePath $newBootProjectLocation
+elif [ "$newPortAuth" ]; then
+    emessage="Setting e!RUNTIME port authentication failed."
+    setCs3SecureLogin $newPortAuth
+fi
+status=$?
+
+/etc/init.d/codesys3 start > /dev/null 2>&1
+if [ "$status" != "$SUCCESS" ]; then
+    ReportError $status $emessage
+    SetLastError $emessage
+fi
+exit $status
+

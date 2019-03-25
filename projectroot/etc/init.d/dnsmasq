@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# /etc/init.d/dnsmasq
+#
+# $Id: dnsmasq 9287 2014-07-14 08:57:24Z hans-josef.hoffmann@wago.com $
+#
+PIDFILE=/var/run/dnsmasq.pid
+DNSMASQ=/usr/sbin/dnsmasq
+CONFIG_TOOL=/etc/config-tools/config_dnsmasq_c
+
+function start_dnsmasq {
+	if [ ! -e $PIDFILE ]; then
+                echo "dnsmasq starting"
+                if [ -x $CONFIG_TOOL ]; then
+                        $CONFIG_TOOL --gen-config
+                fi
+                $DNSMASQ
+	else
+		echo "already running"
+	fi
+}
+
+function stop_dnsmasq {
+        if [ -e $PIDFILE ]; then
+                echo "stopping dnsmasq"
+		kill -s SIGTERM `cat $PIDFILE`
+		rm -f $PIDFILE
+        fi
+}
+
+function event_start {
+        [[ -d /etc/config-tools/events/dhcp/ ]] && run-parts -a start /etc/config-tools/events/dhcp/ >/dev/null 2>&1
+        [[ -d /etc/config-tools/events/dns/ ]] && run-parts -a start /etc/config-tools/events/dns/ >/dev/null 2>&1
+}
+
+function event_stop {
+        [[ -d /etc/config-tools/events/dhcp/ ]] && run-parts -a stop /etc/config-tools/events/dhcp/ >/dev/null 2>&1
+        [[ -d /etc/config-tools/events/dns/ ]] && run-parts -a stop /etc/config-tools/events/dns/ >/dev/null 2>&1
+}
+
+case $1 in
+
+	start)
+		start_dnsmasq
+        event_start
+		;;
+
+	stop)
+        event_stop
+		stop_dnsmasq
+		;;
+
+	restart)
+		stop_dnsmasq
+		start_dnsmasq
+        event_start
+		;;
+
+	reload)
+		test -e $PIDFILE || echo "not running"
+		kill -s SIGHUP `cat $PIDFILE`
+        event_start
+		;;
+
+	*)
+		echo "Usage: ${0} {start|stop|restart|reload}"
+		exit 1
+		;;
+
+esac

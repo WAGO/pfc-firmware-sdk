@@ -1,0 +1,23 @@
+From d4dcc2d21918c6c2fb690f856e9e2dfb006e6ebe Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 7 Nov 2018 11:03:49 +0000
+Subject: [PATCH 143/144] env: pfc: init: increase tftp blksize to max
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/init/pfc-max-tftp-bsize | 3 +++
+ 1 file changed, 3 insertions(+)
+ create mode 100644 defaultenv/defaultenv-pfc-base/init/pfc-max-tftp-bsize
+
+diff --git a/defaultenv/defaultenv-pfc-base/init/pfc-max-tftp-bsize b/defaultenv/defaultenv-pfc-base/init/pfc-max-tftp-bsize
+new file mode 100644
+index 0000000..5259d60
+--- /dev/null
++++ b/defaultenv/defaultenv-pfc-base/init/pfc-max-tftp-bsize
+@@ -0,0 +1,3 @@
++#!/bin/sh
++
++global.tftp.blocksize=1468
+-- 
+2.7.4
+

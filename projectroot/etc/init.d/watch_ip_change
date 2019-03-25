@@ -1,0 +1,37 @@
+#!/bin/sh
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   watch_ip_change
+#
+# Brief:    Create notified file for monitoring of change the network 
+#           configuration (IP address, subnet mask).
+#           The files will be created for following interfaces: br0, br1, wwan0.
+#           A notified file will be accessed by changing of network 
+#           configuration of given interface.
+#           An application can be watch this access through "inotify" command.
+#
+# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+IP_CHANGE_NOTIFIED_FILE_DIR="/var/run/ipv4"
+IP_CHANGE_NOTIFIED_FILE="$IP_CHANGE_NOTIFIED_FILE_DIR/ipconchg"
+
+case "$1" in
+
+  start)
+     mkdir -p "$IP_CHANGE_NOTIFIED_FILE_DIR"
+     touch "$IP_CHANGE_NOTIFIED_FILE-br0"
+     touch "$IP_CHANGE_NOTIFIED_FILE-br1"
+     touch "$IP_CHANGE_NOTIFIED_FILE-wwan0"
+  ;;
+  stop)       
+  ;;
+esac

@@ -1,0 +1,149 @@
+From 8d26761f4c2f9db55b6ba22bf2927d47fc56c71c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 26 Nov 2018 12:01:06 +0100
+Subject: [PATCH 150/152] defaultenv: defaultenv-pfc: correct switch name in
+ script name
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ .../init_post_autoboot/pfc-ks8863-setup            | 60 ----------------------
+ .../init_post_autoboot/pfc-ksz8863-setup           | 60 ++++++++++++++++++++++
+ 2 files changed, 60 insertions(+), 60 deletions(-)
+ delete mode 100644 defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ks8863-setup
+ create mode 100644 defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ksz8863-setup
+
+diff --git a/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ks8863-setup b/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ks8863-setup
+deleted file mode 100644
+index 79d7cfc..0000000
+--- a/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ks8863-setup
++++ /dev/null
+@@ -1,60 +0,0 @@
+-#!/bin/sh
+-
+-# To determine if we are on a micrel ks8863 based device we can not read then
+-# switch identifier register. This lack comes due to an unssported operation code
+-# of the cpu to get the values from the micrel ethernet switch. Instead we read
+-# the interal phy_id registers of the micrel switch.
+-
+-source env/data/print-msg-formats
+-
+-# mii bus
+-mii_bus=0
+-
+-# mii addresses
+-phy_x1_addr=1
+-phy_x2_addr=2
+-
+-# registers
+-control_reg=0
+-phy_id_high_reg=2
+-phy_id_low_reg=3
+-
+-# register values
+-#
+-# Init values according to Data Sheet:
+-# "AN enable" (Auto-negotiation enabled) = 1
+-# "Hp_mdix" (HP Auto MDI/MDI-X mode) = 1
+-#
+-auto_neg_mdi_enable=4128	# 0x1020
+-phy_id_high_val=34		# 0x22
+-phy_id_low_val=5168		# 0x1430
+-
+-if [ "${global.autoboot}" = 0 -a "${global.pfc.boot_mode}" = "default" ]; then
+-	exit 0
+-fi
+-
+-# read phy id regs to check if we are on a micrel based device. Its sufficient to
+-# read only the phy id of phy_x1.
+-miitool -x "${mii_bus}:${phy_x1_addr}:${phy_id_high_reg}" -p read_phy_id_high_val
+-miitool -x "${mii_bus}:${phy_x1_addr}:${phy_id_low_reg}" -p read_phy_id_low_val
+-
+-if [ "${read_phy_id_high_val}" != "${phy_id_high_val}" ] && [ "${read_phy_id_low_val}" != "${phy_id_low_reg}" ]; then
+-	exit 0
+-fi
+-
+-echo -e ${info} "Micrel KSZ8863 switch detected"
+-
+-# enable auto-negotiation and auto-mdi-x mode
+-miitool -w "${mii_bus}:${phy_x1_addr}:${control_reg}" -p auto_neg_mdi_enable
+-if [ "$?" != 0 ]; then
+-	echo -e ${error} "Could not enable auto-neg-mdi PHY of port X1"
+-	exit 1
+-fi
+-
+-miitool -w "${mii_bus}:${phy_x2_addr}:${control_reg}" -p auto_neg_mdi_enable
+-if [ "$?" != 0 ]; then
+-	echo -e ${error} "Could not enable auto-neg-mdi PHY of port X2"
+-	exit 1
+-fi
+-
+-exit 0
+diff --git a/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ksz8863-setup b/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ksz8863-setup
+new file mode 100644
+index 0000000..79d7cfc
+--- /dev/null
++++ b/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-ksz8863-setup
+@@ -0,0 +1,60 @@
++#!/bin/sh
++
++# To determine if we are on a micrel ks8863 based device we can not read then
++# switch identifier register. This lack comes due to an unssported operation code
++# of the cpu to get the values from the micrel ethernet switch. Instead we read
++# the interal phy_id registers of the micrel switch.
++
++source env/data/print-msg-formats
++
++# mii bus
++mii_bus=0
++
++# mii addresses
++phy_x1_addr=1
++phy_x2_addr=2
++
++# registers
++control_reg=0
++phy_id_high_reg=2
++phy_id_low_reg=3
++
++# register values
++#
++# Init values according to Data Sheet:
++# "AN enable" (Auto-negotiation enabled) = 1
++# "Hp_mdix" (HP Auto MDI/MDI-X mode) = 1
++#
++auto_neg_mdi_enable=4128	# 0x1020
++phy_id_high_val=34		# 0x22
++phy_id_low_val=5168		# 0x1430
++
++if [ "${global.autoboot}" = 0 -a "${global.pfc.boot_mode}" = "default" ]; then
++	exit 0
++fi
++
++# read phy id regs to check if we are on a micrel based device. Its sufficient to
++# read only the phy id of phy_x1.
++miitool -x "${mii_bus}:${phy_x1_addr}:${phy_id_high_reg}" -p read_phy_id_high_val
++miitool -x "${mii_bus}:${phy_x1_addr}:${phy_id_low_reg}" -p read_phy_id_low_val
++
++if [ "${read_phy_id_high_val}" != "${phy_id_high_val}" ] && [ "${read_phy_id_low_val}" != "${phy_id_low_reg}" ]; then
++	exit 0
++fi
++
++echo -e ${info} "Micrel KSZ8863 switch detected"
++
++# enable auto-negotiation and auto-mdi-x mode
++miitool -w "${mii_bus}:${phy_x1_addr}:${control_reg}" -p auto_neg_mdi_enable
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not enable auto-neg-mdi PHY of port X1"
++	exit 1
++fi
++
++miitool -w "${mii_bus}:${phy_x2_addr}:${control_reg}" -p auto_neg_mdi_enable
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not enable auto-neg-mdi PHY of port X2"
++	exit 1
++fi
++
++exit 0
+-- 
+2.7.4
+

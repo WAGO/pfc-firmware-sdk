@@ -1,0 +1,504 @@
+From 71c9146b498d990033f99a4b5bd5ffda32dd54d4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Karsten=20N=C3=BCnthel?= <karsten.nünthel@wago.com>
+Date: Mon, 24 Mar 2014 08:50:20 +0100
+Subject: [PATCH] packed pi bits
+
+---
+ src/modbus-data.c        |  90 +++++++++++++++++++++
+ src/modbus.c             | 202 ++++++++++++++++++++++++++++-------------------
+ src/modbus.h             |  12 ++-
+ tests/unit-test-client.c |   2 +-
+ tests/unit-test-server.c |   7 +-
+ 5 files changed, 228 insertions(+), 85 deletions(-)
+
+diff --git a/src/modbus-data.c b/src/modbus-data.c
+index b2ca79e..a13362d 100644
+--- a/src/modbus-data.c
++++ b/src/modbus-data.c
+@@ -25,6 +25,8 @@
+ #include <string.h>
+ #include <assert.h>
+ 
++#include "modbus.h"
++
+ /* Sets many bits from a single byte value (all 8 bits of the byte value are
+    set) */
+ void modbus_set_bits_from_byte(uint8_t *dest, int index, const uint8_t value)
+@@ -94,3 +96,91 @@ void modbus_set_float(float f, uint16_t *dest)
+     dest[0] = (uint16_t)i;
+     dest[1] = (uint16_t)(i >> 16);
+ }
++
++
++/* Sets bits between index and index + nb_bits from a table of bytes */
++void modbus_set_bitmap16_from_bytes(uint16_t *dest, uint32_t index,
++                                    uint32_t nb_bits, const uint8_t *tab_byte)
++{
++  //calculate bit offset in each bitmap
++  uint8_t shift = index % 16; //0..15
++  //set write pointer to the first bitmap
++  dest = &dest[index / 16];
++  while (nb_bits)
++  {
++    //calculate number of bits in current bitmap
++    uint8_t bitmap_size = (nb_bits < 16) ? nb_bits : 16; //1..16
++    //get new bitmap value
++    uint16_t bitmap_value = *tab_byte;
++    tab_byte++;
++    if (bitmap_size > 8)
++    {
++      bitmap_value |= (*(tab_byte) << 8);
++      tab_byte++;
++    }
++    //check alignment for fast copy
++    if (!shift && (bitmap_size == 16))
++    {
++      *dest = bitmap_value;
++    }
++    else
++    {
++      //set first bits in current word
++      *dest &= ~(((1 << bitmap_size) - 1) << shift);
++      *dest |= bitmap_value << shift;
++      if (bitmap_size + shift > 16)
++      {//set remaining bits in next word
++          unsigned int nb_bits_left = bitmap_size + shift - 16; //1..15
++          *(dest+1) &= ~( (1 << nb_bits_left) - 1 );
++          *(dest+1) |= bitmap_value >> (bitmap_size - nb_bits_left);
++      }
++    }
++
++    dest++;
++    nb_bits -= bitmap_size;
++  }
++}
++
++/* Get bits between index and index + nb_bits into a table of bytes */
++uint32_t modbus_get_bytes_from_bitmap16(const uint16_t *src, uint32_t index,
++                                        uint32_t nb_bits, uint8_t *tab_byte)
++{
++  uint32_t nb_bytes = 0;
++  //calculate bit offset in each bitmap
++  uint8_t shift = index % 16; //0..15
++  //set read pointer to the first bitmap
++  src = &src[index / 16];
++  while (nb_bits)
++  {
++    uint16_t bitmap_value;
++    //calculate number of bits in current bitmap
++    uint8_t bitmap_size = (nb_bits < 16) ? nb_bits : 16; //1..16
++    //check alignment for fast copy
++    if (!shift && (bitmap_size == 16))
++    {
++      bitmap_value = *src;
++    }
++    else
++    {
++      //get first bits from current word
++      bitmap_value = *src >> shift;
++      if (bitmap_size + shift > 16)
++      {//get remaining bits from next word
++        unsigned int nb_bits_left = bitmap_size + shift - 16; //1..15
++        bitmap_value |= *(src+1) << (bitmap_size - nb_bits_left);
++      }
++      bitmap_value &= (1 << bitmap_size) - 1;
++    }
++
++    src++;
++    tab_byte[nb_bytes] = MODBUS_GET_LOW_BYTE(bitmap_value);
++    nb_bytes++;
++    if (bitmap_size > 8)
++    {
++      tab_byte[nb_bytes] = MODBUS_GET_HIGH_BYTE(bitmap_value);
++      nb_bytes++;
++    }
++    nb_bits -= bitmap_size;
++  }
++  return nb_bytes;
++}
+diff --git a/src/modbus.c b/src/modbus.c
+index 4052f00..d88caa2 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -592,30 +592,30 @@ static int check_confirmation(modbus_t *ctx, uint8_t *req,
+     return rc;
+ }
+ 
+-static int response_io_status(int address, int nb,
+-                              uint8_t *tab_io_status,
+-                              uint8_t *rsp, int offset)
+-{
+-    int shift = 0;
+-    int byte = 0;
+-    int i;
+-
+-    for (i = address; i < address+nb; i++) {
+-        byte |= tab_io_status[i] << shift;
+-        if (shift == 7) {
+-            /* Byte is full */
+-            rsp[offset++] = byte;
+-            byte = shift = 0;
+-        } else {
+-            shift++;
+-        }
+-    }
+-
+-    if (shift != 0)
+-        rsp[offset++] = byte;
+-
+-    return offset;
+-}
++//static int response_io_status(int address, int nb,
++//                              uint8_t *tab_io_status,
++//                              uint8_t *rsp, int offset)
++//{
++//    int shift = 0;
++//    int byte = 0;
++//    int i;
++//
++//    for (i = address; i < address+nb; i++) {
++//        byte |= tab_io_status[i] << shift;
++//        if (shift == 7) {
++//            /* Byte is full */
++//            rsp[offset++] = byte;
++//            byte = shift = 0;
++//        } else {
++//            shift++;
++//        }
++//    }
++//
++//    if (shift != 0)
++//        rsp[offset++] = byte;
++//
++//    return offset;
++//}
+ 
+ /* Build the exception response */
+ static int response_exception(modbus_t *ctx, sft_t *sft,
+@@ -682,9 +682,8 @@ int modbus_reply(modbus_t *ctx, const uint8_t *req,
+         } else {
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             rsp[rsp_length++] = (nb / 8) + ((nb % 8) ? 1 : 0);
+-            rsp_length = response_io_status(address, nb,
+-                                            mb_mapping->tab_bits,
+-                                            rsp, rsp_length);
++            rsp_length += modbus_get_bytes_from_bitmap16(mb_mapping->tab_bits,
++                                                         address, nb, &rsp[rsp_length]);
+         }
+     }
+         break;
+@@ -713,9 +712,8 @@ int modbus_reply(modbus_t *ctx, const uint8_t *req,
+         } else {
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             rsp[rsp_length++] = (nb / 8) + ((nb % 8) ? 1 : 0);
+-            rsp_length = response_io_status(address, nb,
+-                                            mb_mapping->tab_input_bits,
+-                                            rsp, rsp_length);
++            rsp_length += modbus_get_bytes_from_bitmap16(mb_mapping->tab_input_bits,
++                                                         address, nb, &rsp[rsp_length]);
+         }
+     }
+         break;
+@@ -798,7 +796,8 @@ int modbus_reply(modbus_t *ctx, const uint8_t *req,
+             int data = (req[offset + 3] << 8) + req[offset + 4];
+ 
+             if (data == 0xFF00 || data == 0x0) {
+-                mb_mapping->tab_bits[address] = (data) ? ON : OFF;
++                uint8_t status = (data) ? ON : OFF;
++                modbus_set_bitmap16_from_bytes(mb_mapping->tab_bits, address, 1, &status);
+                 memcpy(rsp, req, req_length);
+                 rsp_length = req_length;
+             } else {
+@@ -843,7 +842,7 @@ int modbus_reply(modbus_t *ctx, const uint8_t *req,
+                 MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS, rsp);
+         } else {
+             /* 6 = byte count */
+-            modbus_set_bits_from_bytes(mb_mapping->tab_bits, address, nb, &req[offset + 6]);
++            modbus_set_bitmap16_from_bytes(mb_mapping->tab_bits, address, nb, &req[offset + 6]);
+ 
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             /* 4 to copy the bit address (2) and the quantity of bits */
+@@ -1521,6 +1520,7 @@ void modbus_set_debug(modbus_t *ctx, int boolean)
+     ctx->debug = boolean;
+ }
+ 
++
+ /* Allocates 4 arrays to store bits, input bits, registers and inputs
+    registers. The pointers are stored in modbus_mapping structure.
+ 
+@@ -1530,93 +1530,135 @@ modbus_mapping_t* modbus_mapping_new(int nb_bits, int nb_input_bits,
+                                      int nb_registers, int nb_input_registers)
+ {
+     modbus_mapping_t *mb_mapping;
++    uint32_t tab_size;
+ 
+     mb_mapping = (modbus_mapping_t *)malloc(sizeof(modbus_mapping_t));
+     if (mb_mapping == NULL) {
+         return NULL;
+     }
++    memset(mb_mapping, 0, sizeof(modbus_mapping_t));
+ 
+     /* 0X */
+-    mb_mapping->nb_bits = nb_bits;
+-    if (nb_bits == 0) {
+-        mb_mapping->tab_bits = NULL;
+-    } else {
+-        /* Negative number raises a POSIX error */
+-        mb_mapping->tab_bits =
+-            (uint8_t *) malloc(nb_bits * sizeof(uint8_t));
++    if (nb_bits > 0) {
++        tab_size = ((nb_bits / 16u) + ((nb_bits % 16) ? 1 : 0)) * sizeof(uint16_t);
++        mb_mapping->tab_bits = (uint16_t *)malloc(tab_size);
+         if (mb_mapping->tab_bits == NULL) {
+-            free(mb_mapping);
++            modbus_mapping_free(mb_mapping);
+             return NULL;
+         }
+-        memset(mb_mapping->tab_bits, 0, nb_bits * sizeof(uint8_t));
++        memset(mb_mapping->tab_bits, 0, tab_size);
++        mb_mapping->nb_bits = nb_bits;
+     }
+ 
+     /* 1X */
+-    mb_mapping->nb_input_bits = nb_input_bits;
+-    if (nb_input_bits == 0) {
+-        mb_mapping->tab_input_bits = NULL;
+-    } else {
+-        mb_mapping->tab_input_bits =
+-            (uint8_t *) malloc(nb_input_bits * sizeof(uint8_t));
++    if (nb_input_bits > 0) {
++        tab_size = ((nb_input_bits / 16u) + ((nb_input_bits % 16) ? 1 : 0))
++                                                             * sizeof(uint16_t);
++        mb_mapping->tab_input_bits = (uint16_t *)malloc(tab_size);
+         if (mb_mapping->tab_input_bits == NULL) {
+-            free(mb_mapping->tab_bits);
+-            free(mb_mapping);
++            modbus_mapping_free(mb_mapping);
+             return NULL;
+         }
+-        memset(mb_mapping->tab_input_bits, 0, nb_input_bits * sizeof(uint8_t));
++        memset(mb_mapping->tab_input_bits, 0, tab_size);
++        mb_mapping->nb_input_bits = nb_input_bits;
+     }
+ 
+     /* 4X */
+-    mb_mapping->nb_registers = nb_registers;
+-    if (nb_registers == 0) {
+-        mb_mapping->tab_registers = NULL;
+-    } else {
+-        mb_mapping->tab_registers =
+-            (uint16_t *) malloc(nb_registers * sizeof(uint16_t));
++    if (nb_registers > 0) {
++        tab_size = nb_registers * sizeof(uint16_t);
++        mb_mapping->tab_registers = (uint16_t *)malloc(tab_size);
+         if (mb_mapping->tab_registers == NULL) {
+-            free(mb_mapping->tab_input_bits);
+-            free(mb_mapping->tab_bits);
+-            free(mb_mapping);
++            modbus_mapping_free(mb_mapping);
+             return NULL;
+         }
+-        memset(mb_mapping->tab_registers, 0, nb_registers * sizeof(uint16_t));
++        memset(mb_mapping->tab_registers, 0, tab_size);
++        mb_mapping->nb_registers = nb_registers;
+     }
+ 
+     /* 3X */
+-    mb_mapping->nb_input_registers = nb_input_registers;
+-    if (nb_input_registers == 0) {
+-        mb_mapping->tab_input_registers = NULL;
+-    } else {
+-        mb_mapping->tab_input_registers =
+-            (uint16_t *) malloc(nb_input_registers * sizeof(uint16_t));
++    if (nb_input_registers > 0) {
++        tab_size = nb_input_registers * sizeof(uint16_t);
++        mb_mapping->tab_input_registers = (uint16_t *) malloc(tab_size);
+         if (mb_mapping->tab_input_registers == NULL) {
+-            free(mb_mapping->tab_registers);
+-            free(mb_mapping->tab_input_bits);
+-            free(mb_mapping->tab_bits);
+-            free(mb_mapping);
++            modbus_mapping_free(mb_mapping);
+             return NULL;
+         }
+-        memset(mb_mapping->tab_input_registers, 0,
+-               nb_input_registers * sizeof(uint16_t));
++        memset(mb_mapping->tab_input_registers, 0, tab_size);
++        mb_mapping->nb_input_registers = nb_input_registers;
+     }
+-
+     return mb_mapping;
+ }
+ 
+ /* Frees the 4 arrays */
+ void modbus_mapping_free(modbus_mapping_t *mb_mapping)
+ {
+-    if (mb_mapping == NULL) {
+-        return;
++    if (mb_mapping) {
++        if (mb_mapping->tab_bits) {
++            free(mb_mapping->tab_bits);
++        }
++        if (mb_mapping->tab_input_bits) {
++            free(mb_mapping->tab_input_bits);
++        }
++        if (mb_mapping->tab_registers) {
++            free(mb_mapping->tab_registers);
++        }
++        if (mb_mapping->tab_input_registers) {
++            free(mb_mapping->tab_input_registers);
++        }
++        free(mb_mapping);
+     }
++}
+ 
+-    free(mb_mapping->tab_input_registers);
+-    free(mb_mapping->tab_registers);
+-    free(mb_mapping->tab_input_bits);
+-    free(mb_mapping->tab_bits);
+-    free(mb_mapping);
++void modbus_mapping_print(modbus_mapping_t *mb_mapping)
++{
++    if (mb_mapping) {
++        uint32_t i;
++        printf("modbus mapping @0x%08X", (uint32_t)((uintptr_t)mb_mapping));
++        if (mb_mapping->tab_bits) {
++            uint32_t tab_size = ((mb_mapping->nb_bits / 16u) + ((mb_mapping->nb_bits % 16) ? 1 : 0));
++            printf("\n ->tab_bits @0x%08X:", (uint32_t)((uintptr_t)mb_mapping->tab_bits));
++            for (i=0; i<tab_size; i++) {
++                if ( !(i % 8) ) {
++                    printf("\n  ");
++                }
++                printf(" %04x", mb_mapping->tab_bits[i]);
++            }
++        }
++        if (mb_mapping->tab_input_bits) {
++            uint32_t tab_size = ((mb_mapping->nb_input_bits / 16u) + ((mb_mapping->nb_input_bits % 16) ? 1 : 0));
++            printf("\n ->tab_input_bits @0x%08X:", (uint32_t)((uintptr_t)mb_mapping->tab_input_bits));
++            for (i=0; i<tab_size; i++) {
++                if ( !(i % 8) ) {
++                    printf("\n  ");
++                }
++                printf(" %04x", mb_mapping->tab_input_bits[i]);
++            }
++        }
++        if (mb_mapping->tab_registers) {
++            uint32_t tab_size = mb_mapping->nb_registers;
++            printf("\n ->tab_registers @0x%08X:", (uint32_t)((uintptr_t)mb_mapping->tab_registers));
++            for (i=0; i<tab_size; i++) {
++                if ( !(i % 8) ) {
++                    printf("\n  ");
++                }
++                printf(" %04x", mb_mapping->tab_registers[i]);
++            }
++        }
++        if (mb_mapping->tab_input_registers) {
++            uint32_t tab_size = mb_mapping->nb_input_registers;
++            printf("\n ->tab_input_registers @0x%08X:", (uint32_t)((uintptr_t)mb_mapping->tab_input_registers));
++            for (i=0; i<tab_size; i++) {
++                if ( !(i % 8) ) {
++                    printf("\n  ");
++                }
++                printf(" %04x", mb_mapping->tab_input_registers[i]);
++            }
++        }
++        printf("\n");
++    }
+ }
+ 
++
+ #ifndef HAVE_STRLCPY
+ /*
+  * Function strlcpy was originally developed by
+diff --git a/src/modbus.h b/src/modbus.h
+index ed6dabb..2b7f27c 100644
+--- a/src/modbus.h
++++ b/src/modbus.h
+@@ -129,8 +129,8 @@ typedef struct {
+     int nb_input_bits;
+     int nb_input_registers;
+     int nb_registers;
+-    uint8_t *tab_bits;
+-    uint8_t *tab_input_bits;
++    uint16_t *tab_bits;
++    uint16_t *tab_input_bits;
+     uint16_t *tab_input_registers;
+     uint16_t *tab_registers;
+ } modbus_mapping_t;
+@@ -181,6 +181,7 @@ int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest);
+ modbus_mapping_t* modbus_mapping_new(int nb_coil_status, int nb_input_status,
+                                      int nb_holding_registers, int nb_input_registers);
+ void modbus_mapping_free(modbus_mapping_t *mb_mapping);
++void modbus_mapping_print(modbus_mapping_t *mb_mapping);
+ 
+ int modbus_send_raw_request(modbus_t *ctx, uint8_t *raw_req, int raw_req_length);
+ 
+@@ -197,7 +198,6 @@ int modbus_reply_exception(modbus_t *ctx, const uint8_t *req,
+ /**
+  * UTILS FUNCTIONS
+  **/
+-
+ #define MODBUS_GET_HIGH_BYTE(data) (((data) >> 8) & 0xFF)
+ #define MODBUS_GET_LOW_BYTE(data) ((data) & 0xFF)
+ #define MODBUS_GET_INT32_FROM_INT16(tab_int16, index) ((tab_int16[(index)] << 16) + tab_int16[(index) + 1])
+@@ -215,6 +215,12 @@ uint8_t modbus_get_byte_from_bits(const uint8_t *src, int index, unsigned int nb
+ float modbus_get_float(const uint16_t *src);
+ void modbus_set_float(float f, uint16_t *dest);
+ 
++void modbus_set_bitmap16_from_bytes(uint16_t *dest, uint32_t index, uint32_t nb_bits,
++                                    const uint8_t *tab_byte);
++
++uint32_t modbus_get_bytes_from_bitmap16(const uint16_t *src, uint32_t index, uint32_t nb_bits,
++                                        uint8_t *tab_byte);
++
+ #include "modbus-tcp.h"
+ #include "modbus-rtu.h"
+ 
+diff --git a/tests/unit-test-client.c b/tests/unit-test-client.c
+index bbfbf24..b0d1124 100644
+--- a/tests/unit-test-client.c
++++ b/tests/unit-test-client.c
+@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
+     }
+ 
+     if (tab_rp_bits[0] != ON) {
+-        printf("FAILED (%0X = != %0X)\n", tab_rp_bits[0], ON);
++        printf("FAILED (%0X != %0X)\n", tab_rp_bits[0], ON);
+         goto close;
+     }
+     printf("OK\n");
+diff --git a/tests/unit-test-server.c b/tests/unit-test-server.c
+index 9a986c5..5efaeba 100644
+--- a/tests/unit-test-server.c
++++ b/tests/unit-test-server.c
+@@ -88,7 +88,7 @@ int main(int argc, char*argv[])
+        Only the read-only input values are assigned. */
+ 
+     /** INPUT STATUS **/
+-    modbus_set_bits_from_bytes(mb_mapping->tab_input_bits,
++    modbus_set_bitmap16_from_bytes(mb_mapping->tab_input_bits,
+                                UT_INPUT_BITS_ADDRESS, UT_INPUT_BITS_NB,
+                                UT_INPUT_BITS_TAB);
+ 
+@@ -113,6 +113,8 @@ int main(int argc, char*argv[])
+         }
+     }
+ 
++    modbus_mapping_print(mb_mapping);
++
+     for (;;) {
+         rc = modbus_receive(ctx, query);
+         if (rc == -1) {
+@@ -147,6 +149,9 @@ int main(int argc, char*argv[])
+     if (use_backend == TCP) {
+         close(socket);
+     }
++
++    modbus_mapping_print(mb_mapping);
++
+     modbus_mapping_free(mb_mapping);
+     free(query);
+     modbus_free(ctx);
+-- 
+1.9.0
+

@@ -1,0 +1,11 @@
+[Unit]
+Description=WAGO system service daemon
+After=network.service codesys3
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ssd
+
+[Install]
+WantedBy=multi-user.target
+

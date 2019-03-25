@@ -1,0 +1,62 @@
+#!/bin/sh
+# BOOTP handling
+#
+# Starts bootp client and handles the parameters of a bootp reply.
+#
+# $Revision: 19762 $
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+
+interface_name=$1
+DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
+FILE=$DHCP_DATA_FILE_TEMPLATE$interface_name
+
+/sbin/ifconfig lo up
+/sbin/ifconfig $interface_name 0.0.0.0 up
+/sbin/route add default $interface_name
+
+# Open firewall ports if firewall is enabled.
+if [[ `/etc/config-tools/firewall firewall --is-enabled` == "enabled" ]]; then
+    if [[ $interface_name == "br0" ]]; then
+        port_name="X1"
+    elif [[ $interface_name == "br1" ]]; then
+        port_name="X2"
+    fi
+
+    /etc/config-tools/firewall bootp --set-if on $port_name --apply up
+
+    trap "/etc/config-tools/set_bootp_config $interface_name close" EXIT
+fi
+
+while [ -z "$IPADDR" ]
+do
+    eval `/sbin/bootpc --dev $interface_name --serverbcast --returniffail --timeoutwait 0` >> /dev/null
+    #echo IP = $IPADDR
+    sleep 3
+done
+
+# Close firewall ports
+if [[ `/etc/config-tools/firewall firewall --is-enabled` == "enabled" ]]; then
+    /etc/config-tools/firewall bootp --set-if off $port_name --apply up
+    trap "" EXIT
+fi
+
+/sbin/ifconfig $interface_name $IPADDR netmask $NETMASK broadcast $BROADCAST up >> /var/log/bootpc-startup.log
+
+# Save default gateways
+if [ -n "$GATEWAYS" ] ; then
+    > $FILE
+    index=1
+    for i in $GATEWAYS; do
+        echo "DEFAULT_GATEWAY_$index=$i" >> $FILE
+        index=$(($index + 1))
+    done
+fi
+
+# Save hostname and dns domainname
+[ "$HOSTNAME" ] && echo "DHCPHOSTNAME=$HOSTNAME" >> $FILE
+[ "$DOMAIN" ] && echo "DHCPDOMAIN=$DOMAIN" >> $FILE
+
+# Generate config tool networking event
+EVENTDIR=/etc/config-tools/events/networking
+[ -e $EVENTDIR ] && run-parts -a config $EVENTDIR
+

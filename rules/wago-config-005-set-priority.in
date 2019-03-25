@@ -1,0 +1,8 @@
+## SECTION=wago_specific_config
+
+config CT_SET_THREAD_PRIORITY
+	bool
+    default n
+	prompt "set thread priority"
+	help
+	  Installs a shell script that gets started by init and sets the pthread priority/scheduler for a list of known tasks.

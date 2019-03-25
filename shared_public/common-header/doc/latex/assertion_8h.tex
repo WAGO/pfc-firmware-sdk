@@ -1,0 +1,117 @@
+\hypertarget{assertion_8h}{\section{inc/wc/assertion.h File Reference}
+\label{assertion_8h}\index{inc/wc/assertion.\+h@{inc/wc/assertion.\+h}}
+}
+
+
+Assertion macros for unified assertion usage.  
+
+
+{\ttfamily \#include \char`\"{}wc/compiler.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}wc/preprocessing.\+h\char`\"{}}\\*
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{assertion_8h_a5c1c3414d0a083be452afc789e8e0667}{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X}~\char`\"{}Assertion failed\+: \char`\"{}
+\item 
+\hypertarget{assertion_8h_a2fd6fb80f68c01f7a797b0d15875c294}{\#define {\bfseries W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+I\+L\+E}~(\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+)}\label{assertion_8h_a2fd6fb80f68c01f7a797b0d15875c294}
+
+\item 
+\hypertarget{assertion_8h_aa32d00ceb50265d26bdf4cbe0115e532}{\#define {\bfseries W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+U\+N\+C}~(\+\_\+\+\_\+func\+\_\+\+\_\+)}\label{assertion_8h_aa32d00ceb50265d26bdf4cbe0115e532}
+
+\item 
+\hypertarget{assertion_8h_abe76335d82eb3efb20c09876e8eccdbf}{\#define {\bfseries W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+L\+I\+N\+E}~(\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+)}\label{assertion_8h_abe76335d82eb3efb20c09876e8eccdbf}
+
+\item 
+\#define \hyperlink{assertion_8h_a28e6c03e3e4d545781b8451788163581}{W\+C\+\_\+\+S\+T\+A\+T\+I\+C\+\_\+\+A\+S\+S\+E\+R\+T}(e)~typedef char \hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{W\+C\+\_\+\+S\+U\+B\+S\+T\+\_\+\+A\+N\+D\+\_\+\+G\+L\+U\+E}(assertion\+\_\+failed\+\_\+, \hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{W\+C\+\_\+\+S\+U\+B\+S\+T\+\_\+\+A\+N\+D\+\_\+\+G\+L\+U\+E}(\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+, \+\_\+))\mbox{[}1 -\/ (2 $\ast$ !(e))\mbox{]}
+\item 
+\#define \hyperlink{assertion_8h_a067aefc94b4d4c04bb267d62b13c195d}{W\+C\+\_\+\+A\+S\+S\+E\+R\+T}(e)~(e) ? (void)0 \+: \hyperlink{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{W\+C\+\_\+\+F\+A\+I\+L}(\hyperlink{assertion_8h_a5c1c3414d0a083be452afc789e8e0667}{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X} \#e)
+\item 
+\#define \hyperlink{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{W\+C\+\_\+\+F\+A\+I\+L}(reason)~\hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}(reason, W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+I\+L\+E, W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+U\+N\+C, W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+L\+I\+N\+E)
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail} (char const $\ast$const sz\+Reason, char const $\ast$const sz\+File, char const $\ast$const sz\+Function, int const line)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Assertion macros for unified assertion usage. 
+
+\begin{DoxyAuthor}{Author}
+Osama El Hosami, Patrick Enns \+: W\+A\+G\+O Kontakttechnik Gmb\+H \& Co. K\+G 
+\end{DoxyAuthor}
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{assertion_8h_a067aefc94b4d4c04bb267d62b13c195d}{\index{assertion.\+h@{assertion.\+h}!W\+C\+\_\+\+A\+S\+S\+E\+R\+T@{W\+C\+\_\+\+A\+S\+S\+E\+R\+T}}
+\index{W\+C\+\_\+\+A\+S\+S\+E\+R\+T@{W\+C\+\_\+\+A\+S\+S\+E\+R\+T}!assertion.\+h@{assertion.\+h}}
+\subsubsection[{W\+C\+\_\+\+A\+S\+S\+E\+R\+T}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+A\+S\+S\+E\+R\+T(
+\begin{DoxyParamCaption}
+\item[{}]{e}
+\end{DoxyParamCaption}
+)~(e) ? (void)0 \+: {\bf W\+C\+\_\+\+F\+A\+I\+L}({\bf W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X} \#e)}}\label{assertion_8h_a067aefc94b4d4c04bb267d62b13c195d}
+Helper macro, proves expression satisfies true. In case expression evaluates to false a run-\/time error is issued.
+
+\begin{DoxyNote}{Note}
+To use this macro you have to provide an implementation for the C function \hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}. 
+\end{DoxyNote}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail} 
+\end{DoxySeeAlso}
+\hypertarget{assertion_8h_a5c1c3414d0a083be452afc789e8e0667}{\index{assertion.\+h@{assertion.\+h}!W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X@{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X}}
+\index{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X@{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X}!assertion.\+h@{assertion.\+h}}
+\subsubsection[{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+I\+X~\char`\"{}Assertion failed\+: \char`\"{}}}\label{assertion_8h_a5c1c3414d0a083be452afc789e8e0667}
+Fail reason prefix.
+
+This prefix is used in front of every fail reason triggered by an assertion. \hypertarget{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{\index{assertion.\+h@{assertion.\+h}!W\+C\+\_\+\+F\+A\+I\+L@{W\+C\+\_\+\+F\+A\+I\+L}}
+\index{W\+C\+\_\+\+F\+A\+I\+L@{W\+C\+\_\+\+F\+A\+I\+L}!assertion.\+h@{assertion.\+h}}
+\subsubsection[{W\+C\+\_\+\+F\+A\+I\+L}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+F\+A\+I\+L(
+\begin{DoxyParamCaption}
+\item[{}]{reason}
+\end{DoxyParamCaption}
+)~{\bf wc\+\_\+\+Fail}(reason, W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+I\+L\+E, W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+U\+N\+C, W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+L\+I\+N\+E)}}\label{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}
+Helper macro, fails every time. A run-\/time error is issued and reason string may be shown.
+
+\begin{DoxyNote}{Note}
+To use this macro you have to provide an implementation for the C function \hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}. 
+\end{DoxyNote}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail} 
+\end{DoxySeeAlso}
+\hypertarget{assertion_8h_a28e6c03e3e4d545781b8451788163581}{\index{assertion.\+h@{assertion.\+h}!W\+C\+\_\+\+S\+T\+A\+T\+I\+C\+\_\+\+A\+S\+S\+E\+R\+T@{W\+C\+\_\+\+S\+T\+A\+T\+I\+C\+\_\+\+A\+S\+S\+E\+R\+T}}
+\index{W\+C\+\_\+\+S\+T\+A\+T\+I\+C\+\_\+\+A\+S\+S\+E\+R\+T@{W\+C\+\_\+\+S\+T\+A\+T\+I\+C\+\_\+\+A\+S\+S\+E\+R\+T}!assertion.\+h@{assertion.\+h}}
+\subsubsection[{W\+C\+\_\+\+S\+T\+A\+T\+I\+C\+\_\+\+A\+S\+S\+E\+R\+T}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+S\+T\+A\+T\+I\+C\+\_\+\+A\+S\+S\+E\+R\+T(
+\begin{DoxyParamCaption}
+\item[{}]{e}
+\end{DoxyParamCaption}
+)~typedef char {\bf W\+C\+\_\+\+S\+U\+B\+S\+T\+\_\+\+A\+N\+D\+\_\+\+G\+L\+U\+E}(assertion\+\_\+failed\+\_\+, {\bf W\+C\+\_\+\+S\+U\+B\+S\+T\+\_\+\+A\+N\+D\+\_\+\+G\+L\+U\+E}(\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+, \+\_\+))\mbox{[}1 -\/ (2 $\ast$ !(e))\mbox{]}}}\label{assertion_8h_a28e6c03e3e4d545781b8451788163581}
+Helper macro, proves (constant) expression satisfies true. In case expression evaluates to false a compile-\/time error is issued. 
+
+\subsection{Function Documentation}
+\hypertarget{assertion_8h_a46e57d975964decf71f49a7092e16183}{\index{assertion.\+h@{assertion.\+h}!wc\+\_\+\+Fail@{wc\+\_\+\+Fail}}
+\index{wc\+\_\+\+Fail@{wc\+\_\+\+Fail}!assertion.\+h@{assertion.\+h}}
+\subsubsection[{wc\+\_\+\+Fail}]{\setlength{\rightskip}{0pt plus 5cm}void wc\+\_\+\+Fail (
+\begin{DoxyParamCaption}
+\item[{char const $\ast$const}]{sz\+Reason, }
+\item[{char const $\ast$const}]{sz\+File, }
+\item[{char const $\ast$const}]{sz\+Function, }
+\item[{int const}]{line}
+\end{DoxyParamCaption}
+)}}\label{assertion_8h_a46e57d975964decf71f49a7092e16183}
+Prototype for user specific fail function to handle failures (e.\+g. for a failed assertion).
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em sz\+Reason} & Null terminated string with failure reason. \\
+\hline
+{\em sz\+File} & Null terminated string with source file name of failure source. \\
+\hline
+{\em sz\+Function} & Null terminated string with function name of failure source. \\
+\hline
+{\em line} & Line number of failure source in source file. \\
+\hline
+\end{DoxyParams}

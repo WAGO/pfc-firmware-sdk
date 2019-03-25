@@ -1,0 +1,60 @@
+From 3a813935fd9692ec60483ae38f082addf0340dfb Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Tue, 9 Oct 2018 14:23:05 +0200
+Subject: [PATCH 247/261] phy: marvell: add mv88e6321 internal phys to the
+ marvell phy driver
+
+This enables interrupt driven link change detection.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/phy/marvell.c   | 20 ++++++++++++++++++++
+ include/linux/marvell_phy.h |  1 +
+ 2 files changed, 21 insertions(+)
+
+diff --git a/drivers/net/phy/marvell.c b/drivers/net/phy/marvell.c
+index c60c147..e0941b2 100644
+--- a/drivers/net/phy/marvell.c
++++ b/drivers/net/phy/marvell.c
+@@ -1732,6 +1732,26 @@ static struct phy_driver marvell_drivers[] = {
+ 		.get_strings = marvell_get_strings,
+ 		.get_stats = marvell_get_stats,
+ 	},
++	{
++		.phy_id = MARVELL_PHY_ID_88E6321,
++		.phy_id_mask = MARVELL_PHY_ID_MASK,
++		.name = "Marvell 88E6321",
++		.features = PHY_BASIC_FEATURES,
++		.flags = PHY_HAS_INTERRUPT,
++		.probe = marvell_probe,
++		.config_aneg = &genphy_config_aneg,
++		.config_init = &genphy_config_init,
++		.aneg_done = &marvell_aneg_done,
++		.read_status = &marvell_read_status,
++		.ack_interrupt = &marvell_ack_interrupt,
++		.config_intr = &marvell_config_intr,
++		.did_interrupt = &m88e1121_did_interrupt,
++		.resume = &genphy_resume,
++		.suspend = &genphy_suspend,
++		.get_sset_count = marvell_get_sset_count,
++		.get_strings = marvell_get_strings,
++		.get_stats = marvell_get_stats,
++	},
+ };
+ 
+ module_phy_driver(marvell_drivers);
+diff --git a/include/linux/marvell_phy.h b/include/linux/marvell_phy.h
+index a57f0df..5ddb9b3 100644
+--- a/include/linux/marvell_phy.h
++++ b/include/linux/marvell_phy.h
+@@ -18,6 +18,7 @@
+ #define MARVELL_PHY_ID_88E1510		0x01410dd0
+ #define MARVELL_PHY_ID_88E1540		0x01410eb0
+ #define MARVELL_PHY_ID_88E3016		0x01410e60
++#define MARVELL_PHY_ID_88E6321		0x01410c00
+ 
+ /* struct phy_device dev_flags definitions */
+ #define MARVELL_PHY_M1145_FLAGS_RESISTANCE	0x00000001
+-- 
+2.7.4
+

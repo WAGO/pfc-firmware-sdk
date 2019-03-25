@@ -1,0 +1,364 @@
+Index: libModbus-0.9.20/src/modbus_serial.h
+===================================================================
+--- libModbus-0.9.20.orig/src/modbus_serial.h	2016-06-14 11:53:02.894555641 +0000
++++ libModbus-0.9.20/src/modbus_serial.h	2016-06-14 12:26:17.699863469 +0000
+@@ -26,11 +26,11 @@
+ #define FLOW_CTRL_NONE	0
+ #define FLOW_CTRL_SW	1
+ #define FLOW_CTRL_HW	2
+-  int   rs485mode;
++	int		rs485mode;
+ #define RS485MODE_DISABLED 0
+ #define RS485MODE_ENABLED  1
+-  struct serial_rs485 oldRS485conf;
+-  struct serial_rs485 newRS485conf;
++	struct serial_rs485 oldRS485conf;
++	struct serial_rs485 newRS485conf;
+ };
+ 
+ struct mb_serial {
+@@ -42,8 +42,8 @@
+ 	 * A close call is required.
+ 	 */
+ 	int			status;
+-	/* Timeout between reads in ms */
+-	int			timeout;
++	/* Timeout for response in ms, no response is sent when expired */
++	unsigned long		timeout;
+ 	/* MB_LOG_* which will returned */
+ 	unsigned long		log_options;
+ 	void			(*logger)(struct mb_serial *mbs,
+@@ -57,6 +57,18 @@
+ 	int			stop;
+ 	pthread_t		thread;
+ 	struct ttydev		dev;
++
++	unsigned long 	nTimeout;
++	unsigned long 	nBadData;
++	unsigned long 	nBadCrc;
++	unsigned long 	nBadOutOfDate;
++
++	unsigned long 	ts_recv_sec;
++	unsigned long 	ts_recv_nsec;
++	unsigned long 	ts_now_sec;
++	unsigned long 	ts_now_nsec;
++	unsigned long 	ts_diff;
++	unsigned long 	ts_max_diff;
+ };
+ 
+ #define MB_NODE_ID_BROADCAST		(0)
+Index: libModbus-0.9.20/src/modbus-serial-slave.c
+===================================================================
+--- libModbus-0.9.20.orig/src/modbus-serial-slave.c	2016-06-14 11:53:02.902555640 +0000
++++ libModbus-0.9.20/src/modbus-serial-slave.c	2016-06-14 12:38:11.731848466 +0000
+@@ -29,6 +29,7 @@
+ #include <modbus_serial.h>
+ #include <modbus_intern.h>
+ #include <pthread.h>
++#include <time.h>
+ 
+ #include "crc16.h"
+ 
+@@ -284,95 +285,95 @@
+ 		unsigned short computed_crc;
+ 		unsigned int response_len;
+ 		ssize_t reclen;
++#if defined(TIOCSMBRTUTS)
++		struct timespec ts_now;
++		unsigned char ts_buf[8];
++#endif
+ 
+ 		/*
+-		 * Read the node number + func number. This will block until we
+-		 * receive the two characters _or_ we get a signal and have to
+-		 * stop.
++		 * Read the node number. This will block until we
++		 * receive the character or we get the signal to stop.
+ 		 */
+-		reclen = tty_read(mbs, api_header, sizeof(*api_header), -1);
+-
++		reclen = tty_read(mbs, &api_header->node_id, 1, -1);
+ 		if (reclen < 0)
+ 			break;
+-
+-		if (reclen < 2)
++		if ((api_header->node_id != mbs->node_id) && (api_header->node_id != MB_NODE_ID_BROADCAST)) {
+ 			continue;
++		}
+ 
++		/* the function code */
++		reclen = tty_read(mbs, &api_header->function_id, 1, mbs->timeout);
++		if (reclen < 0)
++			break;
++		if (reclen < 1) {
++			continue;
++		}
+ 		total_paket_size = 2;
+ 		/* the header of the specific function */
+ 		header_size = mb_get_header_size(api_header->function_id);
+ 		if (header_size < 0) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] get header size failed for func %02x\n",
+-					LOG_SCOPE, api_header->function_id);
++			mbs->nBadData++;
+ 			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+-		reclen = tty_read(mbs, function_header, header_size, mbs->timeout);
+-		if (reclen < 0)
+-			break;
+-
+-		if (reclen < header_size) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] read header failed for func 0x%02x: received %d instead of %d\n",
+-					LOG_SCOPE, api_header->function_id, reclen, header_size);
+-			tcflush(mbs->dev.fd, TCIFLUSH);
+-			continue;
++		if (header_size > 0) {
++			reclen = tty_read(mbs, function_header, header_size, mbs->timeout);
++			if (reclen < 0)
++				break;
++			if (reclen < header_size) {
++				mbs->nTimeout++;
++				tcflush(mbs->dev.fd, TCIFLUSH);
++				continue;
++			}
++			total_paket_size += header_size;
+ 		}
+-		total_paket_size += header_size;
+ 
+ 		/* the variable payload if available */
+ 		var_payload = mb_get_var_payload(&sp.api_object, &payload_start);
+ 		if (var_payload < 0) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] get payload size failed for func %02x\n",
+-					LOG_SCOPE, api_header->function_id);
++			mbs->nBadData++;
+ 			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+-
+-		reclen = tty_read(mbs, payload_start, var_payload, mbs->timeout);
+-		if (reclen < 0)
+-			break;
+-
+-		if (reclen < var_payload) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] read payload failed for func %02x: received %d instead of %d\n",
+-					LOG_SCOPE, api_header->function_id, reclen, var_payload);
+-			tcflush(mbs->dev.fd, TCIFLUSH);
+-			continue;
++		if (var_payload > 0) {
++			reclen = tty_read(mbs, payload_start, var_payload, mbs->timeout);
++			if (reclen < 0)
++				break;
++			if (reclen < var_payload) {
++				mbs->nTimeout++;
++				tcflush(mbs->dev.fd, TCIFLUSH);
++				continue;
++			}
++			total_paket_size += var_payload;
+ 		}
+-		total_paket_size += var_payload;
+ 
+ 		/* the last piece of the message is the crc */
+ 		reclen = tty_read(mbs, &wire_crc_le, sizeof(wire_crc_le), mbs->timeout);
+ 		if (reclen < 0)
+ 			break;
+-
+-		if (reclen < 2) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] read CRC failed for func %02x: received %d instead of 2\n",
+-					LOG_SCOPE, api_header->function_id, reclen);
++		if (reclen < (ssize_t)sizeof(wire_crc_le)) {
++			mbs->nTimeout++;
+ 			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+-
+ 		computed_crc = crc16(&sp, total_paket_size);
+ 		if (computed_crc != __le16_to_cpu(wire_crc_le)) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] CRC check failed for func %02x, len %d: received %04x instead of %04x\n",
+-					LOG_SCOPE, api_header->function_id, total_paket_size, computed_crc, __le16_to_cpu(wire_crc_le));
++			mbs->nBadCrc++;
+ 			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+ 
+-		if ((sp.api_object.api_header.node_id != mbs->node_id) &&
+-				(sp.api_object.api_header.node_id != MB_NODE_ID_BROADCAST)) {
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] ignore request for node %d (expected %d or broadcast %d)\n",
+-					LOG_SCOPE, sp.api_object.api_header.node_id, mbs->node_id, MB_NODE_ID_BROADCAST);
++#if defined(TIOCSMBRTUTS)
++		/* the very last piece of the message is the optional receive timestamp */
++		reclen = tty_read(mbs, ts_buf, sizeof(ts_buf), mbs->timeout);
++		if (reclen < 0)
++			break;
++		if (reclen < (ssize_t)sizeof(ts_buf)) {
++			mbs->nTimeout++;
++			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
++#endif
+ 
+ 		mbs->events++;
+ 		mb_log_data(mbs, api_obj, total_paket_size,
+@@ -382,11 +383,7 @@
+ 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+ 		response_len = modbus_handle_request(mbs->functions, api_obj);
+ 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+-		if (response_len <= 0)
+-		{
+-			mb_log(mbs, MB_LOG_SERIAL,
+-					"[%s] handle request failed for func %02x\n",
+-					LOG_SCOPE, api_header->function_id);
++		if (response_len <= 0) {
+ 			continue;
+ 		}
+ 
+@@ -395,13 +392,39 @@
+ 				LOG_SCOPE, mbs->events, response_len);
+ 
+ 		/* send the ack of the packet unless it is a broadcast */
+-		if (sp.api_object.api_header.node_id == MB_NODE_ID_BROADCAST) {
++		if (api_header->node_id == MB_NODE_ID_BROADCAST) {
+ 			continue;
+ 		}
+ 
+ 		computed_crc = crc16(&sp, response_len);
+ 		*((unsigned short int *)&packet_buff[response_len]) = computed_crc;
+ 		response_len += 2;
++#if defined(TIOCSMBRTUTS)
++		//do not send the ack when to late, Modbus-Master could already send the next request
++		if (0 == clock_gettime(CLOCK_MONOTONIC, &ts_now))
++		{
++			struct timespec ts_recv = {
++				.tv_sec  = (ts_buf[0] << 24) | (ts_buf[1] << 16) | (ts_buf[2] << 8) | ts_buf[3],
++				.tv_nsec = (ts_buf[4] << 24) | (ts_buf[5] << 16) | (ts_buf[6] << 8) | ts_buf[7],
++			};
++
++			// convert to us as timestamp difference for comparison
++			unsigned long const ts_diff_sec = abs(ts_now.tv_sec - ts_recv.tv_sec);
++			unsigned long const ts_diff = abs(((ts_now.tv_nsec/1000000u) + ts_diff_sec*1000u) - (ts_recv.tv_nsec/1000000u));
++			mbs->ts_recv_sec = ts_recv.tv_sec;
++			mbs->ts_recv_nsec = ts_recv.tv_nsec;
++			mbs->ts_now_sec = ts_now.tv_sec;
++			mbs->ts_now_nsec = ts_now.tv_nsec;
++			mbs->ts_diff = ts_diff;
++			if (ts_diff > mbs->ts_max_diff) {
++				mbs->ts_max_diff = ts_diff;
++			}
++			if (ts_diff > mbs->timeout) {
++				mbs->nBadOutOfDate++;
++				continue;
++			}
++		}
++#endif
+ 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+ 		(void)tty_write(mbs, api_header, response_len);
+ 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+@@ -603,34 +626,44 @@
+ 	}
+ 
+ #if defined(TIOCSMBRTU)
+-  ret = ioctl(dev->fd, TIOCSMBRTU, 1);
+-  if (ret < 0) {
+-    mb_log(mbs, MB_LOG_CONNECT,
+-           "[%s] Enable Modbus RTU mode failed: %s\n",
+-           LOG_SCOPE, strerror(errno));
+-    tty_close(mbs);
+-    return -1;
+-  }
++	ret = ioctl(dev->fd, TIOCSMBRTU, 1);
++	if (ret < 0) {
++		mb_log(mbs, MB_LOG_CONNECT,
++		       "[%s] Enable Modbus RTU mode failed: %s\n",
++		       LOG_SCOPE, strerror(errno));
++		tty_close(mbs);
++		return -1;
++	}
+ #endif
+ #if defined(TIOCSMBRTUADDR)
+-  ret = ioctl(dev->fd, TIOCSMBRTUADDR, mbs->node_id);
+-  if (ret < 0) {
+-    mb_log(mbs, MB_LOG_CONNECT,
+-           "[%s] Set Modbus RTU address failed: %s\n",
+-           LOG_SCOPE, strerror(errno));
+-    tty_close(mbs);
+-    return -1;
++	ret = ioctl(dev->fd, TIOCSMBRTUADDR, mbs->node_id);
++	if (ret < 0) {
++		mb_log(mbs, MB_LOG_CONNECT,
++		       "[%s] Set Modbus RTU address failed: %s\n",
++		       LOG_SCOPE, strerror(errno));
++		tty_close(mbs);
++		return -1;
++	}
++#endif
++#if defined(TIOCSMBRTUTS)
++	ret = ioctl(dev->fd, TIOCSMBRTUTS, 1);
++	if (ret < 0) {
++		mb_log(mbs, MB_LOG_CONNECT,
++		       "[%s] Enable Modbus RTU timestamp failed: %s\n",
++		       LOG_SCOPE, strerror(errno));
++		tty_close(mbs);
++		return -1;
+ 	}
+ #endif
+ #if defined(TIOCSRS485) && defined (TIOCGRS485)
+-  ret = ioctl(dev->fd, TIOCSRS485, &dev->newRS485conf);
+-  if (ret < 0) {
+-    mb_log(mbs, MB_LOG_CONNECT,
+-           "[%s] Set new RS485 configuration failed: %s\n",
+-           LOG_SCOPE, strerror(errno));
+-    tty_close(mbs);
+-    return -1;
+-  }
++	ret = ioctl(dev->fd, TIOCSRS485, &dev->newRS485conf);
++	if (ret < 0) {
++		mb_log(mbs, MB_LOG_CONNECT,
++			"[%s] Set new RS485 configuration failed: %s\n",
++			LOG_SCOPE, strerror(errno));
++		tty_close(mbs);
++		return -1;
++	}
+ #endif
+ 
+ 	return 0;
+@@ -674,14 +707,18 @@
+ 		return -EINVAL;
+ 	}
+ 
++  if (mbs->timeout == 0) {
++    mb_log(mbs, MB_LOG_CONNECT,
++        "[%s] Invalid response timeout %d.",
++        LOG_SCOPE, mbs->timeout);
++    return -EINVAL;
++  }
++
+ 	res = tty_open(mbs);
+ 
+ 	if (res < 0)
+ 		return res;
+ 
+-	if (!mbs->timeout)
+-		mbs->timeout = 2 * 1000;
+-
+ 	mbs->status = MODBUS_THREAD_STARTING;
+ 	mbs->stop = 0;
+ 
+Index: libModbus-0.9.20/src/Makefile.am
+===================================================================
+--- libModbus-0.9.20.orig/src/Makefile.am	2010-03-05 07:53:57.000000000 +0000
++++ libModbus-0.9.20/src/Makefile.am	2016-06-14 11:53:02.910555640 +0000
+@@ -3,7 +3,7 @@
+ libModbus_la_SOURCES += modbus_intern.h modbusip_intern.h
+ libModbus_la_SOURCES += crc16.c crc16.h
+ libModbus_la_CFLAGS  = -W -Wall -Wwrite-strings -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
+-libModbus_la_LDFLAGS = -version-info 1 -release $(VERSION)
++libModbus_la_LDFLAGS = -version-info 1:16:0 -release $(VERSION)
+ 
+ include_HEADERS = modbus.h modbus_serial.h modbusip.h
+ 

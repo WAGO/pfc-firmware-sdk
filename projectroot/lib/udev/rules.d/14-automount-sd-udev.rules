@@ -1,0 +1,38 @@
+# automount script for SD cards
+
+# %k: kernel name (mmcblk0p1)
+# %E: environment variable
+
+KERNEL!="mmcblk[0-9]p[0-9]", GOTO="media_by_label_auto_mount_end"
+
+# Import FS infos
+IMPORT{program}="/sbin/blkid -o udev -p %N"
+
+# Only mount vfat partitions
+ENV{ID_FS_TYPE}!="vfat",GOTO="media_by_label_auto_mount_end"
+
+# Don't mount our firmware's boot partition
+ENV{ID_FS_LABEL}=="BOOT",GOTO="media_by_label_auto_mount_end"
+ENV{ID_FS_UUID}=="7761676f",GOTO="media_by_label_auto_mount_end"
+
+# Get a label if present, otherwise specify one
+ENV{ID_FS_LABEL}!="", ENV{dir_name}="%E{ID_FS_LABEL}"
+ENV{ID_FS_LABEL}=="", ENV{dir_name}="%E{ID_FS_UUID}"
+ENV{ID_FS_UUID}=="", ENV{dir_name}="%k"
+
+# Mount the device
+ENV{__SD_AUTOMOUNT}!="0",ACTION=="add", RUN+="/bin/mkdir -p /media/%E{dir_name}"
+ENV{__SD_AUTOMOUNT}!="0",ACTION=="add", RUN+="/bin/mount -o umask=0002,gid=114 /dev/%k /media/%E{dir_name}"
+
+# The kernel evaluates the partitions in ascending order (from 1 to n).
+# By calling ln without the -f option, the "sd" link is created for the first
+# vfat partition, whereas the subsequent ln calls silently fail.
+ENV{__SD_AUTOMOUNT}!="0",ACTION=="add", RUN+="/bin/ln -s /media/%E{dir_name} /media/sd"
+
+# Clean up after removal (even with AUTOMOUNT disabled)
+ACTION=="remove", ENV{dir_name}!="", RUN+="/bin/umount -l /media/%E{dir_name}"
+ACTION=="remove", RUN+="/bin/rmdir /media/%E{dir_name}"
+ACTION=="remove", RUN+="/bin/rm /media/sd"
+
+# Exit
+LABEL="media_by_label_auto_mount_end"

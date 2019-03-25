@@ -1,0 +1,53 @@
+From d21e07175b3042dc7573c8b379dedb8c233cb30a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Karsten=20N=C3=BCnthel?= <karsten.nuenthel@wago.com>
+Date: Thu, 5 Jun 2014 15:55:13 +0200
+Subject: [PATCH] response delay
+
+---
+ src/modbus-ip-slave.c | 10 ++++++++++
+ src/modbusip.h        |  1 +
+ 2 files changed, 11 insertions(+)
+
+diff --git a/src/modbus-ip-slave.c b/src/modbus-ip-slave.c
+index e074cbf..06ebd53 100644
+--- a/src/modbus-ip-slave.c
++++ b/src/modbus-ip-slave.c
+@@ -186,6 +186,11 @@ static void *modbus_tcp_work(void *arg)
+ 		hdr->length = cpu_to_mb16((uint16_t) sndlen);
+ 		sndlen += sizeof(*hdr);
+ 
++    if (mbt->mbs->rsp_delay > 0)
++    {
++      usleep(mbt->mbs->rsp_delay*1000);
++    }
++
+ 		sentlen = write(sd, &mbp, sndlen);
+ 
+ 		mb_log(mbt->mbs, MB_LOG_SOCKET,
+@@ -414,6 +419,11 @@ static void *modbus_udp_socket(void *arg)
+ 		hdr->length = cpu_to_mb16((uint16_t) sndlen);
+ 		sndlen += sizeof(*hdr);
+ 
++    if (mbs->rsp_delay > 0)
++    {
++      usleep(mbs->rsp_delay*1000);
++    }
++
+ 		sentlen = sendto(sd, &mbp, sndlen, 0, saddr, addrlen);
+ 
+ 		mb_log(mbs, MB_LOG_SOCKET,
+diff --git a/src/modbusip.h b/src/modbusip.h
+index dd30288..dd3396a 100644
+--- a/src/modbusip.h
++++ b/src/modbusip.h
+@@ -31,6 +31,7 @@ struct mb_socket {
+ 	pthread_t		thread;
+ 	struct mb_list		*childs;
+ 	pthread_mutex_t		lock;
++  unsigned short    rsp_delay;
+ };
+ 
+ #define MODBUS_PORT		502
+-- 
+1.9.0
+

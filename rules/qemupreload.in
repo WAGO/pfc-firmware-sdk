@@ -1,0 +1,10 @@
+## SECTION=debug_tools
+
+config QEMUPRELOAD
+  bool
+  default y
+  select GOOGLETEST
+  prompt "qemupreload"
+  help
+    This package supplies a shared library that can be preloaded by QEMU to avoid some segfaults because of unsupported
+    function parameters.

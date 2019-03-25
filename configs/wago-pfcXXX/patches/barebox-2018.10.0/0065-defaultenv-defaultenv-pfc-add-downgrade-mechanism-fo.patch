@@ -1,0 +1,311 @@
+From 2d1379d35dd875090c90086ef453dc1d490f007f Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 21 Aug 2018 14:49:20 +0200
+Subject: [PATCH 065/144] defaultenv: defaultenv-pfc: add downgrade mechanism
+ for am35xx pfcs
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ .../defaultenv-pfc-am35xx/data/nand-ecc-bch8       |   6 +
+ .../data/nand-ecc-bch8-legacy                      |   7 +
+ .../defaultenv-pfc-am35xx/data/nand-ecc-hamming    |   6 +
+ .../bin/pfc-exec-downgrade-boot                    | 182 ++++++++++++++++++++-
+ defaultenv/defaultenv-pfc-base/config              |   9 +
+ .../defaultenv-pfc-base/init/z-pfc-config-startup  |   2 +
+ 6 files changed, 204 insertions(+), 8 deletions(-)
+ create mode 100644 arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8
+ create mode 100644 arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8-legacy
+ create mode 100644 arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-hamming
+
+diff --git a/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8 b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8
+new file mode 100644
+index 0000000..210da14
+--- /dev/null
++++ b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8
+@@ -0,0 +1,6 @@
++#!/bin/sh 
++
++# on am35xx based targets we need to set 
++# the ecc-mode bch8 when flashing barebox
++
++gpmc_nand0.eccmode="bch8_hw_detsw"
+diff --git a/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8-legacy b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8-legacy
+new file mode 100644
+index 0000000..1813bcb
+--- /dev/null
++++ b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-bch8-legacy
+@@ -0,0 +1,7 @@
++#!/bin/sh
++
++# on am35xx based targets we need to set
++# the ecc-mode bch8_legacy when flashing
++# images < 2014
++
++gpmc_nand0.eccmode="bch8_hw_detsw_legacy"
+diff --git a/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-hamming b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-hamming
+new file mode 100644
+index 0000000..be3e96a
+--- /dev/null
++++ b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/data/nand-ecc-hamming
+@@ -0,0 +1,6 @@
++#!/bin/sh 
++
++# on am35xx based targets we need to set 
++# the ecc-mode hamming when flashing mlo
++
++gpmc_nand0.eccmode="hamming_hw_romcode"
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
+index 29d49e8..c5e101a 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
+@@ -2,26 +2,192 @@
+ 
+ source env/data/print-msg-formats
+ 
+-led_mode -m -c green
++uart_console -e ${global.pfc.barebox_uart}
+ 
+ # set autoboot variable to 1, to stop auto booting in
+ # /env/bin/init and stay in shell.
+ global.autoboot=1
+-uart_console -e ${global.pfc.barebox_uart}
+ 
+ downgrade_lzo="downgrade.bin.${global.board.variant}"
+ downgrade_script="downgrade"
+ 
+-echo -e ${info} "execute fw downgrade-script"
++###############################
++##### legacy parts ############
++###############################
++
++mtd_linux1="mtd0_raw_linux1"
++mtd_linux2="mtd0_raw_linux2"
++mtd_data="mtd2_fs_data"
++mtd_xload="mtd3_raw_xload"
++mtd_barebox="mtd4_raw_barebox"
++mtd_barebox_env="mtd5_raw_barebox-env"
++mtd_product="mtd6_raw_product"
++mtd_recovery="mtd7_raw_recovery"
++mtd_parts="${mtd_linux1} ${mtd_linux2} ${mtd_data} ${mtd_xload} ${mtd_barebox} ${mtd_barebox_env} ${mtd_product} ${mtd_recovery}"
++
++recovery_parts="512k@0k(${mtd_xload}),1024k@512k(${mtd_barebox}),256k@1536k(${mtd_barebox_env}),256k@1792k(${mtd_product}),40192k@2048k(${mtd_recovery}),4096k@42240k(${mtd_linux1}),4096k@46336k(${mtd_linux2}),-@50432k(${mtd_data})"
++
++mlo="mlo--nand"
++barebox="barebox.img"
++recovery="recovery" # !! we need to rename the recovery-image !!
++
++###############################
++
++nand_hamming="/env/data/nand-ecc-hamming"
++nand_bch8_legacy="/env/data/nand-ecc-bch8-legacy"
++
++led_mode -m -c red -t
++
++echo -e ${info} "starting firmware downgrade..."
++echo -e ${info} "checking the environment..."
++
++# check if mount point is at correct location
++if [ ! -e "${global.pfc.sd_boot}" ]; then
++
++	echo -e ${error} "mount point ${global.pfc.sd_boot} not available"
++	exit 1
++
++fi
++
++# check if all recovery files are available
++if [ ! -e "${global.pfc.sd_boot}/${mlo}" ]; then
++
++	echo -e ${error} "recovery file: ${global.pfc.sd_boot}/${mlo} not available"
++	exit 1
++
++fi
++
++if [ ! -e "${global.pfc.sd_boot}/${barebox}" ]; then
++
++	echo -e ${error} "recovery file: ${global.pfc.sd_boot}/${barebox} not available"
++	exit 1
++
++fi
+ 
+-cp ${global.pfc.downgrade_img} /${downgrade_lzo}
++if [ ! -e "${global.pfc.sd_boot}/${recovery}" ]; then
+ 
+-uncompress /${downgrade_lzo} /${downgrade_script}
+-if [ $? -ne 0 ]; then
+-	echo -e ${error} "$0: failed to extract downgrade script"
++	echo -e ${error} "recovery file: ${global.pfc.sd_boot}/${recovery} not available"
+ 	exit 1
++
+ fi
+ 
+-/${downgrade_script}
++# reset bootloader index in eeprom
++echo -e ${info} "restore bootloader index..."
++xsection.blidx=0
++
++echo -e ${info} "restore recovery partitions..."
++
++# delete current mlo partitions
++for partition in ${global.pfc.nand_mlo_parts}; do
++	nand -d ${partition}.bb
++	delpart ${partition}
++done
++
++# delete current boot partitions
++for partition in ${global.pfc.nand_boot_parts}; do
++	nand -d ${partition}.bb
++	delpart ${partition}
++done
++
++# delete current data partition
++nand -d ${global.pfc.nand_ubidata}.bb
++delpart ${global.pfc.nand_ubidata}
++
++# restore recovery partitions
++mtdparts-add -b -d nand0 -p ${recovery_parts}
++
++# do additional check for created recovery partitions
++for partition in ${mtd_parts}; do
++	if [ ! -e "${global.pfc.nand}.${partition}" ]; then
++		echo -e ${error} "recovery-partition ${global.pfc.nand}.${partition} not available"
++		exit 1
++	fi
++
++	if [ ! -e "${global.pfc.nand}.${partition}.bb" ]; then
++		echo -e ${error} "recovery-partition ${global.pfc.nand}.${partition}.bb not available"
++		exit 1
++	fi
++done
++
++# check if all nand ecc-modes are available
++[ ! -e "${nand_hamming}" ] && echo -e ${error} "ecc-mode ${nand_hamming} not available" && exit 1
++[ ! -e "${nand_bch8_legacy}" ] && echo -e ${error} "ecc-mode ${nand_bch8_legacy} not available" && exit 1
++
++echo ""
++echo -e ${warning} "####################################################################"
++echo -e ${warning} "ATTENTION: DO NOT SWITCH OFF THE DEVICE DURING ERASE AND FLASH STEPS"
++echo -e ${warning} "####################################################################"
++echo ""
++echo -e -n ${warning} "PRESS ANY KEY TO ABORT ERASE AND FLASH STEPS: "
++
++timeout -a 3
++res=$?
++if [ ${res} -eq 1 ]; then
++
++	echo -e ${warning} "ABORTED BY USER...BOOT TO SHELL"
++	exit 1
++
++fi
++
++echo -e ${warning} "erase bootloader partitions..."
++
++# erase all bootloader partitions
++erase ${global.pfc.nand}.${mtd_xload}
++erase ${global.pfc.nand}.${mtd_barebox}.bb
++
++echo -e ${warning} "flash mlo and barebox..."
++
++# flash mlo
++${nand_hamming}
++#    -- first  128k
++memcpy -s ${global.pfc.sd_boot}/${mlo} -d ${global.pfc.nand}.${mtd_xload} 0x0 0x0
++#    -- second 128k
++memcpy -s ${global.pfc.sd_boot}/${mlo} -d ${global.pfc.nand}.${mtd_xload} 0x0 0x20000
++#    -- third  128k
++memcpy -s ${global.pfc.sd_boot}/${mlo} -d ${global.pfc.nand}.${mtd_xload} 0x0 0x40000
++#    -- fourth 128k
++memcpy -s ${global.pfc.sd_boot}/${mlo} -d ${global.pfc.nand}.${mtd_xload} 0x0 0x60000
++
++
++# flash barebox
++${nand_bch8_legacy}
++memcpy -s ${global.pfc.sd_boot}/${barebox} -d ${global.pfc.nand}.${mtd_barebox}.bb 0x0 0x0
++
++echo -e ${warning} "flash recovery image..."
++erase ${global.pfc.nand}.${mtd_recovery}.bb 0x0
++memcpy -s ${global.pfc.sd_boot}/${recovery} -d ${global.pfc.nand}.${mtd_recovery}.bb 0x0 0x0
++
++echo -e ${warning} "done..."
++echo ""
++echo -e ${warning} "############################################################"
++echo -e ${warning} "ATTENTION: DO NOT SWITCH OFF THE DEVICE DURING FACTORY RESET"
++echo -e ${warning} "############################################################"
++echo ""
++
++
++# setup bootargs
++echo -e ${info} "setup bootargs"
++
++global linux.bootargs.dyn.root="root=/dev/ram0 rdinit=/init.sh"
++global linux.bootargs.dyn.ip=""
++global linux.bootargs.dyn.macaddr=""
++global linux.bootargs.bootmode="pac_boot_id=0x1"
++global linux.bootargs.productionmode="production_mode=2"
++global linux.bootargs.devconf="devconf=0x0"
++
++# we need to clear the console kernel parameter. Otherwise the recovery step will
++# fail and damage the internal nand partiton layout.
++global.linux.bootargs.console=""
++
++# load production-firmware from nand partition and start it
++echo -e ${info} "now boot recovery image in factory-reset-mode"
++echo ""
++
++global.bootm.boot_atag=true
++bootm -v -f ${global.pfc.nand}.${mtd_recovery}.bb
++if [ ! $? = "0" ]; then
++	echo -e ${error} "could not start recovery image...booting to shell..."
++	exit 1
++fi
+ 
+ exit $?
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index 908170d..d058389 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -32,6 +32,8 @@ global pfc.nand_ubidata_boot
+ global pfc.nand_rootfs0
+ global pfc.nand_rootfs1
+ global pfc.nand_boot
++global pfc.nand_mlo_parts
++global pfc.nand_boot_parts
+ global pfc.barebox_uart
+ global pfc.linux_uart
+ global pfc.eth
+@@ -92,6 +94,8 @@ magicvar -a global.pfc.nand_ubidata_boot "path to the nand ubidata boot device"
+ magicvar -a global.pfc.nand_rootfs0	"path to the nand rootfs0 partition"
+ magicvar -a global.pfc.nand_rootfs1	"path to the nand rootfs1 partition"
+ magicvar -a global.pfc.nand_boot	"path to the nand boot partition"
++magicvar -a global.pfc.nand_mlo_parts	"list of mlo partition paths"
++magicvar -a global.pfc.nand_boot_parts  "list of barebox (2nd stage) partition paths"
+ magicvar -a global.pfc.barebox_uart	"uart device that is used in barebox for
+ 					 console messages"
+ 
+@@ -143,6 +147,11 @@ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ [ -z "${global.pfc.nand_rootfs0}" ] && global.pfc.nand_rootfs0="/mnt/ubi_rootfs0"
+ [ -z "${global.pfc.nand_rootfs1}" ] && global.pfc.nand_rootfs1="/mnt/ubi_rootfs1"
+ [ -z "${global.pfc.nand_boot}" ] && global.pfc.nand_boot="/mnt/ubi_boot"
++
++
++[ -z "${global.pfc.nand_mlo_parts}" ] && global.pfc.nand_mlo_parts="${global.pfc.nand}.mlo0 ${global.pfc.nand}.mlo1 ${global.pfc.nand}.mlo2 ${global.pfc.nand}.mlo3"
++[ -z "${global.pfc.nand_boot_parts}" ] && global.pfc.nand_boot_parts="${global.pfc.nand}.boot0 ${global.pfc.nand}.boot1 ${global.pfc.nand}.boot2 ${global.pfc.nand}.boot3"
++
+ [ -z "${global.pfc.downgrade_img}" ] && global.pfc.downgrade_img="${global.pfc.sd_boot}/downgrade.bin.$global.board.variant"
+ [ -z "${global.pfc.custom_sh}" ] && global.pfc.custom_sh="${global.pfc.sd_boot}/custom_setup.sh"
+ [ -z "${global.pfc.barebox_uart}" ] && global.pfc.barebox_uart="0"
+diff --git a/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup b/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup
+index 21212ba..6285d0e 100644
+--- a/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup
++++ b/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup
+@@ -22,6 +22,8 @@ elif [ "${global.pfc.boot_mode}" = "downgrade" ]; then
+ 	pfc-exec-downgrade-boot
+ 	if [ "$?" = 1 ]; then
+ 		echo -e ${error} "$0: failed to execute downgrade boot"
++		led_mode -s -c yellow -v off
++		led_mode -s -c red -v on
+ 		exit 1
+ 	fi
+ 
+-- 
+2.7.4
+

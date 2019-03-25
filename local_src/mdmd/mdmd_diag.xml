@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!DOCTYPE diagnostic SYSTEM "diagnostics.dtd">
+<diagnostic>
+  <eventclass  class_range="x0010" name="3GMM">
+
+    <event id="x0001" name="ERR_NOSIM" persistent="yes">
+      <comment> SIM card not inserted or not readable</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>1</blinkcode>   <blinkarg>1</blinkarg>  
+      </led>  
+      <string>
+      	<en>Modem SIM card not inserted or not readable</en>
+      	<de>Modem SIM-Karte nicht eingelegt oder nicht lesbar</de>
+      </string>
+    </event>
+    
+    <event id="x0002" name="ERR_SIMAUTH" persistent="yes">
+      <comment> SIM card not valid or locked</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>1</blinkcode>   <blinkarg>2</blinkarg>  
+      </led>  
+      <string>
+      	<en>Modem SIM card not valid or locked</en>
+      	<de>Modem SIM-Karte nicht gültig oder gesperrt</de>
+      </string>
+    </event>
+
+    <event id="x0003" name="ERR_PORT_NOT_READY" persistent="yes">
+      <comment> Interface not available</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>2</blinkcode>   <blinkarg>1</blinkarg>  
+      </led>  
+      <string>
+      	<en>Modem port timeout</en>
+      	<de>Modem Schnittstelle nicht verfügbar</de>
+      </string>
+    </event>    
+    	
+    <event id="x0004" name="ERR_INIT_FAIL" persistent="yes">
+      <comment> Modem command error</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>2</blinkcode>   <blinkarg>2</blinkarg>  
+      </led>  
+      <string>
+      	<en>Modem initialization failed</en>
+      	<de>Modem Initialisierung fehlgeschlagen</de>
+      </string>
+    </event>
+    
+    <event id="x0005" name="ERR_RESET_FAIL" persistent="yes">
+      <comment> Hardware reset failed</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>2</blinkcode>   <blinkarg>3</blinkarg>  
+      </led>  
+      <string>
+      	<en>Modem reset failed</en>
+      	<de>Modem Zurücksetzen fehlgeschlagen</de>
+      </string>
+    </event>    
+    
+    <event id="x0006" name="ERR_MODEM_VERSION" persistent="yes">
+      <comment> The firmware version of the modem does not correspond to the expected </comment>
+      <string>
+        <en>The firmware version of the modem is incompatible with the firmware of the controller</en>
+        <de>Die Firmware Version des Modems ist inkompatibel zur Firmware der Steuerung</de>
+      </string>
+    </event>      
+
+    <event id="x0010" name="OPER_NO_NET" persistent="no">
+      <comment> Radio access network not registered</comment>
+      <led name="NET"  state="STATIC_RED"></led>
+      <string>
+      	<en>Radio access network not registered</en>
+      	<de>Mobilfunknetz nicht verbunden</de>
+      </string>
+    </event>
+
+    <event id="x0011" name="OPER_NET_2G" persistent="no">
+      <comment> 2G radio access network registered</comment>
+      <led name="NET"  state="STATIC_YLW"></led>
+      <string>
+      	<en>2G radio access network registered</en>
+      	<de>2G Mobilfunknetz verbunden</de>
+      </string>
+    </event>
+
+    <event id="x0012" name="OPER_NET_3G" persistent="no">
+      <comment> 3G radio access network registered</comment>
+      <led name="NET"  state="STATIC_GRN"></led>
+      <string>
+      	<en>3G radio access network registered</en>
+      	<de>3G Mobilfunknetz verbunden</de>
+      </string>
+    </event>
+
+    <event id="x0013" name="OPER_SIGNAL_1_OFF" persistent="no">
+      <comment> Signal strength 0</comment>
+      <led name="S1"  state="STATIC_OFF"></led>
+      <string>
+      	<en>Signal strength 0</en>
+      	<de>Signalstärke 0</de>
+      </string>
+    </event>
+
+    <event id="x0014" name="OPER_SIGNAL_1_ON" persistent="no">
+      <comment> Signal strength 1 or above</comment>
+      <led name="S1"  state="STATIC_YLW"></led>
+      <string>
+      	<en>Signal strength 1 or above</en>
+      	<de>Signalstärke 1 oder höher</de>
+      </string>
+    </event>
+
+    <event id="x0015" name="OPER_SIGNAL_2_OFF" persistent="no">
+      <comment> Signal strength below 2</comment>
+      <led name="S1"  state="STATIC_YLW"></led>
+      <string>
+      	<en>Signal strength below 2</en>
+      	<de>Signalstärke unter 2</de>
+      </string>
+    </event>
+
+    <event id="x0016" name="OPER_SIGNAL_2_ON" persistent="no">
+      <comment> Signal strength 2 or above</comment>
+      <led name="S1"  state="STATIC_GRN"></led>
+      <string>
+      	<en>Signal strength 2 or above</en>
+      	<de>Signalstärke 2 oder höher</de>
+      </string>
+    </event>
+
+    <event id="x0017" name="OPER_SIGNAL_3_OFF" persistent="no">
+      <comment> Signal strength below 3</comment>
+      <led name="S2"  state="STATIC_OFF"></led>
+      <string>
+      	<en>Signal strength below 3</en>
+      	<de>Signalstärke unter 3</de>
+      </string>
+    </event>
+
+    <event id="x0018" name="OPER_SIGNAL_3_ON" persistent="no">
+      <comment> Signal strength 3 or above</comment>
+      <led name="S2"  state="STATIC_GRN"></led>
+      <string>
+      	<en>Signal strength 3 or above</en>
+      	<de>Signalstärke 3 oder höher</de>
+      </string>
+    </event>
+
+    <event id="x0019" name="OPER_SIGNAL_4_OFF" persistent="no">
+      <comment> Signal strength below 4</comment>
+      <led name="S3"  state="STATIC_OFF"></led>
+      <string>
+      	<en>Signal strength below 4</en>
+      	<de>Signalstärke unter 4</de>
+      </string>
+    </event>
+
+    <event id="x001A" name="OPER_SIGNAL_4_ON" persistent="no">
+      <comment> Signal strength 4 or above</comment>
+      <led name="S3"  state="STATIC_GRN"></led>
+      <string>
+      	<en>Signal strength 4 or above</en>
+      	<de>Signalstärke 4 oder höher</de>
+      </string>
+    </event>
+
+    <event id="x001B" name="OPER_SIGNAL_5_OFF" persistent="no">
+      <comment> Signal strength below 5</comment>
+      <led name="S4"  state="STATIC_OFF"></led>
+      <string>
+      	<en>Signal strength below 5</en>
+      	<de>Signalstärke unter 5</de>
+      </string>
+    </event>
+
+    <event id="x001C" name="OPER_SIGNAL_5_ON" persistent="no">
+      <comment> Signal strength 5 or above</comment>
+      <led name="S4"  state="STATIC_GRN"></led>
+      <string>
+      	<en>Signal strength 5 or above</en>
+      	<de>Signalstärke 5 oder höher</de>
+      </string>
+    </event>
+
+    <event id="x001D" name="OPER_SIGNAL_6_OFF" persistent="no">
+      <comment> Signal strength below 6</comment>
+      <led name="S5"  state="STATIC_OFF"></led>
+      <string>
+      	<en>Signal strength below 6</en>
+      	<de>Signalstärke unter 6</de>
+      </string>
+    </event>
+
+    <event id="x001E" name="OPER_SIGNAL_6_ON" persistent="no">
+      <comment> Signal strength 6 or above</comment>
+      <led name="S5"  state="STATIC_GRN"></led>
+      <string>
+      	<en>Signal strength 6 or above</en>
+      	<de>Signalstärke 6 oder höher</de>
+      </string>
+    </event>
+
+  </eventclass>
+</diagnostic>

@@ -1,0 +1,11 @@
+## SECTION=networking
+
+config IPWATCHD
+	tristate
+	prompt "ipwatchd"
+	select LIBNET
+	select LIBPCAP
+	help
+	  ipwatchd is a daemon to reply on gratuitous ARP's and to detect
+	  duplicate IP addresses on a subnet. ipwatchd runs script
+	  /usr/bin/ipwatchd-script on duplicate IP's.

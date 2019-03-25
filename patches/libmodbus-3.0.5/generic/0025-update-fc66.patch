@@ -1,0 +1,39 @@
+From b34f15c993e04ff57607dbfa1830b26b6fe6280b Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Thu, 16 Jul 2015 13:49:07 +0200
+Subject: [PATCH] update fc66
+
+---
+ src/modbus.c | 2 +-
+ src/modbus.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/modbus.c b/src/modbus.c
+index fe06304..715a1cc 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -43,7 +43,7 @@ const unsigned int libmodbus_version_micro = LIBMODBUS_VERSION_MICRO;
+ 
+ /* Max between RTU and TCP max adu length (so TCP) */
+ #define MAX_MESSAGE_LENGTH 260
+-#define MAX_MESSAGE_LENGTH_FC66 65544
++#define MAX_MESSAGE_LENGTH_FC66 1450
+ 
+ /* 3 steps are used to parse the query */
+ typedef enum {
+diff --git a/src/modbus.h b/src/modbus.h
+index f853a63..a3ee6d5 100644
+--- a/src/modbus.h
++++ b/src/modbus.h
+@@ -80,7 +80,7 @@ MODBUS_BEGIN_DECLS
+ #define MODBUS_MAX_READ_REGISTERS          125
+ #define MODBUS_MAX_WRITE_REGISTERS         123
+ #define MODBUS_MAX_RW_WRITE_REGISTERS      121
+-#define MODBUS_MAX_READ_REGISTERS_FC66     32767
++#define MODBUS_MAX_READ_REGISTERS_FC66     720
+ 
+ /* Random number to avoid errno conflicts */
+ #define MODBUS_ENOBASE 112345678
+-- 
+1.9.1
+

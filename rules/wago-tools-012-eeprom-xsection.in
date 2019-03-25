@@ -1,0 +1,7 @@
+## SECTION=wago_specific_tools
+
+config EEPROM_XSECTION
+	bool
+	prompt "eeprom-xsection"
+	help
+	  "Tool to read/write eeprom settings for bootloader."

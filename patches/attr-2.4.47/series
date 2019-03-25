@@ -1,0 +1,3 @@
+0001-fix-install-with-domain-user.patch
+0002-build-translations-only-if-gettext-is-enabled.patch
+WAGO-make-install-sh-accept-spaces-in-user-and-group-names.patch

@@ -1,0 +1,38 @@
+From 76251bc15b38ba23845b55d1cc24b37b971eb09c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 23 Apr 2018 12:23:16 +0200
+Subject: [PATCH 006/144] arm: configs: activate wago am335x pfc devices
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/configs/am335x_defconfig     | 1 +
+ arch/arm/configs/am335x_mlo_defconfig | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/arch/arm/configs/am335x_defconfig b/arch/arm/configs/am335x_defconfig
+index 09dde90..8ff5f42 100644
+--- a/arch/arm/configs/am335x_defconfig
++++ b/arch/arm/configs/am335x_defconfig
+@@ -6,6 +6,7 @@ CONFIG_OMAP_MULTI_BOARDS=y
+ CONFIG_MACH_AFI_GF=y
+ CONFIG_MACH_BEAGLEBONE=y
+ CONFIG_MACH_PHYTEC_SOM_AM335X=y
++CONFIG_MACH_WAGO_PFC_AM335X=y
+ CONFIG_THUMB2_BAREBOX=y
+ CONFIG_ARM_BOARD_APPEND_ATAG=y
+ CONFIG_ARM_OPTIMZED_STRING_FUNCTIONS=y
+diff --git a/arch/arm/configs/am335x_mlo_defconfig b/arch/arm/configs/am335x_mlo_defconfig
+index 58034b6..83df153 100644
+--- a/arch/arm/configs/am335x_mlo_defconfig
++++ b/arch/arm/configs/am335x_mlo_defconfig
+@@ -5,6 +5,7 @@ CONFIG_OMAP_MULTI_BOARDS=y
+ CONFIG_MACH_AFI_GF=y
+ CONFIG_MACH_BEAGLEBONE=y
+ CONFIG_MACH_PHYTEC_SOM_AM335X=y
++CONFIG_MACH_WAGO_PFC_AM335X=y
+ CONFIG_THUMB2_BAREBOX=y
+ # CONFIG_MEMINFO is not set
+ CONFIG_MMU=y
+-- 
+2.7.4
+

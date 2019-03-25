@@ -1,0 +1,192 @@
+From bf195e7808112bb7fd93d3ef9e9b495b7d16010c Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Fri, 12 Oct 2018 16:05:46 +0200
+Subject: [PATCH 115/144] defaultenv: add mv88e6321 setup script
+
+This script enable ethX1 port of Marvell MV88E6321 switch
+for production or debugging mode. By default are all ports of
+the switch are disabled.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ .../init_post_autoboot/pfc-mv88e6321-setup         | 168 +++++++++++++++++++++
+ 1 file changed, 168 insertions(+)
+ create mode 100644 defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-mv88e6321-setup
+
+diff --git a/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-mv88e6321-setup b/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-mv88e6321-setup
+new file mode 100644
+index 0000000..21c4062
+--- /dev/null
++++ b/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-mv88e6321-setup
+@@ -0,0 +1,168 @@
++#!/bin/sh
++
++# mii bus
++mii_bus=0
++
++# mii addresses
++sw_port0_addr=16
++g2_addr=28
++
++# mii registers
++sw_id_reg=3
++sw_port_status_reg=0
++g2_smi_cmd_reg=24
++g2_smi_data_reg=25
++
++# constants / flags
++mv88e6321_product_id=784
++
++sw_port_phy_detect_flag="0x1000"
++
++smi_busy_flag="0x8000"
++smi_cmd_c22_mode="0x1000"
++smi_cmd_write="0x400"
++smi_cmd_read="0x800"
++
++phy_power_down_flag="0x800"
++
++source env/data/print-msg-formats
++
++if [ "${global.autoboot}" = 0 -a "${global.pfc.boot_mode}" = "default" ]; then
++	exit 0
++fi
++
++miitool -x "${mii_bus}:${sw_port0_addr}:${sw_id_reg}" -p switch_id
++if [ "$?" != 0 ]; then
++	exit 0
++fi
++
++# ignore chip reversion
++let switch_product_id="${switch_id} >> 4"
++
++if [ ${switch_product_id} != ${mv88e6321_product_id} ]; then
++	exit 0
++fi
++
++echo -e ${info} "Marvel MV88E6321 switch detected"
++
++# set phy detection flag
++miitool -x "${mii_bus}:${sw_port0_addr}:${sw_port_status_reg}" -p sw_port0_status
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not read switch port0 status"
++	exit 1
++fi
++
++let sw_port0_new_status="${sw_port0_status} | ${sw_port_phy_detect_flag}"
++
++miitool -w "${mii_bus}:${sw_port0_addr}:${sw_port_status_reg}" -p sw_port0_new_status
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not write new switch port0 status"
++	exit 1
++fi
++
++# power up external phy
++
++# wait for SMI command ready
++smi_busy=1
++smi_tries=3
++
++while [ "${smi_busy}" != 0 ]; do
++	miitool -x "${mii_bus}:${g2_addr}:${g2_smi_cmd_reg}" -p g2_smi_cmd
++	if [ "$?" != 0 ]; then
++		echo -e ${error} "Could not read switch G2 SMI command register"
++		exit 1
++	fi
++
++	let smi_busy="${g2_smi_cmd} & ${smi_busy_flag}"
++
++	let smi_tries="${smi_tries} - 1"
++
++	if [ "${smi_busy}" != 0 ]; then
++		if [ "${smi_tries}" = 0 ]; then
++			echo -e ${error} "Switch SMI busy"
++			exit 1
++		else
++			sleep 1
++		fi
++	fi
++done
++
++# set power down of phy control register to zero
++let g2_smi_cmd="${smi_busy_flag} | ${smi_cmd_c22_mode} | ${smi_cmd_read}"
++miitool -w "${mii_bus}:${g2_addr}:${g2_smi_cmd_reg}" -p g2_smi_cmd
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not write G2 SMI command"
++	exit 1
++fi
++
++miitool -x "${mii_bus}:${g2_addr}:${g2_smi_data_reg}" -p g2_smi_data
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not read G2 SMI data"
++	exit 1
++fi
++
++let g2_smi_data="${g2_smi_data} & ~${phy_power_down_flag}"
++
++miitool -w "${mii_bus}:${g2_addr}:${g2_smi_data_reg}" -p g2_smi_data
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not write G2 SMI data"
++	exit 1
++fi
++
++smi_busy=1
++smi_tries=3
++
++while [ "${smi_busy}" != 0 ]; do
++	miitool -x "${mii_bus}:${g2_addr}:${g2_smi_cmd_reg}" -p g2_smi_cmd
++	if [ "$?" != 0 ]; then
++		echo -e ${error} "Could not read switch G2 SMI command register"
++		exit 1
++	fi
++
++	let smi_busy="${g2_smi_cmd} & ${smi_busy_flag}"
++
++	let smi_tries="${smi_tries} - 1"
++
++	if [ "${smi_busy}" != 0 ]; then
++		if [ "${smi_tries}" = 0 ]; then
++			echo -e ${error} "Switch SMI busy"
++			exit 1
++		else
++			sleep 1
++		fi
++	fi
++done
++
++let g2_smi_cmd="${smi_busy_flag} | ${smi_cmd_c22_mode} | ${smi_cmd_write}"
++miitool -w "${mii_bus}:${g2_addr}:${g2_smi_cmd_reg}" -p g2_smi_cmd
++if [ "$?" != 0 ]; then
++	echo -e ${error} "Could not write G2 SMI command"
++	exit 1
++fi
++
++# wait until phy is ready
++smi_busy=1
++smi_ties=3
++
++while [ "${smi_busy}" != 0 ]; do
++	miitool -x "${mii_bus}:${g2_addr}:${g2_smi_cmd_reg}" -p g2_smi_cmd
++	if [ "$?" != 0 ]; then
++		echo -e ${error} "Could not read switch G2 SMI command register"
++		exit 1
++	fi
++
++	let smi_busy="${g2_smi_cmd} & ${smi_busy_flag}"
++
++	let smi_tries="${smi_tries} - 1"
++
++	if [ "${smi_busy}" != 0 ]; then
++		if [ "${smi_tries}" = 0 ]; then
++			echo -e ${error} "Switch SMI busy"
++			exit 1
++		else
++			sleep 1
++		fi
++	fi
++done
++
++exit 0
+-- 
+2.7.4
+

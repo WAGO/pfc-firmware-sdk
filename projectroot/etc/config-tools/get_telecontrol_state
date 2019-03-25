@@ -1,0 +1,144 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------
+# Script-name: get_telecontrol_state
+#
+# Get firewall state for telecontrol services.
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter).
+#--------------------------------------------------------------------
+function PrintUsage()
+{
+    echo
+    echo "* Get state of telecontrol service *"
+    echo
+    echo "Usage: get_telecontrol_state -h, --help          Print usage"
+    echo "Usage: get_telecontrol_state service=<service>   Return state"
+    echo
+    echo "Available services: dnp3, iec60870_5_104, iec61850_mms"
+}
+
+# Set error on use of undefined shell variables
+set -u
+
+
+# Set some global variables
+service=""
+state="" # Return value
+is_telecontrol=0
+config_tool_defines="/etc/config-tools/config_tool_defines"
+telecontrol_service_file="/etc/specific/telecontrol_states"
+telecontrol_targetids="11957 11960 11961 11968 11969 11970 38500 38502 38505 38506 38510 38512 38514" # single target ids are separated by space character
+
+if [ ! -f $config_tool_defines ]; then
+  echo "config_tool_defines missing"
+  exit 255
+fi
+
+. $config_tool_defines
+
+# Terminate script if argument list is empty
+if [[ $# == 0 ]]; then
+    PrintUsage
+    exit $MISSING_PARAMETER
+fi
+
+
+function EvaluateCommandLine()
+{
+    if [[ $# < 1 || "$1" == "-h" || "$1" == "--help" ]]; then
+        PrintUsage
+        exit $SUCCESS
+    fi
+
+    # Check for service
+    if [[ "$1" == service=* ]]; then
+        service="${1#service=}"
+        if [[ -z "$service" ]]; then
+            status=$INVALID_PARAMETER
+        fi
+    else
+        status=$INVALID_PARAMETER
+    fi
+}
+
+function IsTelecontrol()
+{
+    is_telecontrol=0
+    targetid="$(/etc/config-tools/get_typelabel_value TARGETID)"
+    
+    for t in $telecontrol_targetids ; do 
+        if [[ $t == $targetid ]]; then
+            is_telecontrol=1
+            break
+        fi
+    done
+}
+
+function GetState()
+{
+    local dnp3=""
+    local iec60870_5_104=""
+    local iec61880_mms=""
+
+    if [[ -f $telecontrol_service_file ]]; then
+        . $telecontrol_service_file
+
+        case $service in
+        "dnp3")
+            state="$dnp3"
+            ;;
+        "iec60870_5_104")
+            state="$iec60870_5_104"
+            ;;
+        "iec61850_mms")
+            state="$iec61850_mms"
+            ;;
+        *)
+            status=$INVALID_PARAMETER
+            ;;
+        esac
+    else
+        status=$INVALID_PARAMETER
+    fi
+}
+
+
+#--------------------------------------------------------------------
+# Start main.
+#--------------------------------------------------------------------
+
+status=$SUCCESS
+
+EvaluateCommandLine $*
+
+if [[ $status == $SUCCESS ]]; then
+    IsTelecontrol
+fi
+
+# Get telecontrol service state
+if [[ $status == $SUCCESS ]]; then
+    if [[ $is_telecontrol == 1 ]]; then
+        GetState
+    else
+        state="disabled"
+    fi
+fi
+
+
+if [[ $status == $SUCCESS && -n "$state" ]]; then
+    echo $state
+else
+    status=$INTERNAL_ERROR
+fi
+
+exit $status

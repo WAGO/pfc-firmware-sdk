@@ -1,0 +1,47 @@
+## SECTION=wago_specific_tools
+
+#for backwardcompytibility with the trunk where this symbol is selected for diagnostic AND led-support
+#config LED_SERVER
+#	bool
+#	select HOST_WAGO_PFC_DIAGNOSTIC
+#	select LED_SERVER_META	
+#	select WAGO_PFC_DIAGNOSTIC if LED_SERVER_2_CHOICE
+
+menuconfig LED_SERVER_META
+        bool
+        prompt "LED-Server                     "
+	select LED_SERVER_LEGACY if LED_SERVER_LEGACY_CHOICE
+	select LED_SERVER_2 if LED_SERVER_2_CHOICE
+        help
+                Use LED-Server.
+                
+if LED_SERVER_META
+
+choice
+	prompt "Select LED-Server Version"
+	default LED_SERVER_LEGACY
+
+	config LED_SERVER_LEGACY_CHOICE
+		bool
+		prompt "Legacy (PFC200 only)"
+		help
+			This is the old version of the LED-Server used up to FW04 only in PFC200-devices with dual-collor LEDs
+
+	config LED_SERVER_2_CHOICE
+		bool
+		prompt "New Version (PFC100, PFC200, PERSPECTO-II, etc.)"
+		help
+			This is the version 2 of the LED-Server used for new devices with Sys-FS LED-Interface and tri-Color-LEDs
+
+endchoice
+
+menu "Configure LED-Server                "
+if LED_SERVER_LEGACY_CHOICE
+source "generated/wago_specific_tools_led_server_legacy.in"
+endif
+if LED_SERVER_2_CHOICE
+source "generated/wago_specific_tools_led_server_2.in"
+endif
+endmenu
+
+endif

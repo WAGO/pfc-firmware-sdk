@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+
+config LIBMODBUSMANAGER
+	bool
+	prompt "libmodbusmanager"
+	select KERNEL_HEADER
+	select LIBMODBUS
+	select GLIB
+	help
+	  Shared library for an automatized, scheduled MODBUS communication.
+

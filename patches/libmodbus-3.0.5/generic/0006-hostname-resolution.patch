@@ -1,0 +1,129 @@
+From 8ed50194c1955e360a0050e1a1c1a8bdcbd4a16a Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Tue, 8 Apr 2014 09:12:45 +0200
+Subject: [PATCH] hostname resolution
+
+---
+ src/modbus-tcp-private.h |  6 ++++--
+ src/modbus-tcp.c         | 31 +++++++++++++++++++++++--------
+ 2 files changed, 27 insertions(+), 10 deletions(-)
+
+diff --git a/src/modbus-tcp-private.h b/src/modbus-tcp-private.h
+index 0133eb4..5960c69 100644
+--- a/src/modbus-tcp-private.h
++++ b/src/modbus-tcp-private.h
+@@ -25,11 +25,13 @@
+ 
+ #define _MODBUS_TCP_CHECKSUM_LENGTH    0
+ 
++#define _MODBUS_IP_LENGTH             16
++
+ typedef struct _modbus_tcp {
+     /* TCP port */
+     int port;
+     /* IP address */
+-    char ip[16];
++    char ip[_MODBUS_IP_LENGTH];
+ } modbus_tcp_t;
+ 
+ #define _MODBUS_TCP_PI_NODE_LENGTH    1025
+@@ -55,7 +57,7 @@ typedef struct _modbus_udp {
+     /* UDP port */
+     int port;
+     /* IP address */
+-    char ip[16];
++    char ip[_MODBUS_IP_LENGTH];
+ } modbus_udp_t;
+ 
+ typedef struct _modbus_udp_pi {
+diff --git a/src/modbus-tcp.c b/src/modbus-tcp.c
+index 713fc88..34da253 100644
+--- a/src/modbus-tcp.c
++++ b/src/modbus-tcp.c
+@@ -267,9 +267,17 @@ static int _modbus_tcp_connect(modbus_t *ctx)
+         printf("Connecting to %s TCP port %d\n", ctx_tcp->ip, ctx_tcp->port);
+     }
+ 
++    struct hostent *host = gethostbyname(ctx_tcp->ip);
++    if(host == NULL)
++    {
++        if (ctx->debug)
++            printf("Couldn't resolve hostname: %s\n", ctx_tcp->ip);
++        return -1;
++    }
++
+     addr.sin_family = AF_INET;
+     addr.sin_port = htons(ctx_tcp->port);
+-    addr.sin_addr.s_addr = inet_addr(ctx_tcp->ip);
++    addr.sin_addr.s_addr = *(unsigned long*)host->h_addr;
+     rc = connect(ctx->s, (struct sockaddr *)&addr,
+                  sizeof(struct sockaddr_in));
+     if (rc == -1) {
+@@ -668,7 +676,7 @@ modbus_t* modbus_new_tcp(const char *ip, int port)
+     ctx->backend_data = (modbus_tcp_t *) malloc(sizeof(modbus_tcp_t));
+     ctx_tcp = (modbus_tcp_t *)ctx->backend_data;
+ 
+-    dest_size = sizeof(char) * 16;
++    dest_size = sizeof(char) * _MODBUS_IP_LENGTH;
+     ret_size = strlcpy(ctx_tcp->ip, ip, dest_size);
+     if (ret_size == 0) {
+         fprintf(stderr, "The IP string is empty\n");
+@@ -755,9 +763,18 @@ ssize_t _modbus_udp_send(modbus_t *ctx, const uint8_t *req, int req_length)
+ {
+ 	struct sockaddr_in addr;
+ 	modbus_udp_t *ctx_udp = ctx->backend_data;
++        struct hostent *host = gethostbyname(ctx_udp->ip);
++
++        if(host == NULL)
++        {
++            if (ctx->debug)
++                printf("Couldn't resolve hostname: %s\n", ctx_udp->ip);
++            return -1;
++        }
++
+ 	addr.sin_family = AF_INET;
+ 	addr.sin_port = htons(ctx_udp->port);
+-	addr.sin_addr.s_addr = inet_addr(ctx_udp->ip);
++	addr.sin_addr.s_addr = *(unsigned long*)host->h_addr;
+ 	return sendto(ctx->s, (const char*)req, req_length, 0, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+ }
+ 
+@@ -784,7 +801,7 @@ ssize_t _modbus_udp_recv(modbus_t *ctx, uint8_t *rsp, int rsp_length)
+ 			return rc;
+ 		}
+ 		/*store source address in context for following reply*/
+-		strlcpy(ctx_udp->ip, inet_ntoa(addr.sin_addr), 16);
++		strlcpy(ctx_udp->ip, inet_ntoa(addr.sin_addr), _MODBUS_IP_LENGTH);
+ 		ctx_udp->port = ntohs(addr.sin_port);
+ 
+ 	    if (rc > _MODBUS_UDP_RECV_BUFFER_SIZE)
+@@ -1230,7 +1247,6 @@ modbus_t* modbus_new_udp(const char *ip, int port)
+ {
+     modbus_t *ctx;
+     modbus_udp_t *ctx_udp;
+-    size_t dest_size;
+     size_t ret_size;
+ 
+     ctx = (modbus_t *) malloc(sizeof(modbus_t));
+@@ -1244,8 +1260,7 @@ modbus_t* modbus_new_udp(const char *ip, int port)
+     ctx->backend_data = (void *) malloc(sizeof(modbus_udp_t));
+     ctx_udp = (modbus_udp_t *)ctx->backend_data;
+ 
+-    dest_size = 16;
+-    ret_size = strlcpy(ctx_udp->ip, ip, dest_size);
++    ret_size = strlcpy(ctx_udp->ip, ip, _MODBUS_IP_LENGTH);
+     if (ret_size == 0) {
+         fprintf(stderr, "The UDP/IP string is empty\n");
+         modbus_free(ctx);
+@@ -1253,7 +1268,7 @@ modbus_t* modbus_new_udp(const char *ip, int port)
+         return NULL;
+     }
+ 
+-    if (ret_size >= dest_size) {
++    if (ret_size >= _MODBUS_IP_LENGTH) {
+         fprintf(stderr, "The UDP/IP string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+-- 
+1.9.0
+

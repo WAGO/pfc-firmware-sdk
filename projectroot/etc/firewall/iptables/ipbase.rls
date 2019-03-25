@@ -1,0 +1,81 @@
+#
+# IMPORTANT:
+# This is the base firewall configuration file. The rules contained here are
+# applied at, and only at, the device's startup. Any dynamic, after start-up,
+# change of rules is applied only within confines of the following sub-chains:
+# - dnat and snat of the nat table,
+# - all in_* and fw_* sub-chains of the filter table.
+# The content of this file is static, static in the sense that it is not
+# generated nor changed via any automation tool, and therefore it can be safely
+# per-hand edited, and this should remain so.
+# However, having the possibility to edit the file manually makes it vital to
+# preserve some prerequisites for the system to work correctly despite
+# the introduced changes:
+# - all previously listed chains must remain in place and in order. Since the
+#   chains are used by automation tools, there should be no additional content
+#   added to them (it will get erased),
+# - all conntrack entries must remain in place, especially the ones checking for
+#   related and established connections,
+# - whitelist approach must remain enforced (drop/forbid all by default).
+#
+# Also it is worth to point-out that instead of editing this file, additional
+# rules may be gathered in a separated file and then applied separately using
+# the following command:
+# iptables-restore -n < aux_rules.rls
+#
+*raw
+:PREROUTING ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+COMMIT
+#
+*mangle
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+:in_strict - [0:0]
+-A PREROUTING -j in_strict
+-A in_strict -p icmp --icmp-type echo-request -j MARK --set-mark 1/1
+COMMIT
+#
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+:dnat - [0:0]
+:snat - [0:0]
+-A PREROUTING -j dnat
+-A POSTROUTING -j snat
+COMMIT
+#
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+:in_filter - [0:0]
+:in_services - [0:0]
+:in_generic - [0:0]
+:in_climits - [0:0]
+:in_echo - [0:0]
+:in_rules - [0:0]
+:fw_generic - [0:0]
+:fw_common - [0:0]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+-A INPUT -m mark ! --mark 1/1 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -j in_filter
+-A INPUT -j in_services
+-A INPUT -j in_generic
+-A FORWARD -m conntrack --ctstate INVALID -j DROP
+-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A FORWARD -j fw_generic
+-A FORWARD -j fw_common
+-A in_filter -p icmp --icmp-type echo-request -j in_echo
+-A in_filter -j in_climits
+-A in_filter -j in_rules
+-A in_echo -j DROP
+-A fw_generic -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+COMMIT
+

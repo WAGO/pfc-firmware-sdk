@@ -1,0 +1,94 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package rauc_bundle_conf).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   slot-rootfs-pre-install
+#
+# Brief:    WAGO firmware update RAUC hook as pre-install of rootfs slot.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# Timeout to get write lock for settings/accounts backup in seconds
+SETTINGS_LOCK_TIMEOUT=5
+
+
+# Function to save settings and accounts in context of FW-Update.
+# Hint: Process is exited with WAGO_FW_UPDATE_NOT_SUCCESSFUL in case of abort.
+#
+# Log prefix is needed because executable (hooks.sh) does not contain
+# "fwupdate" in name
+#
+# Return: 0 on success
+#-----------------------------------------------------------------------------#
+function save_settings
+{
+    local RESULT=0
+
+    fwupdate_report_info "Save settings"
+
+    # Save settings and lock file for synchronization
+    touch "$WAGO_FW_UPDATE_SETTINGS_LOCK"
+    if ! get_write_lock $WAGO_FW_UPDATE_SETTINGS_LOCK_FD "$WAGO_FW_UPDATE_SETTINGS_LOCK" $SETTINGS_LOCK_TIMEOUT; then
+        fwupdate_abort 100 "Failed to get lock" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+    else
+        "$WAGO_CT_DIR/settings_backup" save "$WAGO_FW_UPDATE_SETTINGS_FILE_WORK" "--prefix=$WAGO_FW_UPDATE_LOG_PREFIX"
+        RESULT=$?
+        if [ "$RESULT" -ne "0" ]; then
+            fwupdate_abort 401 "Failed to save settings (return code $RESULT)" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+        fi
+        "$WAGO_ST_DIR/settings_backup_accounts" backup "$WAGO_FW_UPDATE_ACCOUNTS_DIR_WORK" "--prefix=$WAGO_FW_UPDATE_LOG_PREFIX"
+        RESULT=$?
+        if [ "$RESULT" -ne "0" ]; then
+            fwupdate_abort 402 "Failed to save account settings (return code $RESULT)" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+        fi
+        release_lock $WAGO_FW_UPDATE_SETTINGS_LOCK_FD
+    fi
+
+    return 0
+}
+
+
+# Hook routine called in context of RAUC setup before installation of ROOT-FS.
+# Hint: Process is exited with WAGO_FW_UPDATE_NOT_SUCCESSFUL in case of abort.
+#
+# Log prefix is needed because executable (hooks.sh) does not contain
+# "fwupdate" in name
+#
+# Param 1: Platform type (e.g. 'PFC100', 'PFC200v2', etc.)
+#          Currently unused in this script.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+function hook_routine
+{
+    fwupdate_report_info "Start root file system pre-installation hook"
+
+    if fwupdate_shared_lock; then
+        local skip_settings_flag=false
+        skip_settings_flag=$(fwupdate_get_skip_settings_flag)
+        fwupdate_release_lock
+        if $skip_settings_flag; then
+            fwupdate_report_info "Settings backup skipped (flag is set)."
+            return 0
+        fi
+    fi
+
+    # Save settings
+    if [[ $WAGO_FW_UPDATE_SETTINGS_BACKUP_ASYNC -ne 0 ]]; then
+        fwupdate_report_info "Run settings backup in parallel"
+        save_settings &
+    else
+        fwupdate_report_info "Run settings backup"
+        save_settings
+    fi
+
+    return 0
+}

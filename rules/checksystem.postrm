@@ -1,0 +1,19 @@
+#!/bin/sh
+# checksystem post package remove script: remove crontab entry and installed files
+# will only be executed on target system
+# WAGO Kontakttechnik GmbH & Co. KG
+
+function cleancrontab()
+{
+	local newcrontab="/tmp/checksystem.crontab"
+	crontab -l | sed -e '/package check-system/d' -e '/etc\/check-system/d' > "$newcrontab"
+	crontab "$newcrontab"
+	rm -f "$newcrontab"
+}
+
+# main: remove crontab entry and check-system-files
+cleancrontab
+rm -rf /etc/check-system
+rm -rf /etc/init.d/logbootevent
+rm -rf /etc/rc.d/S70_logbootevent
+exit 0

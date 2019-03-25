@@ -1,0 +1,96 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+# Copy sd card to internal flash.
+#
+# cpsd2intern start:
+#    Copy SD card to internal flash if system was booted from SD card.
+#    Set LED's U1 to U4 to yellow on start, set them green
+#    if copy finished successfully, red on error.
+#
+# cpsd2intern makelink:
+#    Use argument makelink to create a symbolic link in /etc/rc.d.
+#    This enables automatic copy on system startup.
+#
+# Author:   HJH : WAGO Kontakttechnik GmbH & Co. KG
+
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
+CFGPATH=/etc/config-tools
+RCLINK=/etc/rc.d/S95_cpsd2intern
+
+leds_off()
+{
+    eventmsg 0x40010000
+    eventmsg 0x40010100
+    eventmsg 0x40010200
+    eventmsg 0x40010300
+}
+
+leds_green()
+{
+    eventmsg 0x40010001
+    eventmsg 0x40010101
+    eventmsg 0x40010201
+    eventmsg 0x40010301
+}
+
+leds_red()
+{
+    eventmsg 0x40010002
+    eventmsg 0x40010102
+    eventmsg 0x40010202
+    eventmsg 0x40010302
+}
+
+leds_yellow()
+{
+    eventmsg 0x40010003
+    eventmsg 0x40010103
+    eventmsg 0x40010203
+    eventmsg 0x40010303
+}
+
+case $1 in
+    start)
+        bootmedia=$($CFGPATH/get_filesystem_data active-partition-medium)
+        if [ "$bootmedia" = "sd-card" ]; then
+            echo "Copy SD card to internal flash. Takes a while ..."
+            echo "Finished when LED's U1 to U4 are lit green"
+            leds_yellow
+            $CFGPATH/copy_firmware_image source-medium=sd-card destination-medium=internal-flash-nand &> /dev/null
+            if [ "$?" -eq "0" ]; then
+                leds_green
+                echo "Done"
+#                aktivate following lines to make sd-card non bootable and do reboot to internal flash
+#                echo "now rebooting ..."
+#                sleep 1
+#                mkdir -p /boot/bak && mv /boot/* /boot/bak
+#                reboot
+            else
+                leds_red
+                echo "Error occured"
+                . $CFGPATH/config_tool_defines
+                if [ -f $LAST_ERROR_FILENAME ]; then
+                    cat $LAST_ERROR_FILENAME;
+                    rm $LAST_ERROR_FILENAME
+                fi
+            fi
+        else
+            rm -f $RCLINK
+        fi
+        ;;
+
+    makelink)
+        ln -sf /etc/init.d/cpsd2intern $RCLINK
+        ;;
+
+    *)
+        echo "Usage: ${0} start|makelink"
+        exit 1
+        ;;
+esac

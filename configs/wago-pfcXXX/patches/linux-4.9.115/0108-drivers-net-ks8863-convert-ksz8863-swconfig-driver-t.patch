@@ -1,0 +1,420 @@
+From 2dc86980d2b60456401ec9b475203aaa5a11c359 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 13 Oct 2017 10:57:32 +0200
+Subject: [PATCH 108/261] drivers: net: ks8863: convert ksz8863 swconfig driver
+ to platform driver
+
+---
+ arch/arm/boot/dts/wago-pfc100.dtsi      |  11 ++
+ arch/arm/boot/dts/wago-pfc200.dtsi      |  11 ++
+ arch/arm/boot/dts/wago-pfc200v2.dtsi    |  11 ++
+ arch/arm/boot/dts/wago-pfc200v3.dtsi    |  11 ++
+ arch/arm/boot/dts/wago-src-ksz8863.dtsi |  11 ++
+ arch/arm/boot/dts/wago-src.dtsi         |  11 ++
+ drivers/net/dsa/ksz8863.c               |   3 +
+ drivers/net/phy/ksz8863-cfg.c           | 175 ++++++++++++++++++--------------
+ include/linux/ksz8863.h                 |   2 -
+ 9 files changed, 166 insertions(+), 80 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc100.dtsi b/arch/arm/boot/dts/wago-pfc100.dtsi
+index 511d811..0272031 100644
+--- a/arch/arm/boot/dts/wago-pfc100.dtsi
++++ b/arch/arm/boot/dts/wago-pfc100.dtsi
+@@ -144,6 +144,17 @@
+ 
+ 	};
+ 
++	swcfg_ksz8863 {
++		compatible = "swcfg,ksz8863";
++		status = "okay";
++
++		swcfg,mii-bus = <&bitbang_mdio0>;
++		swcfg,alias = "switch0";
++		swcfg,cpu_port = <2>;
++		swcfg,ports = <3>;
++		swcfg,vlans = <16>;
++	};
++
+ 	dsa@0 {
+ 		compatible = "marvell,dsa";
+ 		#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/wago-pfc200.dtsi b/arch/arm/boot/dts/wago-pfc200.dtsi
+index fcf3952..932bd91 100644
+--- a/arch/arm/boot/dts/wago-pfc200.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200.dtsi
+@@ -113,6 +113,17 @@
+ 
+ 	};
+ 
++	swcfg_ksz8863 {
++		compatible = "swcfg,ksz8863";
++		status = "okay";
++
++		swcfg,mii-bus = <&bitbang_mdio0>;
++		swcfg,alias = "switch0";
++		swcfg,cpu_port = <2>;
++		swcfg,ports = <3>;
++		swcfg,vlans = <16>;
++	};
++
+ 	dsa@0 {
+ 		compatible = "marvell,dsa";
+ 		#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index a5945aa..ba677bf 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -130,6 +130,17 @@
+ 
+ 	};
+ 
++	swcfg_ksz8863 {
++		compatible = "swcfg,ksz8863";
++		status = "okay";
++
++		swcfg,mii-bus = <&bitbang_mdio0>;
++		swcfg,alias = "switch0";
++		swcfg,cpu_port = <2>;
++		swcfg,ports = <3>;
++		swcfg,vlans = <16>;
++	};
++
+ 	dsa@0 {
+ 		compatible = "marvell,dsa";
+ 		#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 8f4824f..77484a6 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -126,6 +126,17 @@
+ 		};
+ 	};
+ 
++	swcfg_ksz8863 {
++		compatible = "swcfg,ksz8863";
++		status = "okay";
++
++		swcfg,mii-bus = <&bitbang_mdio0>;
++		swcfg,alias = "switch0";
++		swcfg,cpu_port = <2>;
++		swcfg,ports = <3>;
++		swcfg,vlans = <16>;
++	};
++
+ 	dsa: dsa@0 {
+ 		compatible = "marvell,dsa";
+ 		#address-cells = <2>;
+diff --git a/arch/arm/boot/dts/wago-src-ksz8863.dtsi b/arch/arm/boot/dts/wago-src-ksz8863.dtsi
+index 25d7ea1..82617f6 100644
+--- a/arch/arm/boot/dts/wago-src-ksz8863.dtsi
++++ b/arch/arm/boot/dts/wago-src-ksz8863.dtsi
+@@ -23,6 +23,17 @@
+ 		ksz,mii-bus = <&bitbang_mdio0>;
+ 	};
+ 
++	swcfg_ksz8863 {
++		compatible = "swcfg,ksz8863";
++		status = "okay";
++
++		swcfg,mii-bus = <&bitbang_mdio0>;
++		swcfg,alias = "switch0";
++		swcfg,cpu_port = <2>;
++		swcfg,ports = <3>;
++		swcfg,vlans = <16>;
++	};
++
+ 	dsa@0 {
+                 /* set status to 'okay' to enable dsa */
+                 status = "okay";
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index 36bab14..0d95148 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -116,6 +116,17 @@
+ 
+ 	};
+ 
++	swcfg_ksz8863 {
++		compatible = "swcfg,ksz8863";
++		status = "okay";
++
++		swcfg,mii-bus = <&bitbang_mdio0>;
++		swcfg,alias = "switch0";
++		swcfg,cpu_port = <2>;
++		swcfg,ports = <3>;
++		swcfg,vlans = <16>;
++	};
++
+ 	dsa@0 {
+ 		/* set status to 'okay' to enable dsa */
+ 		status = "okay";
+diff --git a/drivers/net/dsa/ksz8863.c b/drivers/net/dsa/ksz8863.c
+index 1e90f34..45d7848 100644
+--- a/drivers/net/dsa/ksz8863.c
++++ b/drivers/net/dsa/ksz8863.c
+@@ -253,6 +253,9 @@ static int ksz8863_setup(struct dsa_switch *ds)
+ 
+ 	pr_info("DSA is %s\n", is_dsa_enabled() ? "enabled" : "disabled");
+ 
++	if (!ksz8863_fns->setup_dflt_cfg)
++		return -EPROBE_DEFER;
++
+         if ((ret = ksz8863_fns->setup_dflt_cfg(flags)))
+                 return ret;
+ 
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index 449786d..eb39795 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -2,23 +2,24 @@
+  * ksz8863-cfg.c
+  *
+  * Copyright (c) 2010 SAGEM Communications
++ * Copyright (c) 2011 Wago Kontakttechnik GmbH & Co.KG
++ * Copyright (c) 2017 Wago Kontakttechnik GmbH & Co.KG
+  *
+  * Author: Karl Beldan <karl.beldan@sagemcom.com>
++ * Author: Heinrich Toews <heinrich.toews@wago.com>
++ * Author: Oleg Karfich <oleg.karfich@wago.com>
+  *
+  * Licensed under the GPL version 2
+  */
+ #include <linux/module.h>
+ #include <linux/string.h>
+ #include <linux/delay.h>
+-/* #include <linux/smp_lock.h> */
+-#include <linux/mutex_rt.h>
+-#include <linux/miscdevice.h>
+ #include <linux/fs.h>
+ #include <linux/ioctl.h>
+ #include <asm/uaccess.h>
+-#if defined(CONFIG_SWCONFIG) || defined(CONFIG_SWCONFIG_MODULE)
+ #include <linux/switch.h>
+-#endif /* CONFIG_SWCONFIG */
++#include <linux/of_mdio.h>
++#include <linux/platform_device.h>
+ 
+ #include <linux/ksz8863.h>
+ 
+@@ -203,7 +204,6 @@ static int ksz8863_setup_dflt_cfg(int flags)
+         return 0;
+ }
+ 
+-#if defined(CONFIG_SWCONFIG) || defined(CONFIG_SWCONFIG_MODULE)
+ static char __buf[2048];
+ 
+ 
+@@ -1624,106 +1624,125 @@ struct switch_dev_ops ksz8863_switch_dev_ops = {
+         .reset_switch = ksz8863_sw_reset,
+ };
+ 
+-static struct switch_dev ksz8863_switch_dev = {
+-        .name = "ksz8863",
+-        .devname = "ksz8863",
+-	.alias = "switch0",
+-        .cpu_port = KSZ8863_CPU_PORT,
+-        .ports = KSZ8863_NUM_PORTS,
+-        .vlans = KSZ8863_NUM_VLANS,
+-	.ops = &ksz8863_switch_dev_ops,
+-};
+-#endif /* CONFIG_SWCONFIG */
+-
++static struct switch_dev *ksz8863_of_get_swdev(struct device *dev)
++{
++	struct switch_dev *swdev;
++	struct device_node *np = dev->of_node;
++	struct device_node *mdio_node;
++	int ret;
+ 
+-static DEFINE_MUTEX(ioctl_mutex);
++	swdev = devm_kzalloc(dev, sizeof(*swdev), GFP_KERNEL);
++	if (!swdev)
++		return ERR_PTR(-ENOMEM);
+ 
+-static long ksz8863_ioctl(struct file *file,
+-                          unsigned int cmd, unsigned long arg)
+-{
+-        void __user *argp;
+-        unsigned long size;
+-        int ret;
++	if (np) {
++		swdev->name = np->name;
+ 
+-        argp = (void __user *)arg;
+-        size = (cmd & IOCSIZE_MASK) >> IOCSIZE_SHIFT;
+-        if (cmd & IOC_IN) {
+-                if (!access_ok(VERIFY_READ, argp, size))
+-                        return -EFAULT;
+-        }
+-        if (cmd & IOC_OUT) {
+-                if (!access_ok(VERIFY_WRITE, argp, size))
+-                        return -EFAULT;
+-        }
++		if (of_property_read_string(np, "swcfg,alias", &swdev->alias)) {
++			dev_err(dev, "No switch alias given\n");
++			ret = -EINVAL;
++			goto out_err_free;
++		}
+ 
++		if (of_property_read_u32(np, "swcfg,cpu_port", &swdev->cpu_port)) {
++			dev_err(dev, "No cpu port given\n");
++			ret = -EINVAL;
++			goto out_err_free;
++		}
+ 
+-        if ((ret = mutex_lock_interruptible(&ioctl_mutex)))
+-                return ret;
++		if (of_property_read_u32(np, "swcfg,ports", &swdev->ports)) {
++			dev_err(dev, "No ports given\n");
++			ret = -EINVAL;
++			goto out_err_free;
++		}
+ 
+-        switch (cmd) {
+-        default:
+-                ret = ksz8863_setup_dflt_cfg(DFLT_CFG_FLAGS);
+-        }
++		if (of_property_read_u32(np, "swcfg,vlans", &swdev->vlans)) {
++			dev_err(dev, "No vlans given\n");
++			ret = -EINVAL;
++			goto out_err_free;
++		}
+ 
+-        mutex_unlock(&ioctl_mutex);
+-        return ret;
+-}
++		/* get mdio node */
++		mdio_node = of_parse_phandle(np, "swcfg,mii-bus", 0);
++		if (!mdio_node) {
++			dev_err(dev, "can't find node 'swcfg,mii-bus'\n");
++			ret = -ENODEV;
++			goto out_err_free;
++		}
+ 
+-static long ksz8863_unlocked_ioctl(struct file *file,
+-                                   unsigned int cmd, unsigned long arg)
+-{
+-        int ret;
++		swdev->mii_bus = of_mdio_find_bus(mdio_node);
++		if (!swdev->mii_bus) {
++			dev_err(dev, "can't find mii bus device\n");
++			ret = -EPROBE_DEFER;
++			goto out_err_free;
++		}
+ 
+-        ret = ksz8863_ioctl(file, cmd, arg);
++		dev_info(dev, "mii_bus: found and using '%s'\n", swdev->mii_bus->name);
+ 
+-        return ret;
+-}
++		swdev->of_node = np;
++		swdev->ops = &ksz8863_switch_dev_ops;
++	}
+ 
+-static struct file_operations ksz8863_fops = {
+-        .owner          = THIS_MODULE,
+-        .unlocked_ioctl = ksz8863_unlocked_ioctl,
+-};
++	return swdev;
+ 
+-static struct miscdevice misc_dev = {
+-        .minor = MISC_DYNAMIC_MINOR,
+-        .name  = KSZ8863_CHRDEV_NAME,
+-        .fops  = &ksz8863_fops,
+-};
++out_err_free:
+ 
++	devm_kfree(dev, swdev);
++	return ERR_PTR(ret);
++}
+ 
+-static int __init ksz8863_cfg_init(void)
++static int ksz8863_cfg_probe(struct platform_device *pdev)
+ {
++	struct switch_dev *swdev;
+         int err;
+ 
+-        if ((err = misc_register(&misc_dev))) {
+-                printk(KERN_ERR "%s: unable to register misc device\n", __func__);
+-                return err;
+-        }
++	if (pdev->dev.of_node) {
++		swdev = ksz8863_of_get_swdev(&pdev->dev);
++		if (IS_ERR(swdev))
++			return PTR_ERR(swdev);
++
++		dev_info(&pdev->dev, "SWCFG: switch device '%s'\n", swdev->name);
++	}
+ 
+-#if defined(CONFIG_SWCONFIG) || defined(CONFIG_SWCONFIG_MODULE)
+-        if ((err = register_switch(&ksz8863_switch_dev, NULL))) {
++	err = register_switch(swdev, NULL);
++        if (err) {
+                 printk(KERN_ERR "%s: switch registration failed\n", __func__);
+-                misc_deregister(&misc_dev);
+-                return err;
++		goto out;
+         }
+-#endif /* CONFIG_SWCONFIG */
++
++	pdev->dev.platform_data = swdev;
+ 
+         ksz8863_fns->setup_dflt_cfg = ksz8863_setup_dflt_cfg;
+ 
+-        return 0;
+-}
++	dev_info(&pdev->dev, "SWCONFIG: %s Driver probed\n", pdev->name);
+ 
++out:
++        return err;
++}
+ 
+-static void __exit ksz8863_cfg_exit(void)
++static int ksz8863_cfg_remove(struct platform_device *pdev)
+ {
+-#if defined(CONFIG_SWCONFIG) || defined(CONFIG_SWCONFIG_MODULE)
+-        unregister_switch(&ksz8863_switch_dev);
+-#endif /* CONFIG_SWCONFIG */
+-        misc_deregister(&misc_dev);
++	struct switch_dev *swdev = pdev->dev.platform_data;
++        unregister_switch(swdev);
++	return 0;
+ }
+ 
+-module_init(ksz8863_cfg_init);
+-module_exit(ksz8863_cfg_exit);
++static const struct of_device_id ksz8863_of_match[] = {
++	{ .compatible = "swcfg,ksz8863" },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ksz8863_of_match);
++
++static struct platform_driver ksz8863_driver = {
++	.probe  = ksz8863_cfg_probe,
++	.remove = ksz8863_cfg_remove,
++	.driver = {
++		.name   = "ksz8863-cfg",
++		.owner  = THIS_MODULE,
++		.of_match_table = ksz8863_of_match,
++	},
++};
++module_platform_driver(ksz8863_driver);
+ 
+ MODULE_AUTHOR("karl.beldan@sagemcom.com>");
+ MODULE_LICENSE("GPL");
+diff --git a/include/linux/ksz8863.h b/include/linux/ksz8863.h
+index b186155..c534b9d 100644
+--- a/include/linux/ksz8863.h
++++ b/include/linux/ksz8863.h
+@@ -33,8 +33,6 @@
+ #define ksz8863_nread                   ksz8863_fns->nread
+ #define ksz8863_nwrite                  ksz8863_fns->nwrite
+ 
+-#define KSZ8863_CHRDEV_NAME             "swcfg"
+-
+ #define KSZ8863_CFG_TAIL_TAG_FLAG       (1 << 0)
+ #define KSZ8863_CFG_PWRDOWN_FLAG        (1 << 1)
+ #define KSZ8863_CFG_DSA_FLAGS           KSZ8863_CFG_TAIL_TAG_FLAG
+-- 
+2.7.4
+

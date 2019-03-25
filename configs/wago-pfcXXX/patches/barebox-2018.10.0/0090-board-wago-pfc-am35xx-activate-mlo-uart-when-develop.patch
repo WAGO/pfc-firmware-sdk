@@ -1,0 +1,88 @@
+From 6a5bb56f3fb394c74fa51c92f036818a205dec80 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 21 Sep 2018 13:58:47 +0200
+Subject: [PATCH 090/144] board: wago-pfc-am35xx: activate mlo uart when
+ developer bit is set
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am35xx/board-mlo.c | 42 +++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am35xx/board-mlo.c b/arch/arm/boards/wago-pfc-am35xx/board-mlo.c
+index c9758eb..c06ec31 100644
+--- a/arch/arm/boards/wago-pfc-am35xx/board-mlo.c
++++ b/arch/arm/boards/wago-pfc-am35xx/board-mlo.c
+@@ -52,6 +52,7 @@
+ #include <mach/generic.h>
+ #include <mach/am3xxx-pfc-generic.h>
+ #include <nand.h>
++#include <i2c/i2c.h>
+ 
+ static char *boot_nandslots[] = {
+ 	"/dev/nand0.boot0.bb",
+@@ -75,8 +76,6 @@ static int pfc200_init_console(void)
+ 	barebox_set_model("PFC-750-820x MLO");
+ 	barebox_set_hostname("PFC-750-820x-MLO");
+ 
+-	omap3_add_uart3();
+-
+ 	return 0;
+ }
+ console_initcall(pfc200_init_console);
+@@ -102,6 +101,41 @@ static struct omap_hsmmc_platform_data mmc_pdata = {
+ 	.cd_inverted = true,
+ };
+ 
++static struct i2c_platform_data i2c_pdata = {
++	.bitrate = 400000,
++};
++
++#define I2C_EEPROM_BUS	 		1
++#define I2C_EEPROM_ADDR			0x54
++#define I2C_EEPROM_BOOT_MODE_ID 	0x0
++#define I2C_EEPROM_BOOT_MODE_ID_DEV_BIT (1 << 0)
++static int pfc200_check_and_enable_debug_uart(void)
++{
++	struct i2c_adapter *adapter;
++	struct i2c_client client;
++	u8 boot_mode_id;
++
++	adapter = i2c_get_adapter(I2C_EEPROM_BUS);
++	if (!adapter) {
++		pr_err("%s: i2c2 not found\n", __func__);
++		return -ENODEV;
++	}
++
++	client.adapter = adapter;
++	client.addr = I2C_EEPROM_ADDR;
++
++	i2c_read_reg(&client, I2C_EEPROM_BOOT_MODE_ID | I2C_ADDR_16_BIT,
++							&boot_mode_id, 1);
++
++	pr_info("%s: debug mode active\n", __func__);
++
++	if (boot_mode_id & I2C_EEPROM_BOOT_MODE_ID_DEV_BIT)
++		omap3_add_uart3();
++
++	return 0;
++}
++late_initcall(pfc200_check_and_enable_debug_uart);
++
+ static int pfc200_init_devices(void)
+ {
+ #ifdef CONFIG_OMAP_GPMC
+@@ -123,6 +157,10 @@ static int pfc200_init_devices(void)
+ 
+         armlinux_set_architecture(MACH_TYPE_PFC_AM35XX);
+ 
++	if (IS_ENABLED(CONFIG_I2C_OMAP))
++		omap3_add_i2c2(&i2c_pdata);
++
++
+ 	return 0;
+ }
+ device_initcall(pfc200_init_devices);
+-- 
+2.7.4
+

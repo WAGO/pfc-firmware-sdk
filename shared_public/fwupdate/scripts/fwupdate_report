@@ -1,0 +1,102 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate_report
+#
+# Brief:    WAGO firmware info/warning/error report tool.
+#
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# Load general definitions and functions.
+if [ ! -f "$WAGO_ST_DIR/fwupdate_basic_defines" ]; then
+    echo "Missing dependency fwupdate_basic_defines"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_basic_defines"
+
+if [ ! -f "$WAGO_CT_DIR/config_tool_lib" ]; then
+    echo "Missing dependency config_tool_lib"
+    exit 64
+fi
+source "$WAGO_CT_DIR/config_tool_lib"
+
+# Function to report errors.
+# Error texts handled accordingly to definition for WAGO Config Tools.
+# If no quiet option is set, the error text is also shown on console. Therefore
+# a global variable "QUIET" is required.
+#
+# Param 1: Error text
+#
+# Param 2: If not empty, then suppress set last error
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_report_warning(),
+#           fwupdate_report_info()
+#-----------------------------------------------------------------------------#
+fwupdate_report_error()
+{
+    local SUPPRESS_LAST_ERROR=false
+    SUPPRESS_LAST_ERROR=${2:+true}
+
+    report_error "$1" "$WAGO_FW_UPDATE_LOG_PREFIX" $SUPPRESS_LAST_ERROR
+}
+
+# Function to report warnings.
+# Warning texts handled accordingly to definition for WAGO Config Tools.
+# If no quiet option is set, the warning text is also shown on console. Therefore
+# a global variable "QUIET" is required.
+#
+# Param 1: Warning text
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_report_error(),
+#           fwupdate_report_info()
+#-----------------------------------------------------------------------------#
+fwupdate_report_warning()
+{
+    report_warning "$1" "$WAGO_FW_UPDATE_LOG_PREFIX"
+}
+
+# Function to report information.
+# Information texts handled accordingly to definition for WAGO Config Tools.
+# If no quiet option is set, the text is shown on console. Therefore
+# a global variable "QUIET" is required.
+#
+# Param 1: Information text
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_report_error(),
+#           fwupdate_report_warning()
+#-----------------------------------------------------------------------------#
+fwupdate_report_info()
+{
+    report_info "$1" "$WAGO_FW_UPDATE_LOG_PREFIX"
+}
+
+# This function gives the call stack on stdout.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: call stack formated as "CALL STACK: func-name[1]: func-name[2]: ...: func-name[n]"
+#-----------------------------------------------------------------------------#
+fwupdate_get_call_stack()
+{
+    local call_stack="CALL STACK"
+    local i=${#FUNCNAME[@]}
+    while [ $i -gt 1 ]; do #do not add this function to call stack
+        i=$((i-1))
+        call_stack="${call_stack}: ${FUNCNAME[$i]}"
+    done
+    echo "$call_stack"
+}

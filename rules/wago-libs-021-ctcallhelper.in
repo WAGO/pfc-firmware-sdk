@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+
+config LIBCTCALLHELPER
+	bool
+    default n
+    select CROSS_LIBTOOL
+	prompt "Config tool call helper"
+	help
+	Shared library implementing a simple config tool call helper for codesys / devices.
+	Avoids using fork and uses vfork instead as fork causes dropouts on the kbus.
+

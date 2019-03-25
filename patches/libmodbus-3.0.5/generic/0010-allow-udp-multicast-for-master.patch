@@ -1,0 +1,231 @@
+From d2a7e1affaebd7267521309c7240d0c7a48ab829 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Fri, 16 May 2014 11:08:03 +0200
+Subject: [PATCH] allow udp multicast for master
+
+---
+ src/modbus-private.h |  1 +
+ src/modbus-rtu.c     |  8 ++++-
+ src/modbus-tcp.c     | 83 ++++++++++++++++++++++++++++++++--------------------
+ src/modbus.c         | 14 +++++++++
+ src/modbus.h         |  1 +
+ 5 files changed, 75 insertions(+), 32 deletions(-)
+
+diff --git a/src/modbus-private.h b/src/modbus-private.h
+index 9655751..9ee9b30 100644
+--- a/src/modbus-private.h
++++ b/src/modbus-private.h
+@@ -119,6 +119,7 @@ typedef struct _modbus_backend {
+     int (*flush) (modbus_t *ctx);
+     int (*select) (modbus_t *ctx, fd_set *rfds, struct timeval *tv, int msg_length);
+     int (*filter_request) (modbus_t *ctx, int slave);
++    int (*is_multicast) (modbus_t *ctx);
+ } modbus_backend_t;
+ 
+ struct _modbus {
+diff --git a/src/modbus-rtu.c b/src/modbus-rtu.c
+index 7e6e4a8..2619595 100644
+--- a/src/modbus-rtu.c
++++ b/src/modbus-rtu.c
+@@ -857,6 +857,11 @@ int _modbus_rtu_filter_request(modbus_t *ctx, int slave)
+     }
+ }
+ 
++int _modbus_rtu_is_multicast(modbus_t *ctx)
++{
++    return FALSE;
++}
++
+ const modbus_backend_t _modbus_rtu_backend = {
+     _MODBUS_BACKEND_TYPE_RTU,
+     _MODBUS_RTU_HEADER_LENGTH,
+@@ -875,7 +880,8 @@ const modbus_backend_t _modbus_rtu_backend = {
+     _modbus_rtu_close,
+     _modbus_rtu_flush,
+     _modbus_rtu_select,
+-    _modbus_rtu_filter_request
++    _modbus_rtu_filter_request,
++    _modbus_rtu_is_multicast
+ };
+ 
+ modbus_t* modbus_new_rtu(const char *device,
+diff --git a/src/modbus-tcp.c b/src/modbus-tcp.c
+index 34da253..712903c 100644
+--- a/src/modbus-tcp.c
++++ b/src/modbus-tcp.c
+@@ -602,6 +602,11 @@ int _modbus_tcp_filter_request(modbus_t *ctx, int slave)
+     return 0;
+ }
+ 
++int _modbus_tcp_is_multicast(modbus_t *ctx)
++{
++    return FALSE;
++}
++
+ const modbus_backend_t _modbus_tcp_backend = {
+     _MODBUS_BACKEND_TYPE_TCP,
+     _MODBUS_TCP_HEADER_LENGTH,
+@@ -620,7 +625,8 @@ const modbus_backend_t _modbus_tcp_backend = {
+     _modbus_tcp_close,
+     _modbus_tcp_flush,
+     _modbus_tcp_select,
+-    _modbus_tcp_filter_request
++    _modbus_tcp_filter_request,
++    _modbus_tcp_is_multicast
+ };
+ 
+ 
+@@ -642,7 +648,8 @@ const modbus_backend_t _modbus_tcp_pi_backend = {
+     _modbus_tcp_close,
+     _modbus_tcp_flush,
+     _modbus_tcp_select,
+-    _modbus_tcp_filter_request
++    _modbus_tcp_filter_request,
++    _modbus_tcp_is_multicast
+ };
+ 
+ modbus_t* modbus_new_tcp(const char *ip, int port)
+@@ -1201,46 +1208,60 @@ int modbus_udp_pi_bind(modbus_t *ctx)
+     return ctx->s;
+ }
+ 
++int _modbus_udp_is_multicast(modbus_t *ctx)
++{
++    int rc = FALSE;
++    modbus_udp_t *ctx_udp = ctx->backend_data;
++    struct hostent *host = gethostbyname(ctx_udp->ip);
++
++    if((host->h_addr[0] & 224) == 224)
++        rc = TRUE;
++
++    return rc;
++}
++
+ const modbus_backend_t _modbus_udp_backend = {
+     _MODBUS_BACKEND_TYPE_UDP,
+-    _MODBUS_TCP_HEADER_LENGTH,			/*common for TCP and UDP*/
+-    _MODBUS_TCP_CHECKSUM_LENGTH,		/*common for TCP and UDP*/
+-    MODBUS_TCP_MAX_ADU_LENGTH,			/*common for TCP and UDP*/
+-    _modbus_set_slave,					/*common for TCP and UDP*/
+-    _modbus_tcp_build_request_basis,	/*common for TCP and UDP*/
+-    _modbus_tcp_build_response_basis,	/*common for TCP and UDP*/
+-    _modbus_tcp_prepare_response_tid,	/*common for TCP and UDP*/
+-    _modbus_tcp_send_msg_pre,			/*common for TCP and UDP*/
++    _MODBUS_TCP_HEADER_LENGTH,                        /*common for TCP and UDP*/
++    _MODBUS_TCP_CHECKSUM_LENGTH,                      /*common for TCP and UDP*/
++    MODBUS_TCP_MAX_ADU_LENGTH,                        /*common for TCP and UDP*/
++    _modbus_set_slave,                                /*common for TCP and UDP*/
++    _modbus_tcp_build_request_basis,                  /*common for TCP and UDP*/
++    _modbus_tcp_build_response_basis,                 /*common for TCP and UDP*/
++    _modbus_tcp_prepare_response_tid,                 /*common for TCP and UDP*/
++    _modbus_tcp_send_msg_pre,                         /*common for TCP and UDP*/
+     _modbus_udp_send,
+     _modbus_udp_recv,
+-    _modbus_tcp_check_integrity,		/*common for TCP and UDP*/
+-    _modbus_tcp_pre_check_confirmation,	/*common for TCP and UDP*/
++    _modbus_tcp_check_integrity,                      /*common for TCP and UDP*/
++    _modbus_tcp_pre_check_confirmation,               /*common for TCP and UDP*/
+     _modbus_udp_connect,
+     _modbus_udp_close,
+     _modbus_udp_flush,
+     _modbus_udp_select,
+-    _modbus_tcp_filter_request			/*common for TCP and UDP*/
++    _modbus_tcp_filter_request,                       /*common for TCP and UDP*/
++    _modbus_udp_is_multicast
+ };
+ 
+ const modbus_backend_t _modbus_udp_pi_backend = {
+-	_MODBUS_BACKEND_TYPE_UDP,
+-	_MODBUS_TCP_HEADER_LENGTH,			/*common for TCP and UDP*/
+-	_MODBUS_TCP_CHECKSUM_LENGTH,		/*common for TCP and UDP*/
+-	MODBUS_TCP_MAX_ADU_LENGTH,			/*common for TCP and UDP*/
+-	_modbus_set_slave,					/*common for TCP and UDP*/
+-	_modbus_tcp_build_request_basis,	/*common for TCP and UDP*/
+-	_modbus_tcp_build_response_basis,	/*common for TCP and UDP*/
+-	_modbus_tcp_prepare_response_tid,	/*common for TCP and UDP*/
+-	_modbus_tcp_send_msg_pre,			/*common for TCP and UDP*/
+-	_modbus_udp_pi_send,
+-	_modbus_udp_pi_recv,
+-	_modbus_tcp_check_integrity,		/*common for TCP and UDP*/
+-	_modbus_tcp_pre_check_confirmation,	/*common for TCP and UDP*/
+-	_modbus_udp_pi_connect,
+-	_modbus_udp_close,
+-	_modbus_udp_flush,
+-	_modbus_udp_select,
+-	_modbus_tcp_filter_request			/*common for TCP and UDP*/
++    _MODBUS_BACKEND_TYPE_UDP,
++    _MODBUS_TCP_HEADER_LENGTH,                        /*common for TCP and UDP*/
++    _MODBUS_TCP_CHECKSUM_LENGTH,                      /*common for TCP and UDP*/
++    MODBUS_TCP_MAX_ADU_LENGTH,                        /*common for TCP and UDP*/
++    _modbus_set_slave,                                /*common for TCP and UDP*/
++    _modbus_tcp_build_request_basis,                  /*common for TCP and UDP*/
++    _modbus_tcp_build_response_basis,                 /*common for TCP and UDP*/
++    _modbus_tcp_prepare_response_tid,                 /*common for TCP and UDP*/
++    _modbus_tcp_send_msg_pre,                         /*common for TCP and UDP*/
++    _modbus_udp_pi_send,
++    _modbus_udp_pi_recv,
++    _modbus_tcp_check_integrity,                      /*common for TCP and UDP*/
++    _modbus_tcp_pre_check_confirmation,               /*common for TCP and UDP*/
++    _modbus_udp_pi_connect,
++    _modbus_udp_close,
++    _modbus_udp_flush,
++    _modbus_udp_select,
++    _modbus_tcp_filter_request,                       /*common for TCP and UDP*/
++    _modbus_tcp_is_multicast                          /*TODO: implement*/
+ };
+ 
+ modbus_t* modbus_new_udp(const char *ip, int port)
+diff --git a/src/modbus.c b/src/modbus.c
+index 834922d..4eb4cb4 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -429,6 +429,9 @@ static int receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type,
+     int msg_length = 0;
+     _step_t step;
+ 
++    if(modbus_is_multicast(ctx)) /* don't expect answer */
++        return 0;
++
+     if (ctx->debug) {
+         if (msg_type == MSG_INDICATION) {
+             printf("Waiting for a indication...\n");
+@@ -576,6 +579,9 @@ static int check_confirmation(modbus_t *ctx, uint8_t *req, int req_length,
+     int rsp_length_computed;
+     const int offset = ctx->backend->header_length;
+ 
++    if(modbus_is_multicast(ctx)) /* don't expect answer */
++        return 0;
++
+     if (ctx->backend->pre_check_confirmation) {
+         rc = ctx->backend->pre_check_confirmation(ctx, req, rsp, rsp_length);
+         if (rc == -1) {
+@@ -2215,6 +2221,14 @@ void modbus_mapping_print(modbus_mapping_t *mb_mapping)
+     }
+ }
+ 
++int modbus_is_multicast(modbus_t *ctx)
++{
++    if(ctx->slave == 0)
++        return TRUE;
++
++    return ctx->backend->is_multicast(ctx);
++}
++
+ 
+ #ifndef HAVE_STRLCPY
+ /*
+diff --git a/src/modbus.h b/src/modbus.h
+index 9d7b68c..88572e2 100644
+--- a/src/modbus.h
++++ b/src/modbus.h
+@@ -206,6 +206,7 @@ int modbus_reply_request(modbus_t *ctx, modbus_request_t *mb_request,
+ int modbus_reply_exception(modbus_t *ctx, const uint8_t *req,
+                            unsigned int exception_code);
+ void modbus_set_alternative_data(uint8_t enabled, uint8_t value);
++int modbus_is_multicast(modbus_t *ctx);
+ /**
+  * UTILS FUNCTIONS
+  **/
+-- 
+1.9.0
+

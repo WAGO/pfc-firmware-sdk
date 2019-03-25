@@ -1,0 +1,19 @@
+## SECTION=applications
+
+config DOCKER
+	bool
+	default n
+	prompt "docker"
+	help
+	  docker daemon and client
+
+if DOCKER
+
+config DOCKER_LAZY
+	bool
+	default n
+	prompt "docker-lazy"
+	help
+	  say y if docker should not install to rootfs.
+
+endif

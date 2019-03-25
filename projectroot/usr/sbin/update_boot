@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#SOUCRE=$1 
+#DEST=$2
+
+SOURCE1=`echo "$1""1"`
+DEST1=`echo "$2""1"`
+SDEST=`echo "$2" | grep -m1 -o "[[:alpha:]]d[[:alpha:]]"`
+SSOURCE=`echo "$1" | grep -m1 -o "[[:alpha:]]d[[:alpha:]]"`
+#echo SOURCE1 $SOURCE1
+#echo DEST1 $DEST1
+#echo SDEST $SDEST
+#echo SSOURCE $SSOURCE
+
+echo "Creating boot filesystem on $2..."
+sudo /bin/umount $DEST1 > /dev/null 2>&1
+#sudo /usr/bin/flock /etc/bootpartition /usr/sbin/sfdisk --force -N2 -uB -C 15 -S 63 -H 256 $2 < /etc/bootpartition > /dev/null 2>&1
+sudo /sbin/mke2fs $DEST1 > /dev/null 2>&1
+echo "Copying boot folder $SOURCE1->$DEST1..."
+dd if=$SOURCE1 of=$DEST1 > /dev/null 2>&1
+sync
+echo "Change bootcmd from $SSOURCE to $SDEST..."
+mount $DEST1 /mnt
+sed -e "s/\/$SSOURCE/\/$SDEST/g" /mnt/boot/grub/menu.lst > /mnt/boot/grub/menu.lst.new
+
+# remove possible rootdelay (which is necessary for USB sticks)...
+sed -i '/dev\/[^n][^t][^p]/ s/rootdelay=6 //g' /mnt/boot/grub/menu.lst.new
+# ... and add rootdelay again if destination is an USB stick
+echo "$SDEST" | egrep "sd" > /dev/null 2> /dev/null
+if [ "0" = "$?" ];then
+  sed -i '/dev\/[^n][^t][^p]/ s/ide=/rootdelay=6 ide=/g' /mnt/boot/grub/menu.lst.new
+fi
+
+mv /mnt/boot/grub/menu.lst.new /mnt/boot/grub/menu.lst
+sync
+umount /mnt
+sync
+echo "done"
+
+

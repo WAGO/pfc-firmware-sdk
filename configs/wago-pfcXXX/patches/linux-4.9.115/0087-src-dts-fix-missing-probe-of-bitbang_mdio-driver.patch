@@ -1,0 +1,41 @@
+From d7078fd1ccd5acf260d1ca2de6ad2d3b91294de8 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Wed, 21 Jun 2017 15:20:42 +0200
+Subject: [PATCH 087/261] src: dts: fix missing probe of bitbang_mdio driver.
+
+- contributed by Oleg Karfich
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index 47eb8e7..29e6ff3 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -252,6 +252,9 @@
+ 	};
+ };
+ &am33xx_pinmux {
++	pinctrl-names = "default";
++        pinctrl-0 = <&gpio0_pins>;
++
+ 	gpio0_pins: pinmux_gpio0_pins {
+ 		pinctrl-single,pins = <
+ 			0x028 ( MUX_MODE7 | PIN_OUTPUT		) /* T11 GPMC_AD10		7   GPIO0_26->DO-RS->digital_Relay_output */
+@@ -699,11 +702,6 @@
+ 	status = "okay";
+ };
+ 
+-&gpio0 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&gpio0_pins>;
+-};
+-
+ &gpio1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpio1_pins>;
+-- 
+2.7.4
+

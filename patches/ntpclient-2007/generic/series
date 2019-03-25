@@ -1,0 +1,5 @@
+0001-Use-the-correct-macro-name-to-parametrize-make-s-sta.patch
+0002-Avoid-some-confusing-compile-time-warnings.patch
+0003-Makefile-add-installtarget.patch
+ntpclient.patch
+0005-Update-Hardware-Clock.patch

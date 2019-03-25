@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Firewall: modbus demon events handler, for both TCP and UDP variants.
+# The script requires an additional parameter stating which version that is:
+# $2 tcp|udp
+# If the parameters is not given both versions are acted upon.
+#
+
+enabled=`/etc/config-tools/firewall firewall --is-enabled`
+[ "enabled" != "$enabled" ] && exit 0
+
+
+start()
+{
+    running=`/etc/config-tools/modbus_config get ${1} enabled`
+    nport=`/etc/config-tools/modbus_config get ${1} port`
+    cport=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule/@dst_port" /etc/firewall/services/modbus_${1}.xml`
+
+    if [ "true" == "$running" ] ; then
+        action="up"
+    else
+        action="down"
+    fi
+
+    if [ "x${nport}" == "x${cport}" ] ; then
+        update=""
+    else
+        update="--upd-rule 1 on ${1} - ${nport} "
+    fi
+
+    /etc/config-tools/firewall modbus_${1} ${update}--apply ${action} >/dev/null 2>&1
+}
+
+stop()
+{
+    /etc/config-tools/firewall modbus_${1} --apply down >/dev/null 2>&1
+}
+
+case "$1" in
+    start|config)
+        case "$2" in
+            tcp)
+                start tcp;;
+            udp)
+                start udp;;
+            *)
+                start tcp
+                start udp
+                ;;
+        esac
+        ;;
+    stop)
+        case "$2" in
+            tcp)
+                stop tcp;;
+            udp)
+                stop udp;;
+            *)
+                stop tcp
+                stop udp
+                ;;
+        esac
+        ;;
+    *)
+        ;;
+esac

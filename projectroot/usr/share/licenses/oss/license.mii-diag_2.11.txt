@@ -1,0 +1,12 @@
+mii-diag-2.11.orig/mii-diag.c
+
+	Written/copyright 1997-2003 by Donald Becker <becker@scyld.com>
+
+	This program is free software; you can redistribute it
+	and/or modify it under the terms of the GNU General Public
+	License as published by the Free Software Foundation.
+
+	The author may be reached as becker@scyld.com, or C/O
+	 Scyld Computing Corporation
+	 914 Bay Ridge Road, Suite 220
+	 Annapolis MD 21403

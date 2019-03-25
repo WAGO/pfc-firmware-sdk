@@ -1,0 +1,58 @@
+From 662fdc6ee67000f756d720f2fcd10c433032b821 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 27 Aug 2018 16:04:37 +0200
+Subject: [PATCH 068/144] defaultenv: defaultenv-pfc-base: add skript to set
+ uart console bit
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ .../bin/pfc-switch-linux-console                   | 37 ++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+ create mode 100644 defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console b/defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console
+new file mode 100644
+index 0000000..aa96a73
+--- /dev/null
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-switch-linux-console
+@@ -0,0 +1,37 @@
++#!/bin/sh
++
++mode="unknown"
++let uart_mask="(1<<1)"
++
++while getopt "edh" opt; do
++	if [ ${opt} = e ]; then
++                mode="enable"
++	elif [ ${opt} = d ]; then
++                mode="disable"
++	elif [ ${opt} = h ]; then
++		mode="unknown"
++	fi
++done
++
++if [ "${mode}" = "unknown" ]; then
++	echo "usage: $0 [-ed]"
++	echo ""
++	echo "control serial console bit. Mode is set persistent through eeprom bit "uart-enable" in eeprom"
++	echo ""
++	echo "-e enable linux uart mode\n"
++	echo "-d disable linux uart mode\n"
++	echo ""
++	exit 1
++fi
++
++if [ "${mode}" = "enable" ]; then
++	let uart_enable="${global.pfc.boot_mode_id} | ${uart_mask}"
++else
++	let uart_enable="${global.pfc.boot_mode_id} & ~${uart_mask}"
++fi
++
++# write persistent to eeprom
++xsection.boot_mode_id=${uart_enable}
++
++# also update global variable
++global.pfc.boot_mode_id=${xsection.boot_mode_id}
+-- 
+2.7.4
+

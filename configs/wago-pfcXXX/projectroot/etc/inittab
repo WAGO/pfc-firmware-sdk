@@ -1,0 +1,18 @@
+#
+# /etc/inittab
+#
+
+# /dev/serial is a link to a target-related tty.
+# this link is set by the 'link_devices' init-script.
+# the configuration of the related tty per target
+# is done via oftree
+
+::sysinit:/etc/init.d/rcS
+#console::respawn:/sbin/getty -L 115200 serial xterm
+
+# Stuff to do before rebooting
+#::ctrlaltdel:/sbin/reboot
+#::shutdown:/bin/umount -a -r
+::shutdown:/etc/init.d/shutdown
+
+@IPCCONFIG_RESPAWN@

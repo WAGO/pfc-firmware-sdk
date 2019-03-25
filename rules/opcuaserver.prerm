@@ -1,0 +1,1 @@
+/etc/config-tools/config-opcua --set=\"state\":\"disable\" --reset

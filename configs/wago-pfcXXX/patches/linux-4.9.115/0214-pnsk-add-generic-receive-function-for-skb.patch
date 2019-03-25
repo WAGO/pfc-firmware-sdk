@@ -1,0 +1,64 @@
+From 427fa2eccdd3fa3bb4ab77382e155498d85f8fc1 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Fri, 6 Jul 2018 11:22:02 +0200
+Subject: [PATCH 214/261] pnsk: add generic receive function for skb
+
+The receive function will be call from hw ethernet driver
+to forward received PROFINET-frames to PROFINET-socket.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ net/pn/pnsk.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/net/pn/pnsk.c b/net/pn/pnsk.c
+index 7a4e4ed..4ae72e1 100644
+--- a/net/pn/pnsk.c
++++ b/net/pn/pnsk.c
+@@ -88,6 +88,43 @@ void pnsk_flush(struct pn_sock *ps)
+ 	ps->sk.sk_data_ready(&ps->sk);
+ }
+ 
++static int __pnsk_generic_rcv_skb(struct pn_sock *ps, struct sk_buff *skb)
++{
++	u32 *id, len = skb->len;
++	void *buffer;
++	int err;
++
++	id = pnskq_peek_id(ps->umem->fq);
++	if (!id)
++		return -ENOSPC;
++
++	buffer = pn_umem_get_data_with_headroom(ps->umem, *id);
++	skb_copy_bits(skb, 0, buffer, len);
++	err = pnskq_produce_batch_desc(ps->rx, *id, len,
++				       ps->umem->frame_headroom);
++	if (!err)
++		pnskq_discard_id(ps->umem->fq);
++
++	return err;
++}
++
++int pnsk_generic_rcv_skb(struct sk_buff *skb)
++{
++	int err;
++	struct pn_sock *ps = READ_ONCE(pn_sock);
++
++	if (!ps)
++		return -EBUSY;
++
++	err = __pnsk_generic_rcv_skb(ps, skb);
++	if (!err)
++		pnsk_flush(ps);
++	else
++		ps->rx_dropped++;
++
++	return err;
++}
++
+ int pnsk_generic_rcv(struct pn_sock *ps, struct pn_buff *pn)
+ {
+ 	int err;
+-- 
+2.7.4
+

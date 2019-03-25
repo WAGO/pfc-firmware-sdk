@@ -1,0 +1,22 @@
+## SECTION=image2
+
+menuconfig IMAGE_SD_DOWNGRADE
+	select HOST_GENIMAGE
+	select IMAGE_BOOT_DOWNGRADE
+	bool
+	prompt "Generate images/sd-downgrade.hdimg"
+	help
+	  Generates sd-card images for downgrading
+	  FW >= 5 to FW < 5
+
+if IMAGE_SD_DOWNGRADE
+
+config IMAGE_SD_DOWNGRADE_VFAT
+	prompt "vfat-images"
+	string
+	help
+	  Seperated list of vfat-images that are located
+	  in images folder. this images are storing
+	  files for downgrading. (e.g. barebox,
+	  mlo, recovery-image).
+endif

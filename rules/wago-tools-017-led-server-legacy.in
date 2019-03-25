@@ -1,0 +1,50 @@
+## SECTION=wago_specific_tools_led_server_legacy
+
+config LED_SERVER_LEGACY
+	bool
+	select DBUS
+	select WAGO_DBUS
+	select LOGROTATE
+	select SYSLOGNG
+	select LIBXML2
+	select HOST_WAGO_PFC_DIAGNOSTIC
+	default n
+	
+
+config LED_SERVER_LEGACY_DEBUGGING
+	bool
+	default n
+	prompt "Debug Programm"
+	help
+	  FIXME
+	  
+config LED_SERVER_LEGACY_STARTSCRIPT
+	bool "install /etc/init.d/errorserverd"
+	default y
+	help
+	 Installs the startscript for errorserverd.
+	 ATTENTION: Make sure that /etc/init.d/dbus_screen_init was started before!
+	 Startscript /etc/init.d/errorserverd starts /usr/bin/screend in a new screen-window
+	 within the screen session 'wago'.
+
+config LOGFORWARD_STARTSCRIPT
+	bool "install /etc/init.d/logforward"
+	default y
+	help
+	 Installs the startscript for logforward.
+
+config LED_SERVER_LEGACY_TRUNK
+	bool
+	default n
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+config LED_SERVER_LEGACY_CMD_TOOLS
+	bool
+	prompt "Command-Line Tools"
+	default y
+	help
+	  Say Yes if you want to compile the Command-Linetools for the server_server
+
+

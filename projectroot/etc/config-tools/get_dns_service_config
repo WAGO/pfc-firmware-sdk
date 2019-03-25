@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_dns_service_config
+#
+# Get configuration of DNS server.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+DNS_CONFIG_C="/etc/config-tools/config_dnsmasq_c -n -g"
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter)
+#--------------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get configuration of DNS server *"
+  echo
+  echo "Usage: get_dns_service_config [ \"dns-state\" ] [ \"dns-range\" ] [ dns-fix-host ]"
+  echo "Or     get_dns_service_config -j | --json to get all DNS configuration data in JSON format."
+  echo 
+  exit $SUCCESS
+fi
+
+#--------------------------------------------------------------------
+# Leave all checks and actions to the C program.
+#--------------------------------------------------------------------
+sudo $DNS_CONFIG_C $*
+exit $?

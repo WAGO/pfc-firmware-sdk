@@ -1,0 +1,54 @@
+#!/bin/sh
+# $Id: ifplugd.action 99 2004-02-08 20:17:59Z lennart $
+
+# This file is part of ifplugd.
+#
+# ifplugd is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2 of the License, or (at your
+# option) any later version.
+#
+# ifplugd is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with ifplugd; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+# args: $1 = network interface, ethX1 or ethX2
+#       $2 = new state, up or down
+set -e
+set -u
+
+function ifdown_up
+{
+    # echo "$(date +%T) ifplugd.action ifdown/ifup $1" >> /tmp/ifplugd.log
+    ifdown $1
+    ifup $1
+
+}
+
+if [ -z "$1" ] || [ -z "$2" ] ; then
+    echo "Wrong arguments" > /dev/stderr
+    exit 1
+fi
+
+# echo "$(date +%T) ifplugd.action if = $1, status = $2, previous = $IFPLUGD_PREVIOUS" >> /tmp/ifplugd.log
+BRIDGED_MODE=`/etc/config-tools/get_dsa_mode`
+if [ "$BRIDGED_MODE" = "1" ] ; then 
+    # interfaces in separated mode
+    if [ "$1" = "ethX1" ] ; then
+        BRIDGE_DEVICE="br0"
+    else
+        BRIDGE_DEVICE="br1"
+    fi
+
+    [ "$2" = "up" ] && ifdown_up $BRIDGE_DEVICE
+
+else
+    # interfaces in switched mode
+    [ "$2" = "up" ] && ifdown_up br0
+fi
+exit 0

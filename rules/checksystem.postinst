@@ -1,0 +1,21 @@
+#!/bin/bash
+# checksystem post install script: create crontab entry to start  check_system.sh
+# WAGO Kontakttechnik GmbH & Co. KG
+
+setcrontab()
+{
+	local newcrontab="/tmp/checksystem.crontab"
+
+	crontab -l | sed -e '/package check-system/d' -e '/etc\/check-system/d' > "$newcrontab"
+	echo "# crontab entry created on install package check-system" >> "$newcrontab"
+	echo "*/2 * * * * /etc/check-system/check_system.sh" >> "$newcrontab"
+	crontab "$newcrontab"
+	rm -f "$newcrontab"
+}
+
+# main: create crontab entry if not called by ptxdist
+if [ ! "$PTXDIST" ]; then
+	setcrontab
+fi
+
+exit 0

@@ -1,0 +1,56 @@
+#
+# /etc/profile
+#
+
+export PATH="$PATH:/usr/bin:/bin:/sbin:/usr/sbin"
+export LANG="de_DE.UTF-8"
+
+# This fixes the backspace when telnetting in.
+if [ "$TERM" != "linux" ]; then
+        stty erase ^H
+fi
+
+PS1="\\u@\\h:\\w "
+PS2=" >"
+PS4="+ "
+
+alias vim='vi'
+alias l='ls -l'
+alias ll='ls -al'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias md='mkdir'
+alias rd='rmdir'
+source /etc/timezone
+
+# set idle timeout
+TMOUT=300
+readonly TMOUT
+export TMOUT
+
+# source this file for subsequent shells too
+export ENV=/etc/profile
+
+# Exec local profile
+
+if [ -e "/etc/profile.local" ]; then
+	echo "running /etc/profile.local"
+	. /etc/profile.local
+fi
+
+if [[ "$TERM" != "screen" && -f /etc/wago-screen-prompt.sh ]]; then
+	/etc/wago-screen-prompt.sh 
+fi
+
+# FIXME: broken with bash v4
+# force window resize after each command on serial console
+# CAVEAT: this breaks some pipe functionality on serial console
+# (i.e. PIPESTATUS is not defined)
+#if [[ "$(tty)" =~ "/dev/ttyO" ]]; then
+#   shopt -s checkwinsize
+#   trap 'resize > /dev/null' DEBUG
+#fi
+
+hostname=$(hostname)
+echo -e "\n\n\e[00;32mWAGO Linux Terminal\e[00m on \033[1;31m$hostname\e[00m.\n\n"
+

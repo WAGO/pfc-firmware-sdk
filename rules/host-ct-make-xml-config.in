@@ -1,0 +1,10 @@
+## SECTION=wago_specific_config
+
+config HOST_CT_MAKE_XML_CONFIG
+	bool
+    default n
+    select HOST_PYTHON
+	help
+    A kconfig- and generateDS.py-based tool used to generate XML menu
+    definitions for configuration frontends (wbm, ipcconfig etc.) via ptxdist
+    menuconfig

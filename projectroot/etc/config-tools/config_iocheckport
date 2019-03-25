@@ -1,0 +1,96 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_iocheckport
+#
+# Config Tools: Disable or enable access to iocheck demon from network.
+#
+# This script is to enable or disable the network port to the
+# iocheck demon. This demon is the communication part for the tools
+# Ethernet Settings, IO-Check, PFC Entwickler Tool and more.
+#
+# Communication via service cable keeps unaffected. Blocking the port is
+# done by reconfiguring inetd. The iocheck demon keeps unaffected.
+#
+# Author: HJH, WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+SERVICE_CONFIG="/etc/specific/network-services.xml"
+EVENT_DIR="/etc/config-tools/events/iocheckport"
+INETD_CONF="/etc/inetd.conf"
+
+# Restart inetd
+function restart_inetd
+{
+    /etc/init.d/inetd restart >& /dev/null
+}
+
+# wago-serv-tcp
+function iocheck_enable
+{
+    # Change inetd config file and restart inetd.
+    sed -i "s/^#wago-serv-tcp/wago-serv-tcp/" $INETD_CONF
+    restart_inetd
+}
+
+function iocheck_disable
+{
+    # Change inetd config file and restart inetd.
+    sed -i "s/^wago-serv-tcp/#wago-serv-tcp/" $INETD_CONF
+    restart_inetd
+}
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter).
+#--------------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Enable / disable port for iocheck demon *"
+    echo
+    echo "Enables or disables TCP port wago-serv-tcp (6626)"
+    echo "Therefor enables/disables usage of io check tool, ethernet settings"
+    echo "and more via network. Service connector cable access works independently."
+    echo
+    echo "Usage: config_iocheckport -h, --help or"
+    echo "       config_iocheckport state=\"disabled\" | \"enabled\""
+    echo
+    exit $SUCCESS
+fi
+
+#--------------------------------------------------------------------
+# main - Set new state, if changed.
+#--------------------------------------------------------------------
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+status=$SUCCESS
+newState=$(GetParameterValue state $*)
+if egrep -q "^wago-serv-tcp" $INETD_CONF; then
+    state="enabled"
+else
+    state="disabled"
+fi
+
+if [ "$newState" != $state ]; then
+    if [ "$newState" = "disabled" ]; then
+        iocheck_disable
+    elif [ "$newState" = "enabled" ]; then
+        iocheck_enable
+    else
+        SetLastError "Invalid input parameter ($1)"
+        status=$INVALID_PARAMETER
+    fi
+    sync
+fi
+exit $status
+

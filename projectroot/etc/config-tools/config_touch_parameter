@@ -1,0 +1,71 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_firmware_revision
+#
+# Set the touchscreen parameters
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+# name of config-file
+TOUCHSCREEN_CONFIG_FILENAME=/etc/touchscreen.conf
+
+# config-file strings
+TOUCHSCREEN_CONFIG_STRING_SWAP_XY="SWAP_XY"
+TOUCHSCREEN_CONFIG_FILE_SWAP_XY="/sys/module/usbtouchscreen/parameters/swap_xy"
+TOUCHSCREEN_CONFIG_STRING_CAL_MIN_X="CAL_MIN_X"
+TOUCHSCREEN_CONFIG_FILE_CAL_MIN_X="/sys/module/usbtouchscreen/parameters/cal_min_x"
+TOUCHSCREEN_CONFIG_STRING_CAL_MAX_X="CAL_MAX_X"
+TOUCHSCREEN_CONFIG_FILE_CAL_MAX_X="/sys/module/usbtouchscreen/parameters/cal_max_x"
+TOUCHSCREEN_CONFIG_STRING_CAL_MIN_Y="CAL_MIN_Y"
+TOUCHSCREEN_CONFIG_FILE_CAL_MIN_Y="/sys/module/usbtouchscreen/parameters/cal_min_y"
+TOUCHSCREEN_CONFIG_STRING_CAL_MAX_Y="CAL_MAX_Y"
+TOUCHSCREEN_CONFIG_FILE_CAL_MAX_Y="/sys/module/usbtouchscreen/parameters/cal_max_y"
+
+# check whether config-file exists or can not be read
+if [ ! -f $TOUCHSCREEN_CONFIG_FILENAME ] || [ ! -r $TOUCHSCREEN_CONFIG_FILENAME ]; then
+  ReportError $CONFIG_FILE_MISSING "($TOUCHSCREEN_CONFIG_FILENAME)"
+  SetLastError "Error while execution (touchscreen-config-file missing)"
+  exit $CONFIG_FILE_MISSING
+fi
+
+# set swap_xy parameter
+configLine1=`grep "$TOUCHSCREEN_CONFIG_STRING_SWAP_XY=" $TOUCHSCREEN_CONFIG_FILENAME`
+configparameter1=${configLine1##*=}
+echo -e $configparameter1"\c" > $TOUCHSCREEN_CONFIG_FILE_SWAP_XY
+
+# set cal_min_x parameter
+configLine2=`grep "$TOUCHSCREEN_CONFIG_STRING_CAL_MIN_X=" $TOUCHSCREEN_CONFIG_FILENAME`
+configparameter2=${configLine2##*=}
+echo -e $configparameter2"\c" > $TOUCHSCREEN_CONFIG_FILE_CAL_MIN_X
+
+# set cal_max_x parameter
+configLine3=`grep "$TOUCHSCREEN_CONFIG_STRING_CAL_MAX_X=" $TOUCHSCREEN_CONFIG_FILENAME`
+configparameter3=${configLine3##*=}
+echo -e $configparameter3"\c" > $TOUCHSCREEN_CONFIG_FILE_CAL_MAX_X
+            
+# set cal_min_y parameter
+configLine4=`grep "$TOUCHSCREEN_CONFIG_STRING_CAL_MIN_Y=" $TOUCHSCREEN_CONFIG_FILENAME`
+configparameter4=${configLine4##*=}
+echo -e $configparameter4"\c" > $TOUCHSCREEN_CONFIG_FILE_CAL_MIN_Y
+
+# set cal_max_y parameter
+configLine5=`grep "$TOUCHSCREEN_CONFIG_STRING_CAL_MAX_Y=" $TOUCHSCREEN_CONFIG_FILENAME`
+configparameter5=${configLine5##*=}
+echo -e $configparameter5"\c" > $TOUCHSCREEN_CONFIG_FILE_CAL_MAX_Y
+
+exit 0

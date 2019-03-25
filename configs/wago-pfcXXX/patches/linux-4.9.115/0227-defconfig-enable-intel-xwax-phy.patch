@@ -1,0 +1,25 @@
+From e3efd6e6effcf217732b900b122b8326c962c32d Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Fri, 3 Aug 2018 12:44:36 +0200
+Subject: [PATCH 227/261] defconfig: enable intel xwax phy
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/configs/am3xxx_pfc_generic_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/configs/am3xxx_pfc_generic_defconfig b/arch/arm/configs/am3xxx_pfc_generic_defconfig
+index d2c2518..f803b51 100644
+--- a/arch/arm/configs/am3xxx_pfc_generic_defconfig
++++ b/arch/arm/configs/am3xxx_pfc_generic_defconfig
+@@ -277,6 +277,7 @@ CONFIG_SWCONFIG=y
+ CONFIG_MDIO_BITBANG=y
+ CONFIG_MDIO_GPIO=y
+ CONFIG_MICREL_KSZ8863_PHY=y
++CONFIG_INTEL_XWAY_PHY=y
+ CONFIG_MICREL_PHY=y
+ CONFIG_SWCFG_KSZ8863=y
+ CONFIG_SWCFG_MV88E6321=y
+-- 
+2.7.4
+

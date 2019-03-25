@@ -1,0 +1,12 @@
+## SECTION=wago_specific_demo
+
+config DPMDEMO
+  bool
+  default n
+  select DAL
+  select GLIB
+  select DBUS_GLIB
+  select LIBUIO
+  prompt "PROFIBUS DP master application demonstration program"
+  help
+    Build the PROFIBUS DP master application demonstration program.

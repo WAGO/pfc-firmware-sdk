@@ -1,0 +1,59 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: restart_webserver
+#
+# Restart standard webserver after timeout
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+LIGHTTPD_START_LINK=/etc/rc.d/S10_lighttpd
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Restart standard webserver *"
+  echo
+  echo "Usage: restart_webserver [ timout in seconds ]"
+  echo
+  exit $status
+fi
+
+if [ -h $LIGHTTPD_START_LINK ]; then
+  timeoutInSec=$1
+  #echo "timeout:"$timeoutInSec > /etc/config-tools/restart_output
+
+  if [ -z "$timeoutInSec" ]; then
+    timeoutInSec=0
+  fi
+
+  #echo sleep $timeoutInSec seconds >> /etc/config-tools/restart_output
+  sleep $timeoutInSec
+
+  #echo stop >> /etc/config-tools/restart_output
+  /etc/init.d/lighttpd stop > /dev/null 2> /dev/null
+
+  #echo start >> /etc/config-tools/restart_output
+  /etc/init.d/lighttpd start > /dev/null 2> /dev/null
+fi
+
+exit $status
+

@@ -1,0 +1,32 @@
+From f1a41f8face537561e5943aea4556875d5a53fb4 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Wed, 14 Feb 2018 15:07:47 +0100
+Subject: [PATCH 155/261] dts: src: set vout to high.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index 7d594cc..74cfbf7 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -673,6 +673,14 @@
+ &gpio1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpio1_pins>;
++
++	/* Set VOUT/Sensor 24V permanently to high */
++	vout {
++		gpio-hog;
++		gpios = <12 0>;
++		output-high;
++		line-name = "vout";
++	};
+ };
+ 
+ &gpio2 {
+-- 
+2.7.4
+

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://www.wago.com/security/firewall"
+           elementFormDefault="qualified"
+           xmlns="http://www.wago.com/security/firewall"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!--
+    README:
+
+    Please note that there are several arbitrary choosen restrictions put on
+    the firewall parameters:
+    - maximum different interfaces count.
+    All numbers are not dictated by any specific reasoning except for the need
+    for such a limit to exist - for security reasons. All of them may be
+    freely changed but they should not be set to 'unbounded' value.
+ -->
+
+<xs:include schemaLocation="patterns.xsd"/>
+
+<xs:element name="firewall">
+    <xs:annotation>
+        <xs:documentation>Parameters used during transformation of firewall configuration files into firewall rules.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="parameters" type="parameters" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+
+<xs:complexType name="parameters">
+    <xs:sequence>
+        <xs:element name="interfaces" type="interfaces" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="interfaces">
+    <xs:sequence>
+        <xs:element name="interface" type="interface" minOccurs="0" maxOccurs="10"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="interface">
+    <xs:annotation>
+        <xs:documentation>
+            Description of a single interface.
+            - 'name' - interface name used in firewall configuration file
+                        IMPORTANT: 'name's may not be unique. In such a case
+                        rules applied to such a name will be applied to all
+                        interfaces with the name
+            - 'rname' - (real) system name of a given interface. If not give then
+                        'name' is should be taken instead
+            - 'ethernet' - yes/no value (default: no) stating if a given interface
+                        is an Ethernet one. Only to Ethernet interfaces MAC
+                        whitelist will be applied.
+            - 'ipsec' - yes/no value (default: no) stating if a given interface
+                        is working as an IPsec tunnel
+            - 'ipsec_srv' - yes/no value (default: no) stating if on a given
+                        interface encrypted IPsec connections should be accepted
+                        (IPsec server mode)
+            Examples:
+            interface name="eth0"
+                An interface with system name identical to configuration file
+                name, with no IPsec functionality.
+            interface name="ppp" rname="wan0" ipsec_srv="yes"
+                An interface with system name set to 'wan0', accepting IPsec
+                connections.
+            interface name="ipsec" rname="wan0" ipsec="yes"
+                An IPsec tunnel working over 'wan0' interface.
+
+            IMPORTANT: Please note that currently there is no OpenVPN related
+            setting which would allow to accept incoming connections. This however
+            maybe fixed by adding custom rule in the input chain of the firewall.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="name" type="ifname" use="required"/>
+    <xs:attribute name="rname" type="ifname" use="optional"/>
+    <xs:attribute name="ethernet" type="yesno" use="optional" default="no"/>
+    <xs:attribute name="ipsec" type="yesno" use="optional" default="no"/>
+    <xs:attribute name="ipsec_srv" type="yesno" use="optional" default="no"/>
+</xs:complexType>
+
+</xs:schema>
+

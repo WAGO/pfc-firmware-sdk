@@ -1,0 +1,15 @@
+IMPORTANT: the config tools currently depend from libtypelabel which currently does not run on host => host unit tests are broken at the moment.
+
+The unit tests can be run manually by running make from the unit-tests directory.
+
+libudev must be present on the system in order for the test binary to compile.
+
+The environment variables _SYSROOT and CPPUTEST_HOME have to be set accordingly, for example:
+
+_RUN_ON_HOST=yes _SYSROOT=~/workspace/IPC_arm/trunk/ipc-dist/platform-wago-ipc-pac200-platform/sysroot-target/ CPPUTEST_HOME=~/workspace/IPC_arm/trunk/ipc-dist/platform-wago-ipc-pac200-platform/build-host/cpputest-3.1/ make
+
+_SYSROOT is the location of target-specific headers and include files created by ptxdist. Currently it is only needed because of pi_lib.c and pi.c which include kbus.h.
+CPPUTEST_HOME is the location of the unit test framework which is compiled during a 'ptxdist go' compile run. It should be located in ptxdist's platform's build-host directory.
+_RUN_ON_HOST has to be set if the tests are meant to be run on host instead of target.
+
+all_no_tests is a make parameter needed if the tests are compiled for the target.

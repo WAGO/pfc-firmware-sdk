@@ -1,0 +1,428 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: auto_firmware_restore
+#
+# Process auto restore of firmware data during reboot
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# NOTE:
+# On IPC, the 1st partition on each CF card (= /boot) is used to store the settings.
+# On PFC200 the partition layouts in NAND and on SD card differ and we save the settings inside a directory
+# in /etc/config-tools.
+# This script will have to be adjusted to run on IPC (again). 
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+#outputFile="/etc/config-tools/auto_restore_output"
+outputFile="${DEFAULT_SETTINGS_DIR}/auto_restore_output"
+
+#
+# Set process state (UPDATE_STATE_{START,FINISH,COMPLETE}
+# The target is the rootfs that will be used during the next boot run:
+#   "current_root": same system will be used (state1/settings only)
+#   "backup_root":  we are going to switch to the currently inactive partition
+#   (state1/system)
+
+function SetUpdateState
+{
+  local state=$1
+  local target=$2
+  local status=$SUCCESS
+
+  case "${target}" in
+    current_root)
+      printf "${state}" > ${DEFAULT_SETTINGS_DIR}/${autoRestoreStatusFile}
+      status=$?
+      ;;
+    backup_root)
+      targetRoot="$(${BOARD_ID}_get_inactive_system_partition.sh)"
+      # Add /dev/ if missing
+      [[ ! $targetRoot =~ ^/dev/ ]] && targetRoot=/dev/$targetRoot
+      DoMount ${targetRoot} ${UPDATE_STATUS_BASEDIR}
+      status=$?
+
+      if [[ "$status" == "$SUCCESS" ]]; then
+        printf "${state}" > ${UPDATE_STATUS_BASEDIR}/${autoRestoreStatusFile}
+        umount ${targetRoot} &>/dev/null
+      fi
+      ;;
+  esac
+
+
+  return $status
+}
+
+#-------------------------------------------------------------
+# Restore a whole partition (home or rootfs)
+#
+# input: destinationPartition
+#        sourceFilename:   path and name of tgz file including source data
+#        settingsFilename: path to the saved settings
+#
+#  settingsFilename is needed when the system partition is restored.
+# In this case, the settings are restored when the restored partition is
+# booted for the first time. Thus, the settings file has to be copied to
+# the restored partition. If a previously saved settings file exists, it
+# has to be passed to *_restore_partition.sh script. Otherwise, the default
+# settings on the current partition are copied to the restored partition.
+# If this is what you want, pass an empty/non-existant file to the script.
+# The parameter is ignored when restoring home partition/codesys.
+#
+#-------------------------------------------------------------
+function RestorePartition
+{
+  local destinationPartition=$1
+  local sourceFilename=$2
+  local settingsFilename=$3
+
+  local status=$SUCCESS
+
+  /usr/sbin/${BOARD_ID}_restore_partition.sh $destinationPartition \
+                                             $sourceFilename \
+                                             $settingsFilename
+  status=$?
+
+  return $status
+}  
+
+function do_cleanup
+{
+  # cleanup directory with backups
+  umount /mnt/source_dir > /dev/null 2> /dev/null
+  
+  if [ -d /mnt/source_dir ]; then
+    print_dbg "remove /mnt/source_dir"
+    rmdir /mnt/source_dir
+  fi
+
+  # if settings directory was mounted:
+  grep -q ${DEFAULT_SETTINGS_DIR} /proc/mounts
+  if [[ "$?" == "0" ]]; then
+    umount ${DEFAULT_SETTINGS_DIR} &>/dev/null
+  
+    if [[ -d ${DEFAULT_SETTINGS_DIR} ]]; then
+      print_dbg "remove ${DEFAULT_SETTINGS_DIR}"
+      rmdir --ingore-fail-on-non-empty ${DEFAULT_SETTINGS_DIR}
+    fi
+
+  fi
+}
+
+#-------------------------------------------------------------
+# main-programm
+#-------------------------------------------------------------
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Process auto restore of firmware data during reboot from backup files with leading string \"auto_\" *"
+  echo
+  echo "Usage: auto_firmware_restore" 
+  echo
+  exit $status
+fi
+
+trap do_cleanup EXIT
+
+# get actual booted device
+activeDevice=`/etc/config-tools/get_filesystem_data active-device`
+print_dbg "activeDevice:${activeDevice}"
+
+# concoct filenames of auto backup files
+systemFileName="auto_${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${SYSTEM_BACKUP_FILENAME_FRAGMENT}.tgz"
+codesysFileName="auto_${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${CODESYS_BACKUP_FILENAME_FRAGMENT}.tgz"
+settingsFileName="auto_${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${SETTINGS_BACKUP_FILENAME_FRAGMENT}"
+
+# create the source directories for mounting (p = make parent directory if not existing)
+if ! mkdir -p /mnt/source_dir; then
+  status=$SHELL_ERROR
+  ReportError $status "(mkdir -p /mnt/source_dir)"
+elif ! mkdir -p $UPDATE_STATUS_BASEDIR; then
+  status=$SHELL_ERROR
+  ReportError $status "(mkdir -p /mnt/$UPDATE_STATUS_BASEDIR)"
+fi
+
+if [ "$SUCCESS" = "$status" ]; then
+
+  #-------------------------------------------------------------
+  # get actual state of auto firmware restore
+  #-------------------------------------------------------------
+
+  firmwareUpdateState=$UPDATE_STATE_START
+  if [ -f ${DEFAULT_SETTINGS_DIR}/${autoRestoreStatusFile} ]; then
+    firmwareUpdateState=`cat ${DEFAULT_SETTINGS_DIR}/${autoRestoreStatusFile}`
+    print_dbg "Actual state: "$firmwareUpdateState
+    echo "Actual state: "$firmwareUpdateState >> $outputFile
+  fi
+
+  #-------------------------------------------------------------
+  # 3. step of firmware restore: we only need to clean up
+  #-------------------------------------------------------------
+  
+  if [ "$firmwareUpdateState" = "$UPDATE_STATE_FINISH" ]; then
+  
+    # remove status file and don't look after any auto backups in this pass
+    # - user now has time to remove the USB stick (or whatever)
+    echo "firmware restore finished" >> $outputFile
+    rm $DEFAULT_SETTINGS_DIR/${autoRestoreStatusFile}
+    
+  #-------------------------------------------------------------
+  # 2. (optional) step of firmware restore - restore settings
+  #-------------------------------------------------------------
+  elif [ "$firmwareUpdateState" = "$UPDATE_STATE_COMPLETE" ]; then
+
+    # When we are here, a system recovery (step 1) had been executed and we are
+    # now using the root fs that was installed during that step.
+    # If backed up settings had been located, they have been copied to
+    # the current root fs
+    
+    # call special script to process settings file
+    # if special auto backup file for complete state settings exists, take it and delete it afterwards
+    # This file has been created by firmware_restore
+    if [ -f "$DEFAULT_SETTINGS_DIR/${completeSettingsFileName}" ]; then
+      echo "Restore settings from auto backup file..."
+      echo "Restore settings from auto backup file..." >> $outputFile
+      /etc/config-tools/settings_backup restore ${DEFAULT_SETTINGS_DIR}/${completeSettingsFileName} > /dev/null 2> /dev/null
+      status=$?
+      rm ${DEFAULT_SETTINGS_DIR}/${completeSettingsFileName}
+      
+    # no backup file existing - take the default settings
+    else
+      echo "Restore settings from default file..."
+      echo "Restore settings from default file..." >> $outputFile
+      /etc/config-tools/settings_backup restore ${DEFAULT_SETTINGS_DIR}/${DEFAULT_SETTINGS_FILENAME} > /dev/null 2> /dev/null
+      status=$?
+    fi
+    
+    if [ "$status" != "$SUCCESS" ]; then
+      status=$EXECUTABLE_ERROR
+      ReportError $status "(settings_backup)"
+    else
+    
+      # signalize we must do step 3 after following reboot - cleanup
+      SetUpdateState "$UPDATE_STATE_FINISH" "current_root" && rebootFlag=1
+    fi
+
+  #-------------------------------------------------------------
+  # 1. step of firmware restore - start to look for auto backups
+  #-------------------------------------------------------------
+  elif [ "$firmwareUpdateState" = "$UPDATE_STATE_START" ]; then
+
+    # wait a few seconds to let partition table be complete with USB devices
+    sleep 15
+  
+    #-------------------------------------------------------------
+    # look after auto backup files
+    #-------------------------------------------------------------
+
+    # loop over all existing devices to find one with a auto backup file on its first partition
+    backupDevice=""
+    deviceNo=1
+    device=`/etc/config-tools/get_filesystem_data device-by-index 1`
+    
+    while [ "$SUCCESS" = "$status" ] && [ -n "$device" ] && [ -z "$backupDevice" ]; do
+    
+      # mount first partition of device
+      print_dbg "check device:"$device >> $outputFile
+      sourcePartition=$(DevToPart ${device} 1)
+      DoMount $sourcePartition /mnt/source_dir IGNORE_ERRORS 
+    
+      if [ "$?" == "$SUCCESS" ]; then
+
+        # if any auto backup file existing, remember partition
+        if [ -f "/mnt/source_dir/${codesysFileName}" ] || [ -f "/mnt/source_dir/${systemFileName}" ] || [ -f "/mnt/source_dir/${settingsFileName}" ]; then
+          backupDevice=$device
+        fi
+      
+        umount /mnt/source_dir
+      fi
+    
+      # get next device
+      deviceNo=$(($deviceNo + 1))
+      device=`/etc/config-tools/get_filesystem_data device-by-index $deviceNo`
+    done
+
+    # auto backup file found?
+    if [ -n "$backupDevice" ]; then
+
+      date > $outputFile
+      echo "Found auto backup file(s) on" $backupDevice
+      echo "Found auto backup file(s) on" $backupDevice >> $outputFile
+  
+      # mount partition where the backups are located
+      sourcePartition=$(DevToPart ${backupDevice} 1)
+      DoMount $sourcePartition /mnt/source_dir 
+      if [ "$?" == "$SUCCESS" ]; then
+   
+        # initialize flags for necessary actions after restore
+        rebootFlag=0
+        restartCodesys=0
+  
+        # stop plc runtime if it is active
+ 
+        if [[ "$(pidof codesys3)" != "" ]] || 
+           [[ "$(pidof plclinux_rt)" != "" ]]; then
+     
+            echo "Stop PLC runtime..."
+            echo "Stop PLC runtime..." >> $outputFile
+
+            # during kbus initialization the runtime may ignore SIGTERM - try up to 5 times
+            for i in $(seq 0 4); do
+                # send term signal and wait until codesys had stopped, check if timeout (in secs) reached without success
+                /etc/config-tools/terminate_codesys 20 > /dev/null 2> /dev/null
+                if [[ "$SUCCESS" == "$?" ]]; then
+                    break;
+                fi
+            done
+
+            if [ "$SUCCESS" != "$?" ]; then
+                status=$SHELL_ERROR
+                ReportError $status "(terminate_codesys 20)"
+            else
+                restartCodesys=1
+            fi
+        fi
+
+        #-------------------------------------------------------------
+        # CODESYS
+        #-------------------------------------------------------------
+        
+        # codesys auto backup file exists and no error while stopping runtime? 
+        if [ "$SUCCESS" = "$status" ] && [ -f "/mnt/source_dir/${codesysFileName}" ]; then
+    
+          echo "Restore CODESYS from auto backup file..."
+          echo "Restore CODESYS from auto backup file..." >> $outputFile
+      
+          # first get device and partition of codesys (= home) device
+          codesysPartition="$(/etc/config-tools/get_filesystem_data home-device)" # home-device actually returns partition
+  
+          # unzip image and copy it to destination device
+          RestorePartition $codesysPartition /mnt/source_dir/${codesysFileName} "" # 3rd parameter (settings) is ignored
+          status=$?
+          
+          # no writing to status file necessary, because we need no reboot
+        fi
+
+        #-------------------------------------------------------------
+        # system
+        #-------------------------------------------------------------
+    
+        if [ "$SUCCESS" = "$status" ]; then
+
+            # system auto backup file exists?
+            if [ -f "/mnt/source_dir/${systemFileName}" ]; then
+
+              echo "Restore system from auto backup file..."
+              echo "Restore system from auto backup file..." >> $outputFile
+
+              # copy restore image to actually inactive system partition and take this as new boot partition
+              destinationPartition=`GetInactiveSystemPartition`
+              print_dbg "destinationPartition:${destinationPartition}"
+
+              if [ -z "$destinationPartition" ]; then
+                status=$INTERNAL_ERROR
+                ReportError $status "(GetInactiveSystemPartition)"
+              else
+                RestorePartition $destinationPartition /mnt/source_dir/${systemFileName} /mnt/source_dir/${settingsFileName} 
+                status=$?
+              fi
+          
+              if [ "$status" = "$SUCCESS" ]; then
+          
+                # signalize that we must do step 2 after reboot (process settings file)
+                # Important: only reboot if SetUpdateState and SwitchBootPartition succeed to prevent
+                # reboot loops!
+                SetUpdateState "$UPDATE_STATE_COMPLETE" "backup_root" && SwitchBootPartition && rebootFlag=1
+                
+                # Note: If the COMPLETE state fails on backup root, we boot from current root next time.
+                # The current root will contain a state file saying "START" which is the default setting.
+                # Thus, we don't have to clean it up. We do it nonetheless so that this point won't be missed
+                # during a possible rewrite.
+                rm -f ${DEFAULT_SETTINGS_DIR}/${autoRestoreStatusFile}
+               
+              fi
+          
+            # no system auto backup found - so we can check for settings backup 
+            # (we can't do both in one pass, because we would change the settings on the wrong partition...)
+            else
+        
+              #-------------------------------------------------------------
+              # settings
+              #-------------------------------------------------------------
+
+              # auto backup file for settings exists?
+              if [ -f "/mnt/source_dir/${settingsFileName}" ]; then
+        
+                echo "Restore settings from auto backup file..."
+                echo "Restore settings from auto backup file..." >> $outputFile
+
+                # call special script to process settings file
+                /etc/config-tools/settings_backup restore /mnt/source_dir/${settingsFileName} > /dev/null 2> /dev/null
+        
+                if [ "$?" != "$SUCCESS" ]; then
+                  status=$EXECUTABLE_ERROR
+                  ReportError $status "(settings_backup)"
+                else
+                  # signalize that we must reboot and do step 3 after it (cleanup)
+                  SetUpdateState "$UPDATE_STATE_FINISH" "current_root" && rebootFlag=1
+                fi
+              fi
+            fi
+        fi
+
+        # unmount directory with source files
+        umount /mnt/source_dir
+      fi
+    fi
+  fi
+fi
+
+# write some debug file output (before unmounting)
+if [ "$rebootFlag" = "1" ]; then
+  echo "Reboot..." >> $outputFile
+elif [ "$restartCodesys" = 1 ]; then
+  echo "Restart PLC runtime..." >> $outputFile
+fi
+if [ "$SUCCESS" != "$status" ]; then
+  date >> $outputFile
+  echo "Error while installing auto backup ($status)" >> $outputFile
+fi
+
+trap - EXIT
+
+do_cleanup
+
+sync
+
+if [ "$SUCCESS" != "$status" ]; then
+  echo "Error while installing auto backup"
+fi
+
+# reboot ipc, if necessary
+if [ "$rebootFlag" = "1" ]; then
+  echo "Reboot..."
+  sudo /sbin/reboot
+  
+# no reboot - restart codesys if necessary
+elif [ "$restartCodesys" = 1 ]; then
+  echo "Restart PLC runtime..."
+  /etc/init.d/runtime start > /dev/null 2> /dev/null
+fi
+  
+exit $status

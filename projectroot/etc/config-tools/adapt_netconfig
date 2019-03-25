@@ -1,0 +1,151 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------
+# Script-name: adapt_netconfig
+#
+# Adapt network configuration xml file according to dip switch settings.
+# Then generate /etc/network/interfaces. This script is called from
+# networking init script and config tool config_interfaces.
+#
+# $Revision$
+# Author: HJH, WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------
+
+# set error on use of undefined shell variables
+set -u
+
+CONFIG_FILE=/etc/specific/network-interfaces.xml
+XMLTMPFILE=/etc/specific/network-interfaces-current.xml
+OUTFILE=/etc/network/interfaces
+SAVE_DIP="0"
+DIPSWITCHDIR=/dev/dip-switch
+
+# read dip switch value from sysfs
+function get_dip_netvalue
+{
+    local dipvalue=0
+    if [ -d $DIPSWITCHDIR ]; then
+        dipvalue=$(($(<$DIPSWITCHDIR/value)))
+    fi
+    echo $dipvalue
+}
+
+# make new ip address from old-ip, netmask, dip switch value
+function calculate_ip
+{
+    local dipvalue=$1
+    local static_ip=$(xmlstarlet sel -T -t -v "//ip_settings[port_name = \"X1\"]/static_ipaddr" $CONFIG_FILE)
+    local cidrnetmask=$(xmlstarlet sel -T -t -v "//ip_settings[port_name = \"X1\"]/static_netmask" $CONFIG_FILE)
+    echo "$static_ip $cidrnetmask $dipvalue" | awk '
+    {
+        hostmask = 2**(32-$2)
+        split($1, ip, ".")
+        ipval = ((ip[1] * 256 + ip[2]) * 256 + ip[3]) * 256 + ip[4]
+        result = int(ipval / hostmask) * hostmask + ($3 % (hostmask))
+        printf("%d.%d.%d.%d", result / 2**24 % 256, result / 2**16 % 256, result / 2**8 % 256, result % 256)
+    }'
+}
+
+# modify network-interfaces.xml: set type of network config static, dhcp, bootp
+function set_net_type
+{
+    local port=$1
+    local value=$2
+    local file=$3
+    xmlstarlet ed -L -u "//ip_settings[port_name = \"$port\"]/type" -v $value $file
+}
+
+# modify network-interfaces.xml: set ip address
+function set_net_ip
+{
+    local port=$1
+    local ipaddr=$2
+    local file=$3
+    xmlstarlet ed -L -u "//ip_settings[port_name = \"$port\"]/static_ipaddr" -v $ipaddr $file
+}
+
+# called from create_interfaces_file only
+function set_dip_network_params
+{
+    local port=X1
+    local dipvalue=$1
+    local newip=$(calculate_ip $dipvalue)
+    if [ "$(($dipvalue >= 1 && $dipvalue <= 254))" = "1" ]; then
+        set_net_type $port static $XMLTMPFILE
+        set_net_ip $port $newip $XMLTMPFILE
+    elif [ "$(($dipvalue == 255))" = "1" ]; then
+        set_net_type $port dhcp $XMLTMPFILE
+    fi
+}
+
+# write /etc/network/interfaces with config according to dip switch value
+# no restart of any network interface
+# called from main only
+function create_interfaces_file
+{
+    local outfile=$1
+    local save_dip=$2
+    local dipvalue
+    local save_dipfile=/etc/specific/dipvalue-on-reset
+
+    if [ "$save_dip" = "1" ]; then
+        echo "DIP_SWITCH_VALUE=$(get_dip_netvalue)" > $save_dipfile
+    fi
+    . $save_dipfile
+    dipvalue=$DIP_SWITCH_VALUE
+
+    # insert optional WWAN configuration
+    /etc/config-tools/adapt_netconfig_wwan -o $XMLTMPFILE
+    sync
+
+    # modify network params if dip switch has value > 0
+    [ "$dipvalue" != "0" ] && set_dip_network_params $dipvalue
+    sync
+
+    # create network/interfaces
+    /etc/config-tools/set_network_interfaces -c $XMLTMPFILE -o $outfile &> /dev/null
+    sync
+}
+
+# main program
+# show help-text if requested
+if [ $# -gt 0 ]; then
+    if [ "$1" = "-h" -o "$1" = "--help" ]; then
+        echo
+        echo "* Adapt network config according to dip switches, generate /etc/network/interfaces *"
+        echo
+        echo "Usage: adapt_netconfig -h | --help    print this usage"
+        echo "       adapt_netconfig [options]      generate /etc/network/interfaces"
+        echo
+        echo "Options:"
+        echo "         -o|--outfile <outfile>       write interfaces configuration to file <outfile>."
+        echo "                                      Default file is /etc/network/interfaces"
+        echo "         -s|--save-dipswitch          Read dip switch value and save it to file"
+        echo "                                      /etc/specific/dipvalue-on-reset"
+        echo
+        echo "A new network configuration is created but not startet. Use ifdown / ifup to activate"
+        echo "the new config."
+        exit 0
+    fi
+
+    if [ "$1" = "-o" -o "$1" = "--out-file" ]; then
+        if [ "$#" -ge "2" ]; then
+            OUTFILE="$2"
+            shift 2
+        else
+            echo "adapt_netconfig: missing argument"
+            exit 1
+        fi
+    fi
+
+    if [ $# -gt 0 ]; then
+        [ "$1" = "-s" -o "$1" = "--save-dipswitch" ] && SAVE_DIP="1"
+    fi
+fi
+create_interfaces_file $OUTFILE $SAVE_DIP
+exit $?

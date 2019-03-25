@@ -1,0 +1,30 @@
+## SECTION=wago_specific_tools
+
+config HOST_WAGO_CM_PRODUCTION
+	tristate
+	prompt "host-wago-cm-production"
+	help
+	  This package will extract an generated production archiv
+	  to build-host. The extracted files are then used in generation
+	  of sd.hdmig (setupfw + oftrees) and firmware-image (setupfw + oftrees +
+	  firmware install-script) for wago production.
+
+if HOST_WAGO_CM_PRODUCTION
+
+config HOST_WAGO_CM_PRODUCTION_ARCH
+	string
+	prompt "production archiv"
+	help
+	  Here you need to write down the name of the
+	  production archiv wich is generated from
+	  ptxproj-cm. This archiv includes the setupfw
+	  and all pfcXXX related oftrees.
+
+config HOST_WAGO_CM_PRODUCTION_ARCH_MD5
+	string
+	prompt "md5sum"
+	help
+	  Here you need to write down the md5sum of
+	  configured production archiv.
+
+endif

@@ -1,0 +1,955 @@
+## SECTION=wago_specific_config
+
+#
+#   This file contains the menu structure description for the web-based wbm
+#   configuration frontend.  The menuconfig entries correspond with the
+#   frontend levels. The parent-child relationship is modelled using the
+#   "depends on" field.  The configuration's description in XML is located
+#   within the help entries. Consult the documentation and the existing
+#   examples for the notation details.
+#
+
+#
+#   Constraints:
+#   - naming scheme:      all menu nodes have to start with a CT_MENU_WBM_
+#                         prefix.
+#   - XML mapping scheme: all XML related infos have to start with a "__XML:"
+#                         prefix
+#   - parent dependency:  the parent entry has to be the leftmost one in the
+#                        "depends on" list.
+#   - default settings:   the config options that depend from common features
+#                         have to be set 'default n'. Otherwise enabling a
+#                         feature leaves the dependent entries unset, forcing
+#                         the user to set them manually.
+#
+
+
+config WAGO_EXTDUMMY
+	bool
+	prompt "wago-extdummy"
+	select LIGHTTPD
+	help
+		Installs the Dummy Ext.JS + WSC Javascript Client
+
+menuconfig CT_MENU_WBM_MAIN
+  bool
+  default n
+  prompt "wbm      "
+
+  select WBM # target responsible for wbm package being built
+
+  select HOST_CT_MAKE_XML_CONFIG # tool to generate XML configs for wbm/ipcconfig
+
+  select CT_FORM_PROCESSING
+  select CT_PRINT_NAVIGATION
+  select CT_SHOW_LAST_ERROR_HTML
+
+  help
+    IPC web configuration frontend.
+    __XML: frontend id="wbm"
+
+
+if CT_MENU_WBM_MAIN
+
+config WBM
+  bool
+  default n
+  select CONFIG_TOOLS
+  select HOST_LIBXML2 # for xmllint
+  select HOST_LIBXSLT
+  help
+   Target corresponding to wbm.make. Can be enabled indirectly by activating
+   CT_MENU_WBM_MAIN.
+
+
+# required tools
+
+config CT_FORM_PROCESSING
+  bool
+  default n
+  help
+   Process a html input form. Called from the CGI parser.
+
+config CT_PRINT_NAVIGATION
+  bool
+  default n
+  help
+   print wbm navigation
+
+config CT_SHOW_LAST_ERROR_HTML
+  bool
+  default n
+  help
+   show last configtool error
+
+###############################################################
+
+menuconfig CT_MENU_WBM_INFO
+bool
+default n
+prompt "Information"
+depends on CT_MENU_WBM_MAIN && !CT_FEATURE_ETH_SWITCH
+help
+  common informations about coupler and interfaces
+  __XML: level id="information"
+               nav.text="Information"
+                  .ressource="index.php"
+                  .fragment="information"
+                  .user_level="0"
+
+menuconfig CT_MENU_WBM_INFO_SWITCH
+bool
+default n
+prompt "Information"
+depends on CT_MENU_WBM_MAIN && CT_FEATURE_ETH_SWITCH
+help
+  switch configuration
+  __XML: level id="information"
+               nav.text="Information"
+                  .ressource="index.php"
+                  .fragment="information"
+                  .user_level="0"
+
+###############################################################
+menuconfig CT_MENU_WBM_CODESYS
+bool
+default n
+prompt "CoDeSys         "
+depends on CT_MENU_WBM_MAIN && PLCLINUXRT
+help
+  codesys information and configuration
+  __XML: level id="codesys"
+               nav.text="PLC Runtime"
+                  .ressource="index.php"
+                  .fragment="rts_configuration"
+                  .user_level="0"
+
+config CT_MENU_WBM_CODESYS_CONFIG
+bool
+default n
+prompt "CoDeSys Info  "
+depends on CT_MENU_WBM_CODESYS
+help
+  codesys information
+  __XML: level id="rts_info"
+               nav.text="Information"
+                  .ressource="index.php"
+                  .fragment="rts_info"
+                  .user_level="0"
+
+config CT_MENU_WBM_CODESYS_INFO
+bool
+default n
+prompt "CoDeSys Config    "
+depends on CT_MENU_WBM_CODESYS
+help
+  codesys configuration
+  __XML: level id="rts_configuration"
+               nav.text="General Configuration"
+                  .ressource="index.php"
+                  .fragment="rts_configuration"
+                  .user_level="2"
+
+config CT_MENU_WBM_CODESYS_WEBVISU
+bool
+default n
+prompt "CoDeSys Webvisu "
+depends on CT_MENU_WBM_CODESYS
+help
+  configuration of standart webserver
+  __XML: level id="webvisu"
+               nav.text="WebVisu"
+                  .ressource="index.php"
+                  .fragment="webvisu"
+                  .user_level="0"
+
+###############################################################
+menuconfig CT_MENU_WBM_TCPIP
+bool
+default n
+prompt "Networking         "
+depends on CT_MENU_WBM_MAIN
+
+help
+  Tools used to get/set additional network settings.
+  __XML: level id="tcpip"
+               nav.text="Networking"
+                  .ressource="index.php"
+                  .fragment="tcpip_common_configuration"
+                  .user_level="2"
+
+config CT_MENU_WBM_COMMON_CONFIG
+bool
+default n
+prompt "Host-/Domain Name"
+depends on CT_MENU_WBM_TCPIP && !CT_FEATURE_ETH_SWITCH
+
+help
+  common ethernet configuration
+  __XML: level id="tcpip_common_configuration"
+               nav.text="Host-/Domain Name"
+                  .ressource="index.php"
+                  .fragment="tcpip_common_configuration"
+                  .user_level="2"
+
+config CT_MENU_WBM_COMMON_CONFIG_SWITCH
+bool
+default n
+prompt "Host-/Domainname"
+depends on CT_MENU_WBM_TCPIP && CT_FEATURE_ETH_SWITCH
+
+help
+  common ethernet configuration for switch
+  __XML: level id="tcpip_common_configuration"
+               nav.text="Host-/Domain Name"
+                  .ressource="index.php"
+                  .fragment="tcpip_common_configuration"
+                  .user_level="2"
+
+
+config CT_MENU_WBM_TCPIP_INTERFACES
+bool
+default n
+prompt "TCP/IP"
+depends on CT_MENU_WBM_TCPIP && !CT_FEATURE_ETH_SWITCH
+
+help
+  configuration of interfaces
+  __XML: level id="interfaces"
+               nav.text="TCP/IP"
+                  .ressource="index.php"
+                  .fragment="interfaces"
+                  .user_level="2"
+
+config CT_MENU_WBM_TCPIP_INTERFACES_SWITCH
+bool
+default n
+prompt "TCP/IP Eth1"
+depends on CT_MENU_WBM_TCPIP && CT_FEATURE_ETH_SWITCH
+
+help
+  configuration of interfaces with switch
+  __XML: level id="interfaces"
+               nav.text="TCP/IP"
+                  .ressource="index.php"
+                  .fragment="interfaces"
+                  .user_level="2"
+
+menuconfig CT_MENU_WBM_TCPIP_ETHERNET
+bool
+default n
+prompt "Ethernet        "
+depends on CT_MENU_WBM_TCPIP
+help
+  Ethernet settings (duplex mode, autoneg etc.)
+  __XML: level id="ethernet"
+               nav.text="Ethernet"
+                  .ressource="index.php"
+                  .fragment="ethernet"
+                  .user_level="2"
+
+
+menuconfig CT_MENU_WBM_TCPIP_ROUTING
+bool
+default n
+prompt "Routing         "
+depends on CT_MENU_WBM_TCPIP && ROUTING_CONFIG
+help
+  Routing configuration
+  __XML: level id="routing"
+               nav.text="Routing"
+                  .ressource="index.php"
+                  .fragment="routing"
+                  .user_level="2"
+
+###############################################################
+menuconfig CT_MENU_WBM_FIREWALL
+bool
+default n
+prompt "Firewall           "
+depends on CT_MENU_WBM_MAIN && FIREWALL_CONFIG
+help
+ Tools for firewall configuration.
+ __XML: level id="firewall"
+              nav.text="Firewall"
+                 .ressource="index.php"
+                 .fragment="firewall_general_configuration"
+                  .user_level="2"
+
+menuconfig CT_MENU_WBM_FIREWALL_GENERAL
+bool
+default n
+prompt "Firewall general         "
+depends on CT_MENU_WBM_MAIN && CT_MENU_WBM_FIREWALL
+
+help
+  Tools for general firewall configuration
+  __XML: level id="firewall_general_configuration"
+               nav.text="General Configuration"
+                  .ressource="index.php"
+                  .fragment="firewall_general_configuration"
+                  .user_level="2"
+
+menuconfig CT_MENU_WBM_FIREWALL_MAC_ADDRESS_FILTER
+bool
+default n
+prompt "Firewall MAC address filter         "
+depends on CT_MENU_WBM_MAIN && CT_MENU_WBM_FIREWALL
+
+help
+  Tools for firewall configuration mac address filter
+  __XML: level id="firewall_mac_address_filter"
+               nav.text="MAC Address Filter"
+                  .ressource="index.php"
+                  .fragment="firewall_mac_address_filter"
+                  .user_level="2"
+
+menuconfig CT_MENU_WBM_FIREWALL_USER_FILTER
+bool
+default n
+prompt "Firewall general         "
+depends on CT_MENU_WBM_MAIN && CT_MENU_WBM_FIREWALL
+
+help
+  Tools for firewall configuration user filter
+  __XML: level id="firewall_user_filter"
+               nav.text="User Filter"
+                  .ressource="index.php"
+                  .fragment="firewall_user_filter"
+                  .user_level="2"
+
+
+
+###############################################################
+#menuconfig CT_MENU_WBM_TIME
+#bool
+#default n
+#prompt "Time            "
+#depends on CT_MENU_WBM_MAIN
+#help
+#  Tools used to edit Clock/Timezone/NTP settings.
+#  __XML: level id="time"
+#               nav.text="Time"
+#                  .ressource="clock.php"
+
+menuconfig CT_MENU_WBM_CLOCK
+bool
+default n
+prompt "Clock           "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools used to edit clock settings.
+  __XML: level id="clock"
+               nav.text="Clock"
+                  .ressource="index.php"
+                  .fragment="clock"
+                  .user_level="2"
+
+###############################################################
+menuconfig CT_MENU_WBM_HMI
+bool
+default n
+prompt "HMI Settings    "
+depends on CT_MENU_WBM_DISPLAY
+help
+  Tools used to change HMI settings.
+  __XML: level id="hmi"
+               nav.text="HMI Settings"
+                  .ressource="keyboard.php"
+                  .user_level="2"
+
+#config CT_MENU_WBM_SCREENSAVER_KB
+#bool
+#default n
+#prompt "Keyboard"
+#depends on CT_MENU_WBM_HMI
+#help
+#  configuration of keyboard when only keyboard is necessary in hmi area
+#  __XML: level id="keyboard"
+#               nav.text="Keyboard"
+#                  .ressource="keyboard.php"
+
+config CT_MENU_WBM_SCREENSAVER_KB
+bool
+default n
+prompt "Keyboard"
+depends on CT_MENU_WBM_HMI
+help
+  configuration of keyboard when only keyboard is necessary in hmi area
+  __XML: level id="keyboard"
+               nav.text="Keyboard"
+                  .ressource="keyboard.php"
+                  .user_level="2"
+
+config CT_MENU_WBM_SCREENSAVER
+bool
+default n
+prompt "Screensaver"
+depends on CT_MENU_WBM_HMI && CT_FEATURE_DISPLAY
+help
+  configuration of screensaver
+  __XML: level id="screensaver"
+               nav.text="Screensaver"
+                  .ressource="screensaver.php"
+                  .user_level="2"
+
+#config CT_MENU_WBM_CLEANMODE
+#bool
+#default n
+#prompt "Cleanmode"
+#depends on CT_MENU_WBM_HMI && CT_FEATURE_DISPLAY
+#help
+#  FIXME
+#  __XML: level id="cleanmode"
+#               nav.text="Cleanmode"
+#                  .ressource="cleanmode.php"
+
+config CT_MENU_WBM_SCREENSAVER_VGA
+bool
+default n
+prompt "VGA"
+depends on CT_MENU_WBM_HMI && CT_FEATURE_DISPLAY
+help
+  configuration of vga
+  __XML: level id="vga"
+               nav.text="VGA"
+                  .ressource="vga.php"
+                  .user_level="2"
+
+config CT_MENU_WBM_SCREENSAVER_TOUCH
+bool
+default n
+prompt "Touchscreen"
+depends on CT_MENU_WBM_HMI && CT_FEATURE_DISPLAY
+help
+  configuration of touch display
+  __XML: level id="touchscreen"
+               nav.text="Touchscreen"
+                  .ressource="touchscreen.php"
+                  .user_level="2"
+
+###############################################################
+menuconfig CT_MENU_WBM_ADMIN
+bool
+default n
+prompt "Administration  "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools used to manage the IPC: make a system snapshot image, reboot, fsck etc.
+  __XML: level id="administration"
+               nav.text="Administration"
+                  .ressource="index.php"
+                  .fragment="users"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_USERS
+bool
+default n
+prompt "Users           "
+depends on CT_MENU_WBM_ADMIN
+help
+  Tools used to change user passwords.
+  __XML: level id="users"
+               nav.text="Users"
+                  .ressource="index.php"
+                  .fragment="users"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_CREATE_IMAGE
+bool
+default n
+prompt "Create Image    "
+depends on CT_MENU_WBM_ADMIN
+help
+  Tools used to create system snapshot.
+  __XML: level id="create_image"
+               nav.text="Create Image"
+                  .ressource="index.php"
+                  .fragment="create_image"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_ADMIN_RS232
+bool
+default n
+prompt "RS232           "
+depends on CT_MENU_WBM_ADMIN
+help
+  Tools used to configure user of RS232.
+  __XML: level id="rs232"
+               nav.text="Serial Interface"
+                  .ressource="index.php"
+                  .fragment="rs232"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_ADMIN_SERVICE_INTERFACE
+bool
+default n
+prompt "Service Interface"
+depends on CT_MENU_WBM_ADMIN
+help
+  Tools used to configure user of service interface
+  __XML: level id="service_interface"
+               nav.text="Service Interface"
+                  .ressource="index.php"
+                  .fragment="service_interface"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_FILESYSTEM_CHECK
+bool
+default n
+prompt "Filesystem Check (needs e2fsck patch - see ptxproj.2011.03.1)"
+depends on CT_MENU_WBM_ADMIN
+help
+  Tools used to process filesystem check.
+  __XML: level id="filesystem_check"
+               nav.text="Filesystem Check"
+                  .ressource="filesystem_check.php"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_START_REBOOT
+bool
+default n
+prompt "Start reboot"
+depends on CT_MENU_WBM_ADMIN
+help
+  Tools used to start coupler reboot.
+  __XML: level id="start_reboot"
+               nav.text="Reboot"
+                  .ressource="index.php"
+                  .fragment="start_reboot"
+                  .user_level="3"
+
+###############################################################
+menuconfig CT_MENU_WBM_PKGSRV
+bool
+default n
+prompt "Package Server  "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools to backup/restore the system (CoDeSys project, settings, OS)
+  __XML: level id="package_server"
+               nav.text="Package Server"
+                  .ressource="index.php"
+                  .fragment="firmware_backup"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_BACKUP
+bool
+default n
+prompt "Backup"
+depends on CT_MENU_WBM_PKGSRV
+help
+  Tools for backup of system
+  __XML: level id="firmware_backup"
+               nav.text="Firmware Backup"
+                  .ressource="index.php"
+                  .fragment="firmware_backup"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_RESTORE
+bool
+default n
+prompt "Restore"
+depends on CT_MENU_WBM_PKGSRV
+help
+  Tools for restore of system
+  __XML: level id="firmware_restore"
+               nav.text="Firmware Restore"
+                  .ressource="index.php"
+                  .fragment="firmware_restore"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_START_BACKUP_SYSTEM
+bool
+default n
+prompt "Start Backup System"
+depends on CT_MENU_WBM_PKGSRV
+help
+  Tools used to start backup system.
+  __XML: level id="system_partition"
+               nav.text="System Partition"
+                  .ressource="index.php"
+                  .fragment="system_partition"
+                  .user_level="3"
+
+###############################################################
+menuconfig CT_MENU_WBM_MASSSTORAGE
+bool
+default n
+prompt "Mass Storage    "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools to manipulate mass storage devices options.
+  __XML: level id="mass_storage"
+               nav.text="Mass Storage"
+                  .ressource="index.php"
+                  .fragment="mass_storage"
+                  .user_level="3"
+
+###############################################################
+menuconfig CT_MENU_WBM_DL
+bool
+default n
+prompt "Software uploads       "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools to manage software file uploads to controller
+  __XML: level id="software_uploads"
+               nav.text="Software Uploads"
+                  .ressource="index.php"
+                  .fragment="software_uploads"
+                  .user_level="3"
+
+###############################################################
+menuconfig CT_MENU_WBM_PORT
+bool
+default n
+prompt "Port            "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for port configuration.
+  __XML: level id="port"
+               nav.text="Ports and Services"
+                  .ressource="index.php"
+                  .fragment="network_services"
+                  .user_level="2"
+
+menuconfig CT_MENU_WBM_SEVERAL_PORTS
+bool
+default n
+prompt "Network Services   "
+depends on CT_MENU_WBM_PORT
+help
+ Tools for port configuration.
+  __XML: level id="network_services"
+               nav.text="Network Services"
+                  .ressource="index.php"
+                  .fragment="network_services"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_NTP
+bool
+default n
+prompt "NTP             "
+depends on CT_MENU_WBM_PORT
+help
+  Tools used to edit NTP protocol settings.
+  __XML: level id="ntp"
+               nav.text="NTP Client"
+                  .ressource="index.php"
+                  .fragment="ntp"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_CODESYS_PORTS
+bool
+default n
+prompt "CoDeSys Ports    "
+depends on CT_MENU_WBM_PORT && PLCLINUXRT
+help
+ Tools for CoDeSys port configuration.
+  __XML: level id="codesys_ports"
+               nav.text="PLC Runtime Services"
+                  .ressource="index.php"
+                  .fragment="codesys_ports"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_SSH
+bool
+default n
+prompt "SSH             "
+depends on CT_MENU_WBM_PORT
+help
+ Tools for SSH configuration.
+  __XML: level id="ssh"
+               nav.text="SSH"
+                  .ressource="index.php"
+                  .fragment="ssh"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_TFTP
+bool
+default n
+prompt "TFTP           "
+depends on CT_MENU_WBM_PORT
+help
+ Tools for TFTP configuration.
+  __XML: level id="tftp"
+               nav.text="TFTP"
+                  .ressource="index.php"
+                  .fragment="tftp"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_DHCPD
+bool
+default n
+prompt "DHCPD           "
+depends on CT_MENU_WBM_PORT
+help
+ Tools for DHCPD configuration.
+  __XML: level id="dhcpd"
+               nav.text="DHCP"
+                  .ressource="index.php"
+                  .fragment="dhcpd"
+                  .user_level="3"
+
+menuconfig CT_MENU_WBM_DNS_SERVICE
+bool
+default n
+prompt "DNS service           "
+depends on CT_MENU_WBM_PORT
+help
+ Tools for TFTP configuration.
+  __XML: level id="dns_service"
+               nav.text="DNS"
+                  .ressource="index.php"
+                  .fragment="dns_service"
+                  .user_level="2"
+
+menuconfig CT_MENU_WBM_MODBUS_SERVICES
+bool
+default n
+prompt "MODBUS Services           "
+depends on CT_MENU_WBM_PORT
+help
+ Tools for MODBUS service configuration.
+  __XML: level id="modbus_services"
+               nav.text="Modbus&#174;"
+                  .ressource="index.php"
+                  .fragment="modbus_services"
+                  .user_level="2"
+
+###############################################################
+
+comment "SNMP-related tool settings disabled because NET_SNMP is not selected!"
+  depends on !NET_SNMP
+
+menuconfig CT_MENU_WBM_SNMP
+bool
+default n
+prompt "SNMP            "
+depends on CT_MENU_WBM_MAIN && NET_SNMP
+help
+ Tools for SNMP configuration.
+ __XML: level id="snmp"
+              nav.text="SNMP"
+                 .ressource="index.php"
+                 .fragment="snmp_general"
+                  .user_level="3"
+
+config CT_MENU_WBM_SNMP_GENERAL
+bool
+default n
+prompt "SNMP General Configuration"
+depends on CT_MENU_WBM_SNMP
+help
+ configuration of snmp
+ __XML: level id="snmp_general"
+              nav.text="General Configuration"
+                 .ressource="index.php"
+                 .fragment="snmp_general"
+                  .user_level="3"
+
+config CT_MENU_WBM_SNMP_V1_V2C
+bool
+default n
+prompt "SNMP v1/v2c Manager"
+depends on CT_MENU_WBM_SNMP
+help
+  configuration of snmp v1_v2c
+  __XML: level id="snmp_v1_v2c"
+              nav.text="SNMP v1/v2c"
+                 .ressource="index.php"
+                 .fragment="snmp_v1_v2c"
+                  .user_level="3"
+
+
+config CT_MENU_WBM_SNMP_V3
+bool
+default n
+prompt "SNMP v3"
+depends on CT_MENU_WBM_SNMP
+help
+ configuration of snmp v3
+ __XML: level id="snmp_v3"
+              nav.text="SNMP v3"
+                 .ressource="index.php"
+                 .fragment="snmp_v3"
+                  .user_level="3"
+
+###############################################################
+#menuconfig CT_MENU_WBM_IOCONF
+#bool
+#default n
+#prompt "IO-Configuration"
+#depends on CT_MENU_WBM_MAIN
+#help
+# Tools for the IO peripherial components' configuration.
+# __XML: level id="io_config"
+#              nav.text="I/O Configuration"
+#                 .ressource="io_config.xml"
+
+###############################################################
+menuconfig CT_MENU_WBM_DIAGNOSTIC
+bool
+default n
+prompt "Diagnostic      "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for diagnostic information.
+ __XML: level id="diagnostic"
+              nav.text="Diagnostic"
+                 .ressource="index.php"
+                 .fragment="diagnostic"
+                  .user_level="0"
+
+###############################################################
+menuconfig CT_MENU_WBM_PROFIBUS
+bool
+default n
+prompt "Profibus        "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for profibus configuration.
+ __XML: level id="profibus"
+              nav.text="PROFIBUS DP"
+                 .ressource="index.php"
+                 .fragment="profibus"
+                 .user_level="2"
+                 
+###############################################################
+menuconfig CT_MENU_WBM_BACNET
+bool
+default n
+prompt "BACnet          "
+depends on CT_MENU_WBM_MAIN && LIBBACNETCONFIG
+help
+ Tools for BACnet configuration.
+ __XML: level id="bacnet"
+              nav.text="BACnet"
+                 .ressource="index.php"
+                 .fragment="bacnet_general_configuration"
+                 .user_level="2"
+                 
+menuconfig CT_MENU_WBM_BACNET_GENERAL_CONFIGURATION
+bool
+default n
+prompt "BACnet General Configuration"
+depends on CT_MENU_WBM_MAIN && CT_MENU_WBM_BACNET
+help
+ Tools for BACnet configuration.
+ __XML: level id="bacnet_general_configuration"
+              nav.text="General"
+                 .ressource="index.php"
+                 .fragment="bacnet_general_configuration"
+                 .user_level="2"
+                 
+menuconfig CT_MENU_WBM_BACNET_STORAGE_LOCATION
+bool
+default n
+prompt "BACnet Storage Location"
+depends on CT_MENU_WBM_MAIN && CT_MENU_WBM_BACNET
+help
+ Tools for BACnet configuration.
+ __XML: level id="bacnet_storage_location"
+              nav.text="Storage Location"
+                 .ressource="index.php"
+                 .fragment="bacnet_storage_location"
+                 .user_level="2"
+                 
+menuconfig CT_MENU_WBM_BACNET_DIAGNOSTIC
+bool
+default n
+prompt "BACnet Diagnostic"
+depends on CT_MENU_WBM_MAIN && CT_MENU_WBM_BACNET
+help
+ Tools for BACnet configuration.
+ __XML: level id="bacnet_diagnostic"
+              nav.text="Diagnostic"
+                 .ressource="index.php"
+                 .fragment="bacnet_diagnostic"
+                 .user_level="2"
+
+###############################################################
+menuconfig CT_MENU_WBM_MODEM
+bool
+default n
+prompt "Modem           "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for modem configuration.
+ __XML: level id="modem"
+              nav.text="Modem"
+                 .ressource="index.php"
+                 .fragment="modem"
+                 .user_level="2"
+
+###############################################################
+menuconfig CT_MENU_WBM_VPN
+bool
+default n
+prompt "VPN           "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for VPN configuration.
+ __XML: level id="vpn"
+              nav.text="OpenVPN / IPsec"
+                 .ressource="index.php"
+                 .fragment="vpn"
+                 .user_level="3"
+
+###############################################################
+menuconfig CT_MENU_WBM_SECURITY
+bool
+default n
+prompt "Security"
+depends on CT_MENU_WBM_MAIN
+help
+  configuration of security features
+  __XML: level id="security"
+               nav.text="Security"
+                  .ressource="index.php"
+                  .fragment="security"
+                  .user_level="3"
+
+
+menuconfig CT_MENU_WBM_LEGAL_INFORMATION
+bool
+default n
+prompt "Legal Information"
+depends on CT_MENU_WBM_MAIN
+help
+  licensing information
+  __XML: level id="legal_information"
+               nav.text="Legal Information"
+                  .ressource="index.php"
+                  .fragment="open_source_licenses"
+                  .user_level="0"
+
+menuconfig CT_MENU_WBM_OPEN_SOURCE_LICENSES
+bool
+default n
+prompt "Open Source Licenses"
+depends on CT_MENU_WBM_LEGAL_INFORMATION
+help
+  licensing information
+  __XML: level id="open_source_licenses"
+               nav.text="Open Source Licenses"
+                  .ressource="index.php"
+                  .fragment="open_source_licenses"
+                  .user_level="0"
+
+menuconfig CT_MENU_WBM_WAGO_LICENSES
+bool
+default n
+prompt "WAGO Licenses"
+depends on CT_MENU_WBM_LEGAL_INFORMATION
+help
+  licensing information
+  __XML: level id="wago_licenses"
+               nav.text="WAGO Licenses"
+                  .ressource="index.php"
+                  .fragment="wago_licenses"
+                  .user_level="0"
+
+
+endif

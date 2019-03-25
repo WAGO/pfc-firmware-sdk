@@ -1,0 +1,26 @@
+commit b050c72d52c4e30d5b978ab6758f8dcdbe5c690c
+Author: Mike Frysinger <vapier@gentoo.org>
+Date:   Tue Apr 20 05:49:30 2010 -0400
+
+    compiler.h: add uint typedef
+    
+    Recent crc changes started using the "uint" type in headers that are used
+    on the build system.  This subsequently broke mingw targets as they do not
+    provide such a type.  So add this basic typedef to compiler.h so that we
+    do not have to worry about this breaking again in the future.
+    
+    Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+    Signed-off-by: Remy Bohmer <linux@bohmer.net>
+
+diff --git a/include/compiler.h b/include/compiler.h
+index 332618e..8030bf6 100644
+--- a/include/compiler.h
++++ b/include/compiler.h
+@@ -55,6 +55,7 @@ typedef unsigned int  uint;
+ typedef uint8_t __u8;
+ typedef uint16_t __u16;
+ typedef uint32_t __u32;
++typedef unsigned int uint;
+ 
+ #define uswap_16(x) \
+ 	((((x) & 0xff00) >> 8) | \

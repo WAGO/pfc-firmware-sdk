@@ -1,0 +1,119 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_ethernet
+#
+# Compatibility wrapper for config_ethernet_c
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_defines" ]; then
+  echo "config_tool_defines missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_defines
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the ethernet port settings *"
+  echo
+  echo "Usage: $0 < [interface=interface-value] port=port-value [state=state-value ] [ autoneg=autoneg-value ] [ speed=speed-value ] [duplex=duplex-value ]"
+  echo "With autoneg=on, no speed or duplex values have to be provided."
+	echo
+# pfc200-specific settings
+  echo "interface-value: eth0 [ignored]"
+  echo "port-value: $(/etc/config-tools/get_eth_config --print-ports)"
+  echo "state-value: enabled/disabled"
+  echo "autoneg-value: enabled/disabled"
+  echo "speed-value: 10M/100M"
+  echo "duplex-value: full/half"
+  echo
+  exit $status
+fi
+
+parameters=
+
+while [[ $# -ne 0 ]]; do
+    case "$1" in
+        interface=*)
+            ;; # value is ignored
+        port=*)
+            port=${1#port=}
+            parameters="$parameters -p $port"
+            ;;
+        state=*)
+
+            if [[ "${1#state=}" == "on" ]]; then
+                state="enabled"
+            elif [[ "${1#state=}" == "off" ]]; then
+                state="disabled"
+            else
+                state="${1#state=}"
+            fi
+            parameters="$parameters -S $state"
+            ;;
+        autoneg=*)
+
+            if [[ "${1#autoneg=}" == "on" ]]; then
+                parameters="$parameters -a enabled"
+            elif [[ "${1#autoneg=}" == "off" ]]; then
+                parameters="$parameters -a disabled"
+            else
+                parameters="$parameters -a ${1#autoneg=}"
+            fi
+
+            ;;
+        speed=*)
+            parameters="$parameters -s ${1#speed=}"
+            ;;
+        duplex=*)
+            parameters="$parameters -d ${1#duplex=}"
+            ;;
+        *)
+            status=$INVALID_PARAMETER
+            break
+            ;;
+    esac
+    shift 1
+
+done
+
+# write new configuration into /etc/specific/network-interfaces.xml followed by
+# creating network-interfaces-current.xml with dip switch and wwan config.
+NETINTERFACES=/etc/network/interfaces
+[ "$status" == "$SUCCESS" ] && /etc/config-tools/config_ethernet_c $parameters || status=$?
+
+if [ "$status" == "$SUCCESS" ]; then
+    /etc/config-tools/adapt_netconfig -o $NETINTERFACES.tmp
+    status=$?
+fi
+
+if [ "$status" == "$SUCCESS" ]; then
+    diff -q $NETINTERFACES $NETINTERFACES.tmp > /dev/null
+    if [ "$?" = "1" ]; then
+        # network config changed. Do ifdown/ifup
+        if [ "$port" = "X1" -o "$port" = "X2" ]; then
+            ifdown -i $NETINTERFACES eth$port &> /dev/null
+            ifup -i $NETINTERFACES.tmp eth$port &> /dev/null
+        else
+            status=$INVALID_PARAMETER
+            SetLastError "missing or wrong port parameter"
+        fi
+        mv $NETINTERFACES.tmp $NETINTERFACES
+    fi
+    rm -f $NETINTERFACES.tmp
+fi
+
+sync
+exit $status

@@ -1,0 +1,31 @@
+From 07964cd233c08a32bd8ebcceef0f992c288c2d30 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 9 Aug 2018 08:35:43 +0200
+Subject: [PATCH 044/144] arm: dts: am35xx: boomatrix: configure correct pin
+ polarisation
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am35xx-pfc-750_820x.dts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/dts/am35xx-pfc-750_820x.dts b/arch/arm/dts/am35xx-pfc-750_820x.dts
+index a78e9a9..64bf163 100644
+--- a/arch/arm/dts/am35xx-pfc-750_820x.dts
++++ b/arch/arm/dts/am35xx-pfc-750_820x.dts
+@@ -72,9 +72,9 @@
+ 		/* seconds for factory reset or setup-fw startup */
+ 		rst-timeout-secs = <7>;
+ 
+-		run:   run   { gpios = <&gpio3 26 GPIO_ACTIVE_HIGH>; };
+-		stop:  stop  { gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>; };
+-		reset: reset { gpios = <&gpio3 28 GPIO_ACTIVE_HIGH>; };
++		run:   run   { gpios = <&gpio3 26 GPIO_ACTIVE_LOW>; };
++		stop:  stop  { gpios = <&gpio3 27 GPIO_ACTIVE_LOW>; };
++		reset: reset { gpios = <&gpio3 28 GPIO_ACTIVE_LOW>; };
+ 		rst:   rst   { gpios = <&gpio3 29 GPIO_ACTIVE_HIGH>; };
+ 	};
+ 
+-- 
+2.7.4
+

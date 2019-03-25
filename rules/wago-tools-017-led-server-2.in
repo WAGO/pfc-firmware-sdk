@@ -1,0 +1,65 @@
+## SECTION=wago_specific_tools_led_server_2
+
+config LED_SERVER_2
+	bool
+	default n
+	  
+
+config LED_SERVER_2_DEBUGGING
+	bool
+	default n
+	prompt "Debug Programm"
+	help
+	  FIXME
+
+choice
+	prompt "Select Hardware-abstraction"
+	default LED_SERVER_2_HAL_PCA955X
+
+	config LED_SERVER_2_HAL_PCA955X
+		bool
+		prompt "pca955x (I2C interface driver)"
+		help
+			This is the recommended interface
+
+	config LED_SERVER_2_HAL_GPIO
+		bool
+		prompt "GPIO (Handle GPIOs)"
+		help
+			This is the old used interface and not recommended any more
+
+endchoice
+
+if LED_SERVER_2_HAL_GPIO
+choice
+	prompt "Select Product Variant"
+	default LED_SERVER_2_HAL_GPIO_PFC200
+
+	config LED_SERVER_2_HAL_GPIO_PFC200
+		bool
+		prompt "PFC200"
+		help
+			FIXME
+
+	config LED_SERVER_2_HAL_GPIO_PFC200_EVAL
+		bool
+		prompt "PFC200 Evalboard"
+		help
+			FIXME
+
+	config LED_SERVER_2_HAL_GPIO_PERSPECTO
+		bool
+		prompt "PERSPECTO 2"
+		help
+			FIXME
+
+endchoice
+endif
+	 
+config LED_SERVER_2_TRUNK
+	bool
+	default n
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+

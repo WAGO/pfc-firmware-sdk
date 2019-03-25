@@ -1,0 +1,24 @@
+## SECTION=networking
+
+config MDMD
+	bool
+	default n
+	prompt "mdmd"
+	select GOOGLETEST
+	select HOST_CT_BUILD
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select GLIB
+	select FUSE
+	select TYPELABEL
+	select CT_WWAN_INTERFACE
+	help
+	  WAGO Modem Management Daemon
+
+if MDMD
+config WAGO_CUSTOM_MDMD_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/mdmd"
+
+endif

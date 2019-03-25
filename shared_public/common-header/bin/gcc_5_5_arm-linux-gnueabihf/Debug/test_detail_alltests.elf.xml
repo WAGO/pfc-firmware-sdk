@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="35" failures="0" disabled="0" errors="0" timestamp="2019-03-06T16:08:11"
+            time="0.144"
+            name="AllTests">
+  <testsuite name="libcommonheader.Assert" tests="4" failures="0" disabled="0" errors="0"
+              time="0.125">
+      <testcase name="SucceedC" status="run" time="0.001" classname="libcommonheader.Assert"/>
+      <testcase name="FailC_DeathTest" status="run" time="0.063"
+                classname="libcommonheader.Assert"/>
+      <testcase name="SucceedCPP" status="run" time="0" classname="libcommonheader.Assert"/>
+      <testcase name="FailCPP_DeathTest" status="run" time="0.058"
+                classname="libcommonheader.Assert"/>
+  </testsuite>
+  <testsuite name="libcommonheader.Export" tests="5" failures="0" disabled="0" errors="0"
+              time="0.002">
+      <testcase name="ExportedCFunction" status="run" time="0.001"
+                classname="libcommonheader.Export"/>
+      <testcase name="NotExportedCFunction" status="run" time="0"
+                classname="libcommonheader.Export"/>
+      <testcase name="InheritedExportedCPPMethod" status="run" time="0"
+                classname="libcommonheader.Export"/>
+      <testcase name="ExportedCPPMethod" status="run" time="0.001"
+                classname="libcommonheader.Export"/>
+      <testcase name="NotExportedCPPMethod" status="run" time="0"
+                classname="libcommonheader.Export"/>
+  </testsuite>
+  <testsuite name="libcommonheader.Preprocessing" tests="8" failures="0" disabled="0"
+              errors="0"
+              time="0.003">
+      <testcase name="StringFromExpressionC" status="run" time="0.001"
+                classname="libcommonheader.Preprocessing"/>
+      <testcase name="StringFromSubstitutionC" status="run" time="0"
+                classname="libcommonheader.Preprocessing"/>
+      <testcase name="GlueC" status="run" time="0" classname="libcommonheader.Preprocessing"/>
+      <testcase name="SubstitutionGlueC" status="run" time="0.001"
+                classname="libcommonheader.Preprocessing"/>
+      <testcase name="StringFromExpressionCPP" status="run" time="0"
+                classname="libcommonheader.Preprocessing"/>
+      <testcase name="StringFromSubstitutionCPP" status="run" time="0"
+                classname="libcommonheader.Preprocessing"/>
+      <testcase name="GlueCPP" status="run" time="0" classname="libcommonheader.Preprocessing"/>
+      <testcase name="SubstitutionGlueCPP" status="run" time="0"
+                classname="libcommonheader.Preprocessing"/>
+  </testsuite>
+  <testsuite name="libcommonheader.StdIncludes" tests="6" failures="0" disabled="0"
+              errors="0"
+              time="0.003">
+      <testcase name="stdintC" status="run" time="0.001"
+                classname="libcommonheader.StdIncludes"/>
+      <testcase name="stddefC" status="run" time="0" classname="libcommonheader.StdIncludes"/>
+      <testcase name="stdboolC" status="run" time="0.001"
+                classname="libcommonheader.StdIncludes"/>
+      <testcase name="stdintCPP" status="run" time="0" classname="libcommonheader.StdIncludes"/>
+      <testcase name="stddefCPP" status="run" time="0" classname="libcommonheader.StdIncludes"/>
+      <testcase name="stdboolCPP" status="run" time="0" classname="libcommonheader.StdIncludes"/>
+  </testsuite>
+  <testsuite name="libcommonheader.Structuring" tests="12" failures="0" disabled="0"
+              errors="0"
+              time="0.005">
+      <testcase name="BreakableScopeC" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="InfiniteLoopC" status="run" time="0.001"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="MemberSizeC" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="ElementSizeC" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="ContainerFromMemberC" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="ConstContainerFromMemberC" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="BreakableScopeCPP" status="run" time="0.001"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="InfiniteLoopCPP" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="MemberSizeCPP" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="ElementSizeCPP" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="ContainerFromMemberCPP" status="run" time="0"
+                classname="libcommonheader.Structuring"/>
+      <testcase name="ConstContainerFromMemberCPP" status="run" time="0.001"
+                classname="libcommonheader.Structuring"/>
+  </testsuite>
+</testsuites>

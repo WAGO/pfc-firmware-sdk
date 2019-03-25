@@ -1,0 +1,9 @@
+## SECTION=wago_specific_rocket_specific
+
+config ORDERNUMBER
+  string
+  prompt "Order-Number"
+  help
+    Order-Number of the Product this Configuration is created for. The Format of the Order-Number is very simple: a Rocket-Controller for Modbus (PAC100 Modbus or PAC100 ETH) has got the Number: 07683201.
+
+

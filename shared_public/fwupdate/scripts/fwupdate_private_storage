@@ -1,0 +1,1264 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate_private_storage
+#
+# Brief:    Private storage definitions and functions for WAGO firmware update.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Check for expected standard path
+if [ -z "${WAGO_ST_DIR:-}" ]; then
+    echo "Standard directory path vaiable \"WAGO_ST_DIR\" unset or empty"
+    exit 110
+fi
+
+# Load general definitions and functions.
+if [ ! -f "$WAGO_ST_DIR/fwupdate_basic_defines" ]; then
+    echo "Missing dependency fwupdate_basic_defines"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_basic_defines"
+
+if [ ! -f "$WAGO_CT_DIR/config_tool_lib" ]; then
+    echo "Missing dependency config_tool_lib"
+    exit 64
+fi
+source "$WAGO_CT_DIR/config_tool_lib"
+
+
+# FW-Update data key defines
+readonly WAGO_FW_UPDATE_OLD_SYSTEM_NUMBER_KEY="old-system-number"
+readonly WAGO_FW_UPDATE_NEW_SYSTEM_NUMBER_KEY="new-system-number"
+readonly WAGO_FW_UPDATE_STATE_KEY="state"
+readonly WAGO_FW_UPDATE_SUB_STATE_KEY="sub-state"
+readonly WAGO_FW_UPDATE_STACKED_STATE_KEY="stacked-state"
+readonly WAGO_FW_UPDATE_STACKED_SUB_STATE_KEY="stacked-sub-state"
+readonly WAGO_FW_UPDATE_PROGRESS_KEY="progress"
+readonly WAGO_FW_UPDATE_ERRCODE_KEY="errcode"
+readonly WAGO_FW_UPDATE_INFO_KEY="info"
+readonly WAGO_FW_UPDATE_TIMEOUT_KEY="timeout"
+readonly WAGO_FW_UPDATE_OPERATE_ERROR_KEY="operate-on-error"
+readonly WAGO_FW_UPDATE_HOLD_ERROR_KEY="hold-on-error"
+readonly WAGO_FW_UPDATE_KEEP_APP_KEY="keep-application"
+readonly WAGO_FW_UPDATE_SKIP_SETTINGS_KEY="skip-settings"
+
+# Initial values
+readonly WAGO_FW_UPDATE_INITIAL_OLD_SYSTEM_NUMBER=1
+readonly WAGO_FW_UPDATE_INITIAL_NEW_SYSTEM_NUMBER=1
+readonly WAGO_FW_UPDATE_INITIAL_STATE="$WAGO_FW_UPDATE_INACTIVE_STATE"
+readonly WAGO_FW_UPDATE_INITIAL_SUB_STATE="global"
+readonly WAGO_FW_UPDATE_INITIAL_STACKED_STATE=""
+readonly WAGO_FW_UPDATE_INITIAL_STACKED_SUB_STATE=""
+readonly WAGO_FW_UPDATE_INITIAL_PROGRESS=0
+readonly WAGO_FW_UPDATE_INITIAL_ERROR_CODE=0
+readonly WAGO_FW_UPDATE_INITIAL_TEXT=""
+readonly WAGO_FW_UPDATE_INITIAL_TIMEOUT=""
+readonly WAGO_FW_UPDATE_INITIAL_OPERATE_ERROR_FLAG="false"
+readonly WAGO_FW_UPDATE_INITIAL_HOLD_ERROR_FLAG="false"
+readonly WAGO_FW_UPDATE_INITIAL_KEEP_APP_FLAG="false"
+readonly WAGO_FW_UPDATE_INITIAL_SKIP_SETTINGS_FLAG="false"
+
+# Panic default values
+readonly WAGO_FW_UPDATE_PANIC_STATE="$WAGO_FW_UPDATE_REVERT_STATE"
+readonly WAGO_FW_UPDATE_PANIC_SUB_STATE="panic"
+readonly WAGO_FW_UPDATE_PANIC_STACKED_STATE=""
+readonly WAGO_FW_UPDATE_PANIC_STACKED_SUB_STATE=""
+readonly WAGO_FW_UPDATE_PANIC_PROGRESS=1
+readonly WAGO_FW_UPDATE_PANIC_ERROR_CODE=100
+readonly WAGO_FW_UPDATE_PANIC_TIMEOUT=""
+readonly WAGO_FW_UPDATE_PANIC_OPERATE_ERROR_FLAG="false"
+readonly WAGO_FW_UPDATE_PANIC_HOLD_ERROR_FLAG="false"
+readonly WAGO_FW_UPDATE_PANIC_KEEP_APP_FLAG="true"
+readonly WAGO_FW_UPDATE_PANIC_SKIP_SETTINGS_FLAG="false"
+
+# Function to store current state + sub state and optionally set new ones.
+#
+# Param 1: New FW-Update state (optional)
+# Param 2: New FW-Update sub state (optional)
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success last FW-Update state
+#
+# See also: fwupdate_set_state(),
+#           fwupdate_get_state(),
+#           fwupdate_set_sub_state(),
+#           fwupdate_get_sub_state(),
+#           fwupdate_get_stacked_state_top(),
+#           fwupdate_get_stacked_sub_state_top()
+#-----------------------------------------------------------------------------#
+fwupdate_stack_state()
+{
+    local NEW_STATE="${1:-}"
+    local NEW_SUB_STATE="${2:-}"
+    local RESULT=0
+
+    # Stack state
+    local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+    local SUB_STATE="$WAGO_FW_UPDATE_INVALID_SUB_STATE"
+    STATE="$(fwupdate_get_state)"
+    RESULT=$?
+
+    local STACKED_STATE=""
+    if [ $RESULT -eq 0 ]; then
+        STACKED_STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_STACKED_STATE_KEY")"
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            STACKED_STATE="$(echo -n "$STACKED_STATE" | cut -d\" -f2)"
+        fi
+    fi
+
+    if [ $RESULT -eq 0 ]; then
+        fwupdate_set_value "$WAGO_FW_UPDATE_STACKED_STATE_KEY" "\"${STATE}${WAGO_FW_UPDATE_STACK_CHAR}${STACKED_STATE}\""
+        RESULT=$?
+    fi
+
+    # Stack sub state
+    if [ $RESULT -eq 0 ]; then
+        SUB_STATE="$(fwupdate_get_sub_state)"
+        RESULT=$?
+    fi
+
+    if [ $RESULT -eq 0 ]; then
+        fwupdate_push_stacked_sub_state "$SUB_STATE"
+        RESULT=$?
+    fi
+
+    # Set new state if given
+    if [ $RESULT -eq 0 ] && [ -n "$NEW_STATE" ]; then
+        fwupdate_set_state "$NEW_STATE"
+        RESULT=$?
+    fi
+
+    # Set new sub state if given
+    if [ $RESULT -eq 0 ] && [ -n "$NEW_SUB_STATE" ]; then
+        fwupdate_set_sub_state "$NEW_SUB_STATE"
+        RESULT=$?
+    fi
+
+    # Return old state
+    if [ $RESULT -eq 0 ]; then
+        echo -n "$STATE"
+    fi
+
+    return $RESULT
+}
+
+# Function to push the given sub state to stack.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# Param 1: FW-Update sub state
+#
+# See also: fwupdate_stack_state(),
+#           fwupdate_pop_stacked_state(),
+#           fwupdate_get_stacked_sub_state_top()
+#-----------------------------------------------------------------------------#
+fwupdate_push_stacked_sub_state()
+{ 
+    local SUB_STATE="$1"
+    local RESULT=0
+
+    local STACKED_SUB_STATE=""
+    STACKED_SUB_STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_STACKED_SUB_STATE_KEY")"
+    RESULT=$?
+    if [ $RESULT -eq 0 ]; then
+        STACKED_SUB_STATE="$(echo -n "$STACKED_SUB_STATE" | cut -d\" -f2)"
+    fi
+
+    if [ $RESULT -eq 0 ]; then
+        fwupdate_set_value "$WAGO_FW_UPDATE_STACKED_SUB_STATE_KEY" "\"${SUB_STATE}${WAGO_FW_UPDATE_STACK_CHAR}${STACKED_SUB_STATE}\""
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to remove first/top stacked state and sub state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_stack_state(),
+#           fwupdate_get_stacked_state_top(),
+#           fwupdate_get_stacked_sub_state_top()
+#-----------------------------------------------------------------------------#
+fwupdate_pop_stacked_state()
+{
+    local RESULT=0
+
+    # Get current stacked state values
+    local STACKED_STATE=""
+    STACKED_STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_STACKED_STATE_KEY")"
+    RESULT=$?
+    if [ $RESULT -eq 0 ]; then
+        STACKED_STATE="$(echo -n "$STACKED_STATE" | cut -d\" -f2)"
+    fi
+
+    local STACKED_SUB_STATE=""
+    if [ $RESULT -eq 0 ]; then
+        STACKED_SUB_STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_STACKED_SUB_STATE_KEY")"
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            STACKED_SUB_STATE="$(echo -n "$STACKED_SUB_STATE" | cut -d\" -f2)"
+        fi
+    fi
+
+    # Check if pop possible
+    if [ -z "$STACKED_STATE" ] || [ -z "$STACKED_SUB_STATE" ]; then
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    # Remove top values
+    local NEW_STACKED_STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+    if [ $RESULT -eq 0 ]; then
+        NEW_STACKED_STATE="$(echo -n "$STACKED_STATE" | cut -d"$WAGO_FW_UPDATE_STACK_CHAR" -f2-100)"
+        RESULT=$?
+    fi
+
+    local NEW_STACKED_SUB_STATE="$WAGO_FW_UPDATE_INVALID_SUB_STATE"
+    if [ $RESULT -eq 0 ]; then
+        NEW_STACKED_SUB_STATE="$(echo -n "$STACKED_SUB_STATE" | cut -d"$WAGO_FW_UPDATE_STACK_CHAR" -f2-100)"
+        RESULT=$?
+    fi
+
+    # Set new stacked state values
+    if [ $RESULT -eq 0 ]; then
+        fwupdate_set_value "$WAGO_FW_UPDATE_STACKED_STATE_KEY" "$NEW_STACKED_STATE"
+        RESULT=$?
+    fi
+
+    if [ $RESULT -eq 0 ]; then
+        fwupdate_set_value "$WAGO_FW_UPDATE_STACKED_SUB_STATE_KEY" "$NEW_STACKED_SUB_STATE"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to get first stacked FW-Update state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success first stacked FW-Update state
+#
+# See also: fwupdate_stack_state(),
+#           fwupdate_get_stacked_sub_state_top()
+#-----------------------------------------------------------------------------#
+fwupdate_get_stacked_state_top()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_STACKED_STATE"
+    else
+        local STACKED_STATE=""
+        STACKED_STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_STACKED_STATE_KEY")"
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            STACKED_STATE="$(echo -n "$STACKED_STATE" | cut -d\" -f2)"
+        fi
+
+        local STACKED_TOP_STATE=""
+        if [ $RESULT -eq 0 ]; then
+            STACKED_TOP_STATE="$(echo -n "$STACKED_STATE" | cut -d"$WAGO_FW_UPDATE_STACK_CHAR" -f1)"
+            RESULT=$?
+        fi
+
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$(echo -n "$STACKED_TOP_STATE")"
+            RESULT=$?
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to get first stacked FW-Update sub state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success first stacked FW-Update sub state
+#
+# See also: fwupdate_stack_state(),
+#           fwupdate_get_stacked_state_top()
+#-----------------------------------------------------------------------------#
+fwupdate_get_stacked_sub_state_top()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_STACKED_SUB_STATE"
+    else
+        local STACKED_SUB_STATE=""
+        STACKED_SUB_STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_STACKED_SUB_STATE_KEY")"
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            STACKED_SUB_STATE="$(echo -n "$STACKED_SUB_STATE" | cut -d\" -f2)"
+        fi
+
+        local STACKED_TOP_SUB_STATE="$WAGO_FW_UPDATE_INACTIVE_STATE"
+        if [ $RESULT -eq 0 ]; then
+            STACKED_TOP_SUB_STATE="$(echo -n "$STACKED_SUB_STATE" | cut -d"$WAGO_FW_UPDATE_STACK_CHAR" -f1)"
+            RESULT=$?
+        fi
+
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$(echo -n "$STACKED_TOP_SUB_STATE")"
+            RESULT=$?
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update state without check if new state is allowed.
+# Do not use this function directly, only for special purposes (e.g. tests).
+#
+# Param 1: New FW-Update state
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_set_state()
+#-----------------------------------------------------------------------------#
+fwupdate_set_state_unchecked()
+{
+    local NEW_STATE="$1"
+    local RESULT=0
+
+    # Set state
+    fwupdate_set_value "$WAGO_FW_UPDATE_STATE_KEY" "\"$NEW_STATE\""
+    RESULT=$?
+
+    # Reset sub state on success
+    if [ $RESULT -eq 0 ]; then
+        fwupdate_set_sub_state "$WAGO_FW_UPDATE_INITIAL_SUB_STATE"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to get FW-Update state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update state
+#
+# See also: fwupdate_set_state()
+#-----------------------------------------------------------------------------#
+fwupdate_get_state()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_STATE"
+    else
+        # Determine state
+        local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_STATE_KEY")"
+            RESULT=$?
+        else
+            STATE="$WAGO_FW_UPDATE_INACTIVE_STATE"
+            RESULT=0
+        fi
+        if [ $RESULT -eq 0 ]; then
+            STATE="$(echo -n "$STATE" | cut -d\" -f2)"
+            echo -n "$STATE"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update sub state.
+#
+# Param 1: New FW-Update sub state
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_sub_state()
+#-----------------------------------------------------------------------------#
+fwupdate_set_sub_state()
+{
+    local NEW_SUB_STATE="$1"
+    local RESULT=0
+
+    # Set sub state
+    fwupdate_set_value "$WAGO_FW_UPDATE_SUB_STATE_KEY" "\"$NEW_SUB_STATE\""
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update sub state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update sub state
+#
+# See also: fwupdate_set_sub_state()
+#-----------------------------------------------------------------------------#
+fwupdate_get_sub_state()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_SUB_STATE"
+    else
+        # Determine sub state
+        local SUB_STATE="$WAGO_FW_UPDATE_INVALID_SUB_STATE"
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            SUB_STATE="$(fwupdate_get_value "$WAGO_FW_UPDATE_SUB_STATE_KEY")"
+            RESULT=$?
+        fi
+        if [ $RESULT -eq 0 ]; then
+            SUB_STATE="$(echo -n "$SUB_STATE" | cut -d\" -f2)"
+            echo -n "$SUB_STATE"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update progress.
+#
+# Param 1: New FW-Update progress
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_progress_percent(),
+#           fwupdate_get_progress()
+#-----------------------------------------------------------------------------#
+fwupdate_set_progress()
+{
+    local NEW_PROGRESS=$1
+    local RESULT=0
+
+    # Set progress
+    fwupdate_set_value "$WAGO_FW_UPDATE_PROGRESS_KEY" "$NEW_PROGRESS"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update progress as percent.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update progress
+#
+# See also: fwupdate_get_progress(),
+#           fwupdate_set_progress()
+#-----------------------------------------------------------------------------#
+fwupdate_get_progress_percent()
+{
+    local RESULT=0
+
+    # Determine progress
+    local PROGRESS=0
+    PROGRESS=$(fwupdate_get_progress)
+    RESULT=$?
+    if [ $RESULT -eq 0 ]; then
+        local PERCENT=$(($PROGRESS*100/$WAGO_FW_UPDATE_MAX_PROGRESS))
+        echo -n "$PERCENT"
+    fi
+
+    return $RESULT
+}
+
+# Function to get FW-Update progress.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update progress as percent
+#
+# See also: fwupdate_get_progress_percent(),
+#           fwupdate_set_progress()
+#-----------------------------------------------------------------------------#
+fwupdate_get_progress()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_PROGRESS"
+    else
+        # Determine progress
+        local PROGRESS=0
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            PROGRESS=$(fwupdate_get_value "$WAGO_FW_UPDATE_PROGRESS_KEY")
+            RESULT=$?
+        else
+            PROGRESS=0
+            RESULT=0
+        fi
+        # Adjust progress if fwupdate-service is installing image
+        if [ -e "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" ]; then
+            local INSTALL_PROGRESS=$(tail -n 1 "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" | cut -d ':' -f3 | cut -d '%' -f1)
+            if [ -z $INSTALL_PROGRESS ]; then
+                INSTALL_PROGRESS=0
+            elif [ $INSTALL_PROGRESS -gt 99 ]; then
+                INSTALL_PROGRESS=100
+            fi
+            PROGRESS=$(($PROGRESS+($INSTALL_PROGRESS*10)/2))
+        fi
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$PROGRESS"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update error code.
+#
+# Param 1: New FW-Update error code
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_error_code()
+#-----------------------------------------------------------------------------#
+fwupdate_set_error_code()
+{
+    local NEW_ERROR_CODE=$1
+    local RESULT=0
+
+    # Set error code
+    fwupdate_set_value "$WAGO_FW_UPDATE_ERRCODE_KEY" "$NEW_ERROR_CODE"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update error code.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update error code
+#
+# See also: fwupdate_set_error_code()
+#-----------------------------------------------------------------------------#
+fwupdate_get_error_code()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_ERROR_CODE"
+    else
+        # Determine error code
+        local ERROR_CODE=0
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            ERROR_CODE=$(fwupdate_get_value "$WAGO_FW_UPDATE_ERRCODE_KEY")
+            RESULT=$?
+        else
+            ERROR_CODE=0
+            RESULT=0
+        fi
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$ERROR_CODE"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update info text.
+#
+# Param 1: New FW-Update info text
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_info_text()
+#-----------------------------------------------------------------------------#
+fwupdate_set_info_text()
+{
+    local NEW_INFO_TEXT="$1"
+    local RESULT=0
+
+    # Set info text
+    local ESCAPED_INFO_TEXT
+    ESCAPED_INFO_TEXT="$(echo -n "$NEW_INFO_TEXT" | $SED 's/\\/\\\\/g' | $SED 's/\"/\\h/g')"
+    fwupdate_set_value "$WAGO_FW_UPDATE_INFO_KEY" "\"$ESCAPED_INFO_TEXT\""
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update info text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update info text
+#
+# See also: fwupdate_set_info_text()
+#-----------------------------------------------------------------------------#
+fwupdate_get_info_text()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$(cat "$WAGO_FW_UPDATE_PANIC_FILE")"
+    else
+        # Determine info text
+        local ESCAPED_INFO_TEXT=""
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            ESCAPED_INFO_TEXT="$(fwupdate_get_value "$WAGO_FW_UPDATE_INFO_KEY")"
+            RESULT=$?
+        else
+            ESCAPED_INFO_TEXT=""
+            RESULT=0
+        fi
+        if [ $RESULT -eq 0 ]; then
+            ESCAPED_INFO_TEXT="$(echo -n "$ESCAPED_INFO_TEXT" | cut -d\" -f2)"
+            INFO_TEXT="$(echo -n "$ESCAPED_INFO_TEXT" | $SED 's/\\\h/\"/g' | $SED 's/\\\\/\\/g')"
+            echo -n "$INFO_TEXT"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update state timeout.
+#
+# Param 1: New FW-Update state timeout in seconds
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_timeout()
+#-----------------------------------------------------------------------------#
+fwupdate_set_timeout()
+{
+    local NEW_TIMEOUT=$1
+    local RESULT=0
+
+    # Set error code
+    fwupdate_set_value "$WAGO_FW_UPDATE_TIMEOUT_KEY" "$NEW_TIMEOUT"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update state timeout.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: - On success FW-Update state timeout in seconds, or
+#         - "" if no timeout specified
+#
+# See also: fwupdate_set_timeout()
+#-----------------------------------------------------------------------------#
+fwupdate_get_timeout()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_TIMEOUT"
+    else
+        # Determine timeout
+        local TIMEOUT=0
+        TIMEOUT=$(fwupdate_get_value "$WAGO_FW_UPDATE_TIMEOUT_KEY")
+        RESULT=$?
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$TIMEOUT"
+        else
+            # FIXME: Is this really necessary?
+            echo -n ""
+        fi
+    fi
+    return $RESULT
+}
+
+# Function to set the number of the old system.
+#
+# Param 1: New value for old system number
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_old_system_number()
+#-----------------------------------------------------------------------------#
+fwupdate_set_old_system_number()
+{
+    fwupdate_set_value "$WAGO_FW_UPDATE_OLD_SYSTEM_NUMBER_KEY" $1
+}
+
+# Function to get the number of the old system.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: old system number
+#
+# See also: fwupdate_set_old_system_number()
+#-----------------------------------------------------------------------------#
+fwupdate_get_old_system_number()
+{
+    local result=0
+    local system_number=0
+    if [[ -e "$WAGO_FW_UPDATE_DATA" ]]; then
+        system_number=$(fwupdate_get_value "$WAGO_FW_UPDATE_OLD_SYSTEM_NUMBER_KEY")
+        result=$?
+    else
+        system_number=$($WAGO_CT_DIR/get_systeminfo active-system-number)
+        result=$?
+    fi
+    if [[ $result -eq 0 ]]; then
+        echo -n "$system_number"
+    else
+        echo -n "$WAGO_FW_UPDATE_INITIAL_OLD_SYSTEM_NUMBER$"
+    fi
+
+    return $result
+}
+
+# Function to set the number of the new system.
+#
+# Param 1: New value for new system number
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_new_system_number()
+#-----------------------------------------------------------------------------#
+fwupdate_set_new_system_number()
+{
+    fwupdate_set_value "$WAGO_FW_UPDATE_NEW_SYSTEM_NUMBER_KEY" $1
+}
+
+# Function to get the number of the new system.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: old system number
+#
+# See also: fwupdate_set_new_system_number()
+#-----------------------------------------------------------------------------#
+fwupdate_get_new_system_number()
+{
+    local result=0
+    local system_number=0
+    if [[ -e "$WAGO_FW_UPDATE_DATA" ]]; then
+        system_number=$(fwupdate_get_value "$WAGO_FW_UPDATE_NEW_SYSTEM_NUMBER_KEY")
+        result=$?
+    else
+        system_number=$($WAGO_CT_DIR/get_systeminfo inactive-system-number)
+        result=$?
+    fi
+    if [[ $result -eq 0 ]]; then
+        echo -n "$system_number"
+    else
+        echo -n "$WAGO_FW_UPDATE_INITIAL_NEW_SYSTEM_NUMBER"
+    fi
+
+    return $result
+}
+
+# Function to get FW-Update flag "operate on finish".
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update flag operate_on_finish
+#-----------------------------------------------------------------------------#
+fwupdate_get_operate_on_finish_flag()
+{
+    echo -n "true"
+
+    return 0
+}
+
+# Function to set FW-Update flag "operate on error".
+#
+# Param 1: New flag value (true/false)
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_operate_on_error_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_set_operate_on_error_flag()
+{
+    local NEW_FLAG=$1
+    local RESULT=0
+
+    # Set error code
+    fwupdate_set_value "$WAGO_FW_UPDATE_OPERATE_ERROR_KEY" "$NEW_FLAG"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update flag "operate on error".
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update flag operate_on_error
+#
+# See also: fwupdate_set_operate_on_error_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_get_operate_on_error_flag()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_OPERATE_ERROR_FLAG"
+    else
+        # Determine flag
+        local OPERATE_ERROR_FLAG=false
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            OPERATE_ERROR_FLAG=$(fwupdate_get_value "$WAGO_FW_UPDATE_OPERATE_ERROR_KEY")
+            RESULT=$?
+        else
+            RESULT=0
+        fi
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$OPERATE_ERROR_FLAG"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update flag "hold on error".
+#
+# Param 1: New flag value (true/false)
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_hold_on_error_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_set_hold_on_error_flag()
+{
+    local NEW_FLAG=$1
+    local RESULT=0
+
+    # Set error code
+    fwupdate_set_value "$WAGO_FW_UPDATE_HOLD_ERROR_KEY" "$NEW_FLAG"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update flag "hold on error".
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update error code
+#
+# See also: fwupdate_set_hold_on_error_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_get_hold_on_error_flag()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_HOLD_ERROR_FLAG"
+    else
+        # Determine flag
+        local HOLD_ERROR_FLAG=false
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            HOLD_ERROR_FLAG=$(fwupdate_get_value "$WAGO_FW_UPDATE_HOLD_ERROR_KEY")
+            RESULT=$?
+        else
+            RESULT=0
+        fi
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$HOLD_ERROR_FLAG"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update flag "skip settings".
+#
+# Param 1: New flag value (true/false)
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_skip_settings_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_set_skip_settings_flag()
+{
+    local NEW_FLAG=$1
+    local RESULT=0
+
+    # Set flag value
+    fwupdate_set_value "$WAGO_FW_UPDATE_SKIP_SETTINGS_KEY" "$NEW_FLAG"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update flag "skip settings".
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update error code
+#
+# See also: fwupdate_set_skip_settings_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_get_skip_settings_flag()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_SKIP_SETTINGS_FLAG"
+    else
+        # Determine flag
+        local SKIP_SETTINGS_FLAG=false
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            SKIP_SETTINGS_FLAG=$(fwupdate_get_value "$WAGO_FW_UPDATE_SKIP_SETTINGS_KEY")
+            RESULT=$?
+        else
+            RESULT=0
+        fi
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$SKIP_SETTINGS_FLAG"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to set FW-Update flag "delete application".
+#
+# Param 1: New flag value (true/false)
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_keep_application_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_set_keep_app_flag()
+{
+    local NEW_FLAG=$1
+    local RESULT=0
+
+    # Set error code
+    fwupdate_set_value "$WAGO_FW_UPDATE_KEEP_APP_KEY" "$NEW_FLAG"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get FW-Update flag "delete application".
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update flag keep_application
+#
+# See also: fwupdate_set_keep_application_flag()
+#-----------------------------------------------------------------------------#
+fwupdate_get_keep_app_flag()
+{
+    local RESULT=0
+
+    # Return panic value if panic file present
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        echo -n "$WAGO_FW_UPDATE_PANIC_KEEP_APP_FLAG"
+    else
+        # Determine flag
+        local KEEP_APPLICATION_FLAG=false
+        if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+            KEEP_APPLICATION_FLAG=$(fwupdate_get_value "$WAGO_FW_UPDATE_KEEP_APP_KEY")
+            RESULT=$?
+        fi
+        if [ $RESULT -eq 0 ]; then
+            echo -n "$KEEP_APPLICATION_FLAG"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to setup and initialize FW-Update data store.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_data_destroy()
+#-----------------------------------------------------------------------------#
+fwupdate_data_init()
+{
+    local RESULT=0
+
+    local DATADIR
+    DATADIR="$(dirname "$WAGO_FW_UPDATE_DATA")"
+    if [ ! -d "$DATADIR" ]; then
+        fwupdate_report_error "Directory for $WAGO_CT_SYSTEM_MODULE management data does not exist!"
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    # Create lock
+    fwupdate_create_lock
+    RESULT=$?
+
+    # Write initial data
+    if [ $RESULT -eq 0 ]; then
+        local active_system_nr
+        local inactive_system_nr
+        active_system_nr=$($WAGO_CT_DIR/get_systeminfo active-system-number) &&
+            inactive_system_nr=$($WAGO_CT_DIR/get_systeminfo inactive-system-number)
+        if [[ $? -ne 0 ]]; then
+            fwupdate_report_error "Failed to read the system numbers"
+            RESULT=$INTERNAL_ERROR
+        else
+            fwupdate_exclusive_lock
+            RESULT=$?
+            if [ $RESULT -eq 0 ]; then
+                # Create file or clear content if any and write initial status
+                local init_content
+                init_content="${WAGO_FW_UPDATE_STATE_KEY}=\"$WAGO_FW_UPDATE_INITIAL_STATE\""
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_SUB_STATE_KEY}=\"$WAGO_FW_UPDATE_INITIAL_SUB_STATE\"")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_STACKED_STATE_KEY}=\"${WAGO_FW_UPDATE_INITIAL_STACKED_STATE}\"")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_STACKED_SUB_STATE_KEY}=\"${WAGO_FW_UPDATE_INITIAL_STACKED_SUB_STATE}\"")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_OLD_SYSTEM_NUMBER_KEY}=$active_system_nr")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_NEW_SYSTEM_NUMBER_KEY}=$inactive_system_nr")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_PROGRESS_KEY}=$WAGO_FW_UPDATE_INITIAL_PROGRESS")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_ERRCODE_KEY}=$WAGO_FW_UPDATE_INITIAL_ERROR_CODE")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_INFO_KEY}=\"${WAGO_FW_UPDATE_INITIAL_TEXT}\"")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_TIMEOUT_KEY}=$WAGO_FW_UPDATE_INITIAL_TIMEOUT")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_OPERATE_ERROR_KEY}=${WAGO_FW_UPDATE_INITIAL_OPERATE_ERROR_FLAG}")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_HOLD_ERROR_KEY}=${WAGO_FW_UPDATE_INITIAL_HOLD_ERROR_FLAG}")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_KEEP_APP_KEY}=${WAGO_FW_UPDATE_INITIAL_KEEP_APP_FLAG}")"
+                init_content="$(echo -e "${init_content}\n${WAGO_FW_UPDATE_SKIP_SETTINGS_KEY}=${WAGO_FW_UPDATE_INITIAL_SKIP_SETTINGS_FLAG}")"
+                echo "$init_content" > "$WAGO_FW_UPDATE_DATA"
+
+                # Check file
+                if [ "$(cat "$WAGO_FW_UPDATE_DATA")" != "$init_content" ]; then
+                    rm -f "$WAGO_FW_UPDATE_DATA"
+                    RESULT=$INTERNAL_ERROR
+                fi
+                fwupdate_release_lock
+            fi
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to destroy FW-Update data store and do any cleanup necessary.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_data_init()
+#-----------------------------------------------------------------------------#
+fwupdate_data_destroy()
+{
+    local RESULT=0
+
+    # Remove data file
+    if ! fwupdate_exclusive_lock; then
+        fwupdate_warning "Failed to get lock to remove obsolete data file"
+        rm -rf "$WAGO_FW_UPDATE_DATA"
+        RESULT=$?
+    else
+        rm -rf "$WAGO_FW_UPDATE_DATA"
+        RESULT=$?
+        fwupdate_release_lock
+    fi
+
+    return $RESULT
+}
+
+# Function to set a FW-Update value in common data store.
+#
+# Param 1: Identifying key for value to set
+# Param 2: Value to set
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_get_value()
+#-----------------------------------------------------------------------------#
+fwupdate_set_value()
+{
+    local KEY="$1"
+    local VALUE="$2"
+    local RESULT=0
+
+    # Set value
+    if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+        local ESCAPED_VALUE
+        ESCAPED_VALUE="$(echo -n "$VALUE" | "$SED" 's/\\/\\\\/g' | "$SED" 's/\//\\\//g')"
+        "$SED" "s/^\($KEY\s*=\s*\).*\$/\1$ESCAPED_VALUE/" >"${WAGO_FW_UPDATE_DATA}.tmp" <"$WAGO_FW_UPDATE_DATA" && sync
+        if [[ $? -ne 0 ]]; then
+            RESULT=$INTERNAL_ERROR
+        else
+            mv "${WAGO_FW_UPDATE_DATA}.tmp" "$WAGO_FW_UPDATE_DATA" && sync
+        fi
+    else
+        RESULT=$CONFIG_FILE_MISSING
+    fi
+
+    return $RESULT
+}
+
+# Function to get a FW-Update value from common data store.
+#
+# Param 1: Identifying key for value to get
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_set_value()
+#-----------------------------------------------------------------------------#
+fwupdate_get_value()
+{
+    local KEY="$1"
+    local RESULT=0
+
+    # Determine value
+    local VALUE="undefined"
+    if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+        VALUE="$(cat "$WAGO_FW_UPDATE_DATA" | grep "^$KEY=" | cut -d= -f2)"
+        RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+    else
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    # Return value on success
+    if [ $RESULT -eq 0 ]; then
+        echo -n "$VALUE"
+    fi
+    return $RESULT
+}
+
+# Function to create FW-Update lock.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_shared_lock(),
+#           fwupdate_exclusive_lock(),
+#           fwupdate_release_lock()
+#-----------------------------------------------------------------------------#
+fwupdate_create_lock()
+{
+    local RESULT=0
+
+    # Touch only and do not overwrite/replace by a new file or new file content to keep active locks
+    touch "$WAGO_FW_UPDATE_DATA_LOCK"
+    RESULT=$?
+    if [[ $RESULT != 0 ]]; then
+        fwupdate_report_error "Failed to create lock file \"$WAGO_FW_UPDATE_DATA_LOCK\""
+    fi
+
+    return $RESULT
+}
+
+# Function to get a shared FW-Update lock (e.g. for read data).
+# If lockfile does not exist it will be created.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_create_lock(),
+#           fwupdate_exclusive_lock(),
+#           fwupdate_release_lock()
+#-----------------------------------------------------------------------------#
+fwupdate_shared_lock()
+{
+    local RESULT=0
+
+    if [ ! -e "$WAGO_FW_UPDATE_DATA_LOCK" ]; then
+        fwupdate_create_lock
+        RESULT=$?
+        if [[ $RESULT != 0 ]]; then
+            return $RESULT
+        fi
+    fi
+    local TIMEOUT=$WAGO_FW_UPDATE_DEFAULT_TIMEOUT
+    get_read_lock $WAGO_FW_UPDATE_DATA_LOCK_FD "$WAGO_FW_UPDATE_DATA_LOCK" $TIMEOUT
+    RESULT=$?
+
+    if [ $RESULT -ne 0 ]; then
+        local LOG_INFO="$WAGO_CT_SYSTEM_MODULE on \"$WAGO_FW_UPDATE_DATA_LOCK\" within $TIMEOUT seconds"
+        fwupdate_report_error "Failed to get shared lock for $LOG_INFO"
+    fi
+
+    return $RESULT
+}
+
+# Function to get an exclusive FW-Update lock (e.g. for write data).
+# If lockfile does not exist it will be created.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_create_lock(),
+#           fwupdate_shared_lock(),
+#           fwupdate_release_lock()
+#-----------------------------------------------------------------------------#
+fwupdate_exclusive_lock()
+{
+    local RESULT=0
+
+    if [ ! -e "$WAGO_FW_UPDATE_DATA_LOCK" ]; then
+        fwupdate_create_lock
+        RESULT=$?
+        if [[ $RESULT != 0 ]]; then
+            return $RESULT
+        fi
+    fi
+    local TIMEOUT=$WAGO_FW_UPDATE_DEFAULT_TIMEOUT
+    get_write_lock $WAGO_FW_UPDATE_DATA_LOCK_FD "$WAGO_FW_UPDATE_DATA_LOCK" $TIMEOUT
+    RESULT=$?
+
+    if [ $RESULT -ne 0 ]; then
+        local LOG_INFO="$WAGO_CT_SYSTEM_MODULE on \"$WAGO_FW_UPDATE_DATA_LOCK\" within $TIMEOUT seconds"
+        fwupdate_report_error "Failed to get exclusive lock for $LOG_INFO"
+    fi
+
+    return $RESULT
+}
+
+# Function to get an exclusive FW-Update lock for panic mode.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_create_lock(),
+#           fwupdate_exclusive_lock(),
+#           fwupdate_shared_lock(),
+#           fwupdate_release_lock()
+#-----------------------------------------------------------------------------#
+fwupdate_panic_lock()
+{
+    local RESULT=0
+
+    if [ ! -e "$WAGO_FW_UPDATE_DATA_LOCK" ]; then
+        fwupdate_create_lock
+        RESULT=$?
+        if [[ $RESULT != 0 ]]; then
+            return $RESULT
+        fi
+    fi
+    local TIMEOUT=1
+    get_write_lock $WAGO_FW_UPDATE_DATA_LOCK_FD "$WAGO_FW_UPDATE_DATA_LOCK" $TIMEOUT
+    RESULT=$?
+
+    if [ $RESULT -ne 0 ]; then
+        local LOG_INFO="$WAGO_CT_SYSTEM_MODULE on \"$WAGO_FW_UPDATE_DATA_LOCK\""
+        fwupdate_report_error "Failed to get panic lock for $LOG_INFO"
+    fi
+
+    return $RESULT
+}
+
+# Function to release a FW-Update lock (e.g. shared lock or exclusive lock).
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: fwupdate_create_lock(),
+#           fwupdate_shared_lock(),
+#           fwupdate_exclusive_lock()
+#-----------------------------------------------------------------------------#
+fwupdate_release_lock()
+{
+    local RESULT=0
+
+    release_lock $WAGO_FW_UPDATE_DATA_LOCK_FD
+    RESULT=$?
+
+    if [ $RESULT -ne 0 ]; then
+        local LOG_INFO="$WAGO_CT_SYSTEM_MODULE on \"$WAGO_FW_UPDATE_DATA_LOCK\""
+        fwupdate_report_error "Failed to release lock for $LOG_INFO"
+    fi
+
+    return $RESULT
+}

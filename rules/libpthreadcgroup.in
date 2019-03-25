@@ -1,0 +1,10 @@
+## SECTION=wago_specific_libs
+
+config LIBPTHREADCGROUP
+	bool
+	default n
+	prompt "libpthreadcgroup"
+    select LIBCGROUP
+	help
+		Library to intercept calls to libpthread. Sorts threads via libcgroups'
+		cgrule.conf mechanism.

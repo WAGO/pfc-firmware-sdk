@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: update_dns_conf
+#
+# Uses all DNS-server entries static and dynamic to create the resolv.conf 
+# All entries will be sorted by the given sorting algorithm.
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------#
+
+
+usage()
+{
+cat << EOF
+* Sorting all dynamic and static DNS-entries and build the final resolv.conf. *
+
+Usage: update_dns_conf <--dry> <config> <--help>
+
+    --dry       Only prints the sorted list to STDOUT
+    config      writes the list to the resolv.conf
+    --help      Shows this output
+
+EOF
+}
+
+
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+  usage
+  exit 0;
+fi
+
+DNS_SERVER_STATIC_FILE="/etc/dns_static_list"
+DNS_SERVER_STATIC_FILE_TEMP="/tmp/dns_temp_list"
+
+#parameter for blender script
+BLENDER_SCRIPT="/etc/config-tools/blender.sh"
+BLENDER_SEARCH_PARAM="DNS_SERVER_"
+BLENDER_DYNAMIC_TEMPLATE="/tmp/dhcp-bootp-data-"
+BLENDER_STATIC_FILE=$DNS_SERVER_STATIC_FILE_TEMP
+BLENDER_DELIMITER="="
+BLENDER_SORTING_ALGO="dynSingleTopStaticBelow"
+BLENDER_FINAL_FILE="/etc/resolv.conf"
+
+
+#generate a temporary list which includes all nameserver for the blender script
+generateStaticList()
+{
+    local index=1
+    local entry=""
+    #create file
+    > $DNS_SERVER_STATIC_FILE_TEMP
+    while read line; do
+            echo $line | egrep -q "^nameserver"
+            if [ $? -eq "0" ]; then
+                entry=`echo $line | egrep -o '[^nameserver ]+'`
+                echo "DNS_SERVER_$index=$entry" >> $DNS_SERVER_STATIC_FILE_TEMP
+            fi
+            index=$((index+1))
+    done < $DNS_SERVER_STATIC_FILE
+}
+
+getList()
+{
+    generateStaticList
+    echo `$BLENDER_SCRIPT $BLENDER_SEARCH_PARAM $BLENDER_DYNAMIC_TEMPLATE $BLENDER_STATIC_FILE $BLENDER_DELIMITER $BLENDER_SORTING_ALGO`
+}
+
+buildServerList()
+{
+    local entries=`getList`
+	# clear old list by removing every line that contains "nameserver" entry. Avoids leftovers from previous settings/restore 
+    sed -i "/^nameserver/d" $BLENDER_FINAL_FILE
+    if [ -n "$entries" ]; then
+   
+        for entry in $entries; do
+            echo "nameserver $entry" >> $BLENDER_FINAL_FILE
+        done
+    fi
+}
+
+#Only do a dryrun and print out the list of servers in the correct order
+if [ "$1" == "--dry" ]; then
+        entries=`getList`
+        echo $entries
+        exit 0
+fi
+
+#only if triggered from udhcp script or wbm build the new server list
+if [ "$1" == "config" ]; then
+  buildServerList
+fi
+
+exit 0
+

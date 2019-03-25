@@ -1,0 +1,11 @@
+# check for default password
+# 
+# This is a bash script which is to be called from a user-specific .profile file. 
+
+if [[ -e /etc/config-tools/default-settings/shadow.default ]]; then 
+  if [[ "$(sudo /etc/config-tools/get_user_info --is-default-pwd-linux $(id -nu))" == "1" ]]; then
+    echo -e "\e[1;31mSecurity message: please change your password!\e[00m\n"
+    passwd
+  fi
+fi
+

@@ -1,0 +1,149 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_runtime_config
+#
+# Get configuration of the PLC runtime.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Get PLC runtime configuration *"
+    echo
+    echo "Usage: get_runtime_config -h | --help"
+    echo "or     get_runtime_config -j | --json"
+    echo "or     get_runtime_config -s | --shellvar"
+    echo "or     get_runtime_config running-version"
+    echo "or     get_runtime_config default-webpage"
+    echo "or     get_runtime_config homedir-on-sdcard"
+    echo "or     get_runtime_config cfg-version=2|3 webserver-state"
+    echo "or     get_runtime_config cfg-version=2|3 authentication"
+    echo "or     get_runtime_config cfg-version=2|3 serial-programming"
+    echo "or     get_runtime_config service-state"
+    echo "or     get_runtime_config comm-port>"
+    echo
+    exit 0
+fi
+
+# load general definitions and functions
+. /etc/config-tools/config_runtime_common
+
+# Map config tool values to config_runtime version.
+# Config file holds values according to other config tools due to
+# compatibility reasons.
+if [ "$DEFAULT_WEBPAGE" = "Webserver" ]; then
+    DEFAULT_WEBPAGE="WBM"
+else
+    DEFAULT_WEBPAGE="Webvisu"
+fi
+
+if [ "$V2_PORT_AUTH" = "1" ]; then
+    V2_PORT_AUTH="enabled"
+else
+    V2_PORT_AUTH="disabled"
+fi
+
+if [ "$V2_SERVICE_DISABLED" = "YES" ]; then
+    V2_SERVICE_DISABLED="disabled"
+else
+    V2_SERVICE_DISABLED="enabled"
+fi
+
+if [ "$V3_PORT_AUTH" = "1" ]; then
+    V3_PORT_AUTH="enabled"
+else
+    V3_PORT_AUTH="disabled"
+fi
+
+# Check if JSON output requested
+if [ "$1" = "-j" -o "$1" = "--json" ]; then
+    JSON_START1="{\"runningVersion\": $CURRENT_RUNTIME_VERSION,\"defaultWebpage\": \"$DEFAULT_WEBPAGE\","
+    JSON_START2="\"homeDirSdcard\": \"$CODESYS_HOMEDIR_SDCARD\",\"version2Data\":{"
+    JSON_V2DATA1="\"webserverState\": \"$V2_WEBSERVER_STATE\","
+    JSON_V2DATA2="\"authentication\": \"$V2_PORT_AUTH\","
+    JSON_V2DATA3="\"serviceState\": \"$V2_SERVICE_DISABLED\","
+    JSON_V2DATA4="\"commPort\": \"$V2_SERVICE_PORT_NO\"},\"version3Data\":{"
+    JSON_V3DATA1="\"webserverState\": \"$V3_WEBSERVER_STATE\","
+    JSON_V3DATA2="\"authentication\": \"$V3_PORT_AUTH\"}}"
+    echo -n "$JSON_START1$JSON_START2$JSON_V2DATA1$JSON_V2DATA2$JSON_V2DATA3$JSON_V2DATA4"
+    echo -n "$JSON_V3DATA1$JSON_V3DATA2"
+    exit 0
+fi
+
+# Check if SHELL output requested
+if [ "$1" = "-s" -o "$1" = "--shellvar" ]; then
+    echo "CURRENT_RUNTIME_VERSION=$CURRENT_RUNTIME_VERSION"
+    echo "DEFAULT_WEBPAGE=$DEFAULT_WEBPAGE"
+    echo "CODESYS_HOMEDIR_SDCARD=$CODESYS_HOMEDIR_SDCARD"
+    echo "V2_WEBSERVER_STATE=$V2_WEBSERVER_STATE"
+    echo "V2_PORT_AUTH=$V2_PORT_AUTH"
+    echo "V2_SERVICE_DISABLED=$V2_SERVICE_DISABLED"
+    echo "V2_SERVICE_PORT_NO=$V2_SERVICE_PORT_NO"
+    echo "V3_WEBSERVER_STATE=$V3_WEBSERVER_STATE"
+    echo "V3_PORT_AUTH=$V3_PORT_AUTH"
+    exit 0
+fi
+
+# Get runtime configuration value. Args = runtime version, parameter name excluding
+# the version prefix. 
+getrtval()
+{
+    local version=$1
+    local var=$2
+    local varname
+
+    varname="V${version}_$var"
+    echo "${!varname}"
+}
+
+CONFIG_VERSION=$(GetParameterValue "cfg-version" $*)
+if [ "$CONFIG_VERSION" ]; then
+    shift
+    if [ "$CONFIG_VERSION" != "2" -a "$CONFIG_VERSION" != "3" ]; then
+        setLastError "Illegal cfg-version argument"
+        exit $INVALID_PARAMETER
+    fi
+fi
+
+case $1 in
+    running-version)
+        result=$CURRENT_RUNTIME_VERSION
+        ;;
+    default-webpage)
+        result=$DEFAULT_WEBPAGE
+        ;;
+    homedir-on-sdcard)
+        result="$CODESYS_HOMEDIR_SDCARD"
+        ;;
+    webserver-state)
+        arg_assert ${CONFIG_VERSION:-0} "2 3" "Missing or wrong argument cfg-version"
+        result=$(getrtval $CONFIG_VERSION "WEBSERVER_STATE")
+        ;;
+    authentication)
+        arg_assert ${CONFIG_VERSION:-0} "2 3" "Missing or wrong argument cfg-version"
+        result=$(getrtval $CONFIG_VERSION "PORT_AUTH")
+        ;;
+    serial-programming)
+        arg_assert ${CONFIG_VERSION:-0} "2 3" "Missing or wrong argument cfg-version"
+        result=$(getrtval $CONFIG_VERSION "SERIAL_PROGRAMMING")
+        ;;
+    service-state)
+        result=$(getrtval 2 "SERVICE_DISABLED")
+        ;;
+    comm-port)
+        result=$(getrtval 2 "SERVICE_PORT_NO")
+        ;;
+    *)
+        SetLastError "Illegal argument $1"
+        exit $INVALID_PARAMETER
+        ;;
+esac
+echo -n $result
+exit 0

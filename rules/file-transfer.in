@@ -1,0 +1,8 @@
+## SECTION=separated_config_tools
+
+config FILE_TRANSFER
+	bool
+	select CT_RESERVED_AREA
+	prompt "File Transfer Tool"
+	help
+	  This config-tool supports file transfer preparation. It mounts/unmounts the reserved area partition if available.

@@ -1,0 +1,67 @@
+From e6c4067eb5a61c09754cb790731c56fd0f706e81 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 24 May 2018 14:38:19 +0200
+Subject: [PATCH 008/144] board: wago-pfc-am335x: export board variant to
+ global device from oftree
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index 2dfe561..b273b7b 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -34,6 +34,7 @@
+ #include <mach/am33xx-generic.h>
+ #include <mach/am33xx-silicon.h>
+ #include <mach/bbu.h>
++#include <globalvar.h>
+ 
+ static int pfc_coredevice_init(void)
+ {
+@@ -86,7 +87,29 @@ static int pfc_set_ethaddr(void)
+ 	eth_register_ethaddr(ETH_DEVICE, mac);
+ 
+ 	return 0;
++}
++
++static int pfc_export_board_variant(void)
++{
++	struct device_node *root;
++	int ret;
++	char const *variant;
++
++	root = of_get_root_node();
++	if (!root) {
++		ret = -ENOENT;
++		goto out;
++	}
+ 
++	ret = of_property_read_string(root, "board-variant", &variant);
++	if (ret < 0)
++		goto out;
++
++	ret = globalvar_add_simple("board.variant", variant);
++
++out:
++
++	return ret < 0 ? ret : 0;
+ }
+ 
+ static int pfc_devices_init(void)
+@@ -96,6 +119,10 @@ static int pfc_devices_init(void)
+ 	if (!of_machine_is_compatible("wago,am335x-pfc"))
+ 		return 0;
+ 
++	ret = pfc_export_board_variant();
++	if (ret < 0)
++		pr_err("failed to export board.variant \n");
++
+ 	if (bootsource_get() == BOOTSOURCE_MMC) {
+ 		if (bootsource_get_instance() == 0) {
+ 			omap_set_bootmmc_devname("mmc0");
+-- 
+2.7.4
+

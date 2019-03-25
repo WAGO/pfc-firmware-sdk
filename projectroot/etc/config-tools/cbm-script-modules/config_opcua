@@ -1,0 +1,130 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_opcua
+#
+# Enable / disable opcua access for e!runtime. Takes effect on reboot.
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# make use of undefined variables an error
+set -u
+
+# Check argument value against a selection of values.
+arg_assert()
+{
+    local arg=$1
+    local sel=$2
+    local msg=$3
+    local valid=""
+
+    for val in $sel; do
+        if [ $arg = $val ]; then
+            valid=1
+            break
+        fi
+    done
+    if [ ! $valid ]; then
+        status=$INVALID_PARAMETER
+        SetLastError "$msg"
+        exit $status
+    fi
+}
+
+# Create link to a same name file in the parent directory
+# Arg1 = directory to create the link in
+# Arg2 = name of the link
+create_link()
+{
+    local linkdir="$1"
+    local linkname="$2"
+    local lnstat="0"
+
+    if [ ! -L "$linkdir/$linkname" ]; then
+        ln -sf ../$linkname $linkdir/$linkname
+        lnstat=$?
+        if [ "$lnstat" -ne "0" ]; then
+            SetLastError "Setting symbolic link $linkdir/$linkname failed"
+            lnstat=$EXECUTABLE_ERROR
+        fi
+    fi
+    return $lnstat
+}
+
+# main program
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+if [ "$#" -eq "0" ]; then
+    SetLastError "Missing argument"
+    exit $MISSING_PARAMETER
+fi
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" -o "$1" = "--help" ]; then
+    echo
+    echo "* Configure e!runtime opcua access *"
+    echo
+    echo "Usage: config_opcua state=enabled|disabled   enable (default) or disable opcua"
+    echo "       config_opcua state                    get state"
+    echo
+    echo "       changes take effect on next reboot"
+    exit $status
+fi
+
+CMPNAME="libCmpOPCUAStack.so"
+CMPNAME2="libCmpOPCUAServer.so"
+CMPNAME3="libCmpOPCUAProviderIecVarAccess.so"
+SYMLINKDIR="/usr/lib/cds3-custom-components"
+
+for ARG in $@; do
+    case "$ARG" in
+        state=*)
+            newstate=${ARG#state=}
+            arg_assert $newstate "enabled disabled" "Illegal state string"
+            ;;
+        state)
+            if [ -L $SYMLINKDIR/$CMPNAME ]; then
+                printf "enabled"
+            else
+                printf "disabled"
+            fi
+            exit 0
+            ;;
+        *)
+            SetLastError "Unknown or incomplete argument \"$ARG\""
+            exit $INVALID_PARAMETER
+            ;;
+    esac
+done
+
+# create or remove link if link destination exists
+if [ -e $SYMLINKDIR/../$CMPNAME ]; then
+    if [ "$newstate" = "enabled" ]; then
+        create_link "$SYMLINKDIR" "$CMPNAME"
+        status=$?
+        if [ "$status" -eq "0" ]; then
+            create_link "$SYMLINKDIR" "$CMPNAME2"
+            status=$?
+            if [ "$status" -eq "0" ]; then
+                create_link "$SYMLINKDIR" "$CMPNAME3"
+                status=$?
+            fi
+        fi
+    else
+        rm -f $SYMLINKDIR/$CMPNAME $SYMLINKDIR/$CMPNAME2 $SYMLINKDIR/$CMPNAME3
+    fi
+fi
+
+exit $status

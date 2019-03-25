@@ -1,0 +1,45 @@
+/***************************************************************************************/
+/**
+ * \mainpage Extended-Memory-Copy (EMC) Manual
+ *
+ * \image html pics/wagologo.jpg
+ * \htmlinclude pages/impressum.html
+ *
+ * \section section_intro Introduction
+ *
+ * This Manual describes the System Interface (SYSI) and the Application Programming Interface (API) as well as 
+ * the internal modules of the EMC software component. It provides the complete 
+ * documentation of the component's interfaces as well as the detailed descriptions of the functions
+ * and structures exported to programmers.
+ *
+ * For more information about this software component follow the links at the bottom of
+ * this page or the tree control on the left side.
+ *
+ *
+ * \section section_purpose Purpose
+ *
+ * The purpose of the manual is to provide a comprehensive description of the component software.
+ *
+ *
+ * \section section_functionality Functionality
+ *
+ * \ref page_extMemCpy_component
+ */
+
+/***************************************************************************************/
+/**
+ * \defgroup page_extMemCpy_component EMC functionality
+ *
+ * Description of the EMC software component.
+ */
+
+/***************************************************************************************/
+/**
+ * \defgroup page_extMemCpy_internal Internal modules
+ * \ingroup page_extMemCpy_component
+ *
+ * Description of the internal modules of the EMC software component
+ */
+
+/****************************************************************************************/
+/* end of source */

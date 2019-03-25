@@ -1,0 +1,96 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: terminate_codesys
+#
+# Terminate codesys, wait for finish.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+if [[ -f /etc/config-tools/config_tool_defines ]]; then
+    . /etc/config-tools/config_tool_defines
+else
+    echo "/etc/config-tools/config_tool_defines missing!"
+    exit 255
+fi
+
+if [[ ! -f /etc/config-tools/get_runtime_config ]]; then
+    echo "/etc/config-tools/get_runtime_config missing!"
+    exit 255
+fi
+
+# general definitions
+SUCCESS=0
+
+RUNTIME_VERSION=$(/etc/config-tools/get_runtime_config running-version)
+
+PROCESS_NAME=""
+
+case "$RUNTIME_VERSION" in
+    0) exit $SUCCESS;; # no runtime set - nothing to do
+    2) PROCESS_NAME="plclinux_rt";;
+    3) PROCESS_NAME="codesys3";;
+    *) exit $EXECUTABLE_ERROR
+esac
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Stop CODESYS runtime and environment and wait for finish *"
+  echo
+  echo "Usage: terminate_codesys < timeout >"
+  echo
+  echo "timeout: timeout value in seconds; if CODESYS is not terminated after timeout, program returns with an error"
+  echo 
+  exit $status
+fi
+
+
+timeout=$1
+#echo "timeout:"$timeout
+
+# check input parameter
+echo "$timeout" | egrep "[0-9]+" > /dev/null 2> /dev/null
+
+if [ "$?" != "$SUCCESS" ]; then
+  status=-2
+  #echo "invalid parameter (timeout)"
+else
+
+  # look if process is active at all - if not, just do nothing
+  codesysPid=`pidof $PROCESS_NAME`
+  if [ -n "$codesysPid" ]; then
+  
+    # stop codesys runtime by special script if available (SIGTERM will be send, environment will be stopped)
+    /etc/init.d/runtime stop
+
+    # loop and sleep until process is no longer active or timeout expired
+    timeoutCounter=0
+    while [ -n "$codesysPid" ] && (( $timeoutCounter < $timeout )); do
+
+      #echo "timeoutCounter:"$timeoutCounter "codesysPid:"$codesysPid
+      sleep 1
+      timeoutCounter=$(($timeoutCounter + 1))
+      codesysPid=`pidof $PROCESS_NAME`
+      
+    done
+  
+    # if process is still active - set error status
+    if [ -n "$codesysPid" ]; then
+      status=$EXECUTABLE_ERROR
+    fi  
+  fi
+fi
+
+exit $status

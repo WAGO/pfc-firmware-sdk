@@ -1,0 +1,48 @@
+From a5dfdf90f7b2fb7febaf6a258d28739f80cae838 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Mon, 18 Jun 2018 13:50:33 +0200
+Subject: [PATCH 034/144] arm: am35xx: fix: skip early mmu cache flush
+
+Don't know why but the code is not booting when
+doing an early mmu cache flush here.
+
+FIXME: It's an uggly thing to just skip the flushing here.
+We would need to work out the differences between the omap3
+code and the specific am3505 behaviour.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/cpu/common.c | 2 ++
+ arch/arm/cpu/setupc.S | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/cpu/common.c b/arch/arm/cpu/common.c
+index 51fe7ed..dadffe9 100644
+--- a/arch/arm/cpu/common.c
++++ b/arch/arm/cpu/common.c
+@@ -103,7 +103,9 @@ void relocate_to_current_adr(void)
+ #error "Architecture not specified"
+ #endif
+ 
++#if defined(CONFIG_MMU) && !defined(CONFIG_MACH_WAGO_PFC_AM35XX)
+ 	arm_early_mmu_cache_flush();
++#endif
+ 	icache_invalidate();
+ }
+ 
+diff --git a/arch/arm/cpu/setupc.S b/arch/arm/cpu/setupc.S
+index 717500c..b4876b3 100644
+--- a/arch/arm/cpu/setupc.S
++++ b/arch/arm/cpu/setupc.S
+@@ -27,7 +27,7 @@ ENTRY(setup_c)
+ 	ldr	r2, =__bss_stop
+ 	sub	r2, r2, r0
+ 	bl	memset			/* clear bss */
+-#ifdef CONFIG_MMU
++#if defined(CONFIG_MMU) && !defined(CONFIG_MACH_WAGO_PFC_AM35XX)
+ 	bl	arm_early_mmu_cache_flush
+ #endif
+ 	mov	r0, #0
+-- 
+2.7.4
+

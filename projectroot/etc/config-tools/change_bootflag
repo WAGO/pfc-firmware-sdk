@@ -1,0 +1,107 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: change_bootflag
+#
+# Change bootflag of a device
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+function GetPureDevicename
+{
+  deviceName=$1
+  
+  pureDeviceName=$(./get_device_data pure-device-name $deviceName)
+  echo "$pureDeviceName"
+}
+
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the hostname *"
+  echo
+  echo "Usage: change_bootflag < device=device-value bootflag=bootflag-value >"
+  echo
+  echo "device-value: something like /dev/hda, /dev/hdb, ... path is obsolete"
+  echo "bootflag-value: 0 or 1"
+  echo
+  exit $SUCCESS
+fi
+
+device=`GetParameterValue device $*`
+bootflag=`GetParameterValue bootflag $*`
+
+# check if bootflag is valid and convert it into string for sfdisk instruction
+if [ "$bootflag" != "0" ] && [ "$bootflag" != "1" ]; then
+  exit $INVALID_PARAMETER
+fi
+
+
+# check syntax of device name and strip it from path and partition number if necessary
+pureDeviceName=`GetPureDevicename $device`
+#echo "pureDeviceName:${pureDeviceName}"
+
+if [ -z "$pureDeviceName" ]; then
+  status=$INVALID_PARAMETER
+  #echo "invalid device"
+else
+
+  #check if device is existing
+  cat /proc/partitions | grep $pureDeviceName > /dev/null 2> /dev/null
+  if [ $? != "$SUCCESS" ]; then
+    status=$INVALID_PARAMETER
+    #echo "device not existing"
+  else
+ 
+    # check if device is internal flash (action not allowed)
+    medium=`./get_device_data medium $pureDeviceName`
+    #echo "medium:"$medium
+    if [ "$medium" = "$INTERNAL_FLASH" ]; then
+      status=$INVALID_PARAMETER
+      #echo "not allowed"
+    else
+    
+      deviceName="/dev/${pureDeviceName}"
+      #echo "deviceName:${deviceName}"
+    
+      # set sfdisk command string depending on bootflag value
+      if [ "$bootflag" = "0" ]; then
+        sfdiskString=",,,-"
+      else
+        sfdiskString=",,,*"
+      fi
+      #echo "sfdiskString:"$sfdiskString
+    
+      # call sfdisk to change bootflag
+      echo $sfdiskString | flock "$deviceName" sfdisk -f -N1 "$deviceName" > /dev/null 2> /dev/null
+    
+      if [ "$?" != "$SUCCESS" ]; then
+        status=$EXECUTABLE_ERROR
+        ReportError $status "(sfdisk)"
+        SetLastError "Error while execution"
+      fi
+    
+      # write buffered filesystem-blocks to disk
+      sync
+    fi
+    
+  fi
+  
+fi
+
+exit $SUCCESS

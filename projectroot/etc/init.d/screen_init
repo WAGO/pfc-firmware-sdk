@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# dbus_screen_init
+#
+
+case $1 in
+
+    start)
+	# By default the administration terminal window is created (title: 'admin', ID: '0').
+	# /bin/bash will be started as a login-shell.
+	# More windows can be added later via:
+	#      'screen -S wago -X screen -t <window_name> <ID> <absolute path to program>'.
+	echo -n "Starting initial dbus-screen session (with admin terminal)..."
+	screen -S wago -s -/bin/bash -t admin -d -m
+	echo "done."
+	;; 
+
+    stop)
+	echo -n "Destroying dbus-screen-session 'wago'..."
+	screen -S wago -X quit
+	echo "done"
+	;;
+
+esac

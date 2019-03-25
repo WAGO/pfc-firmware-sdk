@@ -1,0 +1,34 @@
+From c1c3a774849d2b4429912e51ee60c2bfc8fe4e6f Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 26 Feb 2018 13:15:05 +0100
+Subject: [PATCH 158/261] dts: remove usv for devconf 0182 (8215)
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+index d7d94c2..75a00c9 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
++++ b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+@@ -24,15 +24,7 @@
+  */
+ 
+ /{
+-	usv {
+-		compatible = "wago,usvinit";
+-		add-sysfs-entries;
+-		usv_irq = <&gpio1 17 GPIO_ACTIVE_LOW>;
+-		switch-reset = <&gpio3 10 GPIO_ACTIVE_LOW>;
+-		kbus-reset =  <&gpio1 25 GPIO_ACTIVE_HIGH>;
+-		led-off;
+-	};
+-
++	
+         swcfg_mv88e6321 {
+                 compatible = "swcfg,mv88e6321";
+                 status = "okay";
+-- 
+2.7.4
+

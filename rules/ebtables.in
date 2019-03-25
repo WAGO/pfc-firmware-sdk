@@ -1,0 +1,40 @@
+## SECTION=networking
+
+menuconfig EBTABLES
+       tristate
+       prompt "ebtables"
+       select KERNEL
+       help
+         Ethernet bridge frame table administration
+         Ebtables is used to set up, maintain, and inspect the tables of
+         Ethernet frame rules in the Linux kernel. It is analogous to iptables,
+         but operates at the MAC layer rather than the IP layer.
+
+if EBTABLES
+
+config EBTABLES_INSTALL_TOOLS
+       bool
+
+config EBTABLES_INSTALL_EBTABLES
+       bool "install ebtables"
+       select EBTABLES_INSTALL_TOOLS
+       help
+         install the ebtables command
+
+config EBTABLES_INSTALL_EBTABLES_RESTORE
+       bool "install ebtables-restore"
+       select EBTABLES_INSTALL_TOOLS
+       help
+         The ebtables-restore command is used to restore
+         the ebtables rule-set that was saved with the
+         ebtables-save command.
+
+config EBTABLES_INSTALL_EBTABLES_SAVE
+       bool "install ebtables-save"
+       select EBTABLES_INSTALL_TOOLS
+       help
+         The ebtables-save command is a tool to save
+         the current rule-set into a file that
+         ebtables-restore can use.
+
+endif

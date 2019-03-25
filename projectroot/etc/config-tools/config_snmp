@@ -1,0 +1,658 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_snmp
+#
+# Change the configuration of the SNMP parameter
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+SNMP_CONF_FILE="/etc/snmp/snmpd.conf"
+SNMP_TRAP_FILE="/etc/snmp/snmptrapd.conf"
+SNMP_V3_CONF_FILE="/var/lib/net-snmp/snmpd.conf"
+
+DEVICE_NAME="device-name"
+DESCRIPTION="description"
+PHYSICAL_LOCATION="physical-location"
+CONTACT="contact"
+
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter)
+#--------------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the SNMP configuration *"
+  echo
+  echo "Usage: config_snmp < parameter-name=parameter-value > [ parameter-name=parameter-value ] ..."
+  echo
+  echo "parameter-name: set-snmp | device-name | description | physical-location | contact | objectID | v1-v2c-state | v1-v2c-community-name | v1-v2c-trap-receiver-edit | v1-v2c-trap-receiver-address | v1-v2c-trap-receiver-community-name | v1-v2c-trap-receiver-version | v3-edit | v3-auth-name | v3-auth-type | v3-auth-key | v3-privacy | v3-privacy-key | v3-notification-receiver"
+  echo
+  echo "parameter-value:"
+  echo "set-snmp-value: enabled | disabled"
+  echo "device-name-value: any string"
+  echo "description-value: any string"
+  echo "physical-location-value: any string"
+  echo "contact-value: any string"
+  echo "objectID: any OID which represents the sysObjectID"
+  echo "v1-v2c-state-value: \"disabled\" | \"enabled\", in case of enabled, v1-v2c-community-name must be given"
+  echo "v1-v2c-community-name-value: string without spaces, min 1, max 32 characters"
+  echo
+  echo "Following 4 parameters must be given together:"
+  echo "v1-v2c-trap-receiver-edit: \"add\" | \"delete\""
+  echo "v1-v2c-trap-receiver-address-value: ip address format"
+  echo "v1-v2c-trap-receiver-community-name: string without spaces, min 1, max 32 characters"
+  echo "v1-v2c-trap-receiver-version-value: \"v1\" | \"v2c\""
+  echo
+  echo "Following 7 parameters must be given together:"
+  echo "v3-edit: \"add\" | \"delete\""
+  echo "v3-auth-name-value: string without spaces, min 1, max 32 characters"
+  echo "v3-auth-type-value: \"none\" | \"MD5\" | \"SHA\""
+  echo "v3-auth-key-value: string without spaces, min 8 characters"
+  echo "v3-privacy-value: \"none\" | \"DES\" | \"AES\" "
+  echo "v3-privacy-key-value: string without spaces, min 8 characters; optional - if it is not given, netsnmp will use auth type value"
+  echo "v3-notification-receiver-value: ip address format"
+  echo 
+  exit $status
+fi
+
+# check whether config-file exists or can not be read
+if [ ! -f $SNMP_CONF_FILE ] || [ ! -f $SNMP_V3_CONF_FILE ] ; then
+  ReportError $CONFIG_FILE_MISSING "($SNMP_CONF_FILE, SNMP_V3_CONF_FILE)"
+  exit $CONFIG_FILE_MISSING
+fi
+
+#--------------------------------------------------------------------
+# enable/disable snmp
+#--------------------------------------------------------------------
+setSnmp=`GetParameterValue set-snmp $*`
+if [ "$status" = "$SUCCESS" ] && [ -n "$setSnmp" ]; then
+  if [ "$setSnmp" = "enabled" ]; then
+    ln -sf ../init.d/net-snmptrapd /etc/rc.d/S22netsnmptrapd &> /dev/null
+    ln -sf ../init.d/net-snmpd /etc/rc.d/S21netsnmpd &> /dev/null
+    /etc/init.d/net-snmpd start &> /dev/null
+    /etc/init.d/net-snmptrapd start &> /dev/null
+  elif [ "$setSnmp" = "disabled" ]; then
+    rm /etc/rc.d/S22netsnmptrapd &> /dev/null
+    rm /etc/rc.d/S21netsnmpd &> /dev/null
+    /etc/init.d/net-snmpd stop &> /dev/null
+    /etc/init.d/net-snmptrapd stop &> /dev/null
+  fi
+fi
+
+#--------------------------------------------------------------------
+# device name
+#--------------------------------------------------------------------
+newDeviceName=`GetParameterValue device-name $*`
+#echo "newDeviceName:"$newDeviceName "newDescription:"$newDescription
+if [ "$status" = "$SUCCESS" ] && [ -n "$newDeviceName" ]; then
+
+  # no value check - any string is ok for device  name
+
+  # if new string should be empty (= "") change it to real empty string
+  if [ "$newDeviceName" = "\"\"" ]; then
+    newDeviceName=""
+  fi
+
+  # delete possible line with old parameter definition and write new line with new parameter definition
+  sed -i '/^ *'sysName'/ d' $SNMP_CONF_FILE
+  if [ "$newDeviceName" != "\"\"" ]; then
+    echo "sysName $newDeviceName" >> $SNMP_CONF_FILE
+    status=$?
+  fi
+  
+  if [ "$status" != "$SUCCESS" ]; then
+    status=$SHELL_ERROR
+    ReportError $status
+    SetLastError "Error while writing SNMP config file"
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# description
+#--------------------------------------------------------------------
+newDescription=`GetParameterValue description $*`
+if [ "$status" = "$SUCCESS" ] && [ -n "$newDescription" ]; then
+
+  # no value check - any string is ok for description
+
+  # if new string should be empty (= "") change it to real empty string
+  if [ "$newDescription" = "\"\"" ]; then
+    newDescription=""
+  fi
+
+  # delete possible line with old parameter definition and write new line with new parameter definition
+  sed -i '/^ *'sysDescr'/ d' $SNMP_CONF_FILE
+  echo "sysDescr $newDescription" >> $SNMP_CONF_FILE
+  status=$?
+  
+  if [ "$status" != "$SUCCESS" ]; then
+    status=$SHELL_ERROR
+    ReportError $status
+    SetLastError "Error while writing SNMP config file"
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# physical location
+#--------------------------------------------------------------------
+newPhysicalLocation=`GetParameterValue physical-location $*`
+if [ "$status" = "$SUCCESS" ] && [ -n "$newPhysicalLocation" ]; then
+
+  # no value check - any string is ok for location
+
+  # if new string should be empty (= "") change it to real empty string
+  if [ "$newPhysicalLocation" = "\"\"" ]; then
+    newPhysicalLocation=""
+  fi
+
+  # delete possible line with old parameter definition and write new line with new parameter definition
+  sed -i '/^ *'sysLocation'/ d' $SNMP_CONF_FILE
+  echo "sysLocation $newPhysicalLocation" >> $SNMP_CONF_FILE
+  status=$?
+  
+  if [ "$status" != "$SUCCESS" ]; then
+    status=$SHELL_ERROR
+    ReportError $status
+    SetLastError "Error while writing SNMP config file"
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# contact
+#--------------------------------------------------------------------
+newContact=`GetParameterValue contact $*`
+if [ "$status" = "$SUCCESS" ] && [ -n "$newContact" ]; then
+
+  # no value check - any string is ok for contact
+   
+  # if new string should be empty (= "") change it to real empty string
+  if [ "$newContact" = "\"\"" ]; then
+    newContact=""
+  fi
+
+  # delete possible line with old parameter definition and write new line with new parameter definition
+  sed -i '/^ *'sysContact'/ d' $SNMP_CONF_FILE
+  echo "sysContact $newContact" >> $SNMP_CONF_FILE
+  status=$?
+  
+  if [ "$status" != "$SUCCESS" ]; then
+    status=$SHELL_ERROR
+    ReportError $status
+    SetLastError "Error while writing SNMP config file"
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# sysObjectID
+#--------------------------------------------------------------------
+newObjectID=`GetParameterValue objectID $*`
+if [ "$status" = "$SUCCESS" ] && [ -n "$newObjectID" ]; then
+
+  # no value check - any string is ok for contact
+   
+  # if new string should be empty (= "") change it to real empty string
+  if [ "$newObjectID" = "\"\"" ]; then
+    newObjectID=""
+  fi
+
+  # delete possible line with old parameter definition and write new line with new parameter definition
+  sed -i '/^ *'sysObjectID'/ d' $SNMP_CONF_FILE
+  echo "sysObjectID $newObjectID" >> $SNMP_CONF_FILE
+  status=$?
+  
+  if [ "$status" != "$SUCCESS" ]; then
+    status=$SHELL_ERROR
+    ReportError $status
+    SetLastError "Error while writing SNMP config file"
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# v1/v2c state - old version
+#--------------------------------------------------------------------
+newV1V2cState=`GetParameterValue v1-v2c-state $*`
+
+if [ 0 = 1 ] && [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
+
+  echo "Version 1"
+  # parameter value valid?
+  if [ "$newV1V2cState" != "enabled" ] && [ "$newV1V2cState" != "disabled" ]; then
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid value for v1/v2c state"
+  else
+    # delete possible lines with old definitions 
+    sed -i '/^ *com2sec *notConfigUser *default *public *$/ d' $SNMP_CONF_FILE
+    sed -i '/^ *group *notConfigGroup *v1 *notConfigUser *$/ d' $SNMP_CONF_FILE
+    sed -i '/^ *group *notConfigGroup *v2c *notConfigUser *$/ d' $SNMP_CONF_FILE
+    
+    # state is disabled - write new lines with definitions to config file
+    if [ "$newV1V2cState" = "disabled" ]; then
+    
+      echo "com2sec notConfigUser   default   public"         >> $SNMP_CONF_FILE
+      echo "group   notConfigGroup  v1        notConfigUser"  >> $SNMP_CONF_FILE
+      echo "group   notConfigGroup  v2c       notConfigUser"  >> $SNMP_CONF_FILE
+      status=$?
+  
+      if [ "$status" != "$SUCCESS" ]; then
+        status=$SHELL_ERROR
+        ReportError $status
+        SetLastError "Error while writing SNMP config file"
+      fi
+    fi
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# v1/v2c state
+#--------------------------------------------------------------------
+newV1V2cState=`GetParameterValue v1-v2c-state $*`
+
+if [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
+
+  if [ "disabled" = "$newV1V2cState" ]; then
+    
+    # delete line(s) with definitions
+    sed -i '/^ *rwcommunity .*$/ d' $SNMP_CONF_FILE
+    if [ "$status" != "$SUCCESS" ]; then
+      status=$SHELL_ERROR
+      ReportError $status
+      SetLastError "Error while writing SNMP config file"
+    fi
+      
+  elif [ "enabled" = "$newV1V2cState" ]; then
+    
+    newCommunityName=`GetParameterValue v1-v2c-community-name $*`
+    if [ -z "$newCommunityName" ]; then
+      status=$MISSING_PARAMETER
+      SetLastError "Missing parameter: community name"
+    fi
+    
+  else
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid value for v1/v2c state"
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# v1/v2c commmunity name
+#--------------------------------------------------------------------
+newCommunityName=`GetParameterValue v1-v2c-community-name $*`
+
+if [ "$status" = "$SUCCESS" ] && [ -n "$newCommunityName" ]; then
+
+  # parameter value valid - any ascii characters except spaces, min 1, max 32 character
+  echo $newCommunityName | grep "^[^ ]\{1,32\}$" > /dev/null 2> /dev/null
+  if [ "$?" != "$SUCCESS" ]; then
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid value for v1/v2c community name"
+  else
+
+    # get actual community name
+    actualCommunityName=`/etc/config-tools/get_snmp_data v1-v2c-community-name`
+    #echo "actualCommunityName:"$actualCommunityName #> /etc/config-tools/output
+    
+    # if community name is already existing (v1/v2c is enabled)
+    if [ -n "$actualCommunityName" ]; then
+    #if [ "$newCommunityName" != "$actualCommunityName" ]; then
+  
+      # replace community name in all definition lines of config file (except comment lines)
+      actualCommunityName=`/etc/config-tools/string_encode reg-ex $actualCommunityName`
+      newCommunityName=`/etc/config-tools/string_encode sed-write $newCommunityName`
+      #sed -n '/^ *rwcommunity .*$/ p' $SNMP_CONF_FILE
+      #echo "actualCommunityName:$actualCommunityName newCommunityName:$newCommunityName" #>> /etc/config-tools/output
+      sed -i '/^ *rwcommunity .*$/ s/'$actualCommunityName'/'$newCommunityName'/g' $SNMP_CONF_FILE
+  
+      if [ "$status" != "$SUCCESS" ]; then
+        status=$SHELL_ERROR
+        ReportError $status
+        SetLastError "Error while writing SNMP config file"
+      fi
+      
+    # community name is not existing by now (v1/v2c is disabled)
+    else
+    
+      #  check if v1/v2c should not be disabled now (in this case we can't save community name)
+      if [ "disabled" = "$newV1V2cState" ]; then
+        status=$INVALID_INPUT
+        SetLastError "Can't write community name while state is disabled"
+
+      # write community line new, protocoll will automatically be enabled
+      else
+        echo "rwcommunity $newCommunityName" >> $SNMP_CONF_FILE
+      fi
+    fi
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# v1/v2c trap receiver edit
+#--------------------------------------------------------------------
+trapReceiverEdit=`GetParameterValue v1-v2c-trap-receiver-edit $*`
+
+if [ "$status" = "$SUCCESS" ] && [ -n "$trapReceiverEdit" ]; then
+
+  # get parameter from input
+  address=`GetParameterValue v1-v2c-trap-receiver-address $*`
+  communityName=`GetParameterValue v1-v2c-trap-receiver-community-name $*`
+  version=`GetParameterValue v1-v2c-trap-receiver-version $*`
+  #echo "address:${address} communityName:${communityName} version:${version}"
+
+  if [ -z "$address" ] || [ -z "$communityName" ] || [ -z "$version" ]; then
+    status=$MISSING_PARAMETER
+    SetLastError "Missing parameter for edit of V1/V2c trap receiver"
+  else
+ 
+    if [ "$version" = "v1" ]; then
+      trapsinkString="trapsink"
+    elif [ "$version" = "v2c" ]; then
+      trapsinkString="trap2sink"
+    else
+      status=$INVALID_PARAMETER
+      SetLastError "Invalid parameter for v1/v2c trap receiver version"
+    fi
+
+    if [ "$SUCCESS" = "$status" ]; then
+    
+      # check if trap receiver with the given data is existing
+      egrep "^ *$trapsinkString +$address +$communityName *$" $SNMP_CONF_FILE > /dev/null 2> /dev/null
+      if [ "$?" = "$SUCCESS" ]; then
+        receiverExisting=1
+      else
+        receiverExisting=0
+      fi
+      
+      # trap receiver should be deleted
+      if [ "$trapReceiverEdit" = "delete" ]; then
+
+        # must be existing...
+        if [ "$receiverExisting" = "0" ]; then  
+          status=$INVALID_PARAMETER
+          SetLastError "Trap receiver not existing"
+        else
+
+          sed -i '/^ *'$trapsinkString'  *'$address'  *'$communityName' *$/ d' $SNMP_CONF_FILE
+          status=$?
+
+          if [ "$status" != "$SUCCESS" ]; then
+            status=$SHELL_ERROR
+            ReportError $status
+            SetLastError "Error while writing SNMP config file"
+          fi
+        fi
+          
+      # new trap receiver should be created
+      elif [ "$trapReceiverEdit" = "add" ]; then
+  
+        # must not be existing by now
+        if [ "$receiverExisting" = "1" ]; then  
+          status=$INVALID_PARAMETER
+          SetLastError "Trap receiver already existing"
+        else
+
+          # check address value (IP format)
+          echo $address | egrep "^$IP_ADDRESS_REGEX$" > /dev/null 2> /dev/null
+          if [ $? != "$SUCCESS" ]; then
+            status=$INVALID_PARAMETER
+            SetLastError "Invalid parameter for v1/v2c trap receiver address"
+          else
+        
+            # check community name - any ascii characters except spaces, min 1, max 32 character
+            echo $communityName | grep "^[^ ]\{1,32\}$" > /dev/null 2> /dev/null
+            if [ "$?" != "$SUCCESS" ]; then
+              status=$INVALID_PARAMETER
+              SetLastError "Invalid value for v1/v2c trap receiver community name"
+            else
+          
+              echo "$trapsinkString $address $communityName" >> $SNMP_CONF_FILE
+              status=$?
+            
+              if [ "$status" != "$SUCCESS" ]; then
+                status=$SHELL_ERROR
+                ReportError $status
+                SetLastError "Error while writing SNMP config file"
+              fi
+            fi
+          fi
+        fi
+      else
+        status=$INVALID_PARAMETER
+        SetLastError "Unknown action for edit of V1/V2c trap receiver"
+      fi
+    fi
+  fi
+fi
+
+#--------------------------------------------------------------------
+# v3 edit
+#--------------------------------------------------------------------
+v3Edit=`GetParameterValue v3-edit $*`
+
+if [ "$status" = "$SUCCESS" ] && [ -n "$v3Edit" ]; then
+
+  # get parameter from input
+  authName=`GetParameterValue v3-auth-name $*`
+  authType=`GetParameterValue v3-auth-type $*`
+  authKey=`GetParameterValue v3-auth-key $*`
+  privacy=`GetParameterValue v3-privacy $*`
+  privacyKey=`GetParameterValue v3-privacy-key $*`
+  notificationReceiver=`GetParameterValue v3-notification-receiver $*`
+  #echo "authName:"$authName "authType:"$authType "authKey:"$authKey 
+  #echo "privacy:"$privacy "privacyKey:"$privacyKey "notificationReceiver:"$notificationReceiver
+
+  # check if obsolete parameters are existing
+  if [ -z "$authName" ]; then
+    status=$MISSING_PARAMETER
+    SetLastError "Missing parameter for v3 edit"
+  else
+
+    # check if trap receiver with the given data is existing
+    egrep "^ *createUser (-e [^ ]+ +)?$authName .*$" $SNMP_V3_CONF_FILE > /dev/null 2> /dev/null
+    if [ "$?" = "$SUCCESS" ]; then
+      userExisting=1
+    else
+      userExisting=0
+    fi
+
+    # user should be deleted
+    if [ "$v3Edit" = "delete" ]; then
+
+      #echo "delete..."
+      # must be existing...
+      if [ "$userExisting" = "0" ]; then  
+        status=$INVALID_PARAMETER
+        SetLastError "v3 user not existing"
+      else
+        
+        # delete createUser lines - including all given parameters
+        #sed -n '/^ *createUser .*'$authName' *'$authType' *'$authKey' *'$privacy' *'$privacyKey' *$/ p' $SNMP_V3_CONF_FILE
+        #sed -i '/^ *createUser .*'$authName' *'$authType' *'$authKey' *'$privacy' *'$privacyKey' *$/ d' $SNMP_V3_CONF_FILE
+        #sed -n '/^ *createUser .*'$authName' .*$/ p' $SNMP_V3_CONF_FILE
+        sed -i '/^ *createUser .*'$authName' .*$/ d' $SNMP_V3_CONF_FILE
+        sed -i '/^ *rwuser *'$authName'\>.*$/ d' $SNMP_V3_CONF_FILE
+        
+        # delete trap line - if no fitting line is existing, sed will just do nothing
+        if [ "$SUCCESS" = "$status" ]; then
+          #sed -n '/^ *trapsess -v 3 -u  *'$authName' .*'$notificationReceiver' *$/ p'  $SNMP_V3_CONF_FILE
+          sed -i '/^ *trapsess -v 3 -u  *'$authName' .*'$notificationReceiver' *$/ d'  $SNMP_V3_CONF_FILE
+          status=$?
+        fi
+
+        if [ "$status" != "$SUCCESS" ]; then
+          status=$SHELL_ERROR
+          ReportError $status
+          SetLastError "Error while writing SNMP config file"
+        fi
+      fi
+    
+    # new v3 user should be created
+    elif [ "$v3Edit" = "add" ]; then
+  
+      # check parameters - user must not be existing by now
+      if [ "$userExisting" = "1" ]; then  
+        status=$INVALID_PARAMETER
+        SetLastError "v3 user already existing"
+        
+      else
+       
+        if [ -z "$authType" ] || [ -z "$privacy" ]; then
+          status=$MISSING_PARAMETER
+          SetLastError "Missing parameter for v3 edit"
+        else
+      
+          if [ "none" = "$authType" ]; then
+            authType=""
+          fi
+        
+          if [ "none" = "$privacy" ]; then
+            privacy=""
+          fi
+        
+          # check authentication name - any ascii characters except spaces, min 1, max 32 character
+          echo $authName | grep "^[^ ]\{1,32\}$" > /dev/null 2> /dev/null
+          if [ "$?" != "$SUCCESS" ]; then
+            status=$INVALID_PARAMETER
+            SetLastError "Invalid value for v3 authentication name"
+          else
+        
+            # check authentication type (none, md5 or sha)
+            if [ -n "$authType" ] && [ "MD5" != "$authType" ] && [ "SHA" != "$authType" ]; then
+              status=$INVALID_PARAMETER
+              SetLastError "Invalid parameter for v3 authentication type"
+            else
+          
+              # check privacy (none, des, aes)
+              if [ -n "$privacy" ] && [ "DES" != "$privacy" ] && [ "AES" != "$privacy" ]; then
+                status=$INVALID_PARAMETER
+                SetLastError "Invalid parameter for v3 privacy"
+              fi
+            fi
+          fi
+        fi
+      fi
+        
+      # now check optional parameters (each only if it is given) - fist privacy key (at least 8 characters) 
+      if [ "$SUCCESS" = "$status" ] && [ -n "$privacyKey" ]; then
+        echo "$privacyKey" | grep "^[^ ]\{8,32\}$" > /dev/null 2> /dev/null
+        if [ "$?" != "$SUCCESS" ]; then
+          status=$INVALID_PARAMETER
+          SetLastError "Invalid value for v3 privacy key"
+        fi
+      fi
+
+      # authentication requested - authentication key must be given
+      if [ "$SUCCESS" = "$status" ] && [ -n "$authType" ] && [ -z "$authKey" ]; then
+        status=$MISSING_PARAMETER
+        SetLastError "Parameter \"authentication key\" missing"
+      fi
+      
+      # privacy requested - privacy key or authentication key must be given
+      if [ "$SUCCESS" = "$status" ] && [ -n "$privacy" ] && [ -z "$privacyKey" ] && [ -z "$authKey" ]; then
+        status=$INVALID_PARAMETER
+        SetLastError "Missing parameter for privacy key"
+      fi
+      
+      # check authentication key, at least 8 characters
+      if [ "$SUCCESS" = "$status" ] && [ -n "$authKey" ]; then
+        echo "$authKey" | grep "^[^ ]\{8,32\}$" > /dev/null 2> /dev/null
+        if [ "$?" != "$SUCCESS" ]; then
+          status=$INVALID_PARAMETER
+          SetLastError "Invalid value for v3 authentication key"
+        fi
+      fi
+
+      # check notification receiver (IP format)
+      if [ "$SUCCESS" = "$status" ] && [ -n "$notificationReceiver" ]; then
+        echo $notificationReceiver | egrep "^$IP_ADDRESS_REGEX$" > /dev/null 2> /dev/null
+        if [ $? != "$SUCCESS" ]; then
+          status=$INVALID_PARAMETER
+          SetLastError "Invalid parameter for v3 notification receiver address"
+        fi
+      fi
+      
+      # all parameters ok - add config lines to file
+      if [ "$SUCCESS" = "$status" ]; then
+      
+        #echo "add new v3 user"
+        userAuthString="auth"
+        if [ -z "$authType" ]; then
+          userAuthString="noauth"
+        fi
+        
+        # add lines to create user and add him to VACM
+        printf "createUser $authName $authType $authKey $privacy $privacyKey\nrwuser $authName $userAuthString\n" >> $SNMP_V3_CONF_FILE
+        status=$?
+          
+        # line for trap receiver, only if needed
+        if [ "$status" = "$SUCCESS" ] && [ -n "$notificationReceiver" ]; then
+        
+          # create strings depending on authentication type (first part of auth level, auth type itself and auth key)
+          authTypeOptionString=""
+          authLevelString="noAuth"
+          if [ -n "$authType" ]; then
+            authLevelString="auth"
+            authTypeOptionString="-a ${authType} -A ${authKey}"
+          fi
+          
+          # create strings depending on privacy (second part of auth level, privacy itself and privacy key)
+          privacyTypeOptionString=""
+          privacyLevelString="NoPriv"
+          if [ -n "$privacy" ]; then
+            privacyLevelString="Priv"
+            privacyTypeOptionString="-x ${privacy}"
+            if [ -n "$privacyKey" ]; then
+              privacyTypeOptionString="-x ${privacy} -X ${privacyKey}"
+            fi
+          fi
+            
+          # write trap line to config file - don't change order, because read script is depending on it!
+          echo "trapsess -v 3 -u ${authName} ${authTypeOptionString} ${privacyTypeOptionString} -l ${authLevelString}${privacyLevelString} ${notificationReceiver}" >> $SNMP_V3_CONF_FILE
+          status=$?
+        fi
+          
+        if [ "$status" != "$SUCCESS" ]; then
+          status=$SHELL_ERROR
+          ReportError $status
+          SetLastError "Error while writing SNMP config file"
+        fi
+      fi
+    else
+      status=$INVALID_PARAMETER
+      SetLastError "Unknown action for edit of v3 trap receiver"
+    fi
+  fi
+fi
+
+[[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a config /etc/config-tools/events/snmp/
+
+# write buffered filesystem-blocks to disk
+sync
+
+exit $status

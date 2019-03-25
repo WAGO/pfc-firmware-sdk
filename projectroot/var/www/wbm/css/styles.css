@@ -1,0 +1,1942 @@
+@CHARSET "ISO-8859-1";
+
+/*
+//------------------------------------------------------------------------------
+/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+///
+/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// the subject matter of this material. All manufacturing, reproduction,
+/// use, and sales rights pertaining to this subject matter are governed
+/// by the license agreement. The recipient of this software implicitly
+/// accepts the terms of the license.
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+///
+///  \file     styles.css
+///
+///  \version  $Revision: 1 $
+///
+///  \brief    Style-Sheeds for the Web-Based-Management
+///
+///  \author   WAGO Kontakttechnik GmbH & Co. KG
+//------------------------------------------------------------------------------
+*/
+
+
+/*-----------------------------------------------------------------------------
+/ reset
+/-----------------------------------------------------------------------------*/
+ul
+{
+  list-style:         none;
+  margin:             0;
+  padding:            0;
+}
+
+
+/*-----------------------------------------------------------------------------
+/ general page layout
+/-----------------------------------------------------------------------------*/
+body
+{
+  background:         #ffffff;
+  font:               12px Verdana, sans-serif;
+  margin:             0;
+  padding:            0;
+}
+
+#page
+{
+  width:              964px;
+  margin-left:        17px;
+  overflow:           hidden;
+}
+
+
+/*-----------------------------------------------------------------------------
+/ head area
+/-----------------------------------------------------------------------------*/
+
+#head_area
+{
+  height:             108px;
+  margin:             0;
+  margin-bottom:      20px;
+  padding-left:       215px;
+  overflow:           hidden;
+  background: #ffffff url(../images/wago-logo.png) no-repeat 50px 18px;
+  padding-top: 10px;
+}
+
+.horizontal-line {
+  border-bottom: 2px solid #8BB63B;
+  left: 0;
+  top: 100px;
+  width: 100%;
+  position: absolute;
+}
+
+
+#head_area h1
+{
+  display:            block;
+  font:               bold 18px Verdana, sans-serif;
+  margin:             0;
+  padding-top:        12px;
+  white-space:        nowrap;
+}
+
+
+#head_area p#coupler_info_text
+{
+  margin-top:         9px;
+}
+
+#new_wbm_area {
+  margin-top: 10px;
+  width: 202px;
+  overflow: hidden;
+  float: right;
+}
+
+/*
+#head_area form#language_selection_form
+{
+  float:              right;
+  margin-right:       20px;
+  margin-top:         15px;
+}
+
+#head_area form#language_selection_form label
+{
+  display:            block;
+  font:               bold 11px Verdana, sans-serif;
+}
+
+#head_area form#language_selection_form select
+{
+  width:              100px;
+  font-size:          11px;
+}
+
+#head_area button#reload_button
+{
+  float:              right;
+  width:              23px;
+  height:             22px;
+  background:         white;
+  border:             1px solid gray;
+  margin-right:       16px;
+  margin-top:         27px;
+
+  margin-right:       136px;
+}
+
+#head_area button#reload_button img
+{
+  margin-top: 0;
+}
+*/
+
+#head_area .user_management_area
+{
+  float:                right;
+  margin-top:           10px;
+  width:                202px;
+  overflow:             hidden;
+}
+
+#head_area .user_management_area .user_name
+{
+  float:                left;
+}
+
+#head_area .user_management_area a
+{
+  float:                right;
+  font-weight:          bold;
+}
+
+p
+{
+  color:        #000000;
+  font:         12px Verdana, sans-serif;
+}
+
+
+h2
+{
+  font: bold 13px Verdana, sans-serif;
+  margin-top: 0;
+}
+
+h3
+{
+  color:          #ffffff;
+  font:           bold 11px Verdana, sans-serif;
+  margin-top:     0px;
+  padding-top:    5px;
+  padding-bottom: 5px;
+  text-align:     center;
+}
+
+h4
+{
+  /*
+  background:     #efefef;
+  */
+  border-bottom:  1px solid black;
+  font:           bold 14px Verdana, sans-serif;
+  margin-top:     40px;
+  padding:        2px 5px 2px 5px;
+}
+
+a
+{
+  color:           #8BB63B;
+  font:            12px Verdana, sans-serif;
+  text-decoration: underline;
+}
+
+a:hover
+{
+  color:           #000000;
+  text-decoration: none;
+}
+
+a img
+{
+  border:         none;
+}
+
+form
+{
+  margin:         0;
+}
+
+
+label.greyed, p.greyed, span.greyed
+{
+  color:                #bebebe;
+}
+
+
+
+/*-----------------------------------------------------------------------------*/
+/* definitions for page-layout                                                 */
+/*-----------------------------------------------------------------------------*/
+
+/* clear after floating elements */
+
+.clearfix:after
+{
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+.clearfix { display: inline-table; }
+
+/* Hides from IE-mac \*/
+* html .clearfix { height: 1%; }
+.clearfix { display: block; }
+/* End hide from IE-mac */
+
+
+/*-----------------------------------------------------------------------------
+/ main navigation
+/-----------------------------------------------------------------------------*/
+
+div#main_nav
+{
+  background:         url(../images/navigation_rahmen_oben.gif) no-repeat center top;
+  float:              left;
+  margin:             0 0 0 0px;
+  padding:            0;
+  width:              202px;
+}
+
+/* bottom border graphic - worse luck, it don't works correctly with IE :-( */
+/*
+div#main_nav:after
+{
+  content:            url(../images/navigation_rahmen_unten.gif);
+}
+*/
+
+div#main_nav h3
+{
+  color:              #ffffff;
+  font:               bold 11px Verdana, sans-serif;
+  margin:             0;
+  padding:            5px;
+  height:             20px;
+  text-align:         center;
+}
+
+
+
+div#main_nav ul
+{
+  list-style-type:    none;
+  margin:             0;
+  padding:            0;
+}
+/* for bottom border graphic - only necessary because IE don't works correctly with "after" */
+div#main_nav ul
+{
+  background:         url(../images/navigation_rahmen_unten.gif) no-repeat center bottom;
+  padding-bottom:     6px;
+}
+
+
+div#main_nav ul li
+{
+}
+
+div#main_nav ul li.config_dependent
+{
+  display:            none;
+}
+
+
+div#main_nav ul li a
+{
+  display:            block;
+  background:         url(../images/bullet_green.gif) no-repeat left;
+  color:              #000000;
+  font:               bold 11px Verdana, sans-serif;
+  text-decoration:    none;
+  margin:             0;
+  min-height:         18px;
+  padding:            5px 0px 0 25px;
+}
+div#main_nav ul li a   /* for IE */
+{
+  height:             23px;
+}
+
+div#main_nav ul li a:hover
+{
+  background:         #8BB63B url(../images/bullet_white.gif) no-repeat left;
+  color:              #ffffff;
+}
+
+div#main_nav ul li a.selected
+{
+  background:         #8BB63B url(../images/bullet_white.gif) no-repeat left;
+  color:              #000000;
+}
+
+div#main_nav ul li a.selected:hover
+{
+  color:              #000000;
+}
+
+div#main_nav ul li a.forbidden
+{
+  color:              #BEBEBE;
+	color:              grey;
+  cursor:             not-allowed;
+  cursor:             no-drop;
+}
+
+
+div#main_nav .nav_submenu
+{
+  margin:             5px 2px 0px 2px;
+  padding:            0;
+  display:            none;
+}
+/* for bottom border graphic - only necessary because IE don't works correctly with "after" */
+div#main_nav .nav_submenu
+{
+  background:         none;
+}
+
+div#main_nav .nav_submenu li
+{
+}
+
+div#main_nav .nav_submenu a
+{
+  background:         url(../images/bullet_small_green.gif) no-repeat 16px;
+  padding-left:       30px;
+  font-weight:        normal;
+}
+
+
+div#main_nav .nav_submenu a:hover
+{
+  background:         #8BB63B url(../images/bullet_small_white.gif) no-repeat 16px;
+  color:              #ffffff;
+}
+
+div#main_nav .nav_submenu .selected
+{
+  background:         #8BB63B url(../images/bullet_small_white.gif) no-repeat 16px;;
+}
+
+div#main_nav .nav_flyout_submenu
+{
+  position            : absolute;
+  background          : white;
+  border              : 1px solid #8BB63B;
+  border-radius       : 0 5px 5px 0;
+  box-shadow          : 4px 4px 6px rgba(0, 0, 0, 0.5);
+  z-index             : 3;
+}
+
+div#main_nav .nav_flyout_submenu a
+{
+  background          : url(../images/bullet_small_green.gif) no-repeat 4px;
+	padding-left        : 16px;
+  padding-right       : 16px;
+}
+
+div#main_nav .nav_flyout_submenu a:hover
+{
+  background          : #8BB63B url(../images/bullet_small_white.gif) no-repeat 4px;
+}
+
+div#main_nav .submenu_hint
+{
+  float               : right;
+  margin-right        : 8px;
+  margin-top          : 8px;
+}
+
+
+/*-----------------------------------------------------------------------------
+/ status area
+/-----------------------------------------------------------------------------*/
+
+div#status_area
+{
+  float:                right;
+  background:           url(../images/status_rahmen_oben.gif) no-repeat center top;
+  font-size:            11px;
+  width:                202px;
+}
+
+/* bottom border graphic - worse luck, it don't works correctly with IE :-( */
+/*
+div#status_area:after
+{
+  content:            url(../images/status_rahmen_unten.gif);
+}
+*/
+
+div#status_area h3
+{
+  color:              white;
+  font:               bold 11px Verdana, sans-serif;
+  margin:             0;
+  padding:            5px;
+  height:             20px;
+  text-align:         center;
+}
+
+div#status_area ul
+{
+  list-style:         none;
+  margin:             0;
+  padding:            0;
+  padding-left:       5px;
+  padding-right:      5px;
+  /*
+  margin-bottom:      10px;
+  */
+  padding-bottom:     6px;
+}
+/* for bottom border graphic - only necessary because IE don't works correctly with "after" */
+div#status_area > ul
+{
+  background:         url(../images/status_rahmen_unten.gif) no-repeat center bottom;
+}
+
+div#status_area > ul > li
+{
+  border-top:         1px solid #bebebe;
+  font:               bold 11px Verdana, sans-serif;
+  line-height:        26px;
+  overflow:           hidden;
+}
+
+div#status_area > ul > li:first-child
+{
+  border-top:         none;
+}
+
+div#status_area > ul > li .value
+{
+  float:              right;
+  font-weight:        normal;
+  margin-right:       2px;
+}
+
+div#status_area > ul > li .error
+{
+  color:              red;
+}
+
+/*
+div#status_area ul li span#value_wbm_state img
+{
+  margin-top:         7px;
+}
+*/
+
+div#status_area img.wbm_state
+{
+  margin-top:         7px;
+}
+
+div#led_area ul
+{
+  border:             1px dotted #bebebe;
+  border-radius:      3px;
+  margin-top:         2px;
+  padding-bottom:     0;
+  width:              86px;
+  overflow:           hidden;
+}
+
+div#led_area ul li
+{
+  display:            inline-block;
+  width:              40px;
+  height:             16px;
+  margin-top:         3px;
+  text-align:         right;
+  font:               11px verdana, sans-serif;
+  float:              left;
+  /*
+  background: yellow;
+  */
+}
+
+div#led_area ul li .caption
+{
+  margin-top:         0;
+  display:            block;
+  font:               12px verdana, sans-serif;
+}
+
+
+div#led_area ul li:nth-child(even)
+{
+  float:              right;
+  text-align:         left;
+}
+/* especially for IE8 */
+div#led_area ul li.right
+{
+  float:              right;
+  text-align:         left;
+}
+
+div#led_area ul li a
+{
+  cursor:             default;
+}
+
+
+div#led_area ul li img
+{
+  float:              right;
+  margin-left:        2px;
+  margin-top:         1px;
+}
+
+div#led_area ul li:nth-child(even) img
+{
+  float:              left;
+  margin-left:        0;
+  margin-right:       3px;
+}
+/* especially for IE8 */
+div#led_area ul li.right img
+{
+  float:              left;
+  margin-left:        0;
+  margin-right:       2px;
+}
+
+
+div#led_area ul li.right span.led_name
+{
+}
+
+
+div#status_area .led_value_left, div#status_area .led_value_right
+{
+  width:              40px;
+  overflow:           hidden;
+  /*
+  background: yellow;
+  */
+}
+
+div#status_area .led_value_left img, div#status_area .led_value_right img
+{
+  /*
+  background: red;
+  */
+}
+
+div#status_area .led_value_left
+{
+  text-align:         right;
+}
+
+div#status_area .led_value_left img
+{
+  margin-left:        4px;
+}
+
+div#status_area .led_value_right
+{
+  text-align:         left;
+}
+
+div#status_area .led_value_right img
+{
+  margin-right:       4px;
+}
+
+
+
+/*-----------------------------------------------------------------------------
+/ content area
+/-----------------------------------------------------------------------------*/
+
+div#content_area
+{
+  margin-left:        215px;
+  margin-right:       215px;
+  /*
+  background: yellow;
+  */
+}
+
+div.licence-block {
+  white-space: pre-line;
+  word-wrap: break-word;
+}
+
+div#content_area #noscript_content
+{
+  margin-top:         40px;
+  text-align:         center;
+}
+
+div#content_area h2
+{
+  font:               bold 13px Verdana, sans-serif;
+  /*
+  margin-top:         0;
+  */
+}
+
+
+div#content_area .content_page
+{
+}
+
+
+div#content_area .single_content_page
+{
+  display:            none;
+}
+
+
+div#footer_area
+{
+  border-top:         1px solid #8BB63B;
+  margin:             40px 0 20px 0;
+  padding:            0;
+}
+
+#footer_area p
+{
+  color:              #8BB63B;
+  font-size:          10px;
+  margin-top:         0;
+  text-align:         center;
+  width:              964px;
+}
+
+#footer_area a
+{
+  font-size:          10px;
+	text-decoration:    underline;
+}
+
+#footer_area a:hover
+{
+  color          :    #000000;
+  text-decoration:    none;
+}
+
+.column_layout
+{
+  margin:           0px 0 10px 0;
+  overflow:         hidden;
+}
+
+
+
+/*-----------------------------------------------------------------------------*/
+/* tables / -contents                                                          */
+/*-----------------------------------------------------------------------------*/
+
+.config_list
+{
+  border-collapse:      collapse;
+  empty-cells:          show;
+  font:                 11px Verdana, sans-serif;
+  width:                100%;
+  margin-top:           30px;
+  margin-bottom:        20px;
+}
+
+
+
+
+.config_list caption
+{
+  background:           #bebebe;
+  font-weight:          bold;
+  /*
+  border-left:          solid 2px #ffffff;
+  border-right:         solid 2px #ffffff;
+  */
+  padding:              3px 5px 3px 5px;
+  text-align:           left;
+}
+
+
+.config_list td
+{
+  background-color:     #efefef;
+  border:               solid 2px #ffffff;
+  padding:              4px 5px 4px 5px;
+  font:                 11px Verdana, sans-serif;
+}
+
+.config_list td:first-child
+{
+  border-left:          none;
+}
+
+.config_list td:last-child
+{
+  border-right:          none;
+}
+
+
+.config_list  td.aktion
+{
+  padding-top:          10px;
+  padding-bottom:       20px;
+  text-align:           center;
+}
+
+
+.config_list td p
+{
+  font:                 11px Verdana, sans-serif;
+}
+
+
+
+.config_list  td img.state
+{
+  margin-right:         3px;
+}
+
+.config_list .input_field
+{
+  background:           #ffffff;
+  border:               1px solid #bebebe;
+  font:                 10px Verdana, sans-serif;
+}
+
+.config_list .input_field_greyed
+{
+  color:                #bebebe;
+}
+
+
+.config_list select.wide
+{
+  font: 9px Verdana, sans-serif;
+}
+* html .config_list select.wide   /* for IE */
+{
+  font: 9px Verdana, sans-serif;
+}
+
+.config_list .subheading
+{
+  font-weight: bold;
+}
+
+
+/*
+.warning_button
+{
+  background-color:     #ffffff;
+  border:               1px solid red;
+  color:                red;
+  font:                 12px Verdana, sans-serif;
+  text-align:           center;
+  width:                165px;
+}
+*/
+
+.button
+{
+  background:           #efefef;
+  border:               1px solid #bebebe;
+  font:                 12px Verdana, sans-serif;
+  width:                120px;
+  box-shadow:           1px 1px 0px gray;
+}
+
+.button:active
+{
+  box-shadow:           inset 1px 1px 0 gray;
+}
+
+
+
+.rts_task_table
+{
+  display:              none;
+  margin-top:           20px;
+}
+
+
+.warning_box
+{
+  background-color: #efefef;
+  /*
+  border-top:       1px solid #bebebe;
+  */
+  margin-top:       0px;
+  padding-top:      5px;
+  width:            100%;
+  overflow:         hidden;
+}
+
+.warning_box img.type
+{
+  float:            left;
+  margin:           5px;
+  margin-top:       0;
+}
+
+.warning_box h3
+{
+  font:             bold 12px Verdana, sans-serif;
+  background-color:       none;
+  margin-bottom:    0;
+}
+
+.warning_box p
+{
+	/*
+  float:            left;
+  */
+  margin:           0 20px 5px 0;
+  font:             12px Verdana, sans-serif;
+}
+
+/*
+.warning_box
+{
+  border:     solid 1px red;
+  margin-top: 30px;
+  padding:    5px;
+  width:      100%;
+}
+
+.warning_box .warning_sign
+{
+  color: red;
+  font:  20px bold Georgia, sans-serif;
+}
+*/
+
+.error
+{
+  color: red;
+  font:  12px Verdana, sans-serif;
+}
+
+.click_warning
+{
+  color:      red;
+  font:       12px Verdana, sans-serif;
+  margin-top: 0;
+}
+* html .click_warning   /* for IE */
+{
+  margin-top: 0;    /* TBD */
+}
+
+.warning p
+{
+  color: red;
+  font:  12px Verdana, sans-serif;
+}
+
+
+div#backup_active p
+{
+  color:  red;
+  font:   bold 12px Verdana, sans-serif;
+}
+
+div#download_active p
+{
+  color:  red;
+  font:   bold 12px Verdana, sans-serif;
+}
+
+/*
+td.download_active
+{
+  color:          red;
+  font:           bold 12px Verdana, sans-serif;
+  padding-top:    10px;
+  padding-bottom: 10px;
+  text-align:     center;
+}
+*/
+
+/*-----------------------------------------------------------------------------*/
+/* workaround for display of file-selection-field in our own CI                */
+/*-----------------------------------------------------------------------------*/
+
+.fileinputs
+{
+  position:        relative;
+  white-space:     nowrap;
+  display:         inline-block;
+}
+
+.fakefile
+{
+  left:     0;
+  position: absolute;
+  top:      0;
+  z-index:  1;
+}
+
+/* real file-input-field, lays exactly over the fake-input-field, but is totally transparent */
+.file
+{
+  -moz-opacity: 0;
+  color:        #000000;
+  font:         11px Verdana, sans-serif;
+  filter:       alpha(opacity:0);
+  opacity:      0;
+  position:     relative;
+  text-align:   left;
+  z-index:      2;
+
+  /* should look like a normal button */
+  margin-left:  10px;
+  width:        120px;
+}
+
+/* faked input-field (button will be replaced by an image in html-page) */
+.fake
+{
+  background:     #ffffff;
+  border:         1px solid #bebebe;
+  color:          #000000;
+  float:          left;
+  font:           11px Verdana, sans-serif;
+  margin-bottom:  6px;
+  margin:         1px 5px 1px 0;
+}
+
+.menu_head
+{
+  font:           bold 11px Verdana, sans-serif;
+}
+
+.fake_fileupload_grayed
+{
+  background:     #E8E8E8 !important;
+  color:          gray;
+}
+
+/*-----------------------------------------------------------------------------
+/ backup and restore
+/-----------------------------------------------------------------------------*/
+
+#firmware_restore_content .only_codesys
+{
+  display:          none;
+}
+
+#firmware_restore_content .only_codesys.existing
+{
+  display:          inline-block;
+}
+
+#firmware_restore_content #firmware_restore_network_source_file
+{
+  display:          none;
+  margin-bottom:    20px;
+}
+
+#firmware_restore_content #firmware_restore_network_source_file .label_field
+{
+  min-width:        145px;
+}
+
+#firmware_restore_content #firmware_restore_network_source_file li
+{
+  margin-bottom:    16px;
+}
+
+
+table.backup_sequence
+{
+  font:             12px Verdana, sans-serif;
+  margin-bottom:    0px;
+  border-spacing:   0;
+  border-collapse:  collapse;
+  margin-left:      5px;
+  margin-right:     5px;
+  margin-bottom:    20px;
+}
+
+
+table.backup_sequence th
+{
+  /*
+  background:       white;
+  */
+  font-weight:      bold;
+  padding-bottom:   0;
+  padding-top:      0;
+}
+
+
+table.backup_sequence th.source
+{
+  padding:          0px 0px 0px 0;
+  text-align:       left;
+  /*
+  white-space:      nowrap;
+  */
+}
+
+table.backup_sequence th.packages
+{
+  text-align:       center;
+}
+
+table.backup_sequence th.destination
+{
+  padding:          0px 0 0px 5px;
+  text-align:       right;
+  /*
+  white-space:      nowrap;
+  */
+}
+
+
+table.backup_sequence td
+{
+  /*
+  background:       white;
+  */
+  vertical-align:   middle;
+  /*
+  white-space:      nowrap;
+  */
+}
+
+table.backup_sequence td.source
+{
+  /*
+  background:       silver;
+  font-weight:      bold;
+  */
+  padding:          10px 5px 10px 0;
+  text-align:       left;
+  white-space:      nowrap;
+}
+
+table.backup_sequence td.packages
+{
+  background:       url(../images/long_arrow_right_transp.gif) no-repeat center right;
+  padding-top:      10px;
+  padding-bottom:   10px;
+  text-align:       center;
+  width:            100%;
+}
+
+table.backup_sequence td.destination
+{
+  padding:          10px 0 10px 5px;
+  text-align:       right;
+  white-space:      nowrap;
+}
+
+
+#restore_packages_wait_notice,
+#backup_wait_notice
+{
+
+  -moz-opacity:     0.8;
+  filter:           alpha(opacity:80);
+  opacity:          0.8;
+
+  background:       #efefef;
+  display:          none;
+  height:           80px;
+  margin:           1px auto auto -77px;
+  position:         absolute;
+  text-align:       center;
+  width:            154px;
+  z-index:          1;
+}
+*html #restore_packages_wait_notice,
+*html #backup_wait_notice
+{
+  margin-left:      -74px;
+  padding-top:      10px;
+  height:           84px;
+  width:            148px;
+}
+
+#webvisu_wait_notice
+{
+  -moz-opacity:     0.8;
+  filter:           alpha(opacity:80);
+  opacity:          0.8;
+
+  background:       #efefef;
+  display:          none;
+  border:           1px solid gray;
+  position:         absolute;
+  margin-left:      140px;
+  margin-top:       80px;
+  text-align:       center;
+  width:            250px;
+  height:           100px;
+  z-index:          1;
+}
+
+#webvisu_wait_notice p
+{
+  margin:           20px;
+}
+
+ul.package_list
+{
+  background:       white;
+  border:           1px solid #8BB63B;
+  margin:           auto;
+  padding:          2px;
+  text-align:       left;
+  width:            160px;
+}
+*html ul.package_list
+{
+  padding-left:     0;
+}
+
+ul.package_list li
+{
+  display:          block;
+  width:            100%;
+  float:            none;
+  margin:           0;
+  padding:          0;
+}
+*html ul.package_list li
+{
+  height:           1em
+}
+
+
+/*
+ul.backup_sequence
+{
+  width:            100%;
+  list-style:       none;
+  margin:           0;
+  padding:          0;
+  overflow:         hidden;
+}
+
+ul.backup_sequence li
+{
+  display:          inline-table;
+  width:            22%;
+  float:            left;
+  margin:           0;
+  padding:          0;
+  padding-top:      10px;
+}
+*html ul.backup_sequence li
+{
+  height:           35px;
+}
+
+.backup_sequence li.packages
+{
+  padding-top:      0;
+  width:            56%;
+  text-align:       center;
+}
+
+.backup_sequence li.destination
+{
+  text-align: right;
+}
+
+
+ul.diagram li
+{
+  font-weight:      bold;
+  height:           25px;
+}
+
+.diagram li.packages
+{
+  background:       url(images/long_arrow_right.gif) no-repeat bottom right;
+  vertical-align:   top;
+}
+
+ul.form li.source
+{
+  margin-top:       20px;
+}
+
+ul.form li.destination
+{
+  margin-top:       20px;
+}
+*/
+
+
+/*
+div#wait_notice
+{
+  border:           1px solid grey;
+  background:       white url(images/wait_1.gif) no-repeat center 60px;
+  position:         fixed;
+  margin-top:       30%;
+  margin-left:      300px;
+  padding:          10px 10px 30px 10px;
+  height:           40px;
+  text-align:       center;
+  visibility:       hidden;
+  width:            220px;
+}
+*html div#wait_notice
+{
+  height:           60px;
+  position:         absolute;
+  margin-top:       400px
+  margin-left:      10px;
+}
+*/
+
+
+/* output of CoDeSys project version */
+.rts_project_version
+{
+  width:            420px;
+  word-wrap:        break-word;
+}
+
+
+/* output of CoDeSys project description */
+.rts_project_description
+{
+  overflow:         scroll;
+  width:            420px;
+  white-space:      nowrap;
+}
+
+/*
+#status_area #ajax_status
+{
+  float:            left;
+  font:             10px Verdana, sans-serif;
+  color:            lightgray;
+  padding:          2px 2px 2px 2px;
+  width:            60px;
+  height:           14px;
+}
+
+#status_area  #ajax_status .ajax_status_active
+{
+  background:       magenta;
+}
+*/
+/*
+#status_area #ajax_status
+{
+  display:          block;
+  width:            60px;
+  height:           14px;
+  margin:           1px;
+  font:             10px Verdana, sans-serif;
+}
+
+
+#status_area .ajax_status_active
+{
+  background:       yellow;
+}
+
+
+#status_area .ajax_status .error
+{
+  background:       red;
+}
+*/
+
+
+#page_overlay
+{
+  background:       lightgray;
+  filter:           alpha(opacity=50);
+  opacity:          0.5;
+  position:         absolute;
+  top:              0px;
+  left:             0px;
+  /*
+  bottom:           0px;
+  right:            0px;
+  */
+  width:            100%;
+  height:           100%;
+  display:          none;
+}
+
+
+#busy_state_infobox, #infobox
+{
+  background:       white;
+  border:           1px solid #8BB63B;
+  border:           1px solid #bebebe;
+  min-height:       100px;
+  width:            220px;
+  margin-top:       -50px;                        /* alignment by middle of box*/
+  margin-left:      -110px;
+  padding:          10px;
+  position:         fixed;                        /* adjust to window middle in long pages too */
+  /*
+  position:         absolute;
+  */
+  top:              50%;                          /* adjust to middle */
+  left:             50%;
+  text-align:       center;
+  display:          none;
+  z-index:          100;
+}
+
+#busy_state_infobox
+{
+  background:       white url(../images/wait_1.gif) no-repeat center 80px;
+}
+
+#infobox
+{
+  width:                250px;
+}
+
+#infobox .button_area
+{
+  padding-top:          20px;
+}
+
+
+#infobox .button_area input[type=button]
+{
+  background:           white;
+  border:               1px solid #bebebe;
+  font:                 11px Verdana, sans-serif;
+  margin-left:          10px;
+  margin-right:         10px;
+  box-shadow:           1px 1px 0px gray;
+}
+
+#infobox .button_area input[type=button]:active
+{
+  box-shadow:           inset 1px 1px 0 gray;
+}
+
+
+#infobox.default
+{
+  background:           white;
+}
+
+
+#infobox.wait
+{
+  background:           white url(../images/wait_1.gif) no-repeat center 80px;
+}
+
+
+#infobox.confirm
+{
+  background:           white;
+}
+
+
+#infobox p.additional_infos_hint
+{
+  margin-top:           0;
+  text-align:           right;
+  font:                 11px verdana, sans-serif;
+  cursor:               pointer;
+}
+
+#infobox p.additional_infos
+{
+  display:              none;
+}
+
+
+
+
+.state_led
+{
+  float:            left;
+  margin-right:     4px;
+  margin-left:      2px;
+}
+
+.grayed
+{
+  color:            gray;
+}
+
+
+div.template, tr.template
+{
+  display:          none;
+}
+
+.tooltip
+{
+  border            : 1px solid #8BB63B;
+  position          : absolute;
+  border-radius     : 4px;
+  box-shadow        : 4px 4px 6px rgba(0, 0, 0, 0.5);
+  /*
+  background-color  : rgba(255,255,255,0.9);
+  */
+  background-color  : white;
+  width             : 160px;
+  min-height        : 50px;
+  height            : auto;
+  padding           : 3px;
+  font:             : 11px Verdana, sans-serif;
+}
+
+
+#content_area h3
+{
+  font:                 bold 11px Verdana, sans-serif;
+  background:           #bebebe;
+  margin-bottom:        0;
+  padding:              3px 5px 3px 5px;
+  text-align:           left;
+  color:                black;
+}
+
+
+ul.check_list_important li
+{
+  margin-top:           2px;
+}
+
+.config_form_box
+{
+  background-color:     #efefef;
+  margin-bottom:        20px;
+  padding-top:          5px;
+  padding-bottom:       5px;
+  overflow:             hidden;
+  border-bottom:        1px solid white;
+  /*
+  background: red;
+  */
+}
+
+.config_form_box.group
+{
+  border-bottom:        1px solid white;
+  margin-bottom:        0;
+}
+
+/*
+.config_form_box h3
+{
+  font:                 bold 11px Verdana, sans-serif;
+  background:           #bebebe;
+  margin-bottom:        0;
+  padding:              3px 5px 3px 5px;
+  text-align:           left;
+  color:                black;
+}
+*/
+
+
+.config_form_box p.button_area, .config_form_box p.button_area_separate
+{
+  text-align:           right;
+  margin:               0;
+  padding-right:        5px;
+  padding-bottom:       5px;
+
+  /* shift bottom from unter list to beside list */
+  margin-top:           -30px;
+  min-height:           18px;
+  /*
+  background: green;
+  */
+}
+
+.config_form_box p.button_area_separate
+{
+  margin-top:           0;
+}
+
+
+.config_form_box p.process_button_area
+{
+  text-align:           center;
+  margin:               0;
+  padding-bottom:       12px;
+  padding-top:          12px;
+  width:                100%;
+}
+
+.config_form_box .button, .config_form_box .reset_button, .config_form_box .warning_button, .file_browse_fake_button
+{
+  background:           #efefef;
+  background:           white;
+  border:               1px solid #bebebe;
+  font:                 11px Verdana, sans-serif;
+  width:                120px;
+  margin-left:          10px;
+  box-shadow:           1px 1px 0px gray;
+}
+
+.config_form_box .button.greyed
+{
+  color:                #bebebe;
+}
+
+.config_form_box .button.mini
+{
+  width:                55px;
+  /*text-align:           center;*/
+}
+
+.config_form_box .button:active, .config_form_box .reset_button:active, .config_form_box .warning_button:active
+{
+  box-shadow:           inset 1px 1px 0 gray;
+}
+
+.config_form_box .reset_button
+{
+  display:              none;
+  background:           #efefef;
+  background:           none;
+}
+
+.config_form_box .warning_button
+{
+  background-color:     #ffffff;
+  text-align:           center;
+  width:                165px;
+}
+
+
+
+.config_form_box .config_data_list
+{
+  display:              table;
+  /*
+  float:                left;
+  */
+  font:                 11px Verdana, sans-serif;
+  width:                auto;
+  /*
+  border: 1px solid red;
+  */
+  margin-bottom:        8px;
+}
+
+
+
+.config_form_box .config_data_list h3
+{
+  display:              table-caption;
+  font:                 bold 11px Verdana, sans-serif;
+  background:           #bebebe;
+  margin-bottom:        0;
+  padding:              3px 5px 3px 5px;
+  text-align:           left;
+  color:                black;
+}
+
+
+.config_form_box .config_data_list .label_value_pair
+{
+  display:              table-row;
+}
+
+.config_form_box .config_data_list .label_field
+{
+  display:              table-cell;
+  background-color:     #efefef;
+  /*
+  border-bottom:        1px solid white;
+  */
+  padding:              4px 5px 4px 5px;
+  width:                110px;
+  white-space:          nowrap;
+}
+
+.config_form_box .config_data_list .value_field
+{
+  display:              table-cell;
+  background-color:     #efefef;
+  /*
+  border-left:          2px solid white;
+  border-bottom:        1px solid white;
+  */
+  padding:              4px 5px 4px 5px;
+  width:                auto;
+  vertical-align:       top;
+}
+
+
+.config_form_box .config_data_list .value_field img.state
+{
+  margin-right:         3px;
+}
+
+
+.config_form_box .config_data_list .input_field, .config_form_box .config_data_list .input_field_wide
+{
+  background:           #ffffff;
+  border:               1px solid #bebebe;
+  font:                 10px Verdana, sans-serif;
+}
+
+.config_form_box .config_data_list .input_field_wide
+{
+  width:                99%;
+}
+
+
+.config_form_box .config_data_list .input_field.half_size
+{
+  width:                40%;
+}
+
+
+.config_form_box .config_data_list .input_field_greyed
+{
+  color:                #bebebe;
+}
+
+.config_form_box select
+{
+  min-width:            150px;
+}
+
+.config_form_box select.wide
+{
+  font:                 9px Verdana, sans-serif;
+}
+
+
+.config_form_box .config_data_list .value_field .rts_project_description
+{
+  border:               1px solid #bebebe;
+}
+
+.config_form_box .config_data_list input[type=radio], .config_form_box .config_data_list input[type=checkbox]
+{
+  vertical-align:       text-top;
+  margin-left:          0;
+}
+
+/*
+.config_list td:first-child
+{
+  border-left:          none;
+}
+
+.config_list td:last-child
+{
+  border-right:          none;
+}
+
+.config_list  td.aktion
+{
+  padding-top:          10px;
+  padding-bottom:       20px;
+  text-align:           center;
+}
+
+
+.config_list td p
+{
+  font:                 11px Verdana, sans-serif;
+}
+*/
+
+
+
+.config_box .value_field img.state
+{
+  margin-right:         3px;
+}
+
+.config_box .input_field
+{
+  background:           #ffffff;
+  border:               1px solid #bebebe;
+  font:                 10px Verdana, sans-serif;
+}
+
+.config_box .input_field_greyed
+{
+  color:                #bebebe;
+}
+
+.config_box select.wide
+{
+  font: 9px Verdana, sans-serif;
+}
+* html .config_box select.wide   /* for IE */
+{
+  font: 9px Verdana, sans-serif;
+}
+
+.config_box .subheading
+{
+  font-weight: bold;
+}
+
+
+/*-----------------------------------------------------------------------------*/
+/* special list styles/widths for single pages                                 */
+/*-----------------------------------------------------------------------------*/
+
+#interfaces_content .label_field
+{
+  min-width:            125px;
+}
+
+#ethernet_content .label_field
+{
+  min-width:            125px;
+}
+
+#firewall_general_configuration_content .label_field
+{
+  min-width:            200px;
+}
+
+#firewall_user_filter_content .label_field
+{
+  min-width:            150px;
+}
+
+#rts_configuration_content .label_field
+{
+  min-width:            240px;
+}
+
+#rs232_content .label_field
+{
+  width:                40px;
+}
+
+#network_services_content .label_field
+{
+  min-width:            125px;
+}
+
+
+#codesys_ports_content .label_field
+{
+  width:                125px;
+  width:                170px
+}
+
+#ssh_content .label_field
+{
+  width:                130px;
+}
+
+#tftp_content .label_field
+{
+  width:                120px;
+}
+
+#dns_service_content .label_field
+{
+}
+
+#iocheck_port_content .label_field
+{
+  width:                125px;
+}
+
+#modbus_services_content .label_field
+{
+  width:                125px;
+}
+
+#snmp_general_content .label_field
+{
+  width:                120px;
+}
+
+#ntp_content .label_field
+{
+  width:                150px;
+}
+
+#routing_content .label_field
+{
+  min-width:            125px;
+}
+
+/*
+#vpn_content .label_field
+{
+  width:                150px;
+}
+*/
+
+#diag_list
+{
+  border:           1px solid #bebebe;
+  overflow:         auto;
+  width:            100%;
+  white-space:      nowrap;
+}
+
+#diag_list p
+{
+  margin:           5px;
+  font:             11px Verdana, sans-serif;
+}
+
+#bacnet_diag_list
+{
+  border:           1px solid #bebebe;
+  overflow:         auto;
+  width:            100%;
+  white-space:      nowrap;
+}
+
+#bacnet_diag_list p
+{
+  margin:           5px;
+  font:             11px Verdana, sans-serif;
+}
+
+/*-----------------------------------------------------------------------------*/
+
+
+
+.initial_invisible
+{
+  display:          none;
+}
+
+
+/* areas necessary (only) if more than one interface is existing */
+#interfaces_content .several_interfaces, #actual_tcpip_interfaces .several_interfaces, #actual_tcpip_interfaces .single_interface
+{
+  display:          none;
+}
+
+#interfaces_content .label_value_pair.several_interfaces, #actual_tcpip_interfaces .label_value_pair.several_interfaces
+{
+  display:          none;
+}
+
+
+#interfaces_content .label_value_pair.several_interfaces.existing, #actual_tcpip_interfaces .label_value_pair.several_interfaces.existing
+{
+  display:          table-row;
+}
+
+#interfaces_content span.several_interfaces.existing, #actual_tcpip_interfaces span.several_interfaces.existing, #actual_tcpip_interfaces span.single_interface.existing
+{
+  display:          inline-block;
+}
+
+
+#rts_info_content #codesys_info_version_2_area, #rts_info_content #codesys_info_version_3_area
+{
+  display:          none;
+}
+
+#rts_info_content #codesys_info_version_2_area.existing, #rts_info_content #codesys_info_version_3_area.existing
+{
+  display:          block;
+}
+
+
+
+
+/*-----------------------------------------------------------------------------
+/ handle swing open/clap areas
+/-----------------------------------------------------------------------------*/
+.accordeon_control
+{
+  display:                inline;
+  width:                  20px;
+}
+
+.accordeon_control img
+{
+  vertical-align:         middle;
+}
+
+
+/*-----------------------------------------------------------------------------
+/ miscellaneous
+/-----------------------------------------------------------------------------*/
+iframe.upload_iframe
+{
+  display:                none;
+}
+
+
+input.real_file
+{
+  display:                none;
+}
+

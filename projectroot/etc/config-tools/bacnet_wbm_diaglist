@@ -1,0 +1,97 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: bacnet_wbm_diaglist
+#
+# Get BACnet diagnostic data from message buffer
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+PrintDecodeLog()
+{
+  LOGFILES=""
+  if [ -f /var/log/messages ]
+  then
+    LOGFILES+=" /var/log/messages"
+  fi
+  if [ -f /var/log/messages.1 ]
+  then
+    LOGFILES+=" /var/log/messages.1"
+  fi
+  if [ -f /var/log/messages.2 ]
+  then
+    LOGFILES+=" /var/log/messages.2"
+  fi
+  if [ -f /var/log/runtime.log ]
+  then
+    LOGFILES+=" /var/log/runtime.log"
+  fi
+  if [ -f /var/log/runtime.log.1 ]
+  then
+    LOGFILES+=" /var/log/runtime.log.1"
+  fi
+  if [ -f /var/log/runtime.log.2 ]
+  then
+    LOGFILES+=" /var/log/runtime.log.2"
+  fi
+  
+  # Search BACnet keywords, sort the result by month and show only important infos
+  #                                              -k[start],[end][Month]
+  grep -h 'BACnet_ERR\|BACnet_INF' $LOGFILES | sort -k1,1M -k2,2n | cut -d' ' -f 1,2,3,6,7-100
+}
+
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* write output of diagnostic log for use in WBM *"
+  echo
+  echo "Usage: bacnet_diagnostic [ diag-count ]"
+  echo 
+  echo "diag-count: count of recent diagnostic notifications to show, default = show all"
+  echo 
+  exit $SUCCESS
+fi
+
+status=$SUCCESS
+
+lineCount=$1
+#echo "lineCount:${lineCount}
+
+if [ -z "$lineCount" ]; then
+  PrintDecodeLog
+  lineCount=-1
+  
+else
+  # check if count is valid (= integer)
+  if [ -n "${lineCount//[0-9]/}" ]; then
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid input parameter (\"diag count\")"
+  else
+     PrintDecodeLog | tail -n $lineCount
+  fi
+fi
+
+
+# fake a lot of output for test
+#lineNo=0
+#while [ "$lineNo" -lt 30 ]; do
+#  echo "Wed Nov 14 2012 06:32:48.128624 0x00060000 BACnet_ERR: S"
+#  lineNo=$[$lineNo + 1]
+#done
+
+exit $status

@@ -1,0 +1,25 @@
+From 56d323e6d105e91a4932b587e4488a0683b5ddaf Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 10 Aug 2018 13:43:24 +0200
+Subject: [PATCH 058/144] arm: : pfc-am35xx: update mach-types because of
+ compatibility to fw versions < 5
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/tools/mach-types | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
+index f5951bf..d193685 100644
+--- a/arch/arm/tools/mach-types
++++ b/arch/arm/tools/mach-types
+@@ -4723,5 +4723,5 @@ ecv4			MACH_ECV4		ECV4			4768
+ webbg3flight		MACH_WEBBG3FLIGHT	WEBBG3FLIGHT		4769
+ sbc_phycore_am335x	MACH_SBC_PHYCORE_AM335X	SBC_PHYCORE_AM335X	4770
+ tsc			MACH_TSC		TSC			4771
++pfc_am35xx		MACH_PFC_AM35XX		PFC_AM35XX		9000
+ pfc_am335x		MACH_PFC_AM335X		PFC_AM335X		9002
+-pfc_am35xx		MACH_PFC_AM35XX		PFC_AM35XX		9003
+-- 
+2.7.4
+

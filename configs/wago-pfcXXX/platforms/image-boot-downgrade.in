@@ -1,0 +1,31 @@
+## SECTION=image2
+
+menuconfig IMAGE_BOOT_DOWNGRADE
+	tristate
+	select HOST_GENIMAGE
+	select HOST_MTOOLS
+	select HOST_DOSFSTOOLS
+	prompt "Generate images/boot-downgrade.vfat"
+	help
+	  Generate boot.vfat images for downgrading
+	  fw5 to ancestor fw
+
+if IMAGE_BOOT_DOWNGRADE
+
+config IMAGE_BOOT_DOWNGRADE_PLATFORM_SUFFIX
+       string
+       prompt "platform-suffix"
+       default "pfc200"
+       help
+	  Platform suffix for generated downgrade-script. This suffix
+	  is used in the bootloader to check if the downgrade-script
+	  is valid for this platform.
+
+config IMAGE_BOOT_DOWNGRADE_ARCHIVES
+       string
+       prompt "archive files"
+       help
+	  Space seperated list of archive names (e.g. fw4.tar.gz) in /src
+	  that provinding the files 'mlo, barebox.img,
+	  linuximage(factory-image)'
+endif

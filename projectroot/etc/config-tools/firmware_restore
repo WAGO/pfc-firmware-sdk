@@ -1,0 +1,441 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: firmware_restore
+#
+# Process restore of firmware data
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+SRCDIR=/mnt/__source_dir
+
+# status file to show status on wbm e.g.
+# not used by now, because progress indicator for restore is not reasonable in wbm by now
+statusFile="/var/www/wbm/firmware_restore_status"
+
+status=$SUCCESS
+
+RESTORE_PROCESS_STATUS_TMP_FILE="/tmp/restore_process_status"
+
+# If execute_reboot is set to false, exit is executed instead of reboot.
+execute_reboot=1
+
+function RestorePartition
+{
+  local destinationPartition=$1
+  local sourceFilename=$2
+  local settingsFilename=${3:-""}
+
+  local status=$SUCCESS
+
+  if [[ -z "$settingsFilename" ]]; then
+  
+    # User did not provide custom settings -> save the current settings to restore them
+    # in the new partition.
+    
+    settingsFilename=/tmp/current_settings.txt
+  
+    /etc/config-tools/settings_backup save ${settingsFilename}
+    status=$?
+  fi
+
+  if [[ "$SUCCESS" == "$status" ]]; then
+
+    print_dbg "RestorePartition: <$destinationPartition> <$sourceFilename> <$settingsFilename>"
+    /usr/sbin/${BOARD_ID}_restore_partition.sh \
+       "$destinationPartition" "$sourceFilename" "$settingsFilename" >/dev/null 2>&1
+    status=$?
+
+  else
+    SetLastError "Error: settings backup was not successful."
+  fi
+
+  return $status
+}  
+
+
+function WriteRestoreState
+{
+  case $1 in
+    start)
+      echo "started" > $RESTORE_PROCESS_STATUS_TMP_FILE
+      sync
+      ;;
+    finish)
+      echo "finished" > $RESTORE_PROCESS_STATUS_TMP_FILE
+      sync
+      ;;
+    fail)
+      echo "failed" > $RESTORE_PROCESS_STATUS_TMP_FILE
+      sync
+      ;;
+    *)
+      ;;
+  esac
+}
+
+
+function Reboot
+{
+  if [[ -z "$execute_reboot" || $execute_reboot == 1 ]]; then
+    print_dbg "reboot"
+    /sbin/reboot
+  else
+    print_dbg "exit instead of reboot"
+    exit
+  fi
+}
+
+
+function OnExit
+{
+  if [[ $status == $SUCCESS ]]; then
+    WriteRestoreState "finish"
+  else
+    WriteRestoreState "fail"
+  fi
+}
+
+#-------------- main-programm ------------------------#
+
+trap OnExit EXIT
+
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Process restore of firmware data from backup *"
+  echo
+  echo "Usage: firmware_restore < package-settings=value package-system=value package-codesys=value device-medium=value > [ upload-dir=value ] [ testmode=value ] [reboot=value]" 
+  echo
+  echo "package-settings, package-system, package-codesys: 1, if package should be saved, else parameter can be absent" 
+
+  echo -n "device-medium: "
+  
+  mediumCnt=1
+  mediumName=$(/etc/config-tools/get_filesystem_data medium-by-index $mediumCnt)
+  
+  while [ -n "$mediumName" ]; do
+
+    # NAND is an illegal source for PAC200.
+    # TODO: for backup/restore: make board-specific hooks here (pac200_backup_restore_check_target.sh?)
+    # as well as below where we check for illegal target and in firmware_backup
+    if [[ "$mediumName" != "$INTER" ]]; then
+      echo -n "$mediumName | "
+    fi
+
+    mediumCnt=$(($mediumCnt+1))
+    mediumName=$(/etc/config-tools/get_filesystem_data medium-by-index $mediumCnt)
+  done
+
+  echo "network"
+
+  echo "upload-dir: path of directory that contains files to restore; only used if the device-medium is network"
+  echo "testmode: if this parameter is given (value equal), only check if restore file is existing, but do no processing" 
+  echo "reboot: if this parameter is set to 0, do not execute reboots. Default value is 1." 
+  exit $status
+fi
+
+
+# filter input parmeter of input-string
+packageAll=`GetParameterValue package-all $*`
+packageCodesys=`GetParameterValue package-codesys $*`
+packageSettings=`GetParameterValue package-settings $*`
+packageSystem=`GetParameterValue package-system $*`
+print_dbg "packageAll:"$packageAll "packageCodesys:"$packageCodesys "packageSettings:"$packageSettings "packageSystem:"$packageSystem
+
+deviceMedium=`GetParameterValue device-medium $*`
+testmode=`GetParameterValue testmode $*`
+execute_reboot=`GetParameterValue reboot $*`
+print_dbg "deviceMedium:"$deviceMedium "testmode:"$testmode "reboot:"$execute_reboot
+
+if [ -n "$packageAll" ] && [ "$packageAll" = "1" ]; then
+  packageCodesys=1
+  packageSettings=1
+  packageSystem=1
+fi
+
+# check input parameter
+if [ "$packageCodesys" != "1" ] && [ "$packageSettings" != "1" ] && [ "$packageSystem" != "1" ]; then
+  SetLastError "No package selected"
+  status=$INVALID_PARAMETER
+  exit $INVALID_PARAMETER
+fi
+
+# check input for device medium; must be included in DEVICE_MEDIA configuration or network 
+if [ "$deviceMedium" != "$NETWORK" ]; then
+  sourceDevice=$(/etc/config-tools/get_device_data name $deviceMedium)
+  if [[ "$sourceDevice" == "" ]]; then
+    SetLastError "Invalid device medium (1)"
+    status=$INVALID_PARAMETER
+    exit $INVALID_PARAMETER
+  fi
+
+  # blkid returns 2 if the source device has no valid file system
+  if ! blkid /dev/$(DevToPart $sourceDevice 1) 2>&1 > /dev/null; then
+    SetLastError "Invalid device medium (no filesystem found)"
+    status=$INVALID_PARAMETER
+    exit $INVALID_PARAMETER
+  fi
+fi
+
+# no restore from our own device
+activePartitionMedium=`/etc/config-tools/get_filesystem_data active-partition-medium`
+if [ "$activePartitionMedium" = "$deviceMedium" ]; then
+  SetLastError "Invalid device medium (2)"
+  status=$INVALID_PARAMETER
+  exit $INVALID_PARAMETER
+fi
+
+# no restore from NAND (make bootable image is way to go if you want to do it)
+if [ "$INTERNAL_FLASH_NAND" = "$deviceMedium" ]; then
+  SetLastError "Invalid device medium (3)"
+  status=$INVALID_PARAMETER
+  exit $INVALID_PARAMETER
+fi
+
+print_dbg "Start firmware restore" > $statusFile
+
+# source device is network -> read input parameter to get the name of directory including the source files
+if [ "$deviceMedium" = "$NETWORK" ]; then
+
+  sourceDir=`GetParameterValue upload-dir $*`
+  print_dbg "sourceDir:"$sourceDir
+  if [ -z "$sourceDir" ]; then
+    status=$MISSING_PARAMETER
+    WriteRestoreState "fail"
+  elif [ ! -d  "$sourceDir" ]; then
+    status=$INVALID_PARAMETER
+    WriteRestoreState "fail"
+  fi
+
+# source medium is not network but another device -> we must mount it before we can read the data
+else
+  # get the device string of the source medium, so that we can access it
+  sourceDevice=`/etc/config-tools/get_device_data name "$deviceMedium"`
+  print_dbg "sourceDevice:"$sourceDevice
+
+  sourcePartition=$(DevToPart $sourceDevice 1)
+
+  sourceDir=$(df | awk -v part="^/dev/$sourcePartition " 'match($0,part) {print $6}')
+
+  if [[ "$sourceDir" == "" ]]; then
+    # unlikely when automount is enabled via udev config
+  
+    sourceDir=$SRCDIR
+  
+    # create the source directory for mounting (p = make parent directory if not existing)
+    mkdir -p $sourceDir
+    if [ "$?" != 0 ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(mkdir -p ${sourceDir})"
+    else
+      # now mount first partition of source directory for getting backup file:
+      DoMount /dev/$sourcePartition $sourceDir 
+      status=$?
+    fi
+  fi
+fi
+
+# now we should have any directory including our data
+
+if [[ "$status" == "$SUCCESS" ]]; then
+
+  # first check if the advised backup files are even existing
+  
+  # simple request in one go does not work any more (changes in shell?), so complicate it...
+  #if   [ "$packageCodesys"  = "1" ] && [ ! -f ${sourceDir}/${CODESYS_FILENAME}.tgz ] \
+  #  || [ "$packageSystem"   = "1" ] && [ ! -f ${sourceDir}/${SYSTEM_FILENAME}.tgz ] \
+  #  || [ "$packageSettings" = "1" ] && [ ! -f ${sourceDir}/${SETTINGS_FILENAME} ]; then
+
+  if [ "$packageCodesys"  = "1" ] && [ ! -f ${sourceDir}/${CODESYS_FILENAME}.tgz ]; then
+    status=$CONFIG_FILE_MISSING
+  elif [ "$packageSystem"   = "1" ] && [ ! -f ${sourceDir}/${SYSTEM_FILENAME}.tgz ]; then
+    status=$CONFIG_FILE_MISSING
+  elif [ "$packageSettings" = "1" ] && [ ! -f ${sourceDir}/${SETTINGS_FILENAME} ]; then
+    status=$CONFIG_FILE_MISSING
+  fi
+  
+  if [ "$status" = "$CONFIG_FILE_MISSING" ]; then
+    print_dbg "config file missing"
+    
+    # in testmode this is no real error, but the information we want to get (-> don't report error)
+    if [ "1" != "$testmode" ]; then
+      ReportError $status "($sourceDir/...)"
+    fi
+  fi
+fi
+
+# in testmode, our work is done here - otherwise we can start with reading and processing our data now
+if [ "1" != "$testmode" ]; then
+
+  if [ "$status" = "$SUCCESS" ]; then
+
+    WriteRestoreState "start"
+
+    # initialize flag for necessary actions after restore
+    rebootFlag=0
+    restartCodesys=0
+    
+    # stop PLC runtime if it is active
+    if [[ "$(pidof codesys3)" != "" ]] || 
+       [[ "$(pidof plclinux_rt)" != "" ]]; then
+
+        # send term signal and wait until codesys had stopped, check if timeout reached without success
+        /etc/config-tools/terminate_codesys 20 > /dev/null 2> /dev/null
+        if [ "$SUCCESS" != "$?" ]; then
+            status=$SHELL_ERROR
+            ReportError $status "(/etc/config-tools/terminate_codesys 20)"
+        else
+            restartCodesys=1
+        fi
+    fi
+  fi
+  
+  #-------------------------------------------------------------
+  # CoDeSys
+  #-------------------------------------------------------------
+
+  if [ "$status" = "$SUCCESS" ] && [ "$packageCodesys" = "1" ]; then
+    print_dbg "restore codesys"
+    
+    # first get device and partition of codesys (= home) device
+    destinationPartition=`/etc/config-tools/get_filesystem_data active-partition`
+  
+    RestorePartition $destinationPartition ${sourceDir}/${CODESYS_FILENAME}.tgz 
+    status=$?
+
+    # BUGME: we don't need to reboot in this case anymore, do we?
+
+    if [[ "$status" != "$SUCCESS" ]]; then
+      ReportError $status "(RestorePartition $destinationPartition ${sourceDir}/${CODESYS_FILENAME}.tgz)" 
+    fi
+  fi
+
+  #-------------------------------------------------------------
+  # system
+  #-------------------------------------------------------------
+    
+  if [ "$status" = "$SUCCESS" ] && [ "$packageSystem" = "1" ]; then
+    print_dbg "restore system"
+
+    # first get device and partition of the actually unused system partition and restore the image there
+    destinationPartition=`GetInactiveSystemPartition`
+   
+    if [[ "$packageSettings" == "1" ]]; then
+      # Pass settings file to RestorePartition. It will copy it into the restored partition and take care it will
+      # be applied after the restored partition boots for the first time.
+      RestorePartition $destinationPartition ${sourceDir}/${SYSTEM_FILENAME}.tgz ${sourceDir}/${SETTINGS_FILENAME} 
+      status=$?
+ 
+      # signalise that package settings is already processed
+      packageSettings=0
+    else 
+      RestorePartition $destinationPartition ${sourceDir}/${SYSTEM_FILENAME}.tgz 
+      status=$?
+    fi
+    
+    case ${status} in
+        ${SUCCESS})
+            print_dbg "switching bootable rootfs..."
+            if SwitchBootPartition; then
+                rebootFlag=1
+            fi
+            ;;
+        ${LAST_ERROR_SET})
+            ;; # Just pass error to UI
+        *)
+            ReportError $status "(RestorePartition $destinationPartition ${sourceDir}/${SYSTEM_FILENAME}.tgz)" 
+            ;;
+    esac
+  fi
+
+  #-------------------------------------------------------------
+  # settings
+  #-------------------------------------------------------------
+
+  if [ "$status" = "$SUCCESS" ] && [ "$packageSettings" = "1" ]; then 
+    print_dbg "Restore settings" > $statusFile
+    
+    /etc/config-tools/settings_backup restore ${sourceDir}/${SETTINGS_FILENAME} #> /dev/null 2> /dev/null
+    
+    if [ "$?" != $SUCCESS ]; then
+      status=$EXECUTABLE_ERROR
+      ReportError $status "(settings_backup)"
+    else
+      rebootFlag=1
+    fi
+  fi
+ 
+  #-------------------------------------------------------------
+  # Set final return value
+  #-------------------------------------------------------------
+
+  if [[ "$status" != "$SUCCESS" ]] && [[ "$status" != "$LAST_ERROR_SET" ]]; then
+    SetLastError "Firmware restore: Error while execution"
+  fi
+fi
+
+
+# cleanup efforts:
+
+# destination device is network -> uploaded files must be removed after we processed them
+if [[ "$deviceMedium" == "$NETWORK" && -d $sourceDir ]]; then
+  rm ${sourceDir}/${CODESYS_FILENAME}.tgz  > /dev/null 2> /dev/null
+  rm ${sourceDir}/${SYSTEM_FILENAME}.tgz   > /dev/null 2> /dev/null
+  rm ${sourceDir}/${SETTINGS_FILENAME}     > /dev/null 2> /dev/null
+fi
+
+# check if source directory was mounted and if so, unmount it
+mount | grep $SRCDIR  > /dev/null 2> /dev/null
+if [ $? = "$SUCCESS" ]; then
+  umount $SRCDIR
+fi
+
+# check if directory used for mounting is existing and if so, remove it
+if [ -d $SRCDIR ]; then
+  print_dbg "remove $SRCDIR"
+  rm -rf $SRCDIR
+fi
+
+# restart codesys if necessairy
+if [ "$restartCodesys" = "1" ] && [ "$rebootFlag" = "0" ]; then
+  print_dbg "restart PLC runtime"
+  /etc/init.d/runtime start > /dev/null 2> /dev/null
+  if [ "$?" != "$SUCCESS" ]; then
+    echo "error while restarting PLC runtime"
+    status=$SHELL_ERROR
+    ReportError $status "(etc/init.d/runtime start)"
+  fi
+fi
+
+sync
+
+trap - EXIT
+
+# reboot ipc, if necessairy
+if [ "$rebootFlag" = "1" ]; then
+  Reboot
+fi
+
+if [[ $status == $SUCCESS ]]; then
+  WriteRestoreState "finish"
+else
+  WriteRestoreState "fail"
+fi
+
+exit $status

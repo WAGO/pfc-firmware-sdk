@@ -1,0 +1,25 @@
+From db8c982939f96f5d439ad3da1e6a84a31d97468f Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Thu, 13 Aug 2015 17:23:46 +0200
+Subject: [PATCH] increase tty device filed size
+
+---
+ src/modbus-rtu-private.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/modbus-rtu-private.h b/src/modbus-rtu-private.h
+index 2948f17..417b144 100644
+--- a/src/modbus-rtu-private.h
++++ b/src/modbus-rtu-private.h
+@@ -61,7 +61,7 @@ typedef struct _modbus_rtu {
+ #if defined(__APPLE_CC__)
+     char device[64];
+ #else
+-    char device[16];
++    char device[256];
+ #endif
+     /* Bauds: 9600, 19200, 57600, 115200, etc */
+     int baud;
+-- 
+1.9.1
+

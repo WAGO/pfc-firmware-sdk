@@ -1,0 +1,84 @@
+From 4ae36488082bd54ccc804dcfa6f7778b71c370f5 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 28 Sep 2018 14:39:21 +0200
+Subject: [PATCH 104/144] defaultenv: defaultenv-pfc-base: introduce global
+ variable barebox_linux_uart
+
+If the serial interface of an pfc device is disabled and the develop bit is
+enabled, barebox sets the console kernel parameter to the service uart. On
+the am35xx based devices the enumeration of the available uarts starts at 1 and
+in kernel at 0. So we need to enable uart3 in barebox and ttyO2 (not ttyO3) in
+kernel. Fix this by introducing a new global variable that is used in the above
+cases.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot |  2 +-
+ defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console      |  2 +-
+ defaultenv/defaultenv-pfc-base/config                         | 10 ++++++++++
+ 3 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
+index 4c42bc6..f990ccb 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ 
+ global.linux.bootargs.productionmode="production_mode=1"
+-global.linux.bootargs.console="console=ttyO${global.pfc.barebox_uart},115200n8"
++global.linux.bootargs.console="console=ttyO${global.pfc.barebox_linux_uart},115200n8"
+ 
+ led_mode -m -c green
+ pfc-config-setupfw-generic-boot
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console b/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
+index a2bc7ab..37c2454 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
+@@ -15,7 +15,7 @@ elif [ "${global.bootm.boot_atag}" = true ]; then
+         global.linux.bootargs.console=""
+ 
+ elif [ "${global.pfc.debug_mode_active}" = true ]; then
+-        global.linux.bootargs.console="console=ttyO${global.pfc.barebox_uart},115200n8"
++        global.linux.bootargs.console="console=ttyO${global.pfc.barebox_linux_uart},115200n8"
+ 
+ else
+         global.linux.bootargs.console="console=null"
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index d058389..918af1a 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -35,6 +35,7 @@ global pfc.nand_boot
+ global pfc.nand_mlo_parts
+ global pfc.nand_boot_parts
+ global pfc.barebox_uart
++global pfc.barebox_linux_uart
+ global pfc.linux_uart
+ global pfc.eth
+ global pfc.debug_mode_active
+@@ -99,6 +100,14 @@ magicvar -a global.pfc.nand_boot_parts  "list of barebox (2nd stage) partition p
+ magicvar -a global.pfc.barebox_uart	"uart device that is used in barebox for
+ 					 console messages"
+ 
++magicvar -a global.pfc.barebox_linux_uart "uart device that is used in linux for
++					    console messages, when uart bit is
++					    disabled and developer bit is
++					    enabled. E.g. in AM35xx barebox uart
++					    is 3 but corrosponding linux uart is
++					    2."
++
++
+ magicvar -a global.pfc.linux_uart	"uart device that that the kernel uses
+ 					 for console messages"
+ 
+@@ -155,6 +164,7 @@ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ [ -z "${global.pfc.downgrade_img}" ] && global.pfc.downgrade_img="${global.pfc.sd_boot}/downgrade.bin.$global.board.variant"
+ [ -z "${global.pfc.custom_sh}" ] && global.pfc.custom_sh="${global.pfc.sd_boot}/custom_setup.sh"
+ [ -z "${global.pfc.barebox_uart}" ] && global.pfc.barebox_uart="0"
++[ -z "${global.pfc.barebox_linux_uart}" ] && global.pfc.barebox_linux_uart="0"
+ [ -z "${global.pfc.linux_uart}" ] && global.pfc.linux_uart="1"
+ [ -z "${global.pfc.eth}" ] && global.pfc.eth="eth0"
+ [ -z "${global.pfc.debug_mode_active}" ] && global.pfc.debug_mode_active=false
+-- 
+2.7.4
+

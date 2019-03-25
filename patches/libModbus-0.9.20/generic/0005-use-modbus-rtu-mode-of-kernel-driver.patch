@@ -1,0 +1,53 @@
+From 2fa04a10758dd5b0f867c6a5ce87b725a7e2b838 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Wed, 30 Apr 2014 17:08:52 +0200
+Subject: [PATCH] use modbus rtu mode of kernel driver
+
+---
+ src/modbus-serial-slave.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/src/modbus-serial-slave.c b/src/modbus-serial-slave.c
+index 95f9ad6..e2b9bcf 100644
+--- a/src/modbus-serial-slave.c
++++ b/src/modbus-serial-slave.c
+@@ -20,9 +20,10 @@
+ #include <unistd.h>
+ #include <poll.h>
+ #include <linux/serial.h>
+-
++#include <linux/types.h>
++#include <sys/ioctl.h>
+ #include <sys/types.h>
+-
++#include <asm/ioctls.h>
+ #include <endian.h>
+ #include <asm/byteorder.h>
+ #include <modbus_serial.h>
+@@ -360,6 +361,10 @@ static void *modbus_serial_line(void *arg)
+ 
+ static void tty_close(struct ttydev *dev) {
+ 
++#if defined(TIOCSMBRTU)
++	ioctl(dev->fd, TIOCSMBRTU, 0);
++#endif
++
+ 	if (dev->fd >= 0) {
+ 		tcflush(dev->fd, TCIFLUSH);
+ 		tcsetattr(dev->fd, TCSANOW, &dev->oldtio);
+@@ -497,6 +502,12 @@ static int tty_open(struct mb_serial *mbs)
+ 		goto out_err;
+ 	}
+ 
++	// enable modbus mode of the omap_serial driver
++#if defined(TIOCSMBRTU) && defined(TIOCSMBRTUADDR)
++	ioctl(fd, TIOCSMBRTU, 1);
++	ioctl(fd, TIOCSMBRTUADDR, mbs->node_id);
++#endif
++
+ 	return 0;
+ 
+ out_err:
+-- 
+1.9.0
+

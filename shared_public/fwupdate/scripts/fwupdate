@@ -1,0 +1,649 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate
+#
+# Brief:    WAGO firmware update frontend config tool.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   TBi: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Load firmware update definitions and functions.
+readonly WAGO_ST_DIR="/usr/sbin"
+if [ ! -f "$WAGO_ST_DIR/fwupdate_common" ]; then
+    echo "Missing dependency fwupdate_common"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_common"
+
+
+# General defines
+readonly WAGO_CT_NAME="fwupdate"
+readonly WAGO_CT_TITLE="* Control and get information of $WAGO_CT_SYSTEM_MODULE *"
+
+
+# Set default parameter values
+QUIET=0
+SHOWHELP=0
+SHOWSUBHELP=0
+FUNCTION="no"
+
+
+# Main tool/script function.
+#
+# Param 1..n: Script parameters
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+main()
+{
+    local RESULT=0
+
+    # Print information if no arguments given and exit
+    if [ "$#" -eq "0" ]; then
+        print_info
+        RESULT=$MISSING_PARAMETER
+        return $RESULT
+    fi
+
+    # Evaluate parameters
+    evaluate_params "$@"
+    RESULT=$?
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_report_error "Error on config tool parameter evaluation"
+        if [ "$RESULT" -ne "$MISSING_PARAMETER" -a "$RESULT" -ne "$INVALID_PARAMETER" ]; then
+            RESULT="$INVALID_PARAMETER"
+        fi
+        return $RESULT
+    fi
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help
+        fi
+        return $RESULT
+    fi
+
+    # Check FW-Update status and call command sub tool
+    # Switch by command
+    case "$FUNCTION" in
+      activate)
+        activate "${@:2}"
+        RESULT=$?
+        ;;
+      cancel)
+        cancel "${@:2}"
+        RESULT=$?
+        ;;
+      clear)
+        clear "${@:2}"
+        RESULT=$?
+        ;;
+      start)
+        start "${@:2}"
+        RESULT=$?
+        ;;
+      finish)
+        finish "${@:2}"
+        RESULT=$?
+        ;;
+      storage)
+        storage "${@:2}"
+        RESULT=$?
+        ;;
+      status)
+        get_status "${@:2}"
+        RESULT=$?
+        ;;
+      log)
+        get_log "${@:2}"
+        RESULT=$?
+        ;;
+      settimeout)
+        settimeout "${@:2}"
+        RESULT=$?
+        ;;
+      "")
+        fwupdate_report_error "No command parameter given"
+        RESULT=$MISSING_PARAMETER
+        ;;
+      *)
+        fwupdate_report_error "Unknown command parameter given"
+        RESULT=$INVALID_PARAMETER
+        ;;
+    esac
+   
+    return $RESULT
+}
+
+# Function to print general tool/script information.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_info()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "For detailed usage information use:"
+    echo "  $WAGO_CT_NAME --help"
+
+    return 0
+}
+
+# Function to evaluate tool/script parameters.
+# This function uses globally defined script option variables.
+#
+# Param 1..n: Script parameters
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+evaluate_params()
+{
+    local RESULT=0
+
+    # First evaluate early parameters
+    # (maybe influencing other parameters)
+    QUIET=$(get_parameter_option "-q" "--quiet" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+
+    # Evaluate other parameters
+    SHOWHELP=$(get_parameter_option "-h" "--help" "$1")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    if [ "$SHOWHELP" -eq "0" ]; then
+        SHOWSUBHELP=$(get_parameter_option "-h" "--help" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        FUNCTION=$(get_parameter_command "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+    fi
+
+    return $RESULT
+}
+
+# Function to print tool/script help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME [<script options>] <command> [<command options> [<param>]]"
+    echo
+    echo "Script commands:"
+    echo "  status                                     Get current status of $WAGO_CT_SYSTEM_MODULE"
+    echo "  activate                                   Activate $WAGO_CT_SYSTEM_MODULE"
+    echo "  start                                      Start $WAGO_CT_SYSTEM_MODULE when activated (in state \"$WAGO_FW_UPDATE_PREPARED_STATE\")"
+    echo "  finish                                     Finish $WAGO_CT_SYSTEM_MODULE when in state \"$WAGO_FW_UPDATE_UNCONFIRMED_STATE\""
+    echo "  cancel                                     Cancel $WAGO_CT_SYSTEM_MODULE on next possible point"
+    echo "  clear                                      Clear $WAGO_CT_SYSTEM_MODULE \"$WAGO_FW_UPDATE_FINISHED_STATE\"/\"$WAGO_FW_UPDATE_ERROR_STATE\" state"
+    echo "  storage                                    Stores or loads values in context of $WAGO_CT_SYSTEM_MODULE"
+    echo "  settimeout                                 Changes timeout until $WAGO_CT_SYSTEM_MODULE is canceled (in state \"$WAGO_FW_UPDATE_PREPARED_STATE\"/\"$WAGO_FW_UPDATE_UNCONFIRMED_STATE\")"
+    echo "  log                                        Get $WAGO_CT_SYSTEM_MODULE log"
+    echo
+    echo "Script options:"
+    echo "  --help                                -h   Prints this help text"
+    echo 
+    echo "General command options:"
+    print_general_command_options
+    echo
+    echo "Additional information:"
+    echo "  This frontend tool is used to control and get information of $WAGO_CT_SYSTEM_MODULE."
+    echo "  Command options and params will be redirected to a specific tool related to the given command."
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME --help   --> Prints this general help text"
+    echo "  $WAGO_CT_NAME activate   --> Activates $WAGO_CT_SYSTEM_MODULE"
+    echo "  $WAGO_CT_NAME start --help   --> Prints help text for start command"
+    echo "  $WAGO_CT_NAME start -q --path /root/fwupdate   --> Starts $WAGO_CT_SYSTEM_MODULE in quiet mode"
+
+    return 0
+}
+
+# Function to activate fwupdate process.
+# This function calls the tool fwupdate_mode activate.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+activate()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_mode" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_mode"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_mode activate --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Check if state is OK for action
+    fwupdate_frontend_state_check "$WAGO_FW_UPDATE_INIT_STATE"
+    RESULT=$?
+
+    # Redirect action
+    if [ "$RESULT" -eq "0" ]; then
+        "$WAGO_ST_DIR/fwupdate_mode" activate "$@"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to cancel a currently active fwupdate process.
+# This function calls the tool fwupdate_mode cancel.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+cancel()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_mode" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_mode"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_mode cancel --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Check if state is OK for action
+    fwupdate_frontend_state_check "$WAGO_FW_UPDATE_REVERT_STATE"
+    RESULT=$?
+
+    # Redirect action
+    if [ "$RESULT" -eq "0" ]; then
+        "$WAGO_ST_DIR/fwupdate_mode" cancel "$@"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to reset FW-Update from final states.
+# This function calls the tool fwupdate_mode clear.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+clear()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_mode" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_mode"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_mode clear --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Check if state is OK for action
+    fwupdate_frontend_state_check "$WAGO_FW_UPDATE_INACTIVE_STATE"
+    RESULT=$?
+
+    # Redirect action
+    if [ "$RESULT" -eq "0" ]; then
+        "$WAGO_ST_DIR/fwupdate_mode" clear "$@"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to start fwupdate process.
+# This function calls the tool fwupdate_control start
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+# TODO: file parameter is missing
+#-----------------------------------------------------------------------------#
+start()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_control" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_control"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_control start --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Check if state is OK for action
+    fwupdate_frontend_state_check "$WAGO_FW_UPDATE_STARTED_STATE"
+    RESULT=$?
+
+    # Redirect action
+    if [ "$RESULT" -eq "0" ]; then
+        "$WAGO_ST_DIR/fwupdate_control" start "$@"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to finish fwupdate process.
+# This function calls the tool fwupdate_control finish.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+finish()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_control" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_control"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_control finish --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Check if state is OK for action
+    fwupdate_frontend_state_check "$WAGO_FW_UPDATE_CONFIRMED_STATE"
+    RESULT=$?
+
+    # Redirect action
+    if [ "$RESULT" -eq "0" ]; then
+        "$WAGO_ST_DIR/fwupdate_control" finish "$@"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function for storage access in context of FW-Update.
+# This function calls the tool fwupdate_storage.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+storage()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_storage" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_storage"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_storage --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Check if state is OK for action
+    local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+    STATE="$(fwupdate_frontend_state)"
+    if [ "$?" -ne "0" ]; then
+        fwupdate_report_error "Unable to determine state of $WAGO_CT_SYSTEM_MODULE"
+        RESULT=$INTERNAL_ERROR
+    fi
+    if [ "$STATE" == "$WAGO_FW_UPDATE_INACTIVE_STATE" ]; then
+        fwupdate_report_error "$WAGO_CT_SYSTEM_MODULE was not activated"
+        RESULT=$WAGO_FW_UPDATE_NOT_ACTIVATED
+    fi
+
+    # Redirect action
+    if [ "$RESULT" -eq "0" ]; then
+        "$WAGO_ST_DIR/fwupdate_storage" "$@"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to change the timeout until cancel is called.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+settimeout()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_control" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_control"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_control settimeout --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Check if state is OK for action
+    local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+    STATE=$(fwupdate_frontend_state)
+    RESULT=$?
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_report_error "Unable to determine state of $WAGO_CT_SYSTEM_MODULE"
+        RESULT=$INTERNAL_ERROR
+    else
+        if [ "$STATE" != "$WAGO_FW_UPDATE_PREPARED_STATE" ] &&
+           [ "$STATE" != "$WAGO_FW_UPDATE_UNCONFIRMED_STATE" ]; then
+            fwupdate_report_error "Timeout change not allowed in state \"$STATE\""
+            RESULT=$WAGO_FW_UPDATE_RUNNING
+        fi
+    fi
+
+    # Redirect action
+    if [ "$RESULT" -eq "0" ]; then
+        "$WAGO_ST_DIR/fwupdate_control" settimeout "$@"
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to get current status of fwupdate process.
+# This function calls the tool fwupdate_status.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+get_status()
+{
+    local STATUS=""
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_status" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_status"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_status --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Redirect action
+    "$WAGO_ST_DIR/fwupdate_status" "$@"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to get current log of fwupdate process.
+# This function calls the tool fwupdate_log.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+get_log()
+{
+    local RESULT=0
+
+    if [ ! -f "$WAGO_ST_DIR/fwupdate_log" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_log"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$SHOWSUBHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            $WAGO_ST_DIR/fwupdate_log --help
+            return $?
+        else
+            return $SUCCESS
+        fi
+    fi
+
+    # Redirect action
+    "$WAGO_ST_DIR/fwupdate_log" "$@"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Function to check if the new state (Param $1) is allowed to be switched from 
+# the current one.
+# Invalid state switches generate error messages.
+#
+# Param 1: New state
+#
+# Return: 0 on success,
+#         WAGO_FW_UPDATE_ALREADY_ACTIVE,
+#         WAGO_FW_UPDATE_INVALID_CANCEL,
+#         WAGO_FW_UPDATE_INVALID_CLEAR,
+#         WAGO_FW_UPDATE_RUNNING,
+#         WAGO_FW_UPDATE_NOT_ACTIVATED,
+#         WAGO_FW_UPDATE_NO_RESOURCES,
+#         WAGO_FW_UPDATE_NOT_SUCCESSFUL,
+#         INTERNAL_ERROR
+#-----------------------------------------------------------------------------#
+fwupdate_frontend_state_check()
+{
+    local NEW_STATE="$1"
+    local RESULT=0
+
+    local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+    STATE=$(fwupdate_frontend_state)
+    if [ "$?" -ne "0" ]; then
+        fwupdate_report_error "Unable to determine state of $WAGO_CT_SYSTEM_MODULE"
+        RESULT=$INTERNAL_ERROR
+    # Do not allow valid auto state switch confirmed -> revert by client
+    elif [ "$STATE"     == "$WAGO_FW_UPDATE_CONFIRMED_STATE" ] &&
+         [ "$NEW_STATE" == "$WAGO_FW_UPDATE_REVERT_STATE" ]; then
+        RESULT="$WAGO_FW_UPDATE_INVALID_CANCEL"
+    elif [ "$STATE"     == "$WAGO_FW_UPDATE_REVERT_STATE" ] &&
+         [ "$NEW_STATE" == "$WAGO_FW_UPDATE_REVERT_STATE" ]; then
+        RESULT="$WAGO_FW_UPDATE_INVALID_CANCEL"
+    else
+        fwupdate_state_check "$STATE" "$NEW_STATE"
+        RESULT=$?
+        if [ "$RESULT" -ne "0" ]; then
+            if [ "$RESULT" -eq "11" ]; then
+                RESULT=$INTERNAL_ERROR
+                fwupdate_report_error "Unknown current state \"$STATE\""
+            elif [ "$RESULT" -eq "12" ]; then
+                RESULT=$INTERNAL_ERROR
+                fwupdate_report_error "Unknown next state \"$NEW_STATE\""
+            elif [ "$RESULT" -eq "13" ]; then
+                RESULT=$INTERNAL_ERROR
+                fwupdate_report_error "Invalid state switch intended from \"$STATE\" to \"$NEW_STATE\""
+            else
+                case $RESULT in
+                  $WAGO_FW_UPDATE_ALREADY_ACTIVE)
+                    fwupdate_report_warning "$WAGO_CT_SYSTEM_MODULE already active ($RESULT, state \"$STATE\")"
+                    ;;
+                  $WAGO_FW_UPDATE_INVALID_CANCEL)
+                    fwupdate_report_warning "Invalid cancel request for $WAGO_CT_SYSTEM_MODULE ($RESULT, state \"$STATE\")"
+                    ;;
+                  $WAGO_FW_UPDATE_INVALID_CLEAR)
+                    fwupdate_report_warning "Invalid clear request for $WAGO_CT_SYSTEM_MODULE ($RESULT, state \"$STATE\")"
+                    ;;
+                  $WAGO_FW_UPDATE_RUNNING)
+                    fwupdate_report_warning "$WAGO_CT_SYSTEM_MODULE currently running ($RESULT, state \"$STATE\")"
+                    ;;
+                  $WAGO_FW_UPDATE_NOT_ACTIVATED)
+                    fwupdate_report_warning "$WAGO_CT_SYSTEM_MODULE not activated ($RESULT, state \"$STATE\")"
+                    ;;
+                  $WAGO_FW_UPDATE_NO_RESOURCES)
+                    fwupdate_report_warning "$WAGO_CT_SYSTEM_MODULE currently has not enough resources ($RESULT, state \"$STATE\")"
+                    ;;
+                  $WAGO_FW_UPDATE_NOT_SUCCESSFUL)
+                    fwupdate_report_warning "Unable to finish $WAGO_CT_SYSTEM_MODULE update was not successful ($RESULT, state \"$STATE\")"
+                    ;;
+                  *)
+                    fwupdate_report_error "Tried unallowed state switch from \"$STATE\" to \"$NEW_STATE\" (error code $RESULT)"
+                    ;;
+                esac
+            fi
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to get FW-Update state indirect via tool.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success FW-Update state
+#-----------------------------------------------------------------------------#
+fwupdate_frontend_state()
+{
+    local RESULT=0
+    local STATE=""
+
+    STATE="$("$WAGO_ST_DIR/fwupdate_status" --quiet --text | grep "^status=" | cut -d= -f2)"
+    if [ "$?" -ne "0" ]; then
+        RESULT=$INTERNAL_ERROR
+    else
+        echo "$STATE"
+    fi
+
+    return $RESULT
+}
+
+# Start main function
+main "$@"
+exit $?

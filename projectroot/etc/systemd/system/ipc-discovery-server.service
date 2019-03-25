@@ -1,0 +1,12 @@
+[Unit]
+Description=WAGO IPC discovery server for address information
+After=dbus.service
+Requires=dbus.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ipcdiscoveryserver
+
+[Install]
+WantedBy=multi-user.target
+

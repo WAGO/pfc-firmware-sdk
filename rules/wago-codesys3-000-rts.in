@@ -1,0 +1,573 @@
+## SECTION=wago_specific_codesys_3
+
+config CODESYS3
+	bool "CODESYS v3"
+	default n
+	select TYPELABEL if  CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_VTPCTP
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if (CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_VTPCTP) && !LED_SERVER_LEGACY
+	select CDS3_INCLUDES
+	select LIBPTHREADCGROUP if CDS3_RTS_CGROUPS_SUPPORT
+	select GOOGLETEST
+	select HOST_CT_BUILD
+	select OPENSSL
+	select WAGO_DBUS if CDS3_RTS_PRODUCT_VTPCTP
+	help
+		Builds and installs the CODESYS v3 plc.
+
+config CDS3_RTS_DEBUG
+  bool "Complile with debug options"
+  default n
+  help
+    Compile a debuggable version of the runtime
+
+config CDS3_RTS_TESTS
+  bool "Build Test for runtime system"
+  default n
+  help
+    Build gTest executable for this runtime system
+
+menuconfig PLC_CODESYS_V3_WAGOCMP
+        bool
+        prompt "WAGO Components                "
+        help
+                Configure WAGO Components
+
+if PLC_CODESYS_V3_WAGOCMP
+source "generated/wago_specific_codesys_3_wagocmp.in"
+endif
+
+if CODESYS3
+
+menu "Codesys 3 Settings"
+
+config CDS3_PLCCONFIGFILE
+	string "Codesys 3 config file."
+	default RtsMain.cfg
+	help
+		Path and file name on the target.
+		
+config CDS3_PLCCONFIGDIR
+	string "Codesys 3 config dir."
+	default /etc/codesys3.d
+	help
+		Path and file name on the target.
+		
+
+config CDS3_HOME_PATH
+	string "Codesys 3 home"
+	default /home/codesys
+	help
+	    Path to the codesys 3 home folder. This is where codesys 3 starts bootprojects from.
+
+config CDS3_HOME
+	bool "install /home/codesys"
+	default y
+	help
+	 Installs Codesys v3 fonts and other files into /home/codesys
+
+choice
+	prompt "Select Platform implementation of Runtime"
+	default CDS3_RTS_PLATFORM_LINUX
+
+	config CDS3_RTS_PLATFORM_LINUX
+		bool
+		prompt "3S Linux Implementation"
+		help
+			Original 3S implemenation of Runtime
+
+	config CDS3_RTS_PLATFORM_WOSL
+		bool
+		prompt "WOSL Implementation"
+		help
+			WOSL Implementation of Runitime
+
+endchoice
+
+choice
+	prompt "Select Retain Type"
+		default CDS3_RETAIN_TYPE_NONE
+
+	config  CDS3_RETAIN_TYPE_NONE
+		bool
+		prompt "None"
+		help
+			No special Handlich for Retains
+
+	config CDS3_RETAIN_TYPE_INSRAM
+		bool
+		prompt "InSRAM"
+		help
+			Save Retains in a SRAM or NVRAM
+	config CDS3_RETAIN_TYPE_ONPOWERFAIL
+		bool
+		prompt "OnPowerfail"
+		help
+			Save Retains in a file when event "On Porwefail Occurs"
+
+endchoice
+
+config CDS3_RETAIN_TYPE_CFG
+	string
+	default "None"
+	depends on CDS3_RETAIN_TYPE_NONE
+
+config CDS3_RETAIN_TYPE_CFG
+	string
+	default "InSRAM"
+	depends on CDS3_RETAIN_TYPE_INSRAM
+
+config CDS3_RETAIN_TYPE_CFG
+        string
+        default "OnPowerfail"
+	depends on CDS3_RETAIN_TYPE_ONPOWERFAIL
+
+config CDS3_SECURE_LOGIN_ENABLE
+        string
+	prompt "Enable Secure Login"
+        default "1"
+        help
+             activate secure-login
+config CDS3_RTS_CGROUPS_SUPPORT
+	bool "Link libpthreadcgroups to intercept creation of threads"
+	default n
+	help
+		Adds pthread-create and friends overload-functions to syslayer, for handling threads in cgroups.
+
+
+
+endmenu
+
+menu "Products"
+
+choice
+        prompt "Select global Product"
+        default CDS3_RTS_PRODUCT_PFCXXX
+
+
+        config CDS3_RTS_PRODUCT_PFCXXX
+                bool
+                prompt "PFCXXX"
+                help
+                        Use PFCXXX Productes
+
+        config CDS3_RTS_PRODUCT_PAC
+                bool
+                prompt "PAC"
+                help
+                        Use PAC Products
+        
+	config CDS3_RTS_PRODUCT_VTPCTP
+                bool
+                prompt "e!DISPLAY"
+                help
+                        Use e!DISPLAY Products
+
+endchoice
+
+
+if CDS3_RTS_PRODUCT_PFCXXX
+
+config CDS3_PRODUCT_PFC100_1101
+	bool "PFC100 750-8100 (Target-ID: 1101)"
+	default n
+	help
+		Install Product-Specific Files for PFC100 750-8100
+		e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC100_1102
+	bool "PFC100 750-8101 (Target-ID: 1102)"
+	default n
+	help
+		Install Product-Specific Files for PFC100 750-8101
+		e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC100_1103
+	bool "PFC200 750-8102 (Target-ID: 1103)"
+	default n
+	help
+		Install Product-Specific Files for PFC100 750-8102
+		e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1201
+	bool "PFC200 750-8202 (Target-ID: 1201)"
+	default n
+	help
+		Install Product-Specific Files for PFC200 750-8202
+		e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1202
+        bool "PFC200 750-8203 (Target-ID: 1202)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8203
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1203
+        bool "PFC200 750-8204 (Target-ID: 1203)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8204
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1204
+        bool "PFC200 750-8206 (Target-ID: 1204)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8206
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1205
+        bool "PFC200 750-8207 (Target-ID: 1205)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8207
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1206
+        bool "PFC200 750-8208 (Target-ID: 1206)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8208
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1207
+        bool "PFC200 750-8210 (Target-ID: 1207)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8210
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1208
+        bool "PFC200 750-8211 (Target-ID: 1208)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8211
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1209
+        bool "PFC200 750-8212 (Target-ID: 1209)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8212
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_1210
+        bool "PFC200 750-8212/000-100 (Target-ID: 1210)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8212/000-100 (BACnet)
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_PFC200_120C
+        bool "PFC200 750-8213 (Target-ID: 120C)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8213
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_PFC200_120A
+        bool "PFC200 750-8214 (Target-ID: 120A)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8214
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_PFC200_120B
+        bool "PFC200 750-8215 (Target-ID: 120B)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8215
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_PFC200_120D
+        bool "PFC200 750-8216 (Target-ID: 120D)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8216
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_120E
+        bool "PFC200 750-8217 (Target-ID: 120E)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8217
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_PFC200_120F
+        bool "PFC200 750-8218 (Target-ID: 120F)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8218
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_SRC_4000
+        bool "SRC 2850-3111 (Target-ID: 4000)"
+        default n
+        help
+                Install Product-Specific Files for SRC 2850-3111
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_SRC_4001
+        bool "SRC 2850-3112 (Target-ID: 4001)"
+        default n
+        help
+                Install Product-Specific Files for SRC 2850-3112
+                e.g. 3S.dat license file
+
+endif
+
+if CDS3_RTS_PRODUCT_VTPCTP
+
+config CDS3_PRODUCT_VTPCTP_3200
+        bool "e!DISPLAY 762-3100 (Target-ID: 3200)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3100
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3201
+        bool "e!DISPLAY 762-3101 (Target-ID: 3201)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3101
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3202
+        bool "e!DISPLAY 762-3102 (Target-ID: 3202)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3102
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3203
+        bool "e!DISPLAY 762-3103 (Target-ID: 3203)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3103
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3204
+        bool "e!DISPLAY 762-3104 (Target-ID: 3204)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3104
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3205
+        bool "e!DISPLAY 762-3105 (Target-ID: 3205)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3105
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3206
+        bool "e!DISPLAY 762-3106 (Target-ID: 3206)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3106
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3207
+        bool "e!DISPLAY 762-3107 (Target-ID: 3207)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3107
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3208
+        bool "e!DISPLAY 762-3108 (Target-ID: 3208)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3108
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3211
+        bool "e!DISPLAY 762-3111 (Target-ID: 3211)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3111
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3212
+        bool "e!DISPLAY 762-3112 (Target-ID: 3212)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3112
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3215
+        bool "e!DISPLAY 762-3115 (Target-ID: 3215)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3115
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3216
+        bool "e!DISPLAY 762-3116 (Target-ID: 3216)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3116
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3217
+        bool "e!DISPLAY 762-3117 (Target-ID: 3217)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3117
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3218
+        bool "e!DISPLAY 762-3118 (Target-ID: 3218)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3118
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3219
+        bool "e!DISPLAY 762-3119 (Target-ID: 3219)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3119
+                e.g. 3S.dat license file
+
+
+config CDS3_PRODUCT_VTPCTP_3220
+        bool "e!DISPLAY 762-3120 (Target-ID: 3220)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-3120
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_320A
+        bool "e!DISPLAY 762-4101 (Target-ID: 320A)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-4101
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_320B
+        bool "e!DISPLAY 762-4102 (Target-ID: 320B)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-4102
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_320C
+        bool "e!DISPLAY 762-4103 (Target-ID: 320C)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-4103
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_320D
+        bool "e!DISPLAY 762-4104 (Target-ID: 320D)"
+        default n
+        help
+                Install Product-Specific Files for e!DISPLAY 762-4104
+                e.g. 3S.dat license file
+
+endif
+
+if CDS3_RTS_PRODUCT_PAC
+
+config CDS3_PRODUCT_PAC_2101
+        bool "PAC100 768-3101 (Target-ID: 2101)"
+        default n
+        help
+                Install Product-Specific Files for PAC100 768-3101
+                e.g. 3S.dat license file
+endif
+
+endmenu
+
+menu "Features             "
+#source "generated/wago_specific_codesys_3_rtsfeature.in"
+
+config CDS3_RTS_FEATURE_BASIC_CONTROLLER
+	tristate "Basic Controller Config"
+	default n
+	help
+		this is the basic Configuration for an PLC
+
+config CDS3_RTS_FEATURE_WEBVISU
+	tristate "WebVisu"
+	default n
+	help
+		If you want to have a WebVisu In you device say y
+
+config CDS3_RTS_FEATURE_SERIAL
+	tristate "Serial"
+	default n
+	help
+		If you have a Serial interace (e.g. RS232) say Y here
+
+config CDS3_RTS_FEATURE_ENCRYPTION
+	tristate "Ecryption"
+	default n
+	help
+		If you want to enable eycryption like openssl say Y here
+
+config CDS3_RTS_FEATURE_PROFINET
+	tristate "Profinet"
+	default n
+	help
+		If you want to use the 3S profinet iec stack say Y here
+
+config CDS3_RTS_FEATURE_PROFINET_HILSCHER
+	tristate "Hilscher NetX" if CDS3_RTS_FEATURE_PROFINET
+	select PCIUTILS
+	default n
+	depends on !BUSYBOX_LSPCI || ALLYES
+	help
+		If you have a Hilscher PCI Profinet I/O Controller (e.g. CIFX70E-RE) say Y here
+		
+comment "Profinet Hilscher NetX | please unselect BusyBox' lspci first"
+        depends on BUSYBOX_LSPCI && CDS3_RTS_FEATURE_PROFINET
+
+config CDS3_RTS_FEATURE_TARGETVISU
+        tristate "Targetvisu"
+        default n
+        help
+                If you have a Display an want to use the Targetvisu say Y here
+
+config CDS3_RTS_FEATURE_USER_MANAGEMENT
+        tristate "User Management"
+        default n
+        help
+                If you want to have the user Management say Y here
+
+config CDS3_RTS_FEATURE_OPCUA
+        tristate "OPCUA"
+        default n
+        help
+                If you want to have the OPCUA Feature say Y here
+
+config CDS3_RTS_FEATURE_MULTICORE
+        tristate "MULTICORE"
+        default n
+        help
+                If you want to have the Multicore Feature say Y here
+
+endmenu
+
+endif

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+#######################################################################################################################
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project common-header (PTXdist package libcommonheader).
+#
+# Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+#
+# Contributors:
+#   OELH: WAGO Kontakttechnik GmbH & Co. KG
+#   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#######################################################################################################################
+
+set -e
+
+if [ -z "$SCRIPT_DIR" ]; then
+#  PTXDIST_VERSION="${PTXDIST_VERSION:-2017.11.0}"
+  PTXDIST_WORKSPACE="${PTXDIST_WORKSPACE:-../../ptxproj}"
+  
+  PTXDIST_PLATFORMCONFIG="${PTXDIST_PLATFORMCONFIG:-$PTXDIST_WORKSPACE/selected_platformconfig}"
+  PTXCONF_PLATFORM="$(source $PTXDIST_PLATFORMCONFIG && echo "$PTXCONF_PLATFORM")"
+  PTXDIST_PLATFORMDIR="${PTXDIST_PLATFORMDIR:-$PTXDIST_WORKSPACE/platform-$PTXCONF_PLATFORM}"
+  
+  PTXCONF_SYSROOT_HOST="$(source $PTXDIST_PLATFORMCONFIG && echo "$PTXCONF_SYSROOT_HOST")"
+  SYSROOT_HOST="${SYSROOT_HOST:-$PTXCONF_SYSROOT_HOST}"
+    
+  SCRIPT_DIR="$SYSROOT_HOST/lib/ct-build"
+fi
+
+exec "$SCRIPT_DIR/bin/ptxdist-make" "$@"

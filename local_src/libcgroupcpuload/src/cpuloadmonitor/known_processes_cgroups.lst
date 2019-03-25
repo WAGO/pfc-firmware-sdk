@@ -1,0 +1,34 @@
+#
+# This file contains a list of known processes and their cgroup.
+# The syntax is as followed: process_name;cgroup path
+#
+
+# --------------------------
+# IRQs
+# --------------------------
+
+#profinet
+PnDevice;/sys/fs/cgroup/rts/iec/profinet/app
+PnUdpRecv;/sys/fs/cgroup/rts/iec/profinet
+PnIfMon;/sys/fs/cgroup/rts/iec/profinet
+
+PnFifoPrio1;/sys/fs/cgroup/rts/iec/profinet/fifo
+PnFifoPrio0;/sys/fs/cgroup/rts/iec/profinet/fifo
+PnFifoPnrt;/sys/fs/cgroup/rts/iec/profinet/fifo
+
+#can
+CANopen_Rx;/sys/fs/cgroup/rts/iec/can/rx
+CANopen_Tx;/sys/fs/cgroup/rts/iec/can/tx
+CAN_Led;/sys/fs/cgroup/rts/iec/can/led
+irq/164-can0;/sys/fs/cgroup/rts/iec/can/irq
+
+#kbus
+irq/47-kbus;/sys/fs/cgroup/rts/iec/kbus/irq
+spi1;/sys/fs/cgroup/rts/iec/kbus/irq
+KBUS_CYCLE_TASK;/sys/fs/cgroup/rts/iec/kbus
+
+MainTask;/sys/fs/cgroup/rts/iec/main
+
+wdbw_TermReg_IA;/sys/fs/cgroup/rts/def
+DAL evt dispatc;/sys/fs/cgroup/rts/def
+

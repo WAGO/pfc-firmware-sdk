@@ -1,0 +1,34 @@
+From 269950ed3709afffda5e91ebc571823277c1f0fe Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Fri, 20 Jul 2018 12:01:07 +0200
+Subject: [PATCH 194/261] swconfig: fix ATU flush
+
+For ATU flush operation the EntryState has to be 0
+before execution of ATU flush operation.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/mv88e6321-cfg.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index 622f16a..d35617f 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -955,6 +955,13 @@ static int mv88e6321_atu_flush(struct mii_bus *bus)
+ 	if (ret)
+ 		goto out;
+ 
++	ret = mdiobus_write(bus, MV88E6321_GLOBAL_REG,
++			    GLOBAL_ATU_DATA, 0x00);
++	if (ret) {
++		pr_err("Write ATU-Data EntryState failed: %d\n", ret);
++		goto out;
++	}
++
+         ret = mdiobus_read(bus, MV88E6321_GLOBAL_REG, GLOBAL_ATU_OP);
+ 	if (ret < 0) {
+ 		pr_err("Read ATU operation register failed: %d\n", ret);
+-- 
+2.7.4
+

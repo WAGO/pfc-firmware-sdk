@@ -1,0 +1,238 @@
+--- libmodbus-3.0.5.base/src/modbus-rtu-private.h	2015-09-25 10:05:05.242564000 +0200
++++ libmodbus-3.0.5/src/modbus-rtu-private.h	2015-09-25 11:29:25.916170758 +0200
+@@ -31,6 +31,8 @@
+ #include <termios.h>
+ #endif
+ 
++#include "modbus-rtu.h"
++
+ #define _MODBUS_RTU_HEADER_LENGTH      1
+ #define _MODBUS_RTU_PRESET_REQ_LENGTH  6
+ #define _MODBUS_RTU_PRESET_RSP_LENGTH  2
+@@ -78,9 +80,7 @@
+     /* Save old termios settings */
+     struct termios old_tios;
+ #endif
+-#if HAVE_DECL_TIOCSRS485
+-    int serial_mode;
+-#endif
++    modbus_rtu_line_mode line_mode;
+ } modbus_rtu_t;
+ 
+ #endif /* _MODBUS_RTU_PRIVATE_H_ */
+--- libmodbus-3.0.5.base/src/modbus-rtu.h	2013-10-06 23:42:53.000000000 +0200
++++ libmodbus-3.0.5/src/modbus-rtu.h	2015-09-25 11:36:36.300167665 +0200
+@@ -31,11 +31,18 @@
+ modbus_t* modbus_new_rtu(const char *device, int baud, char parity,
+                          int data_bit, int stop_bit);
+ 
+-#define MODBUS_RTU_RS232 0
+-#define MODBUS_RTU_RS485 1
+ 
+-int modbus_rtu_set_serial_mode(modbus_t *ctx, int mode);
+-int modbus_rtu_get_serial_mode(modbus_t *ctx);
++typedef enum
++{
++    MODBUS_RTU_LINE_RS232          = 0 /* RS 232 / fullduplex / without handshake */
++   ,MODBUS_RTU_LINE_RS232_XONXOFF  = 1 /* RS 232 / fullduplex / with XON & XOFF */
++   ,MODBUS_RTU_LINE_RS232_RTSCTS   = 2 /* RS 232 / fullduplex / with hardware handshake */
++   ,MODBUS_RTU_LINE_RS485          = 3 /* RS 485 / halfduplex / without handshake */
++   ,MODBUS_RTU_LINE_DEFAULT        = MODBUS_RTU_LINE_RS232
++} modbus_rtu_line_mode;
++
++int modbus_rtu_set_line_mode(modbus_t *ctx, modbus_rtu_line_mode mode);
++int modbus_rtu_get_line_mode(modbus_t *ctx, modbus_rtu_line_mode *mode);
+ 
+ MODBUS_END_DECLS
+ 
+--- libmodbus-3.0.5.base/src/modbus-rtu.c	2015-09-25 10:05:05.162564000 +0200
++++ libmodbus-3.0.5/src/modbus-rtu.c	2015-09-25 13:43:59.787044566 +0200
+@@ -28,7 +28,6 @@
+ 
+ #include "modbus-private.h"
+ 
+-#include "modbus-rtu.h"
+ #include "modbus-rtu-private.h"
+ 
+ #if HAVE_DECL_TIOCSRS485
+@@ -96,6 +95,20 @@
+     0x43, 0x83, 0x41, 0x81, 0x80, 0x40
+ };
+ 
++static int _is_valid_rtu_modbus_ctx(modbus_t *ctx)
++{
++  if (ctx == NULL) {
++    return -1;
++  }
++  if ((ctx->backend == NULL) || ctx->backend_data == NULL) {
++    return -1;
++  }
++  if (ctx->backend->backend_type != _MODBUS_BACKEND_TYPE_RTU) {
++    return -1;
++  }
++  return 0;
++}
++
+ /* Define the slave ID of the remote device to talk in master mode or set the
+  * internal slave ID in slave mode */
+ static int _modbus_set_slave(modbus_t *ctx, int slave)
+@@ -765,68 +778,117 @@
+     }
+ #endif
+ 
+-#if HAVE_DECL_TIOCSRS485
+-    /* The RS232 mode has been set by default */
+-    ctx_rtu->serial_mode = MODBUS_RTU_RS232;
+-#endif
++    /* The RS232 without flow control has been set by default */
++    ctx_rtu->line_mode = MODBUS_RTU_LINE_RS232;
+ 
+     return 0;
+ }
+ 
+-int modbus_rtu_set_serial_mode(modbus_t *ctx, int mode)
++int modbus_rtu_set_line_mode(modbus_t *ctx, modbus_rtu_line_mode mode)
+ {
+-    if (ctx->backend->backend_type == _MODBUS_BACKEND_TYPE_RTU) {
++#if defined(_WIN32)
++    errno = ENOTSUP;
++    return -1;
++#else
++    int result;
++    modbus_rtu_t *ctx_rtu;
++    struct termios tios;
++    struct termios old_tios;
+ #if HAVE_DECL_TIOCSRS485
+-        modbus_rtu_t *ctx_rtu = ctx->backend_data;
+-        struct serial_rs485 rs485conf;
+-        memset(&rs485conf, 0x0, sizeof(struct serial_rs485));
+-
+-        if (mode == MODBUS_RTU_RS485) {
+-            rs485conf.flags = SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND;
+-            if (ioctl(ctx->s, TIOCSRS485, &rs485conf) < 0) {
+-                return -1;
+-            }
+-
+-            ctx_rtu->serial_mode |= MODBUS_RTU_RS485;
+-            return 0;
+-        } else if (mode == MODBUS_RTU_RS232) {
+-            if (ioctl(ctx->s, TIOCSRS485, &rs485conf) < 0) {
+-                return -1;
+-            }
++    struct serial_rs485 rs485conf;
++    memset(&rs485conf, 0x0, sizeof(struct serial_rs485));
++#endif
+ 
+-            ctx_rtu->serial_mode = MODBUS_RTU_RS232;
+-            return 0;
+-        }
++    if (0 != _is_valid_rtu_modbus_ctx(ctx))
++    {
++      errno = EINVAL;
++      return -1;
++    }
++    ctx_rtu = (modbus_rtu_t *)ctx->backend_data;
++
++    /* Save current attributes */
++    result = tcgetattr(ctx->s, &old_tios);
++    if (result < 0)
++    {
++      return -1;
++    }
++    memcpy(&tios, &old_tios, sizeof(tios));
++
++    switch (mode)
++    {
++      case MODBUS_RTU_LINE_RS232:
++        //disable SW flow control
++        tios.c_iflag &= ~(IXON | IXOFF);
++        //disable HW flow control
++        tios.c_cflag &= ~(CRTSCTS);
++        break;
++      case MODBUS_RTU_LINE_RS232_XONXOFF:
++        //enable SW flow control
++        tios.c_iflag |= (IXON | IXOFF);
++        //disable HW flow control
++        tios.c_cflag &= ~(CRTSCTS);
++        break;
++      case MODBUS_RTU_LINE_RS232_RTSCTS:
++        //disable SW flow control
++        tios.c_iflag &= ~(IXON | IXOFF);
++        //enable HW flow control
++        tios.c_cflag |= (CRTSCTS);
++        break;
++      case MODBUS_RTU_LINE_RS485:
++#if HAVE_DECL_TIOCSRS485
++        //disable SW flow control
++        tios.c_iflag &= ~(IXON | IXOFF);
++        //disable HW flow control
++        tios.c_cflag &= ~(CRTSCTS);
++        rs485conf.flags = SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND;
+ #else
+-        if (ctx->debug) {
+-            fprintf(stderr, "This function isn't supported on your platform\n");
+-        }
+         errno = ENOTSUP;
+         return -1;
+ #endif
++        break;
++      default:
++        errno = EINVAL;
++        return -1;
+     }
+ 
+-    /* Wrong backend and invalid mode specified */
+-    errno = EINVAL;
+-    return -1;
+-}
++    /* Set new attributes */
++    (void)tcflush(ctx->s, TCIFLUSH);
++    result = tcsetattr(ctx->s, TCSANOW, &tios);
++    (void)tcflush(ctx->s, TCIOFLUSH);
++    if (result < 0)
++    {
++      return -1;
++    }
+ 
+-int modbus_rtu_get_serial_mode(modbus_t *ctx) {
+-    if (ctx->backend->backend_type == _MODBUS_BACKEND_TYPE_RTU) {
+ #if HAVE_DECL_TIOCSRS485
+-        modbus_rtu_t *ctx_rtu = ctx->backend_data;
+-        return ctx_rtu->serial_mode;
+-#else
++    result = ioctl(ctx->s, TIOCSRS485, &rs485conf);
++    if (result < 0) {
+         if (ctx->debug) {
+-            fprintf(stderr, "This function isn't supported on your platform\n");
++            fprintf(stderr, "ioctl TIOCSRS485 failed, result = %d\n", result);
+         }
+-        errno = ENOTSUP;
++        /* Restore previous attributes */
++        (void)tcflush(ctx->s, TCIFLUSH);
++        (void)tcsetattr(ctx->s, TCSANOW, &old_tios);
++        (void)tcflush(ctx->s, TCIOFLUSH);
+         return -1;
++    }
+ #endif
+-    } else {
+-        errno = EINVAL;
+-        return -1;
++
++    ctx_rtu->line_mode = mode;
++    return 0;
++#endif
++}
++
++int modbus_rtu_get_line_mode(modbus_t *ctx, modbus_rtu_line_mode *mode)
++{
++    if ((0 != _is_valid_rtu_modbus_ctx(ctx)) || (mode == NULL))
++    {
++      errno = EINVAL;
++      return -1;
+     }
++
++    *mode = ((modbus_rtu_t *)ctx->backend_data)->line_mode;
++    return 0;
+ }
+ 
+ void _modbus_rtu_close(modbus_t *ctx)

@@ -1,0 +1,2 @@
+library_includedir=$(includedir)/diagnostic
+library_include_HEADERS=diagnostic_min_API.h diagnostic_API.h diagnostic_xml_API.h

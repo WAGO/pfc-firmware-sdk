@@ -1,0 +1,410 @@
+From 7bda229af5aed8447a61434109771f86465a85e8 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Thu, 18 Oct 2018 17:32:42 +0200
+Subject: [PATCH 275/277] net: swconf: remove setup_dflt
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/mv88e6321-cfg.c | 368 ----------------------------------------
+ 1 file changed, 368 deletions(-)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index 92b0637..51eecb0 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -32,34 +32,8 @@
+ 
+ #define DRIVER_NAME		"mv88e6321"
+ 
+-#define MASK(msb, lsb)          \
+-        ( (((u32)1<<((msb)-(lsb)+1))-1) << (lsb) )
+-#define GET(v, msb, lsb)        \
+-        ( ((u32)(v) & MASK(msb,lsb)) >> (lsb) )
+-#define SET(v, f, msb, lsb)     \
+-        ( (v) = ((v)&~MASK(msb,lsb)) | (( (u32)(f)<<(lsb) ) & MASK(msb,lsb)) )
+-
+-#define DFLT_CFG_FLAGS                  MV88E6321_CFG_PWRDOWN_FLAG
+-
+-#define MV88E6321_SW_PORT0_REG		0x10
+-#define MV88E6321_SW_PORT1_REG		0x11
+-#define MV88E6321_SW_PORT3_REG		0x13
+-#define MV88E6321_SW_PORT4_REG		0x14
+-
+ #define MV88E6321_GLOBAL_REG		0x1B
+ 
+-#define MV88E6321_EXTERNAL_PHY0		0x0
+-#define MV88E6321_EXTERNAL_PHY1		0x1
+-#define MV88E6321_INTERNAL_PHY3		0x3
+-#define MV88E6321_INTERNAL_PHY4		0x4
+-
+-#define EXT_PHY_STD_CTRL			0x0
+-#define EXT_PHY_STD_CTRL_RESTART_AUTONEG	BIT(9)
+-#define EXT_PHY_STD_CTRL_POWER_DOWN		BIT(11)
+-
+-#define EXT_STD_GCTRL			0x9
+-#define EXT_STD_GCTRL_DUPLEX_MASK	(3<<8)
+-
+ extern struct mv88e6xxx_chip *global_chip;
+ 
+ struct mv88e6321_info {
+@@ -134,341 +108,8 @@ static inline int mv88e6321_sw_reset(struct switch_dev *dev)
+         return mv88e6321_soft_reset();
+ }
+ 
+-static int mv88e6321_sw_wait_autoneg_is_done(struct switch_dev *dev,
+-					    int ext_phy_addr)
+-{
+-	u16 reg_val;
+-	int ret;
+-	int attempts = 10;
+-
+-	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	while ((reg_val & BIT(9)) && attempts--) {
+-		int wait = 10;
+-
+-		ret = global_chip->info->ops->phy_write(global_chip,
+-					ext_phy_addr, 0, reg_val);
+-		if (ret < 0)
+-			goto out;
+-
+-		/* wait for a while for autonegotiation */
+-		while ((reg_val & BIT(9)) && wait--) {
+-			msleep(20);
+-			ret = global_chip->info->ops->phy_read(global_chip,
+-					ext_phy_addr, 0, &reg_val);
+-			if (ret < 0)
+-				goto out;
+-		}
+-	}
+-
+-	if (reg_val & BIT(9)) {
+-		pr_err("Aatonegotiation for phy %d timed out\n", ext_phy_addr);
+-		ret = -ETIME;
+-	}
+-
+-out:
+-	return ret;
+-}
+-
+-static int mv88e6321_ext_phy_power_down(int ext_phy_addr, int val)
+-{
+-	u16 reg_val;
+-	int ret;
+-
+-	/* PHY Register 0x00 bit[11] = 1 Power Down 0 = Power Up */
+-	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	if (val)
+-		reg_val |= BIT(11);
+-	else
+-		reg_val &= ~BIT(11);
+-
+-	ret = global_chip->info->ops->phy_write(global_chip, ext_phy_addr, 0,
+-					reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-out:
+-	return ret;
+-}
+-
+-static int mv88e6321_sw_force_speed_external_phys(struct switch_dev *dev,
+-						  int ext_phy_addr)
+-{
+-	u16 reg_val;
+-	int ret;
+-
+-	mutex_lock(&global_chip->reg_lock);
+-	ret = mv88e6321_ext_phy_power_down(ext_phy_addr, 1);
+-	if (ret)
+-		goto out;
+-
+-	/* 2.     PHY Register 0x09 bit[9:8] = 00 Disable 1000BASE-T */
+-	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0x09,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val &= ~(3UL<<8);
+-	ret = global_chip->info->ops->phy_write(global_chip, ext_phy_addr, 0x09,
+-					reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* 3. Switch Register Port Status 0x00 bit 12=0 PHY Detect */
+-	ret = mdiobus_read(dev->mii_bus, ext_phy_addr + 0x10, 0);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val = (ret & ~BIT(12));
+-	ret = mdiobus_write(dev->mii_bus, ext_phy_addr + 0x10, 0, reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* 4. Switch Register Port Control 0x01 - ForceSpeed bit[1:0] = 0xb01 */
+-	ret = mdiobus_read(dev->mii_bus, ext_phy_addr + 0x10, 1);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val = (ret & ~(PORT_PCS_CTRL_100 << 1));
+-	ret = mdiobus_write(dev->mii_bus, ext_phy_addr + 0x10, 1, reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* 5. Switch Register Port Status 0x00 bit 12=1 PHY Detect */
+-	ret = mdiobus_read(dev->mii_bus, ext_phy_addr + 0x10, 0);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val = (ret | BIT(12));
+-	ret = mdiobus_write(dev->mii_bus, ext_phy_addr + 0x10, 0, reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* 6.     PHY Register 0x00 bit[9] = 1 Restart Auto Negotiation */
+-	ret = global_chip->info->ops->phy_read(global_chip, ext_phy_addr, 0,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val |= BIT(9);
+-	ret = global_chip->info->ops->phy_write(global_chip, ext_phy_addr, 0,
+-					reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* 7. Power up PHY */
+-	ret = mv88e6321_ext_phy_power_down(ext_phy_addr, 0);
+-	if (ret)
+-		goto out;
+-
+-	/* 8. Check is Auto Negotiation is done */
+-	ret = mv88e6321_sw_wait_autoneg_is_done(dev, ext_phy_addr);
+-	if (ret) {
+-		pr_err("Try to initiate autonegotiation after powercycle for phy %d\n",
+-		       ext_phy_addr);
+-
+-		ret = mv88e6321_ext_phy_power_down(ext_phy_addr, 1);
+-		if (ret)
+-			goto out;
+-
+-		msleep(100);
+-
+-		/* Restart Auto Negotiation */
+-		ret = global_chip->info->ops->phy_read(global_chip,
+-						       ext_phy_addr, 0,
+-						       &reg_val);
+-		if (ret < 0)
+-			goto out;
+-
+-		ret = mv88e6321_ext_phy_power_down(ext_phy_addr, 0);
+-		if (ret)
+-			goto out;
+-
+-		ret = mv88e6321_sw_wait_autoneg_is_done(dev, ext_phy_addr);
+-	}
+-
+-out:
+-	mutex_unlock(&global_chip->reg_lock);
+-
+-	return ret;
+-}
+-
+-static int mv88e6321_sw_force_speed_internal_phys(struct switch_dev *dev,
+-						int int_phy_addr)
+-{
+-	u16 reg_val;
+-	int ret;
+-
+-	mutex_lock(&global_chip->reg_lock);
+-
+-	/* 1.     PHY Register 0x00 bit[11] = 1 Power Down */
+-	ret = global_chip->info->ops->phy_read(global_chip, int_phy_addr, 0,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val |= BIT(11);
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 0,
+-					reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* 2.     PHY Register 0x1A bit[14] = 1 Disabale 1000BASE-T */
+-	ret = global_chip->info->ops->phy_read(global_chip, int_phy_addr, 0x1A,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val |= BIT(14);
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 0x1A,
+-					reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* Disable EEE */
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 13,
+-						0x0007);
+-	if (ret) {
+-		pr_err("XMDIO Write PHY (%d) dev: 7 (%d)\n",
+-		       int_phy_addr, ret);
+-	}
+-
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 14,
+-						60);
+-	if (ret) {
+-		pr_err("XMDIO Write PHY (%d) dev: 7 reg: 60 (%d)\n",
+-		       int_phy_addr, ret);
+-	}
+-
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 13,
+-						0x4007);
+-	if (ret) {
+-		pr_err("XMDIO Write PHY (%d) dev: 7 reg: 60 op=data, no post increment (%d)\n",
+-		       int_phy_addr, ret);
+-	}
+-
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 14,
+-						0x0000);
+-	if (ret) {
+-		pr_err("XMDIO Write PHY (%d) dev: 7 reg: 60 val: 0 (%d)\n",
+-		       int_phy_addr, ret);
+-	}
+-
+-	/* 3.     PHY Register 0x00 bit[9] = 1 Restart Auto Negotiation */
+-	ret = global_chip->info->ops->phy_read(global_chip, int_phy_addr, 0,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val |= BIT(9);
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 0,
+-					reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	/* 4.     PHY Register 0x00 bit[11] = 0 Power Down */
+-	ret = global_chip->info->ops->phy_read(global_chip, int_phy_addr, 0,
+-					&reg_val);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val &= ~BIT(11);
+-	ret = global_chip->info->ops->phy_write(global_chip, int_phy_addr, 0,
+-					reg_val);
+-
+-out:
+-	mutex_unlock(&global_chip->reg_lock);
+-
+-	return ret;
+-}
+-
+-static int mv88e6321_sw_enable_cut_through(struct switch_dev *dev,
+-					   u8 sw_port_addr)
+-{
+-	int ret;
+-	int reg_val;
+-
+-	ret = mdiobus_read(dev->mii_bus, sw_port_addr, PORT_CUT_THROUGH);
+-	if (ret < 0)
+-		goto out;
+-
+-	reg_val = (ret & ~PORT_CUT_THROUGH_QUEUE_MASK);
+-	reg_val = reg_val | PORT_CUT_THROUGH_ENABLE | 0xF;
+-	ret = mdiobus_write(dev->mii_bus, sw_port_addr, PORT_CUT_THROUGH,
+-			    reg_val);
+-
+-out:
+-	return ret;
+-}
+-
+-static int mv88e6321_sw_setup_dflt_cfg(struct switch_dev *dev,
+-                                     const struct switch_attr *attr,
+-                                     struct switch_val *val)
+-{
+-	int ret;
+-
+-	if (!dev)
+-		return -ENODEV;
+-
+-	ret = mv88e6321_sw_force_speed_external_phys(dev,
+-						MV88E6321_EXTERNAL_PHY0);
+-	if (ret < 0)
+-		goto out;
+-
+-	ret = mv88e6321_sw_force_speed_external_phys(dev,
+-						MV88E6321_EXTERNAL_PHY1);
+-	if (ret < 0)
+-		goto out;
+-
+-	ret = mv88e6321_sw_force_speed_internal_phys(dev,
+-						MV88E6321_INTERNAL_PHY3);
+-	if (ret < 0)
+-		goto out;
+-
+-	ret = mv88e6321_sw_force_speed_internal_phys(dev,
+-						MV88E6321_INTERNAL_PHY4);
+-	if (ret < 0)
+-		goto out;
+-
+-	ret = 0;
+-out:
+-        return ret;
+-}
+-
+-#ifdef CONFIG_NET_DSA_MV88E6XXX
+-static inline int mv88e6321_sw_set_dsa_enable(struct switch_dev *dev,
+-					    const struct switch_attr *attr,
+-					    struct switch_val *val)
+-{
+-	dsa_enable(!!val->value.i);
+-
+-	return 0;
+-}
+-
+-static inline int mv88e6321_sw_get_dsa_enable(struct switch_dev *dev,
+-					    const struct switch_attr *attr,
+-					    struct switch_val *val)
+-{
+-        val->value.i = is_dsa_enabled();
+-
+-        return 0;
+-}
+-#endif
+-
+ static struct switch_attr mv88e6321_global_attrs[] = {
+         {
+-                .type = SWITCH_TYPE_NOVAL,
+-                .name = "setup_dflt",
+-                .description = "Setup default config",
+-                .set = mv88e6321_sw_setup_dflt_cfg,
+-        }, {
+                 .type = SWITCH_TYPE_INT,
+                 .name = "mdio_phy",
+                 .description = "Select phy register for mdio rw operation",
+@@ -487,15 +128,6 @@ static struct switch_attr mv88e6321_global_attrs[] = {
+                 .set = mv88e6321_sw_set_mdio_write,
+                 .get = mv88e6321_sw_get_mdio_read,
+         },
+-#ifdef CONFIG_NET_DSA_MV88E6XXX
+-        {
+-                .type = SWITCH_TYPE_INT,
+-                .name = "dsa_enable",
+-                .description = "Enables or Disables DSA Network-Path",
+-                .set = mv88e6321_sw_set_dsa_enable,
+-                .get = mv88e6321_sw_get_dsa_enable,
+-        },
+-#endif
+ };
+ 
+ struct switch_dev_ops mv88e6321_switch_dev_ops = {
+-- 
+2.7.4
+

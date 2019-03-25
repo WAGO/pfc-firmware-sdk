@@ -1,0 +1,25 @@
+From b3c2148bd5e16582f151faa1507001b64cba10ce Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 6 Dec 2016 12:17:25 +0000
+Subject: [PATCH 025/261] defconfig: pfc: turn on PBIAS REGULATOR to make
+ device boot from sd
+
+---
+ arch/arm/configs/wago_pfc_generic_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/configs/wago_pfc_generic_defconfig b/arch/arm/configs/wago_pfc_generic_defconfig
+index afb6e9b..c522c53 100644
+--- a/arch/arm/configs/wago_pfc_generic_defconfig
++++ b/arch/arm/configs/wago_pfc_generic_defconfig
+@@ -349,6 +349,7 @@ CONFIG_OMAP_WATCHDOG=y
+ CONFIG_MFD_TI_AM335X_TSCADC=y
+ CONFIG_MFD_TPS65218=y
+ CONFIG_MFD_TPS65910=y
++CONFIG_REGULATOR_PBIAS=y
+ CONFIG_REGULATOR_TPS65218=y
+ CONFIG_REGULATOR_TPS65910=y
+ # CONFIG_HID_GENERIC is not set
+-- 
+2.7.4
+

@@ -1,0 +1,79 @@
+From 6e55243382276d10c1933a2a11ac36235044d676 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 24 May 2018 13:46:24 +0200
+Subject: [PATCH 014/144] board: wago-pfc-am335x: rewrite compatible string for
+ blspec
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 47 +++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index 7cb4552..bdb5db5 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -105,6 +105,41 @@ out:
+ 	return ret < 0 ? ret : 0;
+ }
+ 
++static int pfc_rewrite_compatible(void)
++{
++	struct device_node *root;
++	int ret;
++	u16 devconf;
++	char const *first_compat_str;
++	char *new_string;
++
++	ret = xsection_get_devconf(&devconf);
++	if (ret < 0)
++		goto out;
++
++	root = of_get_root_node();
++	if (!root) {
++		ret = -ENOENT;
++		goto out;
++	}
++
++	ret = of_property_read_string_index(root, "compatible", 0, &first_compat_str);
++	if (ret < 0)
++		goto out;
++
++	new_string = basprintf("%s-%04x", first_compat_str, devconf);
++	if (!new_string) {
++		ret = -EFAULT;
++		goto out;
++	}
++
++	ret = of_property_write_string(root, "compatible", new_string);
++	free(new_string);
++
++out:
++	return ret < 0 ? ret : 0;
++}
++
+ static int pfc_devices_init(void)
+ {
+ 	int ret;
+@@ -156,6 +191,18 @@ static int pfc_devices_init(void)
+ 	if (IS_ENABLED(CONFIG_SHELL_NONE))
+ 		return am33xx_of_register_bootdevice();
+ 
++	/* Rewrite the compatible string in the internal barebox device-tree
++	 * (located in ram), and add the eeprom devconf as suffix. This string
++	 * is used by the bootloader-spec module to search for correct bootloader-spec
++	 * entry to load the corrosponding kernel device-tree.
++	 */
++	if (!IS_ENABLED(CONFIG_SHELL_NONE)) {
++		ret = pfc_rewrite_compatible();
++		if (ret < 0)
++			pr_err("failed to rewrite the internal compatible string "
++				"with devconf from eeprom \n");
++	}
++
+ 	return 0;
+ }
+ device_initcall(pfc_devices_init);
+-- 
+2.7.4
+

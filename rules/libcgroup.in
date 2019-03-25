@@ -1,0 +1,133 @@
+## SECTION=system_libraries
+
+menuconfig LIBCGROUP
+	bool
+	default n
+	prompt "libcgroup"
+	help
+	  Control Groups provide a mechanism for aggregating/partitioning sets of tasks,
+	  and all their future children, into hierarchical groups with specialized
+	  behaviour.
+
+	  This library allows applications to manipulate, control, administrate and
+	  monitor control groups and the associated controllers.
+#
+if LIBCGROUP
+	config LIBCGROUP_TOOLS
+	bool
+	default n
+	prompt "libcgroup tools"
+	help
+		Install the command line tools.
+
+	config LIBCGROUP_CGCLASSIFY
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgclassify"
+	help
+		cglassify
+
+	config LIBCGROUP_CGCREATE
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgcreate"
+	help
+		cgcreate
+
+	config LIBCGROUP_CGDELETE
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgdelete"
+	help
+		cgdelete
+
+	config LIBCGROUP_CGEXEC
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgexec"
+	help
+		cgexec
+
+	config LIBCGROUP_CGGET
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgget"
+	help
+		cgget
+
+	config LIBCGROUP_CGSET
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgset"
+	help
+		cgset
+
+	config LIBCGROUP_CGSNAPSHOT
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgsnapshot"
+	help
+		cgsnapshot
+
+	config LIBCGROUP_LSCGROUP
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "lscgroup"
+	help
+		lscgroup
+
+	config LIBCGROUP_LSSUBSYS
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "lssubsys"
+	help
+		lssubsys
+
+	config LIBCGROUP_CGCLEAR
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgclear"
+	help
+		cgclear
+
+	config LIBCGROUP_CGCONFIGPARSER
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgconfigparser"
+	help
+		cgconfigparser
+
+	config LIBCGROUP_CGRULESENGD
+	bool
+	default n
+	depends on LIBCGROUP_TOOLS
+	prompt "cgrulesengd"
+	help
+		cgrulesengd
+
+	config LIBCGROUP_INITSCRIPT
+	bool
+	default n
+    depends on LIBCGROUP_CGCONFIGPARSER
+	prompt "Install libcgroup init script"
+	help
+	    Install init script for to setup the cgroups defined in cgconfig.conf.
+
+	config LIBCGROUP_CONFIG_FILES
+	bool
+	default n
+	prompt "Install cgrules.conf and cgconfig.conf to /etc/"
+	help
+	    Install default config files for libcgroup.
+endif

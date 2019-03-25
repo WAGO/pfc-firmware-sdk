@@ -1,0 +1,123 @@
+From 443ce492c83944c321208ccba7653db76837623a Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 11 Jun 2018 14:26:06 +0200
+Subject: [PATCH 020/144] commands: add ethaddr_match command
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ commands/Kconfig         | 12 +++++++++
+ commands/Makefile        |  1 +
+ commands/ethaddr_match.c | 69 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 82 insertions(+)
+ create mode 100644 commands/ethaddr_match.c
+
+diff --git a/commands/Kconfig b/commands/Kconfig
+index 8ce2b4e..2461947 100644
+--- a/commands/Kconfig
++++ b/commands/Kconfig
+@@ -2149,6 +2149,18 @@ config CMD_UART_CONSOLE
+ 	  Options:
+ 		  -e		enable uart<NUM> as console
+ 
++config CMD_ETHADDR_MATCH
++	bool
++	prompt "ethaddr_match"
++	help
++	  ethaddr_match - Match a given pattern to configured ethaddr of an
++	  ethernet interface
++
++	  Usage: ethaddr_match [-i intf] [-p pattern]
++
++	  Options:
++		  -i		network interface e.g. eth0
++		  -p		pattern to match against ethaddr
+ 
+ # end Miscellaneous commands
+ endmenu
+diff --git a/commands/Makefile b/commands/Makefile
+index 0eead21..8f6ca7d 100644
+--- a/commands/Makefile
++++ b/commands/Makefile
+@@ -124,3 +124,4 @@ obj-$(CONFIG_CMD_NAND_BITFLIP)	+= nand-bitflip.o
+ obj-$(CONFIG_CMD_SEED)		+= seed.o
+ obj-$(CONFIG_CMD_IP_ROUTE_GET)  += ip-route-get.o
+ obj-$(CONFIG_CMD_UART_CONSOLE)	+= uart_console.o
++obj-$(CONFIG_CMD_ETHADDR_MATCH) += ethaddr_match.o
+diff --git a/commands/ethaddr_match.c b/commands/ethaddr_match.c
+new file mode 100644
+index 0000000..5afbe5c
+--- /dev/null
++++ b/commands/ethaddr_match.c
+@@ -0,0 +1,69 @@
++/*
++ * ethaddr_match.c - match a given ethaddr pattern command support
++ *
++ * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Oleg Karfich <oleg.karfich@wago.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <command.h>
++#include <getopt.h>
++#include <net.h>
++
++static int do_ethaddr_match(int argc, char *argv[])
++{
++	int opt;
++	struct eth_device *edev;
++	char *ethname = NULL, *pattern = NULL;
++	char ethaddr_str[sizeof("xx:xx:xx:xx:xx:xx")];
++
++	while ((opt = getopt(argc, argv, "i:p:")) > 0) {
++		switch (opt) {
++		case 'i':
++			ethname = optarg;
++			break;
++		case 'p':
++			pattern = optarg;
++			break;
++		}
++	}
++
++	if (!ethname || !pattern)
++		return COMMAND_ERROR_USAGE;
++
++	edev = eth_get_byname(ethname);
++	if (!edev)
++		return -ENODEV;
++
++	ethaddr_to_string(edev->ethaddr, ethaddr_str);
++	if (strstr(ethaddr_str, pattern))
++		return COMMAND_SUCCESS;
++
++	return COMMAND_ERROR;
++}
++
++BAREBOX_CMD_HELP_START(ethaddr_match)
++BAREBOX_CMD_HELP_TEXT("Options:")
++BAREBOX_CMD_HELP_OPT("-i <intf>",           "network interface e.g. eth0\n")
++BAREBOX_CMD_HELP_OPT("-p <match_pattern>",  "pattern to match to ethaddr of"
++								" <intf>\n")
++BAREBOX_CMD_HELP_END
++
++BAREBOX_CMD_START(ethaddr_match)
++	.cmd		= do_ethaddr_match,
++	BAREBOX_CMD_DESC("Match a given pattern to configured ethaddr of an"
++							"ethernet interface")
++	BAREBOX_CMD_OPTS("[-ip]")
++	BAREBOX_CMD_GROUP(CMD_GRP_MISC)
++	BAREBOX_CMD_HELP(cmd_ethaddr_match_help)
++BAREBOX_CMD_END
+-- 
+2.7.4
+

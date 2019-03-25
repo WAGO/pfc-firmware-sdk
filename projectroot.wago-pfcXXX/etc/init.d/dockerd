@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+function eval_result()
+{
+    if [[ "$?" == "0" ]]; then
+        echo -en "\\033[1;32m" 
+        echo -e "\\033[60G[SUCCESS]"
+    else
+        echo -en "\\033[1;31m" 
+        echo -e "\\033[60G[FAILED]"
+    fi
+
+    echo -en "\\033[0;39m" 
+}
+
+function do_docker_start()
+{
+
+    echo -n "Starting dockerd..."
+    start-stop-daemon -S --background --quiet --oknodo --pidfile /var/run/docker.pid --exec dockerd --
+    eval_result
+}
+
+function do_docker_stop()
+{
+    echo -n "Stopping dockerd..."
+    start-stop-daemon -K --quiet --oknodo --pidfile /var/run/docker.pid --
+    eval_result
+}
+
+function usage()
+{
+    echo "$0 usage: $0 [start|stop|restart]"
+}
+
+
+case $1 in
+
+    start)      
+        do_docker_start
+        ;;
+
+	stop)
+        do_docker_stop
+        ;;
+
+    restart)    
+        do_docker_stop
+        sleep 1
+        do_docker_start
+        ;;
+    *)
+        usage
+        ;;
+esac

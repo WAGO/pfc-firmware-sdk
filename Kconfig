@@ -1,0 +1,32 @@
+#
+# Kconfig: Main menu structure definition
+# Copyright (C) Juergen Beisert <j.beisert@pengutronix.de> 2008
+#
+
+# including of config/Kconfig was not successful, so we pasted its content
+
+# source "config/Kconfig" 
+
+##### content of "config/Kconfig" #####
+
+mainmenu "PTXdist $CONFIGFILE_VERSION"
+
+config MODULES
+	bool
+	default y
+
+source "generated/project_specific.in"
+source "generated/fixme.in"
+
+source "generated/project_name.in"
+
+source "rules/Kconfig"
+
+#######################################
+
+menu "Wago Specific                 "
+source "generated/wago_specific.in"
+endmenu
+
+
+

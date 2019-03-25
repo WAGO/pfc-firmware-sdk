@@ -1,0 +1,24 @@
+From f663921a95a171943ba83721b9be1b58e70ffa55 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Tue, 16 Jun 2015 12:20:13 +0200
+Subject: [PATCH] fix rare case of 'out of sync' parser
+
+---
+ src/modbus-serial-slave.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/modbus-serial-slave.c b/src/modbus-serial-slave.c
+index e2b9bcf..d428822 100644
+--- a/src/modbus-serial-slave.c
++++ b/src/modbus-serial-slave.c
+@@ -318,6 +318,7 @@ static void *modbus_serial_line(void *arg)
+ 					"Data len: %d function: 0x%02x\n",
+ 					computed_crc, __le16_to_cpu(wire_crc_le),
+ 					total_paket_size, api_header->function_id);
++			tcflush(mbs->dev.fd, TCIFLUSH);
+ 			continue;
+ 		}
+ 
+-- 
+1.9.1
+

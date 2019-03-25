@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+# new hw
+
+test_sd_to_emmc_enough_space()
+{
+
+    if [[ "$(/etc/config-tools/get_filesystem_data get-active-device)" != "/dev/mmcblk0" ]]; then
+        startSkipping
+    fi
+
+    assertTrue "sd card must exist"     "[[ -b /dev/mmcblk0 ]]"
+    assertTrue "emmc card must exist"   "[[ -b /dev/mmcblk1 ]]"
+
+    /etc/config-tools/copy_firmware_image source-medium=sd-card destination-medium=internal-flash-emmc action=nand-check-size
+    status="$?"
+
+    assertTrue "Space on sd card should suffice for copying" $status
+
+}
+
+test_sd_to_emmc_not_enough_space()
+{
+    assertTrue "sd card must exist"     "[[ -b /dev/mmcblk0 ]]"
+    assertTrue "emmc card must exist"   "[[ -b /dev/mmcblk1 ]]"
+
+    sd_card_size_kb=$(/etc/config-tools/get_device_data size /dev/mmcblk0)
+
+    dd if=/dev/zero bs="$sd_card_size_kb" count=1024 | pv --name "Create a big file" --size $((sd_card_size_kb * 1024)) > /root/bigfile
+
+    /etc/config-tools/copy_firmware_image source-medium=sd-card destination-medium=internal-flash-emmc action=nand-check-size
+    status="$?"
+
+    assertTrue "Space on sd card should not suffice for copying" "[[ $status == 14 ]]" # NOT_ENOUGH_SPACE_ERROR
+
+    rm -f /home/bigfile
+
+}
+
+
+. shunit2
+

@@ -1,0 +1,19 @@
+diff --git a/client_libraries/c/Makefile b/client_libraries/c/Makefile
+index f156d98..d010b2f 100644
+--- a/client_libraries/c/Makefile
++++ b/client_libraries/c/Makefile
+@@ -13,7 +13,7 @@ TEST     :=  test
+ TEST_OBJ := test/test.c
+ LD_TEST  := -Llib -L/usr/local/lib -l$(NAME)
+ 
+-.PHONY: all clean test re
++.PHONY: all clean test re sparkplug_libs
+ 
+ all: $(SNAME) $(DNAME) $(TEST)
+ 
+@@ -35,3 +35,5 @@ clean:
+ 	$(RM) test/test_static test/test_dynamic
+ 
+ re: clean all
++
++sparkplug_libs: $(SNAME) $(DNAME)

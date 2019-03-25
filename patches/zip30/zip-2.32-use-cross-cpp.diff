@@ -1,0 +1,81 @@
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+Subject: zip: use $(CPP) instead of hand crafted cpp paths if specified
+
+The configurescript tries to be intelligent and wants to guess where the
+preprocessor lives. However, this badly fails in cross scenarios. We
+want to use $(CPP) if the user has specified it.
+
+Signed-off-by: Robert Schwebel <r.schwebel@pengutronix.de>
+
+---
+ unix/Makefile  |    8 ++++----
+ unix/configure |   20 +++++++++++---------
+ 2 files changed, 15 insertions(+), 13 deletions(-)
+
+Index: zip30/unix/Makefile
+===================================================================
+--- zip30.orig/unix/Makefile
++++ zip30/unix/Makefile
+@@ -25,7 +25,7 @@ LN = ln -s
+ CC = cc
+ BIND = $(CC)
+ AS = $(CC) -c
+-CPP = /lib/cpp
++CPP = $(CPP)
+ E =
+ 
+ # probably can change this to 'install' if you have it
+@@ -202,7 +202,7 @@ generic: flags
+ 	eval $(MAKE) $(MAKEF) zips `cat flags`
+ 
+ generic_gcc:
+-	$(MAKE) $(MAKEF) generic CC=gcc CPP="gcc -E"
++	$(MAKE) $(MAKEF) generic CC=gcc CPP=$(CPP)
+ 
+ # AT&T 6300 PLUS (don't know yet how to allocate 64K bytes):
+ att6300nodir:
+@@ -227,11 +227,11 @@ cray_v3:
+ 
+ # Cygwin
+ cygwin:
+-	$(MAKE) $(MAKEF) generic CC="gcc" CPP="gcc -E" EXE=".exe"
++	$(MAKE) $(MAKEF) generic CC="gcc" CPP=$(CPP) EXE=".exe"
+ 
+ # LynxOS
+ lynx:
+-	$(MAKE) $(MAKEF) generic CC=gcc CPP="gcc -E" CFLAGS="$(CFLAGS) \
++	$(MAKE) $(MAKEF) generic CC=gcc CPP=$(CPP) CFLAGS="$(CFLAGS) \
+ 	 -DNO_UNDERLINE -DLynx -DLYNX LFLAGS2="$LFLAGS2 -lc_p"
+ 
+ # MINIX 1.5.10 with Bruce Evans 386 patches and gcc/GNU make
+Index: zip30/unix/configure
+===================================================================
+--- zip30.orig/unix/configure
++++ zip30/unix/configure
+@@ -218,15 +218,17 @@ fi
+ 
+ 
+ echo Check for the C preprocessor
+-# on SVR4, cc -E does not produce correct assembler files. Need /lib/cpp.
+-CPP="${CC} -E"
+-# solaris as(1) needs -P, maybe others as well ?
+-[ -f /usr/ccs/lib/cpp ] && CPP="/usr/ccs/lib/cpp -P"
+-[ -f /usr/lib/cpp ] && CPP=/usr/lib/cpp
+-[ -f /lib/cpp ] && CPP=/lib/cpp
+-[ -f /usr/bin/cpp ] && CPP=/usr/bin/cpp
+-[ -f /xenix ] && CPP="${CC} -E"
+-[ -f /lynx.os ] && CPP="${CC} -E"
++if test -z "$CPP"; then
++  # on SVR4, cc -E does not produce correct assembler files. Need /lib/cpp.
++  CPP="${CC} -E"
++  # solaris as(1) needs -P, maybe others as well ?
++  [ -f /usr/ccs/lib/cpp ] && CPP="/usr/ccs/lib/cpp -P"
++  [ -f /usr/lib/cpp ] && CPP=/usr/lib/cpp
++  [ -f /lib/cpp ] && CPP=/lib/cpp
++  [ -f /usr/bin/cpp ] && CPP=/usr/bin/cpp
++  [ -f /xenix ] && CPP="${CC} -E"
++  [ -f /lynx.os ] && CPP="${CC} -E"
++fi
+ 
+ echo "#include <stdio.h>" > conftest.c
+ $CPP conftest.c >/dev/null 2>/dev/null || CPP="${CC} -E"

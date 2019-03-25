@@ -1,0 +1,249 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_port
+#
+# Change the configuration of the telnet-, NTP- and CoDeSys-Webserver-Port
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+
+SNTP_PORT=port
+SNTP_TIME_SERVER=time-server
+SNTP_UPDATE_TIME=update-time
+
+NTPCLIENT_FILE="/etc/init.d/ntpclient"
+NTPCLIENT_EXE="ntpclient"
+
+NTPCLIENT_SEARCH_STRING="\/usr\/sbin\/ntpclient"
+
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the state of the ports *"
+  echo
+  echo "Usage: config_port < port=port-value state=state-value >"
+  echo
+  echo "port-value: telnet | ftp | codesys-webserver | snmp" 
+  echo "state-value: enabled | disabled"
+  exit $status
+fi
+
+
+# filter input parmeter of input-string
+port=`GetParameterValue port $*`
+newState=`GetParameterValue $STATE $*`
+#echo "port:"$port "newState:"$newState 
+
+# evaluate names of links and exe-files depending on the requested port
+case "$port" in
+
+  $TELNET )             
+                        link="/etc/rc.d/S07_telnetd"
+                        exe=$TELNET_EXE
+                        startSkript="/etc/init.d/telnetd"
+                        ;;
+  $CODESYS_WEBSERVER )
+                        link="/etc/rc.d/S56_codesys_webserver"
+                        exe=$CODESYS_WEBSERVER_EXE
+                        startSkript="/etc/init.d/codesys_webserver"
+                        ;;
+  #################################################################
+  # Different treatment for {ht,f}tp{,s}: the FSM for them is a bit too long so that
+  # it has been put into an own script (config_ssl).
+  # Here we just provide a wrapper for config_ssl to preserve a single API
+  # for ipcconfig's port.sh sub-script.
+  #################################################################
+  $FTP )
+
+                        case "$newState" in
+                          enabled)
+                            /etc/config-tools/config_ssl enable-ftp
+                            exit $?
+                          ;;
+                          disabled)
+                            /etc/config-tools/config_ssl disable-ftp
+                            exit $?
+                          ;;
+                          *)
+                            exit $INVALID_PARAMETER
+                          ;;
+                        esac
+
+                        ;;
+
+    $FTPS )
+                        case "$newState" in
+                          enabled)
+                            /etc/config-tools/config_ssl enable-ftps
+                            exit $?
+                          ;;
+                          disabled)
+                            /etc/config-tools/config_ssl disable-ftps
+                            exit $?
+                          ;;
+                          *)
+                            exit $INVALID_PARAMETER
+                          ;;
+                        esac
+
+                        ;;
+ 
+    $HTTP )
+                        case "$newState" in
+                          enabled)
+                            /etc/config-tools/config_ssl enable-http
+                            exit $?
+                          ;;
+                          disabled)
+                            /etc/config-tools/config_ssl disable-http
+                            exit $?
+                          ;;
+                          *)
+                            exit $INVALID_PARAMETER
+                          ;;
+                        esac
+                        
+                        ;;
+  $HTTPS )
+                       case "$newState" in
+                          enabled)
+                            /etc/config-tools/config_ssl enable-https
+                            exit $?
+                          ;;
+                          disabled)
+                            /etc/config-tools/config_ssl disable-https
+                            exit $?
+                          ;;
+                          *)
+                            exit $INVALID_PARAMETER
+                          ;;
+                        esac
+                
+                        ;;
+  $SNMP ) 
+                       case "$newState" in
+			 enabled)
+                            /etc/config-tools/config_snmp set-snmp=enabled
+                           exit $?
+                         ;;
+                         disabled)
+                           /etc/config-tools/config_snmp set-snmp=disabled
+                           exit $?
+                         ;;
+                       esac
+
+                       ;;
+
+  #################################################################
+
+  # no parameter is given -> error
+  "" )                  ReportError $MISSING_PARAMETER "(parameter-type)"
+                        status=$MISSING_PARAMETER;;
+
+  # anything else -> error
+  * )
+                        ReportError $INVALID_PARAMETER "($port)"
+                        exit $INVALID_PARAMETER
+                        ;;
+esac
+
+pid=`pidof $exe`
+#echo "pid:"$pid
+
+if [ -z "$pid" ]; then
+  actualState=$DISABLED
+else
+  actualState=$ENABLED
+fi
+
+# if a value for state is denoted and state should change from enabled to disabled
+if [ -n "$newState" ] && [ "$actualState" == "$ENABLED" ] && [ "$newState" == "$DISABLED" ]; then
+
+  # stop process 
+  #echo "kill" $exe
+  # if port is codesys webserver - don't kill process directly, use start/stop script and wait a while to let it do the job
+  if [ "$port" = "$CODESYS_WEBSERVER" ]; then
+    $startSkript stop > /dev/null 2> /dev/null
+    sleep 1
+  else
+    sudo $KILL -15 $pid
+    if [ "$SUCCESS" != "$?" ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(kill $exe)"
+      SetLastError "Error while execution"
+    fi
+
+    case "$port" in
+        telnet)
+            [[ -d /etc/config-tools/events/telnet/ ]] && run-parts -a stop /etc/config-tools/events/telnet/
+            ;;
+        *)
+            echo "Stopping firewall for ${port} is unimplemented."
+            ;;
+    esac
+  fi
+
+  # delete link for automatically start from according directory, if it exists
+  #echo "delete link" $link
+  if [ -h "$link" ]; then
+    rm $link
+    if [ "$SUCCESS" != "$?" ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(rm $link)"
+      SetLastError "Error while execution"
+    fi
+  fi
+
+# if a value for state is denoted and state should change from disabled to enabled
+elif [ -n "$newState" ] && [ "$actualState" == "$DISABLED" ] && [ "$newState" == "$ENABLED" ]; then
+
+  # add link for automatically start to according directory, if it not already exists
+  #echo "add link" $link "for script" $startSkript
+  if [ ! -h "$NTPCLIENT_LINK" ]; then
+    ln -s $startSkript $link
+    if [ "$SUCCESS" != "$?" ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(ln -s $startSkript $link)"
+      SetLastError "Error while execution"
+    fi
+  fi
+
+  # start process
+  #echo "call start-skript" $startSkript
+  $startSkript start > /dev/null #/etc/config-tools/outputs
+  if [ "$SUCCESS" != "$?" ]; then
+    status=$SHELL_ERROR
+    ReportError $status "($startSkript start)"
+    SetLastError "Error while execution"
+  fi
+
+fi
+
+if [ "$port" = "$CODESYS_WEBSERVER" ]; then
+  [[ -d /etc/config-tools/events/codesys/ ]] && run-parts -a config /etc/config-tools/events/codesys/
+fi
+
+sync
+
+exit $status

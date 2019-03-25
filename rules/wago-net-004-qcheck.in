@@ -1,0 +1,9 @@
+## SECTION=networking
+
+config QCHECK
+	bool
+	default n
+	prompt "qcheck"
+	help
+	  Quectel UC20 firmware check
+

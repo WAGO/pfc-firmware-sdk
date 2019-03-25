@@ -1,0 +1,11 @@
+## SECTION=system_libraries
+
+config LIBFFI
+	tristate
+	prompt "libffi"
+	select GCCLIBS_GCC_S
+	select HOST_LIBFFI
+	help
+	  A foreign function interface is the popular name for the
+	  interface that allows code written in one language to call
+	  code written in another language.

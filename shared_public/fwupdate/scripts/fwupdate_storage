@@ -1,0 +1,621 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate_storage
+#
+# Brief:    WAGO firmware update extension tool for key/value storage.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Load firmware update definitions and functions.
+readonly WAGO_ST_DIR="/usr/sbin"
+if [[ ! -f "$WAGO_ST_DIR/fwupdate_common" ]]; then
+    echo "Missing dependency fwupdate_common"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_common"
+
+
+# General defines
+readonly WAGO_CT_NAME="fwupdate_storage"
+readonly WAGO_CT_TITLE="* Key/value storage for $WAGO_CT_SYSTEM_MODULE *"
+
+# Defines
+readonly UPPER_ASCII="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+readonly LOWER_ASCII="abcdefghijklmnopqrstuvwxyz"
+readonly KEY_REGEX="^[${UPPER_ASCII}${LOWER_ASCII}][_${UPPER_ASCII}${LOWER_ASCII}0-9]{0,254}$"
+
+# Storage defines
+readonly STORAGE_FILE="/settings/fwupdate_storage"
+readonly STORAGE_DATA_LOCK="/var/lock/fwupdate_storage.lock"
+readonly STORAGE_DATA_LOCK_FD=202 # Filedescriptor number to use for lock file
+readonly AVAILABLE_CAPACITY_KEY="available_capacity"
+readonly INITIAL_AVAILABLE_CAPACITY=4096
+
+# Set default parameter values
+QUIET=0
+SHOWHELP=0
+URIENCODE=0
+TEXTOUT=0
+JSONOUT=0
+INIT=0
+DESTROY=0
+SETKEY=""
+SETVALUE=""
+GETKEY=""
+
+
+# Main tool/script function.
+#
+# Param 1..n: Script parameters, see help text for details
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+main()
+{
+    local RESULT=0
+
+    # Print information if no arguments given and exit
+    if [[ $# -eq 0 ]]; then
+        print_info
+        RESULT=$MISSING_PARAMETER
+        return $RESULT
+    fi
+
+    # Evaluate parameters
+    evaluate_params "$@"
+    RESULT=$?
+    if [[ $RESULT -ne 0 ]]; then
+        fwupdate_report_error "Error on config tool parameter evaluation"
+        if [[ $RESULT -ne $MISSING_PARAMETER && $RESULT -ne $INVALID_PARAMETER ]]; then
+            RESULT=$INVALID_PARAMETER
+        fi
+        return $RESULT
+    fi
+
+    # Currently set and get not possible both on same call
+    if [[ -n "$SETKEY" && -n "$GETKEY" ]]; then
+        fwupdate_report_error "Invalid parameter combination: --get/-g and --set/-s"
+        RESULT=$INVALID_PARAMETER
+        return $RESULT
+    fi
+
+    # Print help if requested and exit
+    if [[ "$SHOWHELP" -ne 0 ]]; then
+        if [[ "$QUIET" -eq 0 ]]; then
+            print_help
+        fi
+        return $RESULT
+    fi
+
+    # Validate key
+    local KEY="$SETKEY"
+    if [[ -z "$KEY" ]]; then
+        KEY="$GETKEY"
+    fi
+    if ! [[ -z "$KEY" || "$KEY" =~ $KEY_REGEX ]]; then
+        fwupdate_report_error "Given key \"$KEY\" does not match regular expression \"$KEY_REGEX\""
+        RESULT=$INVALID_PARAMETER
+        return $RESULT
+    fi
+
+    # Initialize empty store if requested
+    if [[ "$INIT" -ne 0 ]]; then
+        if [[ -e "$STORAGE_FILE" ]]; then
+            destroy_storage
+            RESULT=$?
+        fi
+        if [[ $RESULT -eq 0 ]]; then
+            init_storage
+            RESULT=$?
+        fi
+    fi
+
+    # Call function
+    if [[ $RESULT -eq 0 && -n "$SETKEY" ]]; then
+        setvalue
+        RESULT=$?
+    fi
+    if [[ $RESULT -eq 0 && -n "$GETKEY" ]]; then
+        getvalue
+        RESULT=$?
+    fi
+
+    # Destroy store if requested
+    if [[ $RESULT -eq 0 && "$DESTROY" -ne 0 && -e "$STORAGE_FILE" ]]; then
+        destroy_storage
+        RESULT=$?
+    fi
+
+    return $RESULT
+}
+
+# Function to print general tool/script information.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_info()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "For detailed usage information use:"
+    echo "  $WAGO_CT_NAME --help"
+
+    return 0
+}
+
+# Function to evaluate tool/script parameters.
+# This function uses globally defined script option variables.
+#
+# Param 1..n: Script parameters
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+evaluate_params()
+{
+    local RESULT=0
+
+    # First evaluate early parameters
+    # (maybe influencing other parameters)
+    QUIET=$(get_parameter_option "-q" "--quiet" "$@")
+    URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
+    if [[ "$URIENCODE" -ne 0 ]]; then
+        fwupdate_report_error "Option -x/--extract-from-uri-encoding currently not supported and will be ignored"
+    fi
+
+    # Evaluate other parameters
+    SHOWHELP=$(get_parameter_option "-h" "--help" "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+    TEXTOUT=$(get_parameter_option "-t" "--text" "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+    JSONOUT=$(get_parameter_option "-j" "--json" "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+    INIT=$(get_parameter_option "-i" "--init" "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+    DESTROY=$(get_parameter_option "-d" "--destroy" "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+    GETKEY=$(get_parameter_value "-g" "--get" "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+    SETKEY=$(get_parameter_value_indexed "-s" "--set" 0 "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+    SETVALUE=$(get_parameter_value_indexed "-s" "--set" 1 "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
+
+    return $RESULT
+}
+
+# Function to print tool/script help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME [<script options> [<key> [<value>]]]"
+    echo
+    echo "Script options:"
+    print_general_command_options
+    echo "  --init                                -i   Initialize empty storage"
+    echo "  --destroy                             -d   Clear and destroy storage"
+    echo "  --get                                 -g   Get value for key or keyname/value pair with --text/--json"
+    echo "  --set                                 -s   Set value for key, create if neccessary"
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to store key/value data for clients of $WAGO_CT_SYSTEM_MODULE."
+    echo "  Keys have to match regular expression:"
+    echo "    \"$KEY_REGEX\""
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME --help   --> Prints this help text"
+    echo "  $WAGO_CT_NAME --set \"color\" \"green\"   --> Set key \"color\" to \"green\""
+    echo "  $WAGO_CT_NAME --get \"color\"   --> Get value only for key \"color\" ('green')"
+    echo "  $WAGO_CT_NAME --text --get \"color\"   --> Get keyname=value pair for key \"color\" ('color=green')"
+    echo "  $WAGO_CT_NAME --json --get \"color\"   --> Get keyname and value as JSON for key \"color\" ('{\"color\": \"green\"}')"
+    echo "  $WAGO_CT_NAME --init   --> Clear (if any) and initialize empty storage"
+    echo "  $WAGO_CT_NAME --destroy   --> Clear and destroy storage to free used capacity"
+
+    return 0
+}
+
+# Function to set value for key.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+setvalue()
+{
+    local KEY="$SETKEY"
+    local VALUE="$SETVALUE"
+    local RESULT=0
+
+    # Create and initialize storage file if not already present
+    if [[ ! -e "$STORAGE_FILE" ]]; then
+        init_storage
+        RESULT=$?
+    fi
+
+    # Calculate and check new available storage capacity
+    if [[ $RESULT -eq 0 ]]; then
+        local OLD_VALUE_RESULT=0
+        if ! storage_exclusive_lock; then
+            RESULT=$INTERNAL_ERROR
+            fwupdate_report_error "Unable to acquire exclusive lock to set value \"$VALUE\" for key \"$KEY\" in $WAGO_CT_SYSTEM_MODULE storage"
+        else
+            local AVAILABLE_CAPACITY=0
+            AVAILABLE_CAPACITY=$(storage_get_available_capacity)
+            local REQUIRED_BY_KEY=0
+            local REQUIRED_BY_VALUE=${#VALUE}
+            local OLD_VALUE="undefined"
+            OLD_VALUE=$(storage_get_value "$KEY")
+            OLD_VALUE_RESULT=$?
+            if [[ $OLD_VALUE_RESULT -eq $WAGO_FW_UPDATE_KEY_NOT_FOUND ]]; then
+                REQUIRED_BY_KEY=${#KEY}
+            else
+                REQUIRED_BY_VALUE=$(( ${#VALUE} - ${#OLD_VALUE} ))
+            fi
+            local REQUIRED_CAPACITY=$(( $REQUIRED_BY_KEY + $REQUIRED_BY_VALUE ))
+            local NEW_AVAILABLE_CAPACITY=$(( $AVAILABLE_CAPACITY - $REQUIRED_CAPACITY ))
+            if [[ $NEW_AVAILABLE_CAPACITY -lt 0 ]]; then
+                RESULT=$WAGO_FW_UPDATE_NO_SETTINGS_SPACE
+                fwupdate_report_error "Available storage capacity ($AVAILABLE_CAPACITY) less than necessary ($REQUIRED_BY_KEY[key] + $REQUIRED_BY_VALUE[value] = $REQUIRED_CAPACITY)"
+            fi
+        fi
+
+        # Store value
+        if [[ $RESULT -eq 0 ]]; then
+            storage_set_value "$KEY" "$VALUE"
+            RESULT=$?
+            if [[ $RESULT -eq 0 && $OLD_VALUE_RESULT -eq $WAGO_FW_UPDATE_KEY_NOT_FOUND ]]; then
+                fwupdate_report_info "Set value \"$VALUE\" for new key \"$KEY\""
+            elif [[ $RESULT -eq 0 ]]; then
+                fwupdate_report_info "Replaced value for key \"$KEY\": \"$OLD_VALUE\" => \"$VALUE\""
+            else
+                fwupdate_report_error "Failed to set value \"$VALUE\" for key \"$KEY\""
+            fi
+        fi
+
+        # Save new available storage capacity
+        if [[ $RESULT -eq 0 ]]; then
+            storage_set_available_capacity "$NEW_AVAILABLE_CAPACITY"
+            RESULT=$?
+            if [[ $RESULT -ne 0 ]]; then
+                fwupdate_report_error "Failed to update storage capacity from $AVAILABLE_CAPACITY to $NEW_AVAILABLE_CAPACITY"
+            fi
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to get value for key.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+getvalue()
+{
+    local RESULT=0
+
+    # Check for storage file
+    if [[ ! -e "$STORAGE_FILE" ]]; then
+        RESULT=$WAGO_FW_UPDATE_KEY_NOT_FOUND
+    else
+        if ! storage_shared_lock; then
+            RESULT=$INTERNAL_ERROR
+            fwupdate_report_error "Unable to acquire shared lock to get value for key \"$KEY\" in $WAGO_CT_SYSTEM_MODULE storage"
+        else
+            local VALUE="undefined"
+            VALUE=$(storage_get_value "$KEY")
+            RESULT=$?
+            storage_release_lock
+            if [[ $RESULT -eq 0 ]]; then
+                if [[ $TEXTOUT -eq 0 && $JSONOUT -eq 0 ]]; then
+                    printf "%s" "$VALUE"
+                else
+                    report_start
+                    report "$KEY" "$VALUE"
+                    report_end
+                fi
+            else
+                fwupdate_report_error "Failed to get value for key \"$KEY\""
+            fi
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to create and initialize storage file.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+init_storage()
+{
+    local RESULT=0
+
+    if ! storage_exclusive_lock; then
+        RESULT=$INTERNAL_ERROR
+        fwupdate_report_error "Unable to acquire exclusive lock to initialize $WAGO_CT_SYSTEM_MODULE storage"
+    else
+        echo "${AVAILABLE_CAPACITY_KEY}=${INITIAL_AVAILABLE_CAPACITY}" >"$STORAGE_FILE" && sync
+        RESULT=$?
+        storage_release_lock
+    fi
+    if [[ $RESULT -ne 0 ]]; then
+        fwupdate_report_error "Failed to create/initialize $WAGO_CT_SYSTEM_MODULE storage"
+    else
+        fwupdate_report_info "$WAGO_CT_SYSTEM_MODULE storage initialized"
+    fi
+
+    return $RESULT
+}
+
+# Function to destroy storage file.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+destroy_storage()
+{
+    local RESULT=0
+
+    if ! storage_exclusive_lock; then
+        RESULT=$INTERNAL_ERROR
+        fwupdate_report_error "Unable to acquire exclusive lock to destroy $WAGO_CT_SYSTEM_MODULE storage"
+    else
+        # TODO: Use better implementation, this one (one file for one key) is only a prototype
+        rm -rf "${STORAGE_FILE}.d"
+        RESULT=$?
+        if [[ $RESULT -eq 0 ]]; then
+            rm -f "$STORAGE_FILE"
+            RESULT=$?
+        fi
+        storage_release_lock
+    fi
+    if [[ $RESULT -ne 0 ]]; then
+        fwupdate_report_error "Failed to destroy $WAGO_CT_SYSTEM_MODULE storage"
+    else
+        fwupdate_report_info "$WAGO_CT_SYSTEM_MODULE storage destroyed"
+    fi
+
+    return $RESULT
+}
+
+# Function to set available FW-Update storage capacity.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_get_available_capacity()
+#-----------------------------------------------------------------------------#
+storage_set_available_capacity()
+{
+    local NEW_CAPACITY="$1"
+    local RESULT=0
+
+    # Set capacity
+    local KEY="$AVAILABLE_CAPACITY_KEY"
+    if [[ -e "$STORAGE_FILE" ]]; then
+        local ESCAPED_VALUE
+        ESCAPED_VALUE="$(echo -n "$NEW_CAPACITY" | $SED 's/\\/\\\\/g' | $SED 's/\//\\\//g')"
+        $SED -i "s/^\($KEY\s*=\s*\).*\$/\1$ESCAPED_VALUE/" "$STORAGE_FILE"
+        RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+        sync
+    else
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    return $RESULT
+}
+
+# Function to get available FW-Update storage capacity.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_set_available_capacity()
+#-----------------------------------------------------------------------------#
+storage_get_available_capacity()
+{
+    local RESULT=0
+
+    # Determine capacity
+    local KEY="$AVAILABLE_CAPACITY_KEY"
+    local VALUE="undefined"
+    if [[ -e "$STORAGE_FILE" ]]; then
+        VALUE="$(cat "$STORAGE_FILE" | grep "^$KEY=" | cut -d= -f2)"
+        RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+    else
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    # Return capacity on success
+    if [[ $RESULT -eq 0 ]]; then
+        echo -n "$VALUE"
+    fi
+    return $RESULT
+}
+
+# Function to set a FW-Update storage value in common data store.
+#
+# Param 1: Identifying key for value to set
+# Param 2: Value to set
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_get_value()
+#-----------------------------------------------------------------------------#
+storage_set_value()
+{
+    local KEY="$1"
+    local VALUE="$2"
+    local RESULT=0
+
+    # Set value
+    if [[ -e "$STORAGE_FILE" ]]; then
+        # TODO: Use better implementation, this one (one file for one key) is only a prototype
+        if [[ ! -e "${STORAGE_FILE}.d" ]]; then
+            mkdir -p "${STORAGE_FILE}.d"
+        fi
+        printf "%s" "$VALUE" >"${STORAGE_FILE}.d/$KEY" && sync
+        RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+    else
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    return $RESULT
+}
+
+# Function to get a FW-Update storage value from common data store.
+#
+# Param 1: Identifying key for value to get
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_set_value()
+#-----------------------------------------------------------------------------#
+storage_get_value()
+{
+    local KEY="$1"
+    local RESULT=0
+
+    # Determine value
+    local VALUE="undefined"
+    if [[ -e "$STORAGE_FILE" ]]; then
+        # TODO: Use better implementation, this one (one file for one key) is only a prototype
+        if [[ ! -e "${STORAGE_FILE}.d/$KEY" ]]; then
+            RESULT=$WAGO_FW_UPDATE_KEY_NOT_FOUND
+        else
+            VALUE="$(cat "${STORAGE_FILE}.d/$KEY")"
+            RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+        fi
+    else
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    # Return value on success
+    if [[ $RESULT -eq 0 ]]; then
+        echo -n "$VALUE"
+    fi
+    return $RESULT
+}
+
+# Function to create FW-Update storage lock.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_shared_lock(),
+#           storage_exclusive_lock(),
+#           storage_release_lock()
+#-----------------------------------------------------------------------------#
+storage_create_lock()
+{
+    local RESULT=0
+
+    # Touch only and do not overwrite/replace by a new file or new file content to keep active locks
+    touch "$STORAGE_DATA_LOCK"
+    RESULT=$?
+    if [[ $RESULT != 0 ]]; then
+        fwupdate_report_error "Failed to create lock file \"$STORAGE_DATA_LOCK\""
+    fi
+
+    return $RESULT
+}
+
+# Function to get a shared FW-Update storage lock (e.g. for read data).
+# If lockfile does not exist it will be created.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_create_lock(),
+#           storage_exclusive_lock(),
+#           storage_release_lock()
+#-----------------------------------------------------------------------------#
+storage_shared_lock()
+{
+    local RESULT=0
+
+    if [[ ! -e "$STORAGE_DATA_LOCK" ]]; then
+        storage_create_lock
+        RESULT=$?
+        if [[ $RESULT != 0 ]]; then
+            return $RESULT
+        fi
+    fi
+    local TIMEOUT=$WAGO_FW_UPDATE_DEFAULT_TIMEOUT
+    get_read_lock $STORAGE_DATA_LOCK_FD "$STORAGE_DATA_LOCK" $TIMEOUT
+    RESULT=$?
+
+    if [[ $RESULT -ne 0 ]]; then
+        local LOG_INFO="$WAGO_CT_SYSTEM_MODULE storage on \"$STORAGE_DATA_LOCK\" within $TIMEOUT seconds"
+        fwupdate_report_error "Failed to get shared lock for $LOG_INFO"
+    fi
+
+    return $RESULT
+}
+
+# Function to get an exclusive FW-Update storage lock (e.g. for write data).
+# If lockfile does not exist it will be created.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_create_lock(),
+#           storage_shared_lock(),
+#           storage_release_lock()
+#-----------------------------------------------------------------------------#
+storage_exclusive_lock()
+{
+    local RESULT=0
+
+    if [[ ! -e "$STORAGE_DATA_LOCK" ]]; then
+        storage_create_lock
+        RESULT=$?
+        if [[ $RESULT != 0 ]]; then
+            return $RESULT
+        fi
+    fi
+    local TIMEOUT=$WAGO_FW_UPDATE_DEFAULT_TIMEOUT
+    get_write_lock $STORAGE_DATA_LOCK_FD "$STORAGE_DATA_LOCK" $TIMEOUT
+    RESULT=$?
+
+    if [[ $RESULT -ne 0 ]]; then
+        local LOG_INFO="$WAGO_CT_SYSTEM_MODULE storage on \"$STORAGE_DATA_LOCK\" within $TIMEOUT seconds"
+        fwupdate_report_error "Failed to get exclusive lock for $LOG_INFO"
+    fi
+
+    return $RESULT
+}
+
+# Function to release a FW-Update storage lock (e.g. shared lock or exclusive lock).
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: storage_create_lock(),
+#           storage_shared_lock(),
+#           storage_exclusive_lock()
+#-----------------------------------------------------------------------------#
+storage_release_lock()
+{
+    local RESULT=0
+
+    release_lock $STORAGE_DATA_LOCK_FD
+    RESULT=$?
+
+    if [[ $RESULT -ne 0 ]]; then
+        local LOG_INFO="$WAGO_CT_SYSTEM_MODULE storage on \"$STORAGE_DATA_LOCK\""
+        fwupdate_report_error "Failed to release lock for $LOG_INFO"
+    fi
+
+    return $RESULT
+}
+
+# Start main function
+main "$@"
+exit $?

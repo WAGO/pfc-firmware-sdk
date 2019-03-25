@@ -1,0 +1,10 @@
+## SECTION=wago_specific_libs
+
+
+config LIBTIMEZONEINFO
+	bool
+	prompt "libtimezoneinfo"
+	default n
+	select PLCLINUXRT
+	help
+	  This package contains runtime implementation of the CoDeSys Timezoneinfo

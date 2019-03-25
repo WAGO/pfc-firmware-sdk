@@ -1,0 +1,1362 @@
+## SECTION=wago_specific_config
+
+#
+#   This file contains the main config tools target needed by ptxdist to
+#   process ${__THIS_FILENAME__}.make as well as the common configuration
+#   entries for the config tools meta package: the feature entries, the config
+#   file entries and the config tool entries.  
+#
+#   The feature targets are visible in the ptxdist menu. They are used to
+#   enable or disable menu entries in all frontends (i.e. eth1 settings may be
+#   disabled if the feature "Ethernet Switch" is active).  
+#
+#   The config tool and config file entries determine which configuration tools
+#   (small helper programs written in C or BASH which are used by the
+#   configuration frontends and ioswitch(?)) are to be installed to a target
+#   device.  To avoid breakages, they cannot be set directly by the user and
+#   are thus made invisible by removing the prompt field. Which tools are
+#   actually installed should depend on the chosen frontend configuration
+#   options (TODO), but currently all tools are installed automatically. The
+#   comments give a clue about which tools are required by which submenu
+#   (several tools are required by more than one submenu, which is not yet
+#   reflected by this notation). This assignment is still work in progress
+#   (TODO).
+#
+
+# 
+# NOTE: ioswitch(?) also makes use of the configuration tools => beware of
+# removing any tools it might need.
+#
+
+######################## COMMON FEATURES #######################
+#
+# For the menu to work properly (auto-toggle menu entries on (un-) setting
+# features, make sure the dependent menu config options have the "default n"
+# attribute set.
+#
+
+#config CT_FEATURE_CODESYS
+#  bool
+#  default n
+#  prompt "CoDeSys Support"
+#  depends on PLCLINUXRT
+#  help
+#   Enable CoDeSys-related configuration options.
+
+comment "WBM/CBM: common features"
+
+config CT_FEATURE_ETH_SWITCH
+  bool
+  default n
+  prompt "Device has an ethernet switch"
+  help
+    Ethernet configuration: enable if the ports are realised via a switch.
+
+config CT_FEATURE_ETH_SWITCH_DSA
+  bool
+  default n
+  depends on CT_FEATURE_ETH_SWITCH
+  select CT_SET_DSA_MODE
+  select CT_GET_DSA_MODE
+  prompt "Device has a switch with dual eth mode support"
+  help
+    Ethernet configuration: enable if the switch ports may be configured as separate NICs.
+
+config CT_FEATURE_ETH_SWITCH_ADVANCED
+  bool
+  default n
+  depends on CT_FEATURE_ETH_SWITCH
+  select CT_GET_SWITCH_SETTINGS
+  select CT_CONFIG_SWITCH
+  prompt "Device has a switch with advanced configuration support"
+  help
+    Installs tools for advanced switch configuration: fast aging, broadcast protection etc. Requires a device that supports it.
+
+config CT_FEATURE_DISPLAY
+  bool
+  default n
+  prompt "Device has a display"
+  help
+    The device has a display
+
+config CT_FEATURE_TYPELABEL_SUPPORT
+  bool
+  default n
+  prompt "Device has an EEPROM-based type label"
+  help
+    The device has a typelabel which can be read using WAGO's libtypelabel library.
+
+# Example what a choice out of several opportunities could look like
+#choice
+#  bool "Ethernet configuration"
+# 
+#  config CT_FEATURE_ETH_SWITCH
+#  bool "switch"  
+# 
+#  config CT_FEATURE_ETH_PHY
+#  bool "eth0,eth1"
+#
+#endchoice
+
+config CT_FEATURE_RUN_STOP_SWITCH
+  bool
+  default n
+  prompt "Device has OMS library support (run-stop switch)"
+  help
+    Choose Y if liboms (=Operating Mode Switch) supports this device.
+    
+config CT_MULTI_PRODUCT_CONFIG
+  bool
+  default n
+  prompt "Support multi-product configuration"
+  help
+    If selected, multiple frontend configurations will be created and placed on
+    target. On target, one of these configs will have to be selected.  This may
+    be needed if specific menu entries have to be disabled on some product
+    variants (i.e. hide serial port settings on a device w/o serial. The configs
+    are created based on contents of the $PTXCONF_PLATFORMCONFIGDIR/products
+    directory. See wago-pfc-200 for an example implementation.  
+
+config CT_FEATURE_WAGODBUS
+  bool
+  default n
+  select WAGO_DBUS
+  prompt "Install WAGO DBUS library"
+  help
+    Enables specific service configuration changes.
+
+config CT_FEATURE_UPDATE_BOOTLOADER_ON_TARGET
+  bool
+  default n
+  depends on TYPELABEL
+  select TYPELABEL_SETFWNR
+  prompt "Enable bootloader updates in the field"
+  help
+    Add tools to allow updating the bootloader during regular firmware updates.
+
+comment "NOTE: /boot/barebox-compatible-versions file has to be provided (s. pfcXXX barebox.make)"
+    depends on CT_FEATURE_UPDATE_BOOTLOADER_ON_TARGET
+
+comment ""
+
+# This is the target corresponding to ${__THIS_FILENAME__}.make
+# ptxdist won't build config-tools package if it is inactive
+
+menuconfig CONFIG_TOOLS
+  bool
+  default n
+  prompt "Command-line tool suite"
+
+  select CPPUTEST if CONFIG_TOOLS_WITH_UNIT_TESTS
+
+# basic components
+  select CT_CONFIG_TOOL_LIB_C
+  select CT_CONFIG_TOOL_LIB_BASH
+  select CT_CONFIG_TOOL_DEFINES
+  select SWCONFIG if CT_FEATURE_ETH_SWITCH_DSA
+  select CT_URLENCODE
+  select WAGO_DBUS
+  select EEPROM_XSECTION if CDS3_RTS_PRODUCT_VTPCTP
+
+# basic 3rd party libs
+  select GLIB
+  select LIBXML2
+  select LIBXSLT
+  select UDEV
+  select UDEV_LIBUDEV
+  select OPENSSL
+
+# dependencies of single config-tools
+  select CT_IPC_MSG_HEADER if PLCLINUXRT && (CT_GET_RTS_INFO || CT_GET_PLC_CONFIG)
+  select TYPELABEL if CT_FEATURE_TYPELABEL_SUPPORT && (CT_GET_COUPLER_DETAILS || CT_GET_TYPELABEL_VALUE)
+  select OMS if CT_GET_RUN_STOP_SWITCH_VALUE
+  select UMKIMAGE if CT_GET_UIMAGE_SIZE
+  select LIBNL3 if CT_LIBCTNETWORK 
+  select LIBMODBUSCONFIG if CT_MODBUS_CONFIG
+  
+  select MDMD if CT_CONFIG_MDMD
+
+  help
+   "Set of command line tools to change system configuration"
+
+config CONFIG_TOOLS_WITH_UNIT_TESTS
+  bool
+  default n
+  prompt "Compile and run unit tests on host"
+  depends on CONFIG_TOOLS
+  help
+    Run unit tests (using cpputest).
+
+config CT_DEPRECATED
+  bool
+  depends on CONFIG_TOOLS
+  default n
+  prompt "Allow deprecated config-tools"
+  help
+   Choose Y to be able to enable old and deprecated entries (IPC etc.)
+   If you're not sure, choose N here.
+
+config CT_LIBCTNETWORK
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "Install network configuration library"
+  help
+    If selected, a library called libctnetwork.so is installed to the device.
+    It provides a C API for network configuration.
+
+
+#
+# Features that can be deactivated manually (submenu of CONFIG_TOOLS)
+#
+
+comment "Basic system information"
+  depends on CONFIG_TOOLS
+
+config CT_GET_ACTUAL_ETH_CONFIG
+  bool
+  default n
+  prompt "get_actual_eth_config"	
+  depends on CONFIG_TOOLS
+  select CT_LIBCTNETWORK
+  help
+   Determines runtime NIC settings.
+
+config CT_GET_COUPLER_DETAILS
+  bool
+  default n
+  prompt "get_coupler_details"
+  depends on CONFIG_TOOLS
+  # there is a cross dependency between the two items
+  #select CT_GET_ETH_CONFIG
+  help
+   Determines system parameters like CPU architecture, firmware revision etc.
+
+config CT_GET_ETH_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select CT_LIBCTNETWORK
+  prompt "get_eth_config"
+  help
+   Determines NIC settings from /etc/sysconfig/network located config files.
+
+config CT_GET_LED_CONFIG
+  bool
+  prompt "get_led_config"
+  depends on CONFIG_TOOLS
+  default n
+  help
+   Get information about LED states.
+
+config CT_GET_RUN_STOP_SWITCH_VALUE
+  bool
+  prompt "get_run_stop_switch_value"
+  depends on CONFIG_TOOLS && CT_FEATURE_RUN_STOP_SWITCH
+  default n
+  help
+   Returns the value of the RUN/STOP switch.
+
+config CT_GET_TYPELABEL_VALUE
+  bool
+  prompt "get_typelabel_value"
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_TYPELABEL_SUPPORT
+  help
+    Get Electronic Typelabel Information
+
+#################################################################
+comment "TCP/IP"
+  depends on CONFIG_TOOLS
+
+config CT_CALCULATE_BROADCAST
+  bool
+  default n
+  prompt "calculate_broadcast"
+  depends on CONFIG_TOOLS
+  help
+   Calculate broadcast address from IP.
+
+config CT_CHANGE_HOSTNAME
+  bool
+  default n
+  prompt "change_hostname"
+  depends on CONFIG_TOOLS
+  help
+   Set hostname.
+
+config CT_DETERMINE_HOSTNAME
+  bool
+  default n
+  prompt "determine_hostname"
+  depends on CONFIG_TOOLS
+  help
+   Get hostname by config file or created with hostname.
+
+config CT_CONFIG_DEFAULT_GATEWAY
+  bool
+  default n
+  prompt "config_default_gateway"
+  depends on CONFIG_TOOLS
+  help
+   Set default gw settings.
+
+config CT_CONFIG_OVERWRITE_DHCP_GATEWAY
+  bool
+  default n
+  prompt "config_overwrite_dhcp_gateway"
+  depends on CONFIG_TOOLS
+  help
+   Set specific destination and genmask to dhcp-gateways
+
+config CT_CONFIG_INTERFACES
+  bool
+  default n
+  prompt "config_interfaces"
+  depends on CONFIG_TOOLS
+  select CT_LIBCTNETWORK
+  help
+   Edit network settings.
+
+config CT_GET_DSA_MODE
+  bool
+  default n
+  prompt "get_dsa_mode"
+  depends on CONFIG_TOOLS && CT_FEATURE_ETH_SWITCH_DSA
+  select CT_LIBCTNETWORK
+  help
+   Check if dual ethernet mode is active.
+
+config CT_SET_DSA_MODE
+  bool
+  default n
+  prompt "set_dsa_mode"
+  depends on CONFIG_TOOLS && CT_FEATURE_ETH_SWITCH_DSA
+  select CT_LIBCTNETWORK
+  help
+   Toggle dual ethernet mode.
+
+config CT_GET_SWITCH_SETTINGS
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_ETH_SWITCH_DSA
+  select CT_LIBCTNETWORK
+  help
+   Get advanced switch settings (security-related like broadcast protection, ingress rate limiting etc.)
+
+config CT_CONFIG_SWITCH
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_ETH_SWITCH_DSA
+  select CT_LIBCTNETWORK
+  help
+   Set advanced switch settings (security-related like broadcast protection, ingress rate limiting etc.)
+
+config CT_GET_DNS_SERVER
+  bool
+  default n
+  prompt "get_dns_server"
+  depends on CONFIG_TOOLS
+  help
+   Get DNS server settings.
+
+config CT_EDIT_DNS_SERVER
+  bool
+  default n
+  prompt "edit_dns_server"
+  depends on CONFIG_TOOLS
+  help
+   Edit DNS server settings.
+
+config CT_EDIT_DNS_SERVER_DHCP
+  bool
+  default n
+  prompt "use DNS server from DHCP offer"
+  depends on CONFIG_TOOLS && (CT_EDIT_DNS_SERVER || CT_GET_DNS_SERVER)
+  select CT_BLENDER
+  help
+   use given dns server from dhcp offer and mix them static assigned ones.
+
+config CT_SET_NETWORK_INTERFACES
+  bool
+  default n
+  prompt "set_network_interfaces"	
+  depends on CONFIG_TOOLS
+  select CT_LIBCTNETWORK
+  help
+   Updates network interface settings.
+
+config CT_WWAN_INTERFACE
+  bool
+  default n
+  prompt "Configure WWAN interface" 
+  depends on CONFIG_TOOLS
+  help
+   Configures WWAN network interface.
+
+config CT_DIP_SWITCH_SUPPORT
+  bool
+  default n
+  prompt "DIP Switch Modifies IP Address"	
+  depends on CONFIG_TOOLS
+  select CT_SET_NETWORK_INTERFACES
+  select CT_WWAN_INTERFACE
+  help
+   Enables ip address modification through dip switch values. Adds
+   script adapt_netconfig to config tools.
+
+config CT_HTTPS_CIPHER_SELECTION
+  bool
+  default n
+  prompt "Configure https cipher list"	
+  depends on CONFIG_TOOLS
+  help
+   Config tool to set https standard or strong cipher list and read
+   status of current setting.
+
+#################################################################
+comment "Helper scripts"
+depends on CONFIG_TOOLS
+
+config CT_BLENDER
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "blender.sh"
+  help
+    It is just a little helper script which is needed to sort given entries.
+    It will be used for sorting DNS and NTP entries which are comming from DHCP
+    and static assigned ones.
+    DNS and NTP entries have special sorting algorithms.
+
+
+config CT_FEATURE_DETECT
+  bool
+  default y
+  depends on CONFIG_TOOLS
+  prompt "feature detect"
+  help
+    With this script it is possible to check it a specific feature is installed on the 
+    target. To use this script for feature detection a file with the feature name have to add
+    to /etc/config-tools/feature folder by the feature installation.
+
+
+#################################################################
+comment "CODESYS-related config-tools"
+depends on CONFIG_TOOLS && PLCLINUXRT
+
+comment "CODESYS2 related config-tools disabled!"
+	depends on CONFIG_TOOLS && !PLCLINUXRT
+
+config CT_GET_RTS_INFO
+  bool
+  default n
+  prompt "get_rts_info"
+  depends on CONFIG_TOOLS && PLCLINUXRT
+  help
+   Get informations about the PLC: state, project info and task infos.
+
+config CT_GET_PLC_CONFIG
+  bool
+  default n
+  prompt "get_plc_config"
+  depends on CONFIG_TOOLS && PLCLINUXRT
+  help
+   Get actual active PLC-Version
+
+#config CT_CONFIG_PLC
+#  bool
+#  default n
+#  depends on CONFIG_TOOLS && PLCLINUXRT
+#  prompt "config_plc" 
+#  help
+#   Toggle plc-runtime selecion.
+
+config CT_CONFIG_MODBUS
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT && CT_DEPRECATED
+  prompt "config_modbus [deprecated]"
+  help
+   Change the modbus configuration (IPC-specific shell script). 
+   Was historically placed at the HMI page in the IPC-WBM
+
+config CT_CHANGE_RTS_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT
+  prompt "change_rts3s_config"
+  help
+   Edit rts3s settings 
+   Was historically placed at the HMI page in the IPC-WBM
+
+config CT_CONFIG_CODESYS3
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT
+  prompt "config_codesys3"
+  help
+   Set codesys3 configuration options.
+   Enable/disable webserver.
+
+config CT_GET_RTS3SCFG_VALUE
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT
+  prompt "get_rts3scfg_value"
+  help
+   Parse /etc/rts3s.cfg file.
+
+config CT_CONFIG_RUNTIME
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT
+  prompt "config_runtime"
+  help
+   Set plc runtime configuration options.
+   Meta tool to codesys2 and codesys3 runtime configuration.
+
+config CT_GET_RUNTIME_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT
+  prompt "get_runtime_config"
+  help
+   Get plc runtime configuration data.
+
+config CT_GET_POSSIBLE_RUNTIMES
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_possible_runtimes"
+  help
+   Get possible runtimes for this device
+
+
+###############################################################
+comment "CODESYS2 Webserver related config-tools"
+depends on CONFIG_TOOLS && PLCLINUXRT_WEBSERVER
+
+comment "CODESYS2 webserver related config-tools disabled!"
+depends on CONFIG_TOOLS && !PLCLINUXRT_WEBSERVER
+
+config CT_CHANGE_DEFAULT_WEBSERVER
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT_WEBSERVER
+  prompt "change_default_webserver"
+  help
+   Switch default web server btw. lighthttpd and CoDeSys WebVisu webserver.
+
+config CT_CODESYS_WEBSERVER_WATCHDOG
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT_WEBSERVER
+  prompt "codesys_webserver_watchdog"
+  help
+   Watchdog for the CoDeSys process. Workaround for an uncommon bug.
+
+config CT_RESTART_WEBSERVER
+  bool
+  default n
+  depends on CONFIG_TOOLS && PLCLINUXRT_WEBSERVER
+  prompt "restart_webserver"
+  help
+   Restart both lighthttpd and WebVisu webservers.
+
+
+#################################################################
+comment "Ethernet-related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CONFIG_ETHERNET
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select CT_LIBCTNETWORK
+  prompt "config_ethernet"
+  help
+    Interface for setting ethernet parameters like link speed,duplex 
+    etc.
+
+#################################################################
+comment "Administration-related information"
+  depends on CONFIG_TOOLS
+
+config CT_CONFIG_RS232
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_RS232"
+  help
+   Switch the application communicating over the serial interface (CoDeSys Debug/Linux console etc.).
+
+config CT_SET_SERIAL_MODE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "set_serial_mode"
+  help
+   Switch TTY2 between RS232 and RS485.
+
+config CT_CONFIG_SERVICE_INTERFACE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select SERIAL_DISPATCHER if !CDS3_RTS_PRODUCT_VTPCTP
+  prompt "config_service_interface"
+  help
+    Cofigure the service interface
+
+
+config CT_GET_SERVICE_INTERFACE_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select SERIAL_DISPATCHER if !CDS3_RTS_PRODUCT_VTPCTP
+  prompt "get_service_interface_config"
+  help
+    Get the actual config of the service Intergace
+
+
+config CT_COPY_FIRMWARE_IMAGE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select CT_GET_DEVICE_DATA         # when cloning NAND->SD, needed to check sd card size
+  select CT_GET_MIN_SD_CARD_SIZE    # when cloning NAND->SD, needed to check minimal sd card size
+  prompt "copy_firmware_image"
+  help
+   Copy the firmware image from one device to another.
+
+config CT_FILESYSTEM_CHECK
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "filesystem_check"
+  help
+   Run fsck.
+
+config CT_GET_FILESYSTEM_DATA
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_filesystem_data"
+  help
+   Get file system information.
+
+comment "Note: get_filesystem_data has platform-dependent functions that have to be implemented in order to compile it!"
+  depends on CT_GET_FILESYSTEM_DATA
+
+config CT_GET_MIN_SD_CARD_SIZE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_min_sd_card_size"
+  help
+   Get the minimal sd card size to clone NAND contents to SD storage.
+
+config CT_GET_UIMAGE_SIZE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_uimage_size"
+  help
+   Read uboot-style uImage header and extract file size.
+
+config CT_PRINT_PROGRAM_OUTPUT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "print_program_output"
+  help
+   Prints bash output to stdout, preserving line feeds.
+
+config CT_START_REBOOT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "start_reboot"
+  help
+   Reboot the controller.
+
+config CT_SWITCH_BOOTLOADER
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "switch_bootloader"
+  help
+   Switch the default boot option btw. CF card an internal flash.
+
+#################################################################
+comment "NTP-related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CONFIG_SNTP
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_sntp"
+  help
+   Change and read NTP client settings.
+
+###############################################################
+comment "Clock-related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CONFIG_CLOCK
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_clock"
+  help
+   Change time and date settings.
+
+config CT_CONFIG_CLOCK_DISPLAY_MODE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_clock_dislay_mode"
+  help
+   Switch between 12/24H display mode.
+
+config CT_CONFIG_TIMEZONE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_timezone"
+  help
+   Set timezone settings.
+
+config CT_GET_CLOCK_DATA
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_clock_data"
+  help
+   Read current time and date settings.
+
+config CT_GET_LOCAL_DATE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_local_date"
+  help
+   Read local date.
+
+config CT_GET_LOCAL_TIME
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_local_time"
+  help
+   Read local time.
+
+###############################################################
+comment "Users"
+depends on CONFIG_TOOLS
+
+config CT_CONFIG_USER
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_user"
+  help
+   Change Webserver user passwords.
+
+
+config CT_CRYPT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "crypt"
+  help
+   Generate a password hash for /etc/passwd. 
+
+config CT_GET_USER
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_user"
+  help
+   Get the user list.
+
+config CT_GET_USER_INFO
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_user_info"
+  help
+   Returns login/password related information.
+
+config CT_GET_USER_HASH
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_user_hash"
+  help
+   Returns user related hash / info for settings backup.
+
+###############################################################
+comment "HMI settings related config-tools"
+depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+
+comment "HMI settings disabled (device has no display)!"
+depends on CONFIG_TOOLS && !CT_FEATURE_DISPLAY
+
+config CT_CONFIG_TOUCH_PARAMETER
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  prompt "config_touch_parameter"
+  help
+   Is called from some outside code.
+   FIXME: find out from where
+
+config CT_GET_TOUCHSCREEN_EVENT
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  prompt "get_touchscreen_event"
+  help
+   Is called from some outside code.
+   FIXME: find out from where
+
+config CT_CHANGE_KEYBOARD_LAYOUT
+  bool
+  default n
+  prompt "change_keyboard_layout"
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  help
+   Switch keyboard layout.
+
+config CT_CHANGE_SCREEN_STATE
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  prompt "change_screen_state"
+  help
+   Edit screensaver settings and cleanmode.
+
+config CT_CHANGE_VIDEO_MODE
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  prompt "change_video_mode"
+  help
+   Edit display resolution.
+
+config CT_CONFIG_MOUSEPOINTER
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  prompt "config_mouspointer"
+  help
+   Enable/disable the mouse pointer.
+
+config CT_CONFIG_TOUCHSCREEN
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  prompt "config_touchscreen"
+  help
+   Set touchscreen driver and calibrate the screen.
+
+
+config CT_GET_TOUCHSCREEN_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_FEATURE_DISPLAY
+  prompt "get_touchscreen_config"
+  help
+    Get touchscreen configuration.
+
+config CT_SHOW_VIDEO_MODE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "show_video_mode"
+  help
+   Get video settings (current/supported).
+
+###############################################################
+comment "Package Server related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_AUTO_FIRMWARE_RESTORE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "auto_firmware_restore"
+  help
+   Start auto-restore on bootup if configured. Called from an init script.
+
+config CT_CF_CARD_BACKUP
+  bool
+  default n
+  depends on CONFIG_TOOLS && CT_DEPRECATED
+  prompt "cf_card_backup [deprecated]"
+  help
+   Is not used any longer: replaced by more granular backup options (IPC shell script).
+   
+
+config CT_FIRMWARE_BACKUP
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "firmware_backup"
+  help
+   Backup firmware data. 
+
+config CT_FIRMWARE_RESTORE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "firmware_restore"
+  help
+   Restore firmware data. 
+
+config CT_GET_FIRMWARE_RESTORE_PACKAGES
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_firmware_restore_packages"
+  help
+   Get existing backup package files on devices. 
+
+config CT_SETTINGS_BACKUP
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select RC_ONCE
+  prompt "settings_backup"
+  help
+   Save all config settings to backup file/restore settings from backup. 
+
+config CT_TERMINATE_CODESYS
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "terminate_codesys"
+  help
+   Stop CoDeSys runtime and wait for completion. A special version of terminate_process.
+
+config CT_TERMINATE_PROCESS
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "terminate_process"
+  help
+   Stop a process and wait for completion.
+
+###############################################################
+comment "Mass Storage related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CHANGE_BOOTFLAG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "change_bootflag"
+  help
+   Toggle bootflag on partition.
+
+config CT_GET_DEVICE_DATA
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_device_data"
+  help
+   Get information about mass storage devices (hd* etc.)
+
+config CT_FORMAT_MEDIUM
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "format_medium"
+  help
+    Create a ETX4 or FAT partition on device.
+
+config CT_FAT_FORMAT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  depends on CT_FORMAT_MEDIUM
+  prompt "fat_format"
+  help
+   Create a FAT partition on device.
+
+###############################################################
+comment "Downloads related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_ACTIVATE_DOWNLOAD
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "activate_download"
+  help
+   Activate a previously downloaded file. 
+
+config CT_GET_WBM_UPLOADS
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_wbm_uploads"
+  help
+   Get previously uploaded files. 
+
+
+###############################################################
+comment "Port related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CONFIG_DNSMASQ
+  bool
+  default n
+  select DNSMASQ
+  select CT_LIBCTNETWORK
+  prompt "config_dnsmasq"
+  depends on CONFIG_TOOLS
+  help
+   Adds the build of config_dnsmasq_c to the config tools. This is needed
+   for configuring DHCPD server and DNS service.
+
+config CT_CONFIG_PORT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_port"
+  help
+   Toggle port on/off.
+
+config CT_GET_PORT_STATE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_port_state"
+  help
+   Get port state (enabled/disabled) for predefined ports.
+
+config CT_CONFIG_SSL
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_ssl"
+  help
+   Enable/disable http/https and ftp/ftps settings.
+   
+config CT_CONFIG_OPCUA
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_opcua"
+  help
+   Enable/disable OPCUA access
+
+config CT_CONFIG_SSH
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_ssh"
+  help
+   Change SSH settings.
+   
+config CT_CONFIG_TFTP
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_tftp"
+  help
+   Change TFTP settings.
+
+config CT_CONFIG_DHCPD
+  bool
+  default n
+  select CT_CONFIG_DNSMASQ
+  depends on CONFIG_TOOLS
+  prompt "config_dhcpd"
+  help
+   Change DHCP service settings. Only possible if dnsmasq is selected.
+
+config CT_CONFIG_DNS_SERVICE
+  bool
+  default n
+  select CT_CONFIG_DNSMASQ
+  depends on CONFIG_TOOLS
+  prompt "config_dns_service"
+  help
+   Change DNS service settings. Only possible if dnsmasq is selected.
+
+config CT_CONFIG_IOCHECKPORT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_iocheckport"
+  help
+   Config tool to enable or disable access to the iocheck demon. Requires
+   firewall to be enabled.
+
+config CT_GET_SSH_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_ssh_config"
+  help
+   Get SSH settings.
+   
+config CT_GET_TFTP_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_tftp_config"
+  help
+   Get TFTP settings.
+
+config CT_GET_DHCPD_CONFIG
+  bool
+  default n
+  select CT_CONFIG_DNSMASQ
+  depends on CONFIG_TOOLS
+  prompt "get_dhcpd_config"
+  help
+   Get DHCP service settings.
+
+config CT_GET_DNS_SERVICE_CONFIG
+  bool
+  default n
+  select CT_CONFIG_DNSMASQ
+  depends on CONFIG_TOOLS
+  prompt "get_dns_service_config"
+  help
+   Get DNS name service settings.
+
+config CT_GET_IOCHECKPORT_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_iocheckport_config"
+  help
+   Config tool to read the state of the iocheck port.
+ 
+config CT_IPDATACHECK
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "ipdatacheck"
+  help
+   Config tool support program to check network parameters.
+
+config CT_GET_TELECONTROL_STATE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_telecontrol_state"
+  help
+   Config tool support program to check telecontrol states.
+
+config CT_CONFIG_ROUTING
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_routing"
+  help
+   Config tool support program to setup routing configuration.
+
+config CT_GET_SYSTEMINFO
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_systeminfo"
+  help
+   Get system infos.
+
+###############################################################
+comment "SNMP related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CONFIG_SNMP
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_snmp"
+  help
+   Edit SNMP settings.
+
+config CT_GET_SNMP_DATA
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_snmp_data"
+  help
+   Read SNMP settings.
+
+config CT_STRING_ENCODE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "string_encode"
+  help
+   Prepare input for sed/bash/regex (escape special characters). 
+
+###############################################################
+comment "Profibus related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_PBDP_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "pbdp_config"
+  help
+   Change Profibus settings (currently only permission to change slave station address).
+   
+###############################################################
+comment "BACnet related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_BACNET_CONFIG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "bacnet_config"
+  help
+   Change BACnet settings
+   
+config CT_BACNET_WBM_DIAGLIST
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "bacnet_wbm_diaglist"
+  help
+   Get BACnet related messages
+
+###############################################################
+comment "Modbus related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_MODBUS_CONFIG
+  bool
+  default n
+  select CT_FEATURE_WAGODBUS
+  depends on CONFIG_TOOLS
+  prompt "modbus_config"
+  help
+   Change Modbus settings
+
+###############################################################
+comment "MDMD related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CONFIG_MDMD
+  bool
+  default n
+  select CT_FEATURE_WAGODBUS
+  depends on CONFIG_TOOLS
+  prompt "config_mdmd"
+  help
+   WAGO Modem Management Daemon config tool.
+
+config CT_UPDATE_MODEM_FIRMWARE
+  bool
+  default n
+  select QFLASH 
+  depends on CONFIG_TOOLS
+  prompt "update_modem_firmware"
+  help
+   Update 3g modem firmware.
+
+
+###############################################################
+comment "Diagnostics related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_GET_WBM_DIAGLIST
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_wbm_diaglist"
+  help
+   Get diagnostic list for WBM.
+
+###############################################################
+comment "Basic OpenVPN/IPsec config-tools"
+depends on CONFIG_TOOLS
+
+config CT_VPNCFG
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select OPENSSL
+  prompt "config_vpncfg"
+  help
+   OpenVPN/IPsec config tool.
+
+#################################################################
+#
+# Basic stuff.
+# External packages like CT_IPC_MSG_HEADER have to be selected by 
+# CONFIG_TOOLS main target.
+# Other are chosen if specific config-tools are selected.
+# May depend on additional conditions.
+#
+#################################################################
+
+config CT_CONFIG_TOOL_LIB_BASH
+  bool
+  default n
+  help
+   Shared bash functions used across several scripts.
+
+config CT_CONFIG_TOOL_LIB_C
+  bool
+  default n
+  help
+   Shared C functions used across multiple binaries.
+
+config CT_CONFIG_TOOL_DEFINES
+  bool
+  default n
+  help
+   Shared bash constants used across several scripts.
+
+config CT_IPC_MSG_HEADER
+  bool
+  default n
+  help
+    Common target which codesys and config tools depend on (if both are selected).
+
+config CT_URLENCODE
+  bool
+  default n
+  help
+    URL arg encoder/HTML string decoder ( %21 <-> '!' etc.)
+
+
+if CONFIG_TOOLS # following targets are "default y" if CONFIG_TOOLS is active
+
+######################## CONFIG FILES ##########################
+
+#  Configuration files; can be installed to target w/o any side effects =>
+# leave them "default y" and invisible
+
+config CT_TIME_FORMAT
+  bool
+  default y
+  help
+   "Text file /etc/config-tools/TIME_FORMAT. Time format (12/24H) is stored here." 
+
+config CT_RS232_OWNER
+  bool
+  default y
+  help
+   "Text file /etc/config-tools/RS232_OWNER. COM port's current owner is stored here." 
+
+
+
+
+
+
+
+
+endif

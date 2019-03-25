@@ -1,0 +1,161 @@
+From 9dec45cadc09a3f1c02bc124ddb91d7d010c37db Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 29 Jun 2017 08:47:16 +0200
+Subject: [PATCH 112/261] swconfig: mv88e6321: add multichip mdio ops
+
+---
+ drivers/net/phy/mv88e6321-cfg.c | 116 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 114 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index d555bbb..75753ac 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -24,6 +24,8 @@
+ #include <linux/of_mdio.h>
+ #include <linux/platform_device.h>
+ 
++#include "../dsa/mv88e6xxx/mv88e6xxx.h"
++
+ #define DRIVER_NAME		"mv88e6321"
+ 
+ #define MASK(msb, lsb)          \
+@@ -115,6 +117,88 @@ static int mv88e6321_sw_get_mdio_read(struct switch_dev *dev,
+         return 0;
+ }
+ 
++static int mv88e6321_sw_multi_chip_wait(struct switch_dev *dev)
++{
++	int ret;
++	int i;
++
++	for (i = 0; i < 16; i++) {
++		ret = mdiobus_read_nested(dev->mii_bus, 6, SMI_CMD);
++		if (ret < 0)
++			return ret;
++
++		if ((ret & SMI_CMD_BUSY) == 0)
++			return 0;
++	}
++
++	return -ETIMEDOUT;
++}
++
++static int mv88e6321_sw_get_mdio_multi_write(struct switch_dev *dev,
++				      const struct switch_attr *attr,
++				      struct switch_val *val)
++{
++	int ret;
++
++	/* Wait for the bus to become free. */
++	ret = mv88e6321_sw_multi_chip_wait(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Transmit the data to write. */
++	ret = mdiobus_write_nested(dev->mii_bus, 6, SMI_DATA, val->value.i);
++	if (ret < 0)
++		return ret;
++
++	/* Transmit the write command. */
++	ret = mdiobus_write_nested(dev->mii_bus, 6, SMI_CMD,
++				   SMI_CMD_OP_22_WRITE | (cur_phy_reg << 5) | cur_reg);
++	if (ret < 0)
++		return ret;
++
++	/* Wait for the write command to complete. */
++	ret = mv88e6321_sw_multi_chip_wait(dev);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++static int mv88e6321_sw_get_mdio_multi_read(struct switch_dev *dev,
++				      const struct switch_attr *attr,
++				      struct switch_val *val)
++{
++	int ret;
++
++	/* Wait for the bus to become free. */
++	ret = mv88e6321_sw_multi_chip_wait(dev);
++	if (ret < 0)
++		return ret;
++
++
++	/* Transmit the read command. */
++	ret = mdiobus_write_nested(dev->mii_bus, 6, SMI_CMD,
++				   SMI_CMD_OP_22_READ | (cur_phy_reg << 5) | cur_reg);
++	if (ret < 0)
++		return ret;
++
++	/* Wait for the read command to complete. */
++	ret = mv88e6321_sw_multi_chip_wait(dev);
++	if (ret < 0)
++		return ret;
++
++	/* Read the data. */
++	ret = mdiobus_read_nested(dev->mii_bus, 6, SMI_DATA);
++	if (ret < 0)
++		return ret;
++
++        //val->value.i = mdiobus_read(dev->mii_bus, cur_phy_reg, cur_reg);
++	val->value.i = ret & 0xffffffff;
++	pr_debug("mdiobus_read: phy 0x%02x, reg 0x%02x, val 0x%04x\n",
++		 cur_phy_reg, cur_reg, val->value.i);
++        return 0;
++}
++
+ static inline int mv88e6321_sw_reset(struct switch_dev *dev)
+ {
+         return mv88e6321_soft_reset();
+@@ -127,6 +211,25 @@ static int mv88e6321_sw_setup_dflt_cfg(struct switch_dev *dev,
+         return mv88e6321_setup_dflt_cfg(DFLT_CFG_FLAGS);
+ }
+ 
++#ifdef CONFIG_NET_DSA_MV88E6XXX
++static inline int mv88e6321_sw_set_dsa_enable(struct switch_dev *dev,
++					    const struct switch_attr *attr,
++					    struct switch_val *val)
++{
++	dsa_enable(!!val->value.i);
++
++	return 0;
++}
++
++static inline int mv88e6321_sw_get_dsa_enable(struct switch_dev *dev,
++					    const struct switch_attr *attr,
++					    struct switch_val *val)
++{
++        val->value.i = is_dsa_enabled();
++
++        return 0;
++}
++#endif
+ 
+ static struct switch_attr mv88e6321_global_attrs[] = {
+         {
+@@ -150,9 +253,18 @@ static struct switch_attr mv88e6321_global_attrs[] = {
+                 .type = SWITCH_TYPE_INT,
+                 .name = "mdio_rw",
+                 .description = "Read/Write with selected mdio registers",
+-                .set = mv88e6321_sw_set_mdio_write,
+-                .get = mv88e6321_sw_get_mdio_read,
++                .set = mv88e6321_sw_get_mdio_multi_write,
++                .get = mv88e6321_sw_get_mdio_multi_read,
++        },
++#ifdef CONFIG_NET_DSA_MV88E6XXX
++        {
++                .type = SWITCH_TYPE_INT,
++                .name = "dsa_enable",
++                .description = "Enables or Disables DSA Network-Path",
++                .set = mv88e6321_sw_set_dsa_enable,
++                .get = mv88e6321_sw_get_dsa_enable,
+         },
++#endif
+ };
+ 
+ struct switch_dev_ops mv88e6321_switch_dev_ops = {
+-- 
+2.7.4
+

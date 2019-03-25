@@ -1,0 +1,17 @@
+digraph structs
+{
+  edge [fontname="FreeSans",fontsize="10",labelfontname="FreeSans",labelfontsize="10"];
+  node [fontname="FreeSans",fontsize="10",shape=record];
+  rankdir=LR;
+  Node4 [label="util_pool_sync_insert",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__util__pool__sync__insert.html"];
+  Node0 [label="Pool References",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="util_pool_initialize",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__util__pool__initialize.html"];
+  Node2 [label="util_pool_async_insert",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__util__pool__async__insert.html"];
+  Node5 [label="util_pool_sync_query",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__util__pool__sync__query.html"];
+  Node3 [label="util_pool_async_query",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$group__util__pool__async__query.html"];
+  Node0->Node1 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node2 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node3 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node4 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+  Node0->Node5 [shape=plaintext, color="midnightblue", dir="back", style="solid"];
+}
