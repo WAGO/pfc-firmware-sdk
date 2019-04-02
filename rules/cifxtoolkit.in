@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+
+config CIFXTOOLKIT
+	bool
+	prompt "libcifx-toolkit"
+    select ZLIB
+	select LIBOSLINUX
+#	select PCIUTILS
+    default n
+    help
+	  Builds and installs Hilscher's netx driver toolkit.

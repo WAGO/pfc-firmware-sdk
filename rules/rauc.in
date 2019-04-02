@@ -1,0 +1,86 @@
+## SECTION=applications
+
+menuconfig RAUC
+	tristate
+	prompt "Rauc Update Tool              "
+	select OPENSSL
+	select GLIB
+	select LIBCURL		if RAUC_NETWORK
+	select JSON_GLIB	if RAUC_JSON
+	select SQUASHFS_TOOLS			if RUNTIME
+	select SQUASHFS_TOOLS_UNSQUASHFS	if RUNTIME
+	help
+	  Robust Auto-Update Controller. RAUC controls the update process on embedded linux systems.
+
+if RAUC
+
+config RAUC_NETWORK
+	bool
+	prompt "network support"
+
+config RAUC_JSON
+	bool
+	prompt "JSON support"
+
+config RAUC_COMPATIBLE
+	prompt "RAUC Compatible"
+	string
+	default "${PTXCONF_PROJECT_VENDOR}\ ${PTXCONF_PROJECT}"
+	help
+	  An explicit identification string that RAUC uses to assure an update
+	  bundle matches with the correct root filesystem on the target.
+
+	  Only if the compatible in the targets RAUC system.conf file and those
+	  in the Bundle's manifest match exactly, an update will be performed
+
+config RAUC_DEVELOPMENT_KEY
+	string
+	default "config/rauc/WAGO_BU_Automation_Development_Certificate.pem"
+	prompt "RAUC development key"
+	help
+	  Workspace relative path to development key to use for RAUC image signing.
+	  (May alternatively be provided as environment variable RAUC_KEY for build process)
+
+config RAUC_RELEASE_KEY
+	string
+	default ""
+	prompt "RAUC release key"
+	help
+	  Workspace relative path to release key to use for RAUC image signing.
+	  (May alternatively be provided as environment variable RAUC_KEY for build process)
+
+config RAUC_DEVELOPMENT_CERT
+	string
+	default "config/rauc/WAGO_BU_Automation_Development_Certificate.crt"
+	prompt "RAUC development certificate"
+	help
+	  Workspace relative path to development certificate to use for RAUC in FW and on image signing.
+	  (May alternatively be provided as environment variable RAUC_CERTIFICATE for build process)
+
+config RAUC_RELEASE_CERT
+	string
+	default "config/rauc/WAGO_BU_Automation_Release_Certificate.crt"
+	prompt "RAUC release certificate"
+	help
+	  Workspace relative path to release certificate to use for RAUC in FW and on image signing.
+	  (May alternatively be provided as environment variable RAUC_CERTIFICATE for build process)
+
+config RAUC_DEVELOPMENT_KEYRING
+	string
+	default "config/rauc/WAGO_BU_Automation_Development_Certificate.crt"
+	prompt "RAUC development keyring"
+	help
+	  Workspace relative path to development keyring to use for RAUC image verification on resign.
+	  In case of a self signed certificate this file is the same as the RAUC certificate.
+	  (May alternatively be provided as environment variable RAUC_KEYRING for build process)
+
+config RAUC_RELEASE_KEYRING
+	string
+	default "config/rauc/WAGO_BU_Automation_Release_Certificate.crt"
+	prompt "RAUC release keyring"
+	help
+	  Workspace relative path to release keyring to use for RAUC image verification on resign.
+	  In case of a self signed certificate this file is the same as the RAUC certificate.
+	  (May alternatively be provided as environment variable RAUC_KEYRING for build process)
+
+endif

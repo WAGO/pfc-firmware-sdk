@@ -1,0 +1,68 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#------------------------------------------------------#
+# Script-name: print_navigation
+#
+# Write the navigation-list of web-based-management to stdout.
+#
+# Input: Name of the navigation-point which should be selected.
+#        If no parameter is given, no point will be displayed selected.
+#
+# Author: WAGO Kontakttechnik GmbH
+#------------------------------------------------------#
+
+# take all input strings as the name of the selected navigation-point
+selectedPage=$@
+
+# array with the names of the navigation-points and the corresponding URL
+linkName[0]="Information";        linkUrl[0]="state.php"
+linkName[1]="CoDeSys";            linkUrl[1]="rts_info.php"
+linkName[2]="TCP/IP";             linkUrl[2]="tcpip.php"
+linkName[3]="Ethernet";           linkUrl[3]="ethernet.php"
+linkName[4]="NTP";                linkUrl[4]="sntp.ssi"
+linkName[5]="Clock";              linkUrl[5]="clock.ssi"
+linkName[6]="Users";              linkUrl[6]="users.ssi"
+linkName[7]="HMI Settings";       linkUrl[7]="hmi_settings.php"
+linkName[8]="Administration";     linkUrl[8]="administration.php"
+linkName[9]="Package Server";     linkUrl[9]="firmware_update.php"
+linkName[10]="Mass Storage";      linkUrl[10]="mass_storage.php"
+linkName[11]="Downloads";         linkUrl[11]="downloads.ssi"
+linkName[12]="Port";              linkUrl[12]="port.php"
+linkName[13]="Modbus";            linkUrl[13]="modbus.ssi"
+linkName[14]="SNMP";              linkUrl[14]="snmp.php"
+linkName[15]="I/O-Configuration"; linkUrl[15]="io_config.xml"
+linkName[16]="WebVisu";           linkUrl[16]="webvisu.php"
+
+
+# write the start html code of the navigation-box
+echo "<div id=\"navigation_box\">"
+echo "  <h3>Navigation</h3>"
+echo "  <ul class=\"navigation\">"
+
+# write the single navigation-points with the data of the array (loop over all array entries)
+linkNr=0
+while (( "$linkNr" < "${#linkName[*]}" )); do
+
+  echo -e "    <li><a \c"
+
+  # if the actual point is the one which is selected -> display it as selected
+  if [ "$selectedPage" = "${linkName[$linkNr]}" ]; then
+    echo -e "class=\"selected\" \c"
+  fi
+
+  echo -e "href=\""${linkUrl[$linkNr]}"\">"${linkName[$linkNr]}"</a></li>"
+
+  linkNr=$[$linkNr + 1]
+done
+
+# write the end-html-code of the navigation-box
+echo "  </ul>"
+echo "  <div id=\"navigation_bottom\"> </div>"
+echo "</div>"
+
+exit 0

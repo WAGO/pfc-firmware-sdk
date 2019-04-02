@@ -1,0 +1,223 @@
+From beda37ce4e0d948523c97ec8897cfac84eded1b5 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Tue, 16 Jun 2015 11:59:58 +0200
+Subject: [PATCH] correct intendation
+
+---
+ src/modbus-ip-slave.c | 94 +++++++++++++++++++++++++--------------------------
+ src/modbusip.h        |  2 +-
+ 2 files changed, 48 insertions(+), 48 deletions(-)
+
+diff --git a/src/modbus-ip-slave.c b/src/modbus-ip-slave.c
+index eceba89..2f92490 100644
+--- a/src/modbus-ip-slave.c
++++ b/src/modbus-ip-slave.c
+@@ -98,13 +98,13 @@ static void free_tcp_work_thread(struct mb_thread *mbt)
+ 	*pprev = next;
+ 	if (next)
+ 		next->pprev = pprev;
+-    
++
+ 	mbt->mbs->act_connections--;
+ 
+-    if(!mbt->mbs->stop)
+-    {
+-        pthread_detach(pthread_self());
+-    }
++	if(!mbt->mbs->stop)
++	{
++		pthread_detach(pthread_self());
++	}
+ 
+ 	pthread_mutex_unlock(&mbt->mbs->lock);
+ 
+@@ -122,19 +122,19 @@ static void *modbus_tcp_work(void *arg)
+ 	struct mb_tcp_header *hdr = &mbp.tcp_header;
+ 	struct mb_api_object *obj = &mbp.api_object;
+ 	struct timeval timeout;
+-    char thread_name[15 + ((sizeof(int)>>2)*5)];
++	char thread_name[15 + ((sizeof(int)>>2)*5)];
+ 	int res, sd = mbt->sd;
+ 	ssize_t rdlen, sndlen, objlen, sentlen;
+ 	fd_set rdfds;
+ 
+-    if(0 < snprintf(thread_name, 20, "mb_tcp_work_%d", sd))
+-    {
+-        pthread_setname_np(pthread_self(), thread_name);
+-    }
+-    else
+-    {
+-        pthread_setname_np(pthread_self(), "mb_tcp_work_x");
+-    }
++	if(0 < snprintf(thread_name, 20, "mb_tcp_work_%d", sd))
++	{
++		pthread_setname_np(pthread_self(), thread_name);
++	}
++	else
++	{
++		pthread_setname_np(pthread_self(), "mb_tcp_work_x");
++	}
+ 	mb_log(mbt->mbs, MB_LOG_CONNECT, "modbus_tcp_work: start %d\n", sd);
+ 
+ 	while (!mbt->mbs->stop) {
+@@ -149,15 +149,15 @@ static void *modbus_tcp_work(void *arg)
+ 
+ 		/* Timeout or interupted */
+ 		if (res <= 0 || mbt->mbs->stop)
+-        {
+-            mb_log(mbt->mbs, MB_LOG_SOCKET,
+-                   "%s: select terminated res: %d, mbs->stop: %d\n",
+-                   __FUNCTION__, res, mbt->mbs->stop);
++		{
++			mb_log(mbt->mbs, MB_LOG_SOCKET,
++			       "%s: select terminated res: %d, mbs->stop: %d\n",
++			       __FUNCTION__, res, mbt->mbs->stop);
+ 			break;
+-        }
+-        else
+-            mb_log(mbt->mbs, MB_LOG_SOCKET,
+-                   "modbus_tcp_work: select %d %d\n", sd, res);
++		}
++		else
++			mb_log(mbt->mbs, MB_LOG_SOCKET,
++			       "modbus_tcp_work: select %d %d\n", sd, res);
+ 
+ 		/* Read the header */
+ 		rdlen = read(sd, hdr, sizeof(*hdr));
+@@ -186,10 +186,10 @@ static void *modbus_tcp_work(void *arg)
+ 		hdr->length = cpu_to_mb16((uint16_t) sndlen);
+ 		sndlen += sizeof(*hdr);
+ 
+-    if (mbt->mbs->rsp_delay > 0)
+-    {
+-      usleep(mbt->mbs->rsp_delay*1000);
+-    }
++		if (mbt->mbs->rsp_delay > 0)
++		{
++			usleep(mbt->mbs->rsp_delay*1000);
++		}
+ 
+ 		sentlen = write(sd, &mbp, sndlen);
+ 
+@@ -303,16 +303,16 @@ static void *modbus_tcp_socket(void *arg)
+ 	socklen_t addrlen = sizeof(sinc);
+ 	int csd, sd;
+ 
+-    pthread_setname_np(pthread_self(), "mb_tcp_accept");
++	pthread_setname_np(pthread_self(), "mb_tcp_accept");
+ 
+-    mbs->stop = 0;
++	mbs->stop = 0;
+ 	mbs->status = MODBUS_THREAD_STARTING;
+ 
+ 	sd = start_tcp_socket(mbs);
+ 	if (sd < 0)
+ 		goto out;
+ 
+-    if (mbs->cb_service_up) mbs->cb_service_up(mbs);
++	if (mbs->cb_service_up) mbs->cb_service_up(mbs);
+ 
+ 	mbs->status = MODBUS_THREAD_RUNNING;
+ 	mbs->sd = sd;
+@@ -332,7 +332,7 @@ static void *modbus_tcp_socket(void *arg)
+ 		spawn_tcp_thread(mbs, csd);
+ 	}
+ 	mb_log(mbs, MB_LOG_THREAD, "modbus_tcp_socket: end accept loop\n");
+-    if (mbs->cb_service_down) mbs->cb_service_down(mbs);
++	if (mbs->cb_service_down) mbs->cb_service_down(mbs);
+ 	close(sd);
+ out:
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+@@ -375,16 +375,16 @@ static void *modbus_udp_socket(void *arg)
+ 	ssize_t reclen, sndlen, objlen, sentlen;
+ 	int sd;
+ 
+-    pthread_setname_np(pthread_self(), "mb_udp");
++	pthread_setname_np(pthread_self(), "mb_udp");
+ 
+-    mbs->stop = 0;
++	mbs->stop = 0;
+ 	mbs->status = MODBUS_THREAD_STARTING;
+ 
+ 	sd = start_udp_socket(mbs);
+ 	if (sd < 0)
+ 		goto out;
+ 
+-    if (mbs->cb_service_up) mbs->cb_service_up(mbs);
++	if (mbs->cb_service_up) mbs->cb_service_up(mbs);
+ 
+ 	mbs->status = MODBUS_THREAD_RUNNING;
+ 	mbs->sd = sd;
+@@ -395,15 +395,15 @@ static void *modbus_udp_socket(void *arg)
+ 		reclen = recvfrom(sd, &mbp, sizeof(mbp), 0, saddr, &addrlen);
+ 
+ 		if (reclen < 0 || mbs->stop)
+-        {
+-            mb_log(mbs, MB_LOG_SOCKET,
+-                   "%s: recvfrom terminated read length: %d, mbs->stop: %d\n",
+-                   __FUNCTION__, reclen, mbs->stop);
++		{
++			mb_log(mbs, MB_LOG_SOCKET,
++			       "%s: recvfrom terminated read length: %d, mbs->stop: %d\n",
++			       __FUNCTION__, reclen, mbs->stop);
+ 			break;
+-        }
+-        else
+-            mb_log(mbs, MB_LOG_SOCKET,
+-                   "modbus_udp_socket: recv %d %d %d\n", sd, reclen, errno);
++		}
++		else
++			mb_log(mbs, MB_LOG_SOCKET,
++			       "modbus_udp_socket: recv %d %d %d\n", sd, reclen, errno);
+ 
+ 		if (modbus_verify_tcp_header(hdr) < 0)
+ 			continue;
+@@ -424,10 +424,10 @@ static void *modbus_udp_socket(void *arg)
+ 		hdr->length = cpu_to_mb16((uint16_t) sndlen);
+ 		sndlen += sizeof(*hdr);
+ 
+-    if (mbs->rsp_delay > 0)
+-    {
+-      usleep(mbs->rsp_delay*1000);
+-    }
++		if (mbs->rsp_delay > 0)
++		{
++			usleep(mbs->rsp_delay*1000);
++		}
+ 
+ 		sentlen = sendto(sd, &mbp, sndlen, 0, saddr, addrlen);
+ 
+@@ -441,7 +441,7 @@ static void *modbus_udp_socket(void *arg)
+ 		mbs->events++;
+ 	}
+ 	mb_log(mbs, MB_LOG_CONNECT, "modbus_udp_socket: stop receive loop\n");
+-    if (mbs->cb_service_down) mbs->cb_service_down(mbs);
++	if (mbs->cb_service_down) mbs->cb_service_down(mbs);
+ 	close(sd);
+ out:
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+@@ -518,7 +518,7 @@ repeat:
+ 
+ 		mbt = container_of(child, struct mb_thread, list);
+ 		if (mbt->sd)
+-        	{
++		{
+ 			shutdown(mbt->sd, SHUT_RDWR);
+ 			mb_log(mbs, MB_LOG_THREAD,
+ 				"modbus_socket_stop: shutdown socket %d\n", __FUNCTION__);
+diff --git a/src/modbusip.h b/src/modbusip.h
+index 84ff1b6..cf7829d 100644
+--- a/src/modbusip.h
++++ b/src/modbusip.h
+@@ -31,7 +31,7 @@ struct mb_socket {
+ 	pthread_t		thread;
+ 	struct mb_list		*childs;
+ 	pthread_mutex_t		lock;
+-  unsigned short    rsp_delay;
++	unsigned short    rsp_delay;
+ 	void			(*cb_service_up)(struct mb_socket *mbs);
+ 	void			(*cb_service_down)(struct mb_socket *mbs);
+ };
+-- 
+1.9.1
+

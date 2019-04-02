@@ -1,0 +1,117 @@
+From 96a6f6ee2ecc843b9cb3f2bdac04bdbc80336df5 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Thu, 18 Oct 2018 10:29:41 +0200
+Subject: [PATCH 263/263] net: phy: marvell: add mdix handling to mv88e6321
+ phys
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/marvell.c | 71 +++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 69 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/phy/marvell.c b/drivers/net/phy/marvell.c
+index e0941b2..c661a7d 100644
+--- a/drivers/net/phy/marvell.c
++++ b/drivers/net/phy/marvell.c
+@@ -33,6 +33,7 @@
+ #include <linux/phy.h>
+ #include <linux/marvell_phy.h>
+ #include <linux/of.h>
++#include <linux/mutex.h>
+ 
+ #include <linux/io.h>
+ #include <asm/irq.h>
+@@ -133,6 +134,11 @@
+ #define MII_88E3016_DISABLE_SCRAMBLER	0x0200
+ #define MII_88E3016_AUTO_MDIX_CROSSOVER	0x0030
+ 
++#define MII_88E6321_PHY_SPEC_CTRL	0x10
++#define MII_88E6321_PHY_SCR_MDI		0x0000
++#define MII_88E6321_PHY_SCR_MDI_X	0x0020
++#define MII_88E6321_PHY_SCR_AUTO_CROSS	0x0060
++
+ #define MII_88E1510_GEN_CTRL_REG_1		0x14
+ #define MII_88E1510_GEN_CTRL_REG_1_MODE_MASK	0x7
+ #define MII_88E1510_GEN_CTRL_REG_1_MODE_SGMII	0x1	/* SGMII to copper */
+@@ -693,6 +699,67 @@ static int m88e3016_config_init(struct phy_device *phydev)
+ 	return marvell_config_init(phydev);
+ }
+ 
++static int mv88e6321_config_init(struct phy_device *phydev)
++{
++	int reg;
++	int phy_mdix;
++
++	reg = phy_read(phydev, MII_88E6321_PHY_SPEC_CTRL);
++	if (reg < 0)
++		return reg;
++
++	phy_mdix = reg & MII_88E6321_PHY_SCR_AUTO_CROSS;
++
++	if (phy_mdix == MII_88E6321_PHY_SCR_MDI)
++		phydev->mdix = ETH_TP_MDI;
++	else if (phy_mdix == MII_88E6321_PHY_SCR_MDI_X)
++		phydev->mdix = ETH_TP_MDI_X;
++	else if (phy_mdix == MII_88E6321_PHY_SCR_AUTO_CROSS)
++		phydev->mdix = ETH_TP_MDI_AUTO;
++
++	return genphy_config_init(phydev);
++}
++
++static int mv88e6321_config_aneg(struct phy_device *phydev)
++{
++	int reg, ret;
++	int phy_mdix;
++	int mdix_changed = 0;
++
++	reg = phy_read(phydev, MII_88E6321_PHY_SPEC_CTRL);
++	if (reg < 0)
++		return reg;
++
++	phy_mdix = reg & MII_88E6321_PHY_SCR_AUTO_CROSS;
++
++	reg &= ~MII_88E6321_PHY_SCR_AUTO_CROSS;
++
++	if (phydev->mdix == ETH_TP_MDI && phy_mdix != MII_88E6321_PHY_SCR_MDI) {
++		mdix_changed = 1;
++		reg |= MII_88E6321_PHY_SCR_MDI;
++	} else if (phydev->mdix == ETH_TP_MDI_X &&
++		   phy_mdix != MII_88E6321_PHY_SCR_MDI_X) {
++		mdix_changed = 1;
++		reg |= MII_88E6321_PHY_SCR_MDI_X;
++	} else if (phydev->mdix == ETH_TP_MDI_AUTO &&
++		   phy_mdix != MII_88E6321_PHY_SCR_AUTO_CROSS) {
++		mdix_changed = 1;
++		reg |= MII_88E6321_PHY_SCR_AUTO_CROSS;
++	}
++
++	if (mdix_changed) {
++		ret = phy_write(phydev, MII_88E6321_PHY_SPEC_CTRL, reg);
++		if (ret < 0)
++			return ret;
++
++		ret = genphy_soft_reset(phydev);
++		if (ret)
++			return ret;
++	}
++
++	return genphy_config_aneg(phydev);
++}
++
+ static int m88e1111_config_init(struct phy_device *phydev)
+ {
+ 	int err;
+@@ -1739,8 +1806,8 @@ static struct phy_driver marvell_drivers[] = {
+ 		.features = PHY_BASIC_FEATURES,
+ 		.flags = PHY_HAS_INTERRUPT,
+ 		.probe = marvell_probe,
+-		.config_aneg = &genphy_config_aneg,
+-		.config_init = &genphy_config_init,
++		.config_aneg = &mv88e6321_config_aneg,
++		.config_init = &mv88e6321_config_init,
+ 		.aneg_done = &marvell_aneg_done,
+ 		.read_status = &marvell_read_status,
+ 		.ack_interrupt = &marvell_ack_interrupt,
+-- 
+2.7.4
+

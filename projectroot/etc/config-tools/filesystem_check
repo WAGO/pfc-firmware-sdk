@@ -1,0 +1,131 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# Script-name: filesystem_check
+#
+# Process a filesystem-check
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Process a filesystem-check for one or all devices*"
+  echo
+  echo "Usage: filesystem_check < device=device-name >"
+  echo
+  echo "device-name: device-name-string (e.g. \"/dev/hda1\") or string \"all\" to check all devices"
+  echo
+  exit $SUCCESS
+fi
+
+
+deviceName=`GetParameterValue device $*`
+#echo "deviceName:"$deviceName
+
+# check if device-name is given
+if [ -z "$deviceName" ]; then
+
+  ReportError $MISSING_PARAMETER "(device)"
+  SetLastError "Parameter is missing"
+  exit $MISSING_PARAMETER
+fi
+
+# start file to save the filecheck-outputs
+rm /etc/config-tools/e2fsck_output
+echo -e "Filesystem-Check Output" >> /etc/config-tools/e2fsck_output
+echo -e "=======================\n" >> /etc/config-tools/e2fsck_output
+
+# get home- and second active device
+homeDeviceString=`/etc/config-tools/get_filesystem_data home-device`
+rootDeviceString=`/etc/config-tools/get_filesystem_data second-active-device`
+#echo "homeDeviceString:"$homeDeviceString "rootDeviceString:"$rootDeviceString
+
+# all existing devices should be checked
+if [ "$deviceName" = "all" ]; then
+
+  # get the existing devices one by one and process filecheck for each
+  deviceIndex=1
+  deviceName=`/etc/config-tools/get_filesystem_data partition-by-index $deviceIndex`
+  while [ -n "$deviceName" ]; do
+
+    if [ "$deviceName" = "$homeDeviceString" ]; then
+      #echo $deviceName "/home/lost+found/ löschen"
+      rm /home/lost+found/* > /dev/null 2> /dev/null
+    elif [ "$deviceName" = "$rootDeviceString" ]; then
+      #echo $deviceName "/lost+found löschen (root)"
+      rm /lost+found/* > /dev/null 2> /dev/null
+    fi
+
+    # call filecheck and put its ouputs to a file; to do this workable, we use 2 indirections:
+    # 1. e2fsck refuses to write the outputs directly to a file under user www, so we put them into a variable first
+    # 2. if we just write the content of this variable by bash, the linefeeds disappear, so we let a help-program do this
+    e2fsckOutput=`sudo /sbin/e2fsck -y $deviceName` 
+    e2fsckError=$?
+    /etc/config-tools/print_program_output "$e2fsckOutput" >> /etc/config-tools/e2fsck_output
+
+    # do error-reports if necessairy
+    if [ "$e2fsckError" != "$SUCCESS" ]; then
+      ReportError $EXECUTABLE_ERROR "(e2fsck $deviceName)"
+      SetLastError "Error while filecheck on at least one device. If more information\nis requested, run filecheck on the single devices."
+    fi
+
+    #echo -e "\n-----------------------\ne2fsck-result:" $e2fsckError >> /etc/config-tools/e2fsck_output
+    echo -e "---------------------------------------------------------\n" >> /etc/config-tools/e2fsck_output
+
+    # get next device
+    deviceIndex=$(($deviceIndex + 1))
+    deviceName=`/etc/config-tools/get_filesystem_data partition-by-index $deviceIndex`
+
+  done  
+
+# only one special device should be checked
+else
+  
+  if [ "$deviceName" = "$homeDeviceString" ]; then
+    #echo $deviceName "/home/lost+found/ löschen"
+    rm /home/lost+found/* > /dev/null 2> /dev/null
+  elif [ "$deviceName" = "$rootDeviceString" ]; then
+    #echo $deviceName "/lost+found löschen (root)"
+    rm /lost+found/* > /dev/null 2> /dev/null
+  fi
+
+  # call filecheck and put its ouputs to a file; to do this workable, we use 2 indirections:
+  # 1. e2fsck refuses to write the outputs directly to a file under user www, so we put them into a variable first
+  # 2. if we just write the content of this variable by bash, the linefeeds disappear, so we let a help-program do this
+  e2fsckOutput=`sudo /sbin/e2fsck -y $deviceName` 
+  e2fsckError=$?
+  #echo $e2fsckOutput
+  /etc/config-tools/print_program_output "$e2fsckOutput" >> /etc/config-tools/e2fsck_output
+
+  # do error-reports if necessairy
+  if [ "$e2fsckError" != "$SUCCESS" ]; then
+
+    status=$EXECUTABLE_ERROR
+    ReportError $status "(e2fsck $deviceName $e2fsckError)"
+    
+    case "$e2fsckError" in
+
+      8) SetLastError "Error while filecheck - device includes no ext2-filesytem.\nFor more information see file /etc/config-tools/e2fsck_output.";;
+
+      *) SetLastError "Error while filecheck. If more information is requested,\nsee file /etc/config-tools/e2fsck_output.";;
+
+    esac
+  fi
+
+  #echo -e "\n-----------------------\ne2fsck-result:" $e2fsckError >> /etc/config-tools/e2fsck_output
+fi
+
+sync
+
+exit $status

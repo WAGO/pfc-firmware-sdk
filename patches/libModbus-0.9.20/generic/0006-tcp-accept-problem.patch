@@ -1,0 +1,299 @@
+From 7dc17278e69f61b04b9cccc6789cf96478121494 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Karsten=20N=C3=BCnthel?= <karsten.nuenthel@wago.com>
+Date: Thu, 5 Jun 2014 15:53:48 +0200
+Subject: [PATCH] tcp accept problem
+
+---
+ src/modbus-ip-slave.c | 137 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 65 insertions(+), 72 deletions(-)
+
+diff --git a/src/modbus-ip-slave.c b/src/modbus-ip-slave.c
+index cf91088..e074cbf 100644
+--- a/src/modbus-ip-slave.c
++++ b/src/modbus-ip-slave.c
+@@ -113,8 +113,6 @@ static void free_tcp_work_thread(struct mb_thread *mbt)
+ 
+ 
+ 	free(mbt);
+-
+-    mb_log(mbt->mbs, MB_LOG_THREAD, "%s: TCP worker thread freed\n", __FUNCTION__);
+ }
+ 
+ static void *modbus_tcp_work(void *arg)
+@@ -137,6 +135,7 @@ static void *modbus_tcp_work(void *arg)
+     {
+         pthread_setname_np(pthread_self(), "mb_tcp_work_x");
+     }
++	mb_log(mbt->mbs, MB_LOG_CONNECT, "modbus_tcp_work: start %d\n", sd);
+ 
+ 	while (!mbt->mbs->stop) {
+ 
+@@ -203,7 +202,7 @@ static void *modbus_tcp_work(void *arg)
+ 	pthread_exit(NULL);
+ }
+ 
+-static int spawn_tcp_thread(struct mb_socket *mbs, int sd)
++static void spawn_tcp_thread(struct mb_socket *mbs, int sd)
+ {
+ 	struct mb_thread *mbt;
+ 	struct mb_list *child;
+@@ -211,22 +210,23 @@ static int spawn_tcp_thread(struct mb_socket *mbs, int sd)
+ 	int res;
+ 
+ 	mbt = calloc(1, sizeof(struct mb_thread));
+-	if (!mbt)
+-		return -ENOMEM;
++	if (!mbt) {
++		mb_log(mbs, MB_LOG_THREAD, "spawn_tcp_thread: ERROR, no memory for struct mb_thread\n");
++		return;
++	}
+ 
+ 	mbt->sd = sd;
+ 	mbt->mbs = mbs;
+ 
+ 	pthread_mutex_lock(&mbs->lock);
++	
+ 	if (mbs->act_connections >= mbs->max_connections) {
+ 		pthread_mutex_unlock(&mbs->lock);
+ 		free(mbt);
+-		mb_log(mbs, MB_LOG_CONNECT,
+-				"modbus_tcp_socket: reject %d, max active connections exceeded\n", sd);
+-		if (sd) {
+-			close(sd);
+-		}
+-		return 0;
++		mb_log(mbs, MB_LOG_THREAD,
++				"spawn_tcp_thread: WARNING, max number of connections exceeded\n");
++		close(sd);
++		return;
+ 	}
+ 	child = mbs->childs;
+ 	mbt->list.next = child;
+@@ -238,18 +238,18 @@ static int spawn_tcp_thread(struct mb_socket *mbs, int sd)
+ 	pthread_mutex_unlock(&mbs->lock);
+ 
+ 	pthread_attr_init(&attr);
+-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
++	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+ 	pthread_attr_setstacksize(&attr,DEFAULT_TASK_STACKSIZE);
+ 	res = pthread_create(&mbt->thread, &attr, modbus_tcp_work, mbt);
+ 
+ 	pthread_attr_destroy(&attr);
+ 
+-	mb_log(mbs, MB_LOG_THREAD, "spawn_tcp_thread: pthread_create %d %d\n",
+-	       res, sd);
+-	if (res < 0)
++	if (res < 0) {
+ 		free_tcp_work_thread(mbt);
+-
+-	return res;
++		mb_log(mbs, MB_LOG_THREAD,
++				"spawn_tcp_thread: create thread failed with error %d\n", res);
++		return;
++	}
+ }
+ 
+ static int start_tcp_socket(struct mb_socket *mbs)
+@@ -258,7 +258,7 @@ static int start_tcp_socket(struct mb_socket *mbs)
+ 	int res, sd, opt = 1;
+ 
+ 	sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+-	mb_log(mbs, MB_LOG_SOCKET, "start_tcp_socket: socket %d\n", sd);
++	mb_log(mbs, MB_LOG_SOCKET, "start_tcp_socket: new socket: %d\n", sd);
+ 	if (sd < 0)
+ 		return sd;
+ 
+@@ -273,12 +273,12 @@ static int start_tcp_socket(struct mb_socket *mbs)
+ 	sin.sin_port = htons(mbs->port);
+ 
+ 	res = bind (sd, (struct sockaddr *) &sin, sizeof (sin));
+-	mb_log(mbs, MB_LOG_SOCKET, "start_tcp_socket: bind %d %d\n", sd, res);
++	mb_log(mbs, MB_LOG_SOCKET, "start_tcp_socket: bind socket %d: %d\n", sd, res);
+ 	if (res < 0)
+ 		goto err;
+ 
+-	res = listen(sd, mbs->max_connections);
+-	mb_log(mbs, MB_LOG_SOCKET, "start_tcp_socket: listen %d %d\n",
++	res = listen(sd, mbs->max_connections + 1);
++	mb_log(mbs, MB_LOG_SOCKET, "start_tcp_socket: listen socket %d: %d\n",
+ 	       sd, res);
+ 	if (!res)
+ 		return sd;
+@@ -311,23 +311,20 @@ static void *modbus_tcp_socket(void *arg)
+ 	mbs->sd = sd;
+ 	mbs->childs = NULL;
+ 
++	mb_log(mbs, MB_LOG_THREAD, "modbus_tcp_socket: start accept loop\n");
+ 	while (!mbs->stop) {
+ 		csd = accept(sd, saddr, &addrlen);
+-		if (csd < 0 || mbs->stop)
+-        {
+-            mb_log(mbs, MB_LOG_SOCKET,
+-                   "%s: accept terminated csd: %d, mbs->stop: %d\n",
+-                   __FUNCTION__, csd, mbs->stop);
+-			break;
+-        }
+-        else
++		if (csd < 0)
++		{
++			mb_log(mbs, MB_LOG_THREAD,
++				"modbus_tcp_socket: WARNING, accept failed\n");
++			continue;
++		}
+ 		mb_log(mbs, MB_LOG_CONNECT,
+-		       "modbus_tcp_socket: accept %d \n", csd);
+-
+-		if (spawn_tcp_thread(mbs, csd) < 0)
+-			break;
++		       "modbus_tcp_socket: accept csd %d\n", csd);
++		spawn_tcp_thread(mbs, csd);
+ 	}
+-	mb_log(mbs, MB_LOG_SOCKET, "modbus_tcp_socket: stop\n");
++	mb_log(mbs, MB_LOG_THREAD, "modbus_tcp_socket: end accept loop\n");
+ 	close(sd);
+ out:
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+@@ -382,6 +379,7 @@ static void *modbus_udp_socket(void *arg)
+ 	mbs->status = MODBUS_THREAD_RUNNING;
+ 	mbs->sd = sd;
+ 
++	mb_log(mbs, MB_LOG_CONNECT, "modbus_udp_socket: start receive loop\n");
+ 	while (!mbs->stop) {
+ 
+ 		reclen = recvfrom(sd, &mbp, sizeof(mbp), 0, saddr, &addrlen);
+@@ -427,7 +425,7 @@ static void *modbus_udp_socket(void *arg)
+ 
+ 		mbs->events++;
+ 	}
+-    mb_log(mbs, MB_LOG_SOCKET, "modbus_udp_socket: stop\n");
++	mb_log(mbs, MB_LOG_CONNECT, "modbus_udp_socket: stop receive loop\n");
+ 	close(sd);
+ out:
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+@@ -442,7 +440,6 @@ int modbus_socket_start(struct mb_socket *mbs)
+ 	void *(*threadfn)(void *arg);
+ 	pthread_attr_t tattr;
+ 	pthread_mutexattr_t mattr;
+-    char* name;
+ 	int res;
+ 
+ 	if (!mbs->enabled)
+@@ -451,11 +448,9 @@ int modbus_socket_start(struct mb_socket *mbs)
+ 	switch (mbs->protocol) {
+ 	case MODBUS_UDP:
+ 		threadfn = modbus_udp_socket;
+-        name = "udp";
+ 		break;
+ 	case MODBUS_TCP:
+ 		threadfn = modbus_tcp_socket;
+-        name = "tcp";
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -467,12 +462,15 @@ int modbus_socket_start(struct mb_socket *mbs)
+ 	pthread_mutexattr_destroy(&mattr);
+ 
+ 	pthread_attr_init(&tattr);
+-    pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_JOINABLE);
++	pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_JOINABLE);
+ 	res = pthread_create(&mbs->thread, &tattr, threadfn, mbs);
+ 	pthread_attr_destroy(&tattr);
+ 
+-	mb_log(mbs, MB_LOG_THREAD,
+-           "modbus_socket_start: %s pthread_create %d\n", name, res);
++	if (res < 0) {
++		mb_log(mbs, MB_LOG_THREAD,
++			"modbus_socket_start: create %s main thread failed with error %d\n",
++			(mbs->protocol==MODBUS_UDP?"udp":"tcp"), res);
++	}
+ 
+ 	return res;
+ }
+@@ -484,58 +482,53 @@ int modbus_socket_start(struct mb_socket *mbs)
+ void modbus_socket_stop(struct mb_socket *mbs)
+ {
+ 	struct mb_list *child;
+-    char *name;
+-
+-    if ( MODBUS_UDP == mbs->protocol)
+-        name = "udp";
+-    else
+-        name = "tcp";
+ 
+ 	mb_log(mbs, MB_LOG_THREAD,
+-           "modbus_socket_stop: stop %s threads\n", name);
++		"modbus_socket_stop: stop %s threads\n",
++		(mbs->protocol==MODBUS_UDP?"udp":"tcp"));
+ 
+ 	if (!mbs->enabled)
+ 		return;
+ 
+ 
+ repeat:
+-    pthread_mutex_lock(&mbs->lock);
+-    mbs->stop = 1;
+-    // children are only available for MODBUS TCP
++	pthread_mutex_lock(&mbs->lock);
++	mbs->stop = 1;
++	// children are only available for MODBUS TCP
+ 	child = mbs->childs;
+-	if (child) {
++	if (child)
++	{
+ 		struct mb_thread *mbt;
+ 
+ 		mbt = container_of(child, struct mb_thread, list);
+ 		if (mbt->sd)
+-        {
++        	{
+ 			shutdown(mbt->sd, SHUT_RDWR);
+-            mb_log(mbs, MB_LOG_THREAD,
+-                   "%s: shutdown socket %d\n", __FUNCTION__, mbt->sd);
+-        }
+-        pthread_t thread = mbt->thread;
+-
++			mb_log(mbs, MB_LOG_THREAD,
++				"modbus_socket_stop: shutdown socket %d\n", __FUNCTION__);
++		}
++		pthread_t thread = mbt->thread;
+ 		pthread_mutex_unlock(&mbs->lock);
+ 
+-        pthread_join(thread, NULL);
++		pthread_join(thread, NULL);
+ 
+-        mb_log(mbs, MB_LOG_THREAD,
+-               "%s: child %s thread joined\n", __FUNCTION__, name);
++		mb_log(mbs, MB_LOG_THREAD,
++			"modbus_socket_stop: child thread joined\n");
+ 		goto repeat;
+ 	}
+-    else
+-    {
+-	pthread_mutex_unlock(&mbs->lock);
+-    }
++	else
++	{
++		pthread_mutex_unlock(&mbs->lock);
++	}
+ 
+ 	if (mbs->sd)
+-    {
++	{
+ 		shutdown(mbs->sd, SHUT_RDWR);
+-        mb_log(mbs, MB_LOG_THREAD,
+-               "%s: shutdown socket %d\n", __FUNCTION__, mbs->sd);
+-}
++		mb_log(mbs, MB_LOG_THREAD,
++			"modbus_socket_stop: shutdown socket %d\n", mbs->sd);
++	}
+ 
+-    pthread_join(mbs->thread, NULL);
+-    mb_log(mbs, MB_LOG_THREAD,
+-           "%s: %s thread joined\n", __FUNCTION__, name);
++	pthread_join(mbs->thread, NULL);
++	mb_log(mbs, MB_LOG_THREAD,
++		"modbus_socket_stop: main thread joined\n");
+ }
+-- 
+1.9.0
+

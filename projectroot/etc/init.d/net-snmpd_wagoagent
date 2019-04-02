@@ -1,0 +1,36 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# NET-SNMP snmpd
+#
+PATH=/usr/bin:/usr/sbin:/usr/local/bin:/bin:/sbin
+
+PREFIX="snmpd: "
+SNMPD="/usr/sbin/snmpd"
+SNMPD_CONF=""
+# set shared memory size for libnetsnmpcodesysagent.so in bytes (default: 8192)
+# export CODESYS_SNMP_SHAREDMEM_SIZE=8192
+case $1 in
+
+	start)
+		echo "${PREFIX}starting ..."
+		/usr/sbin/snmpd -c /var/lib/net-snmp/snmpd.conf &
+		;;
+
+	stop)
+		echo "${PREFIX}stoppping"
+		killall snmpd
+		;;
+
+	*)
+		echo "${PREFIX}usage: ${0} [start|stop]"
+		exit 1
+		;;
+
+esac

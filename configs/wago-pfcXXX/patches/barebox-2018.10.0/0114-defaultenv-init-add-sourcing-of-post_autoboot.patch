@@ -1,0 +1,32 @@
+From 82d64a8edfef5740af4491baf8dd012b2d9c4c3d Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Fri, 12 Oct 2018 15:58:07 +0200
+Subject: [PATCH 114/144] defaultenv: init: add sourcing of post_autoboot
+
+Some scripts should be execute after autoboot was done.
+This patch add script sourcing of all scripts in
+"/env/init_post_autoboot" directory.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/init | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/init b/defaultenv/defaultenv-pfc-base/bin/init
+index cd26110..1418ea1 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/init
++++ b/defaultenv/defaultenv-pfc-base/bin/init
+@@ -62,6 +62,10 @@ if [ "$global.autoboot" = 0 ]; then
+ 	global.autoboot="$?"
+ fi
+ 
++for i in /env/init_post_autoboot/*; do
++	. $i
++done
++
+ if [ "${key}" = "q" ]; then
+ 	exit
+ fi
+-- 
+2.7.4
+

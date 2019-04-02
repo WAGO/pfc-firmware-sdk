@@ -1,0 +1,9 @@
+## SECTION=wago_specific_libs
+
+config LIBCOMMONHEADER
+	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	prompt "libcommonheader"
+	help
+	  Header only library with commonly used header files.

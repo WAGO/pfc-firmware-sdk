@@ -1,0 +1,26 @@
+From bf44167a60f701a564e00ae715492e518f8a4470 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 5 Dec 2018 08:50:32 +0100
+Subject: [PATCH 152/152] defaultenv: defaultenv-pfc-base: reset watchdog
+ timeout when setting production mode
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
+index f990ccb..d77ab03 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
+@@ -2,6 +2,7 @@
+ 
+ global.linux.bootargs.productionmode="production_mode=1"
+ global.linux.bootargs.console="console=ttyO${global.pfc.barebox_linux_uart},115200n8"
++global.boot.watchdog_timeout=0
+ 
+ led_mode -m -c green
+ pfc-config-setupfw-generic-boot
+-- 
+2.7.4
+

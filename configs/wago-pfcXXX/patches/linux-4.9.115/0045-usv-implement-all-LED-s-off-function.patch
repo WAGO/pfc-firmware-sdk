@@ -1,0 +1,98 @@
+From 7565789e2ea95236001e57cdbeab83c81ebfea20 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Wed, 19 Apr 2017 13:48:36 +0200
+Subject: [PATCH 045/261] usv: implement all LED's off function
+
+---
+ arch/arm/mach-omap2/wusv.c  |  6 ++----
+ drivers/leds/leds-pca955x.c | 22 ++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/wusv.c b/arch/arm/mach-omap2/wusv.c
+index 379c614..d72fcc7 100644
+--- a/arch/arm/mach-omap2/wusv.c
++++ b/arch/arm/mach-omap2/wusv.c
+@@ -72,7 +72,7 @@ struct wusv_settings {
+ static struct wusv_settings wusvset = { 0,};
+ static dev_t wusv_dev;
+ 
+-int pca955x_led_all_off(void);
++void pca955x_led_all_off(void);
+ 
+ #ifdef CONFIG_OF
+ static struct of_device_id wusv_dt_ids[] = {
+@@ -88,7 +88,7 @@ void usv_active( unsigned long data )
+ 	// begin to shutdown IP's
+ 	if( wusvset.led_off) {
+ 		pr_debug("led_reset\n");
+-//		gpio_set_value(wusvset.led_reset.gpio_no, wusvset.led_reset.gpio_flag);	
++		pca955x_led_all_off();
+ 	}
+ 
+         if( gpio_is_valid(wusvset.switch_reset.gpio_no)) {
+@@ -115,8 +115,6 @@ void usv_active( unsigned long data )
+ 		pr_debug("LS3 off\n");
+ 		tps65218_reg_pwr_down(wusvset.pmic_LS3.name);
+ 	}
+-
+-	
+ 	return;
+ }
+ 
+diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
+index 46fd6dc..c770d3e 100644
+--- a/drivers/leds/leds-pca955x.c
++++ b/drivers/leds/leds-pca955x.c
+@@ -114,6 +114,10 @@ struct pca955x_led {
+ 	char			name[32];
+ };
+ 
++#define MAX_LEDS 32
++
++static struct led_classdev *pled_cdev_local[MAX_LEDS]; 
++
+ /* 8 bits per input register */
+ static inline int pca95xx_num_input_regs(int bits)
+ {
+@@ -240,6 +244,20 @@ static int pca955x_led_set(struct led_classdev *led_cdev,
+ 	return 0;
+ }
+ 
++void pca955x_led_all_off(void)
++{
++	int i = 0;
++
++	while(pled_cdev_local[i] != NULL) {
++		if(unlikely(NULL != strstr(pled_cdev_local[i]->name, "over"))) {
++			pca955x_led_set(pled_cdev_local[i++], LED_FULL);
++		} else {
++			pca955x_led_set(pled_cdev_local[i++], LED_OFF);
++		}
++	};
++}
++
++
+ #if IS_ENABLED(CONFIG_OF)
+ static struct led_platform_data *
+ pca955x_dt_init(struct i2c_client *client, struct pca955x_chipdef *chip)
+@@ -310,6 +328,9 @@ static int pca955x_probe(struct i2c_client *client,
+ 	struct i2c_adapter *adapter;
+ 	struct led_platform_data *pdata;
+ 	int i, err;
++	static int count = 0;
++
++	BUG_ON(MAX_LEDS <= count);
+ 
+ 	chip = &pca955x_chipdefs[id->driver_data];
+ 	adapter = to_i2c_adapter(client->dev.parent);
+@@ -404,6 +425,7 @@ static int pca955x_probe(struct i2c_client *client,
+ 			 __func__, pca955x_led->led_cdev.name, dev_name(&client->dev));
+ 
+ 		if (pdata->leds[i].name) {
++			pled_cdev_local[count++] = &pca955x_led->led_cdev;
+ 			err = led_classdev_register(&client->dev,
+ 						    &pca955x_led->led_cdev);
+ 			if (err < 0)
+-- 
+2.7.4
+

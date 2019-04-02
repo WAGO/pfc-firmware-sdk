@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+
+config LIBMODBUS_TGLX
+	bool "libModbus"
+	select KERNEL_HEADER
+	help
+      libModbus is a GPL library containing the Modbus TCP/RTU protocol stacks.
+      This is a project by Thomas Gleixner (tglx@linutronix.de) which is used
+      by WAGO and should not be confused with the libmodbus project
+      (http://libmodbus.org) included by ptxdist under "Scientific apps"
+

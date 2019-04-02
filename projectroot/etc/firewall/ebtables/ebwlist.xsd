@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<xs:schema targetNamespace="http://www.wago.com/security/firewall"
+           elementFormDefault="qualified"
+           xmlns="http://www.wago.com/security/firewall"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!--
+    README:
+
+    Please note that there are two arbitrary choosen restrictions put on
+    the whitelist contenet:
+    - maximum different interfaces count,
+    - maximum different protocols count,
+    - maximum hosts count which may be added to a single interface.
+    Both numbers are not dictated by any specific reasoning except for the need
+    for such a limit to exists - for security reasons. Both numbers may be
+    freely changed but they should not be set to 'unbounded' value.
+ -->
+
+<xs:include schemaLocation="../patterns.xsd"/>
+
+<xs:element name="firewall">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="ethernet" type="ethernet"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+
+<xs:complexType name="ethernet_content">
+    <xs:sequence>
+        <xs:element name="log" type="log" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="interfaces" type="interfaces" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="protocols" type="protocols" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="whitelist" type="whitelist" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="ethernet">
+    <xs:complexContent>
+        <xs:extension base="ethernet_content">
+            <xs:attribute name="mode" type="mode" use="required"/>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="log">
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="tag"   type="tag"   use="required"/>
+    <xs:attribute name="limit" type="limit" use="optional"/>
+    <xs:attribute name="burst" type="burst" use="optional"/>
+    <xs:attribute name="level" type="level" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="interfaces">
+    <xs:sequence>
+        <xs:element name="interface" type="interface" minOccurs="0" maxOccurs="20"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="protocols_content">
+    <xs:sequence>
+        <xs:element name="protocol" type="protocol" minOccurs="0" maxOccurs="20"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="protocols">
+    <xs:complexContent>
+        <xs:extension base="protocols_content">
+            <xs:attribute name="state" type="onoff" use="required"/>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="protocol">
+    <xs:attribute name="eproto" type="eproto" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="whitelist">
+    <xs:sequence>
+        <xs:element name="host" type="host" minOccurs="0" maxOccurs="100"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="interface">
+    <xs:attribute name="if" type="ifname" use="required"/>
+    <xs:attribute name="state" type="ifstate" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="host">
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="mac"   type="ifmac" use="required"/>
+    <xs:attribute name="mask"  type="ifmac_mask" use="optional"/>
+</xs:complexType>
+
+</xs:schema>
+

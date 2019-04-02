@@ -1,0 +1,19 @@
+## SECTION=wago_specific_libs
+
+config CONFIGTOOLLIB
+	bool
+	prompt "configtoollib"
+	select PLCLINUXRT
+	select CONFIG_TOOLS
+	help
+	  This Library is used to call Config-Tools out of a IEC61131 Program
+
+if CONFIGTOOLLIB
+
+config CONFIGTOOLLIB_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+endif

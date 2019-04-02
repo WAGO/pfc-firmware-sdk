@@ -1,0 +1,65 @@
+From eadabb7fc557bc34aa8c80a3f620c6311a0ce6e8 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Mon, 7 Jul 2014 14:35:46 +0200
+Subject: [PATCH] print also h_errno
+
+---
+ src/modbus-tcp.c | 2 ++
+ src/modbus.c     | 5 ++++-
+ src/modbus.h     | 3 +++
+ 3 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/src/modbus-tcp.c b/src/modbus-tcp.c
+index 712903c..dbd9e0f 100644
+--- a/src/modbus-tcp.c
++++ b/src/modbus-tcp.c
+@@ -270,6 +270,8 @@ static int _modbus_tcp_connect(modbus_t *ctx)
+     struct hostent *host = gethostbyname(ctx_tcp->ip);
+     if(host == NULL)
+     {
++        if (h_errno)
++            errno = h_errno + EMBHERRBASE-1;
+         if (ctx->debug)
+             printf("Couldn't resolve hostname: %s\n", ctx_tcp->ip);
+         return -1;
+diff --git a/src/modbus.c b/src/modbus.c
+index 58d0904..d5c9210 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -26,6 +26,7 @@
+ #include <errno.h>
+ #include <limits.h>
+ #include <time.h>
++#include <netdb.h>
+ 
+ #include <config.h>
+ 
+@@ -101,8 +102,10 @@ static inline void wait_response_delay(void)
+   }
+ }
+ 
+-
+ const char *modbus_strerror(int errnum) {
++    if(errnum > (EMBHERRBASE-1))
++        return hstrerror(errnum - (EMBHERRBASE-1));
++
+     switch (errnum) {
+     case EMBXILFUN:
+         return "Illegal function";
+diff --git a/src/modbus.h b/src/modbus.h
+index ba7225a..f853a63 100644
+--- a/src/modbus.h
++++ b/src/modbus.h
+@@ -119,6 +119,9 @@ enum {
+ #define EMBUNKEXC  (EMBXGTAR + 4)
+ #define EMBMDATA   (EMBXGTAR + 5)
+ 
++/* h_errno mappings on errno */
++#define EMBHERRBASE (EMBXGTAR + 6)
++
+ extern const unsigned int libmodbus_version_major;
+ extern const unsigned int libmodbus_version_minor;
+ extern const unsigned int libmodbus_version_micro;
+-- 
+1.9.0
+

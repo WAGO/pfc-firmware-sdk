@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="configtool_config">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="frontend" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="frontend">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="level"/>
+        <xs:element ref="simple_level"/>
+      </xs:choice>
+      <xs:attribute name="id" type="xs:string" use="required"/>
+      <xs:attribute name="uid" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="level">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="nav" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="page_element" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="level" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:string" use="required"/>
+      <xs:attribute name="uid" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="simple_level">
+    <xs:complexType>
+     <xs:sequence>
+      <xs:element ref="simple_level" minOccurs="0" maxOccurs="unbounded"/>
+     </xs:sequence>
+     <xs:attribute name="text" type="xs:string" use="required"/>
+     <xs:attribute name="ressource" type="xs:string" use="required"/>
+     <xs:attribute name="dyn_state_ressource" type="xs:string"/>
+      <xs:attribute name="uid" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="page_element">
+    <xs:complexType>
+      <xs:attribute name="id" type="xs:string"/>
+      <xs:attribute name="url" type="xs:anyURI" use="required"/>
+      <xs:attribute name="fragment" type="xs:string"/>
+      <xs:attribute name="params" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="nav">
+    <xs:complexType>
+      <xs:attribute name="text" type="xs:string" use="required"/>
+      <xs:attribute name="ressource" type="xs:string" use="required"/>
+      <xs:attribute name="fragment" type="xs:string"/>
+      <xs:attribute name="params" type="xs:string"/>
+      <xs:attribute name="user_level" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

@@ -1,0 +1,31 @@
+From e1cd8d0fbe560f659b4fdb0a64705d4fed23d730 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 30 May 2018 09:18:57 +0200
+Subject: [PATCH 016/144] boards: wago-pfc-am335x: lowlevel: configure mem_size
+ statically
+
+Older mlo implementations dont configure the whole ddr ram registers to determine
+the ram size dynamic at runtime. In that case, we need to ensure that we know the
+ram size at compile time.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/lowlevel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/lowlevel.c b/arch/arm/boards/wago-pfc-am335x/lowlevel.c
+index 909fde7..a16903f 100644
+--- a/arch/arm/boards/wago-pfc-am335x/lowlevel.c
++++ b/arch/arm/boards/wago-pfc-am335x/lowlevel.c
+@@ -95,7 +95,7 @@ static noinline void am33xx_pfc_board_entry(unsigned long bootinfo, int sdram,
+ 		am33xx_pfc_board_entry(bootinfo, sdram, fdt);		\
+ 	}
+ 
+-#define PFC_ENTRY(name, fdt_name)					\
++#define PFC_ENTRY(name, fdt_name, mem_size)				\
+ 	ENTRY_FUNCTION(name, r0, r1, r2)				\
+ 	{								\
+ 		extern char __dtb_z_##fdt_name##_start[];		\
+-- 
+2.7.4
+

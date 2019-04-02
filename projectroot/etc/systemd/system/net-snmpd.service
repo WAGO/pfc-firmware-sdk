@@ -1,0 +1,16 @@
+#
+# Source: archlinux
+#
+
+[Unit]
+Description=Simple Network Management Protocol (SNMP) Daemon
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/snmpd.pid
+ExecStart=/usr/sbin/snmpd -p /var/run/snmpd.pid
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

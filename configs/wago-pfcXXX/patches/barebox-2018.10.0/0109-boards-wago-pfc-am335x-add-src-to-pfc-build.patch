@@ -1,0 +1,48 @@
+From c202803df9f29c4a9b975a26e54a2df37c378cde Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 12 Oct 2018 14:56:54 +0200
+Subject: [PATCH 109/144] boards: wago-pfc-am335x: add src to pfc build
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/lowlevel.c | 3 +++
+ images/Makefile.am33xx                     | 8 ++++++++
+ 2 files changed, 11 insertions(+)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/lowlevel.c b/arch/arm/boards/wago-pfc-am335x/lowlevel.c
+index a16903f..5c5333d 100644
+--- a/arch/arm/boards/wago-pfc-am335x/lowlevel.c
++++ b/arch/arm/boards/wago-pfc-am335x/lowlevel.c
+@@ -110,7 +110,10 @@ PFC_ENTRY_MLO(start_am33xx_pfc_750_8208_sram_256mb, am335x_pfc_750_8208_mlo,
+ 								PFC_DDR3_256MB);
+ PFC_ENTRY_MLO(start_am33xx_pfc_750_821x_sram_512mb, am335x_pfc_750_821x_mlo,
+ 								PFC_DDR3_512MB);
++PFC_ENTRY_MLO(start_am33xx_src_2850_311x_sram_256mb, am335x_src_2850_311x_mlo,
++								PFC_DDR3_256MB);
+ 
+ PFC_ENTRY(start_am33xx_pfc_750_810x_sdram, am335x_pfc_750_810x, SZ_256M);
+ PFC_ENTRY(start_am33xx_pfc_750_8208_sdram, am335x_pfc_750_8208, SZ_256M);
+ PFC_ENTRY(start_am33xx_pfc_750_821x_sdram, am335x_pfc_750_821x, SZ_512M);
++PFC_ENTRY(start_am33xx_src_2850_311x_sdram, am335x_src_2850_311x, SZ_256M);
+diff --git a/images/Makefile.am33xx b/images/Makefile.am33xx
+index 14fff3c..135a9e4 100644
+--- a/images/Makefile.am33xx
++++ b/images/Makefile.am33xx
+@@ -159,6 +159,14 @@ pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_pfc_750_821x_sram_512mb
+ FILE_barebox-am33xx-pfc-750-821x-mlo.img = start_am33xx_pfc_750_821x_sram_512mb.pblx.mlo
+ am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-pfc-750-821x-mlo.img
+ 
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_src_2850_311x_sdram
++FILE_barebox-am33xx-src-2850-311x.img = start_am33xx_src_2850_311x_sdram.pblx
++am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-src-2850-311x.img
++
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_src_2850_311x_sram_256mb
++FILE_barebox-am33xx-src-2850-311x-mlo.img = start_am33xx_src_2850_311x_sram_256mb.pblx.mlo
++am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-src-2850-311x-mlo.img
++
+ ifdef CONFIG_OMAP_BUILD_IFT
+ image-y += $(am33xx-mlo-y)
+ else
+-- 
+2.7.4
+

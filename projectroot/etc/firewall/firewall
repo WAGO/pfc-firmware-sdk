@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Common settings for entire firewall framework.
+#
+# This file MUST be placed in the following location:
+# /etc/firewall/firewall
+# Not every script uses variables defined below and some paths are hardcoded
+# into firewall's config-tool, look into main.cpp for details.
+#
+
+# Paths to firewall's main directories.
+FW_DIR=/etc/firewall         # directory where all firewall related files are stored
+FW_EBSDIR=ebtables           # sub-directory containing ebtables related files
+FW_IPSDIR=iptables           # sub-directory containing iptables related files
+FW_SERVICES=services         # sub-directory containing services related files
+FW_EB="$FW_DIR/$FW_EBSDIR"   # full path to ebtables related directory
+FW_IP="$FW_DIR/$FW_IPSDIR"   # full path to iptables related directory
+FW_SV="$FW_DIR/$FW_SERVICES" # full path to services related directory
+
+# Paths to system tools used by the firewall framework.
+FW_EBR=/usr/sbin/ebtables-restore
+FW_IPR=/usr/sbin/iptables-restore
+FW_XST=/usr/bin/xmlstarlet
+
+# Paths to auxiliary parameters, such as interface names, etc.
+# IMPORTANT: FW_PARAMS_XML is of special interests as it defines real interface
+# names along with definitions which interface is secure or not. For details
+# see FW_PARAMS_XSD.
+FW_PATTERNS_XSD="$FW_DIR/patterns.xsd"
+FW_PARAMS_XML="$FW_DIR/params_gen.xml"
+FW_PARAMS_XSD="$FW_DIR/params.xsd"
+FW_TRANSFORM_XSLT="$FW_DIR/transform.xsl"
+FW_NETIF="/etc/specific/network-interfaces.xml"
+
+# Set to false in order to disable transformation of source rules into end *.rls
+# files. BE CAREFUL as this effectively disables the possibility to change
+# applied rules. If variable is not set it assumes value 'true'.
+FW_EB_TRANSFORM=true
+FW_IP_TRANSFORM=true
+
+
+#
+# Logging.
+#
+
+FW_LOGGER_ONLY=false        # If true logs are send to syslogd only.
+FW_EBLOG="FIREWALL"         # Log tag for link-layer scripts - please not that
+                            # this has nothing to do with logging Ethernet
+                            # frames. It is for firewall scripts.
+
+eblog()
+{
+    if [ "$FW_LOGGER_ONLY" = "true" ]; then
+        logger -p ${1} -t ${FW_EBLOG} ${2}
+    else
+        logger -s -p ${1} -t ${FW_EBLOG} ${2}
+    fi
+}
+

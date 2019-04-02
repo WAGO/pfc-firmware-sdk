@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<firewall xmlns="http://www.wago.com/security/firewall"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.wago.com/security/firewall ebwlist.xsd">
+  <ethernet mode="whitelist">
+    <log state="on" tag="FIRE_EBWL" limit="3/minute" burst="6" level="notice"/>
+    <interfaces>
+      <interface if="X1" state="open"/>
+      <interface if="X2" state="open"/>
+    </interfaces>
+    <!-- As long as all required protocols will not be identified, protocol
+         filtering should stay disabled. -->
+    <protocols state="off">
+      <protocol eproto="0x8892"/>
+      <!-- Protocols used for telecontrol: -->
+      <protocol eproto="0x88b8"/>
+      <protocol eproto="0x8100"/>
+    </protocols>
+    <whitelist>
+      <!-- All WAGO devices. -->
+      <host state="off" mac="00:30:DE:00:00:00" mask="ff:ff:ff:00:00:00"/>
+    </whitelist>
+  </ethernet>
+</firewall>

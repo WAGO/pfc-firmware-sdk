@@ -1,0 +1,264 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2011-2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   copy_firmware_image
+#
+# Brief:    Copy whole firmware image from one device to another.
+#
+# Author:   StM: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 64
+fi
+
+source /etc/config-tools/config_tool_lib
+
+status=$SUCCESS
+
+function DeviceIsValid
+{
+  if [[ "$1" == "" ]]; then
+    false
+  else
+    local udevadmOutput
+    udevadmOutput="$(udevadm info -q all -n "$1")"
+    echo "${udevadmOutput}" | egrep -q "DEVTYPE=disk|DEVTYPE=mtd" && true || false
+  fi
+}
+
+function SdIsInUseByCodesys
+{
+  # Does codesys use one of sd_card_dev's mountpoints?
+
+  sd_card_dev="$1"
+  grep -q "${sd_card_dev}" /proc/mounts
+  if [[ "$?" == "1" ]]; then
+    return $FALSE
+  else
+
+    local mountpoints
+    mountpoints=$(awk -v device="${sd_card_dev}" \
+                      '$0 ~ device {mountpoints=mountpoints $2 " " } END { print mountpoints }' /proc/mounts)
+    
+    lsof $mountpoints | grep -E -q '^(plclinux_|codesys3)'
+
+    # TODO: use pipestatus
+    if [[ "$?" == "0" ]]; then
+      return $TRUE
+    else
+      return $FALSE
+    fi
+  fi
+}
+
+#function RawCopy
+#{
+#
+#  #TODO: Move to ipc_copy_data.sh
+#  /usr/sbin/update_mbr_grub $sourceDevice $destinationDevice > /dev/null 2> /dev/null
+#  /usr/sbin/update_boot $sourceDevice $destinationDevice > /dev/null 2> /dev/null
+#  /usr/sbin/update_fw $sourceDevice $destinationDevice > /dev/null 2> /dev/null
+#  /usr/sbin/create_home_int $sourceDevice $destinationDevice > /dev/null 2> /dev/null
+#}
+
+# The API to copy_firmware_image has been published.  It contains
+# hardware-specific details, i.e. NAND being either source or target device.
+#
+# The function sanitize_legacy_arguments maps NAND-related arguments to
+# EMMC-related ones if appropriate.
+# This happens before other sanity checks => if this mapping makes no sense,
+# the script aborts later anyway.
+function sanitize_legacy_arguments
+{
+    local nand_device_name
+    nand_device_name="$(/etc/config-tools/get_device_data name "${INTERNAL_FLASH_NAND}")"
+    emmc_device_name="$(/etc/config-tools/get_device_data name "${INTERNAL_FLASH_EMMC}")"
+   
+    # try to map to emmc when no NAND device exists in /dev
+    if  [[ ! -c "/dev/${nand_device_name}" ]] ; then
+
+        if [[ "$sourceMedium" == "${INTERNAL_FLASH_NAND}" ]]; then
+            sourceMedium="${INTERNAL_FLASH_EMMC}"
+        fi
+
+        if [[ "$destinationMedium" == "${INTERNAL_FLASH_NAND}" ]]; then
+            destinationMedium="${INTERNAL_FLASH_EMMC}"
+        fi
+
+        if [[ "${sourceDevice}" == "${nand_device_name##"/dev/"}" ]]; then
+            sourceDevice="${emmc_device_name}"
+        fi
+
+        if [[ "${destinationDevice}" == "${nand_device_name##"/dev/"}" ]]; then
+            destinationDevice="${emmc_device_name}"
+        fi
+
+    fi
+
+}
+
+# show help-text if requested
+#TODO: what about devices that do not exist on pac200?
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Copy firmware image from one device to another *"
+  echo
+  # print device-specific usage (call main script w/o arguments)
+  /usr/sbin/${BOARD_ID}_copy_data.sh
+  exit $status
+fi
+
+ret=${SUCCESS}
+
+sourceDevice="$(GetParameterValue source-device "$@")"
+sourceMedium="$(GetParameterValue source-medium "$@")"
+destinationDevice="$(GetParameterValue destination-device "$@")"
+destinationMedium="$(GetParameterValue destination-medium "$@")"
+
+sanitize_legacy_arguments "${sourceDevice}" "${sourceMedium}" "${destinationDevice}" "${destinationMedium}"
+
+#echo "sourceDevice:${sourceDevice} sourceMedium:${sourceMedium}"
+#echo "destinationDevice:${destinationDevice} destinationMedium:${destinationMedium}"
+
+# if destination or source device name is not given, but device medium - get device names by medium
+if [ -z "$sourceDevice" ] && [ -n "$sourceMedium" ]; then
+  sourceDevice="$(/etc/config-tools/get_device_data name "$sourceMedium")"
+else
+  sourceMedium="$(/etc/config-tools/get_device_data medium "$sourceDevice")"
+fi
+  
+if [ -z "$destinationDevice" ] && [ -n "$destinationMedium" ]; then
+  destinationDevice="$(/etc/config-tools/get_device_data name "$destinationMedium")"
+else
+  destinationMedium="$(/etc/config-tools/get_device_data medium "$destinationDevice")"
+fi
+
+# remove possible "/dev/" string in front of device strings
+sourceDevice="$(echo "${sourceDevice##/dev/}")"
+destinationDevice="$(echo "${destinationDevice##/dev/}")"
+
+# check if device name is available now (either directly or by transformation by medium)
+if [ -z "$sourceDevice" ] || [ -z "$destinationDevice" ]; then
+  exit $MISSING_PARAMETER
+fi
+
+if [ "$sourceDevice" = "$destinationDevice" ]; then
+  SetLastError "Source and destination must not be the same"
+  exit $INVALID_PARAMETER
+fi
+
+# ensure that source/dest devices exist and are block or mtd ones
+DeviceIsValid "$sourceDevice"      || exit $INVALID_PARAMETER
+DeviceIsValid "$destinationDevice" || exit $INVALID_PARAMETER
+
+# add complete path to devices
+sourceDevice="/dev/${sourceDevice}"
+destinationDevice="/dev/${destinationDevice}"
+
+# need to do sth special? 
+action="$(GetParameterValue action "$@")"
+
+case "$action" in
+  
+  nand-check-size)
+
+      "/usr/sbin/${BOARD_ID}_sd_check_size.sh" "${sourceMedium}" "${destinationMedium}"
+      status=$?
+     
+      case $status in
+        $NARROW_SPACE_WARNING)
+          # This is a warning, no error => has to be checked by the caller manually
+          #SetLastError "Less than 5%% free space free in NAND. Operation may fail."
+          ;;
+        $NOT_ENOUGH_SPACE_ERROR)
+          SetLastError "SD card image is too big to fit into NAND."
+          ;;
+        *)
+          ;;
+      esac
+      exit $status
+
+    ;;
+  check-in-use)
+    if [[ "$destinationMedium" == "$SD_CARD" ]]; then
+      SdIsInUseByCodesys $destinationDevice
+      status=$?
+      case $status in
+        $TRUE)
+          # This is a warning, no error => has to be checked by the caller manually
+          #SetLastError "CoDeSys uses files located on the SD card and will be paused."
+        ;;
+        $FALSE)
+        ;;
+      esac
+      exit $status
+    else
+      exit $SUCCESS
+    fi
+    ;;
+  stop-codesys)
+    #force unmount only if the active system is not running from the external SD card
+    if [ ! $(/etc/config-tools/get_filesystem_data active-partition-medium) == ${SD_CARD} ]; then
+      FORCE_UMOUNT="yes"
+    fi
+    ;;
+esac
+
+size=$(GetParameterValue size "$@")
+
+if [[ "$destinationMedium" == "$SD_CARD" ]] && [[ "$size" == "" ]]; then
+  SetLastError "Missig paramter \"size\""
+  exit $MISSING_PARAMETER
+fi
+
+if [[ "$ret" == "$SUCCESS" ]]; then
+    # copy firmware contents
+    echo "start copy from ${sourceDevice} to ${destinationDevice}"
+    eventmsg -n copy_firmware_image 0x000000A
+
+    FORCE_UMOUNT=$FORCE_UMOUNT "/usr/sbin/${BOARD_ID}_copy_data.sh" "${sourceDevice}" "${destinationDevice}" "${size}"
+    ret=$?
+
+    eventmsg -r -n copy_firmware_image 0x000000A
+fi
+
+if [[ "$ret" == "$SUCCESS" ]]; then
+    # update bootloader when copying to internal flash (if supported by firmware)
+    if [[ "$destinationMedium" == "$INTERNAL_FLASH_NAND" || "$destinationMedium" == "$INTERNAL_FLASH_EMMC" ]]; then
+        if [[ -x "/usr/sbin/${BOARD_ID}_update_bootloader.sh" ]]; then
+            dev="$(GetTargetName)"
+            "/usr/sbin/${BOARD_ID}_update_bootloader.sh" "${dev}" "" 1
+            ret=$? 
+        fi
+    fi
+fi
+
+case $ret in 
+  $SUCCESS)
+    ;;
+  # An error condition has been set by ${BOARD_ID}_{copy_data,update_bootloader}.sh => just pass it to the UI
+  $LAST_ERROR_SET)
+    ;;
+  $MOUNT_ERROR)
+    SetLastError "Error creating image: ${destinationDevice} is in use."
+    ;;
+  *)
+    SetLastError "Error creating bootable image on ${destinationDevice}"
+    ;;
+esac
+
+exit $ret

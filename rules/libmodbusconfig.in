@@ -1,0 +1,9 @@
+## SECTION=wago_specific_libs
+
+config LIBMODBUSCONFIG
+	tristate
+	prompt "libmodbusconfig"
+	select GLIB
+	help
+	  WAGO software library for Modbus configuration parameter storage
+

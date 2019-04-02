@@ -1,0 +1,14 @@
+## SECTION=wago_specific_tools
+
+config DRM
+	bool
+	select OPENSSL
+	select FUSE
+	select TYPELABEL
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select LIBWAGODRM
+	select WAGO_PFC_DIAGNOSTIC
+	prompt "DRM"
+	help
+	  Digital Rights Management

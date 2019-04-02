@@ -1,0 +1,7 @@
+Error parsing line
+
+id:
+
+Assignment value expected.
+
+make-xml-config: Error processing node CT_MENU_WBM_INFO in file test_menu_assign_error.in(line 73)

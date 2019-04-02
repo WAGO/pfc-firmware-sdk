@@ -1,0 +1,9 @@
+## SECTION=wago_specific_libs
+		
+config LIBEXTMEMCPY
+	bool
+	default n
+	select LIBOSAL	
+	prompt "libextmemcpy"
+	help
+	  Build WAGO Extended-Memory-Copy (EMC) software component. This software component can copy data defined by copy rules.

@@ -1,0 +1,8 @@
+## SECTION=wago_specific_demo
+
+config CANDEMO
+        bool
+	prompt "CANopen Master, Slave and Layer2 DAL-Demoprogramm "
+	select CANOPEN
+	help
+	  Canopen Demo Programm candemo_master, candemo_slave  and candemo_layer2

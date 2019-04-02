@@ -1,0 +1,14 @@
+## SECTION=debug_tools
+
+config GOOGLETEST
+	bool
+	prompt "googletest"
+	select HOST_CMAKE
+	help
+	  Google Test is a unit testing library for the C++ programming 
+	  language, based on the xUnit architecture. The library allows 
+	  unit-testing of 'C' sources as well as C++ with minimal source 
+	  modification. The tests themselves could be run one at a time, 
+	  or even be called to run all at once. This makes the debugging 
+	  process very specific and caters to the need of many programmers 
+	  and coders alike.

@@ -1,0 +1,26 @@
+From 4c3d283c2d5fb5fcfd66a3c307d7bf36e7db65dc Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Mon, 7 Apr 2014 14:00:45 +0200
+Subject: [PATCH] fix courrupted receive buffer data when connection was
+ interrupted for a short time
+
+---
+ src/modbus.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/modbus.c b/src/modbus.c
+index 61a2340..09ceec0 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -186,6 +186,8 @@ static int send_msg(modbus_t *ctx, uint8_t *msg, int msg_length)
+     int rc;
+     int i;
+ 
++    modbus_flush(ctx);
++
+     msg_length = ctx->backend->send_msg_pre(msg, msg_length);
+ 
+     if (ctx->debug) {
+-- 
+1.9.0
+

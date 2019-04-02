@@ -1,0 +1,12 @@
+Processor       : ARMv7 Processor rev 7 (v7l)
+BogoMIPS        : 498.89
+Features        : swp half thumb fastmult vfp edsp neon vfpv3 tls
+CPU implementer : 0x41
+CPU architecture: 7
+CPU variant     : 0x1
+CPU part        : 0xc08
+CPU revision    : 7
+
+Hardware        : PAC200 Platform
+Revision        : 0020
+Serial          : 0000000000000000

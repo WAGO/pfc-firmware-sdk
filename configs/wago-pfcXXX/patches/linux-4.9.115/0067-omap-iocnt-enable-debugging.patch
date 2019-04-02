@@ -1,0 +1,25 @@
+From 9805ceb50f0668e955d596cd7e4c5df01ca4c8a8 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 12 Jul 2016 14:08:05 +0000
+Subject: [PATCH 067/261] omap: iocnt: enable debugging
+
+---
+ arch/arm/mach-omap2/io-cnt.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/io-cnt.c b/arch/arm/mach-omap2/io-cnt.c
+index 2be2999..ee110dd 100644
+--- a/arch/arm/mach-omap2/io-cnt.c
++++ b/arch/arm/mach-omap2/io-cnt.c
+@@ -11,7 +11,7 @@
+  *      and works directly on the hwmod assosiated with the timer.
+  *
+  */
+-#undef DEBUG
++#define DEBUG
+ 
+ #include <linux/clk.h>
+ #include <linux/err.h>
+-- 
+2.7.4
+

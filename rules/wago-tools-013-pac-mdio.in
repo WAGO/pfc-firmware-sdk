@@ -1,0 +1,10 @@
+## SECTION=wago_specific_tools
+
+config PAC_MDIO
+	bool
+    default n
+	prompt "pac-mdio"
+	help
+	  MII Tool to access PHYs over MIIM Interface.
+	  This version also supports KSZ8863 switch register access.
+

@@ -1,0 +1,18 @@
+## SECTION=networking
+
+menuconfig BOOTPC
+	tristate
+	prompt "bootpc"
+	help
+	  BOOTPC
+
+if BOOTPC
+
+config BOOTPC_STARTUP_DEFAULT
+       bool "install default /sbin/bootpc-startup from projectroot/"
+       default y
+       help
+	 Installs default bootpc-startup into rootfs.
+
+endif
+

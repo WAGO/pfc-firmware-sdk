@@ -1,0 +1,88 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# /etc/init.d/rauc
+#
+# service
+
+THISFILE=$0
+PROGRAM=/usr/bin/rauc
+
+OPTS="service"
+
+usage() {
+    echo "rauc usage: $THISFILE [start|stop|restart]"
+}
+
+start_rauc() {
+    local result=0
+
+    echo "Start rauc..."
+    local variant=$(cat /sys/class/wago/system/board_variant)
+    rm -f /etc/rauc/system.conf
+    ln -s /etc/rauc/system.conf.${variant} /etc/rauc/system.conf
+    if [ ! -e /etc/rauc/system.conf ]; then
+        result=112
+    else
+        start-stop-daemon -S --exec "$PROGRAM" --oknodo --background --make-pidfile --pidfile /var/run/rauc.pid -- $OPTS
+        result=$?
+    fi
+    if [ "$result" != "0" ]; then
+        echo "failed"
+    else
+        echo "done"
+    fi
+
+    return $result
+}
+
+stop_rauc() {
+    local result=0
+
+    echo "Stop rauc..."
+    start-stop-daemon -K --oknodo --pidfile /var/run/rauc.pid
+    result=$?
+    if [ "$result" != "0" ]; then
+        echo "failed"
+    else
+        rm -f /var/run/rauc.pid
+        echo "done"
+    fi
+
+    return $result
+}
+
+restart_rauc() {
+    local result=0
+
+    stop_rauc
+    result=$?
+    if [ "$result" = "0" ]; then
+        start_rauc
+        result=$?
+    fi
+
+    return $result;
+}
+
+case $1 in
+        start)
+                start_rauc
+                ;;
+        stop)
+                stop_rauc
+                ;;
+        restart)
+                restart_rauc
+                ;;
+        *)
+                usage
+                exit 1
+                ;;
+esac

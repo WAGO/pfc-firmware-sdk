@@ -1,0 +1,223 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_sntp
+#
+# Change the configuration of the ntpclient parameter.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+set -u
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+NTPCLIENT_INIT="/etc/init.d/ntpclient"
+NTPCLIENT_LINK="/etc/rc.d/S86_ntpclient"
+NTPCLIENT_CONFIG="/etc/specific/ntpclient-base.conf"
+NTPSTATIC_LIST="/etc/specific/ntpclient-static-servers"
+NTPCLIENT_UPDATE="/etc/config-tools/events/networking/update_ntpclient_conf"
+
+MIN_UPDATE_TIME=15
+
+StopNtpClient()
+{
+    # remove link for automatical start at reboot (if it exists)
+    rm -f $NTPCLIENT_LINK
+    $NTPCLIENT_INIT stop > /dev/null
+}
+
+StartNtpClient()
+{
+    status=$SUCCESS
+
+    # add link for automatical start at reboot (if it not already exists)
+    if [ ! -h "$NTPCLIENT_LINK" ]; then 
+        ln -s $NTPCLIENT_INIT $NTPCLIENT_LINK
+        if [ "$?" != "$SUCCESS" ]; then
+            status=$SHELL_ERROR
+            ReportError $status "(ln -s $NTPCLIENT_FILE $NTPCLIENT_LINK)"
+            SetLastError "config_sntp: Could not create link in /etc/rc.d"
+        fi
+    fi
+
+    $NTPCLIENT_INIT start > /dev/null
+    return $status
+}
+
+UpdateTime()
+{
+    $NTPCLIENT_INIT gettimeonce
+}
+
+# Set configuration parameter in config file.
+# Input: $1 = parameter name
+#        $2 = parameter value
+#        $3 = target file
+SetConfig()
+{
+    local parname=$1
+    local parvalue=$2
+    local filename=$3
+    local status=0
+
+    if [ "$parvalue" ]; then
+        case $parname in
+            NTP_SERVER_*)
+                echo $parvalue | egrep -q "^$IP_ADDRESS_REGEX$"
+                status=$?
+            ;;
+        esac
+    fi
+
+    if [ $status -ne 0 ]; then
+        SetLastError "Invalid parameter value, $parname = $parvalue"
+        exit $INVALID_PARAMETER
+    fi
+    sed -i "/^$parname=/c$parname=\"$parvalue\"" $filename
+}
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Change the NTP-configuration *"
+    echo
+    echo "Usage: config_sntp -h, --help             Print usage."
+    echo "       config_sntp update                 Update system time once."
+    echo
+    echo "       config_sntp [ state=state-value ] [ port=port-value ] [ time-server-n=time-server-value ]"
+    echo "                   [ update-time=update-time-value ]"
+    echo "                                          Update one or more parameters"
+    echo
+    echo "state-value:       \"enabled\" | \"disabled\" Enables/disables automatic start of ntp client."
+    echo "port-value:        Client port number. 0 (default) means next free port."
+    echo "update-time-value: Time between connections to a time server in seconds. Minimum is 15 s"
+    echo "time-server-n:     n could be 1 to 4 for four possible time servers. May be IP address"
+    echo "                   or hostname."
+    echo
+    exit $status
+fi
+
+# Update system time
+if [ "$1" = "update" ]; then
+    rm -f $LAST_ERROR_FILENAME
+    $NTPCLIENT_INIT gettimeonce
+    if [ -s "$LAST_ERROR_FILENAME" ]; then
+        exit $SHELL_ERROR
+    fi
+    exit 0
+fi
+
+# filter input parmeter of input-string
+newState=`GetParameterValue state $*`
+newPort=`GetParameterValue port $*`
+newUpdateTime=`GetParameterValue update-time $*`
+newTimeServer1=`GetParameterValue time-server-1 $*`
+newTimeServer1Found=$?
+newTimeServer2=`GetParameterValue time-server-2 $*`
+newTimeServer2Found=$?
+newTimeServer3=`GetParameterValue time-server-3 $*`
+newTimeServer3Found=$?
+newTimeServer4=`GetParameterValue time-server-4 $*`
+newTimeServer4Found=$?
+
+. $NTPCLIENT_CONFIG
+
+actualState=$NTP_STATE
+actualPort=$NTP_PORT
+actualUpdateTime=$NTP_UPDATE_TIME
+
+# check user input (only necessary for update time and port)
+if [ -n "$newUpdateTime" ] && [ "$newUpdateTime" -lt "$MIN_UPDATE_TIME" ]; then
+    SetLastError "Update time invalid (minimum" $MIN_UPDATE_TIME "sec)"
+    exit $INVALID_PARAMETER
+fi
+
+if [ -n "$newPort" ] && [ "$newPort" -lt "0" -o "$newPort" -gt "65535" ]; then
+    SetLastError "Port invalid (must be a value between 0 and 65535)."
+    exit $INVALID_PARAMETER
+fi
+
+if [ -n "$newState" ] && [ $newState != "enabled" -a $newState != "disabled" ]; then
+    SetLastError "State ($newState) invalid. Must be enabled or disabled"
+    exit $INVALID_PARAMETER
+fi
+
+cp $NTPCLIENT_CONFIG $NTPCLIENT_CONFIG.tmp
+cp $NTPSTATIC_LIST $NTPSTATIC_LIST.tmp
+
+# if a value for port is denoted and new value differs from old value -> change port 
+if [ "$status" = "$SUCCESS" -a -n "$newPort" -a "$actualPort" != "$newPort" ]; then
+    SetConfig NTP_PORT $newPort $NTPCLIENT_CONFIG.tmp
+    status=$?
+fi
+
+# if a value for time-server is denoted -> change time-server
+if [ "$status" = "$SUCCESS" ] && [ "$newTimeServer1Found" -ne "0" ]; then
+    SetConfig NTP_SERVER_1 "$newTimeServer1" $NTPSTATIC_LIST.tmp
+    status=$?
+fi
+if [ "$status" = "$SUCCESS" ] && [ "$newTimeServer2Found" -ne "0" ]; then
+    SetConfig NTP_SERVER_2 "$newTimeServer2" $NTPSTATIC_LIST.tmp
+    status=$?
+fi
+if [ "$status" = "$SUCCESS" ] && [ "$newTimeServer3Found" -ne "0" ]; then
+    SetConfig NTP_SERVER_3 "$newTimeServer3" $NTPSTATIC_LIST.tmp
+    status=$?
+fi
+if [ "$status" = "$SUCCESS" ] && [ "$newTimeServer4Found" -ne "0" ]; then
+    SetConfig NTP_SERVER_4 "$newTimeServer4" $NTPSTATIC_LIST.tmp
+    status=$?
+fi
+
+# if a value for update-time is denoted and new value differs from old value -> change update-time 
+if [ "$status" = "$SUCCESS" ] && [ -n "$newUpdateTime" -a "$actualUpdateTime" != "$newUpdateTime" ]; then
+    SetConfig NTP_UPDATE_TIME $newUpdateTime $NTPCLIENT_CONFIG.tmp
+    status=$?
+fi
+
+# if a value for state is denoted and new value differs from old value -> change state 
+state=$actualState
+if [ "$status" = "$SUCCESS" ] && [ -n "$newState" -a "$actualState" != "$newState" ]; then
+    SetConfig NTP_STATE $newState $NTPCLIENT_CONFIG.tmp
+    state=$newState
+    status=$?
+fi
+
+diff -q $NTPSTATIC_LIST.tmp $NTPSTATIC_LIST &> /dev/null
+modified=$?
+diff -q $NTPCLIENT_CONFIG.tmp $NTPCLIENT_CONFIG &> /dev/null
+modified=$((modified | $?))
+if [ "$modified" -ne "0" ]; then
+    sync
+    mv $NTPSTATIC_LIST.tmp $NTPSTATIC_LIST
+    mv $NTPCLIENT_CONFIG.tmp $NTPCLIENT_CONFIG
+    $NTPCLIENT_UPDATE
+else
+    rm -f $NTPSTATIC_LIST.tmp $NTPCLIENT_CONFIG.tmp
+fi
+
+if [ $status = $SUCCESS ]; then
+    StopNtpClient
+    if [ "$state" = "enabled" ]; then
+
+        # start exe and add link for automatical start at reboot 
+        StartNtpClient
+        status=$?
+    fi
+fi
+exit $status

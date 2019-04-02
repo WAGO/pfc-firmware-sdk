@@ -1,0 +1,41 @@
+From f233fab5f6600f3acfc0dc9361bff006433961c2 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 10 Jul 2018 11:40:43 +0200
+Subject: [PATCH 039/144] xload-pfc: adjust handling for AM35XX MLO with !OF
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/mach-omap/xload-pfc.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/mach-omap/xload-pfc.c b/arch/arm/mach-omap/xload-pfc.c
+index ab5208e..9821f8b 100644
+--- a/arch/arm/mach-omap/xload-pfc.c
++++ b/arch/arm/mach-omap/xload-pfc.c
+@@ -24,7 +24,7 @@
+ #include <mach/generic.h>
+ 
+ extern struct omap_barebox_part *barebox_part;
+-static const char *board_variant;
++static const char *board_variant = "pfc200";
+ 
+ static int pfc_mmc_inserted(void)
+ {
+@@ -51,11 +51,10 @@ static __noreturn int pfc_xload(void)
+ 	const int bootinstance_origin = bootsource_get_instance();
+ 
+ 	struct device_node *root = of_get_root_node();
+-	if (!root)
+-		goto out;
++	if (root)
++		of_property_read_string(root, "board-variant", &board_variant);
+ 
+-	if (of_property_read_string(root, "board-variant", &board_variant))
+-		goto out;
++	pr_info("%s: board-variant: %s\n", __func__, board_variant);
+ 
+ 	bootfile = (char *) basprintf("barebox.bin.%s", board_variant);
+ 	if (!bootfile)
+-- 
+2.7.4
+

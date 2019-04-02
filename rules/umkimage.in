@@ -1,0 +1,17 @@
+## SECTION=shell_and_console
+
+config UMKIMAGE
+	tristate
+    default n
+	prompt "umkimage"
+	help
+	  umkimage is the U-Boot mkimage command. It is used to create
+	  boot images for the U-Boot bootloader.
+
+config UMKIMAGE_INSTALL_MKIMAGE
+	boolean
+	default n
+	depends on UMKIMAGE
+	prompt "install mkimage"
+  help
+		Install mkimage binary to target.

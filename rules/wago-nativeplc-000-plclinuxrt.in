@@ -1,0 +1,10 @@
+## SECTION=wago_specific_tools
+
+config DALSHELL
+	bool "DalShell Runtime System."
+	default n
+	select SWCONFIG
+	select LED_SERVER_2 
+	help
+		Builds and installs the dalshell.
+

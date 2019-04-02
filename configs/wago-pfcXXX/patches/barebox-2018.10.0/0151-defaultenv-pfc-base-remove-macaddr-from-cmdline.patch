@@ -1,0 +1,30 @@
+From ea981431305a39e013b9e1306e1dfe1440f0b398 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 27 Nov 2018 11:38:54 +0000
+Subject: [PATCH 151/152] defaultenv: pfc-base: remove macaddr from cmdline
+
+Since kernel commit '77f87ea net: swcfg: ksz8863: add support for
+oftree based mac address' the mac addresses will be read from
+'ethernet0' and 'ethernet1' aliases from OFTREE.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index 5dc2f79..80ff8c8 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -6,7 +6,7 @@ led_mode -s -c yellow -v on
+ 
+ global.autoboot_timeout=0
+ global.boot.watchdog_timeout=${global.pfc.watchdog_timeout_linux_load}
+-global.linux.bootargs.base="bootversion=${global.version} macaddr=${eth0.ethaddr} reset_state=${global.system.reset} omap_wdt.early_enable omap_wdt.timer_margin=${global.pfc.watchdog_timeout_linux_boot}"
++global.linux.bootargs.base="bootversion=${global.version} reset_state=${global.system.reset} omap_wdt.early_enable omap_wdt.timer_margin=${global.pfc.watchdog_timeout_linux_boot}"
+ 
+ sd_blspec="${global.pfc.sd_rootfs}/boot/sd/loader/entries/${global.model}-${global.pfc.devconf}.conf"
+ sd_legacy_uImage="${global.pfc.sd_boot}/uImage"
+-- 
+2.7.4
+

@@ -1,0 +1,26 @@
+## SECTION=wago_specific_tools
+
+menuconfig DATAAGENT
+	bool
+	default n
+	prompt "Data Agent"
+
+	select LIBCONFIG
+	select INITMETHOD_BBINIT
+	select SYSLOGNG
+	select AZURE
+	select CT_MENU_WBM_MAIN
+	select OMS
+	select MOSQUITTO
+	select CONFIG_TOOLS
+	select LIBDBUSKBUSCOMMON
+	select WAGO_PFC_DIAGNOSTIC
+	select LIBSPARKPLUG
+	select HOST_CT_BUILD
+	select LIBCURL
+	select LIBXML2
+	select LIBWAGODRM
+
+	help
+	  The Data Agent application provides IoT Connectivity
+	  

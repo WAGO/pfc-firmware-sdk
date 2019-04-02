@@ -1,0 +1,13 @@
+[Unit]
+Description= WAGO waitingroom delay
+After=codesys3.service
+Before=systemserviced.service
+
+[Service]
+Type=oneshot
+ExecStart=/etc/systemd/waitingroom.sh 5
+
+[Install]
+WantedBy=multi-user.target
+
+

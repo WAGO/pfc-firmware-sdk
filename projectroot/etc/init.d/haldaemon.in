@@ -1,0 +1,213 @@
+#!/bin/sh
+# Author: Danny Kukawka <dkukawka@suse.de>
+#
+# /etc/init.d/rchal
+#
+### BEGIN INIT INFO
+# Provides:          haldaemon
+# Required-Start:    boot.localnet dbus consolekit 
+# Should-Start:      acpid resmgr
+# Required-Stop:     
+# Should-Stop:
+# Default-Start:     2 3 5
+# Default-Stop:      
+# Short-Description: HAL is a daemon for managing information about the hardware on the system
+# Description:       HAL is a hardware abstraction layer and aims to provide a live list of devices present 
+#		     in the system at any point in time. HAL tries to understand both physical devices (such 
+#	   	     as PCI, USB) and the device classes (such as input, net and block) physical devices have, 
+#		     and it allows merging of information from so called device info files specific to a device. 
+#		     HAL provides a network API through D-BUS for querying devices and notifying when things 
+#		     change. Finally, HAL provides some monitoring (in an unintrusive way) of devices, presently 
+#		     ethernet link detection and volume mounts are monitored. This, and more, is all described 
+#		     in the HAL specification
+#                    
+### END INIT INFO
+
+# Check for binary
+HALDAEMON_BIN=/usr/sbin/hald
+test -x $HALDAEMON_BIN || exit 5
+
+# Parameters (startup)
+HALDAEMON_PARA="--daemon=yes";
+HALDAEMON_PIDDIR="/var/run/hal";
+HALDAEMON_PID=$HALDAEMON_PIDDIR/haldaemon.pid;
+DBUSDAEMON_PID=/var/run/dbus/pid;
+CPUFREQ_SYSFS_PATH="/sys/devices/system/cpu/cpu0/cpufreq"
+LOGGER="/bin/logger -t rchal"
+
+function load_governors()
+{
+    if [ ! -r $CPUFREQ_SYSFS_PATH ];then
+	$LOGGER Cannot load cpufreq governors - No cpufreq driver available
+	return 1
+    fi
+    read govs < $CPUFREQ_SYSFS_PATH/scaling_available_governors
+    case "$govs" in
+	*powersave*) 
+	    ;;
+	*) 
+	    modprobe -q cpufreq_powersave >/dev/null 2>&1
+	    [ $? != 0 ] && $LOGGER powersave cpufreq governor could not be loaded
+	    ;;
+    esac
+    case "$govs" in
+	*performance*) 
+	    ;;
+	*) 
+	    modprobe -q cpufreq_performance >/dev/null 2>&1
+	    [ $? != 0 ] && $LOGGER perfromance cpufreq governor could not be loaded
+	    ;;
+    esac
+    case "$govs" in
+	*userspace*) 
+	    ;;
+	*) 
+	    modprobe -q cpufreq_userspace >/dev/null 2>&1
+	    [ $? != 0 ] && $LOGGER userspace cpufreq governor could not be loaded
+	    ;;
+    esac
+    case "$govs" in
+	*ondemand*)
+	    ;;
+	*) 
+	    modprobe -q cpufreq_ondemand >/dev/null 2>&1
+	    [ $? != 0 ] && $LOGGER ondemand cpufreq governor could not be loaded
+	    ;;
+    esac
+    case "$govs" in
+	*conservative*)
+	    ;;
+	*) 
+	    modprobe -q cpufreq_conservative >/dev/null 2>&1
+	    [ $? != 0 ] && $LOGGER conservative cpufreq governor could not be loaded
+	    ;;
+    esac
+    return 0
+}
+
+function load_cpufreq_driver()
+{
+    CPUFREQ_MODULES="speedstep_centrino powernow_k8 powernow_k7 powernow_k6 longrun speedstep_ich acpi_cpufreq"
+    CPUFREQ_MODULES_GREP="^speedstep_centrino\|^speedstep_ich\|^powernow_k8\|^powernow_k7\|^powernow_k6\|^longrun\|^longhaul\|^acpi_cpufreq"
+    
+    ###### load CPUFREQ modules############
+    # if the drivers are compiled in, $CPUFREQ_SYSFS_PATH already exists
+    if [ ! -d $CPUFREQ_SYSFS_PATH ]; then
+			# test for already loaded modules
+	ALREADY_LOADED_MODS=`grep $CPUFREQ_MODULES_GREP /proc/modules`
+	if [ -z "$ALREADY_LOADED_MODS" ] ; then 
+	    for MODULE in $CPUFREQ_MODULES; do
+		modprobe $MODULE &>/dev/null
+		RETVAL=$?
+		[ "$RETVAL" = 0 ] && break
+	    done
+	    # skip if no module could be loaded!
+	    if [ "$RETVAL" != 0 ]; then
+		$LOGGER "CPU frequency scaling is not supported by your processor."
+		$LOGGER "boot with 'CPUFREQ=no' in to avoid this warning."
+					# remove eventually loaded modules, bug 150381
+		rmmod speedstep_lib freq_table 2>/dev/null
+	    fi
+	fi
+    fi
+    ###### load CPUFREQ modules############
+}
+
+# Source LSB init functions
+# providing start_daemon, killproc, pidofproc,
+# log_success_msg, log_failure_msg and log_warning_msg.
+# This is currently not used by UnitedLinux based distributions and
+# not needed for init scripts for UnitedLinux only. If it is used,
+# the functions from rc.status should not be sourced or used.
+#. /lib/lsb/init-functions
+
+. /etc/rc.status
+
+# Reset status of this service
+rc_reset
+
+case "$1" in
+    start)
+	
+	if [ ! -d $HALDAEMON_PIDDIR ]; then
+                mkdir -p $HALDAEMON_PIDDIR;
+                chown haldaemon:haldaemon $HALDAEMON_PIDDIR;
+        fi
+        if [ -e $HALDAEMON_PID ]; then
+                if checkproc $HALDAEMON_BIN ; then
+			echo "HAL already started. Not starting."
+			exit 0;
+                else
+                        echo "Removing stale PID file $HALDAEMON_PID.";
+                        rm -f $HALDAEMON_PID;
+                fi
+        fi
+        
+	echo -n "Starting HAL daemon";
+        startproc -p $HALDAEMON_PID $HALDAEMON_BIN $HALDAEMON_PARA
+        rc_status -v
+
+	##### CPUFreq stuff #####
+	if [ "$CPUFREQ" != "no" -a "$CPUFREQ" != "off" ]; then
+	    echo -n "Loading CPUFreq modules"
+	    load_cpufreq_driver
+	    load_governors
+	    
+	    if [ "$?" = 0 ]; then
+		rc_status -v
+	    else
+		echo " (CPUFreq not supported)"
+	    fi
+	fi
+
+        ;;
+    start-with-dbus)
+	if [ ! -e $DBUSDAEMON_PID ]; then
+               echo -n "DBUS is not running. Starting D-BUS daemon";
+                rcdbus start;
+        fi
+	$0 start
+	;;
+    stop)
+	echo -n "Shutting down HAL daemon"
+       	killproc -p $HALDAEMON_PID -TERM $HALDAEMON_BIN
+       	rc_status
+	rm -f $HALDAEMON_PID;
+       	rc_status -v
+        ;;
+    try-restart)
+        $0 status >/dev/null &&  $0 restart
+        rc_status
+        ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    force-reload)
+        echo -n "Reload service HAL daemon"
+        $0 stop  &&  $0 start
+        rc_status
+        ;;
+    reload)
+        rc_failed 3
+        rc_status -v
+        ;;
+    status)
+        echo -n "Checking for service HAL daemon"
+        checkproc $HALDAEMON_BIN
+        rc_status -v
+        ;;
+    probe)
+        ## Optional: Probe for the necessity of a reload, print out the
+        ## argument to this init script which is required for a reload.
+        ## Note: probe is not (yet) part of LSB (as of 1.2)
+        # test /etc/FOO/FOO.conf -nt /var/run/FOO.pid && echo reload
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|start-with-dbus|reload|probe}"
+        exit 1
+        ;;
+esac
+rc_exit
+
+

@@ -1,0 +1,147 @@
+From c587d7734fc318bcfb9871896beaff745bca88b3 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 12 Sep 2018 09:34:58 +0200
+Subject: [PATCH 078/144] arm: mach-omap: add barebox_update eMMC option for
+ barebox
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/mach-omap/am33xx_bbu_emmc.c  | 86 +++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap/include/mach/bbu.h |  6 ++-
+ 2 files changed, 90 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap/am33xx_bbu_emmc.c b/arch/arm/mach-omap/am33xx_bbu_emmc.c
+index 1fd7222..ff66ba5 100644
+--- a/arch/arm/mach-omap/am33xx_bbu_emmc.c
++++ b/arch/arm/mach-omap/am33xx_bbu_emmc.c
+@@ -22,6 +22,12 @@
+ #define PART_TABLE_SIZE		66
+ #define PART_TABLE_OFFSET	0x1BE
+ 
++struct emmc_bbu_handler {
++	struct bbu_handler bbu_handler;
++	char **devicefile;
++	int num_devicefiles;
++};
++
+ static int emmc_mlo_handler(struct bbu_handler *handler, struct bbu_data *data)
+ {
+ 	int ret = 0;
+@@ -76,6 +82,66 @@ error:
+ 	return (ret > 0) ? 0 : ret;
+ }
+ 
++static int emmc_write_to_device(const char *devicefile, const void *image,
++								size_t size)
++{
++	int ret, fd;
++
++	fd = open(devicefile, O_RDWR);
++	if (fd < 0) {
++		pr_err("could not open %s: %s\n", devicefile,
++							errno_str());
++		return fd;
++	}
++
++	ret = write(fd, image, size);
++	if (ret < 0)
++		pr_err("could not write to fd %s: %s\n", devicefile,
++								errno_str());
++
++	close(fd);
++
++	return ret;
++
++}
++
++static int emmc_update_handler(struct bbu_handler *handler,
++							struct bbu_data *data)
++{
++	int ret = 0;
++	int i = 0;
++	const void *image = data->image;
++	size_t size = data->len;
++	struct emmc_bbu_handler *nh;
++
++	nh = container_of(handler, struct emmc_bbu_handler, bbu_handler);
++
++	if (file_detect_type(image, size) != filetype_arm_barebox) {
++		pr_err("%s is not a valid ch-image\n", data->imagefile);
++		return -EINVAL;
++	}
++
++	ret = bbu_confirm(data);
++	if (ret != 0)
++		goto out;
++
++	/* check if the devicefile has been overwritten */
++	if (strcmp(data->devicefile, nh->devicefile[0]) != 0) {
++		ret = emmc_write_to_device(data->devicefile, image, size);
++		if (!ret)
++			goto out;
++	} else {
++		for (i = 0; i < nh->num_devicefiles; i++) {
++			ret = emmc_write_to_device(nh->devicefile[i], image, size);
++			if (!ret)
++				goto out;
++		}
++	}
++
++out:
++	return ret;
++}
++
+ int am33xx_bbu_emmc_mlo_register_handler(const char *name, char *devicefile)
+ {
+ 	struct bbu_handler *handler;
+@@ -93,3 +159,23 @@ int am33xx_bbu_emmc_mlo_register_handler(const char *name, char *devicefile)
+ 
+ 	return ret;
+ }
++
++int am33xx_bbu_emmc_register_handler(const char *name, char **devicefile,
++							int num_devicefiles)
++{
++	struct emmc_bbu_handler *handler;
++	int ret;
++
++	handler = xzalloc(sizeof(*handler));
++	handler->devicefile = devicefile;
++	handler->num_devicefiles = num_devicefiles;
++	handler->bbu_handler.devicefile = devicefile[0];
++	handler->bbu_handler.handler = emmc_update_handler;
++	handler->bbu_handler.name = name;
++
++	ret = bbu_register_handler(&handler->bbu_handler);
++	if (ret)
++		free(handler);
++
++	return ret;
++}
+diff --git a/arch/arm/mach-omap/include/mach/bbu.h b/arch/arm/mach-omap/include/mach/bbu.h
+index c8b0a55..4255e87 100644
+--- a/arch/arm/mach-omap/include/mach/bbu.h
++++ b/arch/arm/mach-omap/include/mach/bbu.h
+@@ -41,7 +41,8 @@ static inline int am33xx_bbu_nand_slots_register_handler(const char *name,
+ 
+ #ifdef CONFIG_BAREBOX_UPDATE_AM33XX_EMMC
+ int am33xx_bbu_emmc_mlo_register_handler(const char *name, char *devicefile);
+-int am33xx_bbu_emmc_register_handler(const char *name, char *devicefile);
++int am33xx_bbu_emmc_register_handler(const char *name, char **devicefile,
++							int num_devicefiles);
+ #else
+ static inline int am33xx_bbu_emmc_mlo_register_handler(const char *name,
+ 							char *devicefile)
+@@ -50,7 +51,8 @@ static inline int am33xx_bbu_emmc_mlo_register_handler(const char *name,
+ }
+ 
+ static inline int am33xx_bbu_emmc_register_handler(const char *name,
+-							char *devicefile)
++							char **devicefile,
++							int num_devicefiles)
+ {
+ 	return 0;
+ }
+-- 
+2.7.4
+

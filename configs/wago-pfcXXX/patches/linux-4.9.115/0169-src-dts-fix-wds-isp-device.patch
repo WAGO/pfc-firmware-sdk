@@ -1,0 +1,50 @@
+From 5717e074f3db21ff5c7805fcc513e570c45d4b13 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Wed, 4 Apr 2018 11:57:04 +0200
+Subject: [PATCH 169/261] src: dts: fix wds isp device.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index 74cfbf7..a8d0f90 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -364,7 +364,7 @@
+ 			0x168 ( MUX_MODE4 | PIN_INPUT_PULLDOWN	) /* E18 UART0_CTSN		4   SPI1_D0->SPI1_MISO */
+ 			0x190 ( MUX_MODE3 | PIN_INPUT		) /* A13 MCASP0_ACLKX		3   SPI1_SCLK->Serial_clock */
+ 			0x198 ( MUX_MODE3 | PIN_OUTPUT		) /* D12 MCASP0_AXR0		3   SPI1_D1->SPI1_MOSI */
+-			0x1b0 ( MUX_MODE4 | PIN_OUTPUT		) /* A15 XDMA_EVENT_INTR0	4   SPI1_nCS1->Chip_select_fram */
++			0x1b0 ( MUX_MODE4 | PIN_OUTPUT		) /* A15 XDMA_EVENT_INTR0	4   SPI1_nCS1->Chip_select_dali */
+ 			0x19c ( MUX_MODE3 | PIN_OUTPUT		) /* C12 MCASP0_AHCLKR		3   SPI1_nCS0->Chip_select_kbus */
+ 		>;
+ 	};
+@@ -488,17 +488,18 @@
+ 	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi1_pins>;
++	num-cs = <2>;
+ 
+-	/* ATmega ISP */
++	// KBUS Spidev
+ 	spi2_0: spidev@0 {
+-		compatible = "wago,wds";
++		compatible = "wago,srckbus";
+ 		reg = <0>;
+-		spi-max-frequency = <10000000>; // FIXME
++		spi-max-frequency = <10000000>;
+ 	};
+ 
+-	// KBUS Spidev
++	/* ATmega ISP */
+ 	spi2_1: spidev@0 {
+-		compatible = "wago,srckbus";
++		compatible = "wago,wds";
+ 		reg = <1>;
+ 		spi-max-frequency = <10000000>;
+ 	};
+-- 
+2.7.4
+

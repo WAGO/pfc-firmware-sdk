@@ -1,0 +1,1 @@
+#tftp dgram udp wait nobody /sbin/tftpd tftpd -l @ROOT@

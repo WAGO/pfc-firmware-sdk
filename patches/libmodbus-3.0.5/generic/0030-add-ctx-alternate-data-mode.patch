@@ -1,0 +1,160 @@
+--- libmodbus-3.0.5.base/src/modbus.h	2015-11-25 13:10:18.088154000 +0100
++++ libmodbus-3.0.5/src/modbus.h	2015-11-25 14:47:59.653302333 +0100
+@@ -211,7 +211,7 @@
+                          modbus_mapping_t *mb_mapping);
+ int modbus_reply_exception(modbus_t *ctx, const uint8_t *req,
+                            unsigned int exception_code);
+-void modbus_set_alternative_data(uint8_t enabled, uint8_t value);
++void modbus_set_alternate_data(modbus_t *ctx, int enabled, uint8_t value);
+ int modbus_is_multicast(modbus_t *ctx);
+ void modbus_set_response_delay(uint16_t value);
+ int modbus_filter_request(modbus_t *ctx, const uint8_t *req);
+--- libmodbus-3.0.5.base/src/modbus.c	2015-11-25 13:10:18.088154000 +0100
++++ libmodbus-3.0.5/src/modbus.c	2015-11-25 14:56:39.345918203 +0100
+@@ -58,17 +58,10 @@
+     _STEP_DATA
+ } _step_t;
+ 
+-static uint16_t _altData = OFF;
+-void modbus_set_alternative_data(uint8_t enabled, uint8_t value)
++void modbus_set_alternate_data(modbus_t *ctx, int enabled, uint8_t value)
+ {
+-  _altData = value << 8 | enabled; //atomic write
+-}
+-
+-static void modbus_get_alternative_data(uint8_t *enabled, uint8_t *value)
+-{
+-  uint16_t tmp = _altData; //atomic read
+-  *enabled = tmp & 0xFF;
+-  *value = tmp >> 8;
++  ctx->alternate_data_enabled = enabled;
++  ctx->alternate_data_value = value;
+ }
+ 
+ static inline void modbus_set_fixdata(uint8_t *pData, uint32_t length, uint8_t value)
+@@ -1192,10 +1185,6 @@
+     uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+     int rsp_length = 0;
+     sft_t sft;
+-    uint8_t altDataEnabled;
+-    uint8_t altDataValue;
+-
+-    modbus_get_alternative_data(&altDataEnabled, &altDataValue);
+ 
+     if (ctx->backend->filter_request(ctx, slave) == 1) {
+         /* Filtered */
+@@ -1231,11 +1220,11 @@
+             uint32_t nb_bytes = (nb / 8) + ((nb % 8) ? 1 : 0);
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             rsp[rsp_length++] = (uint8_t)nb_bytes;
+-            if (altDataEnabled == OFF) {
++            if (ctx->alternate_data_enabled == FALSE) {
+                 rsp_length += modbus_get_bytes_from_bitmap16(mb_mapping->tab_bits,
+                                                              address, nb, &rsp[rsp_length]);
+             } else {
+-                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, altDataValue);
++                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
+             }
+             mb_request->processed = TRUE;
+@@ -1268,11 +1257,11 @@
+             uint32_t nb_bytes = (nb / 8) + ((nb % 8) ? 1 : 0);
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             rsp[rsp_length++] = (uint8_t)nb_bytes;
+-            if (altDataEnabled == OFF) {
++            if (ctx->alternate_data_enabled == FALSE) {
+                 rsp_length += modbus_get_bytes_from_bitmap16(mb_mapping->tab_input_bits,
+                                                              address, nb, &rsp[rsp_length]);
+             } else {
+-                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, altDataValue);
++                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
+             }
+             mb_request->processed = TRUE;
+@@ -1303,14 +1292,14 @@
+             uint32_t nb_bytes = nb << 1;
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             rsp[rsp_length++] = (uint8_t)nb_bytes;
+-            if (altDataEnabled == OFF) {
++            if (ctx->alternate_data_enabled == FALSE) {
+                 int i;
+                 for (i = address; i < address + nb; i++) {
+                     rsp[rsp_length++] = mb_mapping->tab_registers[i] >> 8;
+                     rsp[rsp_length++] = mb_mapping->tab_registers[i] & 0xFF;
+                 }
+             } else {
+-                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, altDataValue);
++                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
+             }
+             mb_request->processed = TRUE;
+@@ -1343,14 +1332,14 @@
+             uint32_t nb_bytes = nb << 1;
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             rsp[rsp_length++] = (uint8_t)nb_bytes;
+-            if (altDataEnabled == OFF) {
++            if (ctx->alternate_data_enabled == FALSE) {
+                 int i;
+                 for (i = address; i < address + nb; i++) {
+                     rsp[rsp_length++] = mb_mapping->tab_input_registers[i] >> 8;
+                     rsp[rsp_length++] = mb_mapping->tab_input_registers[i] & 0xFF;
+                 }
+             } else {
+-                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, altDataValue);
++                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
+             }
+             mb_request->processed = TRUE;
+@@ -1562,13 +1551,13 @@
+             }
+ 
+             /* and read the data for the response */
+-            if (altDataEnabled == OFF) {
++            if (ctx->alternate_data_enabled == FALSE) {
+                 for (i = address; i < address + nb; i++) {
+                     rsp[rsp_length++] = mb_mapping->tab_registers[i] >> 8;
+                     rsp[rsp_length++] = mb_mapping->tab_registers[i] & 0xFF;
+                 }
+             } else {
+-                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, altDataValue);
++                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
+             }
+             mb_request->processed = TRUE;
+@@ -1601,13 +1590,13 @@
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+             rsp[rsp_length++] = nb_bytes >> 8;
+             rsp[rsp_length++] = nb_bytes & 0xFF;
+-            if (altDataEnabled == OFF) {
++            if (ctx->alternate_data_enabled == FALSE) {
+                 for (i = address; i < address + nb; i++) {
+                     rsp[rsp_length++] = mb_mapping->tab_registers[i] >> 8;
+                     rsp[rsp_length++] = mb_mapping->tab_registers[i] & 0xFF;
+                 }
+             } else {
+-                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, altDataValue);
++                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, ctx->alternate_data_value);
+                 rsp_length += nb_bytes;
+             }
+             mb_request->processed = TRUE;
+@@ -2265,6 +2254,9 @@
+ 
+     ctx->byte_timeout.tv_sec = 0;
+     ctx->byte_timeout.tv_usec = _BYTE_TIMEOUT;
++
++    ctx->alternate_data_enabled = FALSE;
++    ctx->alternate_data_value = 0x00;
+ }
+ 
+ /* Define the slave number */
+--- libmodbus-3.0.5.base/src/modbus-private.h	2015-11-25 13:10:18.088154000 +0100
++++ libmodbus-3.0.5/src/modbus-private.h	2015-11-25 14:47:23.337302481 +0100
+@@ -138,6 +138,8 @@
+     struct timeval byte_timeout;
+     const modbus_backend_t *backend;
+     void *backend_data;
++    int alternate_data_enabled;
++    uint8_t alternate_data_value;
+ };
+ 
+ void _modbus_init_common(modbus_t *ctx);

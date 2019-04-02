@@ -1,0 +1,108 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: set_overwrite_dhcp_gateway
+#
+# Set the given paramater for overwriting the given gatway-parameter via DHCP
+#
+# $Revision$
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------#
+
+set -u      # error exit on undefined shell variables
+
+DHCP_GW_CONF_FILE=/etc/specific/dhcp_gateway.conf
+IPDATACHECK=/etc/config-tools/ipdatacheck
+
+function checkError()
+{
+    if [ "$?" -ne 0 ]; then
+        echo "Error while setting parameter"
+        exit 1
+    fi
+}
+
+function setParameter()
+{
+    if [ ! -e $DHCP_GW_CONF_FILE ]; then
+        echo "Configuration file: $DHCP_GW_CONF_FILE is missing!"
+        exit 1
+    fi
+
+    local interf="$1"
+    local destination="$2"
+    local genmask="$3"
+
+    #Validation check
+    if [ "$destination" != "default" ]; then
+      `$IPDATACHECK --verify-ip $destination`
+      [ "$?" -ne 0 ] && echo "Invalid destination address" && exit 2
+    fi
+
+    `$IPDATACHECK --verify-netmask $genmask`
+    [ "$?" -ne 0 ] && echo "Invalid genmask" && exit 2
+
+    local var_dest="DHCP_GW_DESTINATION_$interf"
+    local var_genm="DHCP_GW_GENMASK_$interf"
+
+    #if parameter included in the config-file then replace it.
+    #else adding new Parameter set.
+    local param_count=`grep -c ^DHCP_GW_DESTINATION_$interf.* $DHCP_GW_CONF_FILE`
+    if [ "$param_count" -gt "0" ]; then
+        sed -i "s/^DHCP_GW_DESTINATION_$interf.*$/DHCP_GW_DESTINATION_$interf=$destination/" $DHCP_GW_CONF_FILE
+        checkError "$?"
+    else
+        echo "DHCP_GW_DESTINATION_$interf=$destination" >> $DHCP_GW_CONF_FILE
+    fi
+
+    param_count=`grep -c ^DHCP_GW_GENMASK_$interf $DHCP_GW_CONF_FILE`
+    if [ "$param_count" -gt "0" ]; then
+        sed -i "s/^DHCP_GW_GENMASK_$interf.*$/DHCP_GW_GENMASK_$interf=$genmask/" $DHCP_GW_CONF_FILE
+        checkError "$?"
+    else
+        echo "DHCP_GW_GENMASK_$interf=$genmask" >> $DHCP_GW_CONF_FILE
+    fi
+}
+
+
+function printUsage()
+{
+    echo "Usage: $0 INTERFACE DESTINATION GENMASK"
+    echo
+    echo "OPTION:"
+    echo "INTERFACE:    'BR0','BR1' or WWAN0 ect."
+    echo "DESTINATION:  Could be any ipv4-adress or \"default\""
+    echo "GENMASK:      Destination mask for ipv4-adress or \"0.0.0.0\" for default"
+    echo
+    echo "Default configuration file :$DHCP_GW_CONF_FILE"
+    echo
+}
+
+
+function Main()
+{
+    if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+      printUsage
+      exit 1
+    fi
+
+    setParameter "$1" "$2" "$3"
+}
+
+#----------------- MAIN ------------------
+if [ "$#" -lt 3 ]; then
+  printUsage
+  exit 1
+fi
+
+Main "$1" "$2" "$3"
+
+# trigger update of system
+[ -e /etc/config-tools/events/networking ] && run-parts -a config /etc/config-tools/events/networking/
+exit 0
+

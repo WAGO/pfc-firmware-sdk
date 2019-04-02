@@ -1,0 +1,46 @@
+## SECTION=blspec
+
+menuconfig BLSPEC_PFC
+	tristate
+	select KERNEL
+	select KERNEL_INSTALL
+	select DTC_INSTALL_OFTREE if DTC
+	prompt "pfc bootloader spec entrys"
+
+if BLSPEC_PFC
+
+config BLSPEC_PFC_SRC
+	bool
+	prompt "install only SRC specific blspec entrys"
+	default n
+
+if !BLSPEC_PFC_SRC
+
+config BLSPEC_PFC_EMMC_ROOTARG_ROOTFS0
+	string
+	prompt "emmc: rootfs0 rootarg"
+	default "rw root=/dev/mmcblk1p7 rootfstype=ext4 rootwait"
+
+config BLSPEC_PFC_EMMC_ROOTARG_ROOTFS1
+	string
+	prompt "emmc: rootfs1 rootarg"
+	default "rw root=/dev/mmcblk1p10 rootfstype=ext4 rootwait"
+
+endif
+
+config BLSPEC_PFC_NAND_ROOTARG_ROOTFS0
+	string
+	prompt "nand: rootfs0 rootarg"
+	default "rw ubi.mtd=8 rootfstype=ubifs root=ubi0:rootfs0 rootwait"
+
+config BLSPEC_PFC_NAND_ROOTARG_ROOTFS1
+	string
+	prompt "nand: rootfs1 rootarg"
+	default "rw ubi.mtd=8 rootfstype=ubifs root=ubi0:rootfs1 rootwait"
+
+config BLSPEC_PFC_SD_ROOTARG_ROOTFS
+	string
+	prompt "sd: rootfs rootarg"
+	default "rw root=/dev/mmcblk0p2 rootfstype=ext3 rootwait"
+
+endif

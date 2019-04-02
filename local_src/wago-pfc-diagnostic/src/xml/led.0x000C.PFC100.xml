@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!-- LED configuration of pac200 product! -->
+<ledconfig>
+<led name="SYS" number="0" state="STATIC_GRN" id="000000C0" />
+<led name="RUN"  number="1" state="STATIC_OFF" id="00040004" />
+<led name="IO"  number="2" state="STATIC_OFF" id="2FFFFFFF" />
+<led name="MS"  number="3" state="STATIC_OFF" id="0000000B" />
+<led name="NS"  number="4" state="STATIC_OFF" id="00000004" />
+<led name="USR" number="5" state="STATIC_OFF" id="00010000" >
+<alias>U1</alias>
+</led>
+</ledconfig>

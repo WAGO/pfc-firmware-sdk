@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+		
+config LIBDPSWIDE
+	bool
+	default n
+	select LIBOSAL
+	select LIBDPS
+	select PLCLINUXRT
+	prompt "libdpsWide (adaption between the CoDeSys-Runtine, the DAL and the PROFIBUS DP-Slave application)"
+	help
+		Build the PROFIBUS DP-Slave device driver as a shared object. This software component is the interface between the DAL and CoDeSys-PLC for the PROFIBUS slave functionality.

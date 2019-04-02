@@ -1,0 +1,32 @@
+## SECTION=image2
+
+menuconfig IMAGE_RAUC
+	tristate
+	prompt "Generate RAUC Update Bundle PFC"
+	select HOST_GENIMAGE
+	select HOST_RAUC
+	select IMAGE_ROOT_TGZ
+	select RAUC_BUNDLE_CONF
+	help
+	  This generates a RAUC update Bundle for the selected platform using
+	  genimage.
+
+	  By default, this will create a simple Bundle for updating a 'rootfs'
+	  slot with the content from PTXdist's root file system .tgz image.
+
+	  To customize the bundle, copy and adapt the genimage configuration
+	  file rauc.config.
+
+if IMAGE_RAUC
+
+config IMAGE_RAUC_DESCRIPTION
+	prompt "RAUC Bundle Description PFC"
+	string
+	default ""
+	help
+	  Optional description that will be placed in the Bundles metadata.
+
+config RAUC_BUNDLE_CONF
+	bool
+
+endif

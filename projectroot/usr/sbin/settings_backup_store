@@ -1,0 +1,398 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   settings_backup_store
+#
+# Brief:    Save the actual configuration settings of PFC.
+#
+# Author:   StM: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load common backup/restore functions
+if [ ! -f "/usr/sbin/settings_backup_lib" ]; then
+  echo "settings_backup_lib missing"
+  exit 64
+fi
+
+source /usr/sbin/settings_backup_lib
+
+
+#
+# Save the value of a parameter to config backup file.
+#
+# Param 1: 	parameterName: name of the parameter
+# Param 2:  parameterValue: value of the parameter 
+# Param 3:  backupFile:  backup filename
+#
+# Return: status of I/O operation
+#
+SaveBackupValue ()
+{
+  local parameterName="$1"
+  local parameterValue="$2"
+  local backupFile="$3"
+  local status=$SUCCESS
+  local stringToSave="$parameterName=$parameterValue"
+    
+  if [ -n "$backupFile" ]; then
+  	echo "$stringToSave" >> "$backupFile"
+  	if [[ $? != $SUCCESS ]]; then
+  		status=$WRITE_FILE_ERROR
+  	fi	
+  else
+    status=$CONFIG_FILE_MISSING
+  fi	
+  return $status
+}
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+backupFile="$1"
+
+#-------------------------------------------------------------
+# show help-text if requested
+#-------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* save all configuration settings to backup file *"
+  echo
+  echo "Usage: $(basename "$0")  < backup file name >" 
+  echo
+  echo "Note: after restoring a reboot is necessary to make the changes active"
+  echo
+  exit $status
+fi
+
+if [[ "$RELEASE_VERSION" == "yes" ]]; then
+  SuppressMessageOutput
+fi
+
+#-------------------------------------------------------------
+# save settings
+#-------------------------------------------------------------
+
+if [ -n "$backupFile" ]; then
+
+  # start backup as subprocess (we start progress bar in parallel and have to
+  # know when the backup is over (see after closing parenthesis for details)
+  (
+  # save the actual configuration in backup file
+  # check if backup file can be written
+  touch "$backupFile"
+  if [ "$?" != $SUCCESS ]; then
+    status=$FILE_NOT_WRITEABLE
+    ReportError $status "$backupFile"
+  else
+    # delete existing filecontent
+    echo -n "" > "$backupFile"
+    chgrp www "$backupFile"
+    chmod 640 "$backupFile"
+
+    # Get parameter count for progress bar computations of modular backup scripts.
+    for file in "$BACKUP_RESTORE_SCRIPT_DIR/"*; do
+        if [[ -x "$file" ]]; then
+            count=$("$file" --param-count)
+            ret=$?
+            if [[ $ret == $SUCCESS && "$count" ]]; then
+                ((BACKUP_FILE_LINE_COUNT += $count))
+            else
+                ReportError $INTERNAL_ERROR "Failed to get parameter from \"$file\" "     
+                backup_error_count=$((backup_error_count+1))
+            fi
+        fi
+    done
+    #-------------------------------------------------------------
+    # save firmware revision
+    firmwareRevision="$(/etc/config-tools/get_coupler_details firmware-revision)"
+    ProcessErrBackupOperation $? "Cannot save firmware revision" "$firmwareRevision"
+
+    SaveBackupValue "firmware-revision" "$firmwareRevision" "$backupFile"
+    
+    #-------------------------------------------------------------
+    # process the values from the global list in a loop
+    configParamIndex=0
+    while [ "$configParamIndex" -lt "${#configParam[*]}" ]; do
+
+      # filter param name and function to read it from parameter list
+      paramName=$(echo ${configParam[$configParamIndex]} | cut -d\; -f1)
+      readFunction=$(echo ${configParam[$configParamIndex]} | cut -d\; -f2)
+      # read value from coupler and if no error occured, write it to backup file
+      paramValue="$($readFunction)"
+      read_status=$?
+      paramValue=$(UriEncode $paramValue)
+      if [ "$read_status" = $SUCCESS ]; then
+        SaveBackupValue "$paramName" "$paramValue" "$backupFile"
+      elif [ "$read_status" = $UNKNOWN_PARAMETER ]; then  
+        ReportError "$read_status" "Unknown parameter \"$paramName\" " 
+        backup_error_count=$((backup_error_count+1)) 
+      else
+        ReportError $read_status "Error: \"$read_status\" by reading of parameter \"$paramName\" "
+        backup_error_count=$((backup_error_count+1)) 
+      fi
+
+      configParamIndex=$[$configParamIndex + 1]
+
+    done
+    sync
+    
+    # add other single values to save - read from coupler and save in backup file
+    #
+    # example:
+    # keyboardLayout=/etc/config-tools/get_coupler_details keyboard-layout
+    # SaveBackupValue "keyboard-layout" $keyboardLayout $backupFile
+    #
+    #-------------------------------------------------------------
+    # Save GPRS password, encoded with base64
+    passwd="$(/etc/config-tools/settings_backup_mdmd backup gprs-password)" 
+    paramValue=$(echo "$passwd" | base64)
+    paramValue=$(UriEncode "$paramValue")
+    if [ "$?" = 0 ]; then
+        SaveBackupValue "gprs-password" "$paramValue" "$backupFile"
+    fi
+    
+    #-------------------------------------------------------------
+    # save single dns server - count can differ
+    dnsServerNo=1
+    dnsServer=$(/etc/config-tools/get_dns_server $dnsServerNo)
+    ProcessErrBackupOperation $? "Failed to get dns server" $dnsServerNo
+    while [ -n "$dnsServer" ]; do
+      print_dbg "dnsServer:" $dnsServerNo $dnsServer
+      SaveBackupValue "dns-server-$dnsServerNo" "$dnsServer" "$backupFile"
+      dnsServerNo=$[$dnsServerNo + 1]
+      dnsServer=$(/etc/config-tools/get_dns_server $dnsServerNo)
+      ProcessErrBackupOperation $? "Failed to get dns server" $dnsServerNo
+    done
+    #-------------------------------------------------------------
+    # save network settings
+    interfaceNo=0
+    ports=$(GetPortsList)
+    
+    for port in $ports; do
+
+        #-------------------------------------------------------------
+        # save eth ip configs which must be processed together
+        ethIpConfigType=$(/etc/config-tools/get_eth_config $port config-type)
+        ProcessErrBackupOperation $? "Failed to get eth config type from port:" $port
+        ethState=$(/etc/config-tools/get_eth_config $port state)
+        ProcessErrBackupOperation $? "Failed to get eth config state from port:"  $port
+        SaveBackupValue "ip-config-type-eth${interfaceNo}" "$ethIpConfigType" "$backupFile"
+        SaveBackupValue "ip-state-eth${interfaceNo}"       "$ethState"        "$backupFile"
+
+        # save network settings
+        ethIpAddress=$(/etc/config-tools/get_eth_config $port ip-address)
+        ProcessErrBackupOperation $? "Failed to get eth config ip address from port:" $port
+        ethIpSubnetmask=$(/etc/config-tools/get_eth_config $port subnet-mask)
+        ProcessErrBackupOperation $? "Failed to get eth config subnet mask from port:" $port
+        SaveBackupValue "ip-address-eth${interfaceNo}" "$ethIpAddress" "$backupFile"
+        SaveBackupValue "subnet-mask-eth${interfaceNo}" "$ethIpSubnetmask" "$backupFile"
+
+        #-------------------------------------------------------------
+        # save ethernet settings
+        # 
+        state=$(/etc/config-tools/get_eth_config   $port state)
+        ProcessErrBackupOperation $? "Failed to get eth config state from port:" $port
+        autoneg=`/etc/config-tools/get_eth_config $port autoneg`
+        ProcessErrBackupOperation $? "Failed to get eth config autoneg from port:" $port
+        speed=`/etc/config-tools/get_eth_config   $port speed`
+        ProcessErrBackupOperation $? "Failed to get eth config speed from port:" $port
+        duplex=`/etc/config-tools/get_eth_config  $port duplex`
+        ProcessErrBackupOperation $? "Failed to get eth config duplex from port:" $port
+        SaveBackupValue "eth${interfaceNo}-state" "$state" "$backupFile"
+        SaveBackupValue "eth${interfaceNo}-autoneg" "$autoneg" "$backupFile"
+        SaveBackupValue "eth${interfaceNo}-speed" "${speed}" "$backupFile"
+        SaveBackupValue "eth${interfaceNo}-duplex" "${duplex}" "$backupFile"
+
+        #-------------------------------------------------------------
+        # save dhcp server settings
+        # 
+        state=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-state)
+        ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-state from port:" $port
+        range=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-range)
+        ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-range from port:" $port
+        lease=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-lease-time)
+        ProcessErrBackupOperation $? "Failed to get dhcpd config lease time from port:" $port
+        fixhost=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-fix-host)
+        ProcessErrBackupOperation $? "Failed to get dhcpd config fixhost from port:" $port
+        SaveBackupValue "$port-dhcpd-state" "${state}" "$backupFile"
+        SaveBackupValue "$port-dhcpd-range" "${range}" "$backupFile"
+        SaveBackupValue "$port-dhcpd-lease-time" "${lease}" "$backupFile"
+        SaveBackupValue "$port-dhcpd-fix-host" "${fixhost}" "$backupFile"
+
+        interfaceNo=$[$interfaceNo + 1]
+    done
+ 
+    #-------------------------------------------------------------
+    # save dns service settings
+    state=$(/etc/config-tools/get_dns_service_config -g dns-state)
+    ProcessErrBackupOperation $? "Failed to get dns_service config dns-state from port:" $port
+    mode=$(/etc/config-tools/get_dns_service_config -g dns-mode)
+    ProcessErrBackupOperation $? "Failed to get dns_service config dns-mode from port:" $port
+    fixhosts=$(/etc/config-tools/get_dns_service_config -g dns-fix-host)
+    ProcessErrBackupOperation $? "Failed to get dns_service config fix-host from port:" $port
+    SaveBackupValue "dns-state" "${state}" "$backupFile"
+    SaveBackupValue "dns-mode" "${mode}" "$backupFile"
+    SaveBackupValue "dns-fixhosts" "${fixhosts}" "$backupFile"
+
+    #-------------------------------------------------------------
+    # save snmp v1/v2c trap configs
+    trapReceiverNo=1
+    address=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-address $trapReceiverNo`
+    ProcessErrBackupOperation $? "v1-v2c-trap-receiver-address for trapReceiverNo:" $trapReceiverNo
+
+    while [ -n "$address" ]; do
+      communityName=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-community-name $trapReceiverNo`
+      ProcessErrBackupOperation $? "v1-v2c-trap-receiver-community-name from :" $trapReceiverNo
+      version=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-version $trapReceiverNo`
+      ProcessErrBackupOperation $? "v1-v2c-trap-receiver-version from :" $trapReceiverNo
+
+      SaveBackupValue "v1-v2c-trap-receiver-address-${trapReceiverNo}" "$address" "$backupFile"
+      SaveBackupValue "v1-v2c-trap-receiver-community-name-${trapReceiverNo}" "$communityName" "$backupFile"
+      SaveBackupValue "v1-v2c-trap-receiver-version-${trapReceiverNo}" "$version" "$backupFile"
+
+      trapReceiverNo=$[$trapReceiverNo + 1]
+      address=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-address $trapReceiverNo`
+      ProcessErrBackupOperation $? "v1-v2c-trap-receiver-address from :" $trapReceiverNo
+    done
+    #-------------------------------------------------------------
+    #save snmp v3 configs
+    userNo=1
+    authName=`/etc/config-tools/get_snmp_data v3-auth-name $userNo`
+    ProcessErrBackupOperation $? "v3-auth-name for userNo:" $userNo
+    while [ -n "$authName" ]; do
+      authType=`/etc/config-tools/get_snmp_data v3-auth-type $userNo`
+      ProcessErrBackupOperation $? " v3-auth-name for userNo:" $userNo
+      authKey=`/etc/config-tools/get_snmp_data v3-auth-key $userNo`
+      ProcessErrBackupOperation $?"v3-auth-key  for userNo:" $userNo
+      privacy=`/etc/config-tools/get_snmp_data v3-privacy $userNo`
+      ProcessErrBackupOperation $? "v3-privacy for userNo:" $userNo
+      privacyKey=`/etc/config-tools/get_snmp_data v3-privacy-key $userNo`
+      ProcessErrBackupOperation $? "v3-privacy-key for userNo:" $userNo
+      notificationReceiver=`/etc/config-tools/get_snmp_data v3-notification-receiver $userNo`
+      ProcessErrBackupOperation $? "v3-notification-receiver for userNo:" $userNo
+
+      SaveBackupValue "v3-user-auth-name-${userNo}" "$authName" "$backupFile"
+      SaveBackupValue "v3-user-auth-type-${userNo}" "$authType" "$backupFile"
+      SaveBackupValue "v3-user-auth-key-${userNo}" "$authKey" "$backupFile"
+      SaveBackupValue "v3-user-privacy-${userNo}" "$privacy" "$backupFile"
+      SaveBackupValue "v3-user-privacy-key-${userNo}" "$privacyKey" "$backupFile"
+      SaveBackupValue "v3-user-notification-receiver-${userNo}" "$notificationReceiver" "$backupFile"
+
+      userNo=$[$userNo + 1]
+      authName=`/etc/config-tools/get_snmp_data v3-auth-name $userNo`
+    done
+
+    count=0
+    while read line; do
+      SaveBackupValue "wbm-user-${count}" $(/etc/config-tools/urlencode -e $line) "$backupFile"
+      count=$((count+1))
+    done < /etc/lighttpd/lighttpd-htpasswd.user
+    ProcessErrBackupOperation $? "Cannot save to lighttpd-htpasswd.user"
+
+    # admin user password hash
+    SaveBackupValue "linux-admin-pwd-info" $(/etc/config-tools/urlencode -e $(/etc/config-tools/get_user_hash --shadow-get-info admin)) "$backupFile"
+
+    # backup firewall settings
+    if [[ -x /etc/config-tools/firewall ]]; then
+        /etc/config-tools/firewall firewall --backup >> "$backupFile"
+        ProcessErrBackupOperation $? "Failed to backup firewall settings"
+    else
+        ReportError $INTERNAL_ERROR "Invalid firewall config tool"
+        backup_error_count=$((backup_error_count+1))          
+    fi
+
+    # backup general firewall state
+    if [[ -x /etc/config-tools/firewall ]]; then
+        general_firewall_state=$(/etc/config-tools/firewall firewall --is-enabled)
+        ProcessErrBackupOperation $? "Failed to get firewall_state"
+        SaveBackupValue "general-firewall-state" $general_firewall_state "$backupFile"
+    else
+        ReportError $INTERNAL_ERROR "Invalid firewall config tool"
+        backup_error_count=$((backup_error_count+1))       
+    fi
+    
+    # backup VPN settings
+    if [[ -x /etc/config-tools/settings_backup_vpn ]]; then
+        /etc/config-tools/settings_backup_vpn backup >> "$backupFile"
+        ProcessErrBackupOperation $? "Failed to backup vpn settings"
+    else 
+        ReportError $INTERNAL_ERROR "Invalid vpn config tool"
+        backup_error_count=$((backup_error_count+1))
+    fi
+    
+    # backup Check-System settings
+    if [[ -x /usr/sbin/settings_backup_checksys ]]; then
+        /usr/sbin/settings_backup_checksys backup >> "$backupFile"
+        ProcessErrBackupOperation $? "Failed to backup Check-System settings"
+    else 
+        ReportError $INTERNAL_ERROR "Invalid Check-System config tool /usr/sbin/settings_backup_checksys backup"
+        backup_error_count=$((backup_error_count+1))
+    fi
+    
+
+    # Save parameters of modular backup scripts
+    for file in "$BACKUP_RESTORE_SCRIPT_DIR/"*; do
+        if [[ -x $file ]]; then
+            $file "--save" "$backupFile"
+            ret=$?
+            if [[ $ret != $SUCCESS ]]; then
+                ReportError $INTERNAL_ERROR "Cannot save parameters for \"$file\" "
+                backup_error_count=$((backup_error_count+1))
+            fi
+        fi
+    done
+
+    # Save packets versions
+    echo "#PACKET VERSION" >> "$backupFile"
+    if hash opkg 2>/dev/null; then
+        opkg list-installed | grep -e ".* - " | sed -e 's/ - /=/' -e 's/^/#packet: /' >> "$backupFile"
+    else
+        ReportError $INTERNAL_ERROR "Program 'opkg' is not found"
+    fi
+
+    # end of other values to save
+
+    report_info "Setting backup is done, \"$backup_error_count\" backup error(s) found" "$LOG_PREFIX"
+
+
+    # remove file with last error (at this point we are not interested in errors of the single scripts)
+    rm "$LAST_ERROR_FILENAME" > /dev/null 2> /dev/null
+  fi
+  sleep 2 # let tail -f below get the last lines of the file
+  ) &
+  pid_backup=$!
+
+  # display progress bar 
+  if [[ "$(which pv)" != "" ]]; then
+
+    if [[ "$RELEASE_VERSION" == "yes" ]]; then
+      RestoreMessageOutput
+    fi
+    (tail -f "$backupFile" | pv -N "settings" -l -s $BACKUP_FILE_LINE_COUNT -pt -w 70 >/dev/null ) &
+
+    # wait for completion of backup, kill progress bar when finished
+    wait $pid_backup 
+    killall tail
+  fi
+
+#unknown operation
+else
+  status=$INVALID_PARAMETER
+fi
+
+sync
+
+exit $status

@@ -1,0 +1,127 @@
+## SECTION=networking
+menuconfig PUREFTPD
+	tristate
+	prompt "pureftpd                      "
+	select LIBC_CRYPT
+  select OPENSSL if PUREFTPD_SSL
+	help
+	  Pure-FTPd is a fast, production-quality, standards-conformant
+	  FTP server based upon Troll-FTPd. Features include chrooted
+	  home directories, virtual domains, built-in 'ls', anti-warez
+	  system, configurable ports for passive downloads, FXP protocol,
+	  bandwidth throttling, ratios, fortune files, Apache-like log
+	  files, fast standalone mode, atomic uploads, text / HTML /
+	  XML real-time status report, virtual users, virtual quotas,
+ 	  privilege separation, SSL/TLS and more.
+
+if PUREFTPD
+
+config PUREFTPD_ARGS
+	string
+	default "-H"
+	prompt "daemon command-line args"
+
+config PUREFTPD_UPLOADSCRIPT
+	bool
+	prompt "support upload scripts"
+	help
+	  Allow running an external script after an upload
+
+	  Do not enable this option if no upload script is defined.
+	  Otherwise pure-ftpd will hang waiting for pure-uploadscript to
+	  start, because the -o switch to the server is set when this
+	  option is enabled.
+
+
+if PUREFTPD_UPLOADSCRIPT
+
+config PUREFTPD_UPLOADSCRIPT_ARGS
+	string
+	default "-u 0 -g 0"
+	prompt "upload helper args"
+
+config PUREFTPD_UPLOADSCRIPT_SCRIPT
+	string
+	prompt "script path"
+	help
+	  Full path of the upload script
+	  Must not be left emtpy or unconfigured
+
+endif
+
+comment "Warning: /etc/pure-ftpd.conf is not processed by pure-ftpd@.service"
+depends on INITMETHOD_SYSTEMD
+
+config PUREFTPD_INSTALL_CUSTOM_CONFIG_FILE
+    bool
+    default y
+    depends on !INITMETHOD_SYSTEMD
+    prompt "Install /etc/pure-ftpd.conf"
+    help
+     pureftpd is configured by command-line options.
+     /etc/pure-ftpd.conf has to be parsed manually.
+     Depending on the init system (sysv/systemd) different
+     approaches may be driven.
+     NOTE: currently there is no solution for systemd.
+
+comment "build options   ---"
+
+config PUREFTPD_VIRTUALHOSTS
+	bool
+	prompt "virtual hosts"
+	help
+	  Handle virtual servers on different IP addresses
+
+config PUREFTPD_SSL
+  bool
+  prompt "ssl"
+  select LIGHTTPD_HTTPS 
+  help
+    Compile with SSL support (use certificate from lighttpd package)
+
+config PUREFTPD_DIRALIASES
+	bool
+	prompt "directory aliases"
+	help
+	  Enable directory aliases
+
+config PUREFTPD_MINIMAL
+	bool
+	prompt "minimal ftpd"
+	default y
+	help
+	  To efficiently use features of modern FTP clients, Pure-FTPd implements
+	  the basics of the FTP protocol, with many extensions (SITE IDLE,
+	  SITE CHMOD, MLSD, ...) . Using this switch, these extensions won't be
+	  compiled in. Also, there will be no standalone server, no lookup for
+	  user/group names, no humor and no ASCII support. But the executable
+	  file size will be smaller than in a default installation. Regular
+	  expressions are still working.
+
+# FIXME: Check if this is true: pure-ftpd cannot be started standalone when a minimal
+# server was built. Seems not yet. If yes, disable standalone script, when a minimal
+# server was built!
+
+config PUREFTPD_SHRINK_MORE
+	bool
+	depends on PUREFTPD_MINIMAL
+	prompt "shrink more"
+	help
+	  If you still want to reduce the size, use also this switch and don't
+	  include the globbing code. It reduces the memory footprint but regular
+	  expressions won't work any more (things like 'ls *.rpm').
+	  But note: Globbing is a nice feature and for Windows clients most of
+	  time required!
+
+config PUREFTPD_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/pureftpd"
+
+config PUREFTPD_SYSTEMD_UNIT
+	bool
+	default y
+	depends on SYSTEMD
+	prompt "install systemd unit files for pure-ftpd"
+
+endif

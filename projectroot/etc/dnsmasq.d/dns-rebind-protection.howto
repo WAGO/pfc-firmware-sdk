@@ -1,0 +1,37 @@
+Howto Sitch On Protection Against The Dns Rebind Attack
+
+The dnsmasq name server can be configured to protect against the dns rebind
+attack. In this type of attack a hacked upstream name server sends local ip
+addresses to a web browser running a malicious script. This enables the script
+to explore systems on the local subnet of the machine running the web browser
+even if behind a firewall.
+
+WAGO has decided to switch off the protection to maximize the useability of the
+name server feature. Otherwise the dnsmasq name server of a WAGO controller
+would block responses from intranet name servers if they contain ip addresses of
+the private ip ranges, typically used for intranets.
+
+If need arises follow the steps below to enable the protection.
+
+1. Connect to the controller via ssh or serial connection and login as root.
+   ssh connection to the controller might need to be enabled via Web-based
+   Management. Select Ports and Services -> SSH from the navigation panel to
+   check
+
+2. Open the file /etc/dnsmasq.d/dnsmasq_default.conf in an editor, e. g. by
+   entering on the command line
+   
+        vi /etc/dnsmasq.d/dnsmasq_default.conf
+
+3. Locate the line with config option stop-dns-rebind. Editor command for
+   vi is /stop-dns-rebind
+
+4. Delete the # sign at the beginning of the stop-dns-rebind config option
+   (Move the cursor to the # sign and type x)
+
+5. Save the change and close the editor (by typing ZZ). If you want to leave the
+   editor discarding any changes, hit ESC, then type :q!
+
+6. Restart dnsmasq. Type /etc/init.d/dnsmasq restart on the command line.
+
+7. Log off

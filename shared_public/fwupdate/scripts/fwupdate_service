@@ -1,0 +1,567 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   /etc/init.d/fwupdate
+#
+# Brief:    System V init script for WAGO firmware update.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Load firmware update definitions and functions.
+readonly WAGO_ST_DIR="/usr/sbin"
+if [ ! -f "$WAGO_ST_DIR/fwupdate_common" ]; then
+    echo "Missing dependency fwupdate_common"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_common"
+
+
+# General definitions
+readonly FAILEXIT=$INTERNAL_ERROR
+readonly WAGO_FWUPDATE_FRONTEND="/etc/config-tools/fwupdate"
+
+
+# Function to print usage to stdout.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+usage()
+{
+    echo "fwupdate usage: $0 [start|stop|restart|status]"
+}
+
+# Function to start FW-Update functionality.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_start()
+{
+    local RESULT=0
+
+    # Check boot source
+    if [ "$(/etc/config-tools/get_filesystem_data active-partition-medium)" == "sd-card" ]; then
+        fwupdate_report_error "FW-Update is currently not usable when running from SD card, this is a permanent error"
+        return $WAGO_FW_UPDATE_UNEXPECTED_SYSTEM_CONFIG
+    fi
+
+    # TODO: Check if already started
+
+    # Try to backup/clean persistence data on panic boot
+    if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
+        mv "$WAGO_FW_UPDATE_DATA" "${WAGO_FW_UPDATE_DATA}.panic_$($DATE_STRING)"
+        fwupdate_report_error "Found panic state on start: $(cat "$WAGO_FW_UPDATE_PANIC_FILE")"
+    fi
+
+    # Create working directory and check for already present settings file
+    mkdir -p "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
+    chgrp $WAGO_FW_UPDATE_GROUP "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
+    chmod g+rw "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
+    if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
+        fwupdate_create_lock
+        if [ "$?" -ne "0" ]; then
+            RESULT=$INTERNAL_ERROR
+        fi
+    else
+        fwupdate_data_init
+        if [ "$?" -ne "0" ]; then
+            RESULT=$INTERNAL_ERROR
+        else
+            fwupdate_unchecked_progress_update 10 false
+            RESULT=$?
+        fi
+    fi
+
+    # Check current state
+    local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+    local SUB_STATE="$WAGO_FW_UPDATE_INVALID_SUB_STATE"
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_shared_lock
+        if [ "$?" -ne "0" ]; then
+            fwupdate_report_error "Failed to obtain shared lock"
+            RESULT=$INTERNAL_ERROR
+        else
+            STATE=$(fwupdate_get_state)
+            if [ "$?" -ne "0" ]; then
+                fwupdate_report_error "Error while try to get current state"
+                RESULT=$INTERNAL_ERROR
+            else
+                SUB_STATE=$(fwupdate_get_sub_state)
+                if [ "$?" -ne "0" ]; then
+                    fwupdate_report_error "Error while try to get current sub state"
+                    RESULT=$INTERNAL_ERROR
+                fi
+            fi
+            fwupdate_release_lock
+        fi
+    fi
+    
+    # skip check in case panic exists to avoid reboot loop
+    if [[ $RESULT -eq 0 ]] && [[ ! -e "$WAGO_FW_UPDATE_PANIC_FILE" ]]; then
+        # Check if correct system has booted
+        fwupdate_service_check_booted_system "$STATE" "$SUB_STATE"
+        # Note! the check of booted system panic if fails
+    fi
+
+    # Check if timeout watcher shall be reactivated
+    # On error (fwupdate_get_absolute_timeout failed) no timeout watcher should be started
+    if [ "$(fwupdate_get_timeout_synchronized)" != "" ]; then
+        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "timeout-watcher"
+    fi
+
+    # Start automatic actions based on current state
+    # Don't block further startup, do it in background
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_service_auto_actions "$STATE" "$SUB_STATE" &
+    fi
+
+    return $RESULT
+}
+
+# Function to check booted system number against the internal expectation.
+# Note: in case of bad system number fwupdat_panic is called -> reboots the
+#       system.
+#
+# Param 1: current fwupdate state
+# Param 2: current fwupdate substate
+#
+# Return: 0 on success, otherwise the functino will not return
+#-----------------------------------------------------------------------------#
+fwupdate_service_check_booted_system()
+{
+    local current_state=${1:-}
+    local current_substate=${2:-}
+    local active_sys=0
+
+    active_sys=$($WAGO_CT_DIR/get_systeminfo active-system-number)
+    if [[ $? -eq 0 ]]; then
+        local panic_flag=1
+        local old_sys=0
+        local new_sys=0
+        local update_started_substate_flag=1
+        
+        if ! fwupdate_shared_lock; then
+            fwupdate_panic "Unable to acquire shared lock to check system numbers"
+        else
+            old_sys=$(fwupdate_get_old_system_number)
+            new_sys=$(fwupdate_get_new_system_number)
+            fwupdate_release_lock
+        fi
+        if [[ $active_sys -eq $old_sys ]]; then
+            [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_PREINSTALL_SUB_STATE" ]] ||
+            [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_RAUCINSTALL_SUB_STATE" ]] ||
+            [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_INSTALLED_SUB_STATE" ]]
+            update_started_substate_flag=$?
+              
+            if [[ "$current_state" == "$WAGO_FW_UPDATE_INACTIVE_STATE" ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_INIT_STATE" ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_STARTED_STATE" && $update_started_substate_flag -eq 0 ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_PREPARED_STATE" ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_REVERT_STATE" ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_ERROR_STATE" ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_FINISHED_STATE" ]]; then
+                panic_flag=0
+            fi
+        fi
+        if [ $active_sys -eq $new_sys ]; then
+            [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_FIRSTBOOT_SUB_STATE" ]] ||
+            [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_SETTINGSRESTORE_SUB_STATE" ]] ||
+            [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_SETTINGSBOOT_SUB_STATE" ]] ||
+            [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_SELFCHECK_SUB_STATE" ]]
+            update_started_substate_flag=$?
+
+            if [[ "$current_state" == "$WAGO_FW_UPDATE_STARTED_STATE" && $update_started_substate_flag -eq 0 ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_UNCONFIRMED_STATE" ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_CONFIRMED_STATE" ]] ||
+               [[ "$current_state" == "$WAGO_FW_UPDATE_FINISHED_STATE" ]]; then
+                panic_flag=0
+            fi
+        fi
+        if [[ $panic_flag -ne 0 ]]; then
+            fwupdate_panic "Unexpected system booted! active system: $active_sys | old system: $old_sys | new system: $new_sys | state: $current_state"
+        fi
+    else
+        fwupdate_panic "Failed to get active system number!"
+    fi
+    return 0
+}
+
+# Function to stop FW-Update functionality.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_stop()
+{
+    local RESULT=0
+
+    local FWUPDATE_STATE
+    FWUPDATE_STATE="$(fwupdate_service_status)"
+    RESULT=$?
+    if [ "$RESULT" -eq "0" ]; then
+        if [ "$FWUPDATE_STATE" == "$WAGO_FW_UPDATE_INACTIVE_STATE" ]; then
+            fwupdate_data_destroy
+            RESULT=$?
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to start automatic FW-Update actions.
+#
+# Param 1: Current state of FW-Update to act on
+# Param 2: Current sub state of FW-Update to act on
+#
+# Return: 0 on success, abort and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_auto_actions()
+{
+    local STATE="$1"
+    local SUB_STATE="$2"
+    
+    # Check if we are started after early interruption
+    if [ "$STATE" == "$WAGO_FW_UPDATE_INIT_STATE" ]; then
+        if [ "$SUB_STATE" == "$WAGO_FW_UPDATE_INIT_READY_FOR_MAINTENANCE_SUB_STATE" ]; then
+            # Everything needed for FW-Update is done, set checkpoint
+            fwupdate_checkpoint_prepared true
+        else
+            # Early interruption, abort
+            fwupdate_abort 100 "Started in early \"$STATE\" state, $WAGO_CT_SYSTEM_MODULE seems to be interrupted"
+        fi
+    fi
+
+    # Check if we are started in newly installed firmware
+    if [ "$STATE" == "$WAGO_FW_UPDATE_STARTED_STATE" ]; then
+        fwupdate_report_info "$WAGO_CT_SYSTEM_MODULE active, try to continue update operations"
+
+        # Check for first (firmware installed) boot
+        if [ "$SUB_STATE" == "$WAGO_FW_UPDATE_STARTED_FIRSTBOOT_SUB_STATE" ] ||
+           [ "$SUB_STATE" == "$WAGO_FW_UPDATE_STARTED_SETTINGSRESTORE_SUB_STATE" ]; then
+            fwupdate_service_first_boot "$STATE" "$SUB_STATE"
+
+        # Check for second (settings restored) boot
+        elif [ "$SUB_STATE" == "$WAGO_FW_UPDATE_STARTED_SETTINGSBOOT_SUB_STATE" ]; then
+            fwupdate_service_second_boot "$STATE" "$SUB_STATE"
+
+        # Check for interruption on selftest
+        elif [ "$SUB_STATE" == "$WAGO_FW_UPDATE_STARTED_SELFCHECK_SUB_STATE" ]; then
+            fwupdate_abort 100 "Started while selftest was active"
+
+        # Early interruption, abort
+        else
+            fwupdate_abort 100 "Started in early \"$STATE\" state, $WAGO_CT_SYSTEM_MODULE seems to be interrupted"
+        fi
+    fi
+
+    # Check if we are started after we are confirmed
+    if [ "$STATE" == "$WAGO_FW_UPDATE_CONFIRMED_STATE" ]; then
+        if [ "$SUB_STATE" == "$WAGO_FW_UPDATE_CONFIRMED_PREPARED_SUB_STATE" ]; then
+            # Finally done
+            fwupdate_checkpoint_finished true
+        else
+            fwupdate_abort 100 "Started in \"$STATE\" state, $WAGO_CT_SYSTEM_MODULE seems to be interrupted on cleanup"
+        fi
+    fi
+
+    # Check if we are started for rollback
+    if [ "$STATE" == "$WAGO_FW_UPDATE_REVERT_STATE" ] ||
+       [ "$STATE" == "$WAGO_FW_UPDATE_PANIC_STATE" ]; then
+        fwupdate_report_info "$WAGO_CT_SYSTEM_MODULE active, cancellation in progress"
+        if [ "$SUB_STATE" == "$WAGO_FW_UPDATE_PANIC_SUB_STATE" ]; then
+            fwupdate_revert "$WAGO_FW_UPDATE_PANIC_STATE" "$WAGO_FW_UPDATE_PANIC_SUB_STATE"
+        elif [ "$SUB_STATE" == "$WAGO_FW_UPDATE_REVERT_CANCELREQUEST_SUB_STATE" ]; then
+            fwupdate_revert
+            if [ "$?" -ne "0" ]; then
+                fwupdate_panic "Unable to handle FW-Update rollback for cancel request"
+            fi
+        elif [ "$SUB_STATE" == "$WAGO_FW_UPDATE_REVERT_FINISH_SUB_STATE" ]; then
+            fwupdate_service_finish_rollback "$STATE" "$SUB_STATE"
+            if [ "$?" -ne "0" ]; then
+                fwupdate_panic "Unable to finish FW-Update rollback"
+            fi
+        else
+            fwupdate_panic "Unexpected sub state \"$SUB_STATE\" on cancelation"
+        fi
+    fi
+
+    # Check if we are started in an end state
+    if [ "$STATE" == "$WAGO_FW_UPDATE_FINISHED_STATE" ] ||
+       [ "$STATE" == "$WAGO_FW_UPDATE_ERROR_STATE"    ]; then
+        fwupdate_stop
+    fi
+
+    return 0
+}
+
+# Function to be called on first boot after firmware installation.
+#
+# Param 1: Current state of FW-Update to act on
+# Param 2: Current sub state of FW-Update to act on
+#
+# Return: 0 on success, abort and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_first_boot()
+{
+    local STATE="$1"
+    local SUB_STATE="$2"
+
+    # Wait for default/factory settings have been created
+    local DEFAULT_SETTINGS_DIR="/etc/config-tools/default-settings"
+    local DEFAULT_SETTINGS_FILENAME="default_settings"
+    local DEFAULT_SETTINGS_TIMEOUT=60
+    fwupdate_report_info "Wait for default/factory settings have been created (timeout ${DEFAULT_SETTINGS_TIMEOUT}s)"
+    while [ ! -f "$DEFAULT_SETTINGS_DIR/$DEFAULT_SETTINGS_FILENAME.md5" ] && [ "$DEFAULT_SETTINGS_TIMEOUT" -gt "0" ]; do
+        sleep 1
+        DEFAULT_SETTINGS_TIMEOUT=$(( $DEFAULT_SETTINGS_TIMEOUT - 1 ))
+    done
+    if [ "$DEFAULT_SETTINGS_TIMEOUT" -le "0" ] && [ ! -f "$DEFAULT_SETTINGS_DIR/$DEFAULT_SETTINGS_FILENAME.md5" ]; then
+        fwupdate_report_warning "No default/factory settings created within timeout"
+    fi
+
+    # Update sub state
+    fwupdate_checkpoint_sub_state "$WAGO_FW_UPDATE_STARTED_SETTINGSRESTORE_SUB_STATE" 850 true
+
+    # Restore accounts
+    fwupdate_service_restore_accounts
+    fwupdate_unchecked_progress_update 900 true
+
+    # Restore settings
+    fwupdate_service_restore_settings
+    fwupdate_checkpoint_sub_state "$WAGO_FW_UPDATE_STARTED_SETTINGSBOOT_SUB_STATE" 910 true
+
+    # Remove settings and trigger reboot to apply restored settings/accounts
+    rm -f "$WAGO_FW_UPDATE_SETTINGS_FILE" "$WAGO_FW_UPDATE_FIRST_BOOT_MARKER"
+    rm -rf "$WAGO_FW_UPDATE_ACCOUNTS_DIR"
+    sync
+    fwupdate_reboot
+
+    return 0
+}
+
+# Function to be called on second boot after firmware installation.
+#
+# Param 1: Current state of FW-Update to act on
+# Param 2: Current sub state of FW-Update to act on
+#
+# Return: 0 on success, abort and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_second_boot()
+{
+    local STATE="$1"
+    local SUB_STATE="$2"
+    local RESULT=0
+
+    # Update sub state
+    fwupdate_checkpoint_sub_state "$WAGO_FW_UPDATE_STARTED_SELFCHECK_SUB_STATE" 920 true
+    RESULT=$?
+
+    # Initiate selftest
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_service_selftest
+    fi
+
+    # Update state to "unconfigured"
+    # if selftest was successful (-> first successful boot with restored settings + selftest okay)
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_checkpoint_unconfirmed true
+    fi
+
+    return 0
+}
+
+# Function to perform a selftest after firmware installation.
+#
+# Return: 0 on success, abort and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_selftest()
+{
+    fwupdate_selftest
+    if [ "$?" -ne "0" ]; then
+        fwupdate_abort 900 "Selftest was not successful (return code $RESULT)"
+    fi
+
+    return 0
+}
+
+# Function to restore settings after firmware installation.
+#
+# Return: 0 on success, abort and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_restore_settings()
+{
+    if fwupdate_shared_lock; then
+        local skip_settings_flag=false
+        skip_settings_flag=$(fwupdate_get_skip_settings_flag)
+        fwupdate_release_lock
+        if $skip_settings_flag; then
+            fwupdate_report_info "Setting restore skipped (flag is set)."
+            return 0
+        fi
+    fi
+
+    # Check for settings mod file (which will be used instead of normal settings file by definition)
+    local SETTINGS_FILE="$WAGO_FW_UPDATE_SETTINGS_FILE"
+    if [[ -e "$WAGO_FW_UPDATE_SETTINGS_MOD_FILE" ]]; then
+        fwupdate_report_info "Found settings mod in file system"
+        SETTINGS_FILE="$WAGO_FW_UPDATE_SETTINGS_MOD_FILE"
+    fi
+
+    # Check if file exists and restore settings
+    if [[ ! -e "$SETTINGS_FILE" ]]; then
+        fwupdate_abort 500 "Can not find settings file \"$SETTINGS_FILE\""
+    else
+        fwupdate_report_info "Restore settings from \"$SETTINGS_FILE\""
+        "$WAGO_CT_DIR/settings_backup" restore "$SETTINGS_FILE"
+        if [[ "$?" -ne "0" ]]; then
+            fwupdate_abort 500 "Settings restore failed (return code $RESULT)"
+        fi
+    fi
+
+    return 0
+}
+
+# Function to restore user accounts after firmware installation.
+#
+# Return: 0 on success, abort and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_restore_accounts()
+{
+    if fwupdate_shared_lock; then
+        local skip_settings_flag=false
+        skip_settings_flag=$(fwupdate_get_skip_settings_flag)
+        fwupdate_release_lock
+        if $skip_settings_flag; then
+            fwupdate_report_info "Accounts restore skipped (flag is set)."
+            return 0
+        fi
+    fi
+
+    # Check if accounts backup directory exists and restore accounts
+    if [ ! -d "$WAGO_FW_UPDATE_ACCOUNTS_DIR" ]; then
+        fwupdate_abort 500 "Can not find account settings directory \"$WAGO_FW_UPDATE_ACCOUNTS_DIR\""
+    else
+        fwupdate_report_info "Restore account settings from \"$WAGO_FW_UPDATE_ACCOUNTS_DIR\""
+        "$WAGO_ST_DIR/settings_backup_accounts" restore "$WAGO_FW_UPDATE_ACCOUNTS_DIR"
+        if [ "$?" -ne "0" ]; then
+            fwupdate_abort 500 "Accounts restore failed (return code $RESULT)"
+        fi
+    fi
+
+    return 0
+}
+
+# Function to finish a rollback after a canceled or aborted FW-Update.
+#
+# Return: 0 on success, panic and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_finish_rollback()
+{
+    local STATE="$1"
+    local SUB_STATE="$2"
+    local RESULT=0
+
+    if ! fwupdate_exclusive_lock; then
+        fwupdate_panic "Unable to obtain lock while finishing rollback"
+    else
+
+        # Clean up persistent data if any but not state file
+        rm -rf "$WAGO_FW_UPDATE_SETTINGS_FILE"
+        rm -rf "$WAGO_FW_UPDATE_ACCOUNTS_DIR"
+        rm -rf "$WAGO_FW_UPDATE_SETTINGS_MOD_FILE"
+
+        fwupdate_release_lock
+    fi
+
+    # Go back to normal operation if configured for error state
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_start_normal_operation_on_error
+    fi
+
+    # Set final state
+    fwupdate_checkpoint_error true
+
+    # Check FW-Update finish result
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_panic "Unable to finish rollback"
+    fi
+
+    fwupdate_report_info "Rollback finished"
+
+    # Stop fwupdate service
+    fwupdate_stop
+
+    return 0
+}
+
+# Function to extract FW-Update main state from config tool call.
+#
+# Return: 0 on success, panic and exit process otherwise
+#-----------------------------------------------------------------------------#
+fwupdate_service_status()
+{
+    local RESULT=0
+    local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+
+    STATE=$($WAGO_FWUPDATE_FRONTEND status --quiet --text | grep "status" | cut -d= -f2)
+    if [ "$?" -ne "0" ]; then
+        RESULT=$INTERNAL_ERROR
+    else
+        echo "$STATE"
+    fi
+
+    return $RESULT
+}
+
+# Main switch
+#-----------------------------------------------------------------------------#
+case $1 in
+        start)
+            echo "Starting $WAGO_CT_SYSTEM_MODULE..."
+            fwupdate_service_start
+            if [ "$?" -ne "0" ]; then
+                echo "failed"
+                exit $FAILEXIT
+            else
+                echo "done"
+            fi
+            ;;
+        stop)
+            echo "Stopping $WAGO_CT_SYSTEM_MODULE..."
+            fwupdate_service_stop
+            if [ "$?" -ne "0" ]; then
+                echo "failed"
+                exit $FAILEXIT
+            else
+                echo "done"
+            fi
+            ;;
+        restart)
+            fwupdate_service_stop
+            if [ "$?" -eq "0" ]; then
+                fwupdate_service_start
+            fi
+            if [ "$?" -ne "0" ]; then
+                exit $FAILEXIT
+            fi
+            ;;
+        status)
+            fwupdate_service_status
+            if [ "$?" -ne "0" ]; then
+                exit $FAILEXIT
+            fi
+            ;;
+        *)
+            usage
+            exit $FAILEXIT
+            ;;
+esac

@@ -1,0 +1,324 @@
+--- libModbus-0.9.20.base/src/modbus-ip-slave.c	2016-05-02 16:06:22.952347000 +0200
++++ libModbus-0.9.20/src/modbus-ip-slave.c	2016-05-02 16:24:52.101336714 +0200
+@@ -17,6 +17,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
++#include <pthread.h>
+ 
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
+@@ -122,20 +123,26 @@
+ 	struct mb_tcp_header *hdr = &mbp.tcp_header;
+ 	struct mb_api_object *obj = &mbp.api_object;
+ 	struct timeval timeout;
+-	char thread_name[15 + ((sizeof(int)>>2)*5)];
+-	int res, sd = mbt->sd;
++	int res;
++	int sd = mbt->sd;
+ 	ssize_t rdlen, sndlen, objlen, sentlen;
+ 	fd_set rdfds;
++	char szThreadName[32];
+ 
+-	if(0 < snprintf(thread_name, 20, "mb_tcp_work_%d", sd))
+-	{
+-		pthread_setname_np(pthread_self(), thread_name);
+-	}
+-	else
++	// set thread priority here
++	struct sched_param schedp;
++	pthread_t thread = pthread_self();
++	memset(&schedp,0,sizeof(schedp));
++	schedp.sched_priority = MB_THREAD_PRIORITY;
++	pthread_setschedparam(thread, MB_SCHED_POLICY, &schedp);
++
++	if(0 < snprintf(szThreadName, sizeof(szThreadName), "FB_MBS_TCP_%d", sd))
+ 	{
+-		pthread_setname_np(pthread_self(), "mb_tcp_work_x");
++	  sprintf(szThreadName, "FB_MBS_TCP_x");
+ 	}
+-	mb_log(mbt->mbs, MB_LOG_CONNECT, "modbus_tcp_work: start %d\n", sd);
++	pthread_setname_np(thread, szThreadName);
++
++	mb_log(mbt->mbs, MB_LOG_THREAD, "%s: start\n", szThreadName);
+ 
+ 	while (!mbt->mbs->stop) {
+ 
+@@ -201,7 +208,7 @@
+ 
+ 		mbt->mbs->events++;
+ 	}
+-	mb_log(mbt->mbs, MB_LOG_CONNECT, "modbus_tcp_work: stop %d\n", sd);
++	mb_log(mbt->mbs, MB_LOG_THREAD, "%s: stop\n", szThreadName);
+ 	free_tcp_work_thread(mbt);
+ 
+ 	pthread_exit(NULL);
+@@ -242,12 +249,18 @@
+ 	mbs->act_connections++;
+ 	pthread_mutex_unlock(&mbs->lock);
+ 
+-	pthread_attr_init(&attr);
+-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+-	pthread_attr_setstacksize(&attr,DEFAULT_TASK_STACKSIZE);
+-	res = pthread_create(&mbt->thread, &attr, modbus_tcp_work, mbt);
++  res = pthread_attr_init(&attr);
++  if (res == 0) {
++    res = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
++    if (res == 0) {
++      res = pthread_attr_setstacksize(&attr, MB_STACKSIZE);
++    }
++    if (res == 0) {
++      res = pthread_create(&mbt->thread, &attr, modbus_tcp_work, mbt);
++    }
+ 
+-	pthread_attr_destroy(&attr);
++    (void)pthread_attr_destroy(&attr);
++  }
+ 
+ 	if (res < 0) {
+ 		free_tcp_work_thread(mbt);
+@@ -302,8 +315,16 @@
+ 	struct sockaddr *saddr = (struct sockaddr *) &sinc;
+ 	socklen_t addrlen = sizeof(sinc);
+ 	int csd, sd;
++	char const szThreadName[11] = "FB_MBS_TCP";
+ 
+-	pthread_setname_np(pthread_self(), "mb_tcp_accept");
++	// set thread priority here
++	struct sched_param schedp;
++	pthread_t thread = pthread_self();
++	memset(&schedp,0,sizeof(schedp));
++	schedp.sched_priority = MB_THREAD_PRIORITY;
++	pthread_setschedparam(thread, MB_SCHED_POLICY, &schedp);
++
++	pthread_setname_np(thread, szThreadName);
+ 
+ 	mbs->stop = 0;
+ 	mbs->status = MODBUS_THREAD_STARTING;
+@@ -318,12 +339,12 @@
+ 	mbs->sd = sd;
+ 	mbs->childs = NULL;
+ 
+-	mb_log(mbs, MB_LOG_THREAD, "modbus_tcp_socket: start accept loop\n");
++	mb_log(mbs, MB_LOG_THREAD, "%s: start\n", szThreadName);
+ 	while (!mbs->stop) {
+ 		csd = accept(sd, saddr, &addrlen);
+ 		if (csd < 0)
+ 		{
+-			mb_log(mbs, MB_LOG_THREAD,
++			mb_log(mbs, MB_LOG_CONNECT,
+ 				"modbus_tcp_socket: WARNING, accept failed\n");
+ 			continue;
+ 		}
+@@ -331,7 +352,7 @@
+ 		       "modbus_tcp_socket: accept csd %d\n", csd);
+ 		spawn_tcp_thread(mbs, csd);
+ 	}
+-	mb_log(mbs, MB_LOG_THREAD, "modbus_tcp_socket: end accept loop\n");
++	mb_log(mbs, MB_LOG_THREAD, "%s: stop\n", szThreadName);
+ 	if (mbs->cb_service_down) mbs->cb_service_down(mbs);
+ 	close(sd);
+ out:
+@@ -374,8 +395,16 @@
+ 	socklen_t addrlen = sizeof(sinc);
+ 	ssize_t reclen, sndlen, objlen, sentlen;
+ 	int sd;
++	char const szThreadName[11] = "FB_MBS_UDP";
++
++	// set thread priority here
++	struct sched_param schedp;
++	pthread_t thread = pthread_self();
++	memset(&schedp,0,sizeof(schedp));
++	schedp.sched_priority = MB_THREAD_PRIORITY;
++	pthread_setschedparam(thread, MB_SCHED_POLICY, &schedp);
+ 
+-	pthread_setname_np(pthread_self(), "mb_udp");
++	pthread_setname_np(thread, szThreadName);
+ 
+ 	mbs->stop = 0;
+ 	mbs->status = MODBUS_THREAD_STARTING;
+@@ -389,7 +418,7 @@
+ 	mbs->status = MODBUS_THREAD_RUNNING;
+ 	mbs->sd = sd;
+ 
+-	mb_log(mbs, MB_LOG_CONNECT, "modbus_udp_socket: start receive loop\n");
++	mb_log(mbs, MB_LOG_THREAD, "%s: start\n", szThreadName);
+ 	while (!mbs->stop) {
+ 
+ 		reclen = recvfrom(sd, &mbp, sizeof(mbp), 0, saddr, &addrlen);
+@@ -440,7 +469,7 @@
+ 
+ 		mbs->events++;
+ 	}
+-	mb_log(mbs, MB_LOG_CONNECT, "modbus_udp_socket: stop receive loop\n");
++	mb_log(mbs, MB_LOG_THREAD, "%s: stop\n", szThreadName);
+ 	if (mbs->cb_service_down) mbs->cb_service_down(mbs);
+ 	close(sd);
+ out:
+@@ -477,10 +506,17 @@
+ 	pthread_mutex_init(&mbs->lock, &mattr);
+ 	pthread_mutexattr_destroy(&mattr);
+ 
+-	pthread_attr_init(&tattr);
+-	pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_JOINABLE);
+-	res = pthread_create(&mbs->thread, &tattr, threadfn, mbs);
+-	pthread_attr_destroy(&tattr);
++  res = pthread_attr_init(&tattr);
++  if (res == 0) {
++    res = pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_JOINABLE);
++    if (res == 0) {
++      res = pthread_attr_setstacksize(&tattr, MB_STACKSIZE);
++    }
++    if (res == 0) {
++      res = pthread_create(&mbs->thread, &tattr, threadfn, mbs);
++    }
++    (void)pthread_attr_destroy(&tattr);
++  }
+ 
+ 	if (res < 0) {
+ 		mb_log(mbs, MB_LOG_THREAD,
+@@ -520,16 +556,13 @@
+ 		if (mbt->sd)
+ 		{
+ 			shutdown(mbt->sd, SHUT_RDWR);
+-			mb_log(mbs, MB_LOG_THREAD,
+-				"modbus_socket_stop: shutdown socket %d\n", __FUNCTION__);
++			mb_log(mbs, MB_LOG_THREAD, "modbus_socket_stop: shutdown socket %d\n", mbt->sd);
+ 		}
+ 		pthread_t thread = mbt->thread;
+ 		pthread_mutex_unlock(&mbs->lock);
+ 
+ 		pthread_join(thread, NULL);
+-
+-		mb_log(mbs, MB_LOG_THREAD,
+-			"modbus_socket_stop: child thread joined\n");
++		mb_log(mbs, MB_LOG_THREAD, "modbus_socket_stop: child thread joined\n");
+ 		goto repeat;
+ 	}
+ 	else
+@@ -540,11 +573,9 @@
+ 	if (mbs->sd)
+ 	{
+ 		shutdown(mbs->sd, SHUT_RDWR);
+-		mb_log(mbs, MB_LOG_THREAD,
+-			"modbus_socket_stop: shutdown socket %d\n", mbs->sd);
++		mb_log(mbs, MB_LOG_THREAD, "modbus_socket_stop: shutdown socket %d\n", mbs->sd);
+ 	}
+ 
+ 	pthread_join(mbs->thread, NULL);
+-	mb_log(mbs, MB_LOG_THREAD,
+-		"modbus_socket_stop: main thread joined\n");
++	mb_log(mbs, MB_LOG_THREAD, "modbus_socket_stop: main thread joined\n");
+ }
+--- libModbus-0.9.20.base/src/modbus_intern.h	2010-03-05 08:53:57.000000000 +0100
++++ libModbus-0.9.20/src/modbus_intern.h	2016-05-02 16:18:06.767219562 +0200
+@@ -1,6 +1,11 @@
+ #ifndef __MODBUS_INTERN_H__
+ #define __MODBUS_INTERN_H__
+ 
++#define MB_STACKSIZE                  ((size_t)65536)
++
++#define MB_THREAD_PRIORITY            42
++#define MB_SCHED_POLICY               SCHED_FIFO
++
+ struct mb_tcp_header {
+ 	mb_uint16_t	transaction_id;
+ 	mb_uint16_t	protocol_id;
+--- libModbus-0.9.20.base/src/modbus-serial-slave.c	2016-05-02 16:06:22.980347000 +0200
++++ libModbus-0.9.20/src/modbus-serial-slave.c	2016-05-02 16:35:50.705351524 +0200
+@@ -28,11 +28,11 @@
+ #include <asm/byteorder.h>
+ #include <modbus_serial.h>
+ #include <modbus_intern.h>
++#include <pthread.h>
+ 
+ #include "crc16.h"
+ 
+ #define LOG_SCOPE  ("MBS RTU")
+-#define THREAD_NAME ("mb_rtu")
+ 
+ static void mb_log(struct mb_serial *mbs, unsigned long what, const char *fmt, ...)
+ {
+@@ -257,17 +257,23 @@
+ 	void *function_header = &sp.api_object.response_error;
+ 	unsigned char *packet_buff = (unsigned char *)api_header;
+ 	sigset_t mask;
++	char const szThreadName[11] = "FB_MBS_RTU";
+ 
+-	pthread_setname_np(pthread_self(), THREAD_NAME);
++	// set thread priority here
++	struct sched_param schedp;
++	pthread_t thread = pthread_self();
++	memset(&schedp,0,sizeof(schedp));
++	schedp.sched_priority = MB_THREAD_PRIORITY;
++	pthread_setschedparam(thread, MB_SCHED_POLICY, &schedp);
++
++	pthread_setname_np(thread, szThreadName);
+ 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+ 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+ 
+ 	sigfillset(&mask);
+ 	pthread_sigmask(SIG_SETMASK, &mask, NULL);
+ 	mbs->status = MODBUS_THREAD_RUNNING;
+-	mb_log(mbs, MB_LOG_THREAD,
+-			"[%s] thread %s running\n",
+-			LOG_SCOPE, THREAD_NAME);
++	mb_log(mbs, MB_LOG_THREAD, "%s: start\n", szThreadName);
+ 
+ 	while (1) {
+ 		int total_paket_size;
+@@ -401,9 +407,7 @@
+ 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+ 	}
+ 
+-	mb_log(mbs, MB_LOG_THREAD,
+-			"[%s] thread %s terminated\n",
+-			LOG_SCOPE, THREAD_NAME);
++	mb_log(mbs, MB_LOG_THREAD, "%s: stop\n", szThreadName);
+ 
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+ 	return NULL;
+@@ -678,16 +682,20 @@
+ 	if (!mbs->timeout)
+ 		mbs->timeout = 2 * 1000;
+ 
+-	mb_log(mbs, MB_LOG_THREAD,
+-			"[%s] starting thread %s\n",
+-			LOG_SCOPE, THREAD_NAME);
+ 	mbs->status = MODBUS_THREAD_STARTING;
+ 	mbs->stop = 0;
+ 
+-	pthread_attr_init(&tattr);
+-	pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_JOINABLE);
+-	res = pthread_create(&mbs->thread, &tattr, modbus_serial_main, mbs);
+-	pthread_attr_destroy(&tattr);
++  res = pthread_attr_init(&tattr);
++  if (res == 0) {
++    res = pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_JOINABLE);
++    if (res == 0) {
++      res = pthread_attr_setstacksize(&tattr, MB_STACKSIZE);
++    }
++    if (res == 0) {
++      res = pthread_create(&mbs->thread, &tattr, modbus_serial_main, mbs);
++    }
++    (void)pthread_attr_destroy(&tattr);
++  }
+ 
+ 	if (res != 0) {
+ 		mb_log(mbs, MB_LOG_THREAD,
+@@ -707,13 +715,12 @@
+ 		return;
+ 	}
+ 
+-	mb_log(mbs, MB_LOG_THREAD,
+-			"[%s] stop thread %s\n",
+-			LOG_SCOPE, THREAD_NAME);
++	mb_log(mbs, MB_LOG_THREAD, "modbus_serial_stop: cancel thread\n");
+ 
+ 	mbs->stop = 1;
+ 	pthread_cancel(mbs->thread);
+ 	pthread_join(mbs->thread, NULL);
++	mb_log(mbs, MB_LOG_THREAD, "modbus_serial_stop: main thread joined\n");
+ 	tty_close(mbs);
+ 	mbs->status = MODBUS_THREAD_TERMINATED;
+ }

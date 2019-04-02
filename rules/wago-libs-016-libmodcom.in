@@ -1,0 +1,25 @@
+## SECTION=wago_specific_libs
+
+menuconfig LIBMODCOM
+	bool
+	prompt "mod_com lib"
+	select PLCLINUXRT
+	select LIBOSLINUX
+	select LIBDBUSKBUSCOMMON
+	help
+	  Shared library implementing the mod_com lib for codesys.
+ 
+if LIBMODCOM
+ config LIBMODCOM_BUILD_CFG_DEBUG_LEVEL
+ 	string "Debug level"
+ 	default "g" 
+ 	help
+ 		Sets the debug level used for compilation. Leave empty to use the makefile's default.
+
+ config LIBMODCOM_BUILD_CFG_OPTIMIZATION
+ 	string "Optimization level (Os,O0,O1,O2,O3)"
+ 	default "O0"
+ 	help
+ 	  Configures the optimization level used for compilation. Leave it empty to use the makefile's default.
+
+endif

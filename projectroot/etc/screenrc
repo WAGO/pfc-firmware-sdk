@@ -1,0 +1,1 @@
+setenv PS1 "\e[00;32m\u\e[00m@\e[00;31m\h\e[00m:\w "

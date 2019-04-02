@@ -1,0 +1,49 @@
+From 37e4f7c5a6f35305e9c78260e473eda1b5a1974b Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 28 Aug 2018 10:26:02 +0200
+Subject: [PATCH 236/261] dts: 8215: dsa: disable slave ports on startup
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8215.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215.dts b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+index 9ecb28c..826f781 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8215.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+@@ -171,6 +171,7 @@
+ 				label = "ethX1";
+ 				phy-handle = <&ext_phy0>;
+ 				phy-mode = "sgmii";
++                                phy-pwrdown;
+ 			};
+ 
+ 			port@1 {
+@@ -178,6 +179,7 @@
+ 				label = "ethX2";
+ 				phy-handle = <&ext_phy1>;
+ 				phy-mode = "sgmii";
++                                phy-pwrdown;
+ 			};
+ 
+ 			/*port@2 {
+@@ -195,6 +197,7 @@
+ 				label = "ethX11";
+ 				phy-handle = <&int_phy3>;
+ 				phy-mode = "rmii";
++                                phy-pwrdown;
+ 			};
+ 
+ 			port@4 {
+@@ -202,6 +205,7 @@
+ 				label = "ethX12";
+ 				phy-handle = <&int_phy4>;
+ 				phy-mode = "rmii";
++                                phy-pwrdown;
+ 			};
+ 
+ 			port@6 {
+-- 
+2.7.4
+

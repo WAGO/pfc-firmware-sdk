@@ -1,0 +1,11 @@
+--- a/ucimap-example.c	2011-09-13 17:03:19.000000000 +0000
++++ b/ucimap-example.c	2013-10-23 12:44:16.365300943 +0000
+@@ -15,7 +15,7 @@
+ #include <string.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+-#include <ucimap.h>
++#include "ucimap.h"
+ #include "list.h"
+ 
+ struct list_head ifs;

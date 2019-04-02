@@ -1,0 +1,11 @@
+--- a/CMakeLists.txt	2011-09-13 17:03:19.000000000 +0000
++++ b/CMakeLists.txt	2013-10-23 12:42:23.186364377 +0000
+@@ -11,7 +11,7 @@
+ OPTION(UCI_PLUGIN_SUPPORT "plugin support" ON)
+ OPTION(UCI_DEBUG "debugging support" OFF)
+ OPTION(UCI_DEBUG_TYPECAST "typecast debugging support" OFF)
+-OPTION(BUILD_LUA "build Lua plugin" ON)
++# OPTION(BUILD_LUA "build Lua plugin" ON)
+ 
+ CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/uci_config.h.in ${CMAKE_SOURCE_DIR}/uci_config.h )
+ 

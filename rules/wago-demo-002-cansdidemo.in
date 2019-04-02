@@ -1,0 +1,8 @@
+## SECTION=wago_specific_demo
+
+config CANSDIDEMO
+        bool
+	prompt "CANopen Master,Slave and Layer2 SDI-Demoprogram"
+	select CANOPEN
+	help
+	  Canopen SDI Demoprograms candemo_sdi_master, candemo_sdi_slave and candemo_sdi_layer2

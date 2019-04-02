@@ -1,0 +1,535 @@
+From daaed24e34696cf15916ac91aa38d47e759df9cc Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 13 Oct 2017 12:04:33 +0200
+Subject: [PATCH 109/261] dts: pfc8xxx: move ksz8863 definition to a seperated
+ oftree file
+
+---
+ arch/arm/boot/dts/wago-pfc100.dtsi          | 65 ++-------------------
+ arch/arm/boot/dts/wago-pfc200.dtsi          | 87 +++++++++--------------------
+ arch/arm/boot/dts/wago-pfc200v2.dtsi        | 81 +++++++--------------------
+ arch/arm/boot/dts/wago-pfc200v3.dtsi        | 81 +++++++--------------------
+ arch/arm/boot/dts/wago-pfc8xxx-ksz8863.dtsi | 69 +++++++++++++++++++++++
+ 5 files changed, 143 insertions(+), 240 deletions(-)
+ create mode 100644 arch/arm/boot/dts/wago-pfc8xxx-ksz8863.dtsi
+
+diff --git a/arch/arm/boot/dts/wago-pfc100.dtsi b/arch/arm/boot/dts/wago-pfc100.dtsi
+index 0272031..b5f5e7c 100644
+--- a/arch/arm/boot/dts/wago-pfc100.dtsi
++++ b/arch/arm/boot/dts/wago-pfc100.dtsi
+@@ -7,6 +7,7 @@
+  */
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include "am33xx.dtsi"
++#include "wago-pfc8xxx-ksz8863.dtsi"
+ 
+ /* Varianten beim PFC100
+  *
+@@ -66,18 +67,6 @@
+                 vin-supply = <&dcdc4_reg>;
+ 	};
+ 
+-	ksz8863 {
+-		compatible = "micrel,ksz8863";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&ksz8863_pins>;
+-		status = "okay";
+-
+-		ksz,reset-switch;
+-		ksz,reset-gpio = <&gpio2 21 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
+-		ksz,disable-internal-ldo;
+-		ksz,mii-bus = <&bitbang_mdio0>;
+-	};
+-
+ 	UIO_NVRAM@0x1000000 {
+ 		compatible = "uio_pdrv_genirq";
+ 		reg = <0x1000000 0x20000>;  /* 128k 16bit NVRAM */
+@@ -144,54 +133,6 @@
+ 
+ 	};
+ 
+-	swcfg_ksz8863 {
+-		compatible = "swcfg,ksz8863";
+-		status = "okay";
+-
+-		swcfg,mii-bus = <&bitbang_mdio0>;
+-		swcfg,alias = "switch0";
+-		swcfg,cpu_port = <2>;
+-		swcfg,ports = <3>;
+-		swcfg,vlans = <16>;
+-	};
+-
+-	dsa@0 {
+-		compatible = "marvell,dsa";
+-		#address-cells = <2>;
+-		#size-cells = <0>;
+-
+-		/* interrupts = <10>; --> not supported from the driver! */
+-
+-		/* master netdevice (eth0) */
+-		dsa,ethernet = <&mac>; /* TODO: should we use 'cpsw_emac1' instead? */
+-		dsa,mii-bus = <&bitbang_mdio0>;
+-
+-		switch@0 {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			reg = <16 0>;	/* MDIO address 16, switch 0 in tree */
+-
+-			port@0 {
+-				reg = <1>;
+-				label = "ethX1";
+-				phy-handle = <&phy1>;
+-				phy-pwrdown;
+-			};
+-
+-			port@1 {
+-				reg = <2>;
+-				label = "ethX2";
+-				phy-handle = <&phy2>;
+-				phy-pwrdown;
+-			};
+-
+-			port@2 {
+-				reg = <3>;
+-				label = "cpu";
+-			};
+-		};
+-	};
+-
+ 	watchdog: watchdog {
+ 		/* XC6124 */
+ 		compatible = "linux,wdt-gpio";
+@@ -207,6 +148,10 @@
+ 	};
+ };
+ 
++&ksz8863 {
++	ksz,disable-internal-ldo;
++};
++
+ &uart0 { /* debug interface over JTAG Connector */
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart0_pins>;
+diff --git a/arch/arm/boot/dts/wago-pfc200.dtsi b/arch/arm/boot/dts/wago-pfc200.dtsi
+index 932bd91..2c85b88 100644
+--- a/arch/arm/boot/dts/wago-pfc200.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200.dtsi
+@@ -7,6 +7,7 @@
+  */
+ 
+ #include "am3517.dtsi"
++#include "wago-pfc8xxx-ksz8863.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 (AM3505)";
+@@ -28,18 +29,6 @@
+                 regulator-max-microvolt = <3300000>;
+         };
+ 
+-	ksz8863 {
+-		compatible = "micrel,ksz8863";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&ksz8863_pins>;
+-		status = "okay";
+-
+-		ksz,reset-switch;
+-		ksz,reset-gpio = <&gpio5 8 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
+-		//ksz,disable-internal-ldo;
+-		ksz,mii-bus = <&bitbang_mdio0>;
+-	};
+-
+ 	/* common init entries */
+         wsysinit: wsysinit_init {
+ 		status = "okay";
+@@ -113,54 +102,6 @@
+ 
+ 	};
+ 
+-	swcfg_ksz8863 {
+-		compatible = "swcfg,ksz8863";
+-		status = "okay";
+-
+-		swcfg,mii-bus = <&bitbang_mdio0>;
+-		swcfg,alias = "switch0";
+-		swcfg,cpu_port = <2>;
+-		swcfg,ports = <3>;
+-		swcfg,vlans = <16>;
+-	};
+-
+-	dsa@0 {
+-		compatible = "marvell,dsa";
+-		#address-cells = <2>;
+-		#size-cells = <0>;
+-
+-		/* interrupts = <10>; --> not supported from the driver! */
+-
+-		/* master netdevice (eth0) */
+-		dsa,ethernet = <&davinci_emac>; /* TODO: should we use 'cpsw_emac1' instead? */
+-		dsa,mii-bus = <&bitbang_mdio0>;
+-
+-		switch@0 {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			reg = <16 0>;	/* MDIO address 16, switch 0 in tree */
+-
+-			port@0 {
+-				reg = <2>;
+-				label = "ethX1";	/* phys are twisted on hw */
+-				phy-handle = <&phy2>;
+-				phy-pwrdown;
+-			};
+-
+-			port@1 {
+-				reg = <1>;
+-				label = "ethX2";
+-				phy-handle = <&phy1>;
+-				phy-pwrdown;
+-			};
+-
+-			port@2 {
+-				reg = <3>;
+-				label = "cpu";
+-			};
+-		};
+-	};
+-
+ 	/* nvram is on cs2 */
+ 	UIO_NVRAM@0x2000000 {
+ 		compatible = "uio_pdrv_genirq";
+@@ -334,6 +275,32 @@
+ 	};
+ };
+ 
++&ksz8863 {
++	ksz,reset-gpio = <&gpio5 8 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
++};
++
++&dsa {
++	dsa,ethernet = <&davinci_emac>; /* TODO: should we use 'cpsw_emac1' instead? */
++
++	switch@0 {
++		port@0 {
++			reg = <2>;
++			phy-handle = <&phy2>;
++		};
++
++		port@1 {
++			reg = <1>;
++			phy-handle = <&phy1>;
++		};
++
++		port@2 {
++			reg = <3>;
++			label = "cpu";
++		};
++	};
++};
++
++
+ &omap3_pmx_core {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index ba677bf..6fb8ae7 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -7,6 +7,7 @@
+  */
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include "am33xx.dtsi"
++#include "wago-pfc8xxx-ksz8863.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 DPM";
+@@ -52,18 +53,6 @@
+                 vin-supply = <&dcdc4_reg>;
+ 	};
+ 
+-	ksz8863: ksz8863 {
+-		compatible = "micrel,ksz8863";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&ksz8863_pins>;
+-		status = "okay";
+-
+-		ksz,reset-switch;
+-		ksz,reset-gpio = <&gpio3 10 GPIO_ACTIVE_LOW>;
+-		ksz,disable-internal-ldo;
+-		ksz,mii-bus = <&bitbang_mdio0>;
+-	};
+-
+ 	UIO_NVRAM@0x1000000 {
+ 		compatible = "uio_pdrv_genirq";
+ 		reg = <0x1000000 0x20000>;  /* 128k 16bit NVRAM */
+@@ -130,54 +119,6 @@
+ 
+ 	};
+ 
+-	swcfg_ksz8863 {
+-		compatible = "swcfg,ksz8863";
+-		status = "okay";
+-
+-		swcfg,mii-bus = <&bitbang_mdio0>;
+-		swcfg,alias = "switch0";
+-		swcfg,cpu_port = <2>;
+-		swcfg,ports = <3>;
+-		swcfg,vlans = <16>;
+-	};
+-
+-	dsa@0 {
+-		compatible = "marvell,dsa";
+-		#address-cells = <2>;
+-		#size-cells = <0>;
+-
+-		/* interrupts = <10>; --> not supported from the driver! */
+-
+-		/* master netdevice (eth0) */
+-		dsa,ethernet = <&mac>; /* TODO: should we use 'cpsw_emac1' instead? */
+-		dsa,mii-bus = <&bitbang_mdio0>;
+-
+-		switch@0 {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			reg = <16 0>;	/* MDIO address 16, switch 0 in tree */
+-
+-			port@0 {
+-				reg = <2>;        /* phys are twisted on hw */
+-				label = "ethX1";
+-				phy-handle = <&phy2>;
+-				phy-pwrdown;
+-			};
+-
+-			port@1 {
+-				reg = <1>;
+-				label = "ethX2";
+-				phy-handle = <&phy1>;
+-				phy-pwrdown;
+-			};
+-
+-			port@2 {
+-				reg = <3>;
+-				label = "cpu";
+-			};
+-		};
+-	};
+-
+ 	watchdog: watchdog {
+ 		/* XC6124 */
+ 		compatible = "linux,wdt-gpio";
+@@ -193,6 +134,26 @@
+ 	};
+ };
+ 
++&ksz8863 {
++	ksz,reset-gpio = <&gpio3 10 GPIO_ACTIVE_LOW>;
++	ksz,disable-internal-ldo;
++};
++
++&dsa {
++	switch@0 {
++		port@0 {
++			reg = <2>;        /* phys are twisted on hw */
++			phy-handle = <&phy2>;
++		};
++
++		port@1 {
++			reg = <1>;
++			phy-handle = <&phy1>;
++		};
++	};
++};
++
++
+ &uart0 { /* debug interface over JTAG Connector */
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart0_pins>;
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 77484a6..8fdf2a6 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -8,6 +8,7 @@
+ 
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include "am33xx.dtsi"
++#include "wago-pfc8xxx-ksz8863.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 V3 (AM33XX)";
+@@ -51,18 +52,6 @@
+                 vin-supply = <&dcdc4_reg>;
+ 	};
+ 
+-	ksz8863 {
+-		compatible = "micrel,ksz8863";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&ksz8863_pins>;
+-		status = "okay";
+-	
+-		ksz,reset-switch;
+-		ksz,reset-gpio = <&io_expander_20 4 GPIO_ACTIVE_LOW>;
+-		ksz,disable-internal-ldo;
+-		ksz,mii-bus = <&bitbang_mdio0>;
+-	};
+-
+ 	UIO_NVRAM@0x1000000 {
+ 		compatible = "uio_pdrv_genirq";
+ 		reg = <0x01000000 0x00020000>;  /* 128k 16bit NVRAM */
+@@ -126,54 +115,6 @@
+ 		};
+ 	};
+ 
+-	swcfg_ksz8863 {
+-		compatible = "swcfg,ksz8863";
+-		status = "okay";
+-
+-		swcfg,mii-bus = <&bitbang_mdio0>;
+-		swcfg,alias = "switch0";
+-		swcfg,cpu_port = <2>;
+-		swcfg,ports = <3>;
+-		swcfg,vlans = <16>;
+-	};
+-
+-	dsa: dsa@0 {
+-		compatible = "marvell,dsa";
+-		#address-cells = <2>;
+-		#size-cells = <0>;
+-
+-		/* interrupts = <10>; --> not supported from the driver! */
+-
+-		/* master netdevice (eth0) */
+-		dsa,ethernet = <&mac>;
+-		dsa,mii-bus = <&bitbang_mdio0>;
+-
+-		switch@0 {
+-			#address-cells = <1>;
+-			#size-cells = <0>;
+-			reg = <16 0>;	/* MDIO address 16, switch 0 in tree */
+-
+-			port@0 {
+-				reg = <2>;        /* phys are twisted on hw */
+-				label = "ethX1";
+-				phy-handle = <&phy2>;
+-				phy-pwrdown;
+-			};
+-
+-			port@1 {
+-				reg = <1>;
+-				label = "ethX2";
+-				phy-handle = <&phy1>;
+-				phy-pwrdown;
+-			};
+-
+-			port@2 {
+-				reg = <3>;
+-				label = "cpu";
+-			};
+-		};
+-	};
+-
+ 	watchdog: watchdog {
+ 		/* XC6124 */
+ 		compatible = "linux,wdt-gpio";
+@@ -189,6 +130,26 @@
+ 	};
+ };
+ 
++&ksz8863 {
++	ksz,reset-gpio = <&io_expander_20 4 GPIO_ACTIVE_LOW>;
++	ksz,disable-internal-ldo;
++};
++
++&dsa {
++	switch@0 {
++		port@0 {
++			reg = <2>;        /* phys are twisted on hw */
++			phy-handle = <&phy2>;
++		};
++
++		port@1 {
++			reg = <1>;
++			phy-handle = <&phy1>;
++		};
++	};
++};
++
++
+ &am33xx_pinmux {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
+diff --git a/arch/arm/boot/dts/wago-pfc8xxx-ksz8863.dtsi b/arch/arm/boot/dts/wago-pfc8xxx-ksz8863.dtsi
+new file mode 100644
+index 0000000..6249e0f
+--- /dev/null
++++ b/arch/arm/boot/dts/wago-pfc8xxx-ksz8863.dtsi
+@@ -0,0 +1,69 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/ {
++	ksz8863: ksz8863 {
++		compatible = "micrel,ksz8863";
++		pinctrl-names = "default";
++		pinctrl-0 = <&ksz8863_pins>;
++		status = "okay";
++
++		ksz,reset-switch;
++		ksz,reset-gpio = <&gpio2 21 GPIO_ACTIVE_LOW>;	/* gpio2_21: RMII2.EN-PHY */
++		//ksz,disable-internal-ldo;
++		ksz,mii-bus = <&bitbang_mdio0>;
++	};
++
++	swcfg_ksz8863: swcfg_ksz8863 {
++		compatible = "swcfg,ksz8863";
++		status = "okay";
++
++		swcfg,mii-bus = <&bitbang_mdio0>;
++		swcfg,alias = "switch0";
++		swcfg,cpu_port = <2>;
++		swcfg,ports = <3>;
++		swcfg,vlans = <16>;
++	};
++
++	dsa: dsa@0 {
++		compatible = "marvell,dsa";
++		#address-cells = <2>;
++		#size-cells = <0>;
++
++		/* interrupts = <10>; --> not supported from the driver! */
++
++		/* master netdevice (eth0) */
++		dsa,ethernet = <&mac>; /* TODO: should we use 'cpsw_emac1' instead? */
++		dsa,mii-bus = <&bitbang_mdio0>;
++
++		switch@0 {
++			#address-cells = <1>;
++			#size-cells = <0>;
++			reg = <16 0>;	/* MDIO address 16, switch 0 in tree */
++
++			port@0 {
++				reg = <1>;
++				label = "ethX1";
++				phy-handle = <&phy1>;
++				phy-pwrdown;
++			};
++
++			port@1 {
++				reg = <2>;
++				label = "ethX2";
++				phy-handle = <&phy2>;
++				phy-pwrdown;
++			};
++
++			port@2 {
++				reg = <3>;
++				label = "cpu";
++			};
++		};
++	};
++};
+-- 
+2.7.4
+

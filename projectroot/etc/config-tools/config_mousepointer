@@ -1,0 +1,76 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_mousepointer
+#
+# Change the configuration of the mouse pointer
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the configuration of the mouse pointer *"
+  echo
+  echo "Usage: config_mousepointer show-mouse-pointer=show-mouse-pointer-value"
+  echo
+  echo "show-mouse-pointer-value: \"yes\" | \"no\" | \"-\" (= maintain old value)"
+  echo "                          note: if the parameter is not given at all, it has the same meaning as \"no\""
+  echo 
+  exit $status
+fi
+
+
+# filter input parmeter of input-string 
+newShowMousePointer=`GetParameterValue show-mouse-pointer $*`
+#echo "newShowMousePointer:"$newShowMousePointer
+
+# get the actual value
+actualMousePointerConfig=`/etc/config-tools/get_touchscreen_config mouse-pointer`
+#echo "actualMousePointerConfig:"$actualMousePointerConfig
+
+# check value for new mouse-pointer-config and change it if necessary: empty string = "No", '-' = maintain old value
+case "$newShowMousePointer" in
+
+  "Yes" | "yes")  newShowMousePointer="Yes";;
+  "No"  | "no" )  newShowMousePointer="No";;
+  "")             newShowMousePointer="No";;
+  "-")            newShowMousePointer=$actualMousePointerConfig;;
+  *)              status=$INVALID_PARAMETER;
+                  ReportError $status "($newShowMousePointer)"
+                  exit $status
+                  ;;
+esac
+#echo "newShowMousePointer:"$newShowMousePointer
+
+# if new value of mouse-pointer-config is different from the old one -> change it
+if [ "$newShowMousePointer" != "$actualMousePointerConfig" ]; then
+  sudo $SED -i '/^.*export TSLIB_MOUSEPOINTER='$actualMousePointerConfig'/s/'$actualMousePointerConfig'/'$newShowMousePointer'/' /etc/init.d/codesys
+  if [ "$?" != $SUCCESS ]; then
+    status=$WRITE_FILE_ERROR
+    ReportError $status "(/etc/init.d/codesys)"
+    SetLastError "Can't change config-file"
+  fi
+fi
+
+# write buffered filesystem-blocks to disk
+sync
+
+exit $status

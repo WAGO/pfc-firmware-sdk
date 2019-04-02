@@ -1,0 +1,13 @@
+Index: webserver-1.1.9.18/src/default.c
+===================================================================
+--- webserver-1.1.9.18.orig/src/default.c	2017-07-20 15:25:13.887993945 +0000
++++ webserver-1.1.9.18/src/default.c	2017-07-21 06:34:37.003173594 +0000
+@@ -4173,7 +4173,7 @@
+   FILE * fp;
+   int ret = -1;
+ 
+-  fp = fopen("/sys/class/wago/system/pfcxxx_boot_id", "r");
++  fp = fopen("/sys/class/wago/system/boot_id", "r");
+   if(fp != NULL)
+   {
+     uint32_t id;

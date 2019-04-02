@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#------------------------------------------------------------------------------
+# Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+#
+# PROPRIETARY RIGHTS are involved in the subject matter of this material.
+# All manufacturing, reproduction, use and sales rights pertaining to this
+# subject matter are governed by the license agreement. The recipient of this
+# software implicitly accepts the terms of the license.
+#------------------------------------------------------------------------------
+#
+# omsdaemon
+#
+
+# Select oms daemon configuration files depending on the underlying system.
+function SetupSystemSpecificConfig
+{
+    # Get system type label
+    system=$(/etc/config-tools/get_typelabel_value MARKING)
+    
+    if [[ "SRC" == "$system" ]]; then
+        if [[ -d /etc/oms.d/src ]]; then
+            # No need for fix ip in case of SRC. Therefore, delete the link.
+            rm -f /etc/oms.d/fix_ip.conf
+            ln -sf src/factory_defaults.conf /etc/oms.d/factory_defaults.conf
+        else
+            logger -t "OMSDAEMON" "Missing directory /etc/oms.d/src - Failed loading SRC omsdaemon configuration."
+        fi
+    else
+        if [[ -d /etc/oms.d/pfc ]]; then
+            ln -sf pfc/factory_defaults.conf /etc/oms.d/factory_defaults.conf
+            ln -sf pfc/fix_ip.conf /etc/oms.d/fix_ip.conf
+        else
+            logger -t "OMSDAEMON" "Missing directory /etc/oms.d/pfc - Failed loading PFC omsdaemon configuration."
+        fi
+    fi
+}
+
+
+case $1 in
+
+    start)
+        # Setup system specific daemon configuration files.
+        SetupSystemSpecificConfig
+        
+        # Start omsd as daemon
+        echo "Starting omsd..."
+        start-stop-daemon -S -x "/usr/bin/omsd" -o -b
+        echo "done."
+        ;;
+
+    stop)
+        echo -n "Terminating omsd..."
+        start-stop-daemon -K -n omsd
+        echo "done"
+        ;;
+
+esac

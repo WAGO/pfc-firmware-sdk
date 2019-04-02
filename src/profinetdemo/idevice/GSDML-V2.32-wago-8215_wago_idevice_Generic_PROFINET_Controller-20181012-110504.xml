@@ -1,0 +1,255 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ISO15745Profile xmlns="http://www.profibus.com/GSDML/2003/11/DeviceProfile" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.profibus.com/GSDML/2003/11/DeviceProfile ..\xsd\GSDML-DeviceProfile-V2.32.xsd">
+    <!-- ProfileHeader definition as defined in ISO 15745-1. Please do not change the content. -->
+    <ProfileHeader>
+        <ProfileIdentification>PROFINET Device Profile</ProfileIdentification>
+        <ProfileRevision>1.00</ProfileRevision>
+        <ProfileName>Device Profile for PROFINET Devices</ProfileName>
+        <ProfileSource>PROFIBUS Nutzerorganisation e. V. (PNO)</ProfileSource>
+        <ProfileClassID>Device</ProfileClassID>
+        <ISO15745Reference>
+            <ISO15745Part>4</ISO15745Part>
+            <ISO15745Edition>1</ISO15745Edition>
+            <ProfileTechnology>GSDML</ProfileTechnology>
+        </ISO15745Reference>
+    </ProfileHeader>
+    <ProfileBody>
+        <DeviceIdentity VendorID="0x011D" DeviceID="0x12EE">
+            <InfoText TextId="IDT_INFO_SERIES_750_753_PFC" />
+            <VendorName Value="WAGO Kontakttechnik GmbH u. Co. KG" />
+        </DeviceIdentity>
+        <DeviceFunction>
+            <Family MainFamily="I/O" ProductFamily="WAGO-I/O-SYSTEM 750/753" />
+        </DeviceFunction>
+        <ApplicationProcess>
+            <DeviceAccessPointList>
+                <DeviceAccessPointItem ID="IDD_8215_PFC200_PROFINET_IOD_WAGO_IDEVICE" PNIO_Version="V2.32" PhysicalSlots="0..2" ModuleIdentNumber="0xA0000001" MinDeviceInterval="128" DNS_CompatibleName="wago-idevice" FixedInSlots="0" ObjectUUID_LocalIndex="0" MultipleWriteSupported="true" RequiredSchemaVersion="V2.1" DeviceAccessSupported="false" CheckDeviceID_Allowed="true" NameOfStationNotTransferable="true" LLDP_NoD_Supported="true" ResetToFactoryModes="2 4" SharedDeviceSupported="false">
+                    <ModuleInfo>
+                        <Name TextId="IDT_NAME_DAP_8215" />
+                        <InfoText TextId="IDT_INFO_DAP_8215" />
+                        <VendorName Value="WAGO" />
+                        <OrderNumber Value="750-8215" />
+                    </ModuleInfo>
+                    <CertificationInfo ConformanceClass="A" ApplicationClass="" NetloadClass="I" />
+                    <IOConfigData MaxInputLength="1440" MaxOutputLength="1440" MaxDataLength="2880" />
+                    <UseableModules>
+                        <ModuleItemRef ModuleItemTarget="IDM_2569F932_32EC_4CC3_9434_5C255FA3029F" AllowedInSlots="1" UsedInSlots="1" />
+                        <ModuleItemRef ModuleItemTarget="IDM_7508BF1A_FE9F_4096_AFDF_51879FBA234A" AllowedInSlots="2" UsedInSlots="2" />
+                    </UseableModules>
+                    <VirtualSubmoduleList>
+                        <VirtualSubmoduleItem ID="IDS_V1" SubmoduleIdentNumber="0x00000001" MayIssueProcessAlarm="false" Writeable_IM_Records="1 2 3 4">
+                            <IOData />
+                            <ModuleInfo>
+                                <Name TextId="IDT_NAME_DAP_SUBM_8215" />
+                                <InfoText TextId="IDT_INFO_DAP_SUBM_8215" />
+                            </ModuleInfo>
+                        </VirtualSubmoduleItem>
+                    </VirtualSubmoduleList>
+                    <SystemDefinedSubmoduleList>
+                        <InterfaceSubmoduleItem ID="IDS_I" SubmoduleIdentNumber="0x00001000" SubslotNumber="32768" TextId="IDT_NAME_IS" SupportedRT_Classes="RT_CLASS_1" SupportedProtocols="SNMP;LLDP" SupportedMibs="MIB2" PTP_BoundarySupported="true" DCP_BoundarySupported="true">
+                            <ApplicationRelations StartupMode="Advanced;Legacy" NumberOfAR="1">
+                                <TimingProperties SendClock="32" ReductionRatio="1 2 4 8 16 32 64 128 256 512" />
+                            </ApplicationRelations>
+                            <MediaRedundancy SupportedRole="Client" MRPD_Supported="false" MRT_Supported="false" />
+                        </InterfaceSubmoduleItem>
+                        <PortSubmoduleItem ID="IDS_P1" SubmoduleIdentNumber="0x00001001" SubslotNumber="32769" TextId="IDT_NAME_PS1" CheckMAUTypeDifferenceSupported="true" CheckMAUTypeSupported="true" SupportsRingportConfig="false" IsDefaultRingport="true" LinkStateDiagnosisCapability="Up+Down" PortDeactivationSupported="true" MAUTypes="16">
+                            <MAUTypeList>
+                                <MAUTypeItem Value="16" AdjustSupported="true" />
+                            </MAUTypeList>
+                        </PortSubmoduleItem>
+                        <PortSubmoduleItem ID="IDS_P2" SubmoduleIdentNumber="0x00001001" SubslotNumber="32770" TextId="IDT_NAME_PS2" CheckMAUTypeDifferenceSupported="true" CheckMAUTypeSupported="true" SupportsRingportConfig="false" IsDefaultRingport="true" LinkStateDiagnosisCapability="Up+Down" PortDeactivationSupported="true" MAUTypes="16">
+                            <MAUTypeList>
+                                <MAUTypeItem Value="16" AdjustSupported="true" />
+                            </MAUTypeList>
+                        </PortSubmoduleItem>
+                    </SystemDefinedSubmoduleList>
+                    <Graphics>
+                        <GraphicItemRef Type="DeviceSymbol" GraphicItemTarget="1" />
+                    </Graphics>
+                </DeviceAccessPointItem>
+            </DeviceAccessPointList>
+            <ModuleList>
+                <ModuleItem ID="IDM_2569F932_32EC_4CC3_9434_5C255FA3029F" ModuleIdentNumber="0x00000001" PhysicalSubslots="1">
+                    <ModuleInfo CategoryRef="IDC_DIO">
+                        <Name TextId="IDT_2569F932_32EC_4CC3_9434_5C255FA3029F_MNAME" />
+                        <InfoText TextId="IDT_2569F932_32EC_4CC3_9434_5C255FA3029F_MINFO" />
+                        <OrderNumber Value="-" />
+                    </ModuleInfo>
+                    <UseableSubmodules>
+                        <SubmoduleItemRef SubmoduleItemTarget="IDS_InByteArray2_OutByteArray2" FixedInSubslots="1" />
+                    </UseableSubmodules>
+                </ModuleItem>
+                <ModuleItem ID="IDM_7508BF1A_FE9F_4096_AFDF_51879FBA234A" ModuleIdentNumber="0x00000002" PhysicalSubslots="1">
+                    <ModuleInfo CategoryRef="IDC_DIO">
+                        <Name TextId="IDT_7508BF1A_FE9F_4096_AFDF_51879FBA234A_MNAME" />
+                        <InfoText TextId="IDT_7508BF1A_FE9F_4096_AFDF_51879FBA234A_MINFO" />
+                        <OrderNumber Value="-" />
+                    </ModuleInfo>
+                    <UseableSubmodules>
+                        <SubmoduleItemRef SubmoduleItemTarget="IDS_In_Int_Out_Int" FixedInSubslots="1" />
+                    </UseableSubmodules>
+                </ModuleItem>
+            </ModuleList>
+            <SubmoduleList>
+                <SubmoduleItem ID="IDS_InByteArray2_OutByteArray2" SubmoduleIdentNumber="0x28022802" MayIssueProcessAlarm="false">
+                    <IOData IOCS_Length="1" IOPS_Length="1">
+                        <Input Consistency="All items consistency">
+                            <DataItem DataType="Unsigned8" TextId="IDT_DATAITEM_Template_DataPointOutput_ARRAYINDEX_0" />
+                            <DataItem DataType="Unsigned8" TextId="IDT_DATAITEM_Template_DataPointOutput_ARRAYINDEX_1" />
+                        </Input>
+                        <Output Consistency="All items consistency">
+                            <DataItem DataType="Unsigned8" TextId="IDT_DATAITEM_Template_DataPointInput_ARRAYINDEX_0" />
+                            <DataItem DataType="Unsigned8" TextId="IDT_DATAITEM_Template_DataPointInput_ARRAYINDEX_1" />
+                        </Output>
+                    </IOData>
+                    <ModuleInfo>
+                        <Name TextId="IDT_INBYTEARRAY2_OUTBYTEARRAY2_SNAME" />
+                        <InfoText TextId="IDT_INBYTEARRAY2_OUTBYTEARRAY2_SINFO" />
+                    </ModuleInfo>
+                </SubmoduleItem>
+                <SubmoduleItem ID="IDS_In_Int_Out_Int" SubmoduleIdentNumber="0x20002000" MayIssueProcessAlarm="false">
+                    <IOData IOCS_Length="1" IOPS_Length="1">
+                        <Input Consistency="All items consistency">
+                            <DataItem DataType="Integer32" TextId="IDT_DATAITEM_Template_DataPointOutput" />
+                        </Input>
+                        <Output Consistency="All items consistency">
+                            <DataItem DataType="Integer32" TextId="IDT_DATAITEM_Template_DataPointInput" />
+                        </Output>
+                    </IOData>
+                    <ModuleInfo>
+                        <Name TextId="IDT_IN_INT_OUT_INT_SNAME" />
+                        <InfoText TextId="IDT_IN_INT_OUT_INT_SINFO" />
+                    </ModuleInfo>
+                </SubmoduleItem>
+            </SubmoduleList>
+            <ChannelDiagList>
+                <ChannelDiagItem ErrorType="256">
+                    <Name TextId="IDT_CHANNEL_DIAG_PFC_EXAMPLE" />
+                    <ExtChannelDiagList>
+                        <ExtChannelDiagItem ErrorType="1">
+                            <Name TextId="IDT_EXT_CHANNEL_DIAG_PFC_KBUS_BUS_FAULT" />
+                        </ExtChannelDiagItem>
+                    </ExtChannelDiagList>
+                </ChannelDiagItem>
+            </ChannelDiagList>
+            <GraphicsList>
+                <GraphicItem ID="1" GraphicFile="GSDML_Wago_750_8215" />
+            </GraphicsList>
+            <CategoryList>
+                <CategoryItem ID="IDC_DIO" TextId="IDT_CATEGORY_DIO">
+                    <InfoText TextId="IDT_INFO_DIO" />
+                </CategoryItem>
+                <CategoryItem ID="IDC_DI" TextId="IDT_CATEGORY_DI">
+                    <InfoText TextId="IDT_INFO_DI" />
+                </CategoryItem>
+                <CategoryItem ID="IDC_DO" TextId="IDT_CATEGORY_DO">
+                    <InfoText TextId="IDT_INFO_DO" />
+                </CategoryItem>
+            </CategoryList>
+            <ExternalTextList>
+                <PrimaryLanguage>
+                    <Text TextId="IDT_NAME_DAP_8215" Value="wago_idevice - [PFC200 G2 4ETH CAN USB]" />
+                    <Text TextId="IDT_INFO_DAP_8215" Value="Controller PFC200; 2. Generation; 4 x ETHERNET, CAN, CANopen, USB-A" />
+                    <Text TextId="IDT_SUBSLOT_Interface" Value="Interface" />
+                    <Text TextId="IDT_SUBSLOT_Port1" Value="Port 1" />
+                    <Text TextId="IDT_SUBSLOT_Port2" Value="Port 2" />
+                    <Text TextId="IDT_NAME_DAP_SUBM_8215" Value="DAP Submodule" />
+                    <Text TextId="IDT_INFO_DAP_SUBM_8215" Value="" />
+                    <Text TextId="IDT_NAME_IS" Value="Xn" />
+                    <Text TextId="IDT_NAME_PS1" Value="X11" />
+                    <Text TextId="IDT_NAME_PS2" Value="X12" />
+                    <Text TextId="IDT_INFO_SERIES_750_753_PFC" Value="Finely-graduated modular PLC I-Device, protection type IP20" />
+                    <Text TextId="IDT_Input" Value="Input Data" />
+                    <Text TextId="IDT_Output" Value="Output Data" />
+                    <Text TextId="IDT_INFO_MIn" Value="Module provides Controller Input Data" />
+                    <Text TextId="IDT_INFO_MOut" Value="Module consumes Controller Output Data" />
+                    <Text TextId="IDT_INFO_MInOut" Value="Module with Input and Output Data" />
+                    <Text TextId="IDT_CATEGORY_DI" Value="Input" />
+                    <Text TextId="IDT_INFO_DI" Value="Description of input" />
+                    <Text TextId="IDT_CATEGORY_DO" Value="Output" />
+                    <Text TextId="IDT_INFO_DO" Value="Description of output" />
+                    <Text TextId="IDT_CATEGORY_DIO" Value="Input/Output" />
+                    <Text TextId="IDT_INFO_DIO" Value="Description of input/output" />
+                    <Text TextId="IDT_NAME_S" Value="Submodule" />
+                    <Text TextId="IDT_INFO_S" Value="Description of submodule" />
+                    <Text TextId="IDT_BITDATAITEM_BOOL" Value="Bool value" />
+                    <Text TextId="IDT_DATAITEM_INPUT_NAME" Value="Template_DataPointInput" />
+                    <Text TextId="IDT_DATAITEM_OUTPUT_NAME" Value="Template_DataPointOutput" />
+                    <Text TextId="IDT_ARRAYINDEX_0" Value="Index 0" />
+                    <Text TextId="IDT_ARRAYINDEX_1" Value="Index 1" />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_MNAME" Value="IN UINT; OUT UINT" />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_MINFO" Value="CODESYS Datatype UINT in input and output direction." />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_SNAME" Value="IN UINT; OUT UINT" />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_SINFO" Value="" />
+                    <Text TextId="IDT_CHANNEL_DIAG_PFC_EXAMPLE" Value="Profinet-Demo example diagnose" />
+                    <Text TextId="IDT_EXT_CHANNEL_DIAG_PFC_KBUS_BUS_FAULT" Value="Profinet-Demo example diagnose" />
+                    <Text TextId="IDT_2569F932_32EC_4CC3_9434_5C255FA3029F_MNAME" Value="Modul" />
+                    <Text TextId="IDT_2569F932_32EC_4CC3_9434_5C255FA3029F_MINFO" Value="Modul" />
+                    <Text TextId="IDT_7508BF1A_FE9F_4096_AFDF_51879FBA234A_MNAME" Value="Modul_1" />
+                    <Text TextId="IDT_7508BF1A_FE9F_4096_AFDF_51879FBA234A_MINFO" Value="Modul_1" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointOutput_ARRAYINDEX_0" Value="Template_DataPointOutput (Index 0)" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointOutput_ARRAYINDEX_1" Value="Template_DataPointOutput (Index 1)" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointInput_ARRAYINDEX_0" Value="Template_DataPointInput (Index 0)" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointInput_ARRAYINDEX_1" Value="Template_DataPointInput (Index 1)" />
+                    <Text TextId="IDT_INBYTEARRAY2_OUTBYTEARRAY2_SNAME" Value="IN BYTE[2]; OUT BYTE[2]" />
+                    <Text TextId="IDT_INBYTEARRAY2_OUTBYTEARRAY2_SINFO" Value="" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointOutput" Value="Template_DataPointOutput" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointInput" Value="Template_DataPointInput" />
+                    <Text TextId="IDT_IN_INT_OUT_INT_SNAME" Value="IN DINT; OUT DINT" />
+                    <Text TextId="IDT_IN_INT_OUT_INT_SINFO" Value="" />
+                </PrimaryLanguage>
+                <Language xml:lang="de">
+                    <Text TextId="IDT_NAME_DAP_8215" Value="wago_idevice - [PFC200 G2 4ETH CAN USB]" />
+                    <Text TextId="IDT_INFO_DAP_8215" Value="Controller PFC200; 2. Generation; 4 x ETHERNET, CAN, CANopen, USB-A" />
+                    <Text TextId="IDT_SUBSLOT_Interface" Value="Interface" />
+                    <Text TextId="IDT_SUBSLOT_Port1" Value="Port 1" />
+                    <Text TextId="IDT_SUBSLOT_Port2" Value="Port 2" />
+                    <Text TextId="IDT_NAME_DAP_SUBM_8215" Value="DAP Submodul" />
+                    <Text TextId="IDT_INFO_DAP_SUBM_8215" Value="" />
+                    <Text TextId="IDT_NAME_IS" Value="Xn" />
+                    <Text TextId="IDT_NAME_PS1" Value="X1" />
+                    <Text TextId="IDT_NAME_PS2" Value="X2" />
+                    <Text TextId="IDT_INFO_SERIES_750_753_PFC" Value="Fein granulare, modulare SPS mit I-Device, Schutzart IP20" />
+                    <Text TextId="IDT_Input" Value="Input-Daten" />
+                    <Text TextId="IDT_Output" Value="Output-Daten" />
+                    <Text TextId="IDT_INFO_MIn" Value="Modul liefert Controller Input-Daten" />
+                    <Text TextId="IDT_INFO_MOut" Value="Modul erwartet Controller Output-Daten" />
+                    <Text TextId="IDT_INFO_MInOut" Value="Modul mit In- und Output-Daten" />
+                    <Text TextId="IDT_CATEGORY_DI" Value="Input" />
+                    <Text TextId="IDT_INFO_DI" Value="Beschreibung für Input" />
+                    <Text TextId="IDT_CATEGORY_DO" Value="Output" />
+                    <Text TextId="IDT_INFO_DO" Value="Beschreibung für Output" />
+                    <Text TextId="IDT_CATEGORY_DIO" Value="Input/Output" />
+                    <Text TextId="IDT_INFO_DIO" Value="Beschreibung für Input/Output" />
+                    <Text TextId="IDT_NAME_S" Value="Submodul" />
+                    <Text TextId="IDT_INFO_S" Value="Beschreibung für Submodul" />
+                    <Text TextId="IDT_BITDATAITEM_BOOL" Value="Bool Wert" />
+                    <Text TextId="IDT_DATAITEM_INPUT_NAME" Value="Template_DatenpunktInput" />
+                    <Text TextId="IDT_DATAITEM_OUTPUT_NAME" Value="Template_DatenpunktOutput" />
+                    <Text TextId="IDT_ARRAYINDEX_0" Value="Index 0" />
+                    <Text TextId="IDT_ARRAYINDEX_1" Value="Index 1" />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_MNAME" Value="IN UINT; OUT UINT" />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_MINFO" Value="CODESYS Datentyp UINT in Eingangs- und Ausgangsrichtung." />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_SNAME" Value="IN UINT; OUT UINT" />
+                    <Text TextId="IDT_IN_WORD_OUT_WORD_SINFO" Value="" />
+                    <Text TextId="IDT_CHANNEL_DIAG_PFC_EXAMPLE" Value="Profinet-Demo example diagnose" />
+                    <Text TextId="IDT_EXT_CHANNEL_DIAG_PFC_KBUS_BUS_FAULT" Value="Profinet-Demo example diagnose steht an" />
+                    <Text TextId="IDT_2569F932_32EC_4CC3_9434_5C255FA3029F_MNAME" Value="Modul" />
+                    <Text TextId="IDT_2569F932_32EC_4CC3_9434_5C255FA3029F_MINFO" Value="Modul" />
+                    <Text TextId="IDT_7508BF1A_FE9F_4096_AFDF_51879FBA234A_MNAME" Value="Modul_1" />
+                    <Text TextId="IDT_7508BF1A_FE9F_4096_AFDF_51879FBA234A_MINFO" Value="Modul_1" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointOutput_ARRAYINDEX_0" Value="Template_DataPointOutput (Index 0)" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointOutput_ARRAYINDEX_1" Value="Template_DataPointOutput (Index 1)" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointInput_ARRAYINDEX_0" Value="Template_DataPointInput (Index 0)" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointInput_ARRAYINDEX_1" Value="Template_DataPointInput (Index 1)" />
+                    <Text TextId="IDT_INBYTEARRAY2_OUTBYTEARRAY2_SNAME" Value="IN BYTE[2]; OUT BYTE[2]" />
+                    <Text TextId="IDT_INBYTEARRAY2_OUTBYTEARRAY2_SINFO" Value="" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointOutput" Value="Template_DataPointOutput" />
+                    <Text TextId="IDT_DATAITEM_Template_DataPointInput" Value="Template_DataPointInput" />
+                    <Text TextId="IDT_IN_INT_OUT_INT_SNAME" Value="IN DINT; OUT DINT" />
+                    <Text TextId="IDT_IN_INT_OUT_INT_SINFO" Value="" />
+                </Language>
+            </ExternalTextList>
+        </ApplicationProcess>
+    </ProfileBody>
+</ISO15745Profile>

@@ -1,0 +1,33 @@
+From f239ca900529f23f09a0e62ec906914e4c492657 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Karsten=20N=C3=BCnthel?= <karsten.nuenthel@wago.com>
+Date: Wed, 30 Apr 2014 16:21:51 +0200
+Subject: [PATCH] connection limit
+
+---
+ src/modbus-ip-slave.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/modbus-ip-slave.c b/src/modbus-ip-slave.c
+index 0b88b01..cf91088 100644
+--- a/src/modbus-ip-slave.c
++++ b/src/modbus-ip-slave.c
+@@ -218,6 +218,16 @@ static int spawn_tcp_thread(struct mb_socket *mbs, int sd)
+ 	mbt->mbs = mbs;
+ 
+ 	pthread_mutex_lock(&mbs->lock);
++	if (mbs->act_connections >= mbs->max_connections) {
++		pthread_mutex_unlock(&mbs->lock);
++		free(mbt);
++		mb_log(mbs, MB_LOG_CONNECT,
++				"modbus_tcp_socket: reject %d, max active connections exceeded\n", sd);
++		if (sd) {
++			close(sd);
++		}
++		return 0;
++	}
+ 	child = mbs->childs;
+ 	mbt->list.next = child;
+ 	if (child)
+-- 
+1.9.0
+

@@ -1,0 +1,24 @@
+From 752d474f98dc74425bb1f4c9c86482514527dc91 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 9 Aug 2018 09:25:07 +0200
+Subject: [PATCH 046/144] boards: pfc-am35xx: defaultenv: configure
+ barebox_uart
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ .../wago-pfc-am35xx/defaultenv-pfc-am35xx/init/d-pfc-setup-board-env    | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/init/d-pfc-setup-board-env b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/init/d-pfc-setup-board-env
+index 1fb15ef..a99e8e0 100644
+--- a/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/init/d-pfc-setup-board-env
++++ b/arch/arm/boards/wago-pfc-am35xx/defaultenv-pfc-am35xx/init/d-pfc-setup-board-env
+@@ -3,4 +3,4 @@
+ # put here board specific variables or overwrite global variables
+ 
+ global.pfc.linux_uart="0"
+-
++global.pfc.barebox_uart="3"
+-- 
+2.7.4
+

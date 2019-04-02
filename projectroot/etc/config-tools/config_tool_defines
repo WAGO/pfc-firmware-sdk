@@ -1,0 +1,56 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2012-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   config_tool_lib
+#
+# Brief:    Global defines that may be used by hw-specific scripts
+#           (i.e. in /usr/sbin).
+#
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# boolean
+FALSE=0
+TRUE=1
+
+# errors (Nr. 1 is reserved for missing config-file)
+SUCCESS=0
+MISSING_PARAMETER=2
+INVALID_PARAMETER=3
+CONFIG_FILE_MISSING=4
+CONFIG_FILE_INCONSISTENT=5
+CONFIG_DATA_ERROR=6
+INTERNAL_ERROR=7
+SHELL_ERROR=8
+EXECUTABLE_ERROR=9
+FILE_NOT_WRITEABLE=10
+FILE_NOT_EXECUTABLE=11
+WRITE_FILE_ERROR=12
+NARROW_SPACE_WARNING=13
+NOT_ENOUGH_SPACE_ERROR=14
+MOUNT_ERROR=15
+
+# This error is meant to be returned by board specific scripts,
+# i.e. pac200_copy_data.sh to signalize that inside the script SetLastError
+# has been set so that it is not overwritten by a higher-level script
+LAST_ERROR_SET=127
+
+LAST_ERROR_FILENAME="/tmp/last_error.txt"
+
+
+# TODO: get from according tool
+NETWORK_INTERFACES_XML="/etc/specific/network-interfaces.xml"
+
+if [[ -f /etc/config-tools/board_specific_defines ]]; then
+  source /etc/config-tools/board_specific_defines 
+fi

@@ -1,0 +1,27 @@
+From acdede54cd6d0b8956399becf9b6e27077748ab5 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 10 Aug 2018 13:01:48 +0200
+Subject: [PATCH 056/144] defaultenv: defaultenv-pfc: swith off all previously
+ activated leds in broken boot
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-broken-boot | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-broken-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-broken-boot
+index 97bc337..1e3b359 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-broken-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-broken-boot
+@@ -2,6 +2,8 @@
+ 
+ source env/data/print-msg-formats
+ 
++# first switch of any previously activated leds
++led_mode -s -c yellow -v off
+ led_mode -s -c red -v on
+ 
+ global.pfc.boot_mode="broken"
+-- 
+2.7.4
+

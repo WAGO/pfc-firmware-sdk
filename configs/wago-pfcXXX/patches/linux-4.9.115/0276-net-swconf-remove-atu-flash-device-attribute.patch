@@ -1,0 +1,157 @@
+From c7f760e8a476a2b1f6a7434b7858e9adeb83807f Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Thu, 18 Oct 2018 18:05:13 +0200
+Subject: [PATCH 276/277] net: swconf: remove atu flash device attribute
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/mv88e6321-cfg.c | 116 ----------------------------------------
+ 1 file changed, 116 deletions(-)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index 51eecb0..c9196d0 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -146,93 +146,6 @@ struct switch_dev_ops mv88e6321_switch_dev_ops = {
+         .reset_switch = mv88e6321_sw_reset,
+ };
+ 
+-static inline int mv88e6321_wait_atu_ready(struct mii_bus *bus)
+-{
+-	int ret = 0;
+-	int attempt;
+-
+-	for (attempt = 0; attempt < 16; ++attempt) {
+-		ret = mdiobus_read(bus, MV88E6321_GLOBAL_REG, GLOBAL_ATU_OP);
+-		if (ret < 0) {
+-			pr_err("read failed from addr: 0x%02X reg: 0x%02X" \
+-			       "ret: %d\n", MV88E6321_GLOBAL_REG, GLOBAL_ATU_OP,
+-			       ret);
+-			goto out;
+-		}
+-
+-		if (!(ret & GLOBAL_ATU_OP_BUSY)) {
+-			ret = 0;
+-			goto out;
+-		}
+-
+-		usleep_range(500, 1000);
+-	}
+-
+-	ret = -ETIMEDOUT;
+-	pr_err("Timeout while waiting for ATU ready\n");
+-
+-out:
+-	return ret;
+-}
+-
+-static int mv88e6321_atu_flush(struct mii_bus *bus)
+-{
+-	int ret = 0;
+-	u16 val = 0;
+-
+-	/* flush non static ATU entries */
+-
+-	ret = mv88e6321_wait_atu_ready(bus);
+-	if (ret)
+-		goto out;
+-
+-	ret = mdiobus_write(bus, MV88E6321_GLOBAL_REG,
+-			    GLOBAL_ATU_DATA, 0x00);
+-	if (ret) {
+-		pr_err("Write ATU-Data EntryState failed: %d\n", ret);
+-		goto out;
+-	}
+-
+-        ret = mdiobus_read(bus, MV88E6321_GLOBAL_REG, GLOBAL_ATU_OP);
+-	if (ret < 0) {
+-		pr_err("Read ATU operation register failed: %d\n", ret);
+-		goto out;
+-	}
+-
+-	val = (u16)ret;
+-
+-	val &= ~GLOBAL_ATU_OP_MASK;
+-	val |= GLOBAL_ATU_OP_FLUSH_MOVE_NON_STATIC;
+-
+-	ret = mdiobus_write(bus, MV88E6321_GLOBAL_REG, GLOBAL_ATU_OP,
+-			    val);
+-	if (ret) {
+-		pr_err("Write ATU operation failed: %d\n", ret);
+-		goto out;
+-	}
+-
+-out:
+-	return ret;
+-}
+-
+-static ssize_t store_atu_flush(struct device* dev, struct device_attribute *attr,
+-			       const char *buf, size_t count)
+-{
+-	ssize_t ret = 0;
+-	struct mv88e6321_info *pdata = dev->platform_data;
+-	struct mii_bus *bus = pdata->swdev->mii_bus;
+-
+-	if (count > 0 && *buf != '0' && *buf != 0) {
+-		ret = mv88e6321_atu_flush(bus);
+-		if (ret >= 0)
+-			ret = count;
+-	}
+-
+-	return ret;
+-}
+-
+-static DEVICE_ATTR(atu_flush, S_IWUSR, NULL, store_atu_flush);
+-
+ struct mv88e6321_info *of_get_mv_pdata(struct device *dev)
+ {
+ 	struct device_node *np = dev->of_node;
+@@ -389,37 +302,9 @@ static int mv88e6321_probe(struct platform_device *pdev)
+ 	if (pdata && pdata->reset)
+ 		mv88e6321_hw_reset(pdata);
+ 
+-#if 0
+-        /* FIXME:
+-	 *   You should check some switch identifier here
+-	 *   mdiobus_read(pdata->mii_bus, some_phy, some_reg)
+-	 */
+-	if ((ret = mv88e6321_smi_nread(ChipID0, chipid, 2)))
+-		return -1;
+-
+-	if (chipid[0] == MV88E6321_FAMILY_ID &&
+-	    (chipid[1] >> 4) == MV88E6321_CHIP_ID)
+-		dev_info(&pdev->dev, "Detected Family ID 0x%x, Chip ID 0x%x\n", chipid[0], chipid[1] >> 4);
+-#endif
+-
+ 	pdata->swdev = swdev;
+ 	pdev->dev.platform_data = pdata;
+ 
+-#if 0
+-        /* FIXME:
+-	 *   We would need this for mv DSA adaption
+-	 */
+-	mv88e6321_fns->nread  = mv88e6321_smi_nread;
+-	mv88e6321_fns->nwrite = mv88e6321_smi_nwrite;
+-        mv88e6321_fns->setup_dflt_cfg = mv88e6321_setup_dflt_cfg;
+-#endif
+-
+-	ret = device_create_file(&pdev->dev, &dev_attr_atu_flush);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Couldn't create device file %d\n", ret);
+-		return ret;
+-	}
+-
+         if ((ret = register_switch(swdev, NULL))) {
+                 pr_info("%s: switch registration failed\n", __func__);
+                 return ret;
+@@ -434,7 +319,6 @@ static int mv88e6321_remove(struct platform_device *pdev)
+ {
+ 	struct mv88e6321_info *pdata = pdev->dev.platform_data;
+ 
+-	device_remove_file(&pdev->dev, &dev_attr_atu_flush);
+ 	unregister_switch(pdata->swdev);
+ 	return 0;
+ }
+-- 
+2.7.4
+

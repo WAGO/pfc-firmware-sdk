@@ -1,0 +1,107 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_overwrite_dhcp_gateway
+#
+# Get the given paramater that are set for overwriting the
+# given gatway-parameter via DHCP
+#
+# $Revision$
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------#
+
+set -u      # error exit on undefined shell variables
+
+DHCP_GW_CONF_FILE=/etc/specific/dhcp_gateway.conf
+
+function getAllParameter()
+{
+    local conf_list=`grep "DHCP_GW_DESTINATION_" $DHCP_GW_CONF_FILE | cut -d "=" -f 1`
+
+    for int in $conf_list; do
+      local singleInterface=`echo "$int" | cut -d "_" -f4`
+      getParameter "$singleInterface"
+    done
+}
+
+function getAllParameterJSON()
+{
+    [ -e $DHCP_GW_CONF_FILE ] && . $DHCP_GW_CONF_FILE
+    local conf_list=`grep "DHCP_GW_DESTINATION_" $DHCP_GW_CONF_FILE | cut -d "=" -f 1`
+    local json_str="{\"Data\" : ["
+    for int in $conf_list; do
+      local interface=`echo "$int" | cut -d "_" -f4`
+      local destination="DHCP_GW_DESTINATION_$interface"
+      local genmask="DHCP_GW_GENMASK_$interface"
+      json_str=$json_str"{ \"Interface\":\"$interface\", \"Destination\":\"${!destination}\", \"Genmask\":\"${!genmask}\" },"
+    done
+    json_str=${json_str%?}"]}"
+    echo $json_str
+}
+
+function getParameter()
+{
+    local interf="$1"
+
+    [ -e $DHCP_GW_CONF_FILE ] && . $DHCP_GW_CONF_FILE
+    local destination="DHCP_GW_DESTINATION_$interf"
+    local genmask="DHCP_GW_GENMASK_$interf"
+    echo Interface: "$interf"
+    echo "DHCP Gateway Destination: ${!destination:-}"
+    echo "DHCP Gateway Genmask:     ${!genmask:-}"
+}
+
+function printUsage()
+{
+    echo "Usage: $0 OPTION"
+    echo
+    echo "OPTION:"
+    echo "  -a                prints all parameter"
+    echo "  -i [Interface]    prints specific interface parameter"
+    echo "  -j                prints all parameter in json-format"
+    echo
+    echo "Interface:          'BR0','BR1' or 'WWAN0' ect."
+    echo
+    echo "Default configuration file :$DHCP_GW_CONF_FILE"
+    echo
+}
+
+
+function Main()
+{
+    if [ -z "$1" ]; then
+      printUsage
+      exit 1
+    fi
+
+    while getopts 'ai:j' opt; do
+        case $opt in
+          a)
+            getAllParameter
+            exit 0
+            ;;
+          i)
+            getParameter $OPTARG
+            exit 0
+            ;;
+          j)
+            getAllParameterJSON
+            exit 0
+            ;;
+          *)
+            printUsage
+            exit 1
+            ;;
+        esac
+    done
+
+    echo "Invalid parameter"
+    exit 2
+}
+
+Main "$*"

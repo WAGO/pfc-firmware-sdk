@@ -1,0 +1,947 @@
+## SECTION=wago_specific_config
+
+#
+#   This file contains the menu structure description for the console-based
+#   cbm configuration frontend.  The menuconfig entries correspond with
+#   the frontend submenus. The parent-child relationship is modelled using the
+#   "depends on" field.  The configuration's description in XML is located
+#   within the help entries. Consult the documentation and the existing
+#   examples for the notation details.
+#
+
+#
+#   Constraints:
+#   - naming scheme:      all menu-related entries have to start with a
+#                         CT_MENU_CBM_ prefix.  
+#   - XML mapping scheme: all XML related infos have to start with a "__XML:"
+#                         prefix 
+#   - help format:        no multi-line help entries are supported (kconfig
+#                         restriction) => use line-wrapping instead of newlines
+#                         for format.  
+#   - parent dependency:  the parent entry has to be the leftmost one in the
+#                        "depends on" list (FIXME: really?)
+#
+#   - default settings:   the config options that depend from common features
+#                         have to be set 'default n'. Otherwise enabling a
+#                         feature leaves the dependent entries unset, forcing
+#                         the user to set them manually.
+#
+
+menuconfig CT_MENU_CBM_MAIN
+	bool
+	default n
+	prompt "cbm"
+
+  select HOST_CT_MAKE_XML_CONFIG # tool to generate XML configs for wbm/cbm
+
+  select CBM
+
+	select CT_WDIALOG
+	help
+    IPC console-based configuration frontend.
+    __XML: frontend id="cbm"
+
+if CT_MENU_CBM_MAIN
+
+config CBM
+	bool
+  default n
+  select CONFIG_TOOLS
+  select XMLSTARLET
+  select HOST_LIBXML2 # for xmllint
+  select HOST_LIBXSLT
+	help
+   Target corresponding with cbm.make. Can be enabled indirectly by
+   activating cbm's main menu (CT_MENU_CBM_MAIN)
+
+config CT_WDIALOG
+	bool
+  default n
+	help
+	 wdialog is an small text-based widget toolkit (like dialog, but w/o ncurses dep.)
+	 
+###############################################################
+menuconfig CT_MENU_CBM_INFO
+bool
+default n
+prompt "Information   "
+depends on CT_MENU_CBM_MAIN
+help
+  __XML: simple_level text="Information" 
+                      ressource="information.sh"
+
+config CT_MENU_CBM_INFO_CPL_DET
+bool
+default n
+prompt "Controller Details"
+depends on CT_MENU_CBM_INFO
+help
+  __XML: simple_level text="Controller Details" 
+                      ressource="info_controller_details.sh"
+
+#
+# switch => no eth1
+# The NET_DET_SWITCH target is mutually exclusive with NET_DET_FULL
+#
+
+config CT_MENU_CBM_INFO_NET_DET_SWITCH
+bool
+default n
+prompt "Network Details"
+depends on CT_MENU_CBM_INFO && CT_FEATURE_ETH_SWITCH
+help
+  __XML: simple_level text="Network Details" 
+                      ressource="info_actual_tcpip_switch.sh"
+
+config CT_MENU_CBM_INFO_NET_DET_FULL
+bool
+default n
+prompt "Network Details"
+depends on CT_MENU_CBM_INFO && !CT_FEATURE_ETH_SWITCH
+help
+  __XML: simple_level text="Network Details" 
+                      ressource="info_actual_tcpip_full.sh"
+
+
+###############################################################
+menuconfig CT_MENU_CBM_CODESYS
+bool
+default n
+prompt "CODESYS       "
+depends on CT_MENU_CBM_MAIN && PLCLINUXRT
+help
+  __XML: simple_level text="PLC Runtime" 
+                      ressource="codesys.sh" 
+
+config CT_MENU_CBM_CODESYS_INFO
+bool
+default n
+prompt "Information"
+depends on CT_MENU_CBM_CODESYS
+help
+ Tools for the webserver configuration.
+ __XML: simple_level text="Information" ressource="codesys_info.sh"
+
+#
+#  The trick with 2 dummy information nodes allows construction of different
+# XML-based generic menus depending on dynamic options.
+#  In this case, different Information submenus are displayed for
+# CODESYS 2 and e!RUNTIME
+
+config CT_MENU_CBM_CODESYS_INFO_ERUNTIME
+bool
+default n
+prompt "Info values for e!RUNTIME"
+depends on CT_MENU_CBM_CODESYS_INFO
+help
+ Show runtime Version.
+ __XML: simple_level text="Information" ressource="codesys_info_eruntime.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_VERSION
+bool
+default n
+prompt "Runtime Version"
+depends on CT_MENU_CBM_CODESYS_INFO_ERUNTIME
+help
+ Show runtime Version.
+ __XML: simple_level text="Runtime Version" ressource="codesys_info_eruntime_version.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_CDS2
+bool
+default n
+prompt "Info values for CODESYS2"
+depends on CT_MENU_CBM_CODESYS_INFO
+help
+ Show runtime Version.
+ __XML: simple_level text="Information" ressource="codesys_info_cds2.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_CDS2_VERSION
+bool
+default n
+prompt "Runtime Version"
+depends on CT_MENU_CBM_CODESYS_INFO_CDS2
+help
+ Show runtime Version.
+ __XML: simple_level text="Runtime Version" ressource="codesys_info_cds2_version.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_CDS2_WEBSERVER_VERSION
+bool
+default n
+prompt "Webserver Version"
+depends on CT_MENU_CBM_CODESYS_INFO_CDS2
+help
+ Show runtime Version.
+ __XML: simple_level text="Webserver Version" ressource="codesys_info_cds2_webserver_version.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_CDS2_STATE
+bool
+default n
+prompt "State"
+depends on CT_MENU_CBM_CODESYS_INFO_CDS2
+help
+ Show runtime Version.
+ __XML: simple_level text="State" ressource="codesys_info_cds2_state.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_CDS2_NR_TASKS
+bool
+default n
+prompt "Number of Tasks"
+depends on CT_MENU_CBM_CODESYS_INFO_CDS2
+help
+ Show runtime Version.
+ __XML: simple_level text="Number of Tasks" ressource="codesys_info_cds2_nr_tasks.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_CDS2_PROJECT_DETAILS
+bool
+default n
+prompt "Project Details"
+depends on CT_MENU_CBM_CODESYS_INFO_CDS2
+help
+ Show runtime Version.
+ __XML: simple_level text="Project Details" ressource="codesys_info_cds2_project.sh"
+
+config CT_MENU_CBM_CODESYS_INFO_CDS2_PROJECT_TASKS
+bool
+default n
+prompt "Tasks"
+depends on CT_MENU_CBM_CODESYS_INFO_CDS2
+help
+ Show runtime Version.
+ __XML: simple_level text="Tasks" ressource="codesys_info_cds2_tasks.sh"
+
+config CT_MENU_CBM_CODESYS_CONFIG
+bool
+default n
+prompt "General Configuration"
+depends on CT_MENU_CBM_CODESYS
+help
+ Tools for the webserver configuration.
+ __XML: simple_level text="General Configuration" ressource="codesys_config.sh"
+
+config CT_MENU_CBM_CODESYS_WEBSERVER
+bool
+default n
+prompt "WebVisu"
+depends on CT_MENU_CBM_CODESYS
+help
+ Tools for the webserver configuration.
+ __XML: simple_level text="WebVisu" ressource="codesys_webserver.sh"
+
+###############################################################
+
+
+###############################################################
+menuconfig CT_MENU_CBM_NETWORKING
+bool
+default n
+prompt "Networking    "
+depends on CT_MENU_CBM_MAIN
+help
+  Tools used to get/set additional network settings.
+  __XML: simple_level text="Networking" 
+                      ressource="networking.sh"
+
+config CT_MENU_CBM_NETWORKING_HOSTNAME
+bool
+default n
+prompt "Host-/Domain Name"
+depends on CT_MENU_CBM_NETWORKING
+help
+  FIXME
+  __XML: simple_level text="Host-/Domain Name" 
+                      ressource="tcpip_hostname.sh"
+
+config CT_MENU_CBM_NETWORKING_TCPIP
+bool
+default n
+prompt "TCP/IP"
+depends on CT_MENU_CBM_NETWORKING
+help
+  FIXME
+  __XML: simple_level text="TCP/IP" 
+                      ressource="tcpip.sh"
+
+config CT_MENU_CBM_NETWORKING_SWITCH
+bool
+default n
+prompt "IP Address (Switch)"
+depends on CT_MENU_CBM_NETWORKING_TCPIP && CT_FEATURE_ETH_SWITCH
+help
+  FIXME
+  __XML: simple_level text="IP Address" 
+                      ressource="tcpip_switch.sh"
+#                      dyn_state_ressource="tcpip_switch_state.sh"
+
+config CT_MENU_CBM_NETWORKING_ETH0
+bool
+default n
+prompt "IP Address eth0"
+depends on CT_MENU_CBM_NETWORKING_TCPIP && !CT_FEATURE_ETH_SWITCH
+help
+  FIXME
+  __XML: simple_level text="IP Address eth0 " 
+                      ressource="tcpip_eth0.sh"
+                      dyn_state_ressource="tcpip_eth0_state.sh"
+
+config CT_MENU_CBM_NETWORKING_ETH1
+bool
+default n
+prompt "IP Address eth1"
+depends on CT_MENU_CBM_NETWORKING_TCPIP && !CT_FEATURE_ETH_SWITCH
+help
+  FIXME
+  __XML: simple_level text="IP Address eth1 " 
+                      ressource="tcpip_eth1.sh"
+                      dyn_state_ressource="tcpip_eth1_state.sh"
+
+config CT_MENU_CBM_NETWORKING_DEF_GW
+bool
+default n
+prompt "Default Gateway"
+depends on CT_MENU_CBM_NETWORKING_TCPIP
+help
+  FIXME
+  __XML: simple_level text="Default Gateway" 
+                      ressource="tcpip_default_gateway.sh"
+
+
+config CT_MENU_CBM_NETWORKING_DNS_SRV
+bool
+default n
+prompt "DNS Server"
+depends on CT_MENU_CBM_NETWORKING_TCPIP
+help
+  FIXME
+  __XML: simple_level text="DNS Server" 
+                      ressource="tcpip_dns_server.sh"
+
+config CT_MENU_CBM_ETHERNET
+bool
+default n
+prompt "Ethernet"
+depends on CT_MENU_CBM_NETWORKING
+help
+  Ethernet settings (duplex mode, autoneg etc.)
+  __XML: simple_level text="Ethernet" ressource="tcpip_ethernet.sh"
+
+config CT_MENU_CBM_NETWORKING_DSA
+bool
+default n
+prompt "Switch configuration"
+depends on CT_MENU_CBM_ETHERNET &&CT_FEATURE_ETH_SWITCH &&CT_FEATURE_ETH_SWITCH_DSA
+help
+  FIXME
+  __XML: simple_level text="Switch Configuration" 
+                      ressource="tcpip_dsa.sh"
+
+config CT_MENU_CBM_ETHERNET_PORTS
+bool
+default n
+prompt "Ethernet Port Settings"
+depends on CT_MENU_CBM_ETHERNET
+help
+  Ethernet settings (duplex mode, autoneg etc.)
+  __XML: simple_level text="Ethernet Ports" ressource="tcpip_ethernet_ports.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_FIREWALL
+bool
+default n
+prompt "Firewall      "
+depends on CT_MENU_CBM_MAIN
+help
+ Tools for the firewall configuration.
+ __XML: simple_level text="Firewall" ressource="firewall.sh"
+
+config CT_MENU_CBM_FIREWALL_GENERAL
+bool
+default n
+prompt "General Configuration"
+depends on CT_MENU_CBM_FIREWALL
+help
+ General configuration of the firewall.
+ __XML: simple_level text="General Configuration" ressource="firewall_general.sh"
+
+config CT_MENU_CBM_FIREWALL_MAC_ADDRESS_FILTER
+bool
+default n
+prompt "MAC Address Filter"
+depends on CT_MENU_CBM_FIREWALL
+help
+ Link layer firewall configuration: MAC address filter (a whitelist).
+ __XML: simple_level text="MAC Address Filter" ressource="firewall_macaddfl.sh"
+
+config CT_MENU_CBM_FIREWALL_USER_FILTER
+bool
+default n
+prompt "User Filter"
+depends on CT_MENU_CBM_FIREWALL
+help
+ IP layer firewall configuration: custom, user defined filter rules (a whitelist).
+ __XML: simple_level text="User Filter" ressource="firewall_userfl.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_CLOCK
+bool
+default n
+prompt "Clock         "
+depends on CT_MENU_CBM_MAIN
+help
+  Tools used to edit clock settings.
+  __XML: simple_level text="Clock" ressource="clock.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_HMI
+bool
+default n
+prompt "HMI Settings  "
+depends on CT_MENU_CBM_MAIN
+help
+  Tools used to change HMI settings.
+  __XML: simple_level text="HMI Settings" ressource="hmi_settings.sh"
+
+config CT_MENU_CBM_HMI_SCRSV
+bool
+default n
+prompt "Screensaver/Cleanmode"
+depends on CT_MENU_CBM_HMI && PLCLINUXRT && CT_FEATURE_DISPLAY
+help
+  FIXME
+  __XML: simple_level text="Screensaver/Cleanmode" 
+                      ressource="hmi_screensaver.sh"
+
+config CT_MENU_CBM_HMI_VGA
+bool
+default n
+prompt "VGA Configuration"
+depends on CT_MENU_CBM_HMI && CT_FEATURE_DISPLAY
+help
+  FIXME
+  __XML: simple_level text="VGA Configuration..........." 
+                      ressource="hmi_vga_configuration.sh"
+                      dyn_state_ressource="hmi_vga_configuration_state.sh"
+
+config CT_MENU_CBM_HMI_MOUSE
+bool
+default n
+prompt "Mouse Pointer"
+depends on CT_MENU_CBM_HMI && PLCLINUXRT && CT_FEATURE_DISPLAY
+help
+  FIXME
+  __XML: simple_level text="Show mouse pointer.........." 
+                      ressource="hmi_mousepointer.sh"
+                      dyn_state_ressource="hmi_mousepointer_state.sh"
+                      
+config CT_MENU_CBM_HMI_KEYB
+bool
+default n
+prompt "Keyboard Layout"
+depends on CT_MENU_CBM_HMI
+help
+  FIXME
+  __XML: simple_level text="Keyboard Layout............." 
+                      ressource="hmi_keyboard.sh"
+                      dyn_state_ressource="hmi_keyboard_state.sh"
+
+config CT_MENU_CBM_HMI_TOUCH
+bool
+default n
+prompt "Touchscreen Configuration"
+depends on CT_MENU_CBM_HMI && CT_FEATURE_DISPLAY
+help
+  FIXME
+  __XML: simple_level text="Touchscreen Configuration" 
+                      ressource="hmi_touchscreen.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_ADMIN
+bool
+default n
+prompt "Administration"
+depends on CT_MENU_CBM_MAIN
+help
+  Tools used to manage the IPC: make a system snapshot image, reboot, fsck etc.
+  __XML: simple_level text="Administration" ressource="administration.sh"
+
+config CT_MENU_CBM_ADMIN_USERS
+bool
+default n
+prompt "Users"
+depends on CT_MENU_CBM_ADMIN
+help
+  Tools used to change user passwords.
+  __XML: simple_level text="Users" ressource="adm_users.sh"
+
+config CT_MENU_CBM_ADMIN_IMG
+bool
+default n
+prompt "Create Image"
+depends on CT_MENU_CBM_ADMIN
+help
+  FIXME
+  __XML: simple_level text="Create Image" 
+                      ressource="adm_bootable_image.sh"
+
+menuconfig CT_MENU_CBM_ADMIN_RS232
+bool
+default n
+prompt "Owner of Serial Interface"
+depends on CT_MENU_CBM_ADMIN
+help
+  FIXME
+  __XML: simple_level text="Owner of Serial Interface" 
+                      ressource="adm_rs232.sh"
+                      dyn_state_ressource="adm_rs232_state.sh"
+
+config CT_MENU_CBM_ADMIN_RS232_CODESYS_DEBUG
+bool
+default n
+prompt "CODESYS Debug"
+depends on CT_MENU_CBM_ADMIN_RS232
+help
+  FIXME
+  __XML: simple_level text="CODESYS Debug" 
+                      ressource="adm_rs232_codesys.sh"
+                      dyn_state_ressource="adm_rs232_codesys_state.sh"
+
+config CT_MENU_CBM_ADMIN_RS232_IOCHECK
+bool
+default n
+prompt "IO-Check"
+depends on CT_MENU_CBM_ADMIN_RS232
+help
+  FIXME
+  __XML: simple_level text="IO-Check" 
+                      ressource="adm_rs232_iochk.sh"
+                      dyn_state_ressource="adm_rs232_iochk_state.sh"
+
+config CT_MENU_CBM_ADMIN_RS232_MODBUS_RTU
+bool
+default n
+prompt "Modbus RTU"
+depends on CT_MENU_CBM_ADMIN_RS232
+help
+  FIXME
+  __XML: simple_level text="Modbus RTU" 
+                      ressource="adm_rs232_modbus.sh"
+                      dyn_state_ressource="adm_rs232_modbus_state.sh"
+
+config CT_MENU_CBM_ADMIN_RS232_LINUX
+bool
+default n
+prompt "Linux Console"
+depends on CT_MENU_CBM_ADMIN_RS232
+help
+  FIXME
+  __XML: simple_level text="Linux Console" 
+                      ressource="adm_rs232_linux.sh"
+                      dyn_state_ressource="adm_rs232_linux_state.sh"
+
+config CT_MENU_CBM_ADMIN_RS232_NONE
+bool
+default n
+prompt "Unassigned (Apps/CODESYS)"
+depends on CT_MENU_CBM_ADMIN_RS232
+help
+  FIXME
+  __XML: simple_level text="Unassigned (Applications, CODESYS)" 
+                      ressource="adm_rs232_none.sh"
+                      dyn_state_ressource="adm_rs232_none_state.sh"
+
+config CT_MENU_CBM_ADMIN_FSCK
+bool
+default n
+prompt "Filesystem Check (needs e2fsck patch - see ptxproj.2011.03.1)"
+depends on CT_MENU_CBM_ADMIN
+help
+  FIXME
+  __XML: simple_level text="Filesystem Check" 
+                      ressource="adm_filesystem_check.sh"
+
+config CT_MENU_CBM_ADMIN_REBOOT
+bool
+default n
+prompt "Reboot Controller"
+depends on CT_MENU_CBM_ADMIN
+help
+  FIXME
+  __XML: simple_level text="Reboot Controller"
+                      ressource="adm_reboot_ipc.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_PKGSRV
+bool
+default n
+prompt "Package Server"
+depends on CT_MENU_CBM_MAIN
+help
+  Tools to backup/restore the system (CODESYS project, settings, OS)
+  __XML: simple_level text="Package Server" ressource="package_server.sh"
+
+config CT_MENU_CBM_PKGSRV_BACKUP
+bool
+default n
+prompt "Firmware Backup"
+depends on CT_MENU_CBM_PKGSRV
+help
+  FIXME
+  __XML: simple_level text="Firmware Backup"
+                      ressource="pkgsrv_backup.sh"
+
+config CT_MENU_CBM_PKGSRV_RESTORE
+bool
+default n
+prompt "Firmware Restore"
+depends on CT_MENU_CBM_PKGSRV
+help
+  FIXME
+  __XML: simple_level text="Firmware Restore"
+                      ressource="pkgsrv_restore.sh"
+
+config CT_MENU_CBM_PKGSRV_SYSPART
+bool
+default n
+prompt "System partition"
+depends on CT_MENU_CBM_PKGSRV
+help
+  FIXME
+  __XML: simple_level text="System Partition"
+                      ressource="pkgsrv_system_partition.sh"
+
+
+###############################################################
+menuconfig CT_MENU_CBM_MASSSTORAGE
+bool
+default n
+prompt "Mass Storage  "
+depends on CT_MENU_CBM_MAIN
+help
+  Tools to manipulate mass storage devices options.
+  __XML: simple_level text="Mass Storage" ressource="mass_storage.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_DL
+bool
+default n
+prompt "Software Uploads"
+depends on CT_MENU_CBM_MAIN
+help
+  Tools to manage file downloads to the IPC.
+  __XML: simple_level text="Software Uploads" ressource="downloads.sh"
+
+config CT_MENU_CBM_DL_KBUS
+bool
+default n
+prompt "KBus"
+depends on CT_MENU_CBM_DL
+help
+  Update KBus firmware.
+  __XML: simple_level text="KBus..............." 
+                      ressource="downloads_kbus.sh"
+                      dyn_state_ressource="downloads_kbus_state.sh"
+
+config CT_MENU_CBM_DL_SCRIPT
+bool
+default n
+prompt "Update Script"
+depends on CT_MENU_CBM_DL
+help
+  Update KBus firmware.
+  __XML: simple_level text="Update Script......" 
+                      ressource="downloads_upd.sh"
+                      dyn_state_ressource="downloads_upd_state.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_PORT
+bool
+default n
+prompt "Ports+Services"
+depends on CT_MENU_CBM_MAIN
+help
+ Tools for port configuration.
+  __XML: simple_level text="Ports and Services" ressource="port.sh"
+
+config CT_MENU_CBM_PORT_TELNET
+bool
+default n
+prompt "Telnet"
+depends on CT_MENU_CBM_PORT
+help
+ Tools for port configuration.
+  __XML: simple_level text="Telnet............." 
+                      ressource="port_telnet.sh"
+                      dyn_state_ressource="port_telnet_state.sh"
+
+
+config CT_MENU_CBM_PORT_FTP
+bool
+default n
+prompt "FTP"
+depends on CT_MENU_CBM_PORT
+help
+ Tools for port configuration.
+  __XML: simple_level text="FTP................" 
+                      ressource="port_ftp.sh"
+                      dyn_state_ressource="port_ftp_state.sh"
+
+config CT_MENU_CBM_PORT_FTPS
+bool
+default n
+prompt "FTPS"
+depends on CT_MENU_CBM_PORT
+help
+ Tools for port configuration.
+  __XML: simple_level text="FTPS..............." 
+                      ressource="port_ftps.sh"
+                      dyn_state_ressource="port_ftps_state.sh"
+
+config CT_MENU_CBM_PORT_HTTP
+bool
+default n
+prompt "HTTP"
+depends on CT_MENU_CBM_PORT
+help
+ Tools for port configuration.
+  __XML: simple_level text="HTTP..............." 
+                      ressource="port_http.sh"
+                      dyn_state_ressource="port_http_state.sh"
+
+config CT_MENU_CBM_PORT_HTTPS
+bool
+default n
+prompt "HTTPS"
+depends on CT_MENU_CBM_PORT 
+help
+ Tools for port configuration.
+  __XML: simple_level text="HTTPS.............." 
+                      ressource="port_https.sh"
+                      dyn_state_ressource="port_https_state.sh"
+
+
+config CT_MENU_CBM_PORT_NTP
+bool
+default n
+prompt "NTP"
+depends on CT_MENU_CBM_PORT
+help
+  Tools used to edit NTP protocol settings.
+  __XML: simple_level text="NTP................" 
+                      ressource="port_ntp.sh"
+                      dyn_state_ressource="port_ntp_state.sh"
+
+
+config CT_MENU_CBM_PORT_SSH
+bool
+default n
+prompt "SSH"
+depends on CT_MENU_CBM_PORT
+help
+ Tools for port configuration.
+  __XML: simple_level text="SSH................" 
+                      ressource="port_ssh.sh"
+                      dyn_state_ressource="port_ssh_state.sh"
+
+config CT_MENU_CBM_PORT_TFTP
+bool
+default n
+prompt "TFTP"
+depends on CT_MENU_CBM_PORT
+help
+ Tools for port configuration.
+  __XML: simple_level text="TFTP..............." 
+                      ressource="port_tftp.sh"
+                      dyn_state_ressource="port_tftp_state.sh"
+
+config CT_MENU_CBM_PORT_DHCPD
+bool
+default n
+select CT_CONFIG_DHCPD
+select CT_GET_DHCPD_CONFIG
+prompt "DHCPD"
+depends on CT_MENU_CBM_PORT
+help
+ Configure DHCP service.
+  __XML: simple_level text="DHCPD.............." 
+                      ressource="port_dhcpd.sh"
+                      dyn_state_ressource="port_dhcpd_state.sh"
+
+config CT_MENU_CBM_PORT_DNS
+bool
+default n
+select CT_CONFIG_DNS_SERVICE
+select CT_GET_DNS_SERVICE_CONFIG
+prompt "DNS service"
+depends on CT_MENU_CBM_PORT
+help
+ Configure DNS service.
+  __XML: simple_level text="DNS................" 
+                      ressource="port_dns.sh"
+                      dyn_state_ressource="port_dns_state.sh"
+
+config CT_MENU_CBM_PORT_IOCHECK
+bool
+default n
+select CT_CONFIG_IOCHECKPORT
+select CT_GET_IOCHECKPORT_CONFIG
+prompt "iocheck port"
+depends on CT_MENU_CBM_PORT
+help
+ Configure  service.
+  __XML: simple_level text="IOCHECK PORT......."
+                      ressource="port_iocheck.sh"
+                      dyn_state_ressource="port_iocheck_state.sh"
+
+config CT_MENU_CBM_PORT_MODBUS_TCP
+bool
+default n
+select CT_MODBUS_CONFIG
+select CODESYS3
+prompt "Modbus TCP"
+depends on CT_MENU_CBM_PORT
+help
+ Configure Modbus TCP service. 
+  __XML: simple_level text="Modbus TCP........." 
+                      ressource="port_modbus_tcp.sh"
+                      dyn_state_ressource="port_modbus_tcp_state.sh"
+
+config CT_MENU_CBM_PORT_MODBUS_UDP
+bool
+default n
+select CT_MODBUS_CONFIG
+select CODESYS3
+prompt "Modbus UDP"
+depends on CT_MENU_CBM_PORT
+help
+ Configure Modbus UDP service. 
+  __XML: simple_level text="Modbus UDP........." 
+                      ressource="port_modbus_udp.sh"
+                      dyn_state_ressource="port_modbus_udp_state.sh"
+
+config CT_MENU_CBM_PORT_OPCUA
+bool
+default n
+select CT_CONFIG_OPCUA
+select CODESYS3
+prompt "OPC UA"
+depends on CT_MENU_CBM_PORT
+help
+ Configure OPC UA service. 
+  __XML: simple_level text="OPC UA............." 
+                      ressource="port_opcua.sh"
+                      dyn_state_ressource="port_opcua_state.sh"
+
+##############################################################################
+# Codesys Services submenu inside Ports and Services
+
+menuconfig CT_MENU_CBM_PORT_CODESYS_MAIN
+bool
+default n
+prompt "PLC Runtime Services"
+depends on CT_MENU_CBM_PORT
+help
+ __XML: simple_level text="PLC Runtime Services" ressource="port_codesys_main.sh"
+
+config CT_MENU_CBM_PORT_GENERAL_CONFIG
+bool
+default n
+prompt "General Configuration"
+depends on CT_MENU_CBM_PORT_CODESYS_MAIN
+help
+ Tools for port configuration.
+  __XML: simple_level text="General Configuration" 
+                      ressource="port_codesys_general.sh"
+
+config CT_MENU_CBM_PORT_CODESYS2
+bool
+default n
+prompt "CODESYS 2"
+depends on CT_MENU_CBM_PORT_CODESYS_MAIN && PLCLINUXRT
+help
+ Tools for port configuration.
+  __XML: simple_level text="CODESYS 2" 
+                      ressource="port_codesys_version2.sh"
+
+config CT_MENU_CBM_PORT_ERUNTIME
+bool
+default n
+prompt "e!RUNTIME"
+depends on CT_MENU_CBM_PORT_CODESYS_MAIN && CODESYS3
+help
+ Tools for port configuration.
+  __XML: simple_level text="e!RUNTIME" 
+                      ressource="port_codesys_eruntime.sh"
+
+config CT_MENU_CBM_PORT_CODESYSR_FIREWALL
+bool
+default n
+prompt "CODESYS Runtime firewalling status"
+depends on CT_MENU_CBM_PORT_CODESYS_MAIN
+help
+ Tools for port configuration.
+  __XML: simple_level text="Change CODESYS Runtime firewalling settings" 
+                      ressource="port_codesysr_interfaces.sh"
+
+config CT_MENU_CBM_PORT_CODESYSW_FIREWALL
+bool
+default n
+prompt "CODESYS WebVisu firewalling status"
+depends on CT_MENU_CBM_PORT_CODESYS_MAIN && PLCLINUXRT
+help
+ Tools for port configuration.
+  __XML: simple_level text="Change CODESYS WebVisu firewalling settings" 
+                      ressource="port_codesysw_interfaces.sh"
+
+##############################################################################
+
+###############################################################
+menuconfig CT_MENU_CBM_BACNET
+bool
+default n
+prompt "BACnet        "
+depends on CT_MENU_CBM_MAIN
+help
+ Tools for BACnet configuration. 
+ __XML: simple_level text="BACnet" ressource="bacnet.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_MODBUS
+bool
+default n
+prompt "Modbus        "
+depends on CT_MENU_CBM_MAIN && CT_CHANGE_RTS_CONFIG && !CODESYS3
+help
+ Tools for modbus configuration. 
+ __XML: simple_level text="Modbus" ressource="modbus.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_SNMP
+bool
+default n
+prompt "SNMP          "
+depends on CT_MENU_CBM_MAIN
+help
+  Tools for SNMP configuration. 
+  __XML: simple_level text="SNMP" ressource="snmp.sh"
+
+###############################################################
+menuconfig CT_MENU_CBM_PROFIBUS
+bool
+default n
+prompt "PROFIBUS DP   "
+depends on CT_MENU_CBM_MAIN
+help
+ Tools for the profibus configuration.
+ __XML: simple_level text="PROFIBUS DP" ressource="profibus.sh"
+
+endif #CT_MENU_CBM_MAIN
+
+if CBM
+config CBM_INITTAB_ENTRY
+	bool
+	default n
+	prompt "cbm autostart"
+	help
+		start cbm at system-start-up at special terminal to see output at screen
+endif
+
+

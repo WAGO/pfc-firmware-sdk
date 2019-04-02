@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<error-list>
+  <error id="1000">
+    <status-text>The connection to the PLC is lost</status-text>
+    <status-text language="deutsch">Verbindung zur Steuerung unterbrochen</status-text>
+  </error>
+  <error id="1001">
+    <status-text>Internal communication error</status-text>
+    <status-text language="deutsch">Interner Kommunikationsfehler</status-text>
+  </error>
+  <error id="1002">
+    <status-text>PLC has been stopped</status-text>
+    <status-text language="deutsch">Die Steuerung wurde angehalten.</status-text>
+  </error>
+  <error id="1004"> <!-- PLC is debugged -->
+    <status-text>The PLC is currently being debugged.</status-text>
+    <status-text language="deutsch">Die Steuerung ist gerade im Debug-Modus.</status-text>
+  </error>
+  <error id="1005"> <!-- PLC in an unknown state -->
+    <status-text>The PLC is currently in an unknown state.</status-text>
+    <status-text language="deutsch">Die Steuerung ist in einem unbekannten Zustand.</status-text>
+  </error>
+  <error id="1006"> <!-- new donwload detected-->
+    <parameter name="autoreload">10000</parameter>
+    <status-text>Download detected.</status-text>
+    <status-text language="deutsch">Neuer Download erkannt.</status-text>
+  </error>
+</error-list>

@@ -1,0 +1,297 @@
+From b4615d35c506c4a6a2695e4a9e5277e1ad3529f7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Karsten=20N=C3=BCnthel?= <karsten.nünthel@wago.com>
+Date: Wed, 26 Feb 2014 15:12:35 +0100
+Subject: [PATCH] multi connection client test
+
+---
+ tests/Makefile.am               |   4 +
+ tests/multi-connection-client.c | 255 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 259 insertions(+)
+ create mode 100644 tests/multi-connection-client.c
+
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index 2633873..3504a39 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -4,6 +4,7 @@ noinst_PROGRAMS = \
+ 	bandwidth-server-one \
+ 	bandwidth-server-many-up \
+ 	bandwidth-client \
++	multi-connection-client \
+ 	random-test-server \
+ 	random-test-client \
+ 	unit-test-server \
+@@ -22,6 +23,9 @@ bandwidth_server_many_up_LDADD = $(common_ldflags)
+ bandwidth_client_SOURCES = bandwidth-client.c
+ bandwidth_client_LDADD = $(common_ldflags)
+ 
++multi_connection_client_SOURCES = multi-connection-client.c
++multi_connection_client_LDADD = $(common_ldflags)
++
+ random_test_server_SOURCES = random-test-server.c
+ random_test_server_LDADD = $(common_ldflags)
+ 
+diff --git a/tests/multi-connection-client.c b/tests/multi-connection-client.c
+new file mode 100644
+index 0000000..64763cf
+--- /dev/null
++++ b/tests/multi-connection-client.c
+@@ -0,0 +1,255 @@
++/*
++ * Copyright © 2008-2010 Stéphane Raimbault <stephane.raimbault@gmail.com>
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <stdio.h>
++#include <unistd.h>
++#include <string.h>
++#include <stdlib.h>
++#include <time.h>
++#include <sys/time.h>
++#include <errno.h>
++
++#include <modbus.h>
++
++#define G_MSEC_PER_SEC 1000
++
++uint32_t gettime_ms(void)
++{
++    struct timeval tv;
++    gettimeofday (&tv, NULL);
++
++    return (uint32_t) tv.tv_sec * 1000 + tv.tv_usec / 1000;
++}
++
++enum {
++    TCP,
++    UDP,
++    RTU
++};
++
++int main(int argc, char *argv[])
++{
++    uint8_t *tab_bit;
++    uint16_t *tab_reg;
++    modbus_t **ctx_array = NULL;
++    int n_ctx = 0;
++    int port = 0;
++    int i,n;
++    int n_loop = 10000;
++
++    int nb_points;
++    double elapsed;
++    uint32_t start;
++    uint32_t end;
++    uint32_t bytes;
++    uint32_t rate;
++    int rc;
++
++    if (argc > 3) {
++    	char *pEnd;
++    	port = strtol(argv[2], &pEnd, 10);
++    	n_ctx = strtol(argv[3], &pEnd, 10);
++    } else {
++        printf("Usage:\n  %s [IP address] [TCP port] [number of connections] - Modbus client (master) to test multiple TCP connections\n\n", argv[0]);
++        exit(1);
++    }
++    if (!port || !n_ctx) {
++        printf("Usage:\n  %s [IP address] [TCP port] [number of connections] - Modbus client (master) to test multiple TCP connections\n\n", argv[0]);
++        exit(1);
++    }
++    n_loop = n_loop / n_ctx;
++    ctx_array = (modbus_t **) malloc(n_ctx * sizeof(modbus_t*));
++    if (NULL == ctx_array) {
++        fprintf(stderr, "Not enough memory for %d connections\n", n_ctx);
++        exit(1);
++    }
++    for (n=0; n < n_ctx; n++) {
++    	ctx_array[n] = modbus_new_tcp(argv[1], port);
++        if (modbus_connect(ctx_array[n]) == -1) {
++            fprintf(stderr, "Connection to %s:%d failed: %s\n",
++                    argv[1], port, modbus_strerror(errno));
++            modbus_free(ctx_array[n]);
++            while (--n > 0) {
++        		modbus_close(ctx_array[n]);
++                modbus_free(ctx_array[n]);
++            }
++            free(ctx_array);
++            return -1;
++        }
++    }
++
++    /* Allocate and initialize the memory to store the status */
++    tab_bit = (uint8_t *) malloc(MODBUS_MAX_READ_BITS * sizeof(uint8_t));
++    memset(tab_bit, 0, MODBUS_MAX_READ_BITS * sizeof(uint8_t));
++
++    /* Allocate and initialize the memory to store the registers */
++    tab_reg = (uint16_t *) malloc(MODBUS_MAX_READ_REGISTERS * sizeof(uint16_t));
++    memset(tab_reg, 0, MODBUS_MAX_READ_REGISTERS * sizeof(uint16_t));
++
++    printf("READ BITS\n\n");
++
++    nb_points = MODBUS_MAX_READ_BITS;
++    start = gettime_ms();
++    for (i=0; i<n_loop; i++) {
++    	for (n=0; n<n_ctx; n++) {
++            rc = modbus_read_bits(ctx_array[n], 0, nb_points, tab_bit);
++            if (rc == -1) {
++                fprintf(stderr, "%s\n", modbus_strerror(errno));
++                do {
++            		modbus_close(ctx_array[n]);
++                    modbus_free(ctx_array[n]);
++                } while (--n > 0);
++                free(tab_bit);
++                free(tab_reg);
++                free(ctx_array);
++                return -1;
++            }
++    	}
++    }
++    end = gettime_ms();
++    elapsed = end - start;
++
++    rate = (n_loop * n_ctx * nb_points) * G_MSEC_PER_SEC / (end - start);
++    printf("Transfer rate in points/seconds:\n");
++    printf("* %d points/s\n", rate);
++    printf("\n");
++
++    bytes = n_loop * n_ctx * (nb_points / 8) + ((nb_points % 8) ? 1 : 0);
++    rate = bytes / 1024 * G_MSEC_PER_SEC / (end - start);
++    printf("Values:\n");
++    printf("* %d x %d values\n", n_loop*n_ctx, nb_points);
++    printf("* %.3f ms for %d bytes\n", elapsed, bytes);
++    printf("* %d KiB/s\n", rate);
++    printf("\n");
++
++    /* TCP: Query and reponse header and values */
++    bytes = 12 + 9 + (nb_points / 8) + ((nb_points % 8) ? 1 : 0);
++    printf("Values and TCP Modbus overhead:\n");
++    printf("* %d x %d bytes\n", n_loop*n_ctx, bytes);
++    bytes = n_loop * n_ctx * bytes;
++    rate = bytes / 1024 * G_MSEC_PER_SEC / (end - start);
++    printf("* %.3f ms for %d bytes\n", elapsed, bytes);
++    printf("* %d KiB/s\n", rate);
++    printf("\n\n");
++
++    printf("READ REGISTERS\n\n");
++
++    nb_points = MODBUS_MAX_READ_REGISTERS;
++    start = gettime_ms();
++    for (i=0; i<n_loop; i++) {
++    	for (n=0; n<n_ctx; n++) {
++            rc = modbus_read_registers(ctx_array[n], 0, nb_points, tab_reg);
++            if (rc == -1) {
++                fprintf(stderr, "%s\n", modbus_strerror(errno));
++                do {
++            		modbus_close(ctx_array[n]);
++                    modbus_free(ctx_array[n]);
++                } while (--n > 0);
++                free(tab_bit);
++                free(tab_reg);
++                free(ctx_array);
++                return -1;
++            }
++    	}
++    }
++    end = gettime_ms();
++    elapsed = end - start;
++
++    rate = (n_loop * n_ctx * nb_points) * G_MSEC_PER_SEC / (end - start);
++    printf("Transfer rate in points/seconds:\n");
++    printf("* %d registers/s\n", rate);
++    printf("\n");
++
++    bytes = n_loop * n_ctx * nb_points * sizeof(uint16_t);
++    rate = bytes / 1024 * G_MSEC_PER_SEC / (end - start);
++    printf("Values:\n");
++    printf("* %d x %d values\n", n_loop*n_ctx, nb_points);
++    printf("* %.3f ms for %d bytes\n", elapsed, bytes);
++    printf("* %d KiB/s\n", rate);
++    printf("\n");
++
++    /* TCP:Query and reponse header and values */
++    bytes = 12 + 9 + (nb_points * sizeof(uint16_t));
++    printf("Values and TCP Modbus overhead:\n");
++    printf("* %d x %d bytes\n", n_loop*n_ctx, bytes);
++    bytes = n_loop * n_ctx * bytes;
++    rate = bytes / 1024 * G_MSEC_PER_SEC / (end - start);
++    printf("* %.3f ms for %d bytes\n", elapsed, bytes);
++    printf("* %d KiB/s\n", rate);
++    printf("\n\n");
++
++    printf("READ AND WRITE REGISTERS\n\n");
++
++    nb_points = MODBUS_MAX_RW_WRITE_REGISTERS;
++    start = gettime_ms();
++    for (i=0; i<n_loop; i++) {
++    	for (n=0; n<n_ctx; n++) {
++			rc = modbus_write_and_read_registers(ctx_array[n],
++												 0, nb_points, tab_reg,
++												 0, nb_points, tab_reg);
++			if (rc == -1) {
++				fprintf(stderr, "%s\n", modbus_strerror(errno));
++                do {
++            		modbus_close(ctx_array[n]);
++                    modbus_free(ctx_array[n]);
++                } while (--n > 0);
++                free(tab_bit);
++                free(tab_reg);
++                free(ctx_array);
++				return -1;
++			}
++    	}
++    }
++    end = gettime_ms();
++    elapsed = end - start;
++
++    rate = (n_loop * n_ctx * nb_points) * G_MSEC_PER_SEC / (end - start);
++    printf("Transfer rate in points/seconds:\n");
++    printf("* %d registers/s\n", rate);
++    printf("\n");
++
++    bytes = n_loop * n_ctx * nb_points * sizeof(uint16_t);
++    rate = bytes / 1024 * G_MSEC_PER_SEC / (end - start);
++    printf("Values:\n");
++    printf("* %d x %d values\n", n_loop*n_ctx, nb_points);
++    printf("* %.3f ms for %d bytes\n", elapsed, bytes);
++    printf("* %d KiB/s\n", rate);
++    printf("\n");
++
++    /* TCP:Query and reponse header and values */
++    bytes = 12 + 9 + (nb_points * sizeof(uint16_t));
++    printf("Values and TCP Modbus overhead:\n");
++    printf("* %d x %d bytes\n", n_loop*n_ctx, bytes);
++    bytes = n_loop * n_ctx * bytes;
++    rate = bytes / 1024 * G_MSEC_PER_SEC / (end - start);
++    printf("* %.3f ms for %d bytes\n", elapsed, bytes);
++    printf("* %d KiB/s\n", rate);
++    printf("\n");
++
++    /* Close the connections */
++	for (n=0; n<n_ctx; n++) {
++		modbus_close(ctx_array[n]);
++		modbus_free(ctx_array[n]);
++	}
++
++    /* Free the memory */
++    free(tab_bit);
++    free(tab_reg);
++    free(ctx_array);
++
++    return 0;
++}
+-- 
+1.9.0
+

@@ -1,0 +1,13 @@
+## SECTION=wago_specific_libs
+
+config LIBLIBLOADER
+	bool
+    default n
+	prompt "liblibloader"
+	select GLIB
+	select HOST_GLIB
+	select CPPUTEST
+	select HOST_CPPUTEST
+	select CROSS_LIBTOOL
+	help
+	  The library loader is a helper lib to load other *.so files. It provides the ability to scan a directory for *.so files. Also libraries can be opened and searched for symbols (dlopen, dlsym).

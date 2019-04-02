@@ -1,0 +1,44 @@
+From 87ccdbf54157f28809a3a29507a829c038874917 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 29 May 2018 08:51:31 +0200
+Subject: [PATCH 015/144] board: wago-pfc-am335x: enable all possible
+ update-handlers
+
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index bdb5db5..ddcd19d 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -155,19 +155,17 @@ static int pfc_devices_init(void)
+ 		pr_err("failed to export board.variant\n");
+ 
+ 	if (bootsource_get() == BOOTSOURCE_MMC) {
+-		if (bootsource_get_instance() == 0) {
++		if (bootsource_get_instance() == 0)
+ 			omap_set_bootmmc_devname("mmc0");
+-		} else {
++		else
+ 			omap_set_bootmmc_devname("mmc1");
+-			am33xx_bbu_emmc_mlo_register_handler("mlo.emmc",
+-								"/dev/mmc1");
+-		}
+-	} else if (bootsource_get() == BOOTSOURCE_NAND) {
+-		am33xx_bbu_nand_xloadslots_register_handler("mlo.nand",
++	}
++
++	am33xx_bbu_emmc_mlo_register_handler("mlo.emmc", "/dev/mmc1");
++	am33xx_bbu_nand_xloadslots_register_handler("mlo.nand",
+ 					xloadslots, ARRAY_SIZE(xloadslots));
+-		am33xx_bbu_nand_slots_register_handler("barebox.nand", nandslots,
++	am33xx_bbu_nand_slots_register_handler("barebox.nand", nandslots,
+ 							ARRAY_SIZE(nandslots));
+-	}
+ 
+ 	of_device_enable_path("/chosen/environment-sd");
+ 	omap_set_barebox_part(&pfc_barebox_part);
+-- 
+2.7.4
+

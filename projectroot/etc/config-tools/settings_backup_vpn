@@ -1,0 +1,153 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: settings_backup_vpn
+#
+# Save or restore the actual configuration settings of VPN.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+backup_known_file()
+{
+	KEY=$1
+	FILE=$2
+	if [ -f "$FILE" ]; then
+		base64 "$FILE" | awk "\$0=\"$KEY=\"\$0"
+	fi
+}
+
+backup_arb_file()
+{
+	KEY=$1
+	FILE=$2
+	if [ -f "$FILE" ]; then
+		echo -n "$KEY-name="
+		echo ${FILE##*/} | tr -d '\n\r\t'
+		echo
+
+		base64 "$FILE" | awk "\$0=\"$KEY-content=\"\$0"
+	fi
+}
+
+operation=$1
+
+#-------------------------------------------------------------
+# restore of settings
+#-------------------------------------------------------------
+
+if [ "$operation" = "restore" ]; then
+
+	u=$(umask)
+
+	umask 0022
+	mkdir -p /etc/openvpn
+	mkdir -p /etc/certificates
+	umask 0077
+	mkdir -p /etc/certificates/keys
+
+	rm /etc/openvpn/openvpn.conf
+	rm /etc/ipsec.conf
+	rm /etc/ipsec.secrets
+
+	while read l; do
+		k=${l%%=*}
+		v=${l#*=}
+		case "$k" in
+			vpn-ovpn-enabled)
+				ovpn_enabled="$v"
+				;;
+			vpn-ipsec-enabled)
+				ipsec_enabled="$v"
+				;;
+			vpn-ovpn-conf)
+				umask 0077
+				base64 -d <<< "$v" >> /etc/openvpn/openvpn.conf
+				;;
+			vpn-ipsec-conf)
+				umask 0022
+				base64 -d <<< "$v" >> /etc/ipsec.conf
+				;;
+			vpn-ipsec-secrets)
+				umask 0077
+				base64 -d <<< "$v" >> /etc/ipsec.secrets
+				;;
+			vpn-certificate-name)
+				n="/etc/certificates/"${v//\/}
+				rm "$n"
+				;;
+			vpn-certificate-content)
+				if [ -n "$n" ]; then
+					umask 0022
+					base64 -d <<< "$v" >> "$n"
+				fi
+				;;
+			vpn-certificate-key-name)
+				n="/etc/certificates/keys/"${v//\/}
+				rm "$n"
+				;;
+			vpn-certificate-key-content)
+				if [ -n "$n" ]; then
+					umask 0077
+					base64 -d <<< "$v" >> "$n"
+				fi
+				;;
+			vpn-*)
+				echo "Unknown key $k" >> /dev/stderr
+				;;
+		esac
+	done
+	
+	umask $u
+
+	case "$ovpn_enabled" in
+		enabled)
+			/etc/config-tools/vpncfg ovpn --enable
+			;;
+		disabled)
+			/etc/config-tools/vpncfg ovpn --disable
+			;;
+	esac
+
+	case "$ipsec_enabled" in
+		enabled)
+			/etc/config-tools/vpncfg ipsec --enable
+			;;
+		disabled)
+			/etc/config-tools/vpncfg ipsec --disable
+			;;
+	esac
+
+#-------------------------------------------------------------
+# backup settings
+#-------------------------------------------------------------
+
+elif [ "$operation" = "backup" ]; then
+
+	echo -n "vpn-ovpn-enabled=";  echo $(/etc/config-tools/vpncfg ovpn --is-enabled)	
+	echo -n "vpn-ipsec-enabled="; echo $(/etc/config-tools/vpncfg ipsec --is-enabled)	
+	backup_known_file vpn-ovpn-conf     /etc/openvpn/openvpn.conf
+	backup_known_file vpn-ipsec-conf    /etc/ipsec.conf
+	backup_known_file vpn-ipsec-secrets /etc/ipsec.secrets
+		
+	for i in /etc/certificates/* ; do
+		backup_arb_file vpn-certificate "$i"
+	done
+
+	for i in /etc/certificates/keys/* ; do
+		backup_arb_file vpn-certificate-key "$i"
+	done
+
+else
+	echo
+	echo "* save all VPN configuration settings to stdout or restore them from stdin *"
+	echo
+	echo "Usage: settings_backup_vpn < backup | restore >" 
+	echo
+fi
+

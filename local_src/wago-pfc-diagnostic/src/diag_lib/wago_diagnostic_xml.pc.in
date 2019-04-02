@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: wago_diagnostic_xml
+Description: Diagnostic XML library
+Version: @PACKAGE_VERSION@
+Requires: libxml-2.0
+Libs: -L${libdir} -ldiagxml
+Cflags: -I${includedir}
+
+

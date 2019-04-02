@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!-- LED configuration of SRC (SingleRoomController) product! -->
+<ledconfig>
+<led name="DS"  number="0" state="STATIC_GRN" id="000000C0">
+	<alias>SYS</alias>
+</led>
+<led name="APP" number="1" state="STATIC_OFF" id="00040004" >
+	<alias>U1</alias>
+</led>
+</ledconfig>

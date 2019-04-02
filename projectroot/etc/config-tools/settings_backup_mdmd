@@ -1,0 +1,185 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2016-2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   settings_backup_mdmd
+#
+# Brief:    Save or restore MDMD settings.
+#
+# Author:   AnK: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   KN: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 64
+fi
+
+source /etc/config-tools/config_tool_lib
+
+readonly operation="$1"
+readonly setting="$2"
+
+# modem config file 
+readonly md_config="/etc/specific/mdmd_init.conf"
+# modem config tool 
+readonly md_config_tool="/etc/config-tools/config_mdmd"
+
+declare status=$SUCCESS
+
+declare -a NetworkSelectionEnum=("AUTOMATIC" "MANUAL" "ONLY_GSM" "ONLY_UMTS" "PREFER_GSM" "PREFER_UMTS") 
+declare -a LogLevelEnum=("DISABLED" "ERROR" "WARNING" "INFO" "DEBUG1" "DEBUG2")
+
+#-------------------------------------------------------------
+# restore of settings
+#-------------------------------------------------------------
+
+
+
+if [ "$operation" = "restore" ]; then
+
+  case "$setting" in
+    sim-pin)
+        pin=$(echo "$3" | base64 -d)
+        [ -n "$pin" ] && /etc/config-tools/config_mdmd --set --SIM SimPin="$pin"
+        ;;
+    port-enabled)
+        if [ -n  "$3" ]; then   
+	        if [ $3 -eq 0 ] 
+	        then   
+	           "$md_config_tool" --set --port PortState=DISABLED
+	           status=$?
+	        elif  [ $3 -eq 1 ] 
+	        then
+	           "$md_config_tool" --set --port PortState=ENABLED
+	           status=$?
+	        else 
+	           status=$INVALID_PARAMETER  
+	        fi
+	      fi  
+        ;;
+    log-level)
+        if [ $3 -ge 0 ] && [ $3 -lt ${#LogLevelEnum[*]} ] 
+        then
+           LogLevelValue=${LogLevelEnum[$3]}
+           "$md_config_tool" --set --logging LogLevel=$LogLevelValue
+           status=$?  
+        else 
+          status=$INVALID_PARAMETER  
+        fi
+        ;;        
+    gprs-access) 
+        "$md_config_tool" --set --gprsaccess GprsAccessPointName=$3 GprsAuthType=$4 GprsUserName=$5 GprsPassword=$6
+        status=$?
+        ;;                                      
+    gprs-connectivity)  
+        "$md_config_tool" --set --gprsaccess GprsConnectivity=$3
+        status=$?
+        ;;         
+    net-selection)
+        if [ $3 -ge 0 ] && [ $3 -lt ${#NetworkSelectionEnum[*]} ] 
+        then
+           NetworkSelectionValue=${NetworkSelectionEnum[$3]}
+           "$md_config_tool" --set --network NetworkSelection=$NetworkSelectionValue
+           status=$?  
+        else 
+          status=$INVALID_PARAMETER  
+        fi
+        ;;       
+    dummy)  
+      status=$SUCCESS  
+      ;;	     
+    *)        
+        status=$INVALID_PARAMETER
+        ;;
+    esac 
+     
+      
+#-------------------------------------------------------------
+# backup settings
+#-------------------------------------------------------------
+
+elif [ "$operation" = "backup" ]; then
+
+	case "$setting" in 
+    sim-pin)
+      if grep -q "sim_pin" "$md_config"; then
+		  	cat "$md_config" |  awk -F = '$1=="sim_pin" { printf $2 }' | base64
+		    status=$SUCCESS
+		  else
+		    status=$CONFIG_FILE_INCONSISTENT
+		  fi      
+		  ;;
+		port-enabled)
+		  if grep -q "port_enabled" "$md_config"; then 
+		  	cat "$md_config" |  awk -F = '$1=="port_enabled"{ printf $2 }' 
+		    status=$SUCCESS
+		  else
+		    status=$CONFIG_FILE_INCONSISTENT
+		  fi  
+      ;;
+    log-level)
+      if grep -q "log_level" "$md_config"; then
+      	cat "$md_config" |  awk -F = '$1=="log_level" { printf $2 }' 
+		    status=$SUCCESS
+		  else
+		    status=$CONFIG_FILE_INCONSISTENT
+		  fi  
+      ;;
+		net-selection) 
+		  if grep -q "net_selection" "$md_config"; then 
+		  	cat "$md_config" |  awk -F = '$1=="net_selection" { printf $2 }' 
+		    status=$SUCCESS
+		  else
+		    status=$CONFIG_FILE_INCONSISTENT
+		  fi  
+		  ;;
+		gprs-apn)
+		  "$md_config_tool" --get --gprsaccess  | grep GprsAccessPointName | cut -d'=' -f 2
+      status=$?  
+      ;;
+    gprs-auth-type)
+      "$md_config_tool" --get --gprsaccess  | grep GprsAuthType | cut -d'=' -f 2
+      status=$?  
+      ;;     
+    gprs-password)
+      "$md_config_tool" --get --gprsaccess  | grep GprsPassword | cut -d'=' -f 2
+      status=$?  
+      ;;  
+    gprs-username)
+      "$md_config_tool" --get --gprsaccess  | grep GprsUserName | cut -d'=' -f 2
+      status=$?  
+      ;;               
+    gprs-connectivity)  
+      "$md_config_tool" --get --gprsaccess | grep GprsConnectivity | cut -d'=' -f 2
+      status=$?  
+      ;;	           
+		*)        
+      status=$INVALID_PARAMETER
+      ;; 
+	esac
+				  
+else
+	echo
+	echo "* get or set MDMD configuration settings *"
+	echo
+	echo "Usage: $(basename "$0") < backup | restore > sim-pin [pin-base64]" 
+  echo "       $(basename "$0") < backup | restore > gprs-access [GprsAccessPointName, GprsAuthType, GprsUserName, GprsPassword]"	
+  echo "       $(basename "$0") < backup | restore > gprs-connectivity [DISABLED, ENABLED]"
+  echo "       $(basename "$0") < backup | restore > net-selection [0..5]"
+  echo "       $(basename "$0") < backup | restore > port-enabled [0, 1]"
+  echo "       $(basename "$0") < backup | restore > log-level [0..5]"
+  echo
+fi
+
+exit $status
+

@@ -1,0 +1,53 @@
+--- libmodbus-3.0.5.latest/src/modbus-tcp-private.h	2014-07-10 17:31:17.713606000 +0200
++++ libmodbus-3.0.5/src/modbus-tcp-private.h	2014-07-18 13:23:31.419613146 +0200
+@@ -56,7 +56,7 @@
+     unsigned char data_buf[_MODBUS_UDP_RECV_BUFFER_SIZE];
+     /* UDP port */
+     int port;
+-    /* Remote IP address */
++    /* IP address */
+     char ip[_MODBUS_IP_LENGTH];
+     /* last received destination for multicast specific handling */
+     uint32_t recv_dst;
+--- libmodbus-3.0.5.latest/src/modbus-tcp.c	2014-07-10 18:51:51.553376000 +0200
++++ libmodbus-3.0.5/src/modbus-tcp.c	2014-07-18 13:43:20.984658288 +0200
+@@ -1391,28 +1391,29 @@
+ {
+ 	if (ctx && address && length)
+ 	{
+-		char *ip;
++		struct sockaddr_in sClientaddr;
+ 		switch(ctx->backend->backend_type) 
+ 		{
+ 		case _MODBUS_BACKEND_TYPE_TCP:
+ 		{
+-			modbus_tcp_t *ctx_tcp = ctx->backend_data;
+-			ip = ctx_tcp->ip;
++			socklen_t nAddrlen = sizeof(sClientaddr);
++			if (getpeername(ctx->s, (struct sockaddr *)&sClientaddr, &nAddrlen) < 0)
++			{
++			  return;
++			}
+ 			break;
+ 		}
+ 		case _MODBUS_BACKEND_TYPE_UDP:
+ 		{
+ 			modbus_udp_t *ctx_udp = ctx->backend_data;
+-			ip = ctx_udp->ip;
++			sClientaddr.sin_addr.s_addr = htonl(ctx_udp->recv_src);
++			sClientaddr.sin_port = htons(ctx_udp->recv_port);
++			sClientaddr.sin_family = AF_INET;
+ 			break;
+ 		}
+ 		default:
+-			ip = NULL;
+-			break;
+-		}
+-		if(ip)
+-		{
+-			strlcpy(address, ip, length);
++			return;
+ 		}
++		strlcpy(address, inet_ntoa(sClientaddr.sin_addr), length);
+ 	}
+ }

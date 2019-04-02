@@ -1,0 +1,10 @@
+## SECTION=wago_specific_libs
+
+config LIBUCI
+	bool
+	default n
+	prompt "libuci"
+	select HOST_CMAKE
+	help
+	  Library for the Unified Configuration Interface.
+	  Used by 'swconfig' to configure the ksz8863 switch.

@@ -1,0 +1,91 @@
+From 7645cc3d8333fb2699503714953c33d01c19c0f4 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 14 Aug 2018 14:31:02 +0200
+Subject: [PATCH 060/144] commands: led_mode: add turn_off_ancestor feature
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ commands/led_mode.c | 16 ++++++++++------
+ include/led_mode.h  |  2 +-
+ 2 files changed, 11 insertions(+), 7 deletions(-)
+
+diff --git a/commands/led_mode.c b/commands/led_mode.c
+index c72152f..2b94509 100644
+--- a/commands/led_mode.c
++++ b/commands/led_mode.c
+@@ -60,7 +60,7 @@ int led_mode_static(char *color, bool state)
+ 	return 0;
+ }
+ 
+-int led_mode_moving(char *color, unsigned int duration_ms)
++int led_mode_moving(char *color, unsigned int duration_ms, bool turn_off_anc)
+ {
+ 	struct led *led, *last_led;
+ 	int i;
+@@ -80,7 +80,7 @@ int led_mode_moving(char *color, unsigned int duration_ms)
+ 	while ((led = led_by_number(i++))) {
+ 		if (strcmp(led->name, OVERWRITE_LED)) {
+ 			if (strstr(led->name, color)) {
+-				if (last_led)
++				if (last_led && turn_off_anc)
+ 					led_set(last_led, 0);
+ 
+ 				led_set(led, led->max_value);
+@@ -97,11 +97,11 @@ static int do_led_mode(int argc, char *argv[])
+ {
+ 	char *color = "none";
+ 	enum led_mode mode = INVALID_MODE;
+-	bool state = false;
++	bool state = false, turn_off_anc = true;
+ 	unsigned int duration_ms = 30;
+ 	int opt, ret = 0;
+ 
+-	while ((opt = getopt(argc, argv, "smc:v::d::")) > 0) {
++	while ((opt = getopt(argc, argv, "smc:v::d::t")) > 0) {
+ 		switch (opt) {
+ 		case 's':
+ 			mode = STATIC;
+@@ -121,6 +121,10 @@ static int do_led_mode(int argc, char *argv[])
+ 		case 'd':
+ 			duration_ms = simple_strtoul(optarg, NULL, 0);
+ 			break;
++		case 't':
++			turn_off_anc = false;
++			break;
++
+ 		default:
+ 			ret = COMMAND_ERROR_USAGE;
+ 			goto out;
+@@ -137,7 +141,7 @@ static int do_led_mode(int argc, char *argv[])
+ 		ret = led_mode_static(color, state);
+ 		break;
+ 	case MOVING:
+-		ret = led_mode_moving(color, duration_ms);
++		ret = led_mode_moving(color, duration_ms, turn_off_anc);
+ 		break;
+ 	default:
+ 		ret = COMMAND_ERROR_USAGE;
+@@ -161,7 +165,7 @@ BAREBOX_CMD_HELP_TEXT("cmd: <led> without args.")
+ BAREBOX_CMD_HELP_TEXT("")
+ BAREBOX_CMD_HELP_TEXT("Options:")
+ BAREBOX_CMD_HELP_OPT ("-s -c <green|red|yellow> -v <on|off>", "set all leds to static state")
+-BAREBOX_CMD_HELP_OPT ("-m -c <green|red> [ -d <duration_ms> ]", "move the leds with optional duration time. Default 30ms")
++BAREBOX_CMD_HELP_OPT ("-m -c <green|red> [ -d <duration_ms> ] [ -t ]", "move the leds with optional duration time. Default 30ms. The optional option -t is used to not tur off the ancestor led")
+ BAREBOX_CMD_HELP_END
+ 
+ BAREBOX_CMD_START(led_mode)
+diff --git a/include/led_mode.h b/include/led_mode.h
+index 93b39a1..6a4e259 100644
+--- a/include/led_mode.h
++++ b/include/led_mode.h
+@@ -5,6 +5,6 @@
+ int led_mode_static(char *color, bool state);
+ 
+ /* valid color strings are: red, green */
+-int led_mode_moving(char *color, unsigned int duration_ms);
++int led_mode_moving(char *color, unsigned int duration_ms, bool turn_off_anc);
+ 
+ #endif /* __LED_MODE_H */
+-- 
+2.7.4
+

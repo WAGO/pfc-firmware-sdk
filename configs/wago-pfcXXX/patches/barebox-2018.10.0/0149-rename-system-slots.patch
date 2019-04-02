@@ -1,0 +1,82 @@
+From 44da2df4a4fba16220baaf0ac632d8b4ed9e6634 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 13 Nov 2018 09:42:58 +0100
+Subject: [PATCH 149/149] rename system slots
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am3xxx-pfc-bootchooser.dtsi                   | 4 ++--
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot | 8 ++++----
+ defaultenv/defaultenv-pfc-base/config                      | 6 +++---
+ 3 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi b/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi
+index 8ec7e1b..0520b80 100644
+--- a/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi
++++ b/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi
+@@ -18,7 +18,7 @@
+ 		backend-storage-type = "direct";
+ 		backend-stridesize = <0x40>;
+ 
+-		system0 {
++		rootfs.1 {
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 
+@@ -35,7 +35,7 @@
+ 			};
+ 		};
+ 
+-		system1 {
++		rootfs.2 {
+ 			#address-cells = <1>;
+ 			#size-cells = <1>;
+ 
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index a74795b..5dc2f79 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -18,12 +18,12 @@ nand_blspec_rootfs0="${global.pfc.nand_rootfs0}/boot/nand0/loader/entries/${glob
+ nand_blspec_rootfs1="${global.pfc.nand_rootfs1}/boot/nand1/loader/entries/${global.model}-${global.pfc.devconf}.conf"
+ 
+ if [ -e "${global.pfc.emmc}" ]; then
+-	global.bootchooser.system0.boot="file://${emmc_blspec_rootfs0}"
+-	global.bootchooser.system1.boot="file://${emmc_blspec_rootfs1}"
++	global.bootchooser.rootfs.1.boot="file://${emmc_blspec_rootfs0}"
++	global.bootchooser.rootfs.2.boot="file://${emmc_blspec_rootfs1}"
+ 
+ elif [ -e "${global.pfc.nand}" ]; then
+-	global.bootchooser.system0.boot="file://${nand_blspec_rootfs0}"
+-	global.bootchooser.system1.boot="file://${nand_blspec_rootfs1}"
++	global.bootchooser.rootfs.1.boot="file://${nand_blspec_rootfs0}"
++	global.bootchooser.rootfs.2.boot="file://${nand_blspec_rootfs1}"
+ else
+ 	echo -e ${error} "$0: no valid boot device found for bootchooser"
+ 	exit 1
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index c4a2f44..74d0b52 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -43,8 +43,8 @@ global pfc.debug_mode_active
+ global pfc.watchdog_timeout_linux_load
+ global pfc.watchdog_timeout_linux_boot
+ 
+-global bootchooser.system0.boot
+-global bootchooser.system1.boot
++global bootchooser.rootfs.1.boot
++global bootchooser.rootfs.2.boot
+ global linux.bootargs.productionmode
+ 
+ ################################
+@@ -175,7 +175,7 @@ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ [ -z "${global.pfc.watchdog_timeout_linux_boot}" ] && global.pfc.watchdog_timeout_linux_boot=30
+ [ -z "${global.pfc.debug_mode_active}" ] && global.pfc.debug_mode_active=false
+ 
+-[ -z "${global.bootchooser.targets}" ] && global.bootchooser.targets="system0 system1"
++[ -z "${global.bootchooser.targets}" ] && global.bootchooser.targets="rootfs.1 rootfs.2"
+ [ -z "${global.bootchooser.state_prefix}" ] && global.bootchooser.state_prefix="bootstate"
+ [ -z "${global.bootchooser.reset_attempts}" ] && global.bootchooser.reset_attempts="all-zero power-on"
+ [ -z "${global.bootchooser.reset_priorities}" ] && global.bootchooser.reset_priorities="all-zero"
+-- 
+2.7.4
+

@@ -1,0 +1,306 @@
+\hypertarget{common__main__defaults_8h}{}\section{inc/ctparts/common\+\_\+main\+\_\+defaults.h File Reference}
+\label{common__main__defaults_8h}\index{inc/ctparts/common\+\_\+main\+\_\+defaults.\+h@{inc/ctparts/common\+\_\+main\+\_\+defaults.\+h}}
+
+
+Commonly used prototypes for config tool common main function.  
+
+
+{\ttfamily \#include \char`\"{}wc/assertion.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ctutil/common\+\_\+main.\+h\char`\"{}}\newline
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{common__main__defaults_8h_ad5ea1f702bc66efa5b70a43cfa2796cc}{ctparts\+\_\+\+Print\+Info\+Text} (\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const pst\+Context, char const $\ast$const sz\+Call\+String)
+\begin{DoxyCompactList}\small\item\em Function to print program information text (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\item 
+\hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{common__main__defaults_8h_a8713d2cc2024e687010a9fa65b9a3b48}{ctparts\+\_\+\+Set\+Option\+Defaults} (\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const pst\+Context, \hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const pst\+Options)
+\begin{DoxyCompactList}\small\item\em Function to allocate specific options struct and set the option defaults (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\item 
+void \hyperlink{common__main__defaults_8h_abf2dc34d290434dc84d4b3cdf986f879}{ctparts\+\_\+\+Release\+Specific\+Options} (\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const pst\+Context, \hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const pst\+Options)
+\begin{DoxyCompactList}\small\item\em Function to release and free the specific option struct (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\item 
+\hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{common__main__defaults_8h_a649383b55852e63cfddd614f4a29dbd1}{ctparts\+\_\+\+Evaluate\+Early\+Options} (\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const pst\+Context, int const argc, char $\ast$const argv\mbox{[}$\,$\mbox{]}, \hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const pst\+Options)
+\begin{DoxyCompactList}\small\item\em Function to evaluate early options (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\item 
+\hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{common__main__defaults_8h_aeb0bc92f989f7f5764b55d34b924022c}{ctparts\+\_\+\+Evaluate\+Options} (\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const pst\+Context, int const argc, char $\ast$const argv\mbox{[}$\,$\mbox{]}, \hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const pst\+Options)
+\begin{DoxyCompactList}\small\item\em Function to evaluate argument options (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\item 
+\hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{common__main__defaults_8h_a3f065a35a5752ae11ffdf7e71b5d2c14}{ctparts\+\_\+\+Init\+Specific\+Resources} (\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const pst\+Context, \hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} $\ast$$\ast$const ppst\+Resources)
+\begin{DoxyCompactList}\small\item\em Function to initialize config tool specific resources (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\item 
+void \hyperlink{common__main__defaults_8h_aa9b3e79b24252b8846db1f3057aa1370}{ctparts\+\_\+\+Release\+Specific\+Resources} (\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const pst\+Context, \hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} $\ast$$\ast$const ppst\+Resources)
+\begin{DoxyCompactList}\small\item\em Function to release config tool specific resources (for example implementation see Hello\+World example config tool). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Commonly used prototypes for config tool common main function. 
+
+\begin{DoxyAuthor}{Author}
+P\+En\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
+\end{DoxyAuthor}
+
+
+\subsection{Function Documentation}
+\hypertarget{common__main__defaults_8h_a649383b55852e63cfddd614f4a29dbd1}{}\label{common__main__defaults_8h_a649383b55852e63cfddd614f4a29dbd1} 
+\index{common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}!ctparts\+\_\+\+Evaluate\+Early\+Options@{ctparts\+\_\+\+Evaluate\+Early\+Options}}
+\index{ctparts\+\_\+\+Evaluate\+Early\+Options@{ctparts\+\_\+\+Evaluate\+Early\+Options}!common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+\+Evaluate\+Early\+Options()}{ctparts\_EvaluateEarlyOptions()}}
+{\footnotesize\ttfamily \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctparts\+\_\+\+Evaluate\+Early\+Options (\begin{DoxyParamCaption}\item[{\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const}]{pst\+Context,  }\item[{int const}]{argc,  }\item[{char $\ast$const}]{argv\mbox{[}$\,$\mbox{]},  }\item[{\hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const}]{pst\+Options }\end{DoxyParamCaption})}
+
+
+
+Function to evaluate early options (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype to evaluate early options (options have to been checked before any further operations started).
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific. 
+
+As inner implementation \hyperlink{params_8c_a649383b55852e63cfddd614f4a29dbd1}{ctparts\+\_\+\+Evaluate\+Early\+Options} may be used.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Context} & Application specific context. If unused, N\+U\+LL is allowed. \\
+\hline
+{\em argc} & Argument count, forwarded from outer main function. \\
+\hline
+{\em argv} & Argument vector, forwarded from outer main function. \\
+\hline
+{\em pst\+Options} & Option structure pointer. Inside user specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} may be N\+U\+LL.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of success, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{common__main__defaults_8h_aeb0bc92f989f7f5764b55d34b924022c}{}\label{common__main__defaults_8h_aeb0bc92f989f7f5764b55d34b924022c} 
+\index{common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}!ctparts\+\_\+\+Evaluate\+Options@{ctparts\+\_\+\+Evaluate\+Options}}
+\index{ctparts\+\_\+\+Evaluate\+Options@{ctparts\+\_\+\+Evaluate\+Options}!common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+\+Evaluate\+Options()}{ctparts\_EvaluateOptions()}}
+{\footnotesize\ttfamily \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctparts\+\_\+\+Evaluate\+Options (\begin{DoxyParamCaption}\item[{\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const}]{pst\+Context,  }\item[{int const}]{argc,  }\item[{char $\ast$const}]{argv\mbox{[}$\,$\mbox{]},  }\item[{\hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const}]{pst\+Options }\end{DoxyParamCaption})}
+
+
+
+Function to evaluate argument options (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype to evaluate options.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Context} & Application specific context. If unused, N\+U\+LL is allowed. \\
+\hline
+{\em argc} & Argument count, forwarded from outer main function. \\
+\hline
+{\em argv} & Argument vector, forwarded from outer main function. \\
+\hline
+{\em pst\+Options} & Option structure pointer. Inside user specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} may be N\+U\+LL.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of success, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{common__main__defaults_8h_a3f065a35a5752ae11ffdf7e71b5d2c14}{}\label{common__main__defaults_8h_a3f065a35a5752ae11ffdf7e71b5d2c14} 
+\index{common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}!ctparts\+\_\+\+Init\+Specific\+Resources@{ctparts\+\_\+\+Init\+Specific\+Resources}}
+\index{ctparts\+\_\+\+Init\+Specific\+Resources@{ctparts\+\_\+\+Init\+Specific\+Resources}!common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+\+Init\+Specific\+Resources()}{ctparts\_InitSpecificResources()}}
+{\footnotesize\ttfamily \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctparts\+\_\+\+Init\+Specific\+Resources (\begin{DoxyParamCaption}\item[{\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const}]{pst\+Context,  }\item[{\hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} $\ast$$\ast$const}]{ppst\+Resources }\end{DoxyParamCaption})}
+
+
+
+Function to initialize config tool specific resources (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype to initialize application specific resources.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific. 
+
+An eventually set pointer for a specific resources structure have to be released by \hyperlink{ctmain_8c_aa9b3e79b24252b8846db1f3057aa1370}{ctparts\+\_\+\+Release\+Specific\+Resources}.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Context} & Application specific context. If unused, N\+U\+LL is allowed. \\
+\hline
+{\em ppst\+Resources} & Pointer to resource structure pointer to be equipped with application specific resource data or pointers.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of successfully acquired resources, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxyPrecond}{Precondition}
+Application specific resource pointer \hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} points to N\+U\+LL.
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+Application specific resource pointer \hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} points to N\+U\+LL or a valid structure in case of success. Application specific resource pointer \hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} points to N\+U\+LL in case of an error.
+\end{DoxyPostcond}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{resource__handling_8h_a2124531eef8a84759db04cdc101c55f1}{ctutil\+\_\+\+Resources\+\_\+t} 
+
+\hyperlink{resource__handling_8h_a33ab0d580557807ced1b0ca3bd3a3cf0}{ctutil\+\_\+\+Resources\+Common\+\_\+t} 
+
+\hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} 
+
+ctutil\+\_\+\+Release\+Specific\+Resources 
+
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{common__main__defaults_8h_ad5ea1f702bc66efa5b70a43cfa2796cc}{}\label{common__main__defaults_8h_ad5ea1f702bc66efa5b70a43cfa2796cc} 
+\index{common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}!ctparts\+\_\+\+Print\+Info\+Text@{ctparts\+\_\+\+Print\+Info\+Text}}
+\index{ctparts\+\_\+\+Print\+Info\+Text@{ctparts\+\_\+\+Print\+Info\+Text}!common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+\+Print\+Info\+Text()}{ctparts\_PrintInfoText()}}
+{\footnotesize\ttfamily void ctparts\+\_\+\+Print\+Info\+Text (\begin{DoxyParamCaption}\item[{\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const}]{pst\+Context,  }\item[{char const $\ast$const}]{sz\+Call\+String }\end{DoxyParamCaption})}
+
+
+
+Function to print program information text (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype to print short info text about program.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific. 
+
+For programs with only a few options this may be the same as the program help text.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Context} & Application specific context. If unused, N\+U\+LL is allowed. \\
+\hline
+{\em sz\+Call\+String} & Call string from program call, normally this is \char`\"{}argv\mbox{[}0\mbox{]}\char`\"{}.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} 
+\end{DoxySeeAlso}
+\hypertarget{common__main__defaults_8h_abf2dc34d290434dc84d4b3cdf986f879}{}\label{common__main__defaults_8h_abf2dc34d290434dc84d4b3cdf986f879} 
+\index{common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}!ctparts\+\_\+\+Release\+Specific\+Options@{ctparts\+\_\+\+Release\+Specific\+Options}}
+\index{ctparts\+\_\+\+Release\+Specific\+Options@{ctparts\+\_\+\+Release\+Specific\+Options}!common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+\+Release\+Specific\+Options()}{ctparts\_ReleaseSpecificOptions()}}
+{\footnotesize\ttfamily void ctparts\+\_\+\+Release\+Specific\+Options (\begin{DoxyParamCaption}\item[{\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const}]{pst\+Context,  }\item[{\hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const}]{pst\+Options }\end{DoxyParamCaption})}
+
+
+
+Function to release and free the specific option struct (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype to release application specific application options.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Context} & Application specific context. If unused, N\+U\+LL is allowed. \\
+\hline
+{\em pst\+Options} & Option structure pointer. Inside user specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} may be N\+U\+LL.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+Application specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} is N\+U\+LL or points to a valid structure.
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+Application specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} is N\+U\+LL.
+\end{DoxyPostcond}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} 
+
+\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} 
+
+\hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} 
+
+ctutil\+\_\+\+Set\+Option\+Defaults 
+\end{DoxySeeAlso}
+\hypertarget{common__main__defaults_8h_aa9b3e79b24252b8846db1f3057aa1370}{}\label{common__main__defaults_8h_aa9b3e79b24252b8846db1f3057aa1370} 
+\index{common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}!ctparts\+\_\+\+Release\+Specific\+Resources@{ctparts\+\_\+\+Release\+Specific\+Resources}}
+\index{ctparts\+\_\+\+Release\+Specific\+Resources@{ctparts\+\_\+\+Release\+Specific\+Resources}!common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+\+Release\+Specific\+Resources()}{ctparts\_ReleaseSpecificResources()}}
+{\footnotesize\ttfamily void ctparts\+\_\+\+Release\+Specific\+Resources (\begin{DoxyParamCaption}\item[{\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const}]{pst\+Context,  }\item[{\hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} $\ast$$\ast$const}]{ppst\+Resources }\end{DoxyParamCaption})}
+
+
+
+Function to release config tool specific resources (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype to release application specific application resources.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Context} & Application specific context. If unused, N\+U\+LL is allowed. \\
+\hline
+{\em ppst\+Resources} & Pointer to resource structure pointer. May be pointing to N\+U\+LL.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+Pointer to application specific resource pointer points to N\+U\+LL or a valid structure.
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+Pointer to application specific resource pointer points to N\+U\+LL.
+\end{DoxyPostcond}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{resource__handling_8h_a2124531eef8a84759db04cdc101c55f1}{ctutil\+\_\+\+Resources\+\_\+t} 
+
+\hyperlink{resource__handling_8h_a33ab0d580557807ced1b0ca3bd3a3cf0}{ctutil\+\_\+\+Resources\+Common\+\_\+t} 
+
+\hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\+\_\+\+Resources\+Specific\+\_\+t} 
+
+ctutil\+\_\+\+Open\+Specific\+Resources 
+\end{DoxySeeAlso}
+\hypertarget{common__main__defaults_8h_a8713d2cc2024e687010a9fa65b9a3b48}{}\label{common__main__defaults_8h_a8713d2cc2024e687010a9fa65b9a3b48} 
+\index{common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}!ctparts\+\_\+\+Set\+Option\+Defaults@{ctparts\+\_\+\+Set\+Option\+Defaults}}
+\index{ctparts\+\_\+\+Set\+Option\+Defaults@{ctparts\+\_\+\+Set\+Option\+Defaults}!common\+\_\+main\+\_\+defaults.\+h@{common\+\_\+main\+\_\+defaults.\+h}}
+\subsubsection{\texorpdfstring{ctparts\+\_\+\+Set\+Option\+Defaults()}{ctparts\_SetOptionDefaults()}}
+{\footnotesize\ttfamily \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctparts\+\_\+\+Set\+Option\+Defaults (\begin{DoxyParamCaption}\item[{\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\+\_\+common\+Main\+Context\+\_\+t} $\ast$const}]{pst\+Context,  }\item[{\hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} $\ast$const}]{pst\+Options }\end{DoxyParamCaption})}
+
+
+
+Function to allocate specific options struct and set the option defaults (for example implementation see Hello\+World example config tool). 
+
+Prototype description~\newline
+ ======================~\newline
+ Prototype to set application specific default application options.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific. 
+
+An eventually set pointer for a specific options structure have to be released by \hyperlink{params_8c_abf2dc34d290434dc84d4b3cdf986f879}{ctparts\+\_\+\+Release\+Specific\+Options}.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Context} & Application specific context. If unused, N\+U\+LL is allowed. \\
+\hline
+{\em pst\+Options} & Option structure pointer to be equipped with defaults.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of successfully set defaults, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxyPrecond}{Precondition}
+Application specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} is N\+U\+LL.
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+Application specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} is N\+U\+LL or a valid structure in case of success. Application specific option pointer \hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} is N\+U\+LL in case of an error.
+\end{DoxyPostcond}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{param__handling_8h_ac2c9930f286846f41e39ddf9b0e376ae}{ctutil\+\_\+\+Options\+\_\+t} 
+
+\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} 
+
+\hyperlink{param__handling_8h_a658c8227d546be5c7f560dc8edf07915}{ctutil\+\_\+\+Options\+Specific\+\_\+t} 
+
+ctutil\+\_\+\+Release\+Specific\+Options 
+
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}

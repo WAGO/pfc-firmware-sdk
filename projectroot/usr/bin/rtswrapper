@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+RUNTIME=$1
+LOGFILE="/tmp/runtime_state.log"
+LED_RUN_OFF="/usr/bin/eventmsg 8" #Turn off RUN-Led and send error message to WBM
+RESET_LED_RUN_OFF="/usr/bin/eventmsg -r 8" #Reset solid off of RUN-Led
+LED_IO_OFF="/usr/bin/eventmsg 9"  #Turn off IO-Led and send error message to WBM
+RESET_LED_IO_OFF="/usr/bin/eventmsg -r 9" #Reset solid off of IO-Led
+
+echo rtswrapper >> $LOGFILE
+
+grep -q $RUNTIME /var/run/runtime
+
+# Remove comments if you prefer an automatically restart.
+#while [ $? -eq 0 ]
+#do
+  echo starte \"$RUNTIME\" >> $LOGFILE
+  `$RESET_LED_RUN_OFF`
+  `$RESET_LED_IO_OFF`
+  $RUNTIME
+  `$LED_RUN_OFF`
+  `$LED_IO_OFF`
+  echo \"$RUNTIME\" wurde beendet >> $LOGFILE
+  logger -t RTSWRP "Runtime exits"
+#  sleep 1
+#  grep -q $RUNTIME /var/run/runtime
+#done

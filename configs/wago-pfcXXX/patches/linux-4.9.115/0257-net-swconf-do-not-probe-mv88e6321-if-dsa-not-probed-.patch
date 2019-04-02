@@ -1,0 +1,28 @@
+From 2c241537cdb47bad672afb530ed39b2110207fd2 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <Andreas.Schmidt@wago.com>
+Date: Thu, 18 Oct 2018 08:49:35 +0000
+Subject: [PATCH 257/261] net: swconf: do not probe mv88e6321 if dsa not probed
+ successful
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/mv88e6321-cfg.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index 91937de..511a2bf 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -1204,6 +1204,9 @@ static int mv88e6321_probe(struct platform_device *pdev)
+ 	struct mv88e6321_info *pdata;
+ 	int ret;
+ 
++	if (!global_chip)
++		return -EPROBE_DEFER;
++
+ 	pr_debug("%s/%d\n", __func__, __LINE__);
+ 
+ 	if (pdev->dev.of_node) {
+-- 
+2.7.4
+

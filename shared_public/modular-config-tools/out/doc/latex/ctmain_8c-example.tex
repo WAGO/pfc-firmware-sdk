@@ -1,0 +1,134 @@
+\hypertarget{ctmain_8c-example}{}\section{ctmain.\+c}
+This file shows the Hello\+World example implementation of \hyperlink{ctmain_8c_ac76a0b2fc475a11e1b94f7f1eed0df16}{ctparts\+\_\+\+Prepare\+Main} by setting function defaults and calling the common main preparation function \hyperlink{common__main_8h_acdf79a4af11e90b4e9e4f2f899c44c48}{ctutil\+\_\+\+Common\+Main}.
+
+Also implemented in this file are \hyperlink{ctmain_8c_ac1182bb2b1599db4fd42b9da901a2997}{ctparts\+\_\+ct\+Main} with the config tool primary functionality and other predefined ctparts functions called by \hyperlink{common__main_8h_acdf79a4af11e90b4e9e4f2f899c44c48}{ctutil\+\_\+\+Common\+Main}.
+
+
+\begin{DoxyCodeInclude}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{// Copyright 2017 WAGO Kontakttechnik GmbH & Co. KG}
+\textcolor{comment}{//}
+\textcolor{comment}{//}
+\textcolor{comment}{// Permission is hereby granted, free of charge, to any person obtaining a copy}
+\textcolor{comment}{// of this software and associated documentation files (the "Software"), to deal}
+\textcolor{comment}{// in the Software without restriction, including without limitation the rights}
+\textcolor{comment}{// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell}
+\textcolor{comment}{// copies of the Software, and to permit persons to whom the Software is}
+\textcolor{comment}{// furnished to do so, subject to the following conditions:}
+\textcolor{comment}{//}
+\textcolor{comment}{//}
+\textcolor{comment}{// The above copyright notice and this permission notice shall be included in}
+\textcolor{comment}{// all copies or substantial portions of the Software.}
+\textcolor{comment}{//}
+\textcolor{comment}{//}
+\textcolor{comment}{// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR}
+\textcolor{comment}{// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,}
+\textcolor{comment}{// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE}
+\textcolor{comment}{// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER}
+\textcolor{comment}{// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,}
+\textcolor{comment}{// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN}
+\textcolor{comment}{// THE SOFTWARE.}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{}\textcolor{comment}{//------------------------------------------------------------------------------}
+
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{// include files}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{preprocessor}{#include "wc/structuring.h"}
+\textcolor{preprocessor}{#include "wc/assertion.h"}
+\textcolor{preprocessor}{#include "\hyperlink{common__main_8h}{ctutil/common\_main.h}"}
+\textcolor{preprocessor}{#include "\hyperlink{common__main__defaults_8h}{ctparts/common\_main\_defaults.h}"}
+\textcolor{preprocessor}{#include "\hyperlink{pmain_8h}{ctparts/pmain.h}"}
+\textcolor{preprocessor}{#include "\hyperlink{ctmain_8h}{ctparts/ctmain.h}"}
+\textcolor{preprocessor}{#include "\hyperlink{params_8h}{params.h}"}
+\textcolor{preprocessor}{#include <stdio.h>}
+
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{// defines; structure, enumeration and type definitions}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{// function prototypes}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{// macros}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{// variables' and constants' definitions}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+
+\textcolor{comment}{//------------------------------------------------------------------------------}
+\textcolor{comment}{// function implementation}
+\textcolor{comment}{//------------------------------------------------------------------------------}
+
+\hyperlink{error__codes_8h_a50e860d763800e548a09e65eda82a79e}{exitCode\_t} \hyperlink{ctmain_8c_ac76a0b2fc475a11e1b94f7f1eed0df16}{ctparts\_PrepareMain}(\textcolor{keywordtype}{int} \textcolor{keyword}{const} argc,
+                               \textcolor{keywordtype}{char} * \textcolor{keyword}{const} argv[])
+\{
+  \textcolor{comment}{// Prepare functions}
+  \hyperlink{structctparts__commonMainFunctions}{ctparts\_commonMainFunctions\_t} stFunctions;
+  ctparts\_SetDefaultCommonMainFunctions(&stFunctions);
+
+  \textcolor{comment}{// Call common main function to prepare config tool main}
+  \textcolor{keywordflow}{return} \hyperlink{common__main_8h_acdf79a4af11e90b4e9e4f2f899c44c48}{ctutil\_CommonMain}(argc, argv, &stFunctions, NULL);
+\}
+
+
+\hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{statusCode\_t} \hyperlink{ctmain_8c_a3f065a35a5752ae11ffdf7e71b5d2c14}{ctparts\_InitSpecificResources}(
+      \hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\_commonMainContext\_t} * \textcolor{keyword}{const} WC\_UNUSED\_PARAM(pstContext),
+                                           \hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\_ResourcesSpecific\_t} * * \textcolor{keyword}{const} 
+      ppstResources)
+\{
+  WC\_ASSERT(*ppstResources == NULL);
+  (void)ppstResources;
+
+  \textcolor{comment}{// No specific resources to initialize}
+  \textcolor{keywordflow}{return} \hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{CTUTIL\_SUCCESS};
+\}
+
+
+\textcolor{keywordtype}{void} \hyperlink{ctmain_8c_aa9b3e79b24252b8846db1f3057aa1370}{ctparts\_ReleaseSpecificResources}(
+      \hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\_commonMainContext\_t} * \textcolor{keyword}{const} WC\_UNUSED\_PARAM(pstContext),
+                                      \hyperlink{resource__handling_8h_a19efb53c32f9b0e36d22639f6855b502}{ctutil\_ResourcesSpecific\_t} * * \textcolor{keyword}{const} 
+      ppstResources)
+\{
+  \textcolor{comment}{// Currently there should be no pointer}
+  WC\_ASSERT(*ppstResources == NULL);
+  (void)ppstResources;
+
+  \textcolor{keywordflow}{return};
+\}
+
+
+\hyperlink{error__codes_8h_a50e860d763800e548a09e65eda82a79e}{exitCode\_t} \hyperlink{ctmain_8c_ac1182bb2b1599db4fd42b9da901a2997}{ctparts\_ctMain}(\textcolor{keywordtype}{int} \textcolor{keyword}{const} WC\_UNUSED\_PARAM(argc),
+                          \textcolor{keywordtype}{char} * \textcolor{keyword}{const} WC\_UNUSED\_PARAM(argv[]),
+                          \hyperlink{structctutil__Options}{ctutil\_Options\_t} \textcolor{keyword}{const} * \textcolor{keyword}{const} pstOptions,
+                          \hyperlink{structctutil__Resources}{ctutil\_Resources\_t} \textcolor{keyword}{const} * \textcolor{keyword}{const} WC\_UNUSED\_PARAM(pstResources))
+\{
+  \textcolor{comment}{// Check for user defined output text}
+  \textcolor{keywordtype}{char} \textcolor{keyword}{const} * szText = \textcolor{stringliteral}{"Hello World"};
+  \textcolor{keywordflow}{if}(pstOptions->\hyperlink{structctutil__Options_aa4e145d1751d27276f75707d5e35248e}{pstSpecificOptions}->\hyperlink{structctutil__OptionsSpecific_a5bb026c3621ab3f392a4ac4d784065b2}{szCustomText} != NULL)
+  \{
+    szText = pstOptions->\hyperlink{structctutil__Options_aa4e145d1751d27276f75707d5e35248e}{pstSpecificOptions}->\hyperlink{structctutil__OptionsSpecific_a5bb026c3621ab3f392a4ac4d784065b2}{szCustomText};
+  \}
+
+  \textcolor{comment}{// Print output text}
+  \textcolor{keywordflow}{if}(pstOptions->\hyperlink{structctutil__Options_a256e1430e0df48d0a10d801bd636387c}{stCommonOptions}.\hyperlink{structctutil__OptionsCommon_ac51657c7de191de6ac297cdd381400ad}{textOutput})
+  \{
+    printf(\textcolor{stringliteral}{"outText=%s"}, szText);
+  \}
+  \textcolor{keywordflow}{if}(pstOptions->\hyperlink{structctutil__Options_a256e1430e0df48d0a10d801bd636387c}{stCommonOptions}.\hyperlink{structctutil__OptionsCommon_ac177afec5b609ef5a9465fc6dd5a01ef}{jsonOutput})
+  \{
+    printf(\textcolor{stringliteral}{"\{\(\backslash\)"outText\(\backslash\)": \(\backslash\)"%s\(\backslash\)"\}"}, szText);
+  \}
+
+  \textcolor{keywordflow}{return} \hyperlink{error__codes_8h_a41e4f74e0cfc3ae46c62155bcab23330}{CTUTIL\_EXIT\_SUCCESS};
+\}
+
+
+\textcolor{comment}{//---- End of source file ------------------------------------------------------}
+
+\end{DoxyCodeInclude}
+ 

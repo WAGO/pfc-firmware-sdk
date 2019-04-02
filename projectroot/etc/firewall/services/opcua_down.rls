@@ -1,0 +1,5 @@
+*filter
+-F in_opcua
+-D in_services -j in_opcua
+-X in_opcua
+COMMIT

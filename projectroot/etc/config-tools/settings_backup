@@ -1,0 +1,94 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2011-2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   settings_backup
+#
+# Brief:    Save or restore the actual configuration settings of PFC.
+#
+# Author:   StM: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load common backup/restore functions
+if [ ! -f "/usr/sbin/settings_backup_lib" ]; then
+  echo "settings_backup_lib missing"
+  exit 64
+fi
+
+source /usr/sbin/settings_backup_lib
+
+# scripts for backup/restore
+readonly RESTORE_SCRIPT=settings_backup_restore
+readonly BACKUP_SCRIPT=settings_backup_store
+
+# Log prefix to export
+LOG_PREFIX=""
+
+
+#-------------- main-programm ------------------------#
+
+exit_status=$SUCCESS
+
+readonly operation=$1
+readonly backupFile="${2:-}"
+readonly prefix="${3:-}"
+#-------------------------------------------------------------
+# show help-text if requested
+#-------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* save all configuration settings to backup file or restore them from backup file *"
+  echo
+  echo "Usage: settings_backup < save | restore > < backup file name > [ --prefix=< log prefix > ]" 
+  echo
+  echo "Note: after restoring a reboot is necessary to make the changes active"
+  echo
+  exit $exit_status
+fi
+
+#-------------------------------------------------------------
+# parsing log prefix
+#-------------------------------------------------------------
+
+if [[ "${prefix}" == "--prefix="* ]]; then
+  LOG_PREFIX="$(echo "$prefix" | cut -d"=" -f2)"
+  export LOG_PREFIX
+fi
+
+#-------------------------------------------------------------
+# restore of settings
+#-------------------------------------------------------------
+
+if [[ "$RELEASE_VERSION" == "no" ]]; then
+  set -x
+fi
+
+if [ "$operation" = "restore" ]; then
+
+  "$CONFIG_TOOLS_SBIN_PATH$RESTORE_SCRIPT" "$backupFile"
+  exit_status=$?
+#-------------------------------------------------------------
+# save settings
+#-------------------------------------------------------------
+elif [ "$operation" = "save" ]; then
+
+  "$CONFIG_TOOLS_SBIN_PATH$BACKUP_SCRIPT" "$backupFile"
+  exit_status=$?
+
+ #unknown operation
+else
+  exit_status=$INVALID_PARAMETER
+fi
+
+exit $exit_status

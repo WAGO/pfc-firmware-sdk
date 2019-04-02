@@ -1,0 +1,90 @@
+From e1bbce799f613ba840c70a3af43869562ddadf93 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Mon, 23 Jan 2017 08:42:14 +0000
+Subject: [PATCH 033/261] tps65218: add support for LS2 regulator
+
+---
+ drivers/regulator/tps65218-regulator.c | 17 ++++++++++++++++-
+ include/linux/mfd/tps65218.h           |  3 ++-
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/regulator/tps65218-regulator.c b/drivers/regulator/tps65218-regulator.c
+index eb0f5b1..2877640 100644
+--- a/drivers/regulator/tps65218-regulator.c
++++ b/drivers/regulator/tps65218-regulator.c
+@@ -28,7 +28,7 @@
+ #include <linux/mfd/tps65218.h>
+ 
+ enum tps65218_regulators { DCDC1, DCDC2, DCDC3, DCDC4,
+-			   DCDC5, DCDC6, LDO1, LS3 };
++			   DCDC5, DCDC6, LDO1, LS3, LS2 };
+ 
+ #define TPS65218_REGULATOR(_name, _id, _type, _ops, _n, _vr, _vm, _er, _em, \
+ 			   _cr, _cm, _lr, _nlr, _delay, _fuv, _sr, _sm)	\
+@@ -86,6 +86,7 @@ static struct tps_info tps65218_pmic_regs[] = {
+ 	TPS65218_INFO(DCDC6, "DCDC6", 1800000, 1800000),
+ 	TPS65218_INFO(LDO1, "LDO1", 900000, 3400000),
+ 	TPS65218_INFO(LS3, "LS3", -1, -1),
++	TPS65218_INFO(LS2, "LS2", -1, -1),
+ };
+ 
+ #define TPS65218_OF_MATCH(comp, label) \
+@@ -103,6 +104,7 @@ static const struct of_device_id tps65218_of_match[] = {
+ 	TPS65218_OF_MATCH("ti,tps65218-dcdc6", tps65218_pmic_regs[DCDC6]),
+ 	TPS65218_OF_MATCH("ti,tps65218-ldo1", tps65218_pmic_regs[LDO1]),
+ 	TPS65218_OF_MATCH("ti,tps65218-ls3", tps65218_pmic_regs[LS3]),
++	TPS65218_OF_MATCH("ti,tps65218-ls2", tps65218_pmic_regs[LS2]),
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(of, tps65218_of_match);
+@@ -290,6 +292,15 @@ static struct regulator_ops tps65218_ls3_ops = {
+ 	.get_current_limit	= tps65218_pmic_get_current_limit,
+ };
+ 
++static struct regulator_ops tps65218_ls2_ops = {
++	.is_enabled		= regulator_is_enabled_regmap,
++	.enable			= tps65218_pmic_enable,
++	.disable		= tps65218_pmic_disable,
++	.set_input_current_limit = tps65218_pmic_set_input_current_lim,
++	.set_current_limit	= tps65218_pmic_set_current_limit,
++	.get_current_limit	= tps65218_pmic_get_current_limit,
++};
++
+ /* Operations permitted on DCDC5, DCDC6 */
+ static struct regulator_ops tps65218_dcdc56_pmic_ops = {
+ 	.is_enabled		= regulator_is_enabled_regmap,
+@@ -345,6 +356,10 @@ static const struct regulator_desc regulators[] = {
+ 			   tps65218_ls3_ops, 0, 0, 0, TPS65218_REG_ENABLE2,
+ 			   TPS65218_ENABLE2_LS3_EN, TPS65218_REG_CONFIG2,
+ 			   TPS65218_CONFIG2_LS3ILIM_MASK, NULL, 0, 0, 0, 0, 0),
++	TPS65218_REGULATOR("LS2", TPS65218_LS_2, REGULATOR_CURRENT,
++			   tps65218_ls2_ops, 0, 0, 0, TPS65218_REG_ENABLE2,
++			   TPS65218_ENABLE2_LS2_EN, TPS65218_REG_CONFIG2,
++			   TPS65218_CONFIG2_LS2ILIM_MASK, NULL, 0, 0, 0, 0, 0),
+ };
+ 
+ static int tps65218_regulator_probe(struct platform_device *pdev)
+diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
+index d1db952..2e7afcc 100644
+--- a/include/linux/mfd/tps65218.h
++++ b/include/linux/mfd/tps65218.h
+@@ -207,6 +207,7 @@ enum tps65218_regulator_id {
+ 	TPS65218_DCDC_6,
+ 	/* LS's */
+ 	TPS65218_LS_3,
++	TPS65218_LS_2,
+ 	/* LDOs */
+ 	TPS65218_LDO_1,
+ };
+@@ -218,7 +219,7 @@ enum tps65218_regulator_id {
+ /* Number of LDO voltage regulators available */
+ #define TPS65218_NUM_LDO		1
+ /* Number of total LS current regulators available */
+-#define TPS65218_NUM_LS			1
++#define TPS65218_NUM_LS			2
+ /* Number of total regulators available */
+ #define TPS65218_NUM_REGULATOR		(TPS65218_NUM_DCDC + TPS65218_NUM_LDO \
+ 					 + TPS65218_NUM_LS)
+-- 
+2.7.4
+

@@ -1,0 +1,8 @@
+## SECTION=wago_specific_tools
+
+config WAGO_AUTOMOUNT
+	bool
+	prompt "wago-automount"
+    default n
+	help
+	  FIXME

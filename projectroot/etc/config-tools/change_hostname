@@ -1,0 +1,94 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: change_hostname
+#
+# Change the hostname
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------#
+
+# terminate script if argument list is empty
+set -u
+if [ $# -eq 0 ]; then
+    exit 0
+fi
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Change hostname or domainname *"
+    echo
+    echo "Usage: change_hostname [hostname=hostname-value] [dnsdomain=domain-value]"
+    echo "       change_hostname -h | --help"
+    echo
+    echo "hostname-value: - maximum length 63 characters"
+    echo "                - only ascii-characters a-z, A-Z, 0-9 and '-', but no '-' at start or end of label"                  
+    echo "domain-value:   - dns domain name, maximum length 255 minus hostname length"
+    echo "                - divided into labels, separated by dots. Each label max 63 characters long"
+    echo "                - limited to same character set as hostname values"
+    echo 
+    echo "Option -h       Print this help message and exit"
+    echo
+    exit $SUCCESS
+fi
+
+configFile="/etc/specific/host.conf"
+. $configFile
+
+newHostname=$(GetParameterValue hostname $*)
+newHostnamePresent=$?
+newDomainname=$(GetParameterValue dnsdomain $*)
+newDomainnamePresent=$?
+configChanged=""
+
+if [ "$newHostnamePresent" -ne "0" ]; then
+    if [ "$newHostname" ]; then
+        /etc/config-tools/ipdatacheck --verify-hostname $newHostname
+        if [ "$?" -ne 0 ]; then
+            ReportError $INVALID_PARAMETER "($newHostname)"
+            SetLastError "Hostname invalid"
+            exit $INVALID_PARAMETER
+        fi
+    fi
+    if [ "$newHostname" != "$HOSTNAME" ]; then
+        sed -i "/^HOSTNAME/cHOSTNAME=$newHostname" $configFile
+        configChanged="1"
+    fi
+fi
+
+if [ "$newDomainnamePresent" -ne "0" ]; then
+    if [ "$newDomainname" ]; then
+        /etc/config-tools/ipdatacheck --verify-domain $newDomainname
+        if [ "$?" -ne 0 ]; then
+            ReportError $INVALID_PARAMETER "($newDomainname)"
+            SetLastError "Domainname invalid"
+            exit $INVALID_PARAMETER
+        fi
+    fi
+    if [ "$newDomainname" != "$DNSDOMAIN" ]; then
+        sed -i "/^DNSDOMAIN/cDNSDOMAIN=$newDomainname" $configFile
+        configChanged="1"
+    fi
+fi
+
+if [ "$configChanged" ]; then
+    EVENTDIR=/etc/config-tools/events/networking
+    [ -d $EVENTDIR ] && run-parts -a config $EVENTDIR
+fi
+
+# write buffered filesystem-blocks to disk
+sync
+exit $SUCCESS

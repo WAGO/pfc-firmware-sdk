@@ -1,0 +1,20 @@
+--i"/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/include"
++libdir(/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/include)
+--i"/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/include"
++libdir(/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/include)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include/c++/5.5.0"
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include/c++/5.5.0)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include/c++/5.5.0/arm-linux-gnueabihf/."
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include/c++/5.5.0/arm-linux-gnueabihf/.)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include/c++/5.5.0/backward"
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include/c++/5.5.0/backward)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/include"
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/include)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/include-fixed"
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/include-fixed)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include"
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/include"
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/include)
+--i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/bin/as -v -march=armv7-a -march=armv7-a -mfloat-abi=hard -mfpu=neon -mfpu=neon -mfpu=neon -meabi=5 -o co-gcc.mak.temp-empty.o /tmp/cc9oQxZf.s"
++libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/bin/as -v -march=armv7-a -march=armv7-a -mfloat-abi=hard -mfpu=neon -mfpu=neon -mfpu=neon -meabi=5 -o co-gcc.mak.temp-empty.o /tmp/cc9oQxZf.s)

@@ -1,0 +1,25 @@
+From a48f63b6171bfa03ccfae5f333f7fe928cac4bf5 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Mon, 4 Aug 2014 15:21:32 +0200
+Subject: [PATCH] fix rs485 settings for external transceiver
+
+---
+ src/modbus-rtu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/modbus-rtu.c b/src/modbus-rtu.c
+index 2619595..db323a8 100644
+--- a/src/modbus-rtu.c
++++ b/src/modbus-rtu.c
+@@ -725,7 +725,7 @@ int modbus_rtu_set_serial_mode(modbus_t *ctx, int mode)
+         memset(&rs485conf, 0x0, sizeof(struct serial_rs485));
+ 
+         if (mode == MODBUS_RTU_RS485) {
+-            rs485conf.flags = SER_RS485_ENABLED;
++            rs485conf.flags = SER_RS485_ENABLED | SER_RS485_RTS_ON_SEND;
+             if (ioctl(ctx->s, TIOCSRS485, &rs485conf) < 0) {
+                 return -1;
+             }
+-- 
+1.9.0
+

@@ -1,0 +1,95 @@
+From d7a7f7761f8658b5a09087d25f1520076bf39ebe Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 18 Oct 2018 17:05:25 +0200
+Subject: [PATCH 125/144] arm: dts: am3xxx: remove gpio-hogging for switch
+ reset
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am335x-pfc-750_810x.dts  | 9 ---------
+ arch/arm/dts/am335x-pfc-750_8208.dts  | 9 ---------
+ arch/arm/dts/am335x-pfc-750_821x.dts  | 7 -------
+ arch/arm/dts/am335x-src-2850_311x.dts | 9 ---------
+ 4 files changed, 34 deletions(-)
+
+diff --git a/arch/arm/dts/am335x-pfc-750_810x.dts b/arch/arm/dts/am335x-pfc-750_810x.dts
+index e4fdd5d..1191f60 100644
+--- a/arch/arm/dts/am335x-pfc-750_810x.dts
++++ b/arch/arm/dts/am335x-pfc-750_810x.dts
+@@ -41,15 +41,6 @@
+ 	};
+ };
+ 
+-&gpio2 {
+-	switch_reset {
+-		gpio-hog;
+-		gpios = <21 GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "switch-reset";
+-	};
+-};
+-
+ &rst {
+ 	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
+ };
+diff --git a/arch/arm/dts/am335x-pfc-750_8208.dts b/arch/arm/dts/am335x-pfc-750_8208.dts
+index ac9925f..5915b68 100644
+--- a/arch/arm/dts/am335x-pfc-750_8208.dts
++++ b/arch/arm/dts/am335x-pfc-750_8208.dts
+@@ -40,15 +40,6 @@
+ 	};
+ };
+ 
+-&gpio3 {
+-	switch_reset {
+-		gpio-hog;
+-		gpios = <10 GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "switch-reset";
+-	};
+-};
+-
+ &gpmc {
+ 	status = "okay";
+ };
+diff --git a/arch/arm/dts/am335x-pfc-750_821x.dts b/arch/arm/dts/am335x-pfc-750_821x.dts
+index a7bf132..e626292 100644
+--- a/arch/arm/dts/am335x-pfc-750_821x.dts
++++ b/arch/arm/dts/am335x-pfc-750_821x.dts
+@@ -40,13 +40,6 @@
+ 		reg = <0x70>;
+ 		gpio-controller;
+ 		#gpio-cells = <2>;
+-
+-		switch_reset {
+-			gpio-hog;
+-			gpios = <4 GPIO_ACTIVE_HIGH>;
+-			output-high;
+-			line-name = "switch-reset";
+-		};
+ 	};
+ };
+ 
+diff --git a/arch/arm/dts/am335x-src-2850_311x.dts b/arch/arm/dts/am335x-src-2850_311x.dts
+index 889e521..55f1480 100644
+--- a/arch/arm/dts/am335x-src-2850_311x.dts
++++ b/arch/arm/dts/am335x-src-2850_311x.dts
+@@ -69,15 +69,6 @@
+ 	};
+ };
+ 
+-&gpio3 {
+-	switch_reset {
+-		gpio-hog;
+-		gpios = <10 GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "switch-reset";
+-	};
+-};
+-
+ /* bootmatrix */
+ /delete-node/ &run;
+ /delete-node/ &stop;
+-- 
+2.7.4
+

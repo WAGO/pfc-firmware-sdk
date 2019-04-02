@@ -1,0 +1,21 @@
+KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"
+
+# Import FS infos
+IMPORT{program}="/sbin/blkid -o udev -p %N"
+
+# Get a label if present, otherwise specify one
+ENV{ID_FS_LABEL}!="", ENV{dir_name}="%E{ID_FS_LABEL}"
+ENV{ID_FS_LABEL}=="", ENV{dir_name}="%E{ID_FS_UUID}"
+ENV{ID_FS_UUID}=="", ENV{dir_name}="%k"
+
+# Mount the device
+ACTION=="add", RUN+="/bin/mkdir -p /media/%E{dir_name}"
+ACTION=="add", RUN+="/bin/mount /dev/%k /media/%E{dir_name}"
+
+# Clean up after removal
+ACTION=="remove", ENV{dir_name}!="", RUN+="/bin/umount -l /media/%E{dir_name}"
+ACTION=="remove", RUN+="/bin/rmdir /media/%E{dir_name}"
+
+# Exit
+LABEL="media_by_label_auto_mount_end"
+

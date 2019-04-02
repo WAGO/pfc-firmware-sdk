@@ -1,0 +1,158 @@
+## SECTION=wago_specific
+
+choice
+        prompt "Build Version"
+        default WAGO_TOOLS_BUILD_VERSION_TRUNK
+
+        config WAGO_TOOLS_BUILD_VERSION_TRUNK
+                bool
+                prompt "trunk"
+                help
+                  Select trunk build version. In this state ptxdist will
+		  first copy the sources into the platform-*/build-target/ directory
+		  before compiling them 
+
+        config WAGO_TOOLS_BUILD_VERSION_RELEASE
+                bool
+                prompt "release"
+                help
+                  Select release build version. In this state ptxdist will
+		  first copy the sources into the platform-*/build-target/ directory,
+		  set some optimation flags, before compiling them 
+
+        config WAGO_TOOLS_BUILD_VERSION_BINARIES
+                bool
+                prompt "binaries"
+                help
+                  Select  binaries version. In this state ptxdist operate with precompiled 
+		  binaries for all proprietary or closed source packages from 
+		  configs/@platform@/packages/ and do not copy or compile them.
+		  Proprietary software or closed source software is licensed under 
+		  exclusive legal right of the copyright holder with the intent that 
+		  the licensee is given the right to use the software only under
+		  certain conditions.
+endchoice
+
+comment "------------------------------------"
+
+
+
+menu "Rocket Specific"
+source "generated/wago_specific_rocket_specific.in"
+endmenu
+
+menuconfig PLC_CODESYS
+	bool
+	prompt "Codesys 2                     "
+	help
+		Builds and installs the codesys runtime system.
+	
+if PLC_CODESYS
+source "generated/wago_specific_codesys_2.in"
+endif
+
+
+menuconfig PLC_CODESYS_V3
+        bool
+        prompt "Codesys 3                     "
+        help
+                Builds and installs the codesys runtime system.
+
+if PLC_CODESYS_V3
+source "generated/wago_specific_codesys_3.in"
+endif
+
+config DALSHELL
+	bool "DalShell Runtime System."
+	default n
+	select DAL
+	select CONFIG_TOOLS
+	help
+		Builds and installs the dalshell.
+
+source "generated/wago_specific_fwupdate.in"
+
+menu "Tools                         "
+source "generated/wago_specific_tools.in"
+endmenu
+
+menu "Libraries                     "
+source "generated/wago_specific_libs.in"
+endmenu
+
+menu "DAL - Device Abstraction Layer"
+source "generated/wago_specific_dal.in"
+endmenu
+
+menu "Demo                          "
+source "generated/wago_specific_demo.in"
+endmenu
+
+
+menu "Frontend config (web/console) " 
+source "generated/wago_specific_config.in"
+endmenu
+
+
+comment "------------------------------------"
+
+config WAGO_VPNCFG
+	bool
+	default n
+	select WAGO_SAMPLE_OPENVPN_CONFIG
+	prompt "wago-vpncfg"
+	help
+	  wago-specific OpenVPN/IPsec configuration rules
+
+config WAGO_VPNCFG_IPSEC_RC_LINK
+       string
+       depends on WAGO_VPNCFG && INITMETHOD_BBINIT
+       prompt "install IPsec's start link to /etc/rc.d - use S30_ipsec."
+# The OpenVPN has to be started after the firewall -> choose a name which 
+# alphanumerically follows the firewall start script!!
+       default ""
+       help
+       	Please use S30_ipsec for link name in order to keep
+	it compatible with WAGO's vpn config-tool.
+
+config WAGO_VPNCFG_OVPN_RC_LINK
+       string
+       depends on WAGO_VPNCFG && INITMETHOD_BBINIT
+       prompt "install OpenVPN's start link to /etc/rc.d - use S30_openvpn."
+# The OpenVPN has to be started after the firewall -> choose a name which 
+# alphanumerically follows the firewall start script!!
+       default ""
+       help
+       	Please use S30_openvpn for link name in order to keep
+	it compatible with WAGO's vpn config-tool.
+
+config WAGO_SAMPLE_OPENVPN_CONFIG
+    bool
+    default n
+    depends on WAGO_VPNCFG
+	prompt "install a sample OpenVPN configuration"
+	help
+       	Installs a sample commented openvpn config to /etc/openvpn.
+	With this directory missing, custom configurations cannot be installed
+	to the device via WBM/vpncfg.
+
+comment "------------------------------------"
+
+config USE_SCREEN_WINDOWS
+       bool "Use Screen"
+       select SCREEN
+       help
+       	Install startscripts for starting seperate programms in screens
+
+menuconfig SVNREVISION
+       bool
+       default y
+       prompt "Store svn revision in /etc/SVNREVISION"
+       help
+       	If selected the svn revision and platform name will
+	be stored automatically in the rootfs image
+	during ptxdist image build state.
+
+comment "------------------------------------"
+
+source "generated/wago_specific_custom.in"

@@ -1,0 +1,49 @@
+## SECTION=networking
+
+menuconfig CA_CERTIFICATES
+	tristate
+	select HOST_SYSTEM_PERL	if CA_CERTIFICATES_CERTS
+	select HOST_OPENSSL	if CA_CERTIFICATES_CERTS
+	select OPENSSL		if CA_CERTIFICATES_CERTS && BUILDTIME
+	prompt "ca-certificates               "
+	help
+	  Common CA certificates from Mozilla
+
+if CA_CERTIFICATES
+
+choice
+	prompt "install"
+
+config CA_CERTIFICATES_SELECT_BUNDLE
+	bool
+	select CA_CERTIFICATES_BUNDLE
+	prompt "bundle            "
+	help
+	  Install the certificate bundle to
+	  /etc/ssl/certs/ca-certificates.crt
+
+config CA_CERTIFICATES_SELECT_CERTS
+	bool
+	select CA_CERTIFICATES_CERTS
+	prompt "files and hashes  "
+	help
+	  Install the certificate files and hashes to /etc/ssl/certs/
+
+config CA_CERTIFICATES_SELECT_BOTH
+	bool
+	select CA_CERTIFICATES_BUNDLE
+	select CA_CERTIFICATES_CERTS
+	prompt "both              "
+	help
+	  Install the certificate files and hashes to /etc/ssl/certs/
+	  and the bundle to /etc/ssl/certs/ca-certificates.crt
+
+endchoice
+
+config CA_CERTIFICATES_BUNDLE
+	bool
+
+config CA_CERTIFICATES_CERTS
+	bool
+
+endif

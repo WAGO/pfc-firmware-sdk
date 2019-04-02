@@ -1,0 +1,33 @@
+## SECTION=wago_specific_fwupdate
+
+# This is the target corresponding to ${__THIS_FILENAME__}.make
+# ptxdist won't build modular-config-tools package if it is inactive
+
+config WAGO_FWUPDATE
+  bool
+  default n
+  prompt "Remote firmware update"
+
+# RAUC dependency as core framework for update
+  select RAUC
+  select RAUC_NETWORK
+  select WAGO_CUSTOM_RAUC_STARTSCRIPT
+  select DT_UTILS
+  select WAGO_CUSTOM_INSTALL
+  select WAGO_CUSTOM_INSTALL_BACKUP_ACCOUNT_SETTINGS
+  select WAGO_CUSTOM_INSTALL_BACKUP_SETTINGS
+
+# Util dependencies
+  select UTIL_LINUX_NG_LOSETUP
+  select UTIL_LINUX_NG_MOUNT
+  select UTIL_LINUX_NG_UMOUNT
+  select RETAIN_DATA if PLCLINUXRT
+  select RETAIN_DATA if CODESYS3
+
+  help
+   "WAGO remote firmware update service"
+
+
+config WAGO_CUSTOM_RAUC_STARTSCRIPT
+	#prompt "RAUC service start script"
+	bool

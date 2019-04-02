@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# check fw compatibility only if we are running on the target. This is done by
+# checking the global variable DESTDIR which is set by PTXDIST when the rootfs
+# target is created.
+if [ -z "$DESTDIR" ]; then
+
+	# Get fw major number. This package only works in fw major numbers >= 03
+	fw_major_number=$(awk -F "[.=]" '{print $2}' /etc/REVISIONS)
+
+	if [ $fw_major_number -lt 3 ]; then
+		echo "ERROR: package is not supported in this firmware version"
+		exit 1
+	fi
+fi
+
+exit 0

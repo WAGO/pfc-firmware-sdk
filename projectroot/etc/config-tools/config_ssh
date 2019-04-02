@@ -1,0 +1,387 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_ssh
+#
+# Change configuration of SSH server 
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+DROPBEAR_LINK_NAME="/etc/rc.d/S16dropbear"
+DROPBEAR_INITFILE_NAME="/etc/init.d/dropbear"
+DROPBEAR_CONFIGFILE_NAME="/etc/dropbear/dropbear.conf"
+DROPBEAR_DEAMON="dropbear"
+
+# original dropbear args line
+#  DROPBEAR_EXTRA_ARGS="$DROPBEAR_EXTRA_ARGS -b $DROPBEAR_BANNER"
+
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter)
+#--------------------------------------------------------------------
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get and set configuration of SSH server *"
+  echo
+  echo "Usage: config_ssh [ \"state\"=state-value ] [ \"root-access-state\"=root-access-state-value ] [ \"password-request-state\"=password-request-state-value ] [ \"port-number\"=port-number-value ] [ \"public-key\"=public-key-value ]"
+  echo
+  echo "state-value: \"enabled\" | \"disabled\""
+  echo "root-access-state-value: \"enabled\" | \"disabled\""
+  echo "password-request-state-value: \"enabled\" | \"disabled\""
+  echo
+  exit $SUCCESS
+fi
+
+
+#--------------------------------------------------------------------
+# enabled SSH
+#--------------------------------------------------------------------
+function EnableSsh
+{
+  status=$SUCCESS
+  
+  # start deamon (if it is not running)
+  pidof $DROPBEAR_DEAMON > /dev/null 2> /dev/null
+  
+  if [ "$SUCCESS" != $? ]; then
+    $DROPBEAR_INITFILE_NAME start > /dev/null 2> /dev/null
+    if [ "$SUCCESS" != "$?" ]; then
+      status=$SHELL_ERROR
+      ReportError $status "($DROPBEAR_INITFILE_NAME start)"
+      SetLastError "Error while execution"
+    fi
+  fi
+  
+  # add link for boot start to according directory (if it not already exists)
+  if [ "$SUCCESS" = "$status" ]; then
+    if [ ! -h "$DROPBEAR_LINK_NAME" ]; then
+      #echo "add link" $DROPBEAR_LINK_NAME "for script" $DROPBEAR_INITFILE_NAME
+      ln -s $DROPBEAR_INITFILE_NAME $DROPBEAR_LINK_NAME
+      if [ "$SUCCESS" != "$?" ]; then
+        status=$SHELL_ERROR
+        ReportError $status "(ln -s $DROPBEAR_INITFILE_NAME $DROPBEAR_LINK_NAME)"
+        SetLastError "Error while execution"
+      fi
+    fi
+  fi
+  
+  return $status
+}
+
+
+#--------------------------------------------------------------------
+# disable SSH
+#--------------------------------------------------------------------
+function DisableSsh
+{
+  status=$SUCCESS
+  
+  # stop deamon (if it is running)
+  pidof $DROPBEAR_DEAMON > /dev/null 2> /dev/null
+  if [ "$SUCCESS" = $? ]; then
+  
+    $DROPBEAR_LINK_NAME stop > /dev/null 2> /dev/null
+    if [ "$SUCCESS" != "$?" ]; then
+      status=$SHELL_ERROR
+      ReportError $status "($DROPBEAR_LINK_NAME stop)"
+      SetLastError "Error while execution"
+    fi
+  fi
+  
+  # delete link for boot start from according directory (if it exists)
+  if [ "$SUCCESS" = "$status" ]; then
+    #echo "delete link" $DROPBEAR_LINK_NAME
+    if [ -h "$DROPBEAR_LINK_NAME" ]; then
+      rm $DROPBEAR_LINK_NAME
+      if [ "$SUCCESS" != "$?" ]; then
+        status=$SHELL_ERROR
+        ReportError $status "(rm $DROPBEAR_LINK_NAME)"
+        SetLastError "Error while execution"
+      fi
+    fi
+  fi
+
+  return $status
+}
+
+
+#--------------------------------------------------------------------
+# enable root access
+#--------------------------------------------------------------------
+function EnableRootAccess
+{
+  status=$SUCCESS
+  
+  sed -i '/^ *ROOT_LOGIN=.*$/ s/false/true/' $DROPBEAR_CONFIGFILE_NAME
+  if [ "$SUCCESS" != $? ]; then
+    status=$WRITE_FILE_ERROR
+    ReportError $status "($DROPBEAR_CONFIGFILE_NAME)"
+    SetLastError "Configuration file write error."
+  fi
+  
+  return $status
+}
+
+#--------------------------------------------------------------------
+# disable root access
+#--------------------------------------------------------------------
+function DisableRootAccess
+{
+  status=$SUCCESS
+  
+  sed -i '/^ *ROOT_LOGIN=.*$/ s/true/false/' $DROPBEAR_CONFIGFILE_NAME
+  if [ "$SUCCESS" != $? ]; then
+    status=$WRITE_FILE_ERROR
+    ReportError $status "($DROPBEAR_CONFIGFILE_NAME)"
+    SetLastError "Configuration file write error."
+  fi
+  
+  return $status
+}
+
+
+#--------------------------------------------------------------------
+# enable password request
+#--------------------------------------------------------------------
+function EnablePasswordRequest
+{
+  status=$SUCCESS
+  
+  sed -i '/^ *PASSWORD_LOGIN=.*$/ s/false/true/' $DROPBEAR_CONFIGFILE_NAME
+  if [ "$SUCCESS" != $? ]; then
+    status=$WRITE_FILE_ERROR
+    ReportError $status "($DROPBEAR_CONFIGFILE_NAME)"
+    SetLastError "Configuration file write error."
+  fi
+  
+  return $status
+}
+
+#--------------------------------------------------------------------
+# disable password request
+#--------------------------------------------------------------------
+function DisablePasswordRequest
+{
+  status=$SUCCESS
+  
+  sed -i '/^ *PASSWORD_LOGIN=.*$/ s/true/false/' $DROPBEAR_CONFIGFILE_NAME
+  if [ "$SUCCESS" != $? ]; then
+    status=$WRITE_FILE_ERROR
+    ReportError $status "($DROPBEAR_INITFILE_NAME)"
+    SetLastError "Configuration file write error."
+  fi
+
+
+  return $status
+}
+
+
+#--------------------------------------------------------------------
+# change port number
+#--------------------------------------------------------------------
+function ChangePortNumber
+{
+  newPortNumber=$1
+  status=$SUCCESS
+ 
+  local re="^[[:digit:]]+$"
+  if [[ $newPortNumber =~ $re ]]; then 
+    # search line with definition of port in configuration file and change it to new value
+    sed -i '/^ *PORT=[0-9][0-9]* *$/ c\PORT='$newPortNumber'' $DROPBEAR_CONFIGFILE_NAME
+    if [ "$SUCCESS" != $? ]; then
+      status=$WRITE_FILE_ERROR
+      ReportError $status "($DROPBEAR_CONFIGFILE_NAME)"
+      SetLastError "Configuration file write error."
+    fi
+  else
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid input parameter ($newPortNumber)"
+  fi
+  
+  return $status
+}
+
+#--------------------------------------------------------------------
+# change public key
+#--------------------------------------------------------------------
+function ChangePublicKey
+{
+  newPublicKey=$*
+ 
+  # make directory for public key file, if it is not already existing
+  ls /home/.ssh > /dev/null 2> /dev/null
+  if [ "$SUCCESS" != $? ]; then
+    mkdir /home/.ssh #> /dev/null 2> /dev/null
+  fi
+   
+  # write new public key to file
+  #echo key:$newPublicKey > /etc/config-tools/key_test
+  echo $newPublicKey > /home/.ssh/authorized_keys
+  if [ "$SUCCESS" != $? ]; then
+    status=$WRITE_FILE_ERROR
+    ReportError $status "(~/.ssh/authorized_keys)"
+    SetLastError "Key file write error."
+  else
+    chmod 600 /home/.ssh/authorized_keys
+  fi
+  
+  return $status
+}
+
+#--------------------------------------------------------------------
+# main programm
+#--------------------------------------------------------------------
+
+status=$SUCCESS
+
+# get parameter from input
+newState=`GetParameterValue state $*`
+newRootAccessState=`GetParameterValue root-access-state $*`
+newPasswordRequestState=`GetParameterValue password-request-state $*`
+newPortNumber=`GetParameterValue port-number $*`
+newPublicKey=`GetParameterValue public-key $*`
+
+#echo "newState:${newState} newRootAccessState:${newRootAccessState} newPasswordRequestState:${newPasswordRequestState}" > /etc/config-tools/output
+
+#check whether config-file exists 
+if [ ! -f $DROPBEAR_INITFILE_NAME ]; then
+  status=$CONFIG_FILE_MISSING
+  ReportError $status "($DROPBEAR_INITFILE_NAME)"
+  SetLastError "Config file is missing"
+  exit $status
+fi
+
+restartRequired=0
+
+#--------------------------------------------------------------------
+# change root access state
+#--------------------------------------------------------------------
+if [ "$SUCCESS" = "$status" ] && [ -n "$newRootAccessState" ]; then
+
+  actualRootAccessState=`/etc/config-tools/get_ssh_config root-access-state`
+  
+  if [ "$newRootAccessState" != "$actualRootAccessState" ]; then
+    restartRequired=1
+    
+    if [ "enabled" = "$newRootAccessState" ]; then
+      EnableRootAccess
+      status=$?
+  
+    elif [ "disabled" = "$newRootAccessState" ]; then
+      DisableRootAccess
+      status=$?
+  
+    else
+      status=$INVALID_PARAMETER
+      SetLastError "Invalid input parameter ($newRootAccessState)"
+    fi
+  fi
+fi
+
+
+#--------------------------------------------------------------------
+# change password request state
+#--------------------------------------------------------------------
+if [ "$SUCCESS" = "$status" ] && [ -n "$newPasswordRequestState" ]; then
+
+  actualPasswordRequestState=`/etc/config-tools/get_ssh_config password-request-state`
+  
+  if [ "$newPasswordRequestState" != "$actualPasswordRequestState" ]; then
+    restartRequired=1
+
+    if [ "enabled" = "$newPasswordRequestState" ]; then
+      EnablePasswordRequest
+      status=$?
+  
+    elif [ "disabled" = "$newPasswordRequestState" ]; then
+      DisablePasswordRequest
+      status=$?
+  
+    else
+      status=$INVALID_PARAMETER
+      SetLastError "Invalid input parameter ($newPasswordRequestState)"
+    fi
+  fi
+fi
+
+#--------------------------------------------------------------------
+# change port number
+#--------------------------------------------------------------------
+if [ "$SUCCESS" = "$status" ] && [ -n "$newPortNumber" ]; then
+
+  actualPortNumber=`/etc/config-tools/get_ssh_config port-number`
+  if [ "$newPortNumber" != "$actualPortNumber" ]; then
+    restartRequired=1
+    ChangePortNumber $newPortNumber
+    status=$?
+  fi
+
+fi
+
+#--------------------------------------------------------------------
+# change public key
+#--------------------------------------------------------------------
+if [ "$SUCCESS" = "$status" ] && [ -n "$newPublicKey" ]; then
+
+  actualPublicKey=`/etc/config-tools/get_ssh_config public-key`
+  if [ "$newPublicKey" != "$actualPublicKey" ]; then
+    echo newPublicKey:$newPublicKey > /etc/config-tools/output
+    restartRequired=1
+    ChangePublicKey $newPublicKey
+    status=$?
+  fi
+fi
+
+#--------------------------------------------------------------------
+# change state
+#--------------------------------------------------------------------
+if [ "$SUCCESS" = "$status" ] && [ -n "$newState" ]; then
+
+  actualState=`/etc/config-tools/get_ssh_config state`
+  
+  if [ "$newState" != "$actualState" ]; then
+    restartRequired=0
+    
+    if [ "enabled" = "$newState" ]; then
+      EnableSsh
+      status=$?
+    
+    elif [ "disabled" = "$newState" ]; then
+      DisableSsh
+      status=$?
+    
+    else
+      status=$INVALID_PARAMETER
+      SetLastError "Invalid input parameter ($newState)"
+    fi
+  fi
+fi
+
+
+if [ 1 = "$restartRequired" ] && [ "$SUCCESS" = "$status" ]; then
+  $DROPBEAR_INITFILE_NAME restart > /dev/null 2> /dev/null
+  if [ "$SUCCESS" != $? ]; then
+    status=$SHELL_ERROR
+    ReportError $status "($DROPBEAR_INITFILE_NAME restart)"
+    SetLastError "Error while restart of service."
+  fi
+elif [ "x${SUCCESS}" = "x${status}" ] ; then
+  [[ -d /etc/config-tools/events/ssh/ ]] && run-parts -a config /etc/config-tools/events/ssh/
+fi
+sync
+exit $status

@@ -1,0 +1,36 @@
+From 06d3c2ddb6ef0a9f53c36538ef018d6cca937e51 Mon Sep 17 00:00:00 2001
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Date: Thu, 13 Jul 2017 11:25:35 +0200
+Subject: [PATCH] build translations only if gettext is enabled
+
+Otherwise the Makefile will keep trying to call $(MSGFMT) -o ... with
+MSGFMT not set, causing build errors:
+
+    bash: o: command not found
+    ../include/buildrules:66: recipe for target 'de.mo' failed
+    make[3]: [de.mo] Error 127 (ignored)
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ Makefile | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 4443fe092f37..896186e1e073 100644
+--- a/Makefile
++++ b/Makefile
+@@ -36,7 +36,10 @@ LDIRT = config.log .dep config.status config.cache confdefs.h conftest* \
+ 	Logs/* built .census install.* install-dev.* install-lib.* *.gz
+ 
+ LIB_SUBDIRS = include libmisc libattr
+-TOOL_SUBDIRS = attr getfattr setfattr examples test m4 man doc po debian package
++TOOL_SUBDIRS = attr getfattr setfattr examples test m4 man doc debian package
++ifeq ($(GETTEXT_ENABLE), yes)
++	TOOL_SUBDIRS += po
++endif
+ 
+ SUBDIRS = $(LIB_SUBDIRS) $(TOOL_SUBDIRS)
+ 
+-- 
+2.11.0
+

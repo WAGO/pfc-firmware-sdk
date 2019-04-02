@@ -1,0 +1,161 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2013-2018  WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   config_interfaces
+#
+#  Brief:   Change the configuration of the interfaces.
+#
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HFS: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   FR:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 64
+fi
+
+source "/etc/config-tools/config_tool_lib"
+
+IP_CHANGE_NOTIFIED_FILE="/var/run/ipv4/ipconchg"
+
+# Function to access notified files.
+# The notified file will be accessed (read) by configuration change of  
+# given interface.
+# The files can be watched through inotify command.
+# Allowed interaces: X1, X2, WAN, VPN.
+#
+# Prerequestions: The script /etc/rc.d/97_watch_ip_change is called.
+#
+# Param 1: network interface
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+#-----------------------------------------------------------------------------#
+access_notified_files ()
+{ 
+   local interface="$1"
+   local result=0
+   
+   case "$interface" in
+   X1)
+      if [ -f "$IP_CHANGE_NOTIFIED_FILE-br0" ]; then
+         echo "" > "$IP_CHANGE_NOTIFIED_FILE-br0" 
+         result=$?
+      fi
+      ;;        
+   X2)
+      if [ -f "$IP_CHANGE_NOTIFIED_FILE-br1" ]; then
+         echo "" > "$IP_CHANGE_NOTIFIED_FILE-br1" 
+         result=$?
+      fi
+      ;;
+   WAN|VPN)
+      if [ -f "$IP_CHANGE_NOTIFIED_FILE-wwan0" ]; then
+         echo "" > "$IP_CHANGE_NOTIFIED_FILE-wwan0"
+         result=$?
+      fi
+      ;;
+   esac 
+
+   return $result  
+}
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the configuration of the interfaces *"
+  echo
+  echo -n "Usage: config_interfaces interface=interface-value [state=state-value] [config-type=config-type-value] [ip-address=ip-address-value] [subnet-mask=subnet-mask-value] [broadcast=broadcast-value]"
+  echo
+  echo "interface-value (must always be set): $(/etc/config-tools/get_eth_config --print-ports)"
+  echo "state-value: enabled | disabled"
+  echo "config-type-value: static | bootp | dhcp"
+  echo "ip-address-value: ip-address for config-type static"
+  echo "subnet-mask-value: subnet-mask for config-type static"
+  echo "broadcast-value: broadcast for config-type static"
+  echo
+  exit $status
+fi
+
+parameters=
+port=
+
+while [[ $# -ne 0 ]]; do
+    case "$1" in
+       interface=*)
+            port=${1#interface=}
+            parameters="$parameters --port $port"
+            ;;
+        state=*)
+            parameters="$parameters --state ${1#state=}"
+            ;;
+        config-type=*)
+            parameters="$parameters --config-type ${1#config-type=}"
+            ;;
+        ip-address=*)
+            parameters="$parameters --ip ${1#ip-address=}"
+            ;;
+        subnet-mask=*)
+            parameters="$parameters --subnet-mask ${1#subnet-mask=}"
+            ;;
+        broadcast=*)
+            parameters="$parameters --broadcast ${1#broadcast=}"
+            ;;
+        *)
+            status=$INVALID_PARAMETER
+            break
+            ;;
+    esac
+    shift 1
+
+done
+
+# evaluate dip switches and set the new config
+# dip switch value is taken from $SAVE_DIPFILE where the value at system start time is stored
+SAVE_DIPFILE=/etc/specific/dipvalue-on-reset
+NETINTERFACES=/etc/network/interfaces
+
+[ "$status" == "$SUCCESS" ] && /etc/config-tools/config_interfaces_c $parameters; status=$?
+[ "$status" == "$SUCCESS" ] && /etc/config-tools/adapt_netconfig -o $NETINTERFACES.tmp; status=$?
+
+if [ "$status" == "$SUCCESS" ]; then
+    diff -q $NETINTERFACES $NETINTERFACES.tmp > /dev/null
+    if [ "$?" = "1" ]; then
+        # network config changed
+        DIP_SWITCH_VALUE=0
+        [ -f $SAVE_DIPFILE ] && . $SAVE_DIPFILE 
+        if [ "$DIP_SWITCH_VALUE" == "0" -o "$port" == "X2" ]; then
+            netdev=$(xmlstarlet sel -T -t -v "//iface/ip_settings[port_name = \"$port\"]/../device_name" /etc/specific/network-interfaces.xml)
+            "$IFDOWN" -f $netdev -i $NETINTERFACES
+            sync
+            mv $NETINTERFACES.tmp $NETINTERFACES
+            sync
+            "$IFUP" $netdev -i $NETINTERFACES
+        fi
+        sync
+        [ -f "$NETINTERFACES.tmp" ] && mv $NETINTERFACES.tmp $NETINTERFACES
+        sync
+        # read notified file to create a event for inotify command
+        access_notified_files "$port"
+    fi
+    rm -f $NETINTERFACES.tmp
+fi
+sync
+exit $status
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <level1>
+        <level2_1>
+            <value>12345</value>
+            <empty_val/>
+        </level2_1>
+        <level2_2>
+            <value>23456</value>
+            <empty_val/>
+        </level2_2>
+
+    </level1>
+</root>

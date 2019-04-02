@@ -1,0 +1,20 @@
+## SECTION=wago_specific_libs
+
+config PLCSNMP_AGENT
+	bool
+	prompt "plcsnmp_agent"
+	select PLCLINUXRT
+        select NET_SNMP
+	select LIBWAGOSNMP
+	help
+	  Library to become an SNMP agent out of an IEC61131 Program
+
+if PLCSNMP_AGENT
+
+config PLCSNMP_AGENT_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+endif

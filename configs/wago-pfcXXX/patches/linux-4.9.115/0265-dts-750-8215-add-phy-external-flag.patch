@@ -1,0 +1,59 @@
+From 758dea7dcaf3ba219a49037f724e9f9a5d23a307 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Tue, 25 Sep 2018 11:06:31 +0200
+Subject: [PATCH 265/277] dts: 750-8215: add phy-external flag
+
+For MV88E6321 PHY detect flag has to be set for
+external PHY. With add "phy-external" property
+DSA driver will set needed PHY-detect flag.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8215.dts | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215.dts b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+index 9097af3..4212e22 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8215.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+@@ -194,7 +194,8 @@
+ 				label = "ethX1";
+ 				phy-handle = <&ext_phy0>;
+ 				phy-mode = "sgmii";
+-                                phy-pwrdown;
++				phy-pwrdown;
++				phy-external;
+ 			};
+ 
+ 			port@1 {
+@@ -202,7 +203,8 @@
+ 				label = "ethX2";
+ 				phy-handle = <&ext_phy1>;
+ 				phy-mode = "sgmii";
+-                                phy-pwrdown;
++				phy-pwrdown;
++				phy-external;
+ 			};
+ 
+ 			/*port@2 {
+@@ -220,7 +222,7 @@
+ 				label = "ethX11";
+ 				phy-handle = <&int_phy3>;
+ 				phy-mode = "rmii";
+-                                phy-pwrdown;
++				phy-pwrdown;
+ 			};
+ 
+ 			port@4 {
+@@ -228,7 +230,7 @@
+ 				label = "ethX12";
+ 				phy-handle = <&int_phy4>;
+ 				phy-mode = "rmii";
+-                                phy-pwrdown;
++				phy-pwrdown;
+ 			};
+ 
+ 			port@6 {
+-- 
+2.7.4
+

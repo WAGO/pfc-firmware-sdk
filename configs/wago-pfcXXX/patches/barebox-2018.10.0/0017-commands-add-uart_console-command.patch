@@ -1,0 +1,138 @@
+From 367d81d1b9c5574c4977c89dd39a59a235be80b7 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 11 Jun 2018 10:28:11 +0200
+Subject: [PATCH 017/144] commands: add uart_console command
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ commands/Kconfig        | 12 +++++++
+ commands/Makefile       |  1 +
+ commands/uart_console.c | 84 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 97 insertions(+)
+ create mode 100644 commands/uart_console.c
+
+diff --git a/commands/Kconfig b/commands/Kconfig
+index 675bd1c..8ce2b4e 100644
+--- a/commands/Kconfig
++++ b/commands/Kconfig
+@@ -2138,6 +2138,18 @@ config CMD_SEED
+ 	help
+ 	  Seed the pseudo random number generator (PRNG)
+ 
++config CMD_UART_CONSOLE
++	tristate
++	prompt "uart_console"
++	help
++	  uart_console - activate uart as console
++
++	  Usage: uart_console [-e] [NUM]
++
++	  Options:
++		  -e		enable uart<NUM> as console
++
++
+ # end Miscellaneous commands
+ endmenu
+ 
+diff --git a/commands/Makefile b/commands/Makefile
+index eb47963..0eead21 100644
+--- a/commands/Makefile
++++ b/commands/Makefile
+@@ -123,3 +123,4 @@ obj-$(CONFIG_CMD_MMC_EXTCSD)	+= mmc_extcsd.o
+ obj-$(CONFIG_CMD_NAND_BITFLIP)	+= nand-bitflip.o
+ obj-$(CONFIG_CMD_SEED)		+= seed.o
+ obj-$(CONFIG_CMD_IP_ROUTE_GET)  += ip-route-get.o
++obj-$(CONFIG_CMD_UART_CONSOLE)	+= uart_console.o
+diff --git a/commands/uart_console.c b/commands/uart_console.c
+new file mode 100644
+index 0000000..256ae82
+--- /dev/null
++++ b/commands/uart_console.c
+@@ -0,0 +1,84 @@
++/*
++ * uart_console.c - command to activate a dedicated uart
++ *
++ * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Oleg Karfich <oleg.karfich@wago.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <common.h>
++#include <of.h>
++#include <of_address.h>
++#include <command.h>
++#include <getopt.h>
++#include <mach/devices.h>
++#include <console.h>
++
++static int do_uart_console(int argc, char *argv[])
++{
++	struct device_node *uart_node;
++	struct device_d *dev;
++	struct console_device *cdev;
++	int uart_num = -1, opt, ret;
++	char *alias_name;
++	const __be32 *reg;
++
++	while ((opt = getopt(argc, argv, "e:")) > 0) {
++		switch (opt) {
++		case 'e':
++			uart_num = simple_strtoul(optarg, NULL, 0);
++			break;
++		}
++	}
++
++	alias_name = basprintf("serial%d", uart_num);
++
++	uart_node = of_find_node_by_alias(of_get_root_node(), alias_name);
++	if (!uart_node) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	reg = of_get_address(uart_node, 0, NULL, NULL);
++	if (!reg) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	dev = omap_add_uart(uart_num, of_read_number(reg, 1));
++
++	cdev = console_get_by_dev(dev);
++	if (!cdev) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	ret = console_set_active(cdev, CONSOLE_STDIN | CONSOLE_STDOUT |
++								CONSOLE_STDERR);
++
++out:
++	return ret < 0 ? ret : 0;
++}
++
++BAREBOX_CMD_HELP_START(uart_console)
++BAREBOX_CMD_HELP_TEXT("Options:")
++BAREBOX_CMD_HELP_OPT("-e <NUM>", "enable uart<NUM> as console\n")
++BAREBOX_CMD_HELP_END
++
++BAREBOX_CMD_START(uart_console)
++	.cmd		= do_uart_console,
++	BAREBOX_CMD_DESC("activate uart as console")
++	BAREBOX_CMD_OPTS("[-e]")
++	BAREBOX_CMD_GROUP(CMD_GRP_MISC)
++	BAREBOX_CMD_HELP(cmd_uart_console_help)
++BAREBOX_CMD_END
+-- 
+2.7.4
+

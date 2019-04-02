@@ -1,0 +1,9 @@
+Error parsing line
+
+__XML: levl id="coupler_details"
+             nav.text="Coupler Details"
+             page_element.url="coupler_details.inc.php":
+
+Element levl is not in the XSD definition.
+
+make-xml-config: Error processing node CT_MENU_WBM_COUPLER_DETAILS in file test_menu_illegal_first_attr.in(line 58)

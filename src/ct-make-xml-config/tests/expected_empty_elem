@@ -1,0 +1,14 @@
+<frontend>
+    <level id="information">
+        <nav ressource="state.php" text="Information"/>
+        <level id="coupler_details">
+            <nav text="Coupler Details"/>
+            <page_element url="coupler_details.inc.php"/>
+        </level>
+        <level id="actual_tcpip">
+            <nav ressource="actual_tcp_ip.php" text="TCP/IP"/>
+            <page_element url="actual_tcpip.inc.php" params="interface=0"/>
+            <page_element url="actual_tcpip.inc.php" params="interface=1"/>
+        </level>
+    </level>
+</frontend>

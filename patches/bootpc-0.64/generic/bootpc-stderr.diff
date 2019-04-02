@@ -1,0 +1,25 @@
+diff -u bootpc-0.64.orig/main.c bootpc-0.64/main.c
+--- bootpc-0.64.orig/main.c	2008-09-02 08:32:41.000000000 +0200
++++ bootpc-0.64/main.c	2008-09-02 08:33:04.000000000 +0200
+@@ -21,8 +21,6 @@
+ 
+ #include "bootpc.h"
+ 
+-FILE * logfile = stderr ;
+-
+ int main(int argc,
+ 	 char *argv[])
+ {
+@@ -159,8 +157,8 @@
+     va_list args;
+ 
+     va_start(args, s);
+-    fprintf(logfile, "* ");
+-    vfprintf(logfile, s, args);
+-    fprintf(logfile, "\n");
++    fprintf(stderr, "* ");
++    vfprintf(stderr, s, args);
++    fprintf(stderr, "\n");
+     va_end(args);
+ }
+Nur in bootpc-0.64: main.c~.

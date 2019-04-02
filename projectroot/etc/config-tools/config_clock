@@ -1,0 +1,333 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_clock
+#
+# Configure the clock.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+
+GetHoursFromTimeString()
+# 
+# Get hour-value from time-string, if value has only one digit, add a leading '0'
+#
+{
+  local timeString=$*
+  hours=`echo $timeString | cut -d: -f1`
+  if [ 1 == ${#hours} ]; then
+    echo -e "0"$hours"\c"
+  else
+    echo -e $hours"\c"
+  fi
+}
+
+GetMinutesFromTimeString()
+# 
+# Get minute-value from time-string, if value has only one digit, add a leading '0'
+#
+{
+  local timeString=$*
+  minutes=`echo $timeString | cut -d: -f2`
+  if [ 1 == ${#minutes} ]; then
+    echo -e "0"$minutes"\c"
+  else
+    echo -e $minutes"\c"
+  fi
+}
+
+
+GetSecondsFromTimeString()
+# 
+# Get seconds-value from time-string, if value has only one digit, add a leading '0'
+#
+{
+  local timeString=$*
+  seconds=`echo $timeString | cut -d: -f3`
+  seconds=`echo $seconds | cut -d' ' -f1`
+  if [ 1 == ${#seconds} ]; then
+    echo -e "0"$seconds"\c"
+  else
+    echo -e $seconds"\c"
+  fi
+}
+
+Get12HourStringFromTimeString()
+# 
+# Get 12-hour-string "PM" or "AM" from time-string
+#
+{
+  local timeString=$*
+  local twelveHourString=`echo $timeString | egrep -o "am|AM|pm|PM"`
+  echo -e $twelveHourString"\c"
+}
+
+GetDaysFromDateString()
+# 
+# Get day-value from date-string, if value has only one digit, add a leading '0'
+#
+{
+  local dateString=$*
+  days=`echo $dateString | cut -d. -f1`
+  if [ 1 == ${#days} ]; then
+    echo -e "0"$days"\c"
+  else
+    echo -e $days"\c"
+  fi
+}
+
+GetMonthFromDateString()
+# 
+# Get day-value from date-string, if value has only one digit, add a leading '0'
+#
+{
+  local dateString=$*
+  month=`echo $dateString | cut -d. -f2`
+  if [ 1 == ${#month} ]; then
+    echo "0"$month"\c"
+  else
+    echo -e $month"\c"
+  fi
+}
+
+GetYearFromDateString()
+# 
+# Get day-value from date-string
+#
+{
+  local dateString=$*
+  year=`echo $dateString | cut -d. -f3`
+  echo -e $year"\c"
+}
+
+
+Change12HourTo24Hour()
+#
+# change time in 12-hour-format to 24-hour-format
+# returns hours in 24-hour-format or string "##" if an error occurs
+#
+{
+  local hours12=$1
+  local timeOfDayString=$2
+
+  # cut possible leading '0' from hour-value
+  hours12=`echo $hours12 | egrep -o "[1-9][0-9]?"`
+
+  # initialize 24-hour-value with invalid value
+  local hours24="##"
+
+  # if hour-value is valid 
+  if [ -n "$hours12" ] && (( $hours12 >= 1 )) && (( $hours12 <= 12 )); then
+
+    # if "am", only at 12 o'clock value must be changed
+    if  [ "AM" == "$timeOfDayString" ] || [ "am" == "$timeOfDayString" ]; then
+
+      if [ "12" == "$hours12" ]; then
+        hours24=00
+      else
+        hours24=$hours12
+      fi
+
+    # at "pm" all values must be enlarged by 12 hours
+    elif [ "PM" == "$timeOfDayString" ] || [ "pm" == "$timeOfDayString" ]; then
+
+      if (( $hours12 < 12 )); then
+        hours24=$(($hours12 + 12))
+      fi
+      # else hour-value is invalid -> hours24 = ""
+          
+    fi
+    # else time-of-day-string is invalid -> hours24 = ""
+  fi
+
+  # put value out, add leading '0' if neccesairy
+  if [ 1 == ${#hours24} ]; then
+    printf "%.2d" $hours24
+  else
+    echo -e $hours24"\c"
+  fi
+}
+
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change clock-data: time and/or date *"
+  echo
+  echo "Usage: config_clock < type=time-type-value time=time-value | date=date-value >"
+  echo
+  echo "time-type-value: local | utc"
+  echo "time-value: Format hh:mm:ss, additionally AM/PM, at 12-hour-format"
+  echo "date-value: Format dd.mm.yyyy"
+  echo
+  exit $status
+fi
+
+
+# if config-file for time-display format doesn't exist
+if [ ! -f $CLOCK_FORMAT_FILENAME ]; then
+  displayMode="HOUR_FORMAT_24"
+fi
+
+# filter input parmeter of input-string
+newTime=`GetParameterValue $TIME $*`
+newDate=`GetParameterValue $DATE $*`
+type=`GetParameterValue $TYPE $*`
+
+# if no value for type is given, set default to local
+if [ -z "$type" ]; then
+  type="local"
+  #type=$UTC
+fi
+
+#echo "newTime:"$newTime "type:"$type "newDate:"$newDate > /etc/config-tools/debug
+
+# if new date is given, check its format rough by using a regular expression
+if [ -n "$newDate" ]; then
+
+  # regular expression for date
+  DATE_REGEX="^[0-3]?[0-9]\.[0-1]?[0-9]\.[0-9]{2,4}$"
+  echo $newDate | egrep "$DATE_REGEX" > /dev/null
+
+  # date format is not ok - set error text and clear new date
+  if [ "$?" != "$SUCCESS" ]; then
+    newDate=""
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid date format"
+  fi
+fi
+
+# if new time is given, check its format rough by using a regular expression
+if [ -n "$newTime" ]; then
+
+  # regular expression for time
+  TIME_REGEX="(^((([0-1]?[0-9])|(2[0-3])):[0-5]?[0-9](:[0-5]?[0-9])?)$)|(^((([0-9])|(0[0-9])|(1[0-2])):[0-5]?[0-9](:[0-5]?[0-9])?)( am| AM| pm| PM)$)"
+  echo $newTime | egrep "$TIME_REGEX" > /dev/null
+
+  # time format is not ok - set error text and clear new time
+  if [ "$?" != "$SUCCESS" ]; then
+    newTime=""
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid time format"
+  fi
+fi
+
+
+# if time or date should be changed and rough format check was ok
+if [ -n "$newTime" ] || [ -n "$newDate" ]; then
+
+  # if time or date should be changed, take new new given value for it, else take actual values from clock (UTC or local)
+  if [ -n "$newTime" ]; then
+    #echo "change time"
+    time=$newTime
+  elif [ "$UTC" == "$type" ]; then
+    time=`${CONFIG_TOOLS_PATH}get_clock_data time-utc`
+  else
+    time=`${CONFIG_TOOLS_PATH}get_clock_data time-local`
+  fi
+  #echo "time:"$time >> /etc/config-tools/debug
+
+  if [ -n "$newDate" ]; then
+    #echo "change date"
+    date=$newDate
+  elif [ "$UTC" == "$type" ]; then
+    date=`${CONFIG_TOOLS_PATH}get_clock_data date-utc`
+    #date=`date -u +'%d.%m.%Y'`
+  else
+    date=`${CONFIG_TOOLS_PATH}get_clock_data date-local`
+    #date=`date +'%d.%m.%Y'` # doesn't work correct with user www
+  fi
+  #echo "date:"$date >> /etc/config-tools/debug
+    
+  # filter single time-values from time-string
+  hours=`GetHoursFromTimeString $time`
+  minutes=`GetMinutesFromTimeString $time`
+  seconds=`GetSecondsFromTimeString $time`
+  displayModeString=`Get12HourStringFromTimeString $time`
+  #echo "hours:"$hours "minutes:"$minutes "displayModeString:"$displayModeString >> /etc/config-tools/debug
+
+  displayMode=`${CONFIG_TOOLS_PATH}get_clock_data display-mode`
+  #echo "displayMode:"$displayMode >> /etc/config-tools/debug
+
+  if [ "$HOUR_FORMAT_12" == "$displayMode" ]; then
+    hours=`Change12HourTo24Hour $hours $displayModeString`
+    #echo "new hours:"$hours >> /etc/config-tools/debug
+  fi
+
+  days=`GetDaysFromDateString $date`
+  month=`GetMonthFromDateString $date`
+  year=`GetYearFromDateString $date`
+  #echo "days:"$days "month:"$month "year:"$year >> /etc/config-tools/debug
+
+  # fill option-string for UTC if neccesairy
+  user=`whoami`
+
+  # user www - use a trick: option -u doesn't work with user www, it leads to errors. But if we don't call "source ...", 
+  # the normal date-command always sets the utc-time
+  # if "souce ..." is used before "date", the local time is set
+  if [ "$user" = "www" ]; then
+
+    if [ "$UTC" == "$type" ]; then
+      #utcOptionString="-u"
+      utcOptionString=""
+    else
+      # instruct the shell to use the right (global) variable for timezone
+      source /etc/timezone
+      utcOptionString=""
+    fi
+
+  # user is not www (usually root)
+  else
+    # instruct the shell to use the right (global) variable for timezone, set option-string to set utc-time if necessairy
+    source /etc/timezone
+    if [ "$UTC" == "$type" ]; then
+      utcOptionString="-u"
+    else
+      utcOptionString=""
+    fi
+  fi
+
+  # configure parameter-string for shell-command to set system-clock; date [-u|--utc|--universal] [MMDDhhmm[[CC]YY][.ss]]
+  dateCallString=`echo $utcOptionString $month$days$hours$minutes$year.$seconds`
+  #echo "dateCallString:"$dateCallString >> /etc/config-tools/debug
+
+  # set systemclock
+  sudo /bin/date $dateCallString > /dev/null 2> /dev/null
+  # check error
+  if [ "$SUCCESS" != $? ]; then
+    status=$SHELL_ERROR
+    ReportError $status "(date)"
+    SetLastError "Error while setting clock"
+  else
+
+    # take system-clock over to hardware-clock
+    sudo /sbin/hwclock -w --utc
+    if [ "$SUCCESS" != $? ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(hwclock)"
+      SetLastError "Error while setting hardware-clock"
+    fi
+
+  fi
+fi
+
+exit $status

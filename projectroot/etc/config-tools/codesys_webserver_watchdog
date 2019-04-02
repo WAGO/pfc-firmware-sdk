@@ -1,0 +1,57 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: codesys_webserver_watchdog
+#
+# Check cyclic if CoDeSys webserver is still running and start it again, if it
+# was stopped. Necessairy, because webserver incorrect kills itself sometimes 
+#
+# The cyclic check stops if webserver stopps and calls the webserver startup
+# script again (which will initialize a new watchdog itself).
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Ensure that CoDeSys webserver is always running if it should *"
+  echo
+  echo "Usage: codesys_webwerver_watchdog"
+  echo
+  exit $status
+fi
+
+# give webserver time to start
+sleep 3
+
+# loop and sleep while codesys webserver is running
+while [ "`pidof webserver`" != "" ]; do
+
+  #echo "Webserver läuft..."
+  sleep 3
+
+done
+
+# loop (and webserver) stopped - call startup script again and end watchdog (startup will initialize new one)
+#echo "Webserver läuft nicht mehr!"
+if [ -h "/etc/rc.d/S56_codesys_webserver" ]; then
+  /etc/init.d/codesys_webserver start > /dev/null 2> /dev/null
+fi
+
+exit $status

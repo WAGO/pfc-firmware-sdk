@@ -1,0 +1,39 @@
+From 0a723ad752d0bb8a1dabef0ffbc66da45a9d509c Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 10 Jul 2018 11:35:09 +0200
+Subject: [PATCH 038/144] board-mlo: am35xx: add pdata for mmc1
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boards/wago-pfc-am35xx/board-mlo.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am35xx/board-mlo.c b/arch/arm/boards/wago-pfc-am35xx/board-mlo.c
+index f72d1d3..f6da2c6 100644
+--- a/arch/arm/boards/wago-pfc-am35xx/board-mlo.c
++++ b/arch/arm/boards/wago-pfc-am35xx/board-mlo.c
+@@ -99,6 +99,12 @@ static struct gpmc_nand_platform_data nand_plat = {
+ 	.nand_cfg = &omap3_nand_cfg,
+ };
+ 
++static struct omap_hsmmc_platform_data mmc_pdata = {
++	.devname = "mmc0",
++	.cd_gpio = 116,
++	.cd_inverted = true,
++};
++
+ static int pfc200_init_devices(void)
+ {
+ #ifdef CONFIG_OMAP_GPMC
+@@ -117,7 +123,7 @@ static int pfc200_init_devices(void)
+ 			omap_set_bootmmc_devname("mmc1");
+ 	}
+ 
+-	omap3_add_mmc1(NULL);
++	omap3_add_mmc1(&mmc_pdata);
+ 
+         armlinux_set_architecture(MACH_TYPE_PFC_AM35XX);
+ 
+-- 
+2.7.4
+

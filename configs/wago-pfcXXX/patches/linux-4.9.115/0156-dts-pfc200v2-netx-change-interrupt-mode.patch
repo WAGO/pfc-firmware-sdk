@@ -1,0 +1,26 @@
+From a01ef36280a2cf2c193276a3474dc0ce31366205 Mon Sep 17 00:00:00 2001
+From: Axel Wueste <axel.wueste@wago.com>
+Date: Mon, 19 Feb 2018 10:16:11 +0100
+Subject: [PATCH 156/261] dts: pfc200v2: netx: change interrupt mode
+
+Signed-off-by: Peter Galka <peter.galka@wago.com>
+---
+ arch/arm/boot/dts/wago-pfc200v2-netx.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi b/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi
+index 0d4a898..a93c07a 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2-netx.dtsi
+@@ -17,7 +17,7 @@
+ 
+ 		/* gpio0_19: DMA-FB-ASIC  */
+ 		interrupt-parent = <&gpio0>;
+-		interrupts = <19 IRQ_TYPE_EDGE_FALLING>; /* IRQ_TYPE_EDGE_RISING? */
++		interrupts = <19 IRQ_TYPE_LEVEL_LOW>;
+ 	};
+ };
+ 
+-- 
+2.7.4
+

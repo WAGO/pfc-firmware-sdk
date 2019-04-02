@@ -1,0 +1,9 @@
+*filter
+:in_opcua - [0:0]
+-A in_opcua -i br0 -p tcp --dport 4840:4840 -j ACCEPT
+-A in_opcua -i br1 -p tcp --dport 4840:4840 -j ACCEPT
+-A in_opcua -i wwan0 -m policy --dir in --pol ipsec --proto esp --mode tunnel -p tcp --dport 4840:4840 -j ACCEPT
+-A in_opcua -i tun+ -p tcp --dport 4840:4840 -j ACCEPT
+-A in_opcua -i tap+ -p tcp --dport 4840:4840 -j ACCEPT
+-A in_services -j in_opcua
+COMMIT

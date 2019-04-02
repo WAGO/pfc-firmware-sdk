@@ -1,0 +1,43 @@
+From f3612d2d92908115ddcaace1c5dfdfde7235cff9 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Thu, 2 Oct 2014 10:04:35 +0200
+Subject: [PATCH] fix multicast detection for tcp
+
+---
+ src/modbus-rtu.c | 5 ++++-
+ src/modbus.c     | 3 ---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/modbus-rtu.c b/src/modbus-rtu.c
+index db323a8..3fe9c14 100644
+--- a/src/modbus-rtu.c
++++ b/src/modbus-rtu.c
+@@ -859,7 +859,10 @@ int _modbus_rtu_filter_request(modbus_t *ctx, int slave)
+ 
+ int _modbus_rtu_is_multicast(modbus_t *ctx)
+ {
+-    return FALSE;
++  if(ctx->slave == 0)
++      return TRUE;
++
++  return FALSE;
+ }
+ 
+ const modbus_backend_t _modbus_rtu_backend = {
+diff --git a/src/modbus.c b/src/modbus.c
+index 808d22b..fe06304 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -2497,9 +2497,6 @@ void modbus_mapping_print(modbus_mapping_t *mb_mapping)
+ 
+ int modbus_is_multicast(modbus_t *ctx)
+ {
+-    if(ctx->slave == 0)
+-        return TRUE;
+-
+     return ctx->backend->is_multicast(ctx);
+ }
+ 
+-- 
+1.9.0
+

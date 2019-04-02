@@ -1,0 +1,2 @@
+* * * * *  /usr/sbin/logrotate -s /var/log/logrotate.status /etc/logrotate.conf
+0 */6 * * * /etc/init.d/syslog-ng restart

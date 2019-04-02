@@ -1,0 +1,51 @@
+#!/bin/sh
+
+#
+# lighttpd
+#
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
+
+PREFIX="lighttpd: "
+LIGHTTPD="/usr/sbin/lighttpd"
+LIGHTTPD_CONF="/etc/lighttpd/lighttpd.conf"
+
+case $1 in
+
+	start)
+		echo "${PREFIX}starting"
+
+		if [ \! -d /var/log/lighttpd ]; then
+			mkdir -p /var/log/lighttpd
+			chmod 700 /var/log/lighttpd
+			chown www:www /var/log/lighttpd
+		fi
+
+		if [ \! -d /var/run/php/sessions ]; then
+			mkdir -p /var/run/php/sessions
+			chmod 700 /var/run/php/sessions
+			chown www:www /var/run/php/sessions
+		fi
+
+		if start-stop-daemon --start --quiet --oknodo --exec ${LIGHTTPD} -- -f ${LIGHTTPD_CONF}; then
+			echo "${PREFIX}done"
+		else
+			echo "${PREFIX}error, could not start server"
+		fi
+		;;
+
+	stop)
+		echo "${PREFIX}stoppping"
+		
+		if start-stop-daemon --stop --quiet --oknodo --exec ${LIGHTTPD}; then
+			echo "${PREFIX}done"
+		else
+			echo "${PREFIX}error, could not stop server"
+		fi
+		;;
+
+	*)
+		echo "${PREFIX}usage: ${0} [start|stop]"
+		exit 1
+		;;
+
+esac

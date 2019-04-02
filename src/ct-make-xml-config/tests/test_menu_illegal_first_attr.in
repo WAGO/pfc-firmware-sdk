@@ -1,0 +1,67 @@
+##
+
+menuconfig CT_MENU_WBM_MAIN
+	bool
+	default y
+	prompt "wbm       (EXPERIMENTAL)"
+
+  select WBM
+#	select CT_FORM_PROCESSING
+	select CT_PRINT_NAVIGATION
+	select CT_SHOW_LAST_ERROR_HTML
+
+	help
+    IPC web configuration frontend.
+    __XML: frontend id="wbm"
+
+
+if CT_MENU_WBM_MAIN
+
+config WBM
+	bool
+	help
+   Target corresponding to wbm.make. Can be enabled indirectly by activating
+   CT_MENU_WBM_MAIN.
+
+
+# required tools
+
+config CT_FORM_PROCESSING
+	bool
+	help
+	 Process a html input form. Called from the CGI parser.
+
+config CT_PRINT_NAVIGATION
+	bool
+	help
+	 FIXME
+
+config CT_SHOW_LAST_ERROR_HTML
+	bool
+	help
+	 FIXME
+
+###############################################################
+
+menuconfig CT_MENU_WBM_INFO
+bool
+prompt "Information     "
+depends on CT_MENU_WBM_MAIN
+help
+  __XML: level id="information"
+               nav.text="Information"
+                  .ressource="state.php"
+
+#
+# Injected error: __XML: levl instead of level!
+#               
+config CT_MENU_WBM_COUPLER_DETAILS
+bool
+prompt "Coupler Details"
+depends on CT_MENU_WBM_INFO
+help
+  __XML: levl id="coupler_details"
+               nav.text="Coupler Details"
+               page_element.url="coupler_details.inc.php"
+
+endif

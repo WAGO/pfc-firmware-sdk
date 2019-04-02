@@ -1,0 +1,129 @@
+From eb45fa545b99408daf8b3a1866dc79650958e248 Mon Sep 17 00:00:00 2001
+From: Peter Galka <peter.galka@wago.com>
+Date: Wed, 9 May 2018 09:15:44 +0200
+Subject: [PATCH 009/144] drivers: mci-core: omap hsmmc: add mmc card detection
+
+Signed-off-by: Peter Galka <peter.galka@wago.com>
+---
+ drivers/mci/mci-core.c   | 17 +++++++++++++++++
+ drivers/mci/omap_hsmmc.c | 14 ++++++++++++++
+ include/mci.h            |  4 ++++
+ 3 files changed, 35 insertions(+)
+
+diff --git a/drivers/mci/mci-core.c b/drivers/mci/mci-core.c
+index c6b4e02..ef02d2b 100644
+--- a/drivers/mci/mci-core.c
++++ b/drivers/mci/mci-core.c
+@@ -35,6 +35,7 @@
+ #include <block.h>
+ #include <disks.h>
+ #include <of.h>
++#include <of_gpio.h>
+ #include <linux/err.h>
+ 
+ #define MAX_BUFFER_NUMBER 0xffffffff
+@@ -1579,6 +1580,16 @@ static const char *mci_boot_names[] = {
+ 	"user",
+ };
+ 
++static int mci_get_cd(struct param_d *param, void *priv)
++{
++	struct mci *mci = priv;
++	struct mci_host *host = mci->host;
++
++	mci->cd = host->card_present(host);
++
++	return 0;
++}
++
+ static int mci_register_partition(struct mci_part *part)
+ {
+ 	struct mci *mci = part->mci;
+@@ -1722,6 +1733,10 @@ static int mci_card_probe(struct mci *mci)
+ 		}
+ 	}
+ 
++	if (!mci->param_cd && host->card_present)
++		mci->param_cd = dev_add_param_bool(&mci->dev, "cd", NULL,
++						mci_get_cd, &mci->cd, mci);
++
+ 	dev_dbg(&mci->dev, "SD Card successfully added\n");
+ 
+ on_error:
+@@ -1904,6 +1919,8 @@ void mci_of_parse_node(struct mci_host *host,
+ 
+ 	host->non_removable = of_property_read_bool(np, "non-removable");
+ 	host->no_sd = of_property_read_bool(np, "no-sd");
++	host->cd_gpio = of_get_named_gpio(np, "cd-gpios", 0);
++	host->cd_inverted = of_property_read_bool(np, "cd-inverted");
+ }
+ 
+ void mci_of_parse(struct mci_host *host)
+diff --git a/drivers/mci/omap_hsmmc.c b/drivers/mci/omap_hsmmc.c
+index cbc69e4..f5f2c2e 100644
+--- a/drivers/mci/omap_hsmmc.c
++++ b/drivers/mci/omap_hsmmc.c
+@@ -27,6 +27,7 @@
+ #include <errno.h>
+ #include <io.h>
+ #include <linux/err.h>
++#include <gpio.h>
+ 
+ #include <mach/omap_hsmmc.h>
+ 
+@@ -582,6 +583,18 @@ static int omap_mmc_detect(struct device_d *dev)
+ 	return mci_detect_card(&hsmmc->mci);
+ }
+ 
++static int mmc_card_present(struct mci_host *mci)
++{
++	if (mci->non_removable)
++		return 1;
++
++	if (!gpio_is_valid(mci->cd_gpio) || gpio_direction_input(mci->cd_gpio))
++		return 0;
++
++	return mci->cd_inverted ? !gpio_get_value(mci->cd_gpio) :
++						gpio_get_value(mci->cd_gpio);
++}
++
+ static int omap_mmc_probe(struct device_d *dev)
+ {
+ 	struct resource *iores;
+@@ -601,6 +614,7 @@ static int omap_mmc_probe(struct device_d *dev)
+ 	hsmmc->mci.send_cmd = mmc_send_cmd;
+ 	hsmmc->mci.set_ios = mmc_set_ios;
+ 	hsmmc->mci.init = mmc_init_setup;
++	hsmmc->mci.card_present = mmc_card_present;
+ 	hsmmc->mci.host_caps = MMC_CAP_4_BIT_DATA | MMC_CAP_SD_HIGHSPEED |
+ 		MMC_CAP_MMC_HIGHSPEED | MMC_CAP_8_BIT_DATA;
+ 	hsmmc->mci.hw_dev = dev;
+diff --git a/include/mci.h b/include/mci.h
+index 072008e..c9244d1 100644
+--- a/include/mci.h
++++ b/include/mci.h
+@@ -402,8 +402,10 @@ struct mci_host {
+ 	unsigned max_req_size;
+ 	unsigned dsr_val;	/**< optional dsr value */
+ 	int use_dsr;		/**< optional dsr usage flag */
++	int cd_gpio;		/**< card detection gpio pin */
+ 	bool non_removable;	/**< device is non removable */
+ 	bool no_sd;		/**< do not send SD commands during initialization */
++	bool cd_inverted;	/**< inverts cd_gpio value */
+ 	struct regulator *supply;
+ 
+ 	/** init the host interface */
+@@ -459,8 +461,10 @@ struct mci {
+ 	int dsr_imp;		/**< DSR implementation state from CSD */
+ 	char *ext_csd;
+ 	int probe;
++	int cd;
+ 	struct param_d *param_probe;
+ 	struct param_d *param_boot;
++	struct param_d *param_cd;
+ 	int bootpart;
+ 
+ 	struct mci_part part[MMC_NUM_PHY_PARTITION];
+-- 
+2.7.4
+

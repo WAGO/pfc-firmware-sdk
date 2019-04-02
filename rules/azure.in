@@ -1,0 +1,44 @@
+## SECTION=networking
+# DEPENDS:=+libopenssl +libuuid +libcurl +libpthread
+
+menuconfig AZURE
+	bool
+	prompt "azure-iot-sdk-c"
+	select HOST_CMAKE 
+	select LIBUUID
+	select OPENSSL
+	select LIBCURL
+	select LIBC_PTHREAD
+	help
+	  A C99 SDK for connecting devices to Microsoft Azure IoT services
+
+if AZURE
+
+config AZURE_HTTP
+	bool
+	default y
+	prompt "with HTTP support"
+
+config AZURE_MQTT
+	bool
+	default y
+	prompt "with MQTT support"
+
+config AZURE_AMQP
+	bool
+	default y
+	prompt "with AMQP support"
+
+config AZURE_WSIO
+	bool
+	prompt "with WebSocket support"
+
+config AZURE_SAMPLES
+	bool
+	prompt "install sample applications"
+
+endif
+
+
+
+

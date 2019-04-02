@@ -1,0 +1,17 @@
+## SECTION=wago_specific_libs
+		
+config LIBDPS
+	bool
+	default n
+	select LIBOSAL
+	select LIBUTIL
+	select DAL
+	select LIBDPC31STACK
+	select LIBDPC31DRIVER
+	select LIBEXTMEMCPY
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select TYPELABEL
+	prompt "libdps (PROFIBUS DP-Slave application)"
+	help
+		Build the PROFIBUS DP-Slave device driver as a shared object. This software component is the interface between the DAL and the DPC31-Driver and DPC31-Stack software components.

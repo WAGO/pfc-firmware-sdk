@@ -1,0 +1,256 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_led_config
+#
+# Get configuration and values of LEDs
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+LED_CONFIG_FILE="/etc/specific/led.xml"
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get configuration and values of LEDs *"
+  echo
+  echo "Usage: get_led_config [ parameter ] < led-id >"
+  echo 
+  echo "parameter: \"xml\" | \"name\" | \"color\" | \"blinkcode\" | \"diagtext\" | \"complete-state\" | \"all-states\" "
+  echo 
+  exit $SUCCESS
+fi
+
+
+GetXmlConfig()
+{
+  cat $LED_CONFIG_FILE
+  return $?
+}
+
+
+GetLedName()
+{
+  ledId=$1
+  
+  status=$SUCCESS;
+  
+  if [ -z $ledId ]; then
+    status=$MISSING_PARAMETER
+    SetLastError "Missing input parameter"
+    return $status
+  fi
+  
+  nameString=`xmlstarlet el -v $LED_CONFIG_FILE 2> /dev/null | grep "@number='$ledId'" | grep -o "@name='[^']*'"` 
+  #echo $nameString
+  
+  nameString=${nameString#*\'} 
+  nameString=${nameString%\'}
+  
+  printf "%s" $nameString
+  return $?
+}
+
+
+GetCompleteLedState()
+{
+  ledId=$1
+  
+  status=$SUCCESS
+  
+  if [ -z $ledId ]; then
+    status=$MISSING_PARAMETER
+    SetLastError "Missing input parameter"
+    return $status
+  fi
+  
+  completeLedState=`getledstate $ledId 2> /dev/null`
+  if [ $SUCCESS != $? ]; then
+    status=$EXECUTABLE_ERROR
+    SetLastError "Error while execution"
+  else
+  
+    # check if output is probably ok
+    echo $completeLedState | grep "$ledId: \<.*\> \<.*\> \<.*\>" > /dev/null 2> /dev/null
+    if [ $SUCCESS != $? ]; then
+      status=$EXECUTABLE_ERROR
+      SetLastError "Error while execution"
+    else
+      echo $completeLedState
+    fi
+  fi
+  
+  return $status
+}
+
+
+GetState()
+{
+  ledId=$1
+  
+  status=$SUCCESS
+  completeLedState=`GetCompleteLedState $ledId`
+  if [ $SUCCESS = $? ]; then
+    state=`echo $completeLedState | cut -d' ' -f2`
+    printf "%s" $state
+  fi
+}
+
+GetFrequency()
+{
+  ledId=$1
+  colorNo=$2
+  status=$SUCCESS
+  
+  if [ "$colorNo" != 1 ] && [ "$colorNo" != 2 ]; then
+    status=$EXECUTABLE_ERROR
+    SetLastError "Error while execution"
+  else
+    completeLedState=`GetCompleteLedState $ledId`
+    lineNo=$[$lineNo + 1]
+    if [ $SUCCESS = $? ]; then
+      frequency=`echo $completeLedState | cut -d' ' -f$[$colorNo + 2]`
+      printf "%s" $frequency
+    fi
+  fi
+}
+
+GetDiagText()
+{
+  ledId=$1
+  
+  status=$SUCCESS
+  completeLedState=`GetCompleteLedState $ledId`
+  if [ $SUCCESS = $? ]; then
+    #echo $completeLedState
+    diagText=`echo $completeLedState | sed 's/'$ledId': \<[^ ]*\> \<[^ ]*\> \<[^ ]*\> //' 2> /dev/null`
+    if [ $SUCCESS != $? ]; then
+      status=$EXECUTABLE_ERROR
+      SetLastError "Error while execution"
+    else
+      echo -n $diagText
+    fi
+  fi
+}
+
+GetCompleteStateString()
+{
+  ledId=$1
+  status=$SUCCESS
+  
+  completeLedState=`GetCompleteLedState $ledId`
+  if [ $SUCCESS = $? ]; then
+    echo -n $completeLedState
+  else
+    status=$EXECUTABLE_ERROR
+    SetLastError "Error while execution"
+  fi
+  
+  return $status
+}
+
+GetAllStates()
+{
+  status=$SUCCESS
+  
+  # get states of all LEDs in one go and write them directly to stdout (buffering in variable eliminates the line feeds)
+  getledstate --all 2> /dev/null
+  if [ $SUCCESS != $? ]; then
+    status=$EXECUTABLE_ERROR
+    SetLastError "Error while execution"
+  fi
+  
+  return $status
+}
+
+
+MockCompleteStateString()
+{
+  ledId=$1
+  
+  stateStrings=("OFF 0 0 Wed Nov 21 14:04:11 2012: Off Undefined ID: 00010017" \
+                "GRN 0 0 Wed Nov 21 14:04:11 2012: GRN Undefined ID: 00010017" \
+                "RED 0 0 Wed Nov 21 14:04:11 2012: RED Undefined ID: 00010017" \
+                "YLW 0 0 Wed Nov 21 14:04:11 2012: YLW Undefined ID: 00010017" \
+                "BLINK_GRN 0 0 Wed Nov 21 14:04:11 2012: BLINK_GRN Undefined ID: 00010017"\
+                "BLINK_RED 0 0 Wed Nov 21 14:04:11 2012: BLINK_RED ndefined ID: 00010017"\
+                "BLINK_YLW 0 0 Wed Nov 21 14:04:11 2012: BLINK_YLW Undefined ID: 00010017"\
+                "BLINK_GRN_RED 0 0 Wed Nov 21 14:04:11 2012: BLINK_GRN_RED Undefined ID: 00010017"\
+                "BLINK_GRN_YLW 0 0 Wed Nov 21 14:04:11 2012: BLINK_GRN_YLW Undefined ID: 00010017"\
+                "BLINK_OFF_GRN 0 0 Wed Nov 21 14:04:11 2012: BLINK_OFF_GRN Undefined ID: 00010017"\
+                "BLINK_GRN_YLW 0 0 Wed Nov 21 14:04:11 2012: BLINK_GRN_YLW Undefined ID: 00010017"\
+                "BLINK_RED_GRN 0 0 Wed Nov 21 14:04:11 2012: BLINK_RED_GRN Undefined ID: 00010017"\
+                "BLINK_YLW_GRN 0 0 Wed Nov 21 14:04:11 2012: BLINK_YLW_GRN Undefined ID: 00010017"\
+                "BLINK_YLW_RED 0 0 Wed Nov 21 14:04:11 2012: BLINK_YLW_RED Undefined ID: 00010017"\
+                "blablub" )
+                
+  #state=${stateStrings[$(($RANDOM % 3))]}
+  count=${#stateStrings[*]}
+  echo "$ledId: "${stateStrings[$(($RANDOM % $count))]}
+}
+
+
+status=$SUCCESS
+
+# read input parameter
+requestedParam=$1
+ledId=$2
+#echo "parameter:${parameter} ledId:${ledId}"
+
+# check for missing input parameter
+if [ -z "$requestedParam" ]; then
+  status=$MISSING_PARAMETER
+  SetLastError "Missing input parameter"
+  exit $status
+fi
+
+#check whether config-file exists 
+if [ ! -f $LED_CONFIG_FILE ]; then
+  status=$CONFIG_FILE_MISSING
+  SetLastError "Config File is missing"
+  exit $status
+fi
+
+case "$requestedParam" in
+
+  "xml")            GetXmlConfig;;
+  
+  "name")           GetLedName $ledId;;
+  
+  "state")          GetState $ledId;;
+  
+  "frequency1")     GetFrequency $ledId 1;;
+  
+  "frequency2")     GetFrequency $ledId 2;;
+  
+  "diagtext")       GetDiagText $ledId;;
+  
+  "complete-state") GetCompleteStateString $ledId
+                    status=$?
+                    ;;
+                    
+  "all-states" )    GetAllStates
+                    status=$?
+                    ;;
+  
+  *)                status=$INVALID_PARAMETER
+                    SetLastError "Unknown parameter"
+                    ;;
+
+esac
+
+exit $status

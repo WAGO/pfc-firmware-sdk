@@ -1,0 +1,11 @@
+--- libModbus-0.9.20.latest/src/modbus-slave.c	2010-03-05 08:53:57.000000000 +0100
++++ libModbus-0.9.20/src/modbus-slave.c	2014-06-30 15:58:11.359064722 +0200
+@@ -443,7 +443,7 @@
+ 	[MB_FUN_WRITE_COILS]		= { .fn = modbus_write_coils,	.hlen = 5, .mul = 1},
+ 	[MB_FUN_WRITE_REGS]		= { .fn = modbus_write_regs,	.hlen = 5, .mul = 2},
+ 	[MB_FUN_MASK_WRITE_REG]		= { .fn = modbus_mask_write_reg,	.hlen =	 6},
+-	[MB_FUN_READ_WRITE_REGS]	= { .fn = modbus_read_write_regs,	.hlen = 6, .mul = 2},
++	[MB_FUN_READ_WRITE_REGS]	= { .fn = modbus_read_write_regs,	.hlen = 9, .mul = 2},
+ };
+ 
+ int mb_func_id_has_callback(unsigned int fid)

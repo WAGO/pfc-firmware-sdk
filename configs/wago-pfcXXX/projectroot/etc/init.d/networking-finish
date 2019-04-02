@@ -1,0 +1,135 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+# This script is started to wait for link up and then bring up the bridge interfaces.
+# Reason is to enable sending of gratuitous ARPs.
+# The script is run in background if started during system initialisationi with 
+# argument bridgeup.
+# Then it is called again witch argument start to wait to finish bringing up the interfaces.
+# 
+PIDFILE="/var/run/networking-finish.pid"
+
+function gratuitous_arp_enable
+{
+    # Expects interface name as argument.
+    echo 1 > /proc/sys/net/ipv4/conf/$1/arp_notify
+}
+
+function is_linkup
+{
+    # Needs network interface name ethXn as argument.
+    local linkup=$(ethtool $1 | awk '/Link detected:/ {print $NF}')
+    [ "$linkup" = yes ]
+}
+
+function read_pidfile
+{
+    # atomic read of pidfile, returns pid or 0 on non-existing pidfile
+    local pid="0"
+    local tmpfile=$(mktemp -t -p /tmp netwpid.XXXXXX)
+
+    cat $PIDFILE > $tmpfile 2> /dev/null
+    [ $? -eq 0 ] && pid=$(<$tmpfile)
+    rm -f $tmpfile
+    echo $pid
+}
+
+function is_self_running
+{
+    local PID=0
+    local status=1
+
+    # See if we are running already.
+    PID=$(read_pidfile)
+    if [ $PID -gt 0 ]; then
+        # We got a PID. Freeze the process.
+        if kill -SIGSTOP $PID &> /dev/null; then
+            if [ -e /proc/$PID ] && grep -q networking /proc/$PID/cmdline; then
+                # networking background process is running already.
+                status=0
+            else
+                # no process. Stale pid file.
+                rm /var/run/networking.pid
+            fi
+            # Continue the frozen process.
+            kill -SIGCONT $PID
+        fi
+    fi
+    return $status
+}
+
+function wait_for_link_up
+{
+    local repeats=0
+    local dsa_mode=$(sed -n 's/# dsa_mode=\(.*\)/\1/p' /etc/network/interfaces)
+
+    # Wait for link up.
+    check_linkup="ethX1"
+    if [ $dsa_mode = 1 ]; then
+        check_linkup="ethX1 ethX2"
+    fi
+    while [ $repeats -lt 20 ]; do
+        for dev in $check_linkup; do
+            if ! is_linkup $dev; then
+                break
+            fi
+            false
+        done
+        if [ $? -ne 0 ]; then
+            break
+        fi
+        usleep 100000
+        repeats=$(($repeats + 1))
+    done
+
+    # This sleep is to wait for auto MDI-X switching to finish.
+    sleep 1
+}
+
+function interfaces_up
+{
+    gratuitous_arp_enable br0
+    gratuitous_arp_enable br1
+    wait_for_link_up
+    ifup br0
+    ifup br1
+    local order=$(/etc/config-tools/get_typelabel_value ORDER)
+    if [[ ${order:0:8} == "750-8215" ]]; then
+    	ifup br2
+	fi
+}
+
+# main program. Enable gratuitous ARP, wait for link to become up and start the bridge
+# interfaces.
+# Switch on gratuitous ARP for bridged interfaces.
+case "$1" in
+bridgeup)
+    if ! is_self_running; then
+        echo $$ > $PIDFILE
+        interfaces_up
+        rm $PIDFILE
+    fi
+    ;;
+start|wait)
+    echo "Finish up networking ..."
+    PID=$(read_pidfile)
+    if [ $PID -gt 0 ]; then
+        while [ -e /proc/$PID ]; do
+            usleep 100000
+        done
+    fi
+    ;;
+stop)
+    ;;
+*)
+    echo "usage: /etc/init.d/networking-finish {bridgeup|start|wait}" >&2
+    exit 1
+    ;;
+esac
+exit 0
+

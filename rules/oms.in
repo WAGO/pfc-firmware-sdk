@@ -1,0 +1,50 @@
+## SECTION=wago_specific_tools
+
+config OMS
+	bool
+	prompt "oms (oprating mode switch)"
+	default n
+	help
+	  This Package is used for the handling of the operting mode switch
+
+if OMS
+
+config OMS_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+#config OMS_CODESYS_LIB
+#	bool
+#	prompt "build oms-Mdule for CoDeSys"
+#	default y
+#	help
+#	 Say YES if you want to use the codesys osm Module
+
+config OMS_OMSD
+	bool
+	prompt "build oms-daemon for watch for switch events"
+	default n
+	help
+	 Say YES if you want to use the osmd for watching for events.
+	 If unsure say Y. If you say NO here there will only an libryr be build!
+
+if OMS_OMSD
+#default YES because of backward-compatibility
+config OMS_FIX_IP
+	bool
+	prompt "install FIX-IP function"
+	default y
+	help
+	 Say YES if you want to have the FIX-IP functionality
+
+#default YES because of backward-compatibility
+config OMS_FACTORY_DEFUALTS
+	bool
+	prompt "install set_factory_defaults function"
+	default y
+	help
+	 Say YES if you want to have the Set Factory defaults functionality
+endif
+endif

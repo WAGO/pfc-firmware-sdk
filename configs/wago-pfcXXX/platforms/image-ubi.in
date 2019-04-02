@@ -1,0 +1,32 @@
+## SECTION=image2
+
+menuconfig IMAGE_DATA_UBI
+	tristate
+	select HOST_GENIMAGE
+	select HOST_MTD_UTILS
+	select IMAGE_BOOT_TAR
+	select IMAGE_ROOT_EXT
+	prompt "Generate images/data.ubi"
+	help
+	  Generates data.ubi wich includes
+	  "rootfs0, rootfs1, home and boot"
+	  ubifs-volumes. The boot.tgz image
+	  is taken from the IMAGEDIR. If more
+	  than one boot.tgz-file is available,
+	  we generate one data.ubi per
+	  boot.tgz-file.
+
+if IMAGE_DATA_UBI
+
+config IMAGE_DATA_UBI_BOOT_FILES
+        string
+        prompt "boot.tgz files"
+        help
+          List of boot.tgz files that are
+          located in $(IMAGEDIR). This ist
+          indicates how many data.ubi images
+          with different boot.tgz files need
+          to be created. All *.ubi images are
+          using the same root.tgz.
+
+endif

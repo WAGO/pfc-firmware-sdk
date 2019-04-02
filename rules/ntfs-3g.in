@@ -1,0 +1,12 @@
+## SECTION=disk_and_file
+
+config NTFS_3G
+	bool
+	prompt "ntfs-3g NTFS write support"
+	help
+	  This includes fuse filesystem support of NTFS allowing
+	  modifications to the filesystem. Kernel NTFS support is
+	  read only. Requires command mount.ntfs-3g to mount 
+	  NTFS file systems. Kernel support for fuse file systems
+	  need to be enabled.
+

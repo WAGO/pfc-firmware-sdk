@@ -1,0 +1,83 @@
+From 0d2d123295b43851b5f0efa8a10396275d6dea5f Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 29 Aug 2018 15:57:30 +0200
+Subject: [PATCH 074/144] arm: dts: am335x: use bootchooser config from
+ seperated file
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am335x-pfc.dtsi | 51 +-------------------------------------------
+ 1 file changed, 1 insertion(+), 50 deletions(-)
+
+diff --git a/arch/arm/dts/am335x-pfc.dtsi b/arch/arm/dts/am335x-pfc.dtsi
+index b214387..6b5d155 100644
+--- a/arch/arm/dts/am335x-pfc.dtsi
++++ b/arch/arm/dts/am335x-pfc.dtsi
+@@ -17,6 +17,7 @@
+  */
+ 
+ #include "am33xx.dtsi"
++#include "am3xxx-pfc-bootchooser.dtsi"
+ 
+ / {
+ 	aliases {
+@@ -69,56 +70,6 @@
+ 		rst:   rst   { gpios = <&gpio3 15 GPIO_ACTIVE_HIGH>;};
+ 	};
+ 
+-	bootstate: bootstate {
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		magic = <0x3f45620e>;
+-		compatible = "barebox,state";
+-		backend-type = "raw";
+-		backend = <&backend_state_eeprom>;
+-		backend-storage-type = "direct";
+-		backend-stridesize = <0x40>;
+-
+-		last_chosen@0 {
+-			reg = <0x0 0x4>;
+-			type = "uint32";
+-		};
+-
+-		system0 {
+-			#address-cells = <1>;
+-			#size-cells = <1>;
+-
+-			remaining_attempts@4 {
+-				reg = <0x4 0x4>;
+-				type = "uint32";
+-				default = <3>;
+-			};
+-
+-			priority@8 {
+-				reg = <0x8 0x4>;
+-				type = "uint32";
+-				default = <20>;
+-			};
+-		};
+-
+-		system1 {
+-			#address-cells = <1>;
+-			#size-cells = <1>;
+-
+-			remaining_attempts@C {
+-				reg = <0xC 0x4>;
+-				type = "uint32";
+-				default = <3>;
+-			};
+-
+-			priority@10 {
+-				reg = <0x10 0x4>;
+-				type = "uint32";
+-				default = <20>;
+-			};
+-		};
+-	};
+-
+ 	vmmcsd_fixed: fixedregulator@0 {
+ 		compatible = "regulator-fixed";
+ 		regulator-name = "vmmcsd_fixed";
+-- 
+2.7.4
+

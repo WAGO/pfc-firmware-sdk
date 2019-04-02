@@ -1,0 +1,56 @@
+From 125e2b3615911cb650a2dbe324eb137bf56cd871 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 24 Sep 2018 15:12:07 +0200
+Subject: [PATCH 100/144] arm: dts: am335x: add alias for board info; remove
+ i2c0 from stripping
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am335x-pfc-strip.dtsi | 3 ---
+ arch/arm/dts/am335x-pfc.dtsi       | 3 +++
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/dts/am335x-pfc-strip.dtsi b/arch/arm/dts/am335x-pfc-strip.dtsi
+index d6e0f41..f9ddecb 100644
+--- a/arch/arm/dts/am335x-pfc-strip.dtsi
++++ b/arch/arm/dts/am335x-pfc-strip.dtsi
+@@ -29,7 +29,6 @@
+ 		/delete-property/ phy1;
+ 		/delete-property/ xsection;
+ 		/delete-property/ bootmatrix;
+-		/delete-property/ i2c0;
+ 		/delete-property/ ethernet0;
+ 		/delete-property/ ethernet1;
+ 		/delete-property/ spi0;
+@@ -43,14 +42,12 @@
+ /delete-node/ &uart3;
+ /delete-node/ &uart4;
+ /delete-node/ &uart5;
+-/delete-node/ &i2c0_pins;
+ /delete-node/ &davinci_mdio_default;
+ /delete-node/ &davinci_mdio_sleep;
+ /delete-node/ &bas_pins;
+ /delete-node/ &usb;
+ /delete-node/ &xsection;
+ /delete-node/ &bootmatrix;
+-/delete-node/ &i2c0;
+ /delete-node/ &davinci_mdio;
+ /delete-node/ &cpsw_emac0;
+ /delete-node/ &cpsw_emac1;
+diff --git a/arch/arm/dts/am335x-pfc.dtsi b/arch/arm/dts/am335x-pfc.dtsi
+index 6b5d155..e38d232 100644
+--- a/arch/arm/dts/am335x-pfc.dtsi
++++ b/arch/arm/dts/am335x-pfc.dtsi
+@@ -26,6 +26,9 @@
+ 		bootstate = &bootstate;
+ 		xsection = &xsection;
+ 		bootmatrix = &bootmatrix;
++		nand = &gpmc;
++		emmc = &mmc2;
++		sd = &mmc1;
+ 	};
+ 
+ 	chosen {
+-- 
+2.7.4
+

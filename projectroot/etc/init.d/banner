@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# /etc/init.d/banner
+#
+
+FIGLET="/usr/sbin/figlet"
+FIGLET_FONTS="/usr/share/figlet"
+PATH=/sbin:/bin:/usr/bin
+
+test -f $FIGLET || { echo "$FIGLET not found" >&2 ; exit 1; }
+
+start_proc() {
+	echo
+	echo "Wago Kontakttechnik GmbH&Co KG (Wago-I/O-IPC || @DATE@)"
+	echo
+	host=`/bin/hostname`
+	${FIGLET} -w 0 -f "${FIGLET_FONTS}/standard" "$host"
+	echo
+	echo
+}
+
+
+case "$1" in
+        start)
+        	start_proc
+		;;
+	stop)
+		# do nothing
+		;;
+        restart|force-reload)
+		start_proc
+                ;;
+        reload)
+                echo "Not supported" >&2
+                exit 1
+                ;;
+        *)
+                echo "Usage: $0 {start|stop|restart|force-reload}"
+                exit 1
+                ;;
+esac
+
+exit 0
+

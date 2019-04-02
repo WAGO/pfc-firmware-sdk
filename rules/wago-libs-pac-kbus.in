@@ -1,0 +1,57 @@
+## SECTION=wago_specific_libs
+
+menuconfig LIBPACKBUS
+	bool
+	default yes
+	prompt "libpackbus"	
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select WAGO_DBUS
+	select LIBXML2
+	select DAL
+	select LIBFFI
+	select TYPELABEL
+	select LIBCOMMONHEADER
+	help
+		KBus device driver library for the DAL
+
+
+if LIBPACKBUS
+
+	config LIBPACKBUS_UART_INTERFACE
+		string
+		default "/dev/ttyO1"
+		prompt "KBUS UART Interface"
+		help
+			Defines the KBUS UART interface
+
+	config LIBPACKBUS_TESTAPP
+		bool
+		default n
+		prompt "with test application"
+		help
+			Compile test application for the library. Do not enable this unless requested by support.
+
+	menuconfig LIBPACKBUS_DEBUG_DD
+		bool
+		default n
+		prompt "changes for debugging device driver"
+		help
+			Deactivates watchdog in device driver and sets debug-level=(g), opt.-level=(O2)
+
+	if LIBPACKBUS_DEBUG_DD
+
+		config LIBPACKBUS_BUILD_CFG_DEBUG_LEVEL
+			string "Debug level ('g', g0, g1, g3)"
+			default "g"
+			help
+				Sets the debug level used for compilation. Leave empty to use the makefile's default.
+
+		config LIBPACKBUS_BUILD_CFG_OPTIMIZATION
+			string "Optimization level (Og, Os,O0,O1,'O2',O3)"
+			default "O2"
+			help
+				Configures the optimization level used for compilation. Leave it empty to use the makefile's default.
+
+	endif
+endif

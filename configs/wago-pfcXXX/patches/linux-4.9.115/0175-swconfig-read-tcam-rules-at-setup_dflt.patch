@@ -1,0 +1,113 @@
+From 896fb6e3924bf0d9c780afe065d85b81a4473a8e Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 18 Jun 2018 08:22:13 +0200
+Subject: [PATCH 175/261] swconfig: read tcam rules at setup_dflt
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/mv88e6321-cfg.c | 41 +++++++++++++++++++++++++++--------------
+ 1 file changed, 27 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index 54b3ed4..6fc3bee 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -63,6 +63,8 @@
+ 
+ extern struct mv88e6xxx_chip *global_chip;
+ 
++static int mv88e6321_setup_tcam(struct mii_bus *bus, struct device_node *np);
++
+ struct tcam_info {
+ 	struct list_head list;
+ 	struct device_attribute dev_attr;
+@@ -366,25 +368,30 @@ static int mv88e6321_sw_setup_dflt_cfg(struct switch_dev *dev,
+ 	ret = mv88e6321_sw_force_speed_external_phys(dev,
+ 						MV88E6321_EXTERNAL_PHY0);
+ 	if (ret < 0)
+-		return ret;
++		goto out;
+ 
+ 	ret = mv88e6321_sw_force_speed_external_phys(dev,
+ 						MV88E6321_EXTERNAL_PHY1);
+ 	if (ret < 0)
+-		return ret;
++		goto out;
+ 
+ 	ret = mv88e6321_sw_force_speed_internal_phys(dev,
+ 						MV88E6321_INTERNAL_PHY3);
+ 	if (ret < 0)
+-		return ret;
++		goto out;
+ 
+ 	ret = mv88e6321_sw_force_speed_internal_phys(dev,
+ 						MV88E6321_INTERNAL_PHY4);
+ 	if (ret < 0)
+-		return ret;
+-	else
+-		ret = 0;
++		goto out;
++
++	ret = mv88e6321_setup_tcam(dev->mii_bus, of_root);
++
++	if (ret < 0)
++		goto out;
+ 
++	ret = 0;
++out:
+         return ret;
+ }
+ 
+@@ -576,9 +583,7 @@ static int mv88e6321_set_tcam_entry(struct mii_bus *bus,
+ 	return ret;
+ }
+ 
+-static int mv88e6321_sw_set_tcam(struct switch_dev *dev,
+-				 const struct switch_attr *attr,
+-				 struct switch_val *val)
++static int mv88e6321_setup_tcam(struct mii_bus *bus, struct device_node *np)
+ {
+ 	int ret = 0;
+ 	struct tcam_entries tcam_entries;
+@@ -590,18 +595,19 @@ static int mv88e6321_sw_set_tcam(struct switch_dev *dev,
+ 
+ 	mutex_lock_interruptible(&mvinfo->tcam_lock);
+ 
+-	if (mvinfo->tcam_np) {
+-		ret = of_get_tcam_entry(&tcam_entries, mvinfo->tcam_np);
++	if (np) {
++		ret = of_get_tcam_entry(&tcam_entries, np);
+ 		if (ret < 0)
+ 			goto out;
+ 
+-		ret = mv88e6321_set_tcam_mode(dev->mii_bus, &tcam_entries);
++		mv88e6321_cleanup_tcam(mvinfo);
++
++		ret = mv88e6321_set_tcam_mode(bus, &tcam_entries);
+ 		if (ret < 0)
+ 			goto out_free_tcam_infos;
+ 
+ 		list_for_each_entry(tcam_entry, &tcam_entries.head.list, list) {
+-			ret = mv88e6321_set_tcam_entry(dev->mii_bus,
+-						       tcam_entry);
++			ret = mv88e6321_set_tcam_entry(bus, tcam_entry);
+ 			if (ret < 0)
+ 				goto out_free_tcam_infos;
+ 		}
+@@ -624,6 +630,13 @@ static int mv88e6321_sw_set_tcam(struct switch_dev *dev,
+ 	return ret;
+ }
+ 
++static int mv88e6321_sw_set_tcam(struct switch_dev *dev,
++				 const struct switch_attr *attr,
++				 struct switch_val *val)
++{
++	return mv88e6321_setup_tcam(dev->mii_bus, mvinfo->tcam_np);
++}
++
+ static int mv88e6321_sw_get_tcam(struct switch_dev *dev,
+ 				 const struct switch_attr *attr,
+ 				 struct switch_val *val)
+-- 
+2.7.4
+

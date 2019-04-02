@@ -1,0 +1,102 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_https_tls
+#
+# Switch between strong and normal cipher lists. Older web browsers do not
+# support the strong list.
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# make use of undefined variables an error
+set -u
+
+# Check argument value against a selection of values.
+arg_assert()
+{
+    local arg=$1
+    local sel=$2
+    local msg=$3
+    local valid=""
+
+    for val in $sel; do
+        if [ $arg = $val ]; then
+            valid=1
+            break
+        fi
+    done
+    if [ ! $valid ]; then
+        status=$INVALID_PARAMETER
+        SetLastError "$msg"
+        exit $status
+    fi
+}
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+if [ "$#" -eq "0" ]; then
+    SetLastError "Missing argument"
+    exit $MISSING_PARAMETER
+fi
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" -o "$1" = "--help" ]; then
+    echo
+    echo "* Configure https tls cipher list *"
+    echo
+    echo "Usage: $0 cipher-list=standard|strong [restart-webserver=YES|NO]"
+    echo "Default cipher is standard. Default restart-webserver value is YES"
+    echo "restart-webserver=NO is intended for WBM use"
+    echo
+    exit $status
+fi
+
+SYMLINK="/etc/lighttpd/tls.conf"
+INITSCRIPT="/etc/init.d/lighttpd"
+ciphers=""
+websrestart="YES"
+
+for ARG in $@; do
+    case "$ARG" in
+        cipher-list=*)
+            ciphers=${ARG#cipher-list=}
+            ;;
+        restart-webserver=*)
+            websrestart=${ARG#restart-webserver=}
+            arg_assert "$websrestart" "YES NO" "Invalid restart-web-server value."
+            ;;
+        *)
+            SetLastError "Unknown or incomplete argument \"$ARG\""
+            exit $INVALID_PARAMETER
+            ;;
+    esac
+done
+
+newlink="tls-$ciphers.conf"
+if [ "$status" -eq "0" -a "$ciphers" -a $(readlink $SYMLINK) != "$newlink" ]; then
+    ln -sf $newlink $SYMLINK
+    status=$?
+    if [ "$status" -eq "0" ]; then
+        if [ "$websrestart" = "YES" ]; then
+            $INITSCRIPT stop &> /dev/null
+            $INITSCRIPT start &> /dev/null
+        fi
+    else
+        SetLastError "Setting symbolic link $SYMLINK failed"
+        status=$EXECUTABLE_ERROR
+    fi
+fi
+
+exit $status

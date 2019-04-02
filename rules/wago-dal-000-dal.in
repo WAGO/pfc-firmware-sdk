@@ -1,0 +1,127 @@
+## SECTION=wago_specific_dal
+
+config DAL
+    bool
+    default n
+    select GLIB
+    select HOST_GLIB
+    select LIBFFI
+    select HOST_LIBFFI
+    select CPPUTEST
+    select HOST_CPPUTEST
+    select LIBLIBLOADER
+    select HOSTLIBLOADER
+    select LIBUIO
+     prompt "DAL - Device Abstraction Layer"
+     help
+		Build the libdal.a library.
+
+config CANOPEN
+	bool
+    default n
+	prompt "CANopen Master/Slave/Layer2 Library"
+	select HOST_CT_BUILD
+	select DAL
+	select LIBSOCKETCAN
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select TYPELABEL
+    select PROGEXECD
+	help
+	  Build a CANopen master device,CANopen slave device and CANLayer2 device
+
+if PLC_CODESYS
+config CANOPENWIDE
+	bool
+    default n
+	prompt "CANopen WIDE Library "
+	select CANOPEN
+	select PLCLINUXRT
+ 	help
+	  Build a CAN Master and Slave WAGO I/O Extension Library for using with CoDeSys Runtime System
+endif
+
+config LIBMBS
+	bool
+    default n
+	prompt "Modbus Slave Library"
+	select DAL
+	select LIBMODBUSCONFIG
+	select LIBMODBUS_TGLX
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select TYPELABEL
+	select WAGO_DBUS
+	select LIBCTCALLHELPER
+	select CONFIG_TOOLS
+	help
+	   Modbus Slave Library
+
+if PLC_CODESYS
+config LIBMBSWIDE
+    bool
+    default n
+    prompt "Modbus Slave WIDE Library"
+    select LIBMBS
+    select PLCLINUXRT
+    help
+        Modbus Slave WAGO I/O Extension Library for using with CoDeSys Runtime System
+endif
+
+config LIBEIPA
+	bool
+    default n
+	prompt "EtherNet/IP Adapter Library"
+	select DAL
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select TYPELABEL
+	help
+	   EtherNet/IP Adapter Library
+
+config ONBOARDIO
+  bool
+    default n
+  prompt "SRC Onboard_IO Library"
+  select HOST_CT_BUILD
+  select GOOGLETEST
+  select LIBOSLINUX
+  select DAL
+  help
+     SRC Onboard IO Library
+
+config EXTBUS
+  bool
+    default n
+  prompt "SRC EXT-Bus Library"
+  select HOST_CT_BUILD
+  select GOOGLETEST
+  select LIBOSLINUX
+  select TYPELABEL
+  select DAL
+  select LIBMODBUS
+  help
+     SRC EXT-Bus Library
+
+
+config DALI
+	bool
+    default n
+	prompt "SRC DALI Library"
+	select DAL
+	help
+	   SRC DALI Library
+
+
+config LIBBACNET
+	bool
+	default n
+	select DAL
+	select EXPAT
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select LIBFFI
+	prompt "BACnet Library"
+	help
+		Build BACnet.
+

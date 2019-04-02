@@ -1,0 +1,101 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------
+# Script-name: config_telecontrol
+#
+# Setup firewall to pass or block communicatoin of telecontrol services.
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------
+
+# Set error on use of undefined shell variables
+set -u
+
+# main program: set some global variables
+service=""
+
+# terminate script if argument list is empty
+if [ $# -eq 0 ]; then
+    exit 0
+fi
+
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter).
+#--------------------------------------------------------------------
+function print_usage()
+{
+    echo
+    echo "* Set configuration of telecontrol service *"
+    echo
+    echo "TODO:"
+    echo "Usage: config_telecontrol [-x/--no-dnsmasq-restart]"
+    echo "                          [ \"dns-state\"=state-value ]"
+    echo "                          [ \"dns-mode\"=mode-value ]"
+    echo "                          [ \"dns-fix-host\"=dns-hosts-value ]"
+    echo
+    echo "-x or --no-dnsmasq-restart prevents from running /etc/init.d/dnsmasq restart"
+    echo "state-value: \"enabled\" | \"disabled\""
+    echo "mode-value: \"proxy\" | \"relay\" default is proxy."
+    echo "dns-hosts-value: \"<ip-addr>:hostname1[_hostnamei...],<ip-addr>:hostname1[_hostnamei...]"
+    echo
+}
+
+
+function enable_service()
+{
+    if [ -n ${service} ]; then
+        echo "Enable service ${service}"
+        # TODO: Get firewall path
+        ./firewall ${service} --set-if on ${itf}
+    fi
+}
+
+
+function disable_service()
+{
+   if [ -n ${service} ]; then
+       echo "Disable service ${service}"
+   fi
+}
+
+
+# evaluate command line
+while [ $# -ne 0 ]; do
+    case "$1" in
+        -s=*)
+            service="${1#-s_up=}"
+            enable_service
+            ;;
+        --service_up=*)
+            service="${1#--service_up=}"
+            enable_service
+            ;;
+        -s_down=*)
+            service="${1#-s_down=}"
+            disable_service
+            ;;
+        --service_down=*)
+            service="${1#--service_down=}"
+            disable_service
+            ;;
+        -h)
+            print_usage
+            ;;
+        --help)
+            print_usage
+            ;;
+        *)
+            break
+            ;;
+    esac
+    shift 1
+done
+
+# TODO:
+# - Notify firewall to activate settings for the given telecontrol service.

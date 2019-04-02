@@ -1,0 +1,187 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: format_medium
+#
+# FAT format of a device
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+function GetPureDevicename
+{
+  deviceName=$1
+
+  pureDeviceName=$(/etc/config-tools/get_device_data pure-device-name $deviceName)
+  echo "$pureDeviceName"
+}
+
+
+function UnmountDevice
+#
+# Unmount all partitions of a specified device
+#
+{
+  local deviceName=$1
+  local partitionIndex=1
+
+  deviceName=`GetPureDevicename $deviceName`
+  partition=`/etc/config-tools/get_filesystem_data partition-by-index $partitionIndex`
+
+  while [ -n "$partition" ]; do
+
+    echo "$partition" | egrep "$deviceName" > /dev/null 2> /dev/null
+    if [ "$SUCCESS" = "$?" ]; then
+        echo remove > /sys/$(udevadm info --query=path --name=${partition})/uevent
+    fi
+    partitionIndex=$((partitionIndex + 1)) 
+    partition=`/etc/config-tools/get_filesystem_data partition-by-index $partitionIndex`
+  done
+}
+
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* format of device *"
+  echo
+  echo "Usage: format_medium < device=device-value volume-name=volume-name-value fs-type=fs-type >"
+  echo
+  echo "device-value: something like /dev/hda, /dev/hdb, ... path is obsolete"
+  echo "volume-name-value: maximum 11 characters"
+  echo "fs-type: filesystem type (ext4, fat)"
+  echo
+  exit $SUCCESS
+fi
+
+device=`GetParameterValue device $*`
+volumeName=`GetParameterValue volume-name $*`
+fsType=`GetParameterValue fs-type $*`
+#echo "device:${device} volumeName:${volumeName}" #> /etc/config-tools/output.txt
+
+if [ -z "$device" ] || [ -z "$volumeName" ]; then
+  status=$MISSING_PARAMETER 
+  SetLastError "Missing parameter for FAT format"
+  exit $status
+fi
+
+# if fs-type not set, then set default to "fat" for legacy reason
+[ -z "$fsType" ] && fsType="fat"
+
+# check if volume name is valid - any ascii characters except spaces, min 1, max 11 character
+echo $volumeName | grep "^[^ ]\{1,11\}$" > /dev/null 2> /dev/null
+if [ "$?" != "$SUCCESS" ]; then
+  status=$INVALID_PARAMETER
+  SetLastError "Invalid value for volume name"
+  exit $status
+fi
+
+# check if filesystem type is valid
+if [ "$fsType" != "ext4" ] && [ "$fsType" != "fat" ];then
+  status=$INVALID_PARAMETER
+  SetLastError "Invalid value for filesystem type"
+  exit $status
+fi
+
+# check syntax of device name and strip it from path and partition number if necessary
+pureDeviceName=`GetPureDevicename $device`
+#echo "pureDeviceName:${pureDeviceName}"
+
+if [ -z "$pureDeviceName" ]; then
+  status=$INVALID_PARAMETER
+  SetLastError "Invalid value for device"
+else
+
+  #check if device is existing
+  cat /proc/partitions | grep $pureDeviceName > /dev/null 2> /dev/null
+  if [ $? != "$SUCCESS" ]; then
+    status=$INVALID_PARAMETER
+    SetLastError "Device is not existing"
+    #echo "device not existing"
+  else
+
+    # add path to device name
+    deviceName="/dev/${pureDeviceName}"
+    #echo "deviceName:${deviceName}"
+
+    # prevent udev from remounting the device...
+    udevadm control --env __SD_AUTOMOUNT="0"
+    trap "udevadm control --env __SD_AUTOMOUNT=1;exit" INT TERM EXIT
+
+    # ... and unmount it
+    UnmountDevice $deviceName
+
+    # partition device new - one partition over the whole storage
+    echo ",,b,," | flock "$deviceName" sfdisk -f "$deviceName" > /dev/null 2> /dev/null
+    # wait for udev to unblock the device
+    udevadm settle
+
+    if [ "$?" != "$SUCCESS" ]; then
+      status=$EXECUTABLE_ERROR
+      ReportError $status "(sfdisk)"
+      SetLastError "Error while execution"
+    fi
+
+    # format the device with new volume name
+    partitionName=$(DevToPart ${deviceName} 1)
+
+    # check if the kernel has already created the new partition device
+    # before creating the filesystem
+    status=$EXECUTABLE_ERROR
+    for i in $(seq 1 5); do
+        if [[ -e "${partitionName}" ]]; then
+            if [ "$fsType" = "fat" ];then
+              mkfs.msdos -F 32 -n ${volumeName} ${partitionName} > /dev/null 2> /dev/null
+            elif [ "$fsType" = "ext4" ]; then
+              mkfs.ext4 -E "root_owner=0:114" -L ${volumeName} ${partitionName} > /dev/null 2> /dev/null
+            fi
+            status=$?
+            break
+        fi
+        sleep 1
+    done
+
+    if [ "$status" != "$SUCCESS" ]; then
+      status=$EXECUTABLE_ERROR
+      ReportError $status "(mkfs.msdos)"
+      SetLastError "Error while execution"
+    fi
+
+    # now re-enable and trigger auto-mount (if available)
+    udevadm control --env __SD_AUTOMOUNT=1
+    trap - INT TERM EXIT
+
+    # try to remount 10 times
+    attempts=10
+
+    while ! blockdev --rereadpt $deviceName > /dev/null 2> /dev/null; do
+      status=$?
+      sleep 1
+      attempts=$((attempts - 1))
+      if [ $attempts -le 0 ]; then
+        break
+      fi
+    done
+
+    # write buffered filesystem-blocks to disk
+    # FIXME (AGa): needed?
+    sync
+
+  fi
+
+fi
+
+exit $status

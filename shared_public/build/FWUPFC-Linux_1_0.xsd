@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <xs:element name="FirmwareUpdateFile">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="FirmwareDescription"/>
+        <xs:element ref="ArticleList"/>
+        <xs:element ref="GroupList"/>
+      </xs:sequence>
+      <xs:attribute name="StructureVersion" type="xs:string" use="required"/>
+      <xs:attribute name="Revision" type="xs:string" use="required"/>
+      <xs:attribute name="System" type="xs:string" use="required" fixed="PFC-Linux"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FirmwareDescription">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="AssociatedFiles"/>
+      </xs:sequence>
+      <xs:attribute name="Revision" type="xs:string" use="required"/>
+      <xs:attribute name="ReleaseIndex" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="AssociatedFiles">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="File" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="File">
+    <xs:complexType>
+      <xs:attribute name="RefID" type="xs:string" use="required"/>
+      <xs:attribute name="Type" type="xs:string" use="required"/>
+      <xs:attribute name="Name" type="xs:string" use="required"/>
+      <xs:attribute name="TargetPath" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="ArticleList">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Article" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Article">
+    <xs:complexType>
+      <xs:attribute name="OrderNo" type="xs:string" use="required"/>
+      <xs:attribute name="GroupRef" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="GroupList">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Group" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Group">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Upgrade" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="Downgrade" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+      <xs:attribute name="RefID" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Upgrade">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="VersionList" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="VersionList">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="VersionRange" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="VersionRange">
+    <xs:complexType>
+      <xs:attribute name="SoftwareRevision" type="xs:string" use="optional"/>
+      <xs:attribute name="HardwareReleaseIndex" type="xs:string" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Downgrade">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="VersionList" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

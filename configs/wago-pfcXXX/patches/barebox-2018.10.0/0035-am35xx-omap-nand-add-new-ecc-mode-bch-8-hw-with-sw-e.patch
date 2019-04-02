@@ -1,0 +1,453 @@
+From 821d75e5ee2f819996acfac223c4e7fe0110993b Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Mon, 18 Jun 2018 13:50:34 +0200
+Subject: [PATCH 035/144] am35xx: omap: nand: add new ecc mode bch-8 hw with sw
+ error detection
+
+add the specific am3505 ecc bch-8 hw correction which differs
+from am33xx as the error detection is not done in hw and so
+has to be done in software. We ported the code from the kernel.
+
+- fix wrong nand ecclayout for bch-8 hw
+- make use of decode_bch from lib/bch.c which works fine
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/configs/am35xx_pfc200_defconfig    |   2 +-
+ arch/arm/mach-omap/include/mach/gpmc_nand.h |   1 +
+ drivers/bus/omap-gpmc.c                     |   6 +
+ drivers/mtd/nand/Kconfig                    |  14 +++
+ drivers/mtd/nand/nand_omap_gpmc.c           | 182 +++++++++++++++++++++++++---
+ 5 files changed, 189 insertions(+), 16 deletions(-)
+
+diff --git a/arch/arm/configs/am35xx_pfc200_defconfig b/arch/arm/configs/am35xx_pfc200_defconfig
+index 422d022..99c07e5 100644
+--- a/arch/arm/configs/am35xx_pfc200_defconfig
++++ b/arch/arm/configs/am35xx_pfc200_defconfig
+@@ -75,7 +75,6 @@ CONFIG_CMD_I2C=y
+ CONFIG_CMD_LED=y
+ CONFIG_CMD_NANDTEST=y
+ CONFIG_CMD_SPI=y
+-CONFIG_CMD_LED_TRIGGER=y
+ CONFIG_CMD_BAREBOX_UPDATE=y
+ CONFIG_CMD_OF_NODE=y
+ CONFIG_CMD_OF_PROPERTY=y
+@@ -99,6 +98,7 @@ CONFIG_I2C_OMAP=y
+ CONFIG_MTD=y
+ CONFIG_MTD_M25P80=y
+ CONFIG_NAND=y
++CONFIG_NAND_ECC_HW_SW_ERR_DETECTION=y
+ CONFIG_NAND_OMAP_GPMC=y
+ CONFIG_MTD_UBI=y
+ CONFIG_MTD_UBI_FASTMAP=y
+diff --git a/arch/arm/mach-omap/include/mach/gpmc_nand.h b/arch/arm/mach-omap/include/mach/gpmc_nand.h
+index c9730a9..4d896b8 100644
+--- a/arch/arm/mach-omap/include/mach/gpmc_nand.h
++++ b/arch/arm/mach-omap/include/mach/gpmc_nand.h
+@@ -34,6 +34,7 @@ enum gpmc_ecc_mode {
+ 	OMAP_ECC_HAMMING_CODE_HW_ROMCODE,
+ 	OMAP_ECC_BCH8_CODE_HW,
+ 	OMAP_ECC_BCH8_CODE_HW_ROMCODE,
++	OMAP_ECC_BCH8_CODE_HW_DETECTION_SW,
+ };
+ 
+ /** omap nand platform data structure */
+diff --git a/drivers/bus/omap-gpmc.c b/drivers/bus/omap-gpmc.c
+index be9ef92..33ea59a 100644
+--- a/drivers/bus/omap-gpmc.c
++++ b/drivers/bus/omap-gpmc.c
+@@ -449,6 +449,12 @@ static struct dt_eccmode modes[] = {
+ 		.name = "bch8",
+ 		.mode = OMAP_ECC_BCH8_CODE_HW_ROMCODE,
+ 	},
++#ifdef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
++	{
++		.name = "bch8-hw-det-sw",
++		.mode = OMAP_ECC_BCH8_CODE_HW_DETECTION_SW,
++	},
++#endif
+ };
+ 
+ static int gpmc_probe_nand_child(struct device_d *dev,
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index 2b4a478..e6aae12 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -23,6 +23,20 @@ config NAND_ECC_HW
+ 	default y
+ 	prompt "Support hardware ecc"
+ 
++config NAND_BCH_SUPPORT
++	bool
++	default y
++	prompt "Support for omap BCH handling"
++
++if NAND_ECC_HW
++
++config NAND_ECC_HW_SW_ERR_DETECTION
++	bool
++	select BCH
++	prompt "Enable software error detection"
++
++endif
++
+ config NAND_ECC_HW_OOB_FIRST
+ 	bool
+ 	prompt "Support hardware ecc (oob first)"
+diff --git a/drivers/mtd/nand/nand_omap_gpmc.c b/drivers/mtd/nand/nand_omap_gpmc.c
+index d0b1699..994e646 100644
+--- a/drivers/mtd/nand/nand_omap_gpmc.c
++++ b/drivers/mtd/nand/nand_omap_gpmc.c
+@@ -71,6 +71,10 @@
+ #include <mach/gpmc.h>
+ #include <mach/gpmc_nand.h>
+ 
++#ifdef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
++#include <linux/bch.h>
++#endif
++
+ #define GPMC_ECC_CONFIG_ECCENABLE		(1 << 0)
+ #define GPMC_ECC_CONFIG_ECCCS(x)		(((x) & 0x7) << 1)
+ #define GPMC_ECC_CONFIG_ECCTOPSECTOR(x)		(((x) & 0x7) << 4)
+@@ -90,13 +94,23 @@
+ static const uint8_t bch8_vector[] = {0xf3, 0xdb, 0x14, 0x16, 0x8b, 0xd2,
+ 		0xbe, 0xcc, 0xac, 0x6b, 0xff, 0x99, 0x7b};
+ 
++#ifdef CONFIG_NAND_BCH_SUPPORT
++
++#ifdef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
++static uint8_t bch8_polynomial[] = {0xef, 0x51, 0x2e, 0x09, 0xed, 0x93, 0x9a, 0xc2,
++				    0x97, 0x79, 0xe5, 0x24, 0xb5};
++#else
+ int omap_gpmc_decode_bch(int select_4_8, unsigned char *ecc, unsigned int *err_loc);
++#endif
++
++#endif
+ 
+ static const char *ecc_mode_strings[] = {
+ 	"software",
+ 	"hamming_hw_romcode",
+ 	"bch8_hw",
+ 	"bch8_hw_romcode",
++	"bch8_hw_detsw",
+ };
+ 
+ /** internal structure maintained for nand information */
+@@ -233,14 +247,21 @@ static int __omap_calculate_ecc(struct mtd_info *mtd, const uint8_t *dat,
+ {
+ 	struct nand_chip *nand = (struct nand_chip *)(mtd->priv);
+ 	struct gpmc_nand_info *oinfo = (struct gpmc_nand_info *)(nand->priv);
++	unsigned int val1 = 0x0;
++#ifdef CONFIG_NAND_BCH_SUPPORT
+ 	unsigned int reg;
+-	unsigned int val1 = 0x0, val2 = 0x0;
++	unsigned int val2 = 0x0;
+ 	unsigned int val3 = 0x0, val4 = 0x0;
+-	int i;
+ 	int ecc_size = 8;
++#endif
++	int i;
++
++	uint8_t *ecode = ecc_code;
+ 
+ 	switch (oinfo->ecc_mode) {
++#ifdef CONFIG_NAND_BCH_SUPPORT
+ 	case OMAP_ECC_BCH8_CODE_HW:
++	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
+ 	case OMAP_ECC_BCH8_CODE_HW_ROMCODE:
+ 		for (i = 0; i < 4; i++) {
+ 			/*
+@@ -270,6 +291,7 @@ static int __omap_calculate_ecc(struct mtd_info *mtd, const uint8_t *dat,
+ 			*ecc_code++ = (val1 & 0xFF);
+ 		}
+ 		break;
++#endif
+ 	case OMAP_ECC_HAMMING_CODE_HW_ROMCODE:
+ 		/* read ecc result */
+ 		val1 = readl(oinfo->gpmc_base + GPMC_ECC1_RESULT);
+@@ -282,6 +304,20 @@ static int __omap_calculate_ecc(struct mtd_info *mtd, const uint8_t *dat,
+ 		return -EINVAL;
+ 	}
+ 
++	/* reset ptr */
++	ecc_code = ecode;
++
++#if defined(CONFIG_NAND_BCH_SUPPORT) && defined(CONFIG_NAND_ECC_HW_SW_ERR_DETECTION)
++	switch (oinfo->ecc_mode) {
++	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
++		for (i = 0; i < nand->ecc.total; i++)
++			*(ecc_code + i) = *(ecc_code + i) ^ bch8_polynomial[i];
++		break;
++	default:
++		break;
++	}
++#endif
++
+ 	return 0;
+ }
+ 
+@@ -291,6 +327,50 @@ static int omap_calculate_ecc(struct mtd_info *mtd, const uint8_t *dat,
+ 	return __omap_calculate_ecc(mtd, dat, ecc_code, 0);
+ }
+ 
++#ifdef CONFIG_NAND_BCH_SUPPORT
++#ifdef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
++static int omap_correct_bch_sw(struct mtd_info *mtd, uint8_t *data,
++			     uint8_t *read_ecc, uint8_t *calc_ecc)
++{
++	struct nand_chip *nand = (struct nand_chip *)(mtd->priv);
++
++	unsigned int errloc[8];
++	int i, count;
++
++#ifdef DEBUG
++        pr_info("%s: >>>> calc_ecc\n", __func__);
++	for (i = 0; i < nand->ecc.bytes; i++)
++		pr_info(" %x", calc_ecc[i]);
++	pr_info(" <<<\n");
++	pr_info("%s: >>>> read_ecc\n", __func__);
++	for (i = 0; i < nand->ecc.bytes; i++)
++		pr_info(" %x", read_ecc[i]);
++	pr_info(" <<<\n");
++#endif
++
++	count = decode_bch((struct bch_control*) nand->ecc.priv, NULL, nand->ecc.size, read_ecc , calc_ecc,
++			   NULL, errloc);
++
++	pr_debug("%s: count %d, ecc.size %d, ecc.bytes %d\n",
++		__func__, count, nand->ecc.size, nand->ecc.bytes);
++
++	if (count > 0) {
++		/* correct errors */
++		for (i = 0; i < count; i++) {
++			/* correct data only, not ecc bytes */
++			if (errloc[i] < (8 * 512))
++				data[errloc[i]/8] ^= 1 << (errloc[i] & 7);
++			pr_info("corrected bitflip %u\n", errloc[i]);
++		}
++	} else if (count < 0) {
++		pr_info("ecc unrecoverable error\n");
++	}
++
++	return count;
++}
++
++#else
++
+ static int omap_correct_bch(struct mtd_info *mtd, uint8_t *dat,
+ 			     uint8_t *read_ecc, uint8_t *calc_ecc)
+ {
+@@ -360,6 +440,8 @@ static int omap_correct_bch(struct mtd_info *mtd, uint8_t *dat,
+ 
+ 	return bitflip_count;
+ }
++#endif	/* CONFIG_NAND_ECC_HW_SW_ERR_DETECTION */
++#endif	/* CONFIG_NAND_BCH_SUPPORT */
+ 
+ static int omap_correct_hamming(struct mtd_info *mtd, uint8_t *dat,
+ 			     uint8_t *read_ecc, uint8_t *calc_ecc)
+@@ -430,6 +512,8 @@ static int omap_correct_data(struct mtd_info *mtd, uint8_t *dat,
+ 	switch (oinfo->ecc_mode) {
+ 	case OMAP_ECC_HAMMING_CODE_HW_ROMCODE:
+ 		return omap_correct_hamming(mtd, dat, read_ecc, calc_ecc);
++#ifdef CONFIG_NAND_BCH_SUPPORT
++#ifndef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
+ 	case OMAP_ECC_BCH8_CODE_HW:
+ 	case OMAP_ECC_BCH8_CODE_HW_ROMCODE:
+ 		/*
+@@ -439,6 +523,11 @@ static int omap_correct_data(struct mtd_info *mtd, uint8_t *dat,
+ 		 */
+ 		__omap_calculate_ecc(mtd, dat, calc_ecc, 0);
+ 		return omap_correct_bch(mtd, dat, read_ecc, calc_ecc);
++#else
++	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
++		return omap_correct_bch_sw(mtd, dat, read_ecc, calc_ecc);
++#endif
++#endif
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -457,7 +546,9 @@ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
+ 	int cs = 0;
+ 
+ 	switch (oinfo->ecc_mode) {
++#ifdef CONFIG_NAND_BCH_SUPPORT
+ 	case OMAP_ECC_BCH8_CODE_HW:
++	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
+ 	case OMAP_ECC_BCH8_CODE_HW_ROMCODE:
+ 		if (mode == NAND_ECC_READ) {
+ 			eccsize1 = 0x1A; eccsize0 = 0x18;
+@@ -469,9 +560,11 @@ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
+ 			bch_wrapmode = 0x06;
+ 		}
+ 		break;
++#endif
+ 	case OMAP_ECC_HAMMING_CODE_HW_ROMCODE:
+ 		eccsize1 = ((ecc_size >> 1) - 1) << 22;
+ 		break;
++	default:
+ 	case OMAP_ECC_SOFT:
+ 		return;
+ 	}
+@@ -491,7 +584,9 @@ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
+ 			GPMC_ECC_SIZE_CONFIG_ECCSIZE0(0xff);
+ 		ecc_conf_val = dev_width | GPMC_ECC_CONFIG_ECCCS(cs) |
+ 			GPMC_ECC_CONFIG_ECCENABLE;
+-	} else {
++	}
++#ifdef CONFIG_NAND_BCH_SUPPORT
++	else {
+ 		writel(GPMC_ECC_CONTROL_ECCPOINTER(1),
+ 				oinfo->gpmc_base + GPMC_ECC_CONTROL);
+ 
+@@ -506,6 +601,7 @@ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
+ 				GPMC_ECC_CONFIG_ECCCS(cs) |
+ 				GPMC_ECC_CONFIG_ECCENABLE);
+ 	}
++#endif
+ 
+ 	writel(ecc_size_conf_val, oinfo->gpmc_base + GPMC_ECC_SIZE_CONFIG);
+ 	writel(ecc_conf_val, oinfo->gpmc_base + GPMC_ECC_CONFIG);
+@@ -513,6 +609,7 @@ static void omap_enable_hwecc(struct mtd_info *mtd, int mode)
+ 			oinfo->gpmc_base + GPMC_ECC_CONTROL);
+ }
+ 
++#ifndef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
+ static int omap_gpmc_read_buf_manual(struct mtd_info *mtd, struct nand_chip *chip,
+ 		void *buf, int bytes, int result_reg)
+ {
+@@ -529,6 +626,7 @@ static int omap_gpmc_read_buf_manual(struct mtd_info *mtd, struct nand_chip *chi
+ 
+ 	return bytes;
+ }
++#endif
+ 
+ /**
+  * omap_read_buf_pref - read data from NAND controller into buffer
+@@ -625,6 +723,9 @@ static void omap_write_buf_pref(struct mtd_info *mtd,
+ 	gpmc_prefetch_reset(info->gpmc_cs);
+ }
+ 
++#ifdef CONFIG_NAND_BCH_SUPPORT
++
++#ifndef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
+ /*
+  * read a page with the ecc layout used by the OMAP4 romcode. The
+  * romcode expects an unusual ecc layout (f = free, e = ecc):
+@@ -708,6 +809,8 @@ static int omap_gpmc_read_page_bch_rom_mode(struct mtd_info *mtd,
+ 
+ 	return max_bitflips;
+ }
++#endif	/* CONFIG_NAND_ECC_HW_SW_ERR_DETECTION */
++#endif	/* CONFIG_NAND_BCH_SUPPORT */
+ 
+ static int omap_gpmc_eccmode(struct gpmc_nand_info *oinfo,
+ 		enum gpmc_ecc_mode mode)
+@@ -715,7 +818,7 @@ static int omap_gpmc_eccmode(struct gpmc_nand_info *oinfo,
+ 	struct mtd_info *minfo = &oinfo->minfo;
+ 	struct nand_chip *nand = &oinfo->nand;
+ 	int offset;
+-	int i, j;
++	int i;
+ 
+ 	if (nand->options & NAND_BUSWIDTH_16)
+ 		nand->badblock_pattern = &bb_descrip_flashbased;
+@@ -758,27 +861,72 @@ static int omap_gpmc_eccmode(struct gpmc_nand_info *oinfo,
+ 		omap_oobinfo.oobfree->length = minfo->oobsize -
+ 					offset - omap_oobinfo.eccbytes;
+ 		break;
++#ifdef CONFIG_NAND_BCH_SUPPORT
++#ifdef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
++	case OMAP_ECC_BCH8_CODE_HW_DETECTION_SW:
++		/* Init post-processing engine */
++		nand->ecc.priv = init_bch(13, BCH8_MAX_ERROR, 0); /* use default primitive
++								     polynomial (0x201b, m=13) */
++		oinfo->nand.ecc.bytes    = 13;
++		oinfo->nand.ecc.size     = 512;
++		oinfo->nand.ecc.strength = BCH8_MAX_ERROR;
++
++		oinfo->nand.ecc.steps = minfo->writesize / oinfo->nand.ecc.size;
++		oinfo->nand.ecc.total = oinfo->nand.ecc.steps * oinfo->nand.ecc.bytes;
++		omap_oobinfo.eccbytes = oinfo->nand.ecc.total;
++
++		omap_oobinfo.oobfree->offset = offset; /* =1 */
++		omap_oobinfo.oobfree->length = minfo->oobsize -
++					offset - omap_oobinfo.eccbytes;
++
++#define BADBLOCK_MARKER_LENGTH    2
++		{
++			unsigned oob_index = BADBLOCK_MARKER_LENGTH;
++			for (i = 0; i < omap_oobinfo.eccbytes; i++, oob_index++) {
++				omap_oobinfo.eccpos[i] = oob_index;
++				if (((i + 1) % oinfo->nand.ecc.bytes) == 0)
++					oob_index++;
++			}
++		}
++
++		break;
++#endif
+ 	case OMAP_ECC_BCH8_CODE_HW:
+ 		oinfo->nand.ecc.bytes    = 13;
+ 		oinfo->nand.ecc.size     = 512;
+ 		oinfo->nand.ecc.strength = BCH8_MAX_ERROR;
+-		omap_oobinfo.oobfree->offset = offset;
++
++		oinfo->nand.ecc.steps = minfo->writesize / oinfo->nand.ecc.size;
++		oinfo->nand.ecc.total = oinfo->nand.ecc.steps * oinfo->nand.ecc.bytes;
++		omap_oobinfo.eccbytes = oinfo->nand.ecc.total;
++
++		omap_oobinfo.oobfree->offset = offset; /* =1 */
+ 		omap_oobinfo.oobfree->length = minfo->oobsize -
+ 					offset - omap_oobinfo.eccbytes;
+-		offset = minfo->oobsize - oinfo->nand.ecc.bytes;
+-		for (i = 0; i < oinfo->nand.ecc.bytes; i++)
++
++		offset = minfo->oobsize - oinfo->nand.ecc.total;
++
++		for (i = 0; i < omap_oobinfo.eccbytes; i++) {
+ 			omap_oobinfo.eccpos[i] = i + offset;
++		}
++
+ 		break;
++#ifndef CONFIG_NAND_ECC_HW_SW_ERR_DETECTION
+ 	case OMAP_ECC_BCH8_CODE_HW_ROMCODE:
+-		oinfo->nand.ecc.bytes    = 13 + 1;
+-		oinfo->nand.ecc.size     = 512;
+-		oinfo->nand.ecc.strength = BCH8_MAX_ERROR;
+-		nand->ecc.read_page = omap_gpmc_read_page_bch_rom_mode;
+-		omap_oobinfo.oobfree->length = 0;
+-		j = 0;
+-		for (i = 2; i < 58; i++)
+-			omap_oobinfo.eccpos[j++] = i;
++		{
++			int j;
++			oinfo->nand.ecc.bytes    = 13 + 1;
++			oinfo->nand.ecc.size     = 512;
++			oinfo->nand.ecc.strength = BCH8_MAX_ERROR;
++			nand->ecc.read_page = omap_gpmc_read_page_bch_rom_mode;
++			omap_oobinfo.oobfree->length = 0;
++			j = 0;
++			for (i = 2; i < 58; i++)
++				omap_oobinfo.eccpos[j++] = i;
++		}
+ 		break;
++#endif
++#endif
+ 	case OMAP_ECC_SOFT:
+ 		nand->ecc.layout = NULL;
+ 		nand->ecc.mode = NAND_ECC_SOFT;
+@@ -952,7 +1100,11 @@ static int gpmc_nand_probe(struct device_d *pdev)
+ 	mdelay(1);
+ 
+ 	/* first scan to find the device and get the page size */
++#ifdef CONFIG_NAND_USE_CUSTOM_IDS
++	if (nand_scan_ident(minfo, 1, custom_nand_ids)) {
++#else
+ 	if (nand_scan_ident(minfo, 1, NULL)) {
++#endif
+ 		err = -ENXIO;
+ 		goto out_release_mem;
+ 	}
+-- 
+2.7.4
+

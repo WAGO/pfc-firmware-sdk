@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# config_usb_gadget
+#
+
+# this script configured the usb peripheral interface
+# to gadget usb
+
+# module gadget name
+MODULE_GADGET_NAME="g_serial"
+
+# get usb mode from sys-file
+DR_MODE_FILE="dr_mode"
+DR_MODE_FILE_LOCATION="/sys/firmware/devicetree"
+
+# create list of usb dr_mode files
+found=0
+
+# search by command find for the dr_mode configuration files in sys file
+tmp_dev=$(find ${DR_MODE_FILE_LOCATION} -iname ${DR_MODE_FILE})
+
+# now interate the different dr_mode files
+# and look for peripheral mode
+for found_dr_mode in ${tmp_dev[*]}
+do
+        if [ ! -z "${tmp_dev}" ]; then
+                if [ "$(cat ${found_dr_mode})" == "peripheral" ]; then
+                        found=1
+                        break
+                fi
+        fi
+done
+
+if [ ${found} -eq 0 ]; then
+	echo "No peripheral usb found"
+        exit 1
+else
+        echo "Peripheral usb found --> Modprobe USB gadget"
+fi
+
+case $1 in
+
+  start)
+	modprobe ${MODULE_GADGET_NAME}
+  ;;
+  stop)
+	modprobe -r ${MODULE_GADGET_NAME}
+  ;;
+
+esac

@@ -1,0 +1,40 @@
+
+#   Auto-generated /etc/network/interfaces
+#   Don't edit manually!
+#
+
+# dsa_mode=0
+
+auto lo eth0 ethX1 ethX2 br0 br1
+
+
+iface lo inet loopback
+
+
+iface eth0 inet manual 
+ pre-up    sudo /sbin/ip link set dev eth0 up 
+ post-down sudo /sbin/ip link set dev eth0 down || true
+ up sudo /sbin/ip link set dev eth0 promisc on
+
+iface ethX1 inet manual 
+ pre-up    sudo /sbin/ip link set dev ethX1 up 
+ post-down sudo /sbin/ip link set dev ethX1 down || true
+ pre-up sudo /usr/sbin/ethtool -s ethX1 autoneg on
+
+iface ethX2 inet manual 
+ pre-up    sudo /sbin/ip link set dev ethX2 up 
+ post-down sudo /sbin/ip link set dev ethX2 down || true
+ pre-up sudo /usr/sbin/ethtool -s ethX2 autoneg on
+
+iface br0 inet manual 
+ pre-up    sudo /sbin/ip link set dev br0 up 
+ post-down sudo /sbin/ip link set dev br0 down || true
+ pre-up    sudo /usr/sbin/brctl addif br0 eth0
+ post-down sudo /usr/sbin/brctl delif br0 eth0 || true
+ up sudo /sbin/ip address add 192.168.1.87/24 dev br0
+ #up /sbin/udhcpc -i br0 -h `/bin/hostname` -V `/etc/config-tools/get_typelabel_value ORDER` > /dev/null 2> /dev/null &
+ down /usr/bin/killall udhcpc || true
+ down sudo /sbin/ip addr flush dev br0
+
+iface br1 inet manual 
+

@@ -1,0 +1,237 @@
+From 4725644586ab8a8fd408617666ecab827a2b2c8a Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Thu, 13 Apr 2017 05:40:44 +0000
+Subject: [PATCH 044/261] USV: switch of the pmic LS2 (USB)
+
+---
+ arch/arm/boot/dts/wago-pfc200v3.dtsi |  5 +--
+ arch/arm/mach-omap2/wusv.c           | 75 +++++++++++++++++++++++++-----------
+ drivers/mfd/tps65218.c               | 31 ++++++++++++++-
+ include/linux/mfd/tps65218.h         |  1 +
+ 4 files changed, 85 insertions(+), 27 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index f73bad7..8d59ca1 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -21,9 +21,8 @@
+ 		usv_irq =  <&gpio3 18 GPIO_ACTIVE_LOW>;
+ 		switch-reset = <&gpio3 10 GPIO_ACTIVE_LOW>;
+ 		kbus-reset =  <&gpio1 25 GPIO_ACTIVE_HIGH>;
+-/*		USB-off = ; */
+-/*		led-off = ; */	
+-
++		TPS65218-LS2 = "LS2_off"; /* switch USB off */
++		led-off;
+ 	};
+ };
+ 
+diff --git a/arch/arm/mach-omap2/wusv.c b/arch/arm/mach-omap2/wusv.c
+index 5788f31..379c614 100644
+--- a/arch/arm/mach-omap2/wusv.c
++++ b/arch/arm/mach-omap2/wusv.c
+@@ -10,7 +10,6 @@
+  * published by the Free Software Foundation.
+  */
+ #define DEBUG
+-
+ #include <linux/irq.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+@@ -25,7 +24,7 @@
+ #include <linux/fs.h>
+ #include <linux/interrupt.h>
+ #include <linux/mfd/tps65218.h>
+-
++#include <linux/leds.h>
+ #include <asm/mach-types.h>
+ 
+ #include <linux/delay.h>
+@@ -52,6 +51,11 @@ struct gpio_set {
+ 	int gpio_flag;	
+ };
+ 
++struct name_set {
++	const char *name;
++	bool set;
++};
++
+ struct wusv_settings {
+ 	bool 		wusv_init_sysfs;
+ 	int		gpio_irq;
+@@ -59,13 +63,17 @@ struct wusv_settings {
+ 	const char 	*test_usv;
+ 	struct gpio_set	switch_reset;
+ 	struct gpio_set	kbus_reset;
+-	struct gpio_set	led_reset;
+-	struct gpio_set pmic_LS2;
++	bool   led_off;
++	struct name_set pmic_LS1;
++	struct name_set pmic_LS2;
++	struct name_set pmic_LS3;
+ };
+ 
+ static struct wusv_settings wusvset = { 0,};
+ static dev_t wusv_dev;
+ 
++int pca955x_led_all_off(void);
++
+ #ifdef CONFIG_OF
+ static struct of_device_id wusv_dt_ids[] = {
+ 	{ .compatible = "wago,usvinit" },
+@@ -78,9 +86,9 @@ void usv_active( unsigned long data )
+ {
+   	pr_debug( "%s\n", (char *)data );
+ 	// begin to shutdown IP's
+-	if( gpio_is_valid(wusvset.led_reset.gpio_no)) {
++	if( wusvset.led_off) {
+ 		pr_debug("led_reset\n");
+-		gpio_set_value(wusvset.led_reset.gpio_no, wusvset.led_reset.gpio_flag);	
++//		gpio_set_value(wusvset.led_reset.gpio_no, wusvset.led_reset.gpio_flag);	
+ 	}
+ 
+         if( gpio_is_valid(wusvset.switch_reset.gpio_no)) {
+@@ -93,7 +101,21 @@ void usv_active( unsigned long data )
+                 gpio_set_value(wusvset.kbus_reset.gpio_no, wusvset.kbus_reset.gpio_flag);    
+         }	
+ 
+-	
++	if (wusvset.pmic_LS1.set) {	
++		pr_debug("LS1 off\n");
++		tps65218_reg_pwr_down(wusvset.pmic_LS1.name);
++	}
++
++	if (wusvset.pmic_LS2.set) {	
++		pr_debug("LS2 off\n");
++		tps65218_reg_pwr_down(wusvset.pmic_LS2.name);		
++	}
++
++	if (wusvset.pmic_LS3.set) {	
++		pr_debug("LS3 off\n");
++		tps65218_reg_pwr_down(wusvset.pmic_LS3.name);
++	}
++
+ 	
+ 	return;
+ }
+@@ -156,23 +178,25 @@ static int wusv_init_probe_dt(struct platform_device *pdev)
+ 		wusvset.switch_reset.gpio_flag = flags;
+ 	}
+ 
+-	wusvset.led_reset.gpio_no = of_get_named_gpio_flags(np, "led-off", 0, &flags);
+-        if (wusvset.led_reset.gpio_no == -EPROBE_DEFER) {
+-                ret = -EPROBE_DEFER;
+-                goto out1;
+-	} else if (gpio_is_valid(wusvset.led_reset.gpio_no)) {
+-		wusvset.led_reset.gpio_flag = flags;
+-		pr_debug("wusvset.led_reset.gpio_flag = %d ::::::: wusvset.led_reset.gpio_no = %d", wusvset.led_reset.gpio_flag, wusvset.led_reset.gpio_no);
+-	}
++	wusvset.led_off =  of_property_read_bool(np, "led-off");
++ 
++	if(!of_property_read_string(np, "TPS65218-LS1",  &wusvset.pmic_LS1.name)) { 
++		wusvset.pmic_LS1.set = true; // success
++	} else {
++		wusvset.pmic_LS1.set = false;
++	};
++	
++	if(!of_property_read_string(np, "TPS65218-LS2",  &wusvset.pmic_LS2.name)) { 
++		wusvset.pmic_LS2.set = true; // success
++	} else {
++		wusvset.pmic_LS2.set = false;
++	};
+ 
+-	wusvset.pmic_LS2.gpio_no = of_get_named_gpio_flags(np, "USB-off", 0, &flags);
+-        if (wusvset.pmic_LS2.gpio_no == -EPROBE_DEFER) {
+-                ret = -EPROBE_DEFER;
+-                goto out1;
+-	} else if (gpio_is_valid(wusvset.pmic_LS2.gpio_no)) {
+-		wusvset.pmic_LS2.gpio_flag = flags;
+-		pr_debug("wusvset.pmicLS2.gpio_flag = %d ::::::: wusvset.pmic_LS2.gpio_no = %d", wusvset.pmic_LS2.gpio_flag, wusvset.pmic_LS2.gpio_no);
+-	}
++        if(!of_property_read_string(np, "TPS65218-LS3",  &wusvset.pmic_LS3.name)) {
++		wusvset.pmic_LS3.set = true; // success
++	} else {
++		wusvset.pmic_LS3.set = false;
++	};
+ 
+ 
+ out1:
+@@ -272,3 +296,8 @@ static __exit void wusv_exit(void)
+ 
+ omap_postcore_initcall(wusv_init);
+ module_exit(wusv_exit);
++
++MODULE_AUTHOR("WAGO Kontakttechnik");
++MODULE_DESCRIPTION("USV multi-function driver");
++MODULE_LICENSE("GPL v2");
++
+diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+index ba610ad..f426089 100644
+--- a/drivers/mfd/tps65218.c
++++ b/drivers/mfd/tps65218.c
+@@ -33,6 +33,8 @@
+ 
+ #define TPS65218_PASSWORD_REGS_UNLOCK   0x7D
+ 
++static struct tps65218 *tps_dev;
++
+ /**
+  * tps65218_reg_read: Read a single tps65218 register.
+  *
+@@ -125,6 +127,31 @@ int tps65218_clear_bits(struct tps65218 *tps, unsigned int reg,
+ }
+ EXPORT_SYMBOL_GPL(tps65218_clear_bits);
+ 
++int tps65218_reg_pwr_down(const char* name) {
++
++        int ret;
++
++        if (strcmp(name, "LS1_off") == 0) {
++		printk("LS1 switch off");
++                ret = tps65218_clear_bits(tps_dev, TPS65218_REG_ENABLE2,
++                                        TPS65218_ENABLE2_LS1_EN,
++                                        TPS65218_PROTECT_L1);
++	} else if (strcmp(name, "LS2_off") == 0) {
++ 	 	printk("LS2 switch off");
++                ret = tps65218_clear_bits(tps_dev, TPS65218_REG_ENABLE2,
++                                        TPS65218_ENABLE2_LS2_EN,
++                                        TPS65218_PROTECT_L1);
++        } else if (strcmp(name, "LS3_off") == 0) {
++		printk("LS3 switch off");
++                ret = tps65218_clear_bits(tps_dev, TPS65218_REG_ENABLE2,
++                                        TPS65218_ENABLE2_LS3_EN,
++                                        TPS65218_PROTECT_L1);
++	}
++	return ret;
++}
++EXPORT_SYMBOL(tps65218_reg_pwr_down);
++
++
+ static const struct regmap_range tps65218_yes_ranges[] = {
+ 	regmap_reg_range(TPS65218_REG_INT1, TPS65218_REG_INT2),
+ 	regmap_reg_range(TPS65218_REG_STATUS, TPS65218_REG_STATUS),
+@@ -263,7 +290,9 @@ static int tps65218_probe(struct i2c_client *client,
+ 				   &client->dev);
+ 	if (ret < 0)
+ 		goto err_irq;
+-
++	
++	 tps_dev = tps;
++	
+ 	return 0;
+ 
+ err_irq:
+diff --git a/include/linux/mfd/tps65218.h b/include/linux/mfd/tps65218.h
+index 2e7afcc..1920afd 100644
+--- a/include/linux/mfd/tps65218.h
++++ b/include/linux/mfd/tps65218.h
+@@ -293,5 +293,6 @@ int tps65218_set_bits(struct tps65218 *tps, unsigned int reg,
+ 		unsigned int mask, unsigned int val, unsigned int level);
+ int tps65218_clear_bits(struct tps65218 *tps, unsigned int reg,
+ 		unsigned int mask, unsigned int level);
++int tps65218_reg_pwr_down(const char* name);
+ 
+ #endif /*  __LINUX_MFD_TPS65218_H */
+-- 
+2.7.4
+

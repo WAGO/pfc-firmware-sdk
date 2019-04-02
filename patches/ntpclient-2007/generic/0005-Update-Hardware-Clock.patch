@@ -1,0 +1,111 @@
+Index: ntpclient-2007/ntpclient.c
+===================================================================
+--- ntpclient-2007.orig/ntpclient.c	2013-07-10 10:13:02.000000000 +0000
++++ ntpclient-2007/ntpclient.c	2013-07-10 11:21:19.000000000 +0000
+@@ -129,6 +129,7 @@
+ 	int cycle_time;
+ 	int goodness;
+ 	int cross_check;
++	char * call_after_clock_set; /* call program or script after setting the clock */
+ 	char serv_addr[4];
+ };
+ 
+@@ -187,6 +188,7 @@
+ 	if (debug) {
+ 		printf("set time to %lu.%.9lu\n", tv_set.tv_sec, tv_set.tv_nsec);
+ 	}
++
+ #else
+ 	/* Traditional Linux way to set the system clock
+ 	 */
+@@ -205,6 +207,15 @@
+ #endif
+ }
+ 
++static void post_set_call(char * call_string)
++{
++  if (debug) {
++    printf("Call externernal Program:\n%s\n", call_string);
++  }
++  system(call_string);
++}
++
++
+ static void ntpc_gettime(u32 *time_coarse, u32 *time_fine)
+ {
+ #ifndef USE_OBSOLETE_GETTIMEOFDAY
+@@ -404,6 +415,10 @@
+ 	if (ntpc->set_clock) { /* you'd better be root, or ntpclient will crash! */
+ 		set_time(&xmttime);
+ 	}
++	if(ntpc->call_after_clock_set != NULL)
++	{
++	  post_set_call(ntpc->call_after_clock_set);
++	}
+ 
+ 	/* Not the ideal order for printing, but we want to be sure
+ 	 * to do all the time-sensitive thinking (and time setting)
+@@ -591,7 +606,7 @@
+ #ifdef ENABLE_REPLAY
+ 	" [-r]"
+ #endif
+-	" [-s] [-t]\n",
++	" [-s] [-t] [-C script]\n",
+ 	argv0);
+ }
+ 
+@@ -610,9 +625,10 @@
+ 	ntpc.cycle_time=600;          /* seconds */
+ 	ntpc.goodness=0;
+ 	ntpc.cross_check=1;
++	ntpc.call_after_clock_set = NULL;
+ 
+ 	for (;;) {
+-		c = getopt( argc, argv, "c:" DEBUG_OPTION "f:g:h:i:lp:q:" REPLAY_OPTION "st");
++		c = getopt( argc, argv, "c:" DEBUG_OPTION "f:g:h:i:lp:q:" REPLAY_OPTION "stC:");
+ 		if (c == EOF) break;
+ 		switch (c) {
+ 			case 'c':
+@@ -660,6 +676,10 @@
+ 			case 't':
+ 				(ntpc.cross_check)=0;
+ 				break;
++				
++			case 'C':
++				(ntpc.call_after_clock_set)=strdup(optarg);
++				break;
+ 
+ 			default:
+ 				usage(argv[0]);
+@@ -682,19 +702,20 @@
+ 
+ 	if (debug) {
+ 		printf("Configuration:\n"
+-		"  -c probe_count %d\n"
+-		"  -d (debug)     %d\n"
+-		"  -g goodness    %d\n"
+-		"  -h hostname    %s\n"
+-		"  -i interval    %d\n"
+-		"  -l live        %d\n"
+-		"  -p local_port  %d\n"
+-		"  -q min_delay   %f\n"
+-		"  -s set_clock   %d\n"
+-		"  -x cross_check %d\n",
++		"  -c probe_count          %d\n"
++		"  -d (debug)              %d\n"
++		"  -g goodness             %d\n"
++		"  -h hostname             %s\n"
++		"  -i interval             %d\n"
++		"  -l live                 %d\n"
++		"  -p local_port           %d\n"
++		"  -q min_delay            %f\n"
++		"  -s set_clock            %d\n"
++		"  -x cross_check          %d\n"
++		"  -C call_after_clock_set %s\n",
+ 		ntpc.probe_count, debug, ntpc.goodness,
+ 		hostname, ntpc.cycle_time, ntpc.live, udp_local_port, min_delay,
+-		ntpc.set_clock, ntpc.cross_check );
++		ntpc.set_clock, ntpc.cross_check, ntpc.call_after_clock_set);
+ 	}
+ 
+ 	/* Startup sequence */

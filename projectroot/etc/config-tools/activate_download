@@ -1,0 +1,130 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: activate_download
+#
+# Activate a previously loaded download-file
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Activate a previously loaded download-file *"
+  echo
+  echo "Usage: activate_download < download-type=download-type-value > [ action=action-value ]"
+  echo
+  echo "download-type-value: \"kbus\" \"update-script\""
+  echo "action-value: \"delete\" - only delete upload file | \"install\" - install and delete (default)"
+  echo "              \"force\" - force install and delete"
+  echo
+  exit $status
+fi
+
+# get and check input-parameter
+downloadType=`GetParameterValue download-type $*`
+action=`GetParameterValue action $*`
+#echo "downloadType:"$downloadType
+
+if [ -z "$downloadType" ]; then
+  ReportError $MISSING_PARAMETER "(download-type)"
+  exit $MISSING_PARAMETER
+fi
+
+if [ $downloadType != "update-script" ] && [ $downloadType != "kbus" ]; then
+  ReportError $INVALID_PARAMETER "($downloadType)"
+  exit $INVALID_PARAMETER
+fi
+
+if [ -z "$action" ]; then
+  action="install"
+fi
+
+
+# get path which must contain the download-file
+path=`echo "/var/downloads/"$downloadType"/"`
+#echo "path:"$path
+
+# check if directory is existing
+if [ ! -d $path ]; then
+  status=$INTERNAL_ERROR
+  ReportError $status "(path $path does not exist)"
+  SetLastError "Path $path does not exist"
+else
+
+  # get first file in directory (dir should contain only one file anyway)
+  filename=`ls $path`
+
+  # check if there is a file in directory at all
+  if [ -z $filename ]; then
+    status=$INTERNAL_ERROR
+    ReportError $status "(path $path is empty)"
+    SetLastError "No Download-File found"
+  else
+
+    # process what is necessairy to activate the download-file according to its type
+    case "$downloadType" in
+
+      kbus )              #echo "activate" $path$filename "for kbus"
+                          # start script for loading kbus-hexfile
+                          sudo /usr/sbin/loadkbushex.sh > /dev/null 2> /dev/null
+                          if [ $? != $SUCCESS ]; then
+                            status=$SHELL_ERROR
+                            ReportError $status "(/usr/sbin/loadkbushex.sh)"
+                            SetLastError "Error while execution"
+                          fi
+                          # NOT delete download file
+                          ;;
+
+      update-script )     if [ "install" = $action ]; then
+                            #echo "activate" $path$filename "for update-script"      
+                            sudo /usr/bin/opkg install "$path$filename" > /dev/null 2> /dev/null
+                            
+                            if [ $? != $SUCCESS ]; then
+
+                              status=$SHELL_ERROR
+                              ReportError $status "(usr/bin/opkg -install $path$filename)"
+                              SetLastError "Error while execution"
+                            fi
+                          fi
+		          #force overwrite
+			  if [ "force" = $action ]; then
+                            #echo "force-overwrite" $path$filename "for update-script"
+                            sudo /usr/bin/opkg install -force-overwrite "$path$filename" > /dev/null 2> /dev/null
+
+			    if [ $? != $SUCCESS ]; then
+ 			      status=$SHELL_ERROR
+			      ReportError $status "(usr/bin/opkg -install $path$filename)"
+			      SetLastError "Error while execution"
+		            fi
+		          fi
+                          # delete download-file
+                          rm $path/$filename
+                          if [ $? != $SUCCESS ]; then
+                            status=$SHELL_ERROR
+                            ReportError $status "(rm $path/$filename)"
+                            SetLastError "Error while execution"
+                          fi
+                          ;;
+    esac
+
+  fi
+fi
+
+exit $status

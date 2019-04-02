@@ -1,0 +1,28 @@
+From 32e8197dc648c9ec45b441fd7be1766ef8005e6c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 30 Oct 2018 18:59:13 +0100
+Subject: [PATCH 261/261] ARM: dts: pfc-am3505: setupfw: add proper compatible
+ string
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am3505-pfc200-setupfw.dts | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am3505-pfc200-setupfw.dts b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
+index 121a2ff..9bf927e8 100644
+--- a/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
++++ b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
+@@ -15,6 +15,9 @@
+ #include "am3xxx-pfc-devconf-desc.dtsi"
+ 
+ / {
++
++	compatible = "wago,am3505-pfc-750_820x-0000", "wago,am3505-pfc", "ti,am3517-evm", "ti,am3517", "ti,omap3";
++
+ 	target_info {
+ 		/*
+ 		 * maybe we should change the drivers name
+-- 
+2.7.4
+

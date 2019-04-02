@@ -1,0 +1,534 @@
+--- libmodbus-3.0.5.base/src/modbus-data.c	2016-08-03 14:49:49.921056000 +0200
++++ libmodbus-3.0.5/src/modbus-data.c	2016-08-03 15:29:10.006379853 +0200
+@@ -23,7 +23,6 @@
+ #include "stdint.h"
+ #endif
+ #include <string.h>
+-#include <assert.h>
+ 
+ #include "modbus.h"
+ 
+@@ -63,8 +62,6 @@
+     uint8_t value = 0;
+ 
+     if (nb_bits > 8) {
+-        /* Assert is ignored if NDEBUG is set */
+-        assert(nb_bits < 8);
+         nb_bits = 8;
+     }
+ 
+--- libmodbus-3.0.5.base/src/modbus-rtu.c	2016-08-03 14:49:50.249052000 +0200
++++ libmodbus-3.0.5/src/modbus-rtu.c	2016-08-03 17:01:11.763259260 +0200
+@@ -24,7 +24,6 @@
+ #ifndef _MSC_VER
+ #include <unistd.h>
+ #endif
+-#include <assert.h>
+ 
+ #include "modbus-private.h"
+ 
+@@ -130,17 +129,21 @@
+ /* Builds a RTU request header */
+ static int _modbus_rtu_build_request_basis(modbus_t *ctx, int function,
+                                            int addr, int nb,
+-                                           uint8_t *req)
++                                           uint8_t *req, uint16_t *req_length)
+ {
+-    assert(ctx->slave != -1);
++    if (ctx->slave == MB_SLAVE_ID_INVALID)
++    { //slave ID is not set
++        errno = EMBBADADDR;
++        return -1;
++    }
+     req[0] = ctx->slave;
+     req[1] = function;
+     req[2] = addr >> 8;
+     req[3] = addr & 0x00ff;
+     req[4] = nb >> 8;
+     req[5] = nb & 0x00ff;
+-
+-    return _MODBUS_RTU_PRESET_REQ_LENGTH;
++    *req_length = _MODBUS_RTU_PRESET_REQ_LENGTH;
++    return 0;
+ }
+ 
+ /* Builds a RTU response header */
+--- libmodbus-3.0.5.base/src/modbus-tcp.c	2016-08-03 14:49:50.241052000 +0200
++++ libmodbus-3.0.5/src/modbus-tcp.c	2016-08-03 17:01:33.190989876 +0200
+@@ -99,15 +99,21 @@
+ /* Builds a TCP request header */
+ int _modbus_tcp_build_request_basis(modbus_t *ctx, int function,
+                                     int addr, int nb,
+-                                    uint8_t *req)
++                                    uint8_t *req, uint16_t *req_length)
+ {
++    if (ctx->slave == MB_SLAVE_ID_INVALID)
++    { //slave ID is not set
++        errno = EMBBADADDR;
++        return -1;
++    }
++
+     /* Transaction ID */
+     if (ctx->t_id < UINT16_MAX)
+         ctx->t_id++;
+     else
+         ctx->t_id = 0;
+-    req[0] = ctx->t_id >> 8;
+-    req[1] = ctx->t_id & 0x00ff;
++    req[0] = (uint8_t)(ctx->t_id >> 8);
++    req[1] = (uint8_t)(ctx->t_id & 0x00ff);
+ 
+     /* Protocol Modbus */
+     req[2] = 0;
+@@ -122,8 +128,8 @@
+     req[9] = addr & 0x00ff;
+     req[10] = nb >> 8;
+     req[11] = nb & 0x00ff;
+-
+-    return _MODBUS_TCP_PRESET_REQ_LENGTH;
++    *req_length = _MODBUS_TCP_PRESET_REQ_LENGTH;
++    return 0;
+ }
+ 
+ /* Builds a TCP response header */
+--- libmodbus-3.0.5.base/src/modbus.c	2016-08-03 14:49:50.253052000 +0200
++++ libmodbus-3.0.5/src/modbus.c	2016-08-03 17:00:09.080047294 +0200
+@@ -2035,12 +2035,13 @@
+                           int addr, int nb, uint8_t *dest)
+ {
+     int rc;
+-    int req_length;
+-
++    uint16_t req_length;
+     uint8_t req[_MIN_REQ_LENGTH];
+     uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-    req_length = ctx->backend->build_request_basis(ctx, function, addr, nb, req);
++    rc = ctx->backend->build_request_basis(ctx, function, addr, nb, req, &req_length);
++    if (rc == -1)
++        return -1;
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+@@ -2127,21 +2128,13 @@
+                           uint16_t *dest)
+ {
+     int rc;
+-    int req_length;
++    uint16_t req_length;
+     uint8_t req[_MIN_REQ_LENGTH];
+     uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-    if (nb > MODBUS_MAX_READ_REGISTERS) {
+-        if (ctx->debug) {
+-            fprintf(stderr,
+-                    "ERROR Too many registers requested (%d > %d)\n",
+-                    nb, MODBUS_MAX_READ_REGISTERS);
+-        }
+-        errno = EMBMDATA;
++    rc = ctx->backend->build_request_basis(ctx, function, addr, nb, req, &req_length);
++    if (rc == -1)
+         return -1;
+-    }
+-
+-    req_length = ctx->backend->build_request_basis(ctx, function, addr, nb, req);
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+@@ -2211,8 +2204,9 @@
+ 
+ int modbus_read_input_registers_fc66(modbus_t *ctx, int addr, int nb, uint16_t *dest)
+ {
++    int const function = _FC_READ_INPUT_REGISTERS_XL;
+     int rc;
+-    int req_length;
++    uint16_t req_length;
+     uint8_t req[_MIN_REQ_LENGTH];
+     uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+@@ -2230,7 +2224,9 @@
+         return -1;
+     }
+ 
+-    req_length = ctx->backend->build_request_basis(ctx, _FC_READ_INPUT_REGISTERS_XL, addr, nb, req);
++    rc = ctx->backend->build_request_basis(ctx, function, addr, nb, req, &req_length);
++    if (rc == -1)
++        return -1;
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+@@ -2262,29 +2258,28 @@
+ static int write_single(modbus_t *ctx, int function, int addr, int value)
+ {
+     int rc;
+-    int req_length;
++    uint16_t req_length;
+     uint8_t req[_MIN_REQ_LENGTH];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-    req_length = ctx->backend->build_request_basis(ctx, function, addr, value, req);
++    rc = ctx->backend->build_request_basis(ctx, function, addr, value, req, &req_length);
++    if (rc == -1)
++        return -1;
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if(modbus_is_multicast(ctx)) {
+-      if (ctx->debug) {
+-          printf("don't expect response for multicast query\n");
+-      }
+-      rc = 1;
+-    }
+-    else if (rc > 0) {
+-        /* Used by write_bit and write_register */
+-        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
+-            return -1;
++    if (rc > 0) {
++        if(modbus_is_multicast(ctx)) {
++            /* Don't expect response for multicast query */
++            rc = 1;
++        }
++        else {
++            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rc == -1)
++                return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        }
+     }
+-
+     return rc;
+ }
+ 
+@@ -2304,46 +2299,48 @@
+ /* Writes the combination of and_mask and or_mask into a register of the remote device */
+ int modbus_write_mask_register(modbus_t *ctx, int addr, int and, int or)
+ {
++    int const function = _FC_MASK_WRITE_REGISTER;
+     int rc;
+-    int req_length;
++    uint16_t req_length;
+     uint8_t req[_MIN_REQ_LENGTH+2];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-    req_length = ctx->backend->build_request_basis(ctx, _FC_MASK_WRITE_REGISTER, addr, and, req);
++    rc = ctx->backend->build_request_basis(ctx, function, addr, and, req, &req_length);
++    if (rc == -1)
++        return -1;
+ 
+     req[req_length++] = or >> 8;
+     req[req_length++] = or & 0x00ff;
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if(modbus_is_multicast(ctx)) {
+-      if (ctx->debug) {
+-          printf("don't expect response for multicast query\n");
+-      }
+-      rc = 1;
+-    }
+-    else if (rc > 0) {
+-        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
+-            return -1;
++    if (rc > 0) {
++        if(modbus_is_multicast(ctx)) {
++            /* Don't expect response for multicast query */
++            rc = 1;
++        }
++        else {
++            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rc == -1)
++                return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        }
+     }
+-
+     return rc;
+ }
+ 
+ /* Write the bits of the array in the remote device */
+ int modbus_write_bits(modbus_t *ctx, int addr, int nb, const uint8_t *src)
+ {
++    int const function = _FC_WRITE_MULTIPLE_COILS;
+     int rc;
+     int i;
+     int byte_count;
+-    int req_length;
++    uint16_t req_length;
+     int bit_check = 0;
+     int pos = 0;
+-
+     uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     if (nb > MODBUS_MAX_WRITE_BITS) {
+         if (ctx->debug) {
+@@ -2354,10 +2351,11 @@
+         return -1;
+     }
+ 
+-    req_length = ctx->backend->build_request_basis(ctx,
+-                                                   _FC_WRITE_MULTIPLE_COILS,
+-                                                   addr, nb, req);
+-    byte_count = (nb / 8) + ((nb % 8) ? 1 : 0);
++    rc = ctx->backend->build_request_basis(ctx, function, addr, nb, req, &req_length);
++    if (rc == -1)
++        return -1;
++
++    byte_count = (nb + 7) / 8;
+     req[req_length++] = byte_count;
+ 
+     for (i = 0; i < byte_count; i++) {
+@@ -2378,35 +2376,32 @@
+     }
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if(modbus_is_multicast(ctx)) {
+-      if (ctx->debug) {
+-          printf("don't expect response for multicast query\n");
+-      }
+-      rc = nb;
+-    }
+-    else if (rc > 0) {
+-        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
+-            return -1;
++    if (rc > 0) {
++        if(modbus_is_multicast(ctx)) {
++            /* Don't expect response for multicast query */
++            rc = 1;
++        }
++        else {
++            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rc == -1)
++                return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        }
+     }
+-
+-
+     return rc;
+ }
+ 
+ /* Write the values from the array to the registers of the remote device */
+ int modbus_write_registers(modbus_t *ctx, int addr, int nb, const uint16_t *src)
+ {
++    int const function = _FC_WRITE_MULTIPLE_REGISTERS;
+     int rc;
+     int i;
+-    int req_length;
++    uint16_t req_length;
+     int byte_count;
+-
+     uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     if (nb > MODBUS_MAX_WRITE_REGISTERS) {
+         if (ctx->debug) {
+@@ -2418,9 +2413,10 @@
+         return -1;
+     }
+ 
+-    req_length = ctx->backend->build_request_basis(ctx,
+-                                                   _FC_WRITE_MULTIPLE_REGISTERS,
+-                                                   addr, nb, req);
++    rc = ctx->backend->build_request_basis(ctx, function, addr, nb, req, &req_length);
++    if (rc == -1)
++        return -1;
++
+     byte_count = nb * 2;
+     req[req_length++] = byte_count;
+ 
+@@ -2430,22 +2426,19 @@
+     }
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if(modbus_is_multicast(ctx)) {
+-      if (ctx->debug) {
+-          printf("don't expect response for multicast query\n");
+-      }
+-      rc = nb;
+-    }
+-    else if (rc > 0) {
+-        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
+-            return -1;
++    if (rc > 0) {
++        if(modbus_is_multicast(ctx)) {
++            /* Don't expect response for multicast query */
++            rc = 1;
++        }
++        else {
++            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rc == -1)
++                return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        }
+     }
+-
+     return rc;
+ }
+ 
+@@ -2456,8 +2449,9 @@
+                                     int read_addr, int read_nb, uint16_t *dest)
+ 
+ {
++    int const function = _FC_WRITE_AND_READ_REGISTERS;
+     int rc;
+-    int req_length;
++    uint16_t req_length;
+     int i;
+     int byte_count;
+     uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
+@@ -2482,9 +2476,9 @@
+         errno = EMBMDATA;
+         return -1;
+     }
+-    req_length = ctx->backend->build_request_basis(ctx,
+-                                                   _FC_WRITE_AND_READ_REGISTERS,
+-                                                   read_addr, read_nb, req);
++    rc = ctx->backend->build_request_basis(ctx, function, read_addr, read_nb, req, &req_length);
++    if (rc == -1)
++        return -1;
+ 
+     req[req_length++] = write_addr >> 8;
+     req[req_length++] = write_addr & 0x00ff;
+@@ -2529,11 +2523,13 @@
+                        int nb_src, const uint16_t *src,
+                        int nb_dest, uint16_t *dest)
+ {
++    int const function = _FC_DIAGNOSTICS;
+     int rc;
+     int i;
+     int offset;
+-    int req_length;
++    uint16_t req_length;
+     uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     if (nb_src > MODBUS_MAX_DIAGNOSTICS_SRC) {
+         if (ctx->debug) {
+@@ -2551,8 +2547,9 @@
+         return -1;
+     }
+ 
+-    req_length = ctx->backend->build_request_basis(ctx, _FC_DIAGNOSTICS,
+-                                                   subfunction, 0, req);
++    rc = ctx->backend->build_request_basis(ctx, function, subfunction, 0, req, &req_length);
++    if (rc == -1)
++        return -1;
+ 
+     /* HACKISH, count is not used */
+     req_length -= 2;
+@@ -2563,18 +2560,17 @@
+     }
+ 
+     rc = send_msg(ctx, req, req_length);
+-
+-    if(subfunction == _SFC_FORCE_LISTEN_ONLY_MODE) /* no response */
+-        return 0;
+-
+     if (rc > 0) {
+-        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
++        if(subfunction == _SFC_FORCE_LISTEN_ONLY_MODE) /* no response */
++            return 0;
+ 
+         rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rc == -1)
+             return -1;
+ 
+         rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        if (rc == -1)
++            return -1;
+ 
+         offset = ctx->backend->header_length;
+ 
+@@ -2592,12 +2588,11 @@
+    communication). */
+ int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest)
+ {
++    int const function = _FC_REPORT_SLAVE_ID;
+     int rc;
+-    int req_length;
++    uint16_t req_length;
+     uint8_t req[_MIN_REQ_LENGTH];
+-
+-    req_length = ctx->backend->build_request_basis(ctx, _FC_REPORT_SLAVE_ID,
+-                                                   0, 0, req);
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     if (ctx->backend->backend_type != _MODBUS_BACKEND_TYPE_RTU)
+     { //allowed for serial line only
+@@ -2605,6 +2600,10 @@
+         return -1;
+     }
+ 
++    rc = ctx->backend->build_request_basis(ctx, function, 0, 0, req, &req_length);
++    if (rc == -1)
++        return -1;
++
+     /* HACKISH, addr and count are not used */
+     req_length -= 4;
+ 
+@@ -2612,7 +2611,6 @@
+     if (rc > 0) {
+         int i;
+         int offset;
+-        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+         rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+         if (rc == -1)
+@@ -2637,7 +2635,7 @@
+ void _modbus_init_common(modbus_t *ctx)
+ {
+     /* Slave and socket are initialized to -1 */
+-    ctx->slave = -1;
++    ctx->slave = MB_SLAVE_ID_INVALID;
+     ctx->s = -1;
+ 
+     ctx->debug = FALSE;
+--- libmodbus-3.0.5.base/src/modbus-private.h	2016-08-03 14:49:50.253052000 +0200
++++ libmodbus-3.0.5/src/modbus-private.h	2016-08-03 15:57:05.171618816 +0200
+@@ -140,6 +140,7 @@
+     MSG_CONFIRMATION
+ } msg_type_t;
+ 
++#define MB_SLAVE_ID_INVALID     ((int)-1)
+ /* This structure reduces the number of params in functions and so
+  * optimizes the speed of execution (~ 37%). */
+ typedef struct _sft {
+@@ -155,7 +156,7 @@
+     unsigned int max_adu_length;
+     int (*set_slave) (modbus_t *ctx, int slave);
+     int (*build_request_basis) (modbus_t *ctx, int function, int addr,
+-                                int nb, uint8_t *req);
++                                int nb, uint8_t *req, uint16_t *req_length);
+     int (*build_response_basis) (sft_t *sft, uint8_t *rsp);
+     int (*prepare_response_tid) (const uint8_t *req, int *req_length);
+     int (*send_msg_pre) (uint8_t *req, int req_length);
+--- libmodbus-3.0.5.base/configure.ac	2016-08-03 14:49:50.253052000 +0200
++++ libmodbus-3.0.5/configure.ac	2016-08-03 16:50:37.043238771 +0200
+@@ -41,7 +41,7 @@
+ # ABI version
+ # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+ LIBMODBUS_LD_CURRENT=750
+-LIBMODBUS_LD_REVISION=35
++LIBMODBUS_LD_REVISION=36
+ LIBMODBUS_LD_AGE=0
+ LIBMODBUS_LT_VERSION_INFO=$LIBMODBUS_LD_CURRENT:$LIBMODBUS_LD_REVISION:$LIBMODBUS_LD_AGE
+ AC_SUBST(LIBMODBUS_LT_VERSION_INFO)

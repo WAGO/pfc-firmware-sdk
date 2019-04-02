@@ -1,0 +1,13 @@
+## SECTION=wago_specific_tools
+
+config FLASHXLOADER
+	bool
+	default n
+	prompt "flash-xloader"
+	help
+	  This tool is needed to flash the xloader (mlo--nand)
+	  through the linux userspace with a different ecc layout.
+	  The am35xx bootstrapping accesses up to 4 eraseblocks
+	  with 1-bit hw ecc hamming code enabled to load the xloader.
+	  Our software itself (xloader, barebox, linux) uses BCH-8 for NAND access.
+

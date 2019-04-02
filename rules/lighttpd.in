@@ -1,0 +1,282 @@
+## SECTION=networking
+
+#
+# WAGO: -added target LIGHTTPD_HTTPS, LIGHTTPD_HTTPS_GEN_CERT
+#
+#
+
+
+menuconfig LIGHTTPD
+	tristate
+	prompt "lighttpd                      "
+	select LIBC_M
+	select LIBC_DL
+	select LIBC_CRYPT
+	select ZLIB			if LIGHTTPD_ZLIB
+	select BZIP2			if LIGHTTPD_BZ2LIB
+	select BZIP2_LIBBZ2		if LIGHTTPD_BZ2LIB
+	select ATTR			if LIGHTTPD_ATTR
+	select LIBPCRE			if LIGHTTPD_PCRE
+	select FAM			if LIGHTTPD_FAM
+	select FAM_LIBRARY		if LIGHTTPD_FAM
+	select LIBXML2			if LIGHTTPD_WEBDAV_PROPS
+	select SQLITE			if LIGHTTPD_WEBDAV_PROPS
+	select LIBUUID			if LIGHTTPD_WEBDAV_LOCKS
+	select OPENSSL			if LIGHTTPD_OPENSSL
+	select LIBMEMCACHE		if LIGHTTPD_MEMCACHE
+	select LUA			if LIGHTTPD_LUA
+	select LUA_INSTALL_LIBLUA	if LIGHTTPD_LUA
+	select PHP5			if LIGHTTPD_MOD_FASTCGI_PHP && RUNTIME
+	select BUSYBOX_START_STOP_DAEMON			if LIGHTTPD_STARTSCRIPT
+	select BUSYBOX_FEATURE_START_STOP_DAEMON_FANCY		if LIGHTTPD_STARTSCRIPT
+	select BUSYBOX_FEATURE_START_STOP_DAEMON_LONG_OPTIONS	if LIGHTTPD_STARTSCRIPT
+	help
+	  A fast webserver with minimal memory footprint
+
+	  lighttpd is a small webserver and fast webserver developed
+	  with security in mind and a lot of features. It has support
+	  for
+	  * CGI, FastCGI and SSI
+	  * virtual hosts
+	  * URL rewriting
+	  * authentication (plain files, htpasswd, ldap)
+	  * transparent content compression
+	  * conditional configuration
+	  and configuration is straight-forward and easy.
+
+if LIGHTTPD
+
+menu "base settings               "
+
+config LIGHTTPD_ATTR
+	bool
+	prompt "extended attribute support"
+	help
+	  Enable extended attribute support.
+
+config LIGHTTPD_FAM
+	bool
+	prompt "fam"
+	help
+	  fam/gamin for reducing number of stat() calls.
+
+config LIGHTTPD_LUA
+	bool
+	prompt "lua engine"
+	help
+	  lua engine for mod_cml and mod_magnet
+
+config LIGHTTPD_MEMCACHE
+	bool
+	prompt "memcached storage"
+	help
+	  memcached storage for mod_trigger_b4_dl and mod_cml
+
+config LIGHTTPD_OPENSSL
+	bool
+	prompt "openssl support"
+	help
+	  Include openssl support.
+
+config LIGHTTPD_PCRE
+	bool
+	select LIBPCRE
+	prompt "pcre support"
+	help
+	  Enable pcre support.
+
+endmenu
+
+menu "modules                     "
+
+config LIGHTTPD_MOD_ACCESS
+	bool
+	prompt "mod_access"
+	default y
+	help
+	  Deny access to some files.
+
+config LIGHTTPD_MOD_ACCESSLOG
+	bool
+	prompt "mod_accesslog"
+	default y
+	help
+	  flexible logging of requests served
+
+config LIGHTTPD_MOD_ALIAS
+	bool
+	prompt "mod_alias"
+	help
+	  Specify a special document-root for a given url-subset.
+
+config LIGHTTPD_MOD_AUTH
+	bool
+	prompt "mod_auth"
+	default y
+	help
+	  User authentication
+
+config LIGHTTPD_MOD_CML
+	bool
+	select LIGHTTPD_LUA
+	prompt "mod_cml"
+	help
+	  Cache Meta Language
+
+config LIGHTTPD_MOD_COMPRESS
+	bool
+	prompt "mod_compress"
+	help
+	  Output compression support.
+
+if LIGHTTPD_MOD_COMPRESS
+
+config LIGHTTPD_ZLIB
+	bool
+	prompt "zlib support"
+	help
+	  Enable zlib support for mod_compress.
+
+config LIGHTTPD_BZ2LIB
+	bool
+	prompt "bz2lib support"
+	help
+	  Enable bzip2 support for mod_compress.
+endif
+
+config LIGHTTPD_MOD_FASTCGI
+	bool
+	prompt "mod_fastcgi"
+
+if LIGHTTPD_MOD_FASTCGI
+
+config LIGHTTPD_MOD_FASTCGI_PHP
+	bool
+	prompt "setup php handling with fastcgi"
+	help
+	  Enables the necessary packages and configuration files
+	  to enable PHP support in lighttpd
+
+comment "PHP CGI SAPI must be enabled"
+	depends on LIGHTTPD_MOD_FASTCGI_PHP && !PHP5_SAPI_CGI
+
+endif
+
+config LIGHTTPD_MOD_MAGNET
+	bool
+	select LIGHTTPD_LUA
+	prompt "mod_magnet"
+	help
+	  A module to control the request handling
+
+config LIGHTTPD_MOD_REWRITE
+	bool
+	prompt "mod_rewrite"
+	help
+	  Module for URL rewriting
+
+config LIGHTTPD_MOD_SETENV
+	bool
+	prompt "mod_setenv"
+	help
+	  The setenv module allows influencing the environment external
+	  applications are spawned in and the response headers the server
+	  sends to the clients.
+
+config LIGHTTPD_MOD_TRIGGER_B4_DL
+	bool
+	select LIGHTTPD_MEMCACHE
+	select LIGHTTPD_PCRE
+	prompt "mod_trigger_b4_dl"
+	help
+	  Module for Anti Hotlinking
+
+config LIGHTTPD_MOD_WEBDAV
+	bool
+	prompt "mod_webdav"
+	help
+	  The WebDAV module is a very minimalistic implementation of RFC 2518.
+	  Minimalistic means that not all operations are implemented yet.
+
+if LIGHTTPD_MOD_WEBDAV
+
+config LIGHTTPD_WEBDAV_PROPS
+	bool
+	prompt "properties in mod_webdav"
+	help
+	  properties in mod_webdav
+
+config LIGHTTPD_WEBDAV_LOCKS
+	bool
+	select LIGHTTPD_WEBDAV_PROPS
+	prompt "locks in mod_webdav"
+	help
+	  locks in mod_webdav
+endif
+
+# AGa: we maintain an own set of config files in projectroot
+#config LIGHTTPD_MOD_EXTRA
+#	string
+#	prompt "extra modules"
+#	default "mod_access mod_accesslog mod_auth"
+#	help
+#	  Space sparated list of modules to add to lighttpd.conf
+
+comment "-----------------------------"
+
+config LIGHTTPD_INSTALL_SELECTED_MODULES
+	bool
+	prompt "only install selected modules"
+
+endmenu
+
+menu "startup                     "
+
+config LIGHTTPD_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/lighttpd"
+
+config LIGHTTPD_SYSTEMD_UNIT
+	bool
+	default y
+	depends on SYSTEMD
+	prompt "install systemd unit files for lighttpd"
+
+endmenu
+
+config LIGHTTPD_GENERIC_SITE
+	bool
+	default y
+	prompt "Populate a generic website"
+	help
+	  This install a generic website into /var/www/index.html
+	  from <ptxdist-install>/generic/var/www/lighttpd.html
+	  and some php demos.
+
+config LIGHTTPD_HTTPS
+	bool
+	default y
+	select LIGHTTPD_PCRE
+	select LIGHTTPD_OPENSSL
+	prompt "Support https"
+
+config LIGHTTPD_HTTPS_INSTALL_CONF_LINK
+	bool
+	default n
+    depends on LIGHTTPD_HTTPS
+    prompt "Install /etc/lighttpd/lighttpd.conf as link to [..]conf.https_only"
+
+
+config LIGHTTPD_HTTPS_GEN_CERT
+  bool
+  default n
+  depends on LIGHTTPD_HTTPS
+  prompt "Certificate for https"
+  help 
+    Generate a self-signed X509 certificate which will be used
+	  until the user install an own one.
+	  It is no security measure, but just a way to make https work 
+	  out of the box.
+
+endif

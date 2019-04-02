@@ -1,0 +1,300 @@
+## SECTION=networking
+menuconfig NET_SNMP
+	tristate
+	prompt "net-snmp                      "
+	select LIBC_M
+	select GCCLIBS_GCC_S	if NET_SNMP_AGENT
+	select LIBC_DL		if NET_SNMP_AGENT || NET_SNMP_APPLICATIONS
+	select LIBNL3		if NET_SNMP_AGENT || NET_SNMP_APPLICATIONS
+	select LM_SENSORS	if NET_SNMP_MIB_MODULES_LM_SENSORS
+	select OPENSSL		if NET_SNMP_SHA_AES
+	select NET_SNMP_PRIVACY	if NET_SNMP_SHA_AES || NET_SNMP_DES
+
+if NET_SNMP
+
+config NET_SNMP_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/net-snmpd"
+                
+config NET_SNMP_TARP_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/net-snmptrapd"
+
+menu "additional mib modules        "
+
+config NET_SNMP_MIB_MODULES_AGENTX
+	prompt "agentx"
+	bool
+	help
+	  AgentX support (includes both agentx/master and agentx/client).
+
+config NET_SNMP_MIB_MODULES_UCD_SNMP
+	prompt "ucd_snmp"
+	bool
+	help
+	  UCD-SNMP-MIB specific extensions.
+
+config NET_SNMP_MIB_MODULES_LM_SENSORS
+	prompt "ucd-snmp/lmsensorsMib"
+	bool
+	help
+	  hardware monitoring (LM-SENSORS-MIB)
+
+config NET_SNMP_MIB_MODULES
+	prompt "additional mib modules"
+	string
+	default	""
+	help
+	  space separated list of optional modules
+	    tunnel               Linux TUNNEL-MIB support (ifTable extension)
+	    mibII/interfaces     (old ifTable implementation)
+	    misc/ipfwacc         accounting rules IP firewall information
+	    ipfwchains/ipfwchains  firewall chains under ipfw
+	    sctp-mib             support for the SCTP-MIB
+	    etherlike-mib        support for the EtherLike-MIB
+
+config NET_SNMP_WITHOUT_MIB_MODULES
+	prompt "without these mib modules"
+	string
+	default ""
+	help
+	  space separated list of default mib modules compiled into the
+	  agent (which can be removed):
+	    mibII                  support for the mib-II tree.
+	    snmpv3mibs             support for the snmpv3 mib modules.
+	    agent_mibs             NET-SNMP-AGENT-MIB extensions
+	    notification           mibs supporting specification of trap destinations.
+	    target                 Support for the SNMP WGs TARGET-MIB.
+	    utilities              general agent configuration utilities.
+	    disman/event           support for the DISMAN-EVENT-MIB
+	    disman/schedule        support for the DISMAN-SCHEDULE-MIB
+	    host                   host resources mib support.
+
+endmenu
+
+menuconfig NET_SNMP_MIBS
+	bool
+	prompt "mib files                     "
+
+if NET_SNMP_MIBS
+
+config NET_SNMP_V1MIBS
+	bool
+	prompt "v1 MIBS"
+	default y
+	help
+	  RFC1155-SMI, RFC1213-MIB, RFC-1215
+
+config NET_SNMP_V2MIBS
+	bool
+	prompt "v2 MIBS"
+	default y
+	help
+	  SNMPv2-CONF, SNMPv2-SMI, SNMPv2-TC, SNMPv2-TM, SNMPv2-MIB
+
+config NET_SNMP_V3MIBS
+	bool
+	prompt "v3 MIBS"
+	default y
+	help
+	  SNMP-FRAMEWORK-MIB, SNMP-MPD-MIB, SNMP-TARGET-MIB,
+	  SNMP-NOTIFICATION-MIB, SNMP-PROXY-MIB, SNMP-USER-BASED-SM-MIB,
+	  SNMP-VIEW-BASED-ACM-MIB, SNMP-COMMUNITY-MIB, TRANSPORT-ADDRESS-MIB
+
+config NET_SNMP_AGENTMIBS
+	bool
+	prompt "agent MIBS"
+	default y
+	help
+	  AGENTX-MIB, SMUX-MIB
+
+config NET_SNMP_IANAMIBS
+	bool
+	prompt "IANA MIBS"
+	default y
+	help
+	  IANAifType-MIB, IANA-LANGUAGE-MIB, IANA-ADDRESS-FAMILY-NUMBERS-MIB
+
+config NET_SNMP_RFCMIBS
+	bool
+	prompt "RFC MIBS"
+	default y
+	help
+	  IF-MIB, IF-INVERTED-STACK-MIB, EtherLike-MIB, IP-MIB,
+	  IP-FORWARD-MIB, IANA-RTPROTO-MIB, TCP-MIB, UDP-MIB,
+	  INET-ADDRESS-MIB, HCNUM-TC, HOST-RESOURCES-MIB,
+	  HOST-RESOURCES-TYPES, RMON-MIB, IPV6-TC, IPV6-MIB, IPV6-ICMP-MIB,
+	  IPV6-TCP-MIB, IPV6-UDP-MIB, DISMAN-EVENT-MIB, DISMAN-SCRIPT-MIB,
+	  DISMAN-SCHEDULE-MIB, NOTIFICATION-LOG-MIB, SNMP-USM-AES-MIB,
+	  SNMP-USM-DH-OBJECTS-MIB
+
+config NET_SNMP_NETSNMPMIBS
+	bool
+	prompt "Net-SNMP MIBS"
+	default y
+	help
+	  NET-SNMP-TC, NET-SNMP-MIB, NET-SNMP-AGENT-MIB,
+	  NET-SNMP-EXAMPLES-MIB, NET-SNMP-EXTEND-MIB, NET-SNMP-PASS-MIB
+
+config NET_SNMP_UCDMIBS
+	bool
+	prompt "UCD MIBS"
+	default y
+	help
+	  UCD-SNMP-MIB, UCD-DEMO-MIB, UCD-IPFWACC-MIB, UCD-DLMOD-MIB,
+	  UCD-DISKIO-MIB
+
+config NET_SNMP_LMSENSORS_MIB
+	bool "lm-sensors MIBS" if NET_SNMP_MIB_MODULES_LM_SENSORS
+	help
+	  LM-SENSORS-MIB
+
+config NET_SNMP_OTHERMIBS
+	bool
+	prompt "other MIBS"
+	help
+	  BRIDGE-MIB, IPV6-FLOW-LABEL-MIB, SCTP-MIB, TUNNEL-MIB
+
+endif
+
+choice
+	prompt "debugging"
+	default NET_SNMP_DEFAULT_DEBUGGING
+
+config NET_SNMP_DEFAULT_DEBUGGING
+	bool
+	prompt "default"
+	help
+	  Use default debugging, selectable via -D on the command-line.
+
+config NET_SNMP_FORCE_DEBUGGING
+	bool
+	prompt "enforce"
+	help
+	  Always print all debugging even when not specified on command-line.
+
+config NET_SNMP_STRIP_DEBUGGING
+	bool
+	prompt "strip"
+	help
+	  Strip debugging code entirely.
+
+endchoice
+
+config NET_SNMP_MINI_AGENT
+	bool
+	default n
+	depends on ! NET_SNMP_PRIVACY
+	prompt "minimal agent"
+
+config NET_SNMP_AGENT
+	bool
+	default y
+	prompt "agent (snmpd)"
+
+config NET_SNMP_APPLICATIONS
+	bool
+	default y
+	prompt "apps (snmpget, ...)"
+
+config NET_SNMP_WRITEDEFAULTCONFSCRIPT
+    depends on NET_SNMP_MINI_AGENT || NET_SNMP_AGENT || NET_SNMP_APPLICATIONS
+    bool
+    default n
+    prompt "install snmpd.conf default writer service"
+
+config NET_SNMP_SCRIPTS
+	bool
+	default n
+	prompt "scripts (mib2c, ...)"
+
+config NET_SNMP_MIB_LOADING
+	bool
+	default y
+	prompt "include code that parses and manipulates mib files"
+
+config NET_SNMP_SNMPV1
+	bool
+	default y
+	prompt "support for SNMPv1"
+
+config NET_SNMP_SNMPV2C
+	bool
+	default y
+	prompt "support for SNMPv2c"
+
+config NET_SNMP_PRIVACY
+	bool
+	prompt "support for privacy (encryption)"
+
+config NET_SNMP_DES
+	bool
+	default y
+	prompt "DES encryption"
+
+config NET_SNMP_MD5
+	bool
+	default y
+	prompt "MD5 authentication"
+
+config NET_SNMP_SHA_AES
+	bool
+	prompt "SHA authentication and AES encryption"
+
+config NET_SNMP_DOM_SOCK_ONLY
+	bool "Disable UDP/TCP transports for agentx" if NET_SNMP_AGENT
+	default y
+	help
+	  Enable this to disable TCP and UDP connections for subagent
+	  connections with AgentX protocol. Only unix socket connections are
+	  allowed then.
+
+config NET_SNMP_SNMPTRAPD
+	bool
+	default y
+	prompt "agentx subagent code in snmptrapd"
+
+config NET_SNMP_LOCAL_SMUX
+	bool
+	default n
+	prompt "restrict SMUX connections to localhost (by default)"
+
+config NET_SNMP_DEVELOPER
+	bool
+	default n
+	prompt "super-duper-extra-compile-warnings using gcc"
+
+config NET_SNMP_DEFAULT_VERSION
+	prompt "default SNMP version: 1, 2 (for SNMPv2c), or 3"
+	string
+	default	"3"
+
+config NET_SNMP_LOGFILE
+	prompt "logfile location"
+	string
+	default	"/var/log/snmpd.log"
+
+config NET_SNMP_PERSISTENT_DIR
+	prompt "persistent data storage directory"
+	string
+	default	"/var/net-snmp"
+
+config NET_SNMP_DEFAULT_MIBS
+	prompt "default mib id's to read"
+	string
+	default	"SNMPv2-MIB:IF-MIB:IP-MIB:TCP-MIB:UDP-MIB"
+	help
+	  Colon separated list of default mib IDs to read. (The default list
+	  is "SNMPv2-MIB:IF-MIB:IP-MIB:TCP-MIB:UDP-MIB" with the addition of
+	  any mibs used by the mib modules the agent is configured with)
+
+config NET_SNMP_MIB_INSTALL_DIR
+	prompt "directory to install mib files"
+	string
+	default	"/usr/share/snmp/mibs"
+
+endif
+
+# vim: ft=kconfig noet tw=72

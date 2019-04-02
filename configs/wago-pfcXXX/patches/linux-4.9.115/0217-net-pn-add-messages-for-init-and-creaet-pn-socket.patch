@@ -1,0 +1,41 @@
+From ec334f055e63c16a49fcc46e469a278f42616097 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 23 Jul 2018 14:43:22 +0200
+Subject: [PATCH 217/261] net: pn: add messages for init and creaet pn socket
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ net/pn/pnsk.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/net/pn/pnsk.c b/net/pn/pnsk.c
+index 3b7ebd6..22c8da2 100644
+--- a/net/pn/pnsk.c
++++ b/net/pn/pnsk.c
+@@ -627,6 +627,8 @@ static int pnsk_create(struct net *net, struct socket *sock, int protocol,
+ 	sock_prot_inuse_add(net, &pnsk_proto, 1);
+ 	local_bh_enable();
+ 
++	pr_info("PN socket created successful\n");
++
+ 	return 0;
+ 
+ out_put:
+@@ -656,11 +658,14 @@ static int __init pnsk_init(void)
+ 	if (err)
+ 		goto out_proto;
+ 
++	pr_info("PN socket init successful\n");
++
+ 	return 0;
+ 
+ out_proto:
+ 	proto_unregister(&pnsk_proto);
+ out:
++	pr_err("PN socket init failed (%d)\n", err);
+ 	return err;
+ }
+ 
+-- 
+2.7.4
+

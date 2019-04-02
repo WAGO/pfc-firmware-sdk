@@ -1,0 +1,12 @@
+
+## SECTION=wago_specific_libs
+
+config HOSTLIBLOADER
+	bool
+    default n
+	prompt "hostlibloader"
+	select HOST_GLIB
+	select HOST_CPPUTEST
+	help
+	Builds the liblibloader library for the host (i.e. build server).
+	  

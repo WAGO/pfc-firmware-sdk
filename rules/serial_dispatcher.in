@@ -1,0 +1,30 @@
+## SECTION=wago_specific_tools
+
+config SERIAL_DISPATCHER
+	bool
+	prompt "serial_dispatcher"
+	help
+	  Program used to convert input from serail line to a tcp socket.
+	  it can also be used to convert a socket to serial line
+
+if SERIAL_DISPATCHER
+
+config SERIAL_DISPATCHER_DEVICE
+	string
+	prompt "tty-device"
+	default "/dev/service"
+	help
+	  Configure the tty-device that will be used in the serial_dispatch-start-script
+
+config SERIAL_DISPATCHER_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+config SERIAL_DISPATCHER_BBINIT_LINK
+	string
+	prompt "install symlink to rc.d"
+	default "S97_serial_dispatcher"
+
+endif

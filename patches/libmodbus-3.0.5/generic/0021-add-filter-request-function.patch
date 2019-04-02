@@ -1,0 +1,26 @@
+--- libmodbus-3.0.5.base/src/modbus.h	2015-02-26 09:02:53.807049000 +0100
++++ libmodbus-3.0.5/src/modbus.h	2015-03-03 18:10:54.932838745 +0100
+@@ -213,6 +213,7 @@
+ void modbus_set_alternative_data(uint8_t enabled, uint8_t value);
+ int modbus_is_multicast(modbus_t *ctx);
+ void modbus_set_response_delay(uint16_t value);
++int modbus_filter_request(modbus_t *ctx, const uint8_t *req);
+ /**
+  * UTILS FUNCTIONS
+  **/
+--- libmodbus-3.0.5.base/src/modbus.c	2015-02-26 09:02:53.883049000 +0100
++++ libmodbus-3.0.5/src/modbus.c	2015-03-03 18:23:44.564835889 +0100
+@@ -787,6 +787,13 @@
+     return rsp_length;
+ }
+ 
++int modbus_filter_request(modbus_t *ctx, const uint8_t *req)
++{
++    int offset = ctx->backend->header_length;
++    int slave = req[offset - 1];
++    return ctx->backend->filter_request(ctx, slave);
++}
++
+ /* Send a response to the received request.
+    Analyses the request and constructs a response.
+ 

@@ -1,0 +1,111 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# /etc/init.d/syslog-ng
+#
+
+PREFIX="syslog-ng: "
+THISFILE=$0
+syslogng="/sbin/syslog-ng"
+PIDFILE="/var/run/syslog-ng.pid"
+export LOGPATH="/var/log/"
+export LOGMSG="messages"
+export WAGOLOGPATH_RAM="/var/log/wago/"
+export WAGOLOGPATH_PERSISTENT="/home/log/"
+export WAGOLOGPATH_DEFAULT=$WAGOLOGPATH_RAM
+export WAGOLOGPREFIX="wagolog"
+		
+usage() {
+	echo "${PREFIX}usage: $THISFILE [start|stop|restart|reload|test-syntax]"
+}
+
+start() {
+		if [ -e "$PIDFILE" ]; then 
+			echo "${PREFIX} warning: another syslog-ng seems to be running, trying to kill it"
+			kill -9 `cat $PIDFILE`
+			rm -f $PIDFILE
+		fi
+		$syslogng
+}
+
+wait4pid() {
+	SYSLOGPID=`cat $PIDFILE`
+	n=0
+	while [ ! -d /proc/$SYSLOGPID ]; do
+	usleep 100000
+	n=$((n+1))
+	if [ n > 10 ]; then
+		echo "Echo ${PREFIX} will not stop send KILL signal!"
+		kill -KILL $SYSLOGPID
+	fi
+	done
+	rm -f $PIDFILE
+}
+
+stop() {
+		kill `cat $PIDFILE`
+		wait4pid
+		#rm -f $PIDFILE
+}
+
+case $1 in 
+
+	start)
+		echo "${PREFIX} starting"
+		start
+		if [ "$?" != "0" ]; then 
+			echo "${PREFIX} error, could not start daemon"
+			rm -f $PIDFILE
+		else 
+			echo "${PREFIX} done"
+		fi
+		;;
+
+	stop)
+		echo "${PREFIX} stopping"
+		stop
+		echo "${PREFIX} done"
+		;;
+		
+	restart)
+		echo "${PREFIX} restarting"
+		stop
+		usleep 500000
+		start
+		if [ "$?" != "0" ]; then 
+			echo "${PREFIX} error, could not start daemon"
+		else 
+			echo "${PREFIX} done"
+		fi
+		;;
+	
+	reload)
+		echo "${PREFIX} reloading config"
+		kill -HUP `cat $PIDFILE`
+		echo "${PREFIX} done"			
+		;;
+		
+	test-syntax)
+		echo "${PREFIX} test syntax of configuration file"
+		$syslogng --syntax-only
+		if [ "$?" != "0" ]; then 
+			echo "${PREFIX} error, syntax checking failed!"
+		else 
+			echo "${PREFIX} done: syntax OK"
+		fi		
+		;;
+
+	*)
+
+		usage
+		exit 1
+		;;
+
+esac
+

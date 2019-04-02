@@ -1,0 +1,175 @@
+#! /bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+### BEGIN INIT INFO
+# Provides:          ipsec
+# Required-Start:    $network $remote_fs
+# Required-Stop:     $network $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Strongswan IPsec services
+### END INIT INFO
+
+# Author: Rene Mayrhofer <rene@mayrhofer.eu.org>
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="strongswan IPsec services"
+NAME=ipsec
+STARTER=/usr/sbin/$NAME
+PIDFILE=/var/run/charon.pid
+CHARON=/usr/lib/ipsec/charon
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Exit if the package is not installed
+[ -x "$STARTER" ] || exit 0
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# Load the VERBOSE setting and other rcS variables
+# TODO: Remarked for now (Mariusz)
+# . /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+# Create lock dir
+mkdir -p /var/lock/subsys
+
+FW_DIR=/etc/firewall
+FW_INITD=/etc/init.d/firewall
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+	# Return
+	#   0 if daemon has been started
+	#   1 if daemon was already running
+	#   2 if daemon could not be started
+
+	# test if charon is currently running
+	if [ -e $CHARON ]; then
+	  start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $STARTER --test > /dev/null \
+		|| return 1
+	fi
+
+  local ret=0
+	$STARTER start || ret=2
+	if [[ $ret == 0 ]]; then
+      if [ -s $FW_DIR/ipsecfirewall.sh ]; then
+        sh $FW_DIR/ipsecfirewall.sh
+        if [[ "$?" == 3 ]]; then
+          sh $FW_INITD restart
+        fi  
+      else
+        log_daemon_msg "$FW_DIR/ipsecfirewall.sh is missing - can't execute."
+      fi
+  else 
+     return $ret
+ fi      	
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+	# Return
+	#   0 if daemon has been stopped
+	#   1 if daemon was already stopped
+	#   2 if daemon could not be stopped
+	#   other if a failure occurred
+	# give the proper signal to stop
+	$STARTER stop || return 2
+
+	RETVAL=0
+	# but kill if that didn't work
+	if [ -e $PIDFILE ]; then
+		start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+		RETVAL="$?"
+		[ "$RETVAL" = 2 ] && return 2
+	fi
+
+	# Wait for children to finish too if this is a daemon that forks
+	# and if the daemon is only ever run from this initscript.
+	# If the above conditions are not satisfied then add some other code
+	# that waits for the process to drop all resources that could be
+	# needed by services started subsequently.  A last resort is to
+	# sleep for some time.
+	if [ -e $CHARON ]; then
+	  start-stop-daemon --stop --quiet --oknodo --retry=0/30/KILL/5 --exec $CHARON
+	  [ "$?" = 2 ] && return 2
+	fi
+
+	# strongswan is known to leave PID files behind when something goes wrong, cleanup here
+	rm -f $PIDFILE
+	# and just to make sure they are really really dead at this point...
+	killall -9 $CHARON 2>/dev/null
+
+	return "$RETVAL"
+}
+
+do_reload() {
+	$STARTER reload
+	return 0
+}
+
+case "$1" in
+  start)
+	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+	do_start
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  stop)
+	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+	do_stop
+	case "$?" in
+		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+	esac
+	;;
+  status)
+	$STARTER status || exit $?
+	;;
+  reload|force-reload)
+	log_daemon_msg "Reloading $DESC" "$NAME"
+	do_reload
+	log_end_msg $?
+	;;
+  restart)
+	log_daemon_msg "Restarting $DESC" "$NAME"
+	do_stop
+	case "$?" in
+	  0|1)
+		do_start
+		case "$?" in
+			0) log_end_msg 0 ;;
+			1) log_end_msg 1 ;; # Old process is still running
+			*) log_end_msg 1 ;; # Failed to start
+		esac
+		;;
+	  *)
+	  	# Failed to stop
+		log_end_msg 1
+		;;
+	esac
+	;;
+  *)
+	echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
+	exit 3
+	;;
+esac
+
+:

@@ -1,0 +1,9 @@
+## SECTION=wago_specific_libs
+
+config LIBCGROUPCPULOAD
+	bool
+	default n
+	select HOST_CT_BUILD
+	prompt "libcgroupcpuload"
+	help
+		Library to read the cpu usage of a specific cgroup (using cpuacct controller).

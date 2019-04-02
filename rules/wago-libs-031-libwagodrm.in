@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+
+config LIBWAGODRM
+	bool
+	select LIBCOMMONHEADER
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select OPENSSL
+	prompt "libwagodrm"
+	help
+	  Library for PFC DRM functions - select DRM in WAGO specific tools 

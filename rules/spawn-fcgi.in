@@ -1,0 +1,8 @@
+## SECTION=networking
+
+config SPAWN_FCGI
+	tristate
+  default n
+	prompt "spawn-fcgi"
+	help
+	  Wrapper to run FastCGI applications (part of lighttpd project).

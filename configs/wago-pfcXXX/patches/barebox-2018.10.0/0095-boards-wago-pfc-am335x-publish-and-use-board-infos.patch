@@ -1,0 +1,118 @@
+From 4bb21de254b7a33270e151fe355b6b5dd6371885 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 24 Sep 2018 15:03:39 +0200
+Subject: [PATCH 095/144] boards: wago-pfc-am335x: publish and use board infos
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 52 +++++++++++++++++++++++++++++----
+ 1 file changed, 46 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index aa7df12..828811d 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -37,6 +37,7 @@
+ #include <mach/bbu.h>
+ #include <globalvar.h>
+ #include <xsection.h>
++#include <linux/bitmap.h>
+ 
+ #define ETH_DEVICE_0 0
+ #define ETH_DEVICE_1 1
+@@ -95,7 +96,7 @@ static int pfc_set_ethaddr(void)
+ 	return 0;
+ }
+ 
+-static int pfc_export_board_variant(void)
++static int pfc_export_board_variant(char *board_variant)
+ {
+ 	struct device_node *root;
+ 	int ret;
+@@ -111,6 +112,7 @@ static int pfc_export_board_variant(void)
+ 	if (ret < 0)
+ 		goto out;
+ 
++	board_variant = (char *)variant;
+ 	ret = globalvar_add_simple("board.variant", variant);
+ 
+ out:
+@@ -155,6 +157,10 @@ out:
+ static int pfc_devices_init(void)
+ {
+ 	int ret;
++	struct device_node *node;
++	struct omap_board_info board;
++
++	bitmap_zero(board.boot_devices, NUM_BOOT_DEVICES);
+ 
+ 	if (!of_machine_is_compatible("wago,am335x-pfc"))
+ 		return 0;
+@@ -162,10 +168,38 @@ static int pfc_devices_init(void)
+ 	/* Do this also in mlo, because the pfc startup code needs this
+ 	 * information to get the right barebox image.
+ 	 */
+-	ret = pfc_export_board_variant();
++	ret = pfc_export_board_variant(board.board_variant);
+ 	if (ret < 0)
+ 		pr_err("failed to export board.variant\n");
+ 
++	node = of_find_node_by_alias(of_get_root_node(), "sd");
++	if (node)
++		if (of_device_is_available(node))
++			set_bit(HAS_SD, board.boot_devices);
++
++	node = of_find_node_by_alias(of_get_root_node(), "emmc");
++	if (node)
++		if (of_device_is_available(node))
++			set_bit(HAS_EMMC, board.boot_devices);
++
++	node = of_find_node_by_alias(of_get_root_node(), "nand");
++	if (node)
++		if (of_device_is_available(node))
++			set_bit(HAS_NAND, board.boot_devices);
++
++	/* copy in case of mlo boot, board information to get the information
++	 * in the xload-pfc module
++	 */
++	if (IS_ENABLED(CONFIG_SHELL_NONE)) {
++		struct omap_board_info *board_info = xzalloc(sizeof(
++							struct omap_board_info));
++
++		memcpy(board_info, &board, sizeof(*board_info));
++		bitmap_copy(board_info->boot_devices, board.boot_devices,
++								NUM_BOOT_DEVICES);
++		omap_set_board_info(board_info);
++	}
++
+ 	if (bootsource_get() == BOOTSOURCE_MMC) {
+ 		if (bootsource_get_instance() == 0)
+ 			omap_set_bootmmc_devname("mmc0");
+@@ -173,14 +207,20 @@ static int pfc_devices_init(void)
+ 			omap_set_bootmmc_devname("mmc1");
+ 	}
+ 
+-	am33xx_bbu_emmc_mlo_register_handler("mlo.emmc", "/dev/mmc1");
+-	am33xx_bbu_emmc_register_handler("boot.emmc", boot_emmcslots,
++	if (test_bit(HAS_EMMC, board.boot_devices)) {
++		am33xx_bbu_emmc_mlo_register_handler("mlo.emmc", "/dev/mmc1");
++		am33xx_bbu_emmc_register_handler("boot.emmc", boot_emmcslots,
+ 						ARRAY_SIZE(boot_emmcslots));
++	}
+ 
+-	am33xx_bbu_nand_xloadslots_register_handler("mlo.nand", mlo_nandslots,
++	if (test_bit(HAS_NAND, board.boot_devices)) {
++		am33xx_bbu_nand_xloadslots_register_handler("mlo.nand",
++						mlo_nandslots,
+ 						ARRAY_SIZE(mlo_nandslots));
+-	am33xx_bbu_nand_slots_register_handler("boot.nand", boot_nandslots,
++		am33xx_bbu_nand_slots_register_handler("boot.nand",
++						boot_nandslots,
+ 						ARRAY_SIZE(boot_nandslots));
++	}
+ 
+ 	of_device_enable_path("/chosen/environment-sd");
+ 	omap_set_barebox_boot_parts(&pfc_barebox_boot_parts);
+-- 
+2.7.4
+

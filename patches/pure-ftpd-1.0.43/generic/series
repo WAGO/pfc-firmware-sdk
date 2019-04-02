@@ -1,0 +1,4 @@
+ftp_put_sync.patch -p1
+ftp_del_sync.patch -p1
+ftpd_size.diff -p1 
+ftp_change_anonymous.patch -p1

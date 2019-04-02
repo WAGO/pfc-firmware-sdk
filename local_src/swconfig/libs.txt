@@ -1,0 +1,7 @@
+libnl-genl-3.so.200
+libnl-3.so.200
+libpthread.so.0
+libm.so.6
+libuci.so
+libc.so.6
+

@@ -1,0 +1,29 @@
+From 65084ada8b297d075563687ae9a9af43c51b61ea Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Fri, 12 Oct 2018 12:07:28 +0200
+Subject: [PATCH 113/144] scripts: checkpatch: delete checking of TODO file
+
+checkpatch checks if TODO file is in root directory. But TODO file
+was removed by b3baf2d861490184f058ed5966a36bf5679ef181 commit.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ scripts/checkpatch.pl | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 48ad493..9a6f6e2 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -330,7 +330,7 @@ sub top_of_kernel_tree {
+ 	my @tree_check = (
+ 		"arch", "commands", "common", "COPYING", "defaultenv",
+ 		"Documentation", "drivers", "fs", "include", "lib",
+-		"MAKEALL", "Makefile", "net", "README", "scripts", "TODO"
++		"MAKEALL", "Makefile", "net", "README", "scripts"
+ 	);
+ 
+ 	foreach my $check (@tree_check) {
+-- 
+2.7.4
+

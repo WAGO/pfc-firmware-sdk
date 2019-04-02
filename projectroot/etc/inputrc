@@ -1,0 +1,35 @@
+################################################################################
+## /etc/inputrc
+##
+## Attempt to put different TERMs together in one readline init file.
+## Copyright (c) 1997,2000,2002 SuSE Linux AG, Nuernberg, Germany.
+## Copyright: 2007 SuSE  LINUX Products GmbH, Nuernberg, Germany.
+##
+## Author: Werner Fink
+## Please send feedback to http://www.suse.de/feedback
+##
+################################################################################
+#
+# Eight bit compatible: Umlaute
+#
+set meta-flag on
+set output-meta on
+set convert-meta off
+set term xy
+#
+# VI line editing
+#
+$if mode=vi
+set editing-mode vi
+set keymap vi
+$endif
+#
+# Common standard keypad and cursor
+#
+"\e[1~":	beginning-of-line
+"\e[2~":	yank
+"\e[3~":	delete-char
+"\e[4~":	end-of-line
+"\e[5~":	history-search-backward
+"\e[6~":	history-search-forward
+# end

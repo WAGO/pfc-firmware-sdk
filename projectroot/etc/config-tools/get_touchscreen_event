@@ -1,0 +1,125 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_touchscreen_event
+#
+# Search for configured device in file ts.conf, look after this device-name
+# in file devices and filter the according event-string.
+# Show result on stdout.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# status-codes
+SUCCESS=0
+ERROR=-1
+
+# filenames
+TS_CONF_FILENAME="/etc/ts.conf"
+DEVICES_FILENAME="/proc/bus/input/devices"
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Show the event-string which belongs to the actual configured touchscreen-device *"
+  echo
+  echo "Usage: get_touchscreen_event"
+  echo
+  exit $status
+fi
+
+
+# check if files are existing
+if [ ! -f $TS_CONF_FILENAME ] || [ ! -f $DEVICES_FILENAME ]; then
+  exit $ERROR
+fi
+
+# initialize the strings we must filter from files
+deviceName=""
+eventString=""
+
+# look for the line which includes the module-raw-string but no comment-character, get the line-number
+rawStringLine=`egrep -n "^ *module_raw " $TS_CONF_FILENAME 2> /dev/null`
+
+if [ -n "$rawStringLine" ]; then
+
+  # cut line-number from grep-output-line
+  rawStringLineNr=`echo ${rawStringLine%%:*}`
+  #echo "rawStringLineNr:" $rawStringLineNr
+
+  # the according device-name should be placed two lines in front of the raw-string-line
+  deviceNameLineNr=$(($rawStringLineNr - 2))
+  #echo "deviceNameLineNr:"$deviceNameLineNr
+
+  if (( "$deviceNameLineNr" <= 0 )); then
+    status=$ERROR
+  else
+   
+    # read the probable devicename-line by its number
+    deviceNameLine=`sed -n ''$deviceNameLineNr'p' $TS_CONF_FILENAME`
+
+    # filter the device-name from line
+    deviceName=${deviceNameLine### devicename: }
+    #echo "deviceName:"$deviceName
+  fi
+fi
+
+
+# ----- get the according event-name from file devices -----
+
+# check if device-name was found
+if [ -z "$deviceName" ]; then
+  status=$ERROR
+else
+
+  # read the lines from devices file one by one until line with device name declaration was found (or maximum lines reached)
+  deviceNameLine=`printf "N: Name=\"%s\"" "$deviceName"`
+  #echo "deviceNameLine:"$deviceNameLine
+  
+  lineCount=`sed $= -n $DEVICES_FILENAME`
+  if [ -z "$lineCount" ]; then
+    lineCount="0"
+  fi
+  #echo "lineCount:"$lineCount
+  
+  lineNr=1
+  line=`sed -n ''$lineNr'p' $DEVICES_FILENAME`
+  while (( $lineNr <= $lineCount )) && [ "$line" != "$deviceNameLine" ]; do
+    lineNr=$(($lineNr + 1))
+    line=`sed -n ''$lineNr'p' $DEVICES_FILENAME`
+  done
+  #echo "line:"$line
+  #echo "lineNr:"$lineNr
+
+  # line with device name found?
+  if [ "$line" = "$deviceNameLine" ]; then
+
+    # loop over the next lines and read them until the event-line was found (stop at the laterst if the line we get is empty)
+    while [ -z "$eventString" ] && [ -n "$line" ]; do
+
+      lineNr=$(($lineNr + 1))
+      line=`sed -n ''$lineNr'p' $DEVICES_FILENAME`
+      #echo "line:"$line
+
+      # look after the introducing string for the events
+      echo $line | egrep "H: Handlers=" > /dev/null 2> /dev/null
+      if [ "$?" = "$SUCCESS" ]; then
+
+        #echo "handlers found"
+        # event-line was found, cut out the second event (which is the string behind the second space) and put it to stdout
+        eventString=`echo $line | cut -d' ' -f3`
+        printf "%s" $eventString
+      fi
+
+    done
+  fi
+fi
+
+exit $status

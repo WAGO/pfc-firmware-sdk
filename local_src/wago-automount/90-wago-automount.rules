@@ -1,0 +1,21 @@
+# wago automount script for SD cards
+
+# %k: kernel name (i.e. mmcblk0p1 or sdc2)
+# %E: environment variable
+
+KERNEL=="mmcblk[0-9]*", ENV{ID_FS_USAGE}=="filesystem", GOTO="wago_do_automount"
+KERNEL=="sd*[0-9]*", ENV{ID_FS_USAGE}=="filesystem", GOTO="wago_do_automount"
+
+GOTO="wago_automount_end"
+
+LABEL="wago_do_automount"
+
+# Mount the device
+# __SD_AUTOMOUNT may be set to 0 i.e. by scripts which reformat the SD card
+ENV{__SD_AUTOMOUNT}!="0",ACTION=="add", RUN+="/usr/local/bin/wago-automount action=add device=/dev/%k"
+
+# Clean up after removal (even with AUTOMOUNT disabled)
+ACTION=="remove", RUN+="/usr/local/bin/wago-automount action=remove device=/dev/%k"
+
+# Exit
+LABEL="wago_automount_end"

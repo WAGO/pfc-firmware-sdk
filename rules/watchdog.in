@@ -1,0 +1,15 @@
+## SECTION=shell_and_console
+
+config WATCHDOG
+	bool
+	prompt "watchdog"
+	help
+	  A software watchdog
+
+	  The watchdog program writes to /dev/watchdog every ten
+	  seconds.  If the device is opened but not written to within
+	  a minute, the machine will reboot. This feature is available
+	  when the kernel is built with 'software watchdog' support.
+
+	  The ability to reboot will depend on the state of the
+	  machine and interrupts.

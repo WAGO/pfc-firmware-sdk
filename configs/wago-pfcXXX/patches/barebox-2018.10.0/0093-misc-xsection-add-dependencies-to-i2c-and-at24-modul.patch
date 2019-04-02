@@ -1,0 +1,28 @@
+From be46c546a6b1af0259f2c994c0811af145ce5c53 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 24 Sep 2018 14:52:38 +0200
+Subject: [PATCH 093/144] misc: xsection: add dependencies to i2c and at24
+ modules
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ drivers/misc/Kconfig | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 7882275..402d644 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -24,6 +24,9 @@ if MACH_WAGO_PFC_AM335X || MACH_WAGO_PFC_AM35XX
+ 
+ config XSECTION
+ 	bool "Xsection driver"
++	select I2C
++	select I2C_OMAP
++	select EEPROM_AT24
+ 	help
+ 	  Controls the XSECTION items that are located e.g. in eeprom like
+ 	  devconf, boot-mode-id and ethaddr.
+-- 
+2.7.4
+

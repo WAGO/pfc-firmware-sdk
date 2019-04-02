@@ -1,0 +1,177 @@
+From 6d0493734ec92943e4b49cc9de3780d4164a9c4f Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Wed, 14 May 2014 15:36:25 +0200
+Subject: [PATCH] fix fc08 sfc00 for master
+
+---
+ src/modbus.c | 39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
+
+diff --git a/src/modbus.c b/src/modbus.c
+index a208dd3..834922d 100644
+--- a/src/modbus.c
++++ b/src/modbus.c
+@@ -159,7 +159,7 @@ static int compute_subfunction_length(modbus_t *ctx, uint8_t *msg,
+         if(msg_length == MSG_LENGTH_UNDEFINED)
+             return MSG_LENGTH_UNDEFINED;
+         else
+-            length = msg_length - ctx->backend->header_length - 1;
++            length = msg_length - ctx->backend->header_length - 3;
+         break;
+     case _SFC_RESTART_COMMUNICATIONS_OPTION:
+     case _SFC_RETURN_DIAGNOSTIC_REGISTER:
+@@ -361,7 +361,7 @@ static uint8_t compute_meta_length_after_function(int function,
+ 
+ /* Computes the length to read after the meta information (address, count, etc) */
+ static int compute_data_length_after_meta(modbus_t *ctx, uint8_t *msg,
+-                                          msg_type_t msg_type)
++                                          msg_type_t msg_type, int req_length)
+ {
+     int function = msg[ctx->backend->header_length];
+     int length;
+@@ -376,7 +376,7 @@ static int compute_data_length_after_meta(modbus_t *ctx, uint8_t *msg,
+             length = msg[ctx->backend->header_length + 9];
+             break;
+         case _FC_DIAGNOSTICS: {
+-            length = compute_subfunction_length(ctx, msg, MSG_LENGTH_UNDEFINED);
++            length = compute_subfunction_length(ctx, msg, req_length);
+             if(length == MSG_LENGTH_UNDEFINED)
+                 return MSG_LENGTH_UNDEFINED;
+             break;
+@@ -391,7 +391,7 @@ static int compute_data_length_after_meta(modbus_t *ctx, uint8_t *msg,
+             function == _FC_WRITE_AND_READ_REGISTERS) {
+             length = msg[ctx->backend->header_length + 1];
+         } else if (function == _FC_DIAGNOSTICS) {
+-            length = compute_subfunction_length(ctx, msg, MSG_LENGTH_UNDEFINED);
++            length = compute_subfunction_length(ctx, msg, req_length);
+             if(length == MSG_LENGTH_UNDEFINED)
+                 return MSG_LENGTH_UNDEFINED;
+         } else {
+@@ -418,7 +418,8 @@ static int compute_data_length_after_meta(modbus_t *ctx, uint8_t *msg,
+    - read() or recv() error codes
+ */
+ 
+-static int receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
++static int receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type,
++                       int req_length)
+ {
+     int rc;
+     fd_set rfds;
+@@ -519,7 +520,7 @@ static int receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
+                 } /* else switches straight to the next step */
+             case _STEP_META:
+                 length_to_read = compute_data_length_after_meta(
+-                    ctx, msg, msg_type);
++                    ctx, msg, msg_type, req_length);
+                 if ((msg_length + length_to_read) > ctx->backend->max_adu_length) {
+                     errno = EMBBADDATA;
+                     _error_print(ctx, "too many data");
+@@ -552,7 +553,7 @@ static int receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type)
+ /* Receive the request from a modbus master */
+ int modbus_receive(modbus_t *ctx, uint8_t *req)
+ {
+-    return receive_msg(ctx, req, MSG_INDICATION);
++    return receive_msg(ctx, req, MSG_INDICATION, MSG_LENGTH_UNDEFINED);
+ }
+ 
+ /* Receives the confirmation.
+@@ -565,7 +566,7 @@ int modbus_receive(modbus_t *ctx, uint8_t *req)
+ */
+ int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp)
+ {
+-    return receive_msg(ctx, rsp, MSG_CONFIRMATION);
++    return receive_msg(ctx, rsp, MSG_CONFIRMATION, MSG_LENGTH_UNDEFINED);
+ }
+ 
+ static int check_confirmation(modbus_t *ctx, uint8_t *req, int req_length,
+@@ -1491,7 +1492,7 @@ static int read_io_status(modbus_t *ctx, int function,
+         int offset;
+         int offset_end;
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1590,7 +1591,7 @@ static int read_registers(modbus_t *ctx, int function, int addr, int nb,
+         int offset;
+         int i;
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1666,7 +1667,7 @@ static int write_single(modbus_t *ctx, int function, int addr, int value)
+         /* Used by write_bit and write_register */
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1705,7 +1706,7 @@ int modbus_write_mask_register(modbus_t *ctx, int addr, int and, int or)
+     if (rc > 0) {
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1763,7 +1764,7 @@ int modbus_write_bits(modbus_t *ctx, int addr, int nb, const uint8_t *src)
+     if (rc > 0) {
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1809,7 +1810,7 @@ int modbus_write_registers(modbus_t *ctx, int addr, int nb, const uint16_t *src)
+     if (rc > 0) {
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1872,7 +1873,7 @@ int modbus_write_and_read_registers(modbus_t *ctx,
+     if (rc > 0) {
+         int offset;
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1917,10 +1918,14 @@ int modbus_diagnostics(modbus_t *ctx, int subfunction,
+     }
+ 
+     rc = send_msg(ctx, req, req_length);
++
++    if(subfunction == _SFC_FORCE_LISTEN_ONLY_MODE) /* no response */
++        return 0;
++
+     if (rc > 0) {
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1958,7 +1963,7 @@ int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest)
+         int offset;
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION);
++        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+-- 
+1.9.0
+

@@ -1,0 +1,24 @@
+/** \example  ctmain.c
+
+This file shows the HelloWorld example implementation of \link ctparts_PrepareMain \endlink by setting function defaults
+and calling the common main preparation function \link ctutil_CommonMain \endlink.
+
+Also implemented in this file are \link ctparts_ctMain \endlink with the config tool primary functionality
+and other predefined ctparts functions called by \link ctutil_CommonMain \endlink.
+
+*/
+
+
+/** \example  params.c
+
+This file shows the HelloWorld example implementation of predefined ctparts functions for parameter options and to print
+help/info texts called by \link ctutil_CommonMain \endlink.
+
+*/
+
+
+/** \example  params.h
+
+This file shows the HelloWorld example definition for config tool specific options (\link ctutil_OptionsSpecific_t \endlink).
+
+*/

@@ -1,0 +1,180 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+DAEMONIZE="/sbin/start-stop-daemon"
+
+prepare_home_dir()
+{
+  # prepare home dir according to CODESYS_HOMEDIR_SDCARD config parameter,
+  # depending on boot media
+  mount | grep -q "/dev/mmcblk0p1"
+  local sd_is_mounted=$?
+  . $RUNTIME_CONFIG
+  if [ -z "$(pidof codesys3)" -a -z "$(pidof plclinux_rt)" ]; then
+    if [ ! -a /home/codesys -o -L /home/codesys ]; then
+      if [[ "$(/etc/config-tools/get_filesystem_data active-partition-medium)" =~ "internal-flash" ]] && \
+           [ "$CODESYS_HOMEDIR_SDCARD" = "enabled" -a "$sd_is_mounted" = "0" ]; then
+        rm /home/codesys
+        ln -s /media/sd /home/codesys
+      else
+        # booted from sd-card, direct /home/codesys link to real directory
+        rm /home/codesys
+        ln -s /home/codesys_root /home/codesys
+      fi
+      # copy non-destructive cds2 files, even if cds3 is started. cds3 ignores the files.
+      cp -rn /home/codesys2_skel/* /home/codesys/
+    fi
+  fi
+}
+
+start_codesys2()
+{
+  if [ -n "`pidof plclinux_rt`" ]; then
+    echo "CoDeSys already started"
+  else  
+    local PROGRAM="/usr/sbin/plclinux_rt"
+    local WRAPPER="/usr/bin/rtswrapper"
+    export LD_LIBRARY_PATH=/home/codesys
+    echo -n "Starting CoDeSys v2.3..."
+    umask 0002
+    echo $PROGRAM > /var/run/runtime
+    if [ "$1" == "0" ]
+    then
+      "$DAEMONIZE" -S -x "$WRAPPER" -o -b -- "$PROGRAM"
+    else
+      "$DAEMONIZE" -S -x "$PROGRAM" -o
+    fi
+  fi
+}
+
+set_licence()
+{
+  DEVICEID=$(printf "0x%X" $(/etc/config-tools/get_typelabel_value DEVICEID))
+  LINK=/etc/specific/3S.$DEVICEID.dat
+  if [ "$LINK" != "$(readlink /usr/share/codesys3/3S.dat)" ]
+  then
+    ln -sf /usr/share/codesys3/3S.$DEVICEID.dat /usr/share/codesys3/3S.dat
+  fi
+}
+
+start_eruntime()
+{
+  local PROGRAM="/usr/bin/codesys3"
+  local WRAPPER="/usr/bin/rtswrapper"
+  echo -n "Starting eRUNTIME..."
+  set_licence
+  umask 0002
+  echo $PROGRAM > /var/run/runtime
+  if [ "$1" == "0" ]
+  then
+    "$DAEMONIZE" -S -x "$WRAPPER" -o -b -- "$PROGRAM"
+  else
+    "$DAEMONIZE" -S -x "$PROGRAM" -o
+  fi
+}
+
+start_runtime()
+{
+  prepare_home_dir
+  case $1 in
+    2)
+     start_codesys2 $2
+     ;;
+    3)
+     start_eruntime $2
+     ;;    
+  esac
+}
+
+stop_runtime()
+{
+  local RESULT=1
+
+  rm /var/run/runtime
+  case $1 in
+    2)
+     echo -n "Terminate CoDeSys v2.3..."
+     "$DAEMONIZE" -K -qx /usr/sbin/plclinux_rt
+     RESULT=$?
+     ;;
+    3)
+     echo -n "Terminate eRUNTIME..."
+     "$DAEMONIZE" -K -qx /usr/bin/codesys3
+     RESULT=$?
+     ;;
+  esac
+  
+  if [ "$RESULT" != "0" ]
+  then
+    echo -n "error while Terminating kill all runtimes..."
+    killall plclinux_rt &> /dev/null
+    killall codesys3    &> /dev/null
+  fi  
+}
+
+CONFIG=/etc/specific/rtsversion
+RUNTIME_CONFIG=/etc/specific/runtimes.conf
+USED_RUNTIME_VERSION=2
+RUNTIME_ORDER="2 3 0"
+FOREGROUND="0"
+CREATE_CONFIG="0"
+
+if [ -a $CONFIG ] 
+then
+  USED_RUNTIME_VERSION=$(cat $CONFIG)
+else
+  CREATE_CONFIG="1"
+fi
+POSSIBLE_RUNTIMES=$(/etc/config-tools/get_possible_runtimes)
+
+##backdoor for starting the not configured runtime
+if [ "$2" != "" ]
+then
+  USED_RUNTIME_VERSION=$2
+fi
+
+if [[ $POSSIBLE_RUNTIMES != *$USED_RUNTIME_VERSION* ]]
+then
+  CREATE_CONFIG="1"
+  for RUNTIME_TO_BE_USED in $RUNTIME_ORDER
+  do
+    if [[ $POSSIBLE_RUNTIMES == *$RUNTIME_TO_BE_USED* ]]
+    then 
+      USED_RUNTIME_VERSION=$RUNTIME_TO_BE_USED
+      break
+    fi
+  done
+fi
+
+COMMAND=$1
+if [ "$COMMAND" == "debug" ]
+then
+  FOREGROUND="1"
+  COMMAND=start
+fi
+
+case $COMMAND in
+    start)
+        # start runtime
+        @RTS_CGROUPS@
+        start_runtime $USED_RUNTIME_VERSION $FOREGROUND
+        [[ -d /etc/config-tools/events/codesys/ ]] && run-parts -a start /etc/config-tools/events/codesys/ >/dev/null 2>&1
+        if [ "$CREATE_CONFIG" == "1" ]
+        then
+          echo "$USED_RUNTIME_VERSION" > $CONFIG
+        fi
+        echo "done."
+        ;;
+
+    stop)
+        stop_runtime $USED_RUNTIME_VERSION
+        [[ -d /etc/config-tools/events/codesys/ ]] && run-parts -a stop /etc/config-tools/events/codesys/ >/dev/null 2>&1
+        echo "done"
+        ;;
+
+esac

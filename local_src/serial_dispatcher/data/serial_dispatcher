@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# /etc/init.d/serial_dispatcher
+#
+#-d /dev/service -a /dev/ttyRUNTIME1 -t 10 -p 6625 -s 127.0.0.1   -v
+
+. /etc/serial_dispatcher.conf
+THISFILE=$0
+PROGRAM=/usr/bin/ttydispatcherd
+
+OPTS="-d $DEVICE -v $VIRTUAL_DEVICE -a $LINK_DEVICE"
+
+if [ "$ACTIVATE_WSERVICE" == "1" ]
+then
+  OPTS="$OPTS -w"
+fi 
+
+if [ "$ACTIVATE_SHELL" == "1" ]
+then
+  OPTS="$OPTS -l"
+fi 
+
+if [ "$BAUD" != "" ]
+then
+  OPTS="$OPTS -b$BAUD"
+fi 
+
+if [ "$PARITY" != "" ]
+then
+  OPTS="$OPTS -p$PARITY"
+fi 
+
+usage() {
+	echo "s2t usage: $THISFILE [start|stop]"
+}
+
+
+case $1 in
+
+	start)
+		echo "Start ttydispatcherd"
+		start-stop-daemon -S -x "$PROGRAM" -o -b -- $OPTS
+		;;
+
+	stop)
+		echo "Stop ttydispatcherd"
+		start-stop-daemon -K -n ttydispatcherd
+		;;
+
+	*)
+
+		usage
+		exit 1
+		;;
+
+esac
+

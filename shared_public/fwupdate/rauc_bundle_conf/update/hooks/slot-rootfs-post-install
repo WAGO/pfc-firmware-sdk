@@ -1,0 +1,129 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package rauc_bundle_conf).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   slot-rootfs-post-install
+#
+# Brief:    WAGO firmware update RAUC hook as post-install of rootfs slot.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Hook routine called in context of RAUC setup after installation of ROOT-FS.
+# Hint: Process is exited with WAGO_FW_UPDATE_NOT_SUCCESSFUL in case of abort.
+#
+# Log prefix is needed because executable (hooks.sh) does not contain
+# "fwupdate" in name
+#
+# Param 1: Platform type (e.g. 'PFC100', 'PFC200v2', etc.)
+#          Currently unused in this script.
+#
+# Return: 0 on success
+#-----------------------------------------------------------------------------#
+function hook_routine
+{
+    local RESULT=0
+
+    fwupdate_report_info "Start root file system post-installation hook"
+
+    # Mark new firmware as incomplete
+    "${DATE_CMD}" > "${RAUC_SLOT_MOUNT_POINT}${WAGO_FW_UPDATE_INCOMPLETE_MARKER}"
+    "${DATE_CMD}" > "${RAUC_SLOT_MOUNT_POINT}${WAGO_FW_UPDATE_FIRST_BOOT_MARKER}"
+
+    # Call update hook if present
+    if [ -e "$WAGO_FW_UPDATE_HOOK" ]; then
+        fwupdate_report_info "Found update hook to call: \"$WAGO_FW_UPDATE_HOOK\""
+        chmod a+x "$WAGO_FW_UPDATE_HOOK"
+        "$WAGO_FW_UPDATE_HOOK"
+        local HOOK_RESULT=$?
+        if [[ $HOOK_RESULT -ne 0 ]]; then
+            fwupdate_report_warning "Update hook failed on call: \"$WAGO_FW_UPDATE_HOOK\" (exit code $HOOK_RESULT)"
+        fi
+    fi
+
+    local skip_settings="false"
+    if fwupdate_shared_lock; then
+        skip_settings=$(fwupdate_get_skip_settings_flag)
+        fwupdate_release_lock
+    fi
+
+    if [[ $skip_settings == "true" ]]; then
+        fwupdate_report_info "Persist settings skipped (flag is set)."
+    else
+        report_info "Persist settings for new firmware" "$WAGO_FW_UPDATE_LOG_PREFIX"
+        if ! get_read_lock $WAGO_FW_UPDATE_SETTINGS_LOCK_FD "$WAGO_FW_UPDATE_SETTINGS_LOCK" $WAGO_FW_UPDATE_SETTINGS_COMPLETION_TIMEOUT; then
+            fwupdate_abort 100 "Failed to get lock" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+        else
+            # Persist settings for restore in new firmware
+            fwupdate_report_info "Save original settings file \"$WAGO_FW_UPDATE_SETTINGS_FILE_WORK\""
+            cp "$WAGO_FW_UPDATE_SETTINGS_FILE_WORK" "$WAGO_FW_UPDATE_SETTINGS_FILE"
+            RESULT=$?
+            if [ "$RESULT" -ne "0" ]; then
+                fwupdate_abort 401 "Failed to persist settings file (return code $RESULT)" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+            fi
+            sync
+            if [ -e "$WAGO_FW_UPDATE_SETTINGS_MOD_FILE_WORK" ]; then
+                fwupdate_report_info "Save settings file mod \"$WAGO_FW_UPDATE_SETTINGS_MOD_FILE_WORK\""
+                cp "$WAGO_FW_UPDATE_SETTINGS_MOD_FILE_WORK" "$WAGO_FW_UPDATE_SETTINGS_MOD_FILE"
+                RESULT=$?
+                if [ "$RESULT" -ne "0" ]; then
+                    fwupdate_abort 403 "Failed to persist settings file (return code $RESULT)" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+                fi
+                sync
+            fi
+    
+            # Persist accounts for restore in new firmware
+            fwupdate_report_info "Save original account files \"$WAGO_FW_UPDATE_ACCOUNTS_DIR_WORK\""
+            cp -r "$WAGO_FW_UPDATE_ACCOUNTS_DIR_WORK" "$WAGO_FW_UPDATE_ACCOUNTS_DIR"
+            RESULT=$?
+            if [ "$RESULT" -ne "0" ]; then
+                fwupdate_abort 402 "Failed to persist accounts files (return code $RESULT)" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+            fi
+            sync
+    
+            release_lock $WAGO_FW_UPDATE_SETTINGS_LOCK_FD
+        fi
+    fi
+
+    # Move FW-Update service script to rc.d in new rootfs-slot to enable autostart
+    fwupdate_report_info "Enable $WAGO_CT_SYSTEM_MODULE autostart in new firmware"
+    mv "${RAUC_SLOT_MOUNT_POINT}/etc/rc.d/disabled/S15_fwupdate_service" "${RAUC_SLOT_MOUNT_POINT}/etc/rc.d/"
+    sync
+    if [ ! -e "${RAUC_SLOT_MOUNT_POINT}/etc/rc.d/S15_fwupdate_service" ]; then
+        fwupdate_abort 600 "Failed to enable $WAGO_CT_SYSTEM_MODULE autostart" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+    fi
+
+    # Disable runtime service script in new rootfs-slot to disable runtime autostart
+    fwupdate_report_info "Disable runtime autostart in new firmware"
+    chmod a-x "${RAUC_SLOT_MOUNT_POINT}/etc/init.d/runtime"
+    sync
+    if [ -x "${RAUC_SLOT_MOUNT_POINT}/etc/init.d/runtime" ]; then
+        fwupdate_abort 600 "Failed to disable runtime autostart" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+    fi
+
+    # Disable finalize_root script in new rootfs-slot to mark active system as good
+    fwupdate_report_info "Disable finalize_root in new firmware"
+    chmod a-x "${RAUC_SLOT_MOUNT_POINT}/etc/init.d/finalize_root"
+    sync
+    if [ -x "${RAUC_SLOT_MOUNT_POINT}/etc/init.d/finalize_root" ]; then
+        fwupdate_abort 600 "Failed to disable finalize_root" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+    fi
+    
+    # Copy active runtime version file to new system
+    fwupdate_report_info "Synchronize active runtime version"
+    cp "/etc/specific/rtsversion" "${RAUC_SLOT_MOUNT_POINT}/etc/specific/rtsversion"
+    sync
+    if [[ "$(cat "/etc/specific/rtsversion")" != "$(cat "${RAUC_SLOT_MOUNT_POINT}/etc/specific/rtsversion")" ]]; then
+        fwupdate_abort 600 "Failed to synchronize active runtime version" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+    fi
+    
+    return 0
+}

@@ -1,0 +1,353 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_modbus
+#
+# Change the configuration of the modbus
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+MAX_32_BIT=4294967295
+MAX_TIMEOUT=999999
+
+
+ChangeRts3sCfgParameter()
+#
+# Change a parameter-value in CoDeSys-config-file
+#
+{
+  local headlineString=$1
+  local parameter=$2
+  local newValue=$3
+
+  local status=$SUCCESS
+  #echo "headlineString:"$headlineString "parameter:"$parameter "newValue:"$newValue
+
+  # check whether config-file exists 
+  if [ ! -f $PLC_CONFIG_FILE ]; then
+    status=$CONFIG_FILE_MISSING
+    ReportError $CONFIG_FILE_MISSING "($PLC_CONFIG_FILE)"
+    SetLastError "PLC-Config-File is missing"
+  else
+
+    # search for the line with the headline-string and put it into string with line-number first
+    local numberedLine=`egrep -n "$headlineString" $PLC_CONFIG_FILE  2> /dev/null`
+
+    if [ -n "$numberedLine" ]; then
+
+      # cut line-number from grep-output-line
+      local lineNr=`echo ${numberedLine%:*}`
+      #echo "Headline lineNr:" $lineNr
+
+      lineNr=$(($lineNr + 1))
+      actualLine=`sed -n ''$lineNr'p' $PLC_CONFIG_FILE`
+
+      while [ -n "$actualLine" ]; do
+
+        #echo "actualLine:"$actualLine
+        echo $actualLine | egrep -n "$parameter" 2> /dev/null > /dev/null
+        if [ "$?" == $SUCCESS ]; then
+
+          #echo "parameter found"
+          sudo $SED -i ''$lineNr'c\'"$parameter"'='"$newValue"'' $PLC_CONFIG_FILE
+          #echo "sed:"
+          #sed -n ''$lineNr'c\'"$parameter"'='"$newValue"'' $PLC_CONFIG_FILE
+        fi
+
+        lineNr=$(($lineNr + 1))
+        actualLine=`sed -n ''$lineNr'p' $PLC_CONFIG_FILE`
+      
+      done
+    fi
+  fi
+    
+  return $status
+}
+
+
+CheckTimeout()
+#
+# Check if the timeout-string is valid and reduce it to maximum if necessairy
+#
+{
+  newTimeout=$1
+  status=$SUCCESS
+
+  # check if timeout is a positive numeric value
+  echo $newTimeout | egrep "^[0-9]+$" > /dev/null 2> /dev/null
+  if [ $? != "$SUCCESS" ]; then
+
+    #echo "not alphanumeric"
+    status=$INVALID_PARAMETER
+    ReportError $status "($newTimeout)"
+ 
+  else
+
+    # if timeout-value is greater than max-value, reduce it to maximum
+    if (( $MAX_TIMEOUT < $newTimeout )); then
+      #echo "too big"
+      SetLastError "Timeout-value to large, cut to maximum"
+      newTimeout=$MAX_TIMEOUT
+    fi
+
+    echo -e $newTimeout"\c"
+  fi
+
+  return $status
+}
+
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the modbus-configuration *"
+  echo
+  echo "Usage: config_modbus < tpye=type-value > [ state=state-value timeout=timeout-value node-id=node-id-value Interface=interface-value Baud=baud-value Data_Bits=data-bits-value parity=parity-value Stop-Bits=stop-bits-value Flow_control=flow-control-value ]"
+  echo
+  echo "type-value: udp | tcp | rtu" 
+  echo "state-value: enabled | disabled"
+  echo "timeout-value: maximum is 999999; if value is bigger, it is reduced to. Not available for type udp"
+  echo "node-id-value: must be between 1 and 247; only available for type rtu"
+  echo "interface-value: only available for type rtu"
+  echo "baud-value: expedient values: \"2400\", \"4800\", \"9600\", \"19200\", \"38400\", \"57600\", \"115200\"; only available for type rtu"
+  echo "data-bits-value: expedient values: \"7\", \"8\"; only available for type rtu"
+  echo "parity-value: expedient values: \"None\", \"Odd\", \"Even\"; only available for type rtu"
+  echo "stop-bits-value: expedient values: \"0\", \"1\"; only available for type rtu"
+  echo "flow-control: expedient values: \"None\", \"SW\", \"HW\"; only available for type rtu"
+  exit $status
+fi
+
+
+# filter input parmeter of input-string
+type=`GetParameterValue "type" $*`
+#echo "type:"$type
+
+newState=`GetParameterValue "state" $*`
+case "$newState" in
+
+  "" )        ;;
+  disabled )  newStateValue="0";;
+  enabled )   newStateValue="1";;
+  * )         status=$INVALID_PARAMETER
+              ReportError $status "($newState)"
+              SetLastError "Invalid State"
+              exit $status
+              ;;
+esac
+
+case "$type" in
+
+  udp )
+          actualState=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_UDP state`
+          #echo "actualState:"$actualState
+
+          if [ -n "$newState" ] && [ "$actualState" != "$newState" ]; then
+            ChangeRts3sCfgParameter $RTS3S_MODBUS_UDP Enabled $newStateValue
+            status=$?
+          fi
+          ;;
+
+  tcp )
+          newTimeout=`GetParameterValue "timeout" $*`
+          #echo "newTimeout:"$newTimeout
+
+          actualState=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_TCP state`
+          actualTimeout=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_TCP ModbusTCPTimeout`
+          #echo "actualState:"$actualState "actualTimeout:"$actualTimeout
+
+          if [ -n "$newState" ] && [ "$actualState" != "$newState" ]; then
+            ChangeRts3sCfgParameter $RTS3S_MODBUS_TCP Enabled $newStateValue
+            status=$?
+          fi
+
+          if [ -n "$newTimeout" ] && [ "$actualTimeout" != "$newTimeout" ]; then
+
+            #echo "Change Timeout"
+            #CheckTimeout $newTimeout
+            newTimeout=`CheckTimeout $newTimeout`
+            status=$?
+            if [ "$status" == "$SUCCESS" ]; then
+              ChangeRts3sCfgParameter $RTS3S_MODBUS_TCP ModbusTCPTimeout $newTimeout
+              status=$?
+            fi
+          fi
+          ;;
+
+  rtu )
+          newTimeout=`GetParameterValue "timeout" $*`
+          newNodeId=`GetParameterValue "node-id" $*`
+          newInterface=`GetParameterValue "Interface" $*`
+          newBaud=`GetParameterValue "Baud" $*`
+          newDataBits=`GetParameterValue "Data_Bits" $*`
+          newParity=`GetParameterValue "Parity" $*`
+          newStopBits=`GetParameterValue "Stop_Bits" $*`
+          newFlowControl=`GetParameterValue "Flow_control" $*`
+          #echo "newTimeout:"$newTimeout "newInterface:"$newInterface "newBaud:"$newBaud "newDatabits:"$newDatabits
+          #echo "newParity:"$newParity "newStopBits:"$newStopBits "newFlowControl:"$newFlowControl
+
+          actualNodeId=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_NODE_ID`
+          actualTimeout=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_RTU_TIMEOUT`
+          actualInterface=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_INTERFACE`
+          actualBaud=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_BAUD`
+          actualDataBits=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_DATA_BITS`
+          actualParity=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_PARITY`
+          actualStopBits=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_STOP_BITS`
+          actualFlowControl=`${CONFIG_TOOLS_PATH}get_rts3scfg_value $RTS3S_MODBUS_RTU $RTS3S_FLOW_CONTROL`
+          #echo "actualTimeout:"$actualTimeout "actualInterface:"$actualInterface "actualBaud:"$actualBaud "actualDatabits:"$actualDataBits
+          #echo "actualParity:"$actualParity "actualStopBits:"$actualStopBits "actualFlowControl:"$actualFlowControl
+
+          # State
+          if [ -n "$newState" ] && [ "$actualState" != "$newState" ]; then
+            ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU Enabled $newStateValue
+            status=$?
+          fi
+
+          # Node-ID
+          if [ -n "$newNodeId" ] && [ "$actualNodeId" != "$newNodeId" ]; then
+
+            # check if node-id is a positive numeric value
+            #echo $newNodeId | egrep "^[0-9]+$" > /dev/null 2> /dev/null
+            #if [ $? != "$SUCCESS" ]; then
+
+            # check if node-id has a value between 1 and 247
+            if (( $newNodeId < 1 )) || (( $newNodeId > 247 )); then
+              status=$INVALID_PARAMETER
+              ReportError $status "($newTimeout)"
+              SetLastError "Node-ID invalid"
+            else
+              ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_NODE_ID $newNodeId
+              status=$?
+            fi
+          fi
+
+          # Timeout
+          if [ -n "$newTimeout" ] && [ "$actualTimeout" != "$newTimeout" ]; then
+            newTimeout=`CheckTimeout $newTimeout`
+            status=$?
+            if [ "$status" == "$SUCCESS" ]; then
+              ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_RTU_TIMEOUT $newTimeout
+              status=$?
+            fi
+          fi
+
+          # Interface
+          if [ -n "$newInterface" ] && [ "$actualInterface" != "$newInterface" ]; then
+            ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_INTERFACE $newInterface
+            status=$?
+          fi
+
+          # Baudrate
+          if [ -n "$newBaud" ] && [ "$actualBaud" != "$newBaud" ]; then
+
+            # check if baudrate is a positive numeric value
+            echo $newBaud | egrep "^[0-9]+$" > /dev/null 2> /dev/null
+            if [ $? != "$SUCCESS" ]; then
+              status=$INVALID_PARAMETER
+              ReportError $status "($newBaud)"
+              SetLastError "Baudrate invalid"
+            else
+              ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_BAUD $newBaud
+              status=$?
+            fi
+          fi
+
+          # Data-Bits
+          if [ -n "$newDataBits" ] && [ "$actualDataBits" != "$newDataBits" ]; then
+
+            # check if data-bits is a positive numeric value
+            echo $newDataBits | egrep "^[0-9]+$" > /dev/null 2> /dev/null
+            if [ $? != "$SUCCESS" ]; then
+              status=$INVALID_PARAMETER
+              ReportError $status "($newDataBits)"
+              SetLastError "Data-Bits invalid"
+            else
+              ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_DATA_BITS $newDataBits
+              status=$?
+            fi
+          fi
+
+          # Parity
+          if [ -n "$newParity" ] && [ "$actualParity" != "$newParity" ]; then
+
+            ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_PARITY $newParity
+            status=$?
+          fi
+
+          # Stop-Bits
+          if [ -n "$newStopBits" ] && [ "$actualStopBits" != "$newStopBits" ]; then
+
+            # check if stop-bits is a positive numeric value
+            echo $newStopBits | egrep "^[0-9]+$" > /dev/null 2> /dev/null
+            if [ $? != "$SUCCESS" ]; then
+              status=$INVALID_PARAMETER
+              ReportError $status "($newStopBits)"
+              SetLastError "StopBits invalid"
+            else
+              ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_STOP_BITS $newStopBits
+              status=$?
+            fi
+          fi
+
+          # Flow-Control
+          if [ -n "$newFlowControl" ] && [ "$actualFlowControl" != "$newFlowControl" ]; then
+            ChangeRts3sCfgParameter $RTS3S_MODBUS_RTU $RTS3S_FLOW_CONTROL $newFlowControl
+            status=$?
+          fi
+          ;;
+
+  "" )
+          status=$MISSING_PARAMETER
+          ReportError $status "(type)"
+          ;;
+
+  * )
+          status=$INVALID_PARAMETER
+          ReportError $status "($type)"
+          ;;
+esac
+
+# write buffered filesystem-blocks to disk
+sync
+
+# no error until now -> induce CoDeSys to load its configuration again
+if [ "$status" = "$SUCCESS" ]; then
+
+  # get PID of CoDeSys
+  pidCoDeSys=`pidof $PLC_RT_NAME`
+  if [ $? != "$SUCCESS" ]; then
+    status=$SHELL_ERROR
+    ReportError $status "(pidof)"
+    SetLastError "Error while execution"
+  else
+
+    # send according signal
+    #echo "pidCoDeSys:"$pidCoDeSys
+    sudo $KILL -USR1 $pidCoDeSys
+    if [ $? != "$SUCCESS" ]; then
+      status=$SHELL_ERROR
+      ReportError $status "(kill)"
+    SetLastError "Error while execution"
+    fi
+  fi
+fi
+
+exit $status

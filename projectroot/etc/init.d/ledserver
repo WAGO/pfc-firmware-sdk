@@ -1,0 +1,70 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# ledserver
+#
+
+case $1 in
+
+    start)
+	# start errorsererd as daemon
+	DEVCONF="$(/etc/config-tools/get_typelabel_value DEVCONF)"
+	ORDER="$(/etc/config-tools/get_typelabel_value ORDER)"
+	LED_DEST_PATH="/dev/leds/"
+	if [ "$DEVCONF" == "" ]
+	then
+		DEVCONF="0x000F"
+	fi
+
+	if [ "${ORDER:4:2}" == "81" ]
+	then
+		PRODUCT="PFC100"
+	elif [ "${ORDER:0:3}" == "762" ]
+	then
+		PRODUCT="TP600"
+	elif [ "${ORDER:4:2}" == "82" ]
+	then
+		# default
+		PRODUCT="PFC200"
+		
+		# full order number use 
+		SUBORDER=$(echo "$ORDER" | awk -F/ '{print $2}')
+		if [ -n "$SUBORDER" ]
+		then
+			# check that file with sub order number exists
+			if [ -f "/etc/specific/led.${DEVCONF}.${PRODUCT}_${SUBORDER}.xml" ] 
+			then
+				PRODUCT="${PRODUCT}_${SUBORDER}"
+				# rename led
+				if [ "$ORDER" = "750-8212/0000-0100" ] 
+				then
+					mv ${LED_DEST_PATH}u7-green ${LED_DEST_PATH}bt-green
+					mv ${LED_DEST_PATH}u7-red ${LED_DEST_PATH}bt-red
+				fi
+			fi
+		fi
+	else
+		PRODUCT="SRC"
+	fi
+	echo "ledserverd: Product = $PRODUCT"
+	LED_XML="led.$DEVCONF.$PRODUCT.xml"
+	ln -fs /etc/specific/$LED_XML /tmp/led.xml
+	echo "Starting ledserverd..."
+	start-stop-daemon -S -x "/bin/ledserverd" -o -b
+	echo "done."
+	;;
+
+
+    stop)
+	echo -n "Terminating ledserverd..."
+	start-stop-daemon -K -n ledserverd
+	echo "done"
+	;;
+
+esac

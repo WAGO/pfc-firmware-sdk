@@ -1,0 +1,30 @@
+<!ELEMENT diagnostic (eventclass)*>
+<!ELEMENT eventclass (event)*>
+<!ATTLIST eventclass
+   class_range CDATA #REQUIRED
+   name        CDATA #REQUIRED
+>
+<!ELEMENT event      (comment?, led?, string, rststr?)>
+<!ATTLIST event
+   id          ID    #REQUIRED
+   name        CDATA #REQUIRED
+   persistent CDATA #IMPLIED
+>
+<!ELEMENT comment      (#PCDATA)>
+<!ELEMENT led      ((on, off?)? |  (blinkcode, blinkarg)? | (blinkarg, blinkcode)? )>
+<!ATTLIST led
+   name        CDATA  #REQUIRED
+   state       CDATA  #REQUIRED
+   default     CDATA  #IMPLIED
+>
+<!ELEMENT on        (#PCDATA)>
+<!ELEMENT off       (#PCDATA)>
+<!ELEMENT blinkcode (#PCDATA)>
+<!ELEMENT blinkarg  (#PCDATA)>
+
+<!ELEMENT string      (en, de?, fr?)>
+<!ELEMENT rststr    (en, de?, fr?)>
+<!ELEMENT en        (#PCDATA)>
+<!ELEMENT de        (#PCDATA)>
+<!ELEMENT fr        (#PCDATA)>
+

@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: set_kbus_delay
+#
+# Change the kbus delay time in CoDeSs.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+
+ShowHelpText()
+{
+  echo
+  echo "* Change the delay time for kbus in CoDeSys *"
+  echo
+  echo "Usage: set_kbus_delay < new delay time  >"
+  echo
+  echo "\"new delay time\": 0..10000 nano seconds"
+  echo
+  return
+}
+
+status=0
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  ShowHelpText
+  exit 0
+fi
+
+newDelayTime=$1
+
+# input variable existing?
+if [ -z $newDelayTime ]; then
+  printf "\nError: missing input\n"
+  ShowHelpText
+  exit -1
+fi
+
+# input variable valid?
+if (( "$newDelayTime" < 0)) || (( "$newDelayTime" > 10000 )); then
+  printf "\nError: invalid input\n"
+  ShowHelpText
+  exit -1
+fi
+#echo "newDelayTime" $newDelayTime
+
+# check whether config-file exists 
+if [ ! -f "/etc/rts3s.cfg" ]; then
+  printf "\nError: config file missing"
+  exit -1
+fi
+
+# change value in config-file
+sudo /usr/bin/sed -i '/KBusDelayUsec=/ c\KBusDelayUsec='$newDelayTime'' /etc/rts3s.cfg
+if [ $? != 0 ]; then
+  printf "\nError while writing config file"
+  exit -1
+fi
+
+ # write buffered filesystem-blocks to disk
+sync
+
+# figure out if CoDeSys is running at all, otherwise we shouldn't send a signal to it
+processList=`ps aux`
+echo $processList | grep plclinux_rt > /dev/null 2> /dev/null
+if [ 0 = "$?" ]; then
+
+  # get PID of the CoDeSys-process
+  pidCoDeSys=`pidof plclinux_rt`
+  if [ $? != 0 ]; then
+    printf "\nError while connection CoDeSys"
+    status=-1
+  else
+
+    # send a signal to CoDeSys so that it loads its configuration again
+    #echo "pidCoDeSys:"$pidCoDeSys
+    sudo /bin/kill -USR1 $pidCoDeSys
+    if [ $? != 0 ]; then
+      printf "\nError while connecting CoDeSys"
+      status=-1
+    fi
+  fi
+fi
+

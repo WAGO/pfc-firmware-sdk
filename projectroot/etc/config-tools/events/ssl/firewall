@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Firewall: ssl demon events handler - http, https, ftp and ftps
+#
+
+enabled=`/etc/config-tools/firewall firewall --is-enabled`
+[ "enabled" != "$enabled" ] && exit 0
+
+
+start_http()
+{
+    local http=`/etc/config-tools/config_ssl http-status`
+    local https=`/etc/config-tools/config_ssl https-status`
+
+    if [ "enabled" == "${http}" ] || [ "enabled" == "${https}" ] ; then
+        /etc/config-tools/firewall http --apply up >/dev/null 2>&1
+    else
+        /etc/config-tools/firewall http --apply down >/dev/null 2>&1
+    fi
+    if [ "enabled" == "${https}" ] ; then
+        /etc/config-tools/firewall https --apply up >/dev/null 2>&1
+    else
+        /etc/config-tools/firewall https --apply down >/dev/null 2>&1
+    fi
+}
+
+start_ftp()
+{
+    ftp=`/etc/config-tools/config_ssl ftp-status`
+    ftps=`/etc/config-tools/config_ssl ftps-status`
+
+    if [ "enabled" == "${ftp}" ] ; then
+        /etc/config-tools/firewall ftp --apply up >/dev/null 2>&1
+    else
+        /etc/config-tools/firewall ftp --apply down >/dev/null 2>&1
+    fi
+    if [ "enabled" == "${ftps}" ] ; then
+        /etc/config-tools/firewall ftps --apply up >/dev/null 2>&1
+    else
+        /etc/config-tools/firewall ftps --apply down >/dev/null 2>&1
+    fi
+}
+
+stop()
+{
+    /etc/config-tools/firewall http --apply down >/dev/null 2>&1
+    /etc/config-tools/firewall https --apply down >/dev/null 2>&1
+    /etc/config-tools/firewall ftp --apply down >/dev/null 2>&1
+    /etc/config-tools/firewall ftps --apply down >/dev/null 2>&1
+}
+
+case "$1" in
+    start|config)
+        case "$2" in
+            http)
+                start_http;;
+            ftp)
+                start_ftp;;
+            *)
+                start_http
+                start_ftp
+                ;;
+        esac
+        ;;
+    stop)
+        stop;;
+    *)
+        ;;
+esac

@@ -1,0 +1,49 @@
+# /etc/network/interfaces
+
+auto lo eth0 eth1
+
+#
+# interfaces
+#
+
+iface lo inet loopback
+
+iface eth0 inet manual
+ up sudo /sbin/ifconfig eth0 192.168.1.87 netmask 255.255.255.0 broadcast 192.168.1.255
+# up sudo /sbin/route add default gw 192.168.1.1 netmask 0.0.0.0 dev eth0
+ down sudo /sbin/ip addr flush dev eth0 && sudo /sbin/ip link set eth0 down
+ down sudo /sbin/route del default gw 0.0.0.0 dev eth0
+ up sudo /usr/sbin/ethtool -s eth0 autoneg on
+
+#iface eth1 inet manual
+# up sudo /sbin/ifconfig eth1 192.168.2.17 netmask 255.255.255.0 broadcast 192.168.2.255
+# up sudo /sbin/route add default gw 192.168.2.1 netmask 0.0.0.0 dev eth1
+# down sudo /sbin/ip addr flush dev eth1 && sudo /sbin/ip link set eth1 down
+# down sudo /sbin/route del default gw 0.0.0.0 dev eth1
+# up sudo /usr/sbin/ethtool -s eth1 autoneg on
+ 
+#iface eth0 inet manual
+# up /sbin/bootpc-startup eth0 &
+# down sudo /sbin/ip addr flush dev eth0 && sudo /sbin/ip link set eth0 down 
+# down /usr/bin/killall bootpc-startup
+# up sudo /usr/sbin/ethtool -s eth0 autoneg on
+
+#iface eth1 inet manual
+# up /sbin/bootpc-startup eth1 &
+# down sudo /sbin/ip addr flush dev eth1 && sudo /sbin/ip link set eth1 down 
+# down /usr/bin/killall bootpc-startup
+# up sudo /usr/sbin/ethtool -s eth1 autoneg on
+
+#iface eth0 inet manual
+# up /sbin/udhcpc -i eth0 > /dev/null 2> /dev/null &
+# down /usr/bin/killall udhcpc
+# down sudo /sbin/ip addr flush dev eth0 && sudo /sbin/ip link set eth0 down
+# up sudo /usr/sbin/ethtool -s eth0 autoneg on
+
+#iface eth1 inet manual
+# up /sbin/udhcpc -i eth1 > /dev/null 2> /dev/null &
+# down /usr/bin/killall udhcpc
+# down sudo /sbin/ip addr flush dev eth1 && sudo /sbin/ip link set eth1 down
+# up sudo /usr/sbin/ethtool -s eth1 autoneg on
+
+

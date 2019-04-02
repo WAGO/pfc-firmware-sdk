@@ -1,0 +1,119 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_min_sd_card_size
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# Suppress warnings that shellcheck is not able to follow "source" statements
+# shellcheck disable=SC1090
+# shellcheck disable=SC1091
+
+
+set -o nounset
+set -o errexit
+
+
+
+#-------------- main-programm ------------------------#
+
+function get_rootfs_offset
+{
+    local root_part_offset=$((G_PART_ALIGNMENT_MB + G_BOOT_PART_SIZE_MB))
+    local rem=$((root_part_offset % G_PART_ALIGNMENT_MB))
+
+    if [[ ${rem} -ne 0 ]]; then
+        root_part_offset=$((root_part_offset + PART_ALIGNMENT_MB - rem))
+    fi
+
+    echo $root_part_offset
+}
+
+function get_min_sd_card_size
+{
+    local current_rootfs_size
+    current_rootfs_size=$(du / --apparent-size --summarize --one-file-system \
+                               --block-size=$((1024*1024)) | awk '{print $1}')
+
+    # Note: different partition layout:
+    # 
+    # NAND:     /home is an independent partition
+    # SD card:  /home and /log are directories in root partition
+    # EMMC:     /home and /log are independent partitions
+    local current_additional_size=0
+
+    for mountpoint in /home /log; do
+
+        if mount | grep -q "on ${mountpoint} "; then
+            current_additional_size=$(( current_additional_size + 
+                                        $(du "${mountpoint}" --apparent-size \
+                                                             --summarize \
+                                                             --one-file-system \
+                                                             --block-size=$((1024*1024)) | awk '{print $1}') ))
+        fi
+
+    done
+
+    local current_rootfs_offset
+    current_rootfs_offset=$(get_rootfs_offset)
+
+    # add $current_rootfs_size * 0,25 as an emergency buffer
+    # Note:  0,25 * rootfs is up to 64 MB on EMMC
+    echo $(( current_rootfs_offset + current_rootfs_size + current_additional_size + $((current_rootfs_size/4)) ))
+}
+
+function __main
+{
+    local status=$SUCCESS
+
+    local param=${1:-""}
+
+    # show help-text if requested
+    if [ "$param" = "-h" ] || [ "$param" = "--help" ]; then
+        echo
+        echo "* Get minimum sd card image size needed to create a firmware image on SD card"
+        echo
+        echo "Usage: $0"
+        echo
+        exit "${status}"
+    fi
+
+    case $param in
+        rootfs-offset) # should never be needed by the end-user
+            get_rootfs_offset
+            ;;
+        "")
+            get_min_sd_card_size
+            ;;
+         *)
+            status=$INVALID_PARAMETER
+    esac
+ 
+
+    exit "${status}"
+}
+
+# Don't run main when the file is being sourced.
+# Required for unit testing.
+if [[ "$0" == "${BASH_SOURCE[0]}" ]]; then
+
+    if [ ! -f "/etc/config-tools/board_specific_defines" ]; then
+        echo "board_specific_defines missing"
+        exit 255
+    fi
+    . /etc/config-tools/board_specific_defines
+
+    if [ ! -f "/usr/sbin/${BOARD_ID}_commons" ]; then
+        echo "${BOARD_ID}_commons missing"
+        exit 255
+    fi
+    . "/usr/sbin/${BOARD_ID}_commons"
+
+    __main "$@"
+fi

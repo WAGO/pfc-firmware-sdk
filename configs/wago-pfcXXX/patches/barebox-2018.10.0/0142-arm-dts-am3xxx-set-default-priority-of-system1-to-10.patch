@@ -1,0 +1,27 @@
+From b0bb3a6405d7abd0b0bed07c0da035bb8d272f83 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 7 Nov 2018 08:03:26 +0100
+Subject: [PATCH 142/144] arm: dts: am3xxx: set default priority of system1 to
+ 10
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am3xxx-pfc-bootchooser.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi b/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi
+index a8cbe38..8ec7e1b 100644
+--- a/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi
++++ b/arch/arm/dts/am3xxx-pfc-bootchooser.dtsi
+@@ -48,7 +48,7 @@
+ 			priority@10 {
+ 				reg = <0xC 0x4>;
+ 				type = "uint32";
+-				default = <20>;
++				default = <10>;
+ 			};
+ 		};
+ 
+-- 
+2.7.4
+

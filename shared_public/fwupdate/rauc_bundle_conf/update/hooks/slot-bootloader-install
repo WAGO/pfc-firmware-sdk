@@ -1,0 +1,60 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package rauc_bundle_conf).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   slot-bootloader-install
+#
+# Brief:    WAGO firmware update RAUC hook to install bootloader.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Hook routine called in context of RAUC setup to install bootloader.
+# Hint: Process is exited with WAGO_FW_UPDATE_NOT_SUCCESSFUL in case of abort.
+#
+# Log prefix is needed because executable (hooks.sh) does not contain
+# "fwupdate" in name
+#
+# Param 1: Platform type (e.g. 'PFC100', 'PFC200v2', etc.)
+#          Used to identify needed bootloaders.
+#
+# Return: 0 on success
+#-----------------------------------------------------------------------------#
+function hook_routine
+{
+    local PLATFORM_TYPE="$1"
+    local RESULT=0
+
+    fwupdate_report_info "Start bootloader installation hook"
+
+    local BOOTLOADER_SRC_PATH="${RAUC_MOUNT_PREFIX}/bundle"
+
+    # Check index, values from 9 have a special meaning for update script
+    local SYSTEM_INDEX=$(/etc/config-tools/get_systeminfo inactive-system-number)
+    if [[ -z "$SYSTEM_INDEX" || ! $SYSTEM_INDEX =~ [1-8] ]]; then
+        fwupdate_abort 700 "Failed to update bootloader, inactive System undefined (system index \"$SYSTEM_INDEX\")" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+    fi
+    local OUTPUT=""
+    OUTPUT=$(/usr/sbin/${BOARD_ID}_update_bootloader.sh "$PLATFORM_TYPE" "$BOOTLOADER_SRC_PATH" $SYSTEM_INDEX)
+    RESULT=$?
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_abort 700 "Failed to update bootloader, error code $RESULT (platform type $PLATFORM_TYPE, system index $SYSTEM_INDEX, source path: \"$BOOTLOADER_SRC_PATH\")" $WAGO_FW_UPDATE_NOT_SUCCESSFUL
+    else
+        if [ -n "$(echo "$OUTPUT" | grep "No bootloader update needed")" ]; then
+            fwupdate_report_info "Bootloader installation skipped: No update needed"
+        else
+            fwupdate_report_info "$(echo -n "$OUTPUT" | grep "Setting bootloader version to" | head -n1)"
+            fwupdate_report_info "Bootloader installation done"
+        fi
+    fi
+
+    return 0
+}

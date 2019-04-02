@@ -1,0 +1,606 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist package wago-fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate_mode
+#
+# Brief:    WAGO firmware update mode control tool.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   TBi: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Load firmware update definitions and functions.
+readonly WAGO_ST_DIR="/usr/sbin"
+if [ ! -f "$WAGO_ST_DIR/fwupdate_common" ]; then
+    echo "Missing dependency fwupdate_common"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_common"
+
+
+# General defines
+readonly WAGO_CT_NAME="fwupdate_mode"
+readonly WAGO_CT_TITLE="* Mode control for $WAGO_CT_SYSTEM_MODULE *"
+
+# Activate this option to test log deletion on clear
+readonly WAGO_CT_DELETE_LOG_ON_CLEAR=false
+
+
+# Set default parameter values
+QUIET=0
+SHOWGENERALHELP=0
+SHOWHELP=0
+URIENCODE=0
+TEXTOUT=0
+JSONOUT=0
+STORAGEVALUES=""
+FUNCTION="no"
+KEEP_APP=0
+
+
+declare -a STORAGEVALUES
+
+# Main tool/script function.
+#
+# Param 1..n: Script parameters
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+main()
+{
+    local RESULT=0
+
+    # Print information if no arguments given and exit
+    if [ "$#" -eq "0" ]; then
+        print_info
+        RESULT=$MISSING_PARAMETER
+        return $RESULT
+    fi
+
+    # Evaluate parameters
+    evaluate_params "$@"
+    RESULT=$?
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_report_error "Error on config tool parameter evaluation"
+        if [ "$RESULT" -ne "$MISSING_PARAMETER" -a "$RESULT" -ne "$INVALID_PARAMETER" ]; then
+            RESULT="$INVALID_PARAMETER"
+        fi
+        return $RESULT
+    fi
+
+    # Print help if requested and exit
+    if [ "$SHOWGENERALHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help
+        fi
+        return $RESULT
+    fi
+
+    # Switch by command
+    case "$FUNCTION" in
+      activate)
+        activate
+        RESULT=$?
+        ;;
+      clear)
+        clear
+        RESULT=$?
+        ;;
+      cancel)
+        cancel
+        RESULT=$?
+        ;;
+      "")
+        fwupdate_report_error "No command parameter given"
+        RESULT=$MISSING_PARAMETER
+        ;;
+      *)
+        fwupdate_report_error "Unknown command parameter given"
+        RESULT=$INVALID_PARAMETER
+        ;;
+    esac
+
+    return $RESULT
+}
+
+# Function to print general tool/script information.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_info()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "For detailed usage information use:"
+    echo "  $WAGO_CT_NAME --help"
+
+    return 0
+}
+
+# Function to evaluate tool/script parameters.
+# This function uses globally defined script option variables.
+#
+# Param 1..n: Script parameters
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+evaluate_params()
+{
+    local RESULT=0
+
+    # First evaluate early parameters
+    # (maybe influencing other parameters)
+    QUIET=$(get_parameter_option "-q" "--quiet" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    if [ "$URIENCODE" -ne 0 ]; then
+        fwupdate_report_error "Option -x/--extract-from-uri-encoding currently not supported and will be ignored"
+    fi
+
+    # Evaluate other parameters
+    SHOWGENERALHELP=$(get_parameter_option "-h" "--help" "$1")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    if [ "$SHOWGENERALHELP" -eq "0" ]; then
+        SHOWHELP=$(get_parameter_option "-h" "--help" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        TEXTOUT=$(get_parameter_option "-t" "--text" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        JSONOUT=$(get_parameter_option "-j" "--json" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        KEEP_APP=$(get_parameter_option "-k" "--keep-application" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        FUNCTION=$(get_parameter_command "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+
+        STORAGEVALUES=()
+        local i=0
+        local max_number=$(( $# + 1 ))
+        while (( i <= max_number )); do
+        if [[ "$1" == '-i' || "$1" == '--init-storage' ]]; then
+            shift
+            local key_value_pair="$1"
+                if [[ -z "$key_value_pair" ]]; then
+                    RESULT=$MISSING_PARAMETER
+                    break
+                fi
+                if [[ ! "$key_value_pair" =~ ^.*=.*$ ]]; then
+                    RESULT=$INVALID_PARAMETER
+                    break
+                fi
+                STORAGEVALUES+=("$key_value_pair")
+            fi
+            shift
+            i=$(( i + 1 ))
+        done
+    fi
+
+    return $RESULT
+}
+
+# Function to print tool/script help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME [<script options>] <command> [<command options> [<param>]]"
+    echo
+    echo "Script commands:"
+    echo "  activate                                   Activate $WAGO_CT_SYSTEM_MODULE"
+    echo "  cancel                                     Cancel $WAGO_CT_SYSTEM_MODULE on next possible point"
+    echo "  clear                                      Clear $WAGO_CT_SYSTEM_MODULE \"$WAGO_FW_UPDATE_FINISHED_STATE\"/\"$WAGO_FW_UPDATE_ERROR_STATE\" state"
+    echo
+    echo "Script options:"
+    echo "  --help                                -h   Prints this help text"
+    echo
+    echo "General command options:"
+    print_general_command_options
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to control mode (activate/disable) of $WAGO_CT_SYSTEM_MODULE."
+    echo "  See script commands for available sub commands. Each sub command has its own help."
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME --help   --> Prints this general help text"
+    echo "  $WAGO_CT_NAME activate --help   --> Prints help text for activate command"
+
+    return 0
+}
+
+# Function to print activate command help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help_activate()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME activate [<command options> [<param>]]"
+    echo
+    echo "Command options:"
+    print_general_command_options
+    echo "  --init-storage                        -i   Initialize storage with key/value pair"
+    echo "  --keep-application                    -k   Keep application and retain data on update"
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to activate $WAGO_CT_SYSTEM_MODULE."
+    echo "  Attention: --keep-application/-k may be dangerous if an incompatible application"
+    echo "             is started by runtime environment (CoDeSys/e!RUNTIME)!"
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME activate --help   --> Prints this help text for activate command"
+    echo "  $WAGO_CT_NAME activate -i \"url=http://test.domain;start_val=5\" -i \"color=red\""
+    echo "     --> Initialized key/value store with custom URL and start value and also with text key and value"
+    echo "TODO: Add some useful examples here"
+
+    return 0
+}
+
+# Function to print clear command help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help_clear()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME clear [<command options> [<param>]]"
+    echo
+    echo "Command options:"
+    print_general_command_options
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to clear (disable) $WAGO_CT_SYSTEM_MODULE."
+    echo "TODO: Add additional information here if necessary"
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME clear --help   --> Prints this help text for clear command"
+    echo "TODO: Add some useful examples here"
+
+    return 0
+}
+
+# Function to print cancel command help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help_cancel()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME cancel [<command options> [<param>]]"
+    echo
+    echo "Command options:"
+    print_general_command_options
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to cancel current $WAGO_CT_SYSTEM_MODULE operation."
+    echo "TODO: Add additional information here if necessary"
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME cancel --help   --> Prints this help text for cancel command"
+    echo "TODO: Add some useful examples here"
+
+    return 0
+}
+
+# Function to activate fwupdate process.
+# This function sets the state to init and calls other functions
+# to free up resources for the prepared state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+activate()
+{
+    local RESULT=0
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help_activate
+        fi
+        return $RESULT
+    fi
+
+    if [ ! -f "/etc/init.d/fwupdate_service" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_service"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    # Check boot source
+    if [ "$(/etc/config-tools/get_filesystem_data active-partition-medium)" == "sd-card" ]; then
+        fwupdate_report_error "This version of FW-Update is not usable when running from SD card, this is a permanent error"
+        return $WAGO_FW_UPDATE_UNEXPECTED_SYSTEM_CONFIG
+    fi
+
+    # Check properties of basic persistent paths
+    if [ "$QUIET" -eq "0" ]; then
+        /etc/init.d/mounthd2 status
+        RESULT=$?
+    else
+        /etc/init.d/mounthd2 status >/dev/null 2>&1
+        RESULT=$?
+    fi
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_report_error "Setup of mount points and/or symbolic links incomplete or broken"
+        return $WAGO_FW_UPDATE_UNEXPECTED_SYSTEM_CONFIG
+    fi
+    check_free_space "$WAGO_FW_UPDATE_PERSISTENCE_DIR" $(( $WAGO_FW_UPDATE_DATA_MIN_SPACE_KB + WAGO_FW_UPDATE_STORAGE_MIN_SPACE_KB ))
+    if [ "$?" -ne "0" ]; then
+        fwupdate_report_error "Not enough space available on \"$WAGO_FW_UPDATE_PERSISTENCE_DIR\""
+        return $WAGO_FW_UPDATE_NO_SETTINGS_SPACE
+    fi
+
+    # Implicit cleanup
+    local current_state
+    current_state=$(fwupdate_get_state)
+    if [ "$?" -ne "0" ]; then
+        RESULT=$INTERNAL_ERROR
+    fi
+    if [ "$RESULT" -eq "0" ]; then
+        if [ "$current_state" = "$WAGO_FW_UPDATE_FINISHED_STATE" ] ||
+           [ "$current_state" = "$WAGO_FW_UPDATE_ERROR_STATE"    ]; then
+            clear_implicit
+            RESULT=$?
+        fi
+    fi
+    if [ "$RESULT" -ne "0" ]; then
+        return $RESULT
+    fi
+
+    # Initialize fwupdate process
+    fwupdate_report_info "Activate $WAGO_CT_SYSTEM_MODULE"
+    if [ "$QUIET" -eq "0" ]; then
+        /etc/init.d/fwupdate_service start
+        RESULT=$?
+    else
+        /etc/init.d/fwupdate_service start >/dev/null 2>&1
+        RESULT=$?
+    fi
+    if [ "$RESULT" -ne "0" ]; then
+        return $RESULT
+    fi
+    mv "/etc/rc.d/disabled/$WAGO_FW_UPDATE_SERVICE_LINK" "/etc/rc.d/" >/dev/null 2>&1
+    sync
+    if [ ! -e "/etc/rc.d/$WAGO_FW_UPDATE_SERVICE_LINK" ]; then
+        RESULT=$INTERNAL_ERROR
+        fwupdate_report_error "Failed to activate $WAGO_CT_SYSTEM_MODULE service autostart"
+        return $RESULT
+    fi
+
+    fwupdate_checkpoint_init false
+    RESULT=$?
+
+    # Store initial key/value data if any
+    if [ "$RESULT" -eq "0" ]; then
+        store_init_data
+    fi
+
+    if [ ! -f "/settings/fwupdate_data" ]; then
+        fwupdate_report_error "Missing dependency fwupdate_data"
+        return $CONFIG_FILE_MISSING
+    fi
+
+    if [ "$KEEP_APP" -ne 0 ]; then
+        fwupdate_set_keep_app_flag true
+    else
+        fwupdate_set_keep_app_flag false
+    fi
+
+    # Call function to free resources asynchronously in background
+    if [ "$RESULT" -eq "0" ]; then
+        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "prepare-update"
+    fi
+
+    return $RESULT
+}
+
+# Function to check a path for available free space.
+#
+# Param 1: Path to check for free space
+# Param 2: Expected minimum of available free space
+#
+# Return: 0 on success, INTERNAL_ERROR otherwise
+#-----------------------------------------------------------------------------#
+check_free_space()
+{
+    local PATH_TO_CHECK="$1"
+    local CHECK_SIZE_KB=$2
+    local RESULT=0
+
+    local FREE_SPACE=$(df -Pk "$PATH_TO_CHECK" 2>/dev/null | tail -n+2 | awk '{print $4}' 2>/dev/null)
+    if [ -z "$FREE_SPACE" ] || [ "$FREE_SPACE" -lt "$CHECK_SIZE_KB" ]; then
+        RESULT=$INTERNAL_ERROR
+    fi
+
+    return $RESULT
+}
+
+# Function to store initial key/value data from optional parameters
+# -i/--init-storage.
+#
+# Return: 0 on success, aborts/cancels FW-Update otherwise
+#-----------------------------------------------------------------------------#
+store_init_data()
+{
+    local RESULT=0
+
+    local i=0
+    while (( i < ${#STORAGEVALUES[@]} )); do
+        local INIT_PAIR=${STORAGEVALUES[$i]}
+        local INIT_KEY="$(echo -n "$INIT_PAIR" | cut -d"=" -f1)"
+        local INIT_VALUE="$(echo -n "$INIT_PAIR" | cut -d"=" -f2-$(( WAGO_FW_UPDATE_STORAGE_MIN_SPACE_KB * 1024 )))"
+        if [ -z "$INIT_KEY" ]; then
+            fwupdate_report_error "Failed to extract key name from init pair \"$INIT_PAIR\""
+            RESULT=$INVALID_PARAMETER
+        else
+            "$WAGO_ST_DIR/fwupdate_storage" "--set" "$INIT_KEY" "$INIT_VALUE"
+            RESULT=$?
+        fi
+        i=$(( i + 1 ))
+    done
+
+    # Revert activation on error
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_abort 102 "Failed to initialize key/value store with given init data \"$STORAGEVALUES\"" $RESULT
+    fi
+
+    return 0
+}
+
+# Function to clear error or return from finished state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+clear()
+{
+    local RESULT=0
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help_clear
+        fi
+        return $RESULT
+    fi
+
+    fwupdate_report_info "Clear $WAGO_CT_SYSTEM_MODULE"
+
+    # To free ressources delete update log on clear if enabled
+    if $WAGO_CT_DELETE_LOG_ON_CLEAR; then
+        # TODO: Delete FW-Update log
+        fwupdate_report_error "Not implemented, yet"
+    fi
+
+    # Clear files
+    # TODO: Extract function
+    rm -rf "${WAGO_FW_UPDATE_DATA}.panic_"*
+    rm -rf "$WAGO_FW_UPDATE_PERSISTENCE_DIR/fwupdate-"*
+    $WAGO_ST_DIR/fwupdate_storage -d
+
+    if [ "$?" -ne "0" ]; then
+        RESULT=$INTERNAL_ERROR
+        fwupdate_report_warning "Failed to destroy storage"
+    fi
+    sync
+
+    # Set inactive state
+    fwupdate_report_info "Leave update mode"
+    fwupdate_checkpoint_inactive false
+    if [ "$?" -ne "0" ]; then
+        fwupdate_report_warning "Failed to set state to \"$WAGO_FW_UPDATE_INACTIVE_STATE\""
+    fi
+
+    # Stop service
+    fwupdate_stop
+    RESULT=$?
+
+    # Start normal operation: Start runtime, reboot or do whatever is necessary to reach normal operation state
+    fwupdate_start_normal_operation
+
+    return $RESULT
+}
+
+# Function to implicitly clear error information on activate from finished or error state.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+clear_implicit()
+{
+    local RESULT=0
+
+    fwupdate_report_info "Reset information for $WAGO_CT_SYSTEM_MODULE"
+
+    # Clear files
+    rm -rf "${WAGO_FW_UPDATE_DATA}.panic_"*
+    rm -rf "$WAGO_FW_UPDATE_PERSISTENCE_DIR/fwupdate-"*
+    $WAGO_ST_DIR/fwupdate_storage -d
+    if [[ $? -ne 0 ]]; then
+        RESULT=$INTERNAL_ERROR
+        fwupdate_report_warning "Failed to destroy storage"
+    fi
+    sync
+
+    # Reset error information
+    if [[ $RESULT -eq 0 ]]; then
+        fwupdate_set_error_info 0 "" false
+        if [[ $? -ne 0 ]]; then
+            fwupdate_report_warning "Failed to reset error information"
+        fi
+    fi
+    
+    # Reset system number referencies
+    if [[ $RESULT -eq 0 ]]; then
+        local old_sn
+        local new_sn
+        old_sn=$($WAGO_CT_DIR/get_systeminfo active-system-number)
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        new_sn=$($WAGO_CT_DIR/get_systeminfo inactive-system-number)
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        [[ $RESULT -eq 0 ]] && fwupdate_exclusive_lock
+        RESULT=$?
+        if [[ $RESULT -eq 0 ]]; then
+            fwupdate_set_old_system_number $old_sn
+            fwupdate_set_new_system_number $new_sn
+            fwupdate_release_lock
+        else
+           fwupdate_report_error "Failed to update the system numbers"
+        fi
+    fi
+    
+    # Reset state
+    if [[ $RESULT -eq 0 ]]; then
+        fwupdate_checkpoint_inactive false
+        RESULT=$?
+        if [[ $RESULT -ne 0 ]]; then
+           RESULT=$INTERNAL_ERROR
+           fwupdate_report_warning "Failed to reset state"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to cancel an active fwupdate process.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+cancel()
+{
+    local RESULT=0
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help_cancel
+        fi
+        return $RESULT
+    fi
+
+    # Start to cancel fwupdate process
+    fwupdate_cancel 101 "Cancel request by client"
+    RESULT=$?
+
+    return $RESULT
+}
+
+# Start main function
+main "$@"
+exit $?

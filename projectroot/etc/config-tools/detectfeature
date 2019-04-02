@@ -1,0 +1,87 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: features/exist
+#
+# Check if a specific feature exist in the actual feature set
+#
+# Author: Jobst Wellensiek WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------
+# variables and constants
+#------------------------------------------------------------------------------
+FeaturePath="/etc/specific/features"
+
+# detect undefined variables
+#set-u
+
+#------------------------------------------------------------------------------
+# print help
+#------------------------------------------------------------------------------
+function print_help
+{
+  echo
+  echo "Usage: detectfeature [FEATURE]";
+  echo "   or: detectfeature [OPTION]";
+  echo "Offers the information if the feature named by [FEATURE] is installed on"
+  echo "this target."
+  echo 
+  echo "Mandatory arguments to long options are mandatory for short options too."
+  echo "  -h, --help     display this help and exit."
+  echo
+  echo "If feature exist a true is printed otherwise false"
+  return 0
+}
+
+#------------------------------------------------------------------------------
+# detect feature
+# param $1 
+#     name of feature to detect
+# return 1 if feature can detected otherwise 0
+#------------------------------------------------------------------------------
+function detect_feature
+{
+  result=1
+  feature="$(realpath "${FeaturePath}/${1}" 2>/dev/null)"
+  case "${feature}" in
+  "${FeaturePath}"*)
+    if [ -f "${feature}" ]; then
+      result=0
+    fi
+    ;;
+  esac
+  return $result
+}
+
+#------------------------------------------------------------------------------
+# main function of this script 
+# param $1 
+#     name of feature to detect
+#   | option to get help
+# echo true if feature can be detected otherwise false or help 
+# return always 0
+#------------------------------------------------------------------------------
+function main
+{
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    print_help
+  else
+    if detect_feature "$@"; then
+      printf "true"
+    else
+      printf "false"
+    fi
+  fi
+  return 0
+}
+
+#------------------------------------------------------------------------------
+#main-programm 
+#------------------------------------------------------------------------------
+  main "$@"

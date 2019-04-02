@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: wago_diagnostic
+Description: Diagnostic library
+Version: @PACKAGE_VERSION@
+Requires: wago_dbus
+Libs: -L${libdir} -ldiagnostic
+Cflags: -I${includedir}
+
+

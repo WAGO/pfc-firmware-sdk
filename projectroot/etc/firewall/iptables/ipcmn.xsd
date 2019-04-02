@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<xs:schema targetNamespace="http://www.wago.com/security/firewall"
+           elementFormDefault="qualified"
+           xmlns="http://www.wago.com/security/firewall"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!--
+    README:
+
+    Please note that there are several arbitrary choosen restrictions put on
+    the firewall configuration:
+    - maximum count of ping related rules,
+    - maximum count of snat/dnat rules,
+    - maximum count of filter rules.
+    All numbers are not dictated by any specific reasoning except for the need
+    for such a limit to exists - for security reasons. All of them may be
+    freely changed but they should not be set to 'unbounded' value.
+ -->
+
+<xs:include schemaLocation="../patterns.xsd"/>
+
+<xs:element name="firewall">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="ipv4" type="ipv4"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:element>
+
+<xs:complexType name="ipv4">
+    <xs:sequence>
+        <xs:element name="climits" type="climits" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="echo" type="echo" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="forward" type="forward" minOccurs="1" maxOccurs="1"/>
+        <xs:element name="input" type="input" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="climits">
+    <xs:annotation>
+        <xs:documentation>
+            Limits for possible connections:
+            - total - maximum active, parallel connections
+            - limit/burst - maximum number of new connections per amount of time
+            - tcp - max number of new tcp connections
+            - udp - max number of new udp connections
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="total" type="conn_count" use="optional"/>
+    <xs:attribute name="limit" type="limit" use="optional"/>
+    <xs:attribute name="burst" type="burst" use="optional"/>
+    <xs:attribute name="tcp" type="limit" use="optional"/>
+    <xs:attribute name="udp" type="limit" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="echo_content">
+    <xs:sequence>
+        <xs:element name="request" type="request" minOccurs="0" maxOccurs="20"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="echo">
+    <xs:annotation>
+        <xs:documentation>
+            Global ping policy, for all interfaces:
+            - policy - chosen policy
+            - limit/burst - limitations
+            - broadcast_protection - if set to 'on' all echo packets with 
+                    broadcast addresses will be automatically dropped.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+        <xs:extension base="echo_content">
+            <xs:attribute name="policy" type="policy" use="required"/>
+            <xs:attribute name="limit" type="limit" use="optional"/>
+            <xs:attribute name="burst" type="burst" use="optional"/>
+            <xs:attribute name="broadcast_protection" type="onoff" use="optional"/>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="request">
+    <xs:annotation>
+        <xs:documentation>
+            Per interface ping policy:
+            - policy - chosen policy
+            - if - name of an interface
+            - limit/burst - limitations
+            Per interface settings are used only if global echo setting is set
+            to drop.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="policy" type="policy" use="required"/>
+    <xs:attribute name="if" type="ifname" use="required"/>
+    <xs:attribute name="limit" type="limit" use="optional"/>
+    <xs:attribute name="burst" type="burst" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="forward_content">
+    <xs:sequence>
+        <xs:element name="fw"   type="fw"   minOccurs="0" maxOccurs="1"/>
+        <xs:element name="snat" type="snat" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="dnat" type="dnat" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="forward">
+    <xs:annotation>
+        <xs:documentation>
+            Globsl forwarding state. If that state is set to 'on' forwarding
+            is active for all traffic, between all interfaces.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+        <xs:extension base="forward_content">
+            <xs:attribute name="state" type="onoff" use="required"/>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="fw">
+    <xs:sequence>
+        <xs:element name="link" type="link" minOccurs="0" maxOccurs="40"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="link">
+    <xs:annotation>
+        <xs:documentation>
+            Individual forwarding rules, for pairs of interfaces only. These
+            rules are active only if global forwarding is disabled ('off').
+            If a rule is set to 'on' traffic between two named interfaces is
+            allowed to flow in both directions.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="if1" type="ifname" use="required"/>
+    <xs:attribute name="if2" type="ifname" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="snat_content">
+    <xs:sequence>
+        <xs:element name="masquerade" type="masquerade" minOccurs="0" maxOccurs="10"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="snat">
+    <xs:complexContent>
+        <xs:extension base="snat_content"/>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="masquerade">
+    <xs:annotation>
+        <xs:documentation>
+            If a rule is added, then outgoing traffic from a given interface
+            will be masqueraded.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="if" type="ifname" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="dnat_content">
+    <xs:sequence>
+        <xs:element name="fw_port" type="fw_port" minOccurs="0" maxOccurs="100"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="dnat">
+    <xs:complexContent>
+        <xs:extension base="dnat_content"/>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="fw_port">
+    <xs:annotation>
+        <xs:documentation>
+            Port forwarding rules.
+            At minimum 'fw_ip' or 'fw_port' must be given.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="if" type="ifname" use="optional"/>
+    <xs:attribute name="proto" type="tcpudp" use="required"/>
+    <xs:attribute name="dst_ip" type="ip4" use="optional"/>
+    <xs:attribute name="dst_port" type="port_range" use="optional"/>
+    <xs:attribute name="fw_ip" type="ip4" use="optional"/>
+    <xs:attribute name="fw_port" type="port_range" use="optional"/>
+    <xs:attribute name="limit" type="limit" use="optional"/>
+    <xs:attribute name="burst" type="burst" use="optional"/>
+</xs:complexType>
+
+<xs:complexType name="input_content">
+    <xs:sequence>
+        <xs:element name="open" type="openif" minOccurs="0" maxOccurs="1"/>
+        <xs:element name="filter" type="filter" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="input">
+    <xs:complexContent>
+        <xs:extension base="input_content"/>
+    </xs:complexContent>
+</xs:complexType>
+
+<xs:complexType name="openif">
+    <xs:sequence>
+        <xs:element name="interface" type="openif_interface" minOccurs="0" maxOccurs="200"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="openif_interface">
+    <xs:annotation>
+        <xs:documentation>
+            Fully open input interface. For that interface all traffic destined
+            for he device is accepted.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="if" type="ifname" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="filter">
+    <xs:sequence>
+        <xs:element name="rule" type="rule" minOccurs="0" maxOccurs="200"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="rule">
+    <xs:annotation>
+        <xs:documentation>
+            Input filtering rules - for incoming traffic destined at the device.
+            At least one optional parameter must be given.
+        </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="state" type="onoff" use="required"/>
+    <xs:attribute name="if" type="ifname" use="optional"/>
+    <xs:attribute name="proto" type="tcpudp" use="required"/>
+    <xs:attribute name="src_ip" type="ip4" use="optional"/>
+    <xs:attribute name="src_mask" type="ip4mask" use="optional"/>
+    <xs:attribute name="src_port" type="port_range" use="optional"/>
+    <xs:attribute name="dst_ip" type="ip4" use="optional"/>
+    <xs:attribute name="dst_mask" type="ip4mask" use="optional"/>
+    <xs:attribute name="dst_port" type="port_range" use="optional"/>
+    <xs:attribute name="policy" type="policy" use="required"/>
+</xs:complexType>
+
+</xs:schema>
+

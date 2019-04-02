@@ -1,0 +1,258 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_default_gateway_config
+#
+# Get the configuration of the default-gateways. 
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+
+# Check argument value against a selection of values.
+arg_assert()
+{
+    local arg=$1
+    local sel=$2
+    local msg=$3
+    local valid=""
+
+    for val in $sel; do
+        if [ $arg = $val ]; then
+            valid=1
+            break
+        fi
+    done
+    if [ ! $valid ]; then
+        status=$INVALID_PARAMETER
+        SetLastError "$msg"
+        exit $status
+    fi
+}
+
+
+function get_routing_entries
+{
+    local status=0
+    
+    IFS_BKP=$IFS # Save original IFS value
+    IFS=$'\n'
+    
+    routing_entries=( $(/etc/config-tools/config_routing --get static ) )
+    status=$?
+    
+    IFS=$IFS_BKP # Restore IFS value
+    
+    return $status
+}
+
+
+function print_json
+{
+    local ret
+    get_routing_entries
+    ret=$?
+
+    if [[ $ret == $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
+        JSON_DATA="{"
+        DELIM=""
+        for number in 1 2; do
+            IFS=' '
+            line=( ${routing_entries[$((number-1))]} )
+            IFS=$IFS_BKP # Restore IFS value
+
+            if [[ ${#line[@]} == $ROUTE_ENTRY_COUNT ]]; then
+                JSON_DATA="$JSON_DATA$DELIM\"$number\": {"
+                JSON_DATA="$JSON_DATA\"defaultGatewayState\": \"${line[$STATE_INDEX]}\", "
+
+                jsonname="defaultGateway${number}Value"
+                JSON_DATA="$JSON_DATA\"defaultGatewayValue\": \"${line[$GW_INDEX]}\", "
+
+                jsonname="defaultGateway${number}Metric"
+                JSON_DATA="$JSON_DATA\"defaultGatewayMetric\": \"${line[METRIC_INDEX]}\", "
+
+                varname="DEST_GW_VALUE_$number"
+                JSON_DATA="$JSON_DATA\"destination\": \"${line[DEST_INDEX]}\", "
+
+                varname="DEST_GW_MASK_$number"
+                JSON_DATA="$JSON_DATA\"dest_mask\": \"${line[DEST_MASK_INDEX]}\"}"
+
+                DELIM=", "
+            
+            else
+                ret=$INTERNAL_ERROR
+                SetLastError "Found invalid amount of values in routing entry. Expected $ROUTE_ENTRY_COUNT; Got ${#line[@]}."
+                break
+            fi
+        done
+        echo -n "$JSON_DATA}"
+    else
+        ret=$INTERNAL_ERROR
+        SetLastError "No gateway/routing entries found."
+    fi
+}
+
+
+function print_shell
+{
+    local ret
+    get_routing_entries
+    ret=$?
+
+    if [[ $ret == $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
+        for number in 1 2; do
+            IFS=' '
+            line=( ${routing_entries[$((number-1))]} )
+            IFS=$IFS_BKP # Restore IFS value
+
+            if [[ ${#line[@]} == $ROUTE_ENTRY_COUNT ]]; then
+                varname="DEFAULT_GW_STATE_$number"
+                echo "$varname=${line[$STATE_INDEX]}"
+                varname="DEFAULT_GW_VALUE_$number"
+                echo "$varname=${line[$GW_INDEX]}"
+                varname="DEFAULT_GW_METRIC_$number"
+                echo "$varname=${line[METRIC_INDEX]}"
+                varname="DEST_GW_VALUE_$number"
+                echo "$varname=${line[DEST_INDEX]}"
+                varname="DEST_GW_MASK_$number"
+                echo "$varname=${line[DEST_MASK_INDEX]}"
+            else
+                ret=$INTERNAL_ERROR
+                SetLastError "Found invalid amount of values in routing entry. Expected $ROUTE_ENTRY_COUNT; Got ${#line[@]}."
+                break
+            fi
+        done
+    else
+        ret=$INTERNAL_ERROR
+        SetLastError "No gateway/routing entries found."
+    fi
+}
+
+
+function print_parameter
+{
+    local ret
+    get_routing_entries
+    ret=$?
+
+    if [[ $ret == $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
+
+        IFS=' '
+        line=( ${routing_entries[$number]} )
+        IFS=$IFS_BKP # Restore IFS value
+        
+        if [[ ${#line[@]} == $ROUTE_ENTRY_COUNT ]]; then
+        
+            while [ $# -ne 0 ]; do
+                case "$1" in
+                    value)
+                        line_index=$GW_INDEX
+                        echo -n ${line[2]}
+                        ;;
+                    state)
+                        line_index=$STATE_INDEX
+                        echo -n ${line[5]}
+                        ;;
+                    metric)
+                        line_index=$METRIC_INDEX
+                        echo -n ${line[3]}
+                        ;;
+                    destination)
+                        line_index=$DEST_INDEX
+                        echo -n ${line[0]}
+                        ;;
+                    dest_mask)
+                        line_index=$DEST_MASK_INDEX
+                        echo -n ${line[1]}
+                        ;;
+                    *)
+                        status=$INVALID_PARAMETER
+                        SetLastError "Invalid argument"
+                        break
+                        ;;
+                esac
+                shift 1
+            done
+        else
+            ret=$INTERNAL_ERROR
+            SetLastError "Found invalid amount of values in routing entry. Expected $ROUTE_ENTRY_COUNT; Got ${#line[@]}."
+        fi
+    else
+        ret=$INTERNAL_ERROR
+        SetLastError "No gateway/routing entries found."
+    fi
+}
+
+
+# main program: set some global variables
+STATIC_GW_FILE=/etc/specific/static_gateway.conf
+LIST_STATIC_GW="1 2"
+ERROR_MSG="Invalid static gateway number"
+DEST_INDEX=0
+DEST_MASK_INDEX=1
+GW_INDEX=2
+METRIC_INDEX=3
+ROUTING_TYPE_INDEX=4
+STATE_INDEX=5
+SOURCE_INDEX=6
+ROUTE_ENTRY_COUNT=7
+
+status=0
+declare -a routing_entries
+
+# show help-text if requested
+if [ "$1" = "-h" -o "$1" = "--help" ]; then
+    echo
+    echo "* Get default gateway configuration *"
+    echo
+    echo "Usage: ./get_default_gateway_config [number=1|2] state | value | metric | destination | dest_mask"
+    echo "or     ./get_default_gateway_config -j, --json        Output complete config in JSON format"
+    echo "or     ./get_default_gateway_config -s, --shell-var   Output complete config as shell variables"
+    echo
+    echo "number selects one of the two possible default gateways. Default value is 1"
+    echo
+    exit 0
+fi
+
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+
+# get config data and print json data if requested
+. $STATIC_GW_FILE
+if [ "$1" = "-j" -o "$1" = "--json" ]; then
+    print_json
+    exit 0
+fi
+
+# print shell variable list if requested
+if [ "$1" = "-s" -o "$1" = "--shell-var" ]; then
+    print_shell
+    exit 0
+fi
+
+# evaluate command line and print requested parameter
+number=1
+
+if [[ $# -gt 0 ]]; then
+    if [[ "$1" == number=* ]]; then
+        number="${1#number=}"
+        arg_assert "$number" "$LIST_STATIC_GW" "$ERROR_MSG"
+        shift 1
+    fi
+    number=$((number-1))
+    
+    print_parameter $@
+fi
+
+exit $status

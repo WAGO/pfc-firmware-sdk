@@ -1,0 +1,626 @@
+--- libmodbus-3.0.5.latest/src/modbus-tcp-private.h	2014-07-08 17:25:44.385808000 +0200
++++ libmodbus-3.0.5/src/modbus-tcp-private.h	2014-07-10 17:31:17.713606293 +0200
+@@ -56,8 +56,13 @@
+     unsigned char data_buf[_MODBUS_UDP_RECV_BUFFER_SIZE];
+     /* UDP port */
+     int port;
+-    /* IP address */
++    /* Remote IP address */
+     char ip[_MODBUS_IP_LENGTH];
++    /* last received destination for multicast specific handling */
++    uint32_t recv_dst;
++    /* last received source and port for reply */
++    uint32_t recv_src;
++    uint16_t recv_port;
+ } modbus_udp_t;
+ 
+ typedef struct _modbus_udp_pi {
+--- libmodbus-3.0.5.latest/src/modbus-tcp.h	2014-07-08 17:25:44.189810000 +0200
++++ libmodbus-3.0.5/src/modbus-tcp.h	2014-07-09 16:24:51.832539198 +0200
+@@ -54,6 +54,8 @@
+ modbus_t* modbus_new_udp_pi(const char *node, const char *service);
+ int modbus_udp_pi_bind(modbus_t *ctx);
+ 
++void modbus_get_remote_ipaddr(modbus_t *ctx, char *address, unsigned int length);
++
+ MODBUS_END_DECLS
+ 
+ #endif /* _MODBUS_TCP_H_ */
+--- libmodbus-3.0.5.latest/src/modbus-tcp.c	2014-07-08 17:25:44.417807000 +0200
++++ libmodbus-3.0.5/src/modbus-tcp.c	2014-07-10 18:51:51.553376761 +0200
+@@ -70,7 +70,7 @@
+     WSADATA wsaData;
+ 
+     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+-        fprintf(stderr, "WSAStartup() returned error code %d\n",
++        if (ctx->debug) fprintf(stderr, "WSAStartup() returned error code %d\n",
+                 (unsigned int)GetLastError());
+         errno = EIO;
+         return -1;
+@@ -197,10 +197,8 @@
+ {
+     /* Check TID */
+     if (req[0] != rsp[0] || req[1] != rsp[1]) {
+-        if (ctx->debug) {
+-            fprintf(stderr, "Invalid TID received 0x%X (not 0x%X)\n",
+-                    (rsp[0] << 8) + rsp[1], (req[0] << 8) + req[1]);
+-        }
++        if (ctx->debug) fprintf(stderr, "Invalid TID received 0x%X (not 0x%X)\n",
++                                (rsp[0] << 8) + rsp[1], (req[0] << 8) + req[1]);
+         errno = EMBBADDATA;
+         return -1;
+     } else {
+@@ -263,17 +261,14 @@
+         return -1;
+     }
+ 
+-    if (ctx->debug) {
+-        printf("Connecting to %s TCP port %d\n", ctx_tcp->ip, ctx_tcp->port);
+-    }
++    if (ctx->debug) printf("Connecting to %s TCP port %d\n", ctx_tcp->ip, ctx_tcp->port);
+ 
+     struct hostent *host = gethostbyname(ctx_tcp->ip);
+     if(host == NULL)
+     {
+         if (h_errno)
+             errno = h_errno + EMBHERRBASE-1;
+-        if (ctx->debug)
+-            printf("Couldn't resolve hostname: %s\n", ctx_tcp->ip);
++        if (ctx->debug) printf("Couldn't resolve hostname: %s\n", ctx_tcp->ip);
+         return -1;
+     }
+ 
+@@ -434,9 +429,7 @@
+         close(new_socket);
+         return -1;
+     }
+-    if (ctx->debug) {
+-        printf("Listen on TCP port %d\n", ctx_tcp->port);
+-    }
++    if (ctx->debug) printf("Listen on TCP port %d\n", ctx_tcp->port);
+ 
+     return new_socket;
+ }
+@@ -548,10 +541,8 @@
+         return -1;
+     }
+ 
+-    if (ctx->debug) {
+-        printf("The client connection from %s is accepted\n",
+-               inet_ntoa(addr.sin_addr));
+-    }
++    if (ctx->debug) printf("The client connection from %s is accepted\n",
++                           inet_ntoa(addr.sin_addr));
+ 
+     return ctx->s;
+ }
+@@ -568,9 +559,7 @@
+         *socket = 0;
+     }
+ 
+-    if (ctx->debug) {
+-        printf("The client connection is accepted.\n");
+-    }
++    if (ctx->debug) printf("The client connection is accepted.\n");
+ 
+     return ctx->s;
+ }
+@@ -580,9 +569,7 @@
+     int s_rc;
+     while ((s_rc = select(ctx->s+1, rfds, NULL, NULL, tv)) == -1) {
+         if (errno == EINTR) {
+-            if (ctx->debug) {
+-                fprintf(stderr, "A non blocked signal was caught\n");
+-            }
++            if (ctx->debug) fprintf(stderr, "A non blocked signal was caught\n");
+             /* Necessary after an error */
+             FD_ZERO(rfds);
+             FD_SET(ctx->s, rfds);
+@@ -669,7 +656,7 @@
+     sa.sa_handler = SIG_IGN;
+     if (sigaction(SIGPIPE, &sa, NULL) < 0) {
+         /* The debug flag can't be set here... */
+-        fprintf(stderr, "Coud not install SIGPIPE handler.\n");
++        if (ctx->debug) fprintf(stderr, "Could not install SIGPIPE handler.\n");
+         return NULL;
+     }
+ #endif
+@@ -688,14 +675,14 @@
+     dest_size = sizeof(char) * _MODBUS_IP_LENGTH;
+     ret_size = strlcpy(ctx_tcp->ip, ip, dest_size);
+     if (ret_size == 0) {
+-        fprintf(stderr, "The IP string is empty\n");
++        if (ctx->debug) fprintf(stderr, "The IP string is empty\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+     }
+ 
+     if (ret_size >= dest_size) {
+-        fprintf(stderr, "The IP string has been truncated\n");
++        if (ctx->debug) fprintf(stderr, "The IP string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+@@ -734,7 +721,7 @@
+     ret_size = strlcpy(ctx_tcp_pi->node, node, dest_size);
+ /*
+     if (ret_size == 0) {
+-        fprintf(stderr, "The node string is empty\n");
++        if (ctx->debug) fprintf(stderr, "The node string is empty\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+@@ -742,7 +729,7 @@
+ */
+ 
+     if (ret_size >= dest_size) {
+-        fprintf(stderr, "The node string has been truncated\n");
++        if (ctx->debug) fprintf(stderr, "The node string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+@@ -751,14 +738,14 @@
+     dest_size = sizeof(char) * _MODBUS_TCP_PI_SERVICE_LENGTH;
+     ret_size = strlcpy(ctx_tcp_pi->service, service, dest_size);
+     if (ret_size == 0) {
+-        fprintf(stderr, "The service string is empty\n");
++        if (ctx->debug) fprintf(stderr, "The service string is empty\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+     }
+ 
+     if (ret_size >= dest_size) {
+-        fprintf(stderr, "The service string has been truncated\n");
++        if (ctx->debug) fprintf(stderr, "The service string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+@@ -772,18 +759,32 @@
+ {
+ 	struct sockaddr_in addr;
+ 	modbus_udp_t *ctx_udp = ctx->backend_data;
+-        struct hostent *host = gethostbyname(ctx_udp->ip);
+ 
+-        if(host == NULL)
+-        {
+-            if (ctx->debug)
+-                printf("Couldn't resolve hostname: %s\n", ctx_udp->ip);
+-            return -1;
+-        }
++  if (((ctx_udp->recv_dst >> 24) & 224) == 224)
++  {
++    if (ctx->debug) printf("skip multicast response\n");
++    return req_length;
++  }
++
++	if (ctx_udp->recv_src && ctx_udp->recv_port)
++	{
++	  addr.sin_port = htons(ctx_udp->recv_port);
++	  addr.sin_addr.s_addr = htonl(ctx_udp->recv_src);
++	}
++	else
++	{
++	  struct hostent *host = gethostbyname(ctx_udp->ip);
++	  if (host == NULL)
++	  {
++	    if (ctx->debug) printf("Couldn't resolve hostname: %s\n", ctx_udp->ip);
++	    return -1;
++	  }
++	  addr.sin_port = htons(ctx_udp->port);
++	  addr.sin_addr.s_addr = *(unsigned long*)host->h_addr;
++	}
+ 
+-	addr.sin_family = AF_INET;
+-	addr.sin_port = htons(ctx_udp->port);
+-	addr.sin_addr.s_addr = *(unsigned long*)host->h_addr;
++  addr.sin_family = AF_INET;
++	if (ctx->debug) printf("UDP send to %s\n", inet_ntoa(addr.sin_addr));
+ 	return sendto(ctx->s, (const char*)req, req_length, 0, (struct sockaddr *)&addr, sizeof(struct sockaddr_in));
+ }
+ 
+@@ -802,31 +803,63 @@
+ 		int rc;
+ 		struct sockaddr_in addr;
+ 		socklen_t slen = sizeof(struct sockaddr_in);
++		struct msghdr msgh;
++		struct iovec io;
++		char control_data[1024];
++		struct cmsghdr *cmsg;
+ 		memset(&addr, 0, slen);
+-		rc = recvfrom(ctx->s, (void *)ctx_udp->data_buf, _MODBUS_UDP_RECV_BUFFER_SIZE,
+-					  MSG_TRUNC, (struct sockaddr *)&addr, &slen);
++		memset(&msgh, 0, sizeof(struct msghdr));
++		msgh.msg_name = (void*)&addr;
++		msgh.msg_namelen = slen;
++		io.iov_base = (void *)ctx_udp->data_buf;
++		io.iov_len = _MODBUS_UDP_RECV_BUFFER_SIZE;
++		msgh.msg_iov = &io;
++		msgh.msg_iovlen = 1;
++		msgh.msg_control = control_data;
++		msgh.msg_controllen = 1024;
++
++		rc = recvmsg(ctx->s, &msgh, 0);
+ 		if (rc <= 0) {
+ 			/* socket closed or read error */
+ 			return rc;
+ 		}
+-		/*store source address in context for following reply*/
+-		strlcpy(ctx_udp->ip, inet_ntoa(addr.sin_addr), _MODBUS_IP_LENGTH);
+-		ctx_udp->port = ntohs(addr.sin_port);
+-
+-	    if (rc > _MODBUS_UDP_RECV_BUFFER_SIZE)
+-	    {
+-	        errno = EMBMDATA;
+-	        _error_print(ctx, "UDP receive buffer exceeded");
++		if (rc > _MODBUS_UDP_RECV_BUFFER_SIZE)
++		{
++			errno = EMBMDATA;
++			_error_print(ctx, "UDP receive buffer exceeded");
+ 			return -1;
+-	    }
++		}
++
+ 		ctx_udp->data_size = rc;
+ 		ctx_udp->data_begin = ctx_udp->data_buf;
++
++    ctx_udp->recv_src = ntohl(addr.sin_addr.s_addr);
++    ctx_udp->recv_port = ntohs(addr.sin_port);
++    ctx_udp->recv_dst = 0;
++		for(cmsg = CMSG_FIRSTHDR(&msgh); cmsg != NULL; cmsg= CMSG_NXTHDR(&msgh, cmsg))
++		{
++			if((cmsg->cmsg_level == SOL_IP) && (cmsg->cmsg_type == IP_PKTINFO))
++			{
++				struct in_pktinfo* pktinfo = (struct in_pktinfo*)CMSG_DATA(cmsg);
++				ctx_udp->recv_dst = ntohl(pktinfo->ipi_addr.s_addr);
++				break;
++			}
++		}
++	  if (ctx->debug) printf("UDP receive from %d.%d.%d.%d with dest %d.%d.%d.%d\n",
++                           (ctx_udp->recv_src >> 24),
++                           (ctx_udp->recv_src >> 16) & 0xff,
++                           (ctx_udp->recv_src >> 8) & 0xff,
++                           (ctx_udp->recv_src & 0xff),
++                           (ctx_udp->recv_dst >> 24),
++                           (ctx_udp->recv_dst >> 16) & 0xff,
++                           (ctx_udp->recv_dst >> 8) & 0xff,
++                           (ctx_udp->recv_dst & 0xff));
+ 	}
+ 	/* return data from buffer to be processed */
+ 	if (rsp_length > ctx_udp->data_size)
+ 	{
+-        errno = EMBBADDATA;
+-        _error_print(ctx, "unexpected message fragment");
++		errno = EMBBADDATA;
++		_error_print(ctx, "unexpected message fragment");
+ 		return -1;
+ 	}
+ 	memcpy(rsp, ctx_udp->data_begin, rsp_length);
+@@ -899,6 +932,11 @@
+     if (rc == -1) {
+         return -1;
+     }
++    val = 1;
++    rc = setsockopt(s, SOL_IP, IP_PKTINFO, (const void *)&val, sizeof(val));
++    if (rc == -1) {
++        return -1;
++    }
+ #endif
+ 
+     return 0;
+@@ -931,9 +969,7 @@
+         return -1;
+     }
+ 
+-    if (ctx->debug) {
+-        printf("Created socket for requests to %s UDP port %d\n", ctx_udp->ip, ctx_udp->port);
+-    }
++    if (ctx->debug) printf("Created socket for requests to %s UDP port %d\n", ctx_udp->ip, ctx_udp->port);
+     ctx->s = new_socket;
+     return 0;
+ }
+@@ -967,9 +1003,7 @@
+     ai_list = NULL;
+     rc = getaddrinfo(ctx_udp_pi->node, ctx_udp_pi->service, &ai_hints, &ai_list);
+     if (rc != 0) {
+-        if (ctx->debug) {
+-        	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rc));
+-        }
++        if (ctx->debug) fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rc));
+         return rc;
+     }
+     for (ai_ptr = ai_list; ai_ptr != NULL; ai_ptr = ai_ptr->ai_next) {
+@@ -992,9 +1026,7 @@
+ 		}
+ 		if (ai_ptr->ai_addr && ai_ptr->ai_addrlen && (ai_ptr->ai_addrlen <= sizeof(struct sockaddr_storage))) {
+ 			/* Success */
+-			if (ctx->debug) {
+-				printf("Create UDP socket for host %s, service %s\n", ctx_udp_pi->node, ctx_udp_pi->service);
+-			}
++			if (ctx->debug) printf("Create UDP socket for host %s, service %s\n", ctx_udp_pi->node, ctx_udp_pi->service);
+ 			ctx->s = new_socket;
+ 			memcpy(&ctx_udp_pi->s_addr, ai_ptr->ai_addr, ai_ptr->ai_addrlen);
+ 			ctx_udp_pi->s_addr_len = ai_ptr->ai_addrlen;
+@@ -1005,9 +1037,7 @@
+     freeaddrinfo(ai_list);
+ 
+     if (ai_ptr == NULL) { /* No address succeeded */
+-	    if (ctx->debug) {
+-	    	fprintf(stderr, "Could not create UDP socket for host %s, service %s\n", ctx_udp_pi->node, ctx_udp_pi->service);
+-	    }
++	      if (ctx->debug) fprintf(stderr, "Could not create UDP socket for host %s, service %s\n", ctx_udp_pi->node, ctx_udp_pi->service);
+         return -1;
+     }
+ 
+@@ -1070,9 +1100,7 @@
+ 	}
+     while ((s_rc = select(ctx->s+1, rfds, NULL, NULL, tv)) == -1) {
+         if (errno == EINTR) {
+-            if (ctx->debug) {
+-                fprintf(stderr, "A non blocked signal was caught\n");
+-            }
++            if (ctx->debug) fprintf(stderr, "A non blocked signal was caught\n");
+             /* Necessary after an error */
+             FD_ZERO(rfds);
+             FD_SET(ctx->s, rfds);
+@@ -1092,6 +1120,7 @@
+ /* Creates a server socket for requests from one or many modbus masters in UDP */
+ int modbus_udp_bind(modbus_t *ctx)
+ {
++    int rc;
+     int new_socket;
+     struct sockaddr_in addr;
+     modbus_udp_t *ctx_udp = ctx->backend_data;
+@@ -1110,6 +1139,15 @@
+         return -1;
+     }
+ 
++    rc = _modbus_udp_set_ipv4_options(new_socket);
++    if (rc == -1) {
++        close(new_socket);
++        if (ctx->debug) {
++          perror("setsockopt");
++        }
++        return -1;
++    }
++
+     memset(&addr, 0, sizeof(addr));
+     addr.sin_family = AF_INET;
+     /* If the modbus port is < to 1024, we need the setuid root. */
+@@ -1118,17 +1156,12 @@
+     if (bind(new_socket, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+     	/* Success */
+         ctx->s = new_socket;
+-        if (ctx->debug) {
+-        	printf("Bind UDP socket to port %d\n", ctx_udp->port);
+-        }
++        if (ctx->debug) printf("Bind UDP socket to port %d\n", ctx_udp->port);
+         return new_socket;
+     }
+ 
+     close(new_socket);
+-    if (ctx->debug) {
+-       	perror("bind");
+-    	fprintf(stderr, "Could not bind UDP socket to port %d\n", ctx_udp->port);
+-    }
++    if (ctx->debug) fprintf(stderr, "Could not bind UDP socket to port %d\n", ctx_udp->port);
+     return -1;
+ }
+ 
+@@ -1173,9 +1206,7 @@
+     ai_list = NULL;
+     rc = getaddrinfo(node, service, &ai_hints, &ai_list);
+     if (rc != 0) {
+-        if (ctx->debug) {
+-        	fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rc));
+-        }
++        if (ctx->debug) fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rc));
+         return -1;
+     }
+     for (ai_ptr = ai_list; ai_ptr != NULL; ai_ptr = ai_ptr->ai_next) {
+@@ -1188,9 +1219,7 @@
+         }
+         if (bind(new_socket, ai_ptr->ai_addr, ai_ptr->ai_addrlen) == 0) {
+         	/* Success */
+-            if (ctx->debug) {
+-                printf("Bind UDP socket to service %s\n", ctx_udp_pi->service);
+-            }
++            if (ctx->debug) printf("Bind UDP socket to service %s\n", ctx_udp_pi->service);
+             ctx->s = new_socket;
+             break;
+         }
+@@ -1202,9 +1231,7 @@
+     freeaddrinfo(ai_list);
+ 
+     if (ai_ptr == NULL) { /* No address succeeded */
+-        if (ctx->debug) {
+-        	fprintf(stderr, "Could not bind UDP socket to service %s\n", ctx_udp_pi->service);
+-        }
++        if (ctx->debug) fprintf(stderr, "Could not bind UDP socket to service %s\n", ctx_udp_pi->service);
+         return -1;
+     }
+     return ctx->s;
+@@ -1212,13 +1239,16 @@
+ 
+ int _modbus_udp_is_multicast(modbus_t *ctx)
+ {
+-    int rc = FALSE;
++    int rc;
+     modbus_udp_t *ctx_udp = ctx->backend_data;
+     struct hostent *host = gethostbyname(ctx_udp->ip);
+-
+-    if((host->h_addr[0] & 224) == 224)
+-        rc = TRUE;
+-
++    if (!host) {
++      rc = FALSE;
++    }
++    else {
++      uint32_t naddr = ntohl(*(unsigned long*)host->h_addr);
++      rc = (((naddr >> 24) & 224) == 224) ? TRUE : FALSE;
++    }
+     return rc;
+ }
+ 
+@@ -1285,14 +1315,14 @@
+ 
+     ret_size = strlcpy(ctx_udp->ip, ip, _MODBUS_IP_LENGTH);
+     if (ret_size == 0) {
+-        fprintf(stderr, "The UDP/IP string is empty\n");
++        if (ctx->debug) fprintf(stderr, "The UDP/IP string is empty\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+     }
+ 
+     if (ret_size >= _MODBUS_IP_LENGTH) {
+-        fprintf(stderr, "The UDP/IP string has been truncated\n");
++        if (ctx->debug) fprintf(stderr, "The UDP/IP string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+@@ -1300,6 +1330,7 @@
+ 
+     ctx_udp->port = port;
+     ctx_udp->data_size = 0;
++    ctx_udp->recv_dst = 0;
+     return ctx;
+ }
+ 
+@@ -1329,7 +1360,7 @@
+     dest_size = _MODBUS_TCP_PI_NODE_LENGTH;
+     ret_size = strlcpy(ctx_udp_pi->node, node, dest_size);
+     if (ret_size >= dest_size) {
+-        fprintf(stderr, "The UDP node string has been truncated\n");
++        if (ctx->debug) fprintf(stderr, "The UDP node string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+@@ -1338,14 +1369,14 @@
+     dest_size = _MODBUS_TCP_PI_SERVICE_LENGTH;
+     ret_size = strlcpy(ctx_udp_pi->service, service, dest_size);
+     if (ret_size == 0) {
+-        fprintf(stderr, "The UDP service string is empty\n");
++        if (ctx->debug) fprintf(stderr, "The UDP service string is empty\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+     }
+ 
+     if (ret_size >= dest_size) {
+-        fprintf(stderr, "The service string has been truncated\n");
++        if (ctx->debug) fprintf(stderr, "The service string has been truncated\n");
+         modbus_free(ctx);
+         errno = EINVAL;
+         return NULL;
+@@ -1355,3 +1386,33 @@
+     ctx_udp_pi->s_addr_len = 0; //set on connect and/or recvfrom
+     return ctx;
+ }
++
++void modbus_get_remote_ipaddr(modbus_t *ctx, char *address, unsigned int length)
++{
++	if (ctx && address && length)
++	{
++		char *ip;
++		switch(ctx->backend->backend_type) 
++		{
++		case _MODBUS_BACKEND_TYPE_TCP:
++		{
++			modbus_tcp_t *ctx_tcp = ctx->backend_data;
++			ip = ctx_tcp->ip;
++			break;
++		}
++		case _MODBUS_BACKEND_TYPE_UDP:
++		{
++			modbus_udp_t *ctx_udp = ctx->backend_data;
++			ip = ctx_udp->ip;
++			break;
++		}
++		default:
++			ip = NULL;
++			break;
++		}
++		if(ip)
++		{
++			strlcpy(address, ip, length);
++		}
++	}
++}
+--- libmodbus-3.0.5.latest/src/modbus.c	2014-07-08 17:25:44.417807000 +0200
++++ libmodbus-3.0.5/src/modbus.c	2014-07-10 18:52:34.728833972 +0200
+@@ -628,13 +628,6 @@
+     int rsp_length_computed;
+     const int offset = ctx->backend->header_length;
+ 
+-    if(modbus_is_multicast(ctx)) { /* don't expect answer */
+-      if (ctx->debug) {
+-          printf("unexpected confirmation from slave %d\n", ctx->slave);
+-      }
+-      return 0;
+-    }
+-
+     if (ctx->backend->pre_check_confirmation) {
+         rc = ctx->backend->pre_check_confirmation(ctx, req, rsp, rsp_length);
+         if (rc == -1) {
+@@ -1926,7 +1919,13 @@
+     req_length = ctx->backend->build_request_basis(ctx, function, addr, value, req);
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if (rc > 0) {
++    if(modbus_is_multicast(ctx)) {
++      if (ctx->debug) {
++          printf("don't expect response for multicast query\n");
++      }
++      rc = 1;
++    }
++    else if (rc > 0) {
+         /* Used by write_bit and write_register */
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+@@ -1966,7 +1965,13 @@
+     req[req_length++] = or & 0x00ff;
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if (rc > 0) {
++    if(modbus_is_multicast(ctx)) {
++      if (ctx->debug) {
++          printf("don't expect response for multicast query\n");
++      }
++      rc = 1;
++    }
++    else if (rc > 0) {
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+         rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+@@ -2024,7 +2029,13 @@
+     }
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if (rc > 0) {
++    if(modbus_is_multicast(ctx)) {
++      if (ctx->debug) {
++          printf("don't expect response for multicast query\n");
++      }
++      rc = nb;
++    }
++    else if (rc > 0) {
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+         rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
+@@ -2070,7 +2081,13 @@
+     }
+ 
+     rc = send_msg(ctx, req, req_length);
+-    if (rc > 0) {
++    if(modbus_is_multicast(ctx)) {
++      if (ctx->debug) {
++          printf("don't expect response for multicast query\n");
++      }
++      rc = nb;
++    }
++    else if (rc > 0) {
+         uint8_t rsp[MAX_MESSAGE_LENGTH];
+ 
+         rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);

@@ -1,0 +1,395 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+# Uncomment to get debug infos
+#exec 1>&-
+#exec 2>&-
+#rm /tmp/automount.log.${1//\//}.${2//\//}
+#
+#exec 1<>/tmp/automount.log.${1//\//}.${2//\//}
+#
+#exec 2>&1
+#
+#set -o xtrace
+#set -o verbose
+#echo $@
+
+set -o nounset
+set -o errexit
+
+# do not run when being sourced (required for unit tests)
+# when $0 is being sourced and one of the tools is missing,
+# the test script is aborted because of errexit option above.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+ 
+    BLKID="$(which blkid)"
+    CHGRP="$(which chgrp)"
+    CHMOD="$(which chmod)"
+    CUT="$(which cut)"
+    DIRNAME=$(which dirname)
+    FLOCK=$(which flock)
+    GREP="$(which grep)"
+    LN="$(which ln)"
+    MKDIR="$(which mkdir)"
+    MKTEMP="$(which mktemp)"
+    MOUNT="$(which mount)"
+    RM="$(which rm)"
+    RMDIR="$(which rmdir)"
+    UDEVADM="$(which udevadm)"
+    UMOUNT="$(which umount)"
+
+fi
+
+
+# Mountpoint head directory
+MNT_ROOT=/media
+
+# Lock file file descriptor for flock
+LOCKFD=200
+
+function check_licence()
+{
+
+# TODO: implement logic for license file testing (trigger some actions if
+#      a licence file is found on the partition we are about to mount).
+
+    true
+}
+
+function get_mount_opts()
+{
+    local fstype=$1
+    case "${fstype}" in
+        vfat|ntfs)
+            # Allow access for group sd-card
+            echo "-o umask=0002,fmask=0113,gid=114"
+            ;;
+        ext4)
+            echo "-o defaults,errors=remount-ro"
+            ;;
+    esac
+}
+
+
+function do_add()
+{
+    local device=$1
+    local mountpoint=$2
+    local devlink=$3
+    local fstype=$4
+
+    local mount_opts=$(get_mount_opts "${fstype}")
+
+    # If the mountpoint is blocked for some reason, switch to a random dir
+    if ! ${MKDIR} ${mountpoint}; then
+        mountpoint=$(${MKTEMP} -d ${mountpoint}.XXXXXX)
+    fi
+
+    if [[ "$?" != "0" ]]; then
+        exit 2
+    fi
+
+    if [ "$fstype" = "ntfs" ] && [ -x "/sbin/mount.ntfs-3g" ]; then
+        # For ntfs mounts use ntfs-3g mount to get writable NTFS.
+        /sbin/mount.ntfs-3g ${mount_opts} $device $mountpoint
+    else
+        ${MOUNT} ${mount_opts} $device $mountpoint
+    fi        
+    
+    if  [[ "$?" == "0" ]] && \
+        [[ "${devlink}" != "unknown" ]]; then
+        ${LN} -sf ${mountpoint} ${devlink} && \
+        check_licence
+    fi
+}
+
+function do_remove()
+{
+    local devname=$1
+    local devlink=$2
+    local mountpoint
+
+    # continue cleanup even after errors
+    set +o nounset
+    set +o errexit 
+
+    # can't do umount on device, it already vanished
+    for mountpoint in $(retrieve_mountpoints "${device}"); do
+        ${UMOUNT} -f "${mountpoint}"
+        ${RMDIR} ${mountpoint}
+    done
+    if [[ -L "${devlink}" ]]; then
+        ${RM} -f ${devlink}
+    fi
+}
+
+# NOTE: function is not tested for multiple devices (i.e. USB stick and SD
+# card) mounted at the same time
+function cleanup_mnt_root()
+{
+    # Do not implement additional checks for dir: rmdir will refuse anything
+    # that is not an empty directory, i.e. '/media/*' or '/media/sd'
+    for dir in ${MNT_ROOT}/*; do
+    
+       if ! cut -f2 -d' ' /proc/mounts | grep -q '^'"${dir}"'$'; then
+
+           # $dir is not mounted -> remove it if empty, ignore error if not
+           ${RMDIR} ${dir} || true
+       fi
+
+    done
+}
+
+function generate_mountpoint()
+{
+    # label > uuid > devname
+
+    local idname=$1
+    local label=$2
+    local uuid=$3
+    local devname=$4
+    local serial=$5
+
+    if [[ "${serial}" == "" ]]; then
+        serial="${RANDOM}${RANDOM}"
+    fi
+
+#   For FW04 only one SD card can be mounted anytime. Simplify mount points
+#   as long as no USB disk is supported. TODO
+    local mountpoint="${MNT_ROOT}"
+
+    if [[ -n "${label}" ]]; then
+        mountpoint="${mountpoint}/${label}"
+    elif [[ -n "${uuid}" ]]; then
+        mountpoint="${mountpoint}/${uuid}"
+    else
+        mountpoint="${mountpoint}/${devname#/dev/}"
+    fi
+
+    echo $mountpoint
+}
+
+function retrieve_mountpoints()
+{
+    local device=$1
+
+    ${GREP} "${device}" /proc/mounts | ${CUT} -d " " -f2
+}
+
+function get_devlink()
+{
+    local device=$1
+
+    # Always link to the 1st partition 
+    # Note: windows-formatted media do not use partitions.  Instead, the
+    # filesystem is written directly to the major device (i.e. /dev/sda or
+    # /dev/mmcblk0). We have to consider it.
+    case "${device}" in
+        /dev/mmcblk*p1|/dev/mmcblk[0-9])
+            echo "${MNT_ROOT}/sd"
+            ;;
+        /dev/sd*1|/dev/sd[a-z])
+            echo "${MNT_ROOT}/usb"
+            ;;
+        *)
+            echo "unknown"
+            ;;
+    esac
+}
+
+function sanity_check()
+{
+    if [[ -z "${action}" ]] || [[ -z "${device}" ]] ; then
+        exit 2
+    fi
+
+    if [[ -z "${UDEVADM}" ]] || \
+       [[ -z "${MOUNT}" ]] || \
+       [[ -z "${UMOUNT}" ]] || \
+       [[ -z "${MKDIR}" ]] || \
+       [[ -z "${MKTEMP}" ]] || \
+       [[ -z "${RMDIR}" ]] || \
+       [[ -z "${RM}" ]] || \
+       [[ -z "${BLKID}" ]] || \
+       [[ -z "${GREP}" ]] || \
+       [[ -z "${CUT}" ]] || \
+       [[ -z "${DIRNAME}" ]] || \
+       [[ -z "${CHGRP}" ]] || \
+       [[ -z "${CHMOD}" ]] || \
+       [[ -z "${FLOCK}" ]] || \
+       [[ -z "${LN}" ]] ; then
+        exit 3
+    fi
+}
+
+function is_in_blacklist()
+{
+    # don't autoboot WAGO SD images ( = 1st partition has 7761676F label which
+    # means "WAGO" in ASCII hex)
+    # WORKAROUND: WBM-generated sd card images contain the magic string in the
+    # uuid field!
+
+    local device="${1}"
+    local second_arg=${2:-""}
+
+    # list of parent devices may be provided via arg list from a unit test 
+    local parent_devices
+    if [[ -z "${second_arg}" ]]; then
+        parent_devices=( /sys/class/block/* )
+    else
+        shift 1
+        parent_devices=( "${@}" )
+    fi    
+
+    local parent
+    parent=$(get_parent_device "${device}" "${parent_devices[@]}")
+
+    # now search all partitions of the parent device for LABEL/UUID
+    "${BLKID}" "${parent}"* | "${GREP}" -Eq 'UUID="7761-676F"|LABEL="7761676F"'
+    local status=$?
+
+    if [[ "${status}" == "0"  ]]; then
+        echo "TRUE"
+        return
+    fi
+
+    echo "FALSE"
+}
+
+function get_parent_device()
+{
+    local device="${1}"
+    shift 1
+
+    local parent_candidate
+
+    for top_level_device in "$@"; do
+      
+        parent_candidate=$("${UDEVADM}" info --query=property --path="$top_level_device" | grep "DEVNAME=")
+
+        parent_candidate="${parent_candidate#DEVNAME=}"
+
+        # skip device when no DEVNAME found
+        [[ -z "$parent_candidate" ]] && continue
+
+        # wild-card matching: i.e. mmcblk0p1 == mmcblk0*?
+        if [[ "${device}" == ${parent_candidate}* ]]; then
+            echo "${parent_candidate}"
+            return
+        fi
+
+    done
+
+    # no parent found -> return device itself
+    echo "${device}"
+    return
+}
+
+function acquire_lock()
+{
+    local timeout=10 # seconds
+    local acquired=0
+
+    # Open lock file
+    # NOTE: eval is needed here to be able to use LOCKFD variable
+    eval "exec ${LOCKFD}>/var/lock/$(basename ${0}).lock"
+ 
+    # NOTE: busybox flock has no timeout option
+    for i in $(seq 1 ${timeout}); do
+        if flock -xn ${LOCKFD}; then
+            acquired=1
+            break
+        else
+            sleep 1
+        fi
+    done
+
+    if [[ "$acquired" == "0" ]]; then
+        exit 4
+    fi
+}
+
+function release_lock()
+{
+    flock -u ${LOCKFD}
+}
+
+function main()
+{
+    local action=
+    local device=
+
+    acquire_lock
+
+    while [[ $# -ne 0 ]]; do
+        case "$1" in
+            action=*)
+                action="${1#action=}"
+                ;;
+            device=*)
+                device="${1#device=}"
+                ;;
+            *)
+                exit 1
+                ;;
+        esac
+        shift 1
+    done
+
+    sanity_check "${action}" "${device}"
+
+    if [[ "$(is_in_blacklist "${device}")" == "TRUE" ]]; then
+        exit 0
+    fi
+
+    # get additional device infos (udevadm info returns a list of variables)
+
+    local label=
+    local uuid=
+    local idname=  
+    local serial=
+    local fstype=
+
+    local devname=${device} 
+    
+    if [[ -b "${device}" ]]; then
+        while read line; do
+            case $line in
+                ID_FS_LABEL=*) label="${line#*=}"   ;;
+                ID_FS_UUID=*)  uuid="${line#*=}"    ;;
+                ID_FS_TYPE=*)  fstype="${line#*=}"  ;;
+                ID_NAME=*)     idname="${line#*=}"  ;;  # sth. like SU02G for SunDisk 2GB SD card
+                ID_SERIAL=*)   serial="${line#*=}"  ;;
+            esac
+        done < <(${UDEVADM} info --query property --name ${device})
+    fi
+
+    local devlink="$(get_devlink ${devname})"
+
+    local mountpoint=
+
+    case "${action}" in
+        add)
+            mountpoint=$(generate_mountpoint "${idname}" "${label}" "${uuid}" "${devname}" "${serial}")
+            cleanup_mnt_root && do_add "${device}" "${mountpoint}" "${devlink}" "${fstype}"
+            ;;
+        remove)
+            do_remove "${devname}" "${devlink}"
+            ;;
+        *)
+            exit 127
+            ;;
+    esac
+
+    release_lock
+}
+
+# do not run when being sourced (required for unit tests)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

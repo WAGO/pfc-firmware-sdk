@@ -1,0 +1,4 @@
+[D-BUS Service]
+User=root
+Name=wago.diagnostic
+Exec=/usr/bin/getidstate

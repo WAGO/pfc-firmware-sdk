@@ -1,0 +1,61 @@
+From 8caf38c536589fc34f0c80b437d5f2675ee30b49 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 11 Jul 2018 14:49:04 +0200
+Subject: [PATCH 041/144] change naming of pfc-am35xx images
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boards/wago-pfc-am35xx/lowlevel.c |  4 ++--
+ images/Makefile.am35xx                     | 12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am35xx/lowlevel.c b/arch/arm/boards/wago-pfc-am35xx/lowlevel.c
+index ea4ee9c..29a7144 100644
+--- a/arch/arm/boards/wago-pfc-am35xx/lowlevel.c
++++ b/arch/arm/boards/wago-pfc-am35xx/lowlevel.c
+@@ -38,7 +38,7 @@ extern int pfc200_board_init(void);
+ extern void early_gpio3_init(void);
+ extern void mux_config_leds(void);
+ 
+-ENTRY_FUNCTION(start_am35xx_pfc200_sram, bootinfo, r1, r2)
++ENTRY_FUNCTION(start_am35xx_pfc_750_820x_sram, bootinfo, r1, r2)
+ {
+ #if 0
+ 	arm_cpu_lowlevel_init();
+@@ -69,7 +69,7 @@ ENTRY_FUNCTION(start_am35xx_pfc200_sram, bootinfo, r1, r2)
+ 
+ #ifndef CONFIG_OMAP_BUILD_IFT
+ extern char __dtb_am35xx_pfc_750_820x_start[];
+-ENTRY_FUNCTION(start_am35xx_pfc200_sdram, r0, r1, r2)
++ENTRY_FUNCTION(start_am35xx_pfc_750_820x_sdram, r0, r1, r2)
+ {
+ 	uint32_t sdram_size;
+ 	void *fdt;
+diff --git a/images/Makefile.am35xx b/images/Makefile.am35xx
+index 340005b..f988a6f 100644
+--- a/images/Makefile.am35xx
++++ b/images/Makefile.am35xx
+@@ -12,14 +12,14 @@ $(obj)/%.mlo: $(obj)/% FORCE
+ 	$(call if_changed,mlo_image)
+ 
+ ifdef CONFIG_OMAP_BUILD_IFT
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM35XX) += start_am35xx_pfc200_sram
+-FILE_barebox-am35xx-pfc200-mlo.img = start_am35xx_pfc200_sram.pblx.mlo
+-am35xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM35XX) += barebox-am35xx-pfc200-mlo.img
++pblx-$(CONFIG_MACH_WAGO_PFC_AM35XX) += start_am35xx_pfc_750_820x_sram
++FILE_barebox-am35xx-pfc-750-820x-mlo.img = start_am35xx_pfc_750_820x_sram.pblx.mlo
++am35xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM35XX) += barebox-am35xx-pfc-750-820x-mlo.img
+ endif
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM35XX) += start_am35xx_pfc200_sdram
+-FILE_barebox-am35xx-pfc200.img = start_am35xx_pfc200_sdram.pblx
+-am35xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM35XX) += barebox-am35xx-pfc200.img
++pblx-$(CONFIG_MACH_WAGO_PFC_AM35XX) += start_am35xx_pfc_750_820x_sdram
++FILE_barebox-am35xx-pfc-750-820x.img = start_am35xx_pfc_750_820x_sdram.pblx
++am35xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM35XX) += barebox-am35xx-pfc-750-820x.img
+ 
+ ifdef CONFIG_OMAP_BUILD_IFT
+ image-y += $(am35xx-mlo-y)
+-- 
+2.7.4
+

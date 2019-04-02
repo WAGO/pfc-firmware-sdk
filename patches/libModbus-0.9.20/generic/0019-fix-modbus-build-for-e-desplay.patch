@@ -1,0 +1,15 @@
+Index: libModbus-0.9.20/src/Makefile.am
+===================================================================
+--- libModbus-0.9.20.orig/src/Makefile.am	2017-10-23 11:24:47.785374582 +0200
++++ libModbus-0.9.20/src/Makefile.am	2017-10-23 11:43:34.921230130 +0200
+@@ -4,6 +4,10 @@
+ libModbus_la_SOURCES += crc16.c crc16.h
+ libModbus_la_CFLAGS  = -W -Wall -Wwrite-strings -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
+ libModbus_la_LDFLAGS = -version-info 1:18:0 -release $(VERSION)
++lib_LIBRARIES = libModbus.a 
++libModbus_a_SOURCES = $(libModbus_la_SOURCES)
++libModbus_a_CFLAGS = $(libModbus_la_CFLAGS)
++libModbus_a_LDFLAGS = $(libModbus_la_LDFLAGS)
+ 
+ include_HEADERS = modbus.h modbus_serial.h modbusip.h
+ 

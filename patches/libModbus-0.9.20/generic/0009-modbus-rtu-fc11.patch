@@ -1,0 +1,11 @@
+--- libModbus-0.9.20.latest/src/modbus-slave.c	2014-06-30 16:47:23.891367384 +0200
++++ libModbus-0.9.20/src/modbus-slave.c	2014-06-30 16:45:54.100496208 +0200
+@@ -439,7 +439,7 @@
+ 	[MB_FUN_READ_IREGS]		= { .fn = modbus_read_iregs,	.hlen = 4},
+ 	[MB_FUN_WRITE_COIL]		= { .fn = modbus_write_coil,	.hlen = 4},
+ 	[MB_FUN_WRITE_REG]		= { .fn = modbus_write_reg,	.hlen = 4},
+-	[MB_FUN_COMM_EVENTS]		= { .fn = modbus_comm_events,	.hlen = 4},
++	[MB_FUN_COMM_EVENTS]		= { .fn = modbus_comm_events,	.hlen = 0},
+ 	[MB_FUN_WRITE_COILS]		= { .fn = modbus_write_coils,	.hlen = 5, .mul = 1},
+ 	[MB_FUN_WRITE_REGS]		= { .fn = modbus_write_regs,	.hlen = 5, .mul = 2},
+ 	[MB_FUN_MASK_WRITE_REG]		= { .fn = modbus_mask_write_reg,	.hlen =	 6},

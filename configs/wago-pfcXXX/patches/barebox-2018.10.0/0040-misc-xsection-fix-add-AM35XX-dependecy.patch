@@ -1,0 +1,26 @@
+From c005e0f765f42b0f79968a2427fdc95b69bd9eba Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 10 Jul 2018 15:38:23 +0200
+Subject: [PATCH 040/144] misc: xsection: fix: add AM35XX dependecy
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ drivers/misc/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index c527235..7882275 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -20,7 +20,7 @@ config STATE_DRV
+ 	depends on OFDEVICE
+ 	depends on STATE
+ 
+-if MACH_WAGO_PFC_AM335X
++if MACH_WAGO_PFC_AM335X || MACH_WAGO_PFC_AM35XX
+ 
+ config XSECTION
+ 	bool "Xsection driver"
+-- 
+2.7.4
+

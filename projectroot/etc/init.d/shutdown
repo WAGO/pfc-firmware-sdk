@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+#
+#  busybox init starts shutdown-related stuff like remounting file systems
+#  read-only from inittab before sending SIGTERM/SIGKILL and calling reboot(2).
+#
+#  Mounting file systems read-only has to happen AFTER all processes have
+#  terminated (WAT8479). That's why this script has to be started via inittab.
+#  init still sends SIGTERM/SIGKILL afterwards, but that does not matter
+#  anymore.
+
+echo "Starting shutdown sequence..."
+
+# send SIGTERM to all processes
+/usr/sbin/killall5 -15
+
+sleep 3
+
+# give CoDeSys up to 12 more seconds to shutdown gracefully
+counter=0
+while /bin/pidof plclinux_rt > /dev/null; do
+  /bin/sleep 1
+
+  counter=$(($counter+1))
+
+  if [[ "$counter" == "12" ]]; then
+    break;
+  fi
+
+done
+
+# send SIGKILL to all processes
+/usr/sbin/killall5 -9
+/bin/sleep 1
+
+# mount all file systems read-only
+/bin/umount -a -r

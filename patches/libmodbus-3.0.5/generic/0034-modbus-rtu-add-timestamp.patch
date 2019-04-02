@@ -1,0 +1,301 @@
+--- libmodbus-3.0.5.base/src/modbus-rtu-private.h	2016-06-08 10:06:56.357139090 +0200
++++ libmodbus-3.0.5/src/modbus-rtu-private.h	2016-06-08 10:13:26.645147742 +0200
+@@ -39,6 +39,10 @@
+ 
+ #define _MODBUS_RTU_CHECKSUM_LENGTH    2
+ 
++#define _MODBUS_RTU_TIMESTAMP_LENGTH   8
++#define _MODBUS_RTU_TIMESTAMP_DISABLED 0
++#define _MODBUS_RTU_TIMESTAMP_ENABLED  1
++
+ #if defined(_WIN32)
+ #define ENOTSUP WSAEOPNOTSUPP
+ 
+@@ -81,6 +85,9 @@
+     struct termios old_tios;
+ #endif
+     modbus_rtu_line_mode line_mode;
++    int timestamp_enabled;
++    unsigned long timeout;
++    struct timespec ts_recv;
+ } modbus_rtu_t;
+ 
+ #endif /* _MODBUS_RTU_PRIVATE_H_ */
+--- libmodbus-3.0.5.base/src/modbus-rtu.h	2016-06-08 10:06:56.357139090 +0200
++++ libmodbus-3.0.5/src/modbus-rtu.h	2016-06-08 10:13:49.501148248 +0200
+@@ -44,6 +44,9 @@
+ int modbus_rtu_set_line_mode(modbus_t *ctx, modbus_rtu_line_mode mode);
+ int modbus_rtu_get_line_mode(modbus_t *ctx, modbus_rtu_line_mode *mode);
+ 
++void modbus_rtu_timestamp_enable(modbus_t *ctx, unsigned long timeout);
++void modbus_rtu_timestamp_disable(modbus_t *ctx);
++
+ MODBUS_END_DECLS
+ 
+ #endif /* _MODBUS_RTU_H_ */
+--- libmodbus-3.0.5.base/src/modbus.h	2016-06-08 10:06:56.357139090 +0200
++++ libmodbus-3.0.5/src/modbus.h	2016-06-13 15:19:17.747259426 +0200
+@@ -121,9 +121,10 @@
+ #define EMBUNKEXC  (EMBXGTAR + 4)
+ #define EMBMDATA   (EMBXGTAR + 5)
+ #define EMBBADADDR (EMBXGTAR + 6)
++#define EMBOUTOFDATE (EMBXGTAR + 7)
+ 
+ /* h_errno mappings on errno */
+-#define EMBHERRBASE (EMBXGTAR + 6)
++#define EMBHERRBASE (EMBXGTAR + 8)
+ 
+ extern const unsigned int libmodbus_version_major;
+ extern const unsigned int libmodbus_version_minor;
+@@ -152,6 +153,7 @@
+     MODBUS_ERROR_RECOVERY_NONE          = 0,
+     MODBUS_ERROR_RECOVERY_LINK          = (1<<1),
+     MODBUS_ERROR_RECOVERY_PROTOCOL      = (1<<2),
++    MODBUS_ERROR_RECOVERY_TIMEOUT       = (1<<3),
+ } modbus_error_recovery_mode;
+ 
+ int modbus_set_slave(modbus_t* ctx, int slave);
+--- libmodbus-3.0.5.base/src/modbus-rtu.c	2016-06-08 10:06:56.357139090 +0200
++++ libmodbus-3.0.5/src/modbus-rtu.c	2016-06-10 10:00:11.683878966 +0200
+@@ -35,6 +35,9 @@
+ #include <linux/serial.h>
+ #endif
+ 
++#include <asm/ioctls.h>
++#include <time.h>
++
+ /* Table of CRC values for high-order byte */
+ static const uint8_t table_crc_hi[] = {
+     0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0,
+@@ -272,8 +275,8 @@
+ 
+ ssize_t _modbus_rtu_send(modbus_t *ctx, const uint8_t *req, int req_length)
+ {
+-#if defined(_WIN32)
+     modbus_rtu_t *ctx_rtu = ctx->backend_data;
++#if defined(_WIN32)
+     DWORD n_bytes = 0;
+     if (!WriteFile(ctx_rtu->w_ser.fd, req, req_length, &n_bytes, NULL))
+     {
+@@ -282,6 +285,18 @@
+     }
+     return n_bytes;
+ #else
++    struct timespec ts_now;
++
++    if ((ctx_rtu->timestamp_enabled) && (clock_gettime(CLOCK_MONOTONIC, &ts_now) == 0)) {
++      // convert to us as timestamp difference for comparison
++      unsigned long const ts_diff_sec = abs(ts_now.tv_sec - ctx_rtu->ts_recv.tv_sec);
++      unsigned long const ts_diff = abs((ts_now.tv_nsec/1000000u + ts_diff_sec*1000u) - ctx_rtu->ts_recv.tv_nsec/1000000u);
++      if (ts_diff > ctx_rtu->timeout) {
++        errno = EMBOUTOFDATE;
++        return -1;
++      }
++    }
++
+     return write(ctx->s, req, req_length);
+ #endif
+ }
+@@ -307,21 +322,45 @@
+ int _modbus_rtu_check_integrity(modbus_t *ctx, uint8_t *msg,
+                                 const int msg_length)
+ {
+-    uint16_t crc_calculated;
+-    uint16_t crc_received;
+-
+-    crc_calculated = crc16(msg, msg_length - 2);
+-    crc_received = (msg[msg_length - 2] << 8) | msg[msg_length - 1];
+-
+-    /* Check CRC of msg */
+-    if (crc_calculated == crc_received) {
+-        return msg_length;
++    if (((modbus_rtu_t *)ctx->backend_data)->timestamp_enabled == _MODBUS_RTU_TIMESTAMP_DISABLED) {
++      uint16_t crc_calculated;
++      uint16_t crc_received;
++
++      crc_calculated = crc16(msg, msg_length - 2);
++      crc_received = (msg[msg_length - 2] << 8) | msg[msg_length - 1];
++
++      /* Check CRC of msg */
++      if (crc_calculated == crc_received) {
++          return msg_length;
++      }
++      if (ctx->debug) {
++          fprintf(stderr, "ERROR CRC received %0X != CRC calculated %0X\n",
++                  crc_received, crc_calculated);
++      }
++      errno = EMBBADCRC;
++      return -1;
+     }
+-    if (ctx->debug) {
+-        fprintf(stderr, "ERROR CRC received %0X != CRC calculated %0X\n",
+-                crc_received, crc_calculated);
++    else {
++      if (msg_length < (_MODBUS_RTU_CHECKSUM_LENGTH + _MODBUS_RTU_TIMESTAMP_LENGTH)) {
++        errno = EINVAL;
++        return -1;
++      }
++      else {
++        uint8_t const* const ts_buf = &msg[msg_length - _MODBUS_RTU_TIMESTAMP_LENGTH];
++        uint8_t const* const crc = ts_buf - _MODBUS_RTU_CHECKSUM_LENGTH;
++        uint16_t const crc_calculated = crc16(msg, msg_length - (_MODBUS_RTU_CHECKSUM_LENGTH + _MODBUS_RTU_TIMESTAMP_LENGTH));
++        uint16_t const crc_received = (crc[0] << 8) | crc[1];
++
++        /* Check CRC of msg */
++        if (crc_calculated != crc_received) {
++          errno = EMBBADCRC;
++          return -1;
++        }
++        ((modbus_rtu_t*)ctx->backend_data)->ts_recv.tv_sec  = (ts_buf[0] << 24) | (ts_buf[1] << 16) | (ts_buf[2] << 8) | ts_buf[3];
++        ((modbus_rtu_t*)ctx->backend_data)->ts_recv.tv_nsec = (ts_buf[4] << 24) | (ts_buf[5] << 16) | (ts_buf[6] << 8) | ts_buf[7];
++        return (msg_length - _MODBUS_RTU_TIMESTAMP_LENGTH);
++      }
+     }
+-    return -1;
+ }
+ 
+ 
+@@ -1015,7 +1054,7 @@
+   return FALSE;
+ }
+ 
+-const modbus_backend_t _modbus_rtu_backend = {
++static modbus_backend_t _modbus_rtu_backend = {
+     _MODBUS_BACKEND_TYPE_RTU,
+     _MODBUS_RTU_HEADER_LENGTH,
+     _MODBUS_RTU_CHECKSUM_LENGTH,
+@@ -1092,5 +1131,21 @@
+     ctx_rtu->data_bit = data_bit;
+     ctx_rtu->stop_bit = stop_bit;
+ 
++    modbus_rtu_timestamp_disable(ctx);
++
+     return ctx;
+ }
++
++void modbus_rtu_timestamp_enable(modbus_t *ctx, unsigned long timeout)
++{
++    ((modbus_rtu_t *)ctx->backend_data)->timestamp_enabled = _MODBUS_RTU_TIMESTAMP_ENABLED;
++    ((modbus_rtu_t *)ctx->backend_data)->timeout = timeout;
++    ctx->backend->checksum_length = _MODBUS_RTU_CHECKSUM_LENGTH + _MODBUS_RTU_TIMESTAMP_LENGTH; //handle timestamp as an extended checksum
++}
++
++void modbus_rtu_timestamp_disable(modbus_t *ctx)
++{
++    ((modbus_rtu_t *)ctx->backend_data)->timestamp_enabled = _MODBUS_RTU_TIMESTAMP_DISABLED;
++    ((modbus_rtu_t *)ctx->backend_data)->timeout = 0;
++    ctx->backend->checksum_length = _MODBUS_RTU_CHECKSUM_LENGTH;
++}
+--- libmodbus-3.0.5.base/src/modbus-tcp.c	2016-06-08 10:06:56.357139090 +0200
++++ libmodbus-3.0.5/src/modbus-tcp.c	2016-06-08 10:22:51.189160256 +0200
+@@ -698,7 +698,7 @@
+     return FALSE;
+ }
+ 
+-const modbus_backend_t _modbus_tcp_backend = {
++static modbus_backend_t _modbus_tcp_backend = {
+     _MODBUS_BACKEND_TYPE_TCP,
+     _MODBUS_TCP_HEADER_LENGTH,
+     _MODBUS_TCP_CHECKSUM_LENGTH,
+@@ -722,7 +722,7 @@
+ };
+ 
+ 
+-const modbus_backend_t _modbus_tcp_pi_backend = {
++static modbus_backend_t _modbus_tcp_pi_backend = {
+     _MODBUS_BACKEND_TYPE_TCP_PI,
+     _MODBUS_TCP_HEADER_LENGTH,
+     _MODBUS_TCP_CHECKSUM_LENGTH,
+@@ -1454,7 +1454,7 @@
+     return rc;
+ }
+ 
+-const modbus_backend_t _modbus_udp_backend = {
++static modbus_backend_t _modbus_udp_backend = {
+     _MODBUS_BACKEND_TYPE_UDP,
+     _MODBUS_TCP_HEADER_LENGTH,                        /*common for TCP and UDP*/
+     _MODBUS_TCP_CHECKSUM_LENGTH,                      /*common for TCP and UDP*/
+@@ -1477,7 +1477,7 @@
+     _modbus_udp_is_multicast
+ };
+ 
+-const modbus_backend_t _modbus_udp_pi_backend = {
++static modbus_backend_t _modbus_udp_pi_backend = {
+     _MODBUS_BACKEND_TYPE_UDP_PI,
+     _MODBUS_TCP_HEADER_LENGTH,                        /*common for TCP and UDP*/
+     _MODBUS_TCP_CHECKSUM_LENGTH,                      /*common for TCP and UDP*/
+--- libmodbus-3.0.5.base/src/modbus.c	2016-06-08 10:06:56.357139090 +0200
++++ libmodbus-3.0.5/src/modbus.c	2016-06-14 14:55:05.827827157 +0200
+@@ -137,6 +137,8 @@
+         return "Too many data";
+     case EMBBADADDR:
+         return "Wrong or invalid server address";
++    case EMBOUTOFDATE:
++        return "Frame out-of-date";
+     default:
+         return strerror(errnum);
+     }
+@@ -282,6 +284,9 @@
+                 if ((errno == EBADF || errno == ECONNRESET || errno == EPIPE)) {
+                     modbus_close(ctx);
+                     modbus_connect(ctx);
++                } else if (errno == EMBOUTOFDATE) {
++                    // do not try again if a timeout occured
++                    break;
+                 } else {
+                     _sleep_and_flush(ctx);
+                 }
+@@ -581,6 +586,13 @@
+                 modbus_connect(ctx);
+                 errno = saved_errno;
+             }
++            else if((ctx->error_recovery & MODBUS_ERROR_RECOVERY_TIMEOUT) &&
++                    (errno == ETIMEDOUT)) {
++                if(msg_type == MSG_CONFIRMATION) {
++                    // sleep not necessary, reponse time already expired
++                    modbus_flush(ctx);
++                }
++            }
+             return -1;
+         }
+         rc = ctx->backend->recv(ctx, msg + msg_length, length_to_read);
+@@ -722,7 +734,6 @@
+                 _sleep_and_flush(ctx);
+             }
+         }
+-        errno = EMBBADCRC;
+     }
+     return rc;
+ }
+--- libmodbus-3.0.5.base/src/modbus-private.h	2016-06-08 10:06:56.357139090 +0200
++++ libmodbus-3.0.5/src/modbus-private.h	2016-06-08 10:25:45.353164116 +0200
+@@ -146,7 +146,7 @@
+     int error_recovery;
+     struct timeval response_timeout;
+     struct timeval byte_timeout;
+-    const modbus_backend_t *backend;
++    modbus_backend_t *backend;
+     void *backend_data;
+     int alternate_data_enabled;
+     uint8_t alternate_data_value;
+--- libmodbus-3.0.5.base/configure.ac	2016-06-08 10:06:56.361139090 +0200
++++ libmodbus-3.0.5/configure.ac	2016-06-08 10:26:33.857165191 +0200
+@@ -41,7 +41,7 @@
+ # ABI version
+ # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+ LIBMODBUS_LD_CURRENT=750
+-LIBMODBUS_LD_REVISION=33
++LIBMODBUS_LD_REVISION=34
+ LIBMODBUS_LD_AGE=0
+ LIBMODBUS_LT_VERSION_INFO=$LIBMODBUS_LD_CURRENT:$LIBMODBUS_LD_REVISION:$LIBMODBUS_LD_AGE
+ AC_SUBST(LIBMODBUS_LT_VERSION_INFO)
+@@ -128,6 +128,9 @@
+    LIBS="$LIBS -lws2_32"
+    AC_SUBST(LIBS)
+ fi
++# Required for clock_gettime
++LIBS="$LIBS -lrt"
++AC_SUBST(LIBS)
+ 
+ # Check for RS485 support (Linux kernel version 2.6.28+)
+ AC_CHECK_DECLS([TIOCSRS485], [], [], [[#include <sys/ioctl.h>]])

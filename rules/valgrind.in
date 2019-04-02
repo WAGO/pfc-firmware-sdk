@@ -1,0 +1,27 @@
+## SECTION=debug_tools
+
+menuconfig VALGRIND
+	tristate
+	prompt "valgrind"
+	help
+	  A memory debugger and profiler
+
+	  Valgrind is a GPL'd system for debugging and profiling
+	  x86-Linux programs. With Valgrind's tool suite you can
+	  automatically detect many memory management and threading
+	  bugs, avoiding hours of frustrating bug-hunting, making your
+	  programs more stable. You can also perform detailed
+	  profiling to help speed up your programs.  For more info,
+	  check: http://valgrind.org/
+
+if VALGRIND
+
+config VALGRIND_SKIP_TARGETINSTALL
+  bool "skip valgrind's targetinstall stage"
+  default y
+  help
+    Skip valgrind's targetinstall stage in order to save memory inside the target device.
+    The install stage will create the package files into $(PTXDIST_PLATFORMDIR)/packages.
+
+endif
+

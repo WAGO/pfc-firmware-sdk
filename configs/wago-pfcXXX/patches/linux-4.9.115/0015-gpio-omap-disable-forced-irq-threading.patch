@@ -1,0 +1,25 @@
+From 9d94a815eb538170421b5d38385f42c8183db9d0 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 10 Jun 2016 07:43:38 +0200
+Subject: [PATCH 015/261] gpio: omap: disable forced irq threading
+
+---
+ drivers/gpio/gpio-omap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 6f9c9ac..74b447e 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1113,7 +1113,7 @@ static int omap_gpio_chip_init(struct gpio_bank *bank, struct irq_chip *irqc)
+ 
+ 	ret = devm_request_irq(bank->chip.parent, bank->irq,
+ 			       omap_gpio_irq_handler,
+-			       0, dev_name(bank->chip.parent), bank);
++			       IRQF_NO_THREAD, dev_name(bank->chip.parent), bank);
+ 	if (ret)
+ 		gpiochip_remove(&bank->chip);
+ 
+-- 
+2.7.4
+

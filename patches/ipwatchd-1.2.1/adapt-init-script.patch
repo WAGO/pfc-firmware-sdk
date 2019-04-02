@@ -1,0 +1,201 @@
+Index: ipwatchd-1.2.1/src/scripts/ipwatchd
+===================================================================
+--- ipwatchd-1.2.1.orig/src/scripts/ipwatchd	2011-07-24 14:39:03.000000000 +0000
++++ ipwatchd-1.2.1/src/scripts/ipwatchd	2014-06-27 12:22:00.002321717 +0000
+@@ -1,56 +1,35 @@
+ #! /bin/sh
+-
+-### BEGIN INIT INFO
+-# Provides:          ipwatchd
+-# Required-Start:    $local_fs $remote_fs $network $syslog
+-# Required-Stop:     $local_fs $remote_fs $network $syslog
+-# Default-Start:     2 3 4 5
+-# Default-Stop:      0 1 6
+-# Short-Description: IP conflict detection daemon
+-# Description:       IPwatchD is simple daemon that analyses all
+-#                    incoming ARP packets in order to detect IP conflicts
+-### END INIT INFO
+-
++# IP conflict detection daemon
++#
++# IPwatchD is simple daemon that analyses all
++# incoming ARP packets in order to detect IP conflicts
+ # Author: Jaroslav Imrich <jariq@jariq.sk>
+ 
+ # Do NOT "set -e"
+ 
+-# PATH should only include /usr/* if it runs after the mountnfs.sh script
+ PATH=/sbin:/usr/sbin:/bin:/usr/bin
+ DESC="IP conflict detection daemon"
+ NAME=ipwatchd
+ DAEMON=/usr/sbin/$NAME
+-DAEMON_ARGS="-c /etc/ipwatchd.conf"
++CONF_FILE=/etc/ipwatchd.conf
++DAEMON_ARGS="-c $CONF_FILE"
+ PIDFILE=/var/run/$NAME.pid
+ SCRIPTNAME=/etc/init.d/$NAME
+ 
+ # Exit if the package is not installed
+ [ -x "$DAEMON" ] || exit 0
+ 
+-# Read configuration variable file if it is present
+-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+-
+-# Load the VERBOSE setting and other rcS variables
+-. /lib/init/vars.sh
+-
+-# Define LSB log_* functions.
+-# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+-. /lib/lsb/init-functions
+-
+ #
+ # Function that starts the daemon/service
+ #
+ do_start()
+ {
+-	# Return
+-	#   0 if daemon has been started
+-	#   1 if daemon was already running
+-	#   2 if daemon could not be started
+-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+-		|| return 1
+-	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
+-		$DAEMON_ARGS \
+-		|| return 2
++        # Return
++        #   0 if daemon has been started
++        #   1 if daemon was already running
++        #   2 if daemon could not be started
++        start-stop-daemon --quiet --exec $DAEMON --test -K && return 1
++        start-stop-daemon --quiet --exec $DAEMON -S -- $DAEMON_ARGS || return 2
+ }
+ 
+ #
+@@ -58,60 +37,79 @@
+ #
+ do_stop()
+ {
+-	# Return
+-	#   0 if daemon has been stopped
+-	#   1 if daemon was already stopped
+-	#   2 if daemon could not be stopped
+-	#   other if a failure occurred
+-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE --name $NAME
+-	RETVAL="$?"
+-	[ "$RETVAL" = 2 ] && return 2
+-	rm -f $PIDFILE
+-	return "$RETVAL"
++        # Return
++        #   0 if daemon has been stopped
++        #   1 if daemon was already stopped
++        #   2 if daemon could not be stopped
++        #   other if a failure occurred
++        start-stop-daemon --quiet --pidfile $PIDFILE -K
++        RETVAL="$?"
++        [ "$RETVAL" = 2 ] && return 2
++        rm -f $PIDFILE
++        return "$RETVAL"
++}
++
++# On PFC200 change /etc/ipwatchd.conf according to DSA configuration.
++set_config()
++{
++	local dsamode
++	if [ -x /etc/config-tools/get_dsa_mode ]; then
++		# Ok. We have config tools present. If required, change config file accordingly.
++		dsamode=$(/etc/config-tools/get_dsa_mode)
++		grep -q "^# iface br1 active" $CONF_FILE
++		if [ "$?" != "$dsamode" ]; then
++			# change config file because dsa mode does not match
++			if [ "$dsamode" = "0" ]; then
++				awk ' /iface br1/ {print "# iface br1 active"; next} {print}' $CONF_FILE > $CONF_FILE.new
++			else
++				awk ' /iface br1/ {print "iface br1 active"; next} {print}' $CONF_FILE > $CONF_FILE.new
++			fi
++			sync
++			mv $CONF_FILE.new $CONF_FILE
++			sync
++		fi
++	fi
+ }
+ 
+ case "$1" in
+   start)
+-	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
+-	do_start
+-	case "$?" in
+-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+-	esac
+-	;;
++	set_config
++        do_start
++        case "$?" in
++                0) [ "$VERBOSE" != no ] && echo "Started $NAME, $DESC" ;;
++                1) [ "$VERBOSE" != no ] && echo "$NAME already running" ;;
++                2) [ "$VERBOSE" != no ] && echo "Start of $NAME failed" ;;
++        esac
++        ;;
+   stop)
+-	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
+-	do_stop
+-	case "$?" in
+-		0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
+-		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
+-	esac
+-	;;
+-  status)
+-       status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
+-       ;;
++        do_stop
++        case "$?" in
++                0) [ "$VERBOSE" != no ] && echo "Stopped $NAME" ;;
++                1) [ "$VERBOSE" != no ] && echo "$NAME already stopped" ;;
++                2) [ "$VERBOSE" != no ] && echo "$NAME could not be stopped" ;;
++        esac
++        ;;
+   restart|force-reload)
+-	log_daemon_msg "Restarting $DESC" "$NAME"
+-	do_stop
+-	case "$?" in
+-	  0|1)
+-		do_start
+-		case "$?" in
+-			0) log_end_msg 0 ;;
+-			1) log_end_msg 1 ;; # Old process is still running
+-			*) log_end_msg 1 ;; # Failed to start
+-		esac
+-		;;
+-	  *)
+-	  	# Failed to stop
+-		log_end_msg 1
+-		;;
+-	esac
+-	;;
++        do_stop
++        case "$?" in
++          0|1)
++               do_start
++                case "$?" in
++                        0) echo "Restarted $NAME, $DESC" ;;
++                        1) echo "Old process i$NAME is still running" ;;
++                        *) echo "$NAME failed to start" ;;
++                esac
++                ;;
++          *)
++                # Failed to stop
++                echo "$NAME failed to stop"
++                ;;
++        esac
++        ;;
+   *)
+-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+-	exit 3
+-	;;
++        echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
++        exit 3
++        ;;
+ esac
+ 
+-:
++

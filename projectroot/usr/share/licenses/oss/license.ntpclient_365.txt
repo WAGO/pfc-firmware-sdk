@@ -1,0 +1,32 @@
+ntpclient-2007/ntpclient.c
+
+ * Copyright 1997, 1999, 2000, 2003, 2006, 2007  Larry Doolittle  <larry@doolittle.boa.org>
+ * Last hack: December 30, 2007
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License (Version 2,
+ *  June 1991) as published by the Free Software Foundation.  At the
+ *  time of writing, that license was published by the FSF with the URL
+ *  http://www.gnu.org/copyleft/gpl.html, and is incorporated herein by
+ *  reference.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  Possible future improvements:
+ *      - Write more documentation  :-(
+ *      - Support leap second processing
+ *      - Support IPv6
+ *      - Support multiple (interleaved) servers
+ *
+ *  Compile with -DPRECISION_SIOCGSTAMP if your machine really has it.
+ *  There are patches floating around to add this to Linux, but
+ *  usually you only get an answer to the nearest jiffy.
+ *  Hint for Linux hacker wannabes: look at the usage of get_fast_time()
+ *  in net/core/dev.c, and its definition in kernel/time.c .
+ *
+ *  If the compile gives you any flak, check below in the section
+ *  labelled "XXX fixme - non-automatic build configuration".
+ */

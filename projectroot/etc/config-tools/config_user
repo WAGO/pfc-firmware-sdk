@@ -1,0 +1,173 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_user
+#
+# Change the configuration of the Users for the Web Based Management
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+PASSWD_FILENAME="/etc/lighttpd/lighttpd-htpasswd.user"
+
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change the passwords of the webserver-user *"
+  echo
+  echo "Usage: config_user < user=user-value new-password=new-password-value confirm-password=confirm-password-value old-password=old-password-value>"
+  echo
+  echo "user-value: name of the webserver-user, whose password should be changed"
+  echo "new-password-value / confirm-password-value: both strings must be the same"
+  echo "old-password-value: current password of user"
+  echo 
+  exit $status
+fi
+
+
+# filter input parmeter of input-string 
+userName=`GetParameterValue user $*`
+oldPassword=`GetParameterValue old-password $*`
+newPassword=`GetParameterValue new-password $*`
+confirmPassword=`GetParameterValue confirm-password $*`
+#echo "userName:"$userName "newPassword:"$newPassword "confirmPassword:"$confirmPassword
+
+# check if input-parameter user is given
+if [ -z "$userName" ]; then
+  status=$MISSING_PARAMETER
+  ReportError $status "(user)"
+  SetLastError "Missing Parameter \"user\""
+  exit $status
+fi
+
+# check if input-parameter old password is given
+if [ -z "$oldPassword" ]; then
+  status=$MISSING_PARAMETER
+  ReportError $status "(no old password)"
+  SetLastError "Missing Parameter \"old-password\""
+  exit $status
+fi
+
+# check if input-parameter password is given
+if [ -z "$newPassword" ]; then
+  status=$MISSING_PARAMETER
+  ReportError $status "(user)"
+  SetLastError "Missing Parameter \"new-password\""
+  exit $status
+fi
+
+# check if password and confirmed password are the same
+if [ "$newPassword" != "$confirmPassword" ]; then
+  status=$INVALID_PARAMETER
+  ReportError $status "(confirmed password is different)"
+  SetLastError "Confirmed password was different"
+  exit $status
+fi
+
+# check if password contains any non-ASCII characters
+LC_ALL_OLD=$LC_ALL
+LC_ALL=C
+
+# Groups of ASCII special characters except ']' and '-'
+# We need a separate variable to avoid escaping
+# Notes:
+#       o ']' character must be the first one inside regex group
+#       o '-' character must either be the first or the last one
+# That's why they are placed within the main regex.
+
+specialChars="\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\x2e\x2f\x3a\x3b\x3c\x3d\x3e\x3f\x40\x5b\x5c\x5e\x5f\x60\x7b\x7c\x7d\x7e"
+
+if [[ ! "$newPassword" =~ ^[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$(echo -e $specialChars)-]*$ ]]; then
+  status=$INVALID_PARAMETER
+  ReportError $status "(password contains non-ASCII characters)"
+  SetLastError "Illegal characters used. Please only use letters (a-z, A-Z),\nnumbers and ASCII special characters: \n""] !\"#$%&'()*+,./:;<=>?@[\^_\`{|}~-"
+  
+  exit $status
+fi
+
+LC_ALL=$LC_ALL_OLD
+
+#echo "change Password for" $userName "to" $newPassword
+
+# TODO? check if new password is complex enough
+#hostName=`/bin/hostname`
+
+# check if password-file is existing
+if [ ! -f $PASSWD_FILENAME ]; then
+  status=$CONFIG_FILE_MISSING
+  ReportError $CONFIG_FILE_MISSING "($PASSWD_FILENAME)"
+  SetLastError "Error while execution (password-file missing)"
+  exit $status
+else
+
+  # check if current password of user is correct
+  # get current key from $PASSWD_FILENAME
+  currKey=`sudo $SED -n 's/'$userName':\(.*\)\.*/\1/p'  "$PASSWD_FILENAME"`
+  # get current salt from $PASSWD_FILENAME
+  salt=`sudo $SED -n 's/'$userName':$6$\(.*\)\$.*/\1/p' "$PASSWD_FILENAME"`
+  ioldPassword=`echo "$oldPassword" | iconv --from-code=UTF-8 --to-code=ISO-8859-1 2> /dev/null`
+  # calculate hash-key of transferred old key
+  oldkeyTrans=`/etc/config-tools/crypt "$ioldPassword" '$6$'${salt}`
+  if [ "$oldkeyTrans" != "$currKey" ]; then
+    status=$INVALID_PARAMETER
+    ReportError $status "(transferred old password is different)"
+    SetLastError "The old password was different to current password"
+    exit $status
+  else
+
+    # create key from password by crypt-algorithm (wbm expects password to be encoded as ISO-8859-1)
+    #key=`/etc/config-tools/crypt "$(echo $newPassword | iconv --from-code=UTF-8 --to-code=ISO-8859-1)" '$1$'`
+    iconfPassword=`echo "$newPassword" | iconv --from-code=UTF-8 --to-code=ISO-8859-1 2> /dev/null`
+    #echo "iconfPassword:"$iconfPassword
+    
+    if [ -z "$iconfPassword" ]; then
+      status=$INTERNAL_ERROR
+      SetLastError "Error while encoding"
+    else
+    
+      salt=`dd if=/dev/urandom bs=1 count=12 2> /dev/null | base64 | tr + . | tr -d "\n"`
+      key=`/etc/config-tools/crypt "$iconfPassword" '$6$'${salt}`
+      #echo "key:" $key
+  
+      if [ -z "$key" ]; then
+        status=$INTERNAL_ERROR
+        ReportError $status "(crypt)"
+        SetLastError "Error while execution"
+      else
+  
+        #sed -n '/'$userName'/p' $PASSWD_FILENAME 
+        # change line in password-file to new key
+        sudo $SED -i '/'$userName'/c\'$userName':'$key'' $PASSWD_FILENAME > /dev/null 2> /dev/null
+        if [ "$?" == $SUCCESS ]; then
+          sync
+        else
+          status=$WRITE_FILE_ERROR;
+          ReportError $status "($PASSWD_FILENAME)"
+          SetLastError "Error while writing password-file"
+        fi
+        #sed -n '/'$userName'/p' $PASSWD_FILENAME
+      fi
+    fi 
+  fi
+fi
+
+exit $status

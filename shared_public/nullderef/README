@@ -1,0 +1,39 @@
+NULLDEREF -- A module for playing with kernel NULL/invalid pointer dereferences
+
+PTXDIST-INTEGRATION
+PTXdist integration of project / package nullderef with a new PTXdist compatible
+makefile was done by WAGO. To build the kernel module just activate nullderef as
+module (M) in PTXdist menuconfig.
+
+BUILDING FOR HOST SYSTEM
+This module should build against any remotely recent 2.6 kernel. To
+build, you'll need the kernel headers for your kernel installed. On
+Debian or Ubuntu, try:
+ # apt-get install linux-headers-$(uname -r)
+on Fedora, try:
+ # yum install kernel-devel
+
+Once you've got those, just run 'make host' to produce a 'nullderef.ko'
+file.
+
+USING
+nullderef uses debugfs to export its hooks. In order to you use it,
+you'll need mount debugfs somewhere. /sys/kernel/debug is traditional,
+so try (as root):
+
+ # mount debugfs -t debugfs /sys/kernel/debug/
+
+And then simply
+ # insmod nullderef.ko
+
+Once you're done crashing your kernel, if your machine is still
+stable, you can remove the module using:
+ # rmmod nullderef
+
+You shuld now have a /sys/kernel/debug/nullderef/ directory,
+containing two files, "null_read", and "null_call".
+
+Writing to either of these files will result in a NULL pointer
+dereference in the kernel. "null_read" will simply try to read a NULL
+pointer. "null_call" will read a function pointer from the NULL
+address, and then attempt to call through the resulting pointer.

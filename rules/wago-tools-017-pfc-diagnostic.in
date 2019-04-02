@@ -1,0 +1,40 @@
+## SECTION=wago_specific_tools
+menuconfig WAGO_PFC_DIAGNOSTIC
+	tristate
+	prompt "wago-pfc-diagnostic (TARGET)"
+	depends on !LED_SERVER_LEGACY
+	default n
+	select LED_SERVER_2
+	select WAGO_DBUS
+	select LIBXML2
+	select HOST_WAGO_PFC_DIAGNOSTIC
+	help
+	  this is the PFC diagnostic-ID system please use it only if you also use led-server-2
+
+if WAGO_PFC_DIAGNOSTIC
+
+config LOGFORWARD_STARTSCRIPT
+	bool "install /etc/init.d/logforward"
+	default y
+	help
+	 Installs the startscript for logforward.
+
+config LED_SERVER_2_STARTSCRIPT
+	bool "install /etc/init.d/ledserverd"
+	default y
+	help
+	 Installs the startscript for errorserverd.
+	 ATTENTION: Make sure that /etc/init.d/dbus_screen_init was started before!
+	 Startscript /etc/init.d/errorserverd starts /usr/bin/screend in a new screen-window
+	 within the screen session 'wago'.
+
+config WAGO_PFC_DIAGNOSTIC_DEBUGGING
+	bool debugging
+	default n
+	help
+		debug program
+	 
+endif
+
+comment "PFC-Target-Diagnostic is implemented by led_server_legacy"
+	depends on LED_SERVER_LEGACY

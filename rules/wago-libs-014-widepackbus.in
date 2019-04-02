@@ -1,0 +1,12 @@
+## SECTION=wago_specific_libs
+
+config LIBWIDEPACKBUS
+	bool
+	prompt "libwidepackbus"
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select PLCLINUXRT
+	select LIBOSLINUX
+	select LIBPACKBUS
+	help
+	  Shared library implementing the kbus connection to codesys.

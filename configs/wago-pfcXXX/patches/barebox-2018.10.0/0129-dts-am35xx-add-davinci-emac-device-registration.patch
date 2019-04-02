@@ -1,0 +1,41 @@
+From ae37d718c4bee9644752dabaecbbacd5501dfe7d Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 17 Oct 2018 07:25:56 +0000
+Subject: [PATCH 129/144] dts: am35xx: add davinci emac device registration
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/dts/am35xx-pfc-750_820x.dts | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/arch/arm/dts/am35xx-pfc-750_820x.dts b/arch/arm/dts/am35xx-pfc-750_820x.dts
+index 1f664e7..3f26595 100644
+--- a/arch/arm/dts/am35xx-pfc-750_820x.dts
++++ b/arch/arm/dts/am35xx-pfc-750_820x.dts
+@@ -502,3 +502,23 @@
+ &gpio2 {
+       status = "disabled";
+ };
++
++&davinci_emac {
++	status = "okay";
++	/* In order to use the driver as it is,
++	 * we need to update ressource entries in order
++	 * to meet the expected arrangement */
++	reg = <0x5c010000 0x800 /* EMAC_BASE_ADDR */
++	       0x5c000000 0xff  /* EMAC_WRAPPER_BASE_ADDR */
++	       0x5c030000 0xff  /* EMAC_MDIO_BASE_ADDR */
++	       0x5c020000 0x2000>; /* EMAC_WRAPPER_RAM_ADDR */
++
++	/* set 'force-link' here
++	 * if problems occur */
++	interface-rmii;
++
++	fixed-link {
++		speed = <100>;
++		full-duplex;
++	};
++};
+-- 
+2.7.4
+

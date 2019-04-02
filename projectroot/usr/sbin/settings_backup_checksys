@@ -1,0 +1,168 @@
+#!/bin/bash
+
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   settings_backup_checksys
+#
+# Brief:    Save all Check-System configuration settings to stdout or restore 
+#           them from stdin.
+#
+# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load common backup/restore functions
+if [[ ! -f "/usr/sbin/settings_backup_lib" ]]; then
+    echo "settings_backup_lib missing"
+    exit 64
+fi
+
+source /usr/sbin/settings_backup_lib
+
+RESULT=0
+OPERATION=${1:-}
+readonly TMP=".tmp"
+readonly TESTS_DIR="/etc/check-system/"
+readonly TST_FILE="chksys-tstfile-"
+
+# array for buffering of custom test filenames
+declare -a CUSTOM_TEST_FILES
+
+# Function to get avaiable custom test scripts of Check-System.
+# Available test script names will be saved to "CUSTOM_TEST_FILES" array. 
+#
+# Param : Check-System configuration file 
+#
+# Return: 0 (success)
+#-----------------------------------------------------------------------------#
+GetCustomTestScripts ()
+{
+    local FILE="$1"
+    local RESULT=0
+    local CUSTOM_SCRIPTS
+    
+    # read custom script names from Check-System config 
+    CUSTOM_SCRIPTS="$(source "$FILE" && echo "${CUSTOM_TEST[@]}")"
+    IFS=' ' read -r -a CUSTOM_TEST_FILES <<< "$CUSTOM_SCRIPTS"
+    
+    return $RESULT
+}
+
+# Function to get a script number of custom test script from the backup key
+#
+# Param : Backup key. 
+#
+# Output: Number of test script 
+# Return: 0 (success), otherwise INTERNAL_ERROR
+#-----------------------------------------------------------------------------#
+GetTestNumber ()
+{ 
+    local KEY="$1"
+    local RE_TEST_INTEGER='^[0-9]+$'
+    local TEST_NUMBER=0
+    local RESULT=0
+    
+    TEST_NUMBER="$( echo "$KEY" | cut -d- -f3 )"
+    if ! [[ $TEST_NUMBER =~ $RE_TEST_INTEGER ]] ; then
+        RESULT=$INTERNAL_ERROR
+        TEST_NUMBER=0
+    fi
+    echo $TEST_NUMBER
+    
+    return $RESULT
+}    
+    
+#-------------------------------------------------------------
+# restore of settings
+#-------------------------------------------------------------
+if [[ $OPERATION = restore ]]; then
+    
+    # read backup file from stdin
+    while read line; do
+        # get parameter key
+        key=${line%%=*}
+        # get parameter value
+        value=${line#*=}
+        
+        case "$key" in
+          chksys-wdt-conf)
+            base64 -d <<< "$value" >> "$CHECK_SYSTEM_WDT_CONFIG$TMP"
+            ;;
+          chksys-conf)
+            base64 -d <<< "$value" >> "$CHECK_SYSTEM_CONFIG$TMP"
+            ;;
+          chksys-tstfile-*)
+            # check if key plausible
+            test_number="$(GetTestNumber $key)"
+            if [[ $RESULT -eq 0 ]];  then
+                base64 -d <<< "$value" >> "$TESTS_DIR$TST_FILE$test_number$TMP"
+            else
+                echo "Unknown key $key" >> /dev/stderr
+            fi    
+            ;;
+          chksys-tstname-*)
+            # check if key plausible
+            test_number="$(GetTestNumber $key)"
+            if [[ $RESULT -eq 0 ]];  then
+                CUSTOM_TEST_FILES[$test_number]+="$(base64 -d <<< "$value")"
+            else    
+                echo "Unknown key $key" >> /dev/stderr
+            fi   
+            ;;
+          chcksys-*)
+            echo "Unknown key $key" >> /dev/stderr
+            ;;
+        esac
+    done
+    
+    mv "$CHECK_SYSTEM_WDT_CONFIG$TMP" "$CHECK_SYSTEM_WDT_CONFIG"
+    mv "$CHECK_SYSTEM_CONFIG$TMP" "$CHECK_SYSTEM_CONFIG"
+    
+    for index in ${!CUSTOM_TEST_FILES[*]}
+    do
+        if [[ -f $TESTS_DIR$TST_FILE$index$TMP ]]; then
+            mv "$TESTS_DIR$TST_FILE$index$TMP" "${CUSTOM_TEST_FILES[$index]}"
+            chmod u+x "${CUSTOM_TEST_FILES[$index]}"
+        fi   
+    done
+    # clean tmp files
+    rm -f "$TESTS_DIR$TST_FILE*$TMP"
+#-------------------------------------------------------------
+# backup settings
+#-------------------------------------------------------------
+elif [[ $OPERATION = backup ]]; then
+    BackupKnownFile chksys-wdt-conf "$CHECK_SYSTEM_WDT_CONFIG"
+    RESULT=$?
+    if [[ $RESULT -eq 0 ]];  then
+        GetCustomTestScripts "$CHECK_SYSTEM_CONFIG"
+        BackupKnownFile chksys-conf "$CHECK_SYSTEM_CONFIG"
+        RESULT=$?
+    fi
+
+    test_number=0
+    for test_file in "${CUSTOM_TEST_FILES[@]}"
+    do
+        if [[ -f "$test_file" ]]; then
+            # Backup filename of custom test
+            base64 <<< "$test_file" | awk "\$0=\"chksys-tstname-$test_number=\"\$0"
+            BackupKnownFile "$TST_FILE$test_number" "$test_file"
+            test_number=$(( test_number+1 ))
+        fi
+    done
+
+else
+    echo
+    echo "* Save all Check-System configuration settings to stdout or restore them from stdin *"
+    echo
+    echo "Usage: settings_backup_checksys < backup | restore >"
+    echo
+fi
+
+exit $RESULT

@@ -1,0 +1,32 @@
+From 04b30bfbf2fbdea360125c5fb7297e7377f5b6d4 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 9 Jul 2018 09:46:34 +0200
+Subject: [PATCH 029/144] defaultenv: defaultenv-pfc: add legacy atag boot.
+
+This commit needs to be removed when the feature from commit 452d863
+upstream next branch is merged.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index 412dca5..22e13be 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -30,6 +30,11 @@ if [ -e "${global.pfc.sd}" ] && [ -e "${sd_blspec}" ]; then
+ 	global.boot.default="file://${sd_blspec} bootchooser"
+ 
+ elif [ -e "${global.pfc.sd}" ] && [ -e "${sd_legacy_uImage}" ]; then
++	# this is only for testing the atag mode. The main feature is currently
++	# not in upstream master but only in upstream next. Hopefully 'bootm.boot_atag'
++	# feature comes with version v2018.08.0. The argument 'oftree -f' is then
++	# removed.
++	oftree -f
+ 	global.bootm.boot_atag=true
+ 	global.boot.default="sd-legacy bootchooser"
+ 
+-- 
+2.7.4
+

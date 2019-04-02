@@ -1,0 +1,193 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_ntp_config
+#
+# Print configuration of the ntp parameter.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+. /etc/config-tools/config_tool_lib
+
+NTPCLIENT_CONFIG="/etc/ntpclient.conf"
+NTP_STATIC_LIST="/etc/specific/ntpclient-static-servers"
+
+#-----------------------------------------------------------------------------#
+
+getServerFromFile()
+{
+    local dummy_filename="/tmp/get_ntp_dummy_list"
+    local file=$1
+    local lines=`egrep "^NTP_SERVER_[[:digit:]]" $file | wc -l`
+
+    if [ ! -s $file ]; then
+        SetLastError "get_ntp_config: missing config file"
+        exit 1
+    fi
+    if [ $lines -eq 0 ]; then
+        SetLastError "get_ntp_config: bad config file"
+        exit 1
+    fi
+    #Because of non working process substition on pfc we have to do a dirty hack
+    #source <(egrep "^NTP_SERVER_[[:digit:]]" $file)
+    egrep "^NTP_SERVER_[[:digit:]]" $file > $dummy_filename
+    source $dummy_filename
+
+    for i in $(seq 1 $lines); do
+        dummy="NTP_SERVER_$i"
+        entry=${!dummy}
+        if [ "$entry" ]; then
+            echo "$entry"
+        fi
+    done
+
+    rm -rf $dummy_filename
+}
+
+function getNTPServersFromDHCP()
+{
+    local all_entries=`getServerFromFile $NTPCLIENT_CONFIG`
+    local static_entries=`getServerFromFile $NTP_STATIC_LIST`
+
+
+    local delim=''
+    for server in $all_entries; do
+        local is_static=$FALSE
+        for static_server in ${static_entries}; do
+
+            if [[ "${server}" == "${static_server}" ]]; then
+                is_static=$TRUE
+                break
+            fi
+        done
+
+        if [[ "${is_static}" == "$FALSE" ]]; then
+            printf "${delim}${server}"
+            delim=" "
+
+        fi
+    done
+}
+
+#-----------------------------------------------------------------------------#
+# MAIN
+#-----------------------------------------------------------------------------#
+
+# show help-text if requested.
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "* Get several informations about the NTP-Server *"
+    echo "Usage: get_ntp_config <parameter>  print value of <parameter>"
+    echo "       get_ntp_config              print all config parameter values"
+    echo "       get_ntp_config -j, --json   print all config parameter values and"
+    echo "                                   static configured ntp server in JSON format"
+    echo "       get_ntp_config get-complete prints all used ntp-server in JSON format"
+    echo "       get_ntp_config -h, --help   print this usage info"
+    echo
+    echo "parameter: state | active-state | port | time-server-[1-4] | update-time"
+    exit 0
+fi
+
+if [ "$1" = "get-complete" ]; then
+    #getList from NTPCLIENT-CONFIG
+    entries=`getServerFromFile $NTPCLIENT_CONFIG`
+    #print JSON
+    printf "{ \"timeServerList\": ["
+
+    delim=''
+    for server in $entries; do
+        printf "$delim\"$server\""
+        delim=", "
+    done
+
+    printf "] }"
+    exit 0
+fi
+
+. $NTPCLIENT_CONFIG
+
+NTP_ACTIVE_STATE="inactive"
+if [ -s  $NTP_STATE_FILE ]; then
+    NTP_ACTIVE_STATE="active"
+fi
+
+# print JSON format if requested.
+if [ "$1" = "-j" ] || [ "$1" = "--json" ]; then
+
+    printf "{ \"state\": \"$NTP_STATE\", \"activeState\": \"$NTP_ACTIVE_STATE\", \"port\": \"$NTP_PORT\", \"updateTime\": \"$NTP_UPDATE_TIME\", \"timeServerList\": ["
+
+    entries=`getServerFromFile $NTP_STATIC_LIST`
+    delim=""
+    for server in $entries; do
+      printf "${delim}\"${server}\""
+      delim=", "
+    done
+
+    printf "] }"
+    exit 0
+fi
+
+# print all parameters if no argument is present.
+if [ "$#" -lt 1 ]; then
+    echo "state=$NTP_STATE"
+    echo "activeState=$NTP_ACTIVE_STATE"
+    echo "port=$NTP_PORT"
+    echo "updateTime=$NTP_UPDATE_TIME"
+
+    entries=($(getServerFromFile $NTP_STATIC_LIST))
+    for i in $(seq 1 4); do
+        echo "timeServer${i}=${entries[$[$i-1]]}"
+    done
+
+    echo "timeServersDHCP=\"$(getNTPServersFromDHCP)\""
+
+else
+    if [[ $1 == time-server-* ]]; then
+        #reload the static server
+        source $NTP_STATIC_LIST
+    else
+        #reload the config file
+        source $NTPCLIENT_CONFIG
+    fi
+    case $1 in
+        state)
+            echo -n $NTP_STATE
+            ;;
+        active-state)
+            echo -n $NTP_ACTIVE_STATE
+            ;;
+        port)
+            echo -n $NTP_PORT
+            ;;
+        update-time)
+            echo -n $NTP_UPDATE_TIME
+            ;;
+        time-server-1)
+            echo -n $NTP_SERVER_1
+            ;;
+        time-server-2)
+            echo -n $NTP_SERVER_2
+            ;;
+        time-server-3)
+            echo -n $NTP_SERVER_3
+            ;;
+        time-server-4)
+            echo -n $NTP_SERVER_4
+            ;;
+        *)
+            SetLastError "get_ntp_config: unknown parameter name ($1)"
+            exit 1
+            ;;
+    esac
+fi
+exit 0

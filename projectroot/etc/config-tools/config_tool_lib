@@ -1,0 +1,1402 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2008-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   config_tool_lib
+#
+# Brief:    General definitions and functions for bash config tools.
+#
+# Author:   SM:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+#DO_PRINT_DBG=yes
+DO_PRINT_DBG=no
+function print_dbg
+{
+  if [[ "${DO_PRINT_DBG}" == "yes" ]]; then
+    echo $@
+  fi
+}
+
+#-----------------------------------------------------------------------------#
+# defines
+#-----------------------------------------------------------------------------#
+
+# Load general definitions.
+if [ ! -f "/etc/config-tools/config_tool_defines" ]; then
+    echo "Missing dependency config_tool_defines"
+    exit 64
+fi
+source "/etc/config-tools/config_tool_defines"
+
+
+# filename for trace-outputs
+TRACE_FILENAME=/etc/config-tools/trace.txt
+
+# fieldbus-type-strings
+NO_FIELDBUS="No Fieldbus"
+PROFIBUS_MASTER="Profibus-Master"
+PROFIBUS_SLAVE="Profibus-Slave"
+CAN_OPEN_MASTER="CanOpen-Master"
+CAN_OPEN_SLAVE="CanOpen-Slave"
+DEVICE_NET_MASTER="DeviceNet-Master"
+DEVICE_NET_SLAVE="DeviceNet-Slave"
+
+# processor-type-strings
+GEODE="Geode SC 1200"
+CELERON="Intel(R) Celeron(R) M processor 600MHz"
+PENTIUM_M_1000="Intel(R) Celeron(R) M processor 1.00GHz"
+PENTIUM_M_1400="Intel(R) Pentium(R) M processor 1.40GHz"
+ARM_PAC200="ARMv7 Processor rev 7 (v7l)"
+
+# ipc-type-strings
+IO_IPC="I/O-IPC"
+IO_IPC_PC="I/O-IPC-PC"
+IO_IPC_PE="I/O-IPC-PE"
+IO_IPC_PP="I/O-IPC-PP"
+
+# unknown type of whatever
+UNKNOWN="Unknown"
+
+# codesys-license-string
+CODESYS_LICENSE="Codesys-Runtime-License"
+NO_CODESYS_LICENSE=""
+
+# interfaces
+ETH0="eth0"
+ETH1="eth1"
+
+# port-states
+ENABLED="enabled"
+DISABLED="disabled"
+
+# input-parameter-strings
+INTERFACE=interface
+STATE=state
+MAC_ADDRESS=mac-address
+IP_ADDRESS=ip-address
+SUBNET_MASK=subnet-mask
+DEFAULT_GATEWAY=default-gateway
+DEFAULT_GATEWAY_NETMASK=default-gateway-netmask
+BROADCAST=broadcast
+CONFIG_TYPE=config-type
+STATE=state
+
+TIME=time
+DATE=date
+DISPLAY_MODE=display-mode
+TYPE=type
+LOCAL=local
+UTC=utc
+TIMEZONE=timezone
+TIMEZONE_DESCRIPTION=timezone-description
+TZ_STRING=tz-string
+TIMEZONE_SELECTION=timezone-selection
+HOUR_FORMAT_24=24-hour-format
+HOUR_FORMAT_12=12-hour-format
+
+OWNER=owner
+OWNER_CODESYS=CoDeSys
+OWNER_IO_CHECK=IO-Check
+OWNER_MODBUS=Modbus
+OWNER_LINUX=Linux
+
+START=start
+
+KEYBOARD_LAYOUT=keyboard-layout
+GERMAN=German
+ENGLISH=English
+
+# definitions for ports 
+TELNET_EXE=telnetd
+NTPCLIENT_EXE=ntpclient
+CODESYS_WEBSERVER_EXE=webserver
+FTP_EXE=pure-ftpd
+
+TELNET=telnet
+FTP=ftp
+FTPS=ftps
+HTTP=http
+HTTPS=https
+CODESYS_WEBSERVER=codesys-webserver
+CODESYS=codesys
+SNMP=snmp
+
+# search-string for addresses in interfaces and count of them
+INTERFACES_IP_ADDRESS=address
+INTERFACES_SUBNET_MASK=netmask
+INTERFACES_BROADCAST=broadcast
+INTERFACES_DEFAULT_GATEWAY=gw
+INTERFACES_DEFAULT_GATEWAY_NETMASK=netmask
+INTERFACES_STATIC_ADDRESS_COUNT=3
+
+# possible ways of ip-address-configuration
+STATIC=static
+DHCP=dhcp
+BOOTP=bootp
+NONE=none
+
+# edit and read dns-server
+DNS_SERVER_NR=dns-server-nr
+DNS_SERVER_NAME=dns-server-name
+CHANGE=change
+DELETE=delete
+DOMAIN_NAME=domain-name
+
+# keyboard-layouts
+LATIN=/usr/share/kbd/keymaps/i386/qwertz/de-latin1
+UK=/usr/share/kbd/keymaps/i386/qwerty/uk
+LOADKEYS=loadkeys
+
+# strings in CoDeSys-configfile (rts3s.cfg)
+RTS3S_MODBUS_UDP=MODBUS_UDP
+RTS3S_MODBUS_TCP=MODBUS_TCP
+RTS3S_MODBUS_RTU=MODBUS_RTU
+
+RTS3S_TCP_TIMEOUT=ModbusTCPTimeout
+RTS3S_RTU_TIMEOUT=Timeout
+RTS3S_NODE_ID=Node_ID
+RTS3S_INTERFACE=Interface
+RTS3S_BAUD=Baud
+RTS3S_DATA_BITS=Data_Bits
+RTS3S_PARITY=Parity
+RTS3S_STOP_BITS=Stop_Bits
+RTS3S_FLOW_CONTROL=Flow_control
+
+
+
+# universally valid regular expressions
+
+# NOTE: don't forget to add Start/End of line marks in validity tests:
+# egrep "^$IP_ADDRESS_REGEX$" $user_entered_ip_addr
+
+MAC_ADDRESS_REGEX="([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}"
+IP_ADDRESS_REGEX="\<(([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\>"
+IP_ADDRESS_PORT_REGEX="\<(([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])(:[0-9]{1,5})?\>"
+
+
+# path and name of multible used executable files
+IFCONFIG="/sbin/ifconfig"
+IFUP="/sbin/ifup"
+IFDOWN="/sbin/ifdown"
+SED="/usr/bin/sed"
+PLC_RT_NAME="plclinux_rt"
+PLC_RT_PATH="/usr/sbin/plclinux_rt"
+KILL="/bin/kill"
+REBOOT="/sbin/reboot"
+DATE_CMD="/usr/bin/date"
+DATE_STRING="/usr/bin/date +%Y-%m-%d_%H:%M.%S"
+PIDOF="/usr/bin/pidof"
+
+# path and name of multible used config-files
+INTERFACES_FILENAME="/etc/network/interfaces"
+HOSTNAME_FILENAME="/etc/hostname"
+RESOLV_CONF_FILENAME="/etc/resolv.conf"
+CLOCK_FORMAT_FILENAME="/etc/config-tools/TIME_FORMAT"
+TIMEZONE_FILENAME="/etc/TZ"
+KEYBOARD_LAYOUT_FILENAME="/etc/init.d/keymap"
+RS232_OWNER_FILENAME="/etc/config-tools/RS232_OWNER"
+PLC_CONFIG_FILE="/etc/rts3s.cfg"
+MENU_LST="/boot/grub/menu.lst"
+INITTAB="/etc/inittab"
+LICENSE_INFORMATION_FILENAME="/etc/LICENSE"
+
+
+
+TRACE_FILENAME="/etc/config-tools/trace_debug.txt"
+
+CONFIG_TOOLS_PATH="/etc/config-tools/"
+CONFIG_TOOLS_SBIN_PATH="/usr/sbin/"
+
+# Array including the timezone-strings
+timezoneList[0]="AST4ADT,M3.2.0,M11.1.0;AST/ADT: Atlantic Standard Time, Halifax"
+timezoneList[1]="EST5EDT,M3.2.0,M11.1.0;EST/EDT: Eastern Standard Time, New York, Toronto"
+timezoneList[2]="CST6CDT,M3.2.0,M11.1.0;CST/CDT: Central Standard Time, Chicago, Winnipeg"
+timezoneList[3]="MST7MDT,M3.2.0,M11.1.0;MST/MDT: Mountain Standard Time, Denver, Edmonton"
+timezoneList[4]="PST8DPT,M3.2.0,M11.1.0;PST/PDT: Pacific Standard Time, Los Angeles, Whitehorse"
+timezoneList[5]="GMT0BST,M3.5.0/1,M10.5.0;GTM/BST: Greenwich Mean Time, GB, P, IRL, IS, ..."
+timezoneList[6]="CET-1CEST,M3.5.0/2,M10.5.0/3;CET/CEST: Central European Time, B, DK, D, F, I, CRO, NL, ..."
+timezoneList[7]="EET-2EEST,M3.5.0/3,M10.5.0/4;EET/EEST: East European Time, BUL, FI, GR, TR, ..."
+timezoneList[8]="CST-8;CST: China Standard Time"
+timezoneList[9]="JST-9;JST: Japan / Korea Standard Time"
+
+TIMEZONE_COUNT=10
+
+# strings for device media
+CF_CARD="cf-card"
+SD_CARD="sd-card"
+INTERNAL_FLASH="internal-flash"
+INTERNAL_FLASH_NAND="internal-flash-nand"
+INTERNAL_FLASH_EMMC="internal-flash-emmc"
+USB_1="usb1"
+USB_2="usb2"
+USB_3="usb3"
+USB_4="usb4"
+USB_5="usb5"
+USB_6="usb6"
+USB_7="usb7"
+USB_8="usb8"
+NETWORK="network"
+
+# definitions for firmware update
+CODESYS_PARTITION_NO="2"
+#CODESYS_FILENAME="home"
+#SETTINGS_FILENAME="settings"
+#SYSTEM_FILENAME="rootfs"
+
+FIRMWARE_BACKUP_FILENAME_FRAGMENT="firmware_backup"
+CODESYS_BACKUP_FILENAME_FRAGMENT="codesys"
+SETTINGS_BACKUP_FILENAME_FRAGMENT="settings"
+SYSTEM_BACKUP_FILENAME_FRAGMENT="rootfs"
+
+CODESYS_FILENAME="${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${CODESYS_BACKUP_FILENAME_FRAGMENT}" #"firmware_backup_codesys"
+SETTINGS_FILENAME="${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${SETTINGS_BACKUP_FILENAME_FRAGMENT}" # "firmware_backup_settings"
+SYSTEM_FILENAME="${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${SYSTEM_BACKUP_FILENAME_FRAGMENT}" #"firmware_backup_system"
+
+DEFAULT_SETTINGS_DIR=/etc/config-tools/default-settings
+DEFAULT_SETTINGS_FILENAME="default_settings"
+
+UPDATE_STATUS_BASEDIR=/mnt/status_dir
+UPDATE_STATE_START="start"
+UPDATE_STATE_COMPLETE="complete"
+UPDATE_STATE_FINISH="finish"
+
+completeSettingsFileName="complete_auto_${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${SETTINGS_BACKUP_FILENAME_FRAGMENT}"
+autoRestoreStatusFile="auto_restore_status"
+
+ROOT_MOUNT_OPTIONS="$(if [[ -n "$(grep -o 'root=ubi[^[:space:]]\+' "/proc/cmdline")" ]]; then echo "-t ubifs"; else echo ""; fi)"
+HOME_MOUNT_OPTIONS="$ROOT_MOUNT_OPTIONS"
+DATA_SD_CARD_PATH="/media/sd"
+
+CDS_INITSCRIPT_ACTIVE="/etc/rc.d/S98_runtime"
+CDS_INITSCRIPT="/etc/init.d/runtime"
+CDS_HOME_DIR_ROOT="/home/codesys_root"
+CDS_HOME_DIR_LINK="/home/codesys"
+
+# Watchdog config file 
+CHECK_SYSTEM_WDT_CONFIG="/etc/watchdog.conf"
+
+# Check system config file
+CHECK_SYSTEM_CONFIG="/etc/check-system/configuration"
+
+#-----------------------------------------------------------------------------#
+# global variables
+#-----------------------------------------------------------------------------#
+
+writeErrorMessagesToStdout=$FALSE
+#writeErrorMessagesToStdout=$TRUE
+
+writeTraceMessages=$FALSE
+#writeTraceMessages=$TRUE
+
+# Global variables for output functions
+QUIET=1
+TEXT_REPORT=0
+JSON_REPORT=0
+
+
+#-----------------------------------------------------------------------------#
+# functions
+#-----------------------------------------------------------------------------#
+
+
+# Function to print output on stderr.
+#
+# Param 1..n: Output text for stderr
+#
+# Return: Exit code of echo
+#-----------------------------------------------------------------------------#
+echo_error()
+{
+    echo "$@" 1>&2
+    return $?
+}
+
+# Function to report errors.
+# Error texts handled accordingly to definition for WAGO Config Tools.
+# If no quiet option is set, the error text is also shown on console. Therefore
+# a global variable "QUIET" is required.
+#
+# Param 1: Error text
+#
+# Param 2: If this parameter is set, the syslog program name will get this as prefix 
+#          If second parameter is not set, it must be set empty, otherwise the third can not be set
+#
+# Param 3: If not empty, then suppress set last error
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: report_warning(),
+#           report_info()
+#-----------------------------------------------------------------------------#
+report_error()
+{
+    local ERROR_TEXT="$1"
+    local PREFIX="${2:-}"
+    local SUPPRESS_LAST_ERROR=false
+    SUPPRESS_LAST_ERROR=${3:+true}
+    local RESULT=0
+    
+
+    logger -t "${PREFIX}${0##*/} [$$] [Error]" -p user.err -- "$ERROR_TEXT"
+    
+    if [[ "$SUPPRESS_LAST_ERROR" == false ]]; then
+    	SetLastError "$ERROR_TEXT"
+    fi	
+    RESULT=$?
+    
+    if [ "$QUIET" -eq "0" ]; then
+        echo_error "$ERROR_TEXT"
+    fi
+
+    return $RESULT
+}
+
+# Function to report warnings.
+# Warning texts handled accordingly to definition for WAGO Config Tools.
+# If no quiet option is set, the warning text is also shown on console. Therefore
+# a global variable "QUIET" is required.
+#
+# Param 1: Warning text
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: report_error(),
+#           report_info()
+#-----------------------------------------------------------------------------#
+report_warning()
+{
+    local WARN_TEXT="$1"
+    local PREFIX="${2:-}"
+    local RESULT=0
+
+    logger -t "${PREFIX}${0##*/} [$$] [Warning]" -p user.warning -- "$WARN_TEXT"
+    RESULT=$?
+    if [ "$QUIET" -eq "0" ]; then
+        echo_error "$WARN_TEXT"
+    fi
+
+    return $RESULT
+}
+
+# Function to report information.
+# Information texts handled accordingly to definition for WAGO Config Tools.
+# If no quiet option is set, the text is shown on console. Therefore
+# a global variable "QUIET" is required.
+#
+# Param 1: Information text
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: report_error(),
+#           report_warning()
+#-----------------------------------------------------------------------------#
+
+report_info()
+{
+    local INFO_TEXT="$1"
+    local PREFIX="${2:-}"
+    local RESULT=0
+
+    logger -t "${PREFIX}${0##*/} [$$] [Info]" -p user.notice -- "$INFO_TEXT"
+    if [ "$QUIET" -eq "0" ]; then
+        echo "$INFO_TEXT"
+    fi
+
+    return $RESULT
+}
+
+# Function to start reporting (structured output on stdout).
+# Report content is collected up to call of function report_end().
+# Therefore global variables "TEXT_REPORT" and "JSON_REPORT" are required.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: report(),
+#           report_end()
+#-----------------------------------------------------------------------------#
+report_start()
+{
+    TEXT_REPORT=""
+    JSON_REPORT=""
+
+    return 0
+}
+
+# Function to end reporting (structured output on stdout).
+# Collected report content is printed to stdout.
+#
+# Param 1: If "array", then process available JSON report content as JSON array,
+#          othervise as JSON key/value
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: report_start(),
+#           report(),
+#           report_array()
+#-----------------------------------------------------------------------------#
+report_end()
+{
+    local RESULT=0
+    IS_ARRAY="${1:-"false"}"
+
+    # Close JSON part if any content present
+    if [ -n "$JSON_REPORT" ]; then 
+       if [[ "$IS_ARRAY" == "array" ]]; then
+          JSON_REPORT="$JSON_REPORT ]"
+       else
+          JSON_REPORT="$JSON_REPORT }"
+       fi
+    fi
+
+    # Print out report
+    echo -ne "$TEXT_REPORT"
+    RESULT=$(( $? != 0 ? $? : $RESULT ))
+    echo -n "$JSON_REPORT"
+    RESULT=$(( $? != 0 ? $? : $RESULT ))
+
+    return $RESULT
+}
+
+# Function to add report content (structured output on stdout)
+# as key/value pair.
+#
+# Param 1: Key for content to add
+# Param 2: Content value to add
+# Param 3: Value format character (s)tring, (i)nt; optional, default is string
+#
+# Return: 0 on success, unequal to 0 otherwise,
+#         INVALID_PARAMETER on invalid parameter combination (e.g. format)
+#
+# See also: report_start(),
+#           report_end()
+#-----------------------------------------------------------------------------#
+report()
+{
+    local REPORT_KEY="$1"
+    local REPORT_VALUE="$2"
+    local REPORT_VALUE_FORMAT="${3:-}"
+
+    # Set default if no parameter given for format
+    if [ -z "$REPORT_VALUE_FORMAT" ]; then
+        REPORT_VALUE_FORMAT=s
+    fi
+
+    # Check for plausible parameters
+    if [[ "$REPORT_VALUE_FORMAT" == "i" && ! $REPORT_VALUE =~ ^[-+]?[0-9]+$ ]]; then
+        return $INVALID_PARAMETER
+    fi
+
+    # Add text output if requested
+    if [ "$TEXTOUT" -ne "0" ]; then
+        if [ -n "$TEXT_REPORT" ]; then
+            TEXT_REPORT="${TEXT_REPORT}\n"
+        fi
+        TEXT_REPORT="${TEXT_REPORT}${REPORT_KEY}=${REPORT_VALUE}"
+    fi
+
+    # Add JSON output if requested
+    if [ "$JSONOUT" -ne "0" ]; then
+        if [ -z "$JSON_REPORT" ]; then
+            JSON_REPORT="{"
+        else
+            JSON_REPORT="${JSON_REPORT}, "
+        fi
+        local JSON_ESCAPED_KEY
+        JSON_ESCAPED_KEY=$(escape_json "$REPORT_KEY")
+        JSON_REPORT="${JSON_REPORT} ${JSON_ESCAPED_KEY}: "
+        if [ "$REPORT_VALUE_FORMAT" == "s" ]; then
+            local JSON_ESCAPED_VALUE
+            JSON_ESCAPED_VALUE="$(escape_json "$REPORT_VALUE")"
+            JSON_REPORT="${JSON_REPORT} ${JSON_ESCAPED_VALUE}"
+        else
+            JSON_REPORT="${JSON_REPORT} ${REPORT_VALUE}"
+        fi
+    fi
+
+    return 0
+}
+
+# Function to add report content (structured output on stdout)
+# either as JSON array or as text.
+#
+# Param 1: Content value to add
+# Param 2: Value format character (s)tring, (i)nt; optional, default is string
+#
+# Return: 0 on success, unequal to 0 otherwise,
+#         INVALID_PARAMETER on invalid parameter combination (e.g. format)
+#
+# See also: report_start(),
+#           report_end()
+#-----------------------------------------------------------------------------#
+report_array()
+{
+    local REPORT_VALUE="$1"
+    local REPORT_VALUE_FORMAT="$2"
+
+    # Set default if no parameter given for format
+    if [ -z "$REPORT_VALUE_FORMAT" ]; then
+        REPORT_VALUE_FORMAT=s
+    fi
+
+    # Check for plausible parameters
+    if [[ "$REPORT_VALUE_FORMAT" == "i" && ! $REPORT_VALUE =~ ^[-+]?[0-9]+$ ]]; then
+        return $INVALID_PARAMETER
+    fi
+
+    # Add text output if requested
+    if [ "$TEXTOUT" -ne "0" ]; then
+        if [ -n "$TEXT_REPORT" ]; then
+            TEXT_REPORT="${TEXT_REPORT}\n"
+        fi
+        TEXT_REPORT="${TEXT_REPORT}${REPORT_VALUE}"
+    fi
+
+    # Add JSON output if requested
+    if [ "$JSONOUT" -ne "0" ]; then
+        if [ -z "$JSON_REPORT" ]; then
+            JSON_REPORT="[ "
+        else
+            JSON_REPORT="${JSON_REPORT}, "
+        fi
+        if [ "$REPORT_VALUE_FORMAT" == "s" ]; then
+            local JSON_ESCAPED_VALUE
+            JSON_ESCAPED_VALUE="$(escape_json "$REPORT_VALUE")"
+            JSON_REPORT="${JSON_REPORT}${JSON_ESCAPED_VALUE}"
+        else
+            JSON_REPORT="${JSON_REPORT}${REPORT_VALUE}"
+        fi
+    fi
+
+    return 0
+}
+
+# Function to escape JSON text. Escaped JSON notation is returned as
+# standard text output.
+#
+# Param 1: Text to escape in JSON notation
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success escaped JSON notation
+#-----------------------------------------------------------------------------#
+escape_json()
+{
+    local TEXT="$1"
+    local RESULT=0
+
+    local JSON_TEXT=""
+    JSON_TEXT=$(printf '%s' "$TEXT" | php5 -r 'echo json_encode(file_get_contents("php://stdin"));')
+    RESULT=$?
+    echo "$JSON_TEXT"
+
+    return $RESULT
+}
+
+# Function to print general command options in help text.
+#-----------------------------------------------------------------------------#
+print_general_command_options()
+{
+    echo "  --help                                -h   Prints this help text"
+    echo "  --extract-from-uri-encoding           -x   Extracts arguments from an URI encoding (currently NOT supported)"
+    echo "  --quiet                               -q   Don't print information or error texts to stdout/stderr"
+    echo "  --text                                -t   Prints output as name=value pairs, one per line"
+    echo "  --json                                -j   Prints output as JSON format string"
+}
+
+# Function to get a parameter option from parameters.
+#
+# Param 1: Key (primary option definition) to search for
+# Param 2: Alternative key (secondary option definition) to search for
+# Param 3..n: Parameters to search for option
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success "1" if key or alternative key is found as option,
+#         "0" otherwise
+#
+# See also: get_parameter_value(),
+#           get_parameter_command()
+#-----------------------------------------------------------------------------#
+get_parameter_option()
+{
+    local KEY="$1"
+    local ALT_KEY="$2"
+    local RESULT=0
+    shift
+    shift
+
+    local OUTPUT=""
+    OUTPUT=$(get_parameter "$KEY" "$ALT_KEY" "no_value" "" 0 "$@")
+    RESULT=$?
+
+    echo -n "$OUTPUT"
+    return $RESULT
+}
+
+# Function to get a parameter value from parameters.
+#
+# Param 1: Key (primary option definition) to search for
+# Param 2: Alternative key (secondary option definition) to search for
+# Param 3..n: Parameters to search for option value
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success value if key or alternative key is found as option,
+#         empty string otherwise
+#
+# See also: get_parameter_option(),
+#           get_parameter_command()
+#-----------------------------------------------------------------------------#
+get_parameter_value()
+{
+    local KEY="$1"
+    local ALT_KEY="$2"
+    local RESULT=0
+    shift
+    shift
+
+    local OUTPUT=""
+    OUTPUT=$(get_parameter "$KEY" "$ALT_KEY" "required_value" " " 0 "$@")
+    RESULT=$?
+
+    echo -n "$OUTPUT"
+    return $RESULT
+}
+
+# Function to get an indexed parameter value from parameters.
+#
+# Param 1: Key (primary option definition) to search for
+# Param 2: Alternative key (secondary option definition) to search for
+# Param 3: Index of expected value after key based on 0
+# Param 4..n: Parameters to search for option value
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success value if key or alternative key is found as option,
+#         empty string otherwise
+#
+# See also: get_parameter_option(),
+#           get_parameter_command(),
+#           get_parameter_value()
+#-----------------------------------------------------------------------------#
+get_parameter_value_indexed()
+{
+    local KEY="$1"
+    local ALT_KEY="$2"
+    local VALUE_INDEX=$3
+    local RESULT=0
+    shift
+    shift
+
+    local OUTPUT=""
+    OUTPUT=$(get_parameter "$KEY" "$ALT_KEY" "required_value" " " $VALUE_INDEX "$@")
+    RESULT=$?
+
+    echo -n "$OUTPUT"
+    return $RESULT
+}
+
+# Function to get a parameter option from parameters.
+#
+# Param 1: Key (primary option definition) to search for
+# Param 2: Alternative key (secondary option definition) to search for, maybe empty ""
+# Param 3: Value marker: "no_value"/"optional_value"/"required_value"
+# Param 4: Separator between parameter and value (e.g. ":"/"="/" "), give "" in combination with "no_value"
+# Param 5: Index of expected value after key based on 0, give 0 in combination with "no_value"
+# Param 6..n: Parameters to search for option
+#
+# Return: 0 on success, unequal to 0 otherwise
+# Return codes: MISSING_PARAMETER when required_value is given but no parameter value found
+#               INTERNAL_ERROR when an error on parameter processing occurred
+# stdout: On success and VALUE_MAKER (param 3) is "no_value" then
+#           "1" if key or alternative key is found as option,
+#           "0" otherwise
+#         else if VALUE_MAKER (param 3) is NOT "no_value" then
+#           value if key or alternative key is found as option,
+#           empty string otherwise
+#
+# See also: get_parameter_option(),
+#           get_parameter_value(),
+#           get_parameter_command()
+#-----------------------------------------------------------------------------#
+get_parameter()
+{
+    local KEY="$1"
+    local ALT_KEY="$2"
+    local VALUE_MAKER="$3"
+    local SEPARATOR="$4"
+    local VALUE_INDEX=$5
+    local RESULT=0
+    shift
+    shift
+    shift
+    shift
+    shift
+
+    # Try key and alternative key to get parameter
+    local KEY_MATCH=0
+    local NEXT_VALUE_MARKER=0
+    local VALUE=""
+    for PARAM in "$@"; do
+        # Check for value following previous parameter
+        if [ "$NEXT_VALUE_MARKER" -ne "0" ]; then
+            if [ "$VALUE_INDEX" -eq "0" ]; then
+                VALUE="$PARAM"
+                NEXT_VALUE_MARKER=0
+            else
+                VALUE_INDEX=$(( $VALUE_INDEX - 1 ))
+            fi
+
+        # Check for key match
+        else
+            local PARAM_NAME=""
+            if [ "$VALUE_MAKER" == "no_value" ]; then
+                PARAM_NAME="$PARAM"
+            else
+                PARAM_NAME=$(printf "%s" "$PARAM" | cut -d "$SEPARATOR" -f1)
+            fi
+            if [ "$KEY" == "$PARAM_NAME" ] || [ -n "$ALT_KEY" -a "$ALT_KEY" == "$PARAM_NAME" ]; then
+                KEY_MATCH=1
+
+                # Check for value
+                if [ "$VALUE_MAKER" == "no_value" ]; then
+                    break
+                elif [ "$SEPARATOR" == " " ]; then
+                    NEXT_VALUE_MARKER=1
+                else
+                    VALUE="$(printf "%s"  \"$PARAM\" | cut -d \"$SEPARATOR\" -f2)"
+                fi
+            fi
+        fi
+    done
+
+    # Result check
+    if [ "$VALUE_MAKER" == "no_value" ]; then
+        if [ "$KEY_MATCH" -ne "0" ]; then
+            echo -n "1"
+        else
+            echo -n "0"
+        fi
+    else
+        if [ "$KEY_MATCH" -ne "0" -a "$VALUE_MAKER" == "required_value" -a -z "$VALUE" ]; then
+            RESULT=$MISSING_PARAMETER
+        fi
+        echo -n "$VALUE"
+    fi
+
+    return $RESULT
+}
+
+# Function to get first parameter command from parameters.
+# Commands specified as parameters without -/--.
+#
+# Param 1..n: Parameters to search for commands
+#
+# Return: 0 on success, unequal to 0 otherwise
+#         MISSING_PARAMETER if no command was found
+# stdout: On success command
+#
+# See also: get_parameter_option(),
+#           get_parameter_value()
+#-----------------------------------------------------------------------------#
+get_parameter_command()
+{
+    for PARAM in "$@"; do
+        if [ "$(echo "$PARAM" | cut -c1)" != "-" ]; then
+            echo -n "$PARAM"
+            return 0
+        fi
+    done
+
+    return $MISSING_PARAMETER
+}
+
+# Function to get a shared lock for a given file and file descriptor
+# and open the file readable.
+#
+# Param 1: File descriptor to use for lock
+# Param 2: File to open for lock
+# Param 3: Timeout value in seconds to get the lock (0 for blocking behavior)
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: get_write_lock(),
+#           get_readwrite_lock(),
+#           release_lock()
+#-----------------------------------------------------------------------------#
+get_read_lock()
+{
+    local FILEDESCRIPTOR=$1
+    local FILE="$2"
+    local TIMEOUT=$3
+    local RESULT=0
+
+    if [ ! -e "$FILE" ]; then
+        RESULT=$CONFIG_FILE_MISSING
+    fi
+
+    if [ "$RESULT" -eq "0" ]; then
+        eval "exec $FILEDESCRIPTOR< \"$FILE\""
+        RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+    fi
+
+    if [ "$RESULT" -eq "0" ]; then
+        if [ "$TIMEOUT" -eq "0" ]; then
+            eval "flock --shared $FILEDESCRIPTOR"
+            RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+        fi
+        while [ "$TIMEOUT" -gt "0" ]; do
+            eval "flock --shared --nonblock $FILEDESCRIPTOR"
+            RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+            if [ "$RESULT" -eq "0" ]; then
+                break
+            else
+                TIMEOUT=$(($TIMEOUT-1))
+                sleep 1
+            fi
+        done
+    fi
+
+    return $RESULT
+}
+
+# Function to get an exclusive lock for a given file and file descriptor
+# and open the file writable.
+#
+# Param 1: File descriptor to use for lock
+# Param 2: File to open for lock
+# Param 3: Timeout value in seconds to get the lock (0 for blocking behavior)
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: get_read_lock(),
+#           get_readwrite_lock(),
+#           release_lock()
+#-----------------------------------------------------------------------------#
+get_write_lock()
+{
+    local FILEDESCRIPTOR=$1
+    local FILE="$2"
+    local TIMEOUT=$3
+    local RESULT=0
+
+    if [ ! -e "$FILE" ]; then
+        RESULT=$CONFIG_FILE_MISSING
+    fi
+
+    if [ "$RESULT" -eq "0" ]; then
+        eval "exec $FILEDESCRIPTOR> \"$FILE\""
+        RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+    fi
+
+    if [ "$RESULT" -eq "0" ]; then
+        if [ "$TIMEOUT" -eq "0" ]; then
+            eval "flock --exclusive $FILEDESCRIPTOR"
+            RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+        fi
+        while [ "$TIMEOUT" -gt "0" ]; do
+            eval "flock --exclusive --nonblock $FILEDESCRIPTOR"
+            RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+            if [ "$RESULT" -eq "0" ]; then
+                break
+            else
+                TIMEOUT=$(($TIMEOUT-1))
+                sleep 1
+            fi
+        done
+    fi
+
+    return $RESULT
+}
+
+# Function to get an exclusive lock for a given file and file descriptor
+# and open the file read- and writable.
+#
+# Param 1: File descriptor to use for lock
+# Param 2: File to open for lock
+# Param 3: Timeout value in seconds to get the lock (0 for blocking behavior)
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: get_read_lock(),
+#           get_write_lock(),
+#           release_lock()
+#-----------------------------------------------------------------------------#
+get_readwrite_lock()
+{
+    local FILEDESCRIPTOR=$1
+    local FILE="$2"
+    local TIMEOUT=$3
+    local RESULT=0
+
+    if [ ! -e "$FILE" ]; then
+        RESULT=$CONFIG_FILE_MISSING
+    fi
+
+    if [ "$RESULT" -eq "0" ]; then
+        eval "exec $FILEDESCRIPTOR<> \"$FILE\""
+        RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+    fi
+
+    if [ "$RESULT" -eq "0" ]; then
+        if [ "$TIMEOUT" -eq "0" ]; then
+            eval "flock --exclusive $FILEDESCRIPTOR"
+            RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+        fi
+        while [ "$TIMEOUT" -gt "0" ]; do
+            eval "flock --exclusive --nonblock $FILEDESCRIPTOR"
+            RESULT=$(( $? != 0 ? $INTERNAL_ERROR : 0 ))
+            if [ "$RESULT" -eq "0" ]; then
+                break
+            else
+                TIMEOUT=$(($TIMEOUT-1))
+                sleep 1
+            fi
+        done
+    fi
+
+    return $RESULT
+}
+
+# Function to release a lock for a given file descriptor and close lock file.
+#
+# Param 1: File descriptor used for lock
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+# See also: get_read_lock(),
+#           get_write_lock(),
+#           get_readwrite_lock()
+#-----------------------------------------------------------------------------#
+release_lock()
+{
+    local FILEDESCRIPTOR=$1
+
+    eval "exec $FILEDESCRIPTOR>&-"
+
+    return 0
+}
+
+# Write a trace-message at the end of a trace-file. If file is not existing,
+# it will be created.
+#-----------------------------------------------------------------------------#
+WriteTraceMessage()
+{
+  local message="$*"
+  local time=`date +'%Y-%m-%d, %H:%M:%S'`
+  
+  if [ "$writeTraceMessages" = "$TRUE" ]; then
+    flock -x $TRACE_FILENAME echo "<"$time">" $message >> $TRACE_FILENAME
+    
+    # write buffered filesystem-blocks to disk
+    sync
+  fi
+}
+
+# Report error-message to std-output and to sys-log
+# Input: 1. error-number
+#        2. additional string (optional)
+#-----------------------------------------------------------------------------#
+ReportError()
+{
+  local errorNr=$1
+  local additionalString="${2:-}"
+  local prefix="${LOG_PREFIX:-}"
+
+  # select the message which belongs to the error-number
+  case "$errorNr" in
+    $MISSING_PARAMETER )        errorText="missing parameter";;
+    $INVALID_PARAMETER )        errorText="invalid parameter";;
+    $CONFIG_FILE_MISSING )      errorText="config file is not existing";;
+    $CONFIG_FILE_INCONSISTENT ) errorText="content of config file is inconsistent";;
+    $CONFIG_DATA_ERROR )        errorText="cannot get config data";;
+    $INTERNAL_ERROR )           errorText="internal error";;
+    $SHELL_ERROR )              errorText="by shell command";;
+    $EXECUTABLE_ERROR )         errorText="cannot call executable";;
+    $FILE_NOT_WRITEABLE )       errorText="file is not writable";;
+    $FILE_NOT_EXECUTABLE )      errorText="file is not executable";;
+    $WRITE_FILE_ERROR )         errorText="error while writing to file";;
+    $NARROW_SPACE_WARNING )     errorText="possibly not enough space for io operation";;
+    $NOT_ENOUGH_SPACE_ERROR )   errorText="not enough space for io operation";;
+    $MOUNT_ERROR )              errorText="error during mount";;
+    *)                          errorText="unknown error ("$errorNr")";;
+  esac
+
+  WriteTraceMessage "Error:" $errorText $additionalString
+
+  errorText="[$errorText] $additionalString"
+  report_error "$errorText" "$prefix" "suppress" 
+}
+
+# Write error-text to file, which can be later read out by an display-funktion on frontend (e.b. WBM)
+#-----------------------------------------------------------------------------#
+SetLastError()
+{
+  local errorText=$*
+
+  print_dbg "SetLastError: ${errorText}"
+  # write error-text to file
+  flock -x $LAST_ERROR_FILENAME echo -e $errorText"\c" > $LAST_ERROR_FILENAME  
+}
+
+# search for a specified parameter in the parameter-list
+#
+# input: 1:   searched parameter
+#        2-n: whole parameter-list
+# output: value of the searched parameter or empty-string, if it was not found
+#         exits with code 1 if parameter was found, even if empty.
+#-----------------------------------------------------------------------------#
+GetParameterValue()
+{
+  # read first the searched parameter and then discard this parameter to have left over only the parameter-list
+  local searchedParameter=$1
+  shift
+
+  local parameterValue=
+  local status=0
+
+  for parameter in "$@"; do
+    
+    local parameterName=${parameter%%=*}
+
+    if [ "$searchedParameter" = "$parameterName" ]; then
+      parameterValue=${parameter#*=}
+      status=1
+      break
+    fi  
+
+  done
+
+  if [[ "${parameterValue}" == "" ]]; then
+    return $status
+  fi
+
+  # replace '+' with ' ' (seperate, because it dont't fits to the normal % coded form which is processed later)
+  # replace some % codes seperate, which would have a special meaning in sed string later and so must be escaped
+  parameterValue=`echo $parameterValue | sed -e 's/+/ /g' -e 's/%2[Ff]/\//g' -e 's/%26/\&/g' -e 's/%5[Cc]/\\\/g'`
+  #echo "parameterValue:"$parameterValue
+
+  # replace other url encoded characters:
+
+  # search for % code sequence and loop over all code sequences which where found in parameter
+  # cut only the first code sequence (first grep will find them all)
+#  local specialSignCode=`echo $parameterValue | egrep -o "%[0-9a-fA-F]{2}" 2> /dev/null`
+#  specialSignCode=`echo $specialSignCode | egrep -o "^%[0-9a-fA-F]{2}" 2> /dev/null`
+  #echo "specialSignCode:\""$specialSignCode"\""
+
+  parameterValue=$(/etc/config-tools/urlencode -d "$parameterValue")
+#  while [ -n "$specialSignCode" ]; do
+#
+#    # extract hex code after "%" (by deleting "%") and convert it to belonging ascii character
+#    local specialSign=`echo $specialSignCode | sed 's/%//g'`
+#    specialSign=`echo -e "\x$specialSign"`
+#    #echo "specialSign:"$specialSign
+#
+#    # replace % coded sequence in parameter string with its ascii form and search for next % code
+#    parameterValue=`echo $parameterValue | sed 's/'$specialSignCode'/'"$specialSign"'/g'`
+#    specialSignCode=`echo $parameterValue | egrep -o "%[0-9a-fA-F]{2}" 2> /dev/null`
+#    specialSignCode=`echo $specialSignCode | egrep -o "^%[0-9a-fA-F]{2}" 2> /dev/null`
+#
+#  done
+  #echo "newParameterValue:"$parameterValue
+
+  echo "$parameterValue"
+  return $status
+}
+
+# Convert a string (e.g. a parameter for a config tool) in uri style
+#
+# input: *:   string (including spaces)
+#
+# output: uri converted string
+#-----------------------------------------------------------------------------#
+UriEncode()
+{
+  string=$*
+  #echo "string:"$string
+
+  # replace ":" with '%3A' 
+  string=`echo $string | sed 's/:/%3A/g'`
+
+  # replace ' ' with '%20'
+  string=`echo $string | sed 's/ /%20/g'`
+
+  # replace '/' with '%2F' 
+  string=`echo $string | sed 's/\//%2F/g'`
+
+  # replace ',' with %2C'
+  string=`echo $string | sed 's/,/%2C/g'`
+
+  #echo "string:"$string
+  echo $string
+}
+
+# Convert a uri (e.g. a parameter for a config tool) in string style
+#
+# input: *:   uri sting
+#
+# output: string (including spaces) converted string
+#-----------------------------------------------------------------------------#
+UriDecode()
+{
+  string=$*
+  #echo "string:"$string
+
+  # replace ":" with '%3A' 
+  string=`echo $string | sed 's/%3A/:/g'`
+
+  # replace ' ' with '%20'
+  string=`echo $string | sed 's/%20/ /g'`
+
+  # replace '/' with '%2F' 
+  string=`echo $string | sed 's/%2F/\//g'`
+
+  # replace ',' with %2C'
+  string=`echo $string | sed 's/%2C/,/g'`
+
+  #echo "string:"$string
+  echo $string
+}
+
+# check if the syntax of an domain-name is ok
+#-----------------------------------------------------------------------------#
+DomainNameOk()
+{
+  local domainName=$*
+  local domainNameOk=$TRUE
+
+  MAX_DOMAINNAME_LENGTH=255
+  MAX_LABEL_LENGTH=63
+
+  # regular expression for label (only characters, numbers or '-', but '-' not at begin or end)
+  LABEL_REGEX="^[a-zA-Z0-9]($|([a-zA-Z0-9\-]*[a-zA-Z0-9]$))"
+
+  # check if input-parameter is existing
+  if [ -z "$domainName" ]; then
+ 
+    domainNameOk=$TRUE
+
+  else
+
+    # check wether new hostname is not to long
+    if (( ${#newHostname} > $MAX_DOMAINNAME_LENGTH )); then
+
+      domainNameOk=$FALSE
+
+    else
+
+      #echo "domainName:" $domainName
+
+      # loop over all labels of new hostname (seperatet whith '.') to check syntax
+      tempDomainName=$domainName
+      domainNameOk=$TRUE
+      while [ -n "$tempDomainName" ] && [ "$domainNameOk" = "$TRUE" ]; do
+
+        # filter label (string until first '.')
+        label=${tempDomainName%%.*}
+        #echo "label" $label
+
+        # check wether label is not too long
+        if (( ${#label} > $MAX_LABEL_LENGTH )); then
+          domainNameOk=$FALSE
+        fi
+
+        # check if content of label is ok 
+        echo $label | egrep "$LABEL_REGEX" > /dev/null
+        if [ "$?" != "$SUCCESS" ]; then
+          domainNameOk=$FALSE
+        fi
+        #echo "domainNameOk:" $domainNameOk
+
+        # check if still a '.' is existing in hostname, else tempString should be empty
+        echo $tempDomainName | egrep "\." > /dev/null
+        if [ "$?" = "$SUCCESS" ]; then
+          #filter rest-string behind the first '.'
+          tempDomainName=${tempDomainName#*.}
+        else 
+          # tempString should be empty (filter-command does sadly not automatically do so)
+          tempDomainName=""
+        fi
+
+      done
+
+    fi
+  fi
+
+  return "$domainNameOk"
+}
+
+#TODO: move to IPC's board-specific extensions
+# Get actual inactive system partition 
+# I.e. for IPC hda3 if hda4 is actually used, hda4 if hda3 is actually used
+#-----------------------------------------------------------------------------#
+#function GetInactiveSystemPartitionIPC
+#{
+#  activePartition=`/etc/config-tools/get_filesystem_data active-partition`
+#  
+#  echo $activePartition | grep "3$" > /dev/null 2> /dev/null
+#  if [ "$?" = "$SUCCESS" ]; then
+#    destinationPartition=`echo $activePartition | sed 's/3/4/g'`
+#  else
+#    destinationPartition=`echo $activePartition | sed 's/4/3/g'`
+#  fi
+#  
+#  printf $destinationPartition
+#}
+
+# Get actual inactive system partition 
+# I.e. for IPC hda3 if hda4 is actually used, hda4 if hda3 is actually used
+# For PAC200 ubi0_0 /ubi0_2
+#-----------------------------------------------------------------------------#
+function GetInactiveSystemPartition
+{
+  echo $(/usr/sbin/${BOARD_ID}_get_inactive_system_partition.sh)
+}
+
+# Switch flag which defines boot partition in menu.lst to the actual inactive system partition
+#-----------------------------------------------------------------------------#
+function SwitchBootPartition
+{
+  status=$SUCCESS
+
+  /usr/sbin/${BOARD_ID}_switch_boot_partition.sh 
+
+  if [ "$?" != $SUCCESS ]; then
+    status=$SHELL_ERROR
+    ReportError $status "(SwitchBootPartition)"
+  fi
+  
+  sync
+  
+  return "$status"
+}
+
+
+# Windows 7 writes garbage to the card's partition table and creates
+# a filesystem directly on device
+#-----------------------------------------------------------------------------#
+function IsWin7SDCard
+{
+  local dev=$1
+
+  case "$dev" in
+    /dev/*)
+      ;;
+    *) dev=/dev/$dev
+      ;;
+  esac
+
+  udevadm info --query=property -p $(udevadm info --query=path -n $dev) \
+    | grep 2>/dev/null -q 'ID_FS_USAGE=filesystem'
+
+  if [[ "${PIPESTATUS[@]}" == "0 0" ]]; then
+    true
+  else
+    false
+  fi
+}
+
+#-----------------------------------------------------------------------------#
+function DevToPart
+{
+
+  local device=$1 # with or without '/dev/' prefix
+  local part_nr=$2
+
+  case $device in
+    # ugly hard-coding -> TODO: a better way to resolve ubifs partitions?
+    *mtd2)
+      echo ${device/mtd2/ubi0_}$((${part_nr}-1))
+      ;;
+    *mmcblk*)
+      # if first partition of win7-formatted card is asked for, return the device itself
+      { [[ "$part_nr" == "1" ]] && IsWin7SDCard ${device} && echo ${device}; } || \
+      echo ${device}p${part_nr}
+      ;;
+    *)
+      echo ${device}${part_nr}
+      ;;
+  esac
+}
+
+#-----------------------------------------------------------------------------#
+function DoMount
+{
+  local device=$1
+  local dir=$2
+  local ignore_errors=${3:-""}
+  local status=$SUCCESS
+
+  local fstype=''
+  case ${device} in
+    *ubi*)
+      fstype=ubifs;;
+        *)
+      fstype=auto;;
+  esac
+
+  if [[ !  -b ${device} ]] && [[ ! -c ${device} ]]; then
+    # Parameter is neither a block nor a character device (ubifs)
+    return $INVALID_PARAMETER
+  fi
+
+  mount -t $fstype ${device} ${dir}  &>/dev/null
+  status=$?
+
+  if [[ "$ignore_errors" == "" ]]; then
+    if [[ "$status" != "0" ]]; then
+      status=$SHELL_ERROR
+      ReportError $status "(mount $device ${dir})"
+    fi
+  fi
+
+ return $status
+}
+
+#-----------------------------------------------------------------------------#
+function GetTargetName
+{
+  local board_variant="/sys/class/wago/system/board_variant"
+  local product="unknown"
+  local order="unknown"
+  local prefix="unknown"
+
+  # if we are running on an kernel >= 3.18.y we can get the
+  # target name from sys-fs.
+  if [[ -e "${board_variant}" ]]; then
+
+	product="$(cat ${board_variant})"
+
+  # legacy
+  else
+	order="$(/etc/config-tools/get_typelabel_value ORDER)"
+	prefix="${order:0:3}"
+	order="${order:4:2}"
+
+	if [ "${order}" == "81" ]; then
+		product="PFC100"
+	elif [ "${order}" == "82" ]; then
+		product="PFC200"
+	elif [ "${prefix}" == "762" ]; then
+		product="TP600"
+	fi
+  fi
+
+  echo "${product}"
+}

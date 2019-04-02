@@ -1,0 +1,27 @@
+From 9507cc513f5b7b0754c76b001631e506cbb93bd8 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 27 Aug 2018 16:05:08 +0200
+Subject: [PATCH 069/144] defaultenv: defaultenv-pfc-base: pfc-debug-uart-mode:
+ set global variable when updating
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode b/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode
+index c4a78c3..30ed364 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-debug-uart-mode
+@@ -30,4 +30,8 @@ else
+ 	let debug_enable="${global.pfc.boot_mode_id} & ~${debug_mask}"
+ fi
+ 
++# write persistent to eeprom
+ xsection.boot_mode_id=${debug_enable}
++
++# also update global variable
++global.pfc.boot_mode_id=${xsection.boot_mode_id}
+-- 
+2.7.4
+

@@ -1,0 +1,13 @@
+## SECTION=initmethod_bbinit
+
+config NET_SNMP_BBINIT_LINK
+	string
+	depends on NET_SNMP_STARTSCRIPT
+	prompt "snmpd"
+	default "S21netsnmpd"
+
+config NET_SNMP_TARP_BBINIT_LINK
+	string
+	depends on NET_SNMP_TARP_STARTSCRIPT
+	prompt "snmptrapd"
+	default "S22netsnmptrapd"

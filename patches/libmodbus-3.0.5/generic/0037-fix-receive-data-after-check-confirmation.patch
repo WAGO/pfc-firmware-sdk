@@ -1,0 +1,427 @@
+--- libmodbus-3.0.5.base/src/modbus.c	2016-08-31 09:27:14.428443000 +0200
++++ libmodbus-3.0.5/src/modbus.c	2016-08-31 13:54:18.738507262 +0200
+@@ -2045,31 +2045,26 @@
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+-        int i, temp, bit;
+-        int pos = 0;
+-        int offset;
+-        int offset_end;
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
++        int i;
++        int nb_dest = 0;
++        int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++        if (rsp_length == -1)
+             return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+             return -1;
+ 
+-        offset = ctx->backend->header_length + 2;
+-        offset_end = offset + rc;
+-        for (i = offset; i < offset_end; i++) {
++        for (i = ctx->backend->header_length + 2; (i < rsp_length); i++) {
+             /* Shift reg hi_byte to temp */
+-            temp = rsp[i];
+-
+-            for (bit = 0x01; (bit & 0xff) && (pos < nb);) {
+-                dest[pos++] = (temp & bit) ? TRUE : FALSE;
++            int const temp = rsp[i];
++            int bit;
++            for (bit = 0x01; (bit & 0xff) && (nb_dest < nb); nb_dest++) {
++                dest[nb_dest] = (temp & bit) ? TRUE : FALSE;
+                 bit = bit << 1;
+             }
+-
+         }
++        return nb_dest;
+     }
+ 
+     return rc;
+@@ -2079,8 +2074,6 @@
+    in the destination to TRUE or FALSE (single bits). */
+ int modbus_read_bits(modbus_t *ctx, int addr, int nb, uint8_t *dest)
+ {
+-    int rc;
+-
+     if (nb > MODBUS_MAX_READ_BITS) {
+         if (ctx->debug) {
+             fprintf(stderr,
+@@ -2090,21 +2083,13 @@
+         errno = EMBMDATA;
+         return -1;
+     }
+-
+-    rc = read_io_status(ctx, _FC_READ_COILS, addr, nb, dest);
+-
+-    if (rc == -1)
+-        return -1;
+-    else
+-        return nb;
++    return read_io_status(ctx, _FC_READ_COILS, addr, nb, dest);
+ }
+ 
+ 
+ /* Same as modbus_read_bits but reads the remote device input table */
+ int modbus_read_input_bits(modbus_t *ctx, int addr, int nb, uint8_t *dest)
+ {
+-    int rc;
+-
+     if (nb > MODBUS_MAX_READ_BITS) {
+         if (ctx->debug) {
+             fprintf(stderr,
+@@ -2114,13 +2099,7 @@
+         errno = EMBMDATA;
+         return -1;
+     }
+-
+-    rc = read_io_status(ctx, _FC_READ_DISCRETE_INPUTS, addr, nb, dest);
+-
+-    if (rc == -1)
+-        return -1;
+-    else
+-        return nb;
++    return read_io_status(ctx, _FC_READ_DISCRETE_INPUTS, addr, nb, dest);
+ }
+ 
+ /* Reads the data from a remote device and put that data into an array */
+@@ -2138,24 +2117,29 @@
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+-        int offset;
+         int i;
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
++        int nb_dest = 0;
++        int hi_byte = TRUE;
++        int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++        if (rsp_length == -1)
+             return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+             return -1;
+ 
+-        offset = ctx->backend->header_length;
+-
+-        for (i = 0; i < rc; i++) {
+-            /* shift reg hi_byte to temp OR with lo_byte */
+-            dest[i] = (rsp[offset + 2 + (i << 1)] << 8) |
+-                rsp[offset + 3 + (i << 1)];
++        for (i = ctx->backend->header_length + 2; (i < rsp_length); i++) {
++            if (hi_byte != FALSE) {
++                dest[nb_dest] = (uint16_t)((uint16_t)rsp[i] << 8);
++                hi_byte = FALSE;
++            }
++            else {
++                dest[nb_dest] = (uint16_t)(dest[nb_dest] | (uint16_t)rsp[i]);
++                nb_dest++;
++                hi_byte = TRUE;
++            }
+         }
++        return nb_dest;
+     }
+ 
+     return rc;
+@@ -2165,8 +2149,6 @@
+    array */
+ int modbus_read_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest)
+ {
+-    int status;
+-
+     if (nb > MODBUS_MAX_READ_REGISTERS) {
+         if (ctx->debug) {
+             fprintf(stderr,
+@@ -2176,18 +2158,13 @@
+         errno = EMBMDATA;
+         return -1;
+     }
+-
+-    status = read_registers(ctx, _FC_READ_HOLDING_REGISTERS,
+-                            addr, nb, dest);
+-    return status;
++    return read_registers(ctx, _FC_READ_HOLDING_REGISTERS, addr, nb, dest);
+ }
+ 
+ /* Reads the input registers of remote device and put the data into an array */
+ int modbus_read_input_registers(modbus_t *ctx, int addr, int nb,
+                                 uint16_t *dest)
+ {
+-    int status;
+-
+     if (nb > MODBUS_MAX_READ_REGISTERS) {
+         fprintf(stderr,
+                 "ERROR Too many input registers requested (%d > %d)\n",
+@@ -2195,11 +2172,7 @@
+         errno = EMBMDATA;
+         return -1;
+     }
+-
+-    status = read_registers(ctx, _FC_READ_INPUT_REGISTERS,
+-                            addr, nb, dest);
+-
+-    return status;
++    return read_registers(ctx, _FC_READ_INPUT_REGISTERS, addr, nb, dest);
+ }
+ 
+ int modbus_read_input_registers_fc66(modbus_t *ctx, int addr, int nb, uint16_t *dest)
+@@ -2230,24 +2203,29 @@
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+-        int offset;
+         int i;
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
++        int nb_dest = 0;
++        int hi_byte = TRUE;
++        int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++        if (rsp_length == -1)
+             return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+             return -1;
+ 
+-        offset = ctx->backend->header_length;
+-
+-        for (i = 0; i < rc; i++) {
+-            /* shift reg hi_byte to temp OR with lo_byte */
+-            dest[i] = (rsp[offset + 3 + (i << 1)] << 8) |
+-                rsp[offset + 4 + (i << 1)];
++        for (i = ctx->backend->header_length + _FC66_CNF_META_LENGTH; (i < rsp_length); i++) {
++            if (hi_byte != FALSE) {
++                dest[nb_dest] = (uint16_t)((uint16_t)rsp[i] << 8);
++                hi_byte = FALSE;
++            }
++            else {
++                dest[nb_dest] = (uint16_t)(dest[nb_dest] | (uint16_t)rsp[i]);
++                nb_dest++;
++                hi_byte = TRUE;
++            }
+         }
++        return nb_dest;
+     }
+ 
+     return rc;
+@@ -2270,14 +2248,14 @@
+     if (rc > 0) {
+         if(modbus_is_multicast(ctx)) {
+             /* Don't expect response for multicast query */
+-            rc = 1;
++            rc = 0;
+         }
+         else {
+-            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-            if (rc == -1)
++            int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rsp_length == -1)
+                 return -1;
+ 
+-            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+     }
+     return rc;
+@@ -2316,14 +2294,14 @@
+     if (rc > 0) {
+         if(modbus_is_multicast(ctx)) {
+             /* Don't expect response for multicast query */
+-            rc = 1;
++            rc = 0;
+         }
+         else {
+-            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-            if (rc == -1)
++            int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rsp_length == -1)
+                 return -1;
+ 
+-            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+     }
+     return rc;
+@@ -2379,14 +2357,14 @@
+     if (rc > 0) {
+         if(modbus_is_multicast(ctx)) {
+             /* Don't expect response for multicast query */
+-            rc = 1;
++            rc = 0;
+         }
+         else {
+-            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-            if (rc == -1)
++            int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rsp_length == -1)
+                 return -1;
+ 
+-            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+     }
+     return rc;
+@@ -2429,14 +2407,14 @@
+     if (rc > 0) {
+         if(modbus_is_multicast(ctx)) {
+             /* Don't expect response for multicast query */
+-            rc = 1;
++            rc = 0;
+         }
+         else {
+-            rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-            if (rc == -1)
++            int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++            if (rsp_length == -1)
+                 return -1;
+ 
+-            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++            rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         }
+     }
+     return rc;
+@@ -2494,24 +2472,28 @@
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+-        int offset;
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
++        int nb_dest = 0;
++        int hi_byte = TRUE;
++        int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++        if (rsp_length == -1)
+             return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+             return -1;
+ 
+-        offset = ctx->backend->header_length;
+-
+-        /* If rc is negative, the loop is jumped ! */
+-        for (i = 0; i < rc; i++) {
+-            /* shift reg hi_byte to temp OR with lo_byte */
+-            dest[i] = (rsp[offset + 2 + (i << 1)] << 8) |
+-                rsp[offset + 3 + (i << 1)];
++        for (i = ctx->backend->header_length + _FC23_CNF_META_LENGTH; (i < rsp_length); i++) {
++            if (hi_byte != FALSE) {
++                dest[nb_dest] = (uint16_t)((uint16_t)rsp[i] << 8);
++                hi_byte = FALSE;
++            }
++            else {
++                dest[nb_dest] = (uint16_t)(dest[nb_dest] | (uint16_t)rsp[i]);
++                nb_dest++;
++                hi_byte = TRUE;
++            }
+         }
++        return nb_dest;
+     }
+ 
+     return rc;
+@@ -2526,7 +2508,6 @@
+     int const function = _FC_DIAGNOSTICS;
+     int rc;
+     int i;
+-    int offset;
+     uint16_t req_length;
+     uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
+     uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+@@ -2561,24 +2542,32 @@
+ 
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
++        int nb = 0;
++        int hi_byte = TRUE;
++        int rsp_length;
+         if(subfunction == _SFC_FORCE_LISTEN_ONLY_MODE) /* no response */
+             return 0;
+ 
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
++        rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++        if (rsp_length == -1)
+             return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+             return -1;
+ 
+-        offset = ctx->backend->header_length;
+-
+-        for (i = 0; i < MIN(rc,nb_dest*2); i++) {
+-            /* shift reg hi_byte to temp OR with lo_byte */
+-            dest[i] = (rsp[offset + 3 + (i << 1)] << 8) |
+-                rsp[offset + 4 + (i << 1)];
++        for (i = ctx->backend->header_length + _FC08_META_LENGTH; (i < rsp_length) && (nb < nb_dest); i++) {
++            if (hi_byte != FALSE) {
++                dest[nb] = (uint16_t)((uint16_t)rsp[i] << 8);
++                hi_byte = FALSE;
++            }
++            else {
++                dest[nb] = (uint16_t)(dest[nb] | (uint16_t)rsp[i]);
++                nb++;
++                hi_byte = TRUE;
++            }
+         }
++        return nb;
+     }
+ 
+     return rc;
+@@ -2610,23 +2599,21 @@
+     rc = send_msg(ctx, req, req_length);
+     if (rc > 0) {
+         int i;
+-        int offset;
+-
+-        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
+-        if (rc == -1)
++        int nb_dest = 0;
++        int const rsp_length = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION);
++        if (rsp_length == -1)
+             return -1;
+ 
+-        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rc);
++        rc = modbus_check_confirmation(ctx, req, req_length, rsp, rsp_length);
+         if (rc == -1)
+             return -1;
+ 
+-        offset = ctx->backend->header_length + 2;
+-
+-        /* Byte count, slave id, run indicator status,
+-           additional data */
+-        for (i=0; i < rc; i++) {
+-            dest[i] = rsp[offset + i];
++        //copy all after function code (byte count, slave id, run indicator status, additional data)
++        for (i = ctx->backend->header_length + 1; (i < rsp_length); i++) {
++            dest[nb_dest] = rsp[i];
++            nb_dest++;
+         }
++        return nb_dest;
+     }
+ 
+     return rc;
+--- libmodbus-3.0.5.base/configure.ac	2016-08-31 09:27:14.428443000 +0200
++++ libmodbus-3.0.5/configure.ac	2016-08-31 13:50:51.721109823 +0200
+@@ -41,7 +41,7 @@
+ # ABI version
+ # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+ LIBMODBUS_LD_CURRENT=750
+-LIBMODBUS_LD_REVISION=36
++LIBMODBUS_LD_REVISION=37
+ LIBMODBUS_LD_AGE=0
+ LIBMODBUS_LT_VERSION_INFO=$LIBMODBUS_LD_CURRENT:$LIBMODBUS_LD_REVISION:$LIBMODBUS_LD_AGE
+ AC_SUBST(LIBMODBUS_LT_VERSION_INFO)

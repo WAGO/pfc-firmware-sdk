@@ -1,0 +1,35 @@
+## SECTION=wago_specific_libs
+
+config LIBWIDEOMS
+	bool
+	prompt "libwideoms"
+	default n
+	select OMS
+	select PLCLINUXRT
+	help
+	  This package contains thebinding for CoDeSys to use the operating mode switch
+
+if OMS
+
+config LIBWIDEOMS_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+#config OMS_CODESYS_LIB
+#	bool
+#	prompt "build oms-Mdule for CoDeSys"
+#	default y
+#	help
+#	 Say YES if you want to use the codesys osm Module
+
+#config OMS_OMSD
+#	bool
+#	prompt "build oms-daemon for watch for switch events"
+#	default y
+#	help
+#	 Say YES if you want to use the osmd for watching for events.
+#	 If unsure say Y. If you say NO here there will only an libryr be build!
+
+endif

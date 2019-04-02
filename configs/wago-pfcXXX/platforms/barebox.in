@@ -1,0 +1,64 @@
+## SECTION=bootloader
+
+config BAREBOX_ARCH_STRING
+	string
+	default "arm"			if ARCH_ARM
+	default "blackfin"		if ARCH_BLACKFIN
+	default "ppc"			if ARCH_PPC
+	default "x86"			if ARCH_X86
+
+menuconfig BAREBOX
+	select BOOTLOADER
+	prompt "barebox                       "
+	bool
+	help
+	  The famous bootloader formerly known as U-Boot V2.
+
+if BAREBOX
+
+config BAREBOX_VERSION
+	prompt "barebox version"
+	string
+	default "2010.10.0"
+
+config BAREBOX_MD5
+	prompt "barebox source md5sum"
+	string
+
+config BAREBOX_CONFIG
+	prompt "config file"
+	string
+	default "barebox.config"
+	help
+	  This entry specifies the .config file used to compile
+	  barebox.
+
+config BAREBOX_EXTRA_ENV
+	prompt "extend the builtin barebox environment"
+	bool
+
+config BAREBOX_EXTRA_ENV_PATH
+	prompt "env dir"
+	string
+	default "${PTXDIST_PLATFORMCONFIGDIR}/barebox-defaultenv"
+	depends on BAREBOX_EXTRA_ENV
+
+config BAREBOX_BAREBOXENV
+	prompt "install 'bareboxenv'"
+	bool
+	help
+	  The tool 'bareboxenv' can be used to manipulate the barebox
+	  environment. Enable this option access the barebox environment
+	  from the target Linux system.
+
+config BAREBOX_UIMAGE
+	prompt "create pfc200-barebox as uImage (only for barebox >= 2014)"
+	bool
+	help
+	  This option creates an barebox-image with an uImage kernel header.
+	  This uImage makes it possible to boot the new barebox-image (2014)
+	  with an old barebox-image (2013). The old barebox is installed
+	  in firmware-releases < FW05. This image is needed if you have 
+	  firmware < FW05 flashed in your devices-nand.
+
+endif

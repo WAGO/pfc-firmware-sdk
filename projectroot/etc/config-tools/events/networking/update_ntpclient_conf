@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: update_ntpclient_conf
+#
+# Updates NTPclient configuration
+# 
+# Typically called when configuration data changed by config tools or by
+# DHCP/BOOTP. 
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------#
+
+set -u
+
+(
+    CONFIG_NTP_TOOL="/etc/config-tools/config_sntp"
+    NTPCLIENT_CONF="/etc/ntpclient.conf"
+    NTPCLIENT_BASE="/etc/specific/ntpclient-base.conf"
+    NTPCLIENT_STATICS="/etc/specific/ntpclient-static-servers"
+    DHCP_FILE_TEMPLATE="/tmp/dhcp-bootp-data-"
+    DHCP_DATA_FILE_NAME="dhcp-bootp-data"
+
+    flock 9
+    grep -v "^\#" $NTPCLIENT_BASE > $NTPCLIENT_CONF.tmp
+
+    # Configure DHCP/BOOTP dynamic ntp servers
+    tgtidx=1
+    if [ "$(ls /tmp | grep ^$DHCP_DATA_FILE_NAME)" ]; then
+        for cfgfile in $(ls -rt $DHCP_FILE_TEMPLATE*); do
+            . "$cfgfile"
+            index=1
+            varname="NTP_SERVER_$index"
+            svalue=${!varname:-}
+
+            while [ "$svalue" ]; do
+                varname="NTP_SERVER_$index"
+                svalue=${!varname:-}
+                test -z "$svalue" && break
+                echo "NTP_SERVER_$tgtidx=$svalue" >> $NTPCLIENT_CONF.tmp
+                index=$(($index + 1))
+                tgtidx=$((tgtidx + 1))
+                unset $varname
+            done
+        done
+    fi
+    . $NTPCLIENT_STATICS
+    index=1
+    while [ $index -lt 5 ]; do
+        varname="NTP_SERVER_$index"
+        svalue=${!varname:-}
+        index=$((index + 1))
+        [ -z "$svalue" ] && continue
+
+        echo "NTP_SERVER_$tgtidx=$svalue" >> $NTPCLIENT_CONF.tmp
+        tgtidx=$((tgtidx + 1))
+    done
+    sync
+    mv $NTPCLIENT_CONF.tmp $NTPCLIENT_CONF
+    sync
+) 9>> /var/lock/ntpclient.lock

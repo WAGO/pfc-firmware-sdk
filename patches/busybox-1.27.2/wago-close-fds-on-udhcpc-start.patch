@@ -1,0 +1,15 @@
+Index: busybox-1.27.2/networking/udhcp/dhcpc.c
+===================================================================
+--- busybox-1.27.2.orig/networking/udhcp/dhcpc.c
++++ busybox-1.27.2/networking/udhcp/dhcpc.c
+@@ -1285,6 +1285,10 @@ int udhcpc_main(int argc UNUSED_PARAM, c
+ 	IF_FEATURE_UDHCPC_ARPING(unsigned arpping_ms;)
+ 	int retval;
+ 
++	int fd;
++
++	for (fd = 3; fd < 1024; fd++) close(fd);
++
+ 	setup_common_bufsiz();
+ 
+ 	/* Default options */

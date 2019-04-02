@@ -1,0 +1,283 @@
+## SECTION=wago_specific_tools
+
+menuconfig IO_CHECK
+	bool
+	prompt "IO Check Server"
+#	select LED_SERVER                 if IO_CHECK_PROT_1288
+	select LED_SERVER_META            if IO_CHECK_PROT_1288 
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY && IO_CHECK_PROT_1288
+	select CONFIG_TOOLS               if IO_CHECK_PROT_1288
+	select SERIAL_DISPATCHER          if IO_CHECK_RS232 && !CDS3_RTS_PRODUCT_VTPCTP
+	select INETUTILS_INETD		  if IO_CHECK_STARTSCRIPT && !BUSYBOX_INETD
+	select TYPELABEL
+	select LIBXML2			  if IO_CHECK_PROT_1288
+	select CROSS_LIBTOOL
+	select LIBWAGODRM                 if IO_CHECK_PROT_1288 
+	help
+	  server for handling with the WAGO-Service-Protocoll
+
+if IO_CHECK
+
+config IO_CHECK_DEBUGGING
+	bool
+	prompt "Debug Programm"
+	help
+	  FIXME
+	  
+config IO_CHECK_STARTSCRIPT
+       bool 
+	prompt "install inetutils /etc/inetd.conf.d/iocheck"
+       default y
+       help
+         Installs the startscript for iocheckd.
+
+config IO_CHECK_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+config IO_CHECK_DESCRIPTION
+        string
+	prompt "Description of device"
+	default "PAC-200"
+	help
+	  Set the description of device for IO-Check identify
+
+	config IO_CHECK_PROT_0001
+                bool
+                prompt "Enable Identify (0001)"
+                default n
+                select IO_CHECK_NET
+                help
+                  The Identify Protocol is defined to identify Devices over he ethernet. It is not implementet yet.
+	config IO_CHECK_PROT_1279
+                bool
+                prompt "Enable Firmware update (1279) (only identify service!!!)"
+                default y
+                select IO_CHECK_NET
+                help
+                  The Firmware update Protocol is used by Ethernet Settings for Discovering 
+                  Devices Over ethernet Broadcasts, so it we need the identify function in our 
+                  server. Other funktions are not implementet yet!
+	config IO_CHECK_PROT_1288
+                bool
+                prompt "Enable IO-Check Protocol (1288) (Called IOC over Ethernet "
+                default y
+                select IO_CHECK_NET if !IO_CHECK_RS232
+                help
+                  IO-Check Over ethernet Protocol is used for Windows-Tools: 
+                  IO-Check, Ethernet Settings, FBC-Service ...
+if IO_CHECK_PROT_1288
+menu "Tables                        "
+	config IO_CHECK_TABLE_0
+		bool
+		prompt "Enable Table 0 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_8
+		bool
+		prompt "Enable Table 8 support"
+		default n
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_9
+		bool
+		prompt "Enable Table 9 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_90
+		bool
+		prompt "Enable Table 90 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_92
+		bool
+		prompt "Enable Table 92 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_93
+		bool
+		prompt "Enable Table 93 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_94
+		bool
+		prompt "Enable Table 94 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_95
+		bool
+		prompt "Enable Table 95 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_99
+		bool
+		prompt "Enable Table 99 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_100
+		bool
+		prompt "Enable Table 100 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_110
+		bool
+		prompt "Enable Table 110 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_111
+		bool
+		prompt "Enable Table 111 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_112
+		bool
+		prompt "Enable Table 112 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_113
+		bool
+		prompt "Enable Table 113 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_114
+		bool
+		prompt "Enable Table 114 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_115
+		bool
+		prompt "Enable Table 115 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_116
+		bool
+		prompt "Enable Table 116 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_117
+		bool
+		prompt "Enable Table 117 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_124
+		bool
+		prompt "Enable Table 124 support"
+		default n
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_126
+		bool
+		prompt "Enable Table 126 support"
+		default y
+		help
+		  Service Table
+
+	config IO_CHECK_TABLE_127
+		bool
+		prompt "Enable Table 127 support"
+		default y
+		help
+		  Service Table
+		  
+	config IO_CHECK_TABLE_TERM
+		bool
+		prompt "Enable Terminal Access support"
+		default y
+		help
+		  This Option Enables the Support for communicationg to the tables of KBus Modules
+	endmenu
+endif
+
+	config IO_CHECK_PROT_2442
+                bool
+                prompt "Enable Manufactoring Test Protocol (2442)"
+                default y
+                select IO_CHECK_NET
+                help
+                  This Protocol is used for setting nd reading the parameter of the electronic type label
+
+
+config IO_CHECK_NET
+	bool
+	prompt "use IO Check over Ethernet Protocol"
+	default y
+	help 
+		FIXME
+	
+menu "Command line for ethernet"
+	    depends on IO_CHECK_STARTSCRIPT
+        depends on IO_CHECK_NET
+config  IO_CHECK_NET_STARTLINE
+        string
+        depends on IO_CHECK_STARTSCRIPT
+        depends on IO_CHECK_NET
+        prompt ""
+        default "wago-serv-tcp stream tcp nowait.50 root /usr/bin/iocheckd iocheckd ethernet"
+        help
+          This string is added to IO-Checks command parameters. Placeholder @ETHERNET@
+          in all startup options will be replaced by the string given here
+endmenu
+
+config IO_CHECK_RS232
+	depends on IO_CHECK_PROT_1288
+	bool
+	prompt "use IO Check over RS232 Protocol"
+	select IO_CHECK_TABLE_99
+	default y
+	help 
+		FIXME
+		
+menu "Command line for RS232"
+	    depends on IO_CHECK_STARTSCRIPT
+        depends on IO_CHECK_RS232
+config  IO_CHECK_RS232_STARTLINE
+        string
+        depends on IO_CHECK_STARTSCRIPT
+        depends on IO_CHECK_RS232
+        prompt ""
+        default "localhost:wago-serv-ser stream tcp nowait.3 root /usr/bin/iocheckd iocheckd serial"
+        help
+          This string is added to IO-Checks command parameters. Placeholder @SERIAL@
+          in all startup options will be replaced by the string given here
+endmenu
+
+endif
+

@@ -1,0 +1,84 @@
+From 6a6f81f655886fdc82e79a879faf53438bedabbd Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 17 Oct 2018 07:15:33 +0000
+Subject: [PATCH 130/144] board: pfc-am35xx: remove EMAC device registration
+
+In oder to make use of the fixed-link infrastructure davinci emac device
+registration was moved from boad code to OFTREE code.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boards/wago-pfc-am35xx/board.c | 43 ---------------------------------
+ 1 file changed, 43 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am35xx/board.c b/arch/arm/boards/wago-pfc-am35xx/board.c
+index e4ef5a5..db2db2c 100644
+--- a/arch/arm/boards/wago-pfc-am35xx/board.c
++++ b/arch/arm/boards/wago-pfc-am35xx/board.c
+@@ -45,8 +45,6 @@
+ #include <linux/err.h>
+ #include <gpio.h>
+ 
+-#include <net/davinci_emac.h>
+-#include <mach/emac_defs.h>
+ #include <mach/omap3-devices.h>
+ 
+ #include <mach/am33xx-clock.h>
+@@ -96,44 +94,6 @@ static int pfc200_mem_init(void)
+ }
+ mem_initcall(pfc200_mem_init);
+ 
+-#define SZ_2K				0x00000800
+-static struct resource pfc_emac_resources[] = {
+-	{
+-		.start	= EMAC_BASE_ADDR,
+-		.end	= EMAC_BASE_ADDR + SZ_2K - 1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.start	= EMAC_WRAPPER_BASE_ADDR,
+-		.end	= EMAC_WRAPPER_BASE_ADDR + 0xFF,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.start	= EMAC_MDIO_BASE_ADDR,
+-		.end	= EMAC_MDIO_BASE_ADDR + 0xFF,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	{
+-		.start	= EMAC_WRAPPER_RAM_ADDR,
+-		.end	= EMAC_WRAPPER_RAM_ADDR + SZ_8K - 1,
+-		.flags	= IORESOURCE_MEM,
+-	},
+-};
+-
+-struct davinci_emac_platform_data pfc_emac_pdata = {
+-	.phy_addr = 0x2, 	/* htoews: FIXME: we support only the first one? */
+-	.force_link = 0,  	/* set to '1' if problems occur */
+-	.interface_rmii = 1,
+-};
+-
+-struct device_d pfc_emac_device = {
+-	.id		= DEVICE_ID_DYNAMIC,
+-	.name		= "davinci_emac",
+-	.num_resources	= ARRAY_SIZE(pfc_emac_resources),
+-	.resource	= pfc_emac_resources,
+-	.platform_data	= &pfc_emac_pdata,
+-};
+-
+ static int pfc_set_ethaddr(void)
+ {
+ 	u8 mac[6];
+@@ -232,9 +192,6 @@ static int pfc200_devices_init(void)
+ 	am33xx_bbu_nand_slots_register_handler("boot.nand", boot_nandslots,
+ 							ARRAY_SIZE(boot_nandslots));
+ 
+-	printf("register davinci emac driver via old method\n");
+-	platform_device_register(&pfc_emac_device);
+-
+ 	defaultenv_append_directory(defaultenv_pfc_am35xx);
+ 
+ 	armlinux_set_architecture(MACH_TYPE_PFC_AM35XX);
+-- 
+2.7.4
+

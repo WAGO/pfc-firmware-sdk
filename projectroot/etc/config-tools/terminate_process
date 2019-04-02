@@ -1,0 +1,74 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: terminate_process
+#
+# Terminate process, wait for finish.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# general definitions
+SUCCESS=0
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Stop process(es) by sending SIGTERM and wait for finish *"
+  echo
+  echo "Usage: terminate_process < process-name > [ timeout ]"
+  echo
+  echo "process-name: name of process"
+  echo "timeout: timeout value in seconds; if the executable is not terminated after timeout, program returns with an error"
+  echo 
+  exit $status
+fi
+
+
+processName=$1
+timeout=$2
+#echo "processName:"$processName "timeout:"$timeout
+
+# check input parameter
+echo "$timeout" | egrep "[0-9]+" > /dev/null 2> /dev/null
+
+if [ "$?" != "$SUCCESS" ]; then
+  status=-2
+  #echo "invalid parameter (timeout)"
+else
+
+  # look if process is active at all - if not, just do nothing
+  processPid=`pidof $processName`
+  if [ -n "$processPid" ]; then
+  
+    # send SIGTERM to all processes with the given name
+    killall "$processName" > /dev/null 2> /dev/null
+    
+    # loop and sleep until process is no longer active or timeout expired
+    timeoutCounter=0
+    while [ -n "$processPid" ] && (( $timeoutCounter < $timeout )); do
+
+      #echo "timeoutCounter:"$timeoutCounter "processPid:"$processPid
+      sleep 1
+      timeoutCounter=$(($timeoutCounter + 1))
+      processPid=`pidof $processName`
+      
+    done
+  
+    # if process is still active - set error status
+    if [ -n "$processPid" ]; then
+      status=-1
+    fi  
+  fi
+fi
+
+exit $status

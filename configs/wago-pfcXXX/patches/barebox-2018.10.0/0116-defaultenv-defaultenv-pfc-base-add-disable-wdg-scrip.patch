@@ -1,0 +1,26 @@
+From 39cdcbe835b15e2cad1504e809615b80e043b1a2 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 15 Oct 2018 16:42:07 +0200
+Subject: [PATCH 116/144] defaultenv: defaultenv-pfc-base: add disable wdg
+ script
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-disable-wdg | 5 +++++
+ 1 file changed, 5 insertions(+)
+ create mode 100644 defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-disable-wdg
+
+diff --git a/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-disable-wdg b/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-disable-wdg
+new file mode 100644
+index 0000000..0f5775d
+--- /dev/null
++++ b/defaultenv/defaultenv-pfc-base/init_post_autoboot/pfc-disable-wdg
+@@ -0,0 +1,5 @@
++#!/bin/sh
++
++if [ "${global.autoboot}" != 0 -o "${global.pfc.boot_mode}" != "default" ]; then
++	global.boot.watchdog_timeout=0
++fi
+-- 
+2.7.4
+

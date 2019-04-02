@@ -1,0 +1,74 @@
+From f7c103e8b0f7e61cfa281cdf5e6058d80f92d913 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 27 Sep 2018 12:16:48 +0000
+Subject: [PATCH 118/144] mach-omap: xload-pfc: add legacy boot support
+
+In former bootloader versions (2013) we used an uimage wrapped
+boot file, 'barebox.img'. Add legacy code to support booting of this
+old version. This is needed to boot a FW version < 05.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/mach-omap/xload-pfc.c | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mach-omap/xload-pfc.c b/arch/arm/mach-omap/xload-pfc.c
+index b402ce3..e7f9228 100644
+--- a/arch/arm/mach-omap/xload-pfc.c
++++ b/arch/arm/mach-omap/xload-pfc.c
+@@ -31,6 +31,8 @@
+ #include <sys/mount.h>
+ #include <libfile.h>
+ 
++#define UIMAGE_HEADER_SIZE 64
++
+ struct omap_barebox_boot_parts *barebox_boot_parts;
+ struct omap_board_info *board;
+ 
+@@ -173,13 +175,13 @@ static void *pfc_xload_boot_mmc(char *bootfile)
+ 		buf = read_file(bootfile_path, &len);
+ 	}
+ 
+-	if (!buf) {
+-		free(bootfile_path);
+-		printf("could not read %s from sd card\n", bootfile);
+-		return NULL;
+-	}
++	if (!buf)
++		pr_info("could not read %s from sd card\n", bootfile);
++	else
++		pr_info("%s found on %s\n", bootfile_path, diskdev);
+ 
+-	pr_info("%s found on %s\n", bootfile_path, diskdev);
++	free(bootfile_path);
++	umount("/");
+ 
+ 	return buf;
+ }
+@@ -224,9 +226,22 @@ static __noreturn int pfc_xload(void)
+ 						omap_get_bootmmc_devname());
+ 
+ 		barebox = pfc_xload_boot_mmc(bootfile);
+-		if (!barebox)
++		if (!barebox) {
+ 			pr_info("%s: file %s not found on %s\n", __func__,
+ 					bootfile, omap_get_bootmmc_devname());
++
++                        /* legacy support for FW < 05 */
++                        free(bootfile);
++                        bootfile = basprintf("barebox.img");
++                        barebox = pfc_xload_boot_mmc(bootfile);
++                        if (barebox) {
++                                /* skip uimage header */
++                                barebox += UIMAGE_HEADER_SIZE;
++                        } else {
++                                pr_info("%s: file %s not found on %s\n", __func__,
++                                                bootfile, omap_get_bootmmc_devname());
++                        }
++                }
+ 	}
+ 
+ 	if (test_bit(HAS_EMMC, board->boot_devices) && !barebox) {
+-- 
+2.7.4
+

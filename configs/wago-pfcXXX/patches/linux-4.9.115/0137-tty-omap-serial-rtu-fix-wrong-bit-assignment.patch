@@ -1,0 +1,106 @@
+From 17a7b299bdc4c88dd93e6be5dd4e65dad4d3f403 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 11 Jan 2017 10:57:54 +0000
+Subject: [PATCH 137/261] tty: omap-serial-rtu: fix wrong bit assignment
+
+        This Bugfix fixes issue WAT22319. The tty driver object
+        was currupted due to wrong bit assignment handling.
+
+tty: serial-rtu: fix wrong bit assignment
+---
+ drivers/tty/n_tty.c                  | 32 ++++++++++++++++++++------------
+ drivers/tty/serial/omap-serial-rtu.c |  5 +++--
+ 2 files changed, 23 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/tty/n_tty.c b/drivers/tty/n_tty.c
+index a6cf6c6..2145b2f 100644
+--- a/drivers/tty/n_tty.c
++++ b/drivers/tty/n_tty.c
+@@ -781,9 +781,11 @@ static void commit_echoes(struct tty_struct *tty)
+ 	echoed = __process_echoes(tty);
+ 	mutex_unlock(&ldata->output_lock);
+ 
+-	if (echoed && tty->ops->flush_chars
+-            && !test_bit(TTY_DRIVER_IGNORE_FLUSH, &tty->driver->flags))
+-		tty->ops->flush_chars(tty);
++	if (echoed && tty->ops->flush_chars) {
++                /* flush chars if not prohibited by the driver */
++                if (!(tty->driver && (tty->driver->flags & TTY_DRIVER_IGNORE_FLUSH)))
++                        tty->ops->flush_chars(tty);
++        }
+ }
+ 
+ static void process_echoes(struct tty_struct *tty)
+@@ -799,9 +801,11 @@ static void process_echoes(struct tty_struct *tty)
+ 	echoed = __process_echoes(tty);
+ 	mutex_unlock(&ldata->output_lock);
+ 
+-	if (echoed && tty->ops->flush_chars
+-            && !test_bit(TTY_DRIVER_IGNORE_FLUSH, &tty->driver->flags))
+-		tty->ops->flush_chars(tty);
++	if (echoed && tty->ops->flush_chars) {
++                /* flush chars if not prohibited by the driver */
++                if (!(tty->driver && (tty->driver->flags & TTY_DRIVER_IGNORE_FLUSH)))
++                        tty->ops->flush_chars(tty);
++        }
+ }
+ 
+ /* NB: echo_mark and echo_head should be equivalent here */
+@@ -1638,9 +1642,11 @@ static void __receive_buf(struct tty_struct *tty, const unsigned char *cp,
+ 			n_tty_receive_buf_standard(tty, cp, fp, count);
+ 
+ 		flush_echoes(tty);
+-		if (tty->ops->flush_chars
+-		    && !test_bit(TTY_DRIVER_IGNORE_FLUSH, &tty->driver->flags))
+-			tty->ops->flush_chars(tty);
++                if (tty->ops->flush_chars) {
++                        /* flush chars if not prohibited by the driver */
++                        if (!(tty->driver && (tty->driver->flags & TTY_DRIVER_IGNORE_FLUSH)))
++                                tty->ops->flush_chars(tty);
++                }
+ 	}
+ 
+ 	if (ldata->icanon && !L_EXTPROC(tty))
+@@ -2339,9 +2345,11 @@ static ssize_t n_tty_write(struct tty_struct *tty, struct file *file,
+ 					break;
+ 				b++; nr--;
+ 			}
+-			if (tty->ops->flush_chars
+-			    && !test_bit(TTY_DRIVER_IGNORE_FLUSH, &tty->driver->flags))
+-				tty->ops->flush_chars(tty);
++                        if (tty->ops->flush_chars) {
++                                /* flush chars if not prohibited by the driver */
++                                if (!(tty->driver && (tty->driver->flags & TTY_DRIVER_IGNORE_FLUSH)))
++                                        tty->ops->flush_chars(tty);
++                        }
+ 		} else {
+ 			struct n_tty_data *ldata = tty->disc_data;
+ 
+diff --git a/drivers/tty/serial/omap-serial-rtu.c b/drivers/tty/serial/omap-serial-rtu.c
+index 91efac5..f71cfb4 100644
+--- a/drivers/tty/serial/omap-serial-rtu.c
++++ b/drivers/tty/serial/omap-serial-rtu.c
+@@ -264,17 +264,18 @@ static void serial_omap_config_rs485(struct uart_omap_port *up, struct serial_rs
+ 
+ 
+ 		if(val) { /* Enable RS485 */
+-                        set_bit(TTY_DRIVER_IGNORE_FLUSH, &tty->driver->flags);
++                        tty->driver->flags |= TTY_DRIVER_IGNORE_FLUSH;
+ 		} else { /* Enable RS232 */
+ 			up->tx_in_progress = 0;
+ 			up->tx_wait_end = 0;
+ 
+-                        clear_bit(TTY_DRIVER_IGNORE_FLUSH, &tty->driver->flags);
++                        tty->driver->flags &= ~TTY_DRIVER_IGNORE_FLUSH;
+ 		}
+ 
+ 		gpio_set_value(up->rs485en_gpio, up->rs485en_alow ? !val : val);
+ 
+ 		pr_info("%s: %s mode enabled\n", __func__, val ? "rs485" : "rs232");
++                pr_info("tty driver flags: 0x%08lx", tty->driver->flags);
+ 	}
+ }
+ 
+-- 
+2.7.4
+

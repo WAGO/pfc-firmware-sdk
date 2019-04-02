@@ -1,0 +1,13 @@
+## SECTION=wago_specific_libs
+
+config LIBDPC31DRIVER
+	bool
+	default n
+	select LIBOSAL
+	select LIBUIO
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select DAL	
+	prompt "libdpc31Driver (DPC31 driver)"
+	help
+		Build the DPC31 driver as a static library. This software component provides hardware access to the DPC31 PROFIBUS controller functionality.

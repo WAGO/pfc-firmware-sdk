@@ -1,0 +1,119 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   /etc/init.d/check_rtc
+#
+# Brief:    System V init script for RTC check on startup and
+#           set build date on RTC error.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+THISFILE="$0"
+
+# Function to print usage to stdout.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+usage() {
+    echo "Usage: $THISFILE [start|stop|reset]"
+}
+
+# Function to get build date from firmware.
+#
+# Return: 0 on success, unequal to 0 otherwise
+# stdout: On success build date string in format YYYYmmdd
+#-----------------------------------------------------------------------------#
+get_build_date()
+{
+    cat /etc/SVNREVISION | grep -Eo "[0-9]{8,8}"
+}
+
+# Function to set build date as system time.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+set_build_date()
+{
+    local result=0
+
+    # Get build date from firmware
+    local build_date
+    build_date="$(get_build_date)"
+    result=$?
+
+    # Set build date as system time
+    if [[ $result -eq 0 ]]; then
+        date -s "${build_date}0000" &>/dev/null
+        result=$?
+    fi
+
+    # Return results
+    if [[ $result -ne 0 ]]; then
+        echo "Failed to set system time ($result)" 1>&2
+    fi
+    return $result
+}
+
+# Function to check RTC status.
+#
+# Return: 0 on success, unequal to 0 otherwise
+check_rtc()
+{
+    local result=0
+
+    local hwclock_datestring
+    hwclock_datestring="$(/sbin/hwclock 2>/dev/null)"
+    if [[ $? -ne 0 ]]; then
+        set_build_date &&
+          hwclock -w &&
+          echo "Warning: RTC failure. Set date to '$(/usr/bin/date -I)'" 1>&2
+        result=$?
+        date "+%a %b %d %Y %X.000000 0x8000000C init: S" >>"/root/wagoearlylog.log"
+    else
+        echo "RTC ok: $hwclock_datestring"
+    fi
+
+    return $result
+}
+
+# Function to reset system time to build date.
+#
+# Return: 0 on success, unequal to 0 otherwise
+reset_date()
+{
+    set_build_date &&
+      echo "Resetted date to '$(/usr/bin/date -I)'"
+
+    return $?
+}
+
+# Main switch
+#-----------------------------------------------------------------------------#
+case $1 in
+
+        start)
+            check_rtc
+            ;;
+
+        stop)
+            ;;
+
+        reset)
+            reset_date
+            ;;
+
+        *)   
+            usage
+            exit 1
+            ;;
+esac
+

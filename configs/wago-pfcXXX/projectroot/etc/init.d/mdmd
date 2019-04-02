@@ -1,0 +1,99 @@
+#!/bin/sh
+
+#
+# 3G Modem Daemon mdmd
+#
+PATH=/usr/bin:/usr/sbin:/usr/local/bin:/bin:/sbin
+PIDFILE="/var/run/mdmd.pid"
+SYSPARAMGOBIDEBUG="/sys/module/GobiNet/parameters/gobi_debug"
+QLOG="/usr/bin/qlog/start.sh"
+PREFIX="mdmd: "
+
+
+function set_gobi_usbnet_thread_priority
+{
+    PIDs=$(ps -eLo pid,cls,rtprio,pri,nice,cmd | grep "GobiUSBNet" | awk '{ print $1; }' | xargs echo)
+    for i in $PIDs
+    do
+      chrt -f -p 43 $i >/dev/null 2>&1
+    done
+}
+
+function is_bgctrl_running
+{
+    local status=1
+    # See if background control process running already.
+    if [ -e $PIDFILE ]; then
+        PID=$(< $PIDFILE)
+        if [ -e /proc/$PID ] && grep -q mdmd /proc/$PID/cmdline; then
+            # process is running.
+            status=0
+        else
+            # no process with this pid
+            rm $PIDFILE
+        fi
+    fi
+    return $status
+}
+
+function stop_bgctrl
+{
+    # See if background control process running already.
+    if [ -e $PIDFILE ]; then
+        PID=$(< $PIDFILE)
+        # There is a PID file. Kill the process.
+        echo "${PREFIX}stopping..."
+        kill -9 $PID
+        rm $PIDFILE
+        killall mdm_cuse
+        kill $(ps -Af | grep /usr/bin/mdmd | grep -v grep | awk '{ print $2 }')
+    fi
+    return
+}
+
+case $1 in
+
+    start)
+        devconf_flag_3g=$(echo "$(( 16#$(/etc/config-tools/get_typelabel_value DEVCONF | cut -d'x' -f 2) & (1 << 4) ? 1 : 0 ))")
+        if [ "$devconf_flag_3g" == "1" ]
+        then
+            set_gobi_usbnet_thread_priority
+            [ -f $SYSPARAMGOBIDEBUG ] && echo N > $SYSPARAMGOBIDEBUG
+#            [ -f $QLOG ] && $QLOG
+            /usr/bin/mdm_cuse &
+            $0 bgctrl &
+        fi
+        ;;
+
+    stop)
+        stop_bgctrl
+        ;;
+
+    restart)
+        $0 stop
+        $0 start
+        ;;
+
+    bgctrl)
+        if ! is_bgctrl_running; then
+            echo "${PREFIX}starting..."
+            echo $$ > $PIDFILE
+            if [ ! -s $PIDFILE ]; then
+              echo "${PREFIX}write ${PIDFILE} failed!"
+              exit 1
+            fi
+            #restart mdmd after 1sec when it dies or someone kills it (don't just daemonize)
+            until /usr/bin/mdmd; do
+                sleep 1
+            done
+        fi
+        ;;
+
+    *)
+        echo "${PREFIX}usage: ${0} [start|stop|restart]"
+        exit 1
+        ;;
+
+esac
+
+exit 0

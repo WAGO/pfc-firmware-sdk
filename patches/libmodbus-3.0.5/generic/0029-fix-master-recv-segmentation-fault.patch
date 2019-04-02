@@ -1,0 +1,1732 @@
+--- libmodbus-3.0.5.base/src/modbus-tcp-private.h	2015-11-12 16:46:45.014962000 +0100
++++ libmodbus-3.0.5/src/modbus-tcp-private.h	2015-11-17 12:46:37.492459370 +0100
+@@ -54,6 +54,7 @@
+     int data_size;
+     unsigned char *data_begin;
+     unsigned char data_buf[_MODBUS_UDP_RECV_BUFFER_SIZE];
++    int server_socket;
+     /* UDP port */
+     int port;
+     /* IP address */
+@@ -70,8 +71,7 @@
+     int data_size;
+     unsigned char *data_begin;
+     unsigned char data_buf[_MODBUS_UDP_RECV_BUFFER_SIZE];
+-    /* UDP port */
+-    int port;
++    int server_socket;
+     /* Node */
+     char node[NI_MAXHOST];
+     /* Service */
+--- libmodbus-3.0.5.base/src/modbus-udp.h	2015-11-12 16:46:44.810962000 +0100
++++ libmodbus-3.0.5/src/modbus-udp.h	1970-01-01 01:00:00.000000000 +0100
+@@ -1,51 +0,0 @@
+-//------------------------------------------------------------------------------
+-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+-//
+-// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
+-// manufacturing, reproduction, use and sales rights pertaining to this
+-// subject matter are governed by the license agreement. The recipient of this
+-// software implicitly accepts the terms of the license.
+-//------------------------------------------------------------------------------
+-//------------------------------------------------------------------------------
+-///  \file     modbus-udp.h
+-///
+-///  \version  $Id: 1 $
+-///
+-///  \brief    <short description of the file contents>
+-///
+-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+-//------------------------------------------------------------------------------
+-#ifndef MODBUS_UDP_H_
+-#define MODBUS_UDP_H_
+-
+-//------------------------------------------------------------------------------
+-// include files
+-//------------------------------------------------------------------------------
+-#include "modbus.h"
+-
+-//------------------------------------------------------------------------------
+-// defines; structure, enumeration and type definitions
+-//------------------------------------------------------------------------------
+-MODBUS_BEGIN_DECLS
+-
+-//------------------------------------------------------------------------------
+-// function prototypes
+-//------------------------------------------------------------------------------
+-modbus_t* modbus_new_udp(const char *ip_address, int port);
+-
+-//------------------------------------------------------------------------------
+-// macros
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// variables' and constants' definitions
+-//------------------------------------------------------------------------------
+-
+-MODBUS_END_DECLS
+-//------------------------------------------------------------------------------
+-// function implementation
+-//------------------------------------------------------------------------------
+-
+-
+-#endif /* MODBUS_UDP_H_ */
+-//---- End of source file ------------------------------------------------------
+--- libmodbus-3.0.5.base/src/modbus.h	2015-11-12 16:46:45.030962000 +0100
++++ libmodbus-3.0.5/src/modbus.h	2015-11-17 16:05:12.244950401 +0100
+@@ -81,6 +81,7 @@
+ #define MODBUS_MAX_WRITE_REGISTERS         123
+ #define MODBUS_MAX_RW_WRITE_REGISTERS      121
+ #define MODBUS_MAX_READ_REGISTERS_FC66     720
++#define MODBUS_MAX_DIAGNOSTICS_SRC         125
+ 
+ /* Random number to avoid errno conflicts */
+ #define MODBUS_ENOBASE 112345678
+@@ -187,7 +188,7 @@
+ int modbus_write_and_read_registers(modbus_t *ctx, int write_addr, int write_nb,
+                                     const uint16_t *src, int read_addr, int read_nb,
+                                     uint16_t *dest);
+-int modbus_read_32767_input_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest);
++int modbus_read_input_registers_fc66(modbus_t *ctx, int addr, int nb, uint16_t *dest);
+ int modbus_diagnostics(modbus_t *ctx, int subfunction, int nb_src, const uint16_t *src,
+                        int nb_dest, uint16_t *dest);
+ int modbus_report_slave_id(modbus_t *ctx, uint8_t *dest);
+@@ -199,10 +200,10 @@
+ 
+ int modbus_send_raw_request(modbus_t *ctx, uint8_t *raw_req, int raw_req_length);
+ 
+-int modbus_receive(modbus_t *ctx, uint8_t *req);
++int modbus_receive(modbus_t *ctx, uint8_t *req, size_t max_size);
+ int modbus_receive_from(modbus_t *ctx, int sockfd, uint8_t *req);
+ 
+-int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp);
++int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp, size_t max_size);
+ 
+ int modbus_reply(modbus_t *ctx, const uint8_t *req,
+                  int req_length, modbus_mapping_t *mb_mapping);
+--- libmodbus-3.0.5.base/src/modbus-udp-private.h	2015-11-12 16:46:44.810962000 +0100
++++ libmodbus-3.0.5/src/modbus-udp-private.h	1970-01-01 01:00:00.000000000 +0100
+@@ -1,60 +0,0 @@
+-//------------------------------------------------------------------------------
+-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+-//
+-// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
+-// manufacturing, reproduction, use and sales rights pertaining to this
+-// subject matter are governed by the license agreement. The recipient of this
+-// software implicitly accepts the terms of the license.
+-//------------------------------------------------------------------------------
+-//------------------------------------------------------------------------------
+-///  \file     modbus-udp-private.h
+-///
+-///  \version  $Id: 1 $
+-///
+-///  \brief    <short description of the file contents>
+-///
+-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+-//------------------------------------------------------------------------------
+-#ifndef MODBUS_UDP_PRIVATE_H_
+-#define MODBUS_UDP_PRIVATE_H_
+-
+-//------------------------------------------------------------------------------
+-// include files
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// defines; structure, enumeration and type definitions
+-//------------------------------------------------------------------------------
+-//#define _MODBUS_UDP_HEADER_LENGTH      7
+-//#define _MODBUS_UDP_PRESET_REQ_LENGTH 12
+-//#define _MODBUS_UDP_PRESET_RSP_LENGTH  8
+-//
+-//#define _MODBUS_UDP_CHECKSUM_LENGTH    0
+-
+-typedef struct _modbus_udp
+-{
+-    /* UDP port */
+-    int port;
+-    /* IP address */
+-    char ip[16];
+-} modbus_udp_t;
+-
+-//------------------------------------------------------------------------------
+-// function prototypes
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// macros
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// variables' and constants' definitions
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// function implementation
+-//------------------------------------------------------------------------------
+-
+-
+-#endif /* MODBUS_UDP_PRIVATE_H_ */
+-//---- End of source file ------------------------------------------------------
+--- libmodbus-3.0.5.base/src/modbus-rtu.c	2015-11-12 16:46:45.050962000 +0100
++++ libmodbus-3.0.5/src/modbus-rtu.c	2015-11-17 15:06:58.356093270 +0100
+@@ -275,7 +275,12 @@
+ #if defined(_WIN32)
+     modbus_rtu_t *ctx_rtu = ctx->backend_data;
+     DWORD n_bytes = 0;
+-    return (WriteFile(ctx_rtu->w_ser.fd, req, req_length, &n_bytes, NULL)) ? n_bytes : -1;
++    if (!WriteFile(ctx_rtu->w_ser.fd, req, req_length, &n_bytes, NULL))
++    {
++      errno = (int)GetLastError();
++      return -1;
++    }
++    return n_bytes;
+ #else
+     return write(ctx->s, req, req_length);
+ #endif
+@@ -366,6 +371,7 @@
+                 (int)GetLastError());
+         CloseHandle(ctx_rtu->w_ser.fd);
+         ctx_rtu->w_ser.fd = INVALID_HANDLE_VALUE;
++        errno = (int)GetLastError();
+         return -1;
+     }
+ 
+@@ -470,6 +476,7 @@
+                 (int)GetLastError());
+         CloseHandle(ctx_rtu->w_ser.fd);
+         ctx_rtu->w_ser.fd = INVALID_HANDLE_VALUE;
++        errno = (int)GetLastError();
+         return -1;
+     }
+ #else
+@@ -864,7 +871,7 @@
+     result = ioctl(ctx->s, TIOCSRS485, &rs485conf);
+     if (result < 0) {
+         if (ctx->debug) {
+-            fprintf(stderr, "ioctl TIOCSRS485 failed, result = %d\n", result);
++            fprintf(stderr, "ioctl TIOCSRS485 failed, errno = %d\n", errno);
+         }
+         /* Restore previous attributes */
+         (void)tcflush(ctx->s, TCIFLUSH);
+@@ -916,7 +923,12 @@
+ #if defined(_WIN32)
+     modbus_rtu_t *ctx_rtu = ctx->backend_data;
+     ctx_rtu->w_ser.n_bytes = 0;
+-    return (FlushFileBuffers(ctx_rtu->w_ser.fd) == FALSE);
++    if (!FlushFileBuffers(ctx_rtu->w_ser.fd))
++    {
++      errno = (int)GetLastError();
++      return -1;
++    }
++    return 0;
+ #else
+     return tcflush(ctx->s, TCIOFLUSH);
+ #endif
+@@ -1016,10 +1028,21 @@
+     size_t ret_size;
+ 
+     ctx = (modbus_t *) malloc(sizeof(modbus_t));
++    if (ctx == NULL)
++    {
++        errno = ENOMEM;
++        return NULL;
++    }
+     _modbus_init_common(ctx);
+ 
+     ctx->backend = &_modbus_rtu_backend;
+     ctx->backend_data = (modbus_rtu_t *) malloc(sizeof(modbus_rtu_t));
++    if (ctx->backend_data == NULL)
++    {
++        free(ctx);
++        errno = ENOMEM;
++        return NULL;
++    }
+     ctx_rtu = (modbus_rtu_t *)ctx->backend_data;
+ 
+     dest_size = sizeof(ctx_rtu->device);
+--- libmodbus-3.0.5.base/src/modbus-tcp.c	2015-11-12 16:46:45.058962000 +0100
++++ libmodbus-3.0.5/src/modbus-tcp.c	2015-11-17 17:03:11.461447652 +0100
+@@ -64,7 +64,7 @@
+ #include "modbus-tcp-private.h"
+ 
+ #ifdef OS_WIN32
+-static int _modbus_tcp_init_win32(void)
++static int _modbus_tcp_init_win32(modbus_t *ctx)
+ {
+     /* Initialise Windows Socket API */
+     WSADATA wsaData;
+@@ -189,7 +189,7 @@
+ {
+     /* Check TID */
+     if (req[0] != rsp[0] || req[1] != rsp[1]) {
+-        if (ctx->debug) fprintf(stderr, "Invalid TID received 0x%X (not 0x%X)\n",
++        if (ctx->debug) fprintf(stderr, "Invalid TID received 0x%X, requested 0x%X\n",
+                                 (rsp[0] << 8) + rsp[1], (req[0] << 8) + req[1]);
+         errno = EMBBADDATA;
+         return -1;
+@@ -229,6 +229,69 @@
+     return 0;
+ }
+ 
++static int _modbus_tcp_getaddrinfo(modbus_t *ctx,
++                                   const char *node, const char *service,
++                                   const struct addrinfo *hints,
++                                   struct addrinfo **res)
++{
++    int rc = getaddrinfo(node, service, hints, res);
++    if (rc != 0)
++    {
++        if (ctx->debug) printf("getaddrinfo(%s): %s\n", node, gai_strerror(rc));
++        switch (rc)
++        {
++//          case EAI_ADDRFAMILY:
++//            //The specified network host does not have any network addresses in the requested address family.
++//            errno = EADDRNOTAVAIL;
++//            break;
++          case EAI_AGAIN:
++            //The name server returned a temporary failure indication. Try again later.
++            errno = EAGAIN;
++            break;
++          case EAI_BADFLAGS:
++            //hints.ai_flags contains invalid flags; or, hints.ai_flags included AI_CANONNAME and name was NULL.
++            errno = EINVAL;
++            break;
++          case EAI_FAIL:
++            //The name server returned a permanent failure indication.
++            errno = EPERM;
++            break;
++          case EAI_FAMILY:
++            //The requested address family is not supported.
++            errno = EAFNOSUPPORT;
++            break;
++          case EAI_MEMORY:
++            //Out of memory.
++            errno = ENOMEM;
++            break;
++//          case EAI_NODATA:
++//            //The specified network host exists, but does not have any network addresses defined.
++//            errno = ENODATA;
++//            break;
++          case EAI_NONAME:
++            //The node or service is not known; or both node and service are NULL; or AI_NUMERICSERV was specified in hints.ai_flags and service was not a numeric port-number string.
++            errno = ENXIO;
++            break;
++          case EAI_SERVICE:
++            //The requested service is not available for the requested socket type. It may be available through another socket type. For example, this error could occur if service was "shell" (a service only available on stream sockets), and either hints.ai_protocol was IPPROTO_UDP, or hints.ai_socktype was SOCK_DGRAM; or the error could occur if service was not NULL, and hints.ai_socktype was SOCK_RAW (a socket type that does not support the concept of services).
++            errno = ENOTSUP;
++            break;
++          case EAI_SOCKTYPE:
++            //The requested socket type is not supported. This could occur, for example, if hints.ai_socktype and hints.ai_protocol are inconsistent (e.g., SOCK_DGRAM and IPPROTO_TCP, respectively).
++            errno = ENOTSUP;
++            break;
++          case EAI_SYSTEM:
++            //Other system error, check errno for details.
++            break;
++          default:
++            errno = EINVAL;
++            break;
++        }
++        return -1;
++    }
++    return 0;
++}
++
+ static int _ip_get_host_addr_by_name(modbus_t *ctx, const char* hostname, in_addr_t *s_addr)
+ {
+     static const struct addrinfo hints = {
+@@ -243,18 +306,14 @@
+     struct addrinfo *rp;
+     struct addrinfo *result;
+     int res;
+-
+-    res = getaddrinfo(hostname, NULL, &hints, &result);
++    res = _modbus_tcp_getaddrinfo(ctx, hostname, NULL, &hints, &result);
+     if (res != 0)
+-    {
+-        if (ctx->debug) printf("getaddrinfo(%s): %s\n", hostname, gai_strerror(res));
+         return -1;
+-    }
+ 
+     res = -1;
+     for(rp = result; rp != NULL; rp = result->ai_next)
+     {
+-        if (rp->ai_family & AF_INET && rp->ai_addr != NULL && rp->ai_addrlen == sizeof(struct sockaddr_in))
++        if (((rp->ai_family & AF_INET) != 0) && (rp->ai_addr != NULL) && (rp->ai_addrlen == sizeof(struct sockaddr_in)))
+         {
+             *s_addr = ((struct sockaddr_in*) rp->ai_addr)->sin_addr.s_addr;
+             res = 0;
+@@ -263,6 +322,10 @@
+     }
+ 
+     freeaddrinfo(result);
++    if (res == -1)
++    {
++        errno = EADDRNOTAVAIL;
++    }
+     return res;
+ }
+ 
+@@ -274,7 +337,7 @@
+     modbus_tcp_t *ctx_tcp = ctx->backend_data;
+ 
+ #ifdef OS_WIN32
+-    if (_modbus_tcp_init_win32() == -1) {
++    if (_modbus_tcp_init_win32(ctx) == -1) {
+         return -1;
+     }
+ #endif
+@@ -320,7 +383,7 @@
+     modbus_tcp_pi_t *ctx_tcp_pi = ctx->backend_data;
+ 
+ #ifdef OS_WIN32
+-    if (_modbus_tcp_init_win32() == -1) {
++    if (_modbus_tcp_init_win32(ctx) == -1) {
+         return -1;
+     }
+ #endif
+@@ -336,8 +399,8 @@
+     ai_hints.ai_next = NULL;
+ 
+     ai_list = NULL;
+-    rc = getaddrinfo(ctx_tcp_pi->node, ctx_tcp_pi->service,
+-                     &ai_hints, &ai_list);
++    rc = _modbus_tcp_getaddrinfo(ctx, ctx_tcp_pi->node, ctx_tcp_pi->service,
++                                 &ai_hints, &ai_list);
+     if (rc != 0)
+         return rc;
+ 
+@@ -423,7 +486,7 @@
+     modbus_tcp_t *ctx_tcp = ctx->backend_data;
+ 
+ #ifdef OS_WIN32
+-    if (_modbus_tcp_init_win32() == -1) {
++    if (_modbus_tcp_init_win32(ctx) == -1) {
+         return -1;
+     }
+ #endif
+@@ -492,7 +555,7 @@
+     ai_hints.ai_next = NULL;
+ 
+     ai_list = NULL;
+-    rc = getaddrinfo(node, service, &ai_hints, &ai_list);
++    rc = _modbus_tcp_getaddrinfo(ctx, node, service, &ai_hints, &ai_list);
+     if (rc != 0)
+         return -1;
+ 
+@@ -582,6 +645,7 @@
+     if (ctx->s == -1) {
+         close(*socket);
+         *socket = 0;
++        return -1;
+     }
+ 
+     if (ctx->debug) printf("The client connection is accepted.\n");
+@@ -645,7 +709,7 @@
+ 
+ 
+ const modbus_backend_t _modbus_tcp_pi_backend = {
+-    _MODBUS_BACKEND_TYPE_TCP,
++    _MODBUS_BACKEND_TYPE_TCP_PI,
+     _MODBUS_TCP_HEADER_LENGTH,
+     _MODBUS_TCP_CHECKSUM_LENGTH,
+     MODBUS_TCP_MAX_ADU_LENGTH,
+@@ -679,13 +743,16 @@
+ 
+     sa.sa_handler = SIG_IGN;
+     if (sigaction(SIGPIPE, &sa, NULL) < 0) {
+-        /* The debug flag can't be set here... */
+-        if (ctx->debug) fprintf(stderr, "Could not install SIGPIPE handler.\n");
+         return NULL;
+     }
+ #endif
+ 
+     ctx = (modbus_t *) malloc(sizeof(modbus_t));
++    if (ctx == NULL)
++    {
++        errno = ENOMEM;
++        return NULL;
++    }
+     _modbus_init_common(ctx);
+ 
+     /* Could be changed after to reach a remote serial Modbus device */
+@@ -694,6 +761,12 @@
+     ctx->backend = &(_modbus_tcp_backend);
+ 
+     ctx->backend_data = (modbus_tcp_t *) malloc(sizeof(modbus_tcp_t));
++    if (ctx->backend_data == NULL)
++    {
++        free(ctx);
++        errno = ENOMEM;
++        return NULL;
++    }
+     ctx_tcp = (modbus_tcp_t *)ctx->backend_data;
+ 
+     ret_size = strlcpy(ctx_tcp->ip, ip, sizeof(ctx_tcp->ip));
+@@ -730,6 +803,11 @@
+     }
+ 
+     ctx = (modbus_t *) malloc(sizeof(modbus_t));
++    if (ctx == NULL)
++    {
++        errno = ENOMEM;
++        return NULL;
++    }
+     _modbus_init_common(ctx);
+ 
+     /* Could be changed after to reach a remote serial Modbus device */
+@@ -738,6 +816,12 @@
+     ctx->backend = &(_modbus_tcp_pi_backend);
+ 
+     ctx->backend_data = (modbus_tcp_pi_t *) malloc(sizeof(modbus_tcp_pi_t));
++    if (ctx->backend_data == NULL)
++    {
++        free(ctx);
++        errno = ENOMEM;
++        return NULL;
++    }
+     ctx_tcp_pi = (modbus_tcp_pi_t *)ctx->backend_data;
+ 
+     dest_size = sizeof(char) * _MODBUS_TCP_PI_NODE_LENGTH;
+@@ -782,7 +866,7 @@
+ {
+ 	struct sockaddr_in addr;
+ 
+-	modbus_udp_t *ctx_udp = ctx->backend_data;
++	modbus_udp_t *ctx_udp = (modbus_udp_t *)ctx->backend_data;
+ 
+     if (((ctx_udp->recv_dst >> 24) & 224) == 224)
+     {
+@@ -812,7 +896,7 @@
+ 
+ ssize_t _modbus_udp_pi_send(modbus_t *ctx, const uint8_t *req, int req_length)
+ {
+-	modbus_udp_pi_t *ctx_udp_pi = ctx->backend_data;
++	modbus_udp_pi_t *ctx_udp_pi = (modbus_udp_pi_t *)ctx->backend_data;
+ 	return sendto(ctx->s, (const char*)req, req_length, 0, (struct sockaddr *)&ctx_udp_pi->s_addr, ctx_udp_pi->s_addr_len);
+ }
+ 
+@@ -848,7 +932,7 @@
+ 		if (rc > _MODBUS_UDP_RECV_BUFFER_SIZE)
+ 		{
+ 			errno = EMBMDATA;
+-			_error_print(ctx, "UDP receive buffer exceeded");
++			if (ctx->debug) fprintf(stderr, "UDP receive buffer exceeded\n");
+ 			return -1;
+ 		}
+ 
+@@ -881,7 +965,7 @@
+ 	if (rsp_length > ctx_udp->data_size)
+ 	{
+ 		errno = EMBBADDATA;
+-		_error_print(ctx, "unexpected message fragment");
++		if (ctx->debug) fprintf(stderr, "unexpected UDP message fragment\n");
+ 		return -1;
+ 	}
+ 	memcpy(rsp, ctx_udp->data_begin, rsp_length);
+@@ -905,26 +989,26 @@
+ 			/* socket closed or read error */
+ 			return received_bytes;
+ 		}
++		if (received_bytes > _MODBUS_UDP_RECV_BUFFER_SIZE)
++		{
++			errno = EMBMDATA;
++			if (ctx->debug) fprintf(stderr, "UDP receive buffer exceeded\n");
++			return -1;
++		}
+ 		/* store source address in context for following reply */
+ 		if (peer_addr_len && (peer_addr_len <= sizeof(struct sockaddr_storage))) {
+ 			memcpy(&ctx_udp_pi->s_addr, &peer_addr, peer_addr_len);
+ 			ctx_udp_pi->s_addr_len = peer_addr_len;
+ 		}
+ 
+-		if (received_bytes > _MODBUS_UDP_RECV_BUFFER_SIZE)
+-	    {
+-	        errno = EMBMDATA;
+-	        _error_print(ctx, "UDP receive buffer exceeded");
+-			return -1;
+-	    }
+ 		ctx_udp_pi->data_size = received_bytes;
+ 		ctx_udp_pi->data_begin = ctx_udp_pi->data_buf;
+ 	}
+ 	/* return data from buffer to be processed */
+ 	if (rsp_length > ctx_udp_pi->data_size)
+ 	{
+-        errno = EMBBADDATA;
+-        _error_print(ctx, "unexpected message fragment");
++		errno = EMBBADDATA;
++		if (ctx->debug) fprintf(stderr, "unexpected UDP message fragment\n");
+ 		return -1;
+ 	}
+ 	memcpy(rsp, ctx_udp_pi->data_begin, rsp_length);
+@@ -969,10 +1053,10 @@
+ {
+     int new_socket;
+     int rc;
+-    modbus_udp_t *ctx_udp = ctx->backend_data;
++    modbus_udp_t *ctx_udp = (modbus_udp_t *)ctx->backend_data;
+ 
+ #ifdef OS_WIN32
+-    if (_modbus_tcp_init_win32() == -1) {
++    if (_modbus_tcp_init_win32(ctx) == -1) {
+         return -1;
+     }
+ #endif
+@@ -1003,10 +1087,10 @@
+     struct addrinfo *ai_list;
+     struct addrinfo *ai_ptr;
+     struct addrinfo ai_hints;
+-    modbus_udp_pi_t *ctx_udp_pi = ctx->backend_data;
++    modbus_udp_pi_t *ctx_udp_pi = (modbus_udp_pi_t *)ctx->backend_data;
+ 
+ #ifdef OS_WIN32
+-    if (_modbus_tcp_init_win32() == -1) {
++    if (_modbus_tcp_init_win32(ctx) == -1) {
+         return -1;
+     }
+ #endif
+@@ -1023,9 +1107,8 @@
+     ai_hints.ai_addr = NULL;
+     ai_hints.ai_next = NULL;
+     ai_list = NULL;
+-    rc = getaddrinfo(ctx_udp_pi->node, ctx_udp_pi->service, &ai_hints, &ai_list);
++    rc = _modbus_tcp_getaddrinfo(ctx, ctx_udp_pi->node, ctx_udp_pi->service, &ai_hints, &ai_list);
+     if (rc != 0) {
+-        if (ctx->debug) fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rc));
+         return rc;
+     }
+     for (ai_ptr = ai_list; ai_ptr != NULL; ai_ptr = ai_ptr->ai_next) {
+@@ -1073,11 +1156,96 @@
+ 
+ int _modbus_udp_flush(modbus_t *ctx)
+ {
+-  /*Bugfix WAT17353: the socket should not be flushed, maybe there are packets from multiple sources*/
+-  modbus_udp_t *ctx_udp = ctx->backend_data;
+-  ctx_udp->data_size = 0;
+-  ctx_udp->data_begin = ctx_udp->data_buf;
+-  return 0;
++    int rc;
++    int rc_sum = 0;
++    modbus_udp_t *ctx_udp = (modbus_udp_t *)ctx->backend_data;
++
++    ctx_udp->data_size = 0;
++    ctx_udp->data_begin = ctx_udp->data_buf;
++
++    if (ctx->s == ctx_udp->server_socket)
++    {
++        /*Bugfix WAT17353: server socket should not be flushed, maybe there are packets from multiple clients*/
++        return rc_sum;
++    }
++
++    do {
++        /* Extract the garbage from the socket */
++#ifndef OS_WIN32
++        int flags = MSG_TRUNC | MSG_DONTWAIT;
++        rc = recvfrom(ctx->s, (void *)ctx_udp->data_buf, _MODBUS_UDP_RECV_BUFFER_SIZE, flags, 0, 0);
++#else
++        /* On Win32, it's a bit more complicated to not wait */
++        fd_set rfds;
++        struct timeval tv;
++
++        tv.tv_sec = 0;
++        tv.tv_usec = 0;
++        FD_ZERO(&rfds);
++        FD_SET(ctx->s, &rfds);
++        rc = select(ctx->s+1, &rfds, NULL, NULL, &tv);
++        if (rc == -1) {
++            return -1;
++        }
++        if (rc > 0) {
++            /* There is data to flush */
++            int flags = MSG_TRUNC;
++            rc = recvfrom(ctx->s, (void *)ctx_udp->data_buf, _MODBUS_UDP_RECV_BUFFER_SIZE, flags, 0, 0);
++        }
++#endif
++        if (rc > 0) {
++            rc_sum += rc;
++        }
++    } while (rc >= _MODBUS_UDP_RECV_BUFFER_SIZE);
++
++    return rc_sum;
++}
++
++int _modbus_udp_pi_flush(modbus_t *ctx)
++{
++    int rc;
++    int rc_sum = 0;
++    modbus_udp_pi_t *ctx_udp_pi = (modbus_udp_pi_t *)ctx->backend_data;
++
++    ctx_udp_pi->data_size = 0;
++    ctx_udp_pi->data_begin = ctx_udp_pi->data_buf;
++
++    if (ctx->s == ctx_udp_pi->server_socket)
++    {
++        /*Bugfix WAT17353: server socket should not be flushed, maybe there are packets from multiple clients*/
++        return rc_sum;
++    }
++
++    do {
++        /* Extract the garbage from the socket */
++#ifndef OS_WIN32
++        int flags = MSG_TRUNC | MSG_DONTWAIT;
++        rc = recvfrom(ctx->s, (void *)ctx_udp_pi->data_buf, _MODBUS_UDP_RECV_BUFFER_SIZE, flags, 0, 0);
++#else
++        /* On Win32, it's a bit more complicated to not wait */
++        fd_set rfds;
++        struct timeval tv;
++
++        tv.tv_sec = 0;
++        tv.tv_usec = 0;
++        FD_ZERO(&rfds);
++        FD_SET(ctx->s, &rfds);
++        rc = select(ctx->s+1, &rfds, NULL, NULL, &tv);
++        if (rc == -1) {
++            return -1;
++        }
++        if (rc > 0) {
++            /* There is data to flush */
++            int flags = MSG_TRUNC;
++            rc = recvfrom(ctx->s, (void *)ctx_udp_pi->data_buf, _MODBUS_UDP_RECV_BUFFER_SIZE, flags, 0, 0);
++        }
++#endif
++        if (rc > 0) {
++            rc_sum += rc;
++        }
++    } while (rc >= _MODBUS_UDP_RECV_BUFFER_SIZE);
++
++    return rc_sum;
+ }
+ 
+ int _modbus_udp_select(modbus_t *ctx, fd_set *rfds, struct timeval *tv, int length_to_read)
+@@ -1107,16 +1275,44 @@
+     return s_rc;
+ }
+ 
++int _modbus_udp_pi_select(modbus_t *ctx, fd_set *rfds, struct timeval *tv, int length_to_read)
++{
++    int s_rc;
++    modbus_udp_pi_t *ctx_udp_pi = (modbus_udp_pi_t *)ctx->backend_data;
++    if (0 < ctx_udp_pi->data_size)
++    {/*remaining data in context buffer to be processed immediately*/
++      return 0;
++    }
++
++    while ((s_rc = select(ctx->s+1, rfds, NULL, NULL, tv)) == -1) {
++        if (errno == EINTR) {
++            if (ctx->debug) fprintf(stderr, "A non blocked signal was caught\n");
++            /* Necessary after an error */
++            FD_ZERO(rfds);
++            FD_SET(ctx->s, rfds);
++        } else {
++            return -1;
++        }
++    }
++
++    if (s_rc == 0) {
++        errno = ETIMEDOUT;
++        return -1;
++    }
++
++    return s_rc;
++}
++
+ /* Creates a server socket for requests from one or many modbus masters in UDP */
+ int modbus_udp_bind(modbus_t *ctx)
+ {
+     int rc;
+     int new_socket;
+     struct sockaddr_in addr;
+-    modbus_udp_t *ctx_udp = ctx->backend_data;
++    modbus_udp_t *ctx_udp = (modbus_udp_t *)ctx->backend_data;
+ 
+ #ifdef OS_WIN32
+-    if (_modbus_tcp_init_win32() == -1) {
++    if (_modbus_tcp_init_win32(ctx) == -1) {
+         return -1;
+     }
+ #endif
+@@ -1146,6 +1342,7 @@
+     if (bind(new_socket, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+     	/* Success */
+         ctx->s = new_socket;
++        ctx_udp->server_socket = new_socket;
+         if (ctx->debug) printf("Bind UDP socket to port %d\n", ctx_udp->port);
+         return new_socket;
+     }
+@@ -1164,10 +1361,10 @@
+     struct addrinfo ai_hints;
+     const char *node;
+     const char *service;
+-    modbus_udp_pi_t *ctx_udp_pi = ctx->backend_data;
++    modbus_udp_pi_t *ctx_udp_pi = (modbus_udp_pi_t *)ctx->backend_data;
+ 
+ #ifdef OS_WIN32
+-    if (_modbus_tcp_init_win32() == -1) {
++    if (_modbus_tcp_init_win32(ctx) == -1) {
+         return -1;
+     }
+ #endif
+@@ -1194,9 +1391,8 @@
+     ai_hints.ai_addr = NULL;
+     ai_hints.ai_next = NULL;
+     ai_list = NULL;
+-    rc = getaddrinfo(node, service, &ai_hints, &ai_list);
++    rc = _modbus_tcp_getaddrinfo(ctx, node, service, &ai_hints, &ai_list);
+     if (rc != 0) {
+-        if (ctx->debug) fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rc));
+         return -1;
+     }
+     for (ai_ptr = ai_list; ai_ptr != NULL; ai_ptr = ai_ptr->ai_next) {
+@@ -1211,6 +1407,7 @@
+         	/* Success */
+             if (ctx->debug) printf("Bind UDP socket to service %s\n", ctx_udp_pi->service);
+             ctx->s = new_socket;
++            ctx_udp_pi->server_socket = new_socket;
+             break;
+         }
+         close(new_socket);
+@@ -1229,8 +1426,9 @@
+ 
+ int _modbus_udp_is_multicast(modbus_t *ctx)
+ {
++  //ToDo: support _MODBUS_BACKEND_TYPE_UDP_PI
+     int rc;
+-    modbus_udp_t *ctx_udp = ctx->backend_data;
++    modbus_udp_t *ctx_udp = (modbus_udp_t *)ctx->backend_data;
+     in_addr_t s_addr;
+     if (_ip_get_host_addr_by_name(ctx, ctx_udp->ip, &s_addr)) {
+       rc = FALSE;
+@@ -1265,7 +1463,7 @@
+ };
+ 
+ const modbus_backend_t _modbus_udp_pi_backend = {
+-    _MODBUS_BACKEND_TYPE_UDP,
++    _MODBUS_BACKEND_TYPE_UDP_PI,
+     _MODBUS_TCP_HEADER_LENGTH,                        /*common for TCP and UDP*/
+     _MODBUS_TCP_CHECKSUM_LENGTH,                      /*common for TCP and UDP*/
+     MODBUS_TCP_MAX_ADU_LENGTH,                        /*common for TCP and UDP*/
+@@ -1280,8 +1478,8 @@
+     _modbus_tcp_pre_check_confirmation,               /*common for TCP and UDP*/
+     _modbus_udp_pi_connect,
+     _modbus_udp_close,
+-    _modbus_udp_flush,
+-    _modbus_udp_select,
++    _modbus_udp_pi_flush,
++    _modbus_udp_pi_select,
+     _modbus_tcp_filter_request,                       /*common for TCP and UDP*/
+     _modbus_tcp_is_multicast                          /*TODO: implement*/
+ };
+@@ -1293,6 +1491,11 @@
+     size_t ret_size;
+ 
+     ctx = (modbus_t *) malloc(sizeof(modbus_t));
++    if (ctx == NULL)
++    {
++        errno = ENOMEM;
++        return NULL;
++    }
+     _modbus_init_common(ctx);
+ 
+     /* Could be changed after to reach a remote serial Modbus device */
+@@ -1301,6 +1504,12 @@
+     ctx->backend = &(_modbus_udp_backend);
+ 
+     ctx->backend_data = (void *) malloc(sizeof(modbus_udp_t));
++    if (ctx->backend_data == NULL)
++    {
++        free(ctx);
++        errno = ENOMEM;
++        return NULL;
++    }
+     ctx_udp = (modbus_udp_t *)ctx->backend_data;
+ 
+     ret_size = strlcpy(ctx_udp->ip, ip, sizeof(ctx_udp->ip));
+@@ -1320,8 +1529,11 @@
+ 
+     ctx_udp->port = port;
+     ctx_udp->data_size = 0;
++    ctx_udp->data_begin = ctx_udp->data_buf;
+     ctx_udp->recv_dst = 0;
++    ctx_udp->recv_src = 0;
+     ctx_udp->recv_port = 0;
++    ctx_udp->server_socket = -1;
+     return ctx;
+ }
+ 
+@@ -1338,6 +1550,11 @@
+     }
+ 
+     ctx = (modbus_t *) malloc(sizeof(modbus_t));
++    if (ctx == NULL)
++    {
++        errno = ENOMEM;
++        return NULL;
++    }
+     _modbus_init_common(ctx);
+ 
+     /* Could be changed after to reach a remote serial Modbus device */
+@@ -1346,10 +1563,23 @@
+     ctx->backend = &(_modbus_udp_pi_backend);
+ 
+     ctx->backend_data = (void *) malloc(sizeof(modbus_udp_t));
++    if (ctx->backend_data == NULL)
++    {
++        free(ctx);
++        errno = ENOMEM;
++        return NULL;
++    }
+     ctx_udp_pi = (modbus_udp_pi_t *)ctx->backend_data;
+ 
+     dest_size = _MODBUS_TCP_PI_NODE_LENGTH;
+     ret_size = strlcpy(ctx_udp_pi->node, node, dest_size);
++/*
++    if (ret_size == 0) {
++        if (ctx->debug) fprintf(stderr, "The UDP node string is empty\n");
++        modbus_free(ctx);
++        return NULL;
++    }
++*/
+     if (ret_size >= dest_size) {
+         if (ctx->debug) fprintf(stderr, "The UDP node string has been truncated\n");
+         modbus_free(ctx);
+@@ -1374,37 +1604,59 @@
+     }
+ 
+     ctx_udp_pi->data_size = 0;  //set on recvfrom
++    ctx_udp_pi->data_begin = ctx_udp_pi->data_buf;
+     ctx_udp_pi->s_addr_len = 0; //set on connect and/or recvfrom
++    ctx_udp_pi->server_socket = -1;
+     return ctx;
+ }
+ 
+ void modbus_get_remote_ipaddr(modbus_t *ctx, char *address, unsigned int length)
+ {
+-	if (ctx && address && length)
++	if ((address == NULL) || (length ==0))
++	{
++		return;
++	}
++	address[0] = '\0';
++	if (ctx != NULL)
+ 	{
+-		struct sockaddr_in sClientaddr;
+ 		switch(ctx->backend->backend_type)
+ 		{
+ 		case _MODBUS_BACKEND_TYPE_TCP:
++		  //no break;
++		case _MODBUS_BACKEND_TYPE_TCP_PI:
+ 		{
++			struct sockaddr_in sClientaddr;
+ 			socklen_t nAddrlen = sizeof(sClientaddr);
+-			if (getpeername(ctx->s, (struct sockaddr *)&sClientaddr, &nAddrlen) < 0)
++			if (getpeername(ctx->s, (struct sockaddr *)&sClientaddr, &nAddrlen) == 0)
+ 			{
+-			  return;
++				strlcpy(address, inet_ntoa(sClientaddr.sin_addr), length);
+ 			}
+-			break;
+-		}
++		} break;
+ 		case _MODBUS_BACKEND_TYPE_UDP:
+ 		{
+-			modbus_udp_t *ctx_udp = ctx->backend_data;
++			struct sockaddr_in sClientaddr;
++			modbus_udp_t *ctx_udp = (modbus_udp_t *)ctx->backend_data;
+ 			sClientaddr.sin_addr.s_addr = htonl(ctx_udp->recv_src);
+ 			sClientaddr.sin_port = htons(ctx_udp->recv_port);
+ 			sClientaddr.sin_family = AF_INET;
+-			break;
+-		}
++			strlcpy(address, inet_ntoa(sClientaddr.sin_addr), length);
++		} break;
++		case _MODBUS_BACKEND_TYPE_UDP_PI:
++		{
++			modbus_udp_pi_t *ctx_udp_pi = (modbus_udp_pi_t *)ctx->backend_data;
++			if (ctx_udp_pi->s_addr_len > 0)
++			{
++				char host[NI_MAXHOST];
++				char service[NI_MAXSERV];
++				if (getnameinfo((struct sockaddr *)&ctx_udp_pi->s_addr, ctx_udp_pi->s_addr_len,
++				                host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICSERV) == 0)
++				{
++					strlcpy(address, host, length);
++				}
++			}
++		} break;
+ 		default:
+-			return;
++			break;
+ 		}
+-		strlcpy(address, inet_ntoa(sClientaddr.sin_addr), length);
+ 	}
+ }
+--- libmodbus-3.0.5.base/src/modbus.c	2015-11-12 16:46:45.030962000 +0100
++++ libmodbus-3.0.5/src/modbus.c	2015-11-17 17:41:44.014451666 +0100
+@@ -42,8 +42,14 @@
+ const unsigned int libmodbus_version_micro = LIBMODBUS_VERSION_MICRO;
+ 
+ /* Max between RTU and TCP max adu length (so TCP) */
+-#define MAX_MESSAGE_LENGTH 260
+-#define MAX_MESSAGE_LENGTH_FC66 1450
++#define MAX_REQUEST_MESSAGE_LENGTH    260
++#define MAX_RESPONSE_MESSAGE_LENGTH   1450
++/* Maximum between :
++ * - HEADER_LENGTH_TCP (7) + function (1) + exception code (1)
++ * - HEADER_LENGTH_RTU (1) + function (1) + exception code (1) + CRC (2)
++ */
++#define MAX_EXCEPTION_MESSAGE_LENGTH  9
++
+ 
+ /* 3 steps are used to parse the query */
+ typedef enum {
+@@ -140,20 +146,10 @@
+     }
+ }
+ 
+-void _error_print(modbus_t *ctx, const char *context)
+-{
+-    if (ctx->debug) {
+-        fprintf(stderr, "ERROR %s", modbus_strerror(errno));
+-        if (context != NULL) {
+-            fprintf(stderr, ": %s\n", context);
+-        } else {
+-            fprintf(stderr, "\n");
+-        }
+-    }
+-}
+-
+ int _sleep_and_flush(modbus_t *ctx)
+ {
++  if ((ctx->response_timeout.tv_sec > 0) || (ctx->response_timeout.tv_usec > 0))
++  {
+ #ifdef _WIN32
+     /* usleep doesn't exist on Windows */
+     Sleep((ctx->response_timeout.tv_sec * 1000) +
+@@ -167,14 +163,15 @@
+     while (nanosleep(&request, &remaining) == -1 && errno == EINTR)
+         request = remaining;
+ #endif
++  }
+     return modbus_flush(ctx);
+ }
+ 
+ int modbus_flush(modbus_t *ctx)
+ {
+     int rc = ctx->backend->flush(ctx);
+-    if (rc != -1 && ctx->debug) {
+-        printf("%d bytes flushed\n", rc);
++    if ((ctx->debug) && (rc > 0)) {
++        fprintf(stderr, "WARNING %d bytes flushed\n", rc);
+     }
+     return rc;
+ }
+@@ -286,7 +283,8 @@
+     do {
+         rc = ctx->backend->send(ctx, msg, msg_length);
+         if (rc == -1) {
+-            _error_print(ctx, NULL);
++            if (ctx->debug)
++                fprintf(stderr, "ERROR send failed: %s\n", modbus_strerror(errno));
+             if (ctx->error_recovery & MODBUS_ERROR_RECOVERY_LINK) {
+                 int saved_errno = errno;
+ 
+@@ -313,10 +311,10 @@
+ int modbus_send_raw_request(modbus_t *ctx, uint8_t *raw_req, int raw_req_length)
+ {
+     sft_t sft;
+-    uint8_t req[MAX_MESSAGE_LENGTH];
++    uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
+     int req_length;
+ 
+-    if ((raw_req_length < 2) || (MAX_MESSAGE_LENGTH < raw_req_length)) {
++    if ((raw_req_length < 2) || (MAX_REQUEST_MESSAGE_LENGTH < raw_req_length)) {
+         /* The raw request must contain function and slave at least */
+         errno = EINVAL;
+         return -1;
+@@ -461,7 +459,7 @@
+    - read() or recv() error codes
+ */
+ 
+-static int receive_msg(modbus_t *ctx, uint8_t *msg, msg_type_t msg_type,
++static int receive_msg(modbus_t *ctx, uint8_t *msg, size_t msg_size, msg_type_t msg_type,
+                        int req_length)
+ {
+     int rc;
+@@ -503,21 +501,28 @@
+     while (length_to_read != 0) {
+         rc = ctx->backend->select(ctx, &rfds, p_tv, length_to_read);
+         if (rc == -1) {
+-            _error_print(ctx, "select");
+-            if (ctx->error_recovery & MODBUS_ERROR_RECOVERY_LINK) {
++            if (ctx->debug)
++                fprintf(stderr, "ERROR select failed: %s\n", modbus_strerror(errno));
++            if ((ctx->error_recovery & MODBUS_ERROR_RECOVERY_LINK) &&
++                (errno == EBADF)) {
+                 int saved_errno = errno;
+-
+-                if (errno == ETIMEDOUT) {
+-                    _sleep_and_flush(ctx);
+-                } else if (errno == EBADF) {
+-                    modbus_close(ctx);
+-                    modbus_connect(ctx);
+-                }
++                modbus_close(ctx);
++                modbus_connect(ctx);
+                 errno = saved_errno;
+             }
+             return -1;
+         }
+ 
++        if (msg_size < (msg_length + length_to_read))
++        {
++            if (ctx->debug) {
++                fprintf(stderr, "too many data: msg_size %u < (msg_length %d + length_to_read %d)\n",
++                        msg_size, msg_length, length_to_read);
++            }
++            errno = EMBMDATA;
++            return -1;
++        }
++
+         rc = ctx->backend->recv(ctx, msg + msg_length, length_to_read);
+         if (rc == 0) {
+             errno = ECONNRESET;
+@@ -525,10 +530,11 @@
+         }
+ 
+         if (rc == -1) {
+-            _error_print(ctx, "read");
++            if (ctx->debug)
++                fprintf(stderr, "ERROR recv failed: %s\n", modbus_strerror(errno));
+             if ((ctx->error_recovery & MODBUS_ERROR_RECOVERY_LINK) &&
+                 (errno == ECONNRESET || errno == ECONNREFUSED ||
+-                 errno == EBADF)) {
++                    errno == EBADF)) {
+                 int saved_errno = errno;
+                 modbus_close(ctx);
+                 modbus_connect(ctx);
+@@ -565,19 +571,6 @@
+             case _STEP_META:
+                 length_to_read = compute_data_length_after_meta(
+                     ctx, msg, msg_type, req_length);
+-                if ((msg_type == MSG_CONFIRMATION) &&
+-                    (_FC_READ_INPUT_REGISTERS_XL == msg[ctx->backend->header_length])) {
+-                    if ((msg_length + length_to_read) > MAX_MESSAGE_LENGTH_FC66) {
+-                        errno = EMBBADDATA;
+-                        _error_print(ctx, "too many data");
+-                        return -1;
+-                    }
+-                }
+-                else if ((msg_length + length_to_read) > ctx->backend->max_adu_length) {
+-                    errno = EMBBADDATA;
+-                    _error_print(ctx, "too many data");
+-                    return -1;
+-                }
+                 step = _STEP_DATA;
+                 break;
+             default:
+@@ -602,12 +595,14 @@
+     return ctx->backend->check_integrity(ctx, msg, msg_length);
+ }
+ 
++
+ /* Receive the request from a modbus master */
+-int modbus_receive(modbus_t *ctx, uint8_t *req)
++int modbus_receive(modbus_t *ctx, uint8_t *req, size_t max_size)
+ {
+-    return receive_msg(ctx, req, MSG_INDICATION, MSG_LENGTH_UNDEFINED);
++    return receive_msg(ctx, req, max_size, MSG_INDICATION, MSG_LENGTH_UNDEFINED);
+ }
+ 
++
+ /* Receives the confirmation.
+ 
+    The function shall store the read response in rsp and return the number of
+@@ -616,9 +611,9 @@
+    The function doesn't check the confirmation is the expected response to the
+    initial request.
+ */
+-int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp)
++int modbus_receive_confirmation(modbus_t *ctx, uint8_t *rsp, size_t max_size)
+ {
+-    return receive_msg(ctx, rsp, MSG_CONFIRMATION, MSG_LENGTH_UNDEFINED);
++    return receive_msg(ctx, rsp, max_size, MSG_CONFIRMATION, MSG_LENGTH_UNDEFINED);
+ }
+ 
+ static int check_confirmation(modbus_t *ctx, uint8_t *req, int req_length,
+@@ -729,7 +724,6 @@
+         } else {
+             errno = EMBBADEXC;
+         }
+-        _error_print(ctx, NULL);
+         rc = -1;
+     } else {
+         if (ctx->debug) {
+@@ -808,8 +802,7 @@
+     int slave = req[offset - 1];
+     int function = req[offset];
+     uint16_t address = (req[offset + 1] << 8) + req[offset + 2];
+-    uint8_t rsp[MAX_MESSAGE_LENGTH];
+-    uint8_t *rsp_xl = NULL;
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+     int rsp_length = 0;
+     sft_t sft;
+ 
+@@ -1059,8 +1052,9 @@
+     }
+         break;
+     case _FC_READ_EXCEPTION_STATUS:
++        //FIXME:
+         if (ctx->debug) {
+-            fprintf(stderr, "FIXME Not implemented\n");
++            fprintf(stderr, "FC_READ_EXCEPTION_STATUS not implemented\n");
+         }
+         errno = ENOPROTOOPT;
+         return -1;
+@@ -1155,21 +1149,13 @@
+                 MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS, rsp);
+         } else {
+             int i;
+-            int bytes = nb << 1;
++            int nb_bytes = nb << 1;
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+-            rsp_xl = (uint8_t *)malloc((rsp_length+bytes+2)*sizeof(uint8_t));
+-            if (rsp_xl == NULL)
+-            {
+-                errno = EMBMDATA;
+-                _error_print(ctx, "no response memory");
+-                return -1;
+-            }
+-            memcpy(rsp_xl, rsp, rsp_length);
+-            rsp_xl[rsp_length++] = bytes >> 8;
+-            rsp_xl[rsp_length++] = bytes & 0xFF;
++            rsp[rsp_length++] = nb_bytes >> 8;
++            rsp[rsp_length++] = nb_bytes & 0xFF;
+             for (i = address; i < address + nb; i++) {
+-                rsp_xl[rsp_length++] = mb_mapping->tab_input_registers[i] >> 8;
+-                rsp_xl[rsp_length++] = mb_mapping->tab_input_registers[i] & 0xFF;
++                rsp[rsp_length++] = mb_mapping->tab_input_registers[i] >> 8;
++                rsp[rsp_length++] = mb_mapping->tab_input_registers[i] & 0xFF;
+             }
+         }
+     }
+@@ -1186,12 +1172,6 @@
+     if ((_MODBUS_BACKEND_TYPE_RTU == ctx->backend->backend_type) && (MODBUS_BROADCAST_ADDRESS == slave))
+     { /* No response on RTU broadcasts */
+         rc = 0;
+-        if (rsp_xl)
+-          free(rsp_xl);
+-    }
+-    else if (rsp_xl) {
+-        rc = send_msg(ctx, rsp_xl, rsp_length);
+-        free(rsp_xl);
+     }
+     else {
+         rc = send_msg(ctx, rsp, rsp_length);
+@@ -1209,8 +1189,7 @@
+     int slave = req[offset - 1];
+     int function = req[offset];
+     int address = (req[offset + 1] << 8) + req[offset + 2];
+-    uint8_t rsp[MAX_MESSAGE_LENGTH];
+-    uint8_t *rsp_xl = NULL;
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+     int rsp_length = 0;
+     sft_t sft;
+     uint8_t altDataEnabled;
+@@ -1513,8 +1492,9 @@
+     }
+         break;
+     case _FC_READ_EXCEPTION_STATUS:
++        //FIXME:
+         if (ctx->debug) {
+-            fprintf(stderr, "FIXME Not implemented\n");
++            fprintf(stderr, "FC_READ_EXCEPTION_STATUS not implemented\n");
+         }
+         errno = ENOPROTOOPT;
+         return -1;
+@@ -1617,21 +1597,18 @@
+                 MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS, rsp);
+         } else {
+             int i;
+-            int bytes = nb << 1;
++            int nb_bytes = nb << 1;
+             rsp_length = ctx->backend->build_response_basis(&sft, rsp);
+-            rsp_xl = (uint8_t *)malloc((rsp_length+bytes+2)*sizeof(uint8_t));
+-            if (rsp_xl == NULL)
+-            {
+-                errno = EMBMDATA;
+-                _error_print(ctx, "no response memory");
+-                return -1;
+-            }
+-            memcpy(rsp_xl, rsp, rsp_length);
+-            rsp_xl[rsp_length++] = bytes >> 8;
+-            rsp_xl[rsp_length++] = bytes & 0xFF;
+-            for (i = address; i < address + nb; i++) {
+-                rsp_xl[rsp_length++] = mb_mapping->tab_input_registers[i] >> 8;
+-                rsp_xl[rsp_length++] = mb_mapping->tab_input_registers[i] & 0xFF;
++            rsp[rsp_length++] = nb_bytes >> 8;
++            rsp[rsp_length++] = nb_bytes & 0xFF;
++            if (altDataEnabled == OFF) {
++                for (i = address; i < address + nb; i++) {
++                    rsp[rsp_length++] = mb_mapping->tab_registers[i] >> 8;
++                    rsp[rsp_length++] = mb_mapping->tab_registers[i] & 0xFF;
++                }
++            } else {
++                modbus_set_fixdata(&rsp[rsp_length], nb_bytes, altDataValue);
++                rsp_length += nb_bytes;
+             }
+             mb_request->processed = TRUE;
+         }
+@@ -1649,12 +1626,6 @@
+     if ((_MODBUS_BACKEND_TYPE_RTU == ctx->backend->backend_type) && (MODBUS_BROADCAST_ADDRESS == slave))
+     { /* No response on RTU broadcasts */
+         rc = 0;
+-        if (rsp_xl)
+-          free(rsp_xl);
+-    }
+-    else if (rsp_xl) {
+-        rc = send_msg(ctx, rsp_xl, rsp_length);
+-        free(rsp_xl);
+     }
+     else {
+         rc = send_msg(ctx, rsp, rsp_length);
+@@ -1668,7 +1639,7 @@
+     int offset = ctx->backend->header_length;
+     int slave = req[offset - 1];
+     int function = req[offset];
+-    uint8_t rsp[MAX_MESSAGE_LENGTH];
++    uint8_t rsp[MAX_EXCEPTION_MESSAGE_LENGTH];
+     int rsp_length;
+     int dummy_length = 99;
+     sft_t sft;
+@@ -1702,7 +1673,7 @@
+     int req_length;
+ 
+     uint8_t req[_MIN_REQ_LENGTH];
+-    uint8_t rsp[MAX_MESSAGE_LENGTH];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     req_length = ctx->backend->build_request_basis(ctx, function, addr, nb, req);
+ 
+@@ -1713,7 +1684,7 @@
+         int offset;
+         int offset_end;
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1793,7 +1764,7 @@
+     int rc;
+     int req_length;
+     uint8_t req[_MIN_REQ_LENGTH];
+-    uint8_t rsp[MAX_MESSAGE_LENGTH];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     if (nb > MODBUS_MAX_READ_REGISTERS) {
+         if (ctx->debug) {
+@@ -1812,7 +1783,7 @@
+         int offset;
+         int i;
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1873,12 +1844,12 @@
+     return status;
+ }
+ 
+-int modbus_read_32767_input_registers(modbus_t *ctx, int addr, int nb, uint16_t *dest)
++int modbus_read_input_registers_fc66(modbus_t *ctx, int addr, int nb, uint16_t *dest)
+ {
+     int rc;
+     int req_length;
+     uint8_t req[_MIN_REQ_LENGTH];
+-    uint8_t rsp[MAX_MESSAGE_LENGTH_FC66];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     if (nb > MODBUS_MAX_READ_REGISTERS_FC66) {
+         fprintf(stderr,
+@@ -1895,7 +1866,7 @@
+         int offset;
+         int i;
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1934,9 +1905,9 @@
+     }
+     else if (rc > 0) {
+         /* Used by write_bit and write_register */
+-        uint8_t rsp[MAX_MESSAGE_LENGTH];
++        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -1979,9 +1950,9 @@
+       rc = 1;
+     }
+     else if (rc > 0) {
+-        uint8_t rsp[MAX_MESSAGE_LENGTH];
++        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -2001,7 +1972,7 @@
+     int bit_check = 0;
+     int pos = 0;
+ 
+-    uint8_t req[MAX_MESSAGE_LENGTH];
++    uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
+ 
+     if (nb > MODBUS_MAX_WRITE_BITS) {
+         if (ctx->debug) {
+@@ -2043,9 +2014,9 @@
+       rc = nb;
+     }
+     else if (rc > 0) {
+-        uint8_t rsp[MAX_MESSAGE_LENGTH];
++        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -2064,7 +2035,7 @@
+     int req_length;
+     int byte_count;
+ 
+-    uint8_t req[MAX_MESSAGE_LENGTH];
++    uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
+ 
+     if (nb > MODBUS_MAX_WRITE_REGISTERS) {
+         if (ctx->debug) {
+@@ -2095,9 +2066,9 @@
+       rc = nb;
+     }
+     else if (rc > 0) {
+-        uint8_t rsp[MAX_MESSAGE_LENGTH];
++        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -2118,8 +2089,8 @@
+     int req_length;
+     int i;
+     int byte_count;
+-    uint8_t req[MAX_MESSAGE_LENGTH];
+-    uint8_t rsp[MAX_MESSAGE_LENGTH];
++    uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
++    uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+     if (write_nb > MODBUS_MAX_RW_WRITE_REGISTERS) {
+         if (ctx->debug) {
+@@ -2160,7 +2131,7 @@
+     if (rc > 0) {
+         int offset;
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -2191,7 +2162,17 @@
+     int i;
+     int offset;
+     int req_length;
+-    uint8_t req[MAX_MESSAGE_LENGTH];
++    uint8_t req[MAX_REQUEST_MESSAGE_LENGTH];
++
++    if (nb_src > MODBUS_MAX_DIAGNOSTICS_SRC) {
++        if (ctx->debug) {
++            fprintf(stderr,
++                    "ERROR Trying to write to too many diagnostics sources (%d > %d)\n",
++                    nb_src, MODBUS_MAX_READ_REGISTERS);
++        }
++        errno = EMBMDATA;
++        return -1;
++    }
+ 
+     req_length = ctx->backend->build_request_basis(ctx, _FC_DIAGNOSTICS,
+                                                    subfunction, 0, req);
+@@ -2210,9 +2191,9 @@
+         return 0;
+ 
+     if (rc > 0) {
+-        uint8_t rsp[MAX_MESSAGE_LENGTH];
++        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -2248,9 +2229,9 @@
+     if (rc > 0) {
+         int i;
+         int offset;
+-        uint8_t rsp[MAX_MESSAGE_LENGTH];
++        uint8_t rsp[MAX_RESPONSE_MESSAGE_LENGTH];
+ 
+-        rc = receive_msg(ctx, rsp, MSG_CONFIRMATION, req_length);
++        rc = receive_msg(ctx, rsp, sizeof(rsp), MSG_CONFIRMATION, req_length);
+         if (rc == -1)
+             return -1;
+ 
+@@ -2378,6 +2359,7 @@
+ 
+     mb_mapping = (modbus_mapping_t *)malloc(sizeof(modbus_mapping_t));
+     if (mb_mapping == NULL) {
++        errno = ENOMEM;
+         return NULL;
+     }
+     memset(mb_mapping, 0, sizeof(modbus_mapping_t));
+@@ -2388,6 +2370,7 @@
+         mb_mapping->tab_bits = (uint16_t *)malloc(tab_size);
+         if (mb_mapping->tab_bits == NULL) {
+             modbus_mapping_free(mb_mapping);
++            errno = ENOMEM;
+             return NULL;
+         }
+         memset(mb_mapping->tab_bits, 0, tab_size);
+@@ -2401,6 +2384,7 @@
+         mb_mapping->tab_input_bits = (uint16_t *)malloc(tab_size);
+         if (mb_mapping->tab_input_bits == NULL) {
+             modbus_mapping_free(mb_mapping);
++            errno = ENOMEM;
+             return NULL;
+         }
+         memset(mb_mapping->tab_input_bits, 0, tab_size);
+@@ -2413,6 +2397,7 @@
+         mb_mapping->tab_registers = (uint16_t *)malloc(tab_size);
+         if (mb_mapping->tab_registers == NULL) {
+             modbus_mapping_free(mb_mapping);
++            errno = ENOMEM;
+             return NULL;
+         }
+         memset(mb_mapping->tab_registers, 0, tab_size);
+@@ -2425,6 +2410,7 @@
+         mb_mapping->tab_input_registers = (uint16_t *) malloc(tab_size);
+         if (mb_mapping->tab_input_registers == NULL) {
+             modbus_mapping_free(mb_mapping);
++            errno = ENOMEM;
+             return NULL;
+         }
+         memset(mb_mapping->tab_input_registers, 0, tab_size);
+--- libmodbus-3.0.5.base/src/modbus-private.h	2015-11-12 16:46:44.978962000 +0100
++++ libmodbus-3.0.5/src/modbus-private.h	2015-11-17 12:15:25.744434992 +0100
+@@ -87,7 +87,9 @@
+ typedef enum {
+     _MODBUS_BACKEND_TYPE_RTU=0,
+     _MODBUS_BACKEND_TYPE_TCP,
+-    _MODBUS_BACKEND_TYPE_UDP
++    _MODBUS_BACKEND_TYPE_UDP,
++    _MODBUS_BACKEND_TYPE_TCP_PI,
++    _MODBUS_BACKEND_TYPE_UDP_PI,
+ } modbus_backend_type_t;
+ 
+ /* This structure reduces the number of params in functions and so
+--- libmodbus-3.0.5.base/src/modbus-udp.c	2015-11-12 16:46:44.810962000 +0100
++++ libmodbus-3.0.5/src/modbus-udp.c	1970-01-01 01:00:00.000000000 +0100
+@@ -1,96 +0,0 @@
+-//------------------------------------------------------------------------------
+-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+-//
+-// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
+-// manufacturing, reproduction, use and sales rights pertaining to this
+-// subject matter are governed by the license agreement. The recipient of this
+-// software implicitly accepts the terms of the license.
+-//------------------------------------------------------------------------------
+-//------------------------------------------------------------------------------
+-///
+-///  \file     modbus-udp.c
+-///
+-///  \version  $Id: 1 $
+-///
+-///  \brief    <short description of the file contents>
+-///
+-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// include files
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// defines; structure, enumeration and type definitions
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// function prototypes
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// macros
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// variables' and constants' definitions
+-//------------------------------------------------------------------------------
+-
+-//------------------------------------------------------------------------------
+-// function implementation
+-//------------------------------------------------------------------------------
+-modbus_t* modbus_new_udp(const char *ip, int port)
+-{
+-    modbus_t *ctx;
+-    modbus_udp_t *ctx_udp;
+-    size_t dest_size;
+-    size_t ret_size;
+-
+-#if defined(OS_BSD)
+-    /* MSG_NOSIGNAL is unsupported on *BSD so we install an ignore
+-       handler for SIGPIPE. */
+-    struct sigaction sa;
+-
+-    sa.sa_handler = SIG_IGN;
+-    if (sigaction(SIGPIPE, &sa, NULL) < 0) {
+-        /* The debug flag can't be set here... */
+-        fprintf(stderr, "Could not install SIGPIPE handler.\n");
+-        return NULL;
+-    }
+-#endif
+-
+-    ctx = (modbus_t *) malloc(sizeof(modbus_t));
+-    _modbus_init_common(ctx);
+-
+-    /* Could be changed after to reach a remote serial Modbus device */
+-    ctx->slave = MODBUS_UDP_SLAVE;
+-
+-    ctx->backend = &(_modbus_udp_backend);
+-
+-    ctx->backend_data = (modbus_udp_t *) malloc(sizeof(modbus_udp_t));
+-    ctx_udp = (modbus_udp_t *)ctx->backend_data;
+-
+-    dest_size = sizeof(char) * 16;
+-    ret_size = strlcpy(ctx_udp->ip, ip, dest_size);
+-    if (ret_size == 0) {
+-        fprintf(stderr, "The IP string is empty\n");
+-        modbus_free(ctx);
+-        errno = EINVAL;
+-        return NULL;
+-    }
+-
+-    if (ret_size >= dest_size) {
+-        fprintf(stderr, "The IP string has been truncated\n");
+-        modbus_free(ctx);
+-        errno = EINVAL;
+-        return NULL;
+-    }
+-
+-    ctx_udp->port = port;
+-
+-    return ctx;
+-}
+-
+-
+-//---- End of source file ------------------------------------------------------
+--- libmodbus-3.0.5.base/tests/unit-test-client.c	2015-11-12 16:46:44.830962000 +0100
++++ libmodbus-3.0.5/tests/unit-test-client.c	2015-11-17 15:23:59.052106564 +0100
+@@ -511,7 +511,7 @@
+         /* Send an invalid query with a wrong slave ID */
+         modbus_send_raw_request(ctx, raw_req,
+                                 RAW_REQ_LENGTH * sizeof(uint8_t));
+-        rc = modbus_receive_confirmation(ctx, rsp);
++        rc = modbus_receive_confirmation(ctx, rsp, sizeof(rsp));
+ 
+         printf("1/4-B No response from slave %d with invalid request: ",
+                INVALID_SERVER_ID);
+@@ -668,7 +668,7 @@
+         }
+ 
+         printf("* modbus_receive_confirmation: ");
+-        rc  = modbus_receive_confirmation(ctx, rsp);
++        rc  = modbus_receive_confirmation(ctx, rsp, sizeof(rsp));
+         if ((use_backend == RTU && rc == 15) ||
+             ((use_backend == TCP || use_backend == TCP_PI) &&
+              rc == 19)) {
+--- libmodbus-3.0.5.base/tests/bandwidth-server-many-up.c	2013-10-06 23:42:53.000000000 +0200
++++ libmodbus-3.0.5/tests/bandwidth-server-many-up.c	2015-11-17 15:23:24.808106118 +0100
+@@ -119,7 +119,7 @@
+                     uint8_t query[MODBUS_TCP_MAX_ADU_LENGTH];
+ 
+                     modbus_set_socket(ctx, master_socket);
+-                    rc = modbus_receive(ctx, query);
++                    rc = modbus_receive(ctx, query, sizeof(query));
+                     if (rc != -1) {
+                         modbus_reply(ctx, query, rc, mb_mapping);
+                     } else {
+--- libmodbus-3.0.5.base/tests/unit-test-server.c	2015-11-12 16:46:44.830962000 +0100
++++ libmodbus-3.0.5/tests/unit-test-server.c	2015-11-17 15:25:24.296107674 +0100
+@@ -39,6 +39,7 @@
+     int i;
+     int use_backend;
+     uint8_t *query;
++    size_t query_size;
+     int header_length;
+ 
+     if (argc > 1) {
+@@ -59,15 +60,16 @@
+ 
+     if (use_backend == TCP) {
+         ctx = modbus_new_tcp("127.0.0.1", 1502);
+-        query = malloc(MODBUS_TCP_MAX_ADU_LENGTH);
++        query_size = MODBUS_TCP_MAX_ADU_LENGTH;
+     } else if (use_backend == TCP_PI) {
+         ctx = modbus_new_tcp_pi("::0", "1502");
+-        query = malloc(MODBUS_TCP_MAX_ADU_LENGTH);
++        query_size = MODBUS_TCP_MAX_ADU_LENGTH;
+     } else {
+         ctx = modbus_new_rtu("/dev/ttyUSB0", 115200, 'N', 8, 1);
+         modbus_set_slave(ctx, SERVER_ID);
+-        query = malloc(MODBUS_RTU_MAX_ADU_LENGTH);
++        query_size = MODBUS_RTU_MAX_ADU_LENGTH;
+     }
++    query = malloc(query_size);
+     header_length = modbus_get_header_length(ctx);
+ 
+     modbus_set_debug(ctx, TRUE);
+@@ -116,7 +118,7 @@
+     modbus_mapping_print(mb_mapping);
+ 
+     for (;;) {
+-        rc = modbus_receive(ctx, query);
++        rc = modbus_receive(ctx, query, query_size);
+         if (rc == -1) {
+             /* Connection closed by the client or error */
+             break;
+--- libmodbus-3.0.5.base/tests/bandwidth-server-one.c	2015-11-12 16:46:44.810962000 +0100
++++ libmodbus-3.0.5/tests/bandwidth-server-one.c	2015-11-17 15:23:33.592106232 +0100
+@@ -78,7 +78,7 @@
+     for(;;) {
+         uint8_t query[MODBUS_TCP_MAX_ADU_LENGTH];
+ 
+-        rc = modbus_receive(ctx, query);
++        rc = modbus_receive(ctx, query, sizeof(query));
+         if (rc >= 0) {
+             modbus_reply(ctx, query, rc, mb_mapping);
+         } else {
+--- libmodbus-3.0.5.base/tests/random-test-server.c	2013-10-06 23:42:53.000000000 +0200
++++ libmodbus-3.0.5/tests/random-test-server.c	2015-11-17 15:23:39.748106312 +0100
+@@ -46,7 +46,7 @@
+         uint8_t query[MODBUS_TCP_MAX_ADU_LENGTH];
+         int rc;
+ 
+-        rc = modbus_receive(ctx, query);
++        rc = modbus_receive(ctx, query, sizeof(query));
+         if (rc != -1) {
+             /* rc is the query size */
+             modbus_reply(ctx, query, rc, mb_mapping);

@@ -1,0 +1,35 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: add SYSROOT handling to libpng-config
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+
+---
+# 20091229 rsc: added as https://sourceforge.net/tracker/?func=detail&aid=2922975&group_id=5624&atid=105624
+
+ scripts/libpng-config.in |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+Index: libpng-1.2.41/scripts/libpng-config.in
+===================================================================
+--- libpng-1.2.41.orig/scripts/libpng-config.in
++++ libpng-1.2.41/scripts/libpng-config.in
+@@ -18,8 +18,8 @@ libdir="@libdir@"
+ includedir="@includedir@/libpng@PNGLIB_MAJOR@@PNGLIB_MINOR@"
+ libs="-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@"
+ all_libs="-lpng@PNGLIB_MAJOR@@PNGLIB_MINOR@ @LIBS@"
+-I_opts="-I${includedir}"
+-L_opts="-L${libdir}"
++I_opts="-I${SYSROOT}${includedir}"
++L_opts="-L${SYSROOT}${libdir}"
+ R_opts=""
+ cppflags=""
+ ccopts="@LIBPNG_NO_MMX@"
+@@ -59,7 +59,7 @@ while test $# -gt 0; do
+     case "$1" in
+ 
+     --prefix)
+-        echo ${prefix}
++        echo ${SYSROOT}${prefix}
+         ;;
+ 
+     --version)

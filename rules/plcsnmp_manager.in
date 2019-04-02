@@ -1,0 +1,22 @@
+## SECTION=wago_specific_libs
+
+config PLCSNMP_MANAGER
+	bool
+	prompt "plcsnmp_manager"
+	select PLCLINUXRT
+	select NET_SNMP
+	select NET_SNMP_DES
+	select WAGO_DBUS
+	select LIBWAGOSNMP
+	help
+	  IEC61131 library to use the snmp-manager lib for scanning and manipulating OIDs
+
+if PLCSNMP_MANAGER
+
+config PLCSNMP_MANAGER_TRUNK
+	bool
+	prompt "use trunk"
+	help
+	  Build trunk instead of latest release.
+
+endif

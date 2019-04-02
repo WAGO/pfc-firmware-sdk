@@ -1,0 +1,99 @@
+## SECTION=wago_specific_config
+
+#
+#   This file contains the menu structure description for the web-based wbm
+#   configuration frontend.  The menuconfig entries correspond with the
+#   frontend levels. The parent-child relationship is modelled using the
+#   "depends on" field.  The configuration's description in XML is located
+#   within the help entries. Consult the documentation and the existing
+#   examples for the notation details.
+#
+
+#
+#   Constraints:
+#   - naming scheme:      all menu-related entries have to start with a
+#                         CT_MENU_WBM_ prefix.  
+#   - XML mapping scheme: all XML related infos have to start with a "__XML:"
+#                         prefix 
+#   - help format:        no multi-line help entries are supported (kconfig
+#                         restriction) => use line-wrapping instead of newlines
+#                         for format.  
+#   - parent dependency:  the parent entry has to be the leftmost one in the
+#                        "depends on" list.
+#
+
+menuconfig CT_MENU_WBM_MAIN
+	bool
+	default y
+	prompt "wbm       (EXPERIMENTAL)"
+
+
+	select CT_FORM_PROCESSING
+	select CT_PRINT_NAVIGATION
+	select CT_SHOW_LAST_ERROR_HTML
+
+	help
+    IPC web configuration frontend.
+    __XML: frontend
+
+
+if CT_MENU_WBM_MAIN
+
+config WBM
+	bool
+	help
+   Target corresponding to wbm.make. Can be enabled indirectly by activating
+   CT_MENU_WBM_MAIN.
+
+
+# required tools
+
+config CT_FORM_PROCESSING
+	bool
+	help
+	 Process a html input form. Called from the CGI parser.
+
+config CT_PRINT_NAVIGATION
+	bool
+	help
+	 FIXME
+
+config CT_SHOW_LAST_ERROR_HTML
+	bool
+	help
+	 FIXME
+
+###############################################################
+
+menuconfig CT_MENU_WBM_INFO
+bool
+prompt "Information     "
+depends on CT_MENU_WBM_MAIN
+help
+  __XML: level id="information"
+               nav.text="Information"
+                  .ressource="state.php"
+               
+#.ressource="coupler_details.php"
+config CT_MENU_WBM_COUPLER_DETAILS
+bool
+prompt "Coupler Details"
+depends on CT_MENU_WBM_INFO
+help
+  __XML: level id="coupler_details"
+               nav.text="Coupler Details"
+               page_element.url="coupler_details.inc.php"
+
+config CT_MENU_WBM_ACTUAL_TCP
+bool
+prompt "TCP/IP"
+depends on CT_MENU_WBM_INFO
+help
+  __XML: level id="actual_tcpip"
+               nav.text="TCP/IP"
+                  .ressource="actual_tcp_ip.php"
+               page_element.url="actual_tcpip.inc.php"
+                           .params="interface=0"
+               page_element.url="actual_tcpip.inc.php"
+                           .params="interface=1"
+endif

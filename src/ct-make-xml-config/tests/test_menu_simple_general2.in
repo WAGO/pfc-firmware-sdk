@@ -1,0 +1,253 @@
+## SECTION=wago_specific_config
+
+#
+#   This file contains the menu structure description for the web-based wbm
+#   configuration frontend.  The menuconfig entries correspond with the
+#   frontend levels. The parent-child relationship is modelled using the
+#   "depends on" field.  The configuration's description in XML is located
+#   within the help entries. Consult the documentation and the existing
+#   examples for the notation details.
+#
+
+#
+#   Constraints:
+#   - naming scheme:      all menu-related entries have to start with a
+#                         CT_MENU_WBM_ prefix.  
+#   - XML mapping scheme: all XML related infos have to start with a "__XML:"
+#                         prefix 
+#   - help format:        no multi-line help entries are supported (kconfig
+#                         restriction) => use line-wrapping instead of newlines
+#                         for format.  
+#   - parent dependency:  the parent entry has to be the leftmost one in the
+#                        "depends on" list.
+#
+
+menuconfig CT_MENU_WBM_MAIN
+	bool
+	default y
+	prompt "wbm       (EXPERIMENTAL)"
+
+  select WBM # see below
+
+	select CT_FORM_PROCESSING
+	select CT_PRINT_NAVIGATION
+	select CT_SHOW_LAST_ERROR_HTML
+
+	help
+    IPC web configuration frontend.
+    __XML: frontend id="wbm"
+
+
+if CT_MENU_WBM_MAIN
+
+config WBM
+	bool
+	help
+   Target corresponding to wbm.make. Can be enabled indirectly by activating
+   CT_MENU_WBM_MAIN.
+
+
+# required tools
+
+config CT_FORM_PROCESSING
+	bool
+	help
+	 Process a html input form. Called from the CGI parser.
+
+config CT_PRINT_NAVIGATION
+	bool
+	help
+	 FIXME
+
+config CT_SHOW_LAST_ERROR_HTML
+	bool
+	help
+	 FIXME
+
+###############################################################
+
+menuconfig CT_MENU_WBM_INFO
+bool
+prompt "Information     "
+depends on CT_MENU_WBM_MAIN
+help
+  __XML: level id="information"
+               nav.text="Information"
+                  .ressource="state.php"
+               
+#.ressource="coupler_details.php"
+config CT_MENU_WBM_COUPLER_DETAILS
+bool
+prompt "Coupler Details"
+depends on CT_MENU_WBM_INFO
+help
+  __XML: level id="coupler_details"
+               nav.text="Coupler Details"
+               page_element.url="coupler_details.inc.php"
+
+config CT_MENU_WBM_ACTUAL_TCP
+bool
+prompt "TCP/IP"
+depends on CT_MENU_WBM_INFO
+help
+  __XML: level id="actual_tcpip"
+               nav.text="TCP/IP"
+                  .ressource="actual_tcp_ip.php"
+               page_element.url="actual_tcpip.inc.php"
+                           .params="interface=0"
+               page_element.url="actual_tcpip.inc.php"
+                           .params="interface=1"
+
+###############################################################
+menuconfig CT_MENU_WBM_CODESYS
+bool
+prompt "CoDeSys         "
+depends on CT_MENU_WBM_MAIN && CT_FEATURE_CODESYS
+help
+  __XML: level nav.text="CoDeSys" nav.ressource="rts_info.php" 
+
+comment "CoDeSys submenu disabled - check common features!"
+	depends on !CT_FEATURE_CODESYS
+
+###############################################################
+menuconfig CT_MENU_WBM_TCPIP
+bool
+prompt "TCP/IP          "
+depends on CT_MENU_WBM_MAIN
+
+help
+  Tools used to get/set additional network settings.
+  __XML: level nav.text="TCP/IP" nav.ressource="/wbm/tcpip.php"
+
+###############################################################
+menuconfig CT_MENU_WBM_ETHERNET
+bool
+prompt "Ethernet        "
+depends on CT_MENU_WBM_MAIN
+help
+  Ethernet settings (duplex mode, autoneg etc.)
+  __XML: level nav.text="Ethernet" nav.ressource="/wbm/ethernet.php"
+
+###############################################################
+menuconfig CT_MENU_WBM_NTP
+bool
+prompt "NTP             "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools used to edit NTP protocol settings.
+  __XML: level nav.text="NTP" nav.ressource="/wbm/sntp.ssi"
+
+###############################################################
+menuconfig CT_MENU_WBM_CLOCK
+bool
+prompt "Clock           "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools used to edit clock settings.
+  __XML: level nav.text="Clock" nav.ressource="/wbm/clock.ssi"
+
+###############################################################
+menuconfig CT_MENU_WBM_USERS
+bool
+prompt "Users           "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools used to change user passwords.
+  __XML: level nav.text="Users" nav.ressource="/wbm/users.ssi"
+
+###############################################################
+menuconfig CT_MENU_WBM_HMI
+bool
+prompt "HMI Settings    "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools used to change HMI settings.
+  __XML: level nav.text="HMI Settings" nav.ressource="/wbm/hmi_settings.php"
+
+###############################################################
+menuconfig CT_MENU_WBM_ADMIN
+bool
+prompt "Administration  "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools used to manage the IPC: make a system snapshot image, reboot, fsck etc.
+  __XML: level nav.text="Administration" nav.ressource="/wbm/administration.php"
+
+###############################################################
+menuconfig CT_MENU_WBM_PKGSRV
+bool
+prompt "Package Server  "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools to backup/restore the system (CoDeSys project, settings, OS)
+  __XML: level nav.text="Package Server" nav.ressource="/wbm/firmware_update.php"
+
+###############################################################
+menuconfig CT_MENU_WBM_MASSSTORAGE
+bool
+prompt "Mass Storage    "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools to manipulate mass storage devices options.
+  __XML: level nav.text="Mass Storage" nav.ressource="/wbm/mass_storage.php"
+
+###############################################################
+menuconfig CT_MENU_WBM_DL
+bool
+prompt "Downloads       "
+depends on CT_MENU_WBM_MAIN
+help
+  Tools to manage file downloads to the IPC.
+  __XML: level nav.text="Downloads" nav.ressource="/wbm/downloads.ssi"
+
+###############################################################
+menuconfig CT_MENU_WBM_PORT
+bool
+prompt "Port            "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for port configuration.
+  __XML: level nav.text="Port" nav.ressource="/wbm/port.php"
+
+###############################################################
+menuconfig CT_MENU_WBM_MODBUS
+bool
+prompt "Modbus          "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for modbus configuration. 
+ __XML: level nav.text="Modbus" nav.ressource="/wbm/modbus.ssi"
+
+###############################################################
+menuconfig CT_MENU_WBM_SNMP
+bool
+prompt "SNMP            "
+depends on CT_MENU_WBM_MAIN && NET_SNMP
+help
+ Tools for SNMP configuration. 
+ __XML: level nav.text="SNMP" nav.ressource="/wbm/snmp.sh"
+
+comment "SNMP-related tool settings disabled because NET_SNMP is not selected!"
+	depends on !NET_SNMP
+
+###############################################################
+menuconfig CT_MENU_WBM_IOCONF
+bool
+prompt "IO-Configuration"
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for the IO peripherial components' configuration.
+ Not available for the console-based frontend.
+ __XML: level nav.text="I/O Configuration" nav.ressource="/wbm/io_config.xml"
+
+###############################################################
+menuconfig CT_MENU_WBM_WEBSERVER
+bool
+prompt "WebVisu         "
+depends on CT_MENU_WBM_MAIN
+help
+ Tools for the webserver configuration.
+ Menu entries are called differently in wbm and ipcconfig.
+ __XML: level nav.text="WebVisu" nav.ressource="/wbm/webvisu.php"
+
+endif

@@ -1,0 +1,10 @@
+[Unit]
+Description=UC20 Modem control daemon
+
+[Service]
+Type=dbus
+ExecStart=/usr/bin/mdmd
+BusName=de.wago.mdmd
+
+[Install]
+WantedBy=multi-user.target

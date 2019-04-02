@@ -1,0 +1,21 @@
+## SECTION=wago_specific_libs
+
+config LIBPBDPM
+	bool "Profibus DPM"
+	default n
+	select LIBUIO
+	select GLIB
+	select DAL
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select LIBOSLINUX
+	select HOST_LIBOSLINUX
+	select CIFXTOOLKIT
+#	select TYPELABEL
+	select HOST_CPPUTEST
+	default n
+	help
+		FIXME
+		This library provides PROFIBUS-DPM functionality based on the netx hardware.
+		As public interface the SDI is implemented.
+

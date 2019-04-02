@@ -1,0 +1,94 @@
+From bc90eca848154683ec5ff9592a940031454bbba6 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 9 Jul 2018 10:04:53 +0200
+Subject: [PATCH 030/144] defaultenv: defaultenv-pfc: enable watchdog for
+ default boot
+
+---
+ .../defaultenv-pfc-base/bin/pfc-config-default-boot       |  8 +++++++-
+ defaultenv/defaultenv-pfc-base/boot/sd-legacy             |  2 +-
+ defaultenv/defaultenv-pfc-base/config                     | 15 +++++++++++++++
+ 3 files changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index 22e13be..734e1d3 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -3,7 +3,8 @@
+ source env/data/print-msg-formats
+ 
+ global.autoboot_timeout=0
+-global.linux.bootargs.base="bootversion=${global.version} macaddr=${eth0.ethaddr} reset_state=${global.system.reset}"
++global.boot.watchdog_timeout=${global.pfc.watchdog_timeout_linux_load}
++global.linux.bootargs.base="bootversion=${global.version} macaddr=${eth0.ethaddr} reset_state=${global.system.reset} omap_wdt.early_enable omap_wdt.timer_margin=${global.pfc.watchdog_timeout_linux_boot}"
+ 
+ sd_blspec="${global.pfc.sd_rootfs}/boot/sd/loader/entries/${global.model}-${global.pfc.devconf}.conf"
+ sd_legacy_uImage="${global.pfc.sd_boot}/uImage"
+@@ -35,6 +36,11 @@ elif [ -e "${global.pfc.sd}" ] && [ -e "${sd_legacy_uImage}" ]; then
+ 	# feature comes with version v2018.08.0. The argument 'oftree -f' is then
+ 	# removed.
+ 	oftree -f
++
++	# disable watchdog in case of an legacy boot, because we dont know if the
++	# watchdog is disabled per default in legacy kernel.
++	global.boot.watchdog_timeout=0
++
+ 	global.bootm.boot_atag=true
+ 	global.boot.default="sd-legacy bootchooser"
+ 
+diff --git a/defaultenv/defaultenv-pfc-base/boot/sd-legacy b/defaultenv/defaultenv-pfc-base/boot/sd-legacy
+index aec2f73..04c4223 100644
+--- a/defaultenv/defaultenv-pfc-base/boot/sd-legacy
++++ b/defaultenv/defaultenv-pfc-base/boot/sd-legacy
+@@ -5,4 +5,4 @@
+ # break his device when the create-boot-image is executed via e.g. wbm.
+ 
+ global.bootm.image="${global.pfc.sd_boot}/uImage"
+-global.linux.bootargs.dyn.root="rw root=/dev/mmcblk0p2 rootfstype=ext3 rootwait mtdparts=omap2-nand.0:-(nand_not_valid)ro pxc_boot_id=0x82 bootversion=${global.version} devconf=0x${global.pfc.devconf} macaddr=${eth0.ethaddr}"
++global.linux.bootargs.base="rw root=/dev/mmcblk0p2 rootfstype=ext3 rootwait mtdparts=omap2-nand.0:-(nand_not_valid)ro pxc_boot_id=0x82 bootversion=${global.version} devconf=0x${global.pfc.devconf} macaddr=${eth0.ethaddr}"
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index df78435..908170d 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -36,6 +36,8 @@ global pfc.barebox_uart
+ global pfc.linux_uart
+ global pfc.eth
+ global pfc.debug_mode_active
++global pfc.watchdog_timeout_linux_load
++global pfc.watchdog_timeout_linux_boot
+ 
+ global bootchooser.system0.boot
+ global bootchooser.system1.boot
+@@ -102,9 +104,19 @@ magicvar -a global.pfc.eth		"ethernet device that is used in all pfc
+ magicvar -a global.pfc.debug_mode_active "true if debug mode bit in boot_mode_id
+ 					  is set; false otherwise"
+ 
++magicvar -a global.pfc.watchdog_timeout_linux_load "watchdog timeout when trying
++						    to load the linux kernel in
++						    to ram"
++
++magicvar -a global.pfc.watchdog_timeout_linux_boot "watchdog timeout when trying
++						    to boot the linux kernel. Is
++						    resetted when the kernel driver
++						    is probed"
++
+ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ 						  in production or wsc mode"
+ 
++
+ ################################
+ # global variable initialisation
+ ################################
+@@ -137,6 +149,9 @@ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ [ -z "${global.pfc.linux_uart}" ] && global.pfc.linux_uart="1"
+ [ -z "${global.pfc.eth}" ] && global.pfc.eth="eth0"
+ [ -z "${global.pfc.debug_mode_active}" ] && global.pfc.debug_mode_active=false
++[ -z "${global.pfc.watchdog_timeout_linux_load}" ] && global.pfc.watchdog_timeout_linux_load=10
++[ -z "${global.pfc.watchdog_timeout_linux_boot}" ] && global.pfc.watchdog_timeout_linux_boot=30
++[ -z "${global.pfc.debug_mode_active}" ] && global.pfc.debug_mode_active=false
+ 
+ [ -z "${global.bootchooser.targets}" ] && global.bootchooser.targets="system0 system1"
+ [ -z "${global.bootchooser.state_prefix}" ] && global.bootchooser.state_prefix="bootstate"
+-- 
+2.7.4
+

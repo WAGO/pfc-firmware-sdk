@@ -1,0 +1,76 @@
+From 869d993f462fdebcf6802c2294193ef2ab23eec1 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Fri, 14 Jul 2017 11:18:01 +0000
+Subject: [PATCH 084/261] dts: pfc200v3: dpc31: adjust pinmux
+
+---
+ arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi | 14 ++++++--------
+ arch/arm/boot/dts/wago-pfc200v3.dtsi       |  3 ---
+ 2 files changed, 6 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi b/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
+index 8b2b1d7..2843197 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
+@@ -30,11 +30,9 @@
+ &am33xx_pinmux {
+         dpc31_pins: pinmux_dpc31_pins {
+ 		pinctrl-single,pins = <
+-		  0x1B0 (PIN_INPUT  | MUX_MODE7) /* xdma_event_intr0.gpio0_19	| DIRQ-FB-ASIC	*/
+-		  0x078 (PIN_OUTPUT | MUX_MODE2) /* gpmc_ben1.gpmc_csn6		| Chip-Select 6	*/
+-		  0x134 (PIN_INPUT  | MUX_MODE7) /* mii1_rxd3.gpio2_18		| DPSYNC	*/
+-		  0x138 (PIN_INPUT  | MUX_MODE7) /* mii1_rxd2.gpio2_19		| Syncro-Mode   */
+-		  0x0D8 (PIN_OUTPUT | MUX_MODE7) /* lcd_data14.gpio0_10 	| nRST-FB	*/
++		  0x160 (PIN_INPUT  | MUX_MODE7) /* SPI0_CS1/GPIO0_6            | DIRQ-FB-ASIC */
++		  0x07C (PIN_OUTPUT | MUX_MODE0) /* GPMC_CSN0/GPIO1_29 		| Chip-Select 0 */
++		  0x064 (PIN_INPUT  | MUX_MODE7) /* RGMII2_RD2/GPIO1_25         | DPSYNC */
+ 		>;
+ 	};
+ };
+@@ -44,12 +42,12 @@
+ 	pinctrl-0 = <&dpc31_pins>;
+ 
+ 	dp,reset;
+-	dp,gpio-rst = <&gpio0 10 GPIO_ACTIVE_HIGH>; /* dpc31 reset */
++	dp,gpio-rst = <&io_expander_20 1 GPIO_ACTIVE_HIGH>; /* dpc31 reset */
+ };
+ 
+ &gpmc {
+-        dpc31: nor@6,0 {
+-		reg = <6 0 0x1000000>; /* 8k * 2 = 16k, needed because of 16Bit addressing
++        dpc31: nor@x0,0 {
++		reg = <0 0 0x1000000>; /* 8k * 2 = 16k, needed because of 16Bit addressing
+ 					* minimum is 16M - set it here */
+ 		bank-width = <2>; /* 1: 8bit, 2: 16bit */
+ 		gpmc,sync-clk-ps = <0>;
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 3e7f745..a437ddb 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -330,7 +330,6 @@
+ 			/*  used for (GPMC Control) */
+ 			0x094 (PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW	| MUX_MODE0) /* gpmc_oen_ren.gpmc_oen_ren */	//t7	nRE-GPMC
+ 			0x098 (PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW	| MUX_MODE0) /* gpmc_wen.gpmc_wen */		//u6	nWE-GPMC
+-			0x07c (PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW	| MUX_MODE0) /* gpmc_csn0.gpmc_csn0 */		//v6	nCS0-DPC31-NETX51-GPMC
+ 			0x070 (PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW	| MUX_MODE2) /* gpmc_wait0.gpmc_csn4 */		//t17	nCS4-NvRAM-GPMC
+ 			0x09c (PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW	| MUX_MODE0) /* gpmc_ben0_cle.gpmc_be0n_cle */	//t6	nBE0-GPMC
+ 			0x078 (PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW	| MUX_MODE0) /* gpmc_ben1.gpmc_be1n */		//u18	nBE1-GPMC
+@@ -421,7 +420,6 @@
+ 	gpio0_pins: pinmux_gpio0_pins {
+ 		pinctrl-single,pins = <
+ 			/*  used for (io control) */
+-			0x160 (PIN_INPUT_PULLUP	| MUX_MODE7) /* spi0_cs1.gpio0_6 */	//c15	IRQ-FB-ASIC
+ 			0x074 (PIN_INPUT_PULLUP	| MUX_MODE7) /* gpmc_wpn.gpio0_31 */	//u17	nINT-PHY2 Lantiq Phy 2(old RMII2.RXER)
+ 			/* timer 4 as watchdog ip*/
+ 			0x1b0 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)	/* xdma_event_intr0.gpio0_19 */	//a15	RESET-LED_Server
+@@ -433,7 +431,6 @@
+ 			/*  used for (io control) */
+ 			0x044 (PIN_INPUT_PULLUP	 		 | MUX_MODE7) /* gpmc_a1.gpio1_17 */ //v14 ALARM-USV (old RMII1.nINT)
+ 			0x048 (PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW | MUX_MODE7) /* gpmc_a2.gpio1_18 */ //u14 BOOT-SEL
+-			0x064 (PIN_INPUT_PULLUP	 		 | MUX_MODE7) /* gpmc_a9.gpio1_25 */ //u16 DPSYNC-FB-ASIC
+ 		>;
+ 	};
+ 
+-- 
+2.7.4
+

@@ -1,0 +1,20 @@
+# bootpc could not work on multiple interfaces since the bind bound to
+# all available interfaces and sending the bootp request to the right
+# interface was a kind of luck.
+# Added a socket option to bind to the specified network interface.
+diff -u bootpc-0.64.orig/bootpc.c bootpc-0.64/bootpc.c
+--- bootpc-0.64.orig/bootpc.c   2014-06-06 16:33:16.976867835 +0200
++++ bootpc-0.64/bootpc.c        2014-06-06 16:33:56.372865924 +0200
+@@ -89,6 +89,11 @@
+     return BootpFatal();
+   }
+   
++  if (setsockopt(sockfd,SOL_SOCKET,SO_BINDTODEVICE,device,strlen(device)+1)==-1) {
++    perror("bootpc: setsockopt failed");
++    return BootpFatal();
++  }
++  
+   memset((char *) &cli_addr, 0, sizeof(cli_addr));
+   cli_addr.sin_family = AF_INET;
+   cli_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+

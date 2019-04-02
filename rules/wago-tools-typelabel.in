@@ -1,0 +1,46 @@
+## SECTION=wago_specific_tools
+
+config TYPELABEL
+	bool
+    	default n
+	prompt "typelabel"
+	help
+	  This library is used to handle typelable data
+
+if TYPELABEL
+
+config TYPELABEL_EEPROM_PATH
+	prompt "EEPROM device file path"
+	string
+
+config TYPELABEL_EEPROM_HAS_WP 
+	bool
+	default y
+	prompt "EEPROM has write protection"
+	help
+	  Select this option to tell the typelabel tool to handle write protection
+	  when accessing the device
+
+config TYPELABEL_SETFWNR
+    bool
+    default n
+    prompt "Install setfwnr"
+    help
+     Install a tool to store and update the bootloader version in typelabel
+
+     
+config TYPELABEL_FAKELABEL
+    bool
+    default n
+    prompt "fakelabel"
+    help
+     compile support for fakelabel
+     not to be installed in a productive image
+     
+endif
+
+config HOST_TYPELABEL
+	bool
+	prompt "host-typelabel"
+	help
+	  This library is used to handle typelable data for the host

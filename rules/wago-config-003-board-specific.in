@@ -1,0 +1,16 @@
+## SECTION=wago_specific_config
+
+config CT_BOARD_SPECIFIC_EXTENSIONS
+  bool
+  prompt "Board-specific extensions"
+  default n
+  help
+   "Board-specific config-tools extensions"
+
+if CT_BOARD_SPECIFIC_EXTENSIONS
+config CT_EXTENSION_PREFIX
+    string
+    prompt "Extension script prefix"
+    help
+     Prefix used for extension script names, i.e. pfc200
+endif

@@ -1,0 +1,40 @@
+/***************************************************************************************/
+/**
+ * @mainpage LibUtil Software Manual
+ *
+ * @image html wagologo.jpg
+ * @htmlinclude impress.html
+ *
+ * @section section_intro Introduction
+ *
+ * This Manual describes the source code of the LibUtil component.
+ * It provides the complete documentation of the component's internals as well as the
+ * detailed descriptions of the functions and structures exported to programmers such
+ * as the application interface.
+ *
+ * For more information about this software component follow the links at the bottom of
+ * this page or the tree control on the left side.
+ *
+ * @section section_purpose Purpose
+ *
+ * The purpose of the manual is to provide a comprehensive description of the component
+ * software. The main section of this documentation focuses on the application interface
+ * of the Libutil.
+ *
+ * @section section_functionality Functionality
+ *
+ * To integrate the Libutil into your software application the following files are
+ * needed:
+ *      \arg libutil.a    - the library file containing the compiled source code of the OSAL
+ *      \arg util_api.h  - the interface header containing the application interface of the 
+ *                          Libutil including data types and function prototypes.
+ *      
+ *  
+ *  The following dependencies are needed by OSAL:
+ *      \arg libosal  - the OSAL library (Operating System Abstraction Layer). For further
+ *                      informations about the OSAL and it's dependencies see the OSAL Software Manual.
+ */
+
+
+/****************************************************************************************/
+/* end of source */

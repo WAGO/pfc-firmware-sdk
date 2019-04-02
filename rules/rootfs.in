@@ -1,0 +1,592 @@
+## SECTION=rootfs
+
+# ----------------------------------------------------------------------------
+menu "directories in rootfs         "
+# ----------------------------------------------------------------------------
+
+config ROOTFS
+	bool
+	prompt "Create Directories in /"
+	default y
+	select BUSYBOX_FEATURE_SHADOWPASSWDS if ROOTFS_SHADOW
+	select HOST_FIGLET if ROOTFS_ISSUE
+	help
+	  In order to support a standard root filesystem some subdirectories are
+	  mandatory. They will be created by ptxdist automatically. Some
+	  other directories are may be required on demand. This menu entry here
+	  gives you the ability to create them.
+
+if ROOTFS
+
+config ROOTFS_BOOT
+	bool
+	prompt "/boot"
+	default y
+	help
+	  This directory contains the kernel image/oftree etc. This is a common
+	  location and name.
+
+config ROOTFS_DEV
+	bool
+	prompt "/dev"
+	default y
+	help
+	  This directory contains system's device nodes. This is a common
+	  location and name. For example udev depends on the existance of this
+	  directory
+
+config ROOTFS_DEV_INITIAL
+	depends on ROOTFS_DEV
+	bool
+	prompt "create initial device nodes"
+	default y
+	help
+	  install /dev/null, /dev/zero and /dev/console device nodes.
+	  udev needs at least these nodes to startup. If you use udev
+	  say yes here
+
+config ROOTFS_HOME
+	bool
+	prompt "/home"
+	default y
+	help
+	  home/ is a common location to store users private data. As ptxdist does
+	  not support users out of the box, its up to yourself to create
+	  additional subdirectories here and also provide the permission info.
+
+config ROOTFS_HOME_ROOT
+	bool
+	prompt "/root"
+	default y
+	help
+	  root/ is the usual location to store roots private data.
+
+# Media Mountpoints
+
+menuconfig ROOTFS_MEDIA
+	bool
+	prompt "/media                      "
+
+config ROOTFS_MEDIA1
+	prompt "Mountpoint 1"
+	string
+	depends on ROOTFS_MEDIA
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA2
+	prompt "Mountpoint 2"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA1!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA3
+	prompt "Mountpoint 3"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA2!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA4
+	prompt "Mountpoint 4"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA3!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA5
+	prompt "Mountpoint 5"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA4!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA6
+	prompt "Mountpoint 6"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA5!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA7
+	prompt "Mountpoint 7"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA6!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA8
+	prompt "Mountpoint 8"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA7!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA9
+	prompt "Mountpoint 9"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA8!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+config ROOTFS_MEDIA10
+	prompt "Mountpoint 10"
+	string
+	depends on ROOTFS_MEDIA && ROOTFS_MEDIA9!=""
+	help
+	  This string defines a mountpoint directory in /media
+
+# ok, that's all for /media.
+
+config ROOTFS_MNT
+	bool
+	prompt "/mnt"
+	default y
+	help
+	  This is a common directory to temporarely mount external media. Its
+	  always a good idea to select this entry.
+
+config ROOTFS_PROC
+	bool
+	prompt "/proc"
+	default y
+	help
+	  Create a /proc directory in the root filesystem.
+	  You should say yes here.
+
+config ROOTFS_RUN
+	bool
+	prompt "/run"
+	default y
+	help
+	  Create a /run directory in the root filesystem.
+
+config ROOTFS_SYS
+	bool
+	prompt "/sys"
+	default y
+	help
+	  Create a /sys directory in the root filesystem.
+	  2.6 kernel users should say yes here.
+
+config ROOTFS_TMP
+	bool
+	prompt "/tmp"
+	default y
+	help
+	  Create a /tmp directory in the root filesystem.
+	  You should say yes here.
+
+config ROOTFS_VAR
+	bool
+	prompt "/var"
+	default y
+	help
+	  Create a /var directory in the root filesystem.
+	  You should say yes here.
+
+if ROOTFS_VAR
+
+config ROOTFS_VAR_RUN
+	bool
+	prompt "/var/run"
+	default y
+	help
+	  Create a /var/run directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+
+config ROOTFS_VAR_LOG
+	bool
+	prompt "/var/log"
+	default y
+	help
+	  Create a /var/log directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+
+config ROOTFS_VAR_LOCK
+	bool
+	prompt "/var/lock"
+	default y
+	help
+	  Create a /var/lock directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+
+config ROOTFS_VAR_LIB
+	bool
+	prompt "/var/lib"
+	help
+	  Create a /var/lib directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+	  If you are going to run an NFS server with file locking
+	  support this folder must be persistent!
+
+config ROOTFS_VAR_CACHE
+	bool
+	prompt "/var/cache"
+	help
+	  Create a /var/cache directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+
+config ROOTFS_VAR_SPOOL
+	bool
+	prompt "/var/spool"
+	help
+	  Create a /var/spool directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+
+config ROOTFS_VAR_SPOOL_CRON
+	bool
+	prompt "/var/spool/cron"
+	help
+	  Create a /var/spool/cron directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+
+config ROOTFS_VAR_TMP
+	bool
+	prompt "/var/tmp"
+	default y
+	help
+	  Create a /var/tmp directory in the root filesystem.
+	  Unless you want to mount a tmpfs on /var you should
+	  say yes here.
+
+endif # ROOTFS_VAR
+endif # ROOTFS
+
+# ----------------------------------------------------------------------------
+
+endmenu
+
+# ----------------------------------------------------------------------------
+menu "files in rootfs               "
+# ----------------------------------------------------------------------------
+
+menuconfig ROOTFS_PASSWD
+	bool
+	prompt "install /etc/passwd"
+	help
+	  If enabled, it installs the "./projectroot/etc/passwd" file if
+	  present, else a generic one from the ptxdist directory.
+
+if ROOTFS_PASSWD
+      menuconfig ROOTFS_PASSWD_ADMIN
+      bool
+      default y
+      prompt "Enable user 'admin'"
+
+if ROOTFS_PASSWD_ADMIN
+      config ROOTFS_PASSWD_ADMIN_UID
+      string 
+      default "1002"
+      prompt "UID for linux user admin"
+
+      config ROOTFS_PASSWD_ADMIN_GID
+      string 
+      default "${ROOTFS_GROUP_ADMIN_GID}"
+      prompt "GID for linux user admin"
+
+      config ROOTFS_PASSWD_ADMIN_ENTRY
+      string 
+      default "admin:x:${PTXCONF_ROOTFS_PASSWD_ADMIN_UID}:${PTXCONF_ROOTFS_PASSWD_ADMIN_GID}:admin:/home/admin:/bin/bash"
+      prompt "passwd entry"
+      
+      config ROOTFS_SHADOW_ADMIN_ENTRY
+      string 
+      default "admin:$1$ctLemHwz$cfRQ4LoVipgHwaYumaZCu1:12215:0:99999:7:::"
+      prompt "shadow entry"
+endif
+
+      menuconfig ROOTFS_PASSWD_VISUALISATION
+      bool
+      default y
+      prompt "Enable user 'visualisation'"
+
+if ROOTFS_PASSWD_VISUALISATION
+      config ROOTFS_PASSWD_VISUALISATION_UID
+      string 
+      default "1003"
+      prompt "UID for linux user visualisation"
+
+      config ROOTFS_PASSWD_VISUALISATION_GID
+      string 
+      default "${ROOTFS_GROUP_VISUALISATION_GID}"
+      prompt "GID for linux user visualisation"
+
+      config ROOTFS_PASSWD_VISUALISATION_ENTRY
+      string 
+      default "visualisation:x:${PTXCONF_ROOTFS_PASSWD_VISUALISATION_UID}:${PTXCONF_ROOTFS_PASSWD_VISUALISATION_GID}:visualisation:/home/visualisation:/bin/false"
+      prompt "passwd entry"
+      
+      config ROOTFS_SHADOW_VISUALISATION_ENTRY
+      string 
+      default "visualisation:$6$9OryzhCCxiMWfrCF$LPBwOcYmuyex5zhhWNuKPP.fVbsYkv3oJtu8gcE9uTEYJ1HmsiyhplR30nn0xgDCxE9K1FzbwyTOh3us4Rq.20:17612:0:99999:7:::"
+      prompt "shadow entry"
+endif
+      menuconfig ROOTFS_PASSWD_USER
+      bool
+      default y
+      prompt "Enable user 'user'"
+
+if ROOTFS_PASSWD_USER
+      config ROOTFS_PASSWD_USER_UID
+      string 
+      default "1000"
+      prompt "UID for linux user 'user'"
+
+      config ROOTFS_PASSWD_USER_GID
+      string 
+      default "100"
+      prompt "GID for linux user 'user'"
+
+      config ROOTFS_PASSWD_USER_ENTRY
+      string 
+      default "user:x:${PTXCONF_ROOTFS_PASSWD_USER_UID}:${PTXCONF_ROOTFS_PASSWD_USER_GID}:Linux\\ User\\,\\,\\,:/home/user:/bin/bash"
+      prompt "passwd entry"
+      
+      config ROOTFS_SHADOW_USER_ENTRY
+      string 
+      default "user:$1$196Z6WI2$A0EprCLawW8d8nLUalFqC/:14126:0:99999:7:::"
+      prompt "shadow entry"
+endif
+
+      menuconfig ROOTFS_PASSWD_GUEST
+      bool
+      default y
+      prompt "Enable user 'guest'"
+
+if ROOTFS_PASSWD_GUEST
+      config ROOTFS_PASSWD_GUEST_UID
+      string 
+      default "1001"
+      prompt "UID for linux user 'guest'"
+
+      config ROOTFS_PASSWD_GUEST_GID
+      string 
+      default "100"
+      prompt "GID for linux user 'guest'"
+
+      config ROOTFS_PASSWD_GUEST_ENTRY
+      string 
+      default "guest:x:${PTXCONF_ROOTFS_PASSWD_GUEST_UID}:${PTXCONF_ROOTFS_PASSWD_GUEST_GID}:Linux\\ user\\,\\,\\,:/home/guest:/bin/bash"
+      prompt "passwd entry"
+      
+      config ROOTFS_SHADOW_GUEST_ENTRY
+      string 
+      default "guest:$1$3IzLJXEB$cJvtQuaWhvgdX1RfC0wQr/:14174:0:99999:7:::"
+      prompt "shadow entry"
+endif
+
+endif
+
+config ROOTFS_SHADOW
+	bool
+	prompt "install /etc/shadow"
+	help
+	  If enabled, it installs the "./projectroot/etc/shadow" file if
+	  present, else a generic one from the ptxdist directory.
+
+menuconfig ROOTFS_GROUP
+	bool
+	prompt "install /etc/group"
+	help
+	  If enabled, it installs the "./projectroot/etc/group" file if
+	  present, else a generic one from the ptxdist directory.
+
+if ROOTFS_GROUP
+    menuconfig ROOTFS_GROUP_ADMIN
+    bool
+    default y
+    prompt "Enable group 'admin'"
+
+if ROOTFS_GROUP_ADMIN
+    config ROOTFS_GROUP_ADMIN_GID
+    string 
+    default "1002"
+    prompt "GID for linux group 'admin'"
+
+    config ROOTFS_GROUP_ADMIN_ENTRY
+    string 
+    default "admin:x:${ROOTFS_GROUP_ADMIN_GID}:"
+    prompt "group entry"
+
+endif
+endif
+
+if ROOTFS_GROUP
+    menuconfig ROOTFS_GROUP_VISUALISATION
+    bool
+    default y
+    prompt "Enable group 'visualisation'"
+
+if ROOTFS_GROUP_VISUALISATION
+    config ROOTFS_GROUP_VISUALISATION_GID
+    string 
+    default "1003"
+    prompt "GID for linux group 'visualisation'"
+
+    config ROOTFS_GROUP_VISUALISATION_ENTRY
+    string 
+    default "visualisation:x:${ROOTFS_GROUP_VISUALISATION_GID}:"
+    prompt "group entry"
+
+endif
+endif
+
+config ROOTFS_GSHADOW
+	bool
+	prompt "install /etc/gshadow"
+	help
+	  If enabled, it installs the "./projectroot/etc/gshadow" file if
+	  present, else a generic one from the ptxdist directory.
+
+config ROOTFS_FSTAB
+	bool
+	prompt "install /etc/fstab"
+	help
+	  If enabled, it installs the "./projectroot/etc/fstab" file if
+	  present, else a generic one from the ptxdist directory.
+
+choice
+	prompt "install /etc/mtab"
+	default ROOTFS_MTAB_FILE
+
+	config ROOTFS_MTAB_FILE
+		bool
+		prompt "from file"
+		help
+		  If enabled, it installs the "./projectroot/etc/mtab" file if
+		  present, else a generic one from the ptxdist directory.
+
+	config ROOTFS_MTAB_LINK_MOUNTS
+		bool
+		prompt "link to /proc/mounts"
+		help
+		  If enabled, it installs /etc/mtab as a link to /proc/mounts
+
+	config ROOTFS_MTAB_LINK_SELF_MOUNTS
+		bool
+		prompt "link to /proc/self/mounts"
+		help
+		  If enabled, it installs /etc/mtab as a link to /proc/self/mounts
+
+	config ROOTFS_MTAB_LINK_VAR
+		bool
+		prompt "link to /var/tmp/mtab"
+		help
+		  If enabled, it installs /etc/mtab as a link to /var/tmp/mtab
+endchoice
+
+config ROOTFS_MTAB_LINK_VAR_FAKE_OVERLAYFS
+	bool
+	depends on ROOTFS_MTAB_LINK_VAR
+	select FAKE_OVERLAYFS
+	select FAKE_OVERLAYFS_VAR_TMP
+	prompt "use fake-overlayfs to create /var/tmp/mtab"
+
+config ROOTFS_HOSTNAME
+	bool
+	prompt "install /etc/hostname"
+
+config ROOTFS_ETC_HOSTNAME
+	string
+	prompt "hostname"
+	depends on ROOTFS_HOSTNAME
+
+config ROOTFS_HOSTS
+	bool
+	prompt "install /etc/hosts"
+	help
+	  If enabled, it installs the "./projectroot/etc/hosts" file if
+	  present, else a generic one from the ptxdist directory.
+
+config ROOTFS_ISSUE
+	bool
+	prompt "install /etc/issue"
+	default y
+	help
+	  If enabled, it installs the "./projectroot/etc/issue" file if
+	  present, else a generic one will be generated using 'figlet'.
+
+config ROOTFS_MODPROBE_CONF
+	bool
+	default n
+	prompt "install /etc/modprobe.conf"
+	help
+	  If enabled, it installs the "./projectroot/etc/modprobe.conf" file if
+	  present. Default options for kernel modules can be configured in that
+	  file. It's read either in busybox modprobe or in the module-init-tools
+	  modprobe implementation.
+
+config ROOTFS_NSSWITCH_CONF
+	bool
+	default y
+	prompt "install /etc/nsswitch"
+	help
+	  If enabled, it installs the "./projectroot/etc/nsswitch" file if
+	  present, else a generic one from the ptxdist directory.
+
+config ROOTFS_PROFILE
+	bool
+	prompt "install /etc/profile"
+	help
+	  If enabled, it installs "./projectroot/etc/profile" (for init-shells)
+	  and "./projectroot/etc/profile.environment" (for sub-shells) files if
+	  present, else generic ones from the ptxdist directory.
+
+config ROOTFS_PROTOCOLS
+	bool
+	prompt "install /etc/protocols"
+	help
+	  If enabled, it installs the "./projectroot/etc/protocols" file if
+	  present, else a generic one from the ptxdist directory.
+
+choice
+	prompt "install /etc/resolv.conf"
+	default ROOTFS_RESOLV_FILE
+
+	config ROOTFS_RESOLV_FILE
+		bool
+		prompt "from file"
+		help
+		  If enabled, it installs the "./projectroot/etc/resolv.conf" file if
+		  present, else a generic one from the ptxdist directory.
+
+	config ROOTFS_RESOLV_LINK
+		bool
+		prompt "link to /proc/net/pnp"
+		help
+		  If enabled, it installs /etc/resolv.conf as a link to /proc/net/pnp.
+
+	config ROOTFS_RESOLV_RUN
+		bool
+		prompt "link to /run/resolv.conf"
+		help
+		  If enabled, it installs /etc/resolv.conf as a link to
+		  /run/resolv.conf. This is useful if the root filesystem is mounted
+		  read-only.
+
+	config ROOTFS_RESOLV_NONE
+		bool
+		prompt "none"
+		help
+		  If enabled, no /etc/resolv.conf will be install.
+endchoice
+
+config ROOTFS_SERVICES
+	bool
+	default y
+	prompt "install /etc/services"
+	help
+	  If enabled, it installs the "./projectroot/etc/services" file if
+	  present, else a generic one from the ptxdist directory.
+
+endmenu
+

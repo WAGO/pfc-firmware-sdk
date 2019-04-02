@@ -1,0 +1,37 @@
+/etc/config-tools/events
+
+Each of the subdirectories coresponds to a specific event in the system for
+which hooks maybe registered. When an event occures all scripts from its
+corresponding directory are called using "run-parts" CLI tool.
+
+The structure may be extended if necessary, but each added event should be
+described in details either here below in the file, or in a EVENT file stored
+in the event directory.
+
+
+============================ System Services Events ============================
+
+The following directories
+
+/etc/config-tools/events/dhcp           - dhcpd demon
+/etc/config-tools/events/dns            - dns demon
+/etc/config-tools/events/snmp           - snmp demon
+/etc/config-tools/events/ssh            - ssh demon
+/etc/config-tools/events/ssl            - lighttpd and pureftp demons
+/etc/config-tools/events/telnet         - telnet demon
+/etc/config-tools/events/tftp           - tftp demon
+/etc/config-tools/events/iocheckport    - block/unblock access to iocheck demon.
+/etc/config-tools/events/networking     - network config hostname, domainname,
+                                          dns-servers, or default gateway changed.
+
+correspond to events releated to a specific system services and are called in
+one of three cases:
+- start - when the /etc/init.d/NNN script was called with "start" argument,
+- stop - when the /etc/init.d/NNN script was called with "stop" argument,
+- config - when configuration of a given service has changed, but
+           /etc/init.d/NNN wasn't called with neither "start" nor "stop"
+           argument.
+When a given event is fired its type (start, stop, config) is given to
+each called scripts as its first parameter, e.g.
+run-parts -a start /etc/config-tools/events/ssh/
+is executed when /etc/init.d/dropbear start is called.

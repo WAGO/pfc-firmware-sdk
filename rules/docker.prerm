@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# stop docker daemon before removing it.
+[ -z "$DESTDIR" ] && /etc/init.d/dockerd stop
+
+exit 0

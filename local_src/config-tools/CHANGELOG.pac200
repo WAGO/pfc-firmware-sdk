@@ -1,0 +1,58 @@
+get_filesystem_data.c:
+
+- adjusted GetActivePartition: 
+  - grep queries extended: everything btw. root= and [:space:] is active partition string
+
+- rewritten GetActiveDevice:
+  - get result from GetActivePartition
+  - interpret mmcblkXpY
+  - interpret ubiX_Y
+
+- rewritten GetPartitionByIndex
+  - query udev instead of grepping /proc/partitions
+
+- rewritten GetDeviceByIndex
+  - query udev instead of grepping /proc/partitions
+
+ISSUES:
+- GetSecondActiveDevice
+  - depends on /boot/grub/menu.lst
+  - TODO: find a way to ask bootloader about active/second partition
+
+- ...
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+get_device_data.c
+
+- rewritten GetPureDeviceName
+  - replaced string.h stuff with udev queries
+  - TODO: ubi related stuff
+
+ISSUES:
+- ...
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+get_coupler_details.c
+- GetProcessorType
+  - GetProcessorType
+    - added ARM detection (What about revision?)
+
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+copy_firmware_image
+- generalisations (removed hdx/sdx assumptions, udev queries 
+instead of parsing /proc/partitions
+
+xxxxxxxxxxxxxxxxxxxxxxxxx TODO xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+- adjust /etc/DEVICE_DATA stuff to real ubifs layout   
+- copy scripts: special version for pac200
+  - format/make partitions: ubi on flash/ext3 on mmc
+  - bootloader: size, layout, differences flash/sd card
+  - partitions: data: copy everything; root: exclude /var, /tmp, /sys, /dev, ???
+- ...

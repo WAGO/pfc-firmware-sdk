@@ -1,0 +1,48 @@
+From dee7675af665b6e22d9c03e71717171e0e3d25e2 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 28 Sep 2016 14:09:38 +0000
+Subject: [PATCH 138/144] net: davinci_emac: fix buggy channel tear down
+
+Druing a barebox_shutdown() already probed platform devices are being halted.
+While trying to halt the davinci emac a channel tear down operation is triggered
+which leads due to a missing DMA pointer configuration to a memory corruption
+whithin the decompressed kernel memory. In this case the devices failed to boot
+and are completely freezed.
+
+In the davinci driver DMA initialisation is only done during the opening of the
+device which is done only when the device is setup for communication.
+
+The problem was solved by adding DMA init code to emacs_init() which is called
+shortly after the probing of the device. In this case the tearing down of the
+channels completes successfully.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ drivers/net/davinci_emac.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/net/davinci_emac.c b/drivers/net/davinci_emac.c
+index 10014b7..e0e32c5 100644
+--- a/drivers/net/davinci_emac.c
++++ b/drivers/net/davinci_emac.c
+@@ -190,6 +190,17 @@ static int davinci_emac_set_ethaddr(struct eth_device *edev, const unsigned char
+ 
+ static int davinci_emac_init(struct eth_device *edev)
+ {
++	struct davinci_emac_priv *priv = edev->priv;
++	uint32_t cnt;
++
++	/* Set DMA head and completion pointers to 0 */
++	for(cnt = 0; cnt < 8; cnt++) {
++		writel(0, (void *)priv->adap_emac + EMAC_TX0HDP + 4 * cnt);
++		writel(0, (void *)priv->adap_emac + EMAC_RX0HDP + 4 * cnt);
++		writel(0, (void *)priv->adap_emac + EMAC_TX0CP + 4 * cnt);
++		writel(0, (void *)priv->adap_emac + EMAC_RX0CP + 4 * cnt);
++	}
++
+ 	dev_dbg(&edev->dev, "* emac_init\n");
+ 	return 0;
+ }
+-- 
+2.7.4
+

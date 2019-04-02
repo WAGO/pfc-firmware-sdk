@@ -1,0 +1,34 @@
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+Subject: zip: fix assembler file name assumption
+
+The Makefile assumes that as outputs _foo.s' object code to foo.o which
+is not true with current gcc versions. We fix it to use the -o options
+and specify the output name explicitly.
+
+Signed-off-by: Robert Schwebel <r.schwebel@pengutronix.de>
+
+---
+ unix/Makefile |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+Index: zip30/unix/Makefile
+===================================================================
+--- zip30.orig/unix/Makefile
++++ zip30/unix/Makefile
+@@ -103,14 +103,12 @@ zipup.o: unix/zipup.h
+ 
+ match.o: match.S
+ 	$(CPP) match.S > _match.s
+-	$(AS) _match.s
+-	mv _match.o match.o
++	$(AS) _match.s -o match.o
+ 	rm -f _match.s
+ 
+ crc_i386.o: crc_i386.S
+ 	$(CPP) crc_i386.S > _crc_i386.s
+-	$(AS) _crc_i386.s
+-	mv _crc_i386.o crc_i386.o
++	$(AS) _crc_i386.s -o crc_i386.o
+ 	rm -f _crc_i386.s
+ 
+ unix.o: unix/unix.c

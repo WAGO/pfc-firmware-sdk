@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# NET-SNMP snmptrapd
+#
+PATH=/usr/bin:/usr/sbin:/usr/local/bin:/bin:/sbin
+
+PREFIX="snmptrapd: "
+SNMPTRAPD="/usr/sbin/snmptrapd"
+SNMPRAPD_CONF=""
+
+case $1 in
+
+	start)
+		echo "${PREFIX}starting ..."
+		$SNMPTRAPD &
+		;;
+
+	stop)
+		echo "${PREFIX}stoppping"
+		killall snmptrapd
+		;;
+
+	*)
+		echo "${PREFIX}usage: ${0} [start|stop]"
+		exit 1
+		;;
+
+esac

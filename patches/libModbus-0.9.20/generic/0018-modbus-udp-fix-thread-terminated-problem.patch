@@ -1,0 +1,78 @@
+Index: libModbus-0.9.20/src/modbus-ip-slave.c
+===================================================================
+--- libModbus-0.9.20.orig/src/modbus-ip-slave.c	2017-07-21 09:04:49.851465830 +0000
++++ libModbus-0.9.20/src/modbus-ip-slave.c	2017-07-21 09:04:49.859465830 +0000
+@@ -363,7 +363,7 @@
+ static int start_udp_socket(struct mb_socket *mbs)
+ {
+ 	struct sockaddr_in sin;
+-	int res, sd, opt = 1;
++	int res, sd;
+ 
+ 	sd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+ 	if (sd < 0)
+@@ -396,7 +396,7 @@
+ 	struct sockaddr_in sinc;
+ 	struct sockaddr *saddr = (struct sockaddr *) &sinc;
+ 	socklen_t addrlen = sizeof(sinc);
+-	ssize_t reclen, sndlen, objlen, sentlen;
++	ssize_t reclen, objlen, frame_len, bytes_sent;
+ 	int sd;
+ 	char const szThreadName[11] = "FB_MBS_UDP";
+ 
+@@ -446,29 +446,29 @@
+ 
+ 		mb_print_req(mbs, obj, objlen);
+ 
+-		sndlen = modbus_handle_request(mbs->functions, obj);
++		frame_len = modbus_handle_request(mbs->functions, obj);
+ 
+-		if (sndlen == 0)
++		if (frame_len == 0)
+ 			continue;
+ 
+-		mb_print_req(mbs, obj, sndlen);
++		mb_print_req(mbs, obj, frame_len);
+ 
+-		hdr->length = cpu_to_mb16((uint16_t) sndlen);
+-		sndlen += sizeof(*hdr);
++		hdr->length = cpu_to_mb16((uint16_t) frame_len);
++		frame_len += sizeof(*hdr);
+ 
+ 		if (mbs->rsp_delay > 0)
+ 		{
+ 			usleep(mbs->rsp_delay*1000);
+ 		}
+ 
+-		sentlen = sendto(sd, &mbp, sndlen, 0, saddr, addrlen);
+-
+-		mb_log(mbs, MB_LOG_SOCKET,
+-		       "modbus_udp_socket: write %d %d %d\n",
+-		       sd, sndlen, sentlen);
+-
+-		if (sentlen < sndlen)
+-			break;
++		bytes_sent = sendto(sd, &mbp, frame_len, 0, saddr, addrlen);
++		if (bytes_sent < 0)
++			mb_log(mbs, MB_LOG_SOCKET, "modbus_udp_socket: %s\n", strerror(errno));
++		else if (bytes_sent < frame_len)
++			mb_log(mbs, MB_LOG_SOCKET, "modbus_udp_socket: write %d %d instead of %d\n",
++				sd, bytes_sent, frame_len);
++		else
++			mb_log(mbs, MB_LOG_SOCKET, "modbus_udp_socket: write %d %d\n", sd, bytes_sent);
+ 
+ 		mbs->events++;
+ 	}
+Index: libModbus-0.9.20/src/Makefile.am
+===================================================================
+--- libModbus-0.9.20.orig/src/Makefile.am	2017-07-21 09:04:49.843465829 +0000
++++ libModbus-0.9.20/src/Makefile.am	2017-07-24 10:49:04.071779872 +0000
+@@ -3,7 +3,7 @@
+ libModbus_la_SOURCES += modbus_intern.h modbusip_intern.h
+ libModbus_la_SOURCES += crc16.c crc16.h
+ libModbus_la_CFLAGS  = -W -Wall -Wwrite-strings -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
+-libModbus_la_LDFLAGS = -version-info 1:16:0 -release $(VERSION)
++libModbus_la_LDFLAGS = -version-info 1:18:0 -release $(VERSION)
+ 
+ include_HEADERS = modbus.h modbus_serial.h modbusip.h
+ 

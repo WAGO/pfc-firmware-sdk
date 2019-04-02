@@ -1,0 +1,19 @@
+diff -Naur dbus-1.10.24_org/dbus/Makefile.in dbus-1.10.24/dbus/Makefile.in
+--- dbus-1.10.24_org/dbus/Makefile.in	2017-09-25 22:03:16.000000000 +0200
++++ dbus-1.10.24/dbus/Makefile.in	2018-05-22 13:21:14.000000000 +0200
+@@ -682,11 +682,12 @@
+ 	dbus-signature.h			\
+ 	dbus-syntax.h				\
+ 	dbus-threads.h				\
+-	dbus-types.h
+-
+-nodist_dbusarchinclude_HEADERS = \
++	dbus-types.h				\
+ 	dbus-arch-deps.h
+ 
++#nodist_dbusarchinclude_HEADERS = \
++#	dbus-arch-deps.h
++
+ 
+ ### source code that goes in the installed client library
+ ### and is specific to library functionality

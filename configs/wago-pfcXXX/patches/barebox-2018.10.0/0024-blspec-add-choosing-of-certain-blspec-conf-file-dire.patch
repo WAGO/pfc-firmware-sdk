@@ -1,0 +1,323 @@
+From 31833813852b042994f3a4ca4ea4f77b7cd3bc04 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <Andreas.Schmidt@wago.com>
+Date: Tue, 26 Jun 2018 13:16:25 +0000
+Subject: [PATCH 024/144] blspec: add choosing of certain blspec conf file
+ direct
+
+Currently Barebox has to check all Bootloader Spec config files
+to get the right one or more. Depends on SoC/CPU speed, it can
+take about 0.5 seconds for each Bootloader config file. If
+the bootentry has e.t. 20 config files it delay the boottime
+about 5-6 seconds, independet it the right file the first one,
+in the middle or the last one.
+To avoid boottime delay this patch add the possibility for
+Barebox to choose one certain Bootloader Spec config file
+directly. For that a prefix "file://" should be use. See
+documentation for more details. Currently the "file://" is
+not support for NFS.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ Documentation/user/booting-linux.rst |   8 ++
+ common/blspec.c                      | 210 +++++++++++++++++++++++++----------
+ 2 files changed, 158 insertions(+), 60 deletions(-)
+
+diff --git a/Documentation/user/booting-linux.rst b/Documentation/user/booting-linux.rst
+index 437f4e8..e9ad726 100644
+--- a/Documentation/user/booting-linux.rst
++++ b/Documentation/user/booting-linux.rst
+@@ -225,6 +225,14 @@ compatible NFS URI string must be passed to the boot command:
+ 
+   boot nfs://nfshost[:port]//path/
+ 
++Barebox can choose certain Bootloader Spec config files directly. That avoids searching
++for the right bootentrie. Pass the path of a certain Bootloader Spec config file with
++``file://`` prefix to the boot command:
++
++.. code-block:: sh
++
++  boot file://path/loader/entries/filename.conf
++
+ Additionally to the options defined in the original spec barebox understands the
+ ``linux-appendroot`` option. This is a boolean value and if set to ``true`` barebox
+ will automatically append a ``root=`` string to the Linux commandline based on the
+diff --git a/common/blspec.c b/common/blspec.c
+index 2c682e1..da8f53a 100644
+--- a/common/blspec.c
++++ b/common/blspec.c
+@@ -31,6 +31,7 @@
+ #include <linux/stat.h>
+ #include <linux/err.h>
+ #include <mtd/ubi-user.h>
++#include <libgen.h>
+ 
+ /*
+  * blspec_entry_var_set - set a variable to a value
+@@ -444,15 +445,97 @@ static bool entry_is_match_machine_id(struct blspec_entry *entry)
+ }
+ 
+ /*
++ * blspec_check_conf_file - check if config file is valid
++ *
++ * return 0 if config file not valid != 0 otherwise
++ */
++static int blspec_check_conf_file(struct bootentries *bootentries,
++				   char *configname)
++{
++	int ret = 0;
++	char *dot;
++	struct stat s;
++
++	pr_debug("%s: %s\n", __func__, configname);
++
++	dot = strrchr(configname, '.');
++	if (!dot)
++		goto out;
++
++	if (strcmp(dot, ".conf"))
++		goto out;
++
++	if (stat(configname, &s))
++		goto out;
++
++	if (!S_ISREG(s.st_mode))
++		goto out;
++
++	return !blspec_have_entry(bootentries, configname);
++out:
++	return ret;
++}
++
++/*
++ * blspec_get_entry - create and set content of blspec entry
++ *
++ * return NULL if error occur else valid blspech entry
++ */
++static struct blspec_entry *blspec_get_entry(struct bootentries *bootentries,
++					     char *configname, const char* root)
++{
++	struct blspec_entry *entry = NULL;
++	char *devname = NULL, *hwdevname = NULL;
++
++	entry = blspec_entry_open(bootentries, configname);
++	if (IS_ERR(entry))
++		goto out;
++
++	entry->rootpath = xstrdup(root);
++	entry->configpath = xstrdup(configname);
++	entry->cdev = get_cdev_by_mountpath(root);
++
++	if (!entry_is_of_compatible(entry))
++		goto err_out;
++
++	if (!entry_is_match_machine_id(entry))
++		goto err_out;
++
++	if (entry->cdev && entry->cdev->dev) {
++		devname = xstrdup(dev_name(entry->cdev->dev));
++		if (entry->cdev->dev->parent)
++			hwdevname = xstrdup(dev_name(entry->cdev->dev->parent));
++	}
++
++	entry->entry.title = xstrdup(blspec_entry_var_get(entry, "title"));
++	entry->entry.description = basprintf("blspec entry, device: %s "
++						"hwdevice: %s", devname ?
++						devname : "none", hwdevname ?
++						hwdevname : "none");
++	free(devname);
++	free(hwdevname);
++
++	entry->entry.me.type = MENU_ENTRY_NORMAL;
++	entry->entry.release = blspec_entry_free;
++
++	return entry;
++
++err_out:
++	blspec_entry_free(&entry->entry);
++out:
++	return NULL;
++}
++
++/*
+  * blspec_scan_directory - scan over a directory
+  *
+- * Given a root path collects all bootentries entries found under /bootentries/entries/.
++ * Given a root path collects all bootentries entries found under
++ * /loader/entries/.
+  *
+  * returns the number of entries found or a negative error value otherwise.
+  */
+ int blspec_scan_directory(struct bootentries *bootentries, const char *root)
+ {
+-	struct blspec_entry *entry;
+ 	DIR *dir;
+ 	struct dirent *d;
+ 	char *abspath;
+@@ -476,92 +559,93 @@ int blspec_scan_directory(struct bootentries *bootentries, const char *root)
+ 	}
+ 
+ 	while ((d = readdir(dir))) {
++		struct blspec_entry *entry;
+ 		char *configname;
+-		struct stat s;
+-		char *dot;
+-		char *devname = NULL, *hwdevname = NULL;
+ 
+ 		if (*d->d_name == '.')
+ 			continue;
+ 
+ 		configname = basprintf("%s/%s", abspath, d->d_name);
+ 
+-		dot = strrchr(configname, '.');
+-		if (!dot) {
++		ret = blspec_check_conf_file(bootentries, configname);
++		if (!ret) {
+ 			free(configname);
+ 			continue;
+ 		}
+ 
+-		if (strcmp(dot, ".conf")) {
+-			free(configname);
+-			continue;
++		entry = blspec_get_entry(bootentries, configname, root);
++		if (entry) {
++			++found;
++			bootentries_add_entry(bootentries, &entry->entry);
+ 		}
++	}
+ 
+-		ret = stat(configname, &s);
+-		if (ret) {
+-			free(configname);
+-			continue;
+-		}
++	ret = found;
+ 
+-		if (!S_ISREG(s.st_mode)) {
+-			free(configname);
+-			continue;
+-		}
++	closedir(dir);
++err_out:
++	if (!IS_ERR(nfspath))
++		free(nfspath);
++	free(abspath);
+ 
+-		if (blspec_have_entry(bootentries, configname)) {
+-			free(configname);
+-			continue;
+-		}
++	return ret;
++}
+ 
+-		entry = blspec_entry_open(bootentries, configname);
+-		if (IS_ERR(entry)) {
+-			free(configname);
+-			continue;
+-		}
++/*
++ * blspec_scan_file - scan a certainly blspec config file
++ *
++ * returns the 1 if valid entrie found, 0 or a negative error value otherwise.
++ */
++int blspec_scan_file(struct bootentries *bootentries, const char *file)
++{
++	int ret = 0;
++	struct blspec_entry *entry;
++	char *abspath, *root = NULL;
++	char *sep, *confdir;
++	const char *dirname = "loader/entries";
+ 
+-		entry->rootpath = xstrdup(root);
+-		entry->configpath = configname;
+-		entry->cdev = get_cdev_by_mountpath(root);
++	if (strncmp(file, "file://", 7)) {
++		ret = -EINVAL;
++		goto out;
++	}
+ 
+-		if (!entry_is_of_compatible(entry)) {
+-			blspec_entry_free(&entry->entry);
+-			continue;
+-		}
++	file += 7;
+ 
+-		if (!entry_is_match_machine_id(entry)) {
+-			blspec_entry_free(&entry->entry);
+-			continue;
+-		}
++	abspath = xstrdup(file);
+ 
+-		found++;
++	ret = blspec_check_conf_file(bootentries, abspath);
++	if (!ret) {
++		ret = -EINVAL;
++		goto out_free;
++	}
+ 
+-		if (entry->cdev && entry->cdev->dev) {
+-			devname = xstrdup(dev_name(entry->cdev->dev));
+-			if (entry->cdev->dev->parent)
+-				hwdevname = xstrdup(dev_name(entry->cdev->dev->parent));
+-		}
++	root = xstrdup(abspath);
+ 
+-		entry->entry.title = xstrdup(blspec_entry_var_get(entry, "title"));
+-		entry->entry.description = basprintf("blspec entry, device: %s hwdevice: %s",
+-						    devname ? devname : "none",
+-						    hwdevname ? hwdevname : "none");
+-		free(devname);
+-		free(hwdevname);
++	sep = strrchr(root, '/');
++	if (!sep) {
++		ret = -EINVAL;
++		goto out_free;
++	}
+ 
+-		entry->entry.me.type = MENU_ENTRY_NORMAL;
+-		entry->entry.release = blspec_entry_free;
++	*sep = 0;
++	confdir = sep - strlen(dirname);
+ 
+-		bootentries_add_entry(bootentries, &entry->entry);
++	if (strncmp(confdir, dirname, strlen(dirname))) {
++		ret = -EINVAL;
++		goto out_free;
+ 	}
+ 
+-	ret = found;
++	entry = blspec_get_entry(bootentries, abspath, root);
++	if (!entry)
++		goto out_free;
+ 
+-	closedir(dir);
+-err_out:
+-	if (!IS_ERR(nfspath))
+-		free(nfspath);
+-	free(abspath);
++	bootentries_add_entry(bootentries, &entry->entry);
++	ret = 1;
+ 
++out_free:
++	free(root);
++	free(abspath);
++out:
+ 	return ret;
+ }
+ 
+@@ -778,6 +862,12 @@ static int blspec_bootentry_provider(struct bootentries *bootentries,
+ 			found += ret;
+ 	}
+ 
++	if (!strncmp(name, "file://", 7)) {
++		ret = blspec_scan_file(bootentries, name);
++		if (ret > 0)
++			found += ret;
++	}
++
+ 	return found;
+ }
+ 
+-- 
+2.7.4
+

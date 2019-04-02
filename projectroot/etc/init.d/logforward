@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+# logforward
+#
+
+case $1 in
+
+    start)
+
+	echo "Starting logforward..."
+	start-stop-daemon -S -x "/usr/bin/logforward" -o -b
+	echo "done."
+	;; 
+
+    stop)
+	echo -n "Terminating logforward..."
+	start-stop-daemon -K -n logforward
+	echo "done"
+	;;
+
+esac

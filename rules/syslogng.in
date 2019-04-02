@@ -1,0 +1,130 @@
+## SECTION=networking
+# syslog-ng configuration
+
+menuconfig SYSLOGNG
+	tristate
+	prompt "syslog-ng                     "
+	select EVENTLOG
+	select GLIB
+	select LIBC_NSL
+	select LIBC_RT
+	select LIBNET		if SYSLOGNG_SPOOF_SOURCE
+	select TCPWRAPPER	if SYSLOGNG_TCP_WRAPPER
+	help
+	  The next generation syslog daemon.
+
+if SYSLOGNG
+
+config SYSLOGNG_LINUX_CAPS
+	bool
+	prompt "Linux capabilities"
+	default n
+	help
+	  Enable support for managing Linux capabilities
+
+config SYSLOGNG_ENV_WRAPPER
+	bool
+	prompt "environment wrapper support"
+	default y
+	help
+	  Enable wrapper program to set up various environment variables
+	
+config SYSLOGNG_SYSTEMD
+	bool
+	prompt "systemd support"
+	default n
+	help
+	  Enable systemd support	
+
+config SYSLOGNG_PACCT
+	bool
+	prompt "process accounting support (EXPERIMENTAL)"
+	default n
+	help
+	  Enable support for reading Process Accounting files (EXPERIMENTAL)
+	  
+config SYSLOGNG_MONGODB
+	bool
+	prompt "mongodb Support"
+	default n
+	help
+	  Enable mongodb destination
+	  
+config SYSLOGNG_JSON
+	bool
+	prompt "json Support"
+	default n
+	help
+	  Enable support for JSON template formatting
+	  
+config SYSLOGNG_SQL
+	bool
+	prompt "sql Support"
+	default n
+	help
+	  Enable support for SQL destinations.
+	  
+config SYSLOGNG_SSL
+	bool
+	prompt "SSL Support"
+	default n
+	help
+	  Enable SSL support.
+	  
+config SYSLOGNG_PCRE
+	bool
+	prompt "Perl Compatible Regular Expressions"
+	default n
+	help
+	  Enable support for Perl Compatible Regular Expressions
+  
+config SYSLOGNG_TCP_WRAPPER
+	bool
+	prompt "tcpwrapper support"
+	help
+	  Support /etc/hosts.deny and /etc/hosts.allow.
+	
+config SYSLOGNG_SPOOF_SOURCE
+	bool
+	prompt "spoof_source feature"
+	help
+	  Enables the ability for source address spoofing.
+	  This means that the host running syslog-ng generates
+	  UDP packets with the source IP address matching the
+	  original sender of the message. It is useful when
+	  you want to perform some kind of preprocessing via
+	  syslog-ng then forward messages to your central log
+	  management solution with the source address of the
+	  original sender. This option only works for UDP
+	  destinations though the original message can be
+	  received by TCP as well.
+	  
+config SYSLOGNG_DEFAULT_MODULES
+        string
+	prompt "Default-Modules"
+	default "afsocket,csvparser,affile,afuser,syslogformat"
+	help
+	  Sets the default modules loaded by syslog-ng
+
+comment "runtime options   ---"
+
+config SYSLOGNG_CONFIG
+	bool
+	default y
+	prompt "Install configuration file"
+	help
+	  Installs (if present) the "./projectroot/etc/syslog-ng.conf"
+	  file from your workspace, otherwise a generic one from the
+	  ptxdist installation
+	  ("<PTXDIST>/generic/etc/syslog-ng.conf").
+
+config SYSLOGNG_STARTSCRIPT
+	bool
+	default y
+	help
+	  Installs (if present) the
+	  "./projectroot/etc/init.d/syslog-ng" startscript from your
+	  workspace, otherwise a generic one from the ptxdist
+	  installation ("<PTXDIST>/generic/etc/init.d/syslog-ng").
+
+endif

@@ -1,0 +1,19 @@
+## SECTION=separated_config_tools
+
+config FIREWALL_CONFIG
+	bool
+	default n
+	select CONFIG_TOOLS
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	prompt "Firewall configuration tool"
+	help
+	  Firewall configuration tool.
+
+config FIREWALL_CONFIG_RC_LINK
+	string
+	depends on FIREWALL_CONFIG && INITMETHOD_BBINIT
+	prompt "install a start link to /etc/rc.d"
+# The firewall has to be started before network -> choose a name which 
+# alphanumerically preceeds the networking start script!!
+	default "S01_firewall"

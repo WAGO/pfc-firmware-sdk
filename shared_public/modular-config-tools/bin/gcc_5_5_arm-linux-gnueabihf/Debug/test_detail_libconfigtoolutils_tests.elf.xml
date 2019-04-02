@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="71" failures="0" disabled="0" errors="0" timestamp="2019-03-06T16:08:28"
+            time="0.245"
+            name="AllTests">
+  <testsuite name="modular-config-tools.CommonMain" tests="5" failures="0" disabled="0"
+              errors="0"
+              time="0.042">
+      <testcase name="CheckFlow" status="run" time="0.034"
+                classname="modular-config-tools.CommonMain"/>
+      <testcase name="FailSetOptionDefaults" status="run" time="0.002"
+                classname="modular-config-tools.CommonMain"/>
+      <testcase name="FailEvaluateEarlyOptions" status="run" time="0.002"
+                classname="modular-config-tools.CommonMain"/>
+      <testcase name="FailEvaluateOptions" status="run" time="0.001"
+                classname="modular-config-tools.CommonMain"/>
+      <testcase name="FailInitSpecificResources" status="run" time="0.002"
+                classname="modular-config-tools.CommonMain"/>
+  </testsuite>
+  <testsuite name="modular-config-tools.ErrorCodeHelper" tests="3" failures="0" disabled="0"
+              errors="0"
+              time="0.002">
+      <testcase name="StatusOk" status="run" time="0.001"
+                classname="modular-config-tools.ErrorCodeHelper"/>
+      <testcase name="StatusFailure" status="run" time="0"
+                classname="modular-config-tools.ErrorCodeHelper"/>
+      <testcase name="StatusCodeMapping" status="run" time="0.001"
+                classname="modular-config-tools.ErrorCodeHelper"/>
+  </testsuite>
+  <testsuite name="modular-config-tools.EarlyOptionEvaluation" tests="9" failures="0"
+              disabled="0"
+              errors="0"
+              time="0.004">
+      <testcase name="EvaluateShortOption_q" status="run" time="0.001"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="EvaluateShortOption_qMix" status="run" time="0.001"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="EvaluateShortOption_x" status="run" time="0"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="EvaluateShortOption_xMix" status="run" time="0.001"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="EvaluateShortOption_xqMix" status="run" time="0"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="EvaluateLongOption_q" status="run" time="0"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="EvaluateLongOption_x" status="run" time="0.001"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="EvaluateLongOption_xqMix" status="run" time="0"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+      <testcase name="DecodeUriIfPredefined" status="run" time="0"
+                classname="modular-config-tools.EarlyOptionEvaluation"/>
+  </testsuite>
+  <testsuite name="modular-config-tools.CommonResources" tests="1" failures="0" disabled="0"
+              errors="0"
+              time="0.001">
+      <testcase name="LastErrorFile" status="run" time="0"
+                classname="modular-config-tools.CommonResources"/>
+  </testsuite>
+  <testsuite name="modular-config-tools.ChangeableFile" tests="3" failures="0" disabled="0"
+              errors="0"
+              time="0.188">
+      <testcase name="PrepareChangeableFile" status="run" time="0"
+                classname="modular-config-tools.ChangeableFile"/>
+      <testcase name="ReleaseEmptyHandle" status="run" time="0"
+                classname="modular-config-tools.ChangeableFile"/>
+      <testcase name="CommitChangedFile" status="run" time="0.188"
+                classname="modular-config-tools.ChangeableFile"/>
+  </testsuite>
+  <testsuite name="modular-config-tools.ParamHandling/ParamHandlingUriChar" tests="47"
+              failures="0"
+              disabled="0"
+              errors="0"
+              time="0.003">
+      <testcase name="DecodeUriChar/0" value_param="8-byte object &lt;88-F4 15-00 8C-F4 15-00&gt;"
+                status="run"
+                time="0.001"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/1" value_param="8-byte object &lt;90-F4 15-00 94-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/2" value_param="8-byte object &lt;98-F4 15-00 9C-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/3" value_param="8-byte object &lt;A0-F4 15-00 A4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/4" value_param="8-byte object &lt;A8-F4 15-00 AC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/5" value_param="8-byte object &lt;B0-F4 15-00 B4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/6" value_param="8-byte object &lt;B8-F4 15-00 BC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/7" value_param="8-byte object &lt;C0-F4 15-00 C4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/8" value_param="8-byte object &lt;C8-F4 15-00 CC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/9" value_param="8-byte object &lt;D0-F4 15-00 D4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/10" value_param="8-byte object &lt;D8-F4 15-00 DC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/11" value_param="8-byte object &lt;E0-F4 15-00 E4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/12" value_param="8-byte object &lt;E8-F4 15-00 EC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/13" value_param="8-byte object &lt;F0-F4 15-00 F4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/14" value_param="8-byte object &lt;F8-F4 15-00 FC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/15" value_param="8-byte object &lt;00-F5 15-00 04-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/16" value_param="8-byte object &lt;08-F5 15-00 DC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/17" value_param="8-byte object &lt;0C-F5 15-00 E4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/18" value_param="8-byte object &lt;10-F5 15-00 EC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/19" value_param="8-byte object &lt;14-F5 15-00 F4-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/20" value_param="8-byte object &lt;18-F5 15-00 FC-F4 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/21" value_param="8-byte object &lt;1C-F5 15-00 04-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/22" value_param="8-byte object &lt;20-F5 15-00 24-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/23" value_param="8-byte object &lt;28-F5 15-00 2C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/24" value_param="8-byte object &lt;30-F5 15-00 34-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/25" value_param="8-byte object &lt;38-F5 15-00 3C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/26" value_param="8-byte object &lt;40-F5 15-00 44-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/27" value_param="8-byte object &lt;48-F5 15-00 4C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/28" value_param="8-byte object &lt;50-F5 15-00 24-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/29" value_param="8-byte object &lt;54-F5 15-00 2C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/30" value_param="8-byte object &lt;58-F5 15-00 34-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/31" value_param="8-byte object &lt;5C-F5 15-00 3C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/32" value_param="8-byte object &lt;60-F5 15-00 44-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/33" value_param="8-byte object &lt;64-F5 15-00 4C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/34" value_param="8-byte object &lt;68-F5 15-00 6C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/35" value_param="8-byte object &lt;70-F5 15-00 74-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/36" value_param="8-byte object &lt;78-F5 15-00 7C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/37" value_param="8-byte object &lt;80-F5 15-00 84-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/38" value_param="8-byte object &lt;88-F5 15-00 74-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/39" value_param="8-byte object &lt;8C-F5 15-00 7C-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/40" value_param="8-byte object &lt;90-F5 15-00 84-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/41" value_param="8-byte object &lt;94-F5 15-00 98-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/42" value_param="8-byte object &lt;9C-F5 15-00 A0-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/43" value_param="8-byte object &lt;A4-F5 15-00 A8-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/44" value_param="8-byte object &lt;AC-F5 15-00 98-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/45" value_param="8-byte object &lt;B0-F5 15-00 A0-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+      <testcase name="DecodeUriChar/46" value_param="8-byte object &lt;B4-F5 15-00 A8-F5 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+  </testsuite>
+  <testsuite name="modular-config-tools.ParamHandling/ParamHandlingUriExample" tests="3"
+              failures="0"
+              disabled="0"
+              errors="0"
+              time="0">
+      <testcase name="DecodeUriExample/0" value_param="8-byte object &lt;B8-F5 15-00 74-F6 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriExample"/>
+      <testcase name="DecodeUriExample/1" value_param="8-byte object &lt;F8-F6 15-00 74-F6 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriExample"/>
+      <testcase name="DecodeUriExample/2" value_param="8-byte object &lt;B4-F7 15-00 30-F8 15-00&gt;"
+                status="run"
+                time="0"
+                classname="modular-config-tools.ParamHandling/ParamHandlingUriExample"/>
+  </testsuite>
+</testsuites>

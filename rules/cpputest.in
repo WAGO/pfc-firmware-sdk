@@ -1,0 +1,10 @@
+## SECTION=wago_specific_libs
+
+config CPPUTEST
+	bool
+    default n
+	prompt "cpputest"	
+	help
+		FIXME
+		Lightweight cpp based unit test framework.
+

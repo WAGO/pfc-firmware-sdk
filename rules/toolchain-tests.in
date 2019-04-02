@@ -1,0 +1,10 @@
+## SECTION=wago_specific_tools
+
+config TOOLCHAIN_TESTS
+    tristate
+  select HOST_CT_BUILD
+  select GOOGLETEST
+    prompt "toolchain-tests"
+  default y
+    help
+      Tests exercising the toolchain used to build the product.

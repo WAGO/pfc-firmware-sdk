@@ -1,0 +1,25 @@
+From 32428331bdff82bd5ebc715214d76738076a41ec Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Mon, 14 Nov 2016 15:10:42 +0000
+Subject: [PATCH 028/261] serial: option: add EC25 and EC21
+
+---
+ drivers/usb/serial/option.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/usb/serial/option.c b/drivers/usb/serial/option.c
+index f7b67fe..654034e 100644
+--- a/drivers/usb/serial/option.c
++++ b/drivers/usb/serial/option.c
+@@ -571,6 +571,8 @@ static void option_instat_callback(struct urb *urb);
+ static const struct usb_device_id option_ids[] = {
+ 	{ USB_DEVICE(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_UC20) },
+ 	{ USB_DEVICE(QUECTEL_VENDOR_ID, QUECTEL_PRODUCT_EC20) },
++        { USB_DEVICE(0x2c7c, 0x0125) }, /* Quectel EC25, EC20 R2.0  Mini PCIe */
++        { USB_DEVICE(0x2c7c, 0x0121) }, /* Quectel EC21 Mini PCIe */
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_COLT) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA) },
+ 	{ USB_DEVICE(OPTION_VENDOR_ID, OPTION_PRODUCT_RICOLA_LIGHT) },
+-- 
+2.7.4
+

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Get actual used CODESYS verion (0, if no CODESYS is in use) *"
+  echo
+  echo "Usage: get_plc_config "
+  echo 
+  exit 0
+fi
+
+
+actualPlcVersionNo=0
+if [ -a /etc/specific/rtsversion ] 
+then
+  actualPlcVersionNo=$(cat /etc/specific/rtsversion)
+fi
+
+printf "$actualPlcVersionNo"

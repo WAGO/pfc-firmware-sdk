@@ -1,0 +1,47 @@
+From 1c90cf46710fadddcf2947165690b9d0d9ea7e19 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 10 Jul 2018 11:44:29 +0200
+Subject: [PATCH 037/144] omap_hsmmc: add more pdata attr for boards without OF
+ support
+
+Some first stage boot code (e.g. for am3505) must reside
+in a 64k sram and is not able to make use of OFTREE.
+In this case some would need to register device through the
+old platform bus method. In this case we need more pdata attr
+for a currect mmc card detect init.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/mach-omap/include/mach/omap_hsmmc.h | 2 ++
+ drivers/mci/omap_hsmmc.c                     | 3 +++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/arch/arm/mach-omap/include/mach/omap_hsmmc.h b/arch/arm/mach-omap/include/mach/omap_hsmmc.h
+index 19942df..308d181 100644
+--- a/arch/arm/mach-omap/include/mach/omap_hsmmc.h
++++ b/arch/arm/mach-omap/include/mach/omap_hsmmc.h
+@@ -22,5 +22,7 @@
+ struct omap_hsmmc_platform_data {
+ 	unsigned f_max;         /* host interface upper limit */
+ 	char *devname;		/* The mci device name, optional */
++	int cd_gpio;
++	bool cd_inverted;
+ };
+ #endif /* __ASM_OMAP_HSMMC_H */
+diff --git a/drivers/mci/omap_hsmmc.c b/drivers/mci/omap_hsmmc.c
+index f5f2c2e..bf820c8 100644
+--- a/drivers/mci/omap_hsmmc.c
++++ b/drivers/mci/omap_hsmmc.c
+@@ -637,6 +637,9 @@ static int omap_mmc_probe(struct device_d *dev)
+ 
+ 		if (pdata->devname)
+ 			hsmmc->mci.devname = pdata->devname;
++
++		hsmmc->mci.cd_gpio = pdata->cd_gpio;
++		hsmmc->mci.cd_inverted = pdata->cd_inverted;
+ 	}
+ 
+ 	if (dev->device_node) {
+-- 
+2.7.4
+

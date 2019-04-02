@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!-- LED configuration of pac200 evalboard! -->
+<ledconfig>
+<!-- MS-LED -->
+<led name="SYS" number="2" state="STATIC_OFF" />
+<!-- NS-LED -->
+<led name="RUN" number="1" state="STATIC_RED" />
+<!-- CAN-ERR -->
+<led name="IO"  number="4" state="STATIC_GRN" />
+<!-- CAN-RUN -->
+<led name="CAN" number="3" state="STATIC_OFF" />
+<!-- SYS -->
+<led name="MS" number="0" state="STATIC_OFF" />
+<!-- CAN-RX -->
+<led name="NS" number="5" state="STATIC_OFF" />
+<!-- NOT USED -->
+<led name="U3" number="6" state="STATIC_OFF" />
+<!-- NOT USED -->
+<led name="U4" number="7" state="STATIC_OFF" />
+<!-- NOT USED -->
+<led name="BF" number="8" state="STATIC_OFF" />
+<!-- CAN-TX -->
+<led name="U1" number="9" state="STATIC_OFF" />
+<!-- SD-R/W -->
+<led name="U2" number="11" state="STATIC_OFF" />
+</ledconfig>

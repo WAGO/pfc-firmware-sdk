@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# generate inetd.conf
+if [ -d $DESTDIR/etc/inetd.conf.d ] &&
+   [ -n "`ls -A $DESTDIR/etc/inetd.conf.d`" ]; then
+	cat $DESTDIR/etc/inetd.conf.d/* > $DESTDIR/etc/inetd.conf
+fi
+
+sync
+

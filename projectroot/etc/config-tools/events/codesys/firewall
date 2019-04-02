@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Firewall: codesys and codesys3 demons events handler
+#
+
+enabled=`/etc/config-tools/firewall firewall --is-enabled`
+[ "enabled" != "$enabled" ] && exit 0
+
+
+switch_versions()
+{
+    local run2_state=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[1]/@state" /etc/firewall/services/codesysr.xml`
+    local run3_state=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[2]/@state" /etc/firewall/services/codesysr.xml`
+    local run2_port=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[1]/@dst_port" /etc/firewall/services/codesysr.xml`
+    local run3_port=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[2]/@dst_port" /etc/firewall/services/codesysr.xml`
+
+    local web2_state=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[1]/@state" /etc/firewall/services/codesysw.xml`
+    local web3_state=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[2]/@state" /etc/firewall/services/codesysw.xml`
+    local web2_port=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[1]/@dst_port" /etc/firewall/services/codesysw.xml`
+    local web3_port=`/usr/bin/xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v "/f:firewall/f:ipv4/f:service/f:rules/f:rule[2]/@dst_port" /etc/firewall/services/codesysw.xml`
+
+    local run2_port_new=`/etc/config-tools/get_rts3scfg_value PLC TcpIpPort`
+
+    local sta2="off"
+    local sta3="off"
+
+    [ "2" == "$1" ] && sta2="on"
+    [ "3" == "$1" ] && sta3="on"
+    [ "$run2_port" != "$run2_port_new" ] && run2_port=$run2_port_new && run2_state="invalid_state"
+
+    [ "$sta2" != "$run2_state" ] && /etc/config-tools/firewall codesysr --upd-rule 1 ${sta2} tcp - ${run2_port} >/dev/null 2>&1
+    [ "$sta3" != "$run3_state" ] && /etc/config-tools/firewall codesysr --upd-rule 2 ${sta3} tcp - ${run3_port} >/dev/null 2>&1
+
+    [ "$sta2" != "$web2_state" ] && /etc/config-tools/firewall codesysw --upd-rule 1 ${sta2} tcp - ${web2_port} >/dev/null 2>&1
+    [ "$sta3" != "$web3_state" ] && /etc/config-tools/firewall codesysw --upd-rule 2 ${sta3} tcp - ${web3_port} >/dev/null 2>&1
+}
+
+start()
+{
+    local running=`/etc/config-tools/get_plc_config`
+    local actionr="down"
+    local actionw="down"
+
+    switch_versions $running
+
+    if [ "2" == "$running" ] ; then
+
+        local stater=`/etc/config-tools/get_rts3scfg_value PLC DisableTcpIpProgramming`
+        [ "NO" == "$stater" ] && actionr="up"
+
+        local statew=`/etc/config-tools/get_port_state codesys-webserver`
+        [ "enabled" == "$statew" ] && actionw="up"
+
+    elif [ "3" == "$running" ] ; then
+
+        actionr="up"
+        local statew=`/etc/config-tools/get_port_state codesys3-webserver`
+        [ "enabled" == "$statew" ] && actionw="up"
+
+    fi
+
+    /etc/config-tools/firewall codesysr --apply ${actionr} >/dev/null 2>&1
+    /etc/config-tools/firewall codesysw --apply ${actionw} >/dev/null 2>&1
+}
+
+stop()
+{
+    /etc/config-tools/firewall codesysr --apply down >/dev/null 2>&1
+    /etc/config-tools/firewall codesysw --apply down >/dev/null 2>&1
+}
+
+case "$1" in
+    start|config)
+        start;;
+    stop)
+        stop;;
+    *)
+        ;;
+esac

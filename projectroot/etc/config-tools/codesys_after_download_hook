@@ -1,0 +1,141 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: codesys_after_download_hook
+#
+# Hook script on codesys runtime file transfer done hook. Called when webvisu.htm
+# got loaded from codesys IDE. 
+# This implementation requires an extension of codesys-2.4.7.0 files
+# source/Linux/Standard/RtsCst.c and source/RtsApi.[ch] to implement hook calls
+# and script execution. 
+#
+# $Id: codesys_after_download_hook 36657 2019-02-08 13:47:27Z hans-florian.scholz@wago.com $
+# Author: HJH, WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Hook after webvisu.htm got loaded *"
+    echo
+    echo "This script is called automatically from Codesys2 runtime if webvisu.htm"
+    echo "got loaded."
+    echo
+    exit 0
+fi
+
+# in webvisu.htm set USEURLCONNECTION parameter to true.
+# limitation: needs name and value for parameter USEURLCONNECTION in the same line.
+WEBVISU_HTM=/home/codesys/webvisu.htm
+TMPFILE=/tmp/webvisu.htm.tmp
+
+if [ -e $WEBVISU_HTM ]; then
+    # awk script to look up webvisu applet parameters and add/set USEURLCONNECTION to TRUE.
+    # Result in file webvisu.htm.tmp.
+    # Depends on the line oriented structure of the standard codesys2 webvisu.htm.
+    # Collects file contents in arrays header and footer and the APPLET tag parameters
+    # in appvars.
+    awk '
+        function err_check(cond) {
+            if (cond) {
+                globerror = 1
+                next
+            }
+        }
+
+        function addline(arr, line) {
+            arr[lineidx] = line
+            lineidx++
+            return lineidx
+        }
+
+        BEGIN {
+            state = 0
+            seqlen = 0
+            lineidx = 0
+            txtidx = 1
+            globerror = 0
+        }
+
+        /(<APPLET|<applet).+ (name|NAME)="WebVisu"/ {
+            state = 1
+            headerlen = addline(header, $0)
+            next
+        }
+
+        /<\/(APPLET|applet)/ {
+            state = 2
+            lineidx = 0
+            if ("USEURLCONNECTION" in appvars) {
+                if (appvars["USEURLCONNECTION"] == "TRUE") {
+                    # suppress output
+                    state = 0
+                }
+            } else {
+                parsequence[seqlen] = "USEURLCONNECTION"
+                seqlen++
+            }
+            appvars["USEURLCONNECTION"] = "TRUE"
+        }
+
+        {
+            if (state == 0) {
+                headerlen = addline(header, $0)
+            } else if (state == 1) {
+                # build array appvars with parameternames and -values and array parsequence to conserve the sequence of
+                # parameters in webvisu.htm
+                if ($1 == "<param" || $1 == "<PARAM") {
+                    split($2, anam, "=")
+                    err_check(anam[1] != "name" && anam[1] != "NAME")
+                    split(anam[2], atemp, "\"")
+                    pname = atemp[2]
+
+                    split($3, aval, "=")
+                    err_check(aval[1] != "value" && aval[1] != "VALUE")
+                    split(aval[2], atemp, "\"")
+                    pvalue = atemp[2]
+
+                    appvars[pname] = pvalue
+                    parsequence[seqlen] = pname
+                    seqlen++
+                } else {
+                    # save non param tag lines
+                    parsequence[seqlen] = txtidx
+                    seqlen++
+                    atext[txtidx] = $0
+                    txtidx++
+                }
+            } else if (state == 2) {
+                footerlen = addline(footer, $0)
+            }
+        }
+
+        END {
+            # do not write result if an error occured or the applet tag was not found
+            if (globerror == 0 && state > 0) {
+                for (idx = 0; idx < headerlen; idx++) printf "%s\n", header[idx]
+                for (idx = 0; idx < seqlen; idx++) {
+                    txtidx = parsequence[idx] + 0
+                    if (txtidx > 0) {
+                        # print text if mixed with param tags
+                        print atext[txtidx]
+                    } else {
+                        printf "<param name=\"%s\" value=\"%s\">\r\n", parsequence[idx], appvars[parsequence[idx]]
+                    }
+                }
+                for (idx = 0; idx < footerlen; idx++) printf "%s\n", footer[idx]
+            }
+        }
+    ' < $WEBVISU_HTM > $TMPFILE
+
+    if [ -s $TMPFILE ]; then
+        mv $TMPFILE $WEBVISU_HTM
+        sync
+    fi
+    rm -f $TMPFILE
+fi

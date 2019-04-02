@@ -1,0 +1,40 @@
+## SECTION=wago_specific_libs
+
+menuconfig LIBOSLINUX
+	bool
+	prompt "liboslinux"
+	help
+	  Linux OSAL
+
+if LIBOSLINUX
+
+config LIBOSLINUX_TRACE_ENABLED
+    bool
+    prompt "Enable debug traces"
+    default n
+    help
+        Enables the debug print macros of the liboslinux.
+
+config LIBOSLINUX_TRACE_LEVEL
+    hex
+    prompt "Configure the trace level (t.b.d.)"
+    default 0x0F
+    help
+    	This option is currently not supported by the rules file.
+        Sets the level of tracing. See OsTrace.h for details.
+        Trace level works as bit field. All levels on => 0x0F.
+        DEBUG   => 0x01
+        INFO    => 0x02
+        WARNING => 0x04
+        ERROR   => 0x08
+
+
+config LIBOSLLINUX_TRACE_FACILITY
+    hex
+    prompt "Configure the trace facilities (t.b.d.)"
+    default 0x7fffffff
+    help
+        Sets the enabled trace facilities. See OsTrace.h for details.
+        This option is currently not supported by the rules file.
+
+endif

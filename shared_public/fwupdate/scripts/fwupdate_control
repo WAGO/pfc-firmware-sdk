@@ -1,0 +1,433 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of project fwupdate (PTXdist fwupdate).
+#
+# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   fwupdate_control
+#
+# Brief:    WAGO firmware update control tool.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   LS:  WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+
+# Load firmware update definitions and functions.
+readonly WAGO_ST_DIR="/usr/sbin"
+if [ ! -f "$WAGO_ST_DIR/fwupdate_common" ]; then
+    echo "Missing dependency fwupdate_common"
+    exit 64
+fi
+source "$WAGO_ST_DIR/fwupdate_common"
+
+# General defines
+readonly WAGO_CT_NAME="fwupdate_control"
+readonly WAGO_CT_TITLE="* Control $WAGO_CT_SYSTEM_MODULE *"
+
+# Defines
+readonly TIMEOUT_REGEX="^[0-9]{1,4}$"
+
+# Set default parameter values
+QUIET=0
+SHOWGENERALHELP=0
+SHOWHELP=0
+URIENCODE=0
+TEXTOUT=0
+JSONOUT=0
+FUNCTION="no"
+START_PATH="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR"
+NEW_TIMEOUT=0
+
+
+# Main tool/script function.
+#
+# Param 1..n: Script parameters
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+main()
+{
+    local RESULT=0
+
+    # Print information if no arguments given and exit
+    if [ "$#" -eq "0" ]; then
+        print_info
+        RESULT=$MISSING_PARAMETER
+        return $RESULT
+    fi
+
+    # Evaluate parameters
+    evaluate_params "$@"
+    RESULT=$?
+    if [ "$RESULT" -ne "0" ]; then
+        fwupdate_report_error "Error on config tool parameter evaluation"
+        if [ "$RESULT" -ne "$MISSING_PARAMETER" -a "$RESULT" -ne "$INVALID_PARAMETER" ]; then
+            RESULT="$INVALID_PARAMETER"
+        fi
+        return $RESULT
+    fi
+
+    # Print help if requested and exit
+    if [ "$SHOWGENERALHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help
+        fi
+        return $RESULT
+    fi
+
+    # Switch by command
+    case "$FUNCTION" in
+      start)
+        start
+        RESULT=$?
+        ;;
+      finish)
+        finish
+        RESULT=$?
+        ;;
+      settimeout)
+        settimeout
+        RESULT=$?
+        ;;
+      "")
+        fwupdate_report_error "No command parameter given"
+        RESULT=$MISSING_PARAMETER
+        ;;
+      *)
+        fwupdate_report_error "Unknown command parameter given"
+        RESULT=$INVALID_PARAMETER
+        ;;
+    esac
+
+    return $RESULT
+}
+
+# Function to print general tool/script information.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_info()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "For detailed usage information use:"
+    echo "  $WAGO_CT_NAME --help"
+
+    return 0
+}
+
+# Function to evaluate tool/script parameters.
+# This function uses globally defined script option variables.
+#
+# Param 1..n: Script parameters
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+evaluate_params()
+{
+    local RESULT=0
+
+    # First evaluate early parameters
+    # (maybe influencing other parameters)
+    QUIET=$(get_parameter_option "-q" "--quiet" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    if [ "$URIENCODE" -ne 0 ]; then
+        fwupdate_report_error "Option -x/--extract-from-uri-encoding currently not supported and will be ignored"
+    fi
+
+    # Evaluate other parameters
+    SHOWGENERALHELP=$(get_parameter_option "-h" "--help" "$1")
+    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    if [ "$SHOWGENERALHELP" -eq "0" ]; then
+        SHOWHELP=$(get_parameter_option "-h" "--help" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        TEXTOUT=$(get_parameter_option "-t" "--text" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        JSONOUT=$(get_parameter_option "-j" "--json" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        FUNCTION=$(get_parameter_command "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+
+        # Evaluate start parameters
+        START_PATH=$(get_parameter_value "-p" "--path" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        NEW_TIMEOUT=$(get_parameter_value "-c" "--change-timeout" "$@")
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        if [ -z "$START_PATH" ]; then
+            START_PATH="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR"
+        fi
+    fi
+
+    return $RESULT
+}
+
+# Function to print tool/script help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME [<script options>] <command> [<command options> [<param>]]"
+    echo
+    echo "Script commands:"
+    echo "  start                                      Start $WAGO_CT_SYSTEM_MODULE when activated (in state \"$WAGO_FW_UPDATE_PREPARED_STATE\")"
+    echo "  finish                                     Finish $WAGO_CT_SYSTEM_MODULE when in state \"$WAGO_FW_UPDATE_UNCONFIRMED_STATE\""
+    echo "  settimeout                                 Change timeout for $WAGO_CT_SYSTEM_MODULE when in state \"$WAGO_FW_UPDATE_PREPARED_STATE\" or \"$WAGO_FW_UPDATE_UNCONFIRMED_STATE\""
+    echo
+    echo "Script options:"
+    echo "  --help                                -h   Prints this help text"
+    echo
+    echo "General command options:"
+    print_general_command_options
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to control $WAGO_CT_SYSTEM_MODULE."
+    echo "  See script commands for available sub commands. Each sub command has its own help."
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME --help   --> Prints this general help text"
+    echo "  $WAGO_CT_NAME start --help   --> Prints help text for start command"
+
+    return 0
+}
+
+# Function to print start command help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help_start()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME start [<command options> [<param>]]"
+    echo
+    echo "Command options:"
+    print_general_command_options
+    echo "  --path                                -p   Path to update working directory with update files"
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to start $WAGO_CT_SYSTEM_MODULE."
+    echo "TODO: Add additional information here if necessary"
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME start --help   --> Prints this help text for start command"
+    echo "TODO: Add some useful examples here"
+
+    return 0
+}
+
+# Function to print finish command help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help_finish()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME finish [<command options> [<param>]]"
+    echo
+    echo "Command options:"
+    print_general_command_options
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to finish $WAGO_CT_SYSTEM_MODULE."
+    echo "TODO: Add additional information here if necessary"
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME finish --help   --> Prints this help text for finish command"
+    echo "TODO: Add some useful examples here"
+
+    return 0
+}
+
+# Function to print settimeout command help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help_settimeout()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME settimeout [<command options> [<param>]]"
+    echo
+    echo "Command options:"
+    print_general_command_options
+    echo "  --change-timeout                      -c   Time until fwupdate cancel is called, given in minutes"
+    echo
+    echo "Additional information:"
+    echo "  This tool changes timeout for $WAGO_CT_SYSTEM_MODULE when in state \"$WAGO_FW_UPDATE_PREPARED_STATE\" or \"$WAGO_FW_UPDATE_UNCONFIRMED_STATE\"."
+    echo "  Time is given in minutes."
+    echo "TODO: Add additional information here if necessary"
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME settimeout --help   --> Prints this help text for settimeout command"
+    echo "  $WAGO_CT_NAME settimeout -c 60  --> Changes timeout to one hour from now"
+
+    return 0
+}
+
+# Function to start FW-Update.
+# The update process is started asynchronously.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+start()
+{
+    local RESULT=0
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help_start
+        fi
+        return $RESULT
+    fi
+
+    if [ -z "$START_PATH" ]; then
+        fwupdate_report_error "Missing update path parameter"
+        return $MISSING_PARAMETER
+    fi
+
+    fwupdate_report_info "Start $WAGO_CT_SYSTEM_MODULE"
+
+    # Determine RAUC file to use
+    local RAUCFILE=""
+    if [ "$RESULT" -eq "0" ]; then
+        RAUCFILE=$(start_determine_rauc_file)
+        RESULT=$?
+    fi
+
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_checkpoint_started false
+        RESULT=$?
+    fi
+
+    # Start update
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_report_info "Using RAUC file \"$RAUCFILE\" for update"
+        fwupdate_remove_timeout_watcher
+        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "start-update" "$RAUCFILE"
+    fi
+
+    return $RESULT
+}
+
+# Function to determine RAUC file to use for update.
+# It is assumed to find at least one *.raucb file under START_PATH.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+# stdout: RAUC file path on success
+#-----------------------------------------------------------------------------#
+start_determine_rauc_file()
+{
+    local RESULT=0
+
+    local WORKPATH=""
+    local RAUCFILE=""
+    if [ -f "$START_PATH" ]; then
+        RAUCFILE="$START_PATH"
+    else
+        if [ -d "$START_PATH" ]; then
+            WORKPATH="$START_PATH"
+        else
+            WORKPATH=$(dirname "$START_PATH")
+        fi
+        RAUCFILE=$(ls "$WORKPATH/"*".raucb" 2>/dev/null | tail -n1)
+    fi
+    if [ ! -f "$RAUCFILE" ]; then
+        fwupdate_report_error "Unable to determine RAUC update file under \"$WORKPATH/\""
+        RESULT=$WAGO_FW_UPDATE_UPDATE_FILE_NOT_FOUND
+    else
+        echo "$RAUCFILE"
+    fi
+
+    return $RESULT
+}
+
+# Function to finish FW-Update.
+# The final work is started asynchronously.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+finish()
+{
+    local RESULT=0
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help_finish
+        fi
+        return $RESULT
+    fi
+
+    fwupdate_report_info "Finish $WAGO_CT_SYSTEM_MODULE"
+
+    fwupdate_checkpoint_confirmed false
+    RESULT=$?
+
+    # Do work to finish asynchronously
+    if [ "$RESULT" -eq "0" ]; then
+        fwupdate_remove_timeout_watcher
+        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "finish-work"
+    fi
+
+    return $RESULT
+}
+
+# Function to change timeout until cancel is called.
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+settimeout()
+{
+    local RESULT=0
+
+    # Print help if requested and exit
+    if [ "$SHOWHELP" -ne "0" ]; then
+        if [ "$QUIET" -eq "0" ]; then
+            print_help_settimeout
+        fi
+        return $RESULT
+    fi
+
+    if [ -z "$NEW_TIMEOUT" ]; then
+        fwupdate_report_error "Missing new timeout parameter"
+        return $MISSING_PARAMETER
+    fi
+
+    if [[ ! "$NEW_TIMEOUT" =~ $TIMEOUT_REGEX ]]; then
+        fwupdate_report_error "Invalid timeout parameter: \"$NEW_TIMEOUT\""
+        return $INVALID_PARAMETER
+    fi
+
+    if [ $RESULT -eq 0 ] && [ "$NEW_TIMEOUT" != "" ]; then
+        local CURRENT_TIME=0
+        CURRENT_TIME=$(date +%s) && \
+        NEW_TIMEOUT=$(( $NEW_TIMEOUT * 60 ))
+        fwupdate_remove_timeout_watcher "$((CURRENT_TIME+NEW_TIMEOUT))"
+        RESULT=$?
+    fi
+
+    fwupdate_report_info "Change timeout to $NEW_TIMEOUT seconds from now"
+
+    return $RESULT
+}
+
+# Start main function
+main "$@"
+exit $?

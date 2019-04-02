@@ -1,0 +1,35 @@
+From 97eac18dbaa850832f3831deb5d1caae44c5c330 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 2 Jul 2018 10:18:04 +0200
+Subject: [PATCH 185/261] net: bridge: fix rtnl assert dump
+
+During creation of new bridge function br_stp_change_bridge_id
+is calling for add bridge mac address to fdb. Calling of
+br_stp_change_bridge_id function has to be locked, to avoid
+inconsistence data.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ net/bridge/br_if.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
+index f7c3d6d..d8c3c75 100644
+--- a/net/bridge/br_if.c
++++ b/net/bridge/br_if.c
+@@ -404,7 +404,12 @@ int br_add_bridge(struct net *net, const char *name)
+ 
+ 	br = netdev_priv(dev);
+ 	/* set MAC address on bridge device */
++
++	spin_lock_bh(&br->lock);
++	rtnl_lock();
+ 	br_stp_change_bridge_id(br, dev->dev_addr);
++	rtnl_unlock();
++	spin_unlock_bh(&br->lock);
+ out:
+ 	return res;
+ }
+-- 
+2.7.4
+

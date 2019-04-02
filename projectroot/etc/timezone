@@ -1,0 +1,6 @@
+if [ -s /etc/localtime ]
+then
+        export TZ="/etc/localtime"
+else
+        export TZ=$(cat /etc/TZ)
+fi

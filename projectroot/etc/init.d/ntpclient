@@ -1,0 +1,210 @@
+#!/bin/sh
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Starts and stops ntpclient
+# For further info to ntpclient see http://doolittle.icarus.com/ntpclient/HOWTO
+#
+# This script starts itself in background (through using argument "background")
+#
+# Author: Hans-Josef Hoffmann, WAGO Kontakttechnik GmbH
+set -u
+
+NTPCLIENT_CONFIG="/etc/ntpclient.conf"
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+function ntpstart
+{
+    if [ ! -f $NTP_PIDFILE ]; then
+        daemonize -p $NTP_PIDFILE /etc/init.d/ntpclient background
+    else
+        return 1
+    fi
+    return 0
+}
+
+function ntpstop
+{
+    if [ -f $NTP_PIDFILE ]; then
+        while [ -f $NTP_PIDFILE ]; do
+            kill -15 -$(< $NTP_PIDFILE) 2> /dev/null
+            if [ ! -d /proc/$(< $NTP_PIDFILE) ]; then
+                rm -f $NTP_PIDFILE
+                break
+            fi
+            usleep 500000
+        done
+    else
+        return 1
+    fi
+    return 0
+}
+
+# Calls /usr/sbin/ntpclient and checks for error cases.
+# Limits time out to 4 sec.
+# ntpclient prints an error message, if the time server has not opened port 123.
+# ntpclient terminates silently with return code 0 if 15 seconds elapsed without
+# response, for example if the server was unreacheable.
+# Otherwise ntpclient prints response data on stdout.
+function ntpclientcall
+{
+    local server=$1
+    local setoption=$2
+    local error=0
+    local errfile=/tmp/ntpclient.err
+    local ntppid
+    local timeoutticks=0
+    local maxticks=8
+
+    ntpclient $setoption -h $server -t -c1 -i 15 > $NTP_STATE_FILE 2> $errfile &
+    ntppid=$!
+    while [ $timeoutticks -lt $maxticks ]; do
+        usleep 500000
+        if [ ! -d /proc/$ntppid ]; then
+            break;
+        fi
+        timeoutticks=$(($timeoutticks + 1))
+    done
+    if [ $timeoutticks -ge $maxticks ]; then
+        kill $ntppid 2> /dev/null
+    fi
+    wait
+
+    if [ $? -ne 0 ] || [ -s $errfile ] || [ ! -s $NTP_STATE_FILE ]; then
+        rm -f $NTP_STATE_FILE
+        error=1
+    fi
+    rm -f $errfile
+    return $error
+}
+
+function findserver
+{
+    local server_found=""
+
+    LIST=`egrep NTP_SERVER_[[:digit:]] $NTPCLIENT_CONFIG`
+    while IFS== read -r server ip
+    do
+       #remove quotes from ip
+       ip=`echo $ip | tr -d '\042'`
+       if [ "$ip" ] && ntpclientcall $ip " "; then
+           server_found=$ip
+           break;
+       fi
+    done <<< "$LIST"
+    echo $server_found
+    return
+}
+
+# Run /usr/sbin/ntpclient trying up to four time servers. Servers are always tried in
+# configured order. Trying servers restarts if a server fails during time updates.
+# Running in background until killed.
+function ntpgettime
+{
+    local server_found=""
+
+    # Remove PIDFILE, STATEFILE, and SERVERFILE on exit
+    trap "rm -f $NTP_PIDFILE $NTP_STATE_FILE $NTP_SERVER_FILE" EXIT
+
+    # Search a functioning NTP time server.
+    while true; do
+        do_logging=1
+        while true; do
+            # look for a server, forever.
+            server_found=$(findserver)
+            if [ "$server_found" ]; then
+                break
+            else
+                if [ "$do_logging" ]; then
+                    logger -t ntpclient "No functioning time server found"
+                    do_logging=""
+                fi
+            fi
+            sleep 10
+
+            # Reload config. It could have changed.
+            . $NTPCLIENT_CONFIG
+        done
+
+        # Update system time regularily.
+        # Call ntpclient to set system time. Then set hwclock according to system time.
+        # hwclock is assumed to hold UTC
+        echo $server_found > $NTP_SERVER_FILE
+        while true; do
+            ntpclientcall $server_found -s && /sbin/hwclock -uw || break
+            sleep $NTP_UPDATE_TIME
+        done
+
+        # Server failed. Write to syslog.
+        logger -t ntpclient "Time server $server_found failed. Retrying server list"
+    done
+}
+
+function ntpgettime_once
+{
+    # Need LAST_ERROR_FILENAME.
+    if [ -x /etc/config-tools/config_tool_defines ]; then
+        . /etc/config-tools/config_tool_defines
+    fi
+
+    # Search a functioning NTP time server.
+    local server_found=$(findserver)
+    if [ "$server_found" ]; then
+        if ! ntpclientcall $server_found -s && /sbin/hwclock -uw; then
+            if [ -x /etc/config-tools/config_tool_defines ]; then
+                echo "Time server $server_found failed" > $LAST_ERROR_FILENAME
+            fi
+            echo "Time server $server_found failed"
+        fi
+    else
+        if [ -x /etc/config-tools/config_tool_defines ]; then
+            echo "No functioning time server found" > $LAST_ERROR_FILENAME
+        fi
+        echo "No functioning time server found"
+    fi
+}
+
+# Main, do the standard init script tasks. Provide entry for backgrounding ntpclient calls
+# and entry to do a time update once.
+
+. $NTPCLIENT_CONFIG
+case $1 in
+    start)
+        echo "ntpclient starting"
+        ntpstart || echo "already running"
+        ;;
+
+    stop)
+        echo "stopping ntpclient"
+        ntpstop || echo "not running"
+        ;;
+
+    restart)
+        echo "restarting ntp service"
+        ntpstop
+        ntpstart
+        ;;
+
+    background)
+        ntpgettime
+        ;;
+
+    gettimeonce)
+        if [ -f $NTP_PIDFILE ]; then
+            ntpstop
+            ntpgettime_once
+            ntpstart
+        else
+            ntpgettime_once
+        fi
+        ;;
+    *)
+        echo "usage $0 start|stop|restart|gettimeonce"
+        ;;
+esac
+exit 0

@@ -1,0 +1,13 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/OsLinux
+
+Name: oslinux
+Description: small osal library for linux
+Version: 1.0.0
+Requires:
+Libs: -L${libdir} -loslinux
+Cflags: -I${includedir}
+
+
