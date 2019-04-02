@@ -447,4 +447,3 @@ Depending on type of package a restart of PFC may required.
 **It may a good idea to setup a build server for a nightly build to check dependencies 
 and consistency and do some unit testing in an automated way.**
 
->>>>>>> c3b75a2... Added README
