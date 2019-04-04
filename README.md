@@ -34,12 +34,41 @@ A minimal disk space of 25GB is required. We recommend 50GB.
 > For virtual machines on windows x64 hosts:
 You may enable virtualization support(Intel VT-x or AMD-V), typical turned on in BIOS or UEFI.
 
-## 1.) Clone the Github repository you will find above
+## 1.) Before you clone the repository !!!
+
+Due to the fact that the repository contains files over 50MB you need the **GIT large file support** extension for GIT before you clone the repository.
+
+### 1.1) Download and install GIT
+
+Make sure that you install GIT version >= 1.8.2
+
+_The recommended Ubuntu version will meet the requirement!_
+
+```
+    >sudo apt install git
+```
+
+### 1.2) Install git-lfs (large file support)
+
+Please refer to this link to get detailed information about the installation on other systems:
+https://github.com/git-lfs/git-lfs/wiki/Installation
+
+These steps will only concentrate on the recommented Ubuntu version:
+```
+    >sudo apt-get install software-properties-common
+    >sudo add-apt-repository ppa:git-core/ppa
+    >curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+    >sudo apt-get install git-lfs
+    >git lfs install
+```
+
+
+### 1.3) Now we are able to clone the repository.
 ```
     >cd ~
     >mkdir -p wago/ptxproj/
     >cd wago/ptxproj/
-    >git clone http://www.github.com/wago/wago-pfc-sdk.git
+    >sudo add-apt-repository ppa:git-core>git clone https://github.com/WAGO/pfc-firmware-sdk.git .
 ```
 
 ## 2.) Install "cross tool chain" 
