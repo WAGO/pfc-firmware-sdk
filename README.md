@@ -1,3 +1,5 @@
+***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
+
 # Install WAGO-PFC-BSP-2019.3.1 on Ubuntu 16.04.5 (64bit) LTS
 
 This HowTo describes steps to install the Board-Support-Package(BSP) for PFC's on Ubuntu16.04
