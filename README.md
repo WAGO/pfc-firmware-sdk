@@ -1,8 +1,8 @@
 ***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
-# Install WAGO-PFC-BSP-2019.3.1 on Ubuntu 16.04.5 (64bit) LTS
+# Install WAGO-PFC-SDK-2019.3.1 on Ubuntu 16.04.5 (64bit) LTS
 
-This HowTo describes steps to install the Board-Support-Package(BSP) for PFC's on Ubuntu16.04
+This HowTo describes steps to install the Software-Development-Kit (SDK) for PFC's on Ubuntu16.04
 
 The start into the embedded linux world requires substantial technical know-how to have success. 
 Therefore WAGO recommends familiarity with the following topics for the future embedded linux developer:
@@ -312,7 +312,7 @@ In this example we will identify **/dev/sde** as out sd card device.
 ```
 - Copy "sd.hdimg" to SD-Card
 ```
-    >cd ~/wago/bsp/ptxproj/platform-wago-pfcXXX/images
+    >cd <workspace>/ptxproj/platform-wago-pfcXXX/images
 ```
 Use for your sd card device for 'of=[/dev/[sd card device]. We will follow our example from 8.1.
 ```
@@ -394,7 +394,7 @@ and build the hole system. For your daily work, you would work on package level.
 As usual, you can:
 - Rebuild a package
 ```
-    >cd ~/wago/bsp/ptxproj
+    >cd <workspace>/ptxproj/
     >ptxdist clean <pkg-name> && ptxdist targetinstall <pkg-name>
 ```
 - Copy "binaries" somehow by hand into PFC's file system, and make them executable.
