@@ -18,19 +18,19 @@ Helpful when heard about:
 - ARM architecture
 - Bootloader
 
-We will provide ’ready to use’ toolchains in a binary manner, which save a lot of time and headaches.
+We will provide ’ready to use’ toolchains in a binary manner, which saves a lot of time and headaches.
 This document describes the installation and usage of the binary toolchain.
 
 The advantages of the ready to use toolchain have to be paid with some dependencies,
-which make a uniquely defined host environment mandatory. Ubuntu 16.04 (64bit) fit these requirements,
+which make a uniquely defined host environment mandatory. Ubuntu 16.04 (64bit) fits these requirements,
 others may or may not.
 
 # Installation and building STEP-BY-STEP:
 
 ## 0.) Download and setup a virtual or physical Ubuntu 16.04.5 LTS 64bit machine from scratch
-You can download the Ubuntu-Iso directly for their website: http://releases.ubuntu.com/16.04/
+You can download the Ubuntu-Iso directly form their website: http://releases.ubuntu.com/16.04/
 
-**Make sure if you like to use the precompiled toolchain that you use the 64bit variant.**
+**Make sure if you like to use the precompiled toolchain that you use the Ubuntu-64bit variant.**
 
 A minimal disk space of 25GB is required. We recommend 50GB.
 > For virtual machines on windows x64 hosts:
@@ -85,7 +85,7 @@ We need to clone the pre-compiled tool chain archive to the storage directory. W
 ```
 >After that the cross toolchain is located into folder: /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/
 
-If your interested in the sources of the linaro toolchain take a look at:
+If you are interested in the sources of the linaro toolchain take a look at:
 ```
 http://www.github.com/wago/gcc-linaro.toolchain-2017
 ```
@@ -163,7 +163,7 @@ The output looks like this:
 
     Report bugs to ptxdist@pengutronix.de
 
->If configure fails, install missing packages and run configure again.
+>If "configure" fails, install missing packages and run configure again.
 
 ### 3.4) Build the build environment tool "ptxdist"
 ```
@@ -190,7 +190,7 @@ The output looks like this:
 
 >Default setup installs build environment to folder: /usr/local/lib/ptxdist-2017.11.0/bin/ptxdist
 >
->Default setup also create a Sym-Link to it in: /usr/local/bin/ptxdist
+>Default setup also creates a sym-link to it in: /usr/local/bin/ptxdist
 
 ---
 
@@ -314,7 +314,8 @@ In this example we will identify **/dev/sde** as out sd card device.
 ```
     >cd <workspace>/ptxproj/platform-wago-pfcXXX/images
 ```
-Use for your sd card device for 'of=[/dev/[sd card device]. We will follow our example from 8.1.
+Identify your sd card device, this will be needed as parameter for dd. 'of=[/dev/[sd card device].`\
+We will use /dev/sde for example.
 ```
     >sudo dd if=sd.hdimg of=/dev/sde 
     [sudo] password for <user>:
@@ -325,7 +326,7 @@ Use for your sd card device for 'of=[/dev/[sd card device]. We will follow our e
 
 ## 7.) Boot PFC with custom image "sd.hdimg" on SD-Card
 PFC boot device order checks SD-Card slot before internal NAND.\
-By default, PFC try to find a DHCP-Server to retrieve an IP-Address.
+By default, PFC tries to find a DHCP-Server to retrieve an IP-Address.
 
 1. PowerOff PFC
 2. Insert SD-Card with custom-image
@@ -343,7 +344,7 @@ By default, PFC try to find a DHCP-Server to retrieve an IP-Address.
 
 ### 8.2) Hostname 
 __"PFCx00-uvwxyz"__ \
-Where 'uvwxyz' are the last part of eth0's MAC-ID in capital letters. 
+Where 'uvwxyz' is the last part of eth0's MAC-ID in capital letters.
 
 ### 8.3) Network Interfaces X1, X2: "br0"(Default)
 - Operate in "switched-mode"
@@ -358,8 +359,8 @@ Prepared to dial with:
 REQUIRE: WAGO-Service-Cable 750-920 or 750-923
 
 ### 8.5) PFC Onboard Serial Interface X3 "/dev/ttyO0"(9p SubD):
-Is no more owned by operating system Linux it has to be configured to be the console output.\
-This could be easiely be down via the web-confuguration.
+Is no more owned by operating system Linux, so it has to be configured to be the console output.\
+This can be easily be done via the web-confuguration.
 
 ### 8.6) Get in touch with your PFC the first time
 
@@ -390,7 +391,7 @@ Read "How to become a PTXdist Guru" and other ressources at http://public.pengut
 
 ## 10.) Aspects of the daily work
 Building a complete firmware image is necessary exactly one time, to extract
-and build the hole system. For your daily work, you would work on package level.
+and build the whole system. For your daily work, you usually will work on package level.
 As usual, you can:
 - Rebuild a package
 ```
@@ -406,7 +407,7 @@ As usual, you can:
 - Use Eclipse-CDT for remote debugging
 
 **CAUTION:\
-Every binary or installation package(.ipk) generated for a specific firmware version, 
+Every binary or installation package(.ipk) is generated for a specific firmware version,
 do not mix up different versions.**
 
 ### 10.1) For larger projects/packages we recommend using an Integrated-Development-Environment(IDE)
