@@ -70,7 +70,8 @@ These steps will only concentrate on the recommented Ubuntu version:
     >cd ~
     >mkdir -p wago/ptxproj/
     >cd wago/ptxproj/
-    >sudo add-apt-repository ppa:git-core>git clone https://github.com/WAGO/pfc-firmware-sdk.git .
+    >sudo add-apt-repository ppa:git-core
+    >git clone https://github.com/WAGO/pfc-firmware-sdk.git .
 ```
 
 ## 2.) Install "cross tool chain" 
