@@ -1,0 +1,26 @@
+From a6567a4187dcf5006baf206246558f51f96b7e03 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Wed, 21 Jun 2017 15:19:51 +0200
+Subject: [PATCH 082/292] src: dts: enable dsa.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index bf6d168..47eb8e7 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -117,6 +117,8 @@
+ 	};
+ 
+ 	dsa@0 {
++		/* set status to 'okay' to enable dsa */
++		status = "okay";
+ 		compatible = "marvell,dsa";
+ 		#address-cells = <2>;
+ 		#size-cells = <0>;
+-- 
+2.7.4
+

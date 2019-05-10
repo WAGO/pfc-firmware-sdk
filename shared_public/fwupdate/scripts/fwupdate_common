@@ -73,7 +73,7 @@ fwupdate_reboot()
 {
     local active=$(/etc/config-tools/get_systeminfo active-system-number)
     local configured=$(/etc/config-tools/get_systeminfo configured-system-number)
-    fwupdate_report_info "Rebooting from rootfs.${active} to rootfs.${configured} ..."
+    fwupdate_report_info "Rebooting from rootfs.${active} to rootfs.${configured}..."
     sync
     "$REBOOT"
 
@@ -106,7 +106,7 @@ fwupdate_cancel()
     if [ $RESULT -eq 0 ]; then
         if [[ "$OLD_STATE" == "$WAGO_FW_UPDATE_PREPARED_STATE" ||
               "$OLD_STATE" == "$WAGO_FW_UPDATE_UNCONFIRMED_STATE" ]]; then
-            "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "revert" "$OLD_STATE"
+            $WAGO_ASYNC_BACKGROUND_SERVICE "$WAGO_ST_DIR/fwupdate_background_service" "revert" "$OLD_STATE"
         else
             fwupdate_report_info "Asynchronous operation in progress (state \"$OLD_STATE\"), wait for cancelation point"
         fi
@@ -195,17 +195,11 @@ fwupdate_cancelation_point()
     # Check current state information
     local CURRENT_STATE="$WAGO_FW_UPDATE_INVALID_STATE"
     local CURRENT_SUB_STATE="$WAGO_FW_UPDATE_INVALID_SUB_STATE"
-    if ! fwupdate_shared_lock; then
-        RESULT=$INTERNAL_ERROR
-    else
-        CURRENT_STATE="$(fwupdate_get_state)"
+    CURRENT_STATE="$(fwupdate_get_state)"
+    RESULT=$?
+    if [ $RESULT -eq 0 ]; then
+        CURRENT_SUB_STATE="$(fwupdate_get_sub_state)"
         RESULT=$?
-        if [ $RESULT -eq 0 ]; then
-            CURRENT_SUB_STATE="$(fwupdate_get_sub_state)"
-            RESULT=$?
-        fi
-
-        fwupdate_release_lock
     fi
 
     # Check for active cancel request
@@ -337,7 +331,7 @@ fwupdate_revert()
         fwupdate_report_info "Call bootloader backup installation"
         output="$(/usr/sbin/${BOARD_ID}_update_bootloader.sh $(GetTargetName) "$bootloader_backup" $WAGO_FW_BOOTLOADER_BACKUP_INSTALL 2>&1)"
         if [ "$?" -ne "0" ]; then
-            fwupdate_panic "Failed install bootloader backup: $output"
+            fwupdate_panic "Failed to install bootloader backup: $output"
         fi
         if [ -n "$(echo "$output" | grep "No bootloader update needed")" ]; then
             fwupdate_report_info "Bootloader backup installation skipped"
@@ -619,7 +613,7 @@ fwupdate_restore_normal_operation_on_other_system()
     else
         # Restore runtime start
         chmod a+x "${old_rootfs}$CDS_INITSCRIPT"
-    result=$?
+        result=$?
         if [[ $result -ne 0 ]]; then
             result=$INTERNAL_ERROR
             fwupdate_report_warning "Failed to restore normal runtime operation on other system"
@@ -957,7 +951,7 @@ fwupdate_checkpoint_main_state()
         fwupdate_release_lock
 
         if [ $RESULT -eq 0 ] && [ "$NEW_TIMEOUT" != "" ]; then
-            "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "timeout-watcher"
+            $WAGO_ASYNC_BACKGROUND_SERVICE "$WAGO_ST_DIR/fwupdate_background_service" "timeout-watcher"
         fi
     fi
 
@@ -1416,31 +1410,10 @@ fwupdate_remove_timeout_watcher()
     fi
 
     if [ $RESULT -eq 0 ] && [ -n "$NEW_TIMEOUT" ]; then
-        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "timeout-watcher"
+        $WAGO_ASYNC_BACKGROUND_SERVICE "$WAGO_ST_DIR/fwupdate_background_service" "timeout-watcher"
     fi
     
     return 0;
-}
-
-# Function to get FW-Update state timeout (synchronized).
-#
-# Return: see fwupdate_get_timeout()
-# stdout: see fwupdate_get_timeout()
-#
-# See also: fwupdate_get_timeout()
-#-----------------------------------------------------------------------------#
-fwupdate_get_timeout_synchronized()
-{
-    local RESULT=0
-    if ! fwupdate_shared_lock; then
-        fwupdate_panic "Unable to get shared lock for \"$WAGO_FW_UPDATE_TIMEOUT_KEY\""
-        RESULT=$INTERNAL_ERROR
-    else
-        fwupdate_get_timeout
-        RESULT=$?
-        fwupdate_release_lock
-    fi
-    return $RESULT
 }
 
 # Function to check reached state timeout.
@@ -1454,7 +1427,7 @@ fwupdate_get_time_to_deadline()
     local CURRENT_TIME=0
     local ERROR=""
     
-    TIMEOUT_END=$(fwupdate_get_timeout_synchronized)
+    TIMEOUT_END=$(fwupdate_get_timeout)
     RESULT=$?
 
     if [[ $RESULT -eq 0 ]]; then

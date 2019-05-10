@@ -1,0 +1,24 @@
+From d9b76322b1e1fded8c2b21b2d33e01fe4378de32 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Mon, 26 Jun 2017 12:16:50 +0000
+Subject: [PATCH 066/292] config: disable fpga support
+
+---
+ arch/arm/configs/wago_pfc_generic_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/configs/wago_pfc_generic_defconfig b/arch/arm/configs/wago_pfc_generic_defconfig
+index 8d1dfc1..f9c5fce 100644
+--- a/arch/arm/configs/wago_pfc_generic_defconfig
++++ b/arch/arm/configs/wago_pfc_generic_defconfig
+@@ -42,6 +42,7 @@ CONFIG_WAGO_SYSTEM_BASED_STARTUP=y
+ # CONFIG_SOC_TI81XX is not set
+ # CONFIG_MACH_OMAP3517EVM is not set
+ # CONFIG_MACH_OMAP3_PANDORA is not set
++# CONFIG_GPMC_FPGA_INIT is not set
+ CONFIG_ARM_THUMBEE=y
+ CONFIG_SWP_EMULATE=y
+ CONFIG_PREEMPT_RT_FULL=y
+-- 
+2.7.4
+

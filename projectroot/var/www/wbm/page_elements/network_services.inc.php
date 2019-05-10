@@ -33,9 +33,11 @@
       <h3>I/O-Check</h3>
       <div id="iocheck_port_config_area"></div>
 
-      <p>Changing the OPC UA server state will take effect after next controller reboot.</p>
-
-      <h3>OPC UA</h3>
-      <div id="opcua_config_area"></div>
+      <div class="initial_invisible 3s_opcua">
+        <p>Changing the OPC UA server state will take effect after next controller reboot.</p>
+  
+        <h3>OPC UA</h3>
+        <div id="opcua_config_area"></div>
+      </div>
 
     </div>

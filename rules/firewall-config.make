@@ -90,7 +90,7 @@ $(STATEDIR)/firewall-config.targetinstall:
 # TODO: Add here all files that should be copied to the target
 # Note: Add everything before(!) call to macro install_finish
 
-	@$(call install_copy, firewall-config, 0, 0, 2777, /etc/config-tools);
+	@$(call install_copy, firewall-config, 0, 0, 0755, /etc/config-tools);
 	@$(call install_copy, firewall-config, 0, 0, 0750, $(PTXDIST_SYSROOT_TARGET)/usr/bin/firewall.elf, /usr/bin/firewall);
 	@$(call install_link, firewall-config, /usr/bin/firewall, /etc/config-tools/firewall)
 

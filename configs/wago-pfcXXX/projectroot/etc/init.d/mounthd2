@@ -22,9 +22,9 @@
 fail_exit=112
 
 # check which is our root device
-ACTIVE_ROOT_PARTITION="$(cat /proc/cmdline | grep -o 'root=/[^[:space:]]\+' | cut -d= -f2)"
+ACTIVE_ROOT_PARTITION="$(grep -o 'root=/[^[:space:]]\+' "/proc/cmdline" | cut -d= -f2)"
 if [ -z "$ACTIVE_ROOT_PARTITION" ]; then
-  ACTIVE_ROOT_PARTITION="$(cat /proc/cmdline | grep -o 'root=ubi[^[:space:]]\+' | cut -d= -f2)"
+  ACTIVE_ROOT_PARTITION="$(grep -o 'root=ubi[^[:space:]]\+' "/proc/cmdline" | cut -d= -f2)"
   ACTIVE_ROOT_PARTITION="$(echo "$ACTIVE_ROOT_PARTITION" | sed 's#ubi0:rootfs.1#/dev/ubi0_0#g')"
   ACTIVE_ROOT_PARTITION="$(echo "$ACTIVE_ROOT_PARTITION" | sed 's#ubi0:rootfs.2#/dev/ubi0_2#g')"
 fi

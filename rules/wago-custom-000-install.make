@@ -65,8 +65,7 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_INSTALL_CHECK_FOR_DEFAULT_PASSWORD
 	@$(call install_copy, wago-custom-install, 0, 0, 644, $(PTXDIST_WORKSPACE)/projectroot/etc/profile.passwd, /etc/profile.passwd)
   
 # install per-user .profile file that parses /etc/profile.passwd for the users root, admin and user
-# add execute access for group admin
-	@$(call install_copy, rootfs, 0, $(PTXCONF_ROOTFS_PASSWD_ADMIN_GID), 0775, /root/)
+	@$(call install_copy, wago-custom-install, 0, 0, 0700, /root)
 	
 	@$(call install_copy, wago-custom-install, 0, 0, 600, $(PTXDIST_WORKSPACE)/projectroot/root/.profile, /root/.profile)
 
@@ -323,12 +322,11 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_CREATE_HOME_INT_TOOL
 endif
 
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_LIGHTTPD_PASSWD_COPY
-	@$(call install_copy, wago-custom-install, 0, 0, 2777, /etc/config-tools);
+	@$(call install_copy, wago-custom-install, 0, 0, 0755, /etc/config-tools/default-settings);
 
-# copy lighttpd-htpasswd.user a second time to check for default passwords
-# Owner: user www!
-	@$(call install_copy, wago-custom-install, 12, 102, 0600, \
-		$(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd/lighttpd-htpasswd.user, \
+# /etc/config-tools/default-settings/lighttpd-htpasswd.user.default is a link to /etc/lighttpd/lighttpd-htpasswd.user
+# thus we can use install_alternative
+	@$(call install_alternative, wago-custom-install, 12, 102, 0600, \
 		/etc/config-tools/default-settings/lighttpd-htpasswd.user.default, n)
 endif
 

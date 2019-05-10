@@ -1,0 +1,88 @@
+From d9838f3f15abf28dfee978e3c3352f9fc16a60f6 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Thu, 21 Dec 2017 09:17:48 +0000
+Subject: [PATCH 135/292] dts: pfc200v3: i2c: Change address 0x20 to 0x70 for
+ new HW-revision
+
+---
+ arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts |  2 +-
+ arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi       |  2 +-
+ arch/arm/boot/dts/wago-pfc200v3.dtsi             | 10 +++++-----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+index 96df66b..d7d94c2 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
++++ b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+@@ -149,7 +149,7 @@
+                 #size-cells = <0>;
+                 reg = <6>;
+                 dsa,member = <0 0>;
+-                reset-gpios = <&io_expander_20 4 GPIO_ACTIVE_LOW>;
++                reset-gpios = <&io_expander_70 4 GPIO_ACTIVE_LOW>;
+                 phy-scan;
+ 
+                 ports {
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi b/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
+index f6a899f..61de785 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
+@@ -36,7 +36,7 @@
+ 	pinctrl-0 = <&dpc31_pins>;
+ 
+ 	dp,reset;
+-	dp,gpio-rst = <&io_expander_20 1 GPIO_ACTIVE_HIGH>; /* dpc31 reset */
++	dp,gpio-rst = <&io_expander_70 1 GPIO_ACTIVE_HIGH>; /* dpc31 reset */
+ };
+ 
+ &gpmc {
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 6567821..2476b7a 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -121,7 +121,7 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&watchdog_pins>;
+ 
+-		gpio-en = <&io_expander_20 0 GPIO_ACTIVE_LOW>;
++		gpio-en = <&io_expander_70 0 GPIO_ACTIVE_LOW>;
+ 		gpios = <&gpio3 8 GPIO_ACTIVE_LOW>;
+ 
+ 		hw_algo = "toggle";
+@@ -133,7 +133,7 @@
+ };
+ 
+ &ksz8863 {
+-	ksz,reset-gpio = <&io_expander_20 4 GPIO_ACTIVE_LOW>;
++	ksz,reset-gpio = <&io_expander_70 4 GPIO_ACTIVE_LOW>;
+ 	ksz,disable-internal-ldo;
+ };
+ 
+@@ -520,7 +520,7 @@
+ 		kbus,tty-device = "ttyO5"; /* corresponds to &uart5*/
+ 
+ 		/* some should be active low, keep all to high for compatibility reasons */
+-		kbus,gpio-nrst   = <&io_expander_20 3 GPIO_ACTIVE_HIGH>;
++		kbus,gpio-nrst   = <&io_expander_70 3 GPIO_ACTIVE_HIGH>;
+ 		kbus,gpio-nsync  = <&gpio1 22 GPIO_ACTIVE_HIGH>;
+ 		kbus,gpio-cmdsel = <&gpio3 7 GPIO_ACTIVE_HIGH>;
+ 		kbus,gpio-nirq   = <&gpio1 23 GPIO_ACTIVE_HIGH>;
+@@ -535,13 +535,13 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c0_pins>;
+ 
+-	io_expander_20: pca9554@20 { /* IO Port Expander only outputs*/
++	io_expander_70: pca9554@70 { /* IO Port Expander only outputs*/
+ 		compatible = "nxp,pca9554";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 		#gpio-cells = <2>;
+ 		gpio-controller;
+-		reg = <0x20>;
++		reg = <0x70>;
+ 	};
+ 
+ 	led_bar1: pca9552@60 { /* System status Visualization (LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")*/
+-- 
+2.7.4
+

@@ -1,18 +1,17 @@
+//------------------------------------------------------------------------------
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
-
-/*
- ============================================================================
- Name        : cflowfilter.c
- Author      : Hans Florian Scholz
- Version     :
- Copyright   : Your copyright notice
- Description : Hello World in C, Ansi-style
- ============================================================================
- */
+// Copyright (c) 2013-2019 WAGO Kontakttechnik GmbH & Co. KG
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+///  \file     tzstrip.c
+///
+///  \brief    Tool to strip timezone information.
+///
+///  \author   HFS: WAGO Kontakttechnik GmbH & Co. KG
+//------------------------------------------------------------------------------
 
 #include <stdio.h>
 #include <string.h>

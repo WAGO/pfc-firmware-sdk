@@ -147,7 +147,7 @@ evaluate_params()
 
     # Evaluate service parameters
     SHOWHELP=$(get_parameter_option "-h" "--help" "$1")
-    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    RESULT=$?
     if [ "$SHOWHELP" -eq "0" ]; then
         FUNCTION=$(get_parameter_command "$@")
         RESULT=$(( $? == 0 ? $RESULT : $? ))
@@ -184,8 +184,10 @@ print_help()
     echo "  All services are internal functionality of $WAGO_CT_SYSTEM_MODULE."
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME --help   --> Prints this help text"
-    echo "  $WAGO_CT_NAME prepare-update   --> Starts background service \"prepare-update\""
+    echo "  $WAGO_CT_NAME --help"
+    echo "     --> Prints this help text"
+    echo "  $WAGO_CT_NAME prepare-update"
+    echo "     --> Starts background service \"prepare-update\""
 
     return 0
 }
@@ -204,12 +206,8 @@ prepare_update()
 
     # Create link to tmpfs where update files are stored temporarily
     mkdir -p "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
-    chgrp  $WAGO_FW_UPDATE_GROUP "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
+    chgrp "$WAGO_FW_UPDATE_GROUP" "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
     chmod g+rw "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
-    if [ ! -e "$WAGO_FW_UPDATE_DEFAULT_WORK_DIR" ]; then
-        ln -s "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR" "$WAGO_FW_UPDATE_DEFAULT_WORK_DIR"
-        chgrp -h $WAGO_FW_UPDATE_GROUP "$WAGO_FW_UPDATE_DEFAULT_WORK_DIR"
-    fi
 
     # Disable runtime autostart early when init contains reboot
     if $WAGO_CT_REBOOT_ON_INIT; then
@@ -247,7 +245,7 @@ prepare_update()
     else
         fwupdate_report_info "Runtime stopped"
     fi
-    
+
     # Disable runtime autostart late when init contains no reboot
     chmod a-x "$CDS_INITSCRIPT" > /dev/null 2>&1
     sync
@@ -277,19 +275,38 @@ get_state()
 {
     local RESULT=0
 
-    if ! fwupdate_shared_lock; then
-        fwupdate_panic "Unable to acquire shared lock to get state"
-    else
-        local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
-        STATE=$(fwupdate_get_state)
-        RESULT=$?
-        fwupdate_release_lock
-        if [ "$RESULT" -eq "0" ]; then
-            echo "$STATE"
-        fi
+    local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
+    STATE=$(fwupdate_get_state)
+    RESULT=$?
+    if [ "$RESULT" -eq "0" ]; then
+        echo "$STATE"
     fi
 
     return $RESULT
+}
+
+# Function used to update fw-update progress every 2 seconds while RAUC 
+# installing. This function is intended to work asynchronously.
+#
+# This function runs as long as the prgress file exists
+# (see WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE).
+#-----------------------------------------------------------------------------#
+update_rauc_progress()
+{
+    # update progress while fwupdate-service is installing image
+    while [ -e "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" ]; do
+        local PROGRESS=300
+        local INSTALL_PROGRESS=$(tail -n 1 "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" | cut -d ':' -f3 | cut -d '%' -f1)
+        if [ -z $INSTALL_PROGRESS ]; then
+            INSTALL_PROGRESS=0
+        elif [ $INSTALL_PROGRESS -gt 99 ]; then
+            INSTALL_PROGRESS=100
+        fi
+        PROGRESS=$(($PROGRESS+($INSTALL_PROGRESS*10)/2))
+        fwupdate_unchecked_progress_update $PROGRESS true
+        
+        sleep 2
+    done
 }
 
 # Function to start RAUC process.
@@ -305,6 +322,14 @@ start_update()
     local RESULT=0
 
     fwupdate_cancelation_point
+
+    # Export FW target version
+    export_target_version "$RAUCFILE"
+    if [[ $? -ne 0 ]]; then
+        fwupdate_report_warning "Failed to determine target firmware version"
+    else
+        fwupdate_report_info "Target firmware version: $WAGO_BACKUP_TARGET_VERSION"
+    fi
 
     # Update sub state
     fwupdate_checkpoint_sub_state "$WAGO_FW_UPDATE_STARTED_PREINSTALL_SUB_STATE" 250 true
@@ -325,6 +350,8 @@ start_update()
 
     # Start RAUC update
     local RAUCOUT=""
+    touch "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE"
+    update_rauc_progress &
     "$RAUC" install "$RAUCFILE" &> "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE"
     RESULT=$?
     if [[ -e "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" ]]; then
@@ -357,26 +384,21 @@ start_update()
             fwupdate_abort 600 "Failed to install RAUC file \"$RAUCFILE\": $ERROR_MESSAGE"
         fi
     fi
-    
+
     # Update partition labels
     if [[ $RESULT -eq 0 ]]; then
-        fwupdate_shared_lock;
+        local sys_nr
+        sys_nr=$(fwupdate_get_new_system_number)
         RESULT=$?
         if [[ $RESULT -eq 0 ]]; then
-            local sys_nr
-            sys_nr=$(fwupdate_get_new_system_number)
+            fwupdate_report_info "Update partition labels for system number $sys_nr"
+            /usr/sbin/${BOARD_ID}_switch_boot_partition.sh $sys_nr -p
             RESULT=$?
-            if [[ $RESULT -eq 0 ]]; then
-                fwupdate_report_info "Update partition labels for system number $sys_nr"
-                /usr/sbin/${BOARD_ID}_switch_boot_partition.sh $sys_nr -p
-                RESULT=$?
-            fi
-            fwupdate_release_lock
         fi
         if [[ $RESULT -ne 0 ]]; then
             fwupdate_abort 603 "Failed to update partition labels (error code $RESULT)"
-         fi
         fi
+    fi
 
     fwupdate_checkpoint_sub_state "$WAGO_FW_UPDATE_STARTED_INSTALLED_SUB_STATE" 800 true
 
@@ -386,6 +408,41 @@ start_update()
 
     # Reboot to start new system
     fwupdate_reboot
+}
+
+# Function to export target FW version.
+#
+# Param 1: RAUC file to install with RAUC
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+export_target_version()
+{
+    local RAUCFILE="$1"
+    local RESULT=0
+
+    local FW_TARGET_VERSION
+    local FW_VERSION_REGEX="[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][(][0-9][0-9][)]"
+    local VERSION_TMP_DIR="/tmp/fwupdate_fwversion"
+    local VERSION_FILE="/etc/REVISIONS"
+    local RAUCMOUNT="$VERSION_TMP_DIR/rauc_tmp"
+    mkdir -p "$RAUCMOUNT" &>/dev/null &&
+      mount "$RAUCFILE" "$RAUCMOUNT" &>/dev/null &&
+      $(cd "$VERSION_TMP_DIR"; tar -zxf "$RAUCMOUNT/root.tar.gz" ".$VERSION_FILE" &>/dev/null) &&
+      FW_TARGET_VERSION="$(grep "^FIRMWARE=" "${VERSION_TMP_DIR}${VERSION_FILE}" 2>/dev/null | cut -d'=' -f2 2>/dev/null)"
+    RESULT=$?
+    rm -f "${VERSION_TMP_DIR}${VERSION_FILE}" &>/dev/null
+    umount "$RAUCMOUNT" &>/dev/null
+    if [[ ! "$FW_TARGET_VERSION" =~ $FW_VERSION_REGEX ]]; then
+        RESULT=$INTERNAL_ERROR
+    else
+        export WAGO_BACKUP_TARGET_VERSION="$FW_TARGET_VERSION"
+
+        # Workaround: Additionally write version to file to workaround (cleaned?) RAUC environment
+        echo -n "$FW_TARGET_VERSION" >"$VERSION_TMP_DIR/target_firmware.version"
+    fi
+
+    return $RESULT
 }
 
 # Function to finalize update process.
@@ -433,23 +490,18 @@ finish_work()
 #-----------------------------------------------------------------------------#
 finish_clean_runtime()
 {
-    if ! fwupdate_shared_lock; then
-        fwupdate_panic "Unable to acquire shared lock to get keep-app flag"
-    else
-        local KEEP_APP=false
-        KEEP_APP=$(fwupdate_get_keep_app_flag)
-        fwupdate_release_lock
-        fwupdate_report_info "keep runtime application: $KEEP_APP"
+    local KEEP_APP=false
+    KEEP_APP=$(fwupdate_get_keep_app_flag)
+    fwupdate_report_info "keep runtime application: $KEEP_APP"
 
-        if [ "$KEEP_APP" == false ]; then
-            # Runtime application will be incompatible, delete it
-            finish_clean_runtime_home
-            fwupdate_unchecked_progress_update 970 true
+    if [ "$KEEP_APP" == false ]; then
+        # Runtime application will be incompatible, delete it
+        finish_clean_runtime_home
+        fwupdate_unchecked_progress_update 970 true
 
-            # Runtime retain memory will also be incompatible, delete it
-            finish_clean_runtime_retain
-            fwupdate_unchecked_progress_update 980 true
-        fi
+        # Runtime retain memory will also be incompatible, delete it
+        finish_clean_runtime_retain
+        fwupdate_unchecked_progress_update 980 true
     fi
 }
 
@@ -485,7 +537,7 @@ finish_clean_runtime_retain()
     fwupdate_report_info "Cleaning up runtime retain data"
 
     /usr/sbin/retain_data -d >/dev/null 2>&1
-    if [ "$?" -ne "0" ]; then
+    if [[ $? -ne 0 ]]; then
         fwupdate_abort 100 "Unable to delete retain data"
     fi
 
@@ -506,17 +558,17 @@ finish_prepare_runtime()
     # Recreate runtime home directory, so startup script can generate some files
     if [ ! -d "$CDS_HOME_DIR_ROOT" ]; then
         mkdir -p $CDS_HOME_DIR_ROOT
-        if [ "$?" != "0" ]; then
+        if [ $? -ne 0 ]; then
             RESULT=$INTERNAL_ERROR
         fi
     fi
 
-    if [ "$RESULT" -ne "0" ]; then
+    if [ $RESULT -ne 0 ]; then
         fwupdate_abort 100 "Failed to prepare runtime start"
     fi
 
     # Prepare runtime autostart
-    if [ "$QUIET" -eq "0" ]; then
+    if [ $QUIET -eq 0 ]; then
         chmod a+x "$CDS_INITSCRIPT"
     else
         chmod a+x "$CDS_INITSCRIPT" >/dev/null 2>&1

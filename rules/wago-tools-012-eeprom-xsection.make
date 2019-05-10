@@ -77,9 +77,7 @@ $(STATEDIR)/eeprom-xsection.compile:
 
 $(STATEDIR)/eeprom-xsection.install:
 	@$(call targetinfo)
-#ifeq ($(PTXCONF_PLATFORM), vtp-ctp)
-	@cp $(EEPROM_XSECTION_DIR)/src/pac_boot_table.h $(PTXDIST_SYSROOT_TARGET)/usr/include
-#endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------

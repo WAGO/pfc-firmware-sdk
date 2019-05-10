@@ -25,6 +25,7 @@ readonly FWUPDATE_BASIC_DEFINES_="fwupdate_basic_defines"
 readonly RAUC="/usr/sbin/rauc_failsafe.sh"
 readonly WAGO_CT_SYSTEM_MODULE="WAGO Firmware Update"
 readonly WAGO_CT_DIR="/etc/config-tools"
+readonly WAGO_ASYNC_BACKGROUND_SERVICE="/sbin/start-stop-daemon -S --background --exec"
 
 # FW-Update log prefix
 # Log prefix is needed when executable does not contain "fwupdate"
@@ -55,8 +56,8 @@ readonly WAGO_FW_UPDATE_DATA_MIN_SPACE_KB=8
 readonly WAGO_FW_UPDATE_DATA_LOCK="/var/lock/fwupdate.lock"
 readonly WAGO_FW_UPDATE_DATA_LOCK_FD=200
 readonly WAGO_FW_UPDATE_DEFAULT_TIMEOUT=10
-readonly WAGO_FW_UPDATE_DEFAULT_WORK_DIR="/root/fwupdate"
 readonly WAGO_FW_UPDATE_DEFAULT_TMP_DIR="/tmp/fwupdate"
+readonly WAGO_FW_UPDATE_DEFAULT_WORK_DIR="$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
 readonly WAGO_FW_UPDATE_SETTINGS_FILE_WORK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate-settings.cfg"
 readonly WAGO_FW_UPDATE_ACCOUNTS_DIR_WORK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate-accounts"
 readonly WAGO_FW_UPDATE_SETTINGS_MOD_FILE_WORK="$WAGO_FW_UPDATE_DEFAULT_WORK_DIR/fwupdate-settings-mod.cfg"

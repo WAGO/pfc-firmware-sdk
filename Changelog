@@ -1,0 +1,18 @@
+Firmware Release 03.00.39 (99)
+System:
+[FIXED] Unreliable behavior of the mobile connection (750-8207)
+[FIXED] Directory structure of /home folder was destroyed after system backup
+[NEW] Checksum of CODESYS 2.3 project is shown in WBM
+[NEW] Advanced Intrusion Detection Environment (AIDE) can be used to identify changes of filesystem
+
+Operating System:
+[NEW] Kernel Update to version 4.9.146
+
+Fieldbus Interface & Protocols:
+ - Cloud Connectivity:
+   [NEW] Support of SAP Cloud
+   [NEW] Azure SDK uses websockets
+   [NEW] Retain-parameter visible in WBM
+   [NEW] Backup / Restore extended by parameter migration
+ - Profibus:
+   [FIXED] Using Bool and Real variables under Profibus does not work properly.

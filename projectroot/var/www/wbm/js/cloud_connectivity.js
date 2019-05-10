@@ -82,6 +82,7 @@ var CreateIEC60870Params = (function()
 				'theLastWillQos=$theLastWillQos',
 				'theLastWillRetain=$theLastWillRetain',
 				'theMqttCleanSession=$theMqttCleanSession',
+				'theWebsocketsEnabled=$theWebsocketsEnabled',
 			],
 			sudo      : true
 		}
@@ -103,22 +104,25 @@ function DataAgentPageContent(id)
 		{
 			$('#divLastWillTopic').show();
 			$('#divLastWillPayload').show();
+			$('#divLastWillQoS').show();
+			$('#divLastWillRetain').show();
 
-			if (iotplatformValue = "AWS")
+			var iotplatformValue = $("#selectIotPlatform").val();
+			if (iotplatformValue == "AWS")
 			{
-				$('#divLastWillQoS').show();
-				var LastWillQoS = $("#divLastWillQoS").val();
-				$("#divLastWillQoS option[value='2']").attr('disabled','disabled');
+				var LastWillQoS = $("#selectMqttLastWillQoS").val();
+				$("#selectMqttLastWillQoS option[value='2']").attr('disabled','disabled');
 				if (LastWillQoS == "2")
 				{
-					$('#divLastWillQoS').prop('value', '1');
+					$('#selectMqttLastWillQoS').prop('value', '1');
 				}
 				
-				$('#divLastWillRetain').prop('checked', true).attr('disabled','disabled');
+				$('#chkMqttLastWillRetain').prop('checked', false).attr('disabled','disabled');
 			}
 			else
 			{
-				$('#divLastWillRetain').show();
+				$("#selectMqttLastWillQoS option[value='2']").removeAttr('disabled');
+				$('#chkMqttLastWillRetain').removeAttr('disabled','disabled');
 			}
 		}
 		else
@@ -160,6 +164,7 @@ function DataAgentPageContent(id)
 				$('#selectDataProtocol').prop('value', 'NormalizedJSON');
 				$('#divDataProtocol').hide();
 				$('#'  + thePageContent.id + '_content' + ' .sparkplug_activated').hide();
+				$('#WebswocketsConfigUI').show();
 				break;
 
 			case "AzureCloud":
@@ -177,6 +182,7 @@ function DataAgentPageContent(id)
 				$('#selectDataProtocol').prop('value', 'NormalizedJSON');
 				$('#divDataProtocol').hide();
 				$('#'  + thePageContent.id + '_content' + ' .sparkplug_activated').hide();
+				$('#WebswocketsConfigUI').show();
 				break;
 
 			case "IBM":
@@ -212,7 +218,9 @@ function DataAgentPageContent(id)
 				$('#divLastWillEnabled').show();
 				RefreshVisibilityMqttLastWill();
 				$('#divDataProtocol').show();
+				$("#selectDataProtocol").removeAttr('disabled');
 				$('#'  + thePageContent.id + '_content' + ' .sparkplug_activated').hide();
+				$('#WebswocketsConfigUI').hide();
 				break;
 
 			case "AWS":
@@ -221,6 +229,7 @@ function DataAgentPageContent(id)
 				$("#labelDeviceOrEdgeNodeId").text(textLabel1);
 				$('#IBMConfigUI').hide();
 				$('#AWSConfigUI').show();
+				$("#selectDataProtocol option[value='SparkplugB']").removeAttr('disabled');
 				var dataProtVal = $("#selectDataProtocol").val();
 				if (dataProtVal == "NormalizedJSON")
 				{
@@ -264,6 +273,8 @@ function DataAgentPageContent(id)
 				}
 				RefreshVisibilityMqttLastWill();
 				$('#divDataProtocol').show();
+				$("#selectDataProtocol").removeAttr('disabled');
+				$('#WebswocketsConfigUI').hide();
 				break;
 
 			case "MQTT":
@@ -272,6 +283,7 @@ function DataAgentPageContent(id)
 				$("#labelDeviceOrEdgeNodeId").text(textLabel1);
 				$('#IBMConfigUI').show();
 				$('#AWSConfigUI').show();
+				$("#selectDataProtocol option[value='SparkplugB']").removeAttr('disabled');
 				var dataProtVal = $("#selectDataProtocol").val();
 				if (dataProtVal == "NormalizedJSON")
 				{
@@ -313,6 +325,33 @@ function DataAgentPageContent(id)
 				}
 				RefreshVisibilityMqttLastWill();
 				$('#divDataProtocol').show();
+				$("#selectDataProtocol").removeAttr('disabled');
+				$('#WebswocketsConfigUI').hide();
+				break;
+				
+			case "SAP":
+				$("#AzureIoTconfigUI").hide();
+				$('#IBMConfigUI').hide();
+				$('#DeviceConfigUI').hide();
+				$('#CommandsConfigUI').hide();
+				$("#divNodeGroupId").hide();
+				$('#WebswocketsConfigUI').hide();
+				$('#'  + thePageContent.id + '_content' + ' .sparkplug_activated').hide();	
+				
+				$("#mqttIoTconfigUI").show();
+				$("#labelDeviceOrEdgeNodeId").text(textLabel1);
+				$("#chkMqttSecurityEnabled").removeAttr('disabled');
+				$("#chkMqttDoCleanSession").removeAttr('disabled');
+				$("#inputMqttPort").removeAttr('disabled');
+				
+				$('#AWSConfigUI').show();
+				
+				$('#divDataProtocol').show();
+				$('#selectDataProtocol').val('PlcProgSpecific');
+				$('#selectDataProtocol').attr('disabled','true');	
+				
+				$('#divLastWillEnabled').show();
+				RefreshVisibilityMqttLastWill();
 				break;
 
 			default:
@@ -326,6 +365,7 @@ function DataAgentPageContent(id)
 				$('#divLastWillEnabled').hide();
 				$('#'  + thePageContent.id + '_content' + ' .sparkplug_activated').hide();
 				RefreshVisibilityMqttLastWill();
+				$('#WebswocketsConfigUI').hide();
 		}
 
 		var massStorageVal = $("#theMassStorageIsReady").val();
@@ -378,6 +418,7 @@ function DataAgentPageContent(id)
             $(parentElemIdPrefix + "#chkDeviceStatusEnabled").prop('checked', configParams.DeviceStatus);
             $(parentElemIdPrefix + "#chkStandardCommandsEnabled").prop('checked', configParams.StandardCommandsEnabled);
 			$(parentElemIdPrefix + "#theMassStorageIsReady").val(configParams.NonVolatileStorageIsAvailable);
+			$(parentElemIdPrefix + "#chkWebsocketsEnabled").prop('checked', configParams.WebsocketsEnabled);
 
             RefreshVisibility();
         }
@@ -407,7 +448,7 @@ function DataAgentPageContent(id)
 		$(parentElemIdPrefix + "#spanFillLevel").text("");
 		
 		$('#divSparkplugLicenseCovered').hide();
-		if (value.DataProtocolLive == "SparkplugB")
+		if (objectFromJson && objectFromJson.DataProtocolLive == "SparkplugB")
 		{
 			$('#divSparkplugLicenseCovered').show();
 		}
@@ -420,16 +461,16 @@ function DataAgentPageContent(id)
         //console.log('' + outputElementId + ' ' + paramValue + ' ' + paramStatus);
         try
         {
-            value = jQuery.parseJSON(paramValue);
+            objectFromJson = jQuery.parseJSON(paramValue);
 
             var parentElemIdPrefix = "#" + thePageContent.id + "_content ";
             var previosValue = "" + $(parentElemIdPrefix + "#theSignOfLifeHidden").val();
 
             // We can reliebly compare because javascript timer interval is greater than interval producing the status
-            if (previosValue != value.SignOfLife)
+            if (previosValue != objectFromJson.SignOfLife)
             {
                 // Sign of life changed, so we know DataAgent is alive
-                $(parentElemIdPrefix + "#theSignOfLifeHidden").val(value.SignOfLife);
+                $(parentElemIdPrefix + "#theSignOfLifeHidden").val(objectFromJson.SignOfLife);
 				
 				var greenCheckImage = $('<img class="state" src="images/haken_gruen_10.gif" />');
 				var redCrossImage = $('<img class="state" src="images/kreuz_rot_10.gif" />');
@@ -440,7 +481,7 @@ function DataAgentPageContent(id)
 				operationSpanElem.text("running");
 				greenCheckImage.clone().prop('title', 'running').prop('alt', 'running').prependTo(operationSpanElem);
 				
-				if (value.DataProtocolLive == "PlcProgSpecific")
+				if (objectFromJson.DataProtocolLive == "PlcProgSpecific")
 				{
 					$('#divDataCollections').hide();
 					$('#divTelemetryTransmission').hide();
@@ -448,12 +489,12 @@ function DataAgentPageContent(id)
 				else
 				{
 					$('#divDataCollections').show();
-					$(parentElemIdPrefix + "#spanCollectionsCount").text('' + value.CollectionsCountFromPlc);
+					$(parentElemIdPrefix + "#spanCollectionsCount").text('' + objectFromJson.CollectionsCountFromPlc);
 
 					$('#divTelemetryTransmission').show();
 					var transmissionSpanElem = $(parentElemIdPrefix + "#spanTelemetryTransmission");
 					transmissionSpanElem.empty();
-					if (value.TelemetryDataTransmission)
+					if (objectFromJson.TelemetryDataTransmission)
 					{
 						transmissionSpanElem.text("enabled");
 						greenCheckImage.clone().prop('title', 'enabled').prop('alt', 'enabled').prependTo(transmissionSpanElem);
@@ -465,16 +506,16 @@ function DataAgentPageContent(id)
 					}
 				}
 				
-				$(parentElemIdPrefix + "#spanHeartbeat").text('' + value.Heartbeat + ' seconds');
+				$(parentElemIdPrefix + "#spanHeartbeat").text('' + objectFromJson.Heartbeat + ' seconds');
 
 				var connectionSpanElem = $(parentElemIdPrefix + "#spanConnection");
 				connectionSpanElem.empty();
-                if (value.Connected)
+                if (objectFromJson.Connected)
                 {
 					var labelConnected = "connected";
-					if (value.DataProtocolLive == "NormalizedJSON" && value.WagoProtocolVersion != "0")
+					if (objectFromJson.DataProtocolLive == "NormalizedJSON" && objectFromJson.WagoProtocolVersion != "0")
 					{
-						labelConnected = labelConnected.concat(' (protocol ', value.WagoProtocolVersion, ')');
+						labelConnected = labelConnected.concat(' (protocol ', objectFromJson.WagoProtocolVersion, ')');
                 }
 
 					connectionSpanElem.text(labelConnected);
@@ -487,15 +528,15 @@ function DataAgentPageContent(id)
                 }
 
 
-                var fillLevelAsFloat = parseFloat(value.FillLevel);
+                var fillLevelAsFloat = parseFloat(objectFromJson.FillLevel);
                 var fillLevelRoundedNumber = (Number(fillLevelAsFloat)).toFixed(2);
-				$(parentElemIdPrefix + "#spanFillLevel").text('' + fillLevelRoundedNumber + ' % (' + value.OutgoingDataBlocks + ' data blocks)');
-				if (value.DataProtocolLive == "SparkplugB")
+				$(parentElemIdPrefix + "#spanFillLevel").text('' + fillLevelRoundedNumber + ' % (' + objectFromJson.OutgoingDataBlocks + ' data blocks)');
+				if (objectFromJson.DataProtocolLive == "SparkplugB")
 				{
 					$('#divSparkplugLicenseCovered').show();
 
 					var sparkplugLicenseCoveredSpanElem = $(parentElemIdPrefix + "#spanSparkplugLicenseCovered");
-					if (value.SparkplugLicenseCovered)
+					if (objectFromJson.SparkplugLicenseCovered)
 					{
 						sparkplugLicenseCoveredSpanElem.text("License existing");
 						greenCheckImage.clone().prop('title', 'License existing').prop('alt', 'License existing').prependTo(sparkplugLicenseCoveredSpanElem );
@@ -511,9 +552,9 @@ function DataAgentPageContent(id)
 					$('#divSparkplugLicenseCovered').hide();
 				}
 				
-				if (theSparkplugLicenseCovered != value.SparkplugLicenseCovered)
+				if (theSparkplugLicenseCovered != objectFromJson.SparkplugLicenseCovered)
 				{
-					theSparkplugLicenseCovered = value.SparkplugLicenseCovered;
+					theSparkplugLicenseCovered = objectFromJson.SparkplugLicenseCovered;
 					RefreshVisibility();
 				}
             }
@@ -701,7 +742,8 @@ DataAgentPageContent.prototype.ChangeSettingsofDataAgent = function(formObj)
 	var varDeviceInfoEnabled = $(formObj).find('#chkDeviceInfoEnabled').is(':checked');
 	var varDeviceStatusEnabled = $(formObj).find('#chkDeviceStatusEnabled').is(':checked');
 	var varStandardCommandsEnabled = $(formObj).find('#chkStandardCommandsEnabled').is(':checked');
-	
+	var varWebsocketsEnabled = $(formObj).find('#chkWebsocketsEnabled').is(':checked');
+
 	var newValueList  =
 			{
 		theNewIoTPlatform: platform,
@@ -729,7 +771,8 @@ DataAgentPageContent.prototype.ChangeSettingsofDataAgent = function(formObj)
 		theLastWillQos: varLastWillQos,
 		theLastWillRetain: varLastWillRetain,
 		theDataProtocol: varDataProtocol,
-		theMqttCleanSession: varMqttDoCleanSession
+		theMqttCleanSession: varMqttDoCleanSession,
+		theWebsocketsEnabled: varWebsocketsEnabled
 	};
 
 	deviceParams.ChangeValue('iec60870_', newValueList, function(status, errorText)

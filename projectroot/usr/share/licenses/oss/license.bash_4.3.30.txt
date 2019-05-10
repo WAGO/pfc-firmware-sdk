@@ -1,5 +1,3 @@
-bash-4.3.30/AUTHORS
-
 #
 # Master author manifest for bash
 #
@@ -466,8 +464,6 @@ support/checkbashisms	Julian Gilbey, Debian Linux team
 
 lib/readline/colors.c	Richard Stallman, David MacKenzie
 lib/readline/parse-colors.c Richard Stallman, David MacKenzie
-
-bash-4.3.30/COPYING
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -1144,7 +1140,15 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 
-bash-4.3.30/lib/readline/COPYING
+Unless otherwise stated, all files in this directory are Copyright (C)
+1991,1992,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002,2003,
+2004,2005,2006,2007,2008,2009,2010,2011
+Free Software Foundation, Inc.
+
+See the file COPYING in the bash distribution root directory for copying
+and usage restrictions.
+
+The file ifs-posix.tests is Copyright (C) 2005 Glen Fowler.
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

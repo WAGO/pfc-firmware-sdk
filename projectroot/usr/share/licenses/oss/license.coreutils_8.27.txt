@@ -1,5 +1,3 @@
-coreutils-8.27/AUTHORS
-
 Here are the names of the programs in this package,
 each followed by the name(s) of its author(s).
 
@@ -114,8 +112,6 @@ yes: David MacKenzie
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-
-coreutils-8.27/COPYING
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

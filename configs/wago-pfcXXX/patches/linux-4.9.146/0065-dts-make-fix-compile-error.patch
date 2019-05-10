@@ -1,0 +1,25 @@
+From 538b320e7c20dcbaa08042f8992cbbd048afae25 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Mon, 26 Jun 2017 12:04:06 +0000
+Subject: [PATCH 065/292] dts: make: fix compile error
+
+---
+ arch/arm/boot/dts/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 9cc6a66..cd6de59 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -579,7 +579,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	wago-pfc200v3-devconf-000e.dtb \
+ 	wago-pfc200v3-devconf-000f.dtb \
+ 	wago-pfc200v3-devconf-001c.dtb \
+-	wago-pfc200v3-devconf-0182.dtb
++	wago-pfc200v3-devconf-0182.dtb \
+ 	wago-src-devconf-000c.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-duovero-parlor.dtb \
+-- 
+2.7.4
+

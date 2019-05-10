@@ -27,7 +27,7 @@ echo "<!-- Caution! Elements and attributes in this file are case sensitive! -->
 echo "<FirmwareUpdateFile StructureVersion=\"1.0\" Revision=\"1\" System=\"PFC-Linux\">" >> "$FILE"
 echo "  <FirmwareDescription Revision=\"${FIRMWARE_REVISION}\" ReleaseIndex=\"${FIRMWARE_INDEX}\">" >> "$FILE"
 echo "    <AssociatedFiles>" >> "$FILE"
-echo "      <File RefID=\"RAUC-File\" Type=\"rauc\" Name=\"$RAUC_UPDATEFILE\" TargetPath=\"/root/fwupdate/update_${FIRMWARE_INDEX}_${FIRMWARE_REVISION_LONG}.raucb\"/>" >> "$FILE"
+echo "      <File RefID=\"RAUC-File\" Type=\"rauc\" Name=\"$RAUC_UPDATEFILE\" TargetPath=\"/tmp/fwupdate/update_${FIRMWARE_INDEX}_${FIRMWARE_REVISION_LONG}.raucb\"/>" >> "$FILE"
 echo "    </AssociatedFiles>" >> "$FILE"
 echo "  </FirmwareDescription>" >> "$FILE"
 echo "  <ArticleList>" >> "$FILE"

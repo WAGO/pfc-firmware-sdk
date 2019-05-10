@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBOSAL) += libosal
 
 LIBOSAL_VERSION             := 1.3.0
 LIBOSAL_NAME                := libosal
-LIBOSAL_URL                 := file://$(SRCDIR)/$(LIBOSAL_NAME)-$(LIBOSAL_VERSION)
+LIBOSAL_URL                 := file://$(SRCDIR)/$(LIBOSAL_NAME)
 LIBOSAL_DIR                 := $(BUILDDIR)/$(LIBOSAL_NAME)-$(LIBOSAL_VERSION)
 LIBOSAL_LICENSE             :=
 LIBOSAL_TARGET_PLATFORM     := ptx-dist
@@ -43,7 +43,7 @@ $(STATEDIR)/$(LIBOSAL_NAME).get:
 $(STATEDIR)/$(LIBOSAL_NAME).extract:
 	@$(call targetinfo)
 	mkdir -p $(LIBOSAL_DIR)
-	rsync -a --exclude=output/ $(SRCDIR)/$(LIBOSAL_NAME)-$(LIBOSAL_VERSION) $(BUILDDIR)
+	rsync -a --exclude=output/ $(SRCDIR)/$(LIBOSAL_NAME)/ $(BUILDDIR)/$(LIBOSAL_NAME)-$(LIBOSAL_VERSION)
 	@$(call touch)
 
 $(STATEDIR)/$(LIBOSAL_NAME).extract.post:

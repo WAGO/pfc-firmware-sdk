@@ -1,0 +1,18 @@
+## SECTION=security
+
+menuconfig AIDE
+	tristate
+	select LIBPCRE
+	select ZLIB
+	select LIBGCRYPT
+	select LIBGPG_ERROR
+	prompt "aide"
+	help
+	  FIXME
+	  
+if AIDE
+config AIDE_CHECK_STARTSCRIPT
+  bool
+  default y
+  prompt "install /etc/init.d/aide_check"
+endif

@@ -153,7 +153,7 @@ $(STATEDIR)/cbm.targetinstall:
 	@$(call install_fixup,cbm,AUTHOR,"Wago Kontakttechnik")
 	@$(call install_fixup,cbm,DESCRIPTION,missing)
 
-	@$(call install_copy, cbm, 0, 0, 2777, /etc/config-tools);
+	@$(call install_copy, cbm, 0, 0, 0755, /etc/config-tools);
 	
 
 ifdef PTXCONF_CT_WDIALOG

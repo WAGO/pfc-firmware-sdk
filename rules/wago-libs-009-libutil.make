@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBUTIL) += libutil
 
 LIBUTIL_VERSION             := 1.3.0
 LIBUTIL_NAME                := libutil
-LIBUTIL_URL                 := file://$(SRCDIR)/$(LIBUTIL_NAME)-$(LIBUTIL_VERSION)
+LIBUTIL_URL                 := file://$(SRCDIR)/$(LIBUTIL_NAME)
 LIBUTIL_DIR                 := $(BUILDDIR)/$(LIBUTIL_NAME)-$(LIBUTIL_VERSION)
 LIBUTIL_PROJ_DIR            := LIBUTIL_DIR
 LIBUTIL_LICENSE             :=
@@ -44,7 +44,7 @@ $(STATEDIR)/$(LIBUTIL_NAME).get:
 $(STATEDIR)/$(LIBUTIL_NAME).extract:
 	@$(call targetinfo)
 	@mkdir -p $(LIBUTIL_DIR)
-	@rsync -a --exclude=output/ $(SRCDIR)/$(LIBUTIL_NAME)-$(LIBUTIL_VERSION) $(BUILDDIR)
+	@rsync -a --exclude=output/ $(SRCDIR)/$(LIBUTIL_NAME)/ $(BUILDDIR)/$(LIBUTIL_NAME)-$(LIBUTIL_VERSION)
 	@$(call touch)
 	
 $(STATEDIR)/$(LIBUTIL_NAME).extract.post:

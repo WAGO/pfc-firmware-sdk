@@ -1,5 +1,3 @@
-daemonize-1.4/COPYING
-
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 

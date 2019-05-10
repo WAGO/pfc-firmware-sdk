@@ -1,0 +1,27 @@
+From 3ae047980c0039f8641665c9bb3e25daf0549982 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Heinrich=20T=C3=B6ws?= <heinrich.toews@wago.com>
+Date: Thu, 12 Feb 2015 16:52:21 +0000
+Subject: [PATCH 012/292] omap3: pfc200: skip pm init to get the device booted
+
+---
+ arch/arm/mach-omap2/io.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index f0da525..1d4b565 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -560,7 +560,9 @@ void __init am35xx_init_early(void)
+ void __init omap3_init_late(void)
+ {
+ 	omap_common_late_init();
+-	omap3_pm_init();
++	if (!of_machine_is_compatible("wago,pfc200")) {
++			omap3_pm_init();
++	}
+ 	omap2_clk_enable_autoidle_all();
+ }
+ 
+-- 
+2.7.4
+

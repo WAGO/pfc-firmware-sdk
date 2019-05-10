@@ -1,0 +1,7 @@
+## SECTION=initmethod_bbinit
+
+config AIDE_CHECK_BBINIT_LINK
+	string
+	depends on AIDE_CHECK_STARTSCRIPT
+        prompt "run aide check at startup"
+	default "S91_aide_check"

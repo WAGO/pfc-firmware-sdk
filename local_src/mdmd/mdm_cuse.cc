@@ -248,7 +248,7 @@ static int mdm_cuse_setup(int argc, char **argv, mdm_cuse_ctx_t *ctx)
 
 int main(int argc, char *argv[])
 {
-  int status;
+  int status = EXIT_SUCCESS;
   mdm_cuse_ctx_t ctx;
 
   setlogmask (LOG_UPTO(cm_syslog_level));

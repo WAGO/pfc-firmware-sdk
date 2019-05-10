@@ -1,0 +1,68 @@
+From 719446da7c9d6513a561182d3380080104721887 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 14 Aug 2017 14:28:34 +0200
+Subject: [PATCH 091/292] tty: serial: remove unused functions
+
+	commit ad34b58c6e9fe54103bd0d3b7a58bf1578689eb1 removes
+	handle of TIOC[GS]RS485 ioctls from serial_core driver.
+	So remove function defintions to remove compiler warnings
+	during kernel build.
+---
+ drivers/tty/serial/serial_core.c | 41 ----------------------------------------
+ 1 file changed, 41 deletions(-)
+
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index 784dba8..fd90667 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -1258,47 +1258,6 @@ static int uart_get_icount(struct tty_struct *tty,
+ 	return 0;
+ }
+ 
+-static int uart_get_rs485_config(struct uart_port *port,
+-			 struct serial_rs485 __user *rs485)
+-{
+-	unsigned long flags;
+-	struct serial_rs485 aux;
+-
+-	spin_lock_irqsave(&port->lock, flags);
+-	aux = port->rs485;
+-	spin_unlock_irqrestore(&port->lock, flags);
+-
+-	if (copy_to_user(rs485, &aux, sizeof(aux)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-static int uart_set_rs485_config(struct uart_port *port,
+-			 struct serial_rs485 __user *rs485_user)
+-{
+-	struct serial_rs485 rs485;
+-	int ret;
+-	unsigned long flags;
+-
+-	if (!port->rs485_config)
+-		return -ENOIOCTLCMD;
+-
+-	if (copy_from_user(&rs485, rs485_user, sizeof(*rs485_user)))
+-		return -EFAULT;
+-
+-	spin_lock_irqsave(&port->lock, flags);
+-	ret = port->rs485_config(port, &rs485);
+-	spin_unlock_irqrestore(&port->lock, flags);
+-	if (ret)
+-		return ret;
+-
+-	if (copy_to_user(rs485_user, &port->rs485, sizeof(port->rs485)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+ /*
+  * Called via sys_ioctl.  We can use spin_lock_irq() here.
+  */
+-- 
+2.7.4
+

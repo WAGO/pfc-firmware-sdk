@@ -209,6 +209,7 @@ out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/persistent_storage.cc.o out/g
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/functional_hash.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/hash_bytes.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/basic_string.tcc \
+ mdm_config_types.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include/unistd.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include/bits/posix_opt.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include/bits/environments.h \
@@ -639,6 +640,8 @@ persistent_storage.h:
 /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/hash_bytes.h:
 
 /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/basic_string.tcc:
+
+mdm_config_types.h:
 
 /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include/unistd.h:
 

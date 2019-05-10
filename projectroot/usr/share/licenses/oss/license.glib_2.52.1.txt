@@ -1,5 +1,3 @@
-glib-2.52.1/AUTHORS
-
 Below are just a few of the people who have contributed
 to GLib. Please don't mail these people about problems you
 have with GTK+; see the README file for information about
@@ -41,8 +39,6 @@ Peter Mattis       <petm@xcf.berkeley.edu>
 Spencer Kimball    <spencer@xcf.berkeley.edu>
 Josh MacDonald     <jmacd@xcf.berkeley.edu>
 
-glib-2.52.1/COPYING
-
 		  GNU LIBRARY GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -525,13 +521,9 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
-glib-2.52.1/gmodule/AUTHORS
 
 Tim Janik <timj@gtk.org>
 
-glib-2.52.1/gmodule/COPYING
-
 		  GNU LIBRARY GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -1014,16 +1006,12 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
-glib-2.52.1/glib/pcre/COPYING
 
 PCRE LICENCE
 
 Please see the file LICENCE in the PCRE distribution for licensing details.
 
 End
-
-glib-2.52.1/docs/reference/AUTHORS
 
 Damon Chaplin <damon@karuna.freeserve.co.uk> and others.
 
@@ -1032,8 +1020,6 @@ See:
  http://www.gtk.org/rdp/status.html
 
 for a complete list.
-
-glib-2.52.1/docs/reference/COPYING
 
 This work may be reproduced and distributed in whole or in part, in
 any medium, physical or electronic, so as long as this copyright

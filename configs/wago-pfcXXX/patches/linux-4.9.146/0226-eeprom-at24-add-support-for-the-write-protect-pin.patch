@@ -1,0 +1,84 @@
+From 68cc256bfdff4754badde1e8aa0142ace17ede07 Mon Sep 17 00:00:00 2001
+From: Bartosz Golaszewski <brgl@bgdev.pl>
+Date: Tue, 19 Dec 2017 11:28:54 +0100
+Subject: [PATCH 226/292] eeprom: at24: add support for the write-protect pin
+
+AT24 EEPROMs have a write-protect pin, which - when pulled high -
+inhibits writes to the upper quadrant of memory (although it has been
+observed that on some chips it disables writing to the entire memory
+range).
+
+On some boards, this pin is connected to a GPIO and pulled high by
+default, which forces the user to manually change its state before
+writing. On linux this means that we either need to hog the line all
+the time, or set the GPIO value before writing from outside of the
+at24 driver.
+
+Make the driver check if the write-protect GPIO was defined in the
+device tree and pull it low whenever writing to the EEPROM.
+
+Signed-off-by: Bartosz Golaszewski <brgl@bgdev.pl>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+---
+ drivers/misc/eeprom/at24.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/misc/eeprom/at24.c b/drivers/misc/eeprom/at24.c
+index d8a485f..61a960b 100644
+--- a/drivers/misc/eeprom/at24.c
++++ b/drivers/misc/eeprom/at24.c
+@@ -24,6 +24,7 @@
+ #include <linux/i2c.h>
+ #include <linux/nvmem-provider.h>
+ #include <linux/platform_data/at24.h>
++#include <linux/gpio/consumer.h>
+ 
+ /*
+  * I2C EEPROMs from most vendors are inexpensive and mostly interchangeable.
+@@ -75,6 +76,8 @@ struct at24_data {
+ 	struct nvmem_config nvmem_config;
+ 	struct nvmem_device *nvmem;
+ 
++	struct gpio_desc *wp_gpio;
++
+ 	/*
+ 	 * Some chips tie up multiple I2C addresses; dummy devices reserve
+ 	 * them for us, and we'll use them with SMBus calls.
+@@ -550,12 +553,14 @@ static int at24_write(void *priv, unsigned int off, void *val, size_t count)
+ 	 * from this host, but not from other I2C masters.
+ 	 */
+ 	mutex_lock(&at24->lock);
++	gpiod_set_value_cansleep(at24->wp_gpio, 0);
+ 
+ 	while (count) {
+ 		int status;
+ 
+ 		status = at24->write_func(at24, buf, off, count);
+ 		if (status < 0) {
++			gpiod_set_value_cansleep(at24->wp_gpio, 1);
+ 			mutex_unlock(&at24->lock);
+ 			return status;
+ 		}
+@@ -564,6 +569,7 @@ static int at24_write(void *priv, unsigned int off, void *val, size_t count)
+ 		count -= status;
+ 	}
+ 
++	gpiod_set_value_cansleep(at24->wp_gpio, 1);
+ 	mutex_unlock(&at24->lock);
+ 
+ 	return 0;
+@@ -700,6 +706,11 @@ static int at24_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	at24->chip = chip;
+ 	at24->num_addresses = num_addresses;
+ 
++	at24->wp_gpio = devm_gpiod_get_optional(&client->dev,
++						"wp", GPIOD_OUT_HIGH);
++	if (IS_ERR(at24->wp_gpio))
++		return PTR_ERR(at24->wp_gpio);
++
+ 	if ((chip.flags & AT24_FLAG_SERIAL) && (chip.flags & AT24_FLAG_MAC)) {
+ 		dev_err(&client->dev,
+ 			"invalid device data - cannot have both AT24_FLAG_SERIAL & AT24_FLAG_MAC.");
+-- 
+2.7.4
+

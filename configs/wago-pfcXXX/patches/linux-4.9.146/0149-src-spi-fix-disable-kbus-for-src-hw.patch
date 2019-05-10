@@ -1,0 +1,196 @@
+From 353a7bb221a32702d9e94ff150bc0c2bec38cc60 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Mon, 12 Feb 2018 11:39:00 +0100
+Subject: [PATCH 149/292] src: spi: fix disable kbus for src hw.
+
+* add several preprocessor directives to disable kbus extension when
+kconfig option is unset
+* add some code from upstream spi driver to fix spi communication
+* reenable fram
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi             |  4 ---
+ arch/arm/configs/wago_src_generic_defconfig |  7 ----
+ drivers/spi/spi-omap2-mcspi.c               | 53 ++++++++++++++++++++++++++++-
+ 3 files changed, 52 insertions(+), 12 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index 854426a..23153da 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -453,7 +453,6 @@
+ 	ti,edma-xbar-event-map = /bits/ 16 <32 12>;
+ };
+ 
+-/*
+ &spi0 {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+@@ -471,10 +470,7 @@
+ 	size = <8192>;
+ 	address-width = <16>;
+ 	};
+-
+-
+ };
+-*/
+ 
+ &spi1 {
+ 	status = "okay";
+diff --git a/arch/arm/configs/wago_src_generic_defconfig b/arch/arm/configs/wago_src_generic_defconfig
+index 375bc72..407a3e2 100644
+--- a/arch/arm/configs/wago_src_generic_defconfig
++++ b/arch/arm/configs/wago_src_generic_defconfig
+@@ -43,12 +43,6 @@ CONFIG_WAGO_USV=y
+ # CONFIG_SOC_TI81XX is not set
+ # CONFIG_MACH_OMAP3517EVM is not set
+ # CONFIG_MACH_OMAP3_PANDORA is not set
+-# CONFIG_MACH_TOUCHBOOK is not set
+-# CONFIG_MACH_OMAP_3430SDP is not set
+-# CONFIG_MACH_NOKIA_RX51 is not set
+-# CONFIG_MACH_CM_T35 is not set
+-# CONFIG_MACH_CM_T3517 is not set
+-# CONFIG_MACH_SBC3530 is not set
+ # CONFIG_GPMC_FPGA_INIT is not set
+ CONFIG_OMAP_DM_TIMER_IO_CNT=y
+ CONFIG_ARM_THUMBEE=y
+@@ -323,7 +317,6 @@ CONFIG_SPI_OMAP24XX=y
+ CONFIG_SPI_SC18IS602=m
+ CONFIG_SPI_XCOMM=m
+ CONFIG_SPI_SPIDEV=y
+-CONFIG_SPI_KBUS=y
+ CONFIG_PINCTRL_SINGLE=y
+ CONFIG_DEBUG_GPIO=y
+ CONFIG_GPIO_SYSFS=y
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index e901786..e9192b6 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -1255,26 +1255,59 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 	struct omap2_mcspi_dma		*mcspi_dma;
+ 	struct omap2_mcspi_cs		*cs;
+ 	struct omap2_mcspi_device_config *cd;
++#ifndef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	int                             par_override = 0;
++#endif
+ 	int				status = 0;
+ 	u32				chconf;
++
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
+ 	struct kbus_drv_data            *kdrvdata = NULL;
+ 
+ 	trace_pxc_kbus(__func__, "enter");
+ 	kbus_wago_mpoint(); /* M4 */
++#endif
+ 
+ 	mcspi = spi_master_get_devdata(master);
+ 	mcspi_dma = mcspi->dma_channels + spi->chip_select;
+ 	cs = spi->controller_state;
+ 	cd = spi->controller_data;
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
+ 	if (spi->dev.driver == &kbus_driver.driver)
+ 		kdrvdata = spi_get_drvdata(spi);
++#endif
++#ifndef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	/*
++	 * The slave driver could have changed spi->mode in which case
++	 * it will be different from cs->mode (the current hardware setup).
++	 * If so, set par_override (even though its not a parity issue) so
++	 * omap2_mcspi_setup_transfer will be called to configure the hardware
++	 * with the correct mode on the first iteration of the loop below.
++	 */
++	if (spi->mode != cs->mode)
++		par_override = 1;
++#endif
+ 
+ 	omap2_mcspi_set_enable(spi, 0);
+ 
+ 	if (gpio_is_valid(spi->cs_gpio))
+ 		omap2_mcspi_set_cs(spi, spi->mode & SPI_CS_HIGH);
+ 
++#ifndef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	if (par_override ||
++	    (t->speed_hz != spi->max_speed_hz) ||
++	    (t->bits_per_word != spi->bits_per_word)) {
++		par_override = 1;
++		status = omap2_mcspi_setup_transfer(spi, t);
++		if (status < 0)
++			goto out;
++		if (t->speed_hz == spi->max_speed_hz &&
++		    t->bits_per_word == spi->bits_per_word)
++			par_override = 0;
++	}
++#endif
++
+ 	if (cd && cd->cs_per_word) {
+ 		chconf = mcspi->ctx.modulctrl;
+ 		chconf &= ~OMAP2_MCSPI_MODULCTRL_SINGLE;
+@@ -1302,7 +1335,9 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 
+ 	if (t->len) {
+ 		unsigned	count;
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
+ 		int                 i;
++#endif
+ 
+ #ifndef CONFIG_SPI_KBUS_OMAP_EXTENSION
+ 		/* FIXME
+@@ -1321,6 +1356,7 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 			writel_relaxed(0, cs->base
+ 					+ OMAP2_MCSPI_TX0);
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
+                 /*
+                  * kbus:
+                  *  release irq and check the sync signal
+@@ -1347,12 +1383,18 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+                         gpio_set_value(kdrvdata->gpio_nirq, 1);
+ 
+                 }
++#endif
+ 
+ 		if ((mcspi_dma->dma_rx && mcspi_dma->dma_tx) &&
+ 		    master->cur_msg_mapped &&
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
+ 		    master->can_dma(master, spi, t)) {
+                         if (kdrvdata)
+                                 trace_pxc_kbus(__func__, "DMA: TXRX: Trigger DMA Transfer.");
++#endif
++#ifndef CONFIG_SPI_KBUS_OMAP_EXTENSION
++		    master->can_dma(master, spi, t)) {
++#endif
+ 			count = omap2_mcspi_txrx_dma(spi, t);
+                 }
+ 		else
+@@ -1369,6 +1411,7 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+ 	if (mcspi->fifo_depth > 0)
+ 		omap2_mcspi_set_fifo(spi, t, 0);
+ 
++#ifdef CONFIG_SPI_KBUS_OMAP_EXTENSION
+         /*
+          * Special KBUS Treatment
+          *
+@@ -1448,9 +1491,17 @@ static int omap2_mcspi_transfer_one(struct spi_master *master,
+                         }
+                 }
+                 kbus_wago_mpoint(); /* MX */
+-        }
++	}
++#endif
+ 
+ out:
++#ifndef CONFIG_SPI_KBUS_OMAP_EXTENSION
++	/* Restore defaults if they were overridden */
++	if (par_override) {
++		par_override = 0;
++		status = omap2_mcspi_setup_transfer(spi, NULL);
++	}
++#endif
+ 
+ 	if (cd && cd->cs_per_word) {
+ 		chconf = mcspi->ctx.modulctrl;
+-- 
+2.7.4
+

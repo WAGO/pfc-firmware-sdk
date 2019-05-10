@@ -1,5 +1,3 @@
-u-boot-mkimage-2010.03-1/COPYING
-
   NOTE! This copyright does *not* cover the so-called "standalone"
 applications that use U-Boot services by means of the jump table
 provided by U-Boot exactly for this purpose - this is merely

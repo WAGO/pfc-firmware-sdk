@@ -1,5 +1,3 @@
-xz-5.2.3/AUTHORS
-
 
 Authors of XZ Utils
 ===================
@@ -27,8 +25,6 @@ Authors of XZ Utils
     Several people have contributed fixes or reported bugs. Most of them
     are mentioned in the file THANKS.
 
-
-xz-5.2.3/COPYING
 
 
 XZ Utils Licensing
@@ -95,8 +91,6 @@ XZ Utils Licensing
     If you have questions, don't hesitate to ask the author(s) for more
     information.
 
-
-xz-5.2.3/COPYING.GPLv2
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
@@ -437,8 +431,6 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
-
-xz-5.2.3/COPYING.GPLv3
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -1114,8 +1106,6 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
-
-xz-5.2.3/COPYING.LGPLv2.1
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999

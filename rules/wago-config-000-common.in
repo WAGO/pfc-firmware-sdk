@@ -415,6 +415,19 @@ config CT_HTTPS_CIPHER_SELECTION
    status of current setting.
 
 #################################################################
+
+comment "AIDE related config-tools"
+
+config CT_WBM_MANAGE_AIDE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  select AIDE
+  prompt "manage_integrity"
+  help
+    Manage AIDE via WBM.
+
+#################################################################
 comment "Helper scripts"
 depends on CONFIG_TOOLS
 
@@ -628,14 +641,6 @@ config CT_COPY_FIRMWARE_IMAGE
   prompt "copy_firmware_image"
   help
    Copy the firmware image from one device to another.
-
-config CT_FILESYSTEM_CHECK
-  bool
-  default n
-  depends on CONFIG_TOOLS
-  prompt "filesystem_check"
-  help
-   Run fsck.
 
 config CT_GET_FILESYSTEM_DATA
   bool

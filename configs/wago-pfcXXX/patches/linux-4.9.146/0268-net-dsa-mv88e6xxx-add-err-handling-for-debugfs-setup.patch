@@ -1,0 +1,66 @@
+From 46de34c4c36dbaf534238665c478a38d3798f19b Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Fri, 28 Sep 2018 13:37:12 +0200
+Subject: [PATCH 268/292] net: dsa: mv88e6xxx: add err handling for debugfs
+ setup and distroy
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/dsa/mv88e6xxx/debugfs.c   | 26 ++++++++++++++++++++------
+ drivers/net/dsa/mv88e6xxx/mv88e6xxx.h |  2 +-
+ 2 files changed, 21 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/net/dsa/mv88e6xxx/debugfs.c b/drivers/net/dsa/mv88e6xxx/debugfs.c
+index f1edae1a..3454c0f 100644
+--- a/drivers/net/dsa/mv88e6xxx/debugfs.c
++++ b/drivers/net/dsa/mv88e6xxx/debugfs.c
+@@ -122,14 +122,28 @@ static const struct file_operations debugfs_ops = {
+ 
+ void mv88e6xxx_debugfs_destroy(struct mv88e6xxx_chip *chip)
+ {
+-	debugfs_remove_recursive(chip->debugfs_root_entry);
++	if (!IS_ERR_OR_NULL(chip->debugfs_root_entry))
++		debugfs_remove_recursive(chip->debugfs_root_entry);
+ }
+ 
+-void mv88e6xxx_debugfs_setup(struct mv88e6xxx_chip *chip)
++int mv88e6xxx_debugfs_setup(struct mv88e6xxx_chip *chip)
+ {
+-	chip->debugfs_root_entry = debugfs_create_dir("mv88e6xx", NULL);
++	struct dentry *entry;
+ 
+-	debugfs_create_file(files[GBE_TEST_MODE_ID],
+-			    0600, chip->debugfs_root_entry,
+-			    chip, &debugfs_ops);
++	entry = debugfs_create_dir("mv88e6xx", NULL);
++	if (IS_ERR_OR_NULL(entry))
++		goto out_err;
++
++	chip->debugfs_root_entry = entry;
++
++	entry = debugfs_create_file(files[GBE_TEST_MODE_ID], 0600,
++				    chip->debugfs_root_entry, chip,
++				    &debugfs_ops);
++	if (IS_ERR_OR_NULL(entry))
++		goto out_err;
++
++	return 0;
++
++out_err:
++	return (entry) ? PTR_ERR(entry) : -EINVAL;
+ }
+diff --git a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+index 23beb07..abdce58 100644
+--- a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
++++ b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+@@ -820,6 +820,6 @@ int mv88e6xxx_update(struct mv88e6xxx_chip *chip, int addr, int reg,
+ int mv88e6xxx_wait(struct mv88e6xxx_chip *chip, int addr, int reg, u16 mask);
+ 
+ void mv88e6xxx_debugfs_destroy(struct mv88e6xxx_chip *chip);
+-void mv88e6xxx_debugfs_setup(struct mv88e6xxx_chip *chip);
++int mv88e6xxx_debugfs_setup(struct mv88e6xxx_chip *chip);
+ 
+ #endif
+-- 
+2.7.4
+

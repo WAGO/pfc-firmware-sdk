@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2019 WAGO Kontakttechnik GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
@@ -8,14 +8,12 @@
 /// accepts the terms of the license.
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-///
 ///  \file     get_rts_info.c
 ///
-///  \version  $Revision: 14149 $1
+///  \brief    Read information about CoDeSys 2 PLC.
 ///
-///  \brief    Read informations about PLC.
-///
-///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   SM:  WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -27,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -55,12 +54,14 @@
 // Local macros
 //------------------------------------------------------------------------------
 
-#define TIMEOUT_RECEIVE_ANSWER              2
+#define TIMEOUT_RECEIVE_ANSWER                                                 2
 
 // maximum length of ouput string - should be long enough for all values (-> project description!)
-#define MAX_LENGTH_OUTPUT_STRING_GET_RTS_INFO            256
+#define MAX_LENGTH_OUTPUT_STRING_GET_RTS_INFO                                256
 
-#define CTRL_TASK_MILLIFACTOR               1000
+#define CTRL_TASK_MILLIFACTOR                                               1000
+
+#define CDS2_CHECKSUM_FILE                           "/home/codesys/DEFAULT.CHK"
 
 //------------------------------------------------------------------------------
 // External variables
@@ -135,11 +136,11 @@ void ShowHelpText(void)
   printf("                task-list returns the html-code for the task list table on webpage\n");
   printf("                task-list-json returns all task infos in json format\n");
   printf("\n");
-  printf("task number: only necessairy, at parameter area \"task\"\n");
+  printf("task number: only necessary, at parameter area \"task\"\n");
   printf("\n");
   printf("parameter: depending on the specified parameter area, following parameters are possible:\n");
-  printf("           state or task-list: no parameter necessairy\n");
-  printf("           project: \"date \" | \"title\" | \"version\" | \"author\" | \"description\"\n");
+  printf("           state or task-list: no parameter necessary\n");
+  printf("           project: \"date\" | \"title\" | \"version\" | \"author\" | \"description\" | \"checksum\"\n");
   printf("           task: \"name\" | \"id\" | \"count\" | \"cycletime\" | \"cycletime-min\" | \"cycletime-max\" |\n");
   printf("           \"cycletime-acc\" |\"status\" | \"mode\" | \"priority\" | \"interval\" | \"interval-unit\" | \"event\" |\n");
   printf("           \"function-pointer\" | \"function-index\"\n");
@@ -243,12 +244,40 @@ int ShowProjectInfo(char* psnParameterName,
       }
       else
       {
-        printf("%s", "Error reading value");
+        status = ERROR;
+        fprintf(stderr, "%s", "Error reading value");
         g_error_free(error);
       }
 
       g_free(descr);
-    
+    }
+    else if((strcmp(psnParameterName, "checksum") == 0) && (stMsgProjectInfo.DTDATE > 0))
+    {
+      char const szChecksumError[] = "Checksum not available:";
+      FILE *pChecksumFile = fopen(CDS2_CHECKSUM_FILE, "r");
+      if(pChecksumFile == NULL)
+      {
+        status = FILE_OPEN_ERROR;
+        fprintf(stderr, "%s %s\n", szChecksumError, strerror(errno));
+        SetLastError(strerror(errno));
+      }
+      else
+      {
+        uint32_t checksum = 0;
+        size_t readElements = fread(&checksum, 4U, 1U, pChecksumFile);
+        fclose(pChecksumFile);
+        if(readElements != 1U)
+        {
+          status = FILE_READ_ERROR;
+          char const szChecksumReadError[] = "Failed to read checksum";
+          fprintf(stderr, "%s %s\n", szChecksumError, szChecksumReadError);
+          SetLastError(szChecksumReadError);
+        }
+        else
+        {
+          snprintf(pOutputString, MAX_LENGTH_OUTPUT_STRING_GET_RTS_INFO, "%u", checksum);
+        }
+      }
     }
     // else - unknown parameter -> do nothing
   }

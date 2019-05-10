@@ -24,11 +24,12 @@ PACKAGES-$(PTXCONF_LIGHTTPD) += lighttpd
 #
 LIGHTTPD_VERSION	:= 1.4.48
 LIGHTTPD_MD5		:= 1e3a9eb5078f481e3a8a1d0aaac8c3c8
-LIGHTTPD			:= lighttpd-$(LIGHTTPD_VERSION)
+LIGHTTPD		:= lighttpd-$(LIGHTTPD_VERSION)
 LIGHTTPD_SUFFIX		:= tar.xz
 LIGHTTPD_URL		:= http://download.lighttpd.net/lighttpd/releases-1.4.x/$(LIGHTTPD).$(LIGHTTPD_SUFFIX)
 LIGHTTPD_SOURCE		:= $(SRCDIR)/$(LIGHTTPD).$(LIGHTTPD_SUFFIX)
 LIGHTTPD_DIR		:= $(BUILDDIR)/$(LIGHTTPD)
+LIGHTTPD_PROJECTROOT	=  $(call ptx/get_alternative, projectroot, etc/lighttpd)
 LIGHTTPD_LICENSE	:= Custom License
 
 # ----------------------------------------------------------------------------
@@ -127,40 +128,45 @@ $(STATEDIR)/lighttpd.targetinstall:
 	@$(call install_fixup, lighttpd,AUTHOR,"Daniel Schnell <danielsch@marel.com>")
 	@$(call install_fixup, lighttpd,DESCRIPTION,missing)
 
-#	# bins
+#	#
+#	# Executables
+#	#
 	@$(call install_copy, lighttpd, 0, 0, 0755, -, \
 		/usr/sbin/lighttpd)
 	@$(call install_copy, lighttpd, 0, 0, 0755, -, \
 		/usr/sbin/lighttpd-angel)
 
+#	#
+#	# Modules
+#	#
 ifdef PTXCONF_LIGHTTPD_INSTALL_SELECTED_MODULES
 	@$(foreach mod,$(LIGHTTPD_MODULES_INSTALL), \
 		$(call install_lib, lighttpd, 0, 0, 0644, lighttpd/$(mod));)
 else
-#	# modules
 	@$(call install_tree, lighttpd, 0, 0, -, /usr/lib/lighttpd)
 endif
 
-
+#	#
+#	# Configuration files
+#	#
 ifdef PTXCONF_LIGHTTPD_MOD_FASTCGI_PHP
-	@$(call install_alternative, lighttpd, 0, 0, 0644, \
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
 		/etc/lighttpd/conf.d/mod_fastcgi_php.conf)
 endif
 
-#	#
-#	# configs
-#	#
-
-	@cd $(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd && \
+	@cd $(LIGHTTPD_PROJECTROOT) && \
 	for file in *.conf; do \
-    		$(call install_copy, lighttpd, 12, 102, 0640, \
-			$(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd/$$file, \
+    		$(call install_copy, lighttpd, 0, 0, 0600, \
+			$(LIGHTTPD_PROJECTROOT)/$$file, \
 			/etc/lighttpd/$$file, n); \
   	done;
 
 ifdef PTXCONF_LIGHTTPD_HTTPS
 
-ifdef PTXCONF_LIGHTTPD_HTTPS_INSTALL_CONF_LINK
+#	#
+#	# Default mode (https or https+http)
+#	#
+ifdef PTXCONF_LIGHTTPD_INSTALL_CONF_LINK_HTTPS
 	@$(call install_link, lighttpd, mode_https.conf, \
 		/etc/lighttpd/mode.conf)
 else
@@ -168,13 +174,30 @@ else
 		/etc/lighttpd/mode.conf)
 endif
 
+#	#
+#	# TLS configuration (strong or standard)
+#	#
+ifdef PTXCONF_LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STRONG
+	@$(call install_link, lighttpd, tls-strong.conf, \
+		/etc/lighttpd/tls.conf)
 else
+	@$(call install_link, lighttpd, tls-standard.conf, \
+		/etc/lighttpd/tls.conf)
+endif
+
+endif # PTXCONF_LIGHTTPD_HTTPS
+
+#	#
+#	# Default mode (http)
+#	#
+ifdef PTXCONF_LIGHTTPD_INSTALL_CONF_LINK_HTTP
 	@$(call install_link, lighttpd, mode_http.conf, \
 		/etc/lighttpd/mode.conf)
 endif
 
-#TODO: replace install_copy with install_alternative!
-
+#	#
+#	# Certificates and keys
+#	#
 ifdef PTXCONF_LIGHTTPD_HTTPS_GEN_CERT
 	@$(call install_copy, lighttpd, 0, 0, 0400, \
 		$(LIGHTTPD_DIR)/https-cert.pem, \
@@ -183,20 +206,18 @@ ifdef PTXCONF_LIGHTTPD_HTTPS_GEN_CERT
 		$(LIGHTTPD_DIR)/dh3072.pem, \
 		/etc/lighttpd/dh3072.pem, n)
 else
-	@$(call install_copy, lighttpd, 0, 0, 0400, \
-		$(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd/https-cert.pem, \
+	@$(call install_alternative, lighttpd, 0, 0, 0400, \
 		/etc/lighttpd/https-cert.pem, n)
-	@$(call install_copy, lighttpd, 0, 0, 0400, \
-		$(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd/dh3072.pem, \
+	@$(call install_alternative, lighttpd, 0, 0, 0400, \
 		/etc/lighttpd/dh3072.pem, n)
 endif
 
-#   # Websockets
-	@$(call install_copy, lighttpd, 0, 0, 0400, \
-		$(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd/websocket_off.conf, \
+#	#
+#	# Websockets
+#	#
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
 		/etc/lighttpd/websocket_off.conf, n)
-	@$(call install_copy, lighttpd, 0, 0, 0400, \
-		$(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd/websocket_on.conf, \
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
 		/etc/lighttpd/websocket_on.conf, n)
 
 ifdef PTXCONF_CDS3_TSCWEBSOCKETSERVER
@@ -210,16 +231,15 @@ endif
 	@$(call install_link, lighttpd, redirect_wbm.conf, \
 		/etc/lighttpd/redirect_default.conf)
 
-	@$(call install_copy, lighttpd, 12, 102, 0600, \
-		$(PTXDIST_WORKSPACE)/projectroot/etc/lighttpd/lighttpd-htpasswd.user, \
+#	#
+#	# WBM user database
+#	#
+	@$(call install_alternative, lighttpd, 12, 102, 0600, \
 		/etc/lighttpd/lighttpd-htpasswd.user)
-
-	@$(call install_link, lighttpd, tls-standard.conf, /etc/lighttpd/tls.conf)
 
 #	#
 #	# busybox init: start script
 #	#
-
 ifdef PTXCONF_INITMETHOD_BBINIT
 ifdef PTXCONF_LIGHTTPD_STARTSCRIPT
 	@$(call install_alternative, lighttpd, 0, 0, 0755, /etc/init.d/lighttpd)
@@ -235,7 +255,6 @@ endif
 ifdef PTXCONF_INITMETHOD_UPSTART
 	@$(call install_alternative, lighttpd, 0, 0, 0755, /etc/init/lighttpd.conf)
 endif
-
 
 ifdef PTXCONF_LIGHTTPD_SYSTEMD_UNIT
 	@$(call install_alternative, lighttpd, 0, 0, 0644, \

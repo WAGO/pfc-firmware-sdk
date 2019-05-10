@@ -71,14 +71,11 @@ function hook_routine
 {
     fwupdate_report_info "Start root file system pre-installation hook"
 
-    if fwupdate_shared_lock; then
-        local skip_settings_flag=false
-        skip_settings_flag=$(fwupdate_get_skip_settings_flag)
-        fwupdate_release_lock
-        if $skip_settings_flag; then
-            fwupdate_report_info "Settings backup skipped (flag is set)."
-            return 0
-        fi
+    local skip_settings_flag=false
+    skip_settings_flag=$(fwupdate_get_skip_settings_flag)
+    if $skip_settings_flag; then
+        fwupdate_report_info "Settings backup skipped (flag is set)."
+        return 0
     fi
 
     # Save settings

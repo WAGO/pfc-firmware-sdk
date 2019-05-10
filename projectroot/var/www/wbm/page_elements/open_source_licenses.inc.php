@@ -21,7 +21,7 @@
   );
 
   foreach ($ossFiles as $filePath) {
-    $fileContent = file_get_contents($filePath);
+    $fileContent = htmlspecialchars(file_get_contents($filePath));
     print("<br>");
     $fileName = pathinfo($filePath, PATHINFO_FILENAME);
     $fileNameParts = explode('.', $fileName, 2);

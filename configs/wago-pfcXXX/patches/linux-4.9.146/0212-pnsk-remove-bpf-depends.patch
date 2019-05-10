@@ -1,0 +1,24 @@
+From ee623f97de0e6fab3a63e7b038e5326988a7704f Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 23 Jul 2018 16:33:27 +0200
+Subject: [PATCH 212/292] pnsk: remove bpf depends
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ net/pn/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/net/pn/Kconfig b/net/pn/Kconfig
+index be8e05d..265949f 100644
+--- a/net/pn/Kconfig
++++ b/net/pn/Kconfig
+@@ -1,6 +1,5 @@
+ config PN_SOCKETS
+ 	bool "PROFINET sockets"
+-	depends on BPF_SYSCALL
+ 	select PAGE_POOL
+ 	default n
+ 	help
+-- 
+2.7.4
+

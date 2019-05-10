@@ -104,6 +104,13 @@ var RtsCommonConfig = function()
       outputFkt       : DisplayCodesysProjectDescription
       //defaultContent  : 'unknown',
     });
+
+    rtsCommonConfig.paramView.Add(
+    {
+      paramId         : 'codesys_project_checksum',
+      outputElementId : 'rts_info_content #project_checksum',
+      //defaultContent  : 'unknown',
+    });
     
   })();
 

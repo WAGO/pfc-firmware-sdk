@@ -1,0 +1,94 @@
+From 12b71b150e3e96010c086ebcef603bcb275bd067 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Wed, 28 Jun 2017 08:14:04 +0000
+Subject: [PATCH 068/292] dts: pfc200v3: remove led definition; add usv node
+
+---
+ arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 67 +++++-------------------
+ 1 file changed, 12 insertions(+), 55 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+index da74c3e..133c982 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
++++ b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+@@ -48,6 +48,18 @@
+  *   x: reserved for future use
+  *
+  */
++/{
++	usv {
++		compatible = "wago,usvinit";
++		add-sysfs-entries;
++		usv_irq = <&gpio1 17 GPIO_ACTIVE_LOW>;
++/*		usv_irq =  <&gpio3 18 GPIO_ACTIVE_LOW>;*/
++		switch-reset = <&gpio3 10 GPIO_ACTIVE_LOW>;
++		kbus-reset =  <&gpio1 25 GPIO_ACTIVE_HIGH>;
++		TPS65218-LS2 = "LS2_off"; /* switch USB off */
++		led-off;
++	};
++};
+ 
+ &usb1_phy {
+ 	status = "okay";
+@@ -56,58 +68,3 @@
+ &usb1 {
+ 	status = "okay";
+ };
+-
+-&u7_g {
+-	label = "usr-green";
+-};
+-
+-&u7_r {
+-	label = "usr-red";
+-};
+-
+-&u1_g {
+-	label = "net-green";
+-};
+-&u1_r {
+-	label = "net-red";
+-};
+-
+-&u2_g {
+-        label = "s1-green";
+-};
+-
+-&u2_r {
+-        label = "s1-red";
+-};
+-
+-&u3_g {
+-        label = "s2-green";
+-};
+-
+-&u3_r {
+-        label = "s2-red";
+-};
+-
+-&u4_g {
+-        label = "s3-green";
+-};
+-
+-&u4_r {
+-        label = "s3-red";
+-};
+-
+-&u5_g {
+-        label = "s4-green";
+-};
+-
+-&u5_r {
+-        label = "s4-red";
+-};
+-
+-&u6_g {
+-        label = "s5-green";
+-};
+-
+-&u6_r {
+-        label = "s5-red";
+-};
+-- 
+2.7.4
+

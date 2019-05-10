@@ -1,0 +1,28 @@
+From e99ee462a95bbffcb83870d72f26e18f1235f85e Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Fri, 2 Feb 2018 16:49:43 +0100
+Subject: [PATCH 146/292] dts: src: fix rtc interrupt settings.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index 5c91e4d..99ecc08 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -521,8 +521,8 @@
+ 		compatible = "ricoh,r2221tl";
+ 		reg = <0x32>;
+ 
+-		interrupt-parent = <&gpio3>;
+-		interrupts = <21 IRQ_TYPE_LEVEL_LOW>;
++		interrupt-parent = <&gpio2>;
++		interrupts = <1 IRQ_TYPE_LEVEL_LOW>;
+                 trim-data = <0 0 13>;
+ 	};
+ 
+-- 
+2.7.4
+

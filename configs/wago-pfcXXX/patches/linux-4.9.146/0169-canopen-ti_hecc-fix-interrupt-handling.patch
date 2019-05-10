@@ -1,0 +1,51 @@
+From 5c3f2af9a22d7b543c6ac49d62a599c6a6c3c0c6 Mon Sep 17 00:00:00 2001
+From: Peter Galka <peter.galka@wago.com>
+Date: Tue, 5 Sep 2017 08:18:57 +0200
+Subject: [PATCH 169/292] canopen: ti_hecc: fix interrupt handling
+
+This code section lead to a blocking state during CAN packet processing.
+Our testing showed that always enabling packet interrupt fixes the issue.
+---
+ drivers/net/can/ti_hecc.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/net/can/ti_hecc.c b/drivers/net/can/ti_hecc.c
+index 744d87e6..35dd380 100644
+--- a/drivers/net/can/ti_hecc.c
++++ b/drivers/net/can/ti_hecc.c
+@@ -685,18 +685,22 @@ static int ti_hecc_rx_poll(struct napi_struct *napi, int quota)
+ 		}
+ 	}
+ 
+-	/* Enable packet interrupt if all pkts are handled */
+-	if (hecc_read(priv, HECC_CANRMP) == 0) {
+-		napi_complete(napi);
+-		/* Re-enable RX mailbox interrupts */
+-		mbx_mask = hecc_read(priv, HECC_CANMIM);
+-		mbx_mask |= HECC_TX_MBOX_MASK;
+-		hecc_write(priv, HECC_CANMIM, mbx_mask);
+-	} else {
+-		/* repoll is done only if whole budget is used */
+-		num_pkts = quota;
++	if (hecc_read(priv, HECC_CANRMP)) {
++		netdev_warn(ndev, "delayed pkt\n");
+ 	}
+ 
++        /*
++         * We always enable packet interrupt here and skip checking
++         * for 'hecc_read(priv, HECC_CANRMP) == 0'.
++         * This check lead to a blocking state in v4.9.y.
++         */
++
++	napi_complete(napi);
++	/* Re-enable RX mailbox interrupts */
++	mbx_mask = hecc_read(priv, HECC_CANMIM);
++	mbx_mask |= HECC_TX_MBOX_MASK;
++	hecc_write(priv, HECC_CANMIM, mbx_mask);
++
+ 	return num_pkts;
+ }
+ 
+-- 
+2.7.4
+

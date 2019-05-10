@@ -1,0 +1,1380 @@
+From 68cb03464e3662989cc929111947757f983c5f90 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 24 May 2017 15:31:33 +0200
+Subject: [PATCH 054/292] dsa: micrel: add micrel specific changes from
+ v3.18.13
+
+	this commit adds the changes from kernel v3.18.13. Furthermmore
+	we merge the micrel ethernet driver in the micrel dsa driver to
+	resolve complex dependencies. Next step is to restructure the
+	micrel driver to fulfill kernel switchdev environment.
+---
+ .gitignore                                  |   2 +
+ arch/arm/configs/wago_pfc_generic_defconfig |   3 +-
+ drivers/net/dsa/Kconfig                     |   8 +
+ drivers/net/dsa/Makefile                    |   1 +
+ drivers/net/dsa/ksz8863.c                   | 386 ++++++++++++++++++++++++++++
+ drivers/net/ethernet/micrel/Kconfig         |   5 -
+ drivers/net/ethernet/micrel/Makefile        |   1 -
+ drivers/net/ethernet/micrel/ksz8863.c       | 257 ------------------
+ drivers/net/phy/Makefile                    |   5 +-
+ drivers/net/phy/ksz8863-cfg.c               |  45 +++-
+ include/net/dsa.h                           |  30 ++-
+ net/dsa/Kconfig                             |   4 +
+ net/dsa/Makefile                            |   1 +
+ net/dsa/dsa.c                               |  79 ++++++
+ net/dsa/dsa_priv.h                          |   3 +
+ net/dsa/slave.c                             |  22 ++
+ net/dsa/tag_tail.c                          | 192 ++++++++++++++
+ 17 files changed, 772 insertions(+), 272 deletions(-)
+ create mode 100644 drivers/net/dsa/ksz8863.c
+ delete mode 100644 drivers/net/ethernet/micrel/ksz8863.c
+ create mode 100644 net/dsa/tag_tail.c
+
+diff --git a/.gitignore b/.gitignore
+index 0c39aa2..f79fbe7 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -115,3 +115,5 @@ all.config
+ 
+ # Kdevelop4
+ *.kdev4
++
++m-arm
+diff --git a/arch/arm/configs/wago_pfc_generic_defconfig b/arch/arm/configs/wago_pfc_generic_defconfig
+index 735d8ab..8d1dfc1 100644
+--- a/arch/arm/configs/wago_pfc_generic_defconfig
++++ b/arch/arm/configs/wago_pfc_generic_defconfig
+@@ -213,6 +213,7 @@ CONFIG_NET_ACT_SKBEDIT=y
+ CONFIG_NET_ACT_CSUM=y
+ CONFIG_NET_CLS_IND=y
+ CONFIG_NETLINK_DIAG=y
++CONFIG_NET_SWITCHDEV=y
+ CONFIG_BPF_JIT=y
+ CONFIG_CAN=y
+ CONFIG_CAN_GW=m
+@@ -251,13 +252,13 @@ CONFIG_SCSI_SCAN_ASYNC=y
+ # CONFIG_SCSI_LOWLEVEL is not set
+ CONFIG_NETDEVICES=y
+ CONFIG_TUN=y
++CONFIG_NET_DSA_KSZ8863=y
+ # CONFIG_NET_CADENCE is not set
+ # CONFIG_NET_VENDOR_BROADCOM is not set
+ # CONFIG_NET_VENDOR_CIRRUS is not set
+ # CONFIG_NET_VENDOR_FARADAY is not set
+ # CONFIG_NET_VENDOR_INTEL is not set
+ # CONFIG_NET_VENDOR_MARVELL is not set
+-CONFIG_KSZ8863=y
+ # CONFIG_NET_VENDOR_MICROCHIP is not set
+ # CONFIG_NET_VENDOR_NATSEMI is not set
+ # CONFIG_NET_VENDOR_SEEQ is not set
+diff --git a/drivers/net/dsa/Kconfig b/drivers/net/dsa/Kconfig
+index 0659846..c02b862 100644
+--- a/drivers/net/dsa/Kconfig
++++ b/drivers/net/dsa/Kconfig
+@@ -9,6 +9,14 @@ config NET_DSA_MV88E6060
+ 	  This enables support for the Marvell 88E6060 ethernet switch
+ 	  chip.
+ 
++config NET_DSA_KSZ8863
++	tristate "Micrel KSZ8863 ethernet switch chip support"
++	select NET_DSA
++	select NET_DSA_TAG_TAIL
++	---help---
++	  This enables support for the Micrel KSZ8863 ethernet switch
++	  chip.
++
+ config NET_DSA_BCM_SF2
+ 	tristate "Broadcom Starfighter 2 Ethernet switch support"
+ 	depends on HAS_IOMEM && NET_DSA
+diff --git a/drivers/net/dsa/Makefile b/drivers/net/dsa/Makefile
+index 8346e4f..42ab87d 100644
+--- a/drivers/net/dsa/Makefile
++++ b/drivers/net/dsa/Makefile
+@@ -1,5 +1,6 @@
+ obj-$(CONFIG_NET_DSA_MV88E6060) += mv88e6060.o
+ obj-$(CONFIG_NET_DSA_BCM_SF2)	+= bcm_sf2.o
++obj-$(CONFIG_NET_DSA_KSZ8863) += ksz8863.o
+ obj-$(CONFIG_NET_DSA_QCA8K)	+= qca8k.o
+ 
+ obj-y				+= b53/
+diff --git a/drivers/net/dsa/ksz8863.c b/drivers/net/dsa/ksz8863.c
+new file mode 100644
+index 0000000..3cc8f67
+--- /dev/null
++++ b/drivers/net/dsa/ksz8863.c
+@@ -0,0 +1,386 @@
++/*
++ * net/dsa/ksz8863.c - Micrel KSZ8863 switch chip support
++ * Use with the interrupt code of PAL drivers/net/phy/ksz8863*
++ *
++ * Copyright (c) 2010 SAGEMCOM
++ * Copyright (C) 2017 Wago Kontakttechnik GmbH
++ *
++ * Author: Karl Beldan <karl.beldan@sagemcom.com>
++ * Author: Heinrich Toews <heinrich.toews@wago.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/netdevice.h>
++#include <linux/phy.h>
++#include <linux/module.h>
++#include <linux/ksz8863.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/of_mdio.h>
++#include <linux/of_irq.h>
++#include <linux/of_platform.h>
++#include <net/dsa.h>
++
++#define DRIVER_NAME "ksz8863"
++#define SWITCH_NAME "Micrel KSZ8863"
++
++struct ksz8863_info {
++	struct device *dev;
++	struct mii_bus *mii_bus;
++	int reset_gpio;
++	bool disable_internal_ldo;
++	bool reset;
++};
++struct ksz8863_info *ksz_info = NULL;
++
++struct ksz8863_fns_t ksz8863_fns_data = {0};
++struct ksz8863_fns_t *ksz8863_fns = &ksz8863_fns_data;
++
++static void ksz8863_hw_reset(struct ksz8863_info *ksz_info)
++{
++	dev_info(ksz_info->dev, "Going to reset gpio%d\n", ksz_info->reset_gpio);
++	gpio_set_value(ksz_info->reset_gpio, 0);
++	mdelay(100);
++	gpio_set_value(ksz_info->reset_gpio, 1);
++	dev_info(ksz_info->dev, "KSZ8863 Switch resetted!\n");
++}
++
++static int ksz8863_smi_nread(u8 reg, u8 *rxbuf, int len)
++{
++	int i;
++	int nreg = (int) reg;
++
++	if (!ksz_info || !ksz_info->mii_bus)
++		return -1;
++
++	nreg |= MII_ADDR_KSZ;
++
++	for (i = 0; i < len; i++) {
++		rxbuf[i] = mdiobus_read(ksz_info->mii_bus, 0, nreg + i) & 0xff;
++		pr_debug("%s:%d: read %d byte(s), reg 0x%x, val 0x%x\n",
++			 __func__, __LINE__, len, reg, rxbuf[i]);
++	}
++
++	return 0;
++}
++
++static int ksz8863_smi_nwrite(u8 reg, u8 *txbuf, int len)
++{
++	int i;
++	int nreg = (int) reg;
++
++	if (!ksz_info || !ksz_info->mii_bus)
++		return -1;
++
++	nreg |= MII_ADDR_KSZ;
++
++	for (i = 0; i < len; i++) {
++		mdiobus_write(ksz_info->mii_bus, 0, nreg + i, txbuf[i]);
++		pr_debug("%s:%d: wrote %d byte(s), reg 0x%x, val 0x%x\n",
++			 __func__, __LINE__, len, reg, txbuf[i]);
++	}
++
++	return 0;
++}
++
++static int ksz8863_phy_read(struct dsa_switch *ds, int port, int regnum)
++{
++	struct mii_bus *bus = dsa_host_dev_to_mii_bus(ds->cd->host_dev);
++
++	if (bus == NULL)
++		return -EINVAL;
++
++	return mdiobus_read(bus, port, regnum);
++}
++
++static int ksz8863_phy_write(struct dsa_switch *ds, int port, int regnum, u16 val)
++{
++	struct mii_bus *bus = dsa_host_dev_to_mii_bus(ds->cd->host_dev);
++
++	if (bus == NULL)
++		return -EINVAL;
++
++        return mdiobus_write(bus, port, regnum, val);
++}
++
++/*
++ * ksz8863_flush_mac_tables:
++ *      Flush mac table entries
++ *
++ *      We need to flush the mac tables after
++ *      ports have been re-plugged. Otherwise
++ *      it will take several seconds until the switch
++ *      will learn the new entries.
++ */
++static void ksz8863_flush_mac_tables(void)
++{
++        u8 reg_val, saveval1, saveval2, saveval3;
++
++	if (is_dsa_enabled())
++		return;
++
++	/* backup port states */
++        if (ksz8863_nread(Port1Control2, &saveval1, 1))
++		return;
++        if (ksz8863_nread(Port2Control2, &saveval2, 1))
++		return;
++        if (ksz8863_nread(Port3Control2, &saveval3, 1))
++		return;
++
++	/* disable RX of cpu port (3) */
++/* 	reg_val = 0x4; */
++/* 	ksz8863_nwrite(Port3Control2, &reg_val, 1); */
++
++	/*  disable learning */
++	reg_val = 0x1;
++	ksz8863_nwrite(Port1Control2, &reg_val, 1);
++	ksz8863_nwrite(Port2Control2, &reg_val, 1);
++	ksz8863_nwrite(Port3Control2, &reg_val, 1);
++
++	/* flush now dynamic and static mac table */
++        if (ksz8863_nread(GlobalControl0, &reg_val, 1))
++		return;
++	reg_val |= 0x30;
++	ksz8863_nwrite(GlobalControl0, &reg_val, 1);
++
++	/*  restore port states */
++	ksz8863_nwrite(Port1Control2, &saveval1, 1);
++	ksz8863_nwrite(Port2Control2, &saveval2, 1);
++	ksz8863_nwrite(Port3Control2, &saveval3, 1);
++}
++
++static void ksz8863_adjust_link(struct dsa_switch *ds, int port,
++				struct phy_device *phydev)
++{
++        u8 reg, reg_val, _reg_val;
++
++        phy_print_status(phydev);
++
++	ksz8863_flush_mac_tables();
++
++        /* better in adjust_state ? */
++        reg = Port1Control13 + (port - 1) * KSZ8863_PORTS_REGS_OFFSET;
++        if (ksz8863_nread(reg, &reg_val, 1))
++                return;
++#define PC1_POWER_DOWN_SHIFT                            3
++        _reg_val = reg_val;
++        if (phydev->state == PHY_HALTED || phydev->state == PHY_DOWN)
++                _reg_val |=   1 << PC1_POWER_DOWN_SHIFT;
++        else
++                _reg_val &= ~(1 << PC1_POWER_DOWN_SHIFT);
++
++        if (_reg_val != reg_val)
++                ksz8863_nwrite(reg, &_reg_val, 1);
++}
++
++static enum dsa_tag_protocol ksz8863_get_tag_protocol(struct dsa_switch *ds)
++{
++	return DSA_TAG_PROTO_TAIL;
++}
++
++static const char *ksz8863_probe(struct device *dsa_dev,
++				 struct device *host_dev, int sw_addr,
++				 void **_priv)
++{
++	struct device_node *np = ksz_info->dev->of_node;
++	struct device_node *mdio_node;
++	int ret;
++	u8 v, chipid[2];
++
++	if (!ksz_info)
++		return ERR_PTR(-EFAULT);
++
++	mdio_node = of_parse_phandle(np, "ksz,mii-bus", 0);
++	if (!mdio_node) {
++		dev_err(ksz_info->dev, "can't find node 'ksz,mii-bus'\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	ksz_info->mii_bus = of_mdio_find_bus(mdio_node);
++	if (!ksz_info->mii_bus) {
++		dev_err(ksz_info->dev, "can't find mii bus device\n");
++		return ERR_PTR(-EPROBE_DEFER);
++	}
++
++	dev_info(ksz_info->dev, "found and using '%s'.\n", ksz_info->mii_bus->name);
++
++	if ((ret = ksz8863_smi_nread(ChipID0, chipid, 2)))
++		return NULL;
++
++	if (chipid[0] == KSZ8863_FAMILY_ID &&
++	    (chipid[1] >> 4) == KSZ8863_CHIP_ID)
++		dev_info(ksz_info->dev, "Detected Family ID 0x%x, Chip ID 0x%x\n", chipid[0], chipid[1] >> 4);
++
++	if (ksz_info->disable_internal_ldo) {
++                if ((ret = ksz8863_smi_nread(Internal1v8ldoControl, &v, 1)))
++                        return NULL;
++
++		/* disable internal 1.8V LDO */
++		v |= BIT(6);
++
++		if ((ret = ksz8863_smi_nwrite(Internal1v8ldoControl, &v, 1)))
++			return NULL;
++
++		pr_info("%s: 1.8V LDO disabled\n", __func__);
++	}
++
++	ksz8863_fns->nread  = ksz8863_smi_nread;
++	ksz8863_fns->nwrite = ksz8863_smi_nwrite;
++
++        return SWITCH_NAME;
++}
++
++/*
++ * ksz8863_setup:
++ *
++ *      Called from net/dsa/dsa.c
++ *
++ *      Program the hw ethernet address (mac address) of the
++ *      master net device into the switch
++ *
++ */
++static int ksz8863_setup(struct dsa_switch *ds)
++{
++        u8 reg_val;
++        int ret, flags = 0;
++
++	if (is_dsa_enabled())
++		flags |= KSZ8863_CFG_DSA_FLAGS;
++
++	pr_info("DSA is %s\n", is_dsa_enabled() ? "enabled" : "disabled");
++
++        if ((ret = ksz8863_fns->setup_dflt_cfg(flags)))
++                return ret;
++
++        if ((ret = ksz8863_nread(Port1Control13, &reg_val, 1)))
++                return ret;
++
++#define PC1_POWER_DOWN_SHIFT                            3
++	if (is_dsa_enabled())
++		reg_val |= 1 << PC1_POWER_DOWN_SHIFT;
++
++        if ((ret = ksz8863_nwrite(Port1Control13, &reg_val, 1)))
++                return ret;
++
++        if ((ret = ksz8863_nwrite(Port2Control13, &reg_val, 1)))
++                return ret;
++
++        return 0;
++}
++
++struct ksz8863_info *of_get_ksz8863_pdata(struct device *dev)
++{
++	struct device_node *np = dev->of_node;
++	struct pinctrl *pinctrl;
++	int ret;
++
++	ksz_info = devm_kzalloc(dev, sizeof(*ksz_info), GFP_KERNEL);
++	if (!ksz_info)
++		return NULL; /* out of memory */
++
++	ksz_info->reset = false;
++	ksz_info->disable_internal_ldo = false;
++	ksz_info->reset_gpio = 0;
++
++	if (np) {
++
++		pinctrl = devm_pinctrl_get_select_default(dev);
++		if (IS_ERR(pinctrl))
++			dev_warn(dev, "pins are not configured from the driver\n");
++
++		if (of_find_property(np, "ksz,disable-internal-ldo", NULL))
++			ksz_info->disable_internal_ldo = true;
++
++		ksz_info->reset_gpio = of_get_named_gpio(np, "ksz,gpio-reset", 0);
++		if (ksz_info->reset_gpio == -EPROBE_DEFER)
++			return ERR_PTR(-EPROBE_DEFER);
++
++		if (ksz_info->reset_gpio < 0) {
++			dev_err(dev, "No gpio reset pin given\n");
++			ksz_info->reset = false;
++			goto skip_reset;
++		}
++
++		if (of_find_property(np, "ksz,reset-switch", NULL))
++			ksz_info->reset = true;
++
++		ret = devm_gpio_request_one(dev, ksz_info->reset_gpio,
++					    GPIOF_OUT_INIT_HIGH | GPIOF_EXPORT_DIR_FIXED,
++					    "GPIO Switch Reset Pin");
++		if (ret < 0) {
++			dev_err(dev, "failed to claim gpio-reset pin\n");
++			return NULL;
++		}
++
++	skip_reset:
++
++		dev_warn(dev, "Switch will %s resetted.\n",
++			 ksz_info->reset ? "be" : "NOT be");	
++	}
++
++	ksz_info->dev = dev;
++
++	return ksz_info;
++}
++
++static struct dsa_switch_ops ksz8863_switch_driver = {
++	.get_tag_protocol = ksz8863_get_tag_protocol,
++        .probe            = ksz8863_probe,
++        .setup            = ksz8863_setup,
++        .phy_read         = ksz8863_phy_read,
++        .phy_write        = ksz8863_phy_write,
++        .adjust_link      = ksz8863_adjust_link,
++};
++
++static int ksz8863_drv_probe(struct platform_device *pdev)
++{
++	struct ksz8863_info *pdata;
++
++	if (pdev->dev.of_node) {
++		pdata = of_get_ksz8863_pdata(&pdev->dev);
++		if (IS_ERR(pdata))
++			return PTR_ERR(pdata);
++	}
++
++	if (pdata && pdata->reset)
++		ksz8863_hw_reset(pdata);
++
++	pdev->dev.platform_data = pdata;
++
++        register_switch_driver(&ksz8863_switch_driver);
++
++	dev_info(&pdev->dev, "KSZ8863 DSA Switch Driver probed\n");
++
++	return 0;
++}
++
++static int ksz8863_drv_remove(struct platform_device *pdev)
++{
++	unregister_switch_driver(&ksz8863_switch_driver);
++	return 0;
++}
++
++static const struct of_device_id ksz8863_dt_ids[] = {
++	{ .compatible = "micrel,ksz8863", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, ksz8863_dt_ids);
++
++static struct platform_driver ksz8863_driver = {
++	.probe  = ksz8863_drv_probe,
++	.remove = ksz8863_drv_remove,
++	.driver = {
++		.name   = DRIVER_NAME,
++		.of_match_table = ksz8863_dt_ids,
++	},
++};
++module_platform_driver(ksz8863_driver);
++
++MODULE_AUTHOR("Karl Beldan <karl.beldan@sagemcom.com>");
++MODULE_DESCRIPTION("Driver for micrel 8863 ethernet switch chip");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:ksz8863");
+diff --git a/drivers/net/ethernet/micrel/Kconfig b/drivers/net/ethernet/micrel/Kconfig
+index 29f0ddc6..b7e2f49 100644
+--- a/drivers/net/ethernet/micrel/Kconfig
++++ b/drivers/net/ethernet/micrel/Kconfig
+@@ -61,9 +61,4 @@ config KSZ884X_PCI
+ 	  To compile this driver as a module, choose M here. The module
+ 	  will be called ksz884x.
+ 
+-config KSZ8863
+-	tristate "Micrel KSZ8863"
+-	---help---
+-	  This driver adds the KSZ8863 switch driver.
+-
+ endif # NET_VENDOR_MICREL
+diff --git a/drivers/net/ethernet/micrel/Makefile b/drivers/net/ethernet/micrel/Makefile
+index 931975d..c83e4bc 100644
+--- a/drivers/net/ethernet/micrel/Makefile
++++ b/drivers/net/ethernet/micrel/Makefile
+@@ -7,4 +7,3 @@ obj-$(CONFIG_KS8842) += ks8842.o
+ obj-$(CONFIG_KS8851) += ks8851.o
+ obj-$(CONFIG_KS8851_MLL) += ks8851_mll.o
+ obj-$(CONFIG_KSZ884X_PCI) += ksz884x.o
+-obj-$(CONFIG_KSZ8863) += ksz8863.o
+diff --git a/drivers/net/ethernet/micrel/ksz8863.c b/drivers/net/ethernet/micrel/ksz8863.c
+deleted file mode 100644
+index 24e8dae..0000000
+--- a/drivers/net/ethernet/micrel/ksz8863.c
++++ /dev/null
+@@ -1,257 +0,0 @@
+-/*
+- * ksz8863 Switch Reset Driver
+- *
+- * Copyright (C) 2014 Wago Kontakttechnik GmbH
+- *
+- * Author: Heinrich Toews <heinrich.toews@wago.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation version 2.
+- *
+- * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+- * kind, whether express or implied; without even the implied warranty
+- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#undef DEBUG
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/mm.h>
+-#include <linux/slab.h>
+-#include <linux/init.h>
+-#include <linux/interrupt.h>
+-#include <linux/irq.h>
+-#include <linux/gpio.h>
+-#include <linux/err.h>
+-#include <linux/uaccess.h>
+-#include <linux/of.h>
+-#include <linux/of_device.h>
+-#include <linux/of_gpio.h>
+-#include <linux/of_mdio.h>
+-#include <linux/of_irq.h>
+-#include <linux/of_platform.h>
+-#include <linux/pinctrl/consumer.h>
+-#include <linux/platform_device.h>
+-#include <linux/platform_device.h>
+-#include <linux/delay.h>
+-#include <linux/ksz8863.h>
+-
+-#define DRIVER_NAME		"ksz8863"
+-
+-struct ksz8863_info {
+-	/* back-link to device */
+-	struct device *dev;
+-	struct mii_bus *mii_bus;
+-	int reset_gpio;
+-	bool disable_internal_ldo;
+-	bool reset;
+-};
+-
+-struct ksz8863_info *ksz_info = NULL;
+-
+-struct ksz8863_info *of_get_ksz8863_pdata(struct device *dev)
+-{
+-	struct device_node *np = dev->of_node;
+-	/* struct ksz8863_info *ksz_info; */
+-	struct pinctrl *pinctrl;
+-	struct device_node *mdio_node;
+-	int ret;
+-
+-	ksz_info = devm_kzalloc(dev, sizeof(*ksz_info), GFP_KERNEL);
+-	if (!ksz_info)
+-		return NULL; /* out of memory */
+-
+-	ksz_info->reset = false;
+-	ksz_info->disable_internal_ldo = false;
+-	ksz_info->reset_gpio = 0;
+-
+-	if (np) {
+-
+-		pinctrl = devm_pinctrl_get_select_default(dev);
+-		if (IS_ERR(pinctrl))
+-			dev_warn(dev, "pins are not configured from the driver\n");
+-
+-		if (of_find_property(np, "ksz,disable-internal-ldo", NULL))
+-			ksz_info->disable_internal_ldo = true;
+-
+-		ksz_info->reset_gpio = of_get_named_gpio(np, "ksz,gpio-reset", 0);
+-		if (ksz_info->reset_gpio == -EPROBE_DEFER)
+-			return ERR_PTR(-EPROBE_DEFER);
+-
+-		if (ksz_info->reset_gpio < 0) {
+-			dev_err(dev, "No gpio reset pin given\n");
+-			ksz_info->reset = false;
+-			goto skip_reset;
+-		}
+-
+-		if (of_find_property(np, "ksz,reset-switch", NULL))
+-			ksz_info->reset = true;
+-
+-		ret = devm_gpio_request_one(dev, ksz_info->reset_gpio,
+-					    GPIOF_OUT_INIT_HIGH | GPIOF_EXPORT_DIR_FIXED,
+-					    "GPIO Switch Reset Pin");
+-		if (ret < 0) {
+-			dev_err(dev, "failed to claim gpio-reset pin\n");
+-			return NULL;
+-		}
+-
+-	skip_reset:
+-
+-		dev_warn(dev, "Switch will %s resetted.\n",
+-			 ksz_info->reset ? "be" : "NOT be");
+-
+-		/* get mdio node */
+-		mdio_node = of_parse_phandle(np, "ksz,mii-bus", 0);
+-		if (!mdio_node) {
+-			dev_err(dev, "can't find node 'ksz,mii-bus'\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-
+-		ksz_info->mii_bus = of_mdio_find_bus(mdio_node);
+-		if (!ksz_info->mii_bus) {
+-			dev_err(dev, "can't find mii bus device\n");
+-			return ERR_PTR(-EPROBE_DEFER);
+-		}
+-
+-		dev_info(dev, "found and using '%s'.\n", ksz_info->mii_bus->name);
+-	}
+-
+-	ksz_info->dev = dev;
+-
+-	return ksz_info;
+-}
+-
+-static void ksz8863_hw_reset(struct ksz8863_info *ksz_info)
+-{
+-	dev_info(ksz_info->dev, "Going to reset gpio%d\n", ksz_info->reset_gpio);
+-	gpio_set_value(ksz_info->reset_gpio, 0);
+-	mdelay(100);
+-	gpio_set_value(ksz_info->reset_gpio, 1);
+-	dev_info(ksz_info->dev, "KSZ8863 Switch resetted!\n");
+-}
+-
+-/* functions for switch register access over mdio */
+-static int ksz8863_smi_nread(u8 reg, u8 *rxbuf, int len)
+-{
+-	int i;
+-	int nreg = (int) reg;
+-
+-	if (!ksz_info || !ksz_info->mii_bus)
+-		return -1;
+-
+-	nreg |= MII_ADDR_KSZ;
+-
+-	for (i = 0; i < len; i++) {
+-		rxbuf[i] = mdiobus_read(ksz_info->mii_bus, 0, nreg + i) & 0xff;
+-		pr_debug("%s:%d: read %d byte(s), reg 0x%x, val 0x%x\n",
+-			 __func__, __LINE__, len, reg, rxbuf[i]);
+-	}
+-
+-	return 0;
+-}
+-
+-static int ksz8863_smi_nwrite(u8 reg, u8 *txbuf, int len)
+-{
+-	int i;
+-	int nreg = (int) reg;
+-
+-	if (!ksz_info || !ksz_info->mii_bus)
+-		return -1;
+-
+-	nreg |= MII_ADDR_KSZ;
+-
+-	for (i = 0; i < len; i++) {
+-		mdiobus_write(ksz_info->mii_bus, 0, nreg + i, txbuf[i]);
+-		pr_debug("%s:%d: wrote %d byte(s), reg 0x%x, val 0x%x\n",
+-			 __func__, __LINE__, len, reg, txbuf[i]);
+-	}
+-
+-	return 0;
+-}
+-
+-struct ksz8863_fns_t ksz8863_fns_data = {};
+-struct ksz8863_fns_t *ksz8863_fns = &ksz8863_fns_data;
+-
+-static int ksz8863_probe(struct platform_device *pdev)
+-{
+-	struct ksz8863_info *pdata;
+-	u8 v;
+-	u8 chipid[2];
+-	int ret;
+-
+-	pr_debug("%s/%d\n", __func__, __LINE__);
+-
+-	if (pdev->dev.of_node) {
+-		pdata = of_get_ksz8863_pdata(&pdev->dev);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-	}
+-
+-	if (pdata && pdata->reset)
+-		ksz8863_hw_reset(pdata);
+-
+-	if ((ret = ksz8863_smi_nread(ChipID0, chipid, 2)))
+-		return -1;
+-
+-	if (chipid[0] == KSZ8863_FAMILY_ID &&
+-	    (chipid[1] >> 4) == KSZ8863_CHIP_ID)
+-		dev_info(&pdev->dev, "Detected Family ID 0x%x, Chip ID 0x%x\n", chipid[0], chipid[1] >> 4);
+-
+-	if (pdata && pdata->disable_internal_ldo) {
+-                if ((ret = ksz8863_smi_nread(Internal1v8ldoControl, &v, 1)))
+-                        return -1;
+-
+-		/* disable internal 1.8V LDO */
+-		v |= BIT(6);
+-
+-		if ((ret = ksz8863_smi_nwrite(Internal1v8ldoControl, &v, 1)))
+-			return -1;
+-
+-		pr_info("%s: 1.8V LDO disabled\n", __func__);
+-	}
+-
+-	pdev->dev.platform_data = pdata;
+-
+-	ksz8863_fns->nread  = ksz8863_smi_nread;
+-	ksz8863_fns->nwrite = ksz8863_smi_nwrite;
+-
+-	dev_info(&pdev->dev, "KSZ8863 Switch Reset Driver probed\n");
+-
+-	return 0;
+-}
+-
+-static int ksz8863_remove(struct platform_device *pdev)
+-{
+-	return 0;
+-}
+-
+-#ifdef CONFIG_OF
+-static const struct of_device_id ksz8863_dt_ids[] = {
+-	{ .compatible = "micrel,ksz8863", },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(of, ksz8863_dt_ids);
+-#endif
+-
+-static struct platform_driver ksz8863_driver = {
+-	.probe  = ksz8863_probe,
+-	.remove = ksz8863_remove,
+-	.driver = {
+-		.name   = DRIVER_NAME,
+-		.owner  = THIS_MODULE,
+-#ifdef CONFIG_OF
+-		.of_match_table = ksz8863_dt_ids,
+-#endif
+-	},
+-};
+-
+-module_platform_driver(ksz8863_driver);
+-
+-MODULE_AUTHOR("Heinrich Toews");
+-MODULE_DESCRIPTION("KSZ8863 Switch Reset Driver");
+-MODULE_LICENSE("GPL v2");
+diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
+index 5e7d44f..dd09562 100644
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -5,6 +5,8 @@ libphy-$(CONFIG_SWPHY)		+= swphy.o
+ 
+ obj-$(CONFIG_PHYLIB)		+= libphy.o
+ 
++obj-$(CONFIG_SWCONFIG)		+= swconfig.o
++obj-$(CONFIG_SWCFG_KSZ8863)     += ksz8863-cfg.o
+ obj-$(CONFIG_MDIO_BCM_IPROC)	+= mdio-bcm-iproc.o
+ obj-$(CONFIG_MDIO_BCM_UNIMAC)	+= mdio-bcm-unimac.o
+ obj-$(CONFIG_MDIO_BITBANG)	+= mdio-bitbang.o
+@@ -54,5 +56,4 @@ obj-$(CONFIG_STE10XP)		+= ste10Xp.o
+ obj-$(CONFIG_TERANETICS_PHY)	+= teranetics.o
+ obj-$(CONFIG_VITESSE_PHY)	+= vitesse.o
+ obj-$(CONFIG_XILINX_GMII2RGMII) += xilinx_gmii2rgmii.o
+-obj-$(CONFIG_SWCONFIG)		+= swconfig.o
+-obj-$(CONFIG_SWCFG_KSZ8863)     += ksz8863-cfg.o
++
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index 114799b..449786d 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -22,8 +22,6 @@
+ 
+ #include <linux/ksz8863.h>
+ 
+-#define GC1_TAIL_TAG_MODE_ENABLE_SHIFT                  6
+-
+ #define KSZ8863_CPU_PORT                2
+ #define KSZ8863_NUM_PORTS               3
+ #define KSZ8863_NUM_VLANS               16
+@@ -86,10 +84,31 @@ static int ksz8863_setup_dflt_cfg(int flags)
+         u8 reg_val[3];
+         int ret;
+ 
++	if(ksz8863_fns->nread == NULL || ksz8863_nwrite == NULL)
++		return -ENODEV;
++
+         // Reset
+         if ((ret = ksz8863_soft_reset()))
+                 return ret;
+ 
++#ifdef CONFIG_NET_DSA_KSZ8863
++	if (is_dsa_enabled()) {
++        // Tail tagging - enable
++#define GC1_TAIL_TAG_MODE_ENABLE_SHIFT                  6
++                if ((ret = ksz8863_nread(GlobalControl1, reg_val, 1)))
++                        return ret;
++                *reg_val |= 1 << GC1_TAIL_TAG_MODE_ENABLE_SHIFT;
++                if ((ret = ksz8863_nwrite(GlobalControl1, reg_val, 1)))
++                        return ret;
++		/* if dsa configured than by default set ports 1 + 2 into listening state */
++		reg_val[0] = reg_val[1] = 0x1; /* disable address learning */
++		if ((ret = ksz8863_nwrite(Port1Control2, &reg_val[0], 1)))
++			return ret;
++		if ((ret = ksz8863_nwrite(Port2Control2, &reg_val[1], 1)))
++			return ret;
++        }
++#endif
++
+ 	/* Turn on IGMP Snooping */
+         if ((ret = ksz8863_nread(GlobalControl3, reg_val, 1)))
+                 return ret;
+@@ -105,8 +124,12 @@ static int ksz8863_setup_dflt_cfg(int flags)
+ 
+ 	// clear default port bits
+ 	*reg_val &= ~(7 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT);
+-        // Unknown MAC @ddress - broadcoast to every ports
+-        *reg_val |= 7 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT;
++	if (is_dsa_enabled())
++		// Unknown MAC @ddress - broadcoast only to cpu port (needed for multicast traffic)
++		*reg_val |= 4 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT;
++	else
++		// Unknown MAC @ddress - broadcoast to every ports
++		*reg_val |= 7 << GC12_UNKNOWN_PACKET_DFLT_PORT_SHIFT;
+ 
+         if ((ret = ksz8863_nwrite(GlobalControl12, reg_val, 1)))
+                 return ret;
+@@ -165,6 +188,18 @@ static int ksz8863_setup_dflt_cfg(int flags)
+ 			return ret;
+ 	}
+ 
++	if (is_dsa_enabled()) {
++		/* Setup STP Settings */
++		*reg_val = 0x3; 	/* RX Enable, Learning disable */
++		if ((ret = ksz8863_nwrite(Port1Control2, reg_val, 1))) /* X2 */
++			return ret;
++		if ((ret = ksz8863_nwrite(Port2Control2, reg_val, 1))) /* X1 */
++			return ret;
++		*reg_val = 0x5; 	/* RX Enable, Learning disable */
++		if ((ret = ksz8863_nwrite(Port3Control2, reg_val, 1))) /* CPU */
++			return ret;
++	}
++
+         return 0;
+ }
+ 
+@@ -1270,7 +1305,7 @@ static inline int ksz8863_sw_get_dsa_enable(struct switch_dev *dev,
+ 					    const struct switch_attr *attr,
+ 					    struct switch_val *val)
+ {
+-        val->value.i = 0;
++        val->value.i = is_dsa_enabled();
+ 
+         return 0;
+ }
+diff --git a/include/net/dsa.h b/include/net/dsa.h
+index b122196..8f369db 100644
+--- a/include/net/dsa.h
++++ b/include/net/dsa.h
+@@ -24,6 +24,7 @@ enum dsa_tag_protocol {
+ 	DSA_TAG_PROTO_NONE = 0,
+ 	DSA_TAG_PROTO_DSA,
+ 	DSA_TAG_PROTO_TRAILER,
++	DSA_TAG_PROTO_TAIL,
+ 	DSA_TAG_PROTO_EDSA,
+ 	DSA_TAG_PROTO_BRCM,
+ 	DSA_TAG_PROTO_QCA,
+@@ -394,9 +395,36 @@ void register_switch_driver(struct dsa_switch_ops *type);
+ void unregister_switch_driver(struct dsa_switch_ops *type);
+ struct mii_bus *dsa_host_dev_to_mii_bus(struct device *dev);
+ 
++#ifdef CONFIG_NET_DSA
++
++void dsa_enable(int enable);
++bool is_dsa_enabled(void);
++bool is_dsa_slave(struct net_device *slave_dev);
++
++#else
++
++static inline void dsa_enable(int enable)
++{
++}
++
++static inline bool is_dsa_enabled(void)
++{
++	return 0;
++}
++
++static inline bool is_dsa_slave(struct net_device *slave_dev)
++{
++	return 0;
++}
++
++#endif
++
+ static inline bool dsa_uses_tagged_protocol(struct dsa_switch_tree *dst)
+ {
+-	return dst->rcv != NULL;
++	if (is_dsa_enabled())
++		return dst->rcv != NULL;
++	else
++		return false;
+ }
+ 
+ void dsa_unregister_switch(struct dsa_switch *ds);
+diff --git a/net/dsa/Kconfig b/net/dsa/Kconfig
+index 39bb5b3..d3decf5 100644
+--- a/net/dsa/Kconfig
++++ b/net/dsa/Kconfig
+@@ -33,6 +33,10 @@ config NET_DSA_TAG_BRCM
+ config NET_DSA_TAG_DSA
+ 	bool
+ 
++config NET_DSA_TAG_TAIL
++	bool
++	default n
++
+ config NET_DSA_TAG_EDSA
+ 	bool
+ 
+diff --git a/net/dsa/Makefile b/net/dsa/Makefile
+index a3380ed..596bafc 100644
+--- a/net/dsa/Makefile
++++ b/net/dsa/Makefile
+@@ -5,6 +5,7 @@ dsa_core-y += dsa.o slave.o dsa2.o
+ # tagging formats
+ dsa_core-$(CONFIG_NET_DSA_TAG_BRCM) += tag_brcm.o
+ dsa_core-$(CONFIG_NET_DSA_TAG_DSA) += tag_dsa.o
++dsa_core-$(CONFIG_NET_DSA_TAG_TAIL) += tag_tail.o
+ dsa_core-$(CONFIG_NET_DSA_TAG_EDSA) += tag_edsa.o
+ dsa_core-$(CONFIG_NET_DSA_TAG_TRAILER) += tag_trailer.o
+ dsa_core-$(CONFIG_NET_DSA_TAG_QCA) += tag_qca.o
+diff --git a/net/dsa/dsa.c b/net/dsa/dsa.c
+index 74bf1d1..8563574 100644
+--- a/net/dsa/dsa.c
++++ b/net/dsa/dsa.c
+@@ -29,6 +29,9 @@
+ 
+ char dsa_driver_version[] = "0.1";
+ 
++static int __dsa_enable = 0;
++core_param(dsa_enable, __dsa_enable, int, 0000);
++
+ static struct sk_buff *dsa_slave_notag_xmit(struct sk_buff *skb,
+ 					    struct net_device *dev)
+ {
+@@ -51,6 +54,9 @@ const struct dsa_device_ops *dsa_device_ops[DSA_TAG_LAST] = {
+ #ifdef CONFIG_NET_DSA_TAG_TRAILER
+ 	[DSA_TAG_PROTO_TRAILER] = &trailer_netdev_ops,
+ #endif
++#ifdef CONFIG_NET_DSA_TAG_TAIL
++	[DSA_TAG_PROTO_TAIL] = &tail_netdev_ops,
++#endif
+ #ifdef CONFIG_NET_DSA_TAG_BRCM
+ 	[DSA_TAG_PROTO_BRCM] = &brcm_netdev_ops,
+ #endif
+@@ -64,6 +70,16 @@ const struct dsa_device_ops *dsa_device_ops[DSA_TAG_LAST] = {
+ static DEFINE_MUTEX(dsa_switch_drivers_mutex);
+ static LIST_HEAD(dsa_switch_drivers);
+ 
++bool is_dsa_enabled(void)
++{
++	return __dsa_enable == 1;
++}
++
++void dsa_enable(int enable)
++{
++	__dsa_enable = (!!enable);
++}
++
+ void register_switch_driver(struct dsa_switch_ops *ops)
+ {
+ 	mutex_lock(&dsa_switch_drivers_mutex);
+@@ -740,6 +756,11 @@ static int dsa_of_probe(struct device *dev)
+ 	u32 eeprom_len;
+ 	int ret;
+ 
++	if (of_property_read_bool(np, "dsa,enable-on-boot"))
++		dsa_enable(1);
++	else
++		dsa_enable(0);
++
+ 	mdio = of_parse_phandle(np, "dsa,mii-bus", 0);
+ 	if (!mdio)
+ 		return -EINVAL;
+@@ -835,6 +856,16 @@ static int dsa_of_probe(struct device *dev)
+ 			if (!port_name)
+ 				continue;
+ 
++			if (strcmp(port_name, "cpu") != 0) {
++				struct device_node *tmp_np;
++
++				tmp_np = of_parse_phandle(port, "phy-handle", 0);
++				if (!tmp_np) {
++					ret = -EPROBE_DEFER;
++					goto out_free_chip;
++				}
++			}
++
+ 			cd->port_dn[port_index] = port;
+ 
+ 			cd->port_names[port_index] = kstrdup(port_name,
+@@ -892,6 +923,43 @@ static inline void dsa_of_remove(struct device *dev)
+ }
+ #endif
+ 
++static struct dsa_switch_tree *gdst;
++extern struct device* wsysinit_sysfs_device;
++static ssize_t dsa_dump_hw_list_set(struct device *dev,
++				    struct device_attribute *attr,
++				    const char *buf,
++				    size_t count)
++{
++	struct net_device *ndev;
++	struct netdev_hw_addr *ha;
++	int i = 0;
++	int val = simple_strtoul(buf, NULL, 10);
++
++	if (gdst == NULL)
++		return -1;
++
++	if (val == 1) {
++		ndev = gdst->master_netdev;
++
++		pr_info("Unicast List: %s (%pM)\n", ndev->name, ndev->dev_addr);
++		if (!netdev_uc_empty(ndev)) {
++			netdev_for_each_uc_addr(ha, ndev) {
++				pr_info("\t%d: %pM\n", i++, ha->addr);
++			}
++		}
++
++		pr_info("Multicast List: %s (%pM)\n", ndev->name, ndev->dev_addr);
++		if (!netdev_mc_empty(ndev)) {
++			netdev_for_each_mc_addr(ha, ndev) {
++				pr_info("\t%d: %pM\n", i++, ha->addr);
++			}
++		}
++	}
++
++	return count;
++}
++DEVICE_ATTR(dsa_dump_hw_list, 0200, NULL, dsa_dump_hw_list_set);
++
+ static int dsa_setup_dst(struct dsa_switch_tree *dst, struct net_device *dev,
+ 			 struct device *parent, struct dsa_platform_data *pd)
+ {
+@@ -967,6 +1035,11 @@ static int dsa_probe(struct platform_device *pdev)
+ 		goto out;
+ 	}
+ 
++	/* don't use promisc mode by default
++	 *   we tell the netdevice that we are able to filter unicasts
++	 *   we suggest to use the same mac for master- and slave devices */
++	dev->priv_flags |= IFF_UNICAST_FLT;
++
+ 	if (dev->dsa_ptr != NULL) {
+ 		dev_put(dev);
+ 		ret = -EEXIST;
+@@ -988,6 +1061,12 @@ static int dsa_probe(struct platform_device *pdev)
+ 		goto out;
+ 	}
+ 
++	gdst = dst;
++
++	/* sysfs create */
++	if (device_create_file(wsysinit_sysfs_device, &dev_attr_dsa_dump_hw_list))
++		pr_err("%s: failed to create sysfs entry!\n", __func__);
++
+ 	return 0;
+ 
+ out:
+diff --git a/net/dsa/dsa_priv.h b/net/dsa/dsa_priv.h
+index 6cfd738..7c802e0 100644
+--- a/net/dsa/dsa_priv.h
++++ b/net/dsa/dsa_priv.h
+@@ -78,6 +78,9 @@ extern const struct dsa_device_ops edsa_netdev_ops;
+ /* tag_trailer.c */
+ extern const struct dsa_device_ops trailer_netdev_ops;
+ 
++/* tag_tail.c */
++extern const struct dsa_device_ops tail_netdev_ops;
++
+ /* tag_brcm.c */
+ extern const struct dsa_device_ops brcm_netdev_ops;
+ 
+diff --git a/net/dsa/slave.c b/net/dsa/slave.c
+index 339d9c6..6445d4e 100644
+--- a/net/dsa/slave.c
++++ b/net/dsa/slave.c
+@@ -220,6 +220,13 @@ static int dsa_slave_set_mac_address(struct net_device *dev, void *a)
+ out:
+ 	ether_addr_copy(dev->dev_addr, addr->sa_data);
+ 
++	/* update master's hw addresses */
++	if (master->netdev_ops->ndo_set_mac_address) {
++		struct sockaddr ma;
++		memcpy(ma.sa_data, master->dev_addr, ETH_ALEN);
++		master->netdev_ops->ndo_set_mac_address(master, &ma);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1183,6 +1190,9 @@ static int dsa_slave_phy_setup(struct dsa_slave_priv *p,
+ 
+ 	phy_attached_info(p->phy);
+ 
++	if (of_property_read_bool(port_dn, "phy-pwrdown") && p->phy)
++		phy_suspend(p->phy);
++
+ 	return 0;
+ }
+ 
+@@ -1232,6 +1242,15 @@ int dsa_slave_resume(struct net_device *slave_dev)
+ 	return 0;
+ }
+ 
++static struct device_type dsa_slave_type = {
++	.name	= "dsa_slave",
++};
++
++bool is_dsa_slave(struct net_device *slave_dev)
++{
++	return slave_dev->dev.type == &dsa_slave_type;
++}
++
+ int dsa_slave_create(struct dsa_switch *ds, struct device *parent,
+ 		     int port, const char *name)
+ {
+@@ -1251,6 +1270,7 @@ int dsa_slave_create(struct dsa_switch *ds, struct device *parent,
+ 		return -ENOMEM;
+ 
+ 	slave_dev->features = master->vlan_features;
++        slave_dev->features |=  NETIF_F_LLTX;
+ 	slave_dev->ethtool_ops = &dsa_slave_ethtool_ops;
+ 	eth_hw_addr_inherit(slave_dev, master);
+ 	slave_dev->priv_flags |= IFF_NO_QUEUE;
+@@ -1262,8 +1282,10 @@ int dsa_slave_create(struct dsa_switch *ds, struct device *parent,
+ 				 NULL);
+ 
+ 	SET_NETDEV_DEV(slave_dev, parent);
++	SET_NETDEV_DEVTYPE(slave_dev, &dsa_slave_type);
+ 	slave_dev->dev.of_node = ds->ports[port].dn;
+ 	slave_dev->vlan_features = master->vlan_features;
++	slave_dev->priv_flags = master->priv_flags;
+ 
+ 	p = netdev_priv(slave_dev);
+ 	p->parent = ds;
+diff --git a/net/dsa/tag_tail.c b/net/dsa/tag_tail.c
+new file mode 100644
+index 0000000..e85b4b4
+--- /dev/null
++++ b/net/dsa/tag_tail.c
+@@ -0,0 +1,192 @@
++/*
++ * net/dsa/tag_tail.c - tail tag format handling
++ * from net/dsa/tag_tail.c
++ *
++ * Copyright (c) 2008 Marvell Semiconductor
++ * Copyright (c) 2010 SAGEMCOM
++ *
++ * Karl Beldan <karl.beldan@sagemcom.com>
++ *
++ * Dixit Micrel:
++ *  Tail tag priority settings override DSCP and 8021P settings
++ *  unless tag is null ?
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/etherdevice.h>
++#include <linux/list.h>
++#include <linux/netdevice.h>
++#include <linux/slab.h>
++
++#define CREATE_TRACE_POINTS
++#include <trace/events/dsa.h>
++
++#include "dsa_priv.h"
++
++/*
++ * CONFIG_NET_DSA_TAG_TWEAK
++ * ATM !TAIL_BUG_TWEAK code in tail_xmit might lead to memory corruption
++ * and random Oopses with our Picochip BSP (c.f bug #211).
++ * This 2.6.28 BSP ships with timestamping patches within which the bug
++ * triggers (note that e.g. orphaning the skb clears the symptom).
++ * Maybe check Patrick Ohly's patches.
++ * The 2.6.34 network code is vanilla so no need to use it there.
++ * CONFIG_NET_DSA_TAG_TWEAK shortcuts (no copy) xmit and while at it recv.
++ * and leaves the tag null.
++ */
++
++
++#ifndef CONFIG_NET_DSA_TAG_TWEAK
++#define PORT1_TX_PRIO                                   3
++#define PORT2_TX_PRIO                                   3
++#endif
++
++#define DSA_PHY_OFFSET                                  1
++
++static struct sk_buff *tail_xmit(struct sk_buff *skb, struct net_device *dev)
++{
++	struct dsa_slave_priv *p = netdev_priv(dev);
++	struct sk_buff *nskb;
++#ifndef CONFIG_NET_DSA_TAG_TWEAK
++	int padlen;
++	u8 *tail;
++#endif
++	unsigned char *mh;
++
++	if (!is_dsa_enabled()) {
++		trace_net_dsa_info(skb, skb->len, dev, p->port, __func__, "DSA is DISABLED");
++		return NETDEV_TX_OK;
++	}
++
++	dev->stats.tx_packets++;
++	dev->stats.tx_bytes += skb->len;
++
++#ifndef CONFIG_NET_DSA_TAG_TWEAK
++	padlen = 0;
++	if (skb->len < ETH_ZLEN)
++		padlen = ETH_ZLEN - skb->len;
++
++	nskb = alloc_skb(NET_IP_ALIGN + skb->len + padlen + 1, GFP_ATOMIC);
++	if (nskb == NULL) {
++		kfree_skb(skb);
++		return NETDEV_TX_OK;
++	}
++	skb_reserve(nskb, NET_IP_ALIGN);
++
++	skb_reset_mac_header(nskb);
++	skb_set_network_header(nskb, skb_network_header(skb) - skb->data);
++	skb_set_transport_header(nskb, skb_transport_header(skb) - skb->data);
++	skb_copy_and_csum_dev(skb, skb_put(nskb, skb->len));
++	kfree_skb(skb);
++
++	if (padlen) {
++		u8 *pad = skb_put(nskb, padlen);
++		memset(pad, 0, padlen);
++	}
++
++	tail = skb_put(nskb, 1);
++
++	tail[0] = 1 << (p->port - DSA_PHY_OFFSET);
++        if (!p->port)
++                tail[0] |= (PORT1_TX_PRIO & 3) << 2;
++        else
++                tail[0] |= (PORT2_TX_PRIO & 3) << 2;
++
++#else
++	nskb = skb;
++#endif
++
++	nskb->protocol = htons(ETH_P_TAIL);
++
++	nskb->dev = p->parent->dst->master_netdev;
++
++	mh = skb_mac_header(nskb);
++
++	trace_net_dsa_info(skb, skb->len, dev, p->port, __func__, nskb->dev->name);
++
++	return nskb;
++}
++
++static int tail_rcv(struct sk_buff *skb, struct net_device *dev,
++		       struct packet_type *pt, struct net_device *orig_dev)
++{
++	struct dsa_switch_tree *dst = dev->dsa_ptr;
++	struct dsa_switch *ds;
++#ifndef CONFIG_NET_DSA_TAG_TWEAK
++	u8 *tail;
++#endif
++	int source_port;
++
++	unsigned char *mh;
++
++	if (!is_dsa_enabled()) {
++		trace_net_dsa_info(skb, skb->len, dev, -1, __func__, "DSA is DISABLED");
++		return 0; 	/* goto out_drop; */
++	}
++
++	if (unlikely(dst == NULL))
++		goto out_drop;
++	ds = dst->ds[0];
++
++#ifndef CONFIG_NET_DSA_TAG_TWEAK
++	skb = skb_unshare(skb, GFP_ATOMIC);
++	if (skb == NULL)
++		goto out;
++
++	if (skb_linearize(skb))
++		goto out_drop;
++
++	//tail = skb_tail_pointer(skb) - 5;
++	tail = skb_tail_pointer(skb) - 1;
++
++	source_port = (tail[0] & 3) + DSA_PHY_OFFSET;
++
++	if (source_port >= DSA_MAX_PORTS || ds->ports[source_port].netdev == NULL)
++		goto out_drop;
++
++	//pskb_trim_rcsum(skb, skb->len - 5);
++	pskb_trim_rcsum(skb, skb->len - 1);
++#else
++	source_port = (skb->data[skb->len - 5] & 3) + DSA_PHY_OFFSET;
++
++	if (source_port >= DSA_MAX_PORTS || ds->ports[source_port].netdev == NULL)
++		goto out_drop;
++#endif
++
++	skb->dev = ds->ports[source_port].netdev;
++	skb_push(skb, ETH_HLEN);
++	skb->pkt_type = PACKET_HOST;
++	skb->protocol = eth_type_trans(skb, skb->dev);
++
++	skb->dev->last_rx = jiffies;
++	skb->dev->stats.rx_packets++;
++	skb->dev->stats.rx_bytes += skb->len;
++
++	mh = skb_mac_header(skb);
++
++	trace_net_dsa_info(skb, skb->len, dev, source_port, __func__,
++			   skb->dev->name ? : "NULL");
++
++	netif_receive_skb(skb);
++
++	trace_net_dsa_info(skb, skb->len, dev, source_port, __func__,
++			   skb->dev->name ? : "NULL");
++
++	return 0;
++
++out_drop:
++	kfree_skb(skb);
++#ifndef CONFIG_NET_DSA_TAG_TWEAK
++out:
++#endif
++	return 0;
++}
++
++const struct dsa_device_ops tail_netdev_ops = {
++	.xmit	= tail_xmit,
++	.rcv	= tail_rcv,
++};
+-- 
+2.7.4
+

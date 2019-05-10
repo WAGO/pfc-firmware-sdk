@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+
+set -u
+
+AIDE_CHECK_CONFIG_PREFIX='aide-check'
+AIDE_CHECK_LNK='/etc/rc.d/S99_aide_check'
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    print_dbg "config_tool_lib missing"
+    exit 255
+fi
+
+. "/etc/config-tools/config_tool_lib"
+
+function PrintUsage
+{
+    echo "backup_aide_check --save <backup-file>      backup AIDE check state"
+    echo "backup_aide_check --restore <backup-file>   restore AIDE check state"
+    echo "backup_aide_check --param-count             get number of AIDE check state parameters to save"
+}
+
+# Write logging data using syslog.
+#
+# Input: Message to log.
+#
+function Log
+{
+    [[ $# > 0 ]] && logger -t "backup_aide_check" "$1"
+}
+
+
+#### Backup & Restore ##########################################################
+
+# Get number of parameters that have to be saved during backup.
+#
+# output: 1.) number of parameters to save during backup.
+#         2.) returns config tool status, see /etc/config-tools/config_tool_defines.
+#
+function GetParameterCount
+{
+    echo 1
+    return $SUCCESS
+}
+
+
+# Save configuration parameters to backup file.
+#
+# input:  backup file path
+# output: returns config tool status, see /etc/config-tools/config_tool_defines.
+#
+function Save
+{
+    local status; state=$SUCCESS
+    local file; file="$1"
+
+    if [[ -h "${AIDE_CHECK_LNK}" ]]; then
+        echo "${AIDE_CHECK_CONFIG_PREFIX}-state=enabled" >>"$file"
+    else
+        echo "${AIDE_CHECK_CONFIG_PREFIX}-state=disabled" >>"$file"
+    fi
+
+    return $status
+}
+
+
+# Restore configuration parameters from backup file.
+#
+# input: backup file path
+# output: returns config tool status, see /etc/config-tools/config_tool_defines.
+#
+function Restore
+{
+    local status=$SUCCESS; status=$SUCCESS
+    local file; file="$1"
+
+    # Get relevant data from file: grep for prefix
+    # Store each line to array.
+    if [[ $status == $SUCCESS ]]; then
+        aide_check_params=($(grep -e "^$AIDE_CHECK_CONFIG_PREFIX" "$file"))
+        [[ -z "${aide_check_params-}" ]] && status=$CONFIG_FILE_INCONSISTENT
+    fi
+
+    if [[ $status == $SUCCESS ]]; then 
+        # TODO: Do we realy need to backup the internal field separator here?
+        IFS_BKP="$IFS"
+
+        # Parse array entries
+        for entry in "${aide_check_params[@]}"; do
+            IFS='=|' # reset internal field separator
+            param=($entry)
+            if [[ ${#param[@]} == 3 ]]; then
+                name="${param[0]/${AIDE_CHECK_CONFIG_PREFIX}-/}"
+                # Initialize array element
+                read "${name//-/_}[${param[1]}]" <<<"${param[2]}"
+            elif [[ ${#param[@]} == 2 ]]; then
+                name="${param[0]/${AIDE_CHECK_CONFIG_PREFIX}-/}"
+                printf -v "${name//-/_}" "${param[1]}"
+            fi
+
+            case "${name}" in
+                state)
+                    if [[ "${state}" == 'enabled' ]]; then
+                        /etc/config-tools/manage_integrity 'enable'
+                    else
+                        /etc/config-tools/manage_integrity 'disable'
+                    fi
+                    ;;
+            esac
+        done
+
+        IFS="$IFS_BKP"
+    fi
+
+    return $status
+}
+
+
+#### MAIN ######################################################################
+
+status=$SUCCESS
+
+if [[ $# -ge 1 ]]; then
+    operation=$1
+
+    if [[ $# -ge 2 ]]; then
+        file=$2
+        if [[ "$operation" == "--save" ]]; then
+            Save $file
+            status=$?
+        elif [[ "$operation" == "--restore" ]]; then
+            Restore $file
+            status=$?
+        else
+            # Unknown operation
+            status=$INTERNAL_ERROR
+            Log "$0: Unknown operation \"$operation\""
+        fi
+    else
+        if [[ "$operation" == "--param-count" ]]; then
+            GetParameterCount
+        elif [[ "$operation" == "-h" || "$operation" == "--help" ]]; then
+            PrintUsage
+        else
+            # Unknown operation
+            status=$INTERNAL_ERROR
+            Log "$0: Unknown or incomplete operation \"$operation\""
+        fi
+    fi
+fi
+
+exit $status

@@ -317,7 +317,8 @@ out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/test-src/test_Persistent_Stor
  /workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib/pkgconfig/../../include/glib-2.0/glib/deprecated/gmain.h \
  /workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib/pkgconfig/../../include/glib-2.0/glib/deprecated/grel.h \
  /workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib/pkgconfig/../../include/glib-2.0/glib/deprecated/gthread.h \
- /workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib/pkgconfig/../../include/glib-2.0/glib/glib-autocleanups.h
+ /workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib/pkgconfig/../../include/glib-2.0/glib/glib-autocleanups.h \
+ test-src/../mdm_config_types.h
 
 /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/libc/usr/include/stdc-predef.h:
 
@@ -956,3 +957,5 @@ test-src/../persistent_storage.h:
 /workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib/pkgconfig/../../include/glib-2.0/glib/deprecated/gthread.h:
 
 /workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib/pkgconfig/../../include/glib-2.0/glib/glib-autocleanups.h:
+
+test-src/../mdm_config_types.h:

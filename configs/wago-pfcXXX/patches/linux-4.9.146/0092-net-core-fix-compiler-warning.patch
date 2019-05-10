@@ -1,0 +1,25 @@
+From d262ec40763d386b9ca84dac83fa3bef4d316cd1 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 14 Aug 2017 14:47:12 +0200
+Subject: [PATCH 092/292] net: core: fix compiler warning
+
+---
+ net/core/dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 6f1457f..4ec1b30 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -7416,7 +7416,7 @@ int register_netdevice(struct net_device *dev)
+ 
+ 		ret = eth_mac_addr(dev, sockaddr);
+ 		if(ret)
+-			pr_warn("error: eth_mac_addr:%d, using random-mac\n");
++			pr_warn("error: eth_mac_addr:%s, using random-mac\n", __macaddr);
+ 
+ 		kfree(sockaddr);
+ 	}
+-- 
+2.7.4
+

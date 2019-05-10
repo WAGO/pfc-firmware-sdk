@@ -117,7 +117,7 @@ evaluate_params()
     # First evaluate early parameters
     # (maybe influencing other parameters)
     QUIET=$(get_parameter_option "-q" "--quiet" "$@")
-    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    RESULT=$?
     URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
     RESULT=$(( $? == 0 ? $RESULT : $? ))
     if [ $URIENCODE -ne 0 ]; then
@@ -155,10 +155,15 @@ print_help()
     print_general_command_options
     echo
     echo "Additional information:"
-    echo "TODO: Add additional information here if necessary"
+    echo "  This tool is used to print status information of $WAGO_CT_SYSTEM_MODULE."
     echo
     echo "Examples:"
-    echo "TODO: Add some useful examples here"
+    echo "  $WAGO_CT_NAME"
+    echo "     --> Prints $WAGO_CT_SYSTEM_MODULE status information in human readable form"
+    echo "  $WAGO_CT_NAME -q -t"
+    echo "     --> Prints $WAGO_CT_SYSTEM_MODULE status information as name=value pairs in machine readable form"
+    echo "  $WAGO_CT_NAME -q -j"
+    echo "     --> Prints $WAGO_CT_SYSTEM_MODULE status information as JSON in machine readable form"
 
     return 0
 }

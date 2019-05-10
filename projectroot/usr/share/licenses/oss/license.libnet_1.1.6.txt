@@ -1,6 +1,4 @@
-libnet-1.1.6/doc/COPYING
-
-    $Id: license.libnet_1.1.6.txt 36558 2019-02-07 09:16:41Z henrik.lampe@wago.com $
+    $Id: license.libnet_1.1.6.txt 38592 2019-04-17 15:14:45Z henrik.lampe@wago.com $
 
     libnet 1.1.x
     Copyright (c) 1998 - 2002 Mike D. Schiffman <mike@infonexus.com>

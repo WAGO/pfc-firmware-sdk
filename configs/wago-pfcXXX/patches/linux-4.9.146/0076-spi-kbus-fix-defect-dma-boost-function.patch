@@ -1,0 +1,45 @@
+From 0cdf0cab4adff9880a584a4004b02cdb34b2c7c9 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Heinrich=20T=C3=B6ws?= <heinrich.toews@wago.com>
+Date: Thu, 6 Jul 2017 15:35:15 +0200
+Subject: [PATCH 076/292] spi: kbus: fix defect dma boost function
+
+---
+ drivers/spi/spi-kbus.c | 14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/spi/spi-kbus.c b/drivers/spi/spi-kbus.c
+index 7a44eef..df83390 100644
+--- a/drivers/spi/spi-kbus.c
++++ b/drivers/spi/spi-kbus.c
+@@ -183,14 +183,12 @@ void kbus_boost_dma_task(u8 enable)
+ 					   kdrvdata->kbus_dma_boost_prio : kdrvdata->kbus_dma_normal_prio };
+ 
+ 	if (kdrvdata->dma_task) {
+-		if ((enable && !kdrvdata->kbus_dma_boost_en) ||
+-		    (!enable && kdrvdata->kbus_dma_boost_en)) {
+-			kdrvdata->kbus_dma_boost_en = !kdrvdata->kbus_dma_boost_en;
+-			trace_printk("%s --> %s (to-state: %d)", __func__,
+-				     enable ? "enable" : "disable", kdrvdata->kbus_dma_boost_en);
+-			sched_setscheduler(kdrvdata->dma_task, SCHED_FIFO, &boost_param);
+-		}
++		trace_printk("%s --> %s (to-state: %d)", __func__,
++			     enable ? "enable" : "disable", kdrvdata->kbus_dma_boost_en);
++		sched_setscheduler(kdrvdata->dma_task, SCHED_FIFO, &boost_param);
+ 	}
++
++	kdrvdata->kbus_dma_boost_en = enable;
+ }
+ 
+ static int kbus_open(struct inode *node, struct file *file)
+@@ -211,7 +209,7 @@ static int kbus_open(struct inode *node, struct file *file)
+ 			printk("dma-task not found!\n");
+ 	}
+ 
+-	//kbus_boost_dma_task(kdrvdata->kbus_dma_boost_en);
++	kbus_boost_dma_task(kdrvdata->kbus_dma_boost_en);
+ 
+ 	return 0;
+ }
+-- 
+2.7.4
+

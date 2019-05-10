@@ -1,0 +1,25 @@
+From d8dd23a90262a24e9158a5f7972d871b334b78cc Mon Sep 17 00:00:00 2001
+From: Peter Galka <peter.galka@wago.com>
+Date: Fri, 8 Sep 2017 09:36:09 +0200
+Subject: [PATCH 100/292] dts: dpc31: disable gpmc monitoring due to bug
+
+---
+ arch/arm/boot/dts/wago-pfc200-dpc31.dtsi | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi b/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi
+index 70b2a66..5a20eba 100644
+--- a/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200-dpc31.dtsi
+@@ -103,8 +103,6 @@
+ 		gpmc,wait-monitoring-ns = <0>;
+ 
+ 		gpmc,wait-pin = <1>;
+-		gpmc,wait-on-read;
+-		gpmc,wait-on-write;
+ 
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+-- 
+2.7.4
+

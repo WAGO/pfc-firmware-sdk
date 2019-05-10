@@ -1,11 +1,7 @@
-memedit-0.9/AUTHORS
-
 Primary author: Benedikt Spranger <b.spranger@linutronix.de>
 Maintainer:     Wolfram Sang <w.sang@pengutronix.de>
 Contributor:	Sascha Hauer <s.hauer@pengutronix.de>
 Documentation: 	Bjoern Buerger <b.buerger@pengutronix.de>
-
-memedit-0.9/COPYING
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991

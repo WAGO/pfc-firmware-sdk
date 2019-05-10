@@ -458,6 +458,18 @@ var CreateDeviceparams = (function()
 
     deviceParams.Add(
     {
+      id                   : 'codesys_project_checksum',
+      exampleValue         : '',
+      configtoolReadParams :
+      {
+        name      : 'get_rts_info',
+        parameter : [ 'project', 'checksum' ],
+        multiline : true
+      }
+    });
+
+    deviceParams.Add(
+    {
       id                    : 'rts_task_list',
       format                : 'json',
       configtoolReadParams  :
@@ -3248,10 +3260,10 @@ var CreateDeviceparams = (function()
    })();
 
    /*---------------------------------------------------------------------------
-    * security
+    * TLS
     * ---------------------------------------------------------------------------
     */
-   var CreateSecurityParams = (function()
+   var CreateTlsParams = (function()
    {
      deviceParams.Add(
      {
@@ -3269,6 +3281,42 @@ var CreateDeviceparams = (function()
      });
 
    })();
+
+  /* -----------------------------------------------------------------------------
+   * Integrity
+   * ---------------------------------------------------------------------------
+   */
+  var CreateIntegrityParams = (function()
+  {
+    deviceParams.Add(
+    {
+      id                    : 'integrity_check_state',
+      configtoolReadParams  :
+      {
+        name      : 'manage_integrity',
+        parameter : [ 'status' ],
+        multiline : false
+      },
+      configtoolWriteParams :
+      {
+        name      : 'manage_integrity',
+        parameter : [ '$integrity_check_state' ]
+      }
+    });
+    deviceParams.Add(
+    {
+      id                    : 'integrity_log',
+      configtoolReadParams  :
+      {
+        name      : 'manage_integrity',
+        parameter : [ '$integrity_action', '$integrity_count' ],
+        multiline : true,
+        sudo      : true,
+        timeout   : (1000 * 60 * 5)  // 5 minutes
+      }
+    });
+
+  })();
 
    /*---------------------------------------------------------------------------
     * DNP3-Service Availability (for Telecontrol Devices)

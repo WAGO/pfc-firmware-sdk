@@ -185,9 +185,10 @@ if (!Array.prototype.indexOf) {
 <script type='text/javascript' src="js/profibus.js"></script>
 <script type='text/javascript' src="js/modem.js"></script>
 <script type='text/javascript' src="js/vpn.js"></script>
-<script type='text/javascript' src="js/security.js"></script>
+<script type='text/javascript' src="js/tls.js"></script>
+<script type='text/javascript' src="js/integrity.js"></script>
 <script type='text/javascript' src="js/opcua.js"></script>
-<script type='text/javascript' src="js/cloud_connectivity.js?20190205"></script>
+<script type='text/javascript' src="js/cloud_connectivity.js?20190325"></script>
 <script type='text/javascript' src="js/routing.js"></script>
 <script type='text/javascript' src="js/bacnet_diagnostic.js"></script>
 <script type='text/javascript' src="js/bacnet_general_configuration.js"></script>
@@ -247,7 +248,8 @@ $(document).ready(function()
       new ProfibusContent('profibus'),      
       new ModemContent('modem'),
       new VpnContent('vpn'),
-      new SecurityContent('security'),
+      new TlsContent('tls'),
+      new IntegrityContent('integrity'),
       new OpcuaContent('opcua'),
       new DataAgentPageContent('cloud_connectivity'),
       new RoutingContent('routing'),

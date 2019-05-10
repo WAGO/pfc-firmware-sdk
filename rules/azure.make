@@ -17,19 +17,21 @@ PACKAGES-$(PTXCONF_AZURE) += azure
 # Paths and names
 #
 
-AZURE_VERSION       := 2017.03.10
+AZURE_VERSION       := 1.2.9
 AZURE_SUFFIX        := tar.gz
-AZURE_MD5           := e6ca4da793e3d40e78129496d4129544
+AZURE_MD5           := c7d81ddf737c01405309e0214ff76533
 
-AZURE               := azure-iot-sdk-c-$(AZURE_VERSION)
-
-AZURE_URL           := https://github.com/$(AZURE).$(AZURE_SUFFIX) 
+AZURE_URL           := https://github.com/Azure/azure-iot-sdk-c/archive/$(AZURE_VERSION).$(AZURE_SUFFIX) 
                     # Placeholder: Url is not working!!! 
                     # Microsoft does not offer a source archive that includes all dependencies.
-                    # Therefore this archive has to be created manually including all files cloned with the command:  
-                    # git clone --recurse-submodules --branch '2017-03-10' https://github.com/Azure/azure-iot-sdk-c.git --depth 1
+                    # Therefore this archive has to be downloaded manually including all files cloned with the following command:  
+                    # git clone -b <yyyy-mm-dd> --recursive https://github.com/Azure/azure-iot-sdk-c.git
+		    		# Before using the SDK it has to be built for the target operation system:
+	  	    		# Linux: cd azure-iot-sdk-c - mkdir cmake - cd cmake - cmake .. - cmake --build .
+		    		# For further information have a look at: azure-iot-sdk-c/doc/devbox_setup.md
 
-AZURE_SOURCE        := $(SRCDIR)/$(AZURE)-wago1.$(AZURE_SUFFIX)
+AZURE		    	:= azure-iot-sdk-c-$(AZURE_VERSION)
+AZURE_SOURCE        := $(SRCDIR)/$(AZURE).$(AZURE_SUFFIX)
 AZURE_DIR           := $(BUILDDIR)/$(AZURE)
 AZURE_LICENSE       := unknown
 
@@ -62,9 +64,10 @@ AZURE_CONF_OPT	:= $(CROSS_CMAKE_USR) -v --jobs=1 \
 	-D"run_e2e_tests:BOOL=OFF" \
 	-D"run_longhaul_tests:BOOL=OFF" \
 	-D"skip_unittests:BOOL=ON" \
-    -D"use_condition:BOOL=OFF" \
+    	-D"use_condition:BOOL=OFF" \
 	-D"CMAKE_CXX_FLAGS=-std=gnu++11 -fPIC -Wall "  \
-    -D"CMAKE_C_FLAGS=-std=gnu99 -fPIC -Wall "
+    	-D"CMAKE_C_FLAGS=-std=gnu99 -fPIC -Wall "
+
 
 ifdef PTXCONF_AZURE_HTTP
 AZURE_CONF_OPT	+= 	-D"use_http:BOOL=ON" 
@@ -129,7 +132,7 @@ endif
 ifdef PTXCONF_AZURE_AMQP
 	@$(call install_copy, azure, 0, 0, 0755, $(AZURE_DIR)-build/c/iothub_client/samples/iothub_client_sample_amqp/iothub_client_sample_amqp, /usr/bin/iothub_client_sample_amqp)
 ifdef PTXCONF_AZURE_WSIO
-	@$(call install_copy, azure, 0, 0, 0755, $(AZURE_DIR)-build/c/iothub_client/samples/iothub_client_sample_amqp_websockets/iothub_client_sample_amqp_websockets, /usr/bin/iothub_client_sample_amqp_websockets)
+	@$(call install_copy, azure, 0, 0, 0755, $(AZURE_DIR)-build/c/iothub_client/samples/iothub_client_sample_amqp_websockets/iothub_client_sample_amqp_websockets, /usr/bin/#iothub_client_sample_amqp_websockets)
 endif
 endif
 

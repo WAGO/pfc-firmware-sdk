@@ -118,56 +118,7 @@ libnet/libctnetwork.so:
 
 GET_FILESYSTEM_DATA_FILES=get_filesystem_data_common.o
 
-ifdef _HW_PLATFORM
-
-ifeq ($(_HW_PLATFORM), wago-pfcXXX)
-GET_FILESYSTEM_DATA_FILES+=
-endif
-
-ifeq ($(_HW_PLATFORM), wago-pfc200)
-GET_FILESYSTEM_DATA_FILES+=get_filesystem_data_pfc200.o
-endif
-
-ifeq ($(_HW_PLATFORM), wago-pfc200-tele)
-GET_FILESYSTEM_DATA_FILES+=get_filesystem_data_pfc200.o
-endif
-
-ifeq ($(_HW_PLATFORM), wago-ipc-pac200-platform)
-GET_FILESYSTEM_DATA_FILES+=get_filesystem_data_pfc200.o
-endif
-
-ifeq ($(_HW_PLATFORM), Wago-IO-IPC-Codesys)
-GET_FILESYSTEM_DATA_FILES+=get_filesystem_data_ipc.o
-endif
-
-ifeq ($(_HW_PLATFORM), vtp-ctp)
-GET_FILESYSTEM_DATA_FILES+=get_filesystem_data_vtpctp.o
-endif
-
-#
-# INSERT IMPLEMENTATION FOR YOUR PLATFORM HERE
-#
-
-
-# Must be checked last!!
-# (_HW_PLATFORM is set but unknown)
-#ifeq ($(GET_FILESYSTEM_DATA_FILES), get_filesystem_data_common.o)
-#$(error "Please provide an implementation for device-specific functions in get_filesystem_data!")
-#endif
-
-#else
-#$(error "Please set _HW_PLATFORM to appropriate value (see Makefile for details).")
-
-endif
-
 get_filesystem_data: $(GET_FILESYSTEM_DATA_FILES) libctcommon.so
-	@if [ "$(GET_FILESYSTEM_DATA_FILES)" = "get_filesystem_data_common.o" ]; then \
-		echo "Please provide an implementation for device-specific functions in get_filesystem_data!"; \
-		exit 1; \
-	elif [ "$(GET_FILESYSTEM_DATA_FILES)" = "" ]; then \
-		echo "Please set _HW_PLATFORM to appropriate value (see Makefile for details)."; \
-		exit 2; \
-	fi
 	$(CC) $(LDFLAGS) -o $@ $(GET_FILESYSTEM_DATA_FILES) $(LDLIBS$(LDLIBS-$(@))) -lctcommon
 
 ##############################################

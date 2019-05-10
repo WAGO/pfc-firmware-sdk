@@ -1,0 +1,198 @@
+From 15e280e70b82678015fd90e514a1e1ca81179435 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Tue, 3 Jul 2018 11:18:24 +0200
+Subject: [PATCH 205/292] xdp: fix porting errors
+
+Because XDP/XSK was ported from devnet/master based on 4.17.0 rc3
+some parts has to be backported to our 4.9.47
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ include/linux/filter.h    | 6 +-----
+ include/linux/netdevice.h | 1 +
+ include/uapi/linux/bpf.h  | 2 ++
+ kernel/bpf/syscall.c      | 9 +++++++++
+ kernel/bpf/xskmap.c       | 6 ++----
+ net/core/dev.c            | 3 +--
+ net/core/xdp.c            | 2 +-
+ net/xdp/xdp_umem.c        | 5 ++---
+ net/xdp/xsk.c             | 4 +---
+ net/xdp/xsk_queue.c       | 2 +-
+ 10 files changed, 21 insertions(+), 19 deletions(-)
+
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 1f09c52..bee7b40 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -26,6 +26,7 @@ struct sk_buff;
+ struct sock;
+ struct seccomp_data;
+ struct bpf_prog_aux;
++struct xdp_buff;
+ 
+ /* ArgX, context and stack frame pointer register positions. Note,
+  * Arg1, Arg2, Arg3, etc are used as argument mappings of function
+@@ -432,11 +433,6 @@ struct bpf_skb_data_end {
+ 	void *data_end;
+ };
+ 
+-struct xdp_buff {
+-	void *data;
+-	void *data_end;
+-};
+-
+ /* compute the linear packet data range [data, data_end) which
+  * will be accessed by cls_bpf and act_bpf programs
+  */
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 771b81e..ef925ba 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -42,6 +42,7 @@
+ #include <linux/ethtool.h>
+ #include <net/net_namespace.h>
+ #include <net/dsa.h>
++#include <net/xdp.h>
+ #ifdef CONFIG_DCB
+ #include <net/dcbnl.h>
+ #endif
+diff --git a/include/uapi/linux/bpf.h b/include/uapi/linux/bpf.h
+index f09c70b..f747a8f 100644
+--- a/include/uapi/linux/bpf.h
++++ b/include/uapi/linux/bpf.h
+@@ -501,6 +501,8 @@ struct bpf_tunnel_key {
+ 	__u32 tunnel_label;
+ };
+ 
++#define XDP_PACKET_HEADROOM 256
++
+ /* User return codes for XDP prog type.
+  * A valid XDP program must return one of these defined values. All other
+  * return codes are reserved for future use. Unknown return codes will result
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index ca7e277..5408b66 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -74,6 +74,15 @@ void bpf_map_area_free(void *area)
+ 	kvfree(area);
+ }
+ 
++void bpf_map_init_from_attr(struct bpf_map *map, union bpf_attr *attr)
++{
++	map->map_type = attr->map_type;
++	map->key_size = attr->key_size;
++	map->value_size = attr->value_size;
++	map->max_entries = attr->max_entries;
++	map->map_flags = attr->map_flags;
++}
++
+ int bpf_map_precharge_memlock(u32 pages)
+ {
+ 	struct user_struct *user = get_current_user();
+diff --git a/kernel/bpf/xskmap.c b/kernel/bpf/xskmap.c
+index 869dbb1..2d965d1 100644
+--- a/kernel/bpf/xskmap.c
++++ b/kernel/bpf/xskmap.c
+@@ -34,8 +34,7 @@ static struct bpf_map *xsk_map_alloc(union bpf_attr *attr)
+ 		return ERR_PTR(-EPERM);
+ 
+ 	if (attr->max_entries == 0 || attr->key_size != 4 ||
+-	    attr->value_size != 4 ||
+-	    attr->map_flags & ~(BPF_F_NUMA_NODE | BPF_F_RDONLY | BPF_F_WRONLY))
++	    attr->value_size != 4)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	m = kzalloc(sizeof(*m), GFP_USER);
+@@ -64,8 +63,7 @@ static struct bpf_map *xsk_map_alloc(union bpf_attr *attr)
+ 		INIT_LIST_HEAD(per_cpu_ptr(m->flush_list, cpu));
+ 
+ 	m->xsk_map = bpf_map_area_alloc(m->map.max_entries *
+-					sizeof(struct xdp_sock *),
+-					m->map.numa_node);
++					sizeof(struct xdp_sock *));
+ 	if (!m->xsk_map)
+ 		goto free_percpu;
+ 	return &m->map;
+diff --git a/net/core/dev.c b/net/core/dev.c
+index a68baf7..bf98c57 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3562,13 +3562,12 @@ int dev_direct_xmit(struct sk_buff *skb, u16 queue_id)
+ 	struct sk_buff *orig_skb = skb;
+ 	struct netdev_queue *txq;
+ 	int ret = NETDEV_TX_BUSY;
+-	bool again = false;
+ 
+ 	if (unlikely(!netif_running(dev) ||
+ 		     !netif_carrier_ok(dev)))
+ 		goto drop;
+ 
+-	skb = validate_xmit_skb_list(skb, dev, &again);
++	skb = validate_xmit_skb_list(skb, dev);
+ 	if (skb != orig_skb)
+ 		goto drop;
+ 
+diff --git a/net/core/xdp.c b/net/core/xdp.c
+index bf6758f..8fae4c8 100644
+--- a/net/core/xdp.c
++++ b/net/core/xdp.c
+@@ -326,7 +326,7 @@ static void xdp_return(void *data, struct xdp_mem_info *mem)
+ 		rcu_read_unlock();
+ 		break;
+ 	case MEM_TYPE_PAGE_SHARED:
+-		page_frag_free(data);
++		__free_page_frag(data);
+ 		break;
+ 	case MEM_TYPE_PAGE_ORDER0:
+ 		page = virt_to_page(data); /* Assumes order0 page*/
+diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
+index 2b47a1d..2be9fcd 100644
+--- a/net/xdp/xdp_umem.c
++++ b/net/xdp/xdp_umem.c
+@@ -13,13 +13,12 @@
+  */
+ 
+ #include <linux/init.h>
+-#include <linux/sched/mm.h>
+-#include <linux/sched/signal.h>
+-#include <linux/sched/task.h>
++#include <linux/sched.h>
+ #include <linux/uaccess.h>
+ #include <linux/slab.h>
+ #include <linux/bpf.h>
+ #include <linux/mm.h>
++#include <linux/math64.h>
+ 
+ #include "xdp_umem.h"
+ 
+diff --git a/net/xdp/xsk.c b/net/xdp/xsk.c
+index b33c535..529b6a2 100644
+--- a/net/xdp/xsk.c
++++ b/net/xdp/xsk.c
+@@ -22,9 +22,7 @@
+ 
+ #include <linux/if_xdp.h>
+ #include <linux/init.h>
+-#include <linux/sched/mm.h>
+-#include <linux/sched/signal.h>
+-#include <linux/sched/task.h>
++#include <linux/sched.h>
+ #include <linux/socket.h>
+ #include <linux/file.h>
+ #include <linux/uaccess.h>
+diff --git a/net/xdp/xsk_queue.c b/net/xdp/xsk_queue.c
+index d012e5e..b237ade2 100644
+--- a/net/xdp/xsk_queue.c
++++ b/net/xdp/xsk_queue.c
+@@ -68,6 +68,6 @@ void xskq_destroy(struct xsk_queue *q)
+ 	if (!q)
+ 		return;
+ 
+-	page_frag_free(q->ring);
++	__free_page_frag(q->ring);
+ 	kfree(q);
+ }
+-- 
+2.7.4
+

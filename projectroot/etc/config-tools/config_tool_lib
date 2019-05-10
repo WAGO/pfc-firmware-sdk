@@ -283,7 +283,8 @@ UPDATE_STATE_FINISH="finish"
 completeSettingsFileName="complete_auto_${FIRMWARE_BACKUP_FILENAME_FRAGMENT}_${SETTINGS_BACKUP_FILENAME_FRAGMENT}"
 autoRestoreStatusFile="auto_restore_status"
 
-ROOT_MOUNT_OPTIONS="$(if [[ -n "$(grep -o 'root=ubi[^[:space:]]\+' "/proc/cmdline")" ]]; then echo "-t ubifs"; else echo ""; fi)"
+ROOT_MOUNT_OPTIONS=""
+grep -q "root=ubi" "/proc/cmdline" && ROOT_MOUNT_OPTIONS="-t ubifs"
 HOME_MOUNT_OPTIONS="$ROOT_MOUNT_OPTIONS"
 DATA_SD_CARD_PATH="/media/sd"
 

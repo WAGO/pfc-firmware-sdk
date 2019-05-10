@@ -13,7 +13,7 @@
 #
 PACKAGES-$(PTXCONF_MDMD) += mdmd
 
-MDMD_VERSION := 0.4.12
+MDMD_VERSION := 0.5.0
 
 #
 # Paths and names

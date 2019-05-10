@@ -1,8 +1,4 @@
-htop-2.0.2/AUTHORS
-
 Hisham H. Muhammad
-
-htop-2.0.2/COPYING
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991

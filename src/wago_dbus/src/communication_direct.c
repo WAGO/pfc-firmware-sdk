@@ -106,7 +106,7 @@ static void EnableDirectCommunication(com_tConnection* con, com_tComMessage* msg
     char   pathContainer[1024];
     char * namePath = pathContainer;
     DBusServer * server;
-
+    con->type = COM_CONNECTION_DIRECT;
     if(TRUE != g_hash_table_lookup_extended        (serverTable, serverName, NULL, &server))
     {
       DBusError error;
@@ -121,7 +121,7 @@ static void EnableDirectCommunication(com_tConnection* con, com_tComMessage* msg
             error.name,error.message);
         return;
       }
-      dbus_server_set_new_connection_function   (server, NewDirectConnectionInit,&objectTable,NULL);
+      dbus_server_set_new_connection_function(server, NewDirectConnectionInit,&objectTable,NULL);
       dbus_server_setup_with_g_main (server,com_GEN_GetServerContext() );
       g_hash_table_insert(serverTable,strdup(serverName),server);
     }

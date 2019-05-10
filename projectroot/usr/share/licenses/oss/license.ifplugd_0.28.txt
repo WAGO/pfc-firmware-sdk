@@ -1,5 +1,3 @@
-ifplugd-0.28/LICENSE
-
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 

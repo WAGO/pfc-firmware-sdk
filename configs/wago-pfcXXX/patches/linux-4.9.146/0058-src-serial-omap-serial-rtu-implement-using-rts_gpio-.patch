@@ -1,0 +1,122 @@
+From 235b475fb812c6b5c21b1064d2944f9fb9387b1c Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <boerje.sewing@who-ing.de>
+Date: Wed, 27 Apr 2016 14:18:17 +0200
+Subject: [PATCH 058/292] src: serial: omap-serial-rtu: implement using
+ rts_gpio instead of uart_rts
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+ - setting in rts_gpio in dts activates gpio_handling
+ - default use (without rts_gpio) uart_rts_handling active
+ - activate active_high settings
+ - set rts gpio
+
+Signed-off-by: Matthias Knöpke <matthias.knoepke@who-ing.de>
+---
+ drivers/tty/serial/omap-serial-rtu.c | 51 ++++++++++++++++++++----------------
+ 1 file changed, 28 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/tty/serial/omap-serial-rtu.c b/drivers/tty/serial/omap-serial-rtu.c
+index cb02445..71f007c 100644
+--- a/drivers/tty/serial/omap-serial-rtu.c
++++ b/drivers/tty/serial/omap-serial-rtu.c
+@@ -224,10 +224,16 @@ static inline void serial_omap_update_rts(struct uart_omap_port *up)
+ 		if(up->tx_in_progress) {
+ 			pr_debug("%s: %s: deassert RTS (~UART_MCR_RTS)\n", up->name, __func__);
+ 			/* See AM35x docs 14.6.2.10 MCR_REG: 0x0 -> RTS high, 0x1 -> RTS low */
+-			up->mcr &= ~UART_MCR_RTS;
++			if (gpio_is_valid(up->rts_gpio))
++				gpio_set_value(up->rts_gpio, ( (up->rs485.flags & SER_RS485_RTS_ON_SEND) > 0) ? 1 : 0 );
++			else
++				up->mcr &= ~UART_MCR_RTS;
+ 		} else {
+ 			pr_debug("%s: %s: assert RTS (UART_MCR_RTS)\n", up->name, __func__);
+-			up->mcr |= UART_MCR_RTS;
++			if (gpio_is_valid(up->rts_gpio))
++				gpio_set_value(up->rts_gpio, ( (up->rs485.flags & SER_RS485_RTS_ON_SEND) > 0) ? 0 : 1 );
++			else
++				up->mcr |= UART_MCR_RTS;
+ 		}
+ 
+ 		serial_out_rtu(up, UART_MCR, up->mcr);
+@@ -816,7 +822,7 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ 		     UART_MCR_DTR | UART_MCR_RTS);
+ 	up->mcr = old_mcr | mcr;
+ #ifdef CONFIG_SERIAL_OMAP_RS485
+-	if(up->rs485.flags & SER_RS485_ENABLED && rts_on_send(up))
++	if((up->rs485.flags & SER_RS485_ENABLED) && rts_on_send(up))
+ 		serial_omap_update_rts(up);
+ #endif
+ 	serial_out_rtu(up, UART_MCR, up->mcr);
+@@ -1731,23 +1737,23 @@ static int of_probe_rs485(struct uart_omap_port *up,
+ 	else
+ 		rs485conf->flags |= SER_RS485_RTS_AFTER_SEND;
+ 
+-#if 0				/* we have no rts_gpio, we toggle rts by register */
+-	/* check for tx enable gpio */
+-	up->rts_gpio = of_get_named_gpio_flags(np, "rts-gpio", 0, &flags);
+-	if (gpio_is_valid(up->rts_gpio)) {
+-		ret = devm_gpio_request(up->dev, up->rts_gpio, "omap-serial-rtu");
+-		if (ret < 0)
+-			return ret;
+-		ret = gpio_direction_output(up->rts_gpio,
+-				rs485conf->flags & SER_RS485_RTS_AFTER_SEND);
+-		if (ret < 0)
+-			return ret;
+-	} else if (up->rts_gpio == -EPROBE_DEFER) {
+-		return -EPROBE_DEFER;
+-	} else {
+-		up->rts_gpio = -EINVAL;
++	if(of_property_read_bool(np, "rts-gpio")){
++		/* check for tx enable gpio */
++		up->rts_gpio = of_get_named_gpio_flags(np, "rts-gpio", 0, &flags);
++		if (gpio_is_valid(up->rts_gpio)) {
++			ret = devm_gpio_request(up->dev, up->rts_gpio, "omap-serial-rtu");
++			if (ret < 0)
++				return ret;
++			ret = gpio_direction_output(up->rts_gpio,
++					rs485conf->flags & SER_RS485_RTS_AFTER_SEND);
++			if (ret < 0)
++				return ret;
++		} else if (up->rts_gpio == -EPROBE_DEFER) {
++			return -EPROBE_DEFER;
++		} else {
++			up->rts_gpio = -EINVAL;
++		}
+ 	}
+-#endif
+ 
+ 	/* check for tx enable gpio */
+ 	up->rs485en_gpio = of_get_named_gpio_flags(np, "rs485en-gpio", 0, &flags);
+@@ -1756,9 +1762,8 @@ static int of_probe_rs485(struct uart_omap_port *up,
+ 		if (ret < 0)
+ 			return ret;
+ 	} else if (up->rs485en_gpio == -EPROBE_DEFER) {
+-#if 0
+-		devm_gpio_free(up->dev, up->rts_gpio);
+-#endif
++		if (gpio_is_valid(up->rts_gpio))
++			devm_gpio_free(up->dev, up->rts_gpio);
+ 		return -EPROBE_DEFER;
+ 	} else {
+ 		up->rs485en_gpio = -EINVAL;
+@@ -1836,6 +1841,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	if (!up)
+ 		return -ENOMEM;
+ 
++	up->dev = &pdev->dev;
+ 	if (pdev->dev.of_node) {
+ 		ret = of_probe_rs485(up, pdev->dev.of_node);
+ 		if (ret == -EPROBE_DEFER) {
+@@ -1844,7 +1850,6 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	up->dev = &pdev->dev;
+ 	up->port.dev = &pdev->dev;
+ 	up->port.type = PORT_OMAP;
+ 	up->port.iotype = UPIO_MEM;
+-- 
+2.7.4
+

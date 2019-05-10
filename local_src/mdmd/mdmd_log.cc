@@ -14,6 +14,8 @@ unsigned int mdmd_GetSyslogLogLevel(unsigned int mdmd_logLevel)
 {
    switch (mdmd_logLevel)
    {
+      case MD_LOG_OFF:
+         return SYS_LOG_OFF;
       case MD_LOG_ERR:
          return LOG_ERR;
       case MD_LOG_WRN:
@@ -34,6 +36,7 @@ int mdmd_GetLogLevel( void )
   int retVal;
   switch (_mdmdLogLevel)
   {
+     case MD_LOG_OFF: retVal = MD_LOG_OFF; break;
      case MD_LOG_ERR: retVal = MD_LOG_ERR; break;
      case MD_LOG_WRN: retVal = MD_LOG_WRN; break;
      case MD_LOG_INF: retVal = MD_LOG_INF; break;
@@ -49,6 +52,7 @@ bool mdmd_SetLogLevel( int logLevel )
   bool retVal= true;
   switch (logLevel)
   {
+     case MD_LOG_OFF: _mdmdLogLevel = MD_LOG_OFF; break;
      case MD_LOG_ERR: _mdmdLogLevel = MD_LOG_ERR; break;
      case MD_LOG_WRN: _mdmdLogLevel = MD_LOG_WRN; break;
      case MD_LOG_INF: _mdmdLogLevel = MD_LOG_INF; break;

@@ -9,7 +9,7 @@
 //--------------------------------------------------------------------------------------------------
 /// \file       mdmd_log.h
 ///
-/// \version    $Revision: 36657 $
+/// \version    $Revision: 38420 $
 ///
 /// \par        <b>Software Package</b>:
 ///             Modem Management Daemon (mdmd)
@@ -34,7 +34,7 @@
 //--------------------------------------------------------------------------------------------------
 
 #define FUN                     (__FUNCTION__)
-
+#define SYS_LOG_OFF             0xFF 
 enum {
     /// MDMD logging off
     MD_LOG_OFF      = 0,
@@ -84,7 +84,7 @@ unsigned int mdmd_GetSyslogLogLevel(unsigned int mdmd_logLevel);
         {\
             if(_mdmdLogLevel < __lvl) break;\
             const unsigned int syslogLevel = mdmd_GetSyslogLogLevel(__lvl);\
-            syslog((int)syslogLevel, __fmt , ##__VA_ARGS__);\
+            if(syslogLevel != SYS_LOG_OFF) syslog((int)syslogLevel, __fmt , ##__VA_ARGS__);\
         } while(0)
 
 #define mdmd_LogAlways(__fmt, ...)  \

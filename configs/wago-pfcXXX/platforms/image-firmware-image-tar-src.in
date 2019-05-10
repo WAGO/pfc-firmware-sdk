@@ -1,8 +1,0 @@
-## SECTION=image
-
-config IMAGE_FIRMWARE_IMAGE_TAR_SRC
-	tristate
-	prompt "[SRC] Generate images/firmware-image-src.tar"
-	help
-	  Generates an archiv file with all needed stuff for
-	  the WAGO-Production.

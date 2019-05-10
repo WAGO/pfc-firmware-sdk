@@ -1,0 +1,38 @@
+From 477ab6736f4c65df806fa626ec895a7d625468ac Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Mon, 23 Jan 2017 08:50:27 +0000
+Subject: [PATCH 034/292] dts: pfc200v2: remove not needed LS1 node
+
+        LS1 is enable by HW and has a fixed current limitation to 350 mA.
+---
+ arch/arm/boot/dts/wago-pfc200v2.dtsi | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index 8db4331..82780b9 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -809,19 +809,11 @@
+                 regulator-always-on;
+         };
+ 
+-        loadswitch1:    loadswitch-ls1 {
+-                compatible = "ti,tps65218-ls1";
+-                /* VDD_LS1 +3V3 for SD-Card */
+-                regulator-name = "vdd_LS1_SDCARD";
+-                regulator-boot-on;
+-                regulator-always-on;
+-        };
+-
+         loadswitch2:  loadswitch-ls2 {
+                 compatible = "ti,tps65218-ls2";
+                 /* VDD_LS2 +5V15 for USB */
+                 regulator-name = "vdd_LS2_USB";
+-                regulator-min-microamp = <100000>;
++                regulator-min-microamp = <100000>; /* set to 100 mA according to SLP00000843.002 */
+                 regulator-max-microamp = <100000>;
+                 regulator-boot-on;
+                 regulator-always-on;
+-- 
+2.7.4
+

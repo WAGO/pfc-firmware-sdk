@@ -1,11 +1,7 @@
-usbutils-007/AUTHORS
-
 Thomas Sailer, <t.sailer@alumni.ethz.ch>
 Johannes Erdfelt
 David Brownell
 Aurelien Jarno
-
-usbutils-007/COPYING
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991

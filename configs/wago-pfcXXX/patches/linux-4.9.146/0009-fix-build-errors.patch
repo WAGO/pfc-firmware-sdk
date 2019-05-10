@@ -1,0 +1,71 @@
+From 0267938e977befee8a95c70ea51d4fd44675c651 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 17 Nov 2016 07:15:42 +0000
+Subject: [PATCH 009/292] fix build errors
+
+---
+ drivers/leds/leds-pca955x.c             | 2 +-
+ include/linux/platform_data/gpio-omap.h | 1 +
+ kernel/fork.c                           | 4 ----
+ kernel/irq/manage.c                     | 1 +
+ 4 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/leds/leds-pca955x.c b/drivers/leds/leds-pca955x.c
+index 433c88ee..46fd6dc 100644
+--- a/drivers/leds/leds-pca955x.c
++++ b/drivers/leds/leds-pca955x.c
+@@ -434,11 +434,11 @@ static int pca955x_remove(struct i2c_client *client)
+ static struct i2c_driver pca955x_driver = {
+ 	.driver = {
+ 		.name	= "leds-pca955x",
++                .of_match_table = of_match_ptr(of_pca955x_match),
+ 	},
+ 	.probe	= pca955x_probe,
+ 	.remove	= pca955x_remove,
+ 	.id_table = pca955x_id,
+-	.of_match_table = of_match_ptr(of_pca955x_match),
+ };
+ 
+ module_i2c_driver(pca955x_driver);
+diff --git a/include/linux/platform_data/gpio-omap.h b/include/linux/platform_data/gpio-omap.h
+index ff43e01..cb26181 100644
+--- a/include/linux/platform_data/gpio-omap.h
++++ b/include/linux/platform_data/gpio-omap.h
+@@ -198,6 +198,7 @@ struct omap_gpio_platform_data {
+ 	int bank_width;		/* GPIO bank width */
+ 	int bank_stride;	/* Only needed for omap1 MPUIO */
+ 	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
++	bool loses_context;	/* whether the bank would ever lose context */
+ 	bool is_mpuio;		/* whether the bank is of type MPUIO */
+ 	u32 non_wakeup_gpios;
+ 
+diff --git a/kernel/fork.c b/kernel/fork.c
+index fb14270..bb1bdea 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -569,10 +569,6 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
+ 	tsk->wake_q.next = NULL;
+ 	tsk->wake_q_sleeper.next = NULL;
+ 
+-#ifdef CONFIG_PREEMPT_RT_FULL
+-	atomic_set(&tsk->xmit_recursion, 0);
+-#endif
+-
+ 	account_kernel_stack(tsk, 1);
+ 
+ 	kcov_task_init(tsk);
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index 03e6d73..61f46d8 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -1141,6 +1141,7 @@ setup_irq_thread(struct irqaction *new, unsigned int irq, bool secondary)
+ 	struct sched_param param = {
+ 		.sched_priority = MAX_USER_RT_PRIO/2,
+ 	};
++        int search;
+ 
+ 	if (!secondary) {
+ 		t = kthread_create(irq_thread, new, "irq/%d-%s", irq,
+-- 
+2.7.4
+

@@ -23,7 +23,6 @@
 #                         the user to set them manually.
 #
 
-
 config WAGO_EXTDUMMY
 	bool
 	prompt "wago-extdummy"
@@ -39,10 +38,6 @@ menuconfig CT_MENU_WBM_MAIN
   select WBM # target responsible for wbm package being built
 
   select HOST_CT_MAKE_XML_CONFIG # tool to generate XML configs for wbm/ipcconfig
-
-  select CT_FORM_PROCESSING
-  select CT_PRINT_NAVIGATION
-  select CT_SHOW_LAST_ERROR_HTML
 
   help
     IPC web configuration frontend.
@@ -60,27 +55,6 @@ config WBM
   help
    Target corresponding to wbm.make. Can be enabled indirectly by activating
    CT_MENU_WBM_MAIN.
-
-
-# required tools
-
-config CT_FORM_PROCESSING
-  bool
-  default n
-  help
-   Process a html input form. Called from the CGI parser.
-
-config CT_PRINT_NAVIGATION
-  bool
-  default n
-  help
-   print wbm navigation
-
-config CT_SHOW_LAST_ERROR_HTML
-  bool
-  default n
-  help
-   show last configtool error
 
 ###############################################################
 
@@ -494,18 +468,6 @@ help
                   .fragment="service_interface"
                   .user_level="3"
 
-menuconfig CT_MENU_WBM_FILESYSTEM_CHECK
-bool
-default n
-prompt "Filesystem Check (needs e2fsck patch - see ptxproj.2011.03.1)"
-depends on CT_MENU_WBM_ADMIN
-help
-  Tools used to process filesystem check.
-  __XML: level id="filesystem_check"
-               nav.text="Filesystem Check"
-                  .ressource="filesystem_check.php"
-                  .user_level="3"
-
 menuconfig CT_MENU_WBM_START_REBOOT
 bool
 default n
@@ -898,9 +860,10 @@ help
                  .user_level="3"
 
 ###############################################################
+
 menuconfig CT_MENU_WBM_SECURITY
 bool
-default n
+default y
 prompt "Security"
 depends on CT_MENU_WBM_MAIN
 help
@@ -908,9 +871,36 @@ help
   __XML: level id="security"
                nav.text="Security"
                   .ressource="index.php"
-                  .fragment="security"
+                  .fragment="tls"
                   .user_level="3"
 
+menuconfig CT_MENU_WBM_TLS
+bool
+default y
+prompt "TLS Configuration"
+depends on CT_MENU_WBM_SECURITY
+help
+  configuration of TLS web server settings
+  __XML: level id="tls"
+               nav.text="TLS"
+                  .ressource="index.php"
+                  .fragment="tls"
+                  .user_level="3"
+
+config CT_MENU_WBM_INTEGRITY
+bool
+default n
+prompt "Integrity"
+depends on CT_MENU_WBM_SECURITY
+help
+  Tool for integrity information
+  __XML: level id="integrity"
+               nav.text="Integrity"
+                  .ressource="index.php"
+                  .fragment="integrity"
+                  .user_level="3"
+
+###############################################################
 
 menuconfig CT_MENU_WBM_LEGAL_INFORMATION
 bool
@@ -950,6 +940,5 @@ help
                   .ressource="index.php"
                   .fragment="wago_licenses"
                   .user_level="0"
-
 
 endif

@@ -1837,7 +1837,7 @@ ul.check_list_important li
 }
 */
 
-#diag_list
+#diag_list, #integrity_log
 {
   border:           1px solid #bebebe;
   overflow:         auto;
@@ -1845,7 +1845,7 @@ ul.check_list_important li
   white-space:      nowrap;
 }
 
-#diag_list p
+#diag_list p, #integrity_log p
 {
   margin:           5px;
   font:             11px Verdana, sans-serif;

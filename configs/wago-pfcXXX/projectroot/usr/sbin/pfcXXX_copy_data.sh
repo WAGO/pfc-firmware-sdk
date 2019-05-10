@@ -6,7 +6,7 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2014-2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2014-2019 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   pfcXXX_copy_data.sh
@@ -50,13 +50,13 @@ function do_mount
 {
     local fstype=${1}
     local dev=${2}
-    local mntpoint=${3}
+    local mntpoint="${3}"
 
     print_dbg "mounting $dev to $mntpoint (fstype \"${fstype}\")"
 
-    mount -t ${fstype} ${dev} ${mntpoint} || exit $?
+    mount -t ${fstype} ${dev} "${mntpoint}" || exit $?
     # we only continue if mount succeeds
-    MOUNTPOINTS=${mntpoint}:${MOUNTPOINTS}
+    MOUNTPOINTS="${mntpoint}:${MOUNTPOINTS}"
 }
 
 function cleanup
@@ -71,14 +71,14 @@ function cleanup
     for mntpoint in ${MOUNTPOINTS}; do
         print_dbg "$mntpoint: "
         sync
-        umount ${mntpoint}
+        umount "${mntpoint}"
         print_dbg $?
     done
     IFS=$save_ifs
 
     set -e
 
-    rm -rf /tmp/sd /tmp/nand /tmp/emmc
+    rm -rf "/tmp/sd" "/tmp/nand" "/tmp/emmc"
 
     # when system is run from NAND, ubidetach aborts with an error which can be ignored
     ubidetach &> /dev/null /dev/ubi_ctrl -m ${G_UBIFS_MTD_DEV_NR} || true
@@ -102,7 +102,8 @@ function cleanup_abnormal
 
     # Filter "expected" errors
     case $lasterr in
-        $SUCCESS);;
+        $SUCCESS)
+            ;;
         $MOUNT_ERROR)
             SetLastError "Error: target device is in use."
             ;;
@@ -123,32 +124,35 @@ function cleanup_abnormal
 
 function mount_target_sd
 {
-    mkdir -p /tmp/sd/boot
-    mkdir -p /tmp/sd/root
+    mkdir -p "/tmp/sd/boot"
+    mkdir -p "/tmp/sd/root"
 
-    do_mount vfat ${G_SD_BOOT_DEV} /tmp/sd/boot
-    do_mount ext3 ${G_SD_ROOT_DEV} /tmp/sd/root
+    do_mount vfat ${G_SD_BOOT_DEV} "/tmp/sd/boot"
+    do_mount ext3 ${G_SD_ROOT_DEV} "/tmp/sd/root"
 }
 
 function mount_target_nand
 {
-    mkdir -p /tmp/nand/home
-    mkdir -p /tmp/nand/boot
-    mkdir -p /tmp/nand/backup_root
+    mkdir -p "/tmp/nand/home"
+    mkdir -p "/tmp/nand/boot"
+    mkdir -p "/tmp/nand/backup_root"
 
     local root_vol
 
     case $1 in
         ${G_UBIFS_ROOT1_LABEL})
-            root_vol=${G_UBIFS_ROOT1_VOL};;
+            root_vol=${G_UBIFS_ROOT1_VOL}
+            ;;
         ${G_UBIFS_ROOT2_LABEL})
-            root_vol=${G_UBIFS_ROOT2_VOL};;
+            root_vol=${G_UBIFS_ROOT2_VOL}
+            ;;
         *)
             exit ${INTERNAL_ERROR}
+            ;;
     esac
 
-    do_mount ubifs /dev/${root_vol} /tmp/nand/backup_root
-    do_mount ubifs /dev/${G_UBIFS_HOME_VOL} /tmp/nand/home
+    do_mount ubifs /dev/${root_vol} "/tmp/nand/backup_root"
+    do_mount ubifs /dev/${G_UBIFS_HOME_VOL} "/tmp/nand/home"
 }
 
 function create_static_nodes
@@ -198,18 +202,21 @@ function copy_rootfs
     local dst_root="$2"
     print_dbg "copying rootfs files from $src_root to $dst_root..."
     shopt -s dotglob
-    
+
     for dir in ${src_root}/*; do
         print_dbg "    processing $dir..."
         case ${dir} in
             *dev|*sys|*proc|*tmp|*home|*mnt|*media|*run|*boot)
-                mkdir -p ${dst_root}/${dir};;
-            *var)
-                ${BACKUP_CMD} --one-file-system ${dir} ${dst_root}/
+                mkdir -p "${dst_root}/${dir}"
                 ;;
-            *lost+found);; #skip fs-specific stuff
+            *var)
+                ${BACKUP_CMD} --one-file-system "${dir}" "${dst_root}/"
+                ;;
+            *lost+found|'.vol'|'.Trashes'|'System Volume Information'|'$Recycle.Bin'|'RECYCLER')
+                ;; #skip fs-specific stuff
             *)
-                ${BACKUP_CMD} ${dir} ${dst_root}/;;
+                ${BACKUP_CMD} "${dir}" "${dst_root}/"
+                ;;
         esac
     done
 }
@@ -217,32 +224,40 @@ function copy_rootfs
 function copy_source_to_sd
 {
     local source="${1}"
-    
+
     case $source in
-        ${INTERNAL_FLASH_NAND}) copy_nand_to_sd ;;
-        ${INTERNAL_FLASH_EMMC}) copy_emmc_to_sd ;;
-        *)    false ;;
+        ${INTERNAL_FLASH_NAND})
+            copy_nand_to_sd
+            ;;
+        ${INTERNAL_FLASH_EMMC})
+            copy_emmc_to_sd
+            ;;
+        *)
+            false
+            ;;
     esac
 }
 
 function copy_nand_to_sd
 {
-    local DEST_ROOT=/tmp/sd/root
-    local DEST_HOME=/tmp/sd/root/home
-    local DEST_BOOT=/tmp/sd/boot/
-    
-    copy_rootfs / "$DEST_ROOT"
+    local DEST_ROOT="/tmp/sd/root"
+    local DEST_HOME="/tmp/sd/root/home"
+    local DEST_BOOT="/tmp/sd/boot/"
+
+    copy_rootfs "/" "$DEST_ROOT"
 
     print_dbg "    processing /boot..."
-    ${BACKUP_CMD} /boot/loader/* ${DEST_BOOT}
-    ${BACKUP_CMD} /boot/*        ${DEST_ROOT}/boot
-    rm -rf ${DEST_ROOT}/boot/loader
-    rm -rf ${DEST_ROOT}/boot/loader-backup
+    if ls "/boot/loader/"* &>/dev/null; then
+        ${BACKUP_CMD} "/boot/loader/"* "${DEST_BOOT}"
+    fi
+    ${BACKUP_CMD} "/boot/"* "${DEST_ROOT}/boot"
+    rm -rf "${DEST_ROOT}/boot/loader"
+    rm -rf "${DEST_ROOT}/boot/loader-backup"
 
     print_dbg "    processing /home..."
-    ${BACKUP_CMD} /home/* ${DEST_HOME}/
+    ${BACKUP_CMD} "/home/"* "${DEST_HOME}/"
 
-    create_static_nodes /tmp/sd/root
+    create_static_nodes "/tmp/sd/root"
 }
 
 function copy_emmc_to_sd
@@ -250,7 +265,7 @@ function copy_emmc_to_sd
     copy_nand_to_sd
 
     # copy EMMC-only partitions
-    [[ -d /log ]] && ${BACKUP_CMD} --one-file-system /log/* /tmp/sd/root/log/ || true
+    [[ -d "/log" ]] && ${BACKUP_CMD} --one-file-system "/log/"* "/tmp/sd/root/log/" || true
 }
 
 function copy_sd_to_nand
@@ -264,20 +279,20 @@ function copy_sd_to_nand
     # We also need special handling for /var which is a mix of persistent
     # and temporary files.
 
-    local SRC_BOOT=/boot
-    local SRC_HOME=/home
-    local DEST_ROOT=/tmp/nand/backup_root
-    local DEST_BOOT=/tmp/nand/backup_root/boot
-    local DEST_HOME=/tmp/nand/home
+    local SRC_BOOT="/boot"
+    local SRC_HOME="/home"
+    local DEST_ROOT="/tmp/nand/backup_root"
+    local DEST_BOOT="/tmp/nand/backup_root/boot"
+    local DEST_HOME="/tmp/nand/home"
 
-    copy_rootfs / "$DEST_ROOT"
+    copy_rootfs "/" "$DEST_ROOT"
 
     # Include hidden files (i.e. starting with dot)
     print_dbg "processing /home..."
-    (shopt -s dotglob; ${BACKUP_CMD} ${SRC_HOME}/* ${DEST_HOME}/)
+    (shopt -s dotglob; ${BACKUP_CMD} "${SRC_HOME}/"* "${DEST_HOME}/")
 
     print_dbg "processing /boot..."
-    ${BACKUP_CMD} ${SRC_BOOT}/* ${DEST_BOOT}/
+    ${BACKUP_CMD} "${SRC_BOOT}/"* "${DEST_BOOT}/"
     rm -rf "${DEST_BOOT}/loader/"
 }
 
@@ -396,9 +411,9 @@ function umount_all_sd
     for mntpoint in $mountpoints; do
 
         local sd_in_use_by_myself="no"
-        local pid=$(cut -f4 -d' ' /proc/self/stat)
+        local pid=$(cut -f4 -d' ' "/proc/self/stat")
         while [[ "$pid" != "1" ]] && [[ "$sd_in_use_by_myself" == "no" ]]; do
-            pid=$(cut -f4 -d' ' /proc/$pid/stat) # pid=ppid
+            pid=$(cut -f4 -d' ' "/proc/$pid/stat") # pid=ppid
             lsof -p $pid | grep -q $mntpoint && sd_in_use_by_myself="yes"
         done
 
@@ -421,10 +436,10 @@ function umount_all_sd
         # then find processes that use the same filesystem and kill them
         # (fuser -mk)
         #    # FIXME: is SIGKILL not an overkill here?
-        tmpfile=$(mktemp $mntpoint/dummy.XXXXXX) && \
-            fuser -mk $tmpfile && \
-            rm $tmpfile
-        umount $mntpoint
+        tmpfile=$(mktemp "$mntpoint/dummy.XXXXXX") && \
+            fuser -mk "$tmpfile" && \
+            rm "$tmpfile"
+        umount "$mntpoint"
     done
 
     if [[ "$CODESYS_PAUSED" == "yes" ]]; then

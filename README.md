@@ -1,6 +1,6 @@
 ***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
-# Install WAGO-PFC-SDK-2019.3.1 on Ubuntu 16.04.5 (64bit) LTS
+# Install WAGO-PFC-SDK-2019.5.1 on Ubuntu 16.04.5 (64bit) LTS
 
 This HowTo describes steps to install the Software-Development-Kit (SDK) for PFC's on Ubuntu16.04
 
@@ -57,10 +57,22 @@ https://github.com/git-lfs/git-lfs/wiki/Installation
 
 These steps will only concentrate on the recommented Ubuntu version:
 ```
-    >sudo apt-get install software-properties-common
+    >sudo apt install software-properties-common curl
     >sudo add-apt-repository ppa:git-core/ppa
     >curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-    >sudo apt-get install git-lfs
+      Detected operating system as Ubuntu/xenial.
+      Checking for curl...
+      Detected curl...
+      Checking for gpg...
+      Detected gpg...
+      Running apt update... done.
+      Installing apt-transport-https... done.
+      Installing /etc/apt/sources.list.d/github_git-lfs.list...done.
+      Importing packagecloud gpg key... done.
+      Running apt update... done.
+
+      The repository is setup! You can now install packages.
+    >sudo apt install git-lfs
     >git lfs install
 ```
 
@@ -70,7 +82,6 @@ These steps will only concentrate on the recommented Ubuntu version:
     >cd ~
     >mkdir -p wago/ptxproj/
     >cd wago/ptxproj/
-    >sudo add-apt-repository ppa:git-core
     >git clone https://github.com/WAGO/pfc-firmware-sdk.git .
 ```
 
@@ -78,7 +89,7 @@ These steps will only concentrate on the recommented Ubuntu version:
 We will provide a ’ready to use’ toolchain in a binary manner.
 To install the Linaro binary toolchain act as follows:
 
-### 2.1) Extract Linaro tool chain to /opt directory
+### 2.1) Clone Linaro tool chain to /opt directory
 We need to clone the pre-compiled tool chain archive to the storage directory. We expect **/opt**
 ```
     >sudo mkdir -p /opt/LINARO.Toolchain-2017.10/
@@ -95,30 +106,30 @@ http://www.github.com/wago/gcc-linaro.toolchain-2017
 
 ### 3.1) Install additional required packages for "Ubuntu16.04":
 ```
-    >sudo apt-get install libncurses5-dev
-    >sudo apt-get install gawk
-    >sudo apt-get install flex
-    >sudo apt-get install bison
-    >sudo apt-get install texinfo
-    >sudo apt-get install python-dev
-    >sudo apt-get install g++
-    >sudo apt-get install dialog
-    >sudo apt-get install lzop       #used to build kernel image, ./configure did not check if installed 
-    >sudo apt-get install autoconf   #used to build kernel image, ./configure did not check if installed
-    >sudo apt-get install libtool    #used to build kernel image, ./configure did not check if installed
-    >sudo apt-get install xmlstarlet #used to build led_server package, ./configure did not check if installed
-    >sudo apt-get install xsltproc   #used to build led_server package, ./configure did not check if installed
-    >sudo apt-get install doxygen    #used to build modular-config-tools package, ./configure did not check if installed
-    >sudo apt-get install autopoint  #used to build libmodbus_tglx package
+    >sudo apt install libncurses5-dev
+    >sudo apt install gawk
+    >sudo apt install flex
+    >sudo apt install bison
+    >sudo apt install texinfo
+    >sudo apt install python-dev
+    >sudo apt install g++
+    >sudo apt install dialog
+    >sudo apt install lzop       #used to build kernel image, ./configure did not check if installed
+    >sudo apt install autoconf   #used to build kernel image, ./configure did not check if installed
+    >sudo apt install libtool    #used to build kernel image, ./configure did not check if installed
+    >sudo apt install xmlstarlet #used to build led_server package, ./configure did not check if installed
+    >sudo apt install xsltproc   #used to build led_server package, ./configure did not check if installed
+    >sudo apt install doxygen    #used to build modular-config-tools package, ./configure did not check if installed
+    >sudo apt install autopoint  #used to build libmodbus_tglx package
 ```
 
 or in one-shot:
 
 ```
-    >sudo apt-get install libncurses5-dev gawk flex bison texinfo python-dev g++ dialog lzop autoconf libtool xmlstarlet xsltproc doxygen autopoint
+    >sudo apt install libncurses5-dev gawk flex bison texinfo python-dev g++ dialog lzop autoconf libtool xmlstarlet xsltproc doxygen autopoint
 ```
 
-### 3.2) Clone the build tool "ptxdist-2017.11.1.tar.bz2" somewhere, we expect ~/ptxdist
+### 3.2) Clone the build tool "ptxdist" somewhere, we expect ~/ptxdist
 ```
     >git clone http://github.com/wago/ptxdist.git ~/ptxdist
 ```

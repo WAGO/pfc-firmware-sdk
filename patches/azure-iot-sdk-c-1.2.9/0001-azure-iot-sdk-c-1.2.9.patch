@@ -1,0 +1,12 @@
+diff -Naur azure-iot-sdk-c/CMakeLists.txt azure-iot-sdk-c_patched/CMakeLists.txt
+--- azure-iot-sdk-c/CMakeLists.txt	2018-10-02 08:29:13.055894788 +0200
++++ azure-iot-sdk-c_patched/CMakeLists.txt	2018-10-02 11:17:22.071783000 +0200
+@@ -37,8 +37,8 @@
+     add_definitions(/WX)
+ else()
+     # Make warning as error
+-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ")
+ endif()

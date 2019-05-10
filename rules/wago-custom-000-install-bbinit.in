@@ -169,7 +169,7 @@ config WAGO_CUSTOM_BOOT_WDG_BBINIT_LINK
 	string
 	depends on WAGO_CUSTOM_INSTALL_BOOT_WDG
 	prompt "boot watchdog"
-	default "S15_boot_wdg"
+	default "S00_boot_wdg"
 
 
 comment ""

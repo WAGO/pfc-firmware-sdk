@@ -35,6 +35,11 @@ readonly BACKUP_SCRIPT=settings_backup_store
 # Log prefix to export
 LOG_PREFIX=""
 
+# Workaround: Read backup target version from file to workaround (cleaned?) RAUC environment
+if [[ -z "${WAGO_BACKUP_TARGET_VERSION:-}" ]] &&
+   [[ -e "/tmp/fwupdate_fwversion/target_firmware.version" ]]; then
+  export WAGO_BACKUP_TARGET_VERSION="$(<"/tmp/fwupdate_fwversion/target_firmware.version")"
+fi
 
 #-------------- main-programm ------------------------#
 

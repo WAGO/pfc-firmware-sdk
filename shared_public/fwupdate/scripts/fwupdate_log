@@ -106,7 +106,7 @@ evaluate_params()
     # First evaluate early parameters
     # (maybe influencing other parameters)
     QUIET=$(get_parameter_option "-q" "--quiet" "$@")
-    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    RESULT=$?
     URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
     RESULT=$(( $? == 0 ? $RESULT : $? ))
     if [ "$URIENCODE" -ne 0 ]; then
@@ -155,10 +155,16 @@ print_help()
     echo "  --number                              -n   Print given number of (last) log lines"
     echo
     echo "Additional information:"
-    echo "Default/maximal number of log lines: 255"
+    echo "  Default/maximal number of log lines: $DEFAULT_NUMBER_OF_LINES"
     echo
     echo "Examples:"
-    echo "fwupdate_log --number 100"
+    echo "  $WAGO_CT_NAME --number 100"
+    echo "     --> Return last 100 log lines of $WAGO_CT_SYSTEM_MODULE in human readable form"
+    echo "  $WAGO_CT_NAME -q -t"
+    echo "     --> Return last $DEFAULT_NUMBER_OF_LINES log lines of $WAGO_CT_SYSTEM_MODULE in machine readable form"
+    echo "  $WAGO_CT_NAME -q -j"
+    echo "     --> Return last $DEFAULT_NUMBER_OF_LINES log lines of $WAGO_CT_SYSTEM_MODULE as JSON array"
+    echo "         in machine readable form"
 
     return 0
 }

@@ -28,7 +28,7 @@ function PageBuildup(actualPageId, callback)
     {
       title: 'OPC UA', //< GUI text
       id: 'opcua', //< unique menu entry identifier
-      userLevel: 2, // 2: admin, 1: user, 0: guest
+      userLevel: 3, // 3: admin, 2: user, 0: guest
       dependsOnFeature: 'opcua_feature', //< needs to be configured in device_params_list.js
       inMenu: 'port'      //< optional -> will be appended inside
       //afterEntry: 'port'  //< optional -> will be appended after

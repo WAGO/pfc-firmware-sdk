@@ -50,11 +50,7 @@ function hook_routine
     fi
 
     local skip_settings="false"
-    if fwupdate_shared_lock; then
-        skip_settings=$(fwupdate_get_skip_settings_flag)
-        fwupdate_release_lock
-    fi
-
+    skip_settings=$(fwupdate_get_skip_settings_flag)
     if [[ $skip_settings == "true" ]]; then
         fwupdate_report_info "Persist settings skipped (flag is set)."
     else

@@ -1,0 +1,35 @@
+From 404bbbc8097d8fa5a497292dba3478d2965e165a Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Fri, 10 Nov 2017 09:18:15 +0000
+Subject: [PATCH 123/292] ARM: mm: TEMPORARY workaround for startup oops in mmu
+ init
+
+	this is only a temporary workaround. remove this commit
+	if the root cause is determined and properly fixed.
+---
+ arch/arm/mm/init.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+index 1565d6b..bf3c9e31 100644
+--- a/arch/arm/mm/init.c
++++ b/arch/arm/mm/init.c
+@@ -23,6 +23,7 @@
+ #include <linux/dma-contiguous.h>
+ #include <linux/sizes.h>
+ #include <linux/stop_machine.h>
++#include <linux/delay.h>
+ 
+ #include <asm/cp15.h>
+ #include <asm/mach-types.h>
+@@ -718,6 +719,7 @@ void fix_kernmem_perms(void)
+ 
+ int __mark_rodata_ro(void *unused)
+ {
++	msleep(1);
+ 	update_sections_early(ro_perms, ARRAY_SIZE(ro_perms));
+ 	return 0;
+ }
+-- 
+2.7.4
+

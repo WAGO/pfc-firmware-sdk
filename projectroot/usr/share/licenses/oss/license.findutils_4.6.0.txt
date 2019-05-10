@@ -1,5 +1,3 @@
-findutils-4.6.0/AUTHORS
-
 AUTHORS of findutils
 
 I do not know the name of the original author of the findutils
@@ -38,8 +36,6 @@ The current maintainer of the findutils package is James Youngman.
 Questions about findutils should be addressed to the mailing list,
 <bug-findutils@gnu.org> which, contrary to the impression given by its
 name, is used for general discussion of the findutils package.
-
-findutils-4.6.0/COPYING
 
 
 		    GNU GENERAL PUBLIC LICENSE

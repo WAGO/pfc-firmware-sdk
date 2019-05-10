@@ -9,6 +9,7 @@
 
 #include <glib.h>
 #include <string>
+#include "mdm_config_types.h"
 
 #ifndef MDMD_CONFIG_FILE
 #define MDMD_CONFIG_FILE  "/etc/specific/mdmd_init.conf"
@@ -34,7 +35,7 @@ class PersistentStorage
 
 	bool get_sim(std::string &iccid, std::string &pin) const;
 	void set_sim(const std::string &iccid, const std::string &pin);
-
+//TODO(DD): remove next five definitions
 	bool get_selection(int &mode) const;
 	void set_selection(const int mode);
 
@@ -42,10 +43,16 @@ class PersistentStorage
 	void set_oper(int id, int act);
 	void remove_oper();
 
-	bool get_gprs_connectivity(int &state) const;
-	void set_gprs_connectivity(const int state);
+    bool get_gprs_access(GprsAccessConfig& gprs_access) const;
+    void set_gprs_access(const GprsAccessConfig& gprs_access);
 
-  void save();
+    bool get_sms_reporting_config(SmsEventReportingConfig& sms_config) const;
+    void set_sms_reporting_config(const SmsEventReportingConfig& sms_config);
+
+    bool get_sms_storage_config(SmsStorageConfig& sms_storage_config) const;
+    void set_sms_storage_config(const SmsStorageConfig& sms_storage_config);
+
+    void save();
 };
 
 #endif

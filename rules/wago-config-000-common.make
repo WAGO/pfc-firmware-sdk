@@ -330,7 +330,7 @@ $(STATEDIR)/config-tools.targetinstall:
 	@$(call install_fixup,config-tools,AUTHOR,"Wago Kontakttechnik")
 	@$(call install_fixup,config-tools,DESCRIPTION,missing)
 
-	@$(call install_copy, config-tools, 0, 0, 2777, /etc/config-tools);
+	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/post_netconfig.d)
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/codesys_after_download_hook, /etc/config-tools/codesys_after_download_hook);
 
@@ -502,10 +502,6 @@ endif
 
 ifdef PTXCONF_CT_FAT_FORMAT
 	@$(call install_link, config-tools, /etc/config-tools/format_medium, /etc/config-tools/fat_format)
-endif
-
-ifdef PTXCONF_CT_FILESYSTEM_CHECK
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/filesystem_check, /etc/config-tools/filesystem_check);
 endif
 
 ifdef PTXCONF_CT_FIRMWARE_BACKUP
@@ -680,6 +676,10 @@ endif
 
 ifdef PTXCONF_CT_GET_SYSTEMINFO
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_systeminfo, /etc/config-tools/get_systeminfo);
+endif
+
+ifdef PTXCONF_CT_WBM_MANAGE_AIDE
+	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/manage_integrity);
 endif
 
 #### Install C functions.

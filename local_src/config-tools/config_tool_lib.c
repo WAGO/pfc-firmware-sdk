@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2019 WAGO Kontakttechnik GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
@@ -8,14 +8,12 @@
 /// accepts the terms of the license.
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-///
 ///  \file     config_tool_lib.c
 ///
-///  \version  $Revision: 35594 $1
+///  \brief    Commonly used config tool defines and functions.
 ///
-///  \brief    
-///
-///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   SM:  WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -424,7 +422,7 @@ int GetErrorText(int status, char * pOut, int maxLength)
 }
 
 //used in elrest-config-tools eDisplay
-int SetLastError(char * pText)
+int SetLastError(char const * pText)
 // Append LastError Text to /tmp/last_error.txt
 {
   int status = ERROR;

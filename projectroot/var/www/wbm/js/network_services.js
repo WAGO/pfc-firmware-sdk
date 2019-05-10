@@ -57,6 +57,11 @@ var NetworkServicesContent = function(id)
       outputElementId : networkServicesContent.id + '_content #opcua_active_state'
     });
 
+    networkServicesContent.paramView.Add(
+    {
+      paramId         : 'opcua_available'
+    });
+
   })();
 
 
@@ -107,6 +112,14 @@ NetworkServicesContent.prototype.RefreshServicesActiveState = function()
 
   deviceParams.ReadValueGroup(networkServicesContent.paramView.list, function()
   {
+    // (only) show 3s opcua service part if wago opcua server is not installed
+    $('.3s_opcua').hide();
+    if(   (deviceParams.list['opcua_available'].status === SUCCESS)
+       && (deviceParams.list['opcua_available'].value === 'false'))
+    {
+      $('.3s_opcua').show();
+    }
+
     networkServicesContent.paramView.ShowValues();
     if(deviceParams.ReadErrorOccured(networkServicesContent.paramView.list))
     {

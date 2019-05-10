@@ -1,0 +1,83 @@
+From f1b465bb0fb0d45033d949439536858c1fbca7db Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 1 Aug 2017 11:04:04 +0000
+Subject: [PATCH 112/292] dts: 8215: adjust led configuration
+
+---
+ arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 40 ++++++++++++++++++++++++
+ arch/arm/boot/dts/wago-pfc200v3.dtsi             |  4 +--
+ 2 files changed, 42 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+index 5e00b1f..e2d4ef6 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
++++ b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+@@ -179,3 +179,43 @@
+                 };
+         };
+ };
++
++&led_bar0 {
++        pn_r: pn-red@0 {
++              label = "pn-red";
++              reg = <0>;
++              linux,default-trigger = "none";
++        };
++
++        pn_g: pn-green@1 {
++              label = "pn-green";
++              reg = <1>;
++              linux,default-trigger = "none";
++        };
++
++        dia_r: dia-red@2 {
++              label = "dia-red";
++              reg = <2>;
++              linux,default-trigger = "none";
++        };
++
++        dia_g: dia-green@3 {
++              label = "dia-green";
++              reg = <3>;
++              linux,default-trigger = "none";
++        };
++};
++
++&led_bar1 {
++        can_r: can-red@10 {
++              label = "can-red";
++              reg = <10>;
++              linux,default-trigger = "none";
++        };
++
++        can_g: can-green@11 {
++              label = "can-green";
++              reg = <11>;
++              linux,default-trigger = "none";
++        };
++};
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 01641f7..bed7379 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -542,7 +542,7 @@
+ 		reg = <0x20>;
+ 	};
+ 
+-	pca9552@60 { /* System status Visualization (LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")*/
++	led_bar1: pca9552@60 { /* System status Visualization (LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")*/
+ 		compatible = "nxp,pca9552";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+@@ -628,7 +628,7 @@
+ 		};
+ 	};
+ 
+-	pca9552@61 { /* System status Visualization (LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")*/
++	led_bar0: pca9552@61 { /* System status Visualization (LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")*/
+ 		compatible = "nxp,pca9552";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-- 
+2.7.4
+

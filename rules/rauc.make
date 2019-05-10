@@ -72,7 +72,6 @@ ifeq ($(PTXCONF_PLATFORM), wago-pfcXXX)
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv1)
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv2)
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv3)
-	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.src)
 	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv1, \
 		@RAUC_BUNDLE_COMPATIBLE@, \
 		$(PTXCONF_RAUC_COMPATIBLE))
@@ -80,9 +79,6 @@ ifeq ($(PTXCONF_PLATFORM), wago-pfcXXX)
 		@RAUC_BUNDLE_COMPATIBLE@, \
 		$(PTXCONF_RAUC_COMPATIBLE))
 	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv3, \
-		@RAUC_BUNDLE_COMPATIBLE@, \
-		$(PTXCONF_RAUC_COMPATIBLE))
-	@$(call install_replace, rauc, /etc/rauc/system.conf.src, \
 		@RAUC_BUNDLE_COMPATIBLE@, \
 		$(PTXCONF_RAUC_COMPATIBLE))
 	@$(call install_link, rauc, system.conf.pfcv2, /etc/rauc/system.conf.pfc100)

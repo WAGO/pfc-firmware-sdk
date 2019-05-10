@@ -1,0 +1,46 @@
+From e824bba37fdfa8eb6165ad95143e631175be53e3 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 18 Jun 2018 12:48:40 +0200
+Subject: [PATCH 173/292] dts: 0182: fix format of swcfg struct
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+index 72557c6..ad1ad00 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
++++ b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+@@ -24,19 +24,17 @@
+  */
+ 
+ /{
+-	
+-        swcfg_mv88e6321 {
+-                compatible = "swcfg,mv88e6321";
+-                status = "okay";
++	swcfg_mv88e6321 {
++		compatible = "swcfg,mv88e6321";
++		status = "okay";
+ 
+-                swcfg,mii-bus = <&davinci_mdio>;
+-
+-                swcfg,alias = "mv88e6321";
+-                swcfg,cpu_port = <5>;
+-                swcfg,ports = <7>;
+-                swcfg,vlans = <1>;
+-        };
++		swcfg,mii-bus = <&davinci_mdio>;
+ 
++		swcfg,alias = "mv88e6321";
++		swcfg,cpu_port = <5>;
++		swcfg,ports = <7>;
++		swcfg,vlans = <1>;
++	};
+ };
+ 
+ &am33xx_pinmux {
+-- 
+2.7.4
+

@@ -1,10 +1,6 @@
-libmodbus-3.0.5/AUTHORS
-
 Stéphane Raimbault <stephane.raimbault@gmail.com>
 Tobias Doerffel <tobias.doerffel@gmail.com>
 Florian Forster <ff@octo.it>
-
-libmodbus-3.0.5/COPYING
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -681,8 +677,6 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 
-libmodbus-3.0.5/COPYING.LESSER
-
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
 
@@ -1185,4 +1179,62 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
+
+This package was debianized by Stéphane Raimbault
+<stephane.raimbault@gmail.com> on Wed, 14 May 2008 22:30:53 +0200
+
+It was downloaded from <http://libmodbus.org>
+
+Upstream Author:
+
+    Stéphane Raimbault <stephane.raimbault@gmail.com>
+
+Copyright:
+
+    <Copyright (C) 2001-2011 Stéphane Raimbault>
+
+License for libmodbus:
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+On Debian systems, the complete text of the GNU General Public License
+can be found in /usr/share/common-licenses/LGPL-2.1
+
+License for the tests:
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+On Debian systems, the complete text of the GNU General Public License version 3
+can be found in "/usr/share/common-licenses/GPL-3".
+
+The Debian packaging is:
+
+     Copyright (C) 2008-20011 Stéphane Raimbault <stephane.raimbault@gmail.com>
+     Copyright (C) 2011 Ivo De Decker <Ivo.DeDecker@UGent.be>
+
+and is licensed under the LGPL version 2.1 or later, see
+"/usr/share/common-licenses/LGPL-2.1".
 

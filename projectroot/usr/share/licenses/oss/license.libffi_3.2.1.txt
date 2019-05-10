@@ -1,5 +1,3 @@
-libffi-3.2.1/LICENSE
-
 libffi - Copyright (c) 1996-2014  Anthony Green, Red Hat, Inc and others.
 See source files for details.
 

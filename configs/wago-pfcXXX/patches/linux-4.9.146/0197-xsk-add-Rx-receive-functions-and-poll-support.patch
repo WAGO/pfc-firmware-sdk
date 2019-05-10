@@ -1,0 +1,843 @@
+From 8e8426bbe5d47e93148cff7ab5e3751097a4cb58 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Wed, 23 May 2018 12:45:00 +0200
+Subject: [PATCH 197/292] xsk: add Rx receive functions and poll support
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Here the actual receive functions of AF_XDP are implemented, that in a
+later commit, will be called from the XDP layers.
+
+There's one set of functions for the XDP_DRV side and another for
+XDP_SKB (generic).
+
+A new XDP API, xdp_return_buff, is also introduced.
+
+Adding xdp_return_buff, which is analogous to xdp_return_frame, but
+acts upon an struct xdp_buff. The API will be used by AF_XDP in future
+commits.
+
+Signed-off-by: Björn Töpel <bjorn.topel@intel.com>
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ include/net/xdp.h      | 135 +++++++++++++++++++
+ include/net/xdp_sock.h |  22 ++++
+ net/core/Makefile      |   2 +-
+ net/core/xdp.c         | 351 +++++++++++++++++++++++++++++++++++++++++++++++++
+ net/xdp/xdp_umem.h     |  18 +++
+ net/xdp/xsk.c          |  73 +++++++++-
+ net/xdp/xsk_queue.h    | 114 +++++++++++++++-
+ 7 files changed, 712 insertions(+), 3 deletions(-)
+ create mode 100644 include/net/xdp.h
+ create mode 100644 net/core/xdp.c
+
+diff --git a/include/net/xdp.h b/include/net/xdp.h
+new file mode 100644
+index 0000000..1ad52a3
+--- /dev/null
++++ b/include/net/xdp.h
+@@ -0,0 +1,135 @@
++/* include/net/xdp.h
++ *
++ * Copyright (c) 2017 Jesper Dangaard Brouer, Red Hat Inc.
++ * Released under terms in GPL version 2.  See COPYING.
++ */
++#ifndef __LINUX_NET_XDP_H__
++#define __LINUX_NET_XDP_H__
++
++/**
++ * DOC: XDP RX-queue information
++ *
++ * The XDP RX-queue info (xdp_rxq_info) is associated with the driver
++ * level RX-ring queues.  It is information that is specific to how
++ * the driver have configured a given RX-ring queue.
++ *
++ * Each xdp_buff frame received in the driver carry a (pointer)
++ * reference to this xdp_rxq_info structure.  This provides the XDP
++ * data-path read-access to RX-info for both kernel and bpf-side
++ * (limited subset).
++ *
++ * For now, direct access is only safe while running in NAPI/softirq
++ * context.  Contents is read-mostly and must not be updated during
++ * driver NAPI/softirq poll.
++ *
++ * The driver usage API is a register and unregister API.
++ *
++ * The struct is not directly tied to the XDP prog.  A new XDP prog
++ * can be attached as long as it doesn't change the underlying
++ * RX-ring.  If the RX-ring does change significantly, the NIC driver
++ * naturally need to stop the RX-ring before purging and reallocating
++ * memory.  In that process the driver MUST call unregistor (which
++ * also apply for driver shutdown and unload).  The register API is
++ * also mandatory during RX-ring setup.
++ */
++
++enum xdp_mem_type {
++	MEM_TYPE_PAGE_SHARED = 0, /* Split-page refcnt based model */
++	MEM_TYPE_PAGE_ORDER0,     /* Orig XDP full page model */
++	MEM_TYPE_PAGE_POOL,
++	MEM_TYPE_MAX,
++};
++
++struct xdp_mem_info {
++	u32 type; /* enum xdp_mem_type, but known size type */
++	u32 id;
++};
++
++struct page_pool;
++
++struct xdp_rxq_info {
++	struct net_device *dev;
++	u32 queue_index;
++	u32 reg_state;
++	struct xdp_mem_info mem;
++} ____cacheline_aligned; /* perf critical, avoid false-sharing */
++
++struct xdp_buff {
++	void *data;
++	void *data_end;
++	void *data_meta;
++	void *data_hard_start;
++	struct xdp_rxq_info *rxq;
++};
++
++struct xdp_frame {
++	void *data;
++	u16 len;
++	u16 headroom;
++	u16 metasize;
++	/* Lifetime of xdp_rxq_info is limited to NAPI/enqueue time,
++	 * while mem info is valid on remote CPU.
++	 */
++	struct xdp_mem_info mem;
++	struct net_device *dev_rx; /* used by cpumap */
++};
++
++/* Convert xdp_buff to xdp_frame */
++static inline
++struct xdp_frame *convert_to_xdp_frame(struct xdp_buff *xdp)
++{
++	struct xdp_frame *xdp_frame;
++	int metasize;
++	int headroom;
++
++	/* Assure headroom is available for storing info */
++	headroom = xdp->data - xdp->data_hard_start;
++	metasize = xdp->data - xdp->data_meta;
++	metasize = metasize > 0 ? metasize : 0;
++	if (unlikely((headroom - metasize) < sizeof(*xdp_frame)))
++		return NULL;
++
++	/* Store info in top of packet */
++	xdp_frame = xdp->data_hard_start;
++
++	xdp_frame->data = xdp->data;
++	xdp_frame->len  = xdp->data_end - xdp->data;
++	xdp_frame->headroom = headroom - sizeof(*xdp_frame);
++	xdp_frame->metasize = metasize;
++
++	/* rxq only valid until napi_schedule ends, convert to xdp_mem_info */
++	xdp_frame->mem = xdp->rxq->mem;
++
++	return xdp_frame;
++}
++
++void xdp_return_frame(struct xdp_frame *xdpf);
++void xdp_return_buff(struct xdp_buff *xdp);
++
++int xdp_rxq_info_reg(struct xdp_rxq_info *xdp_rxq,
++		     struct net_device *dev, u32 queue_index);
++void xdp_rxq_info_unreg(struct xdp_rxq_info *xdp_rxq);
++void xdp_rxq_info_unused(struct xdp_rxq_info *xdp_rxq);
++bool xdp_rxq_info_is_reg(struct xdp_rxq_info *xdp_rxq);
++int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
++			       enum xdp_mem_type type, void *allocator);
++
++struct sk_buff;
++int xsk_generic_rcv_skb(struct sk_buff *skb);
++
++/* Drivers not supporting XDP metadata can use this helper, which
++ * rejects any room expansion for metadata as a result.
++ */
++static __always_inline void
++xdp_set_data_meta_invalid(struct xdp_buff *xdp)
++{
++	xdp->data_meta = xdp->data + 1;
++}
++
++static __always_inline bool
++xdp_data_meta_unsupported(const struct xdp_buff *xdp)
++{
++	return unlikely(xdp->data_meta > xdp->data);
++}
++
++#endif /* __LINUX_NET_XDP_H__ */
+diff --git a/include/net/xdp_sock.h b/include/net/xdp_sock.h
+index 85d0251..a0342df 100644
+--- a/include/net/xdp_sock.h
++++ b/include/net/xdp_sock.h
+@@ -31,6 +31,28 @@ struct xdp_sock {
+ 	u16 queue_id;
+ 	/* Protects multiple processes in the control path */
+ 	struct mutex mutex;
++	u64 rx_dropped;
+ };
+ 
++struct xdp_buff;
++#ifdef CONFIG_XDP_SOCKETS
++int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp);
++int xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp);
++void xsk_flush(struct xdp_sock *xs);
++#else
++static inline int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
++{
++	return -ENOTSUPP;
++}
++
++static inline int xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
++{
++	return -ENOTSUPP;
++}
++
++static inline void xsk_flush(struct xdp_sock *xs)
++{
++}
++#endif /* CONFIG_XDP_SOCKETS */
++
+ #endif /* _LINUX_XDP_SOCK_H */
+diff --git a/net/core/Makefile b/net/core/Makefile
+index d6508c2..f76fadf 100644
+--- a/net/core/Makefile
++++ b/net/core/Makefile
+@@ -9,7 +9,7 @@ obj-$(CONFIG_SYSCTL) += sysctl_net_core.o
+ 
+ obj-y		     += dev.o ethtool.o dev_addr_lists.o dst.o netevent.o \
+ 			neighbour.o rtnetlink.o utils.o link_watch.o filter.o \
+-			sock_diag.o dev_ioctl.o tso.o sock_reuseport.o
++			sock_diag.o dev_ioctl.o tso.o sock_reuseport.o xdp.o
+ 
+ obj-$(CONFIG_XFRM) += flow.o
+ obj-y += net-sysfs.o
+diff --git a/net/core/xdp.c b/net/core/xdp.c
+new file mode 100644
+index 0000000..bf6758f
+--- /dev/null
++++ b/net/core/xdp.c
+@@ -0,0 +1,351 @@
++/* net/core/xdp.c
++ *
++ * Copyright (c) 2017 Jesper Dangaard Brouer, Red Hat Inc.
++ * Released under terms in GPL version 2.  See COPYING.
++ */
++#include <linux/types.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/idr.h>
++#include <linux/rhashtable.h>
++#include <net/page_pool.h>
++
++#include <net/xdp.h>
++
++#define REG_STATE_NEW		0x0
++#define REG_STATE_REGISTERED	0x1
++#define REG_STATE_UNREGISTERED	0x2
++#define REG_STATE_UNUSED	0x3
++
++static DEFINE_IDA(mem_id_pool);
++static DEFINE_MUTEX(mem_id_lock);
++#define MEM_ID_MAX 0xFFFE
++#define MEM_ID_MIN 1
++static int mem_id_next = MEM_ID_MIN;
++
++static bool mem_id_init; /* false */
++static struct rhashtable *mem_id_ht;
++
++struct xdp_mem_allocator {
++	struct xdp_mem_info mem;
++	union {
++		void *allocator;
++		struct page_pool *page_pool;
++	};
++	struct rhash_head node;
++	struct rcu_head rcu;
++};
++
++static u32 xdp_mem_id_hashfn(const void *data, u32 len, u32 seed)
++{
++	const u32 *k = data;
++	const u32 key = *k;
++
++	BUILD_BUG_ON(FIELD_SIZEOF(struct xdp_mem_allocator, mem.id)
++		     != sizeof(u32));
++
++	/* Use cyclic increasing ID as direct hash key, see rht_bucket_index */
++	return key << RHT_HASH_RESERVED_SPACE;
++}
++
++static int xdp_mem_id_cmp(struct rhashtable_compare_arg *arg,
++			  const void *ptr)
++{
++	const struct xdp_mem_allocator *xa = ptr;
++	u32 mem_id = *(u32 *)arg->key;
++
++	return xa->mem.id != mem_id;
++}
++
++static const struct rhashtable_params mem_id_rht_params = {
++	.nelem_hint = 64,
++	.head_offset = offsetof(struct xdp_mem_allocator, node),
++	.key_offset  = offsetof(struct xdp_mem_allocator, mem.id),
++	.key_len = FIELD_SIZEOF(struct xdp_mem_allocator, mem.id),
++	.max_size = MEM_ID_MAX,
++	.min_size = 8,
++	.automatic_shrinking = true,
++	.hashfn    = xdp_mem_id_hashfn,
++	.obj_cmpfn = xdp_mem_id_cmp,
++};
++
++static void __xdp_mem_allocator_rcu_free(struct rcu_head *rcu)
++{
++	struct xdp_mem_allocator *xa;
++
++	xa = container_of(rcu, struct xdp_mem_allocator, rcu);
++
++	/* Allow this ID to be reused */
++	ida_simple_remove(&mem_id_pool, xa->mem.id);
++
++	/* Notice, driver is expected to free the *allocator,
++	 * e.g. page_pool, and MUST also use RCU free.
++	 */
++
++	/* Poison memory */
++	xa->mem.id = 0xFFFF;
++	xa->mem.type = 0xF0F0;
++	xa->allocator = (void *)0xDEAD9001;
++
++	kfree(xa);
++}
++
++static void __xdp_rxq_info_unreg_mem_model(struct xdp_rxq_info *xdp_rxq)
++{
++	struct xdp_mem_allocator *xa;
++	int id = xdp_rxq->mem.id;
++	int err;
++
++	if (id == 0)
++		return;
++
++	mutex_lock(&mem_id_lock);
++
++	xa = rhashtable_lookup(mem_id_ht, &id, mem_id_rht_params);
++	if (!xa) {
++		mutex_unlock(&mem_id_lock);
++		return;
++	}
++
++	err = rhashtable_remove_fast(mem_id_ht, &xa->node, mem_id_rht_params);
++	WARN_ON(err);
++
++	call_rcu(&xa->rcu, __xdp_mem_allocator_rcu_free);
++
++	mutex_unlock(&mem_id_lock);
++}
++
++void xdp_rxq_info_unreg(struct xdp_rxq_info *xdp_rxq)
++{
++	/* Simplify driver cleanup code paths, allow unreg "unused" */
++	if (xdp_rxq->reg_state == REG_STATE_UNUSED)
++		return;
++
++	WARN(!(xdp_rxq->reg_state == REG_STATE_REGISTERED), "Driver BUG");
++
++	__xdp_rxq_info_unreg_mem_model(xdp_rxq);
++
++	xdp_rxq->reg_state = REG_STATE_UNREGISTERED;
++	xdp_rxq->dev = NULL;
++
++	/* Reset mem info to defaults */
++	xdp_rxq->mem.id = 0;
++	xdp_rxq->mem.type = 0;
++}
++EXPORT_SYMBOL_GPL(xdp_rxq_info_unreg);
++
++static void xdp_rxq_info_init(struct xdp_rxq_info *xdp_rxq)
++{
++	memset(xdp_rxq, 0, sizeof(*xdp_rxq));
++}
++
++/* Returns 0 on success, negative on failure */
++int xdp_rxq_info_reg(struct xdp_rxq_info *xdp_rxq,
++		     struct net_device *dev, u32 queue_index)
++{
++	if (xdp_rxq->reg_state == REG_STATE_UNUSED) {
++		WARN(1, "Driver promised not to register this");
++		return -EINVAL;
++	}
++
++	if (xdp_rxq->reg_state == REG_STATE_REGISTERED) {
++		WARN(1, "Missing unregister, handled but fix driver");
++		xdp_rxq_info_unreg(xdp_rxq);
++	}
++
++	if (!dev) {
++		WARN(1, "Missing net_device from driver");
++		return -ENODEV;
++	}
++
++	/* State either UNREGISTERED or NEW */
++	xdp_rxq_info_init(xdp_rxq);
++	xdp_rxq->dev = dev;
++	xdp_rxq->queue_index = queue_index;
++
++	xdp_rxq->reg_state = REG_STATE_REGISTERED;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(xdp_rxq_info_reg);
++
++void xdp_rxq_info_unused(struct xdp_rxq_info *xdp_rxq)
++{
++	xdp_rxq->reg_state = REG_STATE_UNUSED;
++}
++EXPORT_SYMBOL_GPL(xdp_rxq_info_unused);
++
++bool xdp_rxq_info_is_reg(struct xdp_rxq_info *xdp_rxq)
++{
++	return (xdp_rxq->reg_state == REG_STATE_REGISTERED);
++}
++EXPORT_SYMBOL_GPL(xdp_rxq_info_is_reg);
++
++static int __mem_id_init_hash_table(void)
++{
++	struct rhashtable *rht;
++	int ret;
++
++	if (unlikely(mem_id_init))
++		return 0;
++
++	rht = kzalloc(sizeof(*rht), GFP_KERNEL);
++	if (!rht)
++		return -ENOMEM;
++
++	ret = rhashtable_init(rht, &mem_id_rht_params);
++	if (ret < 0) {
++		kfree(rht);
++		return ret;
++	}
++	mem_id_ht = rht;
++	smp_mb(); /* mutex lock should provide enough pairing */
++	mem_id_init = true;
++
++	return 0;
++}
++
++/* Allocate a cyclic ID that maps to allocator pointer.
++ * See: https://www.kernel.org/doc/html/latest/core-api/idr.html
++ *
++ * Caller must lock mem_id_lock.
++ */
++static int __mem_id_cyclic_get(gfp_t gfp)
++{
++	int retries = 1;
++	int id;
++
++again:
++	id = ida_simple_get(&mem_id_pool, mem_id_next, MEM_ID_MAX, gfp);
++	if (id < 0) {
++		if (id == -ENOSPC) {
++			/* Cyclic allocator, reset next id */
++			if (retries--) {
++				mem_id_next = MEM_ID_MIN;
++				goto again;
++			}
++		}
++		return id; /* errno */
++	}
++	mem_id_next = id + 1;
++
++	return id;
++}
++
++static bool __is_supported_mem_type(enum xdp_mem_type type)
++{
++	if (type == MEM_TYPE_PAGE_POOL)
++		return is_page_pool_compiled_in();
++
++	if (type >= MEM_TYPE_MAX)
++		return false;
++
++	return true;
++}
++
++int xdp_rxq_info_reg_mem_model(struct xdp_rxq_info *xdp_rxq,
++			       enum xdp_mem_type type, void *allocator)
++{
++	struct xdp_mem_allocator *xdp_alloc;
++	gfp_t gfp = GFP_KERNEL;
++	int id, errno, ret;
++	void *ptr;
++
++	if (xdp_rxq->reg_state != REG_STATE_REGISTERED) {
++		WARN(1, "Missing register, driver bug");
++		return -EFAULT;
++	}
++
++	if (!__is_supported_mem_type(type))
++		return -EOPNOTSUPP;
++
++	xdp_rxq->mem.type = type;
++
++	if (!allocator) {
++		if (type == MEM_TYPE_PAGE_POOL)
++			return -EINVAL; /* Setup time check page_pool req */
++		return 0;
++	}
++
++	/* Delay init of rhashtable to save memory if feature isn't used */
++	if (!mem_id_init) {
++		mutex_lock(&mem_id_lock);
++		ret = __mem_id_init_hash_table();
++		mutex_unlock(&mem_id_lock);
++		if (ret < 0) {
++			WARN_ON(1);
++			return ret;
++		}
++	}
++
++	xdp_alloc = kzalloc(sizeof(*xdp_alloc), gfp);
++	if (!xdp_alloc)
++		return -ENOMEM;
++
++	mutex_lock(&mem_id_lock);
++	id = __mem_id_cyclic_get(gfp);
++	if (id < 0) {
++		errno = id;
++		goto err;
++	}
++	xdp_rxq->mem.id = id;
++	xdp_alloc->mem  = xdp_rxq->mem;
++	xdp_alloc->allocator = allocator;
++
++	/* Insert allocator into ID lookup table */
++	ptr = rhashtable_insert_slow(mem_id_ht, &id, &xdp_alloc->node);
++	if (IS_ERR(ptr)) {
++		errno = PTR_ERR(ptr);
++		goto err;
++	}
++
++	mutex_unlock(&mem_id_lock);
++
++	return 0;
++err:
++	mutex_unlock(&mem_id_lock);
++	kfree(xdp_alloc);
++	return errno;
++}
++EXPORT_SYMBOL_GPL(xdp_rxq_info_reg_mem_model);
++
++static void xdp_return(void *data, struct xdp_mem_info *mem)
++{
++	struct xdp_mem_allocator *xa;
++	struct page *page;
++
++	switch (mem->type) {
++	case MEM_TYPE_PAGE_POOL:
++		rcu_read_lock();
++		/* mem->id is valid, checked in xdp_rxq_info_reg_mem_model() */
++		xa = rhashtable_lookup(mem_id_ht, &mem->id, mem_id_rht_params);
++		page = virt_to_head_page(data);
++		if (xa)
++			page_pool_put_page(xa->page_pool, page);
++		else
++			put_page(page);
++		rcu_read_unlock();
++		break;
++	case MEM_TYPE_PAGE_SHARED:
++		page_frag_free(data);
++		break;
++	case MEM_TYPE_PAGE_ORDER0:
++		page = virt_to_page(data); /* Assumes order0 page*/
++		put_page(page);
++		break;
++	default:
++		/* Not possible, checked in xdp_rxq_info_reg_mem_model() */
++		break;
++	}
++}
++
++void xdp_return_frame(struct xdp_frame *xdpf)
++{
++	xdp_return(xdpf->data, &xdpf->mem);
++}
++EXPORT_SYMBOL_GPL(xdp_return_frame);
++
++void xdp_return_buff(struct xdp_buff *xdp)
++{
++	xdp_return(xdp->data, &xdp->rxq->mem);
++}
++EXPORT_SYMBOL_GPL(xdp_return_buff);
+diff --git a/net/xdp/xdp_umem.h b/net/xdp/xdp_umem.h
+index b13133e..c7378a1 100644
+--- a/net/xdp/xdp_umem.h
++++ b/net/xdp/xdp_umem.h
+@@ -39,6 +39,24 @@ struct xdp_umem {
+ 	struct work_struct work;
+ };
+ 
++static inline char *xdp_umem_get_data(struct xdp_umem *umem, u32 idx)
++{
++	u64 pg, off;
++	char *data;
++
++	pg = idx >> umem->nfpplog2;
++	off = (idx & umem->nfpp_mask) << umem->frame_size_log2;
++
++	data = page_address(umem->pgs[pg]);
++	return data + off;
++}
++
++static inline char *xdp_umem_get_data_with_headroom(struct xdp_umem *umem,
++						    u32 idx)
++{
++	return xdp_umem_get_data(umem, idx) + umem->frame_headroom;
++}
++
+ bool xdp_umem_validate_queues(struct xdp_umem *umem);
+ int xdp_umem_reg(struct xdp_umem *umem, struct xdp_umem_reg *mr);
+ void xdp_get_umem(struct xdp_umem *umem);
+diff --git a/net/xdp/xsk.c b/net/xdp/xsk.c
+index bf2c97b..4e1e6c5 100644
+--- a/net/xdp/xsk.c
++++ b/net/xdp/xsk.c
+@@ -41,6 +41,74 @@ static struct xdp_sock *xdp_sk(struct sock *sk)
+ 	return (struct xdp_sock *)sk;
+ }
+ 
++static int __xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
++{
++	u32 *id, len = xdp->data_end - xdp->data;
++	void *buffer;
++	int err = 0;
++
++	if (xs->dev != xdp->rxq->dev || xs->queue_id != xdp->rxq->queue_index)
++		return -EINVAL;
++
++	id = xskq_peek_id(xs->umem->fq);
++	if (!id)
++		return -ENOSPC;
++
++	buffer = xdp_umem_get_data_with_headroom(xs->umem, *id);
++	memcpy(buffer, xdp->data, len);
++	err = xskq_produce_batch_desc(xs->rx, *id, len,
++				      xs->umem->frame_headroom);
++	if (!err)
++		xskq_discard_id(xs->umem->fq);
++
++	return err;
++}
++
++int xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
++{
++	int err;
++
++	err = __xsk_rcv(xs, xdp);
++	if (likely(!err))
++		xdp_return_buff(xdp);
++	else
++		xs->rx_dropped++;
++
++	return err;
++}
++
++void xsk_flush(struct xdp_sock *xs)
++{
++	xskq_produce_flush_desc(xs->rx);
++	xs->sk.sk_data_ready(&xs->sk);
++}
++
++int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
++{
++	int err;
++
++	err = __xsk_rcv(xs, xdp);
++	if (!err)
++		xsk_flush(xs);
++	else
++		xs->rx_dropped++;
++
++	return err;
++}
++
++static unsigned int xsk_poll(struct file *file, struct socket *sock,
++			     struct poll_table_struct *wait)
++{
++	unsigned int mask = datagram_poll(file, sock, wait);
++	struct sock *sk = sock->sk;
++	struct xdp_sock *xs = xdp_sk(sk);
++
++	if (xs->rx && !xskq_empty_desc(xs->rx))
++		mask |= POLLIN | POLLRDNORM;
++
++	return mask;
++}
++
+ static int xsk_init_queue(u32 entries, struct xsk_queue **queue,
+ 			  bool umem_queue)
+ {
+@@ -179,6 +247,9 @@ static int xsk_bind(struct socket *sock, struct sockaddr *addr, int addr_len)
+ 	} else if (!xs->umem || !xdp_umem_validate_queues(xs->umem)) {
+ 		err = -EINVAL;
+ 		goto out_unlock;
++	} else {
++		/* This xsk has its own umem. */
++		xskq_set_umem(xs->umem->fq, &xs->umem->props);
+ 	}
+ 
+ 	/* Rebind? */
+@@ -330,7 +401,7 @@ static const struct proto_ops xsk_proto_ops = {
+ 	.socketpair =	sock_no_socketpair,
+ 	.accept =	sock_no_accept,
+ 	.getname =	sock_no_getname,
+-	.poll =		sock_no_poll,
++	.poll =		xsk_poll,
+ 	.ioctl =	sock_no_ioctl,
+ 	.listen =	sock_no_listen,
+ 	.shutdown =	sock_no_shutdown,
+diff --git a/net/xdp/xsk_queue.h b/net/xdp/xsk_queue.h
+index 9ddd2ee..0a9b92b 100644
+--- a/net/xdp/xsk_queue.h
++++ b/net/xdp/xsk_queue.h
+@@ -20,6 +20,8 @@
+ 
+ #include "xdp_umem_props.h"
+ 
++#define RX_BATCH_SIZE 16
++
+ struct xsk_queue {
+ 	struct xdp_umem_props umem_props;
+ 	u32 ring_mask;
+@@ -32,8 +34,118 @@ struct xsk_queue {
+ 	u64 invalid_descs;
+ };
+ 
++/* Common functions operating for both RXTX and umem queues */
++
++static inline u32 xskq_nb_avail(struct xsk_queue *q, u32 dcnt)
++{
++	u32 entries = q->prod_tail - q->cons_tail;
++
++	if (entries == 0) {
++		/* Refresh the local pointer */
++		q->prod_tail = READ_ONCE(q->ring->producer);
++		entries = q->prod_tail - q->cons_tail;
++	}
++
++	return (entries > dcnt) ? dcnt : entries;
++}
++
++static inline u32 xskq_nb_free(struct xsk_queue *q, u32 producer, u32 dcnt)
++{
++	u32 free_entries = q->nentries - (producer - q->cons_tail);
++
++	if (free_entries >= dcnt)
++		return free_entries;
++
++	/* Refresh the local tail pointer */
++	q->cons_tail = READ_ONCE(q->ring->consumer);
++	return q->nentries - (producer - q->cons_tail);
++}
++
++/* UMEM queue */
++
++static inline bool xskq_is_valid_id(struct xsk_queue *q, u32 idx)
++{
++	if (unlikely(idx >= q->umem_props.nframes)) {
++		q->invalid_descs++;
++		return false;
++	}
++	return true;
++}
++
++static inline u32 *xskq_validate_id(struct xsk_queue *q)
++{
++	while (q->cons_tail != q->cons_head) {
++		struct xdp_umem_ring *ring = (struct xdp_umem_ring *)q->ring;
++		unsigned int idx = q->cons_tail & q->ring_mask;
++
++		if (xskq_is_valid_id(q, ring->desc[idx]))
++			return &ring->desc[idx];
++
++		q->cons_tail++;
++	}
++
++	return NULL;
++}
++
++static inline u32 *xskq_peek_id(struct xsk_queue *q)
++{
++	struct xdp_umem_ring *ring;
++
++	if (q->cons_tail == q->cons_head) {
++		WRITE_ONCE(q->ring->consumer, q->cons_tail);
++		q->cons_head = q->cons_tail + xskq_nb_avail(q, RX_BATCH_SIZE);
++
++		/* Order consumer and data */
++		smp_rmb();
++
++		return xskq_validate_id(q);
++	}
++
++	ring = (struct xdp_umem_ring *)q->ring;
++	return &ring->desc[q->cons_tail & q->ring_mask];
++}
++
++static inline void xskq_discard_id(struct xsk_queue *q)
++{
++	q->cons_tail++;
++	(void)xskq_validate_id(q);
++}
++
++/* Rx queue */
++
++static inline int xskq_produce_batch_desc(struct xsk_queue *q,
++					  u32 id, u32 len, u16 offset)
++{
++	struct xdp_rxtx_ring *ring = (struct xdp_rxtx_ring *)q->ring;
++	unsigned int idx;
++
++	if (xskq_nb_free(q, q->prod_head, 1) == 0)
++		return -ENOSPC;
++
++	idx = (q->prod_head++) & q->ring_mask;
++	ring->desc[idx].idx = id;
++	ring->desc[idx].len = len;
++	ring->desc[idx].offset = offset;
++
++	return 0;
++}
++
++static inline void xskq_produce_flush_desc(struct xsk_queue *q)
++{
++	/* Order producer and data */
++	smp_wmb();
++
++	q->prod_tail = q->prod_head,
++	WRITE_ONCE(q->ring->producer, q->prod_tail);
++}
++
++static inline bool xskq_empty_desc(struct xsk_queue *q)
++{
++	return (xskq_nb_free(q, q->prod_tail, 1) == q->nentries);
++}
++
+ void xskq_set_umem(struct xsk_queue *q, struct xdp_umem_props *umem_props);
+ struct xsk_queue *xskq_create(u32 nentries, bool umem_queue);
+-void xskq_destroy(struct xsk_queue *q);
++void xskq_destroy(struct xsk_queue *q_ops);
+ 
+ #endif /* _LINUX_XSK_QUEUE_H */
+-- 
+2.7.4
+

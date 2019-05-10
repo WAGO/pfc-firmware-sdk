@@ -1,0 +1,20 @@
+From 1db83dd0b1472b8f2682ece199015add416b255e Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Tue, 9 Apr 2019 13:59:31 +0200
+Subject: [PATCH] add new version w02.04.00_02+3
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ localversion-wago | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/localversion-wago b/localversion-wago
+index ece0a4a..138988d 100644
+--- a/localversion-wago
++++ b/localversion-wago
+@@ -1 +1 @@
+--w02.04.00_02+2
++-w02.04.00_02+3
+-- 
+2.7.4
+

@@ -407,3 +407,5 @@ if [ -n "backupFile" ]; then
 else
   status=$INVALID_PARAMETER
 fi
+
+exit $status

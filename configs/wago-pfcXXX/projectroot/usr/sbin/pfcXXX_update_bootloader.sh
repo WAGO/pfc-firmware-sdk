@@ -334,7 +334,7 @@ function __main
     if [[ -z "$system_index" ]]; then
         echo "Note: Skipping bootloader backup in ROOT FS."
     elif [[ "$system_index" -eq "9" ]]; then
-        echo "Restore bootloaders from backup at \"$base_path\""
+        echo "Restore bootloaders for type $dev_type from backup at \"$base_path\""
     else
         # Backup bootloader to ROOT FS
         backup_bootloader $system_index "$barebox_compatible_versions" "${mlo_path}" "${bb_path}" "${dev_type}"

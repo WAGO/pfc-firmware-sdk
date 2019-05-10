@@ -1,12 +1,8 @@
-sed-4.2.2/AUTHORS
-
 GNU Sed was first authored by Jay Fenlason (hack@gnu.org)
 and later modified by Tom Lord (lord@gnu.org).
 
 It is currently being maintained by Ken Pizzini (ken@gnu.org)
 and Paolo Bonzini (bonzini@gnu.org).
-
-sed-4.2.2/COPYING
 
 
 		    GNU GENERAL PUBLIC LICENSE
@@ -684,8 +680,6 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 
-
-sed-4.2.2/COPYING.DOC
 
 
                 GNU Free Documentation License

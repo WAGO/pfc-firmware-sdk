@@ -23,7 +23,7 @@
 <div class="config_form_box">
   <div class="config_data_list"
   <div class="label_value_pair">
-    <div class="label_field"><label for="attention">1.2.0</label></div>
+    <div class="label_field"><label for="attention">1.2.2</label></div>
   </div>
 </div>
 
@@ -80,6 +80,7 @@
         <option value="MQTT">MQTT AnyCloud</option>
         <option value="IBM">IBM Cloud</option>
         <option value="AWS">Amazon Web Services (AWS)</option>
+        <option value="SAP">SAP IoT Services</option>
         </select>
       </div>
     </div>
@@ -151,6 +152,13 @@
       <div class="label_field"><label for="inputMqttKeyFile">Key file:</label></div>
       <div class="value_field"><input id="inputMqttKeyFile" class="input_field" type="text" size="50" maxlength="250" name="inputMqttKeyFile" value="" ></div>
     </div>
+    </div>
+
+    <div class="config_data_list" id="WebswocketsConfigUI" style="display: none;">
+	  <div class="label_value_pair">
+	    <div class="label_field"><label for="chkWebsocketsEnabled">Use websockets:</label></div>
+	    <div class="value_field"><input id="chkWebsocketsEnabled" type="checkbox" name="chkWebsocketsEnabled" value="disabled" ></div>
+	  </div>
     </div>
   
     <div class="config_data_list" id="divApplicationBehavior">

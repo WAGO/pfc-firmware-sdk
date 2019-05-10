@@ -1,9 +1,5 @@
-libusb-compat-0.1.3/AUTHORS
-
 Daniel Drake <dsd@gentoo.org>
 
-
-libusb-compat-0.1.3/COPYING
 
 		  GNU LESSER GENERAL PUBLIC LICENSE
 		       Version 2.1, February 1999
@@ -509,8 +505,6 @@ necessary.  Here is a sample; alter the names:
 That's all there is to it!
 
 
-
-libusb-compat-0.1.3/LICENSE
 
 libusb is covered by the LGPL:
 

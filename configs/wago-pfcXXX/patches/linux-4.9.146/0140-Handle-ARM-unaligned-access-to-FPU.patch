@@ -1,0 +1,24 @@
+From 8b18bc821f1515c7a37786685ee1f793c4b3516c Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Fri, 9 Sep 2016 08:42:19 +0200
+Subject: [PATCH 140/292] Handle ARM unaligned access to FPU
+
+---
+ arch/arm/mm/alignment.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/mm/alignment.c b/arch/arm/mm/alignment.c
+index 7d5f4c7..01f3b213 100644
+--- a/arch/arm/mm/alignment.c
++++ b/arch/arm/mm/alignment.c
+@@ -842,6 +842,7 @@ do_alignment(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+ 		break;
+ 
+ 	case 0x04000000:	/* ldr or str immediate */
++	case 0x0C000000:	/* ldr | str float */
+ 		if (COND_BITS(instr) == 0xf0000000) /* NEON VLDn, VSTn */
+ 			goto bad;
+ 		offset.un = OFFSET_BITS(instr);
+-- 
+2.7.4
+

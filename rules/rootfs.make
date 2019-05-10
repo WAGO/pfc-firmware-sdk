@@ -50,8 +50,7 @@ ifdef PTXCONF_ROOTFS_HOME
 	@$(call install_copy, rootfs, 0, $(PTXCONF_ROOTFS_PASSWD_ADMIN_GID), 2775, /home)
 endif
 ifdef PTXCONF_ROOTFS_HOME_ROOT
-# add execute access for group admin
-	@$(call install_copy, rootfs, 0, $(PTXCONF_ROOTFS_PASSWD_ADMIN_GID), 0775, /root/)
+	@$(call install_copy, rootfs, 0, 0, 0700, /root)
 endif
 ifdef PTXCONF_ROOTFS_MEDIA
 # add full access for group admin
@@ -170,7 +169,7 @@ ifdef PTXCONF_ROOTFS_SHADOW
 		@USER_GUEST@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_GUEST_ENTRY)))
 ifdef PTXCONF_CONFIG_TOOLS
-	@$(call install_copy, rootfs, 0, 0, 2777, /etc/config-tools);
+	@$(call install_copy, rootfs, 0, 0, 0755, /etc/config-tools);
 
 # ugly: the actual /etc/shadow is picked via install_alternative which does not accept destination paths.
 #	@$(call install_copy, rootfs, 0, 0, 0640,  $(PTXDIST_WORKSPACE)/projectroot/etc/shadow, /etc/config-tools/default-settings/shadow.default)

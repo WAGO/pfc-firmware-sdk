@@ -1,0 +1,287 @@
+From e776da97aadf17f2ffd8842882dd46000ab9b786 Mon Sep 17 00:00:00 2001
+From: Magnus Karlsson <magnus.karlsson@intel.com>
+Date: Wed, 2 May 2018 13:01:26 +0200
+Subject: [PATCH 196/292] xsk: add support for bind for Rx
+
+Here, the bind syscall is added. Binding an AF_XDP socket, means
+associating the socket to an umem, a netdev and a queue index. This
+can be done in two ways.
+
+The first way, creating a "socket from scratch". Create the umem using
+the XDP_UMEM_REG setsockopt and an associated fill queue with
+XDP_UMEM_FILL_QUEUE. Create the Rx queue using the XDP_RX_QUEUE
+setsockopt. Call bind passing ifindex and queue index ("channel" in
+ethtool speak).
+
+The second way to bind a socket, is simply skipping the
+umem/netdev/queue index, and passing another already setup AF_XDP
+socket. The new socket will then have the same umem/netdev/queue index
+as the parent so it will share the same umem. You must also set the
+flags field in the socket address to XDP_SHARED_UMEM.
+
+v2: Use PTR_ERR instead of passing error variable explicitly.
+
+Signed-off-by: Magnus Karlsson <magnus.karlsson@intel.com>
+Signed-off-by: Alexei Starovoitov <ast@kernel.org>
+---
+ include/net/xdp_sock.h      |   1 +
+ include/uapi/linux/if_xdp.h |  11 ++++
+ net/xdp/xdp_umem.c          |   5 ++
+ net/xdp/xdp_umem.h          |   1 +
+ net/xdp/xsk.c               | 124 +++++++++++++++++++++++++++++++++++++++++++-
+ net/xdp/xsk_queue.c         |   8 +++
+ net/xdp/xsk_queue.h         |   1 +
+ 7 files changed, 150 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/xdp_sock.h b/include/net/xdp_sock.h
+index db9a321d..85d0251 100644
+--- a/include/net/xdp_sock.h
++++ b/include/net/xdp_sock.h
+@@ -28,6 +28,7 @@ struct xdp_sock {
+ 	struct xsk_queue *rx;
+ 	struct net_device *dev;
+ 	struct xdp_umem *umem;
++	u16 queue_id;
+ 	/* Protects multiple processes in the control path */
+ 	struct mutex mutex;
+ };
+diff --git a/include/uapi/linux/if_xdp.h b/include/uapi/linux/if_xdp.h
+index 6532455..e509188 100644
+--- a/include/uapi/linux/if_xdp.h
++++ b/include/uapi/linux/if_xdp.h
+@@ -21,6 +21,17 @@
+ 
+ #include <linux/types.h>
+ 
++/* Options for the sxdp_flags field */
++#define XDP_SHARED_UMEM 1
++
++struct sockaddr_xdp {
++	__u16 sxdp_family;
++	__u32 sxdp_ifindex;
++	__u32 sxdp_queue_id;
++	__u32 sxdp_shared_umem_fd;
++	__u16 sxdp_flags;
++};
++
+ /* XDP socket options */
+ #define XDP_RX_RING			1
+ #define XDP_UMEM_REG			3
+diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
+index e1f627d..9bac1ad 100644
+--- a/net/xdp/xdp_umem.c
++++ b/net/xdp/xdp_umem.c
+@@ -248,3 +248,8 @@ int xdp_umem_reg(struct xdp_umem *umem, struct xdp_umem_reg *mr)
+ 	put_pid(umem->pid);
+ 	return err;
+ }
++
++bool xdp_umem_validate_queues(struct xdp_umem *umem)
++{
++	return umem->fq;
++}
+diff --git a/net/xdp/xdp_umem.h b/net/xdp/xdp_umem.h
+index 25634b8..b13133e 100644
+--- a/net/xdp/xdp_umem.h
++++ b/net/xdp/xdp_umem.h
+@@ -39,6 +39,7 @@ struct xdp_umem {
+ 	struct work_struct work;
+ };
+ 
++bool xdp_umem_validate_queues(struct xdp_umem *umem);
+ int xdp_umem_reg(struct xdp_umem *umem, struct xdp_umem_reg *mr);
+ void xdp_get_umem(struct xdp_umem *umem);
+ void xdp_put_umem(struct xdp_umem *umem);
+diff --git a/net/xdp/xsk.c b/net/xdp/xsk.c
+index 92bd9b7..bf2c97b 100644
+--- a/net/xdp/xsk.c
++++ b/net/xdp/xsk.c
+@@ -57,9 +57,18 @@ static int xsk_init_queue(u32 entries, struct xsk_queue **queue,
+ 	return 0;
+ }
+ 
++static void __xsk_release(struct xdp_sock *xs)
++{
++	/* Wait for driver to stop using the xdp socket. */
++	synchronize_net();
++
++	dev_put(xs->dev);
++}
++
+ static int xsk_release(struct socket *sock)
+ {
+ 	struct sock *sk = sock->sk;
++	struct xdp_sock *xs = xdp_sk(sk);
+ 	struct net *net;
+ 
+ 	if (!sk)
+@@ -71,6 +80,11 @@ static int xsk_release(struct socket *sock)
+ 	sock_prot_inuse_add(net, sk->sk_prot, -1);
+ 	local_bh_enable();
+ 
++	if (xs->dev) {
++		__xsk_release(xs);
++		xs->dev = NULL;
++	}
++
+ 	sock_orphan(sk);
+ 	sock->sk = NULL;
+ 
+@@ -80,6 +94,114 @@ static int xsk_release(struct socket *sock)
+ 	return 0;
+ }
+ 
++static struct socket *xsk_lookup_xsk_from_fd(int fd)
++{
++	struct socket *sock;
++	int err;
++
++	sock = sockfd_lookup(fd, &err);
++	if (!sock)
++		return ERR_PTR(-ENOTSOCK);
++
++	if (sock->sk->sk_family != PF_XDP) {
++		sockfd_put(sock);
++		return ERR_PTR(-ENOPROTOOPT);
++	}
++
++	return sock;
++}
++
++static int xsk_bind(struct socket *sock, struct sockaddr *addr, int addr_len)
++{
++	struct sockaddr_xdp *sxdp = (struct sockaddr_xdp *)addr;
++	struct sock *sk = sock->sk;
++	struct net_device *dev, *dev_curr;
++	struct xdp_sock *xs = xdp_sk(sk);
++	struct xdp_umem *old_umem = NULL;
++	int err = 0;
++
++	if (addr_len < sizeof(struct sockaddr_xdp))
++		return -EINVAL;
++	if (sxdp->sxdp_family != AF_XDP)
++		return -EINVAL;
++
++	mutex_lock(&xs->mutex);
++	dev_curr = xs->dev;
++	dev = dev_get_by_index(sock_net(sk), sxdp->sxdp_ifindex);
++	if (!dev) {
++		err = -ENODEV;
++		goto out_release;
++	}
++
++	if (!xs->rx) {
++		err = -EINVAL;
++		goto out_unlock;
++	}
++
++	if (sxdp->sxdp_queue_id >= dev->num_rx_queues) {
++		err = -EINVAL;
++		goto out_unlock;
++	}
++
++	if (sxdp->sxdp_flags & XDP_SHARED_UMEM) {
++		struct xdp_sock *umem_xs;
++		struct socket *sock;
++
++		if (xs->umem) {
++			/* We have already our own. */
++			err = -EINVAL;
++			goto out_unlock;
++		}
++
++		sock = xsk_lookup_xsk_from_fd(sxdp->sxdp_shared_umem_fd);
++		if (IS_ERR(sock)) {
++			err = PTR_ERR(sock);
++			goto out_unlock;
++		}
++
++		umem_xs = xdp_sk(sock->sk);
++		if (!umem_xs->umem) {
++			/* No umem to inherit. */
++			err = -EBADF;
++			sockfd_put(sock);
++			goto out_unlock;
++		} else if (umem_xs->dev != dev ||
++			   umem_xs->queue_id != sxdp->sxdp_queue_id) {
++			err = -EINVAL;
++			sockfd_put(sock);
++			goto out_unlock;
++		}
++
++		xdp_get_umem(umem_xs->umem);
++		old_umem = xs->umem;
++		xs->umem = umem_xs->umem;
++		sockfd_put(sock);
++	} else if (!xs->umem || !xdp_umem_validate_queues(xs->umem)) {
++		err = -EINVAL;
++		goto out_unlock;
++	}
++
++	/* Rebind? */
++	if (dev_curr && (dev_curr != dev ||
++			 xs->queue_id != sxdp->sxdp_queue_id)) {
++		__xsk_release(xs);
++		if (old_umem)
++			xdp_put_umem(old_umem);
++	}
++
++	xs->dev = dev;
++	xs->queue_id = sxdp->sxdp_queue_id;
++
++	xskq_set_umem(xs->rx, &xs->umem->props);
++
++out_unlock:
++	if (err)
++		dev_put(dev);
++out_release:
++	mutex_unlock(&xs->mutex);
++	return err;
++}
++
+ static int xsk_setsockopt(struct socket *sock, int level, int optname,
+ 			  char __user *optval, unsigned int optlen)
+ {
+@@ -203,7 +325,7 @@ static const struct proto_ops xsk_proto_ops = {
+ 	.family =	PF_XDP,
+ 	.owner =	THIS_MODULE,
+ 	.release =	xsk_release,
+-	.bind =		sock_no_bind,
++	.bind =		xsk_bind,
+ 	.connect =	sock_no_connect,
+ 	.socketpair =	sock_no_socketpair,
+ 	.accept =	sock_no_accept,
+diff --git a/net/xdp/xsk_queue.c b/net/xdp/xsk_queue.c
+index 894f9f8..d012e5e 100644
+--- a/net/xdp/xsk_queue.c
++++ b/net/xdp/xsk_queue.c
+@@ -16,6 +16,14 @@
+ 
+ #include "xsk_queue.h"
+ 
++void xskq_set_umem(struct xsk_queue *q, struct xdp_umem_props *umem_props)
++{
++	if (!q)
++		return;
++
++	q->umem_props = *umem_props;
++}
++
+ static u32 xskq_umem_get_ring_size(struct xsk_queue *q)
+ {
+ 	return sizeof(struct xdp_umem_ring) + q->nentries * sizeof(u32);
+diff --git a/net/xdp/xsk_queue.h b/net/xdp/xsk_queue.h
+index 5439fa3..9ddd2ee 100644
+--- a/net/xdp/xsk_queue.h
++++ b/net/xdp/xsk_queue.h
+@@ -32,6 +32,7 @@ struct xsk_queue {
+ 	u64 invalid_descs;
+ };
+ 
++void xskq_set_umem(struct xsk_queue *q, struct xdp_umem_props *umem_props);
+ struct xsk_queue *xskq_create(u32 nentries, bool umem_queue);
+ void xskq_destroy(struct xsk_queue *q);
+ 
+-- 
+2.7.4
+

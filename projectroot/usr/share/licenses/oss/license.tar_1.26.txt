@@ -1,5 +1,3 @@
-tar-1.26/AUTHORS
-
 Authors of GNU tar.
 
 Public domain tar was written by John Gilmore, with contributions from
@@ -15,8 +13,6 @@ Poznyakoff.
 
 Many others have contributed to GNU tar; please see the files THANKS
 and ChangeLog.
-
-tar-1.26/COPYING
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

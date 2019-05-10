@@ -11,7 +11,7 @@
 ///
 ///  \file     config_mdmd.c
 ///
-///  \version  $Revision: 36681 $
+///  \version  $Revision: 38420 $
 ///
 ///  \brief    Configuration tool for WAGO Modem Management Daemon. 
 ///
@@ -34,6 +34,11 @@
 #include <typelabel_API.h>
 #include <diagnostic/diagnostic_API.h>
 #include <diagnostic/mdmd_diag.h>
+
+#define MODEM_VERSION_FROM_FILE_LENGTH 15
+#define MODEM_VERSION_FIRST_PART_LENGTH 7
+#define MODEM_VERSION_SECOND_PART_LENGTH 6
+#define MODEM_VERSION_COMPARE_LENGTH MODEM_VERSION_FIRST_PART_LENGTH + MODEM_VERSION_SECOND_PART_LENGTH
 
 //------------------------------------------------------------------------------
 // SECTION Common objects and functions.
@@ -226,6 +231,57 @@ typedef struct {
   enum eStatusCode code;
   char *text;
 } tCodeToErrorMessage;
+
+typedef struct SmsStorageConfig 
+{
+  gchar  *mem1;
+  gint   user1;
+  gint   total1;
+  gchar  *mem2;
+  gint   user2;
+  gint   total2;
+  gchar  *mem3;
+  gint   user3;
+  gint   total3;
+} tSmsStorageConfig;
+
+typedef struct SmsReportingConfig
+{
+  gint   mode;
+  gint   mt;
+  gint   bm;
+  gint   ds;
+  gint   bfr;
+} tSmsReportingConfig;
+
+static void SmsStorageConfigInit(tSmsStorageConfig* storageConfig)
+{
+  storageConfig->mem1 = NULL;
+  storageConfig->user1 = 0;
+  storageConfig->total1 = 0;
+  storageConfig->mem2 = NULL;
+  storageConfig->user2 = 0;
+  storageConfig->total2 = 0;
+  storageConfig->mem3 = NULL;
+  storageConfig->user3 = 0;
+  storageConfig->total3 = 0;
+}
+
+static void SmsStorageConfigFree(tSmsStorageConfig* storageConfig)
+{
+  g_free(storageConfig->mem1);
+  g_free(storageConfig->mem2);
+  g_free(storageConfig->mem3);
+}
+
+static void SmsEventReportingConfigInit(tSmsReportingConfig* reportingConfig)
+{
+  reportingConfig->mode = 0;
+  reportingConfig->mt = 0;
+  reportingConfig->bm = 0;
+  reportingConfig->ds = 0;
+  reportingConfig->bfr = 0;
+}
 
 static gchar *_programmName = NULL;
 
@@ -471,7 +527,47 @@ static gint GetLogLevel(gint *loglevel)
   return retVal;
 }
 
+static gint GetSmsStorageConfig(tSmsStorageConfig* storageConfig)
+{
+  GVariant *result = NULL;
+  gint retVal = MdmDBusClientCallSync("GetSmsStorage",
+                                      NULL, /* no method parameters */
+                                      &result);
+  if (result)
+  {
+    g_variant_get(result,"(siisiisii)",
+                  &storageConfig->mem1,
+                  &storageConfig->user1,
+                  &storageConfig->total1,
+                  &storageConfig->mem2,
+                  &storageConfig->user2,
+                  &storageConfig->total2,
+                  &storageConfig->mem3,
+                  &storageConfig->user3,
+                  &storageConfig->total3);
+    g_variant_unref(result);
+  }
+  return retVal;
+}
 
+static gint GetSmsEventReporting(tSmsReportingConfig* reportingConfig)
+{
+  GVariant *result = NULL;
+  gint retVal = MdmDBusClientCallSync("GetSmsReportConfig",
+                                      NULL, /* no method parameters */
+                                      &result);
+  if (result)
+  {
+    g_variant_get(result,"(iiiii)",
+                  &reportingConfig->mode,
+                  &reportingConfig->mt,
+                  &reportingConfig->bm,
+                  &reportingConfig->ds,
+                  &reportingConfig->bfr);
+    g_variant_unref(result);
+  }
+  return retVal;
+}
 
 //------------------------------------------------------------------------------
 // SECTION Configuration set routines
@@ -521,6 +617,32 @@ static gint SetGprsAccess(const gchar* apn, gint auth, const gchar* user, const 
   GVariant *result = NULL;
   gint retVal = MdmDBusClientCallSync("SetGprsAccess2",
                                       g_variant_new("(sissi)", apn, auth, user, pass, connectivity),
+                                      &result);
+  if (result)
+  {
+    g_variant_unref(result);
+  }
+  return retVal;
+}
+
+static gint SetSmsStorageConfig(const gchar* mem1, const gchar* mem2, const gchar* mem3) 
+{
+  GVariant *result = NULL;
+  gint retVal = MdmDBusClientCallSync("SetSmsStorage",
+                                      g_variant_new("(sss)", mem1, mem2, mem3),
+                                      &result);
+  if (result)
+  {
+    g_variant_unref(result);
+  }
+  return retVal;
+}
+
+static gint SetSmsEventReportingConfig(const gint mode, const gint mt, const gint bm, const gint ds, const gint bfr) 
+{
+  GVariant *result = NULL;
+  gint retVal = MdmDBusClientCallSync("SetSmsReportConfig",
+                                      g_variant_new("(iiiii)", mode, mt, bm, ds, bfr),
                                       &result);
   if (result)
   {
@@ -593,11 +715,11 @@ static const gchar *usage_text =
   "  -r/--reset                 Trigger a modem hard reset.\n"
   "     --reset-all             Trigger a modem hard reset and restart modem software environment.\n"
   "  -v/--version               Print version of modem manager daemon (mdmd)\n"
-  "  -c/--check                 Checks the compatibility between the PFC firmware and the modem firmware.\n"
+  "  -c/--check                 Check the compatibility between the PFC firmware and the modem firmware.\n"
   "\n"
   "Options:\n"
   "  -d/--device                Modem device information.\n"
-  "  -i/--identity              Mobile equipment identity"
+  "  -i/--identity              Mobile equipment identity\n"
   "  -n/--network               Configuration of mobile network.\n"
   "  -l/--network-list          List of detected mobile networks.\n"
   "  -G/--gprsaccess            Configuration of packet data service.\n"
@@ -605,7 +727,8 @@ static const gchar *usage_text =
   "  -p/--port                  Configuration of modem control port\n"
   "  -L/--logging               Configuration of log output\n"
   "  -q/--signal-quality        Get measured signal quality values.\n"
-
+  "  -T/--smsstorage            Configuration of sms storage.\n"
+  "  -R/--smseventreporting     Configuration of sms event reporting.\n"
 
 /*
  * Added functionality to fetch message list from command line.
@@ -620,41 +743,97 @@ static const gchar *usage_text =
   "  PortState                  type: enum\n"
   "                             access: read/write\n"
   "                             - state of modem control port: DISABLED | ENABLED\n"
+  "  PortOpen                   type: bool\n"
+  "                             access: read\n"
+  "                             - state of modem control port:\n"
+  "                               TRUE:  PortState is ENABLED\n"
+  "                               FALSE: PortState is DISABLED\n"
+
+  "  GprsRegistrationState      type: enum\n"
+  "                             access: read only\n"
+  "                             - registration state:\n"
+  "                               STOPPED: not registered, the manually selected network is not available.\n"
+  "                               HOMENET: registered with home network.\n"
+  "                               STARTED: not registered, automatic network selection ongoing or no network available\n"
+  "                               DENIED:  not registered, the manually selected network allows no registration.\n"
+  "                               ROAMING: registered with roaming network.\n"
   "  GprsAccessPointName        type: string\n"
   "                             access: read/write\n"
   "                             - logical name of GGSN or provider specific data network\n"
   "  GprsAuthType               type: enum\n"
   "                             access: read/write\n"
   "                             - type of APN authentication: NONE | PAP | CHAP | PAP_OR_CHAP\n"
-  "  GprsPassword               type: string\n"
-  "                             access: read/write\n"
-  "                             - password for APN authentication type PAP\n"
   "  GprsUserName               type: string\n"
   "                             access: read/write\n"
   "                             - user name for APN authentication type PAP\n"
+  "  GprsPassword               type: string\n"
+  "                             access: read/write\n"
+  "                             - password for APN authentication type PAP\n"
   "  GprsConnectivity           type: enum\n"
   "                             access: read/write\n"
   "                             - state of packet radio service: DISABLED | ENABLED\n"
+  "  PdpAddress                 type: string\n"
+  "                             access: read only\n"
+  "                             - packet data protocol address\n"
+
+  "  SmsStorageMem1             type: string\n"
+  "                             access: read/write\n"
+  "                             - messages to be read and deleted from this memory storage: SM(SIM message storage), ME(MobileEquipment message storage), MT(same as ME)\n"
+  "  SmsStorageUser1            type: numeric\n"
+  "                             access: read only\n"
+  "  SmsStorageTotal1            type: numeric\n"
+  "                             access: read only\n"
+  "  SmsStorageMem2             type: string\n"
+  "                             access: read/write\n"
+  "                             - messages will be written and sent to this memory storage: SM(SIM message storage), ME(MobileEquipment message storage), MT(same as ME)\n"
+  "  SmsStorageUser2            type: numeric\n"
+  "                             access: read onlye\n"
+  "  SmsStorageTotal2           type: numeric\n"
+  "                             access: read only\n"
+  "  SmsStorageMem3             type: string\n"
+  "                             access: read/write\n"
+  "                             - received messages will be placed in this memory storage if routing is not set: SM(SIM message storage), ME(MobileEquipment message storage), MT(same as ME)\n"
+  "  SmsStorageUser3            type: numeric\n"
+  "                             access: read only\n"
+  "  SmsStorageTotal3           type: numeric\n"
+  "                             access: read only\n"
+
+  "  SmsEventReportingMode      type: integer\n"
+  "                             access: read/write\n"
+  "                             - event reporting mode (see 3GPP TS 27.005)\n"
+  "                             - possible values for setting: 0|1|2\n"
+  "  SmsEventReportingMT        type: integer\n"
+  "                             access: read/write\n"
+  "                             - rules for storing received SMS (see 3GPP TS 27.005)\n"
+  "                             - possible values for setting: 0|1\n"
+  "  SmsEventReportingBM        type: integer\n"
+  "                             access: read/write\n"
+  "                             - rules for storing received cell broadcast messages (see 3GPP TS 27.005)\n"
+  "                             - possible values for setting: 0\n"
+  "  SmsEventReportingDS        type: integer\n"
+  "                             access: read/write\n"
+  "                             - status routed to the terminal equipment (see 3GPP TS 27.005)\n"
+  "                             - possible values for setting: 0\n"
+  "  SmsEventReportingBFR       type: integer\n"
+  "                             access: read/write\n"
+  "                             - buffer of unsolicited result codes (see 3GPP TS 27.005)\n"
+  "                             - possible values for setting: 0|1\n"
+
+  "  IMEI                       type string\n"
+  "                             access: read only\n"
+  "                             - International Mobile Equipment Identity of the modem\n"
+
   "  LogLevel                   type: enum\n"
   "                             access: read/write\n"
   "                             - detail level of log output: DISABLED | ERROR | WARNING | INFO | DEBUG1 | DEBUG2\n"
+
   "  ModemDevice                type: string\n"
   "                             access: read only\n"
   "                             - modem device manufacturer and type\n"
   "  ModemFirmware              type: string\n"
   "                             access: read only\n"
   "                             - modem firmware revision\n"
-  "  NetworkId                  type: numeric\n"
-  "                             access: read/write\n"
-  "                             - unique identifier of the mobile network as 5- or 6 digit number (MCC + MNC)\n"
-  "  NetworkRegistrationState   type: enum\n"
-  "                             access: read only\n"
-  "                             - status of network registration:\n"
-  "                               STOPPED: not registered, the manually selected network is not available.\n"
-  "                               HOMENET: registered with home network.\n"
-  "                               STARTED: not registered, automatic network selection ongoing or no network available\n"
-  "                               DENIED:  not registered, the manually selected network allows no registration.\n"
-  "                               ROAMING: registered with roaming network.\n"
+
   "  NetworkSelection           type: enum\n"
   "                             access: read/write\n"
   "                             - strategy of network selection:\n"
@@ -664,30 +843,41 @@ static const gchar *usage_text =
   "                               ONLY_UMTS:   automatic network selection with restriction to UMTS networks.\n"
   "                               PREFER_GSM:  automatic network selection with preference for GSM networks.\n"
   "                               PREFER_UMTS: automatic network selection with preference for UMTS networks.\n"
+  "  NetworkRegistrationState   type: enum\n"
+  "                             access: read only\n"
+  "                             - status of network registration:\n"
+  "                               STOPPED: not registered, the manually selected network is not available.\n"
+  "                               HOMENET: registered with home network.\n"
+  "                               STARTED: not registered, automatic network selection ongoing or no network available\n"
+  "                               DENIED:  not registered, the manually selected network allows no registration.\n"
+  "                               ROAMING: registered with roaming network.\n"
+  "  NetworkId                  type: numeric\n"
+  "                             access: read/write\n"
+  "                             - unique identifier of the mobile network as 5- or 6 digit number (MCC + MNC)\n"
+  "  NetworkType                type: enum\n"
+  "                             access: read/write\n"
+  "                             - underlying technology of the mobile network:\n"
+  "                               GSM|GSM_COMPACT|UMTS|GSM_EGPRS|UMTS_HSDPA|UMTS_HSUPA|UMTS_HSPA|LTE\n"
+  "  NetworkName                type: read only\n"
+  "                             access: read/write\n"
+  "                             - name of the mobile network\n"
+  "  SignalStrength             type: numeric\n"
+  "                             access: read only\n"
+  "                             - received signal strength in percent\n"
   "  NetworkState               type: enum\n"
   "                             access: read only\n"
   "                             - availability of the the listed network:\n"
   "                               AVAILABLE: registration is possible.\n"
   "                               CURRENT:   currently registered network.\n"
   "                               FORBIDDEN: registration is not allowed\n"
-  "  NetworkType                type: enum\n"
-  "                             access: read/write\n"
-  "                             - underlying technology of the mobile network (GSM, UMTS)\n"
-  "  PdpAddress                 type: string\n"
-  "                             access: read only\n"
-  "                             - packet data protocol address\n"
-  "  SignalStrength             type: numeric\n"
-  "                             access: read only\n"
-  "                             - received signal strength in percent\n"
-  "  SimAttempts                type: numeric\n"
-  "                             access: read only\n"
-  "                             - the remaining attempts for SIM authentication when SimState SIM_PIN or SIM_PUK\n"
+
   "  SimPin                     type: numeric\n"
   "                             access: write only\n"
   "                             - password for SIM authentication when SimState SIM_PIN or SIM_PUK, commonly it is a 4 digit number\n"
   "  SimPuk                     type: numeric\n"
   "                             access: write only\n"
   "                             - password for SIM authentication when SimState SIM_PUK, commonly it is a 8 digit number\n"
+
   "  SimState                   type: enum\n"
   "                             access: read only\n"
   "                             - sim card status\n"
@@ -696,6 +886,27 @@ static const gchar *usage_text =
   "                               READY:        authentication successful.\n"
   "                               ERROR:        sim card is not valid.\n"
   "                               NOT_INSERTED: sim card is not inserted.\n"
+  "  SimAttempts                type: numeric\n"
+  "                             access: read only\n"
+  "                             - the remaining attempts for SIM authentication when SimState SIM_PIN or SIM_PUK\n"
+
+  "  RSSI                       type: integer\n"
+  "                             access: read only\n"
+  "                             - The Received Signal Strength Indicator gives information about the signal strength.\n"
+  "  BER                        type: integer\n"
+  "                             access: read only\n"
+  "                             - The Bit Error Rate gives information about the number of bit errors per unit time.\n"
+
+  "  MdmdVersion                type: string\n"
+  "                             access: read only\n"
+  "                             - version of the modem manager\n"
+
+  "  Firmware compatibility     type: string\n"
+  "                             access: read only\n"
+  "                             - compatibility between the PFC firmware and the modem firmware\n"
+  "                               compatible:    PFC firmware and the modem firmware are compatible.\n"
+  "                               incompatible:  PFC firmware and the modem firmware are incompatible.\n"
+
   "\n"
   "Examples\n"
   "  config_mdmd --get --SIM\n"
@@ -721,6 +932,12 @@ static const gchar *usage_text =
   "\n"
   "  config_mdmd --set --gprsaccess GprsAccessPointName=\"internet.t-mobile\" GprsAuthType=NONE GprsUserName=\"\" GprsPassword=\"\"\n"
   "    Sets specific packet data network parameter where authentication is not used.\n"
+  "\n"
+  "  config_mdmd --set --smsstorage SmsStorageMem1=SM SmsStorageMem2=ME SmsStorageMem3=MT\n"
+  "    Sets sms memory storage to be used for reading, writing, etc.\n"
+  "\n"
+  "  config_mdmd --set --smseventreporting SmsEventReportingMode=0 SmsEventReportingMT=0 SmsEventReportingBM=0 SmsEventReportingDS=0 SmsEventReportingBFR=0\n"
+  "    Sets the procedure on how the received new messages from the network are indicated to the terminal equipment.\n"
   "\n"
   "";
 
@@ -823,6 +1040,8 @@ typedef enum
   OPT_PORT,
   OPT_IDENTITY,
   OPT_SIGNAL_QUALITY,
+  OPT_SMS_STORAGE,
+  OPT_SMS_EVENT_REPORTING,
   OPT_MESSAGE_LIST,
   OPT_LOGGING,
   OPT_NONE,
@@ -838,6 +1057,8 @@ static struct option _commandOptions[] =
   { "port", no_argument, NULL, 'p' },
   { "identity", no_argument, NULL, 'i' },
   { "signal-quality", no_argument, NULL, 'q' },
+  { "smsstorage", no_argument, NULL, 'T' },
+  { "smseventreporting", no_argument, NULL, 'R' },
   { "message-list", no_argument, NULL, 'm' },
   { "logging", no_argument, NULL, 'L' },
   { NULL, 0, NULL, 0 }, // End marker, don't remove.
@@ -882,6 +1103,14 @@ static const gchar *_parameterNames[] =
   "NetworkId",
   "NetworkType",
   "NetworkSelection",
+  "SmsStorageMem1",
+  "SmsStorageMem2",
+  "SmsStorageMem3",
+  "SmsEventReportingMode",
+  "SmsEventReportingMT",
+  "SmsEventReportingBM",
+  "SmsEventReportingDS",
+  "SmsEventReportingBFR",
   "PortState",
   "LogLevel",
   NULL,        // End marker, don't remove.
@@ -1354,6 +1583,87 @@ static void PrintGprsAccessParams(tPrintFormat format)
 }
 
 
+static void PrintSmsStorageConfig(tPrintFormat format)
+{
+  gint result;
+  tSmsStorageConfig storageConfig;
+  SmsStorageConfigInit(&storageConfig);
+  result = GetSmsStorageConfig(&storageConfig);
+  AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+
+  switch (format)
+  {
+    case FMT_JSON: 
+      printf("{");
+      printf("\"SmsStorageMem1\": %s", storageConfig.mem1);
+      printf(", ");
+      printf("\"SmsStorageUser1\": %d", storageConfig.user1);
+      printf(", ");
+      printf("\"SmsStorageTotal1\": %d", storageConfig.total1);
+      printf(", ");
+      printf("\"SmsStorageMem2\": %s", storageConfig.mem2);
+      printf(", ");
+      printf("\"SmsStorageUser2\": %d", storageConfig.user2);
+      printf(", ");
+      printf("\"SmsStorageTotal2\": %d", storageConfig.total2);
+      printf(", ");
+      printf("\"SmsStorageMem3\": %s", storageConfig.mem3);
+      printf(", ");
+      printf("\"SmsStorageUser3\": %d", storageConfig.user3);
+      printf(", ");
+      printf("\"SmsStorageTotal3\": %d", storageConfig.total3);
+      printf("}");
+      break;
+    case FMT_DEFAULT:
+      /*no break*/
+    default:
+      printf("SmsStorageMem1=%s\n", storageConfig.mem1);
+      printf("SmsStorageUser1=%d\n", storageConfig.user1);
+      printf("SmsStorageTotal1=%d\n", storageConfig.total1);
+      printf("SmsStorageMem2=%s\n", storageConfig.mem2);
+      printf("SmsStorageUser2=%d\n", storageConfig.user2);
+      printf("SmsStorageTotal2=%d\n", storageConfig.total2);
+      printf("SmsStorageMem3=%s\n", storageConfig.mem3);
+      printf("SmsStorageUser3=%d\n", storageConfig.user3);
+      printf("SmsStorageTotal3=%d\n", storageConfig.total3);
+  }
+  SmsStorageConfigFree(&storageConfig);
+}
+
+static void PrintSmsEventReportingConfig(tPrintFormat format)
+{
+  gint result;
+  tSmsReportingConfig reportingConfig;
+  SmsEventReportingConfigInit(&reportingConfig);
+  result = GetSmsEventReporting(&reportingConfig);
+  AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+
+  switch (format)
+  {
+    case FMT_JSON: 
+      printf("{");
+      printf("\"SmsEventReportingMode\": %d", reportingConfig.mode);
+      printf(", ");
+      printf("\"SmsEventReportingMT\": %d", reportingConfig.mt);
+      printf(", ");
+      printf("\"SmsEventReportingBM\": %d", reportingConfig.bm);
+      printf(", ");
+      printf("\"SmsEventReportingDS\": %d", reportingConfig.ds);
+      printf(", ");
+      printf("\"SmsStorageBFR\": %d", reportingConfig.bfr);
+      printf("}");
+      break;
+    case FMT_DEFAULT:
+      /*no break*/
+    default:
+      printf("SmsEventReportingMode=%d\n", reportingConfig.mode);
+      printf("SmsEventReportingMT=%d\n", reportingConfig.mt);
+      printf("SmsEventReportingBM=%d\n", reportingConfig.bm);
+      printf("SmsEventReportingDS=%d\n", reportingConfig.ds);
+      printf("SmsEventReportingBFR=%d\n", reportingConfig.bfr);
+  }
+}
+
 static void PrintSimParams(tPrintFormat format)
 {
   gint state;
@@ -1464,44 +1774,48 @@ static void PrintVersion()
   }
 }
 
+/**
+ * This function checks the compatibility between the PFC firmware and the modem firmware.
+ * For this purpose the function compares the required version form the modem-version file with the version,
+ * that the function gets from the mdmd daemon.
+ */
 static void PrintCheck()
 {
   bool compareResult = false;
 
   gchar *manufacturer = NULL;
   gchar *type = NULL;
-  gchar *firmware = NULL;
+  gchar *currentModemFirmware = NULL;
 
   FILE * fp;
   char *line = NULL;
   size_t len = 0;
   ssize_t read;
 
-  char * expectedFirmware = NULL;
-  size_t expectedFirmwareLength = 0;
-  char * comma = NULL;
-  size_t firstPartLen = 0;
+  char expectedModemFirmware[MODEM_VERSION_FROM_FILE_LENGTH];
 
-  gint result = GetModemInfo(&manufacturer, &type, &firmware);
+  gint result = GetModemInfo(&manufacturer, &type, &currentModemFirmware);
   AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
 
   fp = fopen("/etc/specific/modem_version", "r");
   AssertCondition(fp != NULL, SYSTEM_CALL_ERROR, "File /etc/specific/modem-version could not be opened");
 
-  expectedFirmwareLength = strlen(firmware)+3; // + ",", "\n" and "\0"
-  expectedFirmware = (char*) malloc(sizeof(char) * expectedFirmwareLength);
-
+  //Compare each line, more specifically each firmware version, in the modem-version file, with the current modem firmware
   while ((read = getline(&line, &len, fp)) != -1)
   {
-    AssertCondition(read <= expectedFirmwareLength, SYSTEM_CALL_ERROR, "Buffer to small");
+    AssertCondition(read = MODEM_VERSION_FROM_FILE_LENGTH, SYSTEM_CALL_ERROR, "Buffer to small");
 
-    comma = strchr(line, ',');
-    firstPartLen = comma-line;
+    //The firmware version from the modem-version file is split by a comma, that must remove before comparing
+    strncpy(expectedModemFirmware,
+            line,
+            MODEM_VERSION_FIRST_PART_LENGTH);
+    strncpy(expectedModemFirmware + MODEM_VERSION_FIRST_PART_LENGTH,
+            line + MODEM_VERSION_FIRST_PART_LENGTH + sizeof(char),
+            MODEM_VERSION_SECOND_PART_LENGTH);
 
-    strncpy(expectedFirmware, line, firstPartLen);
-    strncpy(expectedFirmware+firstPartLen, comma + sizeof(char), read-firstPartLen);
-
-    if (strncmp(firmware, expectedFirmware, read-2) == 0) //read - "," and "\n"
+    //The length of the firmware versions from the both sources is not equal.
+    //The version from the modem-version file is only a mask for the supported versions
+    if (strncmp(currentModemFirmware, expectedModemFirmware, MODEM_VERSION_COMPARE_LENGTH) == 0)
     {
       compareResult = true;
       break;
@@ -1518,11 +1832,6 @@ static void PrintCheck()
     log_EVENT_LogId(DIAG_3GMM_ERR_MODEM_VERSION, true);
   }
 
-  if (NULL != expectedFirmware)
-  {
-    free(expectedFirmware);
-  }
-
   if (NULL != line)
   {
     free(line);
@@ -1537,9 +1846,9 @@ static void PrintCheck()
   {
     g_free(type);
   }
-  if (firmware != NULL)
+  if (currentModemFirmware != NULL)
   {
-    g_free(firmware);
+    g_free(currentModemFirmware);
   }
 }
 
@@ -1647,8 +1956,8 @@ static void ChangeGprsAccessParams(tNameValuePair *nvpairs, gint nparams)
   {
     auth = gprsAccess.auth;
   }
-  user = (gprsAccessPointName != NULL) ? gprsUserName->value : gprsAccess.user;
-  pass = (gprsAccessPointName != NULL) ? gprsPassword->value : gprsAccess.pass;
+  user = (gprsUserName != NULL) ? gprsUserName->value : gprsAccess.user;
+  pass = (gprsPassword != NULL) ? gprsPassword->value : gprsAccess.pass;
   if (gprsConnectivity != NULL)
   {
     MapStringToInt(_mapState, gprsConnectivity->value, &connectivity);
@@ -1698,6 +2007,112 @@ static void ChangeSimParams(tNameValuePair *nvpairs, gint nparams)
     result = SetSimPin(simpin->value);
   }
   AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+}
+
+static void ChangeSmsStorageConfig(tNameValuePair *nvpairs, gint nparams)
+{
+  gint result;
+  gint i;
+  tSmsStorageConfig storageConfig;
+
+  tNameValuePair *smsStorageMem1 = NULL;
+  tNameValuePair *smsStorageMem2 = NULL;
+  tNameValuePair *smsStorageMem3 = NULL;
+
+  for (i = 0; i < nparams; i++)
+  {
+    if(0 == strcmp(nvpairs[i].name, "SmsStorageMem1"))
+    {
+      smsStorageMem1 = &nvpairs[i];
+    }
+    else if(0 == strcmp(nvpairs[i].name, "SmsStorageMem2"))
+    {
+      smsStorageMem2 = &nvpairs[i];
+    }
+    else if(0 == strcmp(nvpairs[i].name, "SmsStorageMem3"))
+    {
+      smsStorageMem3 = &nvpairs[i];
+    }
+  }
+
+  // The configuration of each memory storage parameter is optional.
+  // If some sms storage memory parameter are not set, the last configuration of the modem is used for this parameters.  
+  SmsStorageConfigInit(&storageConfig);
+  result = GetSmsStorageConfig(&storageConfig);
+  AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+
+  const gchar* mem1 = (smsStorageMem1 != NULL) ? smsStorageMem1->value : storageConfig.mem1;
+  const gchar* mem2 = (smsStorageMem2 != NULL) ? smsStorageMem2->value : storageConfig.mem2;
+  const gchar* mem3 = (smsStorageMem3 != NULL) ? smsStorageMem3->value : storageConfig.mem3;
+
+  //Only set the sms storage memory parameters, if any parameter changed
+  if(    (strcmp(storageConfig.mem1, mem1) != 0)
+      || (strcmp(storageConfig.mem2, mem2) != 0)
+      || (strcmp(storageConfig.mem3, mem3) != 0))
+  {
+    result = SetSmsStorageConfig(mem1, mem2, mem3);
+    AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+  }
+}
+
+static void ChangeSmsEventReporting(tNameValuePair *nvpairs, gint nparams)
+{
+  gint result;
+  gint i;
+  tSmsReportingConfig reportingConfig;
+
+  tNameValuePair *smsEventReportingMode = NULL;
+  tNameValuePair *smsEventReportingMT = NULL;
+  tNameValuePair *smsEventReportingBM = NULL;
+  tNameValuePair *smsEventReportingDS = NULL;
+  tNameValuePair *smsEventReportingBFR = NULL;
+
+  for (i = 0; i < nparams; i++)
+  {
+    if(0 == strcmp(nvpairs[i].name, "SmsEventReportingMode"))
+    {
+      smsEventReportingMode = &nvpairs[i];
+    }
+    else if(0 == strcmp(nvpairs[i].name, "SmsEventReportingMT"))
+    {
+      smsEventReportingMT = &nvpairs[i];
+    }
+    else if(0 == strcmp(nvpairs[i].name, "SmsEventReportingBM"))
+    {
+      smsEventReportingBM = &nvpairs[i];
+    }
+    else if(0 == strcmp(nvpairs[i].name, "SmsEventReportingDS"))
+    {
+      smsEventReportingDS = &nvpairs[i];
+    }
+    else if(0 == strcmp(nvpairs[i].name, "SmsEventReportingBFR"))
+    {
+      smsEventReportingBFR = &nvpairs[i];
+    }
+  }
+
+  // The configuration of each sms event reporting parameter is optional.
+  // If some sms event reporting parameter are not set, the last configuration of the modem is used for this parameters.  
+  SmsEventReportingConfigInit(&reportingConfig);
+  result = GetSmsEventReporting(&reportingConfig);
+  AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+
+  const gint mode = (smsEventReportingMode != NULL) ? atoi(smsEventReportingMode->value) : reportingConfig.mode;
+  const gint mt = (smsEventReportingMT != NULL) ? atoi(smsEventReportingMT->value) : reportingConfig.mt;
+  const gint bm = (smsEventReportingBM != NULL) ? atoi(smsEventReportingBM->value) : reportingConfig.bm;
+  const gint ds = (smsEventReportingDS != NULL) ? atoi(smsEventReportingDS->value) : reportingConfig.ds;
+  const gint bfr = (smsEventReportingBFR != NULL) ? atoi(smsEventReportingBFR->value) : reportingConfig.bfr;
+
+  //Only set the sms event reporting parameters, if any parameter changed
+  if(    (mode != reportingConfig.mode)
+      || (mt != reportingConfig.mt)
+      || (bm != reportingConfig.bm)
+      || (ds != reportingConfig.ds)
+      || (bfr != reportingConfig.bfr))
+  {
+    result = SetSmsEventReportingConfig(mode, mt, bm, ds, bfr);
+    AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+  }
 }
 
 static void TriggerModemReset(void)
@@ -1796,7 +2211,7 @@ int main(int argc, char **argv)
                     CT_DBUS_MDMD_INTERFACE,
                     190000 /*msec*/);
 
-  log_EVENT_Init("mdmd");
+  log_EVENT_Init("config_mdmd");
 
   command = (tCommand)GetOption(argv[1], _commands);
   switch (command)
@@ -1829,6 +2244,12 @@ int main(int argc, char **argv)
           break;
         case OPT_SIGNAL_QUALITY:
           PrintSignalQuality(FMT_DEFAULT);
+          break;
+        case OPT_SMS_STORAGE:
+          PrintSmsStorageConfig(FMT_DEFAULT);
+          break;
+        case OPT_SMS_EVENT_REPORTING:
+          PrintSmsEventReportingConfig(FMT_DEFAULT);
           break;
         case OPT_MESSAGE_LIST:
           PrintMessageList(FMT_DEFAULT);
@@ -1869,6 +2290,12 @@ int main(int argc, char **argv)
         case OPT_SIGNAL_QUALITY:
           PrintSignalQuality(FMT_JSON);
           break;
+        case OPT_SMS_STORAGE:
+          PrintSmsStorageConfig(FMT_JSON);
+          break;
+        case OPT_SMS_EVENT_REPORTING:
+          PrintSmsEventReportingConfig(FMT_JSON);
+          break;
         case OPT_MESSAGE_LIST:
           PrintMessageList(FMT_JSON);
           break;
@@ -1901,6 +2328,12 @@ int main(int argc, char **argv)
           break;
         case OPT_PORT:
           ChangePortParams(nvpairs, nparams);
+          break;
+        case OPT_SMS_STORAGE:
+          ChangeSmsStorageConfig(nvpairs, nparams);
+          break;
+        case OPT_SMS_EVENT_REPORTING:
+          ChangeSmsEventReporting(nvpairs, nparams);
           break;
         case OPT_LOGGING:
           ChangeLogging(nvpairs, nparams);

@@ -1,5 +1,3 @@
-sudo-1.7.10p9/LICENSE
-
 Sudo is distributed under the following license:
 
    Copyright (c) 1994-1996, 1998-2013

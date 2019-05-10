@@ -1,5 +1,3 @@
-nano-2.8.4/AUTHORS
-
 This file lists people who have made significant contributions to the
 nano editor.  Please see the ChangeLog for specific changes by author.
 ----------------------------------------------------------------------
@@ -66,8 +64,6 @@ Benno Schulenberg <bensberg@justemail.net>
 	* An array of small bug fixes, the cut-word and block-jump
 	  routines, text selection by holding Shift, and some extra
 	  key bindings.  Current maintainer.
-
-nano-2.8.4/COPYING
 
 
 		    GNU GENERAL PUBLIC LICENSE
@@ -745,8 +741,6 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 
-
-nano-2.8.4/COPYING.DOC
 
 		GNU Free Documentation License
 		  Version 1.2, November 2002

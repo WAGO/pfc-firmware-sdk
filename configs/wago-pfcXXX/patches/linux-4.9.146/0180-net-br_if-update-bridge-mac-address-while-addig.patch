@@ -1,0 +1,59 @@
+From b4e2569283905eab646f254a4ddca215425a87b5 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Tue, 26 Jun 2018 15:45:25 +0200
+Subject: [PATCH 180/292] net: br_if: update bridge mac address while addig
+
+When adding a new bridge (brctl addbr), an initial
+MAC address is assigned to the bridge.
+This initial MAC address can be randomly generated or
+it can be received from a source, e.g. the device-tree.
+The MAC address is not added to fdb by default.
+If a user manually sets a MAC address to the bridge,
+that equals the initial MAC address, the bridge does
+not change the MAC address, but sets the NET_ADDR_SET flag.
+The flag NET_ADDR_SET prevents subsequent changes of the
+MAC address when adding Ethernet interfaces.
+As a result the bridge's MAC address will never be added
+to fdb. Thus frames with this destination MAC address will
+never be forwarded to the bridge.
+This patch call changes the MAC address function when
+adding a new bridge. This function adds the MAC address
+to fdb and fixes the bug.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ net/bridge/br_if.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
+index eec2c9c..f7c3d6d 100644
+--- a/net/bridge/br_if.c
++++ b/net/bridge/br_if.c
+@@ -384,6 +384,7 @@ static struct net_bridge_port *new_nbp(struct net_bridge *br,
+ int br_add_bridge(struct net *net, const char *name)
+ {
+ 	struct net_device *dev;
++	struct net_bridge *br;
+ 	int res;
+ 
+ 	dev = alloc_netdev(sizeof(struct net_bridge), name, NET_NAME_UNKNOWN,
+@@ -396,8 +397,15 @@ int br_add_bridge(struct net *net, const char *name)
+ 	dev->rtnl_link_ops = &br_link_ops;
+ 
+ 	res = register_netdev(dev);
+-	if (res)
++	if (res) {
+ 		free_netdev(dev);
++		goto out;
++	}
++
++	br = netdev_priv(dev);
++	/* set MAC address on bridge device */
++	br_stp_change_bridge_id(br, dev->dev_addr);
++out:
+ 	return res;
+ }
+ 
+-- 
+2.7.4
+

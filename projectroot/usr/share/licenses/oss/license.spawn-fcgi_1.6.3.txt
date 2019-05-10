@@ -1,9 +1,5 @@
-spawn-fcgi-1.6.3/AUTHORS
-
 jan kneschke <jan@kneschke.de>
 stefan bühler <lighttpd@stbuehler.de>
-
-spawn-fcgi-1.6.3/COPYING
 
 
 

@@ -1,0 +1,38 @@
+From e64cebab4b691952b1381cbc9e53405380f20827 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Tue, 9 Oct 2018 15:44:07 +0200
+Subject: [PATCH 244/292] defconfig: pfc: enable marvell phy driver
+
+This patch enable marvell phy driver. Furthermore it removes
+CONFIG_TI_CPSW_ASYNC_NET, because it depends on CONFIG_PN_SOCK
+and will be selects automatically if CONFIG_PN_SOCK will be set.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/configs/am3xxx_pfc_generic_defconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/am3xxx_pfc_generic_defconfig b/arch/arm/configs/am3xxx_pfc_generic_defconfig
+index 169428d..271ee28 100644
+--- a/arch/arm/configs/am3xxx_pfc_generic_defconfig
++++ b/arch/arm/configs/am3xxx_pfc_generic_defconfig
+@@ -269,7 +269,6 @@ CONFIG_NET_DSA_MV88E6XXX=y
+ # CONFIG_NET_VENDOR_STMICRO is not set
+ CONFIG_TI_DAVINCI_EMAC=y
+ CONFIG_TI_CPSW=y
+-CONFIG_TI_CPSW_ASYNC_NET=y
+ CONFIG_TI_CPTS=y
+ # CONFIG_NET_VENDOR_WIZNET is not set
+ CONFIG_SWCONFIG=y
+@@ -277,6 +276,7 @@ CONFIG_MDIO_BITBANG=y
+ CONFIG_MDIO_GPIO=y
+ CONFIG_MICREL_KSZ8863_PHY=y
+ CONFIG_INTEL_XWAY_PHY=y
++CONFIG_MARVELL_PHY=y
+ CONFIG_MICREL_PHY=y
+ CONFIG_SWCFG_KSZ8863=y
+ CONFIG_SWCFG_MV88E6321=y
+-- 
+2.7.4
+

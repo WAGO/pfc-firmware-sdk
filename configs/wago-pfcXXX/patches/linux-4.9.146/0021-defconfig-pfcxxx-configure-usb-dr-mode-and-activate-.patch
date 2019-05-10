@@ -1,0 +1,45 @@
+From 19d30d91e7033c04a46bcbc622e36c0a8327c736 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 23 Nov 2016 14:29:14 +0100
+Subject: [PATCH 021/292] defconfig: pfcxxx: configure usb dr mode and activate
+ usb serial gadget
+
+---
+ arch/arm/configs/wago_pfc_generic_defconfig | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/configs/wago_pfc_generic_defconfig b/arch/arm/configs/wago_pfc_generic_defconfig
+index 588a27c..4b2afa2 100644
+--- a/arch/arm/configs/wago_pfc_generic_defconfig
++++ b/arch/arm/configs/wago_pfc_generic_defconfig
+@@ -377,9 +377,9 @@ CONFIG_USB_EHCI_HCD=y
+ CONFIG_USB_OHCI_HCD=y
+ CONFIG_USB_STORAGE=y
+ CONFIG_USB_MUSB_HDRC=y
+-CONFIG_USB_MUSB_HOST=y
+ CONFIG_USB_MUSB_AM35X=y
+ CONFIG_USB_MUSB_DSPS=y
++CONFIG_USB_TI_CPPI41_DMA=y
+ CONFIG_USB_SERIAL=y
+ CONFIG_USB_SERIAL_QUALCOMM=y
+ CONFIG_USB_SERIAL_OPTION=y
+@@ -387,7 +387,7 @@ CONFIG_AM335X_PHY_USB=y
+ CONFIG_USB_GPIO_VBUS=m
+ CONFIG_USB_ULPI=y
+ CONFIG_USB_GADGET=y
+-CONFIG_USB_G_MULTI=m
++CONFIG_USB_G_SERIAL=m
+ CONFIG_MMC=y
+ CONFIG_SDIO_UART=m
+ CONFIG_MMC_OMAP_HS=y
+@@ -409,7 +409,6 @@ CONFIG_RTC_DRV_ISL1208=y
+ CONFIG_DMADEVICES=y
+ CONFIG_TI_EDMA=y
+ CONFIG_DMA_OMAP=y
+-CONFIG_TI_CPPI41=y
+ CONFIG_ASYNC_TX_DMA=y
+ CONFIG_DMATEST=m
+ CONFIG_UIO=y
+-- 
+2.7.4
+

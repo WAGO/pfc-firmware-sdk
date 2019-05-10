@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2019 WAGO Kontakttechnik GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
@@ -8,14 +8,12 @@
 /// accepts the terms of the license.
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-///
 ///  \file     config_tool_lib.h
 ///
-///  \version  $Revision: 29292 $1
+///  \brief    Commonly used config tool defines and functions.
 ///
-///  \brief
-///
-///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   SM:  WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 
@@ -152,7 +150,7 @@ char* DeleteMultibleSpaces(char* pInputString,
 int GetErrorText(int status, char * pOut, int maxLength);
 
 // Append LastError Text to /tmp/last_error.txt
-int SetLastError(char * pText);
+int SetLastError(char const * pText);
 
 // Show error text belonging to a status-number
 void ShowErrorText(int   status,

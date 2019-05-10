@@ -3,8 +3,6 @@
 #
 # WAGO: -added target LIGHTTPD_HTTPS, LIGHTTPD_HTTPS_GEN_CERT
 #
-#
-
 
 menuconfig LIGHTTPD
 	tristate
@@ -261,18 +259,61 @@ config LIGHTTPD_HTTPS
 	select LIGHTTPD_OPENSSL
 	prompt "Support https"
 
-config LIGHTTPD_HTTPS_INSTALL_CONF_LINK
-	bool
-	default n
-    depends on LIGHTTPD_HTTPS
-    prompt "Install /etc/lighttpd/lighttpd.conf as link to [..]conf.https_only"
+#
+# Default mode: https, http or https+http
+#
+choice
+        prompt "Default mode"
+	default LIGHTTPD_INSTALL_CONF_LINK_HTTPS_HTTP
 
+config LIGHTTPD_INSTALL_CONF_LINK_HTTPS_HTTP
+	bool
+	prompt "https+http"
+	help
+	  Install /etc/lighttpd/mode.conf as link to [...]/mode_http+https.conf
+
+config LIGHTTPD_INSTALL_CONF_LINK_HTTPS
+	bool
+	prompt "https"
+	help
+	  Install /etc/lighttpd/mode.conf as link to [...]/mode_https.conf
+
+config LIGHTTPD_INSTALL_CONF_LINK_HTTP
+	bool
+	prompt "http"
+	help
+	  Install /etc/lighttpd/mode.conf as link to [...]/mode_http.conf
+
+endchoice
+
+#
+# Default TLS configuration: standard or strong
+#
+choice
+	prompt "Default TLS configuration"
+	default LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STANDARD
+
+config LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STANDARD
+	bool
+	prompt "standard (compatibility)"
+	depends on LIGHTTPD_HTTPS
+	help
+	  Install /etc/lighttpd/tls.conf as link to [...]/tls-standard.conf
+
+config LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STRONG
+	bool
+	prompt "strong (BSI TR-02102)"
+	depends on LIGHTTPD_HTTPS
+	help
+	  Install /etc/lighttpd/tls.conf as link to [...]/tls-strong.conf
+
+endchoice
 
 config LIGHTTPD_HTTPS_GEN_CERT
   bool
   default n
   depends on LIGHTTPD_HTTPS
-  prompt "Certificate for https"
+  prompt "Generate certificate for https"
   help 
     Generate a self-signed X509 certificate which will be used
 	  until the user install an own one.

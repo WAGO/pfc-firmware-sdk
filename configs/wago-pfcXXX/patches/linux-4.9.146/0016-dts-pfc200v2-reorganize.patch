@@ -1,0 +1,496 @@
+From b0b5c8b1d1d2127908a64f12cd71e907a08c7f22 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Tue, 22 Nov 2016 06:53:41 +0000
+Subject: [PATCH 016/292] dts: pfc200v2: reorganize
+
+---
+ arch/arm/boot/dts/Makefile                       |   2 +-
+ arch/arm/boot/dts/wago-pfc200-devconf-004e.dts   |  51 --------
+ arch/arm/boot/dts/wago-pfc200v2-devconf-004e.dts |  75 +++++++++++
+ arch/arm/boot/dts/wago-pfc200v2.dtsi             | 152 ++++++++---------------
+ 4 files changed, 130 insertions(+), 150 deletions(-)
+ delete mode 100644 arch/arm/boot/dts/wago-pfc200-devconf-004e.dts
+ create mode 100644 arch/arm/boot/dts/wago-pfc200v2-devconf-004e.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index dfdbded..b9d743d 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -572,7 +572,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	wago-pfc200-devconf-000e.dtb \
+ 	wago-pfc200-devconf-000f.dtb \
+ 	wago-pfc200-devconf-001c.dtb \
+-	wago-pfc200-devconf-004e.dtb \
++	wago-pfc200v2-devconf-004e.dtb \
+ 	wago-pfc200-setupfw.dtb \
+ 	wago-pfc200v2-setupfw.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+diff --git a/arch/arm/boot/dts/wago-pfc200-devconf-004e.dts b/arch/arm/boot/dts/wago-pfc200-devconf-004e.dts
+deleted file mode 100644
+index c11c99b..0000000
+--- a/arch/arm/boot/dts/wago-pfc200-devconf-004e.dts
++++ /dev/null
+@@ -1,51 +0,0 @@
+-/*
+- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-
+-#include "wago-pfc200v2.dtsi"
+-#include "wago-pfc100-uart1.dtsi"
+-#include "wago-pfc200v2-netx.dtsi"
+-#include "wago-pfc200v2-dcan.dtsi"
+-
+-/*
+- *
+- *   DEVCONF: 0x004E
+- *
+- *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
+- *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
+- *    x   x   x   x   x   x  x  x  x  |  x  x  |  |  |  x
+- *                                    |        |  |  CAN
+- *                                    |        |  RS232_485
+- *                                    |        ETHERNET_IP
+- *                                    PROFIBUS_DPM
+- *
+- */
+-
+-/*
+- * The devconf variable is a 16bit value.
+- * Data is stored in little endian format.
+- *
+- * 0x1fe |---------------------------------------|
+- *       |          DEVCONF Byte 0 (Low Byte)    |
+- *       | ------------------------------------- |
+- *       |          DEVCONF Byte 1 (High Byte)   |
+- * 0x200 |---------------------------------------|
+- *
+- *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
+- *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
+- *    x   x   x   x   x   x  x  x  x  |  |  |  |  |  |  PROFIBUS_SL
+- *                                    |  |  |  |  |  CAN
+- *                                    |  |  |  |  RS232_485
+- *                                    |  |  |  ETHERNET_IP
+- *                                    |  |  3G_MODEM
+- *				      |	 DIP_SWITCH
+- *                                    PROFIBUS_DPM
+- *
+- *   x: reserved for future use
+- *
+- */
+diff --git a/arch/arm/boot/dts/wago-pfc200v2-devconf-004e.dts b/arch/arm/boot/dts/wago-pfc200v2-devconf-004e.dts
+new file mode 100644
+index 0000000..8214934
+--- /dev/null
++++ b/arch/arm/boot/dts/wago-pfc200v2-devconf-004e.dts
+@@ -0,0 +1,75 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "wago-pfc200v2.dtsi"
++#include "wago-pfc100-uart1.dtsi"
++#include "wago-pfc200v2-netx.dtsi"
++#include "wago-pfc200v2-dcan.dtsi"
++
++/*
++ *
++ *   DEVCONF: 0x004E
++ *
++ *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
++ *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
++ *    x   x   x   x   x   x  x  x  x  |  x  x  |  |  |  x
++ *                                    |        |  |  CAN
++ *                                    |        |  RS232_485
++ *                                    |        ETHERNET_IP
++ *                                    PROFIBUS_DPM
++ *
++ */
++
++/*
++ * The devconf variable is a 16bit value.
++ * Data is stored in little endian format.
++ *
++ * 0x1fe |---------------------------------------|
++ *       |          DEVCONF Byte 0 (Low Byte)    |
++ *       | ------------------------------------- |
++ *       |          DEVCONF Byte 1 (High Byte)   |
++ * 0x200 |---------------------------------------|
++ *
++ *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
++ *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
++ *    x   x   x   x   x   x  x  x  x  |  |  |  |  |  |  PROFIBUS_SL
++ *                                    |  |  |  |  |  CAN
++ *                                    |  |  |  |  RS232_485
++ *                                    |  |  |  ETHERNET_IP
++ *                                    |  |  3G_MODEM
++ *				      |	 DIP_SWITCH
++ *                                    PROFIBUS_DPM
++ *
++ *   x: reserved for future use
++ *
++ */
++
++&u6_g {
++	label = "bf-green";
++};
++
++&u6_r {
++	label = "bf-red";
++};
++
++&u5_g {
++	label = "dia-green";
++};
++
++&u5_r {
++	label = "dia-red";
++};
++
++&u7_g {
++	label = "can-green";
++};
++
++&u7_r {
++	label = "can-red";
++};
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index 54b1483..df32b3e 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -8,21 +8,13 @@
+ #include <dt-bindings/interrupt-controller/irq.h>
+ #include "am33xx.dtsi"
+ 
+-/* Varianten beim PFC100
+- *
+- * 750-8101: 2ETH, DIP
+- * 750-8102: 2ETH, RS232/485
+- *
+- */
+-
+-
+ / {
+ 	model = "WAGO PFC200 DPM";
+ 	compatible = "wago,pfc200", "ti,am33xx";
+ 
+ 	cpus {
+-		cpu@0 {
+-			cpu0-supply = <&dcdc4_reg>;
++		cpu_0: cpu@0 {
++			cpu0-supply = <&dcdc2_reg>;
+ 
+ 			/*
+ 			 * To consider voltage drop between PMIC and SoC,
+@@ -31,9 +23,9 @@
+ 			 */
+ 			operating-points = <
+ 				/* kHz    uV */
+-				1000000  1325000
+-				 800000  1260000
+-				 720000  1200000
++				/*1000000  1325000*/
++				/*800000  1260000*/
++				/*720000  1200000*/
+ 				 600000  1100000
+ 				 300000  950000
+ 			>;
+@@ -44,7 +36,7 @@
+ 		mdio-gpio0 = &bitbang_mdio0;
+ 	};
+ 
+-	memory {
++	memory: memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x10000000>; /* 256 MB */
+ 	};
+@@ -560,74 +552,74 @@
+ 		#size-cells = <0>;
+                 reg = <0x60>;
+ 
+-		sys-red@0 {
++		sys_r: sys-red@0 {
+ 		      label = "sys-red";
+ 		      reg = <0>;
+ 		      linux,default-trigger = "timer";
+ 		};
+ 
+-		sys-green@1 {
++		sys_g: sys-green@1 {
+ 		      label = "sys-green";
+ 		      reg = <1>;
+ 		      linux,default-trigger = "timer";
+ 		};
+ 
+-		run-red@2 {
++		run_r: run-red@2 {
+ 		      label = "run-red";
+ 		      reg = <2>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		run-green@3 {
++		run_g: run-green@3 {
+ 		      label = "run-green";
+ 		      reg = <3>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		io-red@4 {
++		io_r: io-red@4 {
+ 		      label = "io-red";
+ 		      reg = <4>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		io-green@5 {
++		io_g: io-green@5 {
+ 		      label = "io-green";
+ 		      reg = <5>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		ms-red@6 {
++		ms_r: ms-red@6 {
+ 		      label = "ms-red";
+ 		      reg = <6>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		ms-green@7 {
++		ms_g: ms-green@7 {
+ 		      label = "ms-green";
+ 		      reg = <7>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		ns-red@8 {
++		ns_r: ns-red@8 {
+ 		      label = "ns-red";
+ 		      reg = <8>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		ns-green@9 {
++		ns_g: ns-green@9 {
+ 		      label = "ns-green";
+ 		      reg = <9>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		can-red@10 {
+-		      label = "can-red";
++		u7_r: u7-red@10 {
++		      label = "u7-red";
+ 		      reg = <10>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		can-green@11 {
+-		      label = "can-green";
++		u7_g: u7-green@11 {
++		      label = "u7-green";
+ 		      reg = <11>;
+ 		      linux,default-trigger = "none";
+ 		};
+@@ -646,73 +638,73 @@
+ 		#size-cells = <0>;
+                 reg = <0x61>;
+ 
+-		bf-red@0 {
+-		      label = "bf-red";
++		u6_r: u6-red@0 {
++		      label = "u6-red";
+ 		      reg = <0>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		bf-green@1 {
+-		      label = "bf-green";
++		u6_g: u6-green@1 {
++		      label = "u6-green";
+ 		      reg = <1>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		dia-red@2 {
+-		      label = "dia-red";
++		u5_r: u5-red@2 {
++		      label = "u5-red";
+ 		      reg = <2>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		dia-green@3 {
+-		      label = "dia-green";
++		u5_g: u5-green@3 {
++		      label = "u5-green";
+ 		      reg = <3>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u4-red@4 {
++		u4_r: u4-red@4 {
+ 		      label = "u4-red";
+ 		      reg = <4>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u4-green@5 {
++		u4_g: u4-green@5 {
+ 		      label = "u4-green";
+ 		      reg = <5>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u3-red@6 {
++		u3_r: u3-red@6 {
+ 		      label = "u3-red";
+ 		      reg = <6>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u3-green@7 {
++		u3_g: u3-green@7 {
+ 		      label = "u3-green";
+ 		      reg = <7>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u2-red@8 {
++		u2_r: u2-red@8 {
+ 		      label = "u2-red";
+ 		      reg = <8>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u2-green@9 {
++		u2_g: u2-green@9 {
+ 		      label = "u2-green";
+ 		      reg = <9>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u1-red@10 {
++		u1_r: u1-red@10 {
+ 		      label = "u1-red";
+ 		      reg = <10>;
+ 		      linux,default-trigger = "none";
+ 		};
+ 
+-		u1-green@11 {
++		u1_g: u1-green@11 {
+ 		      label = "u1-green";
+ 		      reg = <11>;
+ 		      linux,default-trigger = "none";
+@@ -805,8 +797,8 @@
+                  compatible = "ti,tps65218-dcdc2";
+                 /* VDD_MPU +1V1-MPU voltage limits */
+                 regulator-name = "vdd_MPU";
+-                regulator-min-microvolt = <1100000>;
+-                regulator-max-microvolt = <1100000>;
++                regulator-min-microvolt = <912000>;
++                regulator-max-microvolt = <1378000>;
+                 regulator-boot-on;
+                 regulator-always-on;
+         };
+@@ -830,46 +822,28 @@
+                 regulator-boot-on;
+                 regulator-always-on;
+         };
+-		/*
+-		dcdc1_sw:	dcdcswitch-dcdc1{
+-                 compatible = "ti,tps65218-dcdc4";
+-                // VDD_µSD +3V3-SD voltage
+-                dcdcswitch-name = "vdd_µSD";
+-                dcdcswitch-min-microvolt = <3300000>;
+-                dcdcswitch-max-microvolt = <3300000>;
+-                dcdcswitch-boot-on;
+-		*/
+ 
+-		/*
+-		dcdc2_sw:	dcdcswitch-dcdc2{
+-                 compatible = "ti,tps65218-dcdc4";
+-                // VDD_USB +5V0-USB voltage
+-                dcdcswitch-name = "vdd_µSD";
+-                dcdcswitch-min-microvolt = <4750000>;
+-                dcdcswitch-max-microvolt = <5250000>;
+-                dcdcswitch-boot-off;
+-		*/
++        loadswitch1:    loadswitch-ls1 {
++                compatible = "ti,tps65218-ls1";
++                /* VDD_LS1 +3V3 for SD-Card */
++                regulator-name = "vdd_LS1_SDCARD";
++                regulator-boot-on;
++                regulator-always-on;
++        };
+ 
+-		/*
+-		dcdc3_sw:	dcdcswitch-dcdc3{
+-                 compatible = "ti,tps65218-dcdc4";
+-                // VDD_LS +3V3-LS voltage not used in PFC100
+-                dcdcswitch-name = "vdd_Last";
+-                dcdcswitch-min-microvolt = <3300000>;
+-                dcdcswitch-max-microvolt = <3300000>;
+-                dcdcswitch-boot-off;
+-		*/
+-        config2_reg: regulator-config2 {
+-                 compatible = "ti,tps65218-config2";
+-                /* VDD_Logic current set to 1 Ampere*/
+-                regulator-name = "vdd_CONFIG2";
+-                regulator-min-microamp = <1000000>;/*TODO*/
+-                regulator-max-microamp = <1000000>;/*TODO in drivers/regulator/tps65218-regulator.c */
++        loadswitch2:  loadswitch-ls2 {
++                compatible = "ti,tps65218-ls2";
++                /* VDD_LS2 +5V15 for USB */
++                regulator-name = "vdd_LS2_USB";
++                regulator-min-microamp = <100000>;
++                regulator-max-microamp = <100000>;
+                 regulator-boot-on;
+                 regulator-always-on;
+         };
+-        ldo1: regulator-ldo1 {	//VDD-PLL  +1V8
++
++        ldo1: regulator-ldo1 {
+                 compatible = "ti,tps65218-ldo1";
++		/* VDD-PLL  +1V8 */
+                 regulator-name = "ldo1";
+                 regulator-always-on;
+         };
+@@ -898,24 +872,6 @@
+ 	cd-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>; /* GPIO 116 */
+ };
+ 
+-&usb {
+-	status = "okay";
+-};
+-
+-&usb_ctrl_mod {
+-	status = "okay";
+-};
+-
+-&usb1_phy {
+-	status = "okay";
+-};
+-
+-
+-&usb1 { /* usb1 - OTG */
+-	status = "okay";
+-        dr_mode = "host";
+-};
+-
+ &sham {
+ 	status = "okay";
+ };
+-- 
+2.7.4
+

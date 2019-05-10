@@ -1,0 +1,319 @@
+## SECTION=base_kernel
+
+menuconfig KERNEL
+	bool
+	default y
+	select IMAGE_KERNEL
+	select HOST_U_BOOT_TOOLS	if KERNEL_IMAGE_U || (KERNEL_IMAGE_SIMPLE && ARCH_MICROBLAZE)
+	select HOST_XZ			if KERNEL_XZ
+	select HOST_LZOP		if KERNEL_LZOP
+	select HOST_LZ4			if KERNEL_LZ4
+	select HOST_LIBKMOD		if KERNEL_MODULES
+	select HOST_SYSTEM_BC
+	select HOST_OPENSSL		if KERNEL_OPENSSL
+	prompt "Linux kernel                  "
+
+if KERNEL
+
+config KERNEL_XPKG
+	bool
+	help
+	  Select this symbol if kernel tools or other non kernel
+	  modules are installed.
+
+config KERNEL_INSTALL
+	bool
+	prompt "install kernel into /boot"
+	select KERNEL_XPKG
+
+config KERNEL_MODULES
+	bool
+	default y
+	prompt "build kernel-modules"
+
+config KERNEL_MODULES_INSTALL
+	bool
+	default y
+	prompt "Install modules into /lib/modules"
+	depends on KERNEL_MODULES
+
+config KERNEL_MODULES_BUILD
+	depends on KERNEL_MODULES
+	string
+	default "modules"
+
+config KERNEL_VERSION
+	prompt "kernel version"
+	string
+	default "3.10"
+
+config KERNEL_MD5
+	prompt "kernel source md5sum"
+	string
+
+choice
+	prompt "kernel architecture "
+	depends on ARCH_PPC || ARCH_X86
+	default KERNEL_ARCH_POWERPC	if ARCH_PPC
+	default KERNEL_ARCH_X86		if ARCH_X86
+	help
+	  For x86 and PowerPC there are different possibilities to set the kernel
+	  architecture:
+
+	  - The old variant for PowerPC is ppc, the newer one is powerpc.
+	  - The old variant for x86 is i386 for 32 bit and x86_64 for 64 bit,
+	    kernels later than 2.6.24 use x86.
+
+	config KERNEL_ARCH_PPC
+		bool
+		depends on ARCH_PPC
+		prompt "ppc    "
+
+	config KERNEL_ARCH_POWERPC
+		bool
+		depends on ARCH_PPC
+		prompt "powerpc"
+
+	config KERNEL_ARCH_X86
+		bool
+		depends on ARCH_X86
+		prompt "x86    "
+
+	config KERNEL_ARCH_I386
+		bool
+		depends on ARCH_X86
+		prompt "i386   "
+
+	config KERNEL_ARCH_X86_64
+		bool
+		depends on ARCH_X86
+		prompt "x86_64 "
+
+endchoice
+
+config KERNEL_ARCH_STRING
+	string
+	default "arm"			if ARCH_ARM
+	default "arm64"			if ARCH_ARM64
+	default "armnommu"		if ARCH_ARM && !HAS_MMU
+	default "alpha"			if ARCH_ALPHA
+	default "avr32"			if ARCH_AVR32
+	default "blackfin"		if ARCH_BLACKFIN
+	default "m68k"			if ARCH_M68K
+	default "sparc"			if ARCH_SPARC
+	default "microblaze"		if ARCH_MICROBLAZE
+	default "mips"			if ARCH_MIPS
+	default "mips"			if ARCH_MIPSEL
+	default "cris"			if ARCH_CRIS
+	default "parisc"		if ARCH_PARISC
+	default "sh"			if ARCH_SH
+
+	default "ppc"			if KERNEL_ARCH_PPC
+	default "powerpc"		if KERNEL_ARCH_POWERPC
+	default "x86"			if KERNEL_ARCH_X86
+	default "i386"			if KERNEL_ARCH_I386
+	default "x86_64"		if KERNEL_ARCH_X86_64
+
+choice
+	prompt "Image Type          "
+	default KERNEL_IMAGE_BZ
+
+	config KERNEL_IMAGE_BZ
+		bool
+		prompt "bzImage"
+		help
+		 This usually is the target to be used on ia32 platforms. It
+		 is not limited in size (to be more precise: Limited up to 4MiB).
+
+	config KERNEL_IMAGE_Z
+		bool
+		prompt "zImage "
+		help
+		 This usually is a target to be used on ia32 platforms, it
+		 is the older format and limited to about 500k in size due to
+		 low memory size restrictions.
+
+	config KERNEL_IMAGE_XIP
+		bool
+		prompt "xipImage"
+		help
+		  Create eXecute In Place Image
+
+	config KERNEL_IMAGE_U
+		bool
+		prompt "uImage "
+		help
+		 This is the target for most non ia32 platforms like PowerPC
+		 and ARM architectures. Its a compressed image with additional
+		 embedded information.
+
+	config KERNEL_IMAGE_VM
+		bool
+		prompt "vmImage"
+		help
+		 This is the target for non ia32 platforms like blackfin
+		 architectures.
+
+	config KERNEL_IMAGE_VMLINUX
+		bool
+		prompt "vmlinux"
+		help
+		 This is the target to get the kernel image as an ELF. Mostly
+		 used for debugging purposes.
+
+	config KERNEL_IMAGE_RAW
+		bool
+		prompt "Image"
+		help
+		 This is the target to get the kernel image as an raw uncompressed
+		 binary file.
+
+	config KERNEL_IMAGE_SIMPLE
+		bool
+		prompt "simpleImage"
+		help
+		  Create a simple Image with embedded DTB
+endchoice
+
+if KERNEL_IMAGE_U
+config KERNEL_IMAGE_U_TARGET
+	prompt "name of the uImage"
+        string
+        default "linux"
+        help
+	   Name of created uImage e.g.
+	   "uImage" > "linux"  
+endif
+
+if KERNEL_IMAGE_SIMPLE
+
+config KERNEL_IMAGE_SIMPLE_TARGET
+	prompt "name of simple image"
+	string
+	default "virtex405-xup"
+	help
+	  Name of created simple kernel image e.g.
+	  the "virtex405-xup" of "simpleImage.virtex405-xup.elf"
+
+config KERNEL_IMAGE_SIMPLE_DTS
+	prompt "path to DTS file"
+	string
+	default "${PTXDIST_PLATFORMCONFIGDIR}/simpleImage.dts"
+	help
+	  This specifies the "dts" file used to create your simple
+	  image.
+
+	  The default is "${PTXDIST_PLATFORMCONFIGDIR}/simpleImage.dts"
+
+	  The path "${PTXDIST_PLATFORMCONFIGDIR}" is the directory
+	  where your platformconfig file is located.
+
+endif
+
+config KERNEL_IMAGE
+	string
+	default "bzImage" if KERNEL_IMAGE_BZ
+	default "Image.gz"  if KERNEL_IMAGE_Z && ARCH_ARM64
+	default "zImage"  if KERNEL_IMAGE_Z
+	default "xipImage" if KERNEL_IMAGE_XIP
+	default "${PTXCONF_KERNEL_IMAGE_U_TARGET}"  if KERNEL_IMAGE_U
+	default "vmImage" if KERNEL_IMAGE_VM
+	default "vmlinux" if KERNEL_IMAGE_VMLINUX
+	default "Image"   if KERNEL_IMAGE_RAW
+	default "simpleImage.${PTXCONF_KERNEL_IMAGE_SIMPLE_TARGET}.elf" if KERNEL_IMAGE_SIMPLE && KERNEL_ARCH_POWERPC
+	default "simpleImage.${PTXCONF_KERNEL_IMAGE_SIMPLE_TARGET}" if KERNEL_IMAGE_SIMPLE && ARCH_MICROBLAZE
+
+config KERNEL_DTC
+	bool
+
+config KERNEL_XZ
+	prompt "build xz-utils hosttool"
+	bool
+	help
+	  Select this if you're going to build your kernel compressed
+	  with lzma and your host system is lacking the proper tools.
+	  ("xz-utils" or the deprecated "lzma" package)
+
+	  Select this if you're unsure, as it won't hurt. It just
+	  increases the build time.
+
+config KERNEL_LZOP
+	prompt "build lzop hosttool"
+	bool
+	help
+	  Select this if you're going to build your kernel compressed
+	  with lzo and your host system is lacking the proper tools.
+	  (the "lzop" package)
+
+	  Select this if you're unsure, as it won't hurt. It just
+	  increases the build time.
+
+config KERNEL_LZ4
+	prompt "build lz4 hosttool"
+	bool
+	help
+	  Select this if you're going to build your kernel compressed
+	  with lz4 and your host system is lacking the proper tools.
+	  (the "lz4" package)
+
+	  Select this if you're unsure, as it won't hurt. It just
+	  increases the build time.
+
+config KERNEL_OPENSSL
+	prompt "build openssl hosttool"
+	bool
+	help
+	  Select this if you're going to build your kernel with support for
+	  module signing, IMA etc. where openssl is need as hosttool
+
+	  Select this if you're unsure, as it won't hurt. It just
+	  increases the build time.
+
+menu "patching & configuration      "
+
+config KERNEL_SERIES
+	prompt "patch series file"
+	string
+	default "series"
+	help
+	  This entry specifies a patch series file which has to live in
+	  the kernel patches directory:
+
+	  The series file contains lines with names of patch files which
+	  are then being applied to the kernel.
+
+config KERNEL_CONFIG
+	prompt "kernel config file"
+	string
+	default "kernelconfig-${PTXCONF_KERNEL_VERSION}"
+	help
+	  this entry specifies the .config file used to compile your kernel
+
+endmenu
+
+
+comment "Development features"
+
+config KERNEL_EXTRA_MAKEVARS
+	string
+	default ""
+	prompt "Additional kbuild options"
+	help
+	  Specify extra parameters for the kernel build system here. Useful
+	  options include:
+
+	  * CONFIG_DEBUG_SECTION_MISMATCH=y
+	  Enable this feature if you want the kernel's buildsystem to check for
+	  section mismatches (__devinit/__devexit, __init/__exit). This
+	  entry is valid for 2.6.25 kernels and above. Previous kernel versions
+	  do this check automatically. Enabling this feature is recommended
+	  for kernel development only because it changes how code is inlined.
+	  Changing this entry will rebuild the whole kernel.
+
+	  * C=1
+	  Run sparse when compiling
+
+	  * V=1
+	  Increase verbosity when compiling
+
+endif	# KERNEL

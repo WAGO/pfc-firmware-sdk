@@ -168,7 +168,9 @@ evaluate_params()
     # First evaluate early parameters
     # (maybe influencing other parameters)
     QUIET=$(get_parameter_option "-q" "--quiet" "$@")
+    RESULT=$?
     URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
+    RESULT=$(( $RESULT == 0 ? $? : $RESULT ))
     if [[ "$URIENCODE" -ne 0 ]]; then
         fwupdate_report_error "Option -x/--extract-from-uri-encoding currently not supported and will be ignored"
     fi

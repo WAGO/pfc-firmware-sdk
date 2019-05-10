@@ -71,7 +71,6 @@ MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_
 }
 
 #define _GPRS_REG_INIT_STATE   -1
-#define _RMNET_PROFILEID_DEFAULT 1
 
 #define _GPRS_CONNECTIVITY_DISABLED  int(0)
 #define _GPRS_CONNECTIVITY_ENABLED   int(1)
@@ -79,8 +78,6 @@ MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_
 void
 MdmStatemachine::init()
 {
-    int gprs_connectivity;
-
     _sim_state=MdmSimState::UNKNOWN;
     _cfun_state=-1;
     _pin_count=-1;
@@ -93,15 +90,15 @@ MdmStatemachine::init()
     _pin = "";
     _puk = "";
     _gprs_reg_state = _GPRS_REG_INIT_STATE;
+    _gprs_wwan_state_change = false;
+    _gprs_pdp_addr_change = false;
     _oper_reg_state = -1;
     _oper_reg_lac = "";
     _oper_reg_cid = "";
     _oper_scan_mode = -1;
     _oper_scan_seq = -1;
-    _rmnet_profileid = _RMNET_PROFILEID_DEFAULT;
-    _gprsaccess.clear();
-    _gprsaccess_set_oninit = false;
     _gprs_temporary_disable = false;
+    _gprs_autoconnect_count = 0;
     _current_signal_step = 0;
     _last_cme_error = -1;
     _last_cms_error = -1;
@@ -111,11 +108,24 @@ MdmStatemachine::init()
     _cfun_wait_count = 0;
     _pdp_addr = "";
 
-    if (!_storage.get_gprs_connectivity(gprs_connectivity)) {
-      gprs_connectivity = _GPRS_CONNECTIVITY_DEFAULT;
-      _storage.set_gprs_connectivity(gprs_connectivity);
+    GprsAccessConfig default_gprs_access;
+    if (!_storage.get_gprs_access(default_gprs_access)) {
+      _storage.set_gprs_access(default_gprs_access);
       _storage.save();
     }
+
+    SmsEventReportingConfig default_sms_reporting_config;
+    if (!_storage.get_sms_reporting_config(default_sms_reporting_config)) {
+      _storage.set_sms_reporting_config(default_sms_reporting_config); 
+      _storage.save();
+    }
+
+    SmsStorageConfig default_sms_storage_config;
+    if (!_storage.get_sms_storage_config(default_sms_storage_config)) {
+      _storage.set_sms_storage_config(default_sms_storage_config); 
+      _storage.save();
+    }
+
 }
 
 MdmStatemachine::~MdmStatemachine()
@@ -372,9 +382,10 @@ MdmStatemachine::wwan_disable()
   }
 }
 
-void
+bool
 MdmStatemachine::wwan_enable()
 {
+  bool result;
   std::string cmd_output;
   std::string cmd_error;
   const int cmd_result = execute_command("/etc/config-tools/config_wwan --enable", cmd_output, cmd_error);
@@ -382,11 +393,14 @@ MdmStatemachine::wwan_enable()
   {
     mdmd_Log(MD_LOG_ERR, "%s: wwan enable failed %d %s\n", get_state().c_str(),
              cmd_result, cmd_error.c_str());
+    result = false;
   }
   else
   {
     mdmd_Log(MD_LOG_INF, "%s: wwan enable success\n", get_state().c_str());
+    result = true;
   }
+  return result;
 }
 
 
@@ -427,63 +441,59 @@ MdmStatemachine::wwan_get_status(bool &is_enabled, bool &is_configured)
   return status_valid;
 }
 
-void
+bool
 MdmStatemachine::wwan_stop()
 {
-  bool is_enabled = true;
-  bool is_configured = true;
 
-  if (!wwan_get_status(is_enabled, is_configured))
-  { //could not get wwan status, try to disable (Note: first version of config_wwan supports only enable/disable)
-    wwan_disable();
-  }
-  else
+  bool result;
+  std::string cmd_output;
+  std::string cmd_error;
+  int cmd_result = execute_command("/etc/config-tools/config_wwan --stop", cmd_output, cmd_error);
+  if (cmd_result != 0)
   {
-    if (!is_configured)
+    //could not stop wwan interface, try to disable (Note: first version of config_wwan supports only enable/disable)
+    cmd_result = execute_command("/etc/config-tools/config_wwan --disable", cmd_output, cmd_error);
+    if (cmd_result != 0)
     {
-      mdmd_Log(MD_LOG_ERR, "%s: wwan not configured\n", get_state().c_str());
-    }
-    else if (!is_enabled)
-    {
-      mdmd_Log(MD_LOG_ERR, "%s: wwan disabled\n", get_state().c_str());
+      mdmd_Log(MD_LOG_ERR, "%s: wwan disable failed: %d %s\n", get_state().c_str(),
+               cmd_result, cmd_error.c_str());
+      result = false;
     }
     else
     {
-      std::string cmd_output;
-      std::string cmd_error;
-      const int cmd_result = execute_command("/etc/config-tools/config_wwan --stop", cmd_output, cmd_error);
-      if (cmd_result != 0)
-      {
-        mdmd_Log(MD_LOG_ERR, "%s: wwan stop failed: %d %s\n", get_state().c_str(),
-                 cmd_result, cmd_error.c_str());
-      }
-      else
-      {
-        mdmd_Log(MD_LOG_INF, "%s: wwan stop success\n", get_state().c_str());
-      }
+      mdmd_Log(MD_LOG_INF, "%s: wwan disable success\n", get_state().c_str());
+      result = true;
     }
   }
+  else
+  {
+    mdmd_Log(MD_LOG_INF, "%s: wwan stop success\n", get_state().c_str());
+    result = true;
+  }
+  return result;
 }
 
-void
+bool
 MdmStatemachine::wwan_start()
 {
+  bool result;
   bool is_enabled = true;
   bool is_configured = true;
 
   if (!wwan_get_status(is_enabled, is_configured))
   { //could not get wwan status, try to enable (Note: first version of config_wwan supports only enable/disable)
-    wwan_enable();
+    result = wwan_enable();
   }
   else
   {
     if (!is_configured)
     {
       mdmd_Log(MD_LOG_ERR, "%s: wwan interface not configured\n", get_state().c_str());
+      result = false;
     }
     else if (!is_enabled)
     { //wwan has to be enabled (e.g. after system start)
-      wwan_enable();
+      result = wwan_enable();
     }
     else
     {
@@ -494,12 +504,32 @@ MdmStatemachine::wwan_start()
       {
         mdmd_Log(MD_LOG_ERR, "%s: wwan start failed %d %s\n", get_state().c_str(),
                  cmd_result, cmd_error.c_str());
+        result = false;
       }
       else
       {
         mdmd_Log(MD_LOG_INF, "%s: wwan start success\n", get_state().c_str());
+        result = true;
       }
     }
+  }
+  return result;
+}
+
+void
+MdmStatemachine::wwan_renew()
+{
+  std::string cmd_output;
+  std::string cmd_error;
+  const int cmd_result = execute_command("/etc/config-tools/config_wwan --renew", cmd_output, cmd_error);
+  if (cmd_result != 0)
+  {
+    mdmd_Log(MD_LOG_ERR, "%s: wwan IP address renew failed: %d %s\n", get_state().c_str(),
+             cmd_result, cmd_error.c_str());
+  }
+  else
+  {
+    mdmd_Log(MD_LOG_ERR, "%s: wwan IP address renew successfully triggered\n", get_state().c_str());
   }
 }
 
@@ -553,6 +583,7 @@ MdmStatemachine::update_status_leds()
       {
         mdmd_Log(MD_LOG_DBG, "%s: operator not registered", get_state().c_str());
         log_event( DIAG_3GMM_OPER_NO_NET );
+        clear_current_oper();//set current operator invalid if switch from registered to not registered
       }
 
       for (i = 0; i < _current_signal_step; i++)
@@ -680,19 +711,19 @@ MdmStatemachine::set_gprs_reg_state(int state)
         {
           if (!gprs_disabled)
           {
-            wwan_start();
+            _gprs_wwan_state_change = wwan_start();
           }
         }
         else
         {
-          wwan_stop();
+          _gprs_wwan_state_change = wwan_stop();
         }
         break;
       case 1:
       case 5:
         if ((state!=1) && (state!=5))
         {
-          wwan_stop();
+          _gprs_wwan_state_change = wwan_stop();
         }
         break;
       default:
@@ -700,7 +731,7 @@ MdmStatemachine::set_gprs_reg_state(int state)
         {
           if (!gprs_disabled)
           {
-            wwan_start();
+            _gprs_wwan_state_change = wwan_start();
           }
         }
         break;
@@ -905,41 +936,27 @@ MdmTimeout::callback()
 }
 
 void
-MdmStatemachine::set_gprs_connectivity(const int new_value)
+MdmStatemachine::set_gprsaccess(const GprsAccessConfig &newConfig)
 {
-  int current_value;
   const bool gprs_disabled_old = is_gprs_disabled();
   const int state = _gprs_reg_state;
-  if (!_storage.get_gprs_connectivity(current_value) || (new_value != current_value)) {
-    _storage.set_gprs_connectivity(new_value);
-    _storage.save();
-    if (gprs_disabled_old != is_gprs_disabled())
-    {
-      mdmd_Log(MD_LOG_INF, "%s: Data Service: state=%d(%s), %s\n", get_state().c_str(),
-               state, ((state==1)||(state==5)) ? "registered" : "not registered",
-               is_gprs_disabled() ? "disabled" : "enabled");
-    }
+  _storage.set_gprs_access(newConfig);
+  _storage.save();
+  const bool gprs_disabled_now = is_gprs_disabled();
+  if (gprs_disabled_old != gprs_disabled_now)
+  {
+    mdmd_Log(MD_LOG_INF, "%s: Data Service: state=%d(%s), %s\n", get_state().c_str(),
+             state, ((state==1)||(state==5)) ? "registered" : "not registered",
+             gprs_disabled_now ? "disabled" : "enabled");
   }
-}
-
-int
-MdmStatemachine::get_gprs_connectivity() const
-{
-  int value;
-
-  if (!_storage.get_gprs_connectivity(value)) {
-    mdmd_Log(MD_LOG_ERR, "%s: GprsConnectivity not initialized, assume default value\n",
-             get_state().c_str());
-    value = _GPRS_CONNECTIVITY_DEFAULT;
-  }
-  return value;
 }
 
 bool
 MdmStatemachine::is_gprs_disabled() const
 {
-  const int gprs_connectivity = get_gprs_connectivity();
-  return ((_gprs_temporary_disable) || (gprs_connectivity == _GPRS_CONNECTIVITY_DISABLED));
+  GprsAccessConfig gprs_access;
+  _storage.get_gprs_access(gprs_access);
+  return ((_gprs_temporary_disable) || (gprs_access.get_state() == _GPRS_CONNECTIVITY_DISABLED));
 }
 
 bool
@@ -998,6 +1015,7 @@ MdmStatemachine::set_pdp_address( const std::string &pdp_addr )
 {
   if (_pdp_addr.compare(pdp_addr) != 0)
   {
+    _gprs_pdp_addr_change = true;
     mdmd_Log(MD_LOG_INF, "%s: Data Service: PDP address=\'%s\'\n", get_state().c_str(), pdp_addr.c_str());
     _pdp_addr = pdp_addr;
   }
@@ -1019,5 +1037,31 @@ std::string MdmStatemachine::get_operator_name(int id) const
     tmpstream << "Operator " << id;
   }
   return (it == _operator_names.end()) ? tmpstream.str() : it->second;
+}
+
+#define _GPRS_AUTOCONNECT_COUNT_MAX  18 /*18 status update periods, each with 10s = 180seconds*/
+bool MdmStatemachine::is_gprs_autoconnect_count_exceeded() const
+{
+  return (_gprs_autoconnect_count < _GPRS_AUTOCONNECT_COUNT_MAX) ? false : true;
+}
+
+void MdmStatemachine::set_gprs_autoconnect_count()
+{
+  if ((is_gprs_registered() == false) && (is_oper_registered() == true) && (is_gprs_disabled() == false))
+  {
+    if (is_gprs_autoconnect_count_exceeded() == false)
+    {
+      _gprs_autoconnect_count = _gprs_autoconnect_count + 1;
+    }
+  }
+  else
+  {
+    _gprs_autoconnect_count = 0;
+  }
+}
+
+void MdmStatemachine::reset_gprs_autoconnect_count()
+{
+  _gprs_autoconnect_count = 0;
 }
 

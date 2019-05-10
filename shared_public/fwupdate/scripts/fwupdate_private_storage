@@ -502,16 +502,6 @@ fwupdate_get_progress()
             PROGRESS=0
             RESULT=0
         fi
-        # Adjust progress if fwupdate-service is installing image
-        if [ -e "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" ]; then
-            local INSTALL_PROGRESS=$(tail -n 1 "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" | cut -d ':' -f3 | cut -d '%' -f1)
-            if [ -z $INSTALL_PROGRESS ]; then
-                INSTALL_PROGRESS=0
-            elif [ $INSTALL_PROGRESS -gt 99 ]; then
-                INSTALL_PROGRESS=100
-            fi
-            PROGRESS=$(($PROGRESS+($INSTALL_PROGRESS*10)/2))
-        fi
         if [ $RESULT -eq 0 ]; then
             echo -n "$PROGRESS"
         fi

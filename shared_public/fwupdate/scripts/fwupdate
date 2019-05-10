@@ -204,10 +204,14 @@ print_help()
     echo "  Command options and params will be redirected to a specific tool related to the given command."
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME --help   --> Prints this general help text"
-    echo "  $WAGO_CT_NAME activate   --> Activates $WAGO_CT_SYSTEM_MODULE"
-    echo "  $WAGO_CT_NAME start --help   --> Prints help text for start command"
-    echo "  $WAGO_CT_NAME start -q --path /root/fwupdate   --> Starts $WAGO_CT_SYSTEM_MODULE in quiet mode"
+    echo "  $WAGO_CT_NAME --help"
+    echo "     --> Prints this general help text"
+    echo "  $WAGO_CT_NAME activate"
+    echo "     --> Activates $WAGO_CT_SYSTEM_MODULE"
+    echo "  $WAGO_CT_NAME start --help"
+    echo "     --> Prints help text for start command"
+    echo "  $WAGO_CT_NAME start -q --path \"$WAGO_FW_UPDATE_DEFAULT_WORK_DIR\""
+    echo "     --> Starts $WAGO_CT_SYSTEM_MODULE in quiet mode, update file is searched in given path"
 
     return 0
 }

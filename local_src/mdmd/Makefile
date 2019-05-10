@@ -30,8 +30,8 @@ CXXFLAGS += $(WARNINGS)
 #	Linker flags
 #-------------------------------------------------------------------------------
 
-mdmd: serialport.o mdmd.o pty.o events.o mdm_statemachine.o persistent_storage.o timeout.o dbus_server.o mdm_dbusserver.o sysfs_lib.o dbus_client.o mdm_cuse_text_data.o mdm_cuse_worker.o mdmd_log.o
-	$(CXX) -o mdmd $(LDFLAGS) mdmd.o serialport.o pty.o events.o timeout.o sysfs_lib.o mdm_statemachine.o persistent_storage.o dbus_server.o mdm_dbusserver.o dbus_client.o mdm_cuse_text_data.o mdm_cuse_worker.o mdmd_log.o
+mdmd:                       mdmd.o serialport.o pty.o events.o timeout.o sysfs_lib.o mdm_statemachine.o persistent_storage.o dbus_server.o mdm_dbusserver.o dbus_client.o mdm_cuse_text_data.o mdm_cuse_worker.o mdmd_log.o 
+	$(CXX) -o mdmd $(LDFLAGS) mdmd.o serialport.o pty.o events.o timeout.o sysfs_lib.o mdm_statemachine.o persistent_storage.o dbus_server.o mdm_dbusserver.o dbus_client.o mdm_cuse_text_data.o mdm_cuse_worker.o mdmd_log.o 
 
 mdm_cuse: mdm_cuse.o
 	$(CXX) -o mdm_cuse $(LDFLAGS) mdm_cuse.o

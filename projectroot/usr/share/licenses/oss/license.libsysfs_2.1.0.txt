@@ -1,11 +1,7 @@
-sysfsutils-2.1.0/AUTHORS
-
 Ananth Mavinakayanahalli <ananth@in.ibm.com>
 Daniel Stekloff <dsteklof@us.ibm.com>
 Mohan Kumar <mohan@in.ibm.com>
 Nitin Vashisth <vnitin@in.ibm.com>
-
-sysfsutils-2.1.0/COPYING
 
 
 The commands and utilities under the "test" directory are licensed under the 

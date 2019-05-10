@@ -9,7 +9,7 @@
 # Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
-# Script:   /etc/init.d/fwupdate
+# Script:   /etc/init.d/fwupdate_service
 #
 # Brief:    System V init script for WAGO firmware update.
 #
@@ -38,7 +38,7 @@ readonly WAGO_FWUPDATE_FRONTEND="/etc/config-tools/fwupdate"
 #-----------------------------------------------------------------------------#
 usage()
 {
-    echo "fwupdate usage: $0 [start|stop|restart|status]"
+    echo "fwupdate_service usage: $0 [start|stop|restart|status]"
 }
 
 # Function to start FW-Update functionality.
@@ -55,7 +55,13 @@ fwupdate_service_start()
         return $WAGO_FW_UPDATE_UNEXPECTED_SYSTEM_CONFIG
     fi
 
-    # TODO: Check if already started
+    # Check if already started
+    local this_pid_array=( $($PIDOF "$(basename "$0")") )
+    local bgs_pid_array=( $($PIDOF fwupdate_background_service) )
+    if [[ ${#this_pid_array[@]} -gt 1 || ${#bgs_pid_array[@]} -gt 0 ]]; then
+        fwupdate_report_error "FW-Update service is already running"
+        return $WAGO_FW_UPDATE_ALREADY_ACTIVE
+    fi
 
     # Try to backup/clean persistence data on panic boot
     if [ -e "$WAGO_FW_UPDATE_PANIC_FILE" ]; then
@@ -86,26 +92,19 @@ fwupdate_service_start()
     local STATE="$WAGO_FW_UPDATE_INVALID_STATE"
     local SUB_STATE="$WAGO_FW_UPDATE_INVALID_SUB_STATE"
     if [ "$RESULT" -eq "0" ]; then
-        fwupdate_shared_lock
+        STATE=$(fwupdate_get_state)
         if [ "$?" -ne "0" ]; then
-            fwupdate_report_error "Failed to obtain shared lock"
+            fwupdate_report_error "Error while try to get current state"
             RESULT=$INTERNAL_ERROR
         else
-            STATE=$(fwupdate_get_state)
+            SUB_STATE=$(fwupdate_get_sub_state)
             if [ "$?" -ne "0" ]; then
-                fwupdate_report_error "Error while try to get current state"
+                fwupdate_report_error "Error while try to get current sub state"
                 RESULT=$INTERNAL_ERROR
-            else
-                SUB_STATE=$(fwupdate_get_sub_state)
-                if [ "$?" -ne "0" ]; then
-                    fwupdate_report_error "Error while try to get current sub state"
-                    RESULT=$INTERNAL_ERROR
-                fi
             fi
-            fwupdate_release_lock
         fi
     fi
-    
+
     # skip check in case panic exists to avoid reboot loop
     if [[ $RESULT -eq 0 ]] && [[ ! -e "$WAGO_FW_UPDATE_PANIC_FILE" ]]; then
         # Check if correct system has booted
@@ -115,8 +114,8 @@ fwupdate_service_start()
 
     # Check if timeout watcher shall be reactivated
     # On error (fwupdate_get_absolute_timeout failed) no timeout watcher should be started
-    if [ "$(fwupdate_get_timeout_synchronized)" != "" ]; then
-        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "timeout-watcher"
+    if [ "$(fwupdate_get_timeout)" != "" ]; then
+        $WAGO_ASYNC_BACKGROUND_SERVICE "$WAGO_ST_DIR/fwupdate_background_service" "timeout-watcher"
     fi
 
     # Start automatic actions based on current state
@@ -149,20 +148,14 @@ fwupdate_service_check_booted_system()
         local old_sys=0
         local new_sys=0
         local update_started_substate_flag=1
-        
-        if ! fwupdate_shared_lock; then
-            fwupdate_panic "Unable to acquire shared lock to check system numbers"
-        else
-            old_sys=$(fwupdate_get_old_system_number)
-            new_sys=$(fwupdate_get_new_system_number)
-            fwupdate_release_lock
-        fi
+        old_sys=$(fwupdate_get_old_system_number)
+        new_sys=$(fwupdate_get_new_system_number)
         if [[ $active_sys -eq $old_sys ]]; then
             [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_PREINSTALL_SUB_STATE" ]] ||
             [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_RAUCINSTALL_SUB_STATE" ]] ||
             [[ "$current_substate" == "$WAGO_FW_UPDATE_STARTED_INSTALLED_SUB_STATE" ]]
             update_started_substate_flag=$?
-              
+
             if [[ "$current_state" == "$WAGO_FW_UPDATE_INACTIVE_STATE" ]] ||
                [[ "$current_state" == "$WAGO_FW_UPDATE_INIT_STATE" ]] ||
                [[ "$current_state" == "$WAGO_FW_UPDATE_STARTED_STATE" && $update_started_substate_flag -eq 0 ]] ||
@@ -399,14 +392,11 @@ fwupdate_service_selftest()
 #-----------------------------------------------------------------------------#
 fwupdate_service_restore_settings()
 {
-    if fwupdate_shared_lock; then
-        local skip_settings_flag=false
-        skip_settings_flag=$(fwupdate_get_skip_settings_flag)
-        fwupdate_release_lock
-        if $skip_settings_flag; then
-            fwupdate_report_info "Setting restore skipped (flag is set)."
-            return 0
-        fi
+    local skip_settings_flag=false
+    skip_settings_flag=$(fwupdate_get_skip_settings_flag)
+    if $skip_settings_flag; then
+        fwupdate_report_info "Setting restore skipped (flag is set)."
+        return 0
     fi
 
     # Check for settings mod file (which will be used instead of normal settings file by definition)
@@ -436,14 +426,11 @@ fwupdate_service_restore_settings()
 #-----------------------------------------------------------------------------#
 fwupdate_service_restore_accounts()
 {
-    if fwupdate_shared_lock; then
-        local skip_settings_flag=false
-        skip_settings_flag=$(fwupdate_get_skip_settings_flag)
-        fwupdate_release_lock
-        if $skip_settings_flag; then
-            fwupdate_report_info "Accounts restore skipped (flag is set)."
-            return 0
-        fi
+    local skip_settings_flag=false
+    skip_settings_flag=$(fwupdate_get_skip_settings_flag)
+    if $skip_settings_flag; then
+        fwupdate_report_info "Accounts restore skipped (flag is set)."
+        return 0
     fi
 
     # Check if accounts backup directory exists and restore accounts

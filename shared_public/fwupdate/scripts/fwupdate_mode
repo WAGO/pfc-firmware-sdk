@@ -141,7 +141,7 @@ evaluate_params()
     # First evaluate early parameters
     # (maybe influencing other parameters)
     QUIET=$(get_parameter_option "-q" "--quiet" "$@")
-    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    RESULT=$?
     URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
     RESULT=$(( $? == 0 ? $RESULT : $? ))
     if [ "$URIENCODE" -ne 0 ]; then
@@ -243,10 +243,12 @@ print_help_activate()
     echo "             is started by runtime environment (CoDeSys/e!RUNTIME)!"
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME activate --help   --> Prints this help text for activate command"
-    echo "  $WAGO_CT_NAME activate -i \"url=http://test.domain;start_val=5\" -i \"color=red\""
-    echo "     --> Initialized key/value store with custom URL and start value and also with text key and value"
-    echo "TODO: Add some useful examples here"
+    echo "  $WAGO_CT_NAME activate --help"
+    echo "     --> Prints this help text for activate command"
+    echo "  $WAGO_CT_NAME activate -i \"url=http://test.domain\" -i \"color=red\""
+    echo "     --> Initialized key/value store with initial values for \"url\" and \"color\" keys"
+    echo "  $WAGO_CT_NAME activate --keep-application"
+    echo "     --> Activate $WAGO_CT_SYSTEM_MODULE and set switch to keep runtime application"
 
     return 0
 }
@@ -267,11 +269,13 @@ print_help_clear()
     echo
     echo "Additional information:"
     echo "  This tool is used to clear (disable) $WAGO_CT_SYSTEM_MODULE."
-    echo "TODO: Add additional information here if necessary"
+    echo "  Use clear to free ressources allocated by $WAGO_CT_SYSTEM_MODULE."
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME clear --help   --> Prints this help text for clear command"
-    echo "TODO: Add some useful examples here"
+    echo "  $WAGO_CT_NAME clear --help"
+    echo "     --> Prints this help text for clear command"
+    echo "  $WAGO_CT_NAME clear"
+    echo "     --> Disable $WAGO_CT_SYSTEM_MODULE and clear/free allocated ressources"
 
     return 0
 }
@@ -292,11 +296,14 @@ print_help_cancel()
     echo
     echo "Additional information:"
     echo "  This tool is used to cancel current $WAGO_CT_SYSTEM_MODULE operation."
-    echo "TODO: Add additional information here if necessary"
+    echo "  Dependend on current state cancellation is not performed immediately."
+    echo "  Cancellation may reboot the device multiple times."
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME cancel --help   --> Prints this help text for cancel command"
-    echo "TODO: Add some useful examples here"
+    echo "  $WAGO_CT_NAME cancel --help"
+    echo "     --> Prints this help text for cancel command"
+    echo "  $WAGO_CT_NAME cancel"
+    echo "     --> Cancels $WAGO_CT_SYSTEM_MODULE at next possible point"
 
     return 0
 }
@@ -406,7 +413,7 @@ activate()
 
     # Call function to free resources asynchronously in background
     if [ "$RESULT" -eq "0" ]; then
-        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "prepare-update"
+        $WAGO_ASYNC_BACKGROUND_SERVICE "$WAGO_ST_DIR/fwupdate_background_service" "prepare-update"
     fi
 
     return $RESULT

@@ -500,9 +500,14 @@ DBusHandlerResult MSG_CallObject(DBusConnection *connection,
   //clock_gettime(CLOCK_MONOTONIC, &start);
   if(object->worker == NULL)
   {
-	  com_tConnection con;
-	  com_tComMessage msg;
+    com_tComMessage msg;
+    memset(&msg, 0, sizeof msg);
+    com_tConnection con;
+    memset(&con, 0, sizeof con);
+
 	  con.bus = connection;
+	  con.type = COM_CONNECTION_PROXY;
+	  con.method_call_timeout = -1;
 	  dbus_error_init(&con.error);
 	  msg.msg = message;
 	  object->callback(&con, &msg, object->user_data);

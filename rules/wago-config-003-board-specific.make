@@ -98,7 +98,7 @@ $(STATEDIR)/ct-board-specific-extensions.targetinstall:
 	@$(call install_fixup, ct-board-specific-extensions,AUTHOR,"<Andrej.Gantvorg@wago.com>")
 	@$(call install_fixup, ct-board-specific-extensions,DESCRIPTION,missing)
 
-	@$(call install_copy, ct-board-specific-extensions, 0, 0, 2777, /etc/config-tools);
+	@$(call install_copy, ct-board-specific-extensions, 0, 0, 0755, /etc/config-tools);
 
 	@$(call install_alternative, ct-board-specific-extensions, 0, 0, 0644, /etc/config-tools/board_specific_defines)
 	@$(call install_replace, ct-board-specific-extensions, /etc/config-tools/board_specific_defines, @CT_EXTENSION_PREFIX@, $(PTXCONF_CT_EXTENSION_PREFIX))

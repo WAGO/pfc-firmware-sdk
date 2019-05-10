@@ -574,8 +574,13 @@ static void * ObjectWorker(void * user_data)
 		  if(0 < mq_receive(pThis->fdq, (char *) &stMessage,
 							sizeof(tWorkerMsgQ),NULL))
 		  {
-			  com_tComMessage msg;
-			  com_tConnection con;
+		    com_tComMessage msg;
+		    memset(&msg, 0, sizeof msg);
+		    com_tConnection con;
+		    memset(&con, 0, sizeof con);
+
+		    con.type = COM_CONNECTION_PROXY;
+		    con.method_call_timeout = -1;
 			  con.bus = stMessage.DBusCon;
 			  dbus_error_init(&con.error);
 			  msg.msg = stMessage.DBusMsg;

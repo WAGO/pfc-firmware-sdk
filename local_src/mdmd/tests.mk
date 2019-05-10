@@ -77,6 +77,8 @@ alltests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/test-src,$(SOURCE_FILE_EX
 alltests.elf_SOURCES += $(PROJECT_ROOT)/persistent_storage.cc
 alltests.elf_SOURCES += $(PROJECT_ROOT)/mdm_cuse_text_data.cc
 alltests.elf_SOURCES += $(PROJECT_ROOT)/mdmd_log.cc
+alltests.elf_SOURCES += $(PROJECT_ROOT)/GKeyFileStorage.cpp
+alltests.elf_SOURCES += $(PROJECT_ROOT)/MdmParameterStorage.cpp
 
 #######################################################################################################################
 # Build infrastructure

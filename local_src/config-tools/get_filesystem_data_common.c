@@ -11,7 +11,7 @@
 ///
 ///  \file     get_filesystem_data.c
 ///
-///  \version  $Revision: 34574 $1
+///  \version  $Revision: 38290 $1
 ///
 ///  \brief
 ///
@@ -77,7 +77,6 @@ typedef struct
 // declaration of all processing functions used for jumptab
 static int GetActivePartition(char* pOutputString, int additionalParam);
 static int GetActiveDevice(char* pOutputString, int additionalParam);
-static int GetSecondActiveDevice(char* pOutputString, int additionalParam);
 static int GetPartitionByIndex(char* pOutputString, int deviceNr);
 static int GetPartitionByIndexExt(char* pOutputString, int deviceNr);
 static int GetDeviceStringByIndex(char* pOutputString, int deviceNr);
@@ -99,7 +98,6 @@ static tParameterJumptab astParameterJumptab[] =
   { "home-device",                  GetHomeDevice },        //Deprecated
   { "active-home-partition",        GetActiveHomePartition },
   { "inactive-home-partition",      GetInactiveHomePartition },
-  { "second-active-device",         GetSecondActiveDevice },
   { "partition-by-index",           GetPartitionByIndex },
   { "ext-partition-by-index",       GetPartitionByIndexExt },
   { "device-by-index",              GetDeviceStringByIndex },
@@ -358,45 +356,6 @@ static int GetActiveDevice(char* pOutputString,
   }
 
   return status;
-}
-
-/* ----------------------------------------------------------------------------
- * Function: GetSecondActiveDevice
- *
- * Used to acquire the name of the inactive device as zero-terminated string.
- * Example: "/dev/mmcblk1" for internal-nand-emmc.
- *
- *  \param[out] pOutputString   The device name is written to this pointer
- *  \param[in]  additionalParam Not used in this function
- *
- *  return status: SUCCESS = 0, FAILED != 0
- * --------------------------------------------------------------------------*/
-static int GetSecondActiveDevice(char* pOutputString, int additionalParam)
-{
-  (void)additionalParam;
-  char szActiveDevice[MAX_LENGTH_OUTPUT_STRING] = "";
-  char device[MAX_LENGTH_OUTPUT_STRING] = "";
-  int result = GetActiveDevice(szActiveDevice, 0);
-  if(result != SUCCESS)
-  {
-    return result;
-  }
-
-  int index = 1;
-  do {
-    result = GetDeviceStringByIndex(device, index);
-    if(result == SUCCESS)
-    {
-      if(strcmp(szActiveDevice, device) != 0)
-      {
-        (void)strncpy(pOutputString, device, MAX_LENGTH_OUTPUT_STRING);
-        return SUCCESS;
-      }
-    }
-    index++;
-  } while(result == SUCCESS);
-
-  return result;
 }
 
 

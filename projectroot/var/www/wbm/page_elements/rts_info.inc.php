@@ -60,6 +60,10 @@
             <div class="label_field">Description:</div>
             <div class="value_field"><div id="project_description" class="rts_project_description"></div></div>
           </div>
+          <div class="label_value_pair">
+            <div class="label_field">Checksum:</div>
+            <div class="value_field"><span id="project_checksum"></span></div>
+          </div>
         </div>
       </div>
     

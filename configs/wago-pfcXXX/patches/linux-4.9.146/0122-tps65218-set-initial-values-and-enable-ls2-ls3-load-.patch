@@ -1,0 +1,298 @@
+From 8cdcbdd990b1de449fe7036e2107200397887041 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Wed, 27 Sep 2017 11:50:34 +0200
+Subject: [PATCH 122/292] tps65218: set initial values and enable ls2/ls3 load
+ switch.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ .../devicetree/bindings/regulator/tps65218.txt     | 13 ++-
+ arch/arm/boot/dts/wago-pfc100.dtsi                 | 33 ++++++--
+ arch/arm/boot/dts/wago-pfc200v2.dtsi               | 32 +++++--
+ arch/arm/boot/dts/wago-pfc200v3.dtsi               | 28 +++++--
+ drivers/mfd/tps65218.c                             | 98 ++++++++++++++++++++++
+ 5 files changed, 178 insertions(+), 26 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/regulator/tps65218.txt b/Documentation/devicetree/bindings/regulator/tps65218.txt
+index fccc1d2..75121b5 100644
+--- a/Documentation/devicetree/bindings/regulator/tps65218.txt
++++ b/Documentation/devicetree/bindings/regulator/tps65218.txt
+@@ -1,7 +1,7 @@
+ TPS65218 family of regulators
+ 
+ Required properties:
+-For tps65218 regulators/LDOs
++For tps65218 voltage regulators/LDOs
+ - compatible:
+   - "ti,tps65218-dcdc1" for DCDC1
+   - "ti,tps65218-dcdc2" for DCDC2
+@@ -11,6 +11,11 @@ For tps65218 regulators/LDOs
+   - "ti,tps65218-dcdc6" for DCDC6
+   - "ti,tps65218-ldo1" for LDO1
+ 
++For tps65218 current regulators
++- compatible:
++  - "ti,tps65218-ls2" for LS2
++  - "ti,tps65218-ls3" for LS3
++
+ Optional properties:
+ - Any optional property defined in bindings/regulator/regulator.txt
+ 
+@@ -21,3 +26,9 @@ Example:
+ 		regulator-min-microvolt  = <1000000>;
+ 		regulator-max-microvolt  = <3000000>;
+ 	};
++
++	loadswitch2: regulator@1 {
++		compatible = "ti,tps65218-ls2";
++		regulator-min-microamp  = <200000>;
++		regulator-max-microamp  = <200000>;
++	};
+diff --git a/arch/arm/boot/dts/wago-pfc100.dtsi b/arch/arm/boot/dts/wago-pfc100.dtsi
+index b5f5e7c..56cd9e5 100644
+--- a/arch/arm/boot/dts/wago-pfc100.dtsi
++++ b/arch/arm/boot/dts/wago-pfc100.dtsi
+@@ -722,15 +722,30 @@
+                 dcdcswitch-max-microvolt = <3300000>;
+                 dcdcswitch-boot-off;
+ 		*/
+-        config2_reg: regulator-config2 {
+-                 compatible = "ti,tps65218-config2";
+-                /* VDD_Logic current set to 1 Ampere*/
+-                regulator-name = "vdd_CONFIG2";
+-                regulator-min-microamp = <1000000>;/*TODO*/
+-                regulator-max-microamp = <1000000>;/*TODO in drivers/regulator/tps65218-regulator.c */
+-                regulator-boot-on;
+-                regulator-always-on;
+-        };
++	loadswitch2:  loadswitch-ls2 {
++		compatible = "ti,tps65218-ls2";
++		/* VDD_LS2 +5V15 for USB */
++		regulator-name = "vdd_LS2_USB";
++		/* Should be set to 100 mA according to SLP00000843.002
++		 * but 4G Modem is not being inumurated correctly,
++		 * so we increase it.
++		 */
++		regulator-min-microamp = <200000>;
++		regulator-max-microamp = <200000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	loadswitch3:  loadswitch-ls3 {
++		compatible = "ti,tps65218-ls3";
++		/* VDD_LS3 +5V15 for FPGA and Ethernet */
++		regulator-name = "vdd_LS3_FPGA_ETHERNET";
++		regulator-min-microamp = <1000000>;
++		regulator-max-microamp = <1000000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
+         ldo1: regulator-ldo1 {	//VDD-PLL  +1V8
+                 compatible = "ti,tps65218-ldo1";
+                 regulator-name = "ldo1";
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index 6fb8ae7..df36c89 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -787,15 +787,29 @@
+                 regulator-always-on;
+         };
+ 
+-        loadswitch2:  loadswitch-ls2 {
+-                compatible = "ti,tps65218-ls2";
+-                /* VDD_LS2 +5V15 for USB */
+-                regulator-name = "vdd_LS2_USB";
+-                regulator-min-microamp = <1000000>; /* Should be set to 100 mA according to SLP00000843.002 */
+-                regulator-max-microamp = <1000000>; /* but 4G Modem is not being inumurated correctly, so we increase it */
+-                regulator-boot-on;
+-                regulator-always-on;
+-        };
++	loadswitch2:  loadswitch-ls2 {
++		compatible = "ti,tps65218-ls2";
++		/* VDD_LS2 +5V15 for USB */
++		regulator-name = "vdd_LS2_USB";
++		/* Should be set to 100 mA according to SLP00000843.002
++		 * but 4G Modem is not being inumurated correctly,
++		 * so we increase it.
++		 */
++		regulator-min-microamp = <200000>;
++		regulator-max-microamp = <200000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	loadswitch3:  loadswitch-ls3 {
++		compatible = "ti,tps65218-ls3";
++		/* VDD_LS3 +5V15 for FPGA and Ethernet */
++		regulator-name = "vdd_LS3_FPGA_ETHERNET";
++		regulator-min-microamp = <1000000>;
++		regulator-max-microamp = <1000000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
+ 
+         ldo1: regulator-ldo1 {
+                 compatible = "ti,tps65218-ldo1";
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 22a5975..7fd4aaf 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -768,16 +768,30 @@
+ 			regulator-always-on;
+ 		};
+ 	
+-		config2_reg: regulator-config2 {
+-			compatible = "ti,tps65218-config2";
+-			/* VDD_Logic current set to 1 Ampere*/
+-			regulator-name = "vdd_CONFIG2";
+-			regulator-min-microamp = <1000000>;/*TODO*/
+-			regulator-max-microamp = <1000000>;/*TODO in drivers/regulator/tps65218-regulator.c */
++		loadswitch2:  loadswitch-ls2 {
++			compatible = "ti,tps65218-ls2";
++			/* VDD_LS2 +5V15 for USB */
++			regulator-name = "vdd_LS2_USB";
++			/* Should be set to 100 mA according to SLP00000843.002
++			 * but 4G Modem is not being inumurated correctly,
++			 * so we increase it.
++			 */
++			regulator-min-microamp = <200000>;
++			regulator-max-microamp = <200000>;
+ 			regulator-boot-on;
+ 			regulator-always-on;
+ 		};
+-	
++
++		loadswitch3:  loadswitch-ls3 {
++			compatible = "ti,tps65218-ls3";
++			/* VDD_LS3 +5V15 for FPGA and Ethernet */
++			regulator-name = "vdd_LS3_FPGA_ETHERNET";
++			regulator-min-microamp = <1000000>;
++			regulator-max-microamp = <1000000>;
++			regulator-boot-on;
++			regulator-always-on;
++		};
++
+ 		ldo1: regulator-ldo1 {	//VDD-PLL  +1V8
+ 			compatible = "ti,tps65218-ldo1";
+ 			regulator-name = "ldo1";
+diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+index ba610ad..c7ac919 100644
+--- a/drivers/mfd/tps65218.c
++++ b/drivers/mfd/tps65218.c
+@@ -213,6 +213,100 @@ static const struct of_device_id of_tps65218_match_table[] = {
+ };
+ MODULE_DEVICE_TABLE(of, of_tps65218_match_table);
+ 
++/**
++ * tps65218_set_interrupt_mask: Set initial interrupt mask.
++ *
++ * @tps65218: Device to write to.
++ */
++static void tps65218_set_interrupt_mask(struct tps65218 *tps)
++{
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
++			      TPS65218_INT_MASK1_PRGC, TPS65218_INT1_PRGC,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to mask PRGC interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
++			      TPS65218_INT_MASK1_CC_AQC, TPS65218_INT1_CC_AQC,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to mask CC_AQCM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
++			      !TPS65218_INT_MASK1_HOT, TPS65218_INT1_HOT,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to enable HOT interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
++			      TPS65218_INT_MASK1_PB, TPS65218_INT1_PB,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to disable PBM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
++			      TPS65218_INT_MASK1_AC, TPS65218_INT1_AC,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to disable ACM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
++			      TPS65218_INT_MASK1_VPRG, TPS65218_INT1_VPRG,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to disable VPRGM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
++			      TPS65218_INT_MASK2_LS1_I, TPS65218_INT2_LS1_I,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to enable LS1_FM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
++			      TPS65218_INT_MASK2_LS2_I, TPS65218_INT2_LS2_I,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to enable LS2_FM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
++			      TPS65218_INT_MASK2_LS3_I, TPS65218_INT2_LS3_I,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to enable LS3_FM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
++			      TPS65218_INT_MASK2_LS1_F, TPS65218_INT2_LS1_F,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to enable LS1_FM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
++			      TPS65218_INT_MASK2_LS2_F, TPS65218_INT2_LS2_F,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to enable LS2_FM interrupt.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
++			      TPS65218_INT_MASK2_LS3_F, TPS65218_INT2_LS3_F,
++			      TPS65218_PROTECT_NONE))
++		dev_warn(tps->dev, "Failed to enable LS3_FM interrupt.\n");
++}
++
++/**
++ * tps65218_set_initial_config: Set initial pmic config.
++ *
++ * @tps65218: Device to write to.
++ */
++static void tps65218_set_initial_config(struct tps65218 *tps)
++{
++	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG3,
++			      TPS65218_CONFIG3_LS1NPFO,
++			      !TPS65218_CONFIG3_LS1NPFO, TPS65218_PROTECT_L1))
++		dev_warn(tps->dev,
++			 "Failed to unset LS1 power-fail disable bit.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG3,
++			      TPS65218_CONFIG3_LS2NPFO,
++			      TPS65218_CONFIG3_LS2NPFO, TPS65218_PROTECT_L1))
++		dev_warn(tps->dev,
++			 "Failed to set LS2 power-fail disable bit.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG3,
++			      TPS65218_CONFIG3_LS3NPFO,
++			      !TPS65218_CONFIG3_LS3NPFO, TPS65218_PROTECT_L1))
++		dev_warn(tps->dev,
++			 "Failed to unset LS3 power-fail disable bit.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG2,
++			      TPS65218_CONFIG2_UVLOHYS,
++			      TPS65218_CONFIG2_UVLOHYS, TPS65218_PROTECT_L1))
++		dev_warn(tps->dev, "Failed to set UVLO hysteresis to 400mV.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG1,
++			      TPS65218_CONFIG1_UVLO_MASK,
++			      0x3, TPS65218_PROTECT_L1))
++		dev_warn(tps->dev, "Failed to set UVLO to 3.35V.\n");
++	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG1,
++			      TPS65218_CONFIG1_STRICT, TPS65218_CONFIG1_STRICT,
++			      TPS65218_PROTECT_L1))
++		dev_warn(tps->dev,
++			 "Failed to enable overvoltage monitoring.\n");
++}
++
+ static int tps65218_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *ids)
+ {
+@@ -264,6 +358,10 @@ static int tps65218_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto err_irq;
+ 
++	tps65218_set_interrupt_mask(tps);
++
++	tps65218_set_initial_config(tps);
++
+ 	return 0;
+ 
+ err_irq:
+-- 
+2.7.4
+

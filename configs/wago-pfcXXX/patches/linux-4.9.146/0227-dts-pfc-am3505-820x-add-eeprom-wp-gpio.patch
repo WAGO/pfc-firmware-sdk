@@ -1,0 +1,29 @@
+From 91486ad4b823e45c57d88589112e280dc6736c79 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 7 Aug 2018 17:10:25 +0200
+Subject: [PATCH 227/292] dts: pfc-am3505: 820x: add eeprom wp gpio
+
+750-820x platforms have write protected eeproms installed.
+We have to make use of the write protect pin to be able
+to write to the eeprom.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am3505-pfc-750_820x.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi b/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi
+index c8b53c1..7b8a73a 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi
++++ b/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi
+@@ -542,6 +542,7 @@
+ 		reg = <0x54>;
+ 
+ 		pagesize = <128>;
++                wp-gpios = <&gpio6 10 GPIO_ACTIVE_HIGH>;
+ 	};
+ };
+ 
+-- 
+2.7.4
+

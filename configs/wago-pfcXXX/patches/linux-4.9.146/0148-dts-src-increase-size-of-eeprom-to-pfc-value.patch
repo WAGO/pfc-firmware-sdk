@@ -1,0 +1,29 @@
+From 5ebb9daa6b307ca88407ed7b513e3a6396ee79cb Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Fri, 9 Feb 2018 11:05:50 +0100
+Subject: [PATCH 148/292] dts: src: increase size of eeprom to pfc value.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index 99ecc08..854426a 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -497,9 +497,9 @@
+ 
+ 	/* EEPROM */
+ 	eeprom: at24c32 { //AT24C32-SSHD
+-			compatible = "atmel,24c32";
++			compatible = "atmel,24c512";
+ 			reg = <0x54>;
+-			pagesize = <32>;
++			pagesize = <128>;
+ 	};
+ 
+ 	/* PMIC */
+-- 
+2.7.4
+

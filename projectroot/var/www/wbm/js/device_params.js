@@ -717,7 +717,6 @@ DeviceParamView.prototype.Add = function(paramInitValues)
   deviceParamView.list.push(newSingleParamView);
 };
 
-
 /*
  * Further processing of the parameters in view:
  * show them in the specified DOM element or call callback function for futher processing
@@ -726,30 +725,41 @@ DeviceParamView.prototype.Add = function(paramInitValues)
 DeviceParamView.prototype.ShowValues = function()
 {
   var deviceParamView = this;
-
-  $.each(deviceParamView.list, function(paramIndex, paramView)
-  //$(deviceParamView.list).each(function(paramIndex)
-  {
-    //var paramView = this;
-    var paramId   = paramView.paramId;
-    var paramObj  = deviceParams.list[paramId];
-
-    if(paramView.outputFkt)
-    {
-      paramView.outputFkt(paramObj.status, paramObj.value, paramView.outputElementId);
-    }
-
-    else if(paramView.outputElementId)
-    {
-      var paramValue = paramObj.value;
-
-      if((SUCCESS != paramObj.status) && (paramView.defaultValue)) paramValue = paramView.defaultValue;
-      //Log('Element changed | ' + paramView.outputElementId + ' | ' + paramValue);
-      $('body').trigger('event_elementContentChange', [ paramView.outputElementId, paramValue ] );
-    }
-  });
+  for (var i = 0; i < deviceParamView.list.length; i++) {
+      deviceParamView.ShowSingleValue(i);
+  }
 };
 
+/*
+ * Further processing of a single parameter in view:
+ * show it in the specified DOM element or call callback function for futher processing
+ *
+ */
+DeviceParamView.prototype.ShowSingleValue = function(index)
+{
+  var deviceParamView = this;
+  var paramView = deviceParamView.list[index];
+
+  if (!paramView) {
+    throw new Error('No Parameter View at index' + index)
+  };
+
+  var paramId   = paramView.paramId;
+  var paramObj  = deviceParams.list[paramId];
+
+  if(paramView.outputFkt)
+  {
+    paramView.outputFkt(paramObj.status, paramObj.value, paramView.outputElementId);
+  }
+
+  else if(paramView.outputElementId)
+  {
+    var paramValue = paramObj.value;
+
+    if((SUCCESS != paramObj.status) && (paramView.defaultValue)) paramValue = paramView.defaultValue;
+    $('body').trigger('event_elementContentChange', [ paramView.outputElementId, paramValue ] );
+  }
+};
 
 DeviceParamView.prototype.ShowDefaultContent = function()
 {

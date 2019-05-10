@@ -136,7 +136,7 @@ evaluate_params()
     # First evaluate early parameters
     # (maybe influencing other parameters)
     QUIET=$(get_parameter_option "-q" "--quiet" "$@")
-    RESULT=$(( $? == 0 ? $RESULT : $? ))
+    RESULT=$?
     URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
     RESULT=$(( $? == 0 ? $RESULT : $? ))
     if [ "$URIENCODE" -ne 0 ]; then
@@ -219,11 +219,15 @@ print_help_start()
     echo
     echo "Additional information:"
     echo "  This tool is used to start $WAGO_CT_SYSTEM_MODULE."
-    echo "TODO: Add additional information here if necessary"
+    echo "  During update the device is rebooted multiple times."
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME start --help   --> Prints this help text for start command"
-    echo "TODO: Add some useful examples here"
+    echo "  $WAGO_CT_NAME start --help"
+    echo "     --> Prints this help text for start command"
+    echo "  $WAGO_CT_NAME start -q"
+    echo "     --> Starts $WAGO_CT_SYSTEM_MODULE in quiet mode (command does not print info/error texts)"
+    echo "  $WAGO_CT_NAME start --path \"$WAGO_FW_UPDATE_DEFAULT_WORK_DIR\""
+    echo "     --> Starts $WAGO_CT_SYSTEM_MODULE, update file is searched in given path"
 
     return 0
 }
@@ -244,11 +248,13 @@ print_help_finish()
     echo
     echo "Additional information:"
     echo "  This tool is used to finish $WAGO_CT_SYSTEM_MODULE."
-    echo "TODO: Add additional information here if necessary"
+    echo "  Without this confirmation $WAGO_CT_SYSTEM_MODULE will fail and revert to previous firmware."
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME finish --help   --> Prints this help text for finish command"
-    echo "TODO: Add some useful examples here"
+    echo "  $WAGO_CT_NAME finish --help"
+    echo "     --> Prints this help text for finish command"
+    echo "  $WAGO_CT_NAME finish"
+    echo "     --> Finish $WAGO_CT_SYSTEM_MODULE"
 
     return 0
 }
@@ -271,11 +277,12 @@ print_help_settimeout()
     echo "Additional information:"
     echo "  This tool changes timeout for $WAGO_CT_SYSTEM_MODULE when in state \"$WAGO_FW_UPDATE_PREPARED_STATE\" or \"$WAGO_FW_UPDATE_UNCONFIRMED_STATE\"."
     echo "  Time is given in minutes."
-    echo "TODO: Add additional information here if necessary"
     echo
     echo "Examples:"
-    echo "  $WAGO_CT_NAME settimeout --help   --> Prints this help text for settimeout command"
-    echo "  $WAGO_CT_NAME settimeout -c 60  --> Changes timeout to one hour from now"
+    echo "  $WAGO_CT_NAME settimeout --help"
+    echo "     --> Prints this help text for settimeout command"
+    echo "  $WAGO_CT_NAME settimeout -c 60"
+    echo "     --> Changes timeout to one hour from now"
 
     return 0
 }
@@ -320,7 +327,7 @@ start()
     if [ "$RESULT" -eq "0" ]; then
         fwupdate_report_info "Using RAUC file \"$RAUCFILE\" for update"
         fwupdate_remove_timeout_watcher
-        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "start-update" "$RAUCFILE"
+        $WAGO_ASYNC_BACKGROUND_SERVICE "$WAGO_ST_DIR/fwupdate_background_service" "start-update" "$RAUCFILE"
     fi
 
     return $RESULT
@@ -383,7 +390,7 @@ finish()
     # Do work to finish asynchronously
     if [ "$RESULT" -eq "0" ]; then
         fwupdate_remove_timeout_watcher
-        "/sbin/start-stop-daemon" -S --background --exec "$WAGO_ST_DIR/fwupdate_background_service" "finish-work"
+        $WAGO_ASYNC_BACKGROUND_SERVICE "$WAGO_ST_DIR/fwupdate_background_service" "finish-work"
     fi
 
     return $RESULT

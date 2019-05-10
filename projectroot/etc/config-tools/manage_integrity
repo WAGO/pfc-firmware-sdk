@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: manage_integrity
+#
+# Manage system integrity data for displaying in WBM
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f '/etc/config-tools/config_tool_lib' ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+umask 037
+
+AIDE_CFG='/etc/aide.conf'
+AIDE_VERBOSE_LVL=2
+AIDE="/usr/bin/aide --verbose=${AIDE_VERBOSE_LVL}"
+AIDE_CHECK='/etc/init.d/aide_check'
+AIDE_CHECK_LNK='/etc/rc.d/S99_aide_check'
+AIDE_REF_DB='/var/lib/aide/aide.db'
+AIDE_NEW_DB='/var/lib/aide/aide.db.new'
+AIDE_LOG_FILE='/var/log/aide.log'
+AIDE_MAX_LINECOUNT=3000
+
+status=${SUCCESS}
+
+max_lines_of_logs_or_default ()
+{
+  max_lines_of_logs="${1}"
+
+  if [ -z "${max_lines_of_logs}" ]; then
+    max_lines_of_logs=${AIDE_MAX_LINECOUNT}
+  fi
+
+  if [[ ! "${max_lines_of_logs}" =~ [0-9]+ ]]; then
+    echo 'Invalid input parameter ("integrity-count")'
+    exit ${INVALID_PARAMETER}
+  elif [ ${max_lines_of_logs} -gt ${AIDE_MAX_LINECOUNT} ]; then
+    max_lines_of_logs=${AIDE_MAX_LINECOUNT}
+  fi
+}
+
+show_help ()
+{
+  echo
+  echo '* Read AIDE log and execute AIDE commands from WBM *'
+  echo
+  echo 'Usage: manage_integrity [ aide-cmd ] [ integrity-count ]'
+  echo 
+  echo 'aide-cmd: AIDE command to execute'
+  echo '  - "status"'
+  echo '  - "enable"'
+  echo '  - "disable"'
+  echo '  - "init"'
+  echo '  - "check"'
+  echo '  - "update"'
+  echo '  - "readlog"'
+  echo 'integrity-count: number of lines from AIDE log to show, default: '"${AIDE_MAX_LINECOUNT}"
+  echo
+}
+
+aide_init ()
+{
+  ${AIDE} --init && cp "${AIDE_NEW_DB}" "${AIDE_REF_DB}"
+  return $?
+}
+
+aide_check_or_update ()
+{
+  cmd="${1}"
+  ret=0
+
+  if [ ! -f "${AIDE_REF_DB}" ]; then
+    SetLastError 'No AIDE reference database found. You have to create the database with "init" command.'
+    return ${INVALID_PARAMETER}
+  fi
+
+  ${AIDE} "--${cmd}"
+  ret=$?
+
+  if [ 0 -eq ${ret} ] && [ "update" = "${cmd}" ]; then
+    cp "${AIDE_NEW_DB}" "${AIDE_REF_DB}"
+  fi
+
+  return ${ret}
+}
+
+aide_readlog ()
+{
+  cat ${AIDE_LOG_FILE}* 2>/dev/null || \
+    echo 'AIDE log files do no exist. Please execute the AIDE "check" command.' | \
+    tail -n ${max_lines_of_logs}
+}
+
+if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]; then
+  show_help
+  exit ${SUCCESS}
+fi
+
+aide_cmd="${1}"
+
+case "${aide_cmd}" in
+
+  'status')
+    if [ -h "${AIDE_CHECK_LNK}" ]; then
+      echo 'enabled'
+    else
+      echo 'disabled'
+    fi
+    ;;
+
+  'enable')
+    ln -s -f "${AIDE_CHECK}" "${AIDE_CHECK_LNK}"
+    status=$?
+    ;;
+
+  'disable')
+    [ -h "${AIDE_CHECK_LNK}" ] && rm "${AIDE_CHECK_LNK}"
+    status=$?
+    ;;
+
+  'init')
+    max_lines_of_logs_or_default "${2}"
+    aide_init
+    status=$?
+    ;;
+
+  'check' | 'update')
+    max_lines_of_logs_or_default "${2}"
+    aide_check_or_update "${aide_cmd}"
+    status=$?
+    ;;
+
+  'readlog')
+    max_lines_of_logs_or_default "${2}"
+    aide_readlog
+    ;;
+
+  *)
+    SetLastError 'Invalid parameter for command.'
+    status=${INVALID_PARAMETER}
+    ;;
+ 
+esac
+
+exit ${status}

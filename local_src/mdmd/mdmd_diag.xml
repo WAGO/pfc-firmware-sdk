@@ -59,7 +59,7 @@
     </event>    
     
     <event id="x0006" name="ERR_MODEM_VERSION" persistent="yes">
-      <comment> The firmware version of the modem does not correspond to the expected </comment>
+      <comment> The firmware version of the modem does not correspond to the expected firmware version</comment>
       <string>
         <en>The firmware version of the modem is incompatible with the firmware of the controller</en>
         <de>Die Firmware Version des Modems ist inkompatibel zur Firmware der Steuerung</de>

@@ -1,5 +1,3 @@
-inetutils-1.9.2/AUTHORS
-
 This is a partial list of people (in alphabetical order) who have
 contributed to inetutils, some utilities originate from BSB 4.4-Lite2,
 and might not have an author associated with them.
@@ -40,8 +38,6 @@ Samuel Thibault
 Sergey Poznyakoff
 Simon Josefsson
 Winston Edmond
-
-inetutils-1.9.2/COPYING
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 3, 29 June 2007

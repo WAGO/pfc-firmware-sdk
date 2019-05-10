@@ -1,48 +1,48 @@
 swconfig/cli.c
-/*
- * swconfig.c: Switch configuration utility
- *
- * Copyright (C) 2008 Felix Fietkau <nbd@openwrt.org>
- * Copyright (C) 2010 Martin Mares <mj@ucw.cz>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundatio.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
+swconfig.c: Switch configuration utility
+
+Copyright (C) 2008 Felix Fietkau <nbd@openwrt.org>
+Copyright (C) 2010 Martin Mares <mj@ucw.cz>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+version 2 as published by the Free Software Foundatio.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
 
 swconfig/uci.c
-/*
- * uci.c: UCI binding for the switch configuration utility
- *
- * Copyright (C) 2009 Felix Fietkau <nbd@openwrt.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundatio.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
+uci.c: UCI binding for the switch configuration utility
+
+Copyright (C) 2009 Felix Fietkau <nbd@openwrt.org>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+version 2 as published by the Free Software Foundatio.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
 
 swconfig/swlib.c
-/*
- * swlib.c: Switch configuration API (user space part)
- *
- * Copyright (C) 2008 Felix Fietkau <nbd@openwrt.org>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public License
- * version 2.1 as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- */
+
+swlib.c: Switch configuration API (user space part)
+
+Copyright (C) 2008 Felix Fietkau <nbd@openwrt.org>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public License
+version 2.1 as published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+

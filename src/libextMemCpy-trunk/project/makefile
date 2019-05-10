@@ -64,7 +64,7 @@ else
 endif
 
 # common make targets
-MAKE_TARGETS = _builder/targets.mak
+MAKE_TARGETS = targets.mak
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Build options (these have to be defined here)

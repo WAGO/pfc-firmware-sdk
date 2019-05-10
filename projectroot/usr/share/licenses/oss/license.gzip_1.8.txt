@@ -1,9 +1,5 @@
-gzip-1.8/AUTHORS
-
 gzip was written by Jean-loup Gailly <jloup@gzip.org>,
 and Mark Adler for the decompression code.
-
-gzip-1.8/COPYING
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
