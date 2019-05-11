@@ -120,7 +120,7 @@ or in one-shot:
 
 ### 3.2) Clone the build tool "ptxdist-2017.11.0.tar.bz2" somewhere, we expect ~/ptxdist
 ```
-    >git clone http://github.com/wago/ptxdist/ptxdist.git ~/ptxdist
+    >git clone http://github.com/wago/ptxdist.git ~/ptxdist
 ```
 ### 3.3) Configure build enviroment tool "ptxdist"
 ```
