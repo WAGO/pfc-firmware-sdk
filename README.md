@@ -168,7 +168,7 @@ The output looks like this:
 
 ### 3.4) Build the build environment tool "ptxdist"
 ```
-    >cd ~/ptxdist-2017
+    >cd ~/ptxdist
     >make
 ```
 
@@ -185,7 +185,7 @@ The output looks like this:
 
 ### 3.5) Install the build environment tool "ptxdist"
 ```
-    >cd ~/ptxdist-2017.11.0
+    >cd ~/ptxdist
     >sudo make install
 ```
 
