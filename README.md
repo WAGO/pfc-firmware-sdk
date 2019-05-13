@@ -118,7 +118,7 @@ or in one-shot:
     >sudo apt-get install libncurses5-dev gawk flex bison texinfo python-dev g++ dialog lzop autoconf libtool xmlstarlet xsltproc doxygen autopoint
 ```
 
-### 3.2) Clone the build tool "ptxdist-2017.11.0.tar.bz2" somewhere, we expect ~/ptxdist
+### 3.2) Clone the build tool "ptxdist-2017.11.1.tar.bz2" somewhere, we expect ~/ptxdist
 ```
     >git clone http://github.com/wago/ptxdist.git ~/ptxdist
 ```
@@ -159,7 +159,7 @@ The output looks like this:
     configure: creating ./config.status
     config.status: creating Makefile
 
-    ptxdist version 2017.11.0 configured.
+    ptxdist version 2017.11.1 configured.
     Using '/usr/local' for installation prefix.
 
     Report bugs to ptxdist@pengutronix.de
@@ -168,7 +168,7 @@ The output looks like this:
 
 ### 3.4) Build the build environment tool "ptxdist"
 ```
-    >cd ~/ptxdist-2017
+    >cd ~/ptxdist
     >make
 ```
 
@@ -185,11 +185,11 @@ The output looks like this:
 
 ### 3.5) Install the build environment tool "ptxdist"
 ```
-    >cd ~/ptxdist-2017.11.0
+    >cd ~/ptxdist
     >sudo make install
 ```
 
->Default setup installs build environment to folder: /usr/local/lib/ptxdist-2017.11.0/bin/ptxdist
+>Default setup installs build environment to folder: /usr/local/lib/ptxdist-2017.11.1/bin/ptxdist
 >
 >Default setup also creates a sym-link to it in: /usr/local/bin/ptxdist
 
