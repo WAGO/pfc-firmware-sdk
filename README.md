@@ -57,7 +57,7 @@ https://github.com/git-lfs/git-lfs/wiki/Installation
 
 These steps will only concentrate on the recommented Ubuntu version:
 ```
-    >sudo apt install software-properties-common
+    >sudo apt install software-properties-common curl
     >sudo add-apt-repository ppa:git-core/ppa
     >curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
     >sudo apt install git-lfs
