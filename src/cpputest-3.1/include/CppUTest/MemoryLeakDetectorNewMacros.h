@@ -53,10 +53,10 @@
 	#include <memory>
 	#include <string>
 
-		void* operator new(size_t size, const char* file, int line) throw (std::bad_alloc);
-		void* operator new[](size_t size, const char* file, int line) throw (std::bad_alloc);
-		void* operator new(size_t size) throw(std::bad_alloc);
-		void* operator new[](size_t size) throw(std::bad_alloc);
+		void* operator new(size_t size, const char* file, int line);
+		void* operator new[](size_t size, const char* file, int line);
+		void* operator new(size_t size);
+		void* operator new[](size_t size);
 
 	#else
 

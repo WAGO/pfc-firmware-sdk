@@ -53,10 +53,10 @@ extern "C" { /* include for size_t definition */
 #if CPPUTEST_USE_STD_CPP_LIB
 
 #include <new>
-void* operator new(size_t size) throw(std::bad_alloc);
-void* operator new[](size_t size) throw(std::bad_alloc);
-void operator delete(void* mem) throw();
-void operator delete[](void* mem) throw();
+void* operator new(size_t size);
+void* operator new[](size_t size);
+void operator delete(void* mem);
+void operator delete[](void* mem);
 
 #else
 
