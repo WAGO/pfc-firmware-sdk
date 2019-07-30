@@ -42,6 +42,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(IO_CHECK_SRC) $(BUILDDIR)
 	@$(call patchin, IO_CHECK)
+	cd $(IO_CHECK_DIR) && sh autogen.sh
 endif
 	@$(call touch)
 
@@ -161,7 +162,6 @@ $(STATEDIR)/io_check.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	cd $(IO_CHECK_DIR) && sh autogen.sh
 	@$(call world/prepare, IO_CHECK)
 endif
 	@$(call touch)

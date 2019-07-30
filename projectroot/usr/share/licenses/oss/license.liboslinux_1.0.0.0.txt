@@ -1,3 +1,7 @@
+liboslinux-1.0.0.0/AUTHORS
+
 Jan Sondhauss
+
+liboslinux-1.0.0.0/COPYING
 
 <Place your desired license here.>

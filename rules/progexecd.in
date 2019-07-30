@@ -6,7 +6,7 @@ config PROGEXECD
   select HOST_CT_BUILD
 	prompt "Program starter daemon"
 	help
-	  progexed aids in starting shell programs without using fork().
+	  progexed aids in starting shell programs.
 	  Real time processes locking their pages to memory may not fork
 	  because writing to memory will cause page faults. This can lead
 	  to violation of real time requirements.

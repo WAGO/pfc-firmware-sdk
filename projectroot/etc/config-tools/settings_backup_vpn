@@ -70,7 +70,7 @@ if [ "$operation" = "restore" ]; then
 				base64 -d <<< "$v" >> /etc/openvpn/openvpn.conf
 				;;
 			vpn-ipsec-conf)
-				umask 0022
+				umask 0027
 				base64 -d <<< "$v" >> /etc/ipsec.conf
 				;;
 			vpn-ipsec-secrets)

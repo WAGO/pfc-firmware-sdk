@@ -45,7 +45,7 @@
 //-----------------------------------------------------------------------------
 
 #define CAN_TESTPRIO 0   // no custom priority for can background loop
-#define CAN_MAINPRIO 55  // priority for main loop
+#define CAN_MAINPRIO 40  // priority for main loop
 
 //-----------------------------------------------------------------------
 ///
@@ -179,8 +179,8 @@ main(int argc, char *argv[])
         // trigger watchdog
         adi->WatchdogTrigger();
 
-        // wait 1 ms
-        usleep(1000);
+        // wait 10 ms
+        usleep(10000);
 
         // get compact bus state
         adi->DiagnoseGetDeviceState(canDeviceId, sizeof(can_cstate),

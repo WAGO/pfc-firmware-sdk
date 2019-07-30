@@ -21,10 +21,10 @@ menuconfig LIGHTTPD
 	select SQLITE			if LIGHTTPD_WEBDAV_PROPS
 	select LIBUUID			if LIGHTTPD_WEBDAV_LOCKS
 	select OPENSSL			if LIGHTTPD_OPENSSL
-	select LIBMEMCACHE		if LIGHTTPD_MEMCACHE
+	select LIBMEMCACHED		if LIGHTTPD_MEMCACHED
 	select LUA			if LIGHTTPD_LUA
 	select LUA_INSTALL_LIBLUA	if LIGHTTPD_LUA
-	select PHP5			if LIGHTTPD_MOD_FASTCGI_PHP && RUNTIME
+	select PHP7			if LIGHTTPD_MOD_FASTCGI_PHP && RUNTIME && !PHP5
 	select BUSYBOX_START_STOP_DAEMON			if LIGHTTPD_STARTSCRIPT
 	select BUSYBOX_FEATURE_START_STOP_DAEMON_FANCY		if LIGHTTPD_STARTSCRIPT
 	select BUSYBOX_FEATURE_START_STOP_DAEMON_LONG_OPTIONS	if LIGHTTPD_STARTSCRIPT
@@ -42,6 +42,7 @@ menuconfig LIGHTTPD
 	  * conditional configuration
 	  and configuration is straight-forward and easy.
 
+
 if LIGHTTPD
 
 menu "base settings               "
@@ -54,6 +55,7 @@ config LIGHTTPD_ATTR
 
 config LIGHTTPD_FAM
 	bool
+	depends on STAGING
 	prompt "fam"
 	help
 	  fam/gamin for reducing number of stat() calls.
@@ -64,9 +66,11 @@ config LIGHTTPD_LUA
 	help
 	  lua engine for mod_cml and mod_magnet
 
-config LIGHTTPD_MEMCACHE
+config LIGHTTPD_MEMCACHED
 	bool
 	prompt "memcached storage"
+	# fails to build with current libmemcached version
+	depends on BROKEN
 	help
 	  memcached storage for mod_trigger_b4_dl and mod_cml
 
@@ -156,7 +160,7 @@ config LIGHTTPD_MOD_FASTCGI_PHP
 	  to enable PHP support in lighttpd
 
 comment "PHP CGI SAPI must be enabled"
-	depends on LIGHTTPD_MOD_FASTCGI_PHP && !PHP5_SAPI_CGI
+	depends on LIGHTTPD_MOD_FASTCGI_PHP && !PHP5_SAPI_CGI && !PHP7_SAPI_CGI
 
 endif
 
@@ -183,8 +187,10 @@ config LIGHTTPD_MOD_SETENV
 
 config LIGHTTPD_MOD_TRIGGER_B4_DL
 	bool
-	select LIGHTTPD_MEMCACHE
+	select LIGHTTPD_MEMCACHED
 	select LIGHTTPD_PCRE
+	# needs (currently broken) LIGHTTPD_MEMCACHED
+	depends on BROKEN
 	prompt "mod_trigger_b4_dl"
 	help
 	  Module for Anti Hotlinking
@@ -216,7 +222,7 @@ endif
 #config LIGHTTPD_MOD_EXTRA
 #	string
 #	prompt "extra modules"
-#	default "mod_access mod_accesslog mod_auth"
+#	default ""
 #	help
 #	  Space sparated list of modules to add to lighttpd.conf
 
@@ -249,7 +255,7 @@ config LIGHTTPD_GENERIC_SITE
 	prompt "Populate a generic website"
 	help
 	  This install a generic website into /var/www/index.html
-	  from <ptxdist-install>/generic/var/www/lighttpd.html
+	  from <ptxdist-install>/projectroot/var/www/lighttpd.html
 	  and some php demos.
 
 config LIGHTTPD_HTTPS
@@ -263,7 +269,7 @@ config LIGHTTPD_HTTPS
 # Default mode: https, http or https+http
 #
 choice
-        prompt "Default mode"
+	prompt "Default mode"
 	default LIGHTTPD_INSTALL_CONF_LINK_HTTPS_HTTP
 
 config LIGHTTPD_INSTALL_CONF_LINK_HTTPS_HTTP
@@ -310,14 +316,14 @@ config LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STRONG
 endchoice
 
 config LIGHTTPD_HTTPS_GEN_CERT
-  bool
-  default n
-  depends on LIGHTTPD_HTTPS
-  prompt "Generate certificate for https"
-  help 
-    Generate a self-signed X509 certificate which will be used
+	bool
+	default n
+	depends on LIGHTTPD_HTTPS
+	prompt "Generate certificate for https"
+	help
+	  Generate a self-signed X509 certificate which will be used
 	  until the user install an own one.
-	  It is no security measure, but just a way to make https work 
+	  It is no security measure, but just a way to make https work
 	  out of the box.
 
 endif

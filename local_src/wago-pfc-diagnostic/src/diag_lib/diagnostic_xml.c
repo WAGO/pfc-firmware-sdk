@@ -216,12 +216,11 @@ void DIAGXML_SaveCstDiagDoc(xmlDocPtr doc)
 {
   xmlSaveFormatFileEnc(DIAGNOSTIC_XML_DOCUMENT_CUSTOM_TMP, doc, "UTF-8", 1);
 
-  if(rename (DIAGNOSTIC_XML_DOCUMENT_CUSTOM_TMP, DIAGNOSTIC_XML_DOCUMENT_CUSTOM) )
+  if(rename (DIAGNOSTIC_XML_DOCUMENT_CUSTOM_TMP, DIAGNOSTIC_XML_DOCUMENT_CUSTOM))
   {
       fprintf(stderr, "Can't rename file %s.\n", DIAGNOSTIC_XML_DOCUMENT_CUSTOM);
   }
-  return 0;
-
+  
 }
 
 int DIAGXML_RemoveCstDiagDoc(void)

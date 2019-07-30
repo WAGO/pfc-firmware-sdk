@@ -1,3 +1,5 @@
+readline-7.0/COPYING
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 

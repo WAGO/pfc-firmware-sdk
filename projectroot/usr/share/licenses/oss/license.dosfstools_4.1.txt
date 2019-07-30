@@ -1,3 +1,5 @@
+dosfstools-4.1/COPYING
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 

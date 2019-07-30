@@ -1,0 +1,75 @@
+From a3748bfd6b51d4a8ba55ad3d60e98397bf767398 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 17 Nov 2016 07:08:41 +0000
+Subject: [PATCH] ksz8863: phy: adjust to changed phy interfacing
+
+---
+ drivers/net/phy/ksz8863-phy.c | 27 +++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/net/phy/ksz8863-phy.c b/drivers/net/phy/ksz8863-phy.c
+index 6b0294d..a78eb9e 100644
+--- a/drivers/net/phy/ksz8863-phy.c
++++ b/drivers/net/phy/ksz8863-phy.c
+@@ -69,7 +69,7 @@ static int ksz8863_ack_interrupt(struct phy_device *phydev)
+         if (ret < 0)
+                 return ret;
+ 
+-        val |= 1 << (phydev->addr - 1);
++        val |= 1 << (phydev->mdio.addr - 1);
+ 
+         return ksz8863_nwrite(LinkChangeInterrupt, &val, 1);
+ }
+@@ -84,9 +84,9 @@ static int ksz8863_config_intr(struct phy_device *phydev)
+                 return ret;
+ 
+         if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+-                val |= 1 << (phydev->addr - 1);
++                val |= 1 << (phydev->mdio.addr - 1);
+         else
+-                val &= ~(1 << (phydev->addr - 1));
++                val &= ~(1 << (phydev->mdio.addr - 1));
+ 
+         return ksz8863_nwrite(InterruptEnable, &val, 1);
+ }
+@@ -100,10 +100,10 @@ static int ksz8863_did_interrupt(struct phy_device *phydev)
+         if (ret < 0)
+                 return ret;
+ 
+-        return val & (1 << (phydev->addr - 1));
++        return val & (1 << (phydev->mdio.addr - 1));
+ }
+ 
+-static struct phy_driver ksz8863_driver = {
++static struct phy_driver ksz8863_driver[] = { {
+         .phy_id         = (KSZ8863_PHYID1 << 16) | KSZ8863_PHYID2,
+         .phy_id_mask    = ~0x6,
+         .name           = "Micrel KSZ8863",
+@@ -115,22 +115,9 @@ static struct phy_driver ksz8863_driver = {
+         .ack_interrupt  = ksz8863_ack_interrupt,
+         .config_intr    = ksz8863_config_intr,
+         .did_interrupt  = ksz8863_did_interrupt,
+-        .driver         = {.owner = THIS_MODULE, },
+-};
++} };
+ 
+-static int __init ksz8863_init(void)
+-{
+-        return phy_driver_register(&ksz8863_driver);
+-}
+-
+-static void __exit ksz8863_exit(void)
+-{
+-        phy_driver_unregister(&ksz8863_driver);
+-}
+-
+-
+-module_init(ksz8863_init);
+-module_exit(ksz8863_exit);
++module_phy_driver(ksz8863_driver);
+ 
+ MODULE_AUTHOR("karl.beldan@sagemcom.com");
+ MODULE_LICENSE("GPL");
+-- 
+2.7.4
+

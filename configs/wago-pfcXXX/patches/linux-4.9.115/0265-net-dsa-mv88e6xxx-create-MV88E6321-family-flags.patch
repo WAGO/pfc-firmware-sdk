@@ -1,0 +1,74 @@
+From 5f29ff0660fdeed7910bbee09946420119a71f2a Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Wed, 26 Sep 2018 13:39:43 +0200
+Subject: [PATCH] net: dsa: mv88e6xxx: create MV88E6321 family flags
+
+The new family MV88E6321 is equal to MV88E6320 with
+additional TCAM flag.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/dsa/mv88e6xxx/chip.c      |  3 ++-
+ drivers/net/dsa/mv88e6xxx/mv88e6xxx.h | 11 +++++++++++
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index b3ae999..16df962 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -35,6 +35,7 @@
+ #include <net/switchdev.h>
+ 
+ #include "mv88e6xxx.h"
++#include "mv88e6321_tcam.h"
+ #include "global1.h"
+ #include "global2.h"
+ 
+@@ -3778,7 +3779,7 @@ static const struct mv88e6xxx_info mv88e6xxx_table[] = {
+ 		.global1_addr = 0x1b,
+ 		.age_time_coeff = 15000,
+ 		.g1_irqs = 8,
+-		.flags = MV88E6XXX_FLAGS_FAMILY_6320,
++		.flags = MV88E6XXX_FLAGS_FAMILY_6321,
+ 		.ops = &mv88e6321_ops,
+ 	},
+ 
+diff --git a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+index 8804f18..3c81b5c1 100644
+--- a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
++++ b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+@@ -484,6 +484,12 @@ enum mv88e6xxx_cap {
+ 	 * The VTU is used to program 802.1Q VLANs. See GLOBAL_VTU_OP.
+ 	 */
+ 	MV88E6XXX_CAP_VTU,
++
++	/* TCAM Unit.
++	 * Ternary Content Addressable Memory (TCAM) is a complex frame
++	 * content based filtering mechanism.
++	 */
++	MV88E6XXX_CAP_TCAM,
+ };
+ 
+ /* Bitmask of capabilities */
+@@ -516,6 +522,7 @@ enum mv88e6xxx_cap {
+ #define MV88E6XXX_FLAG_TEMP		BIT_ULL(MV88E6XXX_CAP_TEMP)
+ #define MV88E6XXX_FLAG_TEMP_LIMIT	BIT_ULL(MV88E6XXX_CAP_TEMP_LIMIT)
+ #define MV88E6XXX_FLAG_VTU		BIT_ULL(MV88E6XXX_CAP_VTU)
++#define MV88E6XXX_FLAG_TCAM		BIT_ULL(MV88E6XXX_CAP_TCAM)
+ 
+ /* Ingress Rate Limit unit */
+ #define MV88E6XXX_FLAGS_IRL		\
+@@ -595,6 +602,10 @@ enum mv88e6xxx_cap {
+ 	 MV88E6XXX_FLAGS_MULTI_CHIP |	\
+ 	 MV88E6XXX_FLAGS_PVT)
+ 
++#define MV88E6XXX_FLAGS_FAMILY_6321	\
++	(MV88E6XXX_FLAGS_FAMILY_6320 |	\
++	 MV88E6XXX_FLAG_TCAM)
++
+ #define MV88E6XXX_FLAGS_FAMILY_6351	\
+ 	(MV88E6XXX_FLAG_EDSA |		\
+ 	 MV88E6XXX_FLAG_G1_ATU_FID |	\
+-- 
+2.7.4
+

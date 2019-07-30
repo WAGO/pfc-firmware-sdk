@@ -103,7 +103,7 @@ config LIBXML2_LEGACY
 	default y
 	prompt "Support for deprecated APIs"
 	help
-	  Add support for deprecated APIs (compatiblity)
+	  Add support for deprecated APIs (compatibility)
 
 config LIBXML2_MEM_DEBUG
 	bool

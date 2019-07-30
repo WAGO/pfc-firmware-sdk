@@ -1,7 +1,7 @@
 From 6a6f81f655886fdc82e79a879faf53438bedabbd Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 17 Oct 2018 07:15:33 +0000
-Subject: [PATCH 130/144] board: pfc-am35xx: remove EMAC device registration
+Subject: [PATCH] board: pfc-am35xx: remove EMAC device registration
 
 In oder to make use of the fixed-link infrastructure davinci emac device
 registration was moved from boad code to OFTREE code.

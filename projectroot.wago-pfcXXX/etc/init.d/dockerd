@@ -1,38 +1,62 @@
 #!/bin/bash
 
+#-----------------------------------------------------------------------------#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   docker init script
+#
+# Brief:    Startscript for dockerd and all associated processes.
+#
+# Author:   Fabian Schwamborn, WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
 
+DOCKER_IPTABLES_PATH="/opt/wago-docker/sbin/"
+EVENTDIR="/etc/config-tools/events/networking"
 
-function eval_result()
+DOCKER_PIDFILE="/var/run/docker.pid"
+DOCKER_IPT_NAMESPACE="WAGO_DOCKER_IPT"
+
+function firewall_hook_cleanup()
 {
-    if [[ "$?" == "0" ]]; then
-        echo -en "\\033[1;32m" 
-        echo -e "\\033[60G[SUCCESS]"
-    else
-        echo -en "\\033[1;31m" 
-        echo -e "\\033[60G[FAILED]"
+    if  ip netns list | grep -q "$DOCKER_IPT_NAMESPACE"; then
+        echo -n "cleaning up docker namespace..."
+        ip netns del "$DOCKER_IPT_NAMESPACE"
     fi
+}
 
-    echo -en "\\033[0;39m" 
+function firewall_hook_activate()
+{
+    firewall_hook_cleanup                                                  #clean up any leftovers
+    ip netns add "$DOCKER_IPT_NAMESPACE"                              #create namespace for iptable rule preservation
+
+}
+
+function firewall_hook_inactivate()
+{
+    firewall_hook_cleanup                                                   #remove docker firewall hook
+    test -e $EVENTDIR && run-parts -a config $EVENTDIR                       #clean up firewall
+
 }
 
 function do_docker_start()
 {
-
-    echo -n "Starting dockerd..."
-    start-stop-daemon -S --background --quiet --oknodo --pidfile /var/run/docker.pid --exec dockerd --
-    eval_result
+    echo "configuring network..."
+    firewall_hook_activate
+    echo -n "starting docker daemon..."
+    start-stop-daemon -S --background --quiet --oknodo --pidfile $DOCKER_PIDFILE --exec /usr/bin/env PATH="/"$DOCKER_IPTABLES_PATH":$PATH"  /usr/bin/dockerd --             #manipulate iptables-binary path!
 }
 
 function do_docker_stop()
 {
-    echo -n "Stopping dockerd..."
-    start-stop-daemon -K --quiet --oknodo --pidfile /var/run/docker.pid --
-    eval_result
+    echo "stopping dockerd..."
+    start-stop-daemon -K --quiet --oknodo --pidfile $DOCKER_PIDFILE --
+    firewall_hook_inactivate
+    
 }
 
 function usage()
@@ -40,21 +64,29 @@ function usage()
     echo "$0 usage: $0 [start|stop|restart]"
 }
 
-
 case $1 in
 
     start)      
-        do_docker_start
+        if test -r $DOCKER_PIDFILE && ps -p `cat $DOCKER_PIDFILE` > /dev/null 2>&1; then
+            echo "no action done - docker already running"
+            exit 1
+        else
+            do_docker_start
+            echo " done"
+        fi
         ;;
 
 	stop)
         do_docker_stop
+        echo " done"
         ;;
 
     restart)    
         do_docker_stop
-        sleep 1
+        sleep 3
+        echo -e "\ndocker stopped, starting again ..."
         do_docker_start
+        echo " done"
         ;;
     *)
         usage

@@ -120,6 +120,7 @@ config LIBBACNET
 	select EXPAT
 	select HOST_CT_BUILD
 	select GOOGLETEST
+	select LIBBACNETSTACK
 	select LIBFFI
 	prompt "BACnet Library"
 	help

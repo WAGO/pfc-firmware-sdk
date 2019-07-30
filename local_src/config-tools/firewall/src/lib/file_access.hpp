@@ -39,7 +39,7 @@ namespace wago
 /// \return path to cofiguration file
 /// \throws std::invalid_argument if a given name isn't recognized
 //------------------------------------------------------------------------------
-std::string get_config_fname(const std::string& name);
+ std::string get_config_fname(const std::string& name );
 
 //------------------------------------------------------------------------------
 /// Prints content of a text file onto given output stream.
@@ -63,6 +63,20 @@ xmldoc read_configuration(const std::string& conf, const bool stdio);
 /// \param stdio if false 'conf' file will be written to, if true standard output is used
 //------------------------------------------------------------------------------
 void store_configuration(const std::string& conf, const bool stdio, xmldoc& doc);
+
+//------------------------------------------------------------------------------
+/// Copy file.
+/// \param src_file source file name
+/// \param dst_file destination file name
+//------------------------------------------------------------------------------
+void copy_file(const std::string& src_file, const std::string& dst_file);
+
+//------------------------------------------------------------------------------
+/// Check if file exists and not empty.
+/// \param name  name of file to check
+/// \return true if file exists and not empty, otherwise false
+//------------------------------------------------------------------------------
+bool check_file(const std::string& name);
 
 //------------------------------------------------------------------------------
 // macros

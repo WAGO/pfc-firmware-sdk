@@ -34,9 +34,10 @@ $(STATEDIR)/typelabel.extract: $(STATEDIR)/autogen-tools
 	@$(call clean, $(TYPELABEL_DIR))
 	@mkdir -p $(TYPELABEL_DIR)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
- 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
+	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(TYPELABEL_SRC) $(BUILDDIR)
 	@$(call patchin, TYPELABEL)
+	cd $(TYPELABEL_DIR) && sh autogen.sh
 endif
 	@$(call touch)
 
@@ -65,8 +66,7 @@ endif
 $(STATEDIR)/typelabel.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
- 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	cd $(TYPELABEL_DIR) && sh autogen.sh
+	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@$(call world/prepare, TYPELABEL)
 endif
 	@$(call touch)

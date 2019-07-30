@@ -1,3 +1,5 @@
+libcap-2.25/License
+
 Unless otherwise *explicitly* stated, the following text describes the
 licensed conditions under which the contents of this libcap release
 may be used and distributed:
@@ -383,6 +385,8 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
+
+libcap-2.25/pam_cap/License
 
 Unless otherwise *explicitly* stated the following text describes the
 licensed conditions under which the contents of this module release

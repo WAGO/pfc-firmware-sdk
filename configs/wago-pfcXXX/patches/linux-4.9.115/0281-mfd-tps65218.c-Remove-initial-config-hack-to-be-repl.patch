@@ -1,0 +1,137 @@
+From c6d0794aa88a3d355d57e8a670e6415f9b3926d6 Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Fri, 30 Nov 2018 11:17:36 +0100
+Subject: [PATCH] mfd/tps65218.c: Remove initial config hack to be replaced by
+ FDT
+
+tps65218_set_interrupt_mask() needs no replacement.
+The interrupts are already masked correctly by initializing
+the IRQ-chip via regmap_add_irq_chip().
+
+The tps65218_set_initial_config() will be done generally and
+probably upstream-compatible by the FDT in a later patch.
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/mfd/tps65218.c | 98 --------------------------------------------------
+ 1 file changed, 98 deletions(-)
+
+diff --git a/drivers/mfd/tps65218.c b/drivers/mfd/tps65218.c
+index c7ac919..ba610ad 100644
+--- a/drivers/mfd/tps65218.c
++++ b/drivers/mfd/tps65218.c
+@@ -213,100 +213,6 @@ static const struct of_device_id of_tps65218_match_table[] = {
+ };
+ MODULE_DEVICE_TABLE(of, of_tps65218_match_table);
+ 
+-/**
+- * tps65218_set_interrupt_mask: Set initial interrupt mask.
+- *
+- * @tps65218: Device to write to.
+- */
+-static void tps65218_set_interrupt_mask(struct tps65218 *tps)
+-{
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
+-			      TPS65218_INT_MASK1_PRGC, TPS65218_INT1_PRGC,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to mask PRGC interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
+-			      TPS65218_INT_MASK1_CC_AQC, TPS65218_INT1_CC_AQC,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to mask CC_AQCM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
+-			      !TPS65218_INT_MASK1_HOT, TPS65218_INT1_HOT,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to enable HOT interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
+-			      TPS65218_INT_MASK1_PB, TPS65218_INT1_PB,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to disable PBM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
+-			      TPS65218_INT_MASK1_AC, TPS65218_INT1_AC,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to disable ACM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK1,
+-			      TPS65218_INT_MASK1_VPRG, TPS65218_INT1_VPRG,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to disable VPRGM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
+-			      TPS65218_INT_MASK2_LS1_I, TPS65218_INT2_LS1_I,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to enable LS1_FM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
+-			      TPS65218_INT_MASK2_LS2_I, TPS65218_INT2_LS2_I,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to enable LS2_FM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
+-			      TPS65218_INT_MASK2_LS3_I, TPS65218_INT2_LS3_I,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to enable LS3_FM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
+-			      TPS65218_INT_MASK2_LS1_F, TPS65218_INT2_LS1_F,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to enable LS1_FM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
+-			      TPS65218_INT_MASK2_LS2_F, TPS65218_INT2_LS2_F,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to enable LS2_FM interrupt.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_INT_MASK2,
+-			      TPS65218_INT_MASK2_LS3_F, TPS65218_INT2_LS3_F,
+-			      TPS65218_PROTECT_NONE))
+-		dev_warn(tps->dev, "Failed to enable LS3_FM interrupt.\n");
+-}
+-
+-/**
+- * tps65218_set_initial_config: Set initial pmic config.
+- *
+- * @tps65218: Device to write to.
+- */
+-static void tps65218_set_initial_config(struct tps65218 *tps)
+-{
+-	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG3,
+-			      TPS65218_CONFIG3_LS1NPFO,
+-			      !TPS65218_CONFIG3_LS1NPFO, TPS65218_PROTECT_L1))
+-		dev_warn(tps->dev,
+-			 "Failed to unset LS1 power-fail disable bit.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG3,
+-			      TPS65218_CONFIG3_LS2NPFO,
+-			      TPS65218_CONFIG3_LS2NPFO, TPS65218_PROTECT_L1))
+-		dev_warn(tps->dev,
+-			 "Failed to set LS2 power-fail disable bit.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG3,
+-			      TPS65218_CONFIG3_LS3NPFO,
+-			      !TPS65218_CONFIG3_LS3NPFO, TPS65218_PROTECT_L1))
+-		dev_warn(tps->dev,
+-			 "Failed to unset LS3 power-fail disable bit.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG2,
+-			      TPS65218_CONFIG2_UVLOHYS,
+-			      TPS65218_CONFIG2_UVLOHYS, TPS65218_PROTECT_L1))
+-		dev_warn(tps->dev, "Failed to set UVLO hysteresis to 400mV.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG1,
+-			      TPS65218_CONFIG1_UVLO_MASK,
+-			      0x3, TPS65218_PROTECT_L1))
+-		dev_warn(tps->dev, "Failed to set UVLO to 3.35V.\n");
+-	if (tps65218_set_bits(tps, TPS65218_REG_CONFIG1,
+-			      TPS65218_CONFIG1_STRICT, TPS65218_CONFIG1_STRICT,
+-			      TPS65218_PROTECT_L1))
+-		dev_warn(tps->dev,
+-			 "Failed to enable overvoltage monitoring.\n");
+-}
+-
+ static int tps65218_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *ids)
+ {
+@@ -358,10 +264,6 @@ static int tps65218_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto err_irq;
+ 
+-	tps65218_set_interrupt_mask(tps);
+-
+-	tps65218_set_initial_config(tps);
+-
+ 	return 0;
+ 
+ err_irq:
+-- 
+2.7.4
+

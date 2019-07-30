@@ -157,6 +157,7 @@ menuconfig CONFIG_TOOLS
   select CT_URLENCODE
   select WAGO_DBUS
   select EEPROM_XSECTION if CDS3_RTS_PRODUCT_VTPCTP
+  select LICENSE_INFO
 
 # basic 3rd party libs
   select GLIB
@@ -173,6 +174,8 @@ menuconfig CONFIG_TOOLS
   select UMKIMAGE if CT_GET_UIMAGE_SIZE
   select LIBNL3 if CT_LIBCTNETWORK 
   select LIBMODBUSCONFIG if CT_MODBUS_CONFIG
+  select LIBBACNETCONFIG if CT_BACNET_CONFIG
+  select LIBBACNETCONFIG if CT_BACNET_BACKUP_RESTORE
   
   select MDMD if CT_CONFIG_MDMD
 
@@ -473,7 +476,7 @@ config CT_GET_PLC_CONFIG
   bool
   default n
   prompt "get_plc_config"
-  depends on CONFIG_TOOLS && PLCLINUXRT
+  depends on CONFIG_TOOLS && (PLCLINUXRT || PLC_CODESYS_V3)
   help
    Get actual active PLC-Version
 
@@ -523,7 +526,7 @@ config CT_GET_RTS3SCFG_VALUE
 config CT_CONFIG_RUNTIME
   bool
   default n
-  depends on CONFIG_TOOLS && PLCLINUXRT
+  depends on CONFIG_TOOLS && (PLCLINUXRT || PLC_CODESYS_V3)
   prompt "config_runtime"
   help
    Set plc runtime configuration options.
@@ -532,7 +535,7 @@ config CT_CONFIG_RUNTIME
 config CT_GET_RUNTIME_CONFIG
   bool
   default n
-  depends on CONFIG_TOOLS && PLCLINUXRT
+  depends on CONFIG_TOOLS && (PLCLINUXRT || PLC_CODESYS_V3)
   prompt "get_runtime_config"
   help
    Get plc runtime configuration data.
@@ -1227,6 +1230,14 @@ config CT_BACNET_CONFIG
   prompt "bacnet_config"
   help
    Change BACnet settings
+   
+config CT_BACNET_BACKUP_RESTORE
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "bacnet_backup_restore"
+  help
+   Backup and restore BACnet settings
    
 config CT_BACNET_WBM_DIAGLIST
   bool

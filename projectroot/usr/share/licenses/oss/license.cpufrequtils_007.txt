@@ -1,3 +1,5 @@
+cpufrequtils-007/AUTHORS
+
 Dominik Brodowski
 Karlstr. 11a
 72072 Tübingen
@@ -13,6 +15,8 @@ Italy
 Goran Koruga
 Slovenia
 <korugag@siol.net>
+
+cpufrequtils-007/COPYING
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991

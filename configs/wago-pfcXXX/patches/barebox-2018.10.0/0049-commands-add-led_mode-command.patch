@@ -1,7 +1,7 @@
 From f677ba0d974db7d38f542928f2ce0c997a93ed5f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 8 Aug 2018 11:20:53 +0200
-Subject: [PATCH 049/144] commands: add led_mode command
+Subject: [PATCH] commands: add led_mode command
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

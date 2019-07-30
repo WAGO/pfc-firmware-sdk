@@ -23,46 +23,99 @@ fi
 
 statusFile="/var/www/wbm/firmware_backup_status"
 DEFAULTDESTDIR="/mnt/__destination_dir"
+DELETE_ALL_BACKUP_FILES=1
 
 function SavePartition
 {
 
-  local mode=$1 # 'rootfs' or 'codesys'
-  local filename=$2
-  local destinationDir=$3
-  local callMode=${4:-""}
+  local mode="$1" # 'rootfs' or 'codesys'
+  local filename="$2"
+  local destinationDir="$3"
+  local callMode="${4:-}"
 
   local status=$SUCCESS
 
   if [[ "$callMode" == "cbm" ]]; then
     # provide no status file -> display progress bar in terminal
-    /usr/sbin/${BOARD_ID}_save_partition.sh $mode $filename $destinationDir
+    /usr/sbin/${BOARD_ID}_save_partition.sh "$mode" "$filename" "$destinationDir"
     status=$?
   else
-     /usr/sbin/${BOARD_ID}_save_partition.sh $mode $filename $destinationDir $statusFile
+     /usr/sbin/${BOARD_ID}_save_partition.sh "$mode" "$filename" "$destinationDir" "$statusFile"
     status=$?
-  fi
-
+    # Provide encryption passphrase via filedescriptor 5 to not show up in "ps"
+  fi 5<< EOF
+${encPassphrase}
+EOF
 
   return $status
 }
 
 function do_cleanup
 {
+  # we have to check the used space error here because
+  # if tar or gpg (encryption) process failed in function "SavePartition"
+  # the script "pfcXXX_save_partition.sh" "exits" without checking "used space error"
+  # and we also have to "check" the backup_settings
+  case $status in
+     $SUCCESS) 
+     ;;
+     *)
+     usedSpace=$(df | awk -v pattern=$destinationDir\$ 'match($0,pattern) {print $5}')
+     if [[ "$usedSpace" == "100%" ]]; then
+       status=$NOT_ENOUGH_SPACE_ERROR
+       SetLastError "Not enough space on target. Could not generate backup files."
+     else
+       status=$SHELL_ERROR
+       SetLastError "Could not generate backup files. Please check your backup target."
+     fi
+     initPartition 0
+     ;;
+  esac
+
   # check if destination directory was mounted and if so, unmount it
   if mount | grep -q "${DEFAULTDESTDIR}"; then
     umount "${DEFAULTDESTDIR}"
   fi
 
-  # check if directory used for mounting is existing and if so, remove it
-  if [[ -d "${DEFAULTDESTDIR}" ]]; then
-    rm -rf "${DEFAULTDESTDIR}"
-  fi
-
   # remove status file
-  rm $statusFile > /dev/null 2> /dev/null
+  rm -rf "${DEFAULTDESTDIR}"
+  rm -f "$statusFile" /tmp/ignored_file_list.txt
 }
 
+function initPartition
+{
+  local codeSysResFile="${destinationDir}/${CODESYS_FILENAME}.tgz$encExt"
+  local systemResFile="${destinationDir}/${SYSTEM_FILENAME}.tgz$encExt"
+  local settingsResFile="${destinationDir}/${SETTINGS_FILENAME}$encExt"
+  local autoAttr="auto_"
+  local deleteAll=$1
+ 
+  if [ "$deleteAll" = "$DELETE_ALL_BACKUP_FILES" ] || [ "$packageCodesys" = "1" ]; then
+    rm -f $codeSysResFile
+  fi
+  if [ "$deleteAll" = "$DELETE_ALL_BACKUP_FILES" ] || [ "$packageSystem" = "1" ]; then
+    rm -f $systemResFile
+  fi
+  if [ "$deleteAll" = "$DELETE_ALL_BACKUP_FILES" ] || [ "$packageSettings" = "1" ]; then
+    rm -f $settingsResFile
+  fi
+  
+  # delete all (?) plaintext auto update files when generating new backups?
+  # encrypted auto files were not generated (we prevent this)
+  
+  # in case of an error during backup process delete all generated auto backup files
+  if [ "$deleteAll" != "$DELETE_ALL_BACKUP_FILES" ] && [ "$activateAutoUpdate" = 1 ]; then
+    if [ "$packageCodesys" = "1" ]; then
+      rm -f ${destinationDir}/$autoAttr${CODESYS_FILENAME}.tgz
+    fi
+    if [ "$packageSystem" = "1" ]; then
+      rm -f ${destinationDir}/$autoAttr${SYSTEM_FILENAME}.tgz
+    fi
+    if [ "$packageSettings" = "1" ]; then
+      rm -f ${destinationDir}/$autoAttr${SETTINGS_FILENAME}
+    fi
+  fi
+}
 
 #-------------- main-programm ------------------------#
 
@@ -75,9 +128,9 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo
   echo "* Process backup of firmware data *"
   echo
-  echo "Usage: firmware_backup < package-settings=value package-system=value package-codesys=value device-medium=value > [ auto-update=value ] [ download-dir=value ]"
+  echo "Usage: firmware_backup < package-settings=value package-system=value package-codesys=value device-medium=value > [ auto-update=value ] [ download-dir=value ] [ passphrase=value ]"
   echo
-  echo "package-settings, package-system, package-codesys: 1, if package should be saved, else parameter can be absent"
+  echo "package-settings, package-system, package-codesys: 1 to save package. May be omitted otherwise"
 
   mediumCnt=1
   mediumName=$(/etc/config-tools/get_filesystem_data medium-by-index $mediumCnt)
@@ -97,8 +150,9 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 
   echo "network"
 
-  echo "auto-update: 1, if auto update should be activated, else it can fall away"
+  echo "auto-update: 1 to activate auto update. May be omitted otherwise"
   echo "download-dir: directory to save the backup file if the device medium is network"
+  echo "passphrase: password for backup encryption"
   exit $status
 fi
 
@@ -107,6 +161,8 @@ packageAll=`GetParameterValue package-all $*`
 packageCodesys=`GetParameterValue package-codesys $*`
 packageSettings=`GetParameterValue package-settings $*`
 packageSystem=`GetParameterValue package-system $*`
+# FIXME: Encryption password on the command line (sigh)
+encPassphrase=`GetParameterValue passphrase $*`
 callMode=$(GetParameterValue callMode $*)
 #echo "packageAll:"$packageAll "packageCodesys:"$packageCodesys "packageSettings:"$packageSettings "packageSystem:"$packageSystem
 
@@ -120,10 +176,32 @@ if [ -n "$packageAll" ] && [ "$packageAll" = "1" ]; then
   packageSystem=1
 fi
 
+if [ -n "$encPassphrase" ]; then
+  do_encrypt="yes"
+  # Provide encryption passphrase via filedescriptor 5 to not show up in "ps"
+  # Filedescriptor 3 and 4 are occupied by "SuppressMessageOutput"
+  ENCRYPT="openssl enc -aes-256-cfb -md sha512 -pass fd:5"
+  encExt=".enc"
+else
+  do_encrypt="no"
+  ENCRYPT=cat
+  encExt=""
+fi
+export ENCRYPT encExt do_encrypt
+
 # check input parameter
 if [ "$packageCodesys" != "1" ] && [ "$packageSettings" != "1" ] && [ "$packageSystem" != "1" ]; then
   SetLastError "No package selected"
   exit $INVALID_PARAMETER
+fi
+
+# check input parameter passphrase
+if [ "$do_encrypt" = yes ]; then
+    CheckEncryptionPassphrase "$encPassphrase"
+    if [ $? -ne 0 ]; then
+      SetLastError "weak/invalid encryption passphrase"
+      exit $INVALID_PARAMETER
+    fi
 fi
 
 # check input for device medium; must be included in DEVICE_MEDIA configuration or network 
@@ -154,13 +232,19 @@ if [ "$INTERNAL_FLASH_NAND" = "$deviceMedium" ]; then
   exit $INVALID_PARAMETER
 fi
 
-echo "Start firmware backup" > $statusFile
-
 # set filename appendix for auto update feature if requested
 autoUpdateAppendix=""
 if [ "$activateAutoUpdate" = 1 ]; then
-  autoUpdateAppendix="auto_"
+  if [ "$do_encrypt" = no ]; then
+    autoUpdateAppendix="auto_"
+  else
+    status=$EXECUTABLE_ERROR
+    SetLastError "No auto update feature with encrypted backups."
+    ReportError $status "No auto update feature with encrypted backups."
+  fi
 fi
+
+echo "Start firmware backup" > $statusFile
 
 # destination device is network -> an input parameter must specify the directory for saving the backup file
 if [ "$deviceMedium" = "$NETWORK" ]; then
@@ -218,33 +302,49 @@ else
       status=$?
     fi
   fi
+  
+  # We have to delete the plaintext files in destination partition if encrypted mode is active.
+  # In this case we could delete all plaintext files before backup.
+  # If encryption is active there schould no plaintext backup file in destination partition !!!!  
+  initPartition "$DELETE_ALL_BACKUP_FILES"
 fi
 
 # now we should have any directory to save our data and can continue with generating it
 if [ "$status" = "$SUCCESS" ]; then
 
   # settings must be saved -> use special script to create settings file and move it directly to destination (device or directory for download)
-  if [ "$packageSettings" = "1" ]; then 
+  if [ "$packageSettings" = "1" ]; then
+    settingsBackupFile="${destinationDir}/${autoUpdateAppendix}${SETTINGS_FILENAME}${encExt}"
     #echo "save settings destinationDir:${destinationDir}"
-    echo "Saving settings" > $statusFile
+    echo "Saving settings" > "$statusFile"
 
-    /etc/config-tools/settings_backup save ${destinationDir}/${autoUpdateAppendix}${SETTINGS_FILENAME} #> /dev/null 2> /dev/null
-    if [ "$?" != $SUCCESS ]; then
+    /etc/config-tools/settings_backup save "${settingsBackupFile}"
+    if [ "$?" != "$SUCCESS" ]; then
       status=$EXECUTABLE_ERROR
       ReportError $status "(settings_backup)"
     fi
+
+    # Provide encryption passphrase via filedescriptor 5 to not show up in "ps"
+    if [ "${do_encrypt}" = 'yes' ]; then
+      $ENCRYPT <"${settingsBackupFile}" >"${settingsBackupFile}.tmp" \
+        && mv "${settingsBackupFile}.tmp" "${settingsBackupFile}" \
+        && sync
+    fi 5<< EOF
+${encPassphrase}
+EOF
+
   fi
 
   # complete codesys image must be saved -> create image, zip it and copy it to destination
   if [ "$status" = "$SUCCESS" ] && [ "$packageCodesys" = "1" ]; then
     #echo "save codesys"
-    SavePartition "codesys" ${autoUpdateAppendix}${CODESYS_FILENAME} $destinationDir $callMode
+    SavePartition "codesys" "${autoUpdateAppendix}${CODESYS_FILENAME}" "$destinationDir" "$callMode"
     status=$?
   fi
 
   # complete system image must be saved -> create image, zip it and copy it to destination
   if [ "$status" = "$SUCCESS" ] && [ "$packageSystem" = "1" ]; then
-    SavePartition "rootfs" ${autoUpdateAppendix}${SYSTEM_FILENAME} $destinationDir $callMode
+    SavePartition "rootfs" "${autoUpdateAppendix}${SYSTEM_FILENAME}" "$destinationDir" "$callMode"
     status=$?
   fi
 

@@ -1,0 +1,41 @@
+From fa19f2422e07a61900dda777229fa13eafbd3904 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 18 Apr 2017 15:24:46 +0200
+Subject: [PATCH] dts: pfc200v2: opp: use only hw supported opps
+
+---
+ arch/arm/boot/dts/wago-pfc200v2.dtsi | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index cacf08c..22e179d 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -12,16 +12,16 @@
+ 	model = "WAGO PFC200 DPM";
+ 	compatible = "wago,pfc200", "ti,am33xx";
+ 
+-        cpus {
+-	        cpu0: cpu@0 {
++	cpus {
++		cpu_0: cpu@0 {
+ 			cpu0-supply = <&dcdc2_reg>;
+-	                operating-points = <
++			operating-points = <
+                                 /* kHz    uV */
+-                                1000000  1325000
+-                                 800000  1260000
+-                                 720000  1200000
+-                                 600000  1100000
+-                                 300000  950000
++				/*1000000  1325000*/
++				/* 800000  1260000*/
++				/* 720000  1200000*/
++				 600000  1100000
++				 300000  950000
+ 			>;
+ 		};
+ 	};
+-- 
+2.7.4
+

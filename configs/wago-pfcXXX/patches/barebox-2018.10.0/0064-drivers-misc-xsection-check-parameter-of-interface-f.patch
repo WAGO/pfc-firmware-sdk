@@ -1,7 +1,7 @@
 From 52dad95fff6fca7e7d068206be8a263438953d9f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 21 Aug 2018 14:39:40 +0200
-Subject: [PATCH 064/144] drivers: misc: xsection: check parameter of interface
+Subject: [PATCH] drivers: misc: xsection: check parameter of interface
  functions
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>

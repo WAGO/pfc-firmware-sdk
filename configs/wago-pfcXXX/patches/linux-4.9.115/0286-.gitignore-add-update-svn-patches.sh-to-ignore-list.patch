@@ -1,0 +1,22 @@
+From 5cc181ec75600ea7cca6fc11cfa3f5ad99c73b78 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 8 Jan 2019 07:29:49 +0100
+Subject: [PATCH 286/288] .gitignore: add update-svn-patches.sh to ignore list
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ .gitignore | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/.gitignore b/.gitignore
+index ff8257d..1f8a77b 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -116,3 +116,4 @@ all.config
+ *.kdev4
+ 
+ m-arm
++update-svn-patches.sh
+-- 
+2.7.4
+

@@ -45,6 +45,13 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(IECDIAGNOSTIC_SRC) $(BUILDDIR)
 	@$(call patchin, IECDIAGNOSTIC)
+
+ifdef PTXCONF_IECDIAGNOSTIC_TRUNK
+	cd $(IECDIAGNOSTIC_DIR) && sh autogen.sh
+else
+	cd $(IECDIAGNOSTIC_DIR) && [ -f configure ] || sh autogen.sh
+endif
+
 endif
 	@$(call touch)
 
@@ -63,12 +70,6 @@ IECDIAGNOSTIC_CONF_TOOL	:= autoconf
 $(STATEDIR)/iecdiagnostic.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-
-ifdef PTXCONF_IECDIAGNOSTIC_TRUNK
-	cd $(IECDIAGNOSTIC_DIR) && sh autogen.sh
-else
-	cd $(IECDIAGNOSTIC_DIR) && [ -f configure ] || sh autogen.sh
-endif
 
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@$(call world/prepare, IECDIAGNOSTIC)

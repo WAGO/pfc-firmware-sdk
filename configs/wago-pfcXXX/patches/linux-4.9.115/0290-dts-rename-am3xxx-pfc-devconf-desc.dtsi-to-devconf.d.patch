@@ -1,0 +1,476 @@
+From cdba8454d16c3a1a3194d50017f604673144b775 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Tue, 15 Jan 2019 15:43:15 +0100
+Subject: [PATCH 290/291] dts: rename am3xxx-pfc-devconf-desc.dtsi to
+ devconf.dtsi
+
+DEVCONF number/id is not only used in PFC's, but also in VTP touchpanels.
+Hence, this patch renames the file to a more generic one.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8100_8101.dts  |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8102.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8208.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8211.dts       |   4 +-
+ arch/arm/boot/dts/am335x-pfc-750_8212.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8213.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8214.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8215.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8216.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc-750_8217.dts       |   2 +-
+ arch/arm/boot/dts/am335x-pfc100-setupfw.dts     |   2 +-
+ arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts   |   2 +-
+ arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts   |   2 +-
+ arch/arm/boot/dts/am335x-src-2850_3111_3112.dts |   2 +-
+ arch/arm/boot/dts/am335x-src-setupfw.dts        |   2 +-
+ arch/arm/boot/dts/am3505-pfc-750_8202.dts       |   2 +-
+ arch/arm/boot/dts/am3505-pfc-750_8203.dts       |   2 +-
+ arch/arm/boot/dts/am3505-pfc-750_8204.dts       |   2 +-
+ arch/arm/boot/dts/am3505-pfc-750_8206.dts       |   2 +-
+ arch/arm/boot/dts/am3505-pfc-750_8207.dts       |   2 +-
+ arch/arm/boot/dts/am3505-pfc200-setupfw.dts     |   2 +-
+ arch/arm/boot/dts/am3xxx-pfc-devconf-desc.dtsi  |  34 --------
+ arch/arm/boot/dts/devconf.dtsi                  | 111 ++++++++++++++++++++++++
+ 23 files changed, 133 insertions(+), 56 deletions(-)
+ delete mode 100644 arch/arm/boot/dts/am3xxx-pfc-devconf-desc.dtsi
+ create mode 100644 arch/arm/boot/dts/devconf.dtsi
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8100_8101.dts b/arch/arm/boot/dts/am335x-pfc-750_8100_8101.dts
+index 49c02d1..e1b70e2 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8100_8101.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8100_8101.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am335x-pfc-750_810x.dtsi"
+ #include "am335x-pfc-750_810x-dip.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC100 750-8100/8101";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8102.dts b/arch/arm/boot/dts/am335x-pfc-750_8102.dts
+index c52a1fa011..3d7e452 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8102.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8102.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am335x-pfc-750_810x.dtsi"
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC100 750-8102";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8208.dts b/arch/arm/boot/dts/am335x-pfc-750_8208.dts
+index 8762617..dfe4296 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8208.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8208.dts
+@@ -11,7 +11,7 @@
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+ #include "am335x-pfc-750_8208-netx.dtsi"
+ #include "am335x-pfc-750_8208-dcan.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8208";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8211.dts b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
+index 075627c..c581abe 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8211.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
+@@ -8,11 +8,11 @@
+ /dts-v1/;
+ 
+ #include "am335x-pfc-750_821x.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ /{
+ 	model = "WAGO PFC200 750-8211";
+-	compatible = "wago,am335x-pfc-750_821x-0308", "wago,am335x-pfc", "ti,am33xx";
++	compatible = "wago,am335x-pfc-750_821x-1004", "wago,am335x-pfc", "ti,am33xx";
+ 
+         swcfg_mv88e6321 {
+                 compatible = "swcfg,mv88e6321";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8212.dts b/arch/arm/boot/dts/am335x-pfc-750_8212.dts
+index 24a47e8..86d43eb 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8212.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8212.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am335x-pfc-750_821x.dtsi"
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8212";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8213.dts b/arch/arm/boot/dts/am335x-pfc-750_8213.dts
+index 14911fe..3b9494e 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8213.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8213.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am335x-pfc-750_821x.dtsi"
+ #include "am335x-pfc-750_8208-dcan.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8213";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8214.dts b/arch/arm/boot/dts/am335x-pfc-750_8214.dts
+index 06c557b..6c28379 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8214.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8214.dts
+@@ -10,7 +10,7 @@
+ #include "am335x-pfc-750_821x.dtsi"
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+ #include "am335x-pfc-750_8208-dcan.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8214";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215.dts b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+index 1351593..5b89949 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8215.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+@@ -8,7 +8,7 @@
+ /dts-v1/;
+ 
+ #include "am335x-pfc-750_821x.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ #include "am335x-pfc-750_8208-dcan.dtsi"
+ #include "am335x-pfc-750_8215-tcam.dtsi"
+ 
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8216.dts b/arch/arm/boot/dts/am335x-pfc-750_8216.dts
+index a791d5b..49f9f36 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8216.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8216.dts
+@@ -11,7 +11,7 @@
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+ #include "am335x-pfc-750_8208-dcan.dtsi"
+ #include "am335x-pfc-750_821x-dpc31.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8216";
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8217.dts b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
+index 84103c9..5e4321b 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8217.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am335x-pfc-750_821x.dtsi"
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8217";
+diff --git a/arch/arm/boot/dts/am335x-pfc100-setupfw.dts b/arch/arm/boot/dts/am335x-pfc100-setupfw.dts
+index 1941cb5..b53f266 100644
+--- a/arch/arm/boot/dts/am335x-pfc100-setupfw.dts
++++ b/arch/arm/boot/dts/am335x-pfc100-setupfw.dts
+@@ -11,7 +11,7 @@
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+ #include "am335x-pfc-750_810x-musb.dtsi"
+ #include "am335x-pfc-750_810x-cmtests.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	target_info {
+diff --git a/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts b/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts
+index 31abaf39..6c438b7 100644
+--- a/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts
++++ b/arch/arm/boot/dts/am335x-pfc200v2-setupfw.dts
+@@ -11,7 +11,7 @@
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+ #include "am335x-pfc-750_8208-netx.dtsi"
+ #include "am335x-pfc-750_8208-dcan.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	target_info {
+diff --git a/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts b/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
+index 690c54e..772df08 100644
+--- a/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
++++ b/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am335x-pfc-750_821x.dtsi"
+ #include "am335x-pfc-750_810x-uart1.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	target_info {
+diff --git a/arch/arm/boot/dts/am335x-src-2850_3111_3112.dts b/arch/arm/boot/dts/am335x-src-2850_3111_3112.dts
+index 424f621..2b01854 100644
+--- a/arch/arm/boot/dts/am335x-src-2850_3111_3112.dts
++++ b/arch/arm/boot/dts/am335x-src-2850_3111_3112.dts
+@@ -8,7 +8,7 @@
+ /dts-v1/;
+ 
+ #include "am335x-src-2850_311x.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO SRC 2850-3111/3112";
+diff --git a/arch/arm/boot/dts/am335x-src-setupfw.dts b/arch/arm/boot/dts/am335x-src-setupfw.dts
+index 0ecd1f4..0c89a08 100644
+--- a/arch/arm/boot/dts/am335x-src-setupfw.dts
++++ b/arch/arm/boot/dts/am335x-src-setupfw.dts
+@@ -8,7 +8,7 @@
+ /dts-v1/;
+ 
+ #include "am335x-src-2850_311x.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ /*
+  *
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_8202.dts b/arch/arm/boot/dts/am3505-pfc-750_8202.dts
+index 58befe8..87094ab 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_8202.dts
++++ b/arch/arm/boot/dts/am3505-pfc-750_8202.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am3505-pfc-750_820x.dtsi"
+ #include "am3505-pfc-750_820x-uart1.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8202";
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_8203.dts b/arch/arm/boot/dts/am3505-pfc-750_8203.dts
+index e752669..00b6203 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_8203.dts
++++ b/arch/arm/boot/dts/am3505-pfc-750_8203.dts
+@@ -9,7 +9,7 @@
+ 
+ #include "am3505-pfc-750_820x.dtsi"
+ #include "am3505-pfc-750_820x-can.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8203";
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_8204.dts b/arch/arm/boot/dts/am3505-pfc-750_8204.dts
+index 7f2b441..344e0cb 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_8204.dts
++++ b/arch/arm/boot/dts/am3505-pfc-750_8204.dts
+@@ -10,7 +10,7 @@
+ #include "am3505-pfc-750_820x.dtsi"
+ #include "am3505-pfc-750_820x-uart1.dtsi"
+ #include "am3505-pfc-750_820x-can.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8204";
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_8206.dts b/arch/arm/boot/dts/am3505-pfc-750_8206.dts
+index 723f379..664c65b 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_8206.dts
++++ b/arch/arm/boot/dts/am3505-pfc-750_8206.dts
+@@ -12,7 +12,7 @@
+ #include "am3505-pfc-750_820x-can.dtsi"
+ #include "am3505-pfc-750_820x-dpc31.dtsi"
+ #include "am3505-pfc-750_820x-musb.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8206";
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_8207.dts b/arch/arm/boot/dts/am3505-pfc-750_8207.dts
+index b21b9fa..4e5ac0d 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_8207.dts
++++ b/arch/arm/boot/dts/am3505-pfc-750_8207.dts
+@@ -10,7 +10,7 @@
+ #include "am3505-pfc-750_820x.dtsi"
+ #include "am3505-pfc-750_820x-uart1.dtsi"
+ #include "am3505-pfc-750_820x-musb.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 	model = "WAGO PFC200 750-8207";
+diff --git a/arch/arm/boot/dts/am3505-pfc200-setupfw.dts b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
+index 9bf927e8..fdefaf9 100644
+--- a/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
++++ b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
+@@ -12,7 +12,7 @@
+ #include "am3505-pfc-750_820x-can.dtsi"
+ #include "am3505-pfc-750_820x-dpc31.dtsi"
+ #include "am3505-pfc-750_820x-musb.dtsi"
+-#include "am3xxx-pfc-devconf-desc.dtsi"
++#include "devconf.dtsi"
+ 
+ / {
+ 
+diff --git a/arch/arm/boot/dts/am3xxx-pfc-devconf-desc.dtsi b/arch/arm/boot/dts/am3xxx-pfc-devconf-desc.dtsi
+deleted file mode 100644
+index 662ec65..0000000
+--- a/arch/arm/boot/dts/am3xxx-pfc-devconf-desc.dtsi
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/*
+- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-/*
+- * The devconf variable is a 16bit value.
+- * Data is stored in little endian format.
+- *
+- * 0x1fe |---------------------------------------|
+- *       |          DEVCONF Byte 0 (Low Byte)    |
+- *       | ------------------------------------- |
+- *       |          DEVCONF Byte 1 (High Byte)   |
+- * 0x200 |---------------------------------------|
+- *
+- *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
+- *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
+- *    |   x   x   x   x   x  |  |  |  |  |  |  |  |  PROFIBUS_SL
+- *    Display                |  |  |  |  |  |  |  |  CAN
+- *                           |  |  |  |  |  |  |  RS232_485
+- *                           |  |  |  |  |  |  ETHERNET_IP
+- *                           |  |  |  |  |  3G_MODEM
+- *                           |  |  |  |  DIP_SWITCH
+- *                           |  |  |  PROFIBUS_DPM
+- *                           |  |   USB
+- *                           |  MARVELL_SWITCH
+- *                           LWL
+- *
+- *   x: reserved for future use
+- *
+- */
+diff --git a/arch/arm/boot/dts/devconf.dtsi b/arch/arm/boot/dts/devconf.dtsi
+new file mode 100644
+index 0000000..baa36c8
+--- /dev/null
++++ b/arch/arm/boot/dts/devconf.dtsi
+@@ -0,0 +1,111 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/*
++ * The DEVCONF field is used by the bootloader to identify, verify and choose
++ * the right boot configuration for the device. See bootchoser and BLSPEC
++ * documentation in barebox for more information.
++ *
++ * The DEVCONF field is a 16-bit value stored in the EEPROM of each device as a
++ * 16-bit value.
++ *
++ * 0x1fe |---------------------------------------|
++ *       |          DEVCONF Byte 0 (Low Byte)    |
++ *       | ------------------------------------- |
++ *       |          DEVCONF Byte 1 (High Byte)   |
++ * 0x200 |---------------------------------------|
++ *
++ * NOTE:
++ * The DEVCONF field contains CONF suffix. In legacy format was this a kind of
++ * "configuration" of device. In current format it is more a device
++ * identification. The name DEVCONF of this field is not apply anymore. But we
++ * decided not to rename it, becaus this field name already established in many
++ * applications and documentations outsite of kernel.
++ *
++ * ============== CURRENT FORMAT ===============================================
++ *
++ *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
++ *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
++ *    y   y   y   |   z   z  z  z  z  z  z  z  z  z  z  z
++ *                |
++ *                NEW DEVCONF FORMAT (has to be set to 1)
++ *
++ *    y: hardware revision (started by 0 for each device)
++ *    z: device id (see list below)
++ *
++ * | Device ID (hex) | Device description |
++ * |-----------------|--------------------|
++ * |            1000 |   VTP  4" 762-4xxx |
++ * |            1001 |   VTP  5" 762-4xxx |
++ * |            1002 |   VTP  7" 762-4xxx |
++ * |            1003 |   VTP 10" 762-4xxx |
++ * |            1004 |       PFC 750-8211 |
++ * |-----------------|--------------------|
++ *
++ * ============== LEGACY FORMAT ================================================
++ *
++ * This format is deprecated and should not be used for new devices.
++ *
++ *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
++ *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
++ *    |   x   x   |   x   x  |  |  |  |  |  |  |  |  PROFIBUS_SL
++ *    |           |          |  |  |  |  |  |  |  |  CAN
++ *    |           |          |  |  |  |  |  |  |  RS232_485
++ *    |           |          |  |  |  |  |  |  ETHERNET_IP
++ *    |           |          |  |  |  |  |  3G_MODEM
++ *    |           |          |  |  |  |  DIP_SWITCH
++ *    |           |          |  |  |  PROFIBUS_DPM
++ *    |           |          |  |   USB
++ *    |           |          |  MARVELL_SWITCH
++ *    |           |          LWL
++ *    |           NEW DEVCONF FORMAT (for legacy format have to be set to 0)
++ *    DISPLAY (AM35XX based displays)
++ *
++ *   x: reserved for future use (has to be set to 0)
++ *
++ * Following devices are using the deprecated DEVCONF format:
++ *
++ * PFC 200 V1 (AM3505)
++ *
++ * | Device ID (hex) | Device description |
++ * |-----------------|--------------------|
++ * |            000c |           750-8202 |
++ * |            000a |           750-8203 |
++ * |            000e |           750-8204 |
++ * |            000f |           750-8206 |
++ * |            001c |           750-8207 |
++ * |-----------------|--------------------|
++ *
++ * PFC 100 (AM335X)
++ *
++ * | Device ID (hex) | Device description |
++ * |-----------------|--------------------|
++ * |            0028 |      750-8100/8101 |
++ * |            000c |           750-8102 |
++ * |-----------------|--------------------|
++ *
++ * PFC 200 v2 (AM335X)
++ *
++ * | Device ID (hex) | Device description |
++ * |-----------------|--------------------|
++ * |            004e |           750-8208 |
++ * |-----------------|--------------------|
++ *
++ * PFC 200 v3 (AM335X)
++ *
++ * | Device ID (hex) | Device description |
++ * |-----------------|--------------------|
++ * |            000c |           750-8212 |
++ * |            000a |           750-8213 |
++ * |            000e |           750-8214 |
++ * |            0182 |           750-8215 |
++ * |            000f |           750-8216 |
++ * |            001c |           750-8217 |
++ * |-----------------|--------------------|
++ *
++ */
+-- 
+2.7.4
+

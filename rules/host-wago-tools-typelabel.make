@@ -37,6 +37,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(HOST_TYPELABEL_SRC) $(HOST_BUILDDIR)
 	@$(call patchin, HOST_TYPELABEL)
+	cd $(HOST_TYPELABEL_DIR) && sh autogen.sh
 endif
 	@$(call touch)
 
@@ -52,7 +53,6 @@ $(STATEDIR)/host-typelabel.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	cd $(HOST_TYPELABEL_DIR) && sh autogen.sh
 	@$(call world/prepare, HOST_TYPELABEL)
 endif
 	@$(call touch)

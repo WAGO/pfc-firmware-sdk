@@ -19,6 +19,8 @@
 #include <cstdio>
 #include <sstream>
 #include <stdexcept>
+//#include <sys/wait.h>
+#include <cstdlib>
 
 
 namespace wago
@@ -42,8 +44,9 @@ public:
 
     ~process()
     {
-        if (NULL != handle)
-            pclose(handle);
+        if (NULL != handle){
+           handle = NULL;
+        }
     }
 
     process& operator=(const process& rhs) = delete;
@@ -57,8 +60,12 @@ public:
         return *this;
     }
 
+    int close_pipe (void) const
+            { return pclose(handle); }
+
     FILE* get(void) const
             { return handle; }
+
     FILE* release(void)
             { FILE* const _handle = handle; handle = NULL; return _handle; }
 
@@ -69,8 +76,14 @@ private:
     FILE* handle;
 };
 
-
-std::string exe_cmd(const std::string& cmd)
+//------------------------------------------------------------------------------
+/// Executes an external command (can be shell call).
+/// \param cmd command to be executed
+/// \param exit_code reference to return status of executed command
+/// (last exited child).
+/// \return string returned by the executed command
+//------------------------------------------------------------------------------
+std::string exe_cmd(const std::string& cmd, int &exit_code)
 {
     if (0 == cmd.size())
         throw std::logic_error("Can't execute an empty command.");
@@ -89,7 +102,9 @@ std::string exe_cmd(const std::string& cmd)
         if (NULL != fgets(buffer, buffer_size, pipe.get()))
             oss << buffer;
     }
-
+    // get return status of last exited child
+    int ret = pipe.close_pipe();
+    exit_code= WEXITSTATUS (ret);
     return oss.str();
 }
 

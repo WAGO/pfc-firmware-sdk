@@ -4,6 +4,22 @@ CXXFLAGS := $(CXXFLAGS)
 LDFLAGS := $(LDFLAGS)
 ARFLAGS := $(ARFLAGS)
 
+mdmd.elf_SOURCES := $(mdmd.elf_SOURCES)
+mdmd.elf_GENHEADERS := $(mdmd.elf_GENHEADERS)
+mdmd.elf_CPPFLAGS := $(mdmd.elf_CPPFLAGS)
+mdmd.elf_CFLAGS := $(mdmd.elf_CFLAGS)
+mdmd.elf_CXXFLAGS := $(mdmd.elf_CXXFLAGS)
+mdmd.elf_LDFLAGS := $(mdmd.elf_LDFLAGS)
+mdmd.elf_ARFLAGS := $(mdmd.elf_ARFLAGS)
+
+mdm_cuse.elf_SOURCES := $(mdm_cuse.elf_SOURCES)
+mdm_cuse.elf_GENHEADERS := $(mdm_cuse.elf_GENHEADERS)
+mdm_cuse.elf_CPPFLAGS := $(mdm_cuse.elf_CPPFLAGS)
+mdm_cuse.elf_CFLAGS := $(mdm_cuse.elf_CFLAGS)
+mdm_cuse.elf_CXXFLAGS := $(mdm_cuse.elf_CXXFLAGS)
+mdm_cuse.elf_LDFLAGS := $(mdm_cuse.elf_LDFLAGS)
+mdm_cuse.elf_ARFLAGS := $(mdm_cuse.elf_ARFLAGS)
+
 alltests.elf_SOURCES := $(alltests.elf_SOURCES)
 alltests.elf_GENHEADERS := $(alltests.elf_GENHEADERS)
 alltests.elf_CPPFLAGS := $(alltests.elf_CPPFLAGS)
@@ -20,6 +36,112 @@ GEN_DIRS := $(call sort,$(BIN_DIR)/ $(OUT_DIRS) $(GEN_DIRS))
 $(DEP_FILES) : | $(GEN_DIRS)
 
 -include $(DEP_FILES)
+
+mdmd.elf_LINT_SOURCES ?= $(filter-out $(mdmd.elf_NOLINT_SOURCES),$(mdmd.elf_SOURCES))
+OBJS_mdmd.elf := $(call objs,$(mdmd.elf_SOURCES),mdmd.elf/)
+DEPS_mdmd.elf := $(call deps,$(mdmd.elf_SOURCES),mdmd.elf/)
+LOBS_mdmd.elf := $(call lobs,$(mdmd.elf_LINT_SOURCES),mdmd.elf/)
+TIDYS_mdmd.elf := $(call tidys,$(mdmd.elf_LINT_SOURCES),mdmd.elf/)
+$(TIDYS_mdmd.elf): $(mdmd.elf_PRECLANG_FILES)
+PLINTS_mdmd.elf := $(call plints,$(mdmd.elf_LINT_SOURCES),mdmd.elf/)
+$(PLINTS_mdmd.elf): $(mdmd.elf_PRECLANG_FILES)
+
+mdmd.elf: $(BIN_DIR)/mdmd.elf
+
+$(DEPS_mdmd.elf) $(OBJS_mdmd.elf) $(LOBS_mdmd.elf) $(TIDYS_mdmd.elf) $(PLINTS_mdmd.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdmd.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(mdmd.elf_CPPFLAGS)
+
+$(DEPS_mdmd.elf) $(OBJS_mdmd.elf) $(TIDYS_mdmd.elf) $(PLINTS_mdmd.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdmd.elf/lint_mac.h: BUILDTARGET_CXXFLAGS:=$(mdmd.elf_CXXFLAGS)
+
+$(DEPS_mdmd.elf) $(OBJS_mdmd.elf) $(TIDYS_mdmd.elf) $(PLINTS_mdmd.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdmd.elf/lint_mac.h: BUILDTARGET_CFLAGS:=$(mdmd.elf_CFLAGS)
+
+lint-mdmd.elf: flexelint-mdmd.elf clang-tidy-mdmd.elf
+
+$(LOBS_mdmd.elf): BUILDTARGET_LINTFLAGS:=$(mdmd.elf_LINTFLAGS)
+
+flexelint-mdmd.elf: $($(mdmd.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_mdmd.elf)
+
+$(TIDYS_mdmd.elf): BUILDTARGET_TIDYFLAGS:=$(mdmd.elf_TIDYFLAGS) -isystem $(OUT_DIR)/mdmd.elf -include lint_mac.h
+
+$(TIDYS_mdmd.elf): mdmd.elf_CLANG_TIDY_RULESET ?= $(CLANG_TIDY_RULESET)
+
+$(TIDYS_mdmd.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(mdmd.elf_CLANG_TIDY_RULESET) $(mdmd.elf_CLANG_TIDY_CHECKS)))
+
+$(PLINTS_mdmd.elf): BUILDTARGET_PLINTFLAGS:=$(mdmd.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/mdmd.elf -include lint_mac.h
+
+clang-tidy-mdmd.elf: $($(mdmd.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_mdmd.elf)
+
+clean-clang-tidy-mdmd.elf:; $(SILENT)rm --force $(TIDYS_mdmd.elf)
+
+clangsa-mdmd.elf: $(PLINTS_mdmd.elf)
+
+info-txt-mdmd.elf: $(SCRIPT_DIR)/internal/clang/info_txt.template $(MK_FILES); $(SILENT)$(call clangbuild_subst_info_buildtarget,mdmd.elf,$<)
+
+$(OUT_DIR)/mdmd.elf/%.o.d: $(PROJECT_ROOT)/% $(MK_FILES) $(MAKEDEP_SUPPORT_FILES) | $(mdmd.elf_GENHEADERS); $(SILENT)$(call makedep,$@,$<,$(FLAGS))
+
+$(OUT_DIR)/mdmd.elf/%.o: $(PROJECT_ROOT)/% $(MK_FILES) $(CC_SUPPORT_FILES) | $(mdmd.elf_GENHEADERS); $(SILENT)$(call cc,$@,$<,$(FLAGS))
+
+$(OUT_DIR)/mdmd.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) | $(mdmd.elf_GENHEADERS); $(SILENT)$(call lint,$@,$<,$(FLAGS))
+
+mdmd.elf_PRECLANG_FILES=$(OUT_DIR)/mdmd.elf/lint_mac.h
+
+$(OUT_DIR)/mdmd.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(mdmd.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdmd.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+
+$(OUT_DIR)/mdmd.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(mdmd.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdmd.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+
+
+
+mdm_cuse.elf_LINT_SOURCES ?= $(filter-out $(mdm_cuse.elf_NOLINT_SOURCES),$(mdm_cuse.elf_SOURCES))
+OBJS_mdm_cuse.elf := $(call objs,$(mdm_cuse.elf_SOURCES),mdm_cuse.elf/)
+DEPS_mdm_cuse.elf := $(call deps,$(mdm_cuse.elf_SOURCES),mdm_cuse.elf/)
+LOBS_mdm_cuse.elf := $(call lobs,$(mdm_cuse.elf_LINT_SOURCES),mdm_cuse.elf/)
+TIDYS_mdm_cuse.elf := $(call tidys,$(mdm_cuse.elf_LINT_SOURCES),mdm_cuse.elf/)
+$(TIDYS_mdm_cuse.elf): $(mdm_cuse.elf_PRECLANG_FILES)
+PLINTS_mdm_cuse.elf := $(call plints,$(mdm_cuse.elf_LINT_SOURCES),mdm_cuse.elf/)
+$(PLINTS_mdm_cuse.elf): $(mdm_cuse.elf_PRECLANG_FILES)
+
+mdm_cuse.elf: $(BIN_DIR)/mdm_cuse.elf
+
+$(DEPS_mdm_cuse.elf) $(OBJS_mdm_cuse.elf) $(LOBS_mdm_cuse.elf) $(TIDYS_mdm_cuse.elf) $(PLINTS_mdm_cuse.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdm_cuse.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(mdm_cuse.elf_CPPFLAGS)
+
+$(DEPS_mdm_cuse.elf) $(OBJS_mdm_cuse.elf) $(TIDYS_mdm_cuse.elf) $(PLINTS_mdm_cuse.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdm_cuse.elf/lint_mac.h: BUILDTARGET_CXXFLAGS:=$(mdm_cuse.elf_CXXFLAGS)
+
+$(DEPS_mdm_cuse.elf) $(OBJS_mdm_cuse.elf) $(TIDYS_mdm_cuse.elf) $(PLINTS_mdm_cuse.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdm_cuse.elf/lint_mac.h: BUILDTARGET_CFLAGS:=$(mdm_cuse.elf_CFLAGS)
+
+lint-mdm_cuse.elf: flexelint-mdm_cuse.elf clang-tidy-mdm_cuse.elf
+
+$(LOBS_mdm_cuse.elf): BUILDTARGET_LINTFLAGS:=$(mdm_cuse.elf_LINTFLAGS)
+
+flexelint-mdm_cuse.elf: $($(mdm_cuse.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_mdm_cuse.elf)
+
+$(TIDYS_mdm_cuse.elf): BUILDTARGET_TIDYFLAGS:=$(mdm_cuse.elf_TIDYFLAGS) -isystem $(OUT_DIR)/mdm_cuse.elf -include lint_mac.h
+
+$(TIDYS_mdm_cuse.elf): mdm_cuse.elf_CLANG_TIDY_RULESET ?= $(CLANG_TIDY_RULESET)
+
+$(TIDYS_mdm_cuse.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(mdm_cuse.elf_CLANG_TIDY_RULESET) $(mdm_cuse.elf_CLANG_TIDY_CHECKS)))
+
+$(PLINTS_mdm_cuse.elf): BUILDTARGET_PLINTFLAGS:=$(mdm_cuse.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/mdm_cuse.elf -include lint_mac.h
+
+clang-tidy-mdm_cuse.elf: $($(mdm_cuse.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_mdm_cuse.elf)
+
+clean-clang-tidy-mdm_cuse.elf:; $(SILENT)rm --force $(TIDYS_mdm_cuse.elf)
+
+clangsa-mdm_cuse.elf: $(PLINTS_mdm_cuse.elf)
+
+info-txt-mdm_cuse.elf: $(SCRIPT_DIR)/internal/clang/info_txt.template $(MK_FILES); $(SILENT)$(call clangbuild_subst_info_buildtarget,mdm_cuse.elf,$<)
+
+$(OUT_DIR)/mdm_cuse.elf/%.o.d: $(PROJECT_ROOT)/% $(MK_FILES) $(MAKEDEP_SUPPORT_FILES) | $(mdm_cuse.elf_GENHEADERS); $(SILENT)$(call makedep,$@,$<,$(FLAGS))
+
+$(OUT_DIR)/mdm_cuse.elf/%.o: $(PROJECT_ROOT)/% $(MK_FILES) $(CC_SUPPORT_FILES) | $(mdm_cuse.elf_GENHEADERS); $(SILENT)$(call cc,$@,$<,$(FLAGS))
+
+$(OUT_DIR)/mdm_cuse.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) | $(mdm_cuse.elf_GENHEADERS); $(SILENT)$(call lint,$@,$<,$(FLAGS))
+
+mdm_cuse.elf_PRECLANG_FILES=$(OUT_DIR)/mdm_cuse.elf/lint_mac.h
+
+$(OUT_DIR)/mdm_cuse.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(mdm_cuse.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdm_cuse.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+
+$(OUT_DIR)/mdm_cuse.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(mdm_cuse.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/mdm_cuse.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+
+
 
 alltests.elf_LINT_SOURCES ?= $(filter-out $(alltests.elf_NOLINT_SOURCES),$(alltests.elf_SOURCES))
 OBJS_alltests.elf := $(call objs,$(alltests.elf_SOURCES),alltests.elf/)
@@ -68,15 +190,31 @@ $(OUT_DIR)/alltests.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILE
 
 alltests.elf_PRECLANG_FILES=$(OUT_DIR)/alltests.elf/lint_mac.h
 
-$(OUT_DIR)/alltests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/alltests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/alltests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/alltests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
+
+$(OUT_DIR)/mdmd.elf.dbg: $(OBJS_mdmd.elf) $(MK_FILES) $(mdmd.elf_PREREQUISITES) $(LD_SUPPORT_FILES); $(SILENT)$(call ld$(ARTIFACT),mdmd.elf,$@,$(OBJS_mdmd.elf),$(LDFLAGS) $(mdmd.elf_LDFLAGS))
+
+$(OUT_DIR)/mdm_cuse.elf.dbg: $(OBJS_mdm_cuse.elf) $(MK_FILES) $(mdm_cuse.elf_PREREQUISITES) $(LD_SUPPORT_FILES); $(SILENT)$(call ld$(ARTIFACT),mdm_cuse.elf,$@,$(OBJS_mdm_cuse.elf),$(LDFLAGS) $(mdm_cuse.elf_LDFLAGS))
 
 $(OUT_DIR)/alltests.elf.dbg: $(OBJS_alltests.elf) $(MK_FILES) $(alltests.elf_PREREQUISITES) $(LD_SUPPORT_FILES); $(SILENT)$(call ld$(ARTIFACT),alltests.elf,$@,$(OBJS_alltests.elf),$(LDFLAGS) $(alltests.elf_LDFLAGS))
 
 check-alltests.elf: $(BIN_DIR)/alltests.elf; $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_check,alltests.elf,./$(notdir $<))
+
+memcheck-mdmd.elf: $(BIN_DIR)/mdmd.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdmd.elf,./$(notdir $<),MEMCHECK)
+helgrind-mdmd.elf: $(BIN_DIR)/mdmd.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdmd.elf,./$(notdir $<),HELGRIND)
+callgrind-mdmd.elf: $(BIN_DIR)/mdmd.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdmd.elf,./$(notdir $<),CALLGRIND)
+massif-mdmd.elf: $(BIN_DIR)/mdmd.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdmd.elf,./$(notdir $<),MASSIF)
+nulgrind-mdmd.elf: $(BIN_DIR)/mdmd.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdmd.elf,./$(notdir $<),NULGRIND)
+
+memcheck-mdm_cuse.elf: $(BIN_DIR)/mdm_cuse.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdm_cuse.elf,./$(notdir $<),MEMCHECK)
+helgrind-mdm_cuse.elf: $(BIN_DIR)/mdm_cuse.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdm_cuse.elf,./$(notdir $<),HELGRIND)
+callgrind-mdm_cuse.elf: $(BIN_DIR)/mdm_cuse.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdm_cuse.elf,./$(notdir $<),CALLGRIND)
+massif-mdm_cuse.elf: $(BIN_DIR)/mdm_cuse.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdm_cuse.elf,./$(notdir $<),MASSIF)
+nulgrind-mdm_cuse.elf: $(BIN_DIR)/mdm_cuse.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,mdm_cuse.elf,./$(notdir $<),NULGRIND)
 
 memcheck-alltests.elf: $(BIN_DIR)/alltests.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,alltests.elf,./$(notdir $<),MEMCHECK)
 helgrind-alltests.elf: $(BIN_DIR)/alltests.elf $(VALGRIND); $(CHECK_IGNORE_ERROR)$(SILENT) $(call echo_colored,PURPLE,$<) && cd $(dir $<) && $(call clangbuild_valgrind,alltests.elf,./$(notdir $<),HELGRIND)

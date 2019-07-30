@@ -1,0 +1,39 @@
+From cd92290d0b97deb28be8994eeacaf61dc017d450 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>
+Date: Mon, 7 May 2018 19:43:50 +0200
+Subject: [PATCH] xsk: fix 64-bit division
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+i386 builds report:
+  net/xdp/xdp_umem.o: In function `xdp_umem_reg':
+  xdp_umem.c:(.text+0x47e): undefined reference to `__udivdi3'
+
+This fix uses div_u64 instead of the GCC built-in.
+
+Fixes: c0c77d8fb787 ("xsk: add user memory registration support sockopt")
+Signed-off-by: Björn Töpel <bjorn.topel@intel.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+---
+ net/xdp/xdp_umem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/xdp/xdp_umem.c b/net/xdp/xdp_umem.c
+index 881dfde..2b47a1d 100644
+--- a/net/xdp/xdp_umem.c
++++ b/net/xdp/xdp_umem.c
+@@ -209,7 +209,7 @@ int xdp_umem_reg(struct xdp_umem *umem, struct xdp_umem_reg *mr)
+ 	if ((addr + size) < addr)
+ 		return -EINVAL;
+ 
+-	nframes = size / frame_size;
++	nframes = (unsigned int)div_u64(size, frame_size);
+ 	if (nframes == 0 || nframes > UINT_MAX)
+ 		return -EINVAL;
+ 
+-- 
+2.7.4
+

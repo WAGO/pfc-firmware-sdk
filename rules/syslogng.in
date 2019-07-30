@@ -1,89 +1,36 @@
+### SECTION=staging
+### old section:
 ## SECTION=networking
 # syslog-ng configuration
 
 menuconfig SYSLOGNG
 	tristate
 	prompt "syslog-ng                     "
-	select EVENTLOG
+#	select EVENTLOG
 	select GLIB
+	select OPENSSL
+	select PYTHON		if SYSLOGNG_PYTHON_DESTINATION
 	select LIBC_NSL
 	select LIBC_RT
 	select LIBNET		if SYSLOGNG_SPOOF_SOURCE
+	select LIBPCRE
 	select TCPWRAPPER	if SYSLOGNG_TCP_WRAPPER
+	select SYSTEMD		if SYSLOGNG_SYSTEMD
 	help
 	  The next generation syslog daemon.
 
+	  STAGING: remove in ptxdist-2020.01.0
+	  Fails to build with OpenSSL 1.1.x. Update to a new version is
+	  needed.
+
 if SYSLOGNG
 
-config SYSLOGNG_LINUX_CAPS
-	bool
-	prompt "Linux capabilities"
-	default n
-	help
-	  Enable support for managing Linux capabilities
-
-config SYSLOGNG_ENV_WRAPPER
-	bool
-	prompt "environment wrapper support"
-	default y
-	help
-	  Enable wrapper program to set up various environment variables
-	
-config SYSLOGNG_SYSTEMD
-	bool
-	prompt "systemd support"
-	default n
-	help
-	  Enable systemd support	
-
-config SYSLOGNG_PACCT
-	bool
-	prompt "process accounting support (EXPERIMENTAL)"
-	default n
-	help
-	  Enable support for reading Process Accounting files (EXPERIMENTAL)
-	  
-config SYSLOGNG_MONGODB
-	bool
-	prompt "mongodb Support"
-	default n
-	help
-	  Enable mongodb destination
-	  
-config SYSLOGNG_JSON
-	bool
-	prompt "json Support"
-	default n
-	help
-	  Enable support for JSON template formatting
-	  
-config SYSLOGNG_SQL
-	bool
-	prompt "sql Support"
-	default n
-	help
-	  Enable support for SQL destinations.
-	  
-config SYSLOGNG_SSL
-	bool
-	prompt "SSL Support"
-	default n
-	help
-	  Enable SSL support.
-	  
-config SYSLOGNG_PCRE
-	bool
-	prompt "Perl Compatible Regular Expressions"
-	default n
-	help
-	  Enable support for Perl Compatible Regular Expressions
-  
 config SYSLOGNG_TCP_WRAPPER
 	bool
 	prompt "tcpwrapper support"
 	help
 	  Support /etc/hosts.deny and /etc/hosts.allow.
-	
+
 config SYSLOGNG_SPOOF_SOURCE
 	bool
 	prompt "spoof_source feature"
@@ -98,13 +45,31 @@ config SYSLOGNG_SPOOF_SOURCE
 	  original sender. This option only works for UDP
 	  destinations though the original message can be
 	  received by TCP as well.
-	  
-config SYSLOGNG_DEFAULT_MODULES
-        string
-	prompt "Default-Modules"
-	default "afsocket,csvparser,affile,afuser,syslogformat"
+
+config SYSLOGNG_AMQP_DESTINATION
+	bool
+	prompt "support the AMQP destination"
 	help
-	  Sets the default modules loaded by syslog-ng
+	  Enables the ability to publish AMQP messages.
+
+config SYSLOGNG_MONGODB_DESTINATION
+	bool
+	prompt "support the MongoDB destination"
+	help
+	  Enables the ability to send messages to a MongoDB database.
+
+config SYSLOGNG_PYTHON_DESTINATION
+	bool
+	prompt "support the python destination"
+	help
+	  Enables the ability to use inline python in the
+	  syslog-ng configuration file.
+
+config SYSLOGNG_STOMP_DESTINATION
+	bool
+	prompt "support the STOMP destination"
+	help
+	  Enables the ability to send STOMP messages to message brokers.
 
 comment "runtime options   ---"
 
@@ -116,7 +81,16 @@ config SYSLOGNG_CONFIG
 	  Installs (if present) the "./projectroot/etc/syslog-ng.conf"
 	  file from your workspace, otherwise a generic one from the
 	  ptxdist installation
-	  ("<PTXDIST>/generic/etc/syslog-ng.conf").
+	  ("<PTXDIST>/projectroot/etc/syslog-ng.conf").
+
+config SYSLOGNG_SYSTEMD
+	bool
+	default y
+	prompt "Enable systemd support"
+	depends on INITMETHOD_SYSTEMD
+	help
+	  Installs the systemd service file and enables support for the
+	  systemd-journal
 
 config SYSLOGNG_STARTSCRIPT
 	bool
@@ -125,6 +99,6 @@ config SYSLOGNG_STARTSCRIPT
 	  Installs (if present) the
 	  "./projectroot/etc/init.d/syslog-ng" startscript from your
 	  workspace, otherwise a generic one from the ptxdist
-	  installation ("<PTXDIST>/generic/etc/init.d/syslog-ng").
+	  installation ("<PTXDIST>/projectroot/etc/init.d/syslog-ng").
 
 endif

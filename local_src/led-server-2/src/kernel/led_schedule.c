@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 /// \file LedSchedule.c
 ///
-/// \version $Revision: 36652 $
+/// \version $Revision: 35776 $
 ///
 /// \brief the LED scheduler and related functions
 ///

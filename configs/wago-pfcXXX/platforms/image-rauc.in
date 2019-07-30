@@ -19,6 +19,13 @@ menuconfig IMAGE_RAUC
 
 if IMAGE_RAUC
 
+config IMAGE_RAUC_CONFIG
+	string
+	prompt "RAUC config file"
+	default "rauc.config"
+	help
+	  rauc config file for this platform
+
 config IMAGE_RAUC_DESCRIPTION
 	prompt "RAUC Bundle Description PFC"
 	string

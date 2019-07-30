@@ -1,7 +1,7 @@
 From 04b30bfbf2fbdea360125c5fb7297e7377f5b6d4 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 9 Jul 2018 09:46:34 +0200
-Subject: [PATCH 029/144] defaultenv: defaultenv-pfc: add legacy atag boot.
+Subject: [PATCH] defaultenv: defaultenv-pfc: add legacy atag boot.
 
 This commit needs to be removed when the feature from commit 452d863
 upstream next branch is merged.

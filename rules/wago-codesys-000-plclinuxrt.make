@@ -190,7 +190,7 @@ else
 	@$(call install_replace, plclinuxrt, /etc/rts3s.cfg, @FILE_PATH@, "/home/codesys/");
 endif
 endif
-	@$(call install_copy, plclinuxrt, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/LICENSE, /etc/LICENSE, n);
+
 #ifdef PTXCONF_PLCLINUXRT_CODESYS_STARTSCRIPT
 #	@$(call install_alternative, plclinuxrt, 0, 0, 0755, /etc/init.d/codesys, n)
 #	@$(call install_replace, plclinuxrt, /etc/init.d/codesys, @CDS_CGROUPS@, $(CGROUP_ENV))

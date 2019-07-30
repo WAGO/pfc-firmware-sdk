@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   docker iptables hook
+#
+# Brief:    WAGO firewall hook-script to create a loadable ruleset for the pfc
+#           firewall containing all docker-related rules. 
+#           
+#           Docker modifies iptable-rules during its runtime, 
+#           so that after reinitializing the iptables on a firewall-setup-event 
+#           the previously docker-specific rules must be restored as well.
+#
+# Author:   Fabian Schwamborn, WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+DOCKER_PIDFILE="/var/run/docker.pid"
+
+FW_DYN_DIR="/var/run/firewall/iptables"
+FW_DYN_DIR_DEFAULT="$FW_DYN_DIR/default"
+FW_DYN_NAME="docker"
+
+NETNS_PATH="/var/run/netns"
+DOCKER_IPT_NAMESPACE="WAGO_DOCKER_IPT"
+
+
+if  test -e $NETNS_PATH"/"$DOCKER_IPT_NAMESPACE && test -r $DOCKER_PIDFILE && ps -p `cat $DOCKER_PIDFILE` > /dev/null 2>&1; then
+
+    test -d $FW_DYN_DIR_DEFAULT || mkdir -p $FW_DYN_DIR_DEFAULT                                               #ensure that the dynamic-loading mechanism is initialized correctly
+    ip netns exec $DOCKER_IPT_NAMESPACE iptables-save > $FW_DYN_DIR_DEFAULT/$FW_DYN_NAME                      #export all rules from namespace to firewall-loadable file format
+
+else
+
+    test -e $FW_DYN_DIR_DEFAULT/$FW_DYN_NAME && rm -f $FW_DYN_DIR_DEFAULT/$FW_DYN_NAME                                   #remove deprecated rulesets
+fi

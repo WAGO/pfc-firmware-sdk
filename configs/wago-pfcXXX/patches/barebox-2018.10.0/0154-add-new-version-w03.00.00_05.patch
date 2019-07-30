@@ -1,7 +1,7 @@
 From 35199808a01eb6fff0022d1052e3f6f8165b9808 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 8 Jan 2019 14:28:22 +0100
-Subject: [PATCH 154/154] add new version w03.00.00_05
+Subject: [PATCH] add new version w03.00.00_05
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

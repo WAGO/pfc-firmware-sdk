@@ -17,8 +17,8 @@ PACKAGES-$(PTXCONF_LIBCURL) += libcurl
 #
 # Paths and names
 #
-LIBCURL_VERSION	:= 7.54.1
-LIBCURL_MD5	:= 6b6eb722f512e7a24855ff084f54fe55
+LIBCURL_VERSION	:= 7.65.0
+LIBCURL_MD5	:= bb28d0f13a9cf9df475b1710002a79eb
 LIBCURL		:= curl-$(LIBCURL_VERSION)
 LIBCURL_SUFFIX	:= tar.bz2
 LIBCURL_URL	:= https://curl.haxx.se/download/$(LIBCURL).$(LIBCURL_SUFFIX)
@@ -30,10 +30,14 @@ LIBCURL_LICENSE	:= MIT
 # Prepare
 # ----------------------------------------------------------------------------
 
+LIBCURL_PATH  := PATH=$(CROSS_PATH)
+LIBCURL_ENV   := $(CROSS_ENV)
+
 #
 # autoconf
 #
-LIBCURL_AUTOCONF := \
+LIBCURL_CONF_TOOL	:= autoconf
+LIBCURL_CONF_OPT	:= \
 	$(CROSS_AUTOCONF_USR) \
 	--disable-debug \
 	--enable-optimize \
@@ -41,7 +45,7 @@ LIBCURL_AUTOCONF := \
 	--disable-werror \
 	--disable-curldebug \
 	--enable-symbol-hiding \
-	--disable-ares \
+	--$(call ptx/endis, PTXCONF_LIBCURL_C_ARES)-ares \
 	--enable-rt \
 	$(GLOBAL_LARGE_FILE_OPTION) \
 	--$(call ptx/endis, PTXCONF_LIBCURL_HTTP)-http \
@@ -63,33 +67,48 @@ LIBCURL_AUTOCONF := \
 	--enable-libcurl-option \
 	--disable-libgcc \
 	$(GLOBAL_IPV6_OPTION) \
+	--enable-openssl-auto-load-config \
 	--disable-versioned-symbols \
-	--enable-threaded-resolver \
-	--disable-verbose \
+	--$(call ptx/disen, PTXCONF_LIBCURL_C_ARES)-threaded-resolver \
+	--enable-pthreads \
+	--$(call ptx/endis, PTXCONF_LIBCURL_VERBOSE)-verbose \
 	--disable-sspi \
 	--$(call ptx/endis, PTXCONF_LIBCURL_CRYPTO_AUTH)-crypto-auth \
 	--disable-ntlm-wb \
 	--enable-tls-srp \
 	--enable-unix-sockets \
 	--$(call ptx/endis, PTXCONF_LIBCURL_COOKIES)-cookies \
-	--disable-soname-bump \
 	--with-zlib=$(SYSROOT) \
 	--without-gssapi \
-	--with-ssl=$(call ptx/ifdef, PTXCONF_LIBCURL_SSL,$(SYSROOT),no) \
 	--with-random=/dev/urandom \
 	--without-gnutls \
 	--without-polarssl \
 	--without-mbedtls \
 	--without-cyassl \
 	--without-nss \
-	--without-axtls \
 	--with-ca-bundle=$(PTXCONF_LIBCURL_SSL_CABUNDLE_PATH) \
 	--with-ca-path=$(PTXCONF_LIBCURL_SSL_CAPATH_PATH) \
+	--without-ca-fallback \
 	--without-libpsl \
 	--without-libmetalink \
 	--$(call ptx/wwo, PTXCONF_LIBCURL_LIBSSH2)-libssh2 \
 	--without-librtmp \
+	--without-libidn2 \
 	--without-nghttp2
+
+ifdef PTXCONF_CA_CERTIFICATES
+LIBCURL_CONF_OPT += --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
+LIBCURL_CONF_OPT += --with-ca-path=/etc/ssl/certs
+else
+LIBCURL_CONF_OPT += --without-ca-bundle
+LIBCURL_CONF_OPT += --without-ca-path
+endif
+
+ifdef PTXCONF_LIBCURL_SSL
+LIBCURL_CONF_OPT += --with-ssl=$(SYSROOT)/usr
+else
+LIBCURL_CONF_OPT += --without-ssl
+endif
 
 # ----------------------------------------------------------------------------
 # Target-Install

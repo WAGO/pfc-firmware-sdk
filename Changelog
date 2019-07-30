@@ -1,3 +1,30 @@
+Firmware Release 03.01.07 (99)
+System:
+[NEW] New Device: PFC200 with BACnet (750-8212/000-100)
+[NEW] Backups can be encrypted via password.
+[NEW] PHP updated to 7.3
+[NEW] OpenSSL updated to 1.0.2q
+[NEW] OpenSSH updated to 7.9p1
+[NEW] OpenVPN updated to 2.4.6
+[NEW] CA certificated updated to 2019.02.11
+[NEW] CURL updated to 7.65
+[NEW] lighttpd updated to 1.4.53
+
+Runtime System:
+[FIXED] CODESYS 2.3: No access after double download.
+
+Fieldbus Interface & Protocols:
+ - BACnet
+   [NEW] Integration of BACnet profile B-BC (can only be used with 750-8212/000-100)
+ - Cloud Connectivity
+   [NEW] WebSockets are supported for the WAGO protocol.
+
+Libraries:
+[FIXED] WagoAppHttp: Data sporadically in header.
+[FIXED] WagoAppFTP: FTP/FTPS client freezes during processing.
+
+################################################################################
+
 Firmware Release 03.00.39 (99)
 System:
 [FIXED] Unreliable behavior of the mobile connection (750-8207)

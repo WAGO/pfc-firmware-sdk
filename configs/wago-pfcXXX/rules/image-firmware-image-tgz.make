@@ -28,7 +28,7 @@ IMAGE_FIRMWARE_IMAGE_TAR_CONFIG		:= firmware.config
 
 $(IMAGE_FIRMWARE_IMAGE_TAR_IMAGE): $(IMAGEDIR)/root.tgz $(STATEDIR)/barebox_mlo.targetinstall \
 		$(STATEDIR)/barebox.targetinstall $(IMAGEDIR)/linuximage $(STATEDIR)/dtc.targetinstall \
-		$(STATEDIR)/host-wago-cm-production.install $(IMAGEDIR)/boot-mlo.vfat
+		$(STATEDIR)/host-wago-cm-production.install $(IMAGEDIR)/boot.vfat
 	@$(call targetinfo)
 
 #	create directory with firmware related renamed files

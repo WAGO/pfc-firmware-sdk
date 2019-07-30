@@ -1,0 +1,108 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Mon, 23 Mar 2015 09:29:05 +0100
+Subject: [PATCH] fix parallel building
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ Makefile.org     | 22 ++++++++++++++--------
+ crypto/Makefile  |  4 ++--
+ engines/Makefile |  4 ++--
+ 3 files changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/Makefile.org b/Makefile.org
+index f51f0a756c3e..aed1dd978ff4 100644
+--- a/Makefile.org
++++ b/Makefile.org
+@@ -281,18 +281,24 @@ build_libs: build_libcrypto build_libssl openssl.pc
+ build_libcrypto: build_crypto build_engines libcrypto.pc
+ build_libssl: build_ssl libssl.pc
+ 
++ifeq ($(SHARED_LIBS),)
++build_ssl: build_engines
++else
++build_engines: build_ssl
++endif
++
+ build_crypto:
+-	@dir=crypto; target=all; $(BUILD_ONE_CMD)
++	@+dir=crypto; target=all; $(BUILD_ONE_CMD)
+ build_ssl: build_crypto
+-	@dir=ssl; target=all; $(BUILD_ONE_CMD)
++	@+dir=ssl; target=all; $(BUILD_ONE_CMD)
+ build_engines: build_crypto
+-	@dir=engines; target=all; $(BUILD_ONE_CMD)
++	@+dir=engines; target=all; $(BUILD_ONE_CMD)
+ build_apps: build_libs
+-	@dir=apps; target=all; $(BUILD_ONE_CMD)
++	@+dir=apps; target=all; $(BUILD_ONE_CMD)
+ build_tests: build_libs
+-	@dir=test; target=all; $(BUILD_ONE_CMD)
++	@+dir=test; target=all; $(BUILD_ONE_CMD)
+ build_tools: build_libs
+-	@dir=tools; target=all; $(BUILD_ONE_CMD)
++	@+dir=tools; target=all; $(BUILD_ONE_CMD)
+ 
+ all_testapps: build_libs build_testapps
+ build_testapps:
+@@ -311,7 +317,7 @@ libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
+ 			FIPSLD_CC="$(CC)"; CC=$(FIPSDIR)/bin/fipsld; \
+ 			export CC FIPSLD_CC FIPSLD_LIBCRYPTO; \
+ 		fi; \
+-		$(MAKE) -e SHLIBDIRS=crypto  CC="$${CC:-$(CC)}" build-shared && \
++		$(MAKE) -j1 -e SHLIBDIRS=crypto  CC="$${CC:-$(CC)}" build-shared && \
+ 		(touch -c fips_premain_dso$(EXE_EXT) || :); \
+ 	else \
+ 		echo "There's no support for shared libraries on this platform" >&2; \
+@@ -320,7 +326,7 @@ libcrypto$(SHLIB_EXT): libcrypto.a fips_premain_dso$(EXE_EXT)
+ 
+ libssl$(SHLIB_EXT): libcrypto$(SHLIB_EXT) libssl.a
+ 	@if [ "$(SHLIB_TARGET)" != "" ]; then \
+-		$(MAKE) SHLIBDIRS=ssl SHLIBDEPS='-lcrypto' build-shared; \
++		$(MAKE) -j1 SHLIBDIRS=ssl SHLIBDEPS='-lcrypto' build-shared; \
+ 	else \
+ 		echo "There's no support for shared libraries on this platform" >&2; \
+ 		exit 1; \
+diff --git a/crypto/Makefile b/crypto/Makefile
+index 7869996a9c07..76690a1c8619 100644
+--- a/crypto/Makefile
++++ b/crypto/Makefile
+@@ -87,7 +87,7 @@ testapps:
+ 	@if [ -z "$(THIS)" ]; then $(MAKE) -f $(TOP)/Makefile reflect THIS=$@; fi
+ 
+ subdirs:
+-	@target=all; $(RECURSIVE_MAKE)
++	@+target=all; $(RECURSIVE_MAKE)
+ 
+ files:
+ 	$(PERL) $(TOP)/util/files.pl "CPUID_OBJ=$(CPUID_OBJ)" Makefile >> $(TOP)/MINFO
+@@ -102,7 +102,7 @@ links:
+ # lib: $(LIB): are splitted to avoid end-less loop
+ lib:	$(LIB)
+ 	@touch lib
+-$(LIB):	$(LIBOBJ)
++$(LIB):	$(LIBOBJ) subdirs
+ 	$(AR) $(LIB) $(LIBOBJ)
+ 	test -z "$(FIPSLIBDIR)" || $(AR) $(LIB) $(FIPSLIBDIR)fipscanister.o
+ 	$(RANLIB) $(LIB) || echo Never mind.
+diff --git a/engines/Makefile b/engines/Makefile
+index 2058ff405afe..98e41437e1f2 100644
+--- a/engines/Makefile
++++ b/engines/Makefile
+@@ -72,7 +72,7 @@ top:
+ 
+ all:	lib subdirs
+ 
+-lib:	$(LIBOBJ)
++lib:	$(LIBOBJ) subdirs
+ 	@if [ -n "$(SHARED_LIBS)" ]; then \
+ 		set -e; \
+ 		for l in $(LIBNAMES); do \
+@@ -89,7 +89,7 @@ lib:	$(LIBOBJ)
+ 
+ subdirs:
+ 	echo $(EDIRS)
+-	@target=all; $(RECURSIVE_MAKE)
++	@+target=all; $(RECURSIVE_MAKE)
+ 
+ files:
+ 	$(PERL) $(TOP)/util/files.pl Makefile >> $(TOP)/MINFO

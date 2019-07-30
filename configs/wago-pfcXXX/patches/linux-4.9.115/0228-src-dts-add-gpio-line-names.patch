@@ -1,0 +1,178 @@
+From b4816222b36d0da684248998c1954345ef59d39e Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Tue, 14 Aug 2018 16:01:23 +0200
+Subject: [PATCH] src: dts: add gpio line names
+
+Add proper gpio line naming to ease up gpio debugging.
+Use tools from libgpiod to monitor, set and gather
+information about gpio lines.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src.dtsi | 134 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 134 insertions(+)
+
+diff --git a/arch/arm/boot/dts/wago-src.dtsi b/arch/arm/boot/dts/wago-src.dtsi
+index a8d0f90..664f5007 100644
+--- a/arch/arm/boot/dts/wago-src.dtsi
++++ b/arch/arm/boot/dts/wago-src.dtsi
+@@ -671,10 +671,78 @@
+ 	status = "okay";
+ };
+ 
++&gpio0 {
++	gpio-line-names = "MDIO_DATA", /* GPIO 0  0 */
++			"MDIO_CLK", /* GPIO 0  1 */
++			"", /* GPIO 0  2 */
++			"", /* GPIO 0  3 */
++			"", /* GPIO 0  4 */
++			"", /* GPIO 0  5 */
++			"", /* GPIO 0  6 */
++			"", /* GPIO 0  7 */
++			"SYSBOOT12", /* GPIO 0  8 */
++			"SYSBOOT13", /* GPIO 0  9 */
++			"SYSBOOT14", /* GPIO 0 10 */
++			"SYSBOOT15", /* GPIO 0 11 */
++			"DO_CPU_HLK1", /* GPIO 0 12 */
++			"DO_CPU_HLK2", /* GPIO 0 13 */
++			"", /* GPIO 0 14 */
++			"", /* GPIO 0 15 */
++			"", /* GPIO 0 16 */
++			"", /* GPIO 0 17 */
++			"", /* GPIO 0 18 */
++			"", /* GPIO 0 19 */
++			"", /* GPIO 0 20 */
++			"KBUS_nRDY", /* GPIO 0 21 */
++			"", /* GPIO 0 22 */
++			"", /* GPIO 0 23 */
++			"", /* GPIO 0 24 */
++			"", /* GPIO 0 25 */
++			"DO_RS", /* GPIO 0 26 */
++			"nRES_MOD", /* GPIO 0 27 */
++			"KBUS_CMDSEL", /* GPIO 0 28 */
++			"", /* GPIO 0 29 */
++			"", /* GPIO 0 30 */
++			""; /* GPIO 0 31 */
++};
++
+ &gpio1 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpio1_pins>;
+ 
++	gpio-line-names = "", /* GPIO 1  0 */
++			"", /* GPIO 1  1 */
++			"", /* GPIO 1  2 */
++			"", /* GPIO 1  3 */
++			"", /* GPIO 1  4 */
++			"", /* GPIO 1  5 */
++			"", /* GPIO 1  6 */
++			"", /* GPIO 1  7 */
++			"", /* GPIO 1  8 */
++			"LED_K_BUS_G", /* GPIO 1  9 */
++			"", /* GPIO 1 10 */
++			"", /* GPIO 1 11 */
++			"EN_V_SENSOR", /* GPIO 1 12 */
++			"UART4_DE", /* GPIO 1 13 */
++			"UART1_DE", /* GPIO 1 14 */
++			"Over_Current_Detection", /* GPIO 1 15 */
++			"", /* GPIO 1 16 */
++			"nRST_DALI", /* GPIO 1 17 */
++			"", /* GPIO 1 18 */
++			"", /* GPIO 1 19 */
++			"", /* GPIO 1 20 */
++			"", /* GPIO 1 21 */
++			"", /* GPIO 1 22 */
++			"UART_DIR_MOD", /* GPIO 1 23 */
++			"nINT_MOD", /* GPIO 1 24 */
++			"nINT_EXT", /* GPIO 1 25 */
++			"", /* GPIO 1 26 */
++			"", /* GPIO 1 27 */
++			"nINT_PHY", /* GPIO 1 28 */
++			"", /* GPIO 1 29 */
++			"nBOOT_END", /* GPIO 1 30 */
++			"LED_K_BUS_R"; /* GPIO 1 31 */
++
+ 	/* Set VOUT/Sensor 24V permanently to high */
+ 	vout {
+ 		gpio-hog;
+@@ -687,11 +755,77 @@
+ &gpio2 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpio2_pins>;
++
++	gpio-line-names = "", /* GPIO 2  0 */
++			"nINT_RTC", /* GPIO 2  1 */
++			"", /* GPIO 2  2 */
++			"", /* GPIO 2  3 */
++			"", /* GPIO 2  4 */
++			"", /* GPIO 2  5 */
++			"SYSBOOT0", /* GPIO 2  6 */
++			"SYSBOOT1", /* GPIO 2  7 */
++			"SYSBOOT2", /* GPIO 2  8 */
++			"SYSBOOT3", /* GPIO 2  9 */
++			"SYSBOOT4", /* GPIO 2 10 */
++			"SYSBOOT5", /* GPIO 2 11 */
++			"ERRST6", /* GPIO 2 12 */
++			"ERRST7", /* GPIO 2 13 */
++			"ERRST8", /* GPIO 2 14 */
++			"ERRST9", /* GPIO 2 15 */
++			"", /* GPIO 2 16 */
++			"", /* GPIO 2 17 */
++			"UO_HLK1", /* GPIO 2 18 */
++			"UO_HLK2", /* GPIO 2 19 */
++			"", /* GPIO 2 20 */
++			"KBUS_nIRQ", /* GPIO 2 21 */
++			"", /* GPIO 2 22 */
++			"LED_DS_G", /* GPIO 2 23 */
++			"LED_APP_G", /* GPIO 2 24 */
++			"SWITCH_UI", /* GPIO 2 25 */
++			"", /* GPIO 2 26 */
++			"", /* GPIO 2 27 */
++			"", /* GPIO 2 28 */
++			"", /* GPIO 2 29 */
++			"", /* GPIO 2 30 */
++			""; /* GPIO 2 31 */
+ };
+ 
+ &gpio3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpio3_pins>;
++
++	gpio-line-names = "", /* GPIO 3  0 */
++			"", /* GPIO 3  1 */
++			"", /* GPIO 3  2 */
++			"KBUS_nSYNC", /* GPIO 3  3 */
++			"KBUS_nRST", /* GPIO 3  4 */
++			"", /* GPIO 3  5 */
++			"", /* GPIO 3  6 */
++			"", /* GPIO 3  7 */
++			"", /* GPIO 3  8 */
++			"DO_PI", /* GPIO 3  9 */
++			"EN_PHY", /* GPIO 3 10 */
++			"", /* GPIO 3 11 */
++			"", /* GPIO 3 12 */
++			"KNX_SW", /* GPIO 3 13 */
++			"", /* GPIO 3 14 */
++			"", /* GPIO 3 15 */
++			"", /* GPIO 3 16 */
++			"", /* GPIO 3 17 */
++			"MMC0_nCD", /* GPIO 3 18 */
++			"CUST_RES", /* GPIO 3 19 */
++			"nPRESDET", /* GPIO 3 20 */
++			"DO_FAN", /* GPIO 3 21 */
++			"", /* GPIO 3 22 */
++			"", /* GPIO 3 23 */
++			"", /* GPIO 3 24 */
++			"", /* GPIO 3 25 */
++			"", /* GPIO 3 26 */
++			"", /* GPIO 3 27 */
++			"", /* GPIO 3 28 */
++			"", /* GPIO 3 29 */
++			"", /* GPIO 3 30 */
++			""; /* GPIO 3 31 */
+ };
+ 
+ &uart0 {
+-- 
+2.7.4
+

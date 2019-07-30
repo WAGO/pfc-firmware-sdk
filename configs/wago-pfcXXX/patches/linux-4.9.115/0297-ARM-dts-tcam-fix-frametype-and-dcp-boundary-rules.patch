@@ -1,0 +1,242 @@
+From b29b8ed1a8b28e382bc0396704e4bb3046d45737 Mon Sep 17 00:00:00 2001
+From: Stefan Schwalowsky <stefan.schwalowsky@wago.com>
+Date: Thu, 21 Mar 2019 08:34:58 +0100
+Subject: [PATCH 297/297] ARM: dts: tcam: fix frametype and dcp boundary rules
+
+Signed-off-by: Stefan Schwalowsky <stefan.schwalowsky@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi | 115 +++++++++++++++++++-----
+ 1 file changed, 91 insertions(+), 24 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi b/arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi
+index e968d17..95a27b7 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi
+@@ -16,7 +16,7 @@
+ 		ethX11_mrp_test_forwarding {
+ 			id = <1>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+ 			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+ 			ppri-mask = <0x0>;
+@@ -48,7 +48,7 @@
+ 		ethX12_mrp_test_forwarding {
+ 			id = <2>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+ 			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
+ 			ppri-mask = <0x0>;
+@@ -80,7 +80,7 @@
+ 		ethX11_mrp_control_forwarding {
+ 			id = <3>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+ 			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+ 			ppri-mask = <0x0>;
+@@ -112,7 +112,7 @@
+ 		ethX12_mrp_control_forwarding {
+ 			id = <4>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+ 			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
+ 			ppri-mask = <0x0>;
+@@ -140,13 +140,14 @@
+ 				];
+ 		};
+ 
+-		/* ethX11: dcp boundary */
+-		ethX11_dcp_boundary {
++    /* ethX11: dcp ident boundary - Egress of Frames with MAC '01-0E-CF-00-00-00' on ethX11 must be prevented 
++                                    Ingress on ethX12 is allowed, forward to CPU port is allowed */
++		ethX11_dcp_ident_boundary {
+ 			id = <5>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+-			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
++			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
+ 			ppri-mask = <0x0>;
+ 			ppri = <0x0>;
+ 			pvid-mask = <0x0>;
+@@ -154,31 +155,32 @@
+ 			next-id = <0>;
+ 
+ 			dpv-override;
+-			dpv-data = <0x00>;  /* discard dcp frame */
++			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU  */
+ 
+ 			action-override;
+ 			action-data = <0x0>;
+ 
+ 			frame-data = [
++				01 0E CF 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FE FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				];
+ 
+ 			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				];
+ 		};
+ 
+-		/* ethX12: dcp boundary */
+-		ethX12_dcp_boundary {
++		/* ethX12: dcp ident boundary - Egress of Frames with MAC '01-0E-CF-00-00-00' on ethX12 must be prevented 
++		                                Ingress on ethX11 is allowed, forward to CPU port is allowed */
++		ethX12_dcp_ident_boundary {
+ 			id = <6>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+-			spv = <0x10>;       /* use tcam entry for Port 3 -> ethX11 */
++			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+ 			ppri-mask = <0x0>;
+ 			ppri = <0x0>;
+ 			pvid-mask = <0x0>;
+@@ -186,29 +188,94 @@
+ 			next-id = <0>;
+ 
+ 			dpv-override;
+-			dpv-data = <0x00>;  /* discard dcp frame */
++			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU  */
+ 
+ 			action-override;
+ 			action-data = <0x0>;
+ 
+ 			frame-data = [
++				01 0E CF 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FE FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				];
+ 
+ 			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++    /* ethX11: dcp hello boundary - Egress of Frames with MAC '01-0E-CF-00-00-01' on ethX11 must be prevented 
++                                    Ingress on ethX12 is allowed, forward to CPU port is allowed */
++		ethX11_dcp_hello_boundary {
++			id = <7>;
++			frame-type-mask = <3>;
++			frame-type = <0>;
++			spv-mask = <0x7F>;
++			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU  */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				01 0E CF 00 00 01 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX12: dcp hello boundary - Egress of Frames with MAC '01-0E-CF-00-00-01' on ethX12 must be prevented 
++		                                Ingress on ethX11 is allowed, forward to CPU port is allowed */
++		ethX12_dcp_hello_boundary {
++			id = <8>;
++			frame-type-mask = <3>;
++			frame-type = <0>;
++			spv-mask = <0x7F>;
++			spv = <0x08>;       /*  */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU  */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				01 0E CF 00 00 01 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				];
+ 		};
+ 
+ 		/* ethX11: forwarding all frames to CPU */
+ 		ethX11_all_forwarding_to_cpu {
+-			id = <7>;
++			id = <9>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+ 			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+ 			ppri-mask = <0x0>;
+@@ -230,7 +297,7 @@
+ 				];
+ 
+ 			frame-data-mask = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				];
+@@ -238,9 +305,9 @@
+ 
+ 		/* ethX12: forwarding all frames to CPU */
+ 		ethX12_all_forwarding_to_cpu {
+-			id = <11>;
++			id = <10>;
+ 			frame-type-mask = <3>;
+-			frame-type = <1>;
++			frame-type = <0>;
+ 			spv-mask = <0x7F>;
+ 			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
+ 			ppri-mask = <0x0>;
+@@ -262,7 +329,7 @@
+ 				];
+ 
+ 			frame-data-mask = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ 				];
+-- 
+2.7.4
+

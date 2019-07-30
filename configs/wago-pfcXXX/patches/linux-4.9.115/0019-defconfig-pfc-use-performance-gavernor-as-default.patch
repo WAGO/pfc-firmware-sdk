@@ -1,0 +1,27 @@
+From 7c21626252b1a2021e535d6ffc6326199fb82634 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 22 Nov 2016 11:51:33 +0100
+Subject: [PATCH] defconfig: pfc: use performance gavernor as default
+
+---
+ arch/arm/configs/wago_pfc_generic_defconfig | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/arch/arm/configs/wago_pfc_generic_defconfig b/arch/arm/configs/wago_pfc_generic_defconfig
+index e21ff04..588a27c 100644
+--- a/arch/arm/configs/wago_pfc_generic_defconfig
++++ b/arch/arm/configs/wago_pfc_generic_defconfig
+@@ -67,9 +67,8 @@ CONFIG_ZBOOT_ROM_BSS=0x0
+ CONFIG_KEXEC=y
+ CONFIG_CPU_FREQ=y
+ CONFIG_CPU_FREQ_STAT_DETAILS=y
+-CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE=y
+-CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
+ CONFIG_CPU_FREQ_GOV_POWERSAVE=y
++CONFIG_CPU_FREQ_GOV_USERSPACE=y
+ CONFIG_CPU_FREQ_GOV_ONDEMAND=y
+ CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+ CONFIG_CPUFREQ_DT=y
+-- 
+2.7.4
+

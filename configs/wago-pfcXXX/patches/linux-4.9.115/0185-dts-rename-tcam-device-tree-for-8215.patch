@@ -1,0 +1,570 @@
+From 03101869dc1bc8b55d44abf4abc2c5641beda35c Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Thu, 12 Jul 2018 10:26:17 +0200
+Subject: [PATCH] dts: rename tcam device tree for 8215
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi    | 271 +++++++++++++++++++++
+ .../boot/dts/wago-pfc200v3-devconf-0182-tcam.dtsi  | 271 ---------------------
+ 2 files changed, 271 insertions(+), 271 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi
+ delete mode 100644 arch/arm/boot/dts/wago-pfc200v3-devconf-0182-tcam.dtsi
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi b/arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi
+new file mode 100644
+index 0000000..e968d17
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215-tcam.dtsi
+@@ -0,0 +1,271 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/{
++	tcam {
++		compatible = "mv88e6321,tcam";
++		tcam-mode-port-mask = <0x58>;   /* use tcam */
++		debug-port = <0x03>;
++
++		/* ethX11: forwarding mrp test frames to ethX12 */
++		ethX11_mrp_test_forwarding {
++			id = <1>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x10>;  /* frame forwarding to Port 4 -> ethX12 */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				01 15 4E 00 00 01 00 00 00 00 00 00 00 00 00 00
++				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
++				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX12: forwarding mrp test frames to ethX12 */
++		ethX12_mrp_test_forwarding {
++			id = <2>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x08>;  /* frame forwarding to Port 3 -> ethX11 */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				01 15 4E 00 00 01 00 00 00 00 00 00 00 00 00 00
++				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
++				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX11: forwarding mrp control frames to ethX12 and cpu */
++		ethX11_mrp_control_forwarding {
++			id = <3>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x50>;  /* frame forwarding to Port 4 -> ethX12 and cpu*/
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				01 15 4E 00 00 02 00 00 00 00 00 00 00 00 00 00
++				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
++				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX12: forwarding mrp control frames to ethX12 */
++		ethX12_mrp_control_forwarding {
++			id = <4>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x48>;  /* frame forwarding to Port 3 -> ethX11 and cpu */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				01 15 4E 00 00 02 00 00 00 00 00 00 00 00 00 00
++				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
++				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX11: dcp boundary */
++		ethX11_dcp_boundary {
++			id = <5>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x00>;  /* discard dcp frame */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				FE FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX12: dcp boundary */
++		ethX12_dcp_boundary {
++			id = <6>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x10>;       /* use tcam entry for Port 3 -> ethX11 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x00>;  /* discard dcp frame */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				FE FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX11: forwarding all frames to CPU */
++		ethX11_all_forwarding_to_cpu {
++			id = <7>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++
++		/* ethX12: forwarding all frames to CPU */
++		ethX12_all_forwarding_to_cpu {
++			id = <11>;
++			frame-type-mask = <3>;
++			frame-type = <1>;
++			spv-mask = <0x7F>;
++			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
++			ppri-mask = <0x0>;
++			ppri = <0x0>;
++			pvid-mask = <0x0>;
++			pvid = <0x0>;
++			next-id = <0>;
++
++			dpv-override;
++			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU */
++
++			action-override;
++			action-data = <0x0>;
++
++			frame-data = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++
++			frame-data-mask = [
++				00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
++				];
++		};
++	};
++};
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182-tcam.dtsi b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182-tcam.dtsi
+deleted file mode 100644
+index e968d17..0000000
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182-tcam.dtsi
++++ /dev/null
+@@ -1,271 +0,0 @@
+-/*
+- * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-/{
+-	tcam {
+-		compatible = "mv88e6321,tcam";
+-		tcam-mode-port-mask = <0x58>;   /* use tcam */
+-		debug-port = <0x03>;
+-
+-		/* ethX11: forwarding mrp test frames to ethX12 */
+-		ethX11_mrp_test_forwarding {
+-			id = <1>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x10>;  /* frame forwarding to Port 4 -> ethX12 */
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				01 15 4E 00 00 01 00 00 00 00 00 00 00 00 00 00
+-				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-
+-		/* ethX12: forwarding mrp test frames to ethX12 */
+-		ethX12_mrp_test_forwarding {
+-			id = <2>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x08>;  /* frame forwarding to Port 3 -> ethX11 */
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				01 15 4E 00 00 01 00 00 00 00 00 00 00 00 00 00
+-				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-
+-		/* ethX11: forwarding mrp control frames to ethX12 and cpu */
+-		ethX11_mrp_control_forwarding {
+-			id = <3>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x50>;  /* frame forwarding to Port 4 -> ethX12 and cpu*/
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				01 15 4E 00 00 02 00 00 00 00 00 00 00 00 00 00
+-				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-
+-		/* ethX12: forwarding mrp control frames to ethX12 */
+-		ethX12_mrp_control_forwarding {
+-			id = <4>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x48>;  /* frame forwarding to Port 3 -> ethX11 and cpu */
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				01 15 4E 00 00 02 00 00 00 00 00 00 00 00 00 00
+-				88 E3 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-
+-		/* ethX11: dcp boundary */
+-		ethX11_dcp_boundary {
+-			id = <5>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x00>;  /* discard dcp frame */
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FE FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-
+-		/* ethX12: dcp boundary */
+-		ethX12_dcp_boundary {
+-			id = <6>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x10>;       /* use tcam entry for Port 3 -> ethX11 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x00>;  /* discard dcp frame */
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FE FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-
+-		/* ethX11: forwarding all frames to CPU */
+-		ethX11_all_forwarding_to_cpu {
+-			id = <7>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x08>;       /* use tcam entry for Port 3 -> ethX11 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU */
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-
+-		/* ethX12: forwarding all frames to CPU */
+-		ethX12_all_forwarding_to_cpu {
+-			id = <11>;
+-			frame-type-mask = <3>;
+-			frame-type = <1>;
+-			spv-mask = <0x7F>;
+-			spv = <0x10>;       /* use tcam entry for Port 4 -> ethX12 */
+-			ppri-mask = <0x0>;
+-			ppri = <0x0>;
+-			pvid-mask = <0x0>;
+-			pvid = <0x0>;
+-			next-id = <0>;
+-
+-			dpv-override;
+-			dpv-data = <0x40>;  /* frame forwarding to Port 6 -> CPU */
+-
+-			action-override;
+-			action-data = <0x0>;
+-
+-			frame-data = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-
+-			frame-data-mask = [
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+-				];
+-		};
+-	};
+-};
+-- 
+2.7.4
+

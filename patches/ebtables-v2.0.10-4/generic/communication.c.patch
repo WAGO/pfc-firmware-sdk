@@ -1,0 +1,11 @@
+--- ebtables-v2.0.10-1/communication.c	2014-04-09 07:15:59.867117932 +0200
++++ communication.c	2014-04-09 07:03:16.426636480 +0200
+@@ -282,7 +282,7 @@
+ 	}
+ close_file:
+ 	fclose(file);
+-	return 0;
++	return ret;
+ }
+ 
+ /* Gets executed after ebt_deliver_table. Delivers the counters to the kernel

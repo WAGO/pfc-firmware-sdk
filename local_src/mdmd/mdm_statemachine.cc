@@ -1,25 +1,17 @@
-//------------------------------------------------------------------------------
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
-// This file is part of project mdmd (PTXdist package mdmd).
-//
 // Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-///  \file     mdm_statemachine.cc
-///
-///  \brief    Specific statemachine implementation
-///
-///  \author   KNu
-//------------------------------------------------------------------------------
+
+
 #include <glib.h>
 #include <sys/stat.h>
 
 #include "mdm_cuse_worker.h"
 #include "mdm_statemachine.h"
 #include <sstream>
+#include <string>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -64,13 +56,12 @@ MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_
     if (_timeout == 0) throw std::exception();
 
     init();
-    _net_led_blink_code_output = false;
     _storage.init_loglevel();
 
     mdmd_Log(MD_LOG_DBG, "initial state: %s \"%s\"\n", s1.id().c_str(), s1.name().c_str());
 }
 
-#define _GPRS_REG_INIT_STATE   -1
+#define _GPRS_REG_INIT_STATE   (-1)
 
 #define _GPRS_CONNECTIVITY_DISABLED  int(0)
 #define _GPRS_CONNECTIVITY_ENABLED   int(1)
@@ -99,7 +90,6 @@ MdmStatemachine::init()
     _oper_scan_seq = -1;
     _gprs_temporary_disable = false;
     _gprs_autoconnect_count = 0;
-    _current_signal_step = 0;
     _last_cme_error = -1;
     _last_cms_error = -1;
     _sms_list.clear();
@@ -161,12 +151,16 @@ MdmStatemachine::kick_cmd_timeout(unsigned int milliseconds)
     _timeout->kick_timeout(milliseconds);
 }
 
-bool
-MdmStatemachine::get_modem_command_device(std::string &commandDevice) const
+namespace {
+
+bool is_modem_available(const std::string& deviceName) noexcept
 {
-  unsigned int deviceIndex = 0;
-  unsigned int devicesFound = 0;
-  bool retVal = false;
+    struct stat statBuffer{};
+    return stat(deviceName.c_str(), &statBuffer) == 0 ? true : false; 
+}
+
+std::string get_modem_command_device() 
+{
   /*
    * Serial USB modem devices:
    * ttyModem0 = Diagnose and Monitoring
@@ -182,50 +176,53 @@ MdmStatemachine::get_modem_command_device(std::string &commandDevice) const
    * after modem reset the DeviceIDs could be discontinuous (e.g. ttyModem0, ttyModem1, ttyModem3, ttyModem4)
    * but in any case the third device is for AT commands
    */
-  while((deviceIndex < 1000) && (retVal == false))
+  for(int deviceIndex = 0, devicesFound = 0; (deviceIndex < 1000); ++deviceIndex)
   {
-    struct stat statBuffer;
-    char deviceName[16];
-    sprintf(deviceName, "/dev/ttyModem%d", deviceIndex);
-    if(stat(deviceName, &statBuffer) == 0)
+    std::string deviceName = "/dev/ttyModem";
+    deviceName.append(std::to_string(deviceIndex));
+
+    if(is_modem_available(deviceName))
     {
-      devicesFound++;
+      ++devicesFound;
       if (devicesFound == 3)
       {
-        commandDevice = deviceName;
-        retVal = true;
+        return deviceName;
       }
     }
-    deviceIndex++;
   }
-  return retVal;
+
+  throw std::exception(); //TODO: replace with a class ModemException : public std::exception
 }
 
-void
-MdmStatemachine::try_open_modem()
-{
-  if (_port == 0)
-  {
-    std::string commandDevice;
-    if (get_modem_command_device(commandDevice))
-    { //device found
-      _port = new MdmSMPort( this, commandDevice, &_port_read_buffer );
-      if (_port == 0)
-      throw std::exception();
+} // namespace
 
-      try {
-        _port->open();
-      } catch (SerialPortException &e) {
-        delete _port;
-        _port = 0;
-        //mdmd_Log(MD_LOG_ERR, "%s: Open modem port %s failed", get_state().c_str(), commandDevice.c_str() );
-      }
-    }
-    else
-    {
-      mdmd_Log(MD_LOG_ERR, "%s: AT interface device not found", get_state().c_str() );
-    }
+void MdmStatemachine::open_modem_port(const std::string& commandDevice) 
+{
+  _port = new MdmSMPort( this, commandDevice, &_port_read_buffer );
+  if (_port == nullptr)
+  {
+    throw std::exception(); //TODO: replace with a class ModemException : public std::exception
   }
+  _port->open();
+}
+
+void MdmStatemachine::try_open_modem()
+{
+    try {
+      std::string commandDevice = get_modem_command_device();
+      open_modem_port(commandDevice);
+    }
+    catch (SerialPortException &e) {
+        delete _port;
+        _port = nullptr;
+        //mdmd_Log(MD_LOG_ERR, "%s: Open modem port %s failed", get_state().c_str(), commandDevice.c_str() );
+    }
+    catch(std::exception& e) {
+      mdmd_Log(MD_LOG_ERR, "%s: Initialization of AT interface failed.", get_state().c_str() );
+    }
+    catch(...)  {
+      mdmd_Log(MD_LOG_ERR, "%s: Unpredicted exception in try_open_modem() occured.", get_state().c_str() );
+    }
 }
 
 void
@@ -235,17 +232,17 @@ MdmStatemachine::clear_current_oper()
     {
       mdmd_Log(MD_LOG_INF, "%s: Mobile Network: operator=0(invalid)\n", get_state().c_str());
       _current_oper.clear();
-      update_status_leds();
     }
+    _diagnostic.set_access_class(MdmAccessClass::NONE);
 }
 
 void
 MdmStatemachine::clear_modem_port()
 {
-    if (_port != 0)
+    if (_port != nullptr)
     {
       delete _port;
-      _port = 0;
+      _port = nullptr;
     }
     _port_read_buffer.clear();
 
@@ -533,144 +530,42 @@ MdmStatemachine::wwan_renew()
   }
 }
 
-void
-MdmStatemachine::log_event(unsigned int id)
-{
-  switch(id)
-  {
-    case DIAG_3GMM_ERR_NOSIM:
-    case DIAG_3GMM_ERR_SIMAUTH:
-    case DIAG_3GMM_ERR_PORT_NOT_READY:
-    case DIAG_3GMM_ERR_INIT_FAIL:
-    case DIAG_3GMM_ERR_RESET_FAIL:
-      _net_led_blink_code_output = true;
-      _dbus_server->emit_diag_signal(DIAG_3GMM_OPER_SIGNAL_6_OFF, true, 0);
-      _dbus_server->emit_diag_signal(DIAG_3GMM_OPER_SIGNAL_5_OFF, true, 0);
-      _dbus_server->emit_diag_signal(DIAG_3GMM_OPER_SIGNAL_4_OFF, true, 0);
-      _dbus_server->emit_diag_signal(DIAG_3GMM_OPER_SIGNAL_3_OFF, true, 0);
-      _dbus_server->emit_diag_signal(DIAG_3GMM_OPER_SIGNAL_2_OFF, true, 0);
-      _dbus_server->emit_diag_signal(DIAG_3GMM_OPER_SIGNAL_1_OFF, true, 0);
-      break;
-    default:
-      break;
-  }
-  _dbus_server->emit_diag_signal(id, true, 0);
-}
-
-void
-MdmStatemachine::update_status_leds()
-{
-  if (!_net_led_blink_code_output)
-  {
-    if (_current_oper.is_valid())
-    {
-      mdmd_Log(MD_LOG_DBG, "%s: operator valid", get_state().c_str());
-      int i;
-
-      if (is_oper_registered())
-      {
-        mdmd_Log(MD_LOG_DBG, "%s: operator registered", get_state().c_str());
-        if (_current_oper.is_type_3g())
-        {
-          log_event( DIAG_3GMM_OPER_NET_3G);
-        }
-        else
-        {
-          log_event( DIAG_3GMM_OPER_NET_2G);
-        }
-      }
-      else
-      {
-        mdmd_Log(MD_LOG_DBG, "%s: operator not registered", get_state().c_str());
-        log_event( DIAG_3GMM_OPER_NO_NET );
-        clear_current_oper();//set current operator invalid if switch from registered to not registered
-      }
-
-      for (i = 0; i < _current_signal_step; i++)
-      {
-        switch (i)
-        {
-        case 0:
-          log_event( DIAG_3GMM_OPER_SIGNAL_1_ON);
-          break;
-        case 1:
-          log_event( DIAG_3GMM_OPER_SIGNAL_2_ON);
-          break;
-        case 2:
-          log_event( DIAG_3GMM_OPER_SIGNAL_3_ON);
-          break;
-        case 3:
-          log_event( DIAG_3GMM_OPER_SIGNAL_4_ON);
-          break;
-        case 4:
-          log_event( DIAG_3GMM_OPER_SIGNAL_5_ON);
-          break;
-        case 5:
-          log_event( DIAG_3GMM_OPER_SIGNAL_6_ON);
-          break;
-        default:
-          break;
-        }
-      }
-      for (i = 6; i > _current_signal_step; i--)
-      {
-        switch (i)
-        {
-          case 6:
-            log_event( DIAG_3GMM_OPER_SIGNAL_6_OFF);
-            break;
-          case 5:
-            log_event( DIAG_3GMM_OPER_SIGNAL_5_OFF);
-            break;
-          case 4:
-            log_event( DIAG_3GMM_OPER_SIGNAL_4_OFF);
-            break;
-          case 3:
-            log_event( DIAG_3GMM_OPER_SIGNAL_3_OFF);
-            break;
-          case 2:
-            log_event( DIAG_3GMM_OPER_SIGNAL_2_OFF);
-            break;
-          case 1:
-            log_event( DIAG_3GMM_OPER_SIGNAL_1_OFF);
-            break;
-          default:
-            break;
-        }
-      }
-    }
-    else
-    {
-      mdmd_Log(MD_LOG_DBG, "%s: operator invalid", get_state().c_str());
-      log_event( DIAG_3GMM_OPER_SIGNAL_6_OFF);
-      log_event( DIAG_3GMM_OPER_SIGNAL_5_OFF);
-      log_event( DIAG_3GMM_OPER_SIGNAL_4_OFF);
-      log_event( DIAG_3GMM_OPER_SIGNAL_3_OFF);
-      log_event( DIAG_3GMM_OPER_SIGNAL_2_OFF);
-      log_event( DIAG_3GMM_OPER_SIGNAL_1_OFF);
-      log_event( DIAG_3GMM_OPER_NO_NET );
-    }
-  }
-}
-
-void
-MdmStatemachine::stop_net_led_blink_code()
-{
-  _net_led_blink_code_output = false;
-  update_status_leds();
-}
 
 void
 MdmStatemachine::set_current_oper_csq(int ber, int rssi)
 {
-  int new_signal_step;
+  const MdmSignalQualityLevel previous_signal_quality = _diagnostic.get_signal_quality_level();
   _current_oper.set_csq(ber, rssi);
-  new_signal_step = _current_oper.get_quality_step();
-  if (_current_signal_step != new_signal_step)
+  switch(_current_oper.get_quality_step())
   {
-    mdmd_Log(MD_LOG_INF, "%s: Signal Quality: level=%d\n", get_state().c_str(), new_signal_step);
-    _current_signal_step = new_signal_step;
-    update_status_leds();
+    default:
+      //no break;
+    case 0:
+      _diagnostic.set_signal_quality_level((MdmSignalQualityLevel::NONE));
+      break;
+    case 1:
+      _diagnostic.set_signal_quality_level((MdmSignalQualityLevel::MARGINAL));
+      break;
+    case 2:
+      _diagnostic.set_signal_quality_level((MdmSignalQualityLevel::BAD));
+      break;
+    case 3:
+      _diagnostic.set_signal_quality_level((MdmSignalQualityLevel::SUFFICIENT));
+      break;
+    case 4:
+      _diagnostic.set_signal_quality_level((MdmSignalQualityLevel::STABLE));
+      break;
+    case 5:
+      _diagnostic.set_signal_quality_level((MdmSignalQualityLevel::GOOD));
+      break;
+    case 6:
+      _diagnostic.set_signal_quality_level((MdmSignalQualityLevel::EXCELLENT));
+      break;
+  }
+  const MdmSignalQualityLevel new_signal_quality = _diagnostic.get_signal_quality_level();
+  if (previous_signal_quality != new_signal_quality)
+  {
+    mdmd_Log(MD_LOG_INF, "%s: Signal Quality: level=%d\n", get_state().c_str(), static_cast<int>(new_signal_quality));
   }
 }
 
@@ -683,15 +578,26 @@ MdmStatemachine::set_oper_reg_state(int state, const std::string &lac, const std
                             (_oper_reg_lac.compare(lac) != 0);
   _oper_reg_cid = cid;
   _oper_reg_lac = lac;
-  if (_oper_reg_state != state)
-  {
-    _oper_reg_state = state;
-    update_status_leds();
-  }
+  _oper_reg_state = state;
   if (statusChange)
   {
     mdmd_Log(MD_LOG_INF, "%s: Mobile Network: state=%d(%s), area=%s, cell=%s\n", get_state().c_str(),
-             state, ((state==1)||(state==5)) ? "registered" : "not registered", lac.c_str(), cid.c_str());
+             state, (is_oper_registered()) ? "registered" : "not registered", lac.c_str(), cid.c_str());
+  }
+  if ((is_oper_registered()) && (_current_oper.is_valid()))
+  {
+    if (_current_oper.is_type_3g())
+    {
+      _diagnostic.set_access_class(MdmAccessClass::UMTS);
+    }
+    else
+    {
+      _diagnostic.set_access_class(MdmAccessClass::GSM);
+    }
+  }
+  else
+  {
+    _diagnostic.set_access_class(MdmAccessClass::NONE);
   }
 }
 
@@ -773,7 +679,21 @@ MdmStatemachine::set_current_oper(int id, int act)
     _current_oper.set_id(id);
     _current_oper.set_act(act);
     _current_oper.set_current();
-    update_status_leds();
+  }
+  if ((is_oper_registered()) && (_current_oper.is_valid()))
+  {
+    if (_current_oper.is_type_3g())
+    {
+      _diagnostic.set_access_class(MdmAccessClass::UMTS);
+    }
+    else
+    {
+      _diagnostic.set_access_class(MdmAccessClass::GSM);
+    }
+  }
+  else
+  {
+    _diagnostic.set_access_class(MdmAccessClass::NONE);
   }
 }
 

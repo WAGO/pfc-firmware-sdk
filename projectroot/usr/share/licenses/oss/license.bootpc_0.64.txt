@@ -1,3 +1,5 @@
+bootpc-0.64/LICENCE
+
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 

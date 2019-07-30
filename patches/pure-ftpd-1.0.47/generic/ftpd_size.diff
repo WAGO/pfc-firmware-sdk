@@ -1,0 +1,17 @@
+--- pure-ftpd-1.0.43.orig/src/ftpd.c	2012-11-21 13:38:32.000000000 +0000
++++ pure-ftpd-1.0.43/src/ftpd.c	2012-11-22 15:34:00.000000000 +0000
+@@ -4378,6 +4381,13 @@
+         }
+     }
+ #endif
++    
++    // Error during file transfer => delete transferred part of file
++    if( (-1 == ret) )
++    {
++      unlink(ul_name);
++      goto end;
++    }
+ 
+     uploaded += (unsigned long long) ulhandler.total_uploaded;
+     {
+

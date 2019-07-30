@@ -83,6 +83,10 @@ readonly WAGO_FW_UPDATE_PANIC_HOLD_ERROR_FLAG="false"
 readonly WAGO_FW_UPDATE_PANIC_KEEP_APP_FLAG="true"
 readonly WAGO_FW_UPDATE_PANIC_SKIP_SETTINGS_FLAG="false"
 
+# Check strings
+readonly WAGO_FW_UPDATE_VALID_SYSTEM_NUMBER_REGEX="^[1-2]$"
+
+
 # Function to store current state + sub state and optionally set new ones.
 #
 # Param 1: New FW-Update state (optional)
@@ -678,7 +682,17 @@ fwupdate_get_timeout()
 #-----------------------------------------------------------------------------#
 fwupdate_set_old_system_number()
 {
-    fwupdate_set_value "$WAGO_FW_UPDATE_OLD_SYSTEM_NUMBER_KEY" $1
+    local NEW_VALUE=$1
+    local RESULT=0
+
+    # Set old system number
+    if [[ "$NEW_VALUE" =~ $WAGO_FW_UPDATE_VALID_SYSTEM_NUMBER_REGEX ]]; then
+        fwupdate_set_value "$WAGO_FW_UPDATE_OLD_SYSTEM_NUMBER_KEY" $NEW_VALUE
+    else
+        RESULT=$CONFIG_DATA_ERROR
+    fi
+
+    return $RESULT
 }
 
 # Function to get the number of the old system.
@@ -718,7 +732,17 @@ fwupdate_get_old_system_number()
 #-----------------------------------------------------------------------------#
 fwupdate_set_new_system_number()
 {
-    fwupdate_set_value "$WAGO_FW_UPDATE_NEW_SYSTEM_NUMBER_KEY" $1
+    local NEW_VALUE=$1
+    local RESULT=0
+
+    # Set old system number
+    if [[ "$NEW_VALUE" =~ $WAGO_FW_UPDATE_VALID_SYSTEM_NUMBER_REGEX ]]; then
+        fwupdate_set_value "$WAGO_FW_UPDATE_NEW_SYSTEM_NUMBER_KEY" $NEW_VALUE
+    else
+        RESULT=$CONFIG_DATA_ERROR
+    fi
+
+    return $RESULT
 }
 
 # Function to get the number of the new system.

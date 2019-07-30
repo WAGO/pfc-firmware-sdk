@@ -1,0 +1,31 @@
+From ffbc3a0a5b701f432c2716a794ab081c98e1089d Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 26 Feb 2018 13:20:56 +0100
+Subject: [PATCH] dts: change from usb0 to ubs1 interface
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+index 63110ce..b19b2df 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
++++ b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+@@ -79,11 +79,11 @@
+         status = "okay";
+ };
+ 
+-&usb0_phy {
++&usb1_phy {
+         status = "okay";
+ };
+ 
+-&usb0 {
++&usb1 {
+         status = "okay";
+         dr_mode = "host";
+ };
+-- 
+2.7.4
+

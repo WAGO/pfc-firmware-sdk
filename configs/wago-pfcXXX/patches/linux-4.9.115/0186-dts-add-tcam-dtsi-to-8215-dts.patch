@@ -1,0 +1,25 @@
+From fd580ce61ce20b6c0414fdc55b6fa5f955da9074 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Thu, 12 Jul 2018 10:28:53 +0200
+Subject: [PATCH] dts: add tcam dtsi to 8215 dts
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8215.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215.dts b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+index 0af392a..16ee54f 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8215.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+@@ -10,6 +10,7 @@
+ #include "am335x-pfc-750_821x.dtsi"
+ #include "am3xxx-pfc-devconf-desc.dtsi"
+ #include "am335x-pfc-750_8208-dcan.dtsi"
++#include "am335x-pfc-750_8215-tcam.dtsi"
+ 
+ /{
+ 	model = "WAGO PFC200 750-8215";
+-- 
+2.7.4
+

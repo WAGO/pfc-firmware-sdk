@@ -1,0 +1,62 @@
+From bf9f3e382bc0bf6140c9aa1f48bfa7ffe62f838c Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Wed, 18 Oct 2017 11:07:57 +0200
+Subject: [PATCH] wsysinit: add reset state member
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/mach-omap2/wsysinit.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/wsysinit.c b/arch/arm/mach-omap2/wsysinit.c
+index 72114a7..ddb182b 100644
+--- a/arch/arm/mach-omap2/wsysinit.c
++++ b/arch/arm/mach-omap2/wsysinit.c
+@@ -212,6 +212,10 @@ int __wsysinit_production_mode = WSYSINIT_PRODUCTION_MODE_DISABLED;
+ core_param(production_mode, __wsysinit_production_mode, int, 0000);
+ EXPORT_SYMBOL(__wsysinit_production_mode);
+ 
++char *__wsysinit_reset_state = "unknown";
++EXPORT_SYMBOL(__wsysinit_reset_state);
++core_param(reset_state, __wsysinit_reset_state, charp, 0);
++
+ /* WSYSINIT SYSFS Init */
+ 
+ static dev_t wsysinit_sysfs_dev;
+@@ -307,6 +311,17 @@ ssize_t wsysinit_sysfs_board_variant_show(struct device* dev, struct device_attr
+ 	return strlen(buf);
+ }
+ 
++ssize_t wsysinit_sysfs_boot_reset_state_show(struct device *dev,
++					     struct device_attribute *attr,
++					     char *buf)
++{
++	if (__wsysinit_reset_state)
++		sprintf(buf, "%s\n", __wsysinit_reset_state);
++	else
++		sprintf(buf, "unknown\n");
++	return strlen(buf);
++}
++
+ DEVICE_ATTR (         devconf , 0444,         wsysinit_sysfs_devconf_show, NULL);
+ DEVICE_ATTR (     bootversion , 0444,     wsysinit_sysfs_bootversion_show, NULL);
+ DEVICE_ATTR (   kernelversion , 0444,   wsysinit_sysfs_kernelversion_show, NULL);
+@@ -316,6 +331,7 @@ DEVICE_ATTR (    tty_service  , 0444,     wsysinit_sysfs_tty_service_show, NULL)
+ DEVICE_ATTR (    tty_rs232_485, 0444,   wsysinit_sysfs_tty_rs232_485_show, NULL);
+ DEVICE_ATTR (    dp_trig_reset, 0200,               NULL, dp_sysfs_trig_reset);
+ DEVICE_ATTR (    board_variant, 0444,   wsysinit_sysfs_board_variant_show, NULL);
++DEVICE_ATTR(boot_reset_state, 0444, wsysinit_sysfs_boot_reset_state_show, NULL);
+ 
+ static void wsysinit_sysfs_init(void)
+ {
+@@ -327,6 +343,7 @@ static void wsysinit_sysfs_init(void)
+ 	device_create_file(wsysinit_sysfs_device, &dev_attr_production_mode);
+ 	device_create_file(wsysinit_sysfs_device, &dev_attr_dp_trig_reset);
+ 	device_create_file(wsysinit_sysfs_device, &dev_attr_board_variant);
++	device_create_file(wsysinit_sysfs_device, &dev_attr_boot_reset_state);
+ 
+ 	if (wsysinitset.nand_eccmode)
+ 		device_create_file(wsysinit_sysfs_device, &dev_attr_nand_eccmode);
+-- 
+2.7.4
+

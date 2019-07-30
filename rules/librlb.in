@@ -1,0 +1,28 @@
+## SECTION=wago_specific_libs
+
+menuconfig LIBRLB
+	bool
+	prompt "librlb"
+	select HOST_CMAKE
+	select GOOGLETEST
+	help
+	  provides access to RLB stack
+
+if LIBRLB
+
+config LIBRLB_BUILD_TESTING
+	bool
+	prompt "build unit tests of librlb"
+endif
+
+config LIBRLB_URL_TEMPLATE
+      string
+# FIXME: Temporarily removed dependency so that the URL can be set even when the package is disabled (AGa)
+#        To be removed when the package's libuio related incompatibility has been fixed.
+#      depends on LIBRLB
+      prompt "URL template"
+      default "%ARTIFACTORY_BASE_URL%/rlb-generic-prod-local/wago/rlb-stack/librlb-Source/librlb-Source-%VERSION%.tgz"
+      help
+        Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+        See Confluence for further details.
+

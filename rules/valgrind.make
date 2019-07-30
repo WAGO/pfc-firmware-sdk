@@ -19,14 +19,14 @@ PACKAGES-$(PTXCONF_ARCH_ARM)-$(PTXCONF_VALGRIND) += valgrind
 #
 # Paths and names
 #
-VALGRIND_VERSION	:= 3.13.0
-VALGRIND_MD5		:= 817dd08f1e8a66336b9ff206400a5369
-VALGRIND			:= valgrind-$(VALGRIND_VERSION)
+VALGRIND_VERSION	:= 3.14.0
+VALGRIND_MD5		:= 74175426afa280184b62591b58c671b3
+VALGRIND		:= valgrind-$(VALGRIND_VERSION)
 VALGRIND_SUFFIX		:= tar.bz2
 VALGRIND_URL		:= http://valgrind.org/downloads/$(VALGRIND).$(VALGRIND_SUFFIX)
 VALGRIND_SOURCE		:= $(SRCDIR)/$(VALGRIND).$(VALGRIND_SUFFIX)
 VALGRIND_DIR		:= $(BUILDDIR)/$(VALGRIND)
-VALGRIND_LICENSE	:= GPLv2
+VALGRIND_LICENSE	:= GPL-2.0-only
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -45,24 +45,25 @@ VALGRIND_ENV	:= \
 	$(CROSS_ENV) \
 	valgrind_cv_sys_kernel_version=$(VALGRIND_KERNEL_VERSION)
 
+ifdef PTXCONF_VALGRIND
+ifeq ($(VALGRIND_KERNEL_VERSION),)
+ $(warning ######################### ERROR ################################)
+ $(warning # Linux kernel version required in order to make valgrind work #)
+ $(warning #      Define a platform kernel or the kernel headers          #)
+ $(warning ################################################################)
+ $(error )
+endif
+endif
+
 #
 # autoconf
 #
-VALGRIND_AUTOCONF := \
+VALGRIND_CONF_TOOL	:= autoconf
+VALGRIND_CONF_OPT	:= \
 	$(CROSS_AUTOCONF_USR) \
+	--without-mpicc \
 	--enable-tls
 
-$(STATEDIR)/valgrind.extract.post: $(STATEDIR)/autogen-tools
-
-$(STATEDIR)/valgrind.prepare:
-	@$(call targetinfo)
-	@$(call clean, $(VALGRIND_DIR)/config.cache)
-	cd $(VALGRIND_DIR) && \
-		sh autogen.sh &&\
-		sed -ir "s/armv7/arm/g" configure && \
-		$(VALGRIND_PATH) $(VALGRIND_ENV) \
-		./configure $(VALGRIND_AUTOCONF)
-	@$(call touch)
 # ----------------------------------------------------------------------------
 # Target-Install
 # ----------------------------------------------------------------------------
@@ -82,16 +83,7 @@ ifndef PTXCONF_VALGRIND_SKIP_TARGETINSTALL
 		$(call install_copy, valgrind, 0, 0, 0755, -, /$$file, n) \
 	done
 
-	@cd $(VALGRIND_PKGDIR) && \
-		find usr/lib/valgrind -name "*.supp" -o -name "*.so" | while read file; do \
-		$(call install_copy, valgrind, 0, 0, 0644, -, /$$file, n) \
-	done
-
-	@cd $(VALGRIND_PKGDIR) && \
-		find usr/lib/valgrind -type f \
-			\! -wholename "*.a" \! -wholename "*.supp" \! -wholename "*.so" | while read file; do \
-		$(call install_copy, valgrind, 0, 0, 0755, -, /$$file) \
-	done
+	@$(call install_glob, valgrind, 0, 0, -, /usr/lib/valgrind,,*.a)
 
 	@$(call install_finish, valgrind)
 

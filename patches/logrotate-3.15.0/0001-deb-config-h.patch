@@ -1,0 +1,22 @@
+From: unknown author <unknown.author@example.com>
+Date: Thu, 11 Jun 2015 15:35:31 +0200
+Subject: [PATCH] deb-config-h
+
+Fix locations of STATEFILE and DEFAULT_MAIL_COMMAND for Debian.
+---
+--- logrotate-3.15.0/configure.ac.bak	2019-02-27 17:36:39.678967628 +0100
++++ logrotate-3.15.0/configure.ac	2019-02-27 17:37:18.402967661 +0100
+@@ -57,11 +57,11 @@
+ AS_IF([test "$ac_cv_lib_acl_acl_get_file" = yes],
+   echo "1" > ./test/test.ACL; WITH_ACL="yes";, echo "0" > ./test/test.ACL;)
+ 
+-DEFAULT_MAIL_COMMAND="/bin/mail"
++DEFAULT_MAIL_COMMAND="/usr/bin/mail"
+ COMPRESS_COMMAND="/bin/gzip"
+ UNCOMPRESS_COMMAND="/bin/gunzip"
+ COMPRESS_EXT=".gz"
+-STATE_FILE_PATH="/var/lib/logrotate.status"
++STATE_FILE_PATH="/var/lib/logrotate/status"
+ 
+ case "$host" in
+   *-hpux*)

@@ -39,7 +39,8 @@ MAIN_BUILDTARGETS += \
 	testapp.elf \
 	cpuloadmonitor.elf
 
-TEST_BUILDTARGETS += \
+# This package does not contain any tests yet.
+#TEST_BUILDTARGETS += \
 	alltests.elf
 
 BUILDTARGETS += \

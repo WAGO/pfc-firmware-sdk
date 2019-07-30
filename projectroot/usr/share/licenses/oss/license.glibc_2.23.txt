@@ -1,3 +1,5 @@
+glibc-2.23//COPYING
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 
@@ -338,6 +340,8 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
 
+glibc-2.23//LICENSES
+
 This file contains the copying permission notices for various files in the
 GNU C Library distribution that have copyright owners other than the Free
 Software Foundation.  These notices all require that a copy of the notice
@@ -544,7 +548,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The files inet/getnameinfo.c and sysdeps/posix/getaddrinfo.c are copyright
 (C) by Craig Metz and are distributed under the following license:
 
-The Inner Net License, Version 2.00
+/* The Inner Net License, Version 2.00
 
   The author(s) grant permission for redistribution and use in source and
 binary forms, with or without modification, of the software and documentation
@@ -577,7 +581,7 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  If these license terms cause you a real problem, contact the author.
+  If these license terms cause you a real problem, contact the author.  */
 
 The file sunrpc/des_impl.c is copyright Eric Young:
 
@@ -807,6 +811,8 @@ Copyright 2001 by Stephen L. Moshier <moshier@na-net.ornl.gov>
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, see
  <http://www.gnu.org/licenses/>.  */
+
+glibc-2.23//COPYING.LIB
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
@@ -1310,6 +1316,8 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
+
+glibc-2.23//posix/rxspencer/COPYRIGHT
 
 Copyright 1992, 1993, 1994, 1997 Henry Spencer.  All rights reserved.
 This software is not subject to any license of the American Telephone

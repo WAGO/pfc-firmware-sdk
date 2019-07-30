@@ -16,7 +16,7 @@
 # Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
-# workaround, so lock is not taken while complete rauc install
+# Workaround rauc install lock, so lock is released while hooks called
 mv /var/lock/rauc_barebox.lock /var/lock/rauc_barebox.lock.install 
 touch /var/lock/rauc_barebox.lock
 
@@ -28,7 +28,6 @@ if [ ! -f "$HOOKS_DIR/hooks_common" ]; then
 fi
 source "$HOOKS_DIR/hooks_common"
 
-eval $($RAUC status --output-format=shell | grep RAUC_SYSTEM_BOOTED_BOOTNAME)
 
 # Load hook routine for current slot and state
 fwupdate_report_info "Call for hook \"${1}\" of slot \"${RAUC_SLOT_NAME}\" (slot class \"${RAUC_SLOT_CLASS}\")"
@@ -51,10 +50,10 @@ esac
 
 
 # Call hook routine
-hook_routine $(cat /sys/class/wago/system/board_variant)
+hook_routine $(< /sys/class/wago/system/board_variant)
 RESULT=$?
 
-# workaround
+# End of workaround, take lock again
 rm /var/lock/rauc_barebox.lock
 mv /var/lock/rauc_barebox.lock.install /var/lock/rauc_barebox.lock
 

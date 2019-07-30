@@ -50,6 +50,7 @@ static void set_errormsg(char *emsg, int error)
 
 int8_t nvram_init_with_addr(void* map_addr)
 {
+	/* TODO: Resolve code-duplication here */
 	nvram_uio_device = uio_find_devices_by_name("UIO_NVRAM");
 	if (!nvram_uio_device) {
 		set_errormsg("libnvram error: Find NVRAM UIO device", errno);

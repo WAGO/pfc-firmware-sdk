@@ -85,36 +85,41 @@ fi
 # save settings
 #-------------------------------------------------------------
 
-if [ -n "$backupFile" ]; then
+if [ -z "$backupFile" ]; then
+  #unknown operation
+  exit "$INVALID_PARAMETER"
+fi
 
-  # start backup as subprocess (we start progress bar in parallel and have to
-  # know when the backup is over (see after closing parenthesis for details)
-  (
-  # save the actual configuration in backup file
-  # check if backup file can be written
-  touch "$backupFile"
-  if [ "$?" != $SUCCESS ]; then
-    status=$FILE_NOT_WRITEABLE
-    ReportError $status "$backupFile"
-  else
-    # delete existing filecontent
-    echo -n "" > "$backupFile"
-    chgrp www "$backupFile"
-    chmod 640 "$backupFile"
-
+countLinesOfBackup()
+{
     # Get parameter count for progress bar computations of modular backup scripts.
+    BACKUP_FILE_LINE_COUNT=0
     for file in "$BACKUP_RESTORE_SCRIPT_DIR/"*; do
-        if [[ -x "$file" ]]; then
+        if [ -x "$file" ]; then
             count=$("$file" --param-count)
             ret=$?
-            if [[ $ret == $SUCCESS && "$count" ]]; then
-                ((BACKUP_FILE_LINE_COUNT += $count))
+            if [ $ret = $SUCCESS ] && [ -n "$count" ]; then
+                BACKUP_FILE_LINE_COUNT="$((BACKUP_FILE_LINE_COUNT + count))"
             else
                 ReportError $INTERNAL_ERROR "Failed to get parameter from \"$file\" "     
                 backup_error_count=$((backup_error_count+1))
             fi
         fi
     done
+}
+
+setupBackupFile()
+{
+  local u="$(umask)"
+  rm -f "$backupFile" &&
+  umask 130 &&
+  : > "$backupFile" &&
+  chgrp www "$backupFile" 2>/dev/null
+  umask "$u"
+}
+
+createBackupFile()
+{
     #-------------------------------------------------------------
     # save firmware revision
     firmwareRevision="$(/etc/config-tools/get_coupler_details firmware-revision)"
@@ -133,10 +138,10 @@ if [ -n "$backupFile" ]; then
       # read value from coupler and if no error occured, write it to backup file
       paramValue="$($readFunction)"
       read_status=$?
-      paramValue=$(UriEncode $paramValue)
-      if [ "$read_status" = $SUCCESS ]; then
+      paramValue="$(UriEncode "$paramValue")"
+      if [ "$read_status" = "$SUCCESS" ]; then
         SaveBackupValue "$paramName" "$paramValue" "$backupFile"
-      elif [ "$read_status" = $UNKNOWN_PARAMETER ]; then  
+      elif [ "$read_status" = "$UNKNOWN_PARAMETER" ]; then  
         ReportError "$read_status" "Unknown parameter \"$paramName\" " 
         backup_error_count=$((backup_error_count+1)) 
       else
@@ -370,29 +375,32 @@ if [ -n "$backupFile" ]; then
 
     # remove file with last error (at this point we are not interested in errors of the single scripts)
     rm "$LAST_ERROR_FILENAME" > /dev/null 2> /dev/null
-  fi
-  sleep 2 # let tail -f below get the last lines of the file
-  ) &
-  pid_backup=$!
+}
 
-  # display progress bar 
-  if [[ "$(which pv)" != "" ]]; then
+if ! setupBackupFile; then
+  status=$FILE_NOT_WRITEABLE
+  ReportError $status "$backupFile"
+  exit $status
+fi
+
+# display progress bar
+if [ -x "$(which pv)" ]; then
+    # start backup as subprocess (we start progress bar in parallel and have to
+    # know when the backup is over
+    countLinesOfBackup
+    createBackupFile &
+    pid_backup="$!"
 
     if [[ "$RELEASE_VERSION" == "yes" ]]; then
       RestoreMessageOutput
     fi
-    (tail -f "$backupFile" | pv -N "settings" -l -s $BACKUP_FILE_LINE_COUNT -pt -w 70 >/dev/null ) &
+    (tail -f "$backupFile" | pv -N "settings" -l -s "$BACKUP_FILE_LINE_COUNT" -pt -w 70 >/dev/null ) &
 
     # wait for completion of backup, kill progress bar when finished
-    wait $pid_backup 
+    wait "$pid_backup"
     killall tail
-  fi
-
-#unknown operation
 else
-  status=$INVALID_PARAMETER
+    createBackupFile
 fi
-
-sync
 
 exit $status

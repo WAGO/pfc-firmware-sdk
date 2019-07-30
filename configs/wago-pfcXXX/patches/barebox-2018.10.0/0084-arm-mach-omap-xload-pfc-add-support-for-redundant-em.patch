@@ -1,8 +1,8 @@
 From f55cfae06ecbf0a3f15dfb4da7ab900c4a8c3cc0 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 30 Aug 2018 15:59:02 +0200
-Subject: [PATCH 084/144] arm: mach-omap: xload-pfc: add support for redundant
- emmc and nand partitions
+Subject: [PATCH] arm: mach-omap: xload-pfc: add support for redundant emmc and
+ nand partitions
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

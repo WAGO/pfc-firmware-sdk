@@ -56,6 +56,8 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	cd $(PTXDIST_WORKSPACE)/wago_intern/device/kbus/$(LIBPACKBUS)/src/Conf && ./make_kbus_conf_source.sh
 
 	cp -r -d $(PTXDIST_WORKSPACE)/wago_intern/device/kbus/$(LIBPACKBUS)/* $(LIBPACKBUS_DIR)
+
+	cd $(LIBPACKBUS_DIR) && ./autogen.sh
 endif
 	@$(call touch)
 
@@ -82,7 +84,6 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 # WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@$(call xslt_compile, $(LIBPACKBUS_DIR)/src/xml/kbusdiag.xml)
 	cd $(LIBPACKBUS_DIR) && \
-	./autogen.sh && \
 		$(LIBPACKBUS_PATH) $(LIBPACKBUS_ENV) \
 		./configure $(LIBPACKBUS_BUILD_PARAMS) $(LIBPACKBUS_AUTOCONF) $(LIBPACKBUS_TESTAPP) $(LIBPACKBUS_CONF_DEBUG_DD)
 endif
@@ -150,7 +151,7 @@ else
 	@$(call install_copy, libpackbus, 0,0,  0644, $(LIBPACKBUS_DIR)/src/Conf/kbusconf.xml, /etc/specific/kbusconf.xml)
 #--------------------- Copy test application
 ifdef PTXCONF_LIBPACKBUS_TESTAPP
-	@$(call install_copy, libpackbus, 0,0, 0750, $(LIBPACKBUS_DIR)/src/.libs/testkbus, /usr/bin/testkbus);
+	@$(call install_copy, libpackbus, 0,0, 0750, $(LIBPACKBUS_DIR)/src/testkbus, /usr/bin/testkbus);
 endif
 #--------------------- Done
 endif

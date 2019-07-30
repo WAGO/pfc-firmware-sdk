@@ -12,11 +12,13 @@ PREFIX="mdmd: "
 
 function set_gobi_usbnet_thread_priority
 {
-    PIDs=$(ps -eLo pid,cls,rtprio,pri,nice,cmd | grep "GobiUSBNet" | awk '{ print $1; }' | xargs echo)
-    for i in $PIDs
-    do
-      chrt -f -p 43 $i >/dev/null 2>&1
-    done
+# SYSARCH: keine RT-Prio hier, evtl. mit renice die Priorität erhöhen 
+#    PIDs=$(ps -eLo pid,cls,rtprio,pri,nice,cmd | grep "GobiUSBNet" | awk '{ print $1; }' | xargs echo)
+#    for i in $PIDs
+#    do
+#      chrt -f -p 43 $i >/dev/null 2>&1
+#    done
+    return
 }
 
 function is_bgctrl_running

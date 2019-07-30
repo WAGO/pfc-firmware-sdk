@@ -1,0 +1,85 @@
+From 5a71b16492ec564b26b91e4bb2a063ef56c57665 Mon Sep 17 00:00:00 2001
+From: Schwalowsky <u014487@LC76855.wago.local>
+Date: Mon, 3 Sep 2018 16:51:46 +0200
+Subject: [PATCH] net: cpsw: prevent drop of clrpc packets in receive path
+
+In order to pass the PROFINET netload test clrpc packets
+must not be dropped under load conditions.
+
+Signed-off-by: Stefan Schwalowsky <stefan.schwalowsky@wago.com>
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/ethernet/ti/cpsw_async_net.c | 50 ++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
+
+diff --git a/drivers/net/ethernet/ti/cpsw_async_net.c b/drivers/net/ethernet/ti/cpsw_async_net.c
+index dd4b5e0..db6409c 100644
+--- a/drivers/net/ethernet/ti/cpsw_async_net.c
++++ b/drivers/net/ethernet/ti/cpsw_async_net.c
+@@ -69,6 +69,45 @@ static void cpsw_work_net_rx(struct work_struct *work)
+ 				     queue_count & (~NAPI_QUEUE_THROTTLE_FLAG));
+ }
+ 
++static bool is_pn_clrpc_packet(struct sk_buff *skb)
++{
++	static const u8 clrpc_object_uuid_part_le[] = {
++		0x00, 0x00, 0xa0, 0xde, 0x97, 0x6c, 0xd1, 0x11, 0x82, 0x71
++	};
++	static const u8 clrpc_object_uuid_part_be[] = {
++		0xde, 0x0a, 0x00, 0x00, 0x6c, 0x97, 0x11, 0xd1, 0x71, 0x82
++	};
++
++	/* data already points to the Ethernet payload, but we need to check the
++	 * ethertype first.
++	 */
++	u8 *ether_type_data = skb->data - 2;
++
++	/* skip dsa */
++	if (*ether_type_data == 0xda && ether_type_data[1] == 0xda)
++		ether_type_data += 8;
++
++	/* skip vlan */
++	if (*ether_type_data == 0x81 && ether_type_data[1] == 0x00)
++		ether_type_data += 4;
++
++	/* Skip IPv4, UDP and forward to CLRPC Object UUID field */
++	ether_type_data += 38;
++
++	/* Check for the constant UUID part specified by the PROFINET
++	 * Standard
++	 */
++	if (!memcmp(ether_type_data, clrpc_object_uuid_part_le,
++		    sizeof(clrpc_object_uuid_part_le)))
++		return true;
++
++	if (!memcmp(ether_type_data, clrpc_object_uuid_part_be,
++		    sizeof(clrpc_object_uuid_part_be)))
++		return true;
++
++	return false;
++}
++
+ int cpsw_queue_net_rx(struct sk_buff *skb)
+ {
+ 	struct netif_rx_work *rx_work = kmalloc(sizeof(*rx_work),
+@@ -83,6 +122,17 @@ int cpsw_queue_net_rx(struct sk_buff *skb)
+ 		drop_packet = true;
+ 	}
+ 
++	/* If in drop mode check if we have a PN frame that will be forwarded
++	 * anyway.
++	 */
++	if (drop_packet && rx_work) {
++		/* Simple test for CLRPC packet.
++		 * No comprehensive test needed as false detections won't
++		 * have much impact.
++		 */
++		drop_packet = !is_pn_clrpc_packet(skb);
++	}
++
+ 	if (drop_packet || !rx_work) {
+ 		atomic_long_inc(&skb->dev->rx_dropped);
+ 		kfree_skb(skb);
+-- 
+2.7.4
+

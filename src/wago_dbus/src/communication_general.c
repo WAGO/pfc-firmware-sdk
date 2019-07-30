@@ -73,7 +73,7 @@ GMainContext* com_GEN_GetServerContext(void)
 int com_GEN_Init(com_tConnection* con)
 {
   int ret = 0;
-  static once = 0;
+  static int once = 0;
 
   //connect to the bus... if connection already exist, copy connection pointer
   dbus_error_init (&busConnection.error);
@@ -172,7 +172,7 @@ int com_GEN_ErrorIsSet(com_tConnection* con)
 ///
 ///  \return the name as string
 //------------------------------------------------------------------------------
-char * com_GEN_ErrorGetName(com_tConnection* con)
+const char * com_GEN_ErrorGetName(com_tConnection* con)
 {
   if(con == NULL)
   {
@@ -192,7 +192,7 @@ char * com_GEN_ErrorGetName(com_tConnection* con)
 ///
 ///  \return the Message as string
 //------------------------------------------------------------------------------
-char * com_GEN_ErrorGetMessage(com_tConnection* con)
+const char * com_GEN_ErrorGetMessage(com_tConnection* con)
 {
   if(con == NULL)
   {

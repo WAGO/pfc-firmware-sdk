@@ -9,12 +9,19 @@ menuconfig BLSPEC_PFC
 
 if BLSPEC_PFC
 
-config BLSPEC_PFC_SRC
-	bool
-	prompt "install only SRC specific blspec entrys"
-	default n
+config BLSPEC_PFC_TARGET_PREFIX
+	string
+	prompt "Config File Prefix (e.g. PFC)"
+	default "PFC"
+	help
+	 Defines the blspec configuration file prefix for this
+	 platform. See ../projectroot/boot/sd/loader/entries/
 
-if !BLSPEC_PFC_SRC
+config BLSPEC_PFC_EMMC
+	bool
+	prompt "EMMC blspec files"
+
+if BLSPEC_PFC_EMMC
 
 config BLSPEC_PFC_EMMC_ROOTARG_ROOTFS0
 	string
@@ -28,6 +35,12 @@ config BLSPEC_PFC_EMMC_ROOTARG_ROOTFS1
 
 endif
 
+config BLSPEC_PFC_NAND
+	bool
+	prompt "NAND blspec files"
+
+if BLSPEC_PFC_NAND
+
 config BLSPEC_PFC_NAND_ROOTARG_ROOTFS0
 	string
 	prompt "nand: rootfs0 rootarg"
@@ -38,9 +51,19 @@ config BLSPEC_PFC_NAND_ROOTARG_ROOTFS1
 	prompt "nand: rootfs1 rootarg"
 	default "rw ubi.mtd=8 rootfstype=ubifs root=ubi0:rootfs1 rootwait"
 
+endif
+
+config BLSPEC_PFC_SD
+	bool
+	prompt "SD blspec files"
+
+if BLSPEC_PFC_SD
+
 config BLSPEC_PFC_SD_ROOTARG_ROOTFS
 	string
 	prompt "sd: rootfs rootarg"
 	default "rw root=/dev/mmcblk0p2 rootfstype=ext3 rootwait"
+
+endif
 
 endif

@@ -18,6 +18,8 @@
 #-----------------------------------------------------------------------------#
 
 THISFILE="$0"
+EARLYLOG_DIR="/var"
+EARLYLOG_FILE="wagoearlylog.log"
 
 # Function to print usage to stdout.
 #
@@ -66,6 +68,7 @@ set_build_date()
 # Function to check RTC status.
 #
 # Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
 check_rtc()
 {
     local result=0
@@ -77,7 +80,12 @@ check_rtc()
           hwclock -w &&
           echo "Warning: RTC failure. Set date to '$(/usr/bin/date -I)'" 1>&2
         result=$?
-        date "+%a %b %d %Y %X.000000 0x8000000C init: S" >>"/root/wagoearlylog.log"
+        mkdir -p "$EARLYLOG_DIR"
+        if [[ $? -ne 0 ]]; then
+            echo "Failed to create log directory for early log messages \"$EARLYLOG_DIR\"" 1>&2
+        else
+            date "+%a %b %d %Y %X.000000 0x8000000C init: S" >>"$EARLYLOG_DIR/$EARLYLOG_FILE"
+        fi
     else
         echo "RTC ok: $hwclock_datestring"
     fi
@@ -88,6 +96,7 @@ check_rtc()
 # Function to reset system time to build date.
 #
 # Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
 reset_date()
 {
     set_build_date &&

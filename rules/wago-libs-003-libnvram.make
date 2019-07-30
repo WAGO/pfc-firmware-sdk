@@ -31,6 +31,7 @@ $(STATEDIR)/libnvram.extract: $(STATEDIR)/autogen-tools
 	@$(call targetinfo)
 	@$(call clean, $(LIBNVRAM_DIR))
 	cp -r $(SRCDIR)/$(LIBNVRAM) $(LIBNVRAM_DIR)
+	cd $(LIBNVRAM_DIR) && [ -f configure ] || sh autogen.sh
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -49,7 +50,6 @@ $(STATEDIR)/libnvram.prepare:
 	@$(call targetinfo)
 	@$(call clean, $(LIBNVRAM_DIR)/config.cache)
 	cd $(LIBNVRAM_DIR) && \
-	./autogen.sh && \
 		$(LIBNVRAM_PATH) $(LIBNVRAM_ENV) \
 		./configure $(LIBNVRAM_AUTOCONF)
 	@$(call touch)

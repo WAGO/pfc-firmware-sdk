@@ -71,6 +71,9 @@ $(STATEDIR)/host-tz-database.extract: $(STATEDIR)/autogen-tools
 	mkdir -p $(HOST_TZDATABASE_DIR)/strip_timezone/unstripped
 	tar xvf $(TZDATA_SOURCE) -C $(HOST_TZDATABASE_DIR)/strip_timezone/unstripped
 	
+	cd $(HOST_TZDATABASE_DIR)/strip_timezone && sh autogen.sh
+	@cd $(HOST_TZDATABASE_DIR) && echo -e '#!/bin/bash\ncd strip_timezone\n./configure $$@\ncd -\n' > configure && chmod +x configure
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -85,8 +88,6 @@ HOST_TZDATABASE_CONF_OPT     := $(HOST_AUTOCONF_USR)
 
 $(STATEDIR)/host-tz-database.prepare:
 	@$(call targetinfo, $@)
-	cd $(HOST_TZDATABASE_DIR)/strip_timezone && sh autogen.sh
-	@cd $(HOST_TZDATABASE_DIR) && echo -e '#!/bin/bash\ncd strip_timezone\n./configure $$@\ncd -\n' > configure && chmod +x configure
 	@$(call world/prepare, HOST_TZDATABASE)	
 #	cd $(HOST_TZDATABASE_DIR)/strip_timezone && sh configure
 #	cd $(HOST_TZDATABASE_DIR)

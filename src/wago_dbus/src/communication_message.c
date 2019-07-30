@@ -535,7 +535,7 @@ DBusHandlerResult MSG_CallObject(DBusConnection *connection,
 //-----------------------------------------------------------------------------
 DBusHandlerResult MSG_UnregisterObject(DBusConnection *con,tObject * object)
 {
-
+  (void)con; //unused
   FreeObject(object);
   return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -551,6 +551,7 @@ DBusHandlerResult MSG_UnregisterObject(DBusConnection *con,tObject * object)
 //-----------------------------------------------------------------------------
 void PendingWait(DBusPendingCall *pending, tPendingConditions *cond)
 {
+  (void)pending; //unused
   pthread_mutex_lock(&cond->mutex);
   pthread_cond_signal(&cond->condition);
   pthread_mutex_unlock(&cond->mutex);
@@ -793,8 +794,8 @@ int com_MSG_MethodCallVaArgs(com_tConnection* con,
     dbus_bool_t returns;
     cond = _getPendingCondition();
 
-    returns = dbus_connection_send_with_reply   (con->bus,message,&pending_return, con->method_call_timeout);
-    if(pending_return == NULL)
+    returns = dbus_connection_send_with_reply(con->bus,message,&pending_return, con->method_call_timeout);
+    if( (!returns) || (pending_return == NULL) )
     {
       ret = -ECOMM;
       SERV_UnblockServer();

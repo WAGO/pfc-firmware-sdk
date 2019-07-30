@@ -1,0 +1,72 @@
+From 4b9da7ef125be4a2d023f199405efc7f458d3632 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 15 Jan 2019 15:52:02 +0100
+Subject: [PATCH] commands: uart_console: simplify enabling of uarts
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ commands/uart_console.c | 33 ++++++---------------------------
+ 1 file changed, 6 insertions(+), 27 deletions(-)
+
+diff --git a/commands/uart_console.c b/commands/uart_console.c
+index 256ae82..ea75286 100644
+--- a/commands/uart_console.c
++++ b/commands/uart_console.c
+@@ -21,17 +21,13 @@
+ #include <of_address.h>
+ #include <command.h>
+ #include <getopt.h>
+-#include <mach/devices.h>
+ #include <console.h>
+ 
+ static int do_uart_console(int argc, char *argv[])
+ {
+ 	struct device_node *uart_node;
+-	struct device_d *dev;
+-	struct console_device *cdev;
+-	int uart_num = -1, opt, ret;
++	int uart_num = -1, opt;
+ 	char *alias_name;
+-	const __be32 *reg;
+ 
+ 	while ((opt = getopt(argc, argv, "e:")) > 0) {
+ 		switch (opt) {
+@@ -44,30 +40,13 @@ static int do_uart_console(int argc, char *argv[])
+ 	alias_name = basprintf("serial%d", uart_num);
+ 
+ 	uart_node = of_find_node_by_alias(of_get_root_node(), alias_name);
+-	if (!uart_node) {
+-		ret = -ENODEV;
+-		goto out;
+-	}
+-
+-	reg = of_get_address(uart_node, 0, NULL, NULL);
+-	if (!reg) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+-	dev = omap_add_uart(uart_num, of_read_number(reg, 1));
+-
+-	cdev = console_get_by_dev(dev);
+-	if (!cdev) {
+-		ret = -ENODEV;
+-		goto out;
+-	}
++	if (!uart_node)
++		return -ENODEV;
+ 
+-	ret = console_set_active(cdev, CONSOLE_STDIN | CONSOLE_STDOUT |
+-								CONSOLE_STDERR);
++	if (!of_device_enable_and_register(uart_node))
++		return -ENODEV;
+ 
+-out:
+-	return ret < 0 ? ret : 0;
++	return 0;
+ }
+ 
+ BAREBOX_CMD_HELP_START(uart_console)
+-- 
+2.7.4
+

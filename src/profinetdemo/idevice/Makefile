@@ -12,7 +12,7 @@
 ###
 ###  \file     makefile
 ###
-###  \version  $Revision: 28122 $
+###  \version  $Revision: 39618 $
 ###
 ###  \brief    Makefile of the Profinet iDevice "C" Application
 ###
@@ -63,7 +63,7 @@ CFLAGS += -I$(SYSROOT)/usr/include
 #------------------------------------------------------------------------------
 
 LDFLAGS += -lprofinet 
-LDFLAGS += -DLINUX -lpthread -lboost_system -lboost_thread-mt -lrt
+LDFLAGS += -DLINUX -lpthread -lboost_system -lboost_thread -lrt
 
 #------------------------------------------------------------------------------
 # Linker search directories

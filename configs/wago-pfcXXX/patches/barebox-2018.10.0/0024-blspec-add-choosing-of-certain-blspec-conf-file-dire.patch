@@ -1,8 +1,7 @@
 From 31833813852b042994f3a4ca4ea4f77b7cd3bc04 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <Andreas.Schmidt@wago.com>
 Date: Tue, 26 Jun 2018 13:16:25 +0000
-Subject: [PATCH 024/144] blspec: add choosing of certain blspec conf file
- direct
+Subject: [PATCH] blspec: add choosing of certain blspec conf file direct
 
 Currently Barebox has to check all Bootloader Spec config files
 to get the right one or more. Depends on SoC/CPU speed, it can

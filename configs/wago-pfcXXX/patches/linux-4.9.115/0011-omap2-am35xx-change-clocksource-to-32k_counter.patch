@@ -1,0 +1,40 @@
+From cdffa3482ade3e1a0606d39b3fe815e43f756642 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 16 Sep 2015 05:39:13 +0000
+Subject: [PATCH] omap2: am35xx: change clocksource to 32k_counter
+
+32k new kernel adjustment
+---
+ arch/arm/boot/dts/wago-pfc200.dtsi  | 4 ++++
+ arch/arm/mach-omap2/board-generic.c | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200.dtsi b/arch/arm/boot/dts/wago-pfc200.dtsi
+index fba8f74..c49f084 100644
+--- a/arch/arm/boot/dts/wago-pfc200.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200.dtsi
+@@ -740,4 +740,8 @@
+ 	ti,no-reset-on-init;
+ };
+ 
++&counter32k {
++	status = "okay";
++};
++
+ /include/ "pxc-nandparts.dtsi"
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 60f5e83..731f0b6 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -180,7 +180,7 @@ DT_MACHINE_START(AM3517_DT, "Generic AM3517 (Flattened Device Tree)")
+ 	.init_early	= am35xx_init_early,
+ 	.init_machine	= omap_generic_init,
+ 	.init_late	= omap3_init_late,
+-	.init_time	= omap3_gptimer_timer_init,
++	.init_time	= omap_init_time,
+ 	.dt_compat	= am3517_boards_compat,
+ 	.restart	= omap3xxx_restart,
+ MACHINE_END
+-- 
+2.7.4
+

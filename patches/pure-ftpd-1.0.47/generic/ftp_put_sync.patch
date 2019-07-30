@@ -1,0 +1,10 @@
+--- pure-ftpd-1.0.43/src/ftpd.c	2015-09-21 15:18:45.000000000 +0000
++++ pure-ftpd-1.0.43.new/src/ftpd.c	2015-09-21 15:21:55.000000000 +0000
+@@ -4443,6 +4443,7 @@
+         unlink(atomic_file);
+         atomic_file = NULL;
+     }
++    sync();
+ }
+ 
+ void domdtm(const char *name)

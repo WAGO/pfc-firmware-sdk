@@ -1,0 +1,28 @@
+From: unknown author <unknown.author@example.com>
+Date: Thu, 11 Jun 2015 15:35:31 +0200
+Subject: [PATCH] chown-484762
+
+===================================================================
+---
+ logrotate.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/logrotate.c b/logrotate.c
+index 8ffcff6f6ac0..d609d7acf012 100644
+--- a/logrotate.c
++++ b/logrotate.c
+@@ -527,8 +527,12 @@ int createOutputFile(char *fileName, int flags, struct stat *sb, acl_type acl, i
+     if (fchmod(fd, (S_IRUSR | S_IWUSR) & sb->st_mode)) {
+         message(MESS_ERROR, "error setting mode of %s: %s\n",
+                 fileName, strerror(errno));
+-        close(fd);
+-        return -1;
++        if (geteuid() == 0) {
++        /* If run as non-root, we may not be able to duplicate
++           the ownership of the file. Warn but don't fail. */
++            close(fd);
++            return -1;
++        }
+     }
+ 
+     if (fstat(fd, &sb_create)) {

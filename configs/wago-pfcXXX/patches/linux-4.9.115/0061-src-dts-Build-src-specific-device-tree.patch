@@ -1,0 +1,25 @@
+From 6679719b0a076b113b7112fb504ca1ff1ab53cad Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <boerje.sewing@who-ing.de>
+Date: Mon, 6 Jun 2016 10:51:54 +0200
+Subject: [PATCH] src: dts: Build src specific device tree.
+
+Signed-off-by: Boerje Sewing <boerje.sewing@who-ing.de>
+---
+ arch/arm/boot/dts/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index b06a640..9cc6a66 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -580,6 +580,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	wago-pfc200v3-devconf-000f.dtb \
+ 	wago-pfc200v3-devconf-001c.dtb \
+ 	wago-pfc200v3-devconf-0182.dtb
++	wago-src-devconf-000c.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-duovero-parlor.dtb \
+ 	omap4-kc1.dtb \
+-- 
+2.7.4
+

@@ -1,0 +1,28 @@
+From 44e74d5ef0b15dd7be840db072200c366563eaf4 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 18 Oct 2018 10:51:13 +0200
+Subject: [PATCH] drivers: ksz8863-cfg: defer probing when switch functions not
+ available
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ drivers/net/phy/ksz8863-cfg.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index b523741..ea4d414 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -1767,6 +1767,9 @@ static int ksz8863_cfg_probe(struct platform_device *pdev)
+         int err;
+ 	char *cmdline;
+ 
++	if (!ksz8863_fns || !ksz8863_fns->nread)
++		return -EPROBE_DEFER;
++
+ 	if (pdev->dev.of_node) {
+ 		swdev = ksz8863_of_get_swdev(&pdev->dev);
+ 		if (IS_ERR(swdev))
+-- 
+2.7.4
+

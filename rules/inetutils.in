@@ -1,0 +1,161 @@
+## SECTION=networking
+menuconfig INETUTILS
+	tristate
+	prompt "inetutils                     "
+	select LIBC_NSL		if INETUTILS_PING
+	select LIBC_RESOLV	if INETUTILS_PING
+	select LIBC_UTIL	if INETUTILS_RLOGIND
+	select LIBC_CRYPT	if INETUTILS_RCP || INETUTILS_RLOGIND || INETUTILS_RSH || INETUTILS_RSHD
+	help
+	  Inetutils is a collection of common network programs. It includes:
+	  * An ftp client and server.
+	  * A telnet client and server.
+	  * An rsh client and server.
+	  * An rlogin client and server.
+	  * A tftp client and server.
+	  * And much more...
+	  These are improved versions of programs originally from BSD.
+
+if INETUTILS
+
+# -----
+
+menuconfig INETUTILS_INETD
+	bool
+	depends on !BUSYBOX_INETD || ALLYES
+	prompt "inetd                         "
+	help
+	  This is the network super daemon. It opens network connection for
+	  various other programs and start them if a connection request occurs.
+
+if INETUTILS_INETD
+
+config INETUTILS_INETD_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/inetd"
+	help
+	  Install an init script for the network super daemon inetd
+
+endif
+
+comment "BusyBox' inetd is selected!"
+	depends on BUSYBOX_INETD
+
+# -----
+
+config INETUTILS_PING
+	bool
+	depends on !BUSYBOX_PING || ALLYES
+	prompt "ping"
+	help
+	  Ping is a small tool to check if another host is alive in the network
+
+comment "BusyBox' ping is selected!"
+	depends on BUSYBOX_PING
+
+config INETUTILS_PING6
+	bool
+	depends on (!BUSYBOX_PING6 || ALLYES) && GLOBAL_IPV6
+	prompt "ping6"
+	help
+	  Ping is a small tool to check if another host is alive in the network.
+	  This version of ping is for ipv6 networks.
+
+comment "BusyBox' ping6 is selected!"
+	depends on BUSYBOX_PING6
+
+# -----
+
+config INETUTILS_RCP
+	bool
+	prompt "rcp"
+	help
+	  Rcp copies files between machines.
+
+config INETUTILS_RLOGIND
+	bool
+	prompt "rlogind"
+	help
+	  Rlogind is the server for the program. The server provides a remote
+	  login facility with authentication based on privileged port numbers
+	  from trusted hosts.
+
+config INETUTILS_RSH
+	bool
+	prompt "rsh"
+	help
+	  rsh - remote shell
+	  Rsh copies its standard input to the remote command, the standard
+	  output of the remote command to its standard output, and the
+	  standard error of the remote command to its standard error.
+
+config INETUTILS_RSHD
+	bool
+	prompt "rshd"
+	select INETUTILS_INETD
+	depends on !BUSYBOX_INETD || ALLYES
+	help
+	  Rshd is the server for the program. The server provides remote
+	  execution facilities with authentication based on privileged
+	  port numbers from trusted hosts.
+
+config INETUTILS_SYSLOGD
+	bool
+	prompt "syslogd"
+	depends on !BUSYBOX_SYSLOGD || ALLYES
+	help
+	  Sysklogd provides two system utilities which provide support
+	  for system logging and kernel message trapping. Support of both
+	  internet and unix domain sockets enables this utility package
+	  to support both local and remote logging.
+
+if INETUTILS_SYSLOGD
+
+config INETUTILS_SYSLOGD_STARTSCRIPT
+	bool
+	prompt "install /etc/init.d/syslogd"
+	default y
+	help
+	  Install this script to be able to run this service at system startup
+
+config INETUTILS_SYSLOGD_CONFIG
+	bool
+	prompt "install /etc/syslog.conf"
+	default y
+	help
+	  Install a default syslog configuration
+
+endif
+
+comment "BusyBox' syslogd is selected!"
+	depends on BUSYBOX_SYSLOGD
+
+# -----
+
+menuconfig INETUTILS_TFTPD
+	bool
+	prompt "tftpd                         "
+	depends on !BUSYBOX_TFTPD || ALLYES
+	help
+	  TFTPD is a ftp daemon to be used for diskless clients. Most bootloaders
+	  use the Trivial File Transfer Protocol to load their OS image. Note:
+	  There is no authentication!
+
+comment "BusyBox' tftpd is selected!"
+        depends on BUSYBOX_TFTPD
+
+if INETUTILS_TFTPD
+
+config INETUTILS_TFTPD_BASE_DIR
+	string
+	depends on INETUTILS_TFTPD
+	prompt "tftpd base directory"
+	default "/tftpboot"
+	help
+	  This string is added to tftpd's command parameters. Placeholder @ROOT@
+	  in all startup options will be replaced by the string given here
+
+endif
+
+endif

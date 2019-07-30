@@ -52,6 +52,7 @@ config WBM
   select CONFIG_TOOLS
   select HOST_LIBXML2 # for xmllint
   select HOST_LIBXSLT
+  select LICENSES
   help
    Target corresponding to wbm.make. Can be enabled indirectly by activating
    CT_MENU_WBM_MAIN.
@@ -790,7 +791,7 @@ help
               nav.text="BACnet"
                  .ressource="index.php"
                  .fragment="bacnet_general_configuration"
-                 .user_level="2"
+                 .user_level="3"
                  
 menuconfig CT_MENU_WBM_BACNET_GENERAL_CONFIGURATION
 bool
@@ -803,7 +804,7 @@ help
               nav.text="General"
                  .ressource="index.php"
                  .fragment="bacnet_general_configuration"
-                 .user_level="2"
+                 .user_level="3"
                  
 menuconfig CT_MENU_WBM_BACNET_STORAGE_LOCATION
 bool
@@ -816,7 +817,7 @@ help
               nav.text="Storage Location"
                  .ressource="index.php"
                  .fragment="bacnet_storage_location"
-                 .user_level="2"
+                 .user_level="3"
                  
 menuconfig CT_MENU_WBM_BACNET_DIAGNOSTIC
 bool
@@ -829,7 +830,7 @@ help
               nav.text="Diagnostic"
                  .ressource="index.php"
                  .fragment="bacnet_diagnostic"
-                 .user_level="2"
+                 .user_level="3"
 
 ###############################################################
 menuconfig CT_MENU_WBM_MODEM

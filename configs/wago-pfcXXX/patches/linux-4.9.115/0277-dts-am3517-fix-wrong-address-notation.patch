@@ -1,0 +1,51 @@
+From 0e0d3ef88dda0f4061c73bd4d01e43762b7f0f2f Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 28 Nov 2018 09:52:15 +0000
+Subject: [PATCH] dts: am3517: fix wrong address notation
+
+The address notation within the nodepath string is not following
+the convention as it is generally used. This naming is important
+for e.g. for fixups done by the bootloader, in our case by the barebox
+boot code. Here e.g. the mac address is read from the eeprom and added
+to the oftree. In this case the nodepath is matched against the oftree
+that resides within the bootloader.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am3517.dtsi | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am3517.dtsi b/arch/arm/boot/dts/am3517.dtsi
+index f3c9195..a4ab6d8 100644
+--- a/arch/arm/boot/dts/am3517.dtsi
++++ b/arch/arm/boot/dts/am3517.dtsi
+@@ -28,7 +28,7 @@
+ 			ram-bits = <12>;
+ 		};
+ 
+-		davinci_emac: ethernet@0x5c000000 {
++		davinci_emac: ethernet@5c000000 {
+ 			compatible = "ti,am3517-emac";
+ 			ti,hwmods = "davinci_emac";
+ 			status = "disabled";
+@@ -43,7 +43,7 @@
+ 			local-mac-address = [ 00 00 00 00 00 00 ];
+ 		};
+ 
+-		davinci_mdio: ethernet@0x5c030000 {
++		davinci_mdio: ethernet@5c030000 {
+ 			compatible = "ti,davinci_mdio";
+ 			ti,hwmods = "davinci_mdio";
+ 			status = "disabled";
+@@ -75,7 +75,7 @@
+ 			pinctrl-single,function-mask = <0xff1f>;
+ 		};
+ 
+-		ti_hecc: can@0x5c050000 {
++		ti_hecc: can@5c050000 {
+ 			compatible = "ti,hecc";
+ 			//ti,hwmods = "???"; /* ??? */
+ 			status = "disabled";
+-- 
+2.7.4
+

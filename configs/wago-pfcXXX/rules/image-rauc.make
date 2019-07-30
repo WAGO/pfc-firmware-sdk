@@ -21,11 +21,7 @@ IMAGE_RAUC		:= image-rauc
 IMAGE_RAUC_DIR		:= $(BUILDDIR)/$(IMAGE_RAUC)
 IMAGE_RAUC_IMAGE	:= $(IMAGEDIR)/update.raucb
 IMAGE_RAUC_FILES	:= $(BUILDDIR)/rauc_bundle_conf/rauc_bundle_conf.tar.gz
-ifdef PTXCONF_IMAGE_BOOT_MLO_SRC
-	IMAGE_RAUC_CONFIG	:= rauc-src.config
-else
-	IMAGE_RAUC_CONFIG	:= rauc.config
-endif
+IMAGE_RAUC_CONFIG	:= $(call remove_quotes, $(PTXCONF_IMAGE_RAUC_CONFIG))
 
 # ----------------------------------------------------------------------------
 # Image

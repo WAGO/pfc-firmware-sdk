@@ -50,19 +50,19 @@ access_notified_files ()
    
    case "$interface" in
    X1)
-      if [ -f "$IP_CHANGE_NOTIFIED_FILE-br0" ]; then
+      if [[ -f "$IP_CHANGE_NOTIFIED_FILE-br0" ]]; then
          echo "" > "$IP_CHANGE_NOTIFIED_FILE-br0" 
          result=$?
       fi
       ;;        
    X2)
-      if [ -f "$IP_CHANGE_NOTIFIED_FILE-br1" ]; then
+      if [[ -f "$IP_CHANGE_NOTIFIED_FILE-br1" ]]; then
          echo "" > "$IP_CHANGE_NOTIFIED_FILE-br1" 
          result=$?
       fi
       ;;
    WAN|VPN)
-      if [ -f "$IP_CHANGE_NOTIFIED_FILE-wwan0" ]; then
+      if [[ -f "$IP_CHANGE_NOTIFIED_FILE-wwan0" ]]; then
          echo "" > "$IP_CHANGE_NOTIFIED_FILE-wwan0"
          result=$?
       fi
@@ -77,7 +77,7 @@ access_notified_files ()
 status=$SUCCESS
 
 # show help-text if requested
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
   echo
   echo "* Change the configuration of the interfaces *"
   echo
@@ -95,6 +95,7 @@ fi
 
 parameters=
 port=
+conf_type=
 
 while [[ $# -ne 0 ]]; do
     case "$1" in
@@ -106,7 +107,8 @@ while [[ $# -ne 0 ]]; do
             parameters="$parameters --state ${1#state=}"
             ;;
         config-type=*)
-            parameters="$parameters --config-type ${1#config-type=}"
+            conf_type="${1#config-type=}"
+            parameters="$parameters --config-type $conf_type"
             ;;
         ip-address=*)
             parameters="$parameters --ip ${1#ip-address=}"
@@ -131,12 +133,12 @@ done
 SAVE_DIPFILE=/etc/specific/dipvalue-on-reset
 NETINTERFACES=/etc/network/interfaces
 
-[ "$status" == "$SUCCESS" ] && /etc/config-tools/config_interfaces_c $parameters; status=$?
-[ "$status" == "$SUCCESS" ] && /etc/config-tools/adapt_netconfig -o $NETINTERFACES.tmp; status=$?
+[[ "$status" == "$SUCCESS" ]] && /etc/config-tools/config_interfaces_c $parameters; status=$?
+[[ "$status" == "$SUCCESS" ]] && /etc/config-tools/adapt_netconfig -o $NETINTERFACES.tmp; status=$?
 
-if [ "$status" == "$SUCCESS" ]; then
+if [[ "$status" == "$SUCCESS" ]]; then
     diff -q $NETINTERFACES $NETINTERFACES.tmp > /dev/null
-    if [ "$?" = "1" ]; then
+    if [[ "$?" = "1" ]]; then
         # network config changed
         DIP_SWITCH_VALUE=0
         [ -f $SAVE_DIPFILE ] && . $SAVE_DIPFILE 
@@ -151,8 +153,10 @@ if [ "$status" == "$SUCCESS" ]; then
         sync
         [ -f "$NETINTERFACES.tmp" ] && mv $NETINTERFACES.tmp $NETINTERFACES
         sync
-        # read notified file to create a event for inotify command
-        access_notified_files "$port"
+        if [[ $conf_type == "static" ]]; then
+            # read notified file to create a event for inotify command
+            access_notified_files "$port"
+        fi
     fi
     rm -f $NETINTERFACES.tmp
 fi

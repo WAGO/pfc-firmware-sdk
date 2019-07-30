@@ -1,3 +1,5 @@
+gmp-6.1.2/AUTHORS
+
 Authors of GNU MP (in chronological order of initial contribution)
 
 Torbjörn Granlund	Main author
@@ -98,6 +100,8 @@ Ulrich Weigand		Changes to support powerpc64le:
 			mpn/powerpc64/mode64/p7/gcd_1.asm,
 			mpn/powerpc64/p6/{lshift,lshiftc,rshift}.asm,
 			mpn/powerpc64/vmx/popcount.asm.
+
+gmp-6.1.2/COPYING
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -774,6 +778,8 @@ the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 
+gmp-6.1.2/COPYINGv2
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 
@@ -1113,6 +1119,8 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
+
+gmp-6.1.2/COPYINGv3
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
@@ -1788,6 +1796,8 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <https://www.gnu.org/philosophy/why-not-lgpl.html>.
+
+gmp-6.1.2/COPYING.LESSERv3
 
 		   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

@@ -555,7 +555,7 @@ function FirewallGeneral
                 ;;
             *)
                 local element=-1
-                local ix=0
+                local ix=1
                 local element_name=""
                 let element=selection-6
 
@@ -563,7 +563,7 @@ function FirewallGeneral
                 do
                     if [ "x${ix}" == "x${element}" ] ; then
                         element_name=${interf}
-                        element_label=${interface_labels[$ix]}
+                        element_label=${interface_labels[$ix-1]}
                     fi
                     let ix+=1
                 done

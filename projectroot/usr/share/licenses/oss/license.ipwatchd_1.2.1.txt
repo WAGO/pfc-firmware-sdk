@@ -1,3 +1,5 @@
+ipwatchd-1.2.1/LICENSE
+
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 

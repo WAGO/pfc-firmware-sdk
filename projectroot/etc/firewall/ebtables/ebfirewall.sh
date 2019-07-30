@@ -15,14 +15,14 @@
 
 umask 0177
 
-DEFAULT_CONF=/etc/firewall/firewall
+DEFAULT_CONF="/etc/firewall/firewall"
 
-if [ ! -s $DEFAULT_CONF ]; then
+if [[ ! -s $DEFAULT_CONF ]]; then
     echo "err - $DEFAULT_CONF is missing - can't execute."
-    exit 1
+    exit 64
 fi
 
-. $DEFAULT_CONF
+source "$DEFAULT_CONF"
 
 # Please note that the paths below are hard-coded into the config-tools.
 FW_EB_WLIST_XML="$FW_EB/ebwlist.xml"   # path to link-layer configuration file
@@ -30,13 +30,13 @@ FW_EB_WLIST_XSD="$FW_EB/ebwlist.xsd"   # path to XML Schema file describing the 
 FW_EB_WLIST_XSL="$FW_EB/ebwlist.xsl"   # path to xslt style sheet used to transform ebwlist.xml into end ebwlist.rls form.
 FW_EB_RULES_AA="$FW_EB/ebwlist.aa.rls" # path to link-layer all-allow rules file
 FW_EB_RULES="$FW_EB/ebwlist.rls"       # path to link-layer rules file
-FW_EB_RULES_TEMP="$FW_EB/ebwlist.tmp"  # path to link-layer rules temporary file
+FW_EB_RULES_TEMP="/tmp/ebwlist.tmp"    # path to link-layer rules temporary file
 
 
 print_help()
 {
     echo "Set link layer firewall rules."
-    echo "Usage: $0"
+    echo "Usage: $0 [--disable]"
 }
 
 #
@@ -45,48 +45,48 @@ print_help()
 #
 check_prerequisites()
 {
-    which $FW_EBR 2>&1 > /dev/null
-    if [ $? -ne 0 ]; then
+    which "$FW_EBR" 2>&1 > /dev/null
+    if [[ $? -ne 0 ]]; then
         eblog "err" "$FW_EBR tool isn't available - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_XST ]; then
+    if [[ ! -s $FW_XST ]]; then
         eblog "err" "$FW_XST is missing - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_PATTERNS_XSD ]; then
+    if [[ ! -s $FW_PATTERNS_XSD ]]; then
         eblog "err" "$FW_PATTERNS_XSD is missing - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_PARAMS_XML ]; then
+    if [[ ! -s $FW_PARAMS_XML ]]; then
         eblog "err" "$FW_PARAMS_XML is missing - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_PARAMS_XSD ]; then
+    if [[ ! -s $FW_PARAMS_XSD ]]; then
         eblog "err" "$FW_PARAMS_XSD is missing - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_EB_WLIST_XML ]; then
+    if [[ ! -s $FW_EB_WLIST_XML ]]; then
         eblog "err" "$FW_EB_WLIST_XML is missing - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_EB_WLIST_XSD ]; then
+    if [[ ! -s $FW_EB_WLIST_XSD ]]; then
         eblog "err" "$FW_EB_WLIST_XSD is missing - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_EB_WLIST_XSL ]; then
+    if [[ ! -s $FW_EB_WLIST_XSL ]]; then
         eblog "err" "$FW_EB_WLIST_XSL is missing - can't execute."
         exit 1
     fi
 
-    if [ ! -s $FW_EB_RULES_AA ]; then
+    if [[ ! -s $FW_EB_RULES_AA ]]; then
         eblog "err" "$FW_EB_RULES_AA is missing - can't execute."
         exit 1
     fi
@@ -94,39 +94,45 @@ check_prerequisites()
 
 set_firewall()
 {
-    if [ "${FW_EB_TRANSFORM:-true}" != "false" ]; then
-        if [ ! -s $FW_EB_RULES ] || [ $FW_EB_WLIST_XML -nt $FW_EB_RULES ] || [ $FW_PARAMS_XML -nt $FW_EB_RULES ] ; then
-            $FW_XST val --xsd $FW_EB_WLIST_XSD $FW_EB_WLIST_XML 2>&1 > /dev/null
-            result1=$?
-            $FW_XST val --xsd $FW_PARAMS_XSD $FW_PARAMS_XML 2>&1 > /dev/null
-            result2=$?
-            if [ "$result1" -eq "0" ] && [ "$result2" -eq "0" ] ; then
-                $FW_XST tr $FW_EB_WLIST_XSL $FW_EB_WLIST_XML > $FW_EB_RULES_TEMP
+    local is_changed=0
+    if [[ "${FW_EB_TRANSFORM:-true}" != "false" ]]; then
+        $FW_XST val --xsd $FW_EB_WLIST_XSD "$FW_EB_WLIST_XML" 2>&1 > /dev/null
+        result1=$?
+        $FW_XST val --xsd $FW_PARAMS_XSD "$FW_PARAMS_XML" 2>&1 > /dev/null
+        result2=$?
+        if [[ $result1 -eq 0 ]] && [[ $result2 -eq 0 ]]; then
+            $FW_XST tr "$FW_EB_WLIST_XSL" "$FW_EB_WLIST_XML" > "$FW_EB_RULES_TEMP"
+            cmp "$FW_EB_RULES_TEMP" "$FW_EB_RULES" 2>&1 > /dev/null
+            if [[ $? -ne 0 ]]; then
+                mv $FW_EB_RULES_TEMP "$FW_EB_RULES"
+                is_changed=1
                 sync
-                mv $FW_EB_RULES_TEMP $FW_EB_RULES
-                sync
-            else
-                eblog "err" "$FW_EB_WLIST_XML or $FW_PARAMS_XML failed to validate. Setting all-allow mode."
-                cp $FW_EB_RULES_AA $FW_EB_RULES
-                sync
-            fi
+            fi  
+        else
+            eblog "err" "$FW_EB_WLIST_XML or $FW_PARAMS_XML failed to validate. Setting all-allow mode."
+            cp "$FW_EB_RULES_AA" "$FW_EB_RULES"
+            is_changed=1
+            sync
         fi
     fi
-
-    $FW_EBR  > /dev/null 2>&1 < $FW_EB_RULES
-    if [ "$?" -ne "0" ]; then
-        eblog "err" "Failed do set-up link-layer firewall!"
-    fi
+    if [[ $is_changed -ne 0 ]]; then
+        $FW_EBR  > /dev/null 2>&1 < "$FW_EB_RULES"
+        if [[ $? -ne 0 ]]; then
+            eblog "err" "Failed do set-up link-layer firewall!"
+        fi
+    else
+        eblog "notice" "Link-layer firewall is not changed."
+    fi    
 }
 
 clean_firewall()
 {
-    if [ ! -s $FW_EB_RULES_AA ]; then
+    if [[ ! -s $FW_EB_RULES_AA ]]; then
         eblog "err" "$FW_EB_RULES_AA is missing - can't execute."
         exit 1
     fi
 
-    $FW_EBR  > /dev/null 2>&1 < $FW_EB_RULES_AA
+    $FW_EBR  > /dev/null 2>&1 < "$FW_EB_RULES_AA"
 }
 
 
@@ -135,18 +141,18 @@ clean_firewall()
 #
 
 
-if [ -n "$2" ]; then
+if [[ -n $2 ]]; then
     eblog "warning" "Too many parameters."
     print_help
     exit 1
 fi
 
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+if [[ $1 = "-h" ]] || [[ $1 = "--help" ]]; then
     print_help
     exit 0
 fi
 
-cd $FW_EB
+cd "$FW_EB"
 
 
 case "$1" in

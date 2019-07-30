@@ -40,6 +40,14 @@ $(STATEDIR)/serial_dispatcher.extract: $(STATEDIR)/autogen-tools
 	@mkdir -p $(SERIAL_DISPATCHER_DIR)
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(SERIAL_DISPATCHER_SRC) $(BUILDDIR)
 	@$(call patchin, SERIAL_DISPATCHER)
+
+ifdef PTXCONF_SERIAL_DISPATCHER_TRUNK
+	cd $(SERIAL_DISPATCHER_DIR) && sh autogen.sh
+else
+	#cd $(SERIAL_DISPATCHER_DIR) && [ -f configure ] || sh autogen.sh
+	cd $(SERIAL_DISPATCHER_DIR) && sh autogen.sh
+endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -56,14 +64,6 @@ SERIAL_DISPATCHER_CONF_OPT	:= $(CROSS_AUTOCONF_USR)
 
 $(STATEDIR)/serial_dispatcher.prepare:
 	@$(call targetinfo)
-
-ifdef PTXCONF_SERIAL_DISPATCHER_TRUNK
-	cd $(SERIAL_DISPATCHER_DIR) && sh autogen.sh
-else
-	#cd $(SERIAL_DISPATCHER_DIR) && [ -f configure ] || sh autogen.sh
-	cd $(SERIAL_DISPATCHER_DIR) && sh autogen.sh
-endif
-
 	@$(call world/prepare, SERIAL_DISPATCHER)
 	@$(call touch)
 

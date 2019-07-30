@@ -1,0 +1,211 @@
+From 0803da69f72ddf615a5431a0745741bb54573234 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Thu, 6 Sep 2018 09:37:59 +0200
+Subject: [PATCH] net: dsa: mv88e6xxx: make gbe compliance test modes available
+ in debugfs
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/dsa/mv88e6xxx/Makefile    |   1 +
+ drivers/net/dsa/mv88e6xxx/chip.c      |   2 +
+ drivers/net/dsa/mv88e6xxx/debugfs.c   | 135 ++++++++++++++++++++++++++++++++++
+ drivers/net/dsa/mv88e6xxx/mv88e6xxx.h |   6 ++
+ 4 files changed, 144 insertions(+)
+ create mode 100644 drivers/net/dsa/mv88e6xxx/debugfs.c
+
+diff --git a/drivers/net/dsa/mv88e6xxx/Makefile b/drivers/net/dsa/mv88e6xxx/Makefile
+index 10ce820..a6a6ed4 100644
+--- a/drivers/net/dsa/mv88e6xxx/Makefile
++++ b/drivers/net/dsa/mv88e6xxx/Makefile
+@@ -1,4 +1,5 @@
+ obj-$(CONFIG_NET_DSA_MV88E6XXX) += mv88e6xxx.o
+ mv88e6xxx-objs := chip.o
+ mv88e6xxx-objs += global1.o
++mv88e6xxx-objs += debugfs.o
+ mv88e6xxx-$(CONFIG_NET_DSA_MV88E6XXX_GLOBAL2) += global2.o
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index 7ba3121..72f64be 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -3902,6 +3902,7 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 		return err;
+ 	}
+ 
++	mv88e6xxx_debugfs_setup(chip);
+ 	global_chip = chip;
+ 
+ 	return 0;
+@@ -3912,6 +3913,7 @@ static void mv88e6xxx_remove(struct mdio_device *mdiodev)
+ 	struct dsa_switch *ds = dev_get_drvdata(&mdiodev->dev);
+ 	struct mv88e6xxx_chip *chip = ds->priv;
+ 
++	mv88e6xxx_debugfs_destroy(chip);
+ 	mv88e6xxx_phy_destroy(chip);
+ 	mv88e6xxx_unregister_switch(chip);
+ 	mv88e6xxx_mdio_unregister(chip);
+diff --git a/drivers/net/dsa/mv88e6xxx/debugfs.c b/drivers/net/dsa/mv88e6xxx/debugfs.c
+new file mode 100644
+index 0000000..f1edae1a
+--- /dev/null
++++ b/drivers/net/dsa/mv88e6xxx/debugfs.c
+@@ -0,0 +1,135 @@
++/*
++ * Marvell 88e6xxx Ethernet switch debugfs support
++ *
++ * Copyright (c) 2018 WAGO Kontakttechnick GmbH
++ *
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/debugfs.h>
++
++#include "mv88e6xxx.h"
++
++#define GBE_TEST_MODE_ID 0
++
++/* GBE ctrl register number */
++#define STD_GCCTRL_REG 0x09
++
++static char const *const text[] = {
++	[GBE_TEST_MODE_ID] =
++	"GBE Compliance Test Mode\n"
++	"Write 1 to 4 to enter test mode\n"
++	"Write 0 to disable\n",
++};
++
++/* list of files published via debugfs*/
++static char const *const files[] = {
++	[GBE_TEST_MODE_ID] = "gbe_compliance"
++};
++
++static int mv88e6xxx_phy_read(struct mv88e6xxx_chip *chip, int phy,
++			      int reg, u16 *val)
++{
++	int addr = phy; /* PHY devices addresses start at 0x0 */
++
++	if (!chip->info->ops->phy_read)
++		return -EOPNOTSUPP;
++
++	return chip->info->ops->phy_read(chip, addr, reg, val);
++}
++
++static int mv88e6xxx_phy_write(struct mv88e6xxx_chip *chip, int phy,
++			       int reg, u16 val)
++{
++	int addr = phy; /* PHY devices addresses start at 0x0 */
++
++	if (!chip->info->ops->phy_write)
++		return -EOPNOTSUPP;
++
++	return chip->info->ops->phy_write(chip, addr, reg, val);
++}
++
++static bool mv88e6xxx_check_filename(struct file *filp, int file_index)
++{
++	return strcmp(files[file_index], filp->f_path.dentry->d_iname) == 0;
++}
++
++static ssize_t mv88e6xxx_debugfs_generic_read(
++	struct file *filp, char __user *buffer,
++	size_t count, loff_t *off, int file_index)
++{
++	return simple_read_from_buffer(buffer, count, off,
++				       text[file_index],
++				       strlen(text[file_index]));
++}
++
++static ssize_t mv88e6xxx_debugfs_read(
++	struct file *filp, char __user *buffer, size_t count, loff_t *off)
++{
++	if (mv88e6xxx_check_filename(filp, GBE_TEST_MODE_ID))
++		return mv88e6xxx_debugfs_generic_read(filp, buffer, count,
++						      off, GBE_TEST_MODE_ID);
++
++	return 0;
++}
++
++static void mv88e6xxx_debugfs_set_gbe_testmode(
++	struct mv88e6xxx_chip *chip, const char __user *s, size_t count)
++{
++	const u16 transmitter_test_mode_mask = (u16)((BIT(13) - 1));
++	const int phys[] = {0, 1, 3, 4};
++	u16 mode, reg;
++	int i;
++
++	if (kstrtou16_from_user(s, count, 10, &mode) == 0) {
++		mutex_lock(&chip->reg_lock);
++		for (i = 0; i < 4; ++i)	{
++			mv88e6xxx_phy_read(chip, phys[i],
++					   STD_GCCTRL_REG, &reg);
++			reg = (mode << 13) | (reg & transmitter_test_mode_mask);
++			mv88e6xxx_phy_write(chip, phys[i],
++					    STD_GCCTRL_REG, reg);
++		}
++		mutex_unlock(&chip->reg_lock);
++
++		if (mode)
++			pr_info("gbe entering test mode %d\n", mode);
++		else
++			pr_info("gbe leaving test mode\n");
++	}
++}
++
++static ssize_t mv88e6xxx_debugfs_write(
++	struct file *filp, const char __user *s, size_t count, loff_t *off)
++{
++	struct mv88e6xxx_chip *chip = filp->f_inode->i_private;
++
++	if (mv88e6xxx_check_filename(filp, GBE_TEST_MODE_ID))
++		mv88e6xxx_debugfs_set_gbe_testmode(chip, s, count);
++
++	return count;
++}
++
++static const struct file_operations debugfs_ops = {
++	.read = mv88e6xxx_debugfs_read,
++	.write = mv88e6xxx_debugfs_write
++};
++
++void mv88e6xxx_debugfs_destroy(struct mv88e6xxx_chip *chip)
++{
++	debugfs_remove_recursive(chip->debugfs_root_entry);
++}
++
++void mv88e6xxx_debugfs_setup(struct mv88e6xxx_chip *chip)
++{
++	chip->debugfs_root_entry = debugfs_create_dir("mv88e6xx", NULL);
++
++	debugfs_create_file(files[GBE_TEST_MODE_ID],
++			    0600, chip->debugfs_root_entry,
++			    chip, &debugfs_ops);
++}
+diff --git a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+index a9b76c4..8ba85c1 100644
+--- a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
++++ b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+@@ -703,6 +703,9 @@ struct mv88e6xxx_chip {
+ 
+ 	/* And the MDIO bus itself */
+ 	struct mii_bus *mdio_bus;
++
++	/* directory within debugfs */
++	struct dentry *debugfs_root_entry;
+ };
+ 
+ struct mv88e6xxx_bus_ops {
+@@ -759,4 +762,7 @@ int mv88e6xxx_update(struct mv88e6xxx_chip *chip, int addr, int reg,
+ 		     u16 update);
+ int mv88e6xxx_wait(struct mv88e6xxx_chip *chip, int addr, int reg, u16 mask);
+ 
++void mv88e6xxx_debugfs_destroy(struct mv88e6xxx_chip *chip);
++void mv88e6xxx_debugfs_setup(struct mv88e6xxx_chip *chip);
++
+ #endif
+-- 
+2.7.4
+

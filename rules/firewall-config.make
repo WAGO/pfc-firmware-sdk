@@ -33,6 +33,10 @@ FIREWALL_CONFIG_MAKE_ENV       := $(CROSS_ENV) \
 BUILDCONFIG=$(FIREWALL_CONFIG_BUILDCONFIG) \
 BIN_DIR=$(FIREWALL_CONFIG_BUILD_DIR) \
 SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
+FIREWALL_CONFIG_IPTABLES        := $(call ptx/get_alternative, projectroot, etc/firewall/iptables)
+FIREWALL_CONFIG_EBTABLES        := $(call ptx/get_alternative, projectroot, etc/firewall/ebtables)
+FIREWALL_CONFIG_SERVICES        := $(call ptx/get_alternative, projectroot, etc/firewall/services)
+FIREWALL_CONFIG_TEMPLATES       := $(call ptx/get_alternative, projectroot, etc/firewall/templates)
 
 # ----------------------------------------------------------------------------
 # Extract
@@ -86,41 +90,72 @@ $(STATEDIR)/firewall-config.targetinstall:
 	@$(call install_fixup, firewall-config,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
 	@$(call install_fixup, firewall-config,DESCRIPTION,missing)
 
-#
-# TODO: Add here all files that should be copied to the target
-# Note: Add everything before(!) call to macro install_finish
-
 	@$(call install_copy, firewall-config, 0, 0, 0755, /etc/config-tools);
 	@$(call install_copy, firewall-config, 0, 0, 0750, $(PTXDIST_SYSROOT_TARGET)/usr/bin/firewall.elf, /usr/bin/firewall);
 	@$(call install_link, firewall-config, /usr/bin/firewall, /etc/config-tools/firewall)
 
+	@$(call install_alternative, firewall-config, 0, 0, 0750, /etc/config-tools/firewall_apply.sh)
+
 	@$(call install_copy, firewall-config, 0, 0, 0700, /etc/firewall)
+
+	@$(call install_alternative, firewall-config, 0, 0, 0750, /etc/firewall/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0750, /etc/firewall/validate_if.sh)
+	@$(call install_alternative, firewall-config, 0, 0, 0750, /etc/firewall/fwbackup.sh)
+	@$(call install_alternative, firewall-config, 0, 0, 0750, /etc/firewall/fwrestore.sh)
+	@$(call install_alternative, firewall-config, 0, 0, 0750, /etc/firewall/ipsecfirewall.sh)
+	@$(call install_alternative, firewall-config, 0, 0, 0750, /etc/firewall/permissions.sh)
+	@$(call install_alternative, firewall-config, 0, 0, 0640, /etc/firewall/firewall.conf)
+	@$(call install_alternative, firewall-config, 0, 0, 0640, /etc/firewall/params_gen.xml)
+	@$(call install_alternative, firewall-config, 0, 0, 0640, /etc/firewall/params.xml)
+	@$(call install_alternative, firewall-config, 0, 0, 0640, /etc/firewall/params.xsd)
+	@$(call install_alternative, firewall-config, 0, 0, 0640, /etc/firewall/patterns.xsd)
+	@$(call install_alternative, firewall-config, 0, 0, 0640, /etc/firewall/transform.xsl)
+
 	@$(call install_copy, firewall-config, 0, 0, 0700, /etc/firewall/ebtables)
+	@cd $(FIREWALL_CONFIG_EBTABLES) && \
+        for object in $$( find ./* -maxdepth 0 -type f -print ); do \
+		if test -f $$object; then \
+			$(call install_copy, firewall-config, 0, 0, 0600, $(FIREWALL_CONFIG_EBTABLES)/$$object, /etc/firewall/ebtables/$$object); \
+		fi; \
+	done;
+
 	@$(call install_copy, firewall-config, 0, 0, 0700, /etc/firewall/iptables)
+	@cd $(FIREWALL_CONFIG_IPTABLES) && \
+	for object in $$( find ./* -maxdepth 0 -type f -print ); do \
+		if test -f $$object; then \
+			$(call install_copy, firewall-config, 0, 0, 0600, $(FIREWALL_CONFIG_IPTABLES)/$$object, /etc/firewall/iptables/$$object); \
+		fi; \
+	done;
+
 	@$(call install_copy, firewall-config, 0, 0, 0700, /etc/firewall/services)
+	@cd $(FIREWALL_CONFIG_SERVICES) && \
+        for object in $$( find ./* -maxdepth 0 -type f -print ); do \
+		if test -f $$object; then \
+			$(call install_copy, firewall-config, 0, 0, 0600, $(FIREWALL_CONFIG_SERVICES)/$$object, /etc/firewall/services/$$object); \
+		fi; \
+	done;
+
 	@$(call install_copy, firewall-config, 0, 0, 0700, /etc/firewall/templates)
+	@cd $(FIREWALL_CONFIG_TEMPLATES) && \
+	for object in $$( find ./* -maxdepth 0 -type f -print ); do \
+		if test -f $$object; then \
+			$(call install_copy, firewall-config, 0, 0, 0600, $(FIREWALL_CONFIG_TEMPLATES)/$$object, /etc/firewall/templates/$$object); \
+		fi; \
+	done;
 
-	@$(call install_copy, firewall-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/firewall_apply.sh, /etc/config-tools/firewall_apply.sh)
-
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/codesys/firewall, /etc/config-tools/events/codesys/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/dhcp/firewall, /etc/config-tools/events/dhcp/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/dns/firewall, /etc/config-tools/events/dns/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/modbus/firewall, /etc/config-tools/events/modbus/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/snmp/firewall, /etc/config-tools/events/snmp/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/ssh/firewall, /etc/config-tools/events/ssh/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/ssl/firewall, /etc/config-tools/events/ssl/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/telnet/firewall, /etc/config-tools/events/telnet/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/tftp/firewall, /etc/config-tools/events/tftp/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/iocheckport/firewall, /etc/config-tools/events/iocheckport/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/dnp3/firewall, /etc/config-tools/events/dnp3/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/iec60870_5_104/firewall, /etc/config-tools/events/iec60870_5_104/firewall)
-	@$(call install_copy, firewall-config, 0, 0, 0700, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/iec61850_mms/firewall, /etc/config-tools/events/iec61850_mms/firewall)
-
-	@for i in $(shell cd $(PTXDIST_WORKSPACE)/projectroot && find etc/firewall -type f); do \
-		$(call install_copy, firewall-config, 0, 0, 0600, $(PTXDIST_WORKSPACE)/projectroot/$$i, /$$i); \
-	done
-
-	@$(call install_copy, firewall-config, 0, 0, 0700, /etc/config-tools/events/firewall/iptables)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/codesys/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/dhcp/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/dns/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/modbus/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/snmp/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/ssh/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/ssl/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/telnet/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/tftp/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iocheckport/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/dnp3/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iec60870_5_104/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iec61850_mms/firewall)
 
 ifdef PTXCONF_INITMETHOD_BBINIT
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/init.d/firewall)
@@ -133,9 +168,7 @@ else
 	$(error "Please supply an init file for your init system!")
 endif
 
-
 	@$(call install_finish, firewall-config)
-
 	@$(call touch)
 
 # ----------------------------------------------------------------------------

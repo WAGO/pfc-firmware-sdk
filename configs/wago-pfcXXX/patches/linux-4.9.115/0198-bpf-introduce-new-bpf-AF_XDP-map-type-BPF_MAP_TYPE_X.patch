@@ -1,0 +1,494 @@
+From 68efbd3255f081ffe79838e9ac424974ad2a208e Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Wed, 23 May 2018 13:03:01 +0200
+Subject: [PATCH] bpf: introduce new bpf AF_XDP map type BPF_MAP_TYPE_XSK
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The xskmap is yet another BPF map, very much inspired by
+dev/cpu/sockmap, and is a holder of AF_XDP sockets. A user application
+adds AF_XDP sockets into the map, and by using the bpf_redirect_map
+helper, an XDP program can redirect XDP frames to an AF_XDP socket.
+
+Note that a socket that is bound to certain ifindex/queue index will
+*only* accept XDP frames from that netdev/queue index. If an XDP
+program tries to redirect from a netdev/queue index other than what
+the socket is bound to, the frame will not be received on the socket.
+
+A socket can reside in multiple maps.
+
+Signed-off-by: Björn Töpel <bjorn.topel@intel.com>
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ include/linux/bpf.h            |  28 +++++
+ include/linux/bpf_types.h      |  55 ++++++++++
+ include/net/xdp_sock.h         |   7 ++
+ kernel/bpf/Makefile            |   3 +
+ kernel/bpf/verifier.c          |  14 +++
+ kernel/bpf/xskmap.c            | 239 +++++++++++++++++++++++++++++++++++++++++
+ net/xdp/xsk.c                  |   5 +
+ tools/include/uapi/linux/bpf.h |   1 +
+ 8 files changed, 352 insertions(+)
+ create mode 100644 include/linux/bpf_types.h
+ create mode 100644 kernel/bpf/xskmap.c
+
+diff --git a/include/linux/bpf.h b/include/linux/bpf.h
+index 7995940..9d125f1 100644
+--- a/include/linux/bpf.h
++++ b/include/linux/bpf.h
+@@ -255,6 +255,7 @@ void bpf_map_put(struct bpf_map *map);
+ int bpf_map_precharge_memlock(u32 pages);
+ void *bpf_map_area_alloc(size_t size);
+ void bpf_map_area_free(void *base);
++void bpf_map_init_from_attr(struct bpf_map *map, union bpf_attr *attr);
+ 
+ extern int sysctl_unprivileged_bpf_disabled;
+ 
+@@ -324,6 +325,33 @@ static inline struct bpf_prog *bpf_prog_inc(struct bpf_prog *prog)
+ }
+ #endif /* CONFIG_BPF_SYSCALL */
+ 
++#if defined(CONFIG_XDP_SOCKETS)
++struct xdp_buff;
++struct xdp_sock;
++struct xdp_sock *__xsk_map_lookup_elem(struct bpf_map *map, u32 key);
++int __xsk_map_redirect(struct bpf_map *map, struct xdp_buff *xdp,
++		       struct xdp_sock *xs);
++void __xsk_map_flush(struct bpf_map *map);
++#else
++struct xdp_buff;
++struct xdp_sock;
++static inline struct xdp_sock *__xsk_map_lookup_elem(struct bpf_map *map,
++						     u32 key)
++{
++	return NULL;
++}
++
++static inline int __xsk_map_redirect(struct bpf_map *map, struct xdp_buff *xdp,
++				     struct xdp_sock *xs)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline void __xsk_map_flush(struct bpf_map *map)
++{
++}
++#endif
++
+ /* verifier prototypes for helper functions called from eBPF programs */
+ extern const struct bpf_func_proto bpf_map_lookup_elem_proto;
+ extern const struct bpf_func_proto bpf_map_update_elem_proto;
+diff --git a/include/linux/bpf_types.h b/include/linux/bpf_types.h
+new file mode 100644
+index 0000000..d7df1b32
+--- /dev/null
++++ b/include/linux/bpf_types.h
+@@ -0,0 +1,55 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* internal file - do not include directly */
++
++#ifdef CONFIG_NET
++BPF_PROG_TYPE(BPF_PROG_TYPE_SOCKET_FILTER, sk_filter)
++BPF_PROG_TYPE(BPF_PROG_TYPE_SCHED_CLS, tc_cls_act)
++BPF_PROG_TYPE(BPF_PROG_TYPE_SCHED_ACT, tc_cls_act)
++BPF_PROG_TYPE(BPF_PROG_TYPE_XDP, xdp)
++BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_SKB, cg_skb)
++BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_SOCK, cg_sock)
++BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_SOCK_ADDR, cg_sock_addr)
++BPF_PROG_TYPE(BPF_PROG_TYPE_LWT_IN, lwt_inout)
++BPF_PROG_TYPE(BPF_PROG_TYPE_LWT_OUT, lwt_inout)
++BPF_PROG_TYPE(BPF_PROG_TYPE_LWT_XMIT, lwt_xmit)
++BPF_PROG_TYPE(BPF_PROG_TYPE_SOCK_OPS, sock_ops)
++BPF_PROG_TYPE(BPF_PROG_TYPE_SK_SKB, sk_skb)
++BPF_PROG_TYPE(BPF_PROG_TYPE_SK_MSG, sk_msg)
++#endif
++#ifdef CONFIG_BPF_EVENTS
++BPF_PROG_TYPE(BPF_PROG_TYPE_KPROBE, kprobe)
++BPF_PROG_TYPE(BPF_PROG_TYPE_TRACEPOINT, tracepoint)
++BPF_PROG_TYPE(BPF_PROG_TYPE_PERF_EVENT, perf_event)
++BPF_PROG_TYPE(BPF_PROG_TYPE_RAW_TRACEPOINT, raw_tracepoint)
++#endif
++#ifdef CONFIG_CGROUP_BPF
++BPF_PROG_TYPE(BPF_PROG_TYPE_CGROUP_DEVICE, cg_dev)
++#endif
++
++BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY, array_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_ARRAY, percpu_array_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_PROG_ARRAY, prog_array_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_PERF_EVENT_ARRAY, perf_event_array_map_ops)
++#ifdef CONFIG_CGROUPS
++BPF_MAP_TYPE(BPF_MAP_TYPE_CGROUP_ARRAY, cgroup_array_map_ops)
++#endif
++BPF_MAP_TYPE(BPF_MAP_TYPE_HASH, htab_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_PERCPU_HASH, htab_percpu_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_LRU_HASH, htab_lru_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_LRU_PERCPU_HASH, htab_lru_percpu_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_LPM_TRIE, trie_map_ops)
++#ifdef CONFIG_PERF_EVENTS
++BPF_MAP_TYPE(BPF_MAP_TYPE_STACK_TRACE, stack_map_ops)
++#endif
++BPF_MAP_TYPE(BPF_MAP_TYPE_ARRAY_OF_MAPS, array_of_maps_map_ops)
++BPF_MAP_TYPE(BPF_MAP_TYPE_HASH_OF_MAPS, htab_of_maps_map_ops)
++#ifdef CONFIG_NET
++BPF_MAP_TYPE(BPF_MAP_TYPE_DEVMAP, dev_map_ops)
++#if defined(CONFIG_STREAM_PARSER) && defined(CONFIG_INET)
++BPF_MAP_TYPE(BPF_MAP_TYPE_SOCKMAP, sock_map_ops)
++#endif
++BPF_MAP_TYPE(BPF_MAP_TYPE_CPUMAP, cpu_map_ops)
++#if defined(CONFIG_XDP_SOCKETS)
++BPF_MAP_TYPE(BPF_MAP_TYPE_XSKMAP, xsk_map_ops)
++#endif
++#endif
+diff --git a/include/net/xdp_sock.h b/include/net/xdp_sock.h
+index a0342df..ce3a2ab 100644
+--- a/include/net/xdp_sock.h
++++ b/include/net/xdp_sock.h
+@@ -28,6 +28,7 @@ struct xdp_sock {
+ 	struct xsk_queue *rx;
+ 	struct net_device *dev;
+ 	struct xdp_umem *umem;
++	struct list_head flush_node;
+ 	u16 queue_id;
+ 	/* Protects multiple processes in the control path */
+ 	struct mutex mutex;
+@@ -39,6 +40,7 @@ struct xdp_buff;
+ int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp);
+ int xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp);
+ void xsk_flush(struct xdp_sock *xs);
++bool xsk_is_setup_for_bpf_map(struct xdp_sock *xs);
+ #else
+ static inline int xsk_generic_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
+ {
+@@ -53,6 +55,11 @@ static inline int xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
+ static inline void xsk_flush(struct xdp_sock *xs)
+ {
+ }
++
++static inline bool xsk_is_setup_for_bpf_map(struct xdp_sock *xs)
++{
++	return false;
++}
+ #endif /* CONFIG_XDP_SOCKETS */
+ 
+ #endif /* _LINUX_XDP_SOCK_H */
+diff --git a/kernel/bpf/Makefile b/kernel/bpf/Makefile
+index eed911d..3aab70c4 100644
+--- a/kernel/bpf/Makefile
++++ b/kernel/bpf/Makefile
+@@ -5,3 +5,6 @@ obj-$(CONFIG_BPF_SYSCALL) += hashtab.o arraymap.o percpu_freelist.o
+ ifeq ($(CONFIG_PERF_EVENTS),y)
+ obj-$(CONFIG_BPF_SYSCALL) += stackmap.o
+ endif
++ifeq ($(CONFIG_XDP_SOCKETS),y)
++obj-$(CONFIG_BPF_SYSCALL) += xskmap.o
++endif
+diff --git a/kernel/bpf/verifier.c b/kernel/bpf/verifier.c
+index 076e4a0..9868479 100644
+--- a/kernel/bpf/verifier.c
++++ b/kernel/bpf/verifier.c
+@@ -1124,6 +1124,12 @@ static int check_map_func_compatibility(struct bpf_map *map, int func_id)
+ 		    func_id != BPF_FUNC_current_task_under_cgroup)
+ 			goto error;
+ 		break;
++/* TODO(JSo): how to implement for xsk??
++	case BPF_MAP_TYPE_XSKMAP:
++		if (func_id != BPF_FUNC_redirect_map)
++			goto error;
++		break;
++*/
+ 	default:
+ 		break;
+ 	}
+@@ -1148,6 +1154,14 @@ static int check_map_func_compatibility(struct bpf_map *map, int func_id)
+ 		if (map->map_type != BPF_MAP_TYPE_CGROUP_ARRAY)
+ 			goto error;
+ 		break;
++/* TODO(JSo): how to implement for xsk?
++	case BPF_FUNC_redirect_map:
++		if (map->map_type != BPF_MAP_TYPE_DEVMAP &&
++		    map->map_type != BPF_MAP_TYPE_CPUMAP &&
++		    map->map_type != BPF_MAP_TYPE_XSKMAP)
++			goto error;
++		break;
++*/
+ 	default:
+ 		break;
+ 	}
+diff --git a/kernel/bpf/xskmap.c b/kernel/bpf/xskmap.c
+new file mode 100644
+index 0000000..869dbb1
+--- /dev/null
++++ b/kernel/bpf/xskmap.c
+@@ -0,0 +1,239 @@
++// SPDX-License-Identifier: GPL-2.0
++/* XSKMAP used for AF_XDP sockets
++ * Copyright(c) 2018 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++
++#include <linux/bpf.h>
++#include <linux/capability.h>
++#include <net/xdp_sock.h>
++#include <linux/slab.h>
++#include <linux/sched.h>
++
++struct xsk_map {
++	struct bpf_map map;
++	struct xdp_sock **xsk_map;
++	struct list_head __percpu *flush_list;
++};
++
++static struct bpf_map *xsk_map_alloc(union bpf_attr *attr)
++{
++	int cpu, err = -EINVAL;
++	struct xsk_map *m;
++	u64 cost;
++
++	if (!capable(CAP_NET_ADMIN))
++		return ERR_PTR(-EPERM);
++
++	if (attr->max_entries == 0 || attr->key_size != 4 ||
++	    attr->value_size != 4 ||
++	    attr->map_flags & ~(BPF_F_NUMA_NODE | BPF_F_RDONLY | BPF_F_WRONLY))
++		return ERR_PTR(-EINVAL);
++
++	m = kzalloc(sizeof(*m), GFP_USER);
++	if (!m)
++		return ERR_PTR(-ENOMEM);
++
++	bpf_map_init_from_attr(&m->map, attr);
++
++	cost = (u64)m->map.max_entries * sizeof(struct xdp_sock *);
++	cost += sizeof(struct list_head) * num_possible_cpus();
++	if (cost >= U32_MAX - PAGE_SIZE)
++		goto free_m;
++
++	m->map.pages = round_up(cost, PAGE_SIZE) >> PAGE_SHIFT;
++
++	/* Notice returns -EPERM on if map size is larger than memlock limit */
++	err = bpf_map_precharge_memlock(m->map.pages);
++	if (err)
++		goto free_m;
++
++	m->flush_list = alloc_percpu(struct list_head);
++	if (!m->flush_list)
++		goto free_m;
++
++	for_each_possible_cpu(cpu)
++		INIT_LIST_HEAD(per_cpu_ptr(m->flush_list, cpu));
++
++	m->xsk_map = bpf_map_area_alloc(m->map.max_entries *
++					sizeof(struct xdp_sock *),
++					m->map.numa_node);
++	if (!m->xsk_map)
++		goto free_percpu;
++	return &m->map;
++
++free_percpu:
++	free_percpu(m->flush_list);
++free_m:
++	kfree(m);
++	return ERR_PTR(err);
++}
++
++static void xsk_map_free(struct bpf_map *map)
++{
++	struct xsk_map *m = container_of(map, struct xsk_map, map);
++	int i;
++
++	synchronize_net();
++
++	for (i = 0; i < map->max_entries; i++) {
++		struct xdp_sock *xs;
++
++		xs = m->xsk_map[i];
++		if (!xs)
++			continue;
++
++		sock_put((struct sock *)xs);
++	}
++
++	free_percpu(m->flush_list);
++	bpf_map_area_free(m->xsk_map);
++	kfree(m);
++}
++
++static int xsk_map_get_next_key(struct bpf_map *map, void *key, void *next_key)
++{
++	struct xsk_map *m = container_of(map, struct xsk_map, map);
++	u32 index = key ? *(u32 *)key : U32_MAX;
++	u32 *next = next_key;
++
++	if (index >= m->map.max_entries) {
++		*next = 0;
++		return 0;
++	}
++
++	if (index == m->map.max_entries - 1)
++		return -ENOENT;
++	*next = index + 1;
++	return 0;
++}
++
++struct xdp_sock *__xsk_map_lookup_elem(struct bpf_map *map, u32 key)
++{
++	struct xsk_map *m = container_of(map, struct xsk_map, map);
++	struct xdp_sock *xs;
++
++	if (key >= map->max_entries)
++		return NULL;
++
++	xs = READ_ONCE(m->xsk_map[key]);
++	return xs;
++}
++
++int __xsk_map_redirect(struct bpf_map *map, struct xdp_buff *xdp,
++		       struct xdp_sock *xs)
++{
++	struct xsk_map *m = container_of(map, struct xsk_map, map);
++	struct list_head *flush_list = this_cpu_ptr(m->flush_list);
++	int err;
++
++	err = xsk_rcv(xs, xdp);
++	if (err)
++		return err;
++
++	if (!xs->flush_node.prev)
++		list_add(&xs->flush_node, flush_list);
++
++	return 0;
++}
++
++void __xsk_map_flush(struct bpf_map *map)
++{
++	struct xsk_map *m = container_of(map, struct xsk_map, map);
++	struct list_head *flush_list = this_cpu_ptr(m->flush_list);
++	struct xdp_sock *xs, *tmp;
++
++	list_for_each_entry_safe(xs, tmp, flush_list, flush_node) {
++		xsk_flush(xs);
++		__list_del(xs->flush_node.prev, xs->flush_node.next);
++		xs->flush_node.prev = NULL;
++	}
++}
++
++static void *xsk_map_lookup_elem(struct bpf_map *map, void *key)
++{
++	return NULL;
++}
++
++static int xsk_map_update_elem(struct bpf_map *map, void *key, void *value,
++			       u64 map_flags)
++{
++	struct xsk_map *m = container_of(map, struct xsk_map, map);
++	u32 i = *(u32 *)key, fd = *(u32 *)value;
++	struct xdp_sock *xs, *old_xs;
++	struct socket *sock;
++	int err;
++
++	if (unlikely(map_flags > BPF_EXIST))
++		return -EINVAL;
++	if (unlikely(i >= m->map.max_entries))
++		return -E2BIG;
++	if (unlikely(map_flags == BPF_NOEXIST))
++		return -EEXIST;
++
++	sock = sockfd_lookup(fd, &err);
++	if (!sock)
++		return err;
++
++	if (sock->sk->sk_family != PF_XDP) {
++		sockfd_put(sock);
++		return -EOPNOTSUPP;
++	}
++
++	xs = (struct xdp_sock *)sock->sk;
++
++	if (!xsk_is_setup_for_bpf_map(xs)) {
++		sockfd_put(sock);
++		return -EOPNOTSUPP;
++	}
++
++	sock_hold(sock->sk);
++
++	old_xs = xchg(&m->xsk_map[i], xs);
++	if (old_xs) {
++		/* Make sure we've flushed everything. */
++		synchronize_net();
++		sock_put((struct sock *)old_xs);
++	}
++
++	sockfd_put(sock);
++	return 0;
++}
++
++static int xsk_map_delete_elem(struct bpf_map *map, void *key)
++{
++	struct xsk_map *m = container_of(map, struct xsk_map, map);
++	struct xdp_sock *old_xs;
++	int k = *(u32 *)key;
++
++	if (k >= map->max_entries)
++		return -EINVAL;
++
++	old_xs = xchg(&m->xsk_map[k], NULL);
++	if (old_xs) {
++		/* Make sure we've flushed everything. */
++		synchronize_net();
++		sock_put((struct sock *)old_xs);
++	}
++
++	return 0;
++}
++
++const struct bpf_map_ops xsk_map_ops = {
++	.map_alloc = xsk_map_alloc,
++	.map_free = xsk_map_free,
++	.map_get_next_key = xsk_map_get_next_key,
++	.map_lookup_elem = xsk_map_lookup_elem,
++	.map_update_elem = xsk_map_update_elem,
++	.map_delete_elem = xsk_map_delete_elem,
++};
++
++
+diff --git a/net/xdp/xsk.c b/net/xdp/xsk.c
+index 4e1e6c5..b931a0d 100644
+--- a/net/xdp/xsk.c
++++ b/net/xdp/xsk.c
+@@ -41,6 +41,11 @@ static struct xdp_sock *xdp_sk(struct sock *sk)
+ 	return (struct xdp_sock *)sk;
+ }
+ 
++bool xsk_is_setup_for_bpf_map(struct xdp_sock *xs)
++{
++	return !!xs->rx;
++}
++
+ static int __xsk_rcv(struct xdp_sock *xs, struct xdp_buff *xdp)
+ {
+ 	u32 *id, len = xdp->data_end - xdp->data;
+diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bpf.h
+index f09c70b..b2eb5e0 100644
+--- a/tools/include/uapi/linux/bpf.h
++++ b/tools/include/uapi/linux/bpf.h
+@@ -85,6 +85,7 @@ enum bpf_map_type {
+ 	BPF_MAP_TYPE_PERCPU_ARRAY,
+ 	BPF_MAP_TYPE_STACK_TRACE,
+ 	BPF_MAP_TYPE_CGROUP_ARRAY,
++	BPF_MAP_TYPE_XSKMAP,
+ };
+ 
+ enum bpf_prog_type {
+-- 
+2.7.4
+

@@ -1,0 +1,5 @@
+## SECTION=hosttools_noprompt
+
+config HOST_NCURSES
+	tristate
+	default y if ALLYES

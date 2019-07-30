@@ -26,12 +26,14 @@ namespace wago
 {
 
 
-//------------------------------------------------------------------------------
-/// Executes an external command (can be shell call).
-/// \param cmd command to be executed
-/// \return string returned by the executed command
-//------------------------------------------------------------------------------
-std::string exe_cmd(const std::string& cmd);
+ //------------------------------------------------------------------------------
+ /// Executes an external command (can be shell call).
+ /// \param cmd command to be executed
+ /// \param exit_code reference to return status of executed command
+ /// (last exited child).
+ /// \return string returned by the executed command
+ //------------------------------------------------------------------------------
+std::string exe_cmd(const std::string& cmd, int &exit_code);
 
 
 } // namespace wago

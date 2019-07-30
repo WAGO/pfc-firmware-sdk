@@ -61,12 +61,6 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8204/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8204/K013-1080\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8204/K013-1080/0000-0001\"  GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8206\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8206/0000-0012\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8206/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8206/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8206/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8206/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8207\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8207/0000-0022\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8207/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
@@ -86,10 +80,6 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8214\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8215\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8215/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         ;;
 
     vtp-ctp)

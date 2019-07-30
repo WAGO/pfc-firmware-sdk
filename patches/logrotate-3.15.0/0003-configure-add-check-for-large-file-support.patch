@@ -1,0 +1,21 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Thu, 11 Jun 2015 14:27:20 +0200
+Subject: [PATCH] configure: add check for large file support
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ configure.ac | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/configure.ac b/configure.ac
+index e655b85b135b..e39f1d21af72 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -16,6 +16,7 @@ AC_PROG_CC
+ AC_PROG_CC_STDC
+ AC_STRUCT_ST_BLKSIZE
+ AC_STRUCT_ST_BLOCKS
++AC_SYS_LARGEFILE
+ 
+ AC_CHECK_LIB([popt],[poptParseArgvString],,
+   AC_MSG_ERROR([libpopt required but not found]))

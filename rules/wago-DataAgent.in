@@ -20,6 +20,8 @@ menuconfig DATAAGENT
 	select LIBCURL
 	select LIBXML2
 	select LIBWAGODRM
+	select LICENSE_INFO
+	select ZLIB
 
 	help
 	  The Data Agent application provides IoT Connectivity

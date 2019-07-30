@@ -38,6 +38,7 @@ $(STATEDIR)/libwideoms.extract: $(STATEDIR)/autogen-tools
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(LIBWIDEOMS_SRC) $(BUILDDIR)
+	cd $(LIBWIDEOMS_DIR) && sh autogen.sh
 endif
 	@$(call touch)
 
@@ -52,7 +53,6 @@ $(STATEDIR)/libwideoms.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	cd $(LIBWIDEOMS_DIR) && sh autogen.sh
 	@$(call world/prepare, LIBWIDEOMS)
 endif
 	@$(call touch)

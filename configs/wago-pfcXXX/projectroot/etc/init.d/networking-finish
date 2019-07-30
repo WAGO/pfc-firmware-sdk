@@ -88,7 +88,7 @@ function wait_for_link_up
     done
 
     # This sleep is to wait for auto MDI-X switching to finish.
-    sleep 1
+    sleep 2
 }
 
 function interfaces_up

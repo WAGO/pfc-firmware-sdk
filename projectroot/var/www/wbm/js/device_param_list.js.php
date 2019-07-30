@@ -1935,6 +1935,7 @@ var CreateDeviceparams = (function()
       {
         name      : 'get_firmware_restore_packages',
         sudo      : true,
+        multiline : true,
         timeout   : 20000
       }
     });
@@ -1948,7 +1949,8 @@ var CreateDeviceparams = (function()
         parameter : [ 'device-medium=$sourceDeviceMedium', 'upload-dir=$uploadDir',
                       'package-codesys=$packageCodesysFlag',
                       'package-settings=$packageSettingsFlag',
-                      'package-system=$packageSystemFlag' ],
+                      'package-system=$packageSystemFlag',
+                      'passphrase=$encPassphrase' ],
         sudo      : true,
         timeout   : (1000 * 60 * 10)
       }
@@ -1963,7 +1965,8 @@ var CreateDeviceparams = (function()
         parameter : [ 'device-medium=$destinationDeviceMedium', 'download-dir=$downloadDir', 'auto-update=$autoUpdateFlag',
                       'package-codesys=$packageCodesysFlag',
                       'package-settings=$packageSettingsFlag',
-                      'package-system=$packageSystemFlag' ],
+                      'package-system=$packageSystemFlag',
+                      'passphrase=$encPassphrase' ],
         sudo      : true,
         timeout   : (1000 * 60 * 5) //0 //20000
       }
@@ -3013,29 +3016,11 @@ var CreateDeviceparams = (function()
         configtoolReadParams  :
         {
           name      : 'bacnet_config',
-          parameter : [ '--get', 'device-id' ],
+          parameter : [ '-g', 'device-id' ],
           sudo      : true
         }
       });
-    
-      deviceParams.Add(
-      {
-        id                    : 'bacnet_fieldbus_state',
-        exampleValue          : '',
-        configtoolReadParams  :
-        {
-          name      : 'bacnet_config',
-          parameter : [ '--get', 'fieldbus-state' ],
-          sudo      : true
-        },
-        configtoolWriteParams :
-        {
-          name      : 'bacnet_config',
-          parameter : [ '--set', 'fieldbus-state', '--value', '$fieldbusState' ],
-          sudo      : true
-        }
-      });
-  
+
       deviceParams.Add(
       {
         id                    : 'bacnet_udp_port',
@@ -3043,13 +3028,13 @@ var CreateDeviceparams = (function()
         configtoolReadParams  :
         {
           name      : 'bacnet_config',
-          parameter : [ '--get', 'udp-port' ],
+          parameter : [ '-g', 'udp-port' ],
           sudo      : true
         },
         configtoolWriteParams :
         {
           name      : 'bacnet_config',
-          parameter : [ '--set', 'udp-port', '--value', '$udpPort' ],
+          parameter : [ '-s', 'udp-port', '-v', '$udpPort' ],
           sudo      : true
         }
       });
@@ -3061,13 +3046,67 @@ var CreateDeviceparams = (function()
         configtoolReadParams  :
         {
           name      : 'bacnet_config',
-          parameter : [ '--get', 'who-is-online-interval' ],
+          parameter : [ '-g', 'who-is-online-interval' ],
           sudo      : true
         },
         configtoolWriteParams :
         {
           name      : 'bacnet_config',
           parameter : [ '-s', 'who-is-online-interval', '-v', '$whoIsOnlineInterval' ],
+          sudo      : true
+        }
+      });
+      
+      deviceParams.Add(
+      {
+        id                    : 'bacnet_persistence_delete',
+        exampleValue          : '',
+        configtoolReadParams  :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-g', 'persistence-delete' ],
+          sudo      : true
+        },
+        configtoolWriteParams :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-s', 'persistence-delete', '-v', '$persDelState' ],
+          sudo      : true
+        }
+      });
+      
+      deviceParams.Add(
+      {
+        id                    : 'bacnet_delete_all',
+        exampleValue          : '',
+        configtoolReadParams  :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-g', 'delete-all' ],
+          sudo      : true
+        },
+        configtoolWriteParams :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-s', 'delete-all', '-v', '$delAllState' ],
+          sudo      : true
+        }
+      });
+      
+      deviceParams.Add(
+      {
+        id                    : 'bacnet_wbm_upload',
+        exampleValue          : '',
+        configtoolReadParams  :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-u', 'info' ],
+          sudo      : true
+        },
+        configtoolWriteParams :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-u', '$uploadFunc' ],
           sudo      : true
         }
       });
@@ -3557,5 +3596,37 @@ var CreateDeviceparams = (function()
     })();
 
 
+    /*---------------------------------------------------------------------------
+    * OPKG
+    * ---------------------------------------------------------------------------
+    */
+    CreateFeatureDetectionParam('opkg_feature','feature_opkglist');
+
+    var CreateOpkgPArams = (function()
+    {
+      deviceParams.Add(
+        {
+          id		 	  :  'opkglist',
+	  configtoolReadParams  :
+	  {
+	    name	:  'get_wbm_opkglist',
+	    parameter	:  [ '$opkg_list_val' ],
+	    multiline	:  true,
+	    sudo	:  true
+	  }
+        });
+
+      deviceParams.Add(
+        {
+	  id		 	  :  'opkgfkt',
+	  configtoolReadParams  :
+	  {
+	    name	:  'get_wbm_opkglist',
+	    parameter	:  [ '$opkg_fkt_val','$opkg_pkg_val' ],
+	    multiline	:  true,
+	    sudo	:  true
+	  }
+        });
+    })();
 
 })();

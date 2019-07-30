@@ -89,8 +89,8 @@ libwagosnmp.so_LDFLAGS += $(call pkg_config_ldflags,$(libwagosnmp.so_PKG_CONFIGS
 #######################################################################################################################
 # Settings for build target alltests.elf
 
-alltests.elf_STATICALLYLINKED += gmock_main gmock
-alltests.elf_LIBS += wagosnmp gmock_main gmock
+alltests.elf_STATICALLYLINKED += gmock_main gmock gtest
+alltests.elf_LIBS += wagosnmp gmock_main gmock gtest
 alltests.elf_PKG_CONFIGS += 
 alltests.elf_PKG_CONFIG_LIBS += 
 alltests.elf_DISABLEDWARNINGS += 

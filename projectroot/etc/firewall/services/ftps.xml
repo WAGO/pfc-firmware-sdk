@@ -11,7 +11,6 @@
                 <interface state="on"  if="VPN"/>
             </interfaces>
             <rules>
-                <rule state="on" proto="tcp" dst_port="20:21"/>
                 <rule state="on" proto="tcpudp" dst_port="989:990"/>
                 <rule state="on" proto="tcp" dst_port="32000:32100"/>
             </rules>

@@ -1,0 +1,28 @@
+From 5a7bb710396f6a46e5acf2f1dc6e96ec4464e0d5 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 26 Feb 2018 13:17:09 +0100
+Subject: [PATCH] dts: change comments for tps65218 LS2
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+index 75a00c9..63110ce 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
++++ b/arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts
+@@ -63,8 +63,8 @@
+                         compatible = "ti,tps65218-ls2";
+                         /* VDD_LS2 +5V15 for USB */
+                         regulator-name = "vdd_LS2_USB";
+-                        regulator-min-microamp = <200000>; /* Should be set to 100 mA according to SLP00000843.002 */
+-                        regulator-max-microamp = <200000>; /* but 4G Modem is not being inumurated correctly, so we increase it */
++                        regulator-min-microamp = <200000>; /* Because of current power supply it is not possible */
++                        regulator-max-microamp = <200000>; /* to serve more then 200mA for USB interface. */
+                         regulator-boot-on;
+                         regulator-always-on;
+                 };
+-- 
+2.7.4
+

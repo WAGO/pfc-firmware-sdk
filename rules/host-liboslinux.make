@@ -39,6 +39,7 @@ $(STATEDIR)/host-liboslinux.extract: $(STATEDIR)/autogen-tools
 	@$(call targetinfo)
 	@mkdir -p $(HOST_LIBOSLINUX_DIR)
 	@rsync -a --exclude=.libs/ --exclude="*.o" --exclude="*.a" --exclude="*.so" $(HOST_LIBOSLINUX_SOURCE) $(HOST_BUILDDIR)
+	@cd $(HOST_LIBOSLINUX_DIR) && sh autogen.sh
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -49,7 +50,6 @@ $(STATEDIR)/host-liboslinux.extract: $(STATEDIR)/autogen-tools
 $(STATEDIR)/host-liboslinux.prepare:
 	@$(call targetinfo)
 	echo $(HOST_LIBOSLINUX_CONF_OPT)
-	@cd $(HOST_LIBOSLINUX_DIR) && sh autogen.sh
 	@$(call world/prepare, HOST_LIBOSLINUX)
 	@$(call touch)
 

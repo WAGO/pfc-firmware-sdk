@@ -43,6 +43,13 @@ $(STATEDIR)/wago-pfc-diagnostic.extract: $(STATEDIR)/autogen-tools
 	@mkdir -p $(WAGO_PFC_DIAGNOSTIC_DIR)
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(WAGO_PFC_DIAGNOSTIC_SRC) $(BUILDDIR)
 	@$(call patchin, WAGO_PFC_DIAGNOSTIC)
+
+ifdef PTXCONF_WAGO_PFC_DIAGNOSTIC_TRUNK
+	cd $(WAGO_PFC_DIAGNOSTIC_DIR) && sh autogen.sh
+else
+	cd $(WAGO_PFC_DIAGNOSTIC_DIR) && sh autogen.sh
+endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -62,17 +69,10 @@ ifdef PTXCONF_WAGO_PFC_DIAGNOSTIC_DEBUGGING
 	WAGO_PFC_DIAGNOSTIC_CONF_OPT += --enable-debug 
 endif
 
-$(STATEDIR)/wago-pfc-diagnostic.prepare:
-	@$(call targetinfo)
-
-ifdef PTXCONF_WAGO_PFC_DIAGNOSTIC_TRUNK
-	cd $(WAGO_PFC_DIAGNOSTIC_DIR) && sh autogen.sh
-else
-	cd $(WAGO_PFC_DIAGNOSTIC_DIR) && sh autogen.sh
-endif
-
-	@$(call world/prepare, WAGO_PFC_DIAGNOSTIC)
-	@$(call touch)
+#$(STATEDIR)/wago-pfc-diagnostic.prepare:
+#	@$(call targetinfo)
+#	@$(call world/prepare, WAGO_PFC_DIAGNOSTIC)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Compile
@@ -141,6 +141,7 @@ $(STATEDIR)/wago-pfc-diagnostic.targetinstall:
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1001.TP600.xml)
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1002.TP600.xml)
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1003.TP600.xml)
+	@$(call install_link, wago-pfc-diagnostic, "../../etc/specific/led.0x000C.PFC200.xml", "/etc/specific/led.0x1004.PFC200.xml")
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x108E.CTP.xml)
 	@$(call install_link, wago-pfc-diagnostic, "../../etc/specific/led.0x000F.PFC200.xml", "/etc/specific/led.0x004E.PFC200.xml")
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x000C.SRC.xml)

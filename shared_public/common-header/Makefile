@@ -58,7 +58,7 @@ $(DISABLE_NOT_PTXDIST)INSTALL_TARGETS +=
 # Settings for build target alltests.elf
 
 alltests.elf_STATICALLYLINKED += gmock_main gmock
-alltests.elf_LIBS += gmock gmock_main
+alltests.elf_LIBS += gmock_main gmock
 alltests.elf_PKG_CONFIGS += oslinux
 alltests.elf_DISABLEDWARNINGS += 
 alltests.elf_PREREQUISITES += $(call lib_buildtarget,$(alltests.elf_LIBS),alltests.elf)

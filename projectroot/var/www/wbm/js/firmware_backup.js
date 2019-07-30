@@ -102,10 +102,34 @@ var FirmwareBackupContent = function(id)
       else if('network' === $('#' + firmwareBackupContent.id + '_content select#firmware_backup_destination_medium_select').val()) 
       {
         $('#' + firmwareBackupContent.id + '_content input[type=checkbox]').removeAttr('checked');
+        $('#' + firmwareBackupContent.id + '_content input[name=encryption-passphrase]').val('');
+        $('#' + firmwareBackupContent.id + '_content input[name=confirm_encryption-passphrase]').val('');
+        // encryption is default
+        $('#' + firmwareBackupContent.id + '_content input[id=encryption_active_state]').prop('checked', 'checked');
         $(this).prop('checked','checked');
       }
     });
-    
+
+    // event: click to checkbox encryption_active_state
+    //------------------------------------------------------------------------------
+    $('#' + firmwareBackupContent.id + '_content input[id=encryption_active_state]').change(function(event)
+    {
+      var destinationMedium = $('#' + firmwareBackupContent.id + '_content select#firmware_backup_destination_medium_select').val();
+
+      if($(this).prop('checked') && 'network' != destinationMedium)
+      {
+          // hide and reset auto update feature area because in encryption mode it is not allowed
+          $('#' + firmwareBackupContent.id + '_content #firmware_backup_auto_update_area').hide();
+          $('#' + firmwareBackupContent.id + '_content #firmware_backup_auto_update_checkbox').removeAttr('checked');
+      }
+      else if(!$(this).prop('checked') && 'network' != destinationMedium)
+      {
+          // show auto update feature area
+          $('#' + firmwareBackupContent.id + '_content #firmware_backup_auto_update_area').show();
+      }
+      $('#' + firmwareBackupContent.id + '_content #encryption_passwords').toggle(!!$(this).prop('checked'));
+    });
+
     // event - click to submit button
     //------------------------------------------------------------------------------
     $('#' + firmwareBackupContent.id + '_content #firmware_backup_form').bind('submit', function(event) 
@@ -206,6 +230,7 @@ FirmwareBackupContent.prototype.ShowDestinationSelectionDependencies = function(
 {
   var firmwareBackupContent = this;
   var packageListArea       = $('#' + firmwareBackupContent.id + '_content ul#firmware_backup_package_list');
+  var encryptionArea  		= $('#' + firmwareBackupContent.id + '_content #encryption_area');
   
   // network was selected - package "all" must be unavailable now
   if('network' === destinationMedium)
@@ -229,7 +254,10 @@ FirmwareBackupContent.prototype.ShowDestinationSelectionDependencies = function(
   else
   {
     // show auto update feature area
-    $('#' + firmwareBackupContent.id + '_content #firmware_backup_auto_update_area').show();
+    if($(encryptionArea).find('input[name=encryption_active_state]:checked').length)
+        $('#' + firmwareBackupContent.id + '_content #firmware_backup_auto_update_area').hide();
+    else
+        $('#' + firmwareBackupContent.id + '_content #firmware_backup_auto_update_area').show();
 
     // enable checkbox "all"
     $(packageListArea).find('input[name=package-all]').removeAttr('disabled');
@@ -265,25 +293,39 @@ FirmwareBackupContent.prototype.CreateBackup = function(formObj)
   var packageSettings = $(formObj).find('input[name=package-settings]:checked').length;
   var packageSystem   = $(formObj).find('input[name=package-system]:checked').length;
   var autoUpdateFlag  = $(formObj).find('input[name=auto_update]:checked').length;
+  var encState        = $(formObj).find('input[name=encryption_active_state]:checked').length;
+  var encPassphrase   = $(formObj).find('input#encryption-passphrase').val();
+  var confirmEncPass  = $(formObj).find('input#confirm_encryption-passphrase').val();
 
   firmwareBackupContent.PrepareBackup(formObj, function(transfer) {
 
     var downloadDir     = transfer && transfer.transferPath || '/tmp/firmware_backup';
-
-    // check input error - no package selected (or not existing either)
-    //if(0 === $(formObj).find('input[id^=firmware_restore_package_checkbox]:checked').length)
-    if((0 === packageCodesys) && (0 === packageSettings) && ( 0 === packageSystem))
+    if(0 === encState && '' != encPassphrase)
     {
-      $('body').trigger('event_errorOccured', [ 'No package selected.' ] );
+       encPassphrase = '';
+       $('body').trigger('event_errorOccured', [ 'Encryption not selected but setting passphrase.' ] );
     }
-    
+    else if(1 === encState && '' == encPassphrase)
+    {
+       $('body').trigger('event_errorOccured', [ 'Encryption selected without setting passphrase.' ] );
+    }
+    else if(!(confirmEncPass === encPassphrase))
+    {
+       $('body').trigger('event_errorOccured', [ 'The supplied Passphrase and Confirm Passphrase do not match.' ] );
+    }
+    else if((0 === packageCodesys) && (0 === packageSettings) && ( 0 === packageSystem)) // check input error - no package selected (or not existing either)
+    {
+       $('body').trigger('event_errorOccured', [ 'No package selected.' ] );
+    }
     else
     {
       pageElements.ShowBusyScreen('Create firmware backup package(s)...');
 
-      var newValueList  = { destinationDeviceMedium: deviceMedium, downloadDir: downloadDir, 
-                            autoUpdateFlag: autoUpdateFlag, packageCodesysFlag: packageCodesys, 
-                            packageSettingsFlag: packageSettings, packageSystemFlag: packageSystem };
+      var newValueList = { destinationDeviceMedium: deviceMedium, downloadDir: downloadDir,
+                             autoUpdateFlag: autoUpdateFlag, packageCodesysFlag: packageCodesys,
+                             encPassphrase: encPassphrase, packageSettingsFlag: packageSettings,
+                             packageSystemFlag: packageSystem };
+
 
       deviceParams.ChangeValue('process_firmware_backup', newValueList, function(status, errorText)
       {
@@ -322,6 +364,10 @@ FirmwareBackupContent.prototype.CreateBackup = function(formObj)
           // reset inputs
           $(formObj).find('input[id^=firmware_backup_package_checkbox]').removeAttr('checked');
           $(formObj).find('input[name=auto_update]').removeAttr('checked');
+          $(formObj).find('input[name=encryption-passphrase]').val('');
+          $(formObj).find('input[name=confirm_encryption-passphrase]').val('');
+          // encryption is default
+          //$(formObj).find('input[id=encryption_active_state]').removeAttr('checked');
         }
       });
       

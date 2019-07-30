@@ -170,6 +170,7 @@ elif [ -n "$delete" ]; then
   fi
 
 # probably domain-name should be changed
+# existing only for compatibility - domain name now is change with configtool change_hostname
 else
 
   # check if domain-name is given as parameter (domain name itself is no clue, because it can be an empty string)
@@ -177,7 +178,18 @@ else
   if [ $? = $SUCCESS ]; then
     # filter value of domain name from parameter list
     domainName=`GetParameterValue $DOMAIN_NAME $*`
-    /etc/config-tools/change_hostname dnsdomain=$domainName
+    
+    # workaroud: actualy, config_hostname must must get the url encoded string for domain name
+    # easier way here is to check the string ourself (empty string is ok), and stop if name is invalid
+    if [ "$domainName" ]; then
+      /etc/config-tools/ipdatacheck --verify-domain "$domainName"
+      if [ "$?" -ne 0 ]; then
+        ReportError $INVALID_PARAMETER "($domainName)"
+        SetLastError "Domainname invalid"
+        exit $INVALID_PARAMETER
+      fi
+    fi
+    /etc/config-tools/change_hostname "dnsdomain=$domainName"
     status=$?
   fi
 fi

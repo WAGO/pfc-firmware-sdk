@@ -27,7 +27,9 @@ prepare_home_dir()
         ln -s /home/codesys_root /home/codesys
       fi
       # copy non-destructive cds2 files, even if cds3 is started. cds3 ignores the files.
-      cp -rn /home/codesys2_skel/* /home/codesys/
+      if [[ -d /home/codesys2_skel ]]; then
+        cp -rn /home/codesys2_skel/* /home/codesys/
+      fi
     fi
   fi
 }
@@ -100,21 +102,30 @@ stop_runtime()
     2)
      echo -n "Terminate CoDeSys v2.3..."
      "$DAEMONIZE" -K -qx /usr/sbin/plclinux_rt
-     RESULT=$?
+     if pidof plclinux_rt
+     then
+       echo -n "Error while terminating CoDeSys v2.3, killing runtime ..."
+       killall plclinux_rt &> /dev/null
+     fi
      ;;
     3)
-     echo -n "Terminate eRUNTIME..."
-     "$DAEMONIZE" -K -qx /usr/bin/codesys3
-     RESULT=$?
-     ;;
+      echo -n "Terminate eRUNTIME..."
+      "$DAEMONIZE" -K -qx /usr/bin/codesys3
+      # wait 5 seconds for process termination
+      CODESYS_PID=$(pidof codesys3)
+      TIMEOUT_COUNTER=0
+      while [ -n "${CODESYS_PID}" ] && (( ${TIMEOUT_COUNTER} < 5 ))
+      do
+        sleep 1
+        TIMEOUT_COUNTER=$((${TIMEOUT_COUNTER} + 1))
+        CODESYS_PID=$(pidof codesys3)
+      done
+      # kill it if process is still active
+      if [ -n "${CODESYS_PID}" ]; then
+          kill -9 ${CODESYS_PID}
+      fi
+      ;;
   esac
-  
-  if [ "$RESULT" != "0" ]
-  then
-    echo -n "error while Terminating kill all runtimes..."
-    killall plclinux_rt &> /dev/null
-    killall codesys3    &> /dev/null
-  fi  
 }
 
 CONFIG=/etc/specific/rtsversion

@@ -1,7 +1,7 @@
 From ea981431305a39e013b9e1306e1dfe1440f0b398 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 27 Nov 2018 11:38:54 +0000
-Subject: [PATCH 151/152] defaultenv: pfc-base: remove macaddr from cmdline
+Subject: [PATCH] defaultenv: pfc-base: remove macaddr from cmdline
 
 Since kernel commit '77f87ea net: swcfg: ksz8863: add support for
 oftree based mac address' the mac addresses will be read from

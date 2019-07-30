@@ -3,7 +3,7 @@
 config IMAGE_SD
 	tristate
 	select HOST_GENIMAGE
-	select IMAGE_BOOT_MLO
+	select IMAGE_BOOT_VFAT
 	select IMAGE_ROOT_EXT
 	prompt "Generate images/sd.hdimg"
 	help

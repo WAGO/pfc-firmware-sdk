@@ -16,10 +16,10 @@
 # load general definitions and functions
 if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
   echo "config_tool_lib missing"
-  exit 255
+  exit 64
 fi
 
-. /etc/config-tools/config_tool_lib
+source /etc/config-tools/config_tool_lib
 
 
 SNTP_PORT=port
@@ -44,7 +44,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo
   echo "Usage: config_port < port=port-value state=state-value >"
   echo
-  echo "port-value: telnet | ftp | codesys-webserver | snmp" 
+  echo "port-value: telnet | ftp | ftps | http | https | codesys-webserver | snmp" 
   echo "state-value: enabled | disabled"
   exit $status
 fi

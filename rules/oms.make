@@ -39,6 +39,14 @@ $(STATEDIR)/oms.extract: $(STATEDIR)/autogen-tools
 	@mkdir -p $(OMS_DIR)
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(OMS_SRC) $(BUILDDIR)
 #	@$(call patchin, OMS)
+
+ifdef PTXCONF_OMS_TRUNK
+	cd $(OMS_DIR) && sh autogen.sh
+else
+	#cd $(OMS_DIR) && [ -f configure ] || sh autogen.sh
+	cd $(OMS_DIR) && sh autogen.sh
+endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -59,14 +67,6 @@ endif
 
 $(STATEDIR)/oms.prepare:
 	@$(call targetinfo)
-
-ifdef PTXCONF_OMS_TRUNK
-	cd $(OMS_DIR) && sh autogen.sh
-else
-	#cd $(OMS_DIR) && [ -f configure ] || sh autogen.sh
-	cd $(OMS_DIR) && sh autogen.sh
-endif
-
 	@$(call world/prepare, OMS)
 	@$(call touch)
 

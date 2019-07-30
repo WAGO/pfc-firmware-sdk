@@ -1,0 +1,20 @@
+From 5fa923836f6c94416b8e79b6665ea28860894d96 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 24 Apr 2019 14:24:21 +0200
+Subject: [PATCH] add new version w03.01.01_06
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ localversion-wago | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/localversion-wago b/localversion-wago
+index b30311e..73497bb 100644
+--- a/localversion-wago
++++ b/localversion-wago
+@@ -1 +1 @@
+--w03.00.01_05
++-w03.01.01_06
+-- 
+2.7.4
+

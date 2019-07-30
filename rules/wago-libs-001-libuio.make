@@ -41,6 +41,7 @@ $(STATEDIR)/libuio.extract: $(STATEDIR)/autogen-tools
 	@$(call targetinfo)
 	@$(call clean, $(LIBUIO_DIR))
 	cp -r $(SRCDIR)/$(LIBUIO) $(LIBUIO_DIR)
+	cd $(LIBUIO_DIR) && ./autogen.sh
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -59,7 +60,6 @@ $(STATEDIR)/libuio.prepare:
 	@$(call targetinfo)
 	@$(call clean, $(LIBUIO_DIR)/config.cache)
 	cd $(LIBUIO_DIR) && \
-	./autogen.sh && \
 		$(LIBUIO_PATH) $(LIBUIO_ENV) \
 		./configure $(LIBUIO_AUTOCONF)
 	@$(call touch)

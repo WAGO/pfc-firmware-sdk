@@ -68,9 +68,9 @@ $(OUT_DIR)/alltests.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILE
 
 alltests.elf_PRECLANG_FILES=$(OUT_DIR)/alltests.elf/lint_mac.h
 
-$(OUT_DIR)/alltests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/alltests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/alltests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/alltests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(alltests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 

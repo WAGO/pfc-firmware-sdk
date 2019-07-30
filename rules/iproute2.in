@@ -1,0 +1,146 @@
+## SECTION=networking
+
+menuconfig IPROUTE2
+	tristate
+	prompt "iproute2                      "
+	select DB if IPROUTE2_ARPD
+	select LIBC_DL
+	select LIBC_M
+	select LIBC_RESOLV
+	select LIBC_PTHREAD if IPROUTE2_ARPD
+	select GCCLIBS_GCC_S if IPROUTE2_IP || IPROUTE2_TC
+	select LIBSELINUX if GLOBAL_SELINUX
+	help
+	  Networking and traffic control tools
+
+	  The iproute suite, also known as iproute2, is a collection
+	  of utilities for networking and traffic control.
+
+	  These tools communicate with the Linux kernel via the
+	  (rt)netlink interface, providing advanced features not
+	  available through the legacy net-tools commands 'ifconfig'
+	  and 'route'.
+
+if IPROUTE2
+
+config IPROUTE2_ARPD
+	bool
+	prompt "arpd"
+	help
+	  Enabling this entry will enlarge your system by the berkely
+	  DB4.x library.
+
+config IPROUTE2_BRIDGE
+	bool
+	prompt "bridge"
+	help
+	  Show / manipulate bridge addresses and devices
+
+config IPROUTE2_CTSTAT
+	bool
+	prompt "ctstat"
+	help
+	  The connection status utility. Maybe linked to lnstat.
+
+config IPROUTE2_GENL
+	bool
+	prompt "genl"
+	help
+	  Generic Netlink
+
+config IPROUTE2_IP
+	bool
+	depends on !BUSYBOX_IP || ALLYES
+	prompt "ip"
+	help
+	  The main tool. Well known as in "ip addr" or "ip route".
+
+comment "busybox' ip is selected"
+	depends on BUSYBOX_IP
+
+config IPROUTE2_IFCFG
+	bool
+	prompt "ifcfg"
+	help
+	  ifcfg is a script wrapping ip, written as replacement for
+	  ifconfig.
+	  Needs arping and rdisk programs from the iputils package.
+
+config IPROUTE2_IFSTAT
+	bool
+	prompt "ifstat"
+	help
+	  handy utility to read net interface statistics
+
+config IPROUTE2_LNSTAT
+	bool
+	prompt "lnstat"
+	help
+	  lnstat is a generalized and more feature-complete replacement
+	  for the old rtstat program. In addition to routing cache
+	  statistics, it supports any kind of statistics the linux
+	  kernel exports via a file in /proc/net/stat/.
+
+config IPROUTE2_NSTAT
+	bool
+	prompt "nstat"
+	help
+	  handy utility to read counters /proc/net/netstat and snmp
+
+config IPROUTE2_ROUTEF
+	bool
+	prompt "routef"
+	help
+	  Component of ip route for flushing the routing tables
+
+config IPROUTE2_ROUTEL
+	bool
+	prompt "routel"
+	help
+	  Component of ip route for listing the routing tables
+
+config IPROUTE2_RTACCT
+	bool
+	prompt "rtacct"
+	help
+	  Used to display the contents of /proc/net/rt_acct
+
+config IPROUTE2_RTMON
+	bool
+	prompt "rtmon"
+	help
+	  Route monitoring
+
+config IPROUTE2_RTPR
+	bool
+	prompt "rtpr"
+	help
+	  A tool to make the output of "ip -o" readable
+
+config IPROUTE2_RTSTAT
+	bool
+	prompt "rtstat"
+	help
+	  Route status utility, maybe linked to lnstat.
+
+config IPROUTE2_SS
+	bool
+	prompt "ss"
+	help
+	  ss is used to dump socket statistics. It allows showing
+	  information similar to netstat. It can display more TCP
+	  and state information than other tools.
+
+config IPROUTE2_TC
+	bool
+	depends on !BUSYBOX_TC || ALLYES
+	prompt "tc"
+	help
+	  tc is used to configure Traffic Control in the Linux Kernel, which
+	  consists of Shaping, Scheduling, Policing and Dropping.
+	  Processing of traffic is controlled by qdiscs, classes and filters.
+
+comment "busybox' tc is selected"
+	depends on BUSYBOX_TC
+
+endif

@@ -1,0 +1,312 @@
+## SECTION=system_libraries
+# boost configuration
+
+menuconfig BOOST
+	tristate
+	select LIBC_M		if BOOST_LIBS
+	select LIBC_RT		if BOOST_LIBS
+	select LIBC_PTHREAD	if BOOST_LIBS
+	select GCCLIBS_CXX	if BOOST_LIBS
+	select GCCLIBS_GCC_S	if BOOST_LIBS
+	select ZLIB		if BOOST_IOSTREAMS
+	select BZIP2		if BOOST_IOSTREAMS
+	select BZIP2_LIBBZ2	if BOOST_IOSTREAMS
+	select XZ		if BOOST_IOSTREAMS
+	select PYTHON		if BOOST_PYTHON2
+	select PYTHON3		if BOOST_PYTHON3
+	prompt "boost                         "
+	help
+
+	  Boost provides free peer-reviewed portable C++ source libraries.  The
+	  project emphasizes libraries that work well with the C++ Standard
+	  Library.  Boost libraries are intended to be widely useful, and usable
+	  across a broad spectrum of applications. The Boost license encourages
+	  both commercial and non-commercial use.
+
+	  The boost team aims to establish "existing practice" and provide
+	  reference implementations so that Boost libraries are suitable for
+	  eventual standardization. Ten Boost libraries are already included in
+	  the C++ Standards Committee`s Library Technical Report ( TR1) and in 
+	  the new C++11 Standard. C++11 also includes several more Boost libraries 
+	  in addition to those from TR1. More Boost libraries are proposed for TR2.
+
+	  For details see the project homepage:
+
+		http://www.boost.org/
+
+if BOOST
+
+config BOOST_LIBS
+	bool
+
+comment "Boost Libraries"
+
+config BOOST_ATOMIC
+	bool
+	select BOOST_LIBS
+	prompt "atomic"
+	help
+	  Boost atomic library
+
+config BOOST_CHRONO
+	bool
+	select BOOST_LIBS
+	select BOOST_SYSTEM
+	prompt "chrono"
+	help
+	  Boost chrono library
+
+config BOOST_CONTAINER
+	bool
+	select BOOST_LIBS
+	prompt "container"
+	help
+	  Boost container library
+
+config BOOST_CONTRACT
+	bool
+	select BOOST_LIBS
+	prompt "contract"
+	help
+	  Boost contract library
+
+config BOOST_CONTEXT
+	bool
+	select BOOST_LIBS
+	prompt "context"
+	help
+	  Boost context library
+
+config BOOST_COROUTINE
+	bool
+	select BOOST_LIBS
+	select BOOST_CHRONO
+	select BOOST_CONTEXT
+	select BOOST_SYSTEM
+	select BOOST_THREAD
+	prompt "coroutine (deprecated)"
+	help
+	  Boost coroutine library
+	  This library is deprecated in favor of the header-only coroutine2 library
+
+config BOOST_DATE_TIME
+	bool
+	select BOOST_LIBS
+	prompt "date_time"
+	help
+	  Boost date time library
+
+config BOOST_EXCEPTION
+	bool
+	select BOOST_LIBS
+	prompt "exception"
+	help
+	  Boost exception library
+
+config BOOST_FIBER
+	bool
+	select BOOST_LIBS
+	select BOOST_CONTEXT
+	prompt "fiber"
+	help
+	  Boost fiber library
+
+config BOOST_FILESYSTEM
+	bool
+	select BOOST_LIBS
+	select BOOST_SYSTEM
+	prompt "filesystem"
+	help
+	  Boost filesystem library
+
+config BOOST_GRAPH
+	bool
+	select BOOST_LIBS
+	select BOOST_REGEX
+	prompt "graph"
+	help
+	  Boost graph library
+
+config BOOST_GRAPH_PARALLEL
+	bool
+	select BOOST_LIBS
+	select BOOST_MPI
+	select BOOST_SERIALIZATION
+	# BOOST_MPI needs openmpi
+	depends on BROKEN
+	prompt "graph_parallel"
+	help
+	  Boost graph_parallel library
+
+config BOOST_IOSTREAMS
+	bool
+	select BOOST_LIBS
+	prompt "iostreams"
+	help
+	  Boost iostream library
+
+config BOOST_LOCALE
+	bool
+	select BOOST_LIBS
+	select BOOST_SYSTEM
+	prompt "locale"
+	help
+	  Boost locale library
+
+config BOOST_LOG
+	bool
+	select BOOST_LIBS
+	select BOOST_ATOMIC
+	select BOOST_CHRONO
+	select BOOST_DATE_TIME
+	select BOOST_FILESYSTEM
+	select BOOST_REGEX
+	select BOOST_SYSTEM
+	select BOOST_THREAD
+	prompt "log"
+	help
+	  Boost log library
+
+config BOOST_MATH
+	bool
+	select BOOST_LIBS
+	prompt "math"
+	help
+	  Boost Math library
+
+config BOOST_MPI
+	bool
+	select BOOST_LIBS
+	select BOOST_SERIALIZATION
+	# BOOST_MPI needs openmpi
+	depends on BROKEN
+	prompt "mpi"
+	help
+	  Boost MPI library
+
+config BOOST_PROGRAM_OPTIONS
+	bool
+	select BOOST_LIBS
+	prompt "program options"
+	help
+	  Boost program option parser
+
+config BOOST_RANDOM
+	bool
+	select BOOST_LIBS
+	select BOOST_SYSTEM
+	prompt "random"
+	help
+	  Boost random library
+
+config BOOST_REGEX
+	bool
+	select BOOST_LIBS
+	prompt "regex"
+	help
+	  Boost regex library
+
+config BOOST_SERIALIZATION
+	bool
+	select BOOST_LIBS
+	prompt "serialization"
+	help
+	  Boost serialization library
+
+config BOOST_SIGNALS
+	bool
+	select BOOST_LIBS
+	prompt "signals"
+	help
+	  Boost signals library
+
+config BOOST_STACKTRACE
+	bool
+	select BOOST_LIBS
+	prompt "stacktrace"
+	help
+	  Boost stacktrace library
+
+config BOOST_SYSTEM
+	bool
+	select BOOST_LIBS
+	prompt "system"
+	help
+	  Boost system library
+
+config BOOST_TEST
+	bool
+	select BOOST_LIBS
+	select BOOST_SYSTEM
+	select BOOST_TIMER
+	prompt "test"
+	help
+	  Boost test framework
+
+config BOOST_THREAD
+	bool
+	select BOOST_LIBS
+	select BOOST_SYSTEM
+	prompt "thread"
+	help
+	  Portable C++ multi-threading library
+
+config BOOST_TIMER
+	bool
+	select BOOST_LIBS
+	select BOOST_CHRONO
+	select BOOST_SYSTEM
+	prompt "timer"
+	help
+	  Boost timer library
+
+config BOOST_TYPE_ERASURE
+	bool
+	select BOOST_LIBS
+	select BOOST_CHRONO
+	select BOOST_SYSTEM
+	select BOOST_THREAD
+	prompt "type_erasure"
+
+config BOOST_WAVE
+	bool
+	select BOOST_LIBS
+	select BOOST_CHRONO
+	select BOOST_DATE_TIME
+	select BOOST_FILESYSTEM
+	select BOOST_SYSTEM
+	select BOOST_THREAD
+	prompt "wave"
+	help
+	  Boost wave library
+
+config BOOST_PYTHON
+	select BOOST_LIBS
+	bool
+
+choice
+	prompt "python"
+	default BOOST_NOPYTHON
+
+	config BOOST_NOPYTHON
+		bool
+		prompt "no python support"
+		help
+		  Select this option if you don't want to build boost.python.
+
+	config BOOST_PYTHON2
+		bool
+		prompt "python2"
+		select BOOST_PYTHON
+		help
+		  Select this option if you want to use boost.python in combination with python2.
+
+	config BOOST_PYTHON3
+		bool
+		prompt "python3"
+		select BOOST_PYTHON
+		help
+		  Select this option if you want to use boost.python in combination with python3.
+endchoice
+
+endif

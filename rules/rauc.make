@@ -68,17 +68,21 @@ $(STATEDIR)/rauc.targetinstall:
 
 	@$(call install_copy, rauc, 0, 0, 0755, -, /usr/bin/rauc)
 
-ifeq ($(PTXCONF_PLATFORM), wago-pfcXXX)
+ifeq ($(PTXCONF_PLATFORM), $(filter $(PTXCONF_PLATFORM),wago-pfcXXX wago-pfcXXX-hardened))
+	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv3)
+	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv3, \
+		@RAUC_BUNDLE_COMPATIBLE@, \
+		$(PTXCONF_RAUC_COMPATIBLE))
+ifeq ($(PTXCONF_PROJECT), "PAC")
+	@$(call install_link, rauc, system.conf.pfcv3, /etc/rauc/system.conf.pac100)
+endif
+ifeq ($(PTXCONF_PROJECT), "PFC")
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv1)
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv2)
-	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv3)
 	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv1, \
 		@RAUC_BUNDLE_COMPATIBLE@, \
 		$(PTXCONF_RAUC_COMPATIBLE))
 	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv2, \
-		@RAUC_BUNDLE_COMPATIBLE@, \
-		$(PTXCONF_RAUC_COMPATIBLE))
-	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv3, \
 		@RAUC_BUNDLE_COMPATIBLE@, \
 		$(PTXCONF_RAUC_COMPATIBLE))
 	@$(call install_link, rauc, system.conf.pfcv2, /etc/rauc/system.conf.pfc100)
@@ -86,6 +90,8 @@ ifeq ($(PTXCONF_PLATFORM), wago-pfcXXX)
 	@$(call install_link, rauc, system.conf.pfcv2, /etc/rauc/system.conf.pfc200v2)
 	@$(call install_link, rauc, system.conf.pfcv3, /etc/rauc/system.conf.pfc200v3)
 endif
+endif
+
 ifeq ($(PTXCONF_PLATFORM), vtp-ctp)
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.TP600)
 	@$(call install_replace, rauc, /etc/rauc/system.conf.TP600, \

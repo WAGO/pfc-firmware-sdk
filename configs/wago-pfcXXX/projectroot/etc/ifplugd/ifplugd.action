@@ -45,7 +45,14 @@ if [ "$BRIDGED_MODE" = "1" ] ; then
         BRIDGE_DEVICE="br1"
     fi
 
-    [ "$2" = "up" ] && ifdown_up $BRIDGE_DEVICE
+    if [ "$2" = "up" ] ; then
+        ifdown_up $BRIDGE_DEVICE
+    elif [ "$2" = "down" ] ; then
+        ifdown $BRIDGE_DEVICE
+    else
+        echo "Wrong arguments" > /dev/stderr
+        exit 1
+    fi       
 
 else
     # interfaces in switched mode

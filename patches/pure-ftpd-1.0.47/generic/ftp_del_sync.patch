@@ -1,0 +1,12 @@
+--- pure-ftpd-1.0.43.orig/src/ftpd.c	2012-11-21 14:38:32.000000000 +0100
++++ pure-ftpd-1.0.43/src/ftpd.c	2012-11-21 14:46:56.000000000 +0100
+@@ -2769,6 +2769,9 @@
+         goto denied;
+     }
+ #endif
++    
++    sync();
++    
+     addreply(250, MSG_DELE_SUCCESS, "", "", "", name);
+     logfile(LOG_NOTICE, MSG_DELE_SUCCESS, root_directory,
+             *name == '/' ? "" : wd,

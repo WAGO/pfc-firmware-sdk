@@ -35,6 +35,19 @@ endchoice
 
 comment "------------------------------------"
 
+menu "Artifactory"
+
+config ARTIFACTORY_BASE_URL
+    string
+    default "https://artifactory"
+    prompt "Artifactory base URL"
+    help
+     "URL of the artifactory server."
+
+endmenu
+
+comment "------------------------------------"
+
 
 
 menu "Rocket Specific"

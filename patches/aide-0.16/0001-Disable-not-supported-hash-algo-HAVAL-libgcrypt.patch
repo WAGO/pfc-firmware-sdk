@@ -1,0 +1,11 @@
+--- a/src/md.c	2016-07-25 20:56:55.000000000 +0000
++++ b/src/md.c	2017-08-04 08:35:13.513167000 +0000
+@@ -56,7 +56,7 @@
+     break;
+   }
+   case GCRY_MD_HAVAL: {
+-    r=DB_HAVAL;
++    r=0;
+     break;
+   }
+   case GCRY_MD_SHA256: {

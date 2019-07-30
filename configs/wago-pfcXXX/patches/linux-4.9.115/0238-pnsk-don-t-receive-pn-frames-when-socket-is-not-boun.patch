@@ -1,0 +1,32 @@
+From 463d7314c6b837b32965fa27906aea9caf046d8e Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Mon, 8 Oct 2018 10:45:54 +0200
+Subject: [PATCH] pnsk: don't receive pn frames when socket is not bound to a
+ device
+
+This fixes a race during initialization of the pn socket. When we
+receive frames during initialization an access violation can happen,
+which then prevents any further communication via ethernet.
+Also its possilby that the receive queue (ring) gets stalled forever.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ net/pn/pnsk.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/pn/pnsk.c b/net/pn/pnsk.c
+index 15f02cb..943bdeb 100644
+--- a/net/pn/pnsk.c
++++ b/net/pn/pnsk.c
+@@ -115,7 +115,7 @@ int pnsk_generic_rcv_skb(struct sk_buff *skb)
+ 	int err;
+ 	struct pn_sock *ps = READ_ONCE(pn_sock);
+ 
+-	if (!ps)
++	if (!ps || !ps->dev)
+ 		return -EBUSY;
+ 
+ 	err = __pnsk_generic_rcv_skb(ps, skb);
+-- 
+2.7.4
+

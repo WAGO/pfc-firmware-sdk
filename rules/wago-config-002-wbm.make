@@ -24,7 +24,7 @@ PACKAGES-$(PTXCONF_WBM) += wbm
 WBM_VERSION 	:= 1.0.1
 WBM_DIR		:= $(BUILDDIR)/wbm-$(WBM_VERSION)
 WBM_SOURCE_DIR = $(call ptx/get_alternative, projectroot, var/www/wbm)
-WBM_XML_CONFIG_FILE_TEMPLATE := "frontend_config_wbm_template.xml"
+WBM_XML_CONFIG_FILE_TEMPLATE := frontend_config_wbm_template.xml
 
 # ----------------------------------------------------------------------------
 # Get
@@ -67,6 +67,16 @@ $(STATEDIR)/wbm.prepare: $(STATEDIR)/host-ct-make-xml-config.install.post $(PTXD
 		export PYTHONHOME=$(HOST_PYTHON_PKGDIR) && \
 		xmlconf=$(PTXCONF_SYSROOT_HOST)/bin/make-xml-config/make-xml-config &&\
 		PTXDIST_DEP_TARGET="all" ptxd_kconfig CT_MENU_WBM_ $(WBM_DIR)/$(WBM_XML_CONFIG_FILE_TEMPLATE)
+
+#	# patch generated *.xml to adjust user levels
+	test -e $(PTXDIST_PLATFORMCONFIGDIR)/products/user_level.json && \
+		$(PTXCONF_SYSROOT_HOST)/bin/make-xml-config/set_user_level.py \
+			$(PTXDIST_PLATFORMCONFIGDIR)/products/user_level.json \
+			$(WBM_DIR)/$(WBM_XML_CONFIG_FILE_TEMPLATE) \
+			1>$(WBM_DIR)/$(WBM_XML_CONFIG_FILE_TEMPLATE).tmp && \
+		mv $(WBM_DIR)/$(WBM_XML_CONFIG_FILE_TEMPLATE).tmp \
+			$(WBM_DIR)/$(WBM_XML_CONFIG_FILE_TEMPLATE) || true
+
 	# check output for conformity with XSD definition.
 	@$(PTXDIST_SYSROOT_HOST)/bin/xmllint --noout --schema \
 		$(SRCDIR)/ct-make-xml-config/xsd/menu.xsd \
@@ -131,10 +141,6 @@ ifdef PTXCONF_WBM
 			$(call install_copy, wbm, 0, 0, 0755, /var/www/wbm/$$object); \
 		fi; \
 	done;
-
-	# copy license files and create a link
-	@$(call install_alternative_tree, wbm, 0, 0, /usr/share/licenses)
-	@$(call install_link, wbm, /usr/share/licenses, /var/www/wbm/licenses)
 
 	# create a link to the LED configuration file
 	@$(call install_link, wbm, /etc/specific/led.xml, /var/www/wbm/led.xml)

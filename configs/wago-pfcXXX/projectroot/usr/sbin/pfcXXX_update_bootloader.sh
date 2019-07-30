@@ -99,8 +99,8 @@ function update_copy
             write_invalid_bch "${bb_img}" "${bb_dev}" && \
             set_valid_bch "${mlo_img}" "${mlo_dev}" && \
             set_valid_bch "${bb_img}" "${bb_dev}"
-
             ;;
+            
         pfc200)
             flash_erase "${mlo_dev}"  0 0 && \
             flash_erase "${bb_dev}"   0 0 && \
@@ -109,8 +109,8 @@ function update_copy
             write_invalid_bch           "${bb_img}" "${bb_dev}"   && \
             set_valid_hamming_mlo    "${mlo_img}" "${mlo_dev}" && \
             set_valid_bch            "${bb_img}" "${bb_dev}"
-
             ;;
+            
         *)
             false
             ;;
@@ -188,35 +188,44 @@ function backup_bootloader
     local backup_root=""
     local mount_options=""
     local ubi=false
-    if [[ "${dev_type}" == "pfc200v3" ]]; then
-        case $system_index in
-            "1")
-                backup_root="$G_EMMC_ROOT1_DEV"
-                ;;
-            "2")
-                backup_root="$G_EMMC_ROOT2_DEV"
-                ;;
-            *)
-                result=$INTERNAL_ERROR
-                ;;
-        esac
-    else
-        case $system_index in
-            "1")
-                backup_root="$G_UBIFS_ROOT1_DEV"
-                ;;
-            "2")
-                backup_root="$G_UBIFS_ROOT2_DEV"
-                ;;
-            *)
-                result=$INTERNAL_ERROR
-                ;;
-        esac
-        mount_options="-t ubifs"
-        if [[ ! -c "$backup_root" ]]; then
-            ubi=true
-        fi
-    fi
+    
+    case "${dev_type}" in
+        pfc200v3|pac100)
+            case $system_index in
+                "1")
+                    backup_root="$G_EMMC_ROOT1_DEV"
+                    ;;
+                "2")
+                    backup_root="$G_EMMC_ROOT2_DEV"
+                    ;;
+                *)
+                    result=$INTERNAL_ERROR
+                    ;;
+            esac
+            ;;
+            
+        pfc100|pfc200|pfc200v2)
+            case $system_index in
+                "1")
+                    backup_root="$G_UBIFS_ROOT1_DEV"
+                    ;;
+                "2")
+                    backup_root="$G_UBIFS_ROOT2_DEV"
+                    ;;
+                *)
+                    result=$INTERNAL_ERROR
+                    ;;
+            esac
+            mount_options="-t ubifs"
+            if [[ ! -c "$backup_root" ]]; then
+                ubi=true
+            fi
+            ;;
+            
+        *)
+            report_unknown_device
+            ;;
+    esac
 
     # Mount target ROOT FS and copy bootloaders
     local mount_point="/tmp/bootloader-update/backup_root"
@@ -286,12 +295,18 @@ function current_bootloader_version_too_old
     fi
 }
 
+#Reports unknown device and exits with $SHELL_ERROR
+function report_unknown_device
+{
+    ReportError "Error: unknown device (pfc100, pfc200{,v2,v3} or pac100 expected)."
+    exit $SHELL_ERROR
+}
+
 #
 # Parameters: $1 - platform type ('pfc100', 'pfc200', 'pfc200v2' ...)
 #             $2 - bootloader source path (optional)
 #             $3 - system index to store bootloader backup (optional, default: active system, 9: restore backuped bootloader)
 #
-
 function __main
 {
     local dev_type="${1:-unknown}"
@@ -313,8 +328,7 @@ function __main
     fi
 
     if [[ "${dev_type}" == "unknown" ]]; then
-        ReportError "Error: unknown device (pfc100 or pfc200{,v2,v3} expected)."
-        exit $SHELL_ERROR
+        report_unknown_device
     fi
 
     # Build source file names
@@ -349,12 +363,21 @@ function __main
         echo "Note: No bootloader update needed on central place."
         exit $SUCCESS
     fi
-    if [[ "${dev_type}" == "pfc200v3" ]]; then
-        update_emmc "${mlo_path}" "${bb_path}" "${dev_type}"
-    else
-        update_nand "${mlo_path}" "${bb_path}" "${dev_type}"
-    fi
+    
+    case "${dev_type}" in
+        pfc200v3|pac100)
+            update_emmc "${mlo_path}" "${bb_path}" "${dev_type}"
+            ;;
 
+        pfc100|pfc200|pfc200v2)
+            update_nand "${mlo_path}" "${bb_path}" "${dev_type}"
+            ;;
+
+        *)
+            report_unknown_device
+            ;;
+    esac
+    
     # Update bootloader version stored in eeprom
     local new_version="${BAREBOX_COMPATIBLE_VERSIONS}"
 

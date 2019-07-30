@@ -52,21 +52,23 @@
 
 // priorities
 #define CAN_TESTPRIO 0        // can background loop 0 = default
-#define CAN_MAINPRIO 67       // main loop
+#define CAN_MAINPRIO 40       // main loop
 // runtime of the test
-#define CAN_TESTTIME 30
+#define CAN_TESTTIME 60*60*24
+
+#define LOOPTIME 10     // speed for data exchange
 
 // print status on console
 //#define PRINT_INFO
 
 // test adi function
-#define TEST_ADISTATE
+//#define TEST_ADISTATE
 //#define TEST_ADINODESTATE
-#define TEST_ADIFUNCTION
+//#define TEST_ADIFUNCTION
 //#define TEST_ADIFUNCTION_SDO // perform sdo performance test in sync mode (blocking until answer or timeout )
 //#define CAN_SDO_ASYNC   // perform sdo performance test in async mode (non blocking)
 
-
+// #define TEST_MAXTIME  // perform delay test
 
 //-----------------------------------------------------------------------------
 // global structures
@@ -130,13 +132,15 @@ canopen_pdo can_slave_pdo_list[CAN_SLAVE_COUNT][2] =
   // 4. trans_type 0xFF = async
   // 5. inhibit_time 0 = no inhibit time
   // 6. event_time 0 = no PDO sending on timer
+  // 7. unsigned char channel_count;
+  // 8. canopen_pdo_channel  * channel;
 
   // config for slave 1 node ID 3 : 750-337
   {
     // 1. slave RPDO for module 530
-    { 1, 1, 0x203, 0xFF, 0, 0 },
+    { 1, 1, 0x203, 0xFF, 0, 0, 0, 0},
     // 1. slave TPDO for module 430
-    { 2, 1, 0x183, 0xFF, 0, 0 }
+    { 2, 1, 0x183, 0xFF, 0, 0, 0, 0}
   },
 
 #if (CAN_SLAVE_COUNT == 2)
@@ -144,9 +148,9 @@ canopen_pdo can_slave_pdo_list[CAN_SLAVE_COUNT][2] =
   // config for slave 2 PFC200 node ID 2
   {
     // 2. slave RPDO
-    { 1, 8, 0x202, 0xFF, 0, 0 }, // 8 Byte process data receive
+    { 1, 8, 0x202, 0xFF, 0, 0, 0, 0}, // 8 Byte process data receive
     // 2. slave TPDO
-    { 2, 8, 0x182, 0xFF, 0, 0 }  // 8 Byte process data send
+    { 2, 8, 0x182, 0xFF, 0, 0, 0, 0}, // 8 Byte process data send
   },
 
 #endif
@@ -193,17 +197,28 @@ int main(void)
   uint8_t pd_out[4096];   // master to slave
 
   // generic vars
-  int i = 0, loops = 0, t = 0,c=0;
+  int i = 0, loops = 0, t = 0;
   time_t last_t = 0, new_t;
   long unsigned runtime = 0;
   struct sched_param s_param;
   int32_t result;
   int16_t param16;
 
+  struct timeval  timerval1;
+  struct timespec timerval2;
+  int32_t timer_run1;
+  int32_t timer_run2;
+  int32_t timer_run3;
+  int32_t timerval_old1 = 0;
+  int32_t timerval_old2 = 0;
+  int32_t timerval_old3 = 0;
+  int32_t timer_max1 = 0;
+  int32_t timer_max2 = 0;
+  int32_t timer_max3 = 0;
 
   // startup info */
   printf("**************************************************\n");
-  printf("*** DAL CANopen Master ADI Demo Application V1.11 \n");
+  printf("*** DAL CANopen Master ADI Demo Application V1.13 \n");
   printf("**************************************************\n");
 
   // clear process memory
@@ -373,7 +388,7 @@ int main(void)
       if (adi->ApplicationStateChanged(event) != DAL_SUCCESS)
         printf("Appication State Run failed\n");
 
-      // run main loop for 30s
+      // run main loop for CAN_TESTTIME in s
       while (runtime < CAN_TESTTIME)
       {
         usleep(1000); // wait 1 ms
@@ -477,16 +492,74 @@ int main(void)
           printf("\n"); 
          #endif
 
+		 #else
+          // print minimal info
+          //printf("%lu:%02lu:%02lu ",runtime/3600ul,(runtime/60ul)%60ul,runtime%60ul);
+          // show loops/s
+          //printf(" Loop/s = %i\n",loops);
+          //printf("\nPLC Time Max = %i ",timer_max1);
+          //printf("CAN Time Max = %i\n",timer_max2);
+          loops = 0;
          #endif // #ifdef PRINT_INFO
 
           // test end > slaves to preoperational
           if (runtime == CAN_TESTTIME - 2)
           {
+        	printf("\nPLC Time Max = %i ",timer_max1);
+        	printf("CAN Time 337 Max = %i\n",timer_max2);
+        	printf("CAN Time PFC Max = %i\n",timer_max3);
+
             // send goto preoperational to all slaves via ADI-device specific function
             adi->CallDeviceSpecificFunction("CANOPEN_CHANGE_STATE",
                 (void*) &result, (uint32_t) 0, (uint32_t) 0x7F);
           }
         }
+
+        /* check for timer increment */
+        /* gettimeofday(&timerval, NULL); >> WAT 25204 */
+        clock_gettime(CLOCK_MONOTONIC,&timerval2);
+        timerval1.tv_sec  =  timerval2.tv_sec;
+        timerval1.tv_usec =  timerval2.tv_nsec / 1000;
+
+        if (timerval1.tv_usec < timerval_old1)
+            timerval_old1 -= 1000000;
+
+        if (timerval1.tv_usec < timerval_old2)
+            timerval_old2 -= 1000000;
+
+        if (timerval1.tv_usec < timerval_old3)
+            timerval_old3 -= 1000000;
+
+        timer_run1 = (timerval1.tv_usec - timerval_old1) / 1000;
+        timer_run2 = (timerval1.tv_usec - timerval_old2) / 1000;
+        timer_run3 = (timerval1.tv_usec - timerval_old3) / 1000;
+        //timerval_old1 = timerval1.tv_sec;
+        timerval_old1 = timerval1.tv_usec;
+
+        if ((runtime > 15) && (runtime < CAN_TESTTIME - 2))
+        {
+          if (timer_run1 > timer_max1)
+          {
+            timer_max1 = timer_run1;
+            //printf("PLC Timer Max = %i\n",timer_max1);
+          }
+          if (timer_run2 > timer_max2)
+          {
+            timer_max2 = timer_run2;
+            //printf("CAN Timer 337 Max = %i\n",timer_max2);
+          }
+          if (timer_run3 > timer_max3)
+          {
+            timer_max3 = timer_run3;
+            //printf("CAN Timer PFC Max = %i\n",timer_max3);
+          }
+        }
+        else
+        {
+          timer_max1 = 1;
+          timer_max2 = 1;
+          timer_max3 = 1;
+         }
 
         // test for new data from slaves
        #ifdef TEST_ADISTATE
@@ -504,9 +577,9 @@ int main(void)
        #endif
         {
           // speed limit for new data
-          if (t++ >= 5)
+          if (t++ >= LOOPTIME)
           {
-            t = 0;
+            t = 1;
             if (i < 1000)
               i++;
 
@@ -578,7 +651,8 @@ int main(void)
               if (adi->CallDeviceSpecificFunction("CANOPEN_SDO_WRITE_ASYNC",(void*)&result,3,0x1017,0,2,(uint8_t *) &param16,0,2) == DAL_SUCCESS)
               {
 
-                // funktion call is ok
+                // funktion call is o
+                  memset(&pd_out[2], (i >> 8) & 0xFF, 8);k
                 if ((result != CANOPEN_SDO_WORKING) && (result != CANOPEN_SDO_STARTED)) // only for async mode
                 {
              #else
@@ -589,7 +663,7 @@ int main(void)
              #endif
                   if (result >= CANOPEN_ERR_SDO)
                   {
-                    printf("SDO Write Error ");
+                    printf("SDO Write Error ");pd_out[4] = (uint8_t) (timer_max2 & 0xFF);
                     switch(result)
                     {
                      case CANOPEN_ERR_SDO +  CANOPEN_ERR_TIMEOUT:
@@ -623,36 +697,42 @@ int main(void)
               i = 0;
           #endif
 
-            // 750-337 Data  ID 3
-            if (c==0)
-              pd_out[0] = (uint8_t)(i & 0x0F);
-
-          #if ((CAN_SLAVE_COUNT == 2) || (CAN_SLAVE_COUNT ==3))
-            // 750-337 Data ID 4
-            if (c==0)
-               pd_out[1] = (uint8_t)(i & 0x0F);
-          #endif
-
-           #if (CAN_SLAVE_COUNT ==3)
-            // PFC200 Data
-            memset(&pd_out[2], i & 0xFF, 8);
+            // update process data input
+            adi->ReadStart(canDeviceId, taskId);
+		   #if (CAN_SLAVE_COUNT == 1)
+            adi->ReadBytes(canDeviceId, taskId, 0, 1, (uint8_t *) &pd_in[0]);
+           #else
+            adi->ReadBytes(canDeviceId, taskId, 0, 9, (uint8_t *) &pd_in[0]);
            #endif
-            if (c == 2)
-             c= 0;
-            else
-             c++;
+            /* unlock PD-In data */
+            adi->ReadEnd(canDeviceId, taskId);
+
+
+            // 750-337 Data  ID 3
+            if (pd_in[0] == pd_out[0]) // Data test
+            {
+               pd_out[0] =  (uint8_t) (pd_out[0] + 1);
+               timerval_old2 = timerval1.tv_usec;
+            }
+
+           #if (CAN_SLAVE_COUNT == 2)
+            if ((pd_in[1] == pd_out[1]) && (pd_in[2] == pd_out[2])) // Data test
+            { // PFC200 Data
+              pd_out[1] = (uint8_t) (pd_in[1] + 1);
+              pd_out[2] = (uint8_t) (pd_in[2] + 2);
+              pd_out[3] = (uint8_t) (timer_max1 & 0xFF);
+              pd_out[4] = (uint8_t) (timer_max2 & 0xFF);
+              pd_out[5] = (uint8_t) (timer_max3 & 0xFF);
+              timerval_old3 = timerval1.tv_usec;
+            }
+           #endif
 
             // lock an write PD-out data
             adi->WriteStart(canDeviceId, taskId);
-
             adi->WriteBytes(canDeviceId,taskId,0,1,(uint8_t *) &pd_out[0]); // 750-337 ID 3
 
-            #if ((CAN_SLAVE_COUNT == 2) || (CAN_SLAVE_COUNT ==3))
-             adi->WriteBytes(canDeviceId,taskId,1,1,(uint8_t *) &pd_out[1]); // 750-337 ID 4
-            #endif
-
-            #if (CAN_SLAVE_COUNT ==3)
-             adi->WriteBytes(canDeviceId, taskId, 2, 8, (uint8_t *) &pd_out[2]); // PAC200
+            #if (CAN_SLAVE_COUNT == 2)
+             adi->WriteBytes(canDeviceId, taskId, 1, 8, (uint8_t *) &pd_out[1]); // PFC200 ID 2
             #endif
 
             // unlock PD-Data

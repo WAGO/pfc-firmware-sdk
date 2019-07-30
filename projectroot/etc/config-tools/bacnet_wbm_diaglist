@@ -51,7 +51,8 @@ PrintDecodeLog()
   
   # Search BACnet keywords, sort the result by month and show only important infos
   #                                              -k[start],[end][Month]
-  grep -h 'BACnet_ERR\|BACnet_INF' $LOGFILES | sort -k1,1M -k2,2n | cut -d' ' -f 1,2,3,6,7-100
+  # Replace double spaces with one: tr -s ' ' ' '
+  grep -h 'BACnet_ERR\|BACnet_INF' $LOGFILES | sort -k1,1M -k2,2n | tr -s ' ' ' '  | cut -d' ' -f 1,2,3,6-100
 }
 
 

@@ -1,0 +1,41 @@
+From 35a3f2469805898129967c6096f2d3241a7dff25 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 18 Jan 2017 18:04:07 +0100
+Subject: [PATCH] dts: pfc-musb: turn on musb1 interface
+
+---
+ arch/arm/boot/dts/wago-pfc100-musb.dtsi | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc100-musb.dtsi b/arch/arm/boot/dts/wago-pfc100-musb.dtsi
+index a23eb1b..9c3659b 100644
+--- a/arch/arm/boot/dts/wago-pfc100-musb.dtsi
++++ b/arch/arm/boot/dts/wago-pfc100-musb.dtsi
+@@ -10,7 +10,7 @@
+ 	usb_otg_pins: pinmux_usb_otg_pins {
+ 		pinctrl-single,pins = <
+ 			/* USB OTG Mux Config */
+-			0x234 (PIN_INPUT_PULLDOWN | MUX_MODE0)  /* usb1_drvvbus.usb1_drvvbus */
++			0x234 (PIN_OUTPUT_PULLUP | MUX_MODE0)  /* usb1_drvvbus.usb1_drvvbus */
+ 		>;
+ 	};
+ };
+@@ -33,12 +33,13 @@
+ };
+ 
+ &usb1_phy {
+-	status = "disabled";
++	status = "okay";
++	/* status = "disabled"; */
+ };
+ 
+ /* usb1 - host */
+ &usb1 {
+-	status        = "disabled";
++	status = "okay";
+ 	dr_mode       = "host";
+ 	pinctrl-names = "default";
+ 	pinctrl-0     = <&usb_otg_pins>;
+-- 
+2.7.4
+

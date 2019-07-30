@@ -1,0 +1,82 @@
+## SECTION=networking
+
+menuconfig IPTABLES
+	tristate
+	prompt "iptables                      "
+	select LIBC_M
+	select LIBC_DL
+	select GCCLIBS_GCC_S
+	select LIBNFTNL		if IPTABLES_NFTABLES_COMPAT
+	select LIBNFNETLINK	if IPTABLES_LIBNFNETLINK
+	help
+	  Iptables  is used to set up, maintain, and inspect the
+	  tables of IP packet filter rules in the Linux kernel.
+	  Several different tables may be defined.  Each table
+	  contains a number of built-in chains and may also
+	  contain user-defined chains.
+
+if IPTABLES
+
+config IPTABLES_IPV6
+	bool
+	prompt "IPv6 support"
+
+config IPTABLES_IPV4
+	bool
+	prompt "IPv4 support"
+
+config IPTABLES_IPV6_SYSTEMD_UNIT
+	bool
+	prompt "Activate IPv6 systemd service unit"
+	select IPTABLES_IPV6
+	select IPTABLES_INSTALL_TOOLS
+
+config IPTABLES_IPV4_SYSTEMD_UNIT
+	bool
+	prompt "Activate IPv4 systemd service unit"
+	select IPTABLES_IPV4
+	select IPTABLES_INSTALL_TOOLS
+
+config IPTABLES_LIBIPQ
+	bool
+	prompt "Enable libipq"
+	help
+	  Builds and installs libipq (the iptables userspace packet
+	  queuing library).
+
+config IPTABLES_INSTALL_TOOLS
+	bool "install executables"
+	help
+	  depending on the selected protocols install the links to
+	  xtables-multi:
+	    IPv4: iptables, iptables-save, iptables-restore
+	    IPv6: ip6tables, ip6tables-save, ip6tables-restore
+
+comment "iptables-apply depends on bash"
+	depends on BASH = n
+
+config IPTABLES_INSTALL_IPTABLES_APPLY
+	bool
+	prompt "install iptables-apply"
+	select IPTABLES_INSTALL_TOOLS
+	depends on BASH
+	help
+	  iptables-apply will try to apply a new ruleset (as output by
+	  iptables-save/read by iptables-restore) to iptables, then prompt the
+	  user whether the changes are okay. If the new ruleset cut the
+	  existing connection, the user will not be able to answer
+	  affirmatively.
+
+config IPTABLES_LIBNFNETLINK
+	bool
+	prompt "configure libnfnetlink"
+	help
+	  Select if iptables should be build against libnfnetlink
+
+config IPTABLES_NFTABLES_COMPAT
+	bool
+	prompt "nftables compat"
+	help
+	  install xtables-compat-multi, allowing compatibility with nftables
+
+endif

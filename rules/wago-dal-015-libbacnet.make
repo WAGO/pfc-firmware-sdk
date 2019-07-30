@@ -46,23 +46,33 @@ LIBBACNET_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
 
 $(STATEDIR)/libbacnet.extract:
 	@$(call targetinfo)
-
+	@mkdir -p $(LIBBACNET_BUILDROOT_DIR)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	mkdir -p $(LIBBACNET_BUILDROOT_DIR)
 	@if [ ! -L $(LIBBACNET_DIR) ]; then \
-	  ln -s $(LIBBACNET_SRC_DIR) $(LIBBACNET_DIR); \
+	  	ln -s $(LIBBACNET_SRC_DIR) $(LIBBACNET_DIR); \
 	fi
 endif
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
-# Prepare
+# Extract.post
 # ----------------------------------------------------------------------------
 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+$(STATEDIR)/libbacnet.extract.post:
+	@$(call targetinfo)
+	@$(call touch)
+endif
+
+# ----------------------------------------------------------------------------
+# Prepare
+# ----------------------------------------------------------------------------
 $(STATEDIR)/libbacnet.prepare:
 	@$(call targetinfo)
-	@$(call touch)LIBBACNET_PACKAGE_NAME
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@$(call world/prepare, LIBBACNET)
+endif
+	@$(call touch)
 
 
 # ----------------------------------------------------------------------------
@@ -73,12 +83,7 @@ $(STATEDIR)/libbacnet.compile:
 	@$(call targetinfo)
 
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	@cd $(LIBBACNET_DIR) && \
-		$(LIBBACNET_MAKE_ENV) $(LIBBACNET_PATH) DIST_DIR=$(PTXDIST_PLATFORMDIR) \
-		env \
-		DIST_DIR=$(PTXDIST_PLATFORMDIR) CROSS_COMPILE=$(COMPILER_PREFIX) \
-		$(MAKE)	
+	@$(call world/compile, LIBBACNET)
 endif
 	@$(call touch)
 
@@ -89,21 +94,21 @@ endif
 
 $(STATEDIR)/libbacnet.install:
 	@$(call targetinfo)
-	@$(call world/install, LIBBACNET)
 
-ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
-#Backup header files as archive for later use in configs/@platform@/packages
-	cd $(PTXCONF_SYSROOT_TARGET) && \
-	tar -czvf $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/$(LIBBACNET_PACKAGE_NAME).tgz \
-		usr/lib/$(LIBBACNET_BIN)
-	mv $(LIBBACNET_PACKAGE_NAME).tgz $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)
-endif
-endif
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-#PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES - Install header from archive
-	tar -xzvf $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/$(LIBBACNET_PACKAGE_NAME).tgz -C $(PTXCONF_SYSROOT_TARGET)
+#   BSP mode: install by extracting tgz file
+	@mkdir -p $(LIBBACNET_PKGDIR) && \
+  	tar xvzf $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/$(LIBBACNET_PACKAGE_NAME).tgz -C $(LIBBACNET_PKGDIR)
+else	
+# 	normal mode, call "make install"	
+	
+	@$(call world/install, LIBBACNET)
+	
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
+#   # save install directory to tgz for BSP mode
+	@mkdir -p $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)
+	@cd $(LIBBACNET_PKGDIR) && tar cvzf $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/$(LIBBACNET_PACKAGE_NAME).tgz *
+endif
 endif
 	@$(call touch)
 
@@ -121,22 +126,11 @@ $(STATEDIR)/libbacnet.targetinstall:
 	@$(call install_fixup, libbacnet,AUTHOR,"Rolf Schulenburg <rolf.schulenburg@wago.com>")
 	@$(call install_fixup, libbacnet,DESCRIPTION,"BACnet device for the PFC controller" )
 	
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-# Extract precompiled binaries from archive
-	rm -rf $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/tmp/*
-	cd $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/$(LIBBACNET_PACKAGE_NAME).ipk
-	@$(call install_archive, libbacnet, 0, 0, $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
-else
-# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@$(call install_lib, libbacnet, 0, 0, 0644, libbacnet)
 	@$(call install_link, libbacnet, ../$(LIBBACNET_BIN), /usr/lib/dal/$(LIBBACNET_SO_NAME))
-endif
+	
 	@$(call install_finish, libbacnet)
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
-# Backup binaries in configs/@platform@/packages/
-	cp $(PKGDIR)/$(LIBBACNET_PACKAGE_NAME).ipk $(LIBBACNET_PLATFORMCONFIGPACKAGEDIR)/
-endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------

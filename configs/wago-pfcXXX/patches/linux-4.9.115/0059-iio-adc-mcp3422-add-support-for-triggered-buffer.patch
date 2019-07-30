@@ -1,0 +1,61 @@
+From 9d4425b252ab95c784073fff678fdff516dddfad Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Mon, 12 Jun 2017 15:39:57 +0200
+Subject: [PATCH] iio: adc: mcp3422: add support for triggered buffer.
+
+Signed-off-by: Boerje Sewing <boerje.sewing@who-ing.de>
+---
+ drivers/iio/adc/mcp3422.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/iio/adc/mcp3422.c b/drivers/iio/adc/mcp3422.c
+index a5148f5..e59e237 100644
+--- a/drivers/iio/adc/mcp3422.c
++++ b/drivers/iio/adc/mcp3422.c
+@@ -73,6 +73,11 @@
+                 }, \
+ 	}
+ 
++static const struct iio_chan_spec mcp3421_channels[] = {
++	MCP3422_CHAN(0, 12),
++        IIO_CHAN_SOFT_TIMESTAMP(2),
++};
++
+ static const struct iio_chan_spec mcp3422_channels[] = {
+ 	MCP3422_CHAN(0, 12),
+ 	MCP3422_CHAN(1, 12),
+@@ -335,22 +340,6 @@ static const struct attribute_group mcp3422_attribute_group = {
+ 	.attrs = mcp3422_attributes,
+ };
+ 
+-static const struct iio_chan_spec mcp3421_channels[] = {
+-	MCP3422_CHAN(0),
+-};
+-
+-static const struct iio_chan_spec mcp3422_channels[] = {
+-	MCP3422_CHAN(0),
+-	MCP3422_CHAN(1),
+-};
+-
+-static const struct iio_chan_spec mcp3424_channels[] = {
+-	MCP3422_CHAN(0),
+-	MCP3422_CHAN(1),
+-	MCP3422_CHAN(2),
+-	MCP3422_CHAN(3),
+-};
+-
+ static irqreturn_t mcp3422_trigger_handler(int irq, void *p)
+ {
+ 	struct iio_poll_func *pf = p;
+@@ -383,7 +372,7 @@ static irqreturn_t mcp3422_trigger_handler(int irq, void *p)
+                 }
+ 	}
+ 
+-	iio_push_to_buffers_with_timestamp(indio_dev, data, iio_get_time_ns());
++	iio_push_to_buffers_with_timestamp(indio_dev, data, iio_get_time_ns(indio_dev));
+ 
+ 	kfree(data);
+ out:
+-- 
+2.7.4
+

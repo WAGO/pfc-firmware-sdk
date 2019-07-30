@@ -14,7 +14,6 @@
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
-
 #include "backup.hpp"
 #include "error.hpp"
 #include "file_access.hpp"
@@ -26,12 +25,14 @@
 #include "regex.hpp"
 #include "system.hpp"
 #include "xmlhlp.hpp"
+#include "process.hpp"
 
 #include <libxml/parser.h>
 #include <syslog.h>
 #include <unistd.h>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 //
@@ -53,7 +54,10 @@
 namespace wago
 {
 
-
+  const std::string  FW_IPR = "/sbin/iptables-restore";
+  const std::string  FW_XST = "/usr/bin/xmlstarlet";
+  const std::string  GENERAL_CONF = "/etc/firewall/firewall.conf";
+  const std::string  FIREWALL_INIT = "/etc/init.d/firewall";
 //------------------------------------------------------------------------------
 /// Prints help description.
 //------------------------------------------------------------------------------
@@ -243,36 +247,79 @@ static bool are_apply_options_valid(const std::string& name, const std::string& 
 //------------------------------------------------------------------------------
 /// Returns a command which applies firewall rules.
 /// \param name name of type of configuration, e.g. ebtables, iptables, wbm, etc.
-/// \param updown 'up' or 'down' for services, empty for eb-/ip-tables
 /// \return command to execute
 //------------------------------------------------------------------------------
-static std::string get_apply_cmd(const std::string& name, const std::string& updown)
+static std::string get_apply_cmd(const std::string& name)
 {
     // 'are_apply_options_valid' must check the parameters first.
+    std::string cmd = "";
 
     if ("ebtables" == name)
     {
-        assert(0 == updown.size());
-        return "sh /etc/firewall/ebtables/ebfirewall.sh";
+        cmd = "sh /etc/firewall/ebtables/ebfirewall.sh";
     }
     else if ("iptables" == name)
     {
-        assert(0 == updown.size());
-        return "sh /etc/firewall/iptables/ipfirewall.sh --apply";
+        cmd = "sh /etc/firewall/iptables/ipfirewall.sh --apply";
+    }
+    return cmd;
+}
+
+//----
+//------------------------------------------------------------------------------
+/// Processes transformation from xml doc file to iptables rules.
+/// \param xmlshema name of XML shema definition file.
+/// \param xmlfile  name of XML document file.
+/// \param dest name of iptable rule to be changed
+//------------------------------------------------------------------------------
+static void transform_xmldoc (const std::string& xmlshema,
+                              const std::string& xmlfile,
+                              const std::string& dest)
+{
+    if (   check_file(xmlshema)
+        && check_file(xmlfile)
+        && check_file(FW_XST))
+    {
+        std::ostringstream oss;
+
+        oss << FW_XST + " tr " << xmlshema  << " " << xmlfile  << " > " << dest;
+        const std::string cmd(oss.str());
+        int ret;
+        (void)exe_cmd(cmd, ret);
+        if (ret != 0)
+        {
+           throw invalid_config_error ("failed to transform into rules file");
+        }
     }
     else
     {
-        assert("up" == updown || "down" == updown);
-
-        std::ostringstream oss;
-
-        oss << "sh /etc/firewall/services/service.sh ";
-        oss << updown << " " << name;
-
-        return oss.str();
+        throw file_open_error();
     }
 }
 
+//----
+//------------------------------------------------------------------------------
+/// Processes applying of iptables rule.
+/// \param rule name of iptables rule to be applied
+//------------------------------------------------------------------------------
+static void apply_rule (const std::string& rule)
+{
+    if (check_file(rule) && check_file(FW_IPR))
+    {
+        std::ostringstream oss;
+
+        oss << FW_IPR + " -n > /dev/null 2>&1 < " << rule;
+        const std::string cmd(oss.str());
+        int ret;
+        (void)exe_cmd(cmd, ret);
+    }
+    else
+    {
+        throw file_open_error();
+    }
+}
+
+//----
 //------------------------------------------------------------------------------
 /// Processes configuration change request.
 /// \param conf name of type of configuration, e.g. ebtables, iptables, wbm, etc.
@@ -299,6 +346,12 @@ static void process_configuration(const std::string& conf,
         process_service(doc, cmd, args);
 }
 
+//----
+//------------------------------------------------------------------------------
+/// Processes applying of configuration.
+/// \param conf  configuration to be applied
+/// \param updown (up|down) kind of configuration
+//------------------------------------------------------------------------------
 static void apply_conf(const std::string& conf, const std::string& updown)
 {
     if (!are_apply_options_valid(conf, updown))
@@ -306,39 +359,155 @@ static void apply_conf(const std::string& conf, const std::string& updown)
 
     update_network_interface_name_mapping();
 
-    // TODO Result control should be applied.
-    const std::string apply(get_apply_cmd(conf, updown));
-    (void)exe_cmd(apply);
-}
+    if (conf == "iptables" || conf == "ebtables")
+    {
+        const std::string apply(get_apply_cmd(conf));
 
-static void firewall_change(const std::string& command)
-{
-    if ("--is-enabled" == command)
-    {
-        const std::string result(exe_cmd("sh /etc/firewall/firewall_ed.sh --is-enabled"));
-        std::cout << result;
-    }
-    else if ("--enable" == command)
-    {
-        update_network_interface_name_mapping();
-        (void)exe_cmd("sh /etc/firewall/firewall_ed.sh --enable");
-    }
-    else if ("--disable" == command)
-    {
-        update_network_interface_name_mapping();
-        (void)exe_cmd("sh /etc/firewall/firewall_ed.sh --disable");
-    }
-    else if ("--backup" == command)
-    {
-        perform_backup();
-    }
-    else if ("--restore" == command)
-    {
-        perform_restore();
+        int ret;
+        (void)exe_cmd(apply, ret);
     }
     else
     {
-        throw invalid_param_error();
+        // process services
+        const std::string shema_down = "/etc/firewall/services/service_down.xsl";
+        const std::string xmldoc_down = "/etc/firewall/services/" + conf + ".xml";
+        const std::string rule_down = "/etc/firewall/services/" + conf + "_down.rls";
+        transform_xmldoc (shema_down, xmldoc_down, rule_down);
+
+        if (updown == "up")
+        {
+            const std::string shema = "/etc/firewall/services/service_up.xsl";
+            const std::string xmldoc = "/etc/firewall/services/" + conf +".xml";
+            const std::string up_rule = "/etc/firewall/services/"+ conf + "_up.rls";
+            transform_xmldoc (shema, xmldoc, up_rule);
+
+            apply_rule (rule_down);
+            apply_rule (up_rule);
+        }
+        else if (updown == "down")
+        {
+            apply_rule (rule_down);
+        }
+        else
+        {
+            throw invalid_param_error();
+        }
+    }
+}
+
+//----
+//------------------------------------------------------------------------------
+/// Gets configuration value from general configuration file.
+/// \params  none
+/// \return configurations value
+//------------------------------------------------------------------------------
+static std::string get_config_value()
+{
+    std::string value = "";
+    std::ifstream config_file(GENERAL_CONF, std::ifstream::in);
+
+    if (config_file)
+    {
+        std::string line = "";
+
+        if (getline(config_file, line))
+        {
+            size_t pos = line.find("=");
+            value = line.substr(pos + 1);
+        }
+        else throw file_read_error();
+
+        if(config_file.is_open())
+        {
+            config_file.close();
+        }
+    }
+    else
+    {
+        throw file_open_error();
+    }
+    return (value);
+}
+
+//----
+//------------------------------------------------------------------------------
+/// Set configuration value from general configuration file.
+/// \params  configuration value
+//------------------------------------------------------------------------------
+static void set_config_value(const std::string& value)
+{
+    std::ofstream config_file (GENERAL_CONF);
+
+    if (config_file)
+    {
+        config_file << "FIREWALL_GENERAL_STATE=" + value;
+    }
+    else
+    {
+        throw file_open_error();
+    }
+}
+
+//----
+//------------------------------------------------------------------------------
+/// Check if firewall enabled on general configuration file.
+/// \return true if firewall enabled, otherwise false
+//------------------------------------------------------------------------------
+static bool is_enabled (void)
+{
+    return (get_config_value() == "enabled");
+}
+
+//----
+//------------------------------------------------------------------------------
+/// Request, backup, restore and change firewall configuration.
+/// \param  command (--is-enabled | --enable | --disable | --backup | --restore)
+//------------------------------------------------------------------------------
+static void firewall_change(const std::string& command)
+{
+    int ret;
+    if (check_file(FIREWALL_INIT))
+    {
+        if ("--is-enabled" == command)
+        {
+            std::cout << get_config_value();
+        }
+        else if ("--enable" == command)
+        {
+            if (false == is_enabled())
+            {
+                update_network_interface_name_mapping();
+                set_config_value("enabled");
+                sync();
+                (void)exe_cmd("sh "+ FIREWALL_INIT + " restart", ret);
+            }
+        }
+        else if ("--disable" == command)
+        {
+            if (true == is_enabled())
+            {
+                update_network_interface_name_mapping();
+                set_config_value("disabled");
+                sync();
+                (void)exe_cmd("sh "+ FIREWALL_INIT + " stop", ret);
+            }
+        }
+        else if ("--backup" == command)
+        {
+            perform_backup();
+        }
+        else if ("--restore" == command)
+        {
+            perform_restore();
+        }
+        else
+        {
+            throw invalid_param_error();
+        }
+    }
+    else
+    {
+        throw file_open_error();
     }
 }
 
@@ -352,7 +521,7 @@ static void execute(int argc, char** argv)
     // TODO This is a one really ugly function - refactore it!
 
     if (argc < 2)
-        throw missing_param_error();
+        throw missing_param_error("test_test");
 
     const std::string conf(argv[1]);
 
@@ -386,7 +555,7 @@ static void execute(int argc, char** argv)
     else
     {
         if (!regex::is_match(regex::rex_name, conf))
-            throw invalid_param_error();
+            throw invalid_param_error(conf);
 
         if (argc < 3)
             throw invalid_param_error("Too few arguments.");
@@ -405,7 +574,8 @@ static void execute(int argc, char** argv)
             if (4 < argc)
                 throw invalid_param_error("To many arguments.");
 
-            apply_conf(conf, 3 < argc && NULL != argv[3] ? argv[3] : "");
+            std::string updown_cmd((3 < argc && NULL != argv[3]) ? argv[3] : "");
+            apply_conf(conf, updown_cmd);
         }
         else
         {
@@ -525,8 +695,7 @@ static void log_exit(int const result)
     }
 }
 
-
-//------------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 /// Open syslog.
 //------------------------------------------------------------------------------
 static void openlog(void)

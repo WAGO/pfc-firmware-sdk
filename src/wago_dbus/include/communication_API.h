@@ -154,7 +154,7 @@ int com_GEN_ErrorIsSet(com_tConnection*);
 ///
 ///  \return the name as string
 //------------------------------------------------------------------------------
-char * com_GEN_ErrorGetName(com_tConnection*);
+const char * com_GEN_ErrorGetName(com_tConnection*);
 
 //-- Function: com_GEN_ErrorGetMessage ---------------------------------------------
 ///
@@ -164,7 +164,7 @@ char * com_GEN_ErrorGetName(com_tConnection*);
 ///
 ///  \return the Message as string
 //------------------------------------------------------------------------------
-char * com_GEN_ErrorGetMessage(com_tConnection*);
+const char * com_GEN_ErrorGetMessage(com_tConnection*);
 
 //-- Function: com_GEN_GetDBusVar ---------------------------------------------
 ///

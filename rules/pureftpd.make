@@ -15,8 +15,8 @@ PACKAGES-$(PTXCONF_PUREFTPD) += pureftpd
 #
 # Paths and names
 #
-PUREFTPD_VERSION	:= 1.0.43
-PUREFTPD_MD5		:= 685498474a47340e9a3eae1518cf83c8
+PUREFTPD_VERSION	:= 1.0.47
+PUREFTPD_MD5		:= a41fa531c0d21bd3416dd524d75495ae
 PUREFTPD		:= pure-ftpd-$(PUREFTPD_VERSION)
 PUREFTPD_SUFFIX		:= tar.bz2
 PUREFTPD_URL		:= http://download.pureftpd.org/pub/pure-ftpd/releases/$(PUREFTPD).$(PUREFTPD_SUFFIX)

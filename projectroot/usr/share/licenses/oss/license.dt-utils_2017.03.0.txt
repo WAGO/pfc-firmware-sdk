@@ -1,3 +1,5 @@
+dt-utils-2017.03.0/COPYING
+
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 

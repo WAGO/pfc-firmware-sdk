@@ -143,7 +143,7 @@ firewall.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/src/app,$(SOURCE_FILE_EXT
 #######################################################################################################################
 # Settings for build target alltests.elf
 
-alltests.elf_STATICALLYLINKED += firewall gmock_main gmock
+alltests.elf_STATICALLYLINKED += firewall gmock_main gmock gtest
 alltests.elf_LIBS += $(alltests.elf_STATICALLYLINKED)
 alltests.elf_PKG_CONFIGS += glib-2.0 gio-2.0 libxml-2.0
 alltests.elf_PKG_CONFIG_LIBS +=

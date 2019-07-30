@@ -121,9 +121,9 @@ else
 
   # check if current password of user is correct
   # get current key from $PASSWD_FILENAME
-  currKey=`sudo $SED -n 's/'$userName':\(.*\)\.*/\1/p'  "$PASSWD_FILENAME"`
+  currKey=`$SED -n 's/'$userName':\(.*\)\.*/\1/p'  "$PASSWD_FILENAME"`
   # get current salt from $PASSWD_FILENAME
-  salt=`sudo $SED -n 's/'$userName':$6$\(.*\)\$.*/\1/p' "$PASSWD_FILENAME"`
+  salt=`$SED -n 's/'$userName':$6$\(.*\)\$.*/\1/p' "$PASSWD_FILENAME"`
   ioldPassword=`echo "$oldPassword" | iconv --from-code=UTF-8 --to-code=ISO-8859-1 2> /dev/null`
   # calculate hash-key of transferred old key
   oldkeyTrans=`/etc/config-tools/crypt "$ioldPassword" '$6$'${salt}`
@@ -156,7 +156,7 @@ else
   
         #sed -n '/'$userName'/p' $PASSWD_FILENAME 
         # change line in password-file to new key
-        sudo $SED -i '/'$userName'/c\'$userName':'$key'' $PASSWD_FILENAME > /dev/null 2> /dev/null
+        $SED -i '/'$userName'/c\'$userName':'$key'' $PASSWD_FILENAME > /dev/null 2> /dev/null
         if [ "$?" == $SUCCESS ]; then
           sync
         else

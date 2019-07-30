@@ -1,0 +1,57 @@
+From 4bd45df17a714d234b3215d3f4fcb771453066b2 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Wed, 20 Feb 2019 15:45:10 +0100
+Subject: [PATCH 292/292] net: set link LED mode for marvel and intel-xway phys
+
+Adjust ethernet link LED mode for intel-xway and mv88e6321
+internal phys. Now link LED is on if link is up an off if
+link is down, independent on speed.
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/dsa/mv88e6xxx/chip.c      | 2 +-
+ drivers/net/dsa/mv88e6xxx/mv88e6xxx.h | 1 +
+ drivers/net/phy/intel-xway.c          | 2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index 1650097..d5b2eaf 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -2848,7 +2848,7 @@ static int mv88e6xxx_setup_port(struct mv88e6xxx_chip *chip, int port)
+ 
+ 	reg = PORT_LED_CTRL_UPDATE
+ 		| PORT_LED_CTRL_LED01
+-		| LED0_SELECT_100X_CONT
++		| LED0_SELECT_10XX_CONT
+ 		| LED1_SELECT_ACT;
+ 
+ 	mv88e6xxx_port_write(chip, port, PORT_LED_CONTROL, reg);
+diff --git a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+index 7de6918..303e57c 100644
+--- a/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
++++ b/drivers/net/dsa/mv88e6xxx/mv88e6xxx.h
+@@ -382,6 +382,7 @@
+ #define PORT_LED_CTRL_STRETCH_BLINK	0x6000
+ #define PORT_LED_CTRL_SPECIAL_LED	0x7000
+ 
++#define LED0_SELECT_10XX_CONT		0x0008
+ #define LED0_SELECT_100X_CONT		0x000B
+ #define LED1_SELECT_ACT			0x0080
+ 
+diff --git a/drivers/net/phy/intel-xway.c b/drivers/net/phy/intel-xway.c
+index b626aca..77489b2 100644
+--- a/drivers/net/phy/intel-xway.c
++++ b/drivers/net/phy/intel-xway.c
+@@ -175,7 +175,7 @@ static int xway_gphy_config_init(struct phy_device *phydev)
+ 	// LNK GREEN
+ 	phy_write_mmd_indirect(phydev, XWAY_MMD_LED0H, MDIO_MMD_VEND2,
+ 			       XWAY_MMD_LEDxH_BLINKF_NONE |
+-			       XWAY_MMD_LEDxH_CON_LINK100);
++			       XWAY_MMD_LEDxH_CON_LINK10XX);
+ 	phy_write_mmd_indirect(phydev, XWAY_MMD_LED0L, MDIO_MMD_VEND2,
+ 			       XWAY_MMD_LEDxL_PULSE_NONE |
+ 			       XWAY_MMD_LEDxL_BLINKS_NONE);
+-- 
+2.7.4
+

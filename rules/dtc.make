@@ -53,6 +53,8 @@ DTC_DTB = $(foreach dts, $(call remove_quotes,$(PTXCONF_DTC_OFTREE_DTS)), $(IMAG
 # make sure "ptxdist targetinstall kernel" generates a new device trees
 $(STATEDIR)/kernel.targetinstall.post: $(DTC_DTB)
 
+$(STATEDIR)/dtc.targetinstall: $(STATEDIR)/kernel.targetinstall.post
+
 ifdef PTXCONF_HOST_DTC
 $(STATEDIR)/dtc.targetinstall: $(STATEDIR)/host-dtc.install $(DTC_DTB)
 else

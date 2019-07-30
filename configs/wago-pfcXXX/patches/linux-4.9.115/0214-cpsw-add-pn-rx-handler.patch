@@ -1,0 +1,196 @@
+From 8d9148eb03dafe1bdcb637a83dfc2aee6cf5195b Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 9 Jul 2018 08:34:24 +0200
+Subject: [PATCH] cpsw: add pn rx handler
+
+For PROFINET (pn) sockets cpsw has to filter pn frames and forward
+them to pn socket. All other frame are forward to linux stack,
+as ever. This bypass is only for PROFINET-capable devices necessary.
+To activate the bypass cpsw register an special pn rx handler,
+in case of a PROFINET-capable device. If it not a PROFINET-capable
+device, cpsw register the default rx handler.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8211.dts |   1 +
+ arch/arm/boot/dts/am335x-pfc-750_8215.dts |   1 +
+ drivers/net/ethernet/ti/cpsw.c            | 117 +++++++++++++++++++++++++++++-
+ 3 files changed, 117 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8211.dts b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
+index 92db7b6..075627c 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8211.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
+@@ -37,6 +37,7 @@
+ 
+ &wsysinit {
+ 	tty,rs232-485 = "nop";
++	profinet-capable;
+ };
+ 
+ &dsa {
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8215.dts b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+index 72dc0f9..8a777e3 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8215.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8215.dts
+@@ -88,6 +88,7 @@
+ 
+ &wsysinit {
+ 	tty,rs232-485 = "nop";
++	profinet-capable;
+ };
+ 
+ &dsa {
+diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
+index e8c40a4..cb2504c 100644
+--- a/drivers/net/ethernet/ti/cpsw.c
++++ b/drivers/net/ethernet/ti/cpsw.c
+@@ -686,6 +686,99 @@ static void cpsw_tx_handler(void *token, int len, int status)
+ 	dev_kfree_skb_any(skb);
+ }
+ 
++static bool cpsw_is_pn_frame(struct sk_buff *skb)
++{
++	bool ret = false;
++	u8 *ether_type_data = skb->data + 12;
++
++	/* skip dsa */
++	if (*ether_type_data == 0xda && ether_type_data[1] == 0xda)
++		ether_type_data += 8;
++
++	/* skip vlan */
++	if (*ether_type_data == 0x81 && ether_type_data[1] == 0x00)
++		ether_type_data += 4;
++
++	/* check is it a profinet frame */
++	if (*ether_type_data == 0x88 && ether_type_data[1] == 0x92)
++		ret = true;
++
++	return ret;
++}
++
++static void cpsw_pn_rx_handler(void *token, int len, int status)
++{
++	struct cpdma_chan	*ch;
++	struct sk_buff		*skb = token;
++	struct sk_buff		*new_skb;
++	struct net_device	*ndev = skb->dev;
++	int			ret = 0;
++	struct cpsw_common	*cpsw = ndev_to_cpsw(ndev);
++
++	cpsw_dual_emac_src_port_detect(cpsw, status, ndev, skb);
++
++	if (unlikely(status < 0) || unlikely(!netif_running(ndev))) {
++		bool ndev_status = false;
++		struct cpsw_slave *slave = cpsw->slaves;
++		int n;
++
++		if (cpsw->data.dual_emac) {
++			/* In dual emac mode check for all interfaces */
++			for (n = cpsw->data.slaves; n; n--, slave++)
++				if (netif_running(slave->ndev))
++					ndev_status = true;
++		}
++
++		if (ndev_status && (status >= 0)) {
++			/* The packet received is for the interface which
++			 * is already down and the other interface is up
++			 * and running, instead of freeing which results
++			 * in reducing of the number of rx descriptor in
++			 * DMA engine, requeue skb back to cpdma.
++			 */
++			new_skb = skb;
++			goto requeue;
++		}
++
++		/* the interface is going down, skbs are purged */
++		dev_kfree_skb_any(skb);
++		return;
++	}
++
++	new_skb = netdev_alloc_skb_ip_align(ndev, cpsw->rx_packet_max);
++	if (new_skb) {
++		skb_copy_queue_mapping(new_skb, skb);
++		skb_put(skb, len);
++		if (cpsw_is_pn_frame(skb)) {
++			if (pnsk_generic_rcv_skb(skb) == -EBUSY)
++				ndev->stats.rx_dropped++;
++			kfree_skb(skb);
++		} else {
++			cpts_rx_timestamp(cpsw->cpts, skb);
++			skb->protocol = eth_type_trans(skb, ndev);
++			netif_receive_skb(skb);
++		}
++		ndev->stats.rx_bytes += len;
++		ndev->stats.rx_packets++;
++		kmemleak_not_leak(new_skb);
++	} else {
++		ndev->stats.rx_dropped++;
++		new_skb = skb;
++	}
++
++requeue:
++	if (netif_dormant(ndev)) {
++		dev_kfree_skb_any(new_skb);
++		return;
++	}
++
++	ch = cpsw->rxch[skb_get_queue_mapping(new_skb)];
++	ret = cpdma_chan_submit(ch, new_skb, new_skb->data,
++				skb_tailroom(new_skb), 0);
++	if (WARN_ON(ret < 0))
++		dev_kfree_skb_any(new_skb);
++}
++
+ static void cpsw_rx_handler(void *token, int len, int status)
+ {
+ 	struct cpdma_chan	*ch;
+@@ -2123,6 +2216,18 @@ static int cpsw_check_ch_settings(struct cpsw_common *cpsw,
+ 	return 0;
+ }
+ 
++static bool cpsw_is_pn_device(void)
++{
++	bool ret = false;
++	struct device_node *np;
++
++	np = of_find_compatible_node(NULL, NULL, "wago,sysinit");
++	if (np)
++		ret = of_property_read_bool(np, "profinet-capable");
++
++	return ret;
++}
++
+ static int cpsw_update_channels_res(struct cpsw_priv *priv, int ch_num, int rx)
+ {
+ 	int (*poll)(struct napi_struct *, int);
+@@ -2134,7 +2239,10 @@ static int cpsw_update_channels_res(struct cpsw_priv *priv, int ch_num, int rx)
+ 	if (rx) {
+ 		ch = &cpsw->rx_ch_num;
+ 		chan = cpsw->rxch;
+-		handler = cpsw_rx_handler;
++		if (cpsw_is_pn_device())
++			handler = cpsw_pn_rx_handler;
++		else
++			handler = cpsw_rx_handler;
+ 		poll = cpsw_rx_poll;
+ 	} else {
+ 		ch = &cpsw->tx_ch_num;
+@@ -2777,7 +2885,12 @@ static int cpsw_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	cpsw->txch[0] = cpdma_chan_create(cpsw->dma, 0, cpsw_tx_handler, 0);
+-	cpsw->rxch[0] = cpdma_chan_create(cpsw->dma, 0, cpsw_rx_handler, 1);
++	if (cpsw_is_pn_device())
++		cpsw->rxch[0] = cpdma_chan_create(cpsw->dma, 0,
++						  cpsw_pn_rx_handler, 1);
++	else
++		cpsw->rxch[0] = cpdma_chan_create(cpsw->dma, 0,
++						  cpsw_rx_handler, 1);
+ 	if (WARN_ON(!cpsw->rxch[0] || !cpsw->txch[0])) {
+ 		dev_err(priv->dev, "error initializing dma channels\n");
+ 		ret = -ENOMEM;
+-- 
+2.7.4
+

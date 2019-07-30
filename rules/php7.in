@@ -1,0 +1,337 @@
+## SECTION=scripting_languages
+# php7 configuration
+
+menuconfig PHP7
+	tristate
+	prompt "php7                          "
+	select PHP7_SAPI_FPM		if PHP5
+	select APACHE2		if PHP7_SAPI_APXS2 || PHP7_SAPI_APXS2FILTER
+	select LIBCURL		if PHP7_EXT_CURL
+	select LIBXML2		if PHP7_XML_LIBXML2
+	select LIBXML2_C14N	if PHP7_XML_LIBXML2
+	select LIBXML2_DTD	if PHP7_XML_LIBXML2
+	select LIBXML2_XINCLUDE	if PHP7_XML_LIBXML2
+	select LIBXML2_READER	if PHP7_XML_LIBXML2_READER
+	select LIBXML2_WRITER	if PHP7_XML_LIBXML2_WRITER
+	select LIBXSLT		if PHP7_XML_LIBXML2_XSLT
+#	#select MYSQLDB		if PHP7_EXT_MYSQL
+	select PHP7_XML		if PHP7_EXT_SOAP
+	select XMLRPC_C		if PHP7_XML_LIBXML2_XMLRPC
+	select SQLITE		if PHP7_EXT_SQLITE3
+	select ZLIB		if PHP7_EXT_ZLIB
+	select OPENSSL		if PHP7_EXT_OPENSSL
+
+if PHP7
+
+config PHP7_INI
+	bool
+	prompt "install /etc/php7/php.ini"
+	default y
+	help
+	  Installs (if present) the
+	  "./projectroot/etc/php7/php.ini" file from your
+	  workspace, otherwise a generic one from the ptxdist
+	  directory.
+
+# ----------------------------------------------------------------------------
+# SAPI Modules
+# ----------------------------------------------------------------------------
+
+choice
+	prompt "SAPI Module"
+	default PHP7_SAPI_NONE
+
+config PHP7_SAPI_AOLSERVER
+	bool
+	prompt "aolserver"
+	depends on BROKEN
+	help
+	  Use AOLserver.
+
+config PHP7_SAPI_APXS2FILTER
+	bool
+	prompt "apxs2filter"
+	help
+	  EXPERIMENTAL: Build shared Apache 2.0 Filter module. FILE is the optional
+	  pathname to the Apache apxs tool [apxs]
+
+config PHP7_SAPI_APXS2
+	bool
+	prompt "apache mod_php (apxs2)"
+	help
+	  Build shared Apache 2.0 Handler module.
+
+config PHP7_SAPI_CAUDIUM
+	bool
+	prompt "caudium"
+	depends on BROKEN
+	help
+	  Build PHP as a Pike module for use with Caudium.
+
+config PHP7_SAPI_CONTINUITY
+	bool
+	prompt "continuity"
+	depends on BROKEN
+	help
+	  Build PHP as Continuity Server module.
+
+config PHP7_SAPI_EMBEDDED
+	bool
+	prompt "embedded"
+	help
+	  Enable building of embedded SAPI library.
+
+config PHP7_SAPI_ISAPI
+	bool
+	prompt "isapi"
+	depends on BROKEN
+	help
+	  Build PHP as an ISAPI module for use with Zeus
+
+config PHP7_SAPI_MILTER
+	bool
+	prompt "milter"
+	depends on BROKEN
+	help
+	  Build PHP as Milter application.
+
+config PHP7_SAPI_NSAPI
+	bool
+	prompt "nsapi"
+	depends on BROKEN
+	help
+	  Build PHP as NSAPI module for Netscape/iPlanet/SunONE.
+
+config PHP7_SAPI_PHTTPD
+	bool
+	prompt "phttpd"
+	depends on BROKEN
+	help
+	  Build PHP as phttpd module.
+
+config PHP7_SAPI_PI3WEB
+	bool
+	prompt "pi3web"
+	depends on BROKEN
+	help
+	  Build PHP as Pi3Web module
+
+config PHP7_SAPI_ROXEN
+	bool
+	prompt "roxen"
+	depends on BROKEN
+	help
+	  Build PHP as a Pike module. DIR is the base Roxen
+
+config PHP7_SAPI_ROXEN_ZTS
+	bool
+	prompt "roxen-zts"
+	depends on BROKEN
+	help
+	  Build the Roxen module using Zend Thread Safety.
+
+config PHP7_SAPI_THTTPD
+	bool
+	prompt "thttpd"
+	depends on BROKEN
+	help
+	  Build PHP as thttpd module
+
+config PHP7_SAPI_TUX
+	bool
+	prompt "tux"
+	depends on BROKEN
+	help
+	  Build PHP as a TUX module.
+
+config PHP7_SAPI_WEBJAMES
+	bool
+	prompt "webjames"
+	depends on BROKEN
+	help
+	  Build PHP as a WebJames module (RISC OS only).
+
+config PHP7_SAPI_CGI
+	bool
+	prompt "cgi"
+	help
+	  Build CGI version of PHP.
+
+config PHP7_SAPI_FPM
+	bool
+	prompt "fpm"
+	help
+	  Build FPM version of PHP
+
+config PHP7_SAPI_FPM_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/php-fpm"
+	depends on PHP7_SAPI_FPM
+
+config PHP7_SAPI_NONE
+	bool
+	prompt "none"
+	select PHP7_SAPI_CLI
+
+endchoice
+
+config PHP7_SAPI_CLI
+	bool
+	prompt "cli"
+	help
+	  Build CLI (commandline interface) version of PHP
+
+# ----------------------------------------------------------------------------
+# General Settings
+# ----------------------------------------------------------------------------
+
+menuconfig PHP7_XML
+	bool
+	prompt "xml support                 "
+	help
+	  Support for XML.
+
+if PHP7_XML
+
+choice
+	prompt "xml library"
+
+	config PHP7_XML_LIBXML2
+		bool "libxml2"
+		help
+		  Use libxml2 as xml backend.
+endchoice
+
+if PHP7_XML_LIBXML2
+
+config PHP7_XML_LIBXML2_READER
+	bool
+	prompt "xml reader support"
+	help
+	  XMLReader support
+
+config PHP7_XML_LIBXML2_WRITER
+	bool
+	select LIBXML2_WRITER
+	prompt "xml writer support"
+	help
+	  XMLWriter support
+
+config PHP7_XML_LIBXML2_DOM
+	bool
+	select LIBXML2_DOM
+	prompt "DOM support"
+	help
+	  libxml2 DOM support
+
+config PHP7_XML_LIBXML2_XSLT
+	bool
+	select PHP7_XML_LIBXML2_DOM
+	prompt "xslt support"
+	help
+	  XMLWriter support
+
+config PHP7_XML_LIBXML2_SIMPLEXML
+	bool
+	prompt "simple xml support"
+	help
+	  simple xml support
+
+config PHP7_XML_LIBXML2_XMLRPC
+	bool
+	depends on STAGING
+	prompt "xmlrpc support"
+	help
+	  xmlrpc support
+
+endif	# PHP7_XML_LIBXML2
+
+endif	# PHP7_XML
+
+# ----------------------------------------------------------------------------
+# Extensions
+# ----------------------------------------------------------------------------
+
+menu "Extensions                  "
+
+config PHP7_EXT_CURL
+	bool
+	prompt "curl"
+	help
+	  Enable CURL support for PHP.
+
+config PHP7_EXT_MYSQL
+	bool
+	# mysql was removed
+	depends on BROKEN
+	prompt "mysql"
+	help
+	  Enable MySQL database support for PHP.
+
+config PHP7_EXT_SOAP
+	bool
+	prompt "soap"
+	select PHP7_XML
+	help
+	  Enable SOAP support for PHP.
+
+config PHP7_EXT_SOCKETS
+	bool
+	prompt "sockets"
+	help
+	  Enable sockets support for PHP.
+
+config PHP7_EXT_SQLITE3
+	bool
+	prompt "sqlite3"
+	help
+	  Enable sqlite3 support for PHP.
+
+config PHP7_EXT_ZLIB
+	bool
+	prompt "zlib"
+	help
+	  Enable zlib support for PHP.
+
+config PHP7_EXT_ZIP
+	bool
+	prompt "zip"
+	depends on ZIP
+	help
+	  Enable zip support for PHP.
+
+config PHP7_EXT_OPENSSL
+	bool
+	prompt "openssl"
+	help
+	  Enable openssl support for PHP.
+
+config PHP7_EXT_SHMOP
+	bool
+	prompt "shmop"
+	help
+	  Enable shmop support for PHP.
+
+config PHP7_EXT_PEAR
+	bool
+	prompt "pear [BROKEN]"
+	depends on BROKEN
+	help
+	  Install PEAR.
+
+config PHP7_EXT_MBSTRING
+	bool
+	prompt "mbstring"
+	help
+	  Enable Multibyte String support for PHP.
+
+config PHP7_EXT_ICONV
+	bool
+	prompt "iconv"
+	help
+	  Enable iconv support for PHP.
+
+endmenu
+
+endif

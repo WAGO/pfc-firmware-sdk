@@ -1,0 +1,107 @@
+From 8eee6b98441ef1cb1faddfe7a13551e51f22cda1 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 2 May 2017 15:57:36 +0200
+Subject: [PATCH] dts: pfcXXX: nand: add missing compatible id and correct
+ mapping address
+
+	Due to commit 51735ca and e2c5eb7 the nand parts need an additionally
+	compatible string. Furthermore correct mapping address to bootloader
+	mapping address.
+---
+ arch/arm/boot/dts/wago-pfc100.dtsi   | 8 ++++----
+ arch/arm/boot/dts/wago-pfc200.dtsi   | 7 ++++---
+ arch/arm/boot/dts/wago-pfc200v2.dtsi | 5 ++---
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc100.dtsi b/arch/arm/boot/dts/wago-pfc100.dtsi
+index 45edc88..fb9efc1 100644
+--- a/arch/arm/boot/dts/wago-pfc100.dtsi
++++ b/arch/arm/boot/dts/wago-pfc100.dtsi
+@@ -224,12 +224,13 @@
+ 	num-waitpins = <1>;
+ 	status = "okay";
+ 	ranges = <
+-		0 0 0x00000000 0x01000000	/* CS0: NAND, 16M */
++		0 0 0x08000000 0x01000000	/* CS0: NAND, 16M */
+ 		1 0 0x01000000 0x01000000	/* CS1: NVRAM, 16M */
+ 	>;
+ 
+ 	nand: nand@0,0 {
+-		reg = <0 0 0>; /* CS0, offset 0 */
++		compatible = "ti,omap2-nand";
++		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
+ 		nand-bus-width = <8>;
+ 		ti,nand-ecc-opt = "bch8";
+ 		gpmc,device-nand = "true";
+@@ -264,8 +265,7 @@
+ 	};
+ 
+         nvram: nor@1,0 { /* NVRAM Device 128k */
+-		reg = <1 0 0x1000000>;
+-
++		reg = <1 0 0x01000000>;
+ 		bank-width = <2>; /* 1: 8bit, 2: 16bit */
+ 		gpmc,sync-clk-ps = <0>;
+ 		gpmc,cs-on-ns = <0>;
+diff --git a/arch/arm/boot/dts/wago-pfc200.dtsi b/arch/arm/boot/dts/wago-pfc200.dtsi
+index c49f084..88c00eb 100644
+--- a/arch/arm/boot/dts/wago-pfc200.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200.dtsi
+@@ -639,13 +639,14 @@
+ 	num-cs = <3>;
+ 	num-waitpins = <4>;
+ 	ranges = <
+-		0 0 0x00000000 0x01000000	/* CS0: NAND, 16M */
++		0 0 0x08000000 0x01000000	/* CS0: NAND, 16M */
+ 		1 0 0x01000000 0x01000000	/* CS1: FB/DPC31, 16M */
+ 		2 0 0x02000000 0x01000000	/* CS2: NVRAM, 16M */
+ 	>;
+ 
+ 	nand: nand@0,0 {
+-		reg = <0 0 0>; /* CS0, offset 0 */
++		compatible = "ti,omap2-nand";
++		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
+ 		nand-bus-width = <8>;
+ 		ti,nand-ecc-opt = "bch8";
+ 		gpmc,device-nand = "true";
+@@ -682,7 +683,7 @@
+ 	};
+ 
+         nvram: nor@2,0 { /* NVRAM Device 128k */
+-		reg = <2 0 0x1000000>;
++		reg = <2 0 0x01000000>;
+ 
+ 		bank-width = <2>; /* 1: 8bit, 2: 16bit */
+ 		gpmc,sync-clk-ps = <0>;
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index 22e179d..f45e7ce 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -210,14 +210,14 @@
+ 	num-waitpins = <3>;
+ 	status = "okay";
+ 	ranges = <
+-		0 0 0x05000000 0x08000000	/* CS0: NAND, 128M */
++		0 0 0x08000000 0x01000000	/* CS0: NAND, 16M */
+ 		1 0 0x01000000 0x01000000	/* CS1: NVRAM, 16M */
+ 		6 0 0x04000000 0x01000000	/* CS6: NETX/DPC31, 16M */
+ 	>;
+ 
+ 	nand: nand@0,0 {
+-		reg = <0 0 4>; /* CS0, offset 0 */
+ 		compatible = "ti,omap2-nand";
++		reg = <0 0 4>; /* CS0, offset 0, IO size 4 */
+ 		nand-bus-width = <8>;
+ 		ti,nand-ecc-opt = "bch8";
+ 		gpmc,device-nand = "true";
+@@ -253,7 +253,6 @@
+ 
+         nvram: nor@1,0 { /* NVRAM Device 128k */
+ 		reg = <1 0 0x01000000>;
+-		/*compatible = "cfi-flash";*/
+ 		bank-width = <2>; /* 1: 8bit, 2: 16bit */
+ 		gpmc,sync-clk-ps = <0>;
+ 		gpmc,cs-on-ns = <0>;
+-- 
+2.7.4
+

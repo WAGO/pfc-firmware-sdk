@@ -12,7 +12,7 @@
 # Get configuration of DHCPD server.
 #
 # Author: Hans-Josef Hoffmann
-# $Id: get_dhcpd_config 36657 2019-02-08 13:47:27Z hans-florian.scholz@wago.com $
+# $Id: get_dhcpd_config 36237 2019-01-29 15:01:53Z patrick.enns@wago.com $
 #-----------------------------------------------------------------------------#
 
 DHCPD_CONFIG_C="/etc/config-tools/config_dnsmasq_c -d"

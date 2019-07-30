@@ -39,7 +39,8 @@ SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
 # the source code directory is created. When it is missing, the target below
 # is executed and an error message is generated.
 $(LIBCGROUPCPULOAD_SRC_DIR):
-	$(error "Error: $(LIBCGROUPCPULOAD_SRC_DIR): directory not found!")
+	@echo "Error: $@: directory not found!" >&2; \
+	exit 2
 
 # ----------------------------------------------------------------------------
 # Extract

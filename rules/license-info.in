@@ -1,0 +1,10 @@
+## SECTION=wago_specific
+
+
+config LICENSE_INFO
+  bool
+  default y
+  prompt "License information"
+
+  help
+   "Contains files describing third party licenses (e.g. 3S Codesys license)."

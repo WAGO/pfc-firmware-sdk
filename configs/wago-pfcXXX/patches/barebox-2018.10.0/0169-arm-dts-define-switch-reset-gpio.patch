@@ -1,0 +1,90 @@
+From 7854468d8567fe412fd6fe44048433fdf277f650 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 28 Mar 2019 13:25:13 +0100
+Subject: [PATCH] arm: dts: define switch reset gpio
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am335x-pac-768_330x.dts   | 1 +
+ arch/arm/dts/am335x-pfc-750_810x.dts   | 1 +
+ arch/arm/dts/am335x-pfc-750_8208.dts   | 1 +
+ arch/arm/dts/am335x-pfc-750_821x.dts   | 1 +
+ arch/arm/dts/am335x-src-2850_311x.dts  | 1 +
+ arch/arm/dts/imx6q-vtpctp-762-4xxx.dts | 1 +
+ 6 files changed, 6 insertions(+)
+
+diff --git a/arch/arm/dts/am335x-pac-768_330x.dts b/arch/arm/dts/am335x-pac-768_330x.dts
+index f381a07..dac869e 100644
+--- a/arch/arm/dts/am335x-pac-768_330x.dts
++++ b/arch/arm/dts/am335x-pac-768_330x.dts
+@@ -27,6 +27,7 @@
+ 	model = "PAC-768-330x";
+ 	compatible = "wago,am335x-pac-768_330x", "wago,am335x-pfc", "ti,am33xx";
+ 	board-variant = "pac100";
++	switch-reset-gpio = <&pca953x 4 GPIO_ACTIVE_LOW>;
+ 
+ 	memory {
+ 		device_type = "memory";
+diff --git a/arch/arm/dts/am335x-pfc-750_810x.dts b/arch/arm/dts/am335x-pfc-750_810x.dts
+index 1191f60..35798b8d 100644
+--- a/arch/arm/dts/am335x-pfc-750_810x.dts
++++ b/arch/arm/dts/am335x-pfc-750_810x.dts
+@@ -29,6 +29,7 @@
+ 	model = "PFC-750-810x";
+ 	compatible = "wago,am335x-pfc-750_810x", "wago,am335x-pfc", "ti,am33xx";
+ 	board-variant = "pfc100";
++	switch-reset-gpio = <&gpio2 21 GPIO_ACTIVE_LOW>;
+ };
+ 
+ &am33xx_pinmux {
+diff --git a/arch/arm/dts/am335x-pfc-750_8208.dts b/arch/arm/dts/am335x-pfc-750_8208.dts
+index 5915b68..35a5c0b 100644
+--- a/arch/arm/dts/am335x-pfc-750_8208.dts
++++ b/arch/arm/dts/am335x-pfc-750_8208.dts
+@@ -27,6 +27,7 @@
+ 	model = "PFC-750-820x";
+ 	compatible = "wago,am335x-pfc-750_8208", "wago,am335x-pfc", "ti,am33xx";
+ 	board-variant = "pfc200v2";
++	switch-reset-gpio = <&gpio3 10 GPIO_ACTIVE_LOW>;
+ };
+ 
+ 
+diff --git a/arch/arm/dts/am335x-pfc-750_821x.dts b/arch/arm/dts/am335x-pfc-750_821x.dts
+index e626292..e91c774 100644
+--- a/arch/arm/dts/am335x-pfc-750_821x.dts
++++ b/arch/arm/dts/am335x-pfc-750_821x.dts
+@@ -27,6 +27,7 @@
+ 	model = "PFC-750-821x";
+ 	compatible = "wago,am335x-pfc-750_821x", "wago,am335x-pfc", "ti,am33xx";
+ 	board-variant = "pfc200v3";
++	switch-reset-gpio = <&pca953x 4 GPIO_ACTIVE_LOW>;
+ 
+ 	memory {
+ 		device_type = "memory";
+diff --git a/arch/arm/dts/am335x-src-2850_311x.dts b/arch/arm/dts/am335x-src-2850_311x.dts
+index 55f1480..96a9a16 100644
+--- a/arch/arm/dts/am335x-src-2850_311x.dts
++++ b/arch/arm/dts/am335x-src-2850_311x.dts
+@@ -24,6 +24,7 @@
+ 	model = "SRC-2850-311x";
+ 	compatible = "wago,am335x-src-2850_311x", "wago,am335x-src", "wago,am335x-pfc", "ti,am33xx";
+ 	board-variant = "src";
++	switch-reset-gpio = <&gpio3 10 GPIO_ACTIVE_LOW>;
+ };
+ 
+ &am33xx_pinmux {
+diff --git a/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts b/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
+index 4212f84..0c8eabf 100644
+--- a/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
++++ b/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
+@@ -24,6 +24,7 @@
+ 	model = "VTPCTP-762-4xxx";
+ 	compatible = "wago,imx6q-vtpctp-762_4xxx", "wago,imx6q-vtpctp", "fsl,imx6q";
+ 	board-variant = "vtpctp";
++	switch-reset-gpio = <&gpio4 9 GPIO_ACTIVE_LOW>;
+ 
+ 	aliases {
+ 		bootstate = &bootstate;
+-- 
+2.7.4
+

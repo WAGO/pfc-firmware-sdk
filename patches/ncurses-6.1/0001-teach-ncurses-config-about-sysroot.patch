@@ -1,0 +1,49 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Thu, 17 Mar 2011 13:34:53 +0100
+Subject: [PATCH] teach ncurses-config about sysroot
+
+This patch teaches ncurses-config about sysroot
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ misc/ncurses-config.in |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+--- ncurses-6.1/misc/ncurses-config.in	2017-12-09 23:45:44.000000000 +0100
++++ ncurses-6.1/misc/ncurses-config.in	2018-02-08 13:50:07.365266351 +0100
+@@ -101,21 +101,21 @@
+ 	--cflags)
+ 		INCS="@PKG_CFLAGS@"
+ 		if test "x@WITH_OVERWRITE@" = xno ; then
+-			INCS="$INCS -I${includesubdir}"
++			INCS="$INCS -I${SYSROOT}${includesubdir}"
+ 		fi
+-		if test "${includedir}" != /usr/include ; then
+-			INCS="$INCS -I${includedir}"
++		if test "${SYSROOT}${includedir}" != /usr/include ; then
++			INCS="$INCS -I${SYSROOT}${includedir}"
+ 		fi
+ 		sed -e 's,^[ ]*,,' -e 's, [ ]*, ,g' -e 's,[ ]*$,,' <<-ENDECHO
+ 			$INCS
+ ENDECHO
+ 		;;
+ 	--libs)
+-		if test "$libdir" = /usr/lib
++		if test "${SYSROOT}$libdir" = /usr/lib
+ 		then
+ 			LIBDIR=
+ 		else
+-			LIBDIR=-L$libdir
++			LIBDIR=-L${SYSROOT}$libdir
+ 		fi
+ 		if test @TINFO_NAME@ = @LIB_NAME@ ; then
+ 		sed -e 's,^[ ]*,,' -e 's, [ ]*, ,g' -e 's,[ ]*$,,' <<-ENDECHO
+@@ -155,7 +155,7 @@
+ 		echo $INCS
+ 		;;
+ 	--libdir)
+-		echo "${libdir}"
++		echo "${SYSROOT}${libdir}"
+ 		;;
+ 	--mandir)
+ 		echo "${mandir}"

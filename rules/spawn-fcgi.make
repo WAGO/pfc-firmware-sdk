@@ -16,14 +16,14 @@ PACKAGES-$(PTXCONF_SPAWN_FCGI) += spawn_fcgi
 #
 # Paths and names
 #
-SPAWN_FCGI_VERSION	:= 1.6.3
+SPAWN_FCGI_VERSION	:= 1.6.4
 SPAWN_FCGI		:= spawn-fcgi-$(SPAWN_FCGI_VERSION)
-SPAWN_FCGI_SUFFIX	:= tar.bz2
-SPAWN_FCGI_URL		:= http://download.lighttpd.net/spawn-fcgi/releases-1.6.x/$(SPAWN_FCGI).$(SPAWN_FCGI_SUFFIX)
+SPAWN_FCGI_SUFFIX	:= tar.gz
+SPAWN_FCGI_URL		:= https://github.com/lighttpd/spawn-fcgi/archive/$(SPAWN_FCGI).$(SPAWN_FCGI_SUFFIX)
 SPAWN_FCGI_SOURCE	:= $(SRCDIR)/$(SPAWN_FCGI).$(SPAWN_FCGI_SUFFIX)
 SPAWN_FCGI_DIR		:= $(BUILDDIR)/$(SPAWN_FCGI)
 SPAWN_FCGI_LICENSE	:= Custom License
-SPAWN_FCGI_MD5      := 787ed2f88d2204bf1fe4fbd6e509d1d7
+SPAWN_FCGI_MD5      := 4c1ea80f8bf1bf266d88455d92a8daa7
 
 # ----------------------------------------------------------------------------
 # Get

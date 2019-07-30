@@ -3,14 +3,15 @@
 config CODESYS3
 	bool "CODESYS v3"
 	default n
-	select TYPELABEL if  CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_VTPCTP
+	select TYPELABEL
 	select LED_SERVER_META
-	select WAGO_PFC_DIAGNOSTIC if (CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_VTPCTP) && !LED_SERVER_LEGACY
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
 	select CDS3_INCLUDES
 	select LIBPTHREADCGROUP if CDS3_RTS_CGROUPS_SUPPORT
 	select GOOGLETEST
 	select HOST_CT_BUILD
 	select OPENSSL
+	select PROGEXECD
 	select WAGO_DBUS if CDS3_RTS_PRODUCT_VTPCTP
 	help
 		Builds and installs the CODESYS v3 plc.
@@ -259,6 +260,12 @@ config CDS3_PRODUCT_PFC200_1210
                 Install Product-Specific Files for PFC200 750-8212/000-100 (BACnet)
                 e.g. 3S.dat license file
 
+config CDS3_PRODUCT_PFC200_1211
+        bool "PFC200 750-8230 (Target-ID: 1211)"
+        default n
+        help
+                Install Product-Specific Files for PFC200 750-8230 (Profinet Controller)
+                e.g. 3S.dat license file
 
 config CDS3_PRODUCT_PFC200_120C
         bool "PFC200 750-8213 (Target-ID: 120C)"
@@ -303,20 +310,6 @@ config CDS3_PRODUCT_PFC200_120F
         default n
         help
                 Install Product-Specific Files for PFC200 750-8218
-                e.g. 3S.dat license file
-
-config CDS3_PRODUCT_SRC_4000
-        bool "SRC 2850-3111 (Target-ID: 4000)"
-        default n
-        help
-                Install Product-Specific Files for SRC 2850-3111
-                e.g. 3S.dat license file
-
-config CDS3_PRODUCT_SRC_4001
-        bool "SRC 2850-3112 (Target-ID: 4001)"
-        default n
-        help
-                Install Product-Specific Files for SRC 2850-3112
                 e.g. 3S.dat license file
 
 endif
@@ -491,10 +484,10 @@ endif
 if CDS3_RTS_PRODUCT_PAC
 
 config CDS3_PRODUCT_PAC_2101
-        bool "PAC100 768-3101 (Target-ID: 2101)"
+        bool "PAC100 768-3301 (Target-ID: 2101)"
         default n
         help
-                Install Product-Specific Files for PAC100 768-3101
+                Install Product-Specific Files for PAC100 768-3301
                 e.g. 3S.dat license file
 endif
 

@@ -94,6 +94,7 @@ install:
 	install -t $(INSTALLDIR) ptxd_lib_kgen.sh
 	mkdir -p $(INSTALLDIR)/generateDS	
 	install -t $(INSTALLDIR)/generateDS/ -D generateDS/generateDS.py
+	install -t $(INSTALLDIR) set_user_level.py
 
 .PHONY: clean bak
 

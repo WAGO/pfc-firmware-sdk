@@ -1,7 +1,7 @@
 From f7c103e8b0f7e61cfa281cdf5e6058d80f92d913 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 27 Sep 2018 12:16:48 +0000
-Subject: [PATCH 118/144] mach-omap: xload-pfc: add legacy boot support
+Subject: [PATCH] mach-omap: xload-pfc: add legacy boot support
 
 In former bootloader versions (2013) we used an uimage wrapped
 boot file, 'barebox.img'. Add legacy code to support booting of this

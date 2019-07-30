@@ -1,0 +1,26 @@
+From ce761220e7ac2ea7288e37e39fcac76f6a3aa0bc Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 12 Jan 2018 11:21:58 +0100
+Subject: [PATCH] dts: pfc821x: change i2c0 bus speed to 100KHz for tps65218
+
+	see upstream patch d279f7a7e95af6bb4b5eaea3527d1f85a28c5cf6
+---
+ arch/arm/boot/dts/wago-pfc200v3.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 4b08af0..30f7a15 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -531,7 +531,7 @@
+ 
+ &i2c0 {
+ 	status = "okay";
+-	clock-frequency = <400000>;
++	clock-frequency = <100000>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&i2c0_pins>;
+ 
+-- 
+2.7.4
+

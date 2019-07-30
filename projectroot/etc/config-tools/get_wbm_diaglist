@@ -83,26 +83,37 @@ awk '
 PrintDecodeLog() 
 {
   LOGFILES=""
-  if [ -f /root/wagoearlylog.log ]
+
+  local early_log="/var/wagoearlylog.log"
+  if [ -f "$early_log" ]
   then
-    LOGFILES+=" /root/wagoearlylog.log"
+    LOGFILES+=" $early_log"
   fi
-  if [ -f /home/log/wagolog.log ]
+  if [ -f "$early_log.1" ]
   then
-    LOGFILES+=" /home/log/wagolog.log"
+    LOGFILES+=" $early_log.1"
   fi
-  if [ -f /home/log/wagolog.log.1 ]
+
+  local persistence_log="/home/log/wagolog.log"
+  if [ -f "$persistence_log" ]
   then
-    LOGFILES+=" /home/log/wagolog.log.1"
+    LOGFILES+=" $persistence_log"
   fi
-  if [ -f /var/log/wago/wagolog.log ]
+  if [ -f "$persistence_log.1" ]
   then
-    LOGFILES+=" /var/log/wago/wagolog.log"
+    LOGFILES+=" $persistence_log.1"
   fi
-  if [ -f /var/log/wago/wagolog.log.1 ]
+
+  local tmp_log="/var/log/wago/wagolog.log"
+  if [ -f "$tmp_log" ]
   then
-    LOGFILES+=" /var/log/wago/wagolog.log.1"
+    LOGFILES+=" $tmp_log"
   fi
+  if [ -f "$tmp_log.1" ]
+  then
+    LOGFILES+=" $tmp_log.1"
+  fi
+
   if [ -n "$LOGFILES" ]; then
     cat $LOGFILES | setSortKey | sort | cut -d ' ' -f 2-100 | awk NF | decodeid
   fi

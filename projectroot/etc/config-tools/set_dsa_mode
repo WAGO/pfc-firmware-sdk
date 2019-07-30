@@ -12,7 +12,7 @@
 # /etc/specific/network-interfaces.xml accordingly. Restart network interfaces
 # X1 and X2
 #
-# $Revision: 36657 $
+# $Revision: 36237 $
 # Author: HJH, WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------
 

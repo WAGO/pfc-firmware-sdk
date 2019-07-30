@@ -1,0 +1,1216 @@
+From d66fee5bc7be908f4f54cdd5af524e2178aa3b38 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Wed, 28 Jun 2017 09:00:29 +0200
+Subject: [PATCH] dts: pfc200v3: do some pinmux for peripherals
+
+---
+ arch/arm/boot/dts/wago-pfc200v3.dtsi | 860 +++++++++++++++++++----------------
+ 1 file changed, 464 insertions(+), 396 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3.dtsi b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+index 7b01390..51c1988 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3.dtsi
+@@ -86,7 +86,6 @@
+ 	};
+ };
+ 
+-#if 0
+ /* for pin mux offset calc: doc_offset - 0x800h = dts-offset */
+ &am33xx_pinmux {
+ 	pinctrl-names = "default";
+@@ -96,76 +95,74 @@
+ 	>;
+ 	uart1_pins: pinmux_uart1_pins { /* fieldbus interface rs232 or rs485 with and without handshake and fieldbus select */
+ 		pinctrl-single,pins = <
+-		
+ 		/*  used for (fieldbus rs232 or rs485) */
+-		0x184 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)  	/* uart1_txd.uart1_txd */		//d15	TXD-FIELDBUS
+-		0x180 (PIN_INPUT_PULLUP						| MUX_MODE0)    /* uart1_rxd.uart1_rxd */ 		//d16	RXD-FIELDBUS
+-		0x178 (PIN_INPUT_PULLUP						| MUX_MODE0)    /* uart1_ctsn.uart1_ctsn */ 	//d18	nCTS-FIELDBUS
+-		0x17c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)  	/* uart1_rtsn.uart1_rtsn */		//d17	nRTS-FIELDBUS
+-		0x1a4 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)    /* mcasp0_fsr.gpio3_19 */ 		//c13 	SELCECT-FIELDBUS
++		0x184 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* uart1_txd.uart1_txd */	//d15	TXD-FIELDBUS
++		0x180 (PIN_INPUT_PULLUP		| MUX_MODE0)/* uart1_rxd.uart1_rxd */		//d16	RXD-FIELDBUS
++		0x178 (PIN_INPUT_PULLUP		| MUX_MODE0)/* uart1_ctsn.uart1_ctsn */	//d18	nCTS-FIELDBUS
++		0x17c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* uart1_rtsn.uart1_rtsn */		//d17	nRTS-FIELDBUS
++		0x1a4 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)	/* mcasp0_fsr.gpio3_19 */		//c13	SELCECT-FIELDBUS
+ 		 >;
+ 	};
+ 
+ 	uart0_pins: pinmux_uart0_pins { /* debug interface over JTAG Connector and service port */
+ 		pinctrl-single,pins = <
+-		
+ 		/*  used for (Debug or Service Port) */
+-		0x174 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)  	/* uart0_txd.uart0_txd */		//e16	TXD-DEBUG-SERVICEPORT
+-		0x170 (PIN_INPUT_PULLUP		| MUX_MODE0)  					/* uart0_rxd.uart0_rxd */ 		//e15	RXD-DEBUG-SERVICEPORT
++		0x174 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* uart0_txd.uart0_txd */		//e16	TXD-DEBUG-SERVICEPORT
++		0x170 (PIN_INPUT_PULLUP		| MUX_MODE0)					/* uart0_rxd.uart0_rxd */		//e15	RXD-DEBUG-SERVICEPORT
+ 		>;
+ 	};
+ 
+ 	uart5_pins: pinmux_uart5_pins { /* KBUS firmware download / handshake */
+ 		 pinctrl-single,pins = <
+-		
++
+ 		/*  used for (XE164 KBUS image download or cortex-m0 image download) */
+-		0x118 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE3)  	/* mii1_rx_dv.uart5.txd */		//j17	TXD-XE164-CORTEX
+-		0x0D8 (PIN_INPUT_PULLUP						| MUX_MODE4)  	/* lcd_data14.uart5.rxd */		//v4	RXD-XE164-CORTEX
++		0x118 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE3)	/* mii1_rx_dv.uart5.txd */		//j17	TXD-XE164-CORTEX
++		0x0D8 (PIN_INPUT_PULLUP						| MUX_MODE4)	/* lcd_data14.uart5.rxd */		//v4	RXD-XE164-CORTEX
+ 		 >;
+ 	};
+ 
+ 	spi0_pins: pinmux_spi0_pins { /* KBUS data communication */
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (XE164 KBUS communication) */
+-		0x150 (PIN_INPUT_PULLUP		| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_sclk.spio_sclk */ 		//a17	CLK-XE164
+-		0x168 (PIN_INPUT_PULLDOWN					| MUX_MODE4)  	/* uart0_ctsn.spi1.miso */ 		//e18	MISO-XE164
+-		0x16c (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE4)  	/* uart0_rtsn.spi1.mosi */		//e17	MOSI-XE164
+-		0x15c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_cs0.spi0_cs0 */			//a16 	nCS-XE164
++		0x150 (PIN_INPUT_PULLUP		| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_sclk.spio_sclk */		//a17	CLK-XE164
++		0x168 (PIN_INPUT_PULLDOWN					| MUX_MODE4)	/* uart0_ctsn.spi1.miso */		//e18	MISO-XE164
++		0x16c (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE4)	/* uart0_rtsn.spi1.mosi */		//e17	MOSI-XE164
++		0x15c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_cs0.spi0_cs0 */			//a16	nCS-XE164
+ 		>;
+ 	};
+ 
+ 	spi1_pins: pinmux_spi1_pins { /* TPM data communication */
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (TPM) */
+-		0x154 (PIN_INPUT_PULLUP						| MUX_MODE0)	/* spi0_d0.spi0.d0 */			//b17 	MISO-TPM
+-		0x158 (PIN_OUTPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)	/* spi0_d1.spi0.d1 */			//b16 	MOSI-TPM
+-		0x190 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_FAST	| MUX_MODE3)  	/* mcasp0_aclkx.spi1.clk */ 	//a13	CLK-TPM
+-		0x164 (PIN_OUTPUT 			| SLEWCTRL_FAST	| MUX_MODE3)	/* ecap0_in_pwm0_out.spi1.ncs1 */	//c18	nCS1-TPM
++		0x154 (PIN_INPUT_PULLUP						| MUX_MODE0)	/* spi0_d0.spi0.d0 */			//b17	MISO-TPM
++		0x158 (PIN_OUTPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)	/* spi0_d1.spi0.d1 */			//b16	MOSI-TPM
++		0x190 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_FAST	| MUX_MODE3)	/* mcasp0_aclkx.spi1.clk */	//a13	CLK-TPM
++		0x164 (PIN_OUTPUT			| SLEWCTRL_FAST	| MUX_MODE3)	/* ecap0_in_pwm0_out.spi1.ncs1 */	//c18	nCS1-TPM
+ 		>;
+ 	};
+ 
+ 	i2c0_pins: pinmux_i2c0_pins { /* PMIC, RTC, LED-GPIO-Expander, IO-GPIO-Expander, EEPROM */
+ 		pinctrl-single,pins = <
+-			
++
+ 		/*  used for (I2C0 max 400kHz) */
+ 		0x188 (PIN_INPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* i2c0_sda.i2c0_sda */			//c17	SDA
+ 		0x18c (PIN_INPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* i2c0_scl.i2c0_scl */			//c16	SCL
+ 		/*Devices*/
+ 			/*
+ 			*	I2C0.tps@24							(PMIC Power Managment IC)
+-			* 	I2C0.rtc_r2221t@32					(Real Time Clock IC)
+-			* 	I2C0.pca9552@60						(LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")
+-			* 	I2C0.pca9552@61						(LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")
+-			* 	I2C0.at24cs128n@54					(EEPROM name plate)
+-			* 	I2C0.pca9554@10	--> IO0.nEN-WDG		(enable extern watchdog, low activ, default off= high)
++			*	I2C0.rtc_r2221t@32					(Real Time Clock IC)
++			*	I2C0.pca9552@60						(LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")
++			*	I2C0.pca9552@61						(LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")
++			*	I2C0.at24cs128n@54					(EEPROM name plate)
++			*	I2C0.pca9554@10	--> IO0.nEN-WDG		(enable extern watchdog, low activ, default off= high)
+ 			*					--> IO1.nRST-FB		(enable for DPC31 or netX51, high activ, default off = low)
+-			*					--> IO2.nCS-MCU		(uart5 switch for cortext-m0 or xe164, low activ, default off = high) 
++			*					--> IO2.nCS-MCU		(uart5 switch for cortext-m0 or xe164, low activ, default off = high)
+ 			*					--> IO3.nRST-KBUS	(enable for XE164 KBUS ASIC, high activ, default on = high)
+ 			*					--> IO4.EN-RMII2	(enable for RMII2 ethernet switch, high activ, default off = low)
+-			*					--> IO5.4G-PWR-KEY	(enable for 4G modul, 
+-			*					--> IO6.4G-Reset	(enable for 4G modul,  
++			*					--> IO5.4G-PWR-KEY	(enable for 4G modul,
++			*					--> IO6.4G-Reset	(enable for 4G modul,
+ 			*					--> IO7.EN-RMII1	(enable for RMII1 ethernet switch, high activ, default off = low)
+ 			*/
+ 		>;
+@@ -173,249 +170,317 @@
+ 
+ 	mmc0_pins: pinmux_mmc0_pins {
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (MMC0=SD Card) */
+-		0x100 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_clk.mmc0_clk   */		//g17	CLK-SD
+-		0x104 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_cmd.mmc0_cmd   */		//g18	CMD-SD
+-		0x0fc (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat0.mmc0_dat0 */		//g16	D0-SD
+-		0x0f8 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat1.mmc0_dat1 */		//g15	D1-SD
+-		0x0f4 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat2.mmc0_dat2 */		//f18	D2-SD
+-		0x0f0 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat3.mmc0_dat3 */		//f17	D3-SD
+-		0x04c (PIN_INPUT_PULLUP 					| MUX_MODE7) 	/* gpmc_a3.gpio1_19 */			//t14	nCD-SD
+-		0x090 (PIN_INPUT_PULLUP 					| MUX_MODE7)	/* gpmc_advn_ale.gpio2_2 */		//r7 	nWP-SD
++		0x100 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_clk.mmc0_clk   */		//g17	CLK-SD
++		0x104 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_cmd.mmc0_cmd   */		//g18	CMD-SD
++		0x0fc (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat0.mmc0_dat0 */		//g16	D0-SD
++		0x0f8 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat1.mmc0_dat1 */		//g15	D1-SD
++		0x0f4 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat2.mmc0_dat2 */		//f18	D2-SD
++		0x0f0 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat3.mmc0_dat3 */		//f17	D3-SD
++		0x04c (PIN_INPUT_PULLUP					| MUX_MODE7)	/* gpmc_a3.gpio1_19 */			//t14	nCD-SD
++		0x090 (PIN_INPUT_PULLUP					| MUX_MODE7)	/* gpmc_advn_ale.gpio2_2 */		//r7	nWP-SD
+ 		 >;
+ 	};
+-	
++
+ 	mmc1_pins: pinmux_mmc1_pins {
+ 		 pinctrl-single,pins = <
+-		
++
+ 		/*  used for (eMMC) */
+-		0x080 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn1.mmc1_clk   */		//u9	CLK-EMMC
+-		0x084 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn2.mmc1_cmd   */		//v9	CMD-EMMC
+-		0x12c (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_tx_clk.mmc1_dat0 */		//k18	D0-EMMC
+-		0x130 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rx_clk.mmc1_dat1 */		//l18	D1-EMMC
+-		0x138 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rxd3.mmc1_dat2 */		//l17	D2-EMMC
+-		0x134 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mii1_rxd2.mmc1_dat3 */		//l16	D3-EMMC		
+-		 >;
++		0x080 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn1.mmc1_clk   */		//u9	CLK-EMMC
++		0x084 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn2.mmc1_cmd   */		//v9	CMD-EMMC
++		0x12c (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_tx_clk.mmc1_dat0 */		//k18	D0-EMMC
++		0x130 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rx_clk.mmc1_dat1 */		//l18	D1-EMMC
++		0x138 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rxd3.mmc1_dat2 */		//l17	D2-EMMC
++		0x134 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mii1_rxd2.mmc1_dat3 */		//l16	D3-EMMC
++		>;
+ 	};
+ 	uart5_pins: pinmux_uart5_pins { /* KBUS firmware download / handshake */
+ 		 pinctrl-single,pins = <
+-		
++
+ 		/*  used for (XE164 KBUS image download or cortex-m0 image download) */
+-		0x118 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE3)  	/* mii1_rx_dv.uart5.txd */		//j17	TXD-XE164-CORTEX
+-		0x0D8 (PIN_INPUT_PULLUP						| MUX_MODE4)  	/* lcd_data14.uart5.rxd */		//v4	RXD-XE164-CORTEX
++		0x118 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE3)	/* mii1_rx_dv.uart5.txd */		//j17	TXD-XE164-CORTEX
++		0x0D8 (PIN_INPUT_PULLUP						| MUX_MODE4)	/* lcd_data14.uart5.rxd */		//v4	RXD-XE164-CORTEX
+ 		 >;
+ 	};
+ 
+ 	spi0_pins: pinmux_spi0_pins { /* KBUS data communication */
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (XE164 KBUS communication) */
+-		0x150 (PIN_INPUT_PULLUP		| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_sclk.spio_sclk */ 		//a17	CLK-XE164
+-		0x168 (PIN_INPUT_PULLDOWN					| MUX_MODE4)  	/* uart0_ctsn.spi1.miso */ 		//e18	MISO-XE164
+-		0x16c (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE4)  	/* uart0_rtsn.spi1.mosi */		//e17	MOSI-XE164
+-		0x15c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_cs0.spi0_cs0 */			//a16 	nCS-XE164
++		0x150 (PIN_INPUT_PULLUP		| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_sclk.spio_sclk */		//a17	CLK-XE164
++		0x168 (PIN_INPUT_PULLDOWN					| MUX_MODE4)	/* uart0_ctsn.spi1.miso */		//e18	MISO-XE164
++		0x16c (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE4)	/* uart0_rtsn.spi1.mosi */		//e17	MOSI-XE164
++		0x15c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* spi0_cs0.spi0_cs0 */			//a16	nCS-XE164
+ 		>;
+ 	};
+ 
+ 	spi1_pins: pinmux_spi1_pins { /* TPM data communication */
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (TPM) */
+-		0x154 (PIN_INPUT_PULLUP						| MUX_MODE0)	/* spi0_d0.spi0.d0 */			//b17 	MISO-TPM
+-		0x158 (PIN_OUTPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)	/* spi0_d1.spi0.d1 */			//b16 	MOSI-TPM
+-		0x190 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_FAST	| MUX_MODE3)  	/* mcasp0_aclkx.spi1.clk */ 	//a13	CLK-TPM
+-		0x164 (PIN_OUTPUT 			| SLEWCTRL_FAST	| MUX_MODE3)	/* ecap0_in_pwm0_out.spi1.ncs1 */	//c18	nCS1-TPM
++		0x154 (PIN_INPUT_PULLUP						| MUX_MODE0)	/* spi0_d0.spi0.d0 */			//b17	MISO-TPM
++		0x158 (PIN_OUTPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)	/* spi0_d1.spi0.d1 */			//b16	MOSI-TPM
++		0x190 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_FAST	| MUX_MODE3)	/* mcasp0_aclkx.spi1.clk */	//a13	CLK-TPM
++		0x164 (PIN_OUTPUT			| SLEWCTRL_FAST	| MUX_MODE3)	/* ecap0_in_pwm0_out.spi1.ncs1 */	//c18	nCS1-TPM
+ 		>;
+ 	};
+ 
+ 	i2c0_pins: pinmux_i2c0_pins { /* PMIC, RTC, LED-GPIO-Expander, IO-GPIO-Expander, EEPROM */
+ 		pinctrl-single,pins = <
+-			
++
+ 		/*  used for (I2C0 max 400kHz) */
+ 		0x188 (PIN_INPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* i2c0_sda.i2c0_sda */			//c17	SDA
+ 		0x18c (PIN_INPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* i2c0_scl.i2c0_scl */			//c16	SCL
+ 		/*Devices*/
+ 			/*
+ 			*	I2C0.tps@24							(PMIC Power Managment IC)
+-			* 	I2C0.rtc_r2221t@32					(Real Time Clock IC)
+-			* 	I2C0.pca9552@60						(LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")
+-			* 	I2C0.pca9552@61						(LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")
+-			* 	I2C0.at24cs128n@54					(EEPROM name plate)
+-			* 	I2C0.pca9554@10	--> IO0.nEN-WDG		(enable extern watchdog, low activ, default off= high)
++			*	I2C0.rtc_r2221t@32					(Real Time Clock IC)
++			*	I2C0.pca9552@60						(LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")
++			*	I2C0.pca9552@61						(LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")
++			*	I2C0.at24cs128n@54					(EEPROM name plate)
++			*	I2C0.pca9554@10	--> IO0.nEN-WDG		(enable extern watchdog, low activ, default off= high)
+ 			*					--> IO1.nRST-FB		(enable for DPC31 or netX51, high activ, default off = low)
+-			*					--> IO2.nCS-MCU		(uart5 switch for cortext-m0 or xe164, low activ, default off = high) 
++			*					--> IO2.nCS-MCU		(uart5 switch for cortext-m0 or xe164, low activ, default off = high)
+ 			*					--> IO3.nRST-KBUS	(enable for XE164 KBUS ASIC, high activ, default on = high)
+ 			*					--> IO4.EN-RMII2	(enable for RMII2 ethernet switch, high activ, default off = low)
+-			*					--> IO5.4G-PWR-KEY	(enable for 4G modul, 
+-			*					--> IO6.4G-Reset	(enable for 4G modul,  
++			*					--> IO5.4G-PWR-KEY	(enable for 4G modul,
++			*					--> IO6.4G-Reset	(enable for 4G modul,
+ 			*					--> IO7.EN-RMII1	(enable for RMII1 ethernet switch, high activ, default off = low)
+ 			*/
+ 		>;
+ 	};
+ 
+-	mmc0_pins: pinmux_mmc0_pins {
++	sdcard_pins: pinmux_sdcard_pins {
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (MMC0=SD Card) */
+-		0x100 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_clk.mmc0_clk   */		//g17	CLK-SD
+-		0x104 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_cmd.mmc0_cmd   */		//g18	CMD-SD
+-		0x0fc (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat0.mmc0_dat0 */		//g16	D0-SD
+-		0x0f8 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat1.mmc0_dat1 */		//g15	D1-SD
+-		0x0f4 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat2.mmc0_dat2 */		//f18	D2-SD
+-		0x0f0 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat3.mmc0_dat3 */		//f17	D3-SD
+-		0x04c (PIN_INPUT_PULLUP 					| MUX_MODE7) 	/* gpmc_a3.gpio1_19 */			//t14	nCD-SD
+-		0x090 (PIN_INPUT_PULLUP 					| MUX_MODE7)	/* gpmc_advn_ale.gpio2_2 */		//r7 	nWP-SD
++		0x100 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_clk.mmc0_clk   */		//g17	CLK-SD
++		0x104 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_cmd.mmc0_cmd   */		//g18	CMD-SD
++		0x0fc (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat0.mmc0_dat0 */		//g16	D0-SD
++		0x0f8 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat1.mmc0_dat1 */		//g15	D1-SD
++		0x0f4 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat2.mmc0_dat2 */		//f18	D2-SD
++		0x0f0 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE0)    /* mmc0_dat3.mmc0_dat3 */		//f17	D3-SD
++		0x04c (PIN_INPUT_PULLUP					| MUX_MODE7)	/* gpmc_a3.gpio1_19 */			//t14	nCD-SD
++		0x090 (PIN_INPUT_PULLUP					| MUX_MODE7)	/* gpmc_advn_ale.gpio2_2 */		//r7	nWP-SD
+ 		 >;
+ 	};
+-	
+-	mmc1_pins: pinmux_mmc1_pins {
++
++	emmc_pins: pinmux_emmc_pins {
+ 		 pinctrl-single,pins = <
+-		
++
+ 		/*  used for (eMMC) */
+-		0x080 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn1.mmc1_clk   */		//u9	CLK-EMMC
+-		0x084 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn2.mmc1_cmd   */		//v9	CMD-EMMC
+-		0x12c (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_tx_clk.mmc1_dat0 */		//k18	D0-EMMC
+-		0x130 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rx_clk.mmc1_dat1 */		//l18	D1-EMMC
+-		0x138 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rxd3.mmc1_dat2 */		//l17	D2-EMMC
+-		0x134 (PIN_INPUT_PULLUP 	| SLEWCTRL_FAST	| MUX_MODE0)    /* mii1_rxd2.mmc1_dat3 */		//l16	D3-EMMC		
++		0x080 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn1.mmc1_clk   */		//u9	CLK-EMMC
++		0x084 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE2)    /* gpmc_csn2.mmc1_cmd   */		//v9	CMD-EMMC
++		0x12c (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_tx_clk.mmc1_dat0 */		//k18	D0-EMMC
++		0x130 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rx_clk.mmc1_dat1 */		//l18	D1-EMMC
++		0x134 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rxd3.mmc1_dat2 */		//l17	D2-EMMC
++		0x138 (PIN_INPUT_PULLUP	| SLEWCTRL_FAST	| MUX_MODE4)    /* mii1_rxd2.mmc1_dat3 */		//l16	D3-EMMC
+ 		 >;
+ 	};
+ 
+ 	gpmc_pins: pinmux_gpmc_pins { // 16x data and 17x address and 8x control   // DPC31 or netX51 16bit on cs0, NvRAM 16-bit on cs4
+ 		pinctrl-single,pins = <
+-		
+-		/*  used for (GPMC data) */	
+-		0x000 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */			//u7	D0-GPMC
+-		0x004 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */			//v7	D1-GPMC
+-		0x008 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */			//r8	D2-GPMC
+-		0x00c (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */			//t8	D3-GPMC
+-		0x010 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */			//u8	D4-GPMC
+-		0x014 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */			//v8	D5-GPMC
+-		0x018 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */			//r9	D6-GPMC
+-		0x01c (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */			//t9	D7-GPMC		
+-		0x020 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad8.gpmc_ad8 */			//u10	D8-GPMC
+-		0x024 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad9.gpmc_ad9 */			//t10	D9-GPMC
+-		0x028 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad10.gpmc_ad10 */		//t11	D10-GPMC
+-		0x02c (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad11.gpmc_ad11 */		//u12	D11-GPMC
+-		0x030 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad12.gpmc_ad12 */		//t12	D12-GPMC
+-		0x034 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad13.gpmc_ad13 */		//r12	D13-GPMC
+-		0x038 (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad14.gpmc_ad14 */		//v13	D14-GPMC
+-		0x03c (PIN_INPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad15.gpmc_ad15 */		//u13	D15-GPMC
+-
+-		/*  used for (GPMC address) */	
+-		0x0A0 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data0.gpmc_a0 */			//r1	A0-GPMC
+-		0x0A4 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data1.gpmc_a1 */			//r2	A1-GPMC
+-		0x0A8 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data2.gpmc_a2 */			//r3	A2-GPMC
+-		0x0AC (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data3.gpmc_a3 */			//r4	A3-GPMC
+-		0x0B0 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data4.gpmc_a4 */			//t1	A4-GPMC
+-		0x0B4 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data5.gpmc_a5 */			//t2	A5-GPMC
+-		0x0B8 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data6.gpmc_a6 */			//t3	A6-GPMC
+-		0x0BC (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data7.gpmc_a7 */			//t4	A7-GPMC
+-		0x0E0 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_vsync.gpmc_a8 */			//u5	A8-GPMC
+-		0x0E4 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_hsync.gpmc_a9 */			//r5	A9-GPMC
+-		0x0E8 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_pclk.gpmc_a10 */			//v5	A10-GPMC
+-		0x0EC (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_ac_bias_en.gpmc_a11 */   //r6	A11-GPMC
+-		0x0C0 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data8.gpmc_a12 */		//u1	A12-GPMC
+-		0x0C4 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data9.gpmc_a13 */		//u2	A13-GPMC
+-		0x0C8 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data10.gpmc_a14 */		//u3	A14-GPMC
+-		0x0CC (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data11.gpmc_a15 */		//u4	A15-GPMC
+-		0x0D0 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data12.gpmc_a16 */		//v2	A16-GPMC
+-		0x0D4 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data13.gpmc_a17 */		//v3	A17-GPMC
+-	
+-		/*  used for (GPMC Control) */	
+-		0x094 (PIN_OUTPUT_PULLUP 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_oen_ren.gpmc_oen_ren */	//t7	nRE-GPMC
+-		0x098 (PIN_OUTPUT_PULLUP 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_wen.gpmc_wen */			//u6	nWE-GPMC
+-		0x07c (PIN_OUTPUT_PULLUP 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_csn0.gpmc_csn0 */		//v6	nCS0-DPC31-NETX51-GPMC
+-		0x070 (PIN_OUTPUT_PULLUP 	| SLEWCTRL_SLOW	| MUX_MODE2)	/* gpmc_wait0.gpmc_csn4 */		//t17	nCS4-NvRAM-GPMC
+-		0x09c (PIN_OUTPUT_PULLUP 	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ben0_cle.gpmc_be0n_cle */ 	//t6	nBE0-GPMC
+-		0x078 (PIN_OUTPUT_PULLUP 	| SLEWCTRL_SLOW	| MUX_MODE0)    /* gpmc_ben1.gpmc_be1n */		//u18	nBE1-GPMC
+-		0x08C (PIN_INPUT_PULLUP	 					| MUX_MODE2)	/* gpmc_clk.gpmc_wait1 */		//v12	nWAINT1-GPMC
+-			
++
++		/*  used for (GPMC data) */
++		0x000 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad0.gpmc_ad0 */			//u7	D0-GPMC
++		0x004 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad1.gpmc_ad1 */			//v7	D1-GPMC
++		0x008 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad2.gpmc_ad2 */			//r8	D2-GPMC
++		0x00c (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad3.gpmc_ad3 */			//t8	D3-GPMC
++		0x010 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad4.gpmc_ad4 */			//u8	D4-GPMC
++		0x014 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad5.gpmc_ad5 */			//v8	D5-GPMC
++		0x018 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad6.gpmc_ad6 */			//r9	D6-GPMC
++		0x01c (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad7.gpmc_ad7 */			//t9	D7-GPMC
++		0x020 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad8.gpmc_ad8 */			//u10	D8-GPMC
++		0x024 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad9.gpmc_ad9 */			//t10	D9-GPMC
++		0x028 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad10.gpmc_ad10 */		//t11	D10-GPMC
++		0x02c (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad11.gpmc_ad11 */		//u12	D11-GPMC
++		0x030 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad12.gpmc_ad12 */		//t12	D12-GPMC
++		0x034 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad13.gpmc_ad13 */		//r12	D13-GPMC
++		0x038 (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad14.gpmc_ad14 */		//v13	D14-GPMC
++		0x03c (PIN_INPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ad15.gpmc_ad15 */		//u13	D15-GPMC
++
++		/*  used for (GPMC address) *
++		0x0A0 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data0.gpmc_a0 */			//r1	A0-GPMC
++		0x0A4 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data1.gpmc_a1 */			//r2	A1-GPMC
++		0x0A8 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data2.gpmc_a2 */			//r3	A2-GPMC
++		0x0AC (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data3.gpmc_a3 */			//r4	A3-GPMC
++		0x0B0 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data4.gpmc_a4 */			//t1	A4-GPMC
++		0x0B4 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data5.gpmc_a5 */			//t2	A5-GPMC
++		0x0B8 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data6.gpmc_a6 */			//t3	A6-GPMC
++		0x0BC (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data7.gpmc_a7 */			//t4	A7-GPMC
++		0x0E0 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_vsync.gpmc_a8 */			//u5	A8-GPMC
++		0x0E4 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_hsync.gpmc_a9 */			//r5	A9-GPMC
++		0x0E8 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_pclk.gpmc_a10 */			//v5	A10-GPMC
++		0x0EC (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_ac_bias_en.gpmc_a11 */			//r6	A11-GPMC
++		0x0C0 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data8.gpmc_a12 */		//u1	A12-GPMC
++		0x0C4 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data9.gpmc_a13 */		//u2	A13-GPMC
++		0x0C8 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data10.gpmc_a14 */		//u3	A14-GPMC
++		0x0CC (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data11.gpmc_a15 */		//u4	A15-GPMC
++		0x0D0 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data12.gpmc_a16 */		//v2	A16-GPMC
++		0x0D4 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE1)	/* lcd_data13.gpmc_a17 */		//v3	A17-GPMC
++
++		/*  used for (GPMC Control) */
++		0x094 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_oen_ren.gpmc_oen_ren */	//t7	nRE-GPMC
++		0x098 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_wen.gpmc_wen */			//u6	nWE-GPMC
++		0x07c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_csn0.gpmc_csn0 */		//v6	nCS0-DPC31-NETX51-GPMC
++		0x070 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE2)	/* gpmc_wait0.gpmc_csn4 */		//t17	nCS4-NvRAM-GPMC
++		0x09c (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)	/* gpmc_ben0_cle.gpmc_be0n_cle */	//t6	nBE0-GPMC
++		0x078 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE0)    /* gpmc_ben1.gpmc_be1n */		//u18	nBE1-GPMC
++		0x08C (PIN_INPUT_PULLUP						| MUX_MODE2)	/* gpmc_clk.gpmc_wait1 */		//v12	nWAINT1-GPMC
++
+ 		>;
+ 	};
+ 
++	cpsw_default_pins: pinmux_cpsw_default_pins {// RMII2 Ethernet Switch
++		pinctrl-single,pins = <
++			0x040 (PIN_OUTPUT	| SLEWCTRL_FAST	| MUX_MODE3)	/* gpmc_a0.rmii2_txen */		//r13
++			0x050 (PIN_OUTPUT	| SLEWCTRL_FAST	| MUX_MODE3)	/* gpmc_a4.rmii2_txd1 */		//r14
++			0x054 (PIN_OUTPUT	| SLEWCTRL_FAST	| MUX_MODE3)	/* gpmc_a5.rmii2_txd0 */		//v15
++			0x068 (PIN_INPUT	| MUX_MODE3)	/* gpmc_a10.rmii2_rxd1 */		//t16
++			0x06C (PIN_INPUT	| MUX_MODE3)	/* gpmc_a11.rmii2_rxd0 */		//v17
++			0x108 (PIN_INPUT	| MUX_MODE1)	/* mii1_col.rmii2_refclk */		//h16
++			0x088 (PIN_INPUT	| MUX_MODE2)	/* gpmc_csn3.rmii2_crs_dv */	//t13
++			0x074 (PIN_INPUT	| MUX_MODE7)	/* gpmc_wpn.rmii2_rxer */		//u17
++		>;
++	};
++#if 0
++	cpsw_sleep_pins: pinmux_cpsw_sleep_pins {
++		pinctrl-single,pins = <
++			0x040 (PIN_INPUT	| MUX_MODE7)	/* gpmc_a0.gpio1_16 */			//r13
++			0x050 (PIN_INPUT	| MUX_MODE7)	/* gpmc_a4.gpio1_20 */			//r14
++			0x054 (PIN_INPUT	| MUX_MODE7)	/* gpmc_a5.gpio1_21 */			//v15
++			0x068 (PIN_INPUT	| MUX_MODE7)	/* gpmc_a10.gpio1_26 */			//t16
++			0x06C (PIN_INPUT	| MUX_MODE7)	/* gpmc_a11.gpio1_27 */			//v17
++			0x074 (PIN_INPUT	| MUX_MODE7)	/* gpmc_wpn.gpio0_31 */			//u17
++			0x108 (PIN_INPUT	| MUX_MODE7)	/* mii1_col.gpio3_0 */			//h16
++			0x088 (PIN_INPUT	| MUX_MODE7)	/* gpmc_csn3.gpio2_0 */			//t13
++		>;
++	};
++#endif
++
+ 	kbus_pins: pinmux_kbus_pins {
+ 		pinctrl-single,pins = <
+-		
+-		/*  used for (XE164 KBUS io control) */	
+-		0x058 (PIN_INPUT_PULLUP 					| MUX_MODE7)    /* gpmc_a6.gpio1_22 */			//u15	NSYNC-XE164
++
++		/*  used for (XE164 KBUS io control) */
++		0x058 (PIN_INPUT_PULLUP					| MUX_MODE7)    /* gpmc_a6.gpio1_22 */			//u15	NSYNC-XE164
+ 		0x05C (PIN_INPUT_PULLUP						| MUX_MODE7)    /* gpmc_a7.gpio1_23 */			//t15	NIRQ-XE164
+-		0x1b4 (PIN_INPUT_PULLUP 					| MUX_MODE7)    /* xdma_event_intr1.gpio0_20 */	//d14	nRDY-XE164
+-		0x1e4 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)	/* emu0.gpio3_7 */   			//c14 	CMDSEL-XE164
+-		
++		0x1b4 (PIN_INPUT_PULLUP					| MUX_MODE7)    /* xdma_event_intr1.gpio0_20 */	//d14	nRDY-XE164
++		0x1e4 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)	/* emu0.gpio3_7 */			//c14	CMDSEL-XE164
+ 		/* Error Pin */
+-		0x060 (PIN_INPUT_PULLUP 					| MUX_MODE7)	/* gpmc_a8.gpio1_24 */   		//v16	NERR-XE164
++		0x060 (PIN_INPUT_PULLUP					| MUX_MODE7)	/* gpmc_a8.gpio1_24 */		//v16	NERR-XE164
+ 		/* All Error State Pins were removed! (not used by the driver) */
+ 		>;
+ 	};
+ 
+ 	gpio0_pins: pinmux_gpio0_pins {
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (io control) */
+-		0x160 (PIN_INPUT_PULLUP      				| MUX_MODE7)    /* spi0_cs1.gpio0_6 */   		//c15 	IRQ-FB-ASIC
+-		0x0DC (PIN_INPUT_PULLUP 					| MUX_MODE7)	/* lcd_data15.gpio0_11 */		//t5	nINT-RMII2	(Micrel or Marvell)		
+-		0x074 (PIN_INPUT_PULLUP 					| MUX_MODE7)  	/* gpmc_wpn.gpio0_31 */			//u17	nINT-PHY2 Lantiq Phy 2(old RMII2.RXER)		
+-			
++		0x160 (PIN_INPUT_PULLUP				| MUX_MODE7)	/* spi0_cs1.gpio0_6 */		//c15	IRQ-FB-ASIC
++		0x0DC (PIN_INPUT_PULLUP				| MUX_MODE7)	/* lcd_data15.gpio0_11 */		//t5	nINT-RMII2	(Micrel or Marvell)
++		0x074 (PIN_INPUT_PULLUP				| MUX_MODE7)	/* gpmc_wpn.gpio0_31 */		//u17	nINT-PHY2 Lantiq Phy 2(old RMII2.RXER)
++
+ 		/* timer 4 as watchdog ip*/
+-		//0x1b0 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE2)  	/* xdma_event_intr0.timer4 */	//a15	RESET-LED_Server
+-		0x1b0 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)  	/* xdma_event_intr0.gpio0_19 */	//a15	RESET-LED_Server		
++		//0x1b0 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE2)	/* xdma_event_intr0.timer4 */	//a15	RESET-LED_Server
++		0x1b0 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)	/* xdma_event_intr0.gpio0_19 */	//a15	RESET-LED_Server
+ 		>;
+ 	};
+-	
++
+ 	gpio1_pins: pinmux_gpio1_pins {
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (io control) */
+-		0x044 (PIN_INPUT_PULLUP       				| MUX_MODE7)	/* gpmc_a1.gpio1_17 */   		//v14 	ALARM-USV (old RMII1.nINT)
+-		0x048 (PIN_OUTPUT_PULLUP 	| SLEWCTRL_SLOW	| MUX_MODE7) 	/* gpmc_a2.gpio1_18 */			//u14 	BOOT-SEL 
+-		0x064 (PIN_INPUT_PULLUP						| MUX_MODE7) 	/* gpmc_a9.gpio1_25 */			//u16	DPSYNC-FB-ASIC
++		0x044 (PIN_INPUT_PULLUP	| MUX_MODE7)	/* gpmc_a1.gpio1_17 */		//v14	ALARM-USV (old RMII1.nINT)
++		0x048 (PIN_OUTPUT_PULLUP	| SLEWCTRL_SLOW	| MUX_MODE7)	/* gpmc_a2.gpio1_18 */			//u14	BOOT-SEL
++		0x064 (PIN_INPUT_PULLUP						| MUX_MODE7)	/* gpmc_a9.gpio1_25 */			//u16	DPSYNC-FB-ASIC
+ 		>;
+ 	};
+-	
++
+ 	gpio3_pins: pinmux_gpio3_pins {
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (io control) */
+-		0x110 (PIN_INPUT_PULLUP       				| MUX_MODE7) 	/* mii1_rxerr.gpio3_2 */		//j15 	nINT-PHY1 Lantiq Phy 2(old RMII1.RXER)	
+-		0x1A8 (PIN_INPUT_PULLUP 					| MUX_MODE7)	/* mcasp0_axr1.gpio3_20 /  */	//d13	nINT-PMIC
+-		0x1Ac (PIN_INPUT_PULLUP 					| MUX_MODE7) 	/* mcasp0_ahclkx.gpio3_21  */	//a14	nINT-RTC
+-		//0x1e8 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE7)	/* emu1.gpio3_8 (gpio3_8) */	//b14 	TRIGGER-WDG		
+-		
++		0x110 (PIN_INPUT_PULLUP				| MUX_MODE7)	/* mii1_rxerr.gpio3_2 */		//j15	nINT-PHY1 Lantiq Phy 2(old RMII1.RXER)
++		0x1A8 (PIN_INPUT_PULLUP					| MUX_MODE7)	/* mcasp0_axr1.gpio3_20 /  */	//d13	nINT-PMIC
++		0x1Ac (PIN_INPUT_PULLUP					| MUX_MODE7)	/* mcasp0_ahclkx.gpio3_21  */	//a14	nINT-RTC
++		//0x1e8 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE7)	/* emu1.gpio3_8 (gpio3_8) */	//b14	TRIGGER-WDG
++
+ 		/*  used for (BAS-SPS-Program-Switch ) */
+-		0x198 (PIN_INPUT							| MUX_MODE7) 	/* mcasp0_axr0.gpio3_16   */	//d12	nRST-BAS
+-		0x19c (PIN_INPUT							| MUX_MODE7) 	/* mcasp0_ahclkr.gpio3_17 */	//c12	nSTOP-BAS
+-		0x1A0 (PIN_INPUT							| MUX_MODE7) 	/* mcasp0_aclkr.gpio3_18  */	//b12  	nRUN-BAS
+-		
++		0x198 (PIN_INPUT							| MUX_MODE7)	/* mcasp0_axr0.gpio3_16   */	//d12	nRST-BAS
++		0x19c (PIN_INPUT							| MUX_MODE7)	/* mcasp0_ahclkr.gpio3_17 */	//c12	nSTOP-BAS
++		0x1A0 (PIN_INPUT							| MUX_MODE7)	/* mcasp0_aclkr.gpio3_18  */	//b12	nRUN-BAS
++
+ 		/*  used for (RAB-Reset Button ) */
+-		0x194 (PIN_INPUT							| MUX_MODE7) 	/* mcasp0_fsx.gpio3_15    */	//b13  	RESET-ALL-BUTTON
++		0x194 (PIN_INPUT							| MUX_MODE7)	/* mcasp0_fsx.gpio3_15    */	//b13	RESET-ALL-BUTTON
+ 		>;
+ 	};
+-	
++
+ 	watchdog_pins: pinmux_watchdog_pins {
+ 		pinctrl-single,pins = <
+-			//															/* i2c0.pca9554.IO0	*/ 			// 		nen-wdg  
+-			0x1e8 (PIN_OUTPUT_PULLDOWN 					| MUX_MODE7)	/* emu1.gpio3_8 (gpio3_8) */   	//b14 	trig-wdg
++			//															/* i2c0.pca9554.IO0	*/			//		nen-wdg
++			0x1e8 (PIN_OUTPUT_PULLDOWN					| MUX_MODE7)	/* emu1.gpio3_8 (gpio3_8) */	//b14	trig-wdg
+ 		>;
+ 	};
+-	
++
+ 	usb0_pins: pinmux_usb0_pins {
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (USB) */
+-		0x21c (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)  	/* USB0_DRVVBUS.USB0_DRVVBUS */ 	//f16	DRIVE-Enable
++		0x21c (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* USB0_DRVVBUS.USB0_DRVVBUS */	//f16	DRIVE-Enable
+ 		>;
+ 	};
+-	
++
+ 	usb1_pins: pinmux_usb1_pins {
+ 		pinctrl-single,pins = <
+-		
++
+ 		/*  used for (USB) */
+-		0x234 (PIN_OUTPUT_PULLDOWN 	| SLEWCTRL_SLOW	| MUX_MODE0)  	/* USB1_DRVVBUS.USB1_DRVVBUS */ 	//f15	DRIVE-Enable
++		0x234 (PIN_OUTPUT_PULLDOWN	| SLEWCTRL_SLOW	| MUX_MODE0)	/* USB1_DRVVBUS.USB1_DRVVBUS */	//f15	DRIVE-Enable
+ 		>;
+ 	};
+ };
++&gpmc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&gpmc_pins>;
++
++	num-cs = <7>;	/* only two devices */
++	num-waitpins = <3>;
++	status = "okay";
++	ranges = <
++		1 0 0x01000000 0x01000000	/* CS1: NVRAM, 16M */
++		6 0 0x04000000 0x01000000	/* CS6: NETX/DPC31, 16M */
++	>;
++
++		nvram: nor@1,0 { /* NVRAM Device 128k */
++		reg = <1 0 0x01000000>;
++		bank-width = <2>; /* 1: 8bit, 2: 16bit */
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <50>;
++		gpmc,cs-wr-off-ns = <30>;
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <0>;
++		gpmc,adv-wr-off-ns = <0>;
++		gpmc,oe-on-ns = <0>;
++		gpmc,oe-off-ns = <50>;
++		gpmc,we-on-ns = <0>;
++		gpmc,we-off-ns = <30>;
++		gpmc,rd-cycle-ns = <50>;
++		gpmc,wr-cycle-ns = <30>;
++		gpmc,access-ns = <40>;
++		gpmc,wr-access-ns = <10>;
++		gpmc,wr-data-mux-bus-ns = <0>;
++		gpmc,cycle2cycle-delay-ns = <10>;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-diffcsen;
++		gpmc,wait-on-read = "false";
++		gpmc,wait-on-write = "false";
++
++		#address-cells = <1>;
++		#size-cells = <1>;
++	};
++};
++
+ /* gpio */
+ &gpio0 { /* */
+ 	pinctrl-names = "default";
+@@ -434,14 +499,13 @@
+ &gpio3 { /* */
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpio3_pins>;
+-};	
++};
+ /* uart */
+ &uart0 { /* debug interface over JTAG Connector an Service Port */
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&uart0_pins>;
+ 	status = "okay";
+ };
+-#endif
+ &uart1 { // #include wago-pfc100-uart1.dtsi
+ 	status = "disabled";
+ };
+@@ -495,261 +559,256 @@
+ 	pinctrl-0 = <&spi1_pins>;
+ 	pinctrl-! = <&spi1_sleep_pins>;
+ 	spi-rt;
+-	spi-rt-prio = <81>;  
+-	*/
++	spi-rt-prio = <81>;  */
+ };
+ 
+ /* i2c */
+ &i2c0 {
+-        status = "okay";
+-        clock-frequency = <400000>;
+-        pinctrl-names = "default";
+-        pinctrl-0 = <&i2c0_pins>;
++	status = "okay";
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
+ 
+ 		pca9554@10 {	/* IO Port Expander only outputs*/
+-                compatible = "nxp,pca9554";
++		compatible = "nxp,pca9554";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-                reg = <0x10>;
++		reg = <0x10>;
+ 
+ 		en-wdg@0 {	/* enable extern watchdog, low activ, default off= high */
+-		      label = "en-wdg";
+-		      reg = <0>;
+-		      linux,default-trigger = "none";
++			label = "en-wdg";
++			reg = <0>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		en-fb@1 {	/* enable for DPC31 or netX51, high activ, default off = low */
+-		      label = "en-fb";
+-		      reg = <1>;
+-		      linux,default-trigger = "none";
++			label = "en-fb";
++			reg = <1>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		cs-mcu@2 {	/* uart5 switch for cortext-m0 or xe164, low activ, default off = high */
+-		      label = "cs-mcu";
+-		      reg = <2>;
+-		      linux,default-trigger = "none";
++			label = "cs-mcu";
++			reg = <2>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		en-xe164-green@3 {	/* enable for XE164 KBUS ASIC, high activ, default on = high */
+-		      label = "en-xe164";
+-		      reg = <3>;
+-		      linux,default-trigger = "none";
++			label = "en-xe164";
++			reg = <3>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		en-rmii2@4 {	/* enable for RMII2 ethernet switch, high activ, default off = low */
+-		      label = "en-rmii2";
+-		      reg = <4>;
+-		      linux,default-trigger = "none";
++			label = "en-rmii2";
++			reg = <4>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		pwr-key-4g@5 {	/* enable for 4G modul */
+-		      label = "pwr-key";
+-		      reg = <5>;
+-		      linux,default-trigger = "none";
++			label = "pwr-key";
++			reg = <5>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		rst-4g@6 {	/* enable for 4G modul */
+-		      label = "rst-4g";
+-		      reg = <6>;
+-		      linux,default-trigger = "none";
++			label = "rst-4g";
++			reg = <6>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		en-rmii1@7 {	/* enable for RMII1 ethernet switch, high activ, default off = low */
+-		      label = "en-rmii1";
+-		      reg = <7>;
+-		      linux,default-trigger = "none";
++			label = "en-rmii1";
++			reg = <7>;
++			linux,default-trigger = "none";
+ 		};
+ 	};
+-		
+-        pca9552@60 {	/* System status Visualization (LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")*/
+-                compatible = "nxp,pca9552";
++
++	pca9552@60 {	/* System status Visualization (LED Port Expander "SYS / RUN / IO / MS / NS / CAN-lED")*/
++		compatible = "nxp,pca9552";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-                reg = <0x60>;
++		reg = <0x60>;
+ 
+ 		sys-red@0 {
+-		      label = "sys-red";
+-		      reg = <0>;
+-		      linux,default-trigger = "timer";
++			label = "sys-red";
++			reg = <0>;
++			linux,default-trigger = "timer";
+ 		};
+ 
+ 		sys-green@1 {
+-		      label = "sys-green";
+-		      reg = <1>;
+-		      linux,default-trigger = "timer";
++			label = "sys-green";
++			reg = <1>;
++			linux,default-trigger = "timer";
+ 		};
+ 
+ 		run-red@2 {
+-		      label = "run-red";
+-		      reg = <2>;
+-		      linux,default-trigger = "none";
++		label = "run-red";
++			reg = <2>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		run-green@3 {
+-		      label = "run-green";
+-		      reg = <3>;
+-		      linux,default-trigger = "none";
++			label = "run-green";
++			reg = <3>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		io-red@4 {
+-		      label = "io-red";
+-		      reg = <4>;
+-		      linux,default-trigger = "none";
++			label = "io-red";
++			reg = <4>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		io-green@5 {
+-		      label = "io-green";
+-		      reg = <5>;
+-		      linux,default-trigger = "none";
++			label = "io-green";
++			reg = <5>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		ms-red@6 {
+-		      label = "ms-red";
+-		      reg = <6>;
+-		      linux,default-trigger = "none";
++			label = "ms-red";
++			reg = <6>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		ms-green@7 {
+-		      label = "ms-green";
+-		      reg = <7>;
+-		      linux,default-trigger = "none";
++			label = "ms-green";
++			reg = <7>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		ns-red@8 {
+-		      label = "ns-red";
+-		      reg = <8>;
+-		      linux,default-trigger = "none";
++			abel = "ns-red";
++			eg = <8>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		ns-green@9 {
+-		      label = "ns-green";
+-		      reg = <9>;
+-		      linux,default-trigger = "none";
++			label = "ns-green";
++			reg = <9>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		can-red@10 {
+-		      label = "can-red";
+-		      reg = <10>;
+-		      linux,default-trigger = "none";
++			label = "can-red";
++			reg = <10>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		can-green@11 {
+-		      label = "can-green";
+-		      reg = <11>;
+-		      linux,default-trigger = "none";
++			label = "can-green";
++			reg = <11>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		/* this will switch of the sys-red led during startup */
+ 		sys-over-red@15 {
+-		      label = "sys-over-red";
+-		      reg = <15>;
+-		      linux,default-trigger = "default-on";
+-                };
+-        };
+-
+-        pca9552@61 { 	/* System status Visualization (LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")*/
+-                compatible = "nxp,pca9552";
++			label = "sys-over-red";
++			reg = <15>;
++		linux,default-trigger = "default-on";
++		};
++	};
++
++	pca9552@61 {	/* System status Visualization (LED Port Expander "BF / DIA / U4 / U3 / U2 / U1-lED")*/
++		compatible = "nxp,pca9552";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-                reg = <0x61>;
++		reg = <0x61>;
+ 
+ 		bf-red@0 {
+-		      label = "bf-red";
+-		      reg = <0>;
+-		      linux,default-trigger = "none";
++			label = "bf-red";
++			reg = <0>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		bf-green@1 {
+-		      label = "bf-green";
+-		      reg = <1>;
+-		      linux,default-trigger = "none";
++			label = "bf-green";
++			reg = <1>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		dia-red@2 {
+-		      label = "dia-red";
+-		      reg = <2>;
+-		      linux,default-trigger = "none";
++			label = "dia-red";
++			reg = <2>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		dia-green@3 {
+-		      label = "dia-green";
+-		      reg = <3>;
+-		      linux,default-trigger = "none";
++			label = "dia-green";
++			reg = <3>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		u4-red@4 {
+-		      label = "u4-red";
+-		      reg = <4>;
+-		      linux,default-trigger = "none";
++			label = "u4-red";
++			reg = <4>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		u4-green@5 {
+-		      label = "u4-green";
+-		      reg = <5>;
+-		      linux,default-trigger = "none";
++			label = "u4-green";
++			reg = <5>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		u3-red@6 {
+-		      label = "u3-red";
+-		      reg = <6>;
+-		      linux,default-trigger = "none";
++			label = "u3-red";
++			reg = <6>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		u3-green@7 {
+-		      label = "u3-green";
+-		      reg = <7>;
+-		      linux,default-trigger = "none";
++			label = "u3-green";
++			reg = <7>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		u2-red@8 {
+-		      label = "u2-red";
+-		      reg = <8>;
+-		      linux,default-trigger = "none";
++			label = "u2-red";
++			reg = <8>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		u2-green@9 {
+-		      label = "u2-green";
+-		      reg = <9>;
+-		      linux,default-trigger = "none";
++			label = "u2-green";
++			reg = <9>;
++			linux,default-trigger = "none";
+ 		};
+ 
+ 		u1-red@10 {
+-		      label = "u1-red";
+-		      reg = <10>;
+-		      linux,default-trigger = "none";
++			label = "u1-red";
++			reg = <10>;
++		linux,default-trigger = "none";
+ 		};
+ 
+ 		u1-green@11 {
+-		      label = "u1-green";
+-		      reg = <11>;
+-		      linux,default-trigger = "none";
++			label = "u1-green";
++			reg = <11>;
++			linux,default-trigger = "none";
+ 		};
+-        };
+-	at24cs128n {	/* EEPROM identification*/	
+-                compatible = "atmel,24c512";
+-                reg = <0x54>;
+-
++	};
++	at24cs128n {	/* EEPROM identification*/
++		compatible = "atmel,24c512";
++		reg = <0x54>;
+ 		pagesize = <128>;
+-        };
++	};
+ 	rtc_r2221t {	/* Real Time clock IC  */
+-                compatible = "ricoh,r2221tl";
+-                reg = <0x32>;
+-
++		compatible = "ricoh,r2221tl";
++		reg = <0x32>;
+ 		interrupt-parent = <&gpio3>;
+ 		interrupts = <21 IRQ_TYPE_LEVEL_LOW>;
+-        };
++	};
+ 	tps: tps65218@24 {	/* Power Managment IC  */
+-                compatible = "ti,tps65218";
+-                reg = <0x24>;
+-				
++		compatible = "ti,tps65218";
++		reg = <0x24>;
+ 		interrupt-parent = <&gpio3>;
+ 		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
+-        };
++	};
+ };
+-#if 0
+-/* 	ethernet MAC  
+-*	mac0 --> rmii1 (marvell switch) and 
+-*	mac1 --> rmii2 (micrel switch) 
++/*	ethernet MAC
++*	mac0 --> rmii1 (marvell switch) and
++*	mac1 --> rmii2 (micrel switch)
+ */
+ &mac {
+ 		status = "disabled";
+@@ -781,109 +840,118 @@
+ &phy_sel {
+ 	rmii-clock-ext;
+ };
+-#endif
+ /* Power Managment IC */
+ &tps {
+-        interrupts = <47>;
+-        interrupt-parent = <&intc>;
+-        compatible = "ti,tps65218";
+-        interrupt-controller;
+-        #interrupt-cells = <2>;
+-
+-        dcdc1_reg: regulator-dcdc1 {
+-                 compatible = "ti,tps65218-dcdc1";
+-                /* VDD_CORE +1V1-CORE voltage limits */
+-                regulator-name = "vdd_CORE";
+-                regulator-min-microvolt = <1100000>;
+-                regulator-max-microvolt = <1100000>;
+-                regulator-boot-on;
+-                regulator-always-on;
+-        };
+-
+-        dcdc2_reg: regulator-dcdc2 {
+-                 compatible = "ti,tps65218-dcdc2";
+-                /* VDD_MPU +1V1-MPU voltage limits */
+-                regulator-name = "vdd_MPU";
++	interrupts = <47>;
++	interrupt-parent = <&intc>;
++	compatible = "ti,tps65218";
++	interrupt-controller;
++	#interrupt-cells = <2>;
++
++	dcdc1_reg: regulator-dcdc1 {
++		compatible = "ti,tps65218-dcdc1";
++		/* VDD_CORE +1V1-CORE voltage limits */
++		regulator-name = "vdd_CORE";
++		regulator-min-microvolt = <1100000>;
++		regulator-max-microvolt = <1100000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc2_reg: regulator-dcdc2 {
++		compatible = "ti,tps65218-dcdc2";
++		/* VDD_MPU +1V1-MPU voltage limits */
++		regulator-name = "vdd_MPU";
+ 		regulator-min-microvolt = <912000>;
+ 		regulator-max-microvolt = <1378000>;
+ 		regulator-boot-on;
+ 		regulator-always-on;
+-        };
+-
+-        dcdc3_reg: regulator-dcdc3 {
+-                 compatible = "ti,tps65218-dcdc3";
+-                /* VDD_DDR +1V5-DDR voltage limits */
+-                regulator-name = "vdd_DDR";
+-                regulator-min-microvolt = <1500000>;
+-                regulator-max-microvolt = <1500000>;
+-                regulator-boot-on;
+-                regulator-always-on;
+-        };
+-
+-        dcdc4_reg: regulator-dcdc4 {
+-                 compatible = "ti,tps65218-dcdc4";
+-                /* VDD_LOGIC +3V3 voltage limits */
+-                regulator-name = "vdd_LOGIC";
+-                regulator-min-microvolt = <3300000>;
+-                regulator-max-microvolt = <3300000>;
+-                regulator-boot-on;
+-                regulator-always-on;
+-        };
++	};
++
++	dcdc3_reg: regulator-dcdc3 {
++		compatible = "ti,tps65218-dcdc3";
++		/* VDD_DDR +1V5-DDR voltage limits */
++		regulator-name = "vdd_DDR";
++		regulator-min-microvolt = <1500000>;
++		regulator-max-microvolt = <1500000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
++
++	dcdc4_reg: regulator-dcdc4 {
++		compatible = "ti,tps65218-dcdc4";
++		/* VDD_LOGIC +3V3 voltage limits */
++		regulator-name = "vdd_LOGIC";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		regulator-boot-on;
++		regulator-always-on;
++	};
+ 		/*
+ 		dcdc1_sw:	dcdcswitch-dcdc1{
+-                 compatible = "ti,tps65218-dcdc4";
+-                // VDD_µSD +3V3-SD voltage
+-                dcdcswitch-name = "vdd_µSD";
+-                dcdcswitch-min-microvolt = <3300000>;
+-                dcdcswitch-max-microvolt = <3300000>;
+-                dcdcswitch-boot-on;
++			compatible = "ti,tps65218-dcdc4";
++			// VDD_µSD +3V3-SD voltage
++			dcdcswitch-name = "vdd_µSD";
++			dcdcswitch-min-microvolt = <3300000>;
++			dcdcswitch-max-microvolt = <3300000>;
++			dcdcswitch-boot-on;
+ 		*/
+ 
+ 		/*
+ 		dcdc2_sw:	dcdcswitch-dcdc2{
+-                 compatible = "ti,tps65218-dcdc4";
+-                // VDD_USB +5V0-USB voltage
+-                dcdcswitch-name = "vdd_USB";
+-                dcdcswitch-min-microvolt = <4750000>;
+-                dcdcswitch-max-microvolt = <5250000>;
+-                dcdcswitch-boot-off;
++			compatible = "ti,tps65218-dcdc4";
++			// VDD_USB +5V0-USB voltage
++			dcdcswitch-name = "vdd_USB";
++			dcdcswitch-min-microvolt = <4750000>;
++			dcdcswitch-max-microvolt = <5250000>;
++			dcdcswitch-boot-off;
+ 		*/
+ 
+ 		/*
+ 		dcdc3_sw:	dcdcswitch-dcdc3{
+-                 compatible = "ti,tps65218-dcdc4";
+-                // VDD_LS +3V3-LS voltage not used in PFC100
+-                dcdcswitch-name = "vdd_Last";
+-                dcdcswitch-min-microvolt = <3300000>;
+-                dcdcswitch-max-microvolt = <3300000>;
+-                dcdcswitch-boot-off;
++			compatible = "ti,tps65218-dcdc4";
++			// VDD_LS +3V3-LS voltage not used in PFC100
++			dcdcswitch-name = "vdd_Last";
++			dcdcswitch-min-microvolt = <3300000>;
++			dcdcswitch-max-microvolt = <3300000>;
++			dcdcswitch-boot-off;
+ 		*/
+-        config2_reg: regulator-config2 {
+-                 compatible = "ti,tps65218-config2";
+-                /* VDD_Logic current set to 1 Ampere*/
+-                regulator-name = "vdd_CONFIG2";
+-                regulator-min-microamp = <1000000>;/*TODO*/
+-                regulator-max-microamp = <1000000>;/*TODO in drivers/regulator/tps65218-regulator.c */
+-                regulator-boot-on;
+-                regulator-always-on;
+-        };
+-        ldo1: regulator-ldo1 {	//VDD-PLL  +1V8
+-                compatible = "ti,tps65218-ldo1";
+-                regulator-name = "ldo1";
+-                regulator-always-on;
+-        };
++		config2_reg: regulator-config2 {
++			compatible = "ti,tps65218-config2";
++			/* VDD_Logic current set to 1 Ampere*/
++			regulator-name = "vdd_CONFIG2";
++			regulator-min-microamp = <1000000>;/*TODO*/
++			regulator-max-microamp = <1000000>;/*TODO in drivers/regulator/tps65218-regulator.c */
++			regulator-boot-on;
++			regulator-always-on;
++		};
++		ldo1: regulator-ldo1 {	//VDD-PLL  +1V8
++			compatible = "ti,tps65218-ldo1";
++			regulator-name = "ldo1";
++			regulator-always-on;
++		};
+ };
+ 
+ &mmc1 {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&mmc1_pins>;
++	pinctrl-0 = <&sdcard_pins>;
+ 	vmmc-supply = <&dcdc4_reg>;
+ 	bus-width = <4>;
+-	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>; 
+-//	wp-gpios = <&gpio2 2 GPIO_ACTIVE_LOW>; 
++	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
++//	wp-gpios = <&gpio2 2 GPIO_ACTIVE_LOW>;
+ };
+ 
++&mmc2 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	vmmc-supply = <&dcdc4_reg>;
++	bus-width = <4>;
++	ti,non-removable;
++};
++
++
+ &usb {
+ 	status = "disabled";
+ };
+@@ -899,7 +967,7 @@
+ 
+ &usb1 { /* usb1 - OTG */
+ 	status = "disabled";
+-        dr_mode = "host";
++	dr_mode = "host";
+ };
+ 
+ /*??????*/
+@@ -928,5 +996,5 @@
+ 	regulator-name = "v_sd";
+ 	regulator-min-microvolt = <3300000>;
+ 	regulator-max-microvolt = <3300000>;
+-    vin-supply = <&dcdc4_reg>;
+-};	
++	vin-supply = <&dcdc4_reg>;
++};
+-- 
+2.7.4
+

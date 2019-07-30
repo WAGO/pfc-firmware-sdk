@@ -17,8 +17,8 @@ PACKAGES-$(PTXCONF_OPENSSH) += openssh
 #
 # Paths and names
 #
-OPENSSH_VERSION	:= 7.6p1
-OPENSSH_MD5	:= 06a88699018e5fef13d4655abfed1f63
+OPENSSH_VERSION	:= 7.9p1
+OPENSSH_MD5	:= c6af50b7a474d04726a5aa747a5dce8f
 OPENSSH		:= openssh-$(OPENSSH_VERSION)
 OPENSSH_SUFFIX	:= tar.gz
 OPENSSH_URL	:= \
@@ -28,7 +28,7 @@ OPENSSH_URL	:= \
 OPENSSH_SOURCE	:= $(SRCDIR)/$(OPENSSH).$(OPENSSH_SUFFIX)
 OPENSSH_DIR	:= $(BUILDDIR)/$(OPENSSH)
 OPENSSH_LICENSE	:= BSD AND BSD-2-Clause AND BSD-3-Clause AND MIT AND Beerware AND ISC
-OPENSSH_LICENSE_FILES := file://LICENCE;md5=429658c6612f3a9b1293782366ab29d8
+OPENSSH_LICENSE_FILES := file://LICENCE;encoding=ISO-8859-1;md5=429658c6612f3a9b1293782366ab29d8
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -69,7 +69,6 @@ OPENSSH_CONF_OPT	:= \
 	--without-rpath \
 	--without-Werror \
 	--with-zlib=$(SYSROOT) \
-	--without-skey \
 	--without-ldns \
 	--without-libedit \
 	--without-audit \

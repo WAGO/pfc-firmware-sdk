@@ -1,3 +1,5 @@
+linaro-gcc-5.5-2017.10/libgo/LICENSE
+
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,6 +28,8 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+linaro-gcc-5.5-2017.10/libffi/LICENSE
+
 libffi - Copyright (c) 1996-2014  Anthony Green, Red Hat, Inc and others.
 See source files for details.
 
@@ -47,6 +51,8 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+linaro-gcc-5.5-2017.10/libsanitizer/LICENSE.TXT
 
 ==============================================================================
 compiler_rt License
@@ -146,6 +152,8 @@ Program             Directory
 -------             ---------
 mach_override       lib/interception/mach_override
 
+linaro-gcc-5.5-2017.10/gcc/go/gofrontend/LICENSE
+
 Copyright (c) 2009 The Go Authors. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -173,6 +181,8 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+linaro-gcc-5.5-2017.10/libjava/classpath/LICENSE
 
 The software in this package is distributed under the GNU General Public
 License (with a special exception described below).
@@ -571,6 +581,8 @@ the following notice:
   extend this special exception to the GPL to apply to your modified
   version as well.
 
+linaro-gcc-5.5-2017.10/zlib/contrib/dotzlib/LICENSE_1_0.txt
+
 Boost Software License - Version 1.0 - August 17th, 2003
 
 Permission is hereby granted, free of charge, to any person or organization
@@ -594,6 +606,8 @@ SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
 FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
+linaro-gcc-5.5-2017.10/libstdc++-v3/doc/html/manual/license.html
+
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>License</title><meta name="generator" content="DocBook XSL-NS Stylesheets V1.78.1" /><meta name="keywords" content="ISO C++, library" /><meta name="keywords" content="ISO C++, runtime, library" /><link rel="home" href="../index.html" title="The GNU C++ Library" /><link rel="up" href="status.html" title="Chapter 1. Status" /><link rel="prev" href="status.html" title="Chapter 1. Status" /><link rel="next" href="bugs.html" title="Bugs" /></head><body><div class="navheader"><table width="100%" summary="Navigation header"><tr><th colspan="3" align="center">License</th></tr><tr><td width="20%" align="left"><a accesskey="p" href="status.html">Prev</a> </td><th width="60%" align="center">Chapter 1. Status</th><td width="20%" align="right"> <a accesskey="n" href="bugs.html">Next</a></td></tr></table><hr /></div><div class="section"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="manual.intro.status.license"></a>License</h2></div></div></div><p>
     There are two licenses affecting GNU libstdc++: one for the code,

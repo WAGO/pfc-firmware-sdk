@@ -1,0 +1,46 @@
+From 5dad724f280e7e663f9430d29126d31ee724bbdf Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Fri, 17 Nov 2017 08:59:56 +0000
+Subject: [PATCH] ARM: mm: TEMPORARY selective mm unit NULL-pointer workaround
+ by if construct
+
+---
+ arch/arm/mm/init.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+index fe38077..317c71a 100644
+--- a/arch/arm/mm/init.c
++++ b/arch/arm/mm/init.c
+@@ -694,14 +694,17 @@ static void update_sections_early(struct section_perm perms[], int n)
+ {
+ 	struct task_struct *t, *s;
+ 
+-	read_lock(&tasklist_lock);
+ 	for_each_process(t) {
+ 		if (t->flags & PF_KTHREAD)
+ 			continue;
+-		for_each_thread(t, s)
++		for_each_thread(t, s) {
++			if ((void *)s->mm == NULL) {
++				pr_err("update_section_early: mm NULL pointer. Can not set mm section RO!\n");
++				continue;
++			}
+ 			set_section_perms(perms, n, true, s->mm);
++		}
+ 	}
+-	read_unlock(&tasklist_lock);
+ 	set_section_perms(perms, n, true, current->active_mm);
+ 	set_section_perms(perms, n, true, &init_mm);
+ }
+@@ -719,7 +722,6 @@ void fix_kernmem_perms(void)
+ 
+ int __mark_rodata_ro(void *unused)
+ {
+-	msleep(1);
+ 	update_sections_early(ro_perms, ARRAY_SIZE(ro_perms));
+ 	return 0;
+ }
+-- 
+2.7.4
+

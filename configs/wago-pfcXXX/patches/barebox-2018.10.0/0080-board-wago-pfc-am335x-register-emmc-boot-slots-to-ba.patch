@@ -1,7 +1,7 @@
 From 5985b8a364a79e7b356857ae58e4f8febeb12e3b Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Wed, 11 Jul 2018 13:27:39 +0200
-Subject: [PATCH 080/144] board: wago-pfc-am335x: register emmc boot slots to
+Subject: [PATCH] board: wago-pfc-am335x: register emmc boot slots to
  barebox_update
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>

@@ -8,11 +8,14 @@
 #
 # If you want to build your workspace using "-j", do at your own risk.
 #
+
+# filter out "valgrind" as its ptxdist reulefile adds it twice into "PACKAGES-".
 PTX_PACKAGES_UNSELECTED	:= \
-	$(PACKAGES-) \
-	$(CROSS_PACKAGES-) \
-	$(HOST_PACKAGES-) \
-	$(LAZY_PACKAGES-)
+	$(filter-out valgrind, \
+  	$(PACKAGES-) \
+  	$(CROSS_PACKAGES-) \
+  	$(HOST_PACKAGES-) \
+  	$(LAZY_PACKAGES-))
 
 PTX_PACKAGES_SELECTED += autogen-tools
 
@@ -137,6 +140,17 @@ $(call add-order,net-snmp,libelf)
 $(call add-order,net-snmp,openssl)
 $(call add-order,net-snmp,valgrind)
 
+$(call add-order,python,sqlite)
+$(call add-order,python,bzip2)
+$(call add-order,python,ncurses)
+$(call add-order,python,readline)
+$(call add-order,pekwm,xorg-lib-xinerama)
+$(call add-order,dbus,xorg-lib-x11)
+$(call add-order,dbus,xorg-lib-sm)
+$(call add-order,dbus,xorg-lib-ice)
+$(call add-order,mesalib,valgrind)
+$(call add-order,gstreamer1,libcap)
+$(call add-order,gstreamer1,host-gettext)
 
 #??
 $(call add-order,zip,bzip2)

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   docker iptables replacement
+#
+# Brief:    WAGO iptables script to mirror all changes to iptables done by
+#           by dockerd to iptables.
+#           
+#           This script mirrors changes to iptables to create a backup, because 
+#           rules are flushed on some network events. If iptables calls are
+#           are made for a non-root namespace, only /sbin/iptables is executed.
+#           (docker calls the iptables binary in conjuction with netns to create 
+#            e.g. nat-rules for dns-resolution within containers)
+#
+# Author:   Fabian Schwamborn, WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+IPTABLES_BIN="/sbin/iptables"           #correct path, otherwise this script calls itself recursively!
+
+NETNS_PATH="/var/run/netns"
+DOCKER_IPT_NAMESPACE="WAGO_DOCKER_IPT"
+NAMESPACE_ROOT="/proc/1/ns/net"
+NAMESPACE_SELF="/proc/self/ns/net"
+
+case "$@" in *--wait*) exit 1;; esac
+
+$IPTABLES_BIN ${@} #execute command on iptables
+RET=$?
+
+if test -e $NETNS_PATH"/"$DOCKER_IPT_NAMESPACE && test $(readlink $NAMESPACE_ROOT) = $(readlink $NAMESPACE_SELF);then           #check if namespace is available and if this script is not running in a namespace
+    ip netns exec "$DOCKER_IPT_NAMESPACE" $IPTABLES_BIN ${@}  >> /dev/null 2>&1                                          #create shadow copy of iptables entry
+fi
+
+exit $RET

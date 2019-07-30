@@ -71,11 +71,17 @@ ifdef PTXCONF_CT_FEATURE_WAGODBUS
 endif
 
 ifdef PTXCONF_CT_MODBUS_CONFIG
-  CONFIG_TOOLS_ENV+=WITH_LIBMODBUSCONFIG=yes
+	CONFIG_TOOLS_ENV+=WITH_LIBMODBUSCONFIG=yes
 endif
 
 ifdef PTXCONF_CT_BACNET_CONFIG
-  CONFIG_TOOLS_ENV+=WITH_LIBBACNETCONFIG=yes
+	CT_CFLAGS+= -D__CT_WITH_LIBBACNETCONFIG
+	CONFIG_TOOLS_ENV+=WITH_LIBBACNETCONFIG=yes
+endif
+
+ifdef PTXCONF_CT_BACNET_BACKUP_RESTORE
+	CT_CFLAGS+= -D__CT_WITH_LIBBACNETCONFIGS
+	CONFIG_TOOLS_ENV+=WITH_LIBBACNETCONFIG=yes
 endif
 
 ifdef PTXCONF_CT_CONFIG_MDMD
@@ -204,6 +210,10 @@ endif
 
 ifdef PTXCONF_CT_BACNET_CONFIG
 	CT_MAKE_ARGS+=bacnet_config
+endif
+
+ifdef PTXCONF_CT_BACNET_BACKUP_RESTORE
+  CT_MAKE_ARGS+=bacnet_backup_restore
 endif
 
 ifdef PTXCONF_CT_CONFIG_MDMD
@@ -451,11 +461,11 @@ ifdef PTXCONF_CT_CONFIG_TIMEZONE
 endif
 
 ifdef PTXCONF_CT_CONFIG_TOOL_LIB_BASH
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_tool_lib, /etc/config-tools/config_tool_lib);
+	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/config_tool_lib);
 endif
 
 ifdef PTXCONF_CT_CONFIG_TOOL_DEFINES
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_tool_defines, /etc/config-tools/config_tool_defines);
+	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/config_tool_defines);
 endif
 
 ifdef PTXCONF_CT_CONFIG_TOUCH_PARAMETER
@@ -467,9 +477,14 @@ ifdef PTXCONF_CT_CONFIG_TOUCHSCREEN
 endif
 
 ifdef PTXCONF_CT_CONFIG_USER
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_user, /etc/config-tools/config_user);
+	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/config_user);
+
+ifdef PTXCONF_BUSYBOX_PASSWORD_MINLEN
 	@$(call install_replace, config-tools, /etc/config-tools/config_user, @PASSWORD_MINLEN@, $(PTXCONF_BUSYBOX_PASSWORD_MINLEN));
+endif
+ifdef PTXCONF_BUSYBOX_FEATURE_PASSWD_WEAK_CHECK
 	@$(call install_replace, config-tools, /etc/config-tools/config_user, @PASSWD_WEAK_CHECK@, $(PTXCONF_BUSYBOX_FEATURE_PASSWD_WEAK_CHECK));
+endif
 endif
 
 ifdef PTXCONF_CT_CONFIG_OPCUA
@@ -810,8 +825,11 @@ ifdef PTXCONF_CT_CONFIG_MDMD
 endif
 
 ifdef PTXCONF_CT_BACNET_CONFIG
-	@echo $(CONFIG_TOOLS_DIR)bacnet_config
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/bacnet_config, /etc/config-tools/bacnet_config);
+endif
+
+ifdef PTXCONF_CT_BACNET_BACKUP_RESTORE
+	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/bacnet_backup_restore, /etc/config-tools/backup-restore/bacnet_backup_restore);
 endif
 
 #

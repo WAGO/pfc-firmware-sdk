@@ -27,6 +27,9 @@
 # Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
+#bash "include guard"
+if [[ ${CONFIG_TOOL_LIB_:-} != "config_tool_lib" ]]; then
+readonly CONFIG_TOOL_LIB_="config_tool_lib"
 
 #DO_PRINT_DBG=yes
 DO_PRINT_DBG=no
@@ -219,9 +222,9 @@ PLC_CONFIG_FILE="/etc/rts3s.cfg"
 MENU_LST="/boot/grub/menu.lst"
 INITTAB="/etc/inittab"
 LICENSE_INFORMATION_FILENAME="/etc/LICENSE"
-
-
-
+PASSWD_CHECK_BIN="/usr/bin/true"
+PASS_MIN_LENGTH=10
+IS_PASS_WEAK_CHECK="y"
 TRACE_FILENAME="/etc/config-tools/trace_debug.txt"
 
 CONFIG_TOOLS_PATH="/etc/config-tools/"
@@ -356,15 +359,14 @@ report_error()
     local SUPPRESS_LAST_ERROR=false
     SUPPRESS_LAST_ERROR=${3:+true}
     local RESULT=0
-    
 
     logger -t "${PREFIX}${0##*/} [$$] [Error]" -p user.err -- "$ERROR_TEXT"
-    
+
     if [[ "$SUPPRESS_LAST_ERROR" == false ]]; then
-    	SetLastError "$ERROR_TEXT"
+        SetLastError "$ERROR_TEXT"
     fi	
     RESULT=$?
-    
+
     if [ "$QUIET" -eq "0" ]; then
         echo_error "$ERROR_TEXT"
     fi
@@ -605,7 +607,7 @@ escape_json()
     local RESULT=0
 
     local JSON_TEXT=""
-    JSON_TEXT=$(printf '%s' "$TEXT" | php5 -r 'echo json_encode(file_get_contents("php://stdin"));')
+    JSON_TEXT=$(printf '%s' "$TEXT" | php -r 'echo json_encode(file_get_contents("php://stdin"));')
     RESULT=$?
     echo "$JSON_TEXT"
 
@@ -1049,11 +1051,13 @@ ReportError()
 #-----------------------------------------------------------------------------#
 SetLastError()
 {
-  local errorText=$*
+  local errorText="$*"
 
   print_dbg "SetLastError: ${errorText}"
-  # write error-text to file
-  flock -x $LAST_ERROR_FILENAME echo -e $errorText"\c" > $LAST_ERROR_FILENAME  
+
+  echo -n "$errorText" > "${LAST_ERROR_FILENAME}.tmp" &&
+    chgrp www "${LAST_ERROR_FILENAME}.tmp" &&
+    mv "${LAST_ERROR_FILENAME}.tmp" "${LAST_ERROR_FILENAME}"
 }
 
 # search for a specified parameter in the parameter-list
@@ -1276,15 +1280,15 @@ function SwitchBootPartition
 {
   status=$SUCCESS
 
-  /usr/sbin/${BOARD_ID}_switch_boot_partition.sh 
+  /usr/sbin/${BOARD_ID}_switch_boot_partition.sh
 
   if [ "$?" != $SUCCESS ]; then
     status=$SHELL_ERROR
     ReportError $status "(SwitchBootPartition)"
   fi
-  
+
   sync
-  
+
   return "$status"
 }
 
@@ -1382,22 +1386,74 @@ function GetTargetName
   # target name from sys-fs.
   if [[ -e "${board_variant}" ]]; then
 
-	product="$(cat ${board_variant})"
+    product="$(cat ${board_variant})"
 
   # legacy
   else
-	order="$(/etc/config-tools/get_typelabel_value ORDER)"
-	prefix="${order:0:3}"
-	order="${order:4:2}"
+    order="$(/etc/config-tools/get_typelabel_value ORDER)"
+    prefix="${order:0:3}"
+    order="${order:4:2}"
 
-	if [ "${order}" == "81" ]; then
-		product="PFC100"
-	elif [ "${order}" == "82" ]; then
-		product="PFC200"
-	elif [ "${prefix}" == "762" ]; then
-		product="TP600"
-	fi
+    if [ "${order}" == "81" ]; then
+      product="PFC100"
+    elif [ "${order}" == "82" ]; then
+      product="PFC200"
+    elif [ "${prefix}" == "762" ]; then
+      product="TP600"
+    fi
   fi
 
   echo "${product}"
 }
+
+function CheckEncryptionPassphrase
+{
+
+  local status=$SUCCESS
+  local password=$1
+  
+  CheckStringForASCII "$password"
+  if [ $status != $? ]; then
+    status=$INVALID_PARAMETER
+    ReportError $status $?
+    SetLastError $?
+  fi
+
+  # check password complexity only
+  $PASSWD_CHECK_BIN minLength=$PASS_MIN_LENGTH weakCheck="$IS_PASS_WEAK_CHECK" username=" " oldPasswd=" " \
+                    newPasswd="$password" confirmPasswd="$password" hostname=" "
+  if [ $? -ne 0 ]; then
+    status=$INVALID_PARAMETER
+    ReportError $status $?
+    SetLastError $?
+  fi
+
+  return $status
+}
+
+#### Begin D3I Implementation #######
+# Groups of ASCII special characters except ']' and '-'
+# We need a separate variable to avoid escaping
+# Notes:
+#       o ']' character must be the first one inside regex group
+#       o '-' character must either be the first or the last one
+# That's why they are placed within the main regex.
+
+function CheckStringForASCII
+{
+  local status=$SUCCESS
+  local inputString=$1
+  specialChars="\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2a\x2b\x2c\x2e\x2f\x3a\x3b\x3c\x3d\x3e\x3f\x40\x5b\x5c\x5e\x5f\x60\x7b\x7c\x7d\x7e"
+
+  if [[ ! "$inputString" =~ ^[]abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$(echo -e $specialChars)-]*$ ]]; then
+    status=$INVALID_PARAMETER
+    ReportError $status "(password contains non-ASCII characters)"
+    SetLastError "Illegal characters used. Please only use letters (a-z, A-Z),\nnumbers and ASCII special characters: \n""] !\"#$%&'()*+,./:;<=>?@[\^_\`{|}~-"
+  fi
+
+  return $status
+}
+#### End D3I Implementation #######
+
+
+fi #if [[ ${CONFIG_TOOL_LIB_:-} != "config_tool_lib" ]]; then

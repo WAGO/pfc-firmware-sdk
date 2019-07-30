@@ -17,10 +17,10 @@ PACKAGES-$(PTXCONF_SED) += sed
 #
 # Paths and names
 #
-SED_VERSION	:= 4.2.2
-SED_MD5		:= 7ffe1c7cdc3233e1e0c4b502df253974
+SED_VERSION	:= 4.7
+SED_MD5		:= 777ddfd9d71dd06711fe91f0925e1573
 SED		:= sed-$(SED_VERSION)
-SED_SUFFIX	:= tar.bz2
+SED_SUFFIX	:= tar.xz
 SED_URL		:= $(call ptx/mirror, GNU, sed/$(SED).$(SED_SUFFIX))
 SED_SOURCE	:= $(SRCDIR)/$(SED).$(SED_SUFFIX)
 SED_DIR		:= $(BUILDDIR)/$(SED)

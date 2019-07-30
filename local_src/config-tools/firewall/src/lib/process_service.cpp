@@ -153,7 +153,7 @@ void process_service(xmldoc& doc, const std::string& cmd, const std::vector<std:
     else if ("--rem-rule" == cmd)
         rem_rule(doc, argv);
     else
-        throw invalid_param_error();
+        throw invalid_param_error(cmd);
 }
 
 

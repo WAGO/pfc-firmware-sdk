@@ -1,0 +1,31 @@
+## SECTION=image2
+
+menuconfig IMAGE_BOOT_VFAT
+	tristate
+	select HOST_GENIMAGE
+	select HOST_MTOOLS
+	select HOST_DOSFSTOOLS
+	select BAREBOX
+	select BAREBOX_MLO
+	prompt "Generate images/boot.vfat     "
+	help
+	  Create a vfat boot partition. Many SoCs can boot from a special
+	  vfat Partition. This image supports several different types of
+	  such partitions.
+
+if IMAGE_BOOT_VFAT
+choice
+	prompt "type"
+
+config IMAGE_BOOT_VFAT_MLO_BAREBOX_PFC
+	bool
+	depends on ARCH_ARM
+	prompt "PFC barebox MLO"
+
+config IMAGE_BOOT_VFAT_MLO_BAREBOX_PAC
+	bool
+	depends on ARCH_ARM
+	prompt "PAC barebox MLO"
+
+endchoice
+endif

@@ -16,6 +16,7 @@
 
 
 #include "xmlhlp.hpp"
+#include "error.hpp"
 
 #include <libxml/xpathInternals.h>
 #include <cstring>
@@ -29,7 +30,7 @@ namespace wago
 
 static xmlChar * xmlChar_cast(char const * szValue)
 {
-  return reinterpret_cast<xmlChar*>(const_cast<char *>(szValue));
+    return reinterpret_cast<xmlChar*>(const_cast<char *>(szValue));
 }
 
 xmldoc::xmldoc(xmldoc&& other)
@@ -183,11 +184,13 @@ xmldoc parse_string(const std::string& xmldata)
 
 void store_file(const std::string& fname, const xmldoc& doc)
 {
-    if (doc.is_empty())
+  const std::string& temp_file = fname + ".tmp";
+
+  if (doc.is_empty())
         throw std::logic_error("Can't store null xml document.");
 
     // Save to temporary file first. If write succeeded, rename file and synchronize directory
-    const int bytes = xmlSaveFormatFileEnc((fname + ".tmp").c_str(), doc.get(), "utf-8", 1);
+    const int bytes = xmlSaveFormatFileEnc(temp_file.c_str(), doc.get(), "utf-8", 1);
 
     if (bytes < 0)
     {
@@ -196,8 +199,11 @@ void store_file(const std::string& fname, const xmldoc& doc)
     else
     {
         sync();
-        rename((fname + ".tmp").c_str(), fname.c_str());
-        sync();
+        if( 0 != rename(temp_file.c_str(), fname.c_str()))
+        {
+            remove (temp_file.c_str());
+            throw invalid_param_error("Couldn't remove file:" + temp_file);
+        }
     }
 }
 
@@ -459,6 +465,7 @@ void get_attribute_value_list(const xmlctx& ctx,
         }
     }
 }
+
 
 } // namespace wago
 

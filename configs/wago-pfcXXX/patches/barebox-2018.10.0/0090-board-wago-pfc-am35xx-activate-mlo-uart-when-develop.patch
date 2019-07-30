@@ -1,8 +1,8 @@
 From 6a5bb56f3fb394c74fa51c92f036818a205dec80 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 21 Sep 2018 13:58:47 +0200
-Subject: [PATCH 090/144] board: wago-pfc-am35xx: activate mlo uart when
- developer bit is set
+Subject: [PATCH] board: wago-pfc-am35xx: activate mlo uart when developer bit
+ is set
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1,7 +1,7 @@
 From c005e0f765f42b0f79968a2427fdc95b69bd9eba Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 10 Jul 2018 15:38:23 +0200
-Subject: [PATCH 040/144] misc: xsection: fix: add AM35XX dependecy
+Subject: [PATCH] misc: xsection: fix: add AM35XX dependecy
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

@@ -1,3 +1,3 @@
-src/boost_1_62_0.tar.bz2 filter=lfs diff=lfs merge=lfs -text
+src/boost_1_68_0.tar.bz2 filter=lfs diff=lfs merge=lfs -text
 src/linux-4.9.146.tar.xz filter=lfs diff=lfs merge=lfs -text
-src/production-wago-pfcXXX-r35208.tar filter=lfs diff=lfs merge=lfs -text
+src/production-wago-pfcXXX-r39497.tar filter=lfs diff=lfs merge=lfs -text

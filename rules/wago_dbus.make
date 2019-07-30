@@ -40,6 +40,14 @@ $(STATEDIR)/wago_dbus.extract: $(STATEDIR)/autogen-tools
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(WAGO_DBUS_SRC) $(BUILDDIR)
 #	cp -r $(SRCDIR)/$(WAGO_DBUS) $(WAGO_DBUS_DIR)
 	@$(call patchin, WAGO_DBUS)
+
+ifdef PTXCONF_WAGO_DBUS_TRUNK
+	cd $(WAGO_DBUS_DIR) && sh autogen.sh
+else
+	#cd $(WAGO_DBUS_DIR) && [ -f configure ] || sh autogen.sh
+	cd $(WAGO_DBUS_DIR) && sh autogen.sh
+endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -60,18 +68,10 @@ ifdef PTXCONF_WAGO_DBUS_INSTALL_TEST_TOOL
 endif
 
 
-$(STATEDIR)/wago_dbus.prepare:
-	@$(call targetinfo)
-
-ifdef PTXCONF_WAGO_DBUS_TRUNK
-	cd $(WAGO_DBUS_DIR) && sh autogen.sh
-else
-	#cd $(WAGO_DBUS_DIR) && [ -f configure ] || sh autogen.sh
-	cd $(WAGO_DBUS_DIR) && sh autogen.sh
-endif
-
-	@$(call world/prepare, WAGO_DBUS)
-	@$(call touch)
+#$(STATEDIR)/wago_dbus.prepare:
+#	@$(call targetinfo)
+#	@$(call world/prepare, WAGO_DBUS)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Compile

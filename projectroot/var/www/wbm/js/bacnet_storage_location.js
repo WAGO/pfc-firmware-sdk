@@ -133,19 +133,19 @@ var BacnetStorageContent = function(id)
     $("#bacnet_persist_form").bind('submit', function(event)
     {
       event.preventDefault();
-      bacnetStorageContent.ConfirmPersistence();
+      bacnetStorageContent.ConfirmChangeStorage(event);
     });
     
     $("#bacnet_trend_form").bind('submit', function(event)
     {
       event.preventDefault();
-      bacnetStorageContent.ChangeTrendlog();
+      bacnetStorageContent.ConfirmChangeStorage(event);
     });
     
     $("#bacnet_event_form").bind('submit', function(event)
     {
       event.preventDefault();
-      bacnetStorageContent.ChangeEventlog();
+      bacnetStorageContent.ConfirmChangeStorage(event);
     });
   });
   
@@ -185,108 +185,72 @@ BacnetStorageContent.prototype.Refresh = function()
 /*
  * Confirm Info Screen 
  */
-BacnetStorageContent.prototype.ConfirmPersistence = function()
+BacnetStorageContent.prototype.ConfirmChangeStorage = function(event)
 {
   var bacnetStorageContent = this;
+  var eventFormId = event.target.id;
   
-  pageElements.ShowConfirmScreen("Important note: <br/>After changing the storage location, " +
-  		"problems with persistence data may occur until the next complete persistence cycle is finished.", 
-		"The persistence is performed every 30s. Please do not turn off or restart the controller " +
-		"after changing the storage location within the following 30s. " +
-		"Otherwise persistence data will be lost.", 
-		function() { bacnetStorageContent.ChangePersistence(); } );
+  switch(eventFormId)
+  {
+  case "bacnet_persist_form":
+    if(confirm("Really want to change persistence storage location? \n" +
+               "Important note: Please do not turn off or restart the controller\n" +
+               "after changing the storage location within the following 30s.\n" +
+               "Otherwise data will be lost."))
+    {
+      bacnetStorageContent.ChangeStorage("persistence", "persist");
+    }
+    break;
+  case "bacnet_trend_form":
+    if(confirm("Really want to change trendlog storage location? \n" +
+               "Important note: Data will be lost"))
+    {
+      bacnetStorageContent.ChangeStorage("trendlog", "trend");
+    }
+    
+    break;
+  case "bacnet_event_form":
+    if(confirm("Really want to change eventlog storage location? \n" +
+               "Important note: Data will be lost"))
+    {
+      bacnetStorageContent.ChangeStorage("eventlog", "event");
+    }
+    break;
+  default:
+    $('body').trigger('event_errorOccured', [ 'Error while changing storage location.', errorText ]);
+    return;
+    break;
+  }
+  
+  bacnetStorageContent.Refresh();
 };
 
 /*
- * Change persistence location
+ * Change storage location
  */
-BacnetStorageContent.prototype.ChangePersistence = function()
+BacnetStorageContent.prototype.ChangeStorage = function(name, idName)
 {
-  var bacnetStorageContent = this;
-  
-  pageElements.ShowBusyScreen("Changing BACnet persistence...");
+  pageElements.ShowBusyScreen("Changing BACnet " + name + "...");
   
   // check selected location
-  if($('[id=bacnet_persist_internal_flash]').prop('checked'))
+  if($('[id=bacnet_' + idName + '_internal_flash]').prop('checked'))
   {
-    var newValueList = { persistenceStorage: $('[id=bacnet_persist_internal_flash]').val() };
+    var newValueList = {};
+    newValueList[name +"Storage"] = $('[id=bacnet_' + idName + '_internal_flash]').val()
   }
-  else if($('[id=bacnet_persist_sd_card]').prop('checked'))
+  else if($('[id=bacnet_' + idName + '_sd_card]').prop('checked'))
   {
-    var newValueList = { persistenceStorage: $('[id=bacnet_persist_sd_card]').val() };
+    var newValueList = {};
+    newValueList[name +"Storage"] = $('[id=bacnet_' + idName + '_sd_card]').val()
   } 
-  
-  deviceParams.ChangeValue('bacnet_persistence_storage', newValueList, function(status, errorText)
+  // call config tool
+  deviceParams.ChangeValue('bacnet_' + name + '_storage', newValueList, function(status, errorText)
   {
     pageElements.RemoveBusyScreen();
     if(SUCCESS != status)
     {
-      $('body').trigger('event_errorOccured', [ 'Error while changing persistence storage location.', errorText ]);
+      $('body').trigger('event_errorOccured', [ 'Error while changing ' + name + ' storage location.', errorText ]);
     }
-    
-    bacnetStorageContent.Refresh();
-  });
-};
-
-/*
- * Change trendlog location
- */
-BacnetStorageContent.prototype.ChangeTrendlog = function()
-{
-  var bacnetStorageContent = this;
-  
-  pageElements.ShowBusyScreen("Changing BACnet trendlog...");    
-
-  //check selected location
-  if($('[id=bacnet_trend_internal_flash]').prop('checked'))
-  {
-    var newValueList = { trendlogStorage: $('[id=bacnet_trend_internal_flash]').val() };
-  }
-  else if($('[id=bacnet_trend_sd_card]').prop('checked'))
-  {
-    var newValueList = { trendlogStorage: $('[id=bacnet_trend_sd_card]').val() };
-  } 
-  
-  deviceParams.ChangeValue('bacnet_trendlog_storage', newValueList, function(status, errorText)
-  {
-    pageElements.RemoveBusyScreen();
-    if(SUCCESS != status)
-    {
-      $('body').trigger('event_errorOccured', [ 'Error while changing trendlog storage location.', errorText ]);
-    }
-    
-    bacnetStorageContent.Refresh();
-  });
-};
-
-/*
- * Change eventlog location
- */
-BacnetStorageContent.prototype.ChangeEventlog = function()
-{
-  var bacnetStorageContent = this;
-  
-  pageElements.ShowBusyScreen("Changing BACnet eventlog...");    
-
-  //check selected location
-  if($('[id=bacnet_event_internal_flash]').prop('checked'))
-  {
-    var newValueList = { eventlogStorage: $('[id=bacnet_event_internal_flash]').val() };
-  }
-  else if($('[id=bacnet_event_sd_card]').prop('checked'))
-  {
-    var newValueList = { eventlogStorage: $('[id=bacnet_event_sd_card]').val() };
-  } 
-  
-  deviceParams.ChangeValue('bacnet_eventlog_storage', newValueList, function(status, errorText)
-  {
-    pageElements.RemoveBusyScreen();
-    if(SUCCESS != status)
-    {
-      $('body').trigger('event_errorOccured', [ 'Error while changing eventlog storage location.', errorText ]);
-    }
-    
-    bacnetStorageContent.Refresh();
   });
 };
 

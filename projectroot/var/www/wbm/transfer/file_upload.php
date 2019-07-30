@@ -184,7 +184,9 @@ class FileUpload {
             // creation. 
             
             // If the file exists, remove it first
-            unlink($destination);
+            if (file_exists($destination)) {
+                unlink($destination);
+            }
 
             // create destiation directory on demand
             rmkdir(dirname($destination));

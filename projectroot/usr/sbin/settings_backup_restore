@@ -95,10 +95,10 @@ backupFile="$1"
 # restore of settings
 #-------------------------------------------------------------
 
-if [ -n "backupFile" ]; then
+if [ -n "${backupFile}" ]; then
 
   # prepare progress bar
-  BACKUP_FILE_LINE_COUNT=$(grep -v "^(firewall|vpn-)" "$backupFile" | wc -l | awk '{print $1}')
+  BACKUP_FILE_LINE_COUNT=$(grep -Ev '^(firewall|vpn-|#packet)' "$backupFile" | wc -l | awk '{print $1}')
   echo -n "" > "$progressFile"
 
   (

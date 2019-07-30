@@ -1,3 +1,5 @@
+wpa_supplicant-2.6/COPYING
+
 wpa_supplicant and hostapd
 --------------------------
 

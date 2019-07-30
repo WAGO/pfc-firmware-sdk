@@ -1,0 +1,45 @@
+From 0cdf17809faf25eadd6609017bd3748b8e9f1c57 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 13 Jul 2017 14:39:53 +0200
+Subject: [PATCH] net: dsa: mv88e6xxx: add phy-scan property to scan external
+ phys after reset
+
+---
+ drivers/net/dsa/mv88e6xxx/chip.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index 750d9d4..116da5b 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -3807,7 +3807,7 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 	const struct mv88e6xxx_info *compat_info;
+ 	struct mv88e6xxx_chip *chip;
+ 	u32 eeprom_len;
+-	int err;
++	int err, i;
+ 
+ 	compat_info = of_device_get_match_data(dev);
+ 	if (!compat_info)
+@@ -3827,6 +3827,18 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 	if (IS_ERR(chip->reset))
+ 		return PTR_ERR(chip->reset);
+ 
++	if (of_property_read_bool(np, "phy-scan")) {
++
++		/*
++		 * wait at least 300ms for external phys after reset.
++		 * See Datasheet of lantiq phys
++		 */
++		usleep_range(300000, 350000);
++
++		for (i = 0; i < PHY_MAX_ADDR; i++)
++			mdiobus_scan(mdiodev->bus, i);
++	}
++
+ 	err = mv88e6xxx_detect(chip);
+ 	if (err)
+ 		return err;
+-- 
+2.7.4
+

@@ -1,0 +1,39 @@
+From 15d4a3ee3f843f80668c2fb5a71dd53f36fa8099 Mon Sep 17 00:00:00 2001
+From: Peter Galka <peter.galka@wago.com>
+Date: Thu, 10 Aug 2017 07:20:45 +0200
+Subject: [PATCH] dts: pfc200v3: dpc31: fix uio interrupts
+
+---
+ arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi b/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
+index 2843197..f6a899f 100644
+--- a/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi
+@@ -11,19 +11,13 @@
+ 		compatible = "uio_pdrv_genirq";
+ 		reg = <0x4000000 0x4000>; /* 8k * 2 = 16k, needed because of 16Bit addressing */
+ 		interrupt-parent = <&gpio0>;
+-		interrupts = <19 IRQ_TYPE_EDGE_FALLING>;
++		interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
+ 	};
+ 
+ 	UIO_DPC31_SYNC@0x1000000 {
+ 		compatible = "uio_pdrv_genirq";
+-		interrupt-parent = <&gpio2>;
+-		interrupts = <18 IRQ_TYPE_EDGE_RISING>;
+-	};
+-
+-	UIO_DPC31_DXOUT@0x1000000 {
+-		compatible = "uio_pdrv_genirq";
+-		interrupt-parent = <&gpio2>;
+-		interrupts = <19 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+ 	};
+ };
+ 
+-- 
+2.7.4
+

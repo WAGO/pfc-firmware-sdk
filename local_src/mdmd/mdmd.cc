@@ -501,7 +501,8 @@ void af_read_cops_null(MdmStatemachine &sm, Event &ev)
 {
     (void)ev; //unused parameter
     //sm.clear_current_oper(); //COPS:0 does not show an invalid operator, but indication for status change
-    mdmd_Log(MD_LOG_INF, "%s: COPS indication\n", sm.get_state().c_str());
+
+    mdmd_Log(MD_LOG_DBG, "%s: COPS indication\n", sm.get_state().c_str()); //log message for debug purpose only
 }
 
 void af_read_cgreg(MdmStatemachine &sm, Event &ev)
@@ -672,8 +673,7 @@ bool tf_startinit(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; //unused parameter
     mdmd_Log(MD_LOG_INF, "%s: modem port open\n", sm.get_state().c_str());
-    //sm.log_event(DIAG_3GMM_OPEN_SUCCESS );
-    sm.stop_net_led_blink_code();
+    sm.set_error_state(MdmErrorState::NONE);
     /*disable command echo mode*/
     sm.write("ATE0");
     sm.kick_cmd_timeout(timer_at_cmd_short);
@@ -1045,7 +1045,7 @@ bool tf_init_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; //unused parameter
     mdmd_Log(MD_LOG_ERR, "%s: modem initialization failed\n", sm.get_state().c_str());
-    sm.log_event( DIAG_3GMM_ERR_INIT_FAIL);
+    sm.set_error_state(MdmErrorState::INIT_FAILED);
     sm.deactivate_cmd_timeout();
     return true;
 }
@@ -1060,18 +1060,18 @@ bool tf_cme_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
       case 10:
         sm.set_sim_state(MdmSimState::NOT_INSERTED);
         mdmd_Log(MD_LOG_WRN, "%s: SIM card not inserted\n", sm.get_state().c_str());
-        sm.log_event( DIAG_3GMM_ERR_NOSIM );
+        sm.set_error_state(MdmErrorState::SIM_REMOVED);
         break;
       case 13:
       case 14:
       case 15:
         sm.set_sim_state(MdmSimState::SIM_ERROR);
         mdmd_Log(MD_LOG_WRN, "%s: SIM card failure\n", sm.get_state().c_str());
-        sm.log_event( DIAG_3GMM_ERR_SIMAUTH  );
+        sm.set_error_state(MdmErrorState::SIM_FAILURE);
         break;
       default:
         mdmd_Log(MD_LOG_ERR, "%s: CME ERROR %d\n", sm.get_state().c_str(), code);
-        sm.log_event( DIAG_3GMM_ERR_INIT_FAIL);
+        sm.set_error_state(MdmErrorState::INIT_FAILED);
         break;
     }
     sm.deactivate_cmd_timeout();
@@ -1086,15 +1086,15 @@ bool tf_init_sim_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     {
       case MdmSimState::NOT_INSERTED:
         mdmd_Log(MD_LOG_WRN, "%s: SIM card not inserted\n", sm.get_state().c_str());
-        sm.log_event( DIAG_3GMM_ERR_NOSIM );
+        sm.set_error_state(MdmErrorState::SIM_REMOVED);
         break;
       case MdmSimState::NOT_READY:
         mdmd_Log(MD_LOG_WRN, "%s: SIM card not ready\n", sm.get_state().c_str());
-        sm.log_event( DIAG_3GMM_ERR_NOSIM );
+        sm.set_error_state(MdmErrorState::SIM_REMOVED);
         break;
       default:
         mdmd_Log(MD_LOG_WRN, "%s: SIM card failure\n", sm.get_state().c_str());
-        sm.log_event( DIAG_3GMM_ERR_SIMAUTH  );
+        sm.set_error_state(MdmErrorState::SIM_FAILURE);
         break;
     }
     sm.deactivate_cmd_timeout();
@@ -1254,7 +1254,7 @@ bool tf_dbus_up(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 bool tf_modem_port_not_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; //unused parameter
-    sm.log_event( DIAG_3GMM_ERR_PORT_NOT_READY );
+    sm.set_error_state(MdmErrorState::PORT_NOT_READY);
     sm.set_port_wait_count(1);
     sm.kick_cmd_timeout(timer_wait_port);
     mdmd_Log(MD_LOG_WRN, "%s: modem port not ready (%d)\n", sm.get_state().c_str(), sm.get_port_wait_count());

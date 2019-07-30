@@ -45,6 +45,15 @@ $(STATEDIR)/led-server-2.extract: $(STATEDIR)/autogen-tools
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(LED_SERVER_2_SRC) $(BUILDDIR)
 #	cp -r $(SRCDIR)/$(LED_SERVER_2) $(LED_SERVER_2_DIR)
 	@$(call patchin, LED_SERVER_2)
+
+ifdef PTXCONF_LED_SERVER_2_TRUNK
+	#cd $(LED_SERVER_2_DIR) && sh autogen.sh
+	cd $(LED_SERVER_2_DIR) && sh autogen.sh
+else
+	#cd $(LED_SERVER_2_DIR) && [ -f configure ] || sh autogen.sh
+	cd $(LED_SERVER_2_DIR) && sh autogen.sh
+endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -79,19 +88,10 @@ ifdef PTXCONF_LED_SERVER_2_DEBUGGING
 	LED_SERVER_2_CONF_OPT += --enable-debug 
 endif
 
-$(STATEDIR)/led-server-2.prepare:
-	@$(call targetinfo)
-
-ifdef PTXCONF_LED_SERVER_2_TRUNK
-	#cd $(LED_SERVER_2_DIR) && sh autogen.sh
-	cd $(LED_SERVER_2_DIR) && sh autogen.sh
-else
-	#cd $(LED_SERVER_2_DIR) && [ -f configure ] || sh autogen.sh
-	cd $(LED_SERVER_2_DIR) && sh autogen.sh
-endif
-
-	@$(call world/prepare, LED_SERVER_2)
-	@$(call touch)
+#$(STATEDIR)/led-server-2.prepare:
+#	@$(call targetinfo)
+#	@$(call world/prepare, LED_SERVER_2)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Compile

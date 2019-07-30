@@ -33,10 +33,10 @@ then
         KEY_ARGS="$KEY_ARGS -r $RSAKEYFILE"
 fi
 
-if [ $MOTD = false ]
-then
-        DROPBEAR_EXTRA_ARGS="$DROPBEAR_EXTRA_ARGS -m"
-fi
+#if [ $MOTD = false ]
+#then
+#        DROPBEAR_EXTRA_ARGS="$DROPBEAR_EXTRA_ARGS -m"
+#fi
 
 if [ $ROOT_LOGIN = false ]
 then

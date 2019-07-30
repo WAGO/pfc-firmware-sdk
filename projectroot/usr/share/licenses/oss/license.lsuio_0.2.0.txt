@@ -1,4 +1,8 @@
+lsuio-0.2.0/AUTHORS
+
 Hans J. Koch <hjk@linutronix.de>
+
+lsuio-0.2.0/COPYING
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991

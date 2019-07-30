@@ -10,7 +10,7 @@
 ///
 ///  \file     wagosnmp_API.h
 ///
-///  \version  $Revision: 36210 $
+///  \version  $Revision: 35865 $
 ///
 ///  \brief    <Insert description here>
 ///

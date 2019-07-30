@@ -1,0 +1,1261 @@
+From 7a1b8d372e0b8a285b04ddf21c0ff17a20301237 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Wed, 7 Dec 2016 09:47:49 +0000
+Subject: [PATCH] spi: kbus: add driver from 3.18.y
+
+---
+ drivers/spi/spi-kbus.c | 1242 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 1242 insertions(+)
+ create mode 100644 drivers/spi/spi-kbus.c
+
+diff --git a/drivers/spi/spi-kbus.c b/drivers/spi/spi-kbus.c
+new file mode 100644
+index 0000000..1a2e333
+--- /dev/null
++++ b/drivers/spi/spi-kbus.c
+@@ -0,0 +1,1242 @@
++#include <linux/version.h>
++#include <linux/init.h>
++#include <linux/uaccess.h>
++#include <linux/module.h>
++#include <linux/fs.h>
++#include <linux/cdev.h>
++#include <linux/poll.h>
++#include <linux/gpio.h>
++#include <linux/interrupt.h>
++#include <linux/device.h>
++#include <linux/sched.h>
++#include <linux/file.h>
++#include <linux/dma-mapping.h>
++
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/of_irq.h>
++
++#include <linux/delay.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/spidev.h>
++#include <linux/spi/kbus.h>
++
++#include <misc/wago-tests.h>
++
++#define PXC_SPI_KBUS_TRACER
++#define CREATE_TRACE_POINTS
++#include <trace/events/pxc.h>
++
++#define KBUS_DUMMY_BIT_PER_WORD           8
++#define KBUS_DUMMY_SPEED                  1000000
++
++#if KBUS_TESTING
++struct wago_trace_data wago_ktest;
++#endif
++
++static dev_t kbus_dev;
++static struct cdev kbus_cdev;
++
++/* sysfs */
++extern struct class* wsysinit_sysfs_class;
++extern struct device* wsysinit_sysfs_device;
++static struct device* kbus_device;
++
++int kbus_wait_for_gpio(int gpio)
++{
++	unsigned long timeout;
++
++	timeout = jiffies + msecs_to_jiffies(1); /* 1000 ? */
++	while (gpio_get_value(gpio)) { /* active low */
++		if (time_after(jiffies, timeout))
++			return -1;
++		cpu_relax();
++	}
++	return 0;
++}
++
++int kbus_error(void)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++	/*
++	 * read error code from gpios
++	 */
++	kdrvdata->kbus_err = !gpio_get_value(kdrvdata->gpio_nerr);
++	return kdrvdata->kbus_err ? -1 : 0;
++}
++
++int kbus_wait_for_irq(void)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	unsigned long timeout;
++
++	timeout = jiffies + msecs_to_jiffies(1000);
++	while (!kdrvdata->kbus_irq_state) {
++		if (time_after(jiffies, timeout))
++			return -1;
++		cpu_relax();
++	}
++	kdrvdata->kbus_irq_state = 0;
++	return 0;
++}
++
++int kbus_wait_for_event(int *event)
++{
++	unsigned long timeout;
++
++	timeout = jiffies + msecs_to_jiffies(1000);
++	while (!(*event)) {
++		if (time_after(jiffies, timeout))
++			return -1;
++		cpu_relax();
++	}
++	*event = 0;
++	return 0;
++}
++
++static irqreturn_t kbus_isr(int irq, void* dev)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++	trace_pxc_kbus(__func__, "kbus-irq:in");
++	kdrvdata->kbus_irq_state = 0; /* attention: changed polarisation */
++
++/* 	wake_up_interruptible(&kdrvdata->kbus_irq_wq); */
++	wake_up(&kdrvdata->kbus_irq_wq);
++
++	trace_pxc_kbus(__func__, "kbus-irq:out");
++	return IRQ_HANDLED;
++}
++
++static ssize_t kbus_write(struct file *filp, const char __user *buf,
++			  size_t count, loff_t *f_pos)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	u32      irq_value = 0;
++	ssize_t	    status = 0;
++
++	status = __get_user(irq_value, buf);
++	if (status == 0) {
++		if (irq_value) {
++			if(!kdrvdata->kbus_irq_enabled)
++				KBUS_ENABLE_IRQ(kdrvdata->kbus_irq);
++			kdrvdata->kbus_irq_enabled = 1;
++			trace_pxc_kbus(__func__, "turned-on irqs!");
++		} else {
++			if(kdrvdata->kbus_irq_enabled)
++				KBUS_DISABLE_IRQ(kdrvdata->kbus_irq);
++			kdrvdata->kbus_irq_enabled = 0;
++			trace_pxc_kbus(__func__, "turned-off irqs!");
++		}
++	}
++
++	return status;
++}
++
++static struct task_struct *find_dma_task(void)
++{
++	struct task_struct *p, *found = NULL;
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++	read_lock(&tasklist_lock);
++	for_each_process(p) {
++		if (p->flags & PF_KTHREAD) {
++			if ((strcmp(p->comm, kdrvdata->kbus_dma_boost_irq_thread) == 0)) {
++				trace_printk("kbus: process: %s\n", p->comm);
++				found = p;
++				break;
++			}
++		}
++	}
++	read_unlock(&tasklist_lock);
++
++	return found;
++}
++
++void kbus_boost_dma_task(u8 enable)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	struct sched_param boost_param = { .sched_priority = enable ?
++					   kdrvdata->kbus_dma_boost_prio : kdrvdata->kbus_dma_normal_prio };
++
++	if (kdrvdata->dma_task) {
++		if ((enable && !kdrvdata->kbus_dma_boost_en) ||
++		    (!enable && kdrvdata->kbus_dma_boost_en)) {
++			kdrvdata->kbus_dma_boost_en = !kdrvdata->kbus_dma_boost_en;
++			trace_printk("%s --> %s (to-state: %d)", __func__,
++				     enable ? "enable" : "disable", kdrvdata->kbus_dma_boost_en);
++			sched_setscheduler(kdrvdata->dma_task, SCHED_FIFO, &boost_param);
++		}
++	}
++}
++
++static int kbus_open(struct inode *node, struct file *file)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++#if KBUS_TESTING
++	wago_tests_init(&wago_ktest, 1);
++#endif
++	/* get pid of irq/12-DMA here
++	 * and set it in kdrvdata
++	 */
++	if (!kdrvdata->dma_task) {
++		kdrvdata->dma_task = find_dma_task();
++		if (kdrvdata->dma_task)
++			printk("dma-task pid is %u.\n", kdrvdata->dma_task->pid);
++		else
++			printk("dma-task not found!\n");
++	}
++
++	//kbus_boost_dma_task(kdrvdata->kbus_dma_boost_en);
++
++	return 0;
++}
++
++static int kbus_close(struct inode *node, struct file *file)
++{
++#if KBUS_TESTING
++	wago_tests_deinit();
++#endif
++	return 0;
++}
++
++static void kbus_complete(void *arg)
++{
++	kbus_wago_mpoint();		/* MX */
++	trace_pxc_kbus(__func__, "jump to complete()");
++	complete(arg);
++}
++
++static int
++kbus_spi_sync(struct spi_device *spi, struct spi_message *msg)
++{
++	DECLARE_COMPLETION_ONSTACK(done);
++	int status;
++
++	msg->complete = kbus_complete;
++	msg->context = &done;
++
++	trace_pxc_kbus(__func__, "jump to spi_async");
++	status = spi_async(spi, msg);
++	if (status == 0) {
++		wait_for_completion(&done);
++		status = msg->status;
++		if (status == 0)
++			status = msg->actual_length;
++	}
++
++	return status;
++}
++
++static int kbus_spi_message(struct spi_ioc_transfer *u_xfers, unsigned n_xfers)
++{
++	struct spi_message	msg;
++	struct spi_transfer	*k_xfers;
++	struct spi_transfer	*k_tmp;
++	struct spi_ioc_transfer *u_tmp;
++	unsigned		n, total;
++	u8			*buf;
++	int			status = -EFAULT;
++	unsigned                bufsiz = KBUS__MAX_BUF_LEN;
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++	spi_message_init(&msg);
++	k_xfers = kcalloc(n_xfers, sizeof(*k_tmp), GFP_KERNEL);
++	if (k_xfers == NULL)
++		return -ENOMEM;
++
++	/* Construct spi_message, copying any tx data to bounce buffer.
++	 * We walk the array of user-provided transfers, using each one
++	 * to initialize a kernel version of the same transfer.
++	 */
++	buf = kdrvdata->tx_buf; /* use in this case the buffer for tx and rx */
++	total = 0;
++	for (n = n_xfers, k_tmp = k_xfers, u_tmp = u_xfers;
++			n;
++			n--, k_tmp++, u_tmp++) {
++		k_tmp->len = u_tmp->len;
++
++		total += k_tmp->len;
++		if (total > bufsiz) {
++			status = -EMSGSIZE;
++			goto done;
++		}
++
++		if (u_tmp->rx_buf) {
++			k_tmp->rx_buf = buf;
++			if (!access_ok(VERIFY_WRITE, (u8 __user *)
++						(uintptr_t) u_tmp->rx_buf,
++						u_tmp->len))
++				goto done;
++		}
++		if (u_tmp->tx_buf) {
++			k_tmp->tx_buf = buf;
++			if (copy_from_user(buf, (const u8 __user *)
++						(uintptr_t) u_tmp->tx_buf,
++					u_tmp->len))
++				goto done;
++		}
++		buf += k_tmp->len;
++
++		k_tmp->cs_change = !!u_tmp->cs_change;
++		k_tmp->bits_per_word = u_tmp->bits_per_word;
++		k_tmp->delay_usecs = u_tmp->delay_usecs;
++		k_tmp->speed_hz = u_tmp->speed_hz;
++
++		spi_message_add_tail(k_tmp, &msg);
++	}
++
++	status = kbus_spi_sync(kdrvdata->spi, &msg);
++	if (status < 0)
++		goto done;
++
++	/* copy any rx data out of bounce buffer */
++	buf = kdrvdata->tx_buf;
++	for (n = n_xfers, u_tmp = u_xfers; n; n--, u_tmp++) {
++		if (u_tmp->rx_buf) {
++			if (__copy_to_user((u8 __user *)
++					(uintptr_t) u_tmp->rx_buf, buf,
++					u_tmp->len)) {
++				status = -EFAULT;
++				goto done;
++			}
++		}
++		buf += u_tmp->len;
++	}
++	status = total;
++
++done:
++	kfree(k_xfers);
++	return status;
++}
++
++static void kbus_dump(char *prefix, char *buf, int len, bool trace)
++{
++	int i;
++
++	for (i = 0; i < len; i += 32) {
++		if (trace)
++			trace_printk("DATADUMP(%s) copylen %4d buf %p"
++				     "[%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x"
++				     "-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x"
++				     "-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x"
++				     "-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x]\n",
++				     prefix,
++				     (len - i),
++				     buf,
++				     buf[i+0],  buf[i+1],  buf[i+2],  buf[i+3],
++				     buf[i+4],  buf[i+5],  buf[i+6],  buf[i+7],
++				     buf[i+8],  buf[i+9],  buf[i+10], buf[i+11],
++				     buf[i+12], buf[i+13], buf[i+14], buf[i+15],
++				     buf[i+16], buf[i+17], buf[i+18], buf[i+19],
++				     buf[i+20], buf[i+21], buf[i+22], buf[i+23],
++				     buf[i+24], buf[i+25], buf[i+26], buf[i+27],
++				     buf[i+28], buf[i+29], buf[i+30], buf[i+31]);
++		else
++			pr_info("DATADUMP(%s) copylen %4d buf %p"
++				"[%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x"
++				"-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x"
++				"-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x"
++				"-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x-%.2x]\n",
++				prefix,
++				(len - i),
++				buf,
++				buf[i+0],  buf[i+1],  buf[i+2],  buf[i+3],
++				buf[i+4],  buf[i+5],  buf[i+6],  buf[i+7],
++				buf[i+8],  buf[i+9],  buf[i+10], buf[i+11],
++				buf[i+12], buf[i+13], buf[i+14], buf[i+15],
++				buf[i+16], buf[i+17], buf[i+18], buf[i+19],
++				buf[i+20], buf[i+21], buf[i+22], buf[i+23],
++				buf[i+24], buf[i+25], buf[i+26], buf[i+27],
++				buf[i+28], buf[i+29], buf[i+30], buf[i+31]);
++	}
++}
++
++static int kbus_data_txrx(struct kbus_data *kdata)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	struct spi_message	msg;
++	struct spi_transfer	spi_t[] = {
++		{
++			.tx_buf = kdrvdata->tx_buf,
++			.len	= kdata->byte_len,
++			.bits_per_word = KBUS_DUMMY_BIT_PER_WORD,
++			.speed_hz = KBUS_DUMMY_SPEED,
++		},
++		{
++			.rx_buf = kdrvdata->rx_buf,
++			.len	= kdata->byte_len,
++			.bits_per_word = KBUS_DUMMY_BIT_PER_WORD,
++			.speed_hz = KBUS_DUMMY_SPEED,
++		},
++	};
++	int status;
++
++	trace_pxc_kbus(__func__, "enter");
++
++	if (!kdata->byte_len || kdata->byte_len > KBUS__MAX_BUF_LEN)
++		return -EINVAL;
++
++	if (kdata->timeout_ms)
++		kdrvdata->timeout_ms = kdata->timeout_ms;
++	else
++		kdrvdata->timeout_ms = KBUS_IRQ_TIMEOUT;
++
++	/* get the userspace data */
++	if (copy_from_user(kdrvdata->tx_buf, kdata->tx_buf, kdata->byte_len))
++		return -EFAULT;
++
++	if (trace_pxc_buf32_enabled())
++		kbus_dump("KTX", kdrvdata->tx_buf, kdata->byte_len, 1);
++
++	/* clear rx buf */
++	memset(kdrvdata->rx_buf, 0, kdata->byte_len);
++
++	/*
++	 * set some valid dummy data.
++	 * This configuration will not be valid during transfer.
++	 * It is only set by kbus_spi_config().
++	 *
++	 */
++
++	kbus_wago_mpoint();		/* M1 */
++
++	/* create message and add transfers to it */
++	spi_message_init(&msg);
++
++	/* setup dma */
++	if (kdrvdata->use_dma) {
++		trace_pxc_kbus(__func__, "dma transfer enabled");
++		spi_t[0].tx_dma = kdrvdata->tx_buf_dma;
++		spi_t[1].rx_dma = kdrvdata->rx_buf_dma;
++		msg.is_dma_mapped = 1;
++	}
++
++	spi_message_add_tail(&spi_t[0], &msg);
++	spi_message_add_tail(&spi_t[1], &msg);
++
++	trace_pxc_kbusmsg(__func__, &msg, "");
++	status = kbus_spi_sync(kdrvdata->spi, &msg);
++	if (status > 0)
++		if (copy_to_user(kdata->rx_buf, kdrvdata->rx_buf, kdata->byte_len))
++			return -EFAULT;
++	trace_pxc_kbusmsg(__func__, &msg, "");
++
++	/* tell the user about the error, if occured */
++	if (status < 0 && kdrvdata->kbus_err) {
++		if (__put_user(kdrvdata->kbus_err, kdata->err))
++			return -EFAULT;
++	}
++
++	kbus_wago_mpoint();		/* M5 */
++
++	if (trace_pxc_buf32_enabled())
++		kbus_dump("KRX", kdrvdata->rx_buf, kdata->byte_len, 1);
++
++	trace_pxc_kbus(__func__, "leave");
++
++	return status;
++}
++
++static int kbus_binary_txrx(struct kbus_data *kbinary)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	struct spi_message	msg;
++	struct spi_transfer	spi_t[] = {
++		{
++			.len	= kbinary->byte_len,
++			.bits_per_word = kdrvdata->spi->bits_per_word,
++			.speed_hz = kdrvdata->spi->max_speed_hz,
++		},
++	};
++	int status;
++
++	trace_pxc_kbus(__func__, "enter");
++
++	if (!kbinary->byte_len || kbinary->byte_len > KBUS__MAX_BUF_LEN)
++		return -EINVAL;
++
++	if (!kbinary->tx_buf && !kbinary->rx_buf)
++		return -EINVAL;
++
++	if (kbinary->tx_buf) {
++		spi_t[0].tx_buf = kdrvdata->tx_buf;
++		/* get the userspace data */
++		if (copy_from_user(kdrvdata->tx_buf, kbinary->tx_buf, kbinary->byte_len))
++			return -EFAULT;
++	}
++
++	if (kbinary->rx_buf) {
++		spi_t[0].rx_buf = kdrvdata->rx_buf;
++		/* clear rx buf */
++		memset(kdrvdata->rx_buf, 0, kbinary->byte_len);
++	}
++
++	/* create message and add transfer to it */
++	spi_message_init(&msg);
++	spi_message_add_tail(&spi_t[0], &msg);
++
++	trace_pxc_kbusmsg(__func__, &msg, "");
++	status = kbus_spi_sync(kdrvdata->spi, &msg);
++	if (status && kbinary->rx_buf)
++		if (copy_to_user(kbinary->rx_buf, kdrvdata->rx_buf, kbinary->byte_len))
++			return -EFAULT;
++	trace_pxc_kbusmsg(__func__, &msg, "");
++
++	trace_pxc_kbus(__func__, "leave");
++	return status;
++}
++
++static int kbus_cmd_txrx(struct kbus_cmd *kcmd)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	struct spi_message	msg;
++	/*
++	 * set some valid dummy data for bits_per_word and speed_hz.
++	 * This configuration will not be valid during transfer.
++	 * It is only set by kbus_spi_config(). */
++	struct spi_transfer spi_t[] = {
++		{       /* TX */
++			.tx_buf = kdrvdata->tx_buf,
++			.len	= kcmd->byte_len_tx,
++			.bits_per_word = KBUS_DUMMY_BIT_PER_WORD,
++			.speed_hz = KBUS_DUMMY_SPEED,
++		},
++		{	/* RX0 */
++			.rx_buf = kdrvdata->rx_buf,
++			.len	= 6,
++			.bits_per_word = KBUS_DUMMY_BIT_PER_WORD,
++			.speed_hz = KBUS_DUMMY_SPEED,
++		},
++		{	/* RX1 */
++			.rx_buf = kdrvdata->rx_buf + 6,
++			.len	= kcmd->byte_len_rx - 6, /* set remaining max bytes.
++							  * RX0 will update it later. */
++			.bits_per_word = KBUS_DUMMY_BIT_PER_WORD,
++			.speed_hz = KBUS_DUMMY_SPEED,
++		},
++	};
++	int status;
++
++	trace_pxc_kbus(__func__, "enter");
++
++	if ((!kcmd->byte_len_tx && !kcmd->byte_len_rx) ||
++	    kcmd->byte_len_tx > KBUS__MAX_BUF_LEN ||
++	    kcmd->byte_len_rx > KBUS__MAX_BUF_LEN)
++		return -EINVAL;
++
++	if (kcmd->timeout_ms)
++		kdrvdata->timeout_ms = kcmd->timeout_ms;
++	else
++		kdrvdata->timeout_ms = KBUS_IRQ_TIMEOUT;
++
++	/* get the userspace data */
++	if (copy_from_user(kdrvdata->tx_buf, kcmd->tx_buf, kcmd->byte_len_tx))
++		return -EFAULT;
++
++	/* clear rx buf */
++	memset(kdrvdata->rx_buf, 0, kcmd->byte_len_rx);
++
++	kbus_wago_mpoint();		/* M1 */
++	trace_pxc_kbus(__func__, "M1");
++
++	/* create message and add transfers to it */
++	spi_message_init(&msg);
++
++	/* setup dma */
++	if (kdrvdata->use_dma) {
++		trace_pxc_kbus(__func__, "dma transfer enabled");
++		spi_t[0].tx_dma = kdrvdata->tx_buf_dma;
++		spi_t[1].rx_dma = kdrvdata->rx_buf_dma;
++		spi_t[2].rx_dma = kdrvdata->rx_buf_dma + 6;
++		msg.is_dma_mapped = 1;
++	}
++
++	spi_message_add_tail(&spi_t[0], &msg);
++	spi_message_add_tail(&spi_t[1], &msg);
++	spi_message_add_tail(&spi_t[2], &msg);
++
++	/* do the actual spi msg transfer */
++	trace_pxc_kbusmsg(__func__, &msg, "");
++	status = kbus_spi_sync(kdrvdata->spi, &msg);
++	if (status)
++		if (copy_to_user(kcmd->rx_buf, kdrvdata->rx_buf, spi_t[2].len + 6))
++			return -EFAULT;
++	trace_pxc_kbusmsg(__func__, &msg, "");
++
++	/* tell the user about the error, if occured */
++	if (status < 0 && kdrvdata->kbus_err) {
++		if (__put_user(kdrvdata->kbus_err, kcmd->err))
++			return -EFAULT;
++	}
++
++	kbus_wago_mpoint();		/* M5 */
++	trace_pxc_kbus(__func__, "leave");
++
++	return status;
++}
++
++static int kbus_spi_config(struct kbus_spi_config *kconfig)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	int retval = 0;
++	u8 save = 0;
++
++	if (!kconfig->bits_per_word &&
++	    !kconfig->mode)
++		return -EINVAL;
++
++	/* update values */
++	if (kconfig->bits_per_word) {
++		if (kconfig->bits_per_word != 16)
++			trace_pxc_kbus(__func__, "WARNING: bits_per_word != 16Bit.");
++		kdrvdata->spi->bits_per_word = kconfig->bits_per_word;
++	}
++	if (kconfig->max_speed_hz)
++		kdrvdata->spi->max_speed_hz = kconfig->max_speed_hz;
++	if (kconfig->mode) {
++		if (kconfig->mode & ~SPI_MODE_MASK)
++			return -EINVAL;
++		save = kdrvdata->spi->mode;
++		kconfig->mode |= kdrvdata->spi->mode & ~SPI_MODE_MASK;
++		kdrvdata->spi->mode = (u8)kconfig->mode;
++	}
++
++	/* do the actual spi setup */
++	retval = spi_setup(kdrvdata->spi);
++	if (retval < 0) { /* restore mode if changed */
++		if (save)
++			kdrvdata->spi->mode = save;
++	}
++	else
++		kbus_dbg("%s: spi mode is updated: %02x\n", __func__, kconfig->mode);
++
++	return retval;
++}
++
++static long kbus_ioctl (struct file *file, uint cmd, ulong arg)
++{
++	long ret = 0;
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	struct spi_device *spi = kdrvdata->spi;
++
++	switch (cmd) {
++	case KBUS_IOC_CMD:      /* FIXME */
++	{
++		struct kbus_cmd kcmd;
++		struct kbus_cmd __user *kcmd_user;
++
++		trace_pxc_kbus(__func__, "KCMD: Enter: Set kbus_irq_state to 1.");
++		kbus_wago_mpoint();		/* M0 */
++
++		spi_set_drvdata(spi, kdrvdata);
++		kdrvdata->kbus_irq_state = 1; /* will be set to 0 by kbus_isr() */
++
++		gpio_set_value(kdrvdata->gpio_cmdsel, 0);
++		kdrvdata->cmdsel = 1;
++		/* Indicate Transfer Start */
++		gpio_set_value(kdrvdata->gpio_nirq, 0);
++
++		kcmd_user = (struct kbus_cmd __user *)arg;
++		if (copy_from_user(&kcmd, kcmd_user, sizeof(kcmd))) {
++                        /* release the irq pin */
++			gpio_set_value(kdrvdata->gpio_nirq, 1);
++			return -EFAULT;
++		}
++
++		ret = kbus_cmd_txrx(&kcmd);
++		if (ret < 0) {
++			/* release the irq pin */
++			gpio_set_value(kdrvdata->gpio_nirq, 1);
++			trace_pxc_kbus(__func__, "KCMD: kbus_cmd_txrx() returned with error!");
++		}
++
++		/* FIXME: JUST FOR TESTING */
++		gpio_set_value(kdrvdata->gpio_cmdsel, 1);
++
++		kbus_wago_mpoint();		/* M6 */
++		trace_pxc_kbus(__func__, "KCMD: Leave");
++	}
++	break;
++	case KBUS_IOC_DATA:
++	{
++		struct kbus_data kdata;
++		struct kbus_data __user *kdata_user;
++
++		trace_pxc_kbus(__func__, "KDATA: Enter: Set kbus_irq_state to 1.");
++		kbus_wago_mpoint();		/* M0 */
++
++		spi_set_drvdata(spi, kdrvdata);
++		kdrvdata->kbus_irq_state = 1; /* will be set to 0 by kbus_isr() */
++
++		gpio_set_value(kdrvdata->gpio_cmdsel, 1);
++		kdrvdata->cmdsel = 0;
++		/* Indicate Transfer Start */
++		gpio_set_value(kdrvdata->gpio_nirq, 0);
++
++		kdata_user = (struct kbus_data __user *)arg;
++
++		if (copy_from_user(&kdata, kdata_user, sizeof(kdata))) {
++                        /* release the irq pin */
++			gpio_set_value(kdrvdata->gpio_nirq, 1);
++			return -EFAULT;
++		}
++
++		ret = kbus_data_txrx(&kdata);
++		if (ret < 0) {
++			/* release the irq pin */
++			gpio_set_value(kdrvdata->gpio_nirq, 1);
++			trace_pxc_kbus(__func__, "KDATA: kbus_data_txrx() returned with error!");
++		}
++
++		/* FIXME: JUST FOR TESTING */
++		gpio_set_value(kdrvdata->gpio_cmdsel, 0);
++
++		kbus_wago_mpoint();		/* M6 */
++		trace_pxc_kbus(__func__, "KDATA: Leave");
++	}
++	break;
++	case KBUS_IOC_CONFIG:
++	{
++		struct kbus_spi_config kconfig;
++		struct kbus_spi_config __user *kconfig_user;
++
++		trace_pxc_kbus(__func__, "KCONFIG: Enter");
++
++		spi_set_drvdata(spi, kdrvdata);
++		kconfig_user = (struct kbus_spi_config __user *)arg;
++
++		if (copy_from_user(&kconfig, kconfig_user, sizeof(kconfig)))
++			return -EFAULT;
++
++		ret = kbus_spi_config(&kconfig);
++		if (ret < 0)
++			trace_pxc_kbus(__func__, "KCONFIG: kbus_spi_config() returned with error!");
++
++		trace_pxc_kbus(__func__, "KCONFIG: Leave");
++	}
++	break;
++	case KBUS_IOC_BINARY:
++	{
++		struct kbus_data kbinary;
++		struct kbus_data __user *kbinary_user;
++
++		trace_pxc_kbus(__func__, "KBINARY: Enter.");
++
++		spi_set_drvdata(spi, NULL); /* don't use kbus algorithm in spi-omap2-mcspi.c */
++		kbinary_user = (struct kbus_data __user *)arg;
++		if (copy_from_user(&kbinary, kbinary_user, sizeof(kbinary)))
++			return -EFAULT;
++
++		ret = kbus_binary_txrx(&kbinary);
++		if (ret < 0)
++			trace_pxc_kbus(__func__, "KBINARY: kbus_binary_txrx() returned with error!");
++
++		trace_pxc_kbus(__func__, "KBINARY: Leave");
++	}
++	break;
++	default: /* FIXME: make it possible to use the spidev-way of communication. Not yet tested! */
++	{
++		u32			tmp;
++		unsigned		n_ioc;
++		struct spi_ioc_transfer	*ioc;
++
++		spi_set_drvdata(spi, NULL); /* don't use kbus algorithm in spi-omap2-mcspi.c */
++		/* segmented and/or full-duplex I/O request */
++		if (_IOC_NR(cmd) != _IOC_NR(SPI_IOC_MESSAGE(0))
++				|| _IOC_DIR(cmd) != _IOC_WRITE) {
++			ret = -ENOTTY;
++			break;
++		}
++
++		tmp = _IOC_SIZE(cmd);
++		if ((tmp % sizeof(struct spi_ioc_transfer)) != 0) {
++			ret = -EINVAL;
++			break;
++		}
++		n_ioc = tmp / sizeof(struct spi_ioc_transfer);
++		if (n_ioc == 0)
++			break;
++
++		/* copy into scratch area */
++		ioc = kmalloc(tmp, GFP_KERNEL);
++		if (!ioc) {
++			ret = -ENOMEM;
++			break;
++		}
++		if (__copy_from_user(ioc, (void __user *)arg, tmp)) {
++			kfree(ioc);
++			ret = -EFAULT;
++			break;
++		}
++
++		/* translate to spi_message, execute */
++		ret = kbus_spi_message(ioc, n_ioc);
++		kfree(ioc);
++		break;
++	}
++	}
++
++	return ret;
++}
++
++static struct file_operations kbus_fops = {
++	.owner            = THIS_MODULE,
++	.unlocked_ioctl   = kbus_ioctl,
++	.write            = kbus_write,
++	.open             = kbus_open,
++	.release          = kbus_close,
++};
++
++
++static ssize_t kbus_sysfs_prio_show(struct device *dev, struct device_attribute *attr, char *buf);
++static ssize_t kbus_sysfs_prio_set(struct device *dev, struct device_attribute *attr,
++				   const char *buf, size_t count);
++static ssize_t kbus_sysfs_trig_reset(struct device *dev, struct device_attribute *attr,
++					const char *buf, size_t count);
++
++DEVICE_ATTR(kbus_dma_boost_prio, 0600, kbus_sysfs_prio_show, kbus_sysfs_prio_set);
++DEVICE_ATTR(kbus_dma_normal_prio, 0600, kbus_sysfs_prio_show, kbus_sysfs_prio_set);
++DEVICE_ATTR(kbus_trig_reset, 0200, NULL, kbus_sysfs_trig_reset);
++
++static ssize_t kbus_sysfs_prio_show(struct device *dev,
++				    struct device_attribute *attr,
++				    char *buf)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	u8 prio = 0;
++
++	if (attr == &dev_attr_kbus_dma_boost_prio)
++		prio = kdrvdata->kbus_dma_boost_prio;        /* boost */
++	else if (attr == &dev_attr_kbus_dma_normal_prio)
++		prio = kdrvdata->kbus_dma_normal_prio;       /* normal */
++
++	return sprintf(buf, "%d\n", (int) prio);
++}
++
++static ssize_t kbus_sysfs_prio_set(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf,
++				   size_t count)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	u32 tmp = simple_strtoul(buf, NULL, 10);
++
++	/* check if value is valid */
++	if (tmp < 1 || tmp > 99)
++		return -EINVAL;
++
++	if (attr == &dev_attr_kbus_dma_boost_prio) {
++		printk(KERN_INFO "dma-boost prio changed from %d to %d.\n",
++		       (int) kdrvdata->kbus_dma_boost_prio, (int) tmp);
++		kdrvdata->kbus_dma_boost_prio = (u8) tmp;        /* boost */
++	} else if (attr == &dev_attr_kbus_dma_normal_prio) {
++		printk(KERN_INFO "dma-normal prio changed from %d to %d.\n",
++		       (int) kdrvdata->kbus_dma_normal_prio, (int) tmp);
++		kdrvdata->kbus_dma_normal_prio = (u8) tmp;      /* normal */
++	}
++
++	return count;
++}
++
++static int kbus_trig_reset(struct kbus_drv_data *kdrvdata)
++{
++	/* check if value is valid */
++	if (kdrvdata == NULL || !gpio_is_valid(kdrvdata->gpio_nrst))
++		return -EINVAL;
++
++	/* reset kbus slave cpu (Infineon XE164) */
++	gpio_set_value(kdrvdata->gpio_nrst, kdrvdata->nrst_alow);
++	udelay(100);
++	gpio_set_value(kdrvdata->gpio_nrst, !kdrvdata->nrst_alow);
++
++	pr_info("PFCxxx-KBUS: Kbus Slave CPU Reset (gpio %d, active %s) ... Done.\n",
++		kdrvdata->gpio_nrst, kdrvdata->nrst_alow ? "low" : "high");
++
++	return 0;
++}
++
++static ssize_t kbus_sysfs_trig_reset(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf,
++					size_t count)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	u32 val = simple_strtoul(buf, NULL, 10);
++
++	/* check if value is valid */
++	if (val != 1)
++		return -EINVAL;
++
++	kbus_trig_reset(kdrvdata);
++
++	return count;
++}
++
++static ssize_t kbus_sysfs_boost_en_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++	return sprintf(buf, "%d\n", (int) kdrvdata->kbus_dma_boost_en);
++}
++
++static ssize_t kbus_sysfs_boost_en_set(struct device *dev,
++				       struct device_attribute *attr,
++				       const char *buf,
++				       size_t count)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++	u32 tmp = simple_strtoul(buf, NULL, 10);
++
++	/* check if valid */
++	if (tmp > 1)
++		return -EINVAL;
++
++	/* get pid of irq/12-DMA here
++	 * and set it in kdrvdata
++	 */
++	if (!kdrvdata->dma_task) {
++		kdrvdata->dma_task = find_dma_task();
++		if (kdrvdata->dma_task)
++			printk("dma-task pid is %u.\n", kdrvdata->dma_task->pid);
++		else
++			printk("dma-task not found!\n");
++	}
++
++	kbus_boost_dma_task((u8) tmp);
++	printk(KERN_INFO "dma-boost %s.\n", tmp ? "enabled" : "disabled");
++
++	return count;
++}
++DEVICE_ATTR(kbus_dma_boost_en, 0600, kbus_sysfs_boost_en_show, kbus_sysfs_boost_en_set);
++
++
++static ssize_t kbus_sysfs_tty_device_name_show(struct device *dev,
++					struct device_attribute *attr,
++					char *buf)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++	return sprintf(buf, "%s\n", kdrvdata->kbus_tty_device_name);
++}
++DEVICE_ATTR(kbus_tty_device_name, S_IRUGO, kbus_sysfs_tty_device_name_show, NULL);
++
++static struct kbus_drv_data * kbus_probe_dt(struct spi_device *spi)
++{
++	struct kbus_drv_data *kdrvdata;
++	struct device_node *np = spi->dev.of_node;
++	enum of_gpio_flags flags;
++	int rqflags = 0;
++	u32 val;
++	int ret;
++
++	pr_debug("%s: probing device tree node (%s)\n", __func__, np->name);
++
++	/* alloc kernel space buffers */
++	kdrvdata = kmalloc(sizeof(struct kbus_drv_data), GFP_KERNEL);
++
++	kdrvdata->dma_task = NULL;
++
++	kdrvdata->use_dma = of_property_read_bool(np, "kbus,use-dma-always");
++	kdrvdata->kbus_dma_boost_en = of_property_read_bool(np, "kbus,dma-boost");
++	if (kdrvdata->kbus_dma_boost_en) {
++		ret = of_property_read_u32(np, "kbus,dma-boost-prio", &val);
++		if (ret < 0) {
++			pr_err("%s: dt: dma-boost-prio must be set\n", __func__);
++			goto out_err;
++		}
++		kdrvdata->kbus_dma_boost_prio = (u8) val;
++		ret = of_property_read_u32(np, "kbus,dma-default-prio", &val);
++		if (ret < 0) {
++			pr_err("%s: dt: dma-default-prio must be set\n", __func__);
++			goto out_err;
++		}
++		kdrvdata->kbus_dma_normal_prio = (u8) val;
++	}
++
++	ret = of_property_read_string(np, "kbus,tty-device", &kdrvdata->kbus_tty_device_name);
++	if (ret < 0) {
++		pr_err("%s: dt: kbus tty-device must be set (e.g. ttyO4)\n", __func__);
++		goto out_err;
++	}
++
++	ret = of_property_read_string(np, "kbus,dma-boost-irq-thread", &kdrvdata->kbus_dma_boost_irq_thread);
++	if (ret < 0) {
++		pr_err("%s: dt: kbus dma-irq-thread must be set (e.g. irq/19-edma)\n", __func__);
++		goto out_err;
++	}
++
++	/* get gpios from device tree */
++	kdrvdata->gpio_nrst = ret = of_get_named_gpio_flags(np, "kbus,gpio-nrst", 0, &flags);
++	if (ret == -EPROBE_DEFER)
++		goto out_defer;
++
++	kdrvdata->nrst_alow = flags & OF_GPIO_ACTIVE_LOW;
++	if (kdrvdata->nrst_alow)
++		rqflags |= GPIOF_ACTIVE_LOW | GPIOF_OUT_INIT_LOW;
++	else
++		rqflags |= GPIOF_OUT_INIT_HIGH;
++
++	kdrvdata->gpio_nsync = ret = of_get_named_gpio(np,  "kbus,gpio-nsync", 0);
++	if (ret == -EPROBE_DEFER)
++		goto out_defer;
++	kdrvdata->gpio_cmdsel = ret = of_get_named_gpio(np, "kbus,gpio-cmdsel", 0);
++	if (ret == -EPROBE_DEFER)
++		goto out_defer;
++	kdrvdata->gpio_nirq   = ret = of_get_named_gpio(np,   "kbus,gpio-nirq", 0);
++	if (ret == -EPROBE_DEFER)
++		goto out_defer;
++	kdrvdata->gpio_nerr   = ret = of_get_named_gpio(np,   "kbus,gpio-nerr", 0);
++	if (ret == -EPROBE_DEFER)
++		goto out_defer;
++
++	/* request gpios */
++	if (gpio_request_one(kdrvdata->gpio_nrst, rqflags
++			     | GPIOF_EXPORT_DIR_FIXED, "kbus,gpio-nrst"))
++		goto out_err;
++
++	/* reset kbus slave cpu (Infineon XE164) */
++	if(of_property_read_bool(np, "kbus,reset-on-boot"))
++		kbus_trig_reset(kdrvdata);
++
++	if (gpio_request_one(kdrvdata->gpio_cmdsel, GPIOF_OUT_INIT_HIGH, "kbus,gpio-cmdsel"))
++		goto out_err;
++	if (gpio_request_one(kdrvdata->gpio_nirq, GPIOF_OUT_INIT_HIGH, "kbus,gpio-nirq"))
++		goto out_err;
++
++	if (gpio_request_one(kdrvdata->gpio_nsync, GPIOF_IN, "kbus,gpio-nsync"))
++		goto out_err;
++	if (gpio_request_one(kdrvdata->gpio_nerr, GPIOF_IN, "kbus,gpio-nerr"))
++		goto out_err;
++
++	/* get irq pin */
++	ret = of_get_named_gpio(np, "kbus,gpio-nrdy", 0);
++	if (ret == -EPROBE_DEFER)
++		goto out_defer;
++	else if (ret < 0) {
++		kdrvdata->kbus_irq = irq_of_parse_and_map(np, 0);
++		if (!kdrvdata->kbus_irq) {
++			pr_err("KBUS Probe: failed to get irq pin!\n");
++			goto out_err;
++		}
++	}
++	kdrvdata->gpio_nrdy = ret;
++	pr_info("PFCxxx-KBUS: Use GPIO %d as nRDY irq\n", kdrvdata->gpio_nrdy);
++	if (gpio_request_one(kdrvdata->gpio_nrdy, GPIOF_IN, "kbus,gpio-nrdy"))
++		goto out_err;
++	kdrvdata->kbus_irq = gpio_to_irq(kdrvdata->gpio_nrdy);
++
++	kdrvdata->spi = spi;
++
++	return kdrvdata;
++
++out_err:
++	pr_err("%s: out_err\n", __func__);
++	kfree(kdrvdata);
++	return NULL;
++
++out_defer:
++	pr_err("%s: out_defer\n", __func__);
++	kfree(kdrvdata);
++	return ERR_PTR(-EPROBE_DEFER);
++}
++
++static int kbus_probe(struct spi_device *spi)
++{
++	int ret = 0;
++	u8 save = 0;
++	struct kbus_drv_data *kdrvdata;
++
++	if (!spi->dev.of_node) {
++		pr_err("Wago KBUS Driver: No DT node found!\n");
++		return -EFAULT;
++	}
++
++	kdrvdata = kbus_probe_dt(spi);
++	if (kdrvdata == NULL)
++		return -EFAULT;
++	else if (kdrvdata == ERR_PTR(-EPROBE_DEFER))
++		return -EPROBE_DEFER;
++
++	init_waitqueue_head(&kdrvdata->kbus_irq_wq);
++
++	ret = request_irq(kdrvdata->kbus_irq, kbus_isr,
++			  IRQF_SHARED | IRQ_TYPE_EDGE_BOTH | IRQF_THREAD_TBL_LOOKUP,
++			  "kbus", &kbus_dev);
++	if (ret) {
++		pr_err("%s: could not request irq %d: ret=%d\n", __func__, kdrvdata->kbus_irq, ret);
++		goto out3;
++	}
++
++	/* disable kbus irq per default */
++	KBUS_DISABLE_IRQ(kdrvdata->kbus_irq);
++	kdrvdata->kbus_irq_enabled = 0;
++
++	/* allocate memory */
++	if (kdrvdata->use_dma) {
++                spi->dev.coherent_dma_mask = ~0; /* why that? */
++
++		/*
++		 * Minimum coherent DMA allocation is PAGE_SIZE, so allocate
++		 * that much and share it between Tx and Rx DMA buffers.
++		 */
++		kdrvdata->tx_buf = dma_alloc_coherent(&spi->dev,
++						      PAGE_SIZE,
++						      &kdrvdata->tx_buf_dma,
++						      GFP_DMA);
++
++		if (kdrvdata->tx_buf) {
++			kdrvdata->rx_buf = (u8 *)(kdrvdata->tx_buf + (PAGE_SIZE / 2));
++			/* set bus address based on allocated space */
++			kdrvdata->rx_buf_dma = (dma_addr_t)(kdrvdata->tx_buf_dma + (PAGE_SIZE / 2));
++			kbus_dbg("%s: allocated dma space (%lu).", __func__, PAGE_SIZE);
++		} else {
++			/* Fall back to non-DMA */
++			kdrvdata->use_dma = 0;
++			kbus_dbg("%s: failed to allocate dma space (%lu).", __func__, PAGE_SIZE);
++		}
++	}
++
++	if (!kdrvdata->use_dma) {
++		kdrvdata->tx_buf = kmalloc(KBUS__MAX_BUF_LEN, GFP_KERNEL);
++		kdrvdata->rx_buf = kmalloc(KBUS__MAX_BUF_LEN, GFP_KERNEL);
++	}
++
++	/* create device node in /dev */
++	if (!wsysinit_sysfs_class) {
++		pr_err("PFCXXX: Wago SYSFS class not defined!\n");
++		ret = -EFAULT;
++		goto out1;
++	}
++
++	kbus_device = device_create (wsysinit_sysfs_class, NULL, kbus_dev, NULL, "kbus%d", MINOR(kbus_dev));
++	dev_set_drvdata(kbus_device, kdrvdata);
++	spi_set_drvdata(spi, kdrvdata);
++
++	/* create sysfs entries for dma boost support */
++	device_create_file(wsysinit_sysfs_device, &dev_attr_kbus_dma_normal_prio);
++	device_create_file(wsysinit_sysfs_device, &dev_attr_kbus_dma_boost_prio);
++	device_create_file(wsysinit_sysfs_device, &dev_attr_kbus_dma_boost_en);
++	device_create_file(wsysinit_sysfs_device, &dev_attr_kbus_trig_reset);
++
++	/* create sysfs entrie for tty device-name */
++	device_create_file(wsysinit_sysfs_device, &dev_attr_kbus_tty_device_name);
++
++	/* do the initial spi setup - it can be updated through kbus_spi_config() */
++	kdrvdata->spi->bits_per_word = 16;
++	kdrvdata->spi->max_speed_hz = KBUS__DEFAULT_SPEED;
++	save =	kdrvdata->spi->mode;
++	kdrvdata->spi->mode &= (u8) ~SPI_MODE_MASK;
++	kdrvdata->spi->mode |= SPI_CPHA;
++	ret = spi_setup(kdrvdata->spi);
++	if (ret < 0)
++		kdrvdata->spi->mode = save;
++	else
++		printk(KERN_INFO "%s: spi mode set to: %02x\n", __func__, kdrvdata->spi->mode);
++
++	return ret;
++
++out1:
++	/* clean up */
++	if (kdrvdata->use_dma) {
++		dma_free_coherent(&spi->dev, PAGE_SIZE,
++				  kdrvdata->tx_buf, kdrvdata->tx_buf_dma);
++	} else {
++		kfree(kdrvdata->rx_buf);
++		kfree(kdrvdata->tx_buf);
++	}
++
++out3:
++	kfree(kdrvdata);
++
++	return ret;
++}
++
++static int kbus_remove(struct spi_device *spi)
++{
++	struct kbus_drv_data *kdrvdata = dev_get_drvdata(kbus_device);
++
++	device_destroy (wsysinit_sysfs_class, kbus_dev);
++	free_irq (kdrvdata->kbus_irq, &kbus_dev);
++
++	gpio_free(kdrvdata->gpio_nsync);
++	gpio_free(kdrvdata->gpio_cmdsel);
++	gpio_free(kdrvdata->gpio_nirq);
++
++	gpio_free(kdrvdata->gpio_nerr);
++
++	if (kdrvdata->use_dma) {
++		dma_free_coherent(&spi->dev, PAGE_SIZE,
++				  kdrvdata->tx_buf, kdrvdata->tx_buf_dma);
++	} else {
++		kfree(kdrvdata->rx_buf);
++		kfree(kdrvdata->tx_buf);
++	}
++	kfree(kdrvdata);
++
++	dev_set_drvdata(kbus_device, NULL);
++	spi_set_drvdata(spi, NULL);
++
++	return 0;
++}
++
++#ifdef CONFIG_OF
++static struct of_device_id kbus_spi_dt_ids[] = {
++	{ .compatible = "wago,spi-kbus" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, kbus_spi_dt_ids);
++#endif
++
++struct spi_driver kbus_driver = {
++	.driver = {
++		.name	= "kbus-cpu",
++		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(kbus_spi_dt_ids),
++	},
++	.probe		= kbus_probe,
++	.remove		= kbus_remove,
++};
++
++static int __init kbus_init(void)
++{
++	int ret;
++
++	kbus_dbg("%s ...\n", __func__);
++
++	kbus_dev = MKDEV(KBUS_DRIVER_MAJOR, 0);
++	if ((ret = register_chrdev_region(kbus_dev, 1, "kbus")) < 0) {
++		printk(KERN_ERR "%s: register_chrdev_region(): ret=%d\n", __func__, ret);
++		return ret;
++	}
++
++	cdev_init(&kbus_cdev, &kbus_fops);
++	if ((ret = cdev_add(&kbus_cdev, kbus_dev, 1)) < 0) {
++		printk(KERN_ERR "%s: cdev_add(): ret=%d\n", __func__, ret);
++		unregister_chrdev_region(kbus_dev, 1);
++		return ret;
++	}
++
++	return spi_register_driver(&kbus_driver);
++}
++
++static void __exit kbus_exit(void)
++{
++	spi_unregister_driver(&kbus_driver);
++	cdev_del(&kbus_cdev);
++	unregister_chrdev_region(kbus_dev, 1);
++}
++
++module_init(kbus_init);
++module_exit(kbus_exit);
++
++MODULE_DESCRIPTION("WAGO KBUS SPI Driver");
++MODULE_AUTHOR("Heinrich Toews <heinrich.toews@wago.com>");
++MODULE_LICENSE("GPL");
+-- 
+2.7.4
+

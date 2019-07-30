@@ -106,5 +106,9 @@ void DIRECT_AddObject(DBusObjectPathVTable  * vtable,
 void DIRECT_RemoveObject( const char *  path);
 
 GMainContext* com_GEN_GetServerContext(void);
+
+void DIRECT_EnableDirectCommunication(void);
+DBusMessage * DIRECT_HandleContextMessage(com_tConnection * con, DBusMessage * message);
+
 #endif /* WAGO_DBUS_INTERNAL_H_ */
 //---- End of source file ------------------------------------------------------

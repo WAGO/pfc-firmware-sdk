@@ -7,6 +7,7 @@
 # Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
 
 order=$(/etc/config-tools/get_typelabel_value ORDER)
+board_variant=$(< /sys/class/wago/system/board_variant)
 
 # go up process hierarchy to see if we were started from rcS
 # during system initialisation.
@@ -29,6 +30,12 @@ function is_initphase
   return $STATUS
 }
 
+function is_4port_eth()
+{
+    [[ ${order:0:8} == "750-8215" || \
+       ${order:0:8} == "750-8211" ]]
+}
+
 function do_ifupdown
 {
     mode=$1
@@ -41,7 +48,7 @@ function do_ifupdown
         ifup eth0
         ifup ethX1
         ifup ethX2
-        if [[ ${order:0:8} == "750-8215" ]]; then
+        if is_4port_eth; then
         	ifconfig ethX11 up
         	ifconfig ethX12 up
         fi
@@ -90,7 +97,7 @@ function networking_stop
     do_ifupdown DOWN
     brctl delbr br1
     brctl delbr br0
-    if [[ ${order:0:8} == "750-8215" ]]; then
+    if is_4port_eth; then
     	brctl delbr br2
     fi
 }
@@ -116,7 +123,7 @@ function set_dsa_tag_in_config_file
 
 function networking_start
 {
-    if [[ ${order:0:8} == "750-8215" ]]; then
+    if is_4port_eth || [[ $board_variant =~ ^pac100* ]]; then
         set_dsa_tag_in_config_file
         enable_interrupt_pacing
     fi
@@ -139,7 +146,7 @@ function networking_start
     # configure switch, setup bridges etc.
     brctl addbr br0
     brctl addbr br1
-    if [[ ${order:0:8} == "750-8215" ]]; then
+    if is_4port_eth; then
         brctl addbr br2
     fi
 
@@ -153,7 +160,7 @@ function networking_start
 
     # NOTE: config-tools dependency here!!
     local macaddr=$(/etc/config-tools/get_typelabel_value MAC | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
-    if [[ ${order:0:8} != "750-8215" ]]; then
+    if ! is_4port_eth; then
         # Set same MAC address for ethX1 and ethX2.
         ifconfig ethX1 hw ether "$macaddr"
         ifconfig ethX2 hw ether "$macaddr"
@@ -161,7 +168,7 @@ function networking_start
 	    # Get next MAC addresses and store them to macs.
         # macs[0] contains the original MAC address ($macaddr).
         declare -a macs
-    	get_next_macs "$macaddr" 4
+    	  get_next_macs "$macaddr" 4
         # Add the main MAC to the ATU, CPU port is 6.
         /sbin/pfcXXX_mv88e6321_write_atu.sh $macaddr 6 
         # Add the other MACs to the ATU as well.
@@ -214,7 +221,7 @@ function networking_start
     do_ifupdown UP
 
     local SWCONFIG=$(which swconfig)
-    if [[ ${order:0:8} != "750-8215" ]]; then
+    if ! is_4port_eth; then
         if [[ -e /etc/switch_settings.conf ]] && [[ -x "${SWCONFIG}" ]]; then
             echo "setting extra switch settings..."
             . /etc/switch_settings.conf
@@ -232,9 +239,10 @@ function networking_start
     fi
 }
 
-if [[ ${order:0:8} == "750-8215" ]]; then
+if is_4port_eth || [[ $board_variant =~ ^pac100* ]]; then
 	# We only support separated mode.
 	dsa_mode=2
+	echo "DSA mode selected"
 else
 	dsa_mode=$(sed -n 's/# dsa_mode=\(.*\)/\1/p' /etc/network/interfaces)
 fi

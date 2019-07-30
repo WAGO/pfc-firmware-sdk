@@ -1,3 +1,5 @@
+udev-182/COPYING
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 
@@ -337,6 +339,8 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.
+
+udev-182/src/COPYING
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
@@ -840,6 +844,8 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
+
+udev-182/src/gudev/COPYING
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999

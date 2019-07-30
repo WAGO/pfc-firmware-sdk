@@ -1,0 +1,12 @@
+## SECTION=shell_and_console
+config HTOP
+	tristate
+	select HOST_SYSTEM_PYTHON
+	select LIBC_M
+	select GCCLIBS_GCC_S
+	select NCURSES
+	prompt "htop"
+	help
+	  htop is an interactive process viewer for Linux. It is a
+	  text-mode application (for console or X terminals).
+

@@ -1,0 +1,11 @@
+--- pure-ftpd-1.0.43.orig/src/ftpd.c	2012-11-21 14:38:32.000000000 +0100
++++ pure-ftpd-1.0.43/src/ftpd.c	2012-11-21 14:43:27.000000000 +0100
+@@ -1328,7 +1328,7 @@
+     }
+     if (anon_only <= 0 && username != NULL && *username != 0 &&
+         (anon_only < 0 || (strcasecmp(username, "ftp") &&
+-                           strcasecmp(username, "anonymous")))) {
++                           strcasecmp(username, "anonym")))) { /* wago: anonymous: we adapt the behaviour to wago default; treat user 'anonymous' as normal user */
+         strncpy(account, username, sizeof(account) - 1);
+         account[sizeof(account) - (size_t) 1U] = 0;
+         addreply(331, MSG_USER_OK, account);

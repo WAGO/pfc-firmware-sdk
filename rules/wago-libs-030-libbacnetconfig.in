@@ -1,0 +1,15 @@
+## SECTION=wago_specific_libs
+
+config LIBBACNETCONFIG
+	bool
+	default n
+	select GLIB
+	select HOST_CT_BUILD
+	select GOOGLETEST	
+	select LIBXML2
+	select LIBCTCALLHELPER
+	select LIBOSAL
+	select DBUS
+	prompt "BACnet configuration tool"
+	help
+	  BACnet configuration tool

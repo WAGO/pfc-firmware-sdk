@@ -11,7 +11,7 @@
 ///
 ///  \file     config_mdmd.c
 ///
-///  \version  $Revision: 38420 $
+///  \version  $Revision: 38215 $
 ///
 ///  \brief    Configuration tool for WAGO Modem Management Daemon. 
 ///

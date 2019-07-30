@@ -1,3 +1,5 @@
+dbus-glib-0.104/AUTHORS
+
 Ross Burton <ross@openedhand.com>
 S. Nallammai <snallammai@novell.com>
 Luiz Augusto von Dentz <luiz.dentz@gmail.com>
@@ -21,6 +23,8 @@ Joe Shaw <joe@assbarn.com>
 Colin Walters <walters@verbum.org>
 David Zeuthen <david@fubar.dk>
 
+
+dbus-glib-0.104/COPYING
 
 The D-Bus glib bindings are licensed to you under your choice of the Academic
 Free License version 2.1, or the GNU General Public License version 2.  Both

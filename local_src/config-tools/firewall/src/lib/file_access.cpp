@@ -19,8 +19,11 @@
 //------------------------------------------------------------------------------
 #include "file_access.hpp"
 #include "error.hpp"
+#include <iostream>
 #include <fstream>
 #include <sstream>
+#include <sys/stat.h>
+
 
 //------------------------------------------------------------------------------
 // defines; structure, enumeration and type definitions
@@ -33,6 +36,7 @@
 //------------------------------------------------------------------------------
 // macros
 //------------------------------------------------------------------------------
+
 
 //------------------------------------------------------------------------------
 // variables' and constants' definitions
@@ -138,6 +142,37 @@ void store_configuration(const std::string& conf, const bool stdio, xmldoc& doc)
     {
         store_file(get_config_fname(conf), doc);
     }
+}
+
+//------------------------------------------------------------------------------
+/// Copy file.
+/// \param src_file source file name
+/// \param dst_file destination file name
+//------------------------------------------------------------------------------
+void copy_file(const std::string& src_file, const std::string& dst_file)
+{
+    std::ofstream dst(dst_file, std::ios::binary);
+    std::ifstream src(src_file, std::ios::binary);
+    if (dst && src)
+    {
+        dst << src.rdbuf();
+    }
+    else
+    {
+        throw invalid_param_error("Couldn't copy file:" + src_file);
+    }
+}
+
+//------------------------------------------------------------------------------
+/// Check if file exists and not empty.
+/// \param name  name of file to check
+/// \return true if file exists and not empty, otherwise false
+//------------------------------------------------------------------------------
+bool check_file(const std::string& name)
+{
+    struct stat buffer;
+    int ret = stat (name.c_str(), &buffer);
+    return (ret == 0 && buffer.st_size  != 0);
 }
 
 } // namespace wago

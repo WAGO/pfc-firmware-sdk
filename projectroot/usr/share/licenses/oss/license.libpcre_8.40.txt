@@ -1,3 +1,5 @@
+pcre-8.40/AUTHORS
+
 THE MAIN PCRE LIBRARY
 ---------------------
 
@@ -44,11 +46,15 @@ All rights reserved
 
 ####
 
+pcre-8.40/COPYING
+
 PCRE LICENCE
 
 Please see the file LICENCE in the PCRE distribution for licensing details.
 
 End
+
+pcre-8.40/LICENCE
 
 PCRE LICENCE
 ------------
@@ -143,6 +149,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
 End
+
+pcre-8.40/cmake/COPYING-CMAKE-SCRIPTS
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

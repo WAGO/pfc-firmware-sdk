@@ -40,7 +40,14 @@ function PageBuildup(actualPageId, callback)
         dependsOnFeature: 'dataagent_feature', //< needs to be configured in device_params_list.js
         //inMenu: 'port'      //< optional -> will be appended inside
         afterEntry: 'port'  //< optional -> will be appended after
-    }//, ...
+    },
+    {
+	title: 'OPKG', //< GUI text
+	id: 'opkg', //< unique menu entry identifier
+	userLevel: 3, // 3: admin
+	dependsOnFeature: 'opkg_feature', //< needs to be configured in device_params_list.js
+	afterEntry:  'software_uploads'  //< optional -> will be appended after
+    }//,...
   ];
 
 

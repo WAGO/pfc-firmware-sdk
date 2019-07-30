@@ -3565,6 +3565,100 @@
     
   </event>
 </eventclass>
+<eventclass class_range="x0014" name="BACNET_IP">
+  <event id="x0001" name="_BT_OFF">
+    <led name="BT" default="yes" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>BACnet: Not active.</en>
+      </string>
+    
+  </event>
+  <event id="x0002" name="_BT_ON">
+    <led name="BT" state="STATIC_GRN">
+    </led>
+    <string>
+        <en>BACnet: Is operating.</en>
+      </string>
+    
+  </event>
+  <event id="x0003" name="_BT_INIT">
+    <led name="BT" state="BLINK_GRN">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>BACnet: Is starting.</en>
+      </string>
+    
+  </event>
+  <event id="x0004" name="_BT_ERROR_INTERNAL">
+    <led name="BT" state="STATIC_RED">
+    </led>
+    <string>
+        <en>BACnet: Internal error.</en>
+      </string>
+    
+  </event>
+  <event id="x0005" name="_BT_ERROR_CONFIG">
+    <led name="BT" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>BACnet: Invalid configuration</en>
+      </string>
+    
+  </event>
+  <event id="x0006" name="_BT_WARNING_PLC_OBJECT">
+    <led name="BT" state="STATIC_YLW">
+    </led>
+    <string>
+        <en>BACnet: Difference between Runtime and BACnet object.</en>
+      </string>
+    
+  </event>
+  <event id="x0007" name="_BT_WARNING_STORAGE_CHANGE_PERS">
+    <led name="BT" state="BLINK_YLW">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>BACnet: Storage access. Do not turn off Device to prevent data loss!</en>
+      </string>
+    
+  </event>
+  <event id="x0008" name="_BT_WARNING_OVERLOAD">
+    <led name="BT" state="BLINK_GRN_YLW">
+      <on>1000</on>
+      <off>1000</off>
+    </led>
+    <string>
+        <en>BACnet: Overload.</en>
+      </string>
+    
+  </event>
+  <event id="x0009" name="_BT_WARNING_BACKUP_RESTORE">
+    <led name="BT" state="BLINK_GRN_RED">
+      <on>1000</on>
+      <off>1000</off>
+    </led>
+    <string>
+        <en>BACnet: Backup and Restore.</en>
+      </string>
+    
+  </event>
+  <event id="x000A" name="_BT_WARNING_STORAGE_CHANGE_LOG">
+    <led name="BT" state="BLINK_YLW">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>BACnet: Storage access. Do not turn off Device to prevent data loss!</en>
+      </string>
+    
+  </event>
+</eventclass>
 <eventclass class_range="x0015" name="DRM">
   <event id="x000C" name="licensed">
     <led name="SYS" state="STATIC_GRN">

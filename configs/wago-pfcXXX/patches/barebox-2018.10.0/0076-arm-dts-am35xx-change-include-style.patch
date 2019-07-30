@@ -1,7 +1,7 @@
 From 8a86d73edb7a492869fc15b7825cf542b879792b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 29 Aug 2018 15:58:58 +0200
-Subject: [PATCH 076/144] arm: dts: am35xx: change include style
+Subject: [PATCH] arm: dts: am35xx: change include style
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

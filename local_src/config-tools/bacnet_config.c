@@ -36,6 +36,7 @@
 #define INVALID_INDEX           -1
 #define INVALID_VALUE           -2
 #define NO_ACCESS               -3
+#define UPLOAD_ERROR            -4
 
 #define NO_ARGUMENT             0
 #define REQUIRED_ARGUMENT       1
@@ -59,6 +60,12 @@
 #define BIT_SET         3
 #define BIT_VALUE       4
 #define BIT_INFO        5
+#define BIT_UPLOAD      6
+
+#define UPLOAD_MAX_STR_LEN  7
+#define UPLOAD_INFO         "info"
+#define UPLOAD_COPY         "copy"
+#define UPLOAD_DELETE       "delete"
 
 struct option g_longopts[] = {
    { "get",         REQUIRED_ARGUMENT,  NULL,   'g' },
@@ -67,6 +74,7 @@ struct option g_longopts[] = {
    { "json",        NO_ARGUMENT,        NULL,   'j' },
    { "set",         REQUIRED_ARGUMENT,  NULL,   's' },
    { "value",       REQUIRED_ARGUMENT,  NULL,   'v' },
+   { "upload",      REQUIRED_ARGUMENT,  NULL,   'u' },
    // last line
    { 0,             0,                  0,      0   }
 };
@@ -96,6 +104,10 @@ static int GetRequest(char* pParameter)
       bac_CONFIG_freeParameterValue(&getParamValue);
       status = SUCCESS;
     }
+  }
+  else
+  {
+    status = INVALID_VALUE;
   }
 
   return status;
@@ -174,6 +186,10 @@ static int SetRequest(char* pParameter, char* pValue)
       status = NO_ACCESS;
     }
   }
+  else
+  {
+    status = INVALID_VALUE;
+  }
 
   return status;
 }
@@ -197,6 +213,34 @@ static int GetStorageOption()
 }
 
 
+static int Upload(char *pFunc)
+{
+  int status = SUCCESS;
+  if(pFunc != NULL)
+  {
+    if(strcmp(pFunc, UPLOAD_INFO) == 0)
+    {
+      int value = bac_CONFIG_uploadFileInfo();
+      printf("%i",value);
+    }
+    else if(strcmp(pFunc, UPLOAD_COPY) == 0)
+    {
+      bac_CONFIG_uploadFileCopy();
+    }
+    else if(strcmp(pFunc, UPLOAD_DELETE) == 0)
+    {
+      bac_CONFIG_uploadFileDelete();
+    }
+    else
+    {
+      status = UPLOAD_ERROR;
+      printf("no valid function\n");
+    }
+  }
+  return status;
+}
+
+
 // show help text
 static void ShowHelpText(void)
 {
@@ -204,12 +248,14 @@ static void ShowHelpText(void)
 
   printf("\n* Get or set BACnet settings *\n\n");
   printf("Usage: bacnet_configs <options> \n");
-  printf("options: --help  || -h              - show help text \n");
-  printf("         --info  || -i              - show storage options(all=1, internal only=0) \n");
-  printf("         --get   || -g <parameter>  - read parameter value \n");
-  printf("         --json  || -j              - read all parameter values in json format \n");
-  printf("         --set   || -s <parameter>  - write parameter value (option -v must be set also)\n");
-  printf("         --value || -v <value>      - value to set \n");
+  printf("options: --help   || -h              - show help text \n");
+  printf("         --info   || -i              - show storage options(all=1, internal only=0) \n");
+  printf("         --get    || -g <parameter>  - read parameter value \n");
+  printf("         --json   || -j              - read all parameter values in json format \n");
+  printf("         --set    || -s <parameter>  - write parameter value (option -v must be set also)\n");
+  printf("         --value  || -v <value>      - value to set \n");
+  printf("         --upload || -u <function>   - upload function (info, copy and delete)\n");
+
 
   if(pParamList != NULL)
   {
@@ -268,10 +314,11 @@ int main(int    argc,
   int status = SUCCESS;
   int flag = 0;
   char* pParameter = NULL;
+  char* pFunc = NULL;
   char* pValue = NULL;
 
   int oc; // option character
-  while ((oc = getopt_long(argc, argv, ":g:hijs:v:", g_longopts, NULL)) != -1)
+  while ((oc = getopt_long(argc, argv, ":g:hijs:v:u:", g_longopts, NULL)) != -1)
   {
     switch (oc)
     {
@@ -296,6 +343,10 @@ int main(int    argc,
       case 'v':
         flag |= 1 << BIT_VALUE;
         pValue = optarg;
+        break;
+      case 'u':
+        flag |= 1 << BIT_UPLOAD;
+        pFunc = optarg;
         break;
       // invalid options or missing option argument
       case '?':
@@ -348,6 +399,13 @@ int main(int    argc,
       status = SetRequest(pParameter, pValue);
     }
 
+    // upload
+    else if( (flag & (1 << BIT_UPLOAD)) &&
+             (pFunc != NULL) )
+    {
+      status = Upload(pFunc);
+    }
+
     // unknown -> error
     else
     {
@@ -362,9 +420,13 @@ int main(int    argc,
     { // invalid value (out of range, etc.)
       ct_liblog_setLastError("Invalid value");
     }
-    else if(NO_ACCESS)
+    else if(status == NO_ACCESS)
     { // parameter is only readable
       ct_liblog_setLastError("No write access");
+    }
+    else if(status == UPLOAD_ERROR)
+    { // parameter is only readable
+      ct_liblog_setLastError("Internal error while BACnet file upload");
     }
     else
     { // other internal error

@@ -193,6 +193,7 @@ if (!Array.prototype.indexOf) {
 <script type='text/javascript' src="js/bacnet_diagnostic.js"></script>
 <script type='text/javascript' src="js/bacnet_general_configuration.js"></script>
 <script type='text/javascript' src="js/bacnet_storage_location.js"></script>
+<script type='text/javascript' src="js/opkg.js"></script>
 
 <?php //include("test/test.inc.php"); ?>
 
@@ -255,7 +256,8 @@ $(document).ready(function()
       new RoutingContent('routing'),
       new BacnetDiagnosticContent('bacnet_diagnostic'),
       new BacnetGeneralContent('bacnet_general_configuration'),
-      new BacnetStorageContent('bacnet_storage_location')
+      new BacnetStorageContent('bacnet_storage_location'),
+      new OpkgContent('opkg')
   );
 
   var actualContentId  = document.location.hash.replace("#", "") || 'information';

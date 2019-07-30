@@ -49,6 +49,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(IECSSL_SRC) $(BUILDDIR)
 	@$(call patchin, IECSSL)
+	cd $(IECSSL_DIR) && sh autogen.sh
 endif
 	@$(call touch)
 
@@ -68,7 +69,6 @@ $(STATEDIR)/iecssl.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	cd $(IECSSL_DIR) && sh autogen.sh
 	@$(call world/prepare, IECSSL)
 endif
 	@$(call touch)

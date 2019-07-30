@@ -1,19 +1,10 @@
-//------------------------------------------------------------------------------
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
-// This file is part of project mdmd (PTXdist package mdmd).
-//
 // Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-///  \file     mdm_statemachine.cc
-///
-///  \brief    Specific statemachine declaration
-///
-///  \author   KNu
-//------------------------------------------------------------------------------
+
+
 #ifndef MDM_STATEMACHINE_H
 #define MDM_STATEMACHINE_H
 
@@ -30,8 +21,8 @@
 #include "mdm_dbusserver.h"
 #include "mdm_config_types.h"
 #include "persistent_storage.h"
+#include "mdm_diagnostic.h"
 
-#include <diagnostic/mdmd_diag.h>
 #include "sysfs_lib.h"
 
 enum class MdmSimState {UNKNOWN, SIM_PIN, SIM_PUK, READY, NOT_INSERTED, NOT_READY, SIM_ERROR};
@@ -55,6 +46,7 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     MdmDBusServer *_dbus_server;
     MethodInvocation _current_invocation;
     PersistentStorage _storage;
+    MdmDiagnostic _diagnostic;
 
     GPIO_Control _gpioPowerKey;
     MUSB_Control _musbDriverPort;
@@ -80,7 +72,6 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     std::string _puk;
     int _pin_count;
     int _puk_count;
-    int _current_signal_step;
 
     Oper        _current_oper;
     OperMap     _oper_map;
@@ -89,7 +80,6 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
 
     bool _gprs_temporary_disable;
     unsigned int _gprs_autoconnect_count;
-    bool _net_led_blink_code_output;
 
     int _last_cme_error;
     int _last_cms_error;
@@ -99,13 +89,13 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     std::string _pdp_addr;
 
     void init();
-    void update_status_leds();
     int set_modem_powerkey(int value) const;
     int execute_command(const std::string &cmd, std::string &cmd_output, std::string &cmd_error);
     bool wwan_get_status(bool &is_enabled, bool &is_configured);
     bool wwan_stop();
     bool wwan_enable();
     bool wwan_start();
+    void open_modem_port(const std::string& commandDevice);
 
     public:
     MdmStatemachine (transition_list_t &tl, State &s1, action_list_t &al,
@@ -124,7 +114,6 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     void kick_cmd_timeout(unsigned int milliseconds);
     bool dbus_online() const { return _dbus_server->online(); }
     bool is_modem_port_open() const { return (_port != 0); }
-    bool get_modem_command_device(std::string &commandDevice) const;
     void try_open_modem();
     int  get_port_wait_count() const { return _port_wait_count; }
     int  inc_port_wait_count() { _port_wait_count++; return _port_wait_count; }
@@ -218,7 +207,7 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     void set_sms_storage_config(const SmsStorageConfig& sms_config) { _storage.set_sms_storage_config(sms_config);_storage.save(); }
     bool get_sms_storage_config(SmsStorageConfig& sms_config) { return _storage.get_sms_storage_config(sms_config);}
     
-    void log_event(unsigned int id);
+    void set_error_state(MdmErrorState newErrorState) { _diagnostic.set_error_state(newErrorState); }
 
     void event_report_last_read();
 
@@ -232,8 +221,6 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
 
     bool set_loglevel(const int loglevel);
     int  get_loglevel() const;
-
-    void stop_net_led_blink_code();
 
     size_t get_count_operator_names() const { return _operator_names.size(); }
     bool insert_operator_name(int id, const std::string& name);
@@ -251,12 +238,13 @@ class MdmSMPort : public SerialPort
 {
     private:
     MdmStatemachine *_sm;
+
     public:
     MdmSMPort( MdmStatemachine *sm, const std::string &fname, std::string *read_buffer )
         : SerialPort (fname, read_buffer)
         , _sm(sm)
     {}
-    ~MdmSMPort() {}
+    ~MdmSMPort() = default; 
 
     void read_line_cb( const std::string &line );
     void io_error();

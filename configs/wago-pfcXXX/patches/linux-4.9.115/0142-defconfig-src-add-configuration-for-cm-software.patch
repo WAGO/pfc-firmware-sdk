@@ -1,0 +1,100 @@
+From a215f6417f7c6422f97d07cb6fde0d755b11afa2 Mon Sep 17 00:00:00 2001
+From: Oliver Schildan <oliver.schildan@wago.com>
+Date: Mon, 29 Jan 2018 14:43:04 +0100
+Subject: [PATCH] defconfig: src: add configuration for cm software
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/boot/dts/wago-src-setupfw.dts | 80 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
+ create mode 100644 arch/arm/boot/dts/wago-src-setupfw.dts
+
+diff --git a/arch/arm/boot/dts/wago-src-setupfw.dts b/arch/arm/boot/dts/wago-src-setupfw.dts
+new file mode 100644
+index 0000000..2d01f45
+--- /dev/null
++++ b/arch/arm/boot/dts/wago-src-setupfw.dts
+@@ -0,0 +1,80 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "wago-src.dtsi"
++#include "wago-src-ksz8863.dtsi"
++
++/*
++ *
++ *   DEVCONF: 0x000C
++ *
++ *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
++ *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
++ *    x   x   x   x   x   x  x  x  x  x  x  x  |  |  x  x
++ *                                             |  |
++ *                                             |  RS232_485
++ *                                             ETHERNET_IP
++ *
++ */
++
++/*
++ * The devconf variable is a 16bit value.
++ * Data is stored in little endian format.
++ *
++ * 0x1fe |---------------------------------------|
++ *       |          DEVCONF Byte 0 (Low Byte)    |
++ *       | ------------------------------------- |
++ *       |          DEVCONF Byte 1 (High Byte)   |
++ * 0x200 |---------------------------------------|
++ *
++ *   15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
++ *    |   |   |   |   |   |  |  |  |  |  |  |  |  |  |  |
++ *    x   x   x   x   x   x  x  x  x  x  x  x  |  |  |  PROFIBUS_SL
++ *                                             |  |  CAN
++ *                                             |  RS232_485
++ *                                             ETHERNET_IP
++ *   x: reserved for future use
++ *
++ */
++
++/ {
++	target_info {
++		/*
++		 * maybe we should change the drivers name
++		 * to something like "wago,information" ??
++		*/
++		compatible = "wago,testenv";
++
++		board_info {
++			model = "src";
++			id = "2850-311x";
++		};
++
++		led_info {
++			/* conforms to led order on device, see node "pca9552@60".
++			 * we assume, that every led has to colors (red, green).
++			 * so we only allow the colors red,green,orange
++			 */
++			led_array_red = "sys:app";
++		};
++	};
++};
++
++&uart1 {
++	/* uart1 disabled for cmtest gpio test */
++	status = "disabled";
++};
++
++&usb1_phy {
++	status = "okay";
++};
++
++&usb1 {
++	status = "okay";
++};
+-- 
+2.7.4
+

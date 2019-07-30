@@ -77,6 +77,8 @@ $(STATEDIR)/docker.targetinstall:
 
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/init.d/dockerd)
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/docker/daemon.json)
+	@$(call install_alternative, docker, 0, 0, 0755, /etc/config-tools/events/firewall/iptables/docker)
+	@$(call install_alternative, docker, 0, 0, 0755, /opt/wago-docker/sbin/iptables)
 
 	@$(call install_link, docker, /etc/init.d/dockerd, /etc/rc.d/S99_docker)
 

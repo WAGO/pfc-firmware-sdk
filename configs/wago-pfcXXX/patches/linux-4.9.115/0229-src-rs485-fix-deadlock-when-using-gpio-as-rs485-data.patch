@@ -1,0 +1,125 @@
+From e1621363128ac17e8e9659bbc1086ce137d4676a Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Tue, 14 Aug 2018 16:01:24 +0200
+Subject: [PATCH] src: rs485: fix deadlock when using gpio as rs485 data enable
+
+Rs485 driver uses deprecated gpio interface to handle data enable pin. The
+deprecated gpio interface is mapped to new descriptor based interface.
+Gpio_to_desc uses sleeping_lock in interrupt context, which leads to
+a deadlock in some situations.
+This patch fixes this, by calling gpio_to_desc in probe function and call
+descriptor based gpio setter in interrupt handler.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ drivers/tty/serial/omap-serial-rtu.c | 30 ++++++++++++++++--------------
+ drivers/tty/serial/omap-serial-rtu.h |  3 ++-
+ 2 files changed, 18 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/tty/serial/omap-serial-rtu.c b/drivers/tty/serial/omap-serial-rtu.c
+index f71cfb4..3b0adec 100644
+--- a/drivers/tty/serial/omap-serial-rtu.c
++++ b/drivers/tty/serial/omap-serial-rtu.c
+@@ -48,7 +48,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/of.h>
+-#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/of_gpio.h>
+ #include <linux/of_irq.h>
+@@ -224,14 +224,14 @@ static inline void serial_omap_update_rts(struct uart_omap_port *up)
+ 		if(up->tx_in_progress) {
+ 			pr_debug("%s: %s: deassert RTS (~UART_MCR_RTS)\n", up->name, __func__);
+ 			/* See AM35x docs 14.6.2.10 MCR_REG: 0x0 -> RTS high, 0x1 -> RTS low */
+-			if (gpio_is_valid(up->rts_gpio))
+-				gpio_set_value(up->rts_gpio, ( (up->rs485.flags & SER_RS485_RTS_ON_SEND) > 0) ? 1 : 0 );
++			if (up->rts_gpio)
++				gpiod_set_value(up->rts_gpio, ((up->rs485.flags & SER_RS485_RTS_ON_SEND) > 0) ? 1 : 0);
+ 			else
+ 				up->mcr &= ~UART_MCR_RTS;
+ 		} else {
+ 			pr_debug("%s: %s: assert RTS (UART_MCR_RTS)\n", up->name, __func__);
+-			if (gpio_is_valid(up->rts_gpio))
+-				gpio_set_value(up->rts_gpio, ( (up->rs485.flags & SER_RS485_RTS_ON_SEND) > 0) ? 0 : 1 );
++			if (up->rts_gpio)
++				gpiod_set_value(up->rts_gpio, ((up->rs485.flags & SER_RS485_RTS_ON_SEND) > 0) ? 0 : 1);
+ 			else
+ 				up->mcr |= UART_MCR_RTS;
+ 		}
+@@ -1722,10 +1722,11 @@ static int of_probe_rs485(struct uart_omap_port *up,
+ 	struct serial_rs485 *rs485conf = &up->rs485;
+ 	u32 rs485_delay[2];
+ 	enum of_gpio_flags flags;
++	int rts_gpio = -EINVAL;
+ 	int ret;
+ 
+ 	rs485conf->flags = 0;
+-	up->rts_gpio = -EINVAL;
++	up->rts_gpio = NULL;
+ 
+ 	if (!np)
+ 		return 0;
+@@ -1737,19 +1738,20 @@ static int of_probe_rs485(struct uart_omap_port *up,
+ 
+ 	if(of_property_read_bool(np, "rts-gpio")){
+ 		/* check for tx enable gpio */
+-		up->rts_gpio = of_get_named_gpio_flags(np, "rts-gpio", 0, &flags);
+-		if (gpio_is_valid(up->rts_gpio)) {
+-			ret = devm_gpio_request(up->dev, up->rts_gpio, "omap-serial-rtu");
++		rts_gpio = of_get_named_gpio_flags(np, "rts-gpio", 0, &flags);
++		if (gpio_is_valid(rts_gpio)) {
++			ret = devm_gpio_request(up->dev, rts_gpio, "omap-serial-rtu");
+ 			if (ret < 0)
+ 				return ret;
+-			ret = gpio_direction_output(up->rts_gpio,
++			ret = gpio_direction_output(rts_gpio,
+ 					rs485conf->flags & SER_RS485_RTS_AFTER_SEND);
+ 			if (ret < 0)
+ 				return ret;
+-		} else if (up->rts_gpio == -EPROBE_DEFER) {
++			up->rts_gpio = gpio_to_desc(rts_gpio);
++		} else if (rts_gpio == -EPROBE_DEFER) {
+ 			return -EPROBE_DEFER;
+ 		} else {
+-			up->rts_gpio = -EINVAL;
++			rts_gpio = -EINVAL;
+ 		}
+ 	}
+ 
+@@ -1760,8 +1762,8 @@ static int of_probe_rs485(struct uart_omap_port *up,
+ 		if (ret < 0)
+ 			return ret;
+ 	} else if (up->rs485en_gpio == -EPROBE_DEFER) {
+-		if (gpio_is_valid(up->rts_gpio))
+-			devm_gpio_free(up->dev, up->rts_gpio);
++		if (gpio_is_valid(rts_gpio))
++			devm_gpio_free(up->dev, rts_gpio);
+ 		return -EPROBE_DEFER;
+ 	} else {
+ 		up->rs485en_gpio = -EINVAL;
+diff --git a/drivers/tty/serial/omap-serial-rtu.h b/drivers/tty/serial/omap-serial-rtu.h
+index 741bb5f..dfd57c5 100644
+--- a/drivers/tty/serial/omap-serial-rtu.h
++++ b/drivers/tty/serial/omap-serial-rtu.h
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pm_qos.h>
+ #include <linux/kfifo.h>
++#include <linux/gpio/consumer.h>
+ 
+ //#include <plat/mux.h>
+ //#include <plat/pfc-modbus-rtu.h>
+@@ -184,7 +185,7 @@ struct uart_omap_port {
+ 
+ 	struct serial_rs485     rs485;
+ 	unsigned int            tx_in_progress:1, tx_wait_end:1;
+-	int			rts_gpio;
++	struct gpio_desc	*rts_gpio;
+ 	int 			rs485en_gpio;
+ 	u8 			rs485en_alow;
+ 
+-- 
+2.7.4
+

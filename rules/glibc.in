@@ -1,0 +1,266 @@
+## SECTION=libc
+
+config GLIBC
+	tristate
+	select BASE if RUNTIME
+
+if GLIBC
+
+menu "glibc                         "
+	depends on !PROJECT_USE_BASE_PLATFORM
+
+comment	"Install options"
+
+config GLIBC_LD
+	bool
+	help
+	  This is the dynamic loader (e.g.: "/lib/ld-2.8.90.so")
+
+	  You don't want to deselect this, unless you have a pure
+	  static system. This is why this options hasn't a prompt.
+
+config GLIBC_C
+	bool
+	default y
+	prompt "Install libc"
+	select GLIBC_LD
+	help
+	  Any Unix-like operating system needs a C library:
+	  the library which defines the "system calls" and
+	  other basic facilities such as open, malloc, printf,
+	  exit...
+
+	  The GNU C library is used as the C library in the
+	  GNU system and most systems with the Linux kernel.
+
+	  Better not turn this option off..
+
+config GLIBC_PTHREAD
+	bool
+	prompt "Install libpthread"
+	help
+	  If at least one application on the target uses threads when executed
+	  this library will be required.
+
+config GLIBC_THREAD_DB
+	bool
+	prompt "Install libthread_db"
+	help
+	  If at least one application on the target uses threads when executed
+	  and you are going to debug this application (also remotely!), this
+	  library will be required. You can omit this library, if you never
+	  intend to debug multithread application on your target.
+
+config GLIBC_RT
+	bool
+	prompt "Install librt"
+	help
+	  Functions in this library provide most of the interfaces specified by
+	  the POSIX.1b Realtime Extension
+
+config GLIBC_DL
+	bool
+	prompt "Install libdl"
+	help
+	  libdl.so is a dynamic linking library that is generally of use only for
+	  porting applications. If you are porting a BeOS application that requires
+	  dlopen, dlclose, dlerror, dlsym, dladdr, or dlfcn.h, then you can use this
+	  library.
+
+	  libdl.so is a wrapper to the add-on functions with the semantics of the dl
+	  (dynamic linking) library. This is used for finding shared objects at run
+	  time. If the items are not found the program can continue to run.
+
+	  It is extremely similar to the add-on mechanism in BeOS with some semantics
+	  changes. If you are developing your own app, you almost definitely want to
+	  use add-ons unless you are already familiar with libdl. In this case you may
+	  be disappointed since it is possible that I have implemented part of it wrong.
+
+	  If you want your application to have cross platform compatibility with this
+	  functionality you should probably use libtool instead. It is much more cross
+	  platform compatible than dlopen, etc. It also supports BeOS. See related links.
+
+config GLIBC_CRYPT
+	bool
+	prompt "Install libcrypt"
+	help
+	  The encryption/decryption library
+
+config GLIBC_UTIL
+	bool
+	prompt "Install libutil"
+	help
+	  Contains code for "standard" functions used in many different Unix
+	  utilities.
+
+config GLIBC_M
+	bool
+	prompt "Install libm"
+	help
+	  If at least one application on your target does any kind of math
+	  calculation, you should install this library.
+
+config GLIBC_ANL
+	bool
+	prompt "Install libanl"
+	help
+	  libanl is an asynchronous name lookup library, originating in Bind.
+
+
+config GLIBC_NSS_DNS
+	bool
+	prompt "Install libnss_dns"
+	select GLIBC_RESOLV
+	help
+	  Contains functions for name resolution to ip addresses and vice versa
+
+config GLIBC_NSS_FILES
+	bool
+	prompt "Install libnss_files"
+	help
+	  Contains functions to access some vital system control files (for
+	  login for example) and for name resolution to ip addresses.
+	  NSS is the "Name Service Switch", controlled by /etc/nsswitch.conf
+
+config GLIBC_NSS_HESIOD
+	bool
+	prompt "Install libnss_hesiod"
+	select GLIBC_RESOLV
+	select GLIBC_NSS_FILES
+	help
+	  Adds the hesiod libnss source for user lookups
+
+config GLIBC_NSS_NIS
+	bool
+	prompt "Install libnss_nis"
+	select GLIBC_NSL
+	select GLIBC_NSS_FILES
+	help
+	  Adds the NIS (NIS version 2), also called YP, libnss source
+
+config GLIBC_NSS_NISPLUS
+	bool
+	prompt "Install libnss_nisplus"
+	select GLIBC_NSL
+	help
+	  Adds the NIS+ (NIS version 3) libnss source
+
+config GLIBC_NSS_COMPAT
+	bool
+	prompt "Install libnss_compat"
+	select GLIBC_NSL
+	help
+	  Adds the NIS libnss source on compat mode
+
+config GLIBC_RESOLV
+	bool
+	prompt "Install libresolv"
+#	select GLIBC_NSS_FILES
+#	select GLIBC_NSS_DNS
+	help
+	  This library is required for creating, sending, and interpreting
+	  packets to and from the internet domain name service. This library
+	  needs some file for configuration: /etc/nsswitch.conf and /etc/resolv.conf.
+	  Refer man pages for both files and how to setup them. To use any kind
+	  of DNS, you must provide your own /etc/nsswitch.conf and
+	  /etc/resolv.conf files. See menu "Root Filesystem -> config files -> /etc/nsswitch.conf"
+	  You will also need libnss_files if this name resolution should base
+	  on local files like /etc/hosts and libnss_dns if the name resolution
+	  should work with an external dynamic name resolution service. You
+	  will need both libraries if your /etc/nsswitch.conf contains a line
+	  like "hosts: file dns"
+
+config GLIBC_NSL
+	bool
+	prompt "Install libnsl"
+	help
+	  Functions in this library provide routines that provide a
+	  transport-level interface to networking services like i.E.
+	  nis(+)
+
+
+config GLIBC_GETENT
+	bool
+	prompt "Install getent"
+	help
+	  getent is a tool to get entries from Name Service Switch
+	  libraries
+
+config GLIBC_LDCONFIG
+	bool
+	prompt "Install ldconfig"
+	help
+	  ldconfig creates a shared library cache, which reduces the number
+	  of library locations, the loader needs to check, significantly and
+	  therefore improves launch times for programs.
+
+config GLIBC_LDCONFIG_RC_ONCE
+	bool
+	prompt "Create /etc/ld.so.cache"
+	depends on GLIBC_LDCONFIG
+	help
+	  The ld.so.cache is generated once at first boot. If you update your
+	  libraries later on at runtime, you have to make sure to update the
+	  cache as well. See /etc/rc.once.d/ldconfig
+
+config GLIBC_I18N_BIN_LOCALE
+	bool
+	prompt "Install locale"
+	help
+	  The locale program writes information about the current
+	  locale environment, or all locales, to standard output.
+
+config GLIBC_I18N_BIN_LOCALEDEF
+	bool
+	prompt "Install localedef"
+	help
+	  The  localedef  program reads the indicated charmap and
+	  input files, compiles them to a binary form quickly usable
+	  by the locale functions in the C library, and add it to
+	  /usr/lib/locale/locale-archive
+
+config GLIBC_I18N_RAWDATA
+	bool
+	prompt "Install i18n locales and charmaps"
+	depends on GLIBC_I18N_BIN_LOCALEDEF
+	help
+	  With the i18n datasets you can generate new locales in running
+	  system. This will, however, increase the installation size
+	  unnecessarily if you don't want to change your system locale
+	  often. Hence we recommend to use the "System locale" option in
+	  ptxdist to determine locales while building the system.
+
+menu "Install gconv libraries       "
+
+config GLIBC_GCONF_BASE
+	bool
+
+config GLIBC_GCONV_DEF
+	bool
+	prompt "default gconv modules"
+	select GLIBC_GCONF_BASE
+	default y
+	help
+	  install the iso8859-1 (Latin Alphabet No.1) and the iso8859-15 (Latin
+	  Alphabet No.9) encoding modules into gconv, this should be ok for most
+	  western languages
+
+config GLIBC_GCONV_UTF
+	bool
+	prompt "gconv modules for UTF"
+	select GLIBC_GCONF_BASE
+	help
+	  install the gconv modules for UTF conversion
+
+config GLIBC_GCONV_ZH
+	bool
+	prompt "gconv modules for chinese language"
+	select GLIBC_GCONF_BASE
+	help
+	  install the gconv modules for chinese language, including BIG5
+	  and GB18030
+
+endmenu
+endmenu
+
+endif

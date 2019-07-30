@@ -48,6 +48,7 @@ exit_status=$SUCCESS
 readonly operation=$1
 readonly backupFile="${2:-}"
 readonly prefix="${3:-}"
+
 #-------------------------------------------------------------
 # show help-text if requested
 #-------------------------------------------------------------
@@ -81,14 +82,14 @@ fi
 
 if [ "$operation" = "restore" ]; then
 
-  "$CONFIG_TOOLS_SBIN_PATH$RESTORE_SCRIPT" "$backupFile"
+  "${CONFIG_TOOLS_SBIN_PATH}${RESTORE_SCRIPT}" "$backupFile"
   exit_status=$?
 #-------------------------------------------------------------
 # save settings
 #-------------------------------------------------------------
 elif [ "$operation" = "save" ]; then
 
-  "$CONFIG_TOOLS_SBIN_PATH$BACKUP_SCRIPT" "$backupFile"
+  "${CONFIG_TOOLS_SBIN_PATH}${BACKUP_SCRIPT}" "$backupFile"
   exit_status=$?
 
  #unknown operation

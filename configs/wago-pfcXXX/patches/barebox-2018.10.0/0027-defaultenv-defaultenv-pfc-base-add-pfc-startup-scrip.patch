@@ -1,8 +1,7 @@
 From b32bba7641a7e011d51304ddb1f33212410fa498 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 28 Jun 2018 14:35:54 +0200
-Subject: [PATCH 027/144] defaultenv: defaultenv-pfc-base: add pfc startup
- scripting
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: add pfc startup scripting
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -54,9 +54,10 @@ newDomainname=$(GetParameterValue dnsdomain $*)
 newDomainnamePresent=$?
 configChanged=""
 
+
 if [ "$newHostnamePresent" -ne "0" ]; then
     if [ "$newHostname" ]; then
-        /etc/config-tools/ipdatacheck --verify-hostname $newHostname
+        /etc/config-tools/ipdatacheck --verify-hostname "$newHostname"
         if [ "$?" -ne 0 ]; then
             ReportError $INVALID_PARAMETER "($newHostname)"
             SetLastError "Hostname invalid"
@@ -71,7 +72,7 @@ fi
 
 if [ "$newDomainnamePresent" -ne "0" ]; then
     if [ "$newDomainname" ]; then
-        /etc/config-tools/ipdatacheck --verify-domain $newDomainname
+        /etc/config-tools/ipdatacheck --verify-domain "$newDomainname"
         if [ "$?" -ne 0 ]; then
             ReportError $INVALID_PARAMETER "($newDomainname)"
             SetLastError "Domainname invalid"

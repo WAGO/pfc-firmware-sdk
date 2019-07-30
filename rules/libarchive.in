@@ -1,0 +1,36 @@
+## SECTION=system_libraries
+
+menuconfig LIBARCHIVE
+	tristate
+	select GCCLIBS_GCC_S
+	select ZLIB
+	select BZIP2		if LIBARCHIVE_BZIP2
+	select BZIP2_LIBBZ2	if LIBARCHIVE_BZIP2
+	select XZ		if LIBARCHIVE_LZMA
+	prompt "libarchive                    "
+	help
+	  Multi-format archive and compression library.
+
+if LIBARCHIVE
+
+config LIBARCHIVE_BZIP2
+	bool
+	prompt "bzip2 support"
+
+config LIBARCHIVE_LZMA
+	bool
+	prompt "xz support"
+
+config LIBARCHIVE_BSDTAR
+	bool
+	prompt "install bsdtar"
+
+config LIBARCHIVE_BSDCAT
+	bool
+	prompt "install bsdcat"
+
+config LIBARCHIVE_BSDCPIO
+	bool
+	prompt "install bsdcpio"
+
+endif

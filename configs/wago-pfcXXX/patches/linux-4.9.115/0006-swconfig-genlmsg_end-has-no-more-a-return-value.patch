@@ -1,0 +1,52 @@
+From ad8c8c469066e895374dfe6c483e236014d2d5ce Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 17 Nov 2016 07:10:38 +0000
+Subject: [PATCH] swconfig: genlmsg_end has no more a return value
+
+---
+ drivers/net/phy/swconfig.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/phy/swconfig.c b/drivers/net/phy/swconfig.c
+index 99cdc1d..624b2c4 100644
+--- a/drivers/net/phy/swconfig.c
++++ b/drivers/net/phy/swconfig.c
+@@ -393,7 +393,10 @@ swconfig_dump_attr(struct swconfig_callback *cb, void *arg)
+ 			op->description))
+ 			goto nla_put_failure;
+ 
+-	return genlmsg_end(msg, hdr);
++        genlmsg_end(msg, hdr);
++
++	return 0;
++
+ nla_put_failure:
+ 	genlmsg_cancel(msg, hdr);
+ 	return -EMSGSIZE;
+@@ -824,9 +827,8 @@ swconfig_get_attr(struct sk_buff *skb, struct genl_info *info)
+ 		err = -EINVAL;
+ 		goto error;
+ 	}
+-	err = genlmsg_end(msg, hdr);
+-	if (err < 0)
+-		goto nla_put_failure;
++
++        genlmsg_end(msg, hdr);
+ 
+ 	swconfig_put_dev(dev);
+ 	return genlmsg_reply(msg, info);
+@@ -885,7 +887,10 @@ swconfig_send_switch(struct sk_buff *msg, u32 pid, u32 seq, int flags,
+ 		nla_nest_end(msg, p);
+ 	}
+ 	nla_nest_end(msg, m);
+-	return genlmsg_end(msg, hdr);
++        genlmsg_end(msg, hdr);
++
++	return 0;
++
+ nla_put_failure:
+ 	genlmsg_cancel(msg, hdr);
+ 	return -EMSGSIZE;
+-- 
+2.7.4
+

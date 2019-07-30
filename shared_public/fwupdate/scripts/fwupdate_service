@@ -134,7 +134,7 @@ fwupdate_service_start()
 # Param 1: current fwupdate state
 # Param 2: current fwupdate substate
 #
-# Return: 0 on success, otherwise the functino will not return
+# Return: 0 on success, otherwise the function will not return
 #-----------------------------------------------------------------------------#
 fwupdate_service_check_booted_system()
 {

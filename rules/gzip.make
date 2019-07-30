@@ -16,14 +16,14 @@ PACKAGES-$(PTXCONF_GZIP) += gzip
 #
 # Paths and names
 #
-GZIP_VERSION	:= 1.8
-GZIP_MD5	:= f7caabb65cddc1a4165b398009bd05b9
+GZIP_VERSION	:= 1.10
+GZIP_MD5	:= 691b1221694c3394f1c537df4eee39d3
 GZIP		:= gzip-$(GZIP_VERSION)
 GZIP_SUFFIX	:= tar.xz
 GZIP_URL	:= $(call ptx/mirror, GNU, gzip/$(GZIP).$(GZIP_SUFFIX))
 GZIP_SOURCE	:= $(SRCDIR)/$(GZIP).$(GZIP_SUFFIX)
 GZIP_DIR	:= $(BUILDDIR)/$(GZIP)
-GZIP_LICENSE	:= GPL-3.0
+GZIP_LICENSE	:= GPL-3.0-only
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -38,7 +38,8 @@ GZIP_CONF_OPT	:= \
 	--runstatedir=/run \
 	$(GLOBAL_LARGE_FILE_OPTION) \
 	--enable-threads=posix \
-	--disable-rpath
+	--disable-rpath \
+	--disable-gcc-warnings
 
 # ----------------------------------------------------------------------------
 # Target-Install

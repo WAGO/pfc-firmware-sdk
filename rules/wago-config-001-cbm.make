@@ -157,30 +157,19 @@ $(STATEDIR)/cbm.targetinstall:
 	
 
 ifdef PTXCONF_CT_WDIALOG
-	@$(call install_copy, cbm, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/wdialog, /etc/config-tools/wdialog);
+	@$(call install_copy, cbm, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/wdialog, /etc/config-tools/wdialog)
 endif
 
 ifdef PTXCONF_CBM
-	@$(call install_copy, cbm, 0, 0, 0755, $(PTXDIST_WORKSPACE)/projectroot/etc/init.d/cbm, /etc/init.d/cbm, n); \
-	@$(call install_copy, cbm, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/usr/sbin/cbm, /usr/sbin/cbm); 
+	@$(call install_copy, cbm, 0, 0, 0755, $(PTXDIST_WORKSPACE)/projectroot/etc/init.d/cbm, /etc/init.d/cbm, n)
+	@$(call install_copy, cbm, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/usr/sbin/cbm, /usr/sbin/cbm) 
 
 	# Main Script
-	@$(call install_copy, cbm, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/cbm, /etc/config-tools/cbm, n); 
+	@$(call install_copy, cbm, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/cbm, /etc/config-tools/cbm, n) 
   
 	# Additional Modules
 
 	@$(call install_copy, cbm, 0, 0, 0750, /etc/config-tools/cbm-script-modules);
-
-# # Install everything
-#	cd $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/cbm-script-modules && \
-#	for file in *; do \
-#		if test -f $$file; then \
-#			$(call install_copy, cbm, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/cbm-script-modules/$$file, \
-#				/etc/config-tools/cbm-script-modules/$$file, n); \
-#		fi \
-#	done 
-	    
-
 
 	@$(call install_copy, cbm, 0, 0, 0640, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/cbm-script-modules/port_interfaces.sh, /etc/config-tools/cbm-script-modules/port_interfaces.sh, n)
 

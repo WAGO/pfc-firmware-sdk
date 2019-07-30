@@ -1,4 +1,4 @@
-## -*-makefile-*-
+# -*-makefile-*-
 # $Id$
 #
 # Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
@@ -14,19 +14,19 @@
 #
 PACKAGES-$(PTXCONF_CDS3_TSCWAGOAPPSENSOR) += cds3-tscwagoappsensor
 
-CDS3_TSCWAGOAPPSENSOR_VERSION := 1.0.1
-CDS3_TSCWAGOAPPSENSOR         := TscWagoAppSensor
-CDS3_TSCWAGOAPPSENSOR_DIR     := $(BUILDDIR)/$(CDS3_TSCWAGOAPPSENSOR)
-CDS3_TSCWAGOAPPSENSOR_URL     := file://$(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_TSCWAGOAPPSENSOR)
-CDS3_TSCWAGOAPPSENSOR_SRC_DIR := $(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_TSCWAGOAPPSENSOR)
-CDS3_TSCWAGOAPPSENSOR_SRC     := $(CDS3_TSCWAGOAPPSENSOR_SRC_DIR)/$(CDS3_TSCWAGOAPPSENSOR)
-CDS3_TSCWAGOAPPSENSOR_BIN     := lib$(CDS3_TSCWAGOAPPSENSOR).so.$(CDS3_TSCWAGOAPPSENSOR_VERSION)
+CDS3_TSCWAGOAPPSENSOR_VERSION	 := 1.0.1
+CDS3_TSCWAGOAPPSENSOR              := TscWagoAppSensor
+CDS3_TSCWAGOAPPSENSOR_DIR          := $(BUILDDIR)/$(CDS3_TSCWAGOAPPSENSOR)
+CDS3_TSCWAGOAPPSENSOR_URL          := file://$(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_TSCWAGOAPPSENSOR)
+CDS3_TSCWAGOAPPSENSOR_SRC_DIR      := $(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_TSCWAGOAPPSENSOR)
+CDS3_TSCWAGOAPPSENSOR_SRC          := $(CDS3_TSCWAGOAPPSENSOR_SRC_DIR)/$(CDS3_TSCWAGOAPPSENSOR)
+CDS3_TSCWAGOAPPSENSOR_BIN          := lib$(CDS3_TSCWAGOAPPSENSOR).so.$(CDS3_TSCWAGOAPPSENSOR_VERSION)
 
-CDS3_TSCWAGOAPPSENSOR_PACKAGE_NAME := cds3-tscwagoappsensor_$(CDS3_TSCWAGOAPPSENSOR_VERSION)_$(PTXCONF_ARCH_STRING)
+CDS3_TSCWAGOAPPSENSOR_PACKAGE_NAME := cds3-tscwagoappsensor_$(CDS3_TSCWAGOAPPSENSOR_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
 CDS3_TSCWAGOAPPSENSOR_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
 
-#CDS3_TSCWAGOAPPSENSOR_CMP_INCLUDE:=$(PLCLINUXRT_V3_DIR)/Components/
-#CDS3_TSCWAGOAPPSENSOR_PLATFORM_INCLUDE:=$(PLCLINUXRT_V3_DIR)/Platforms/Linux/
+#CDS3_IODRVDAL_CMP_INCLUDE:=$(PLCLINUXRT_V3_DIR)/Components/
+#CDS3_IODRVDAL_PLATFORM_INCLUDE:=$(PLCLINUXRT_V3_DIR)/Platforms/Linux/
 
 # ----------------------------------------------------------------------------
 # Get
@@ -76,18 +76,9 @@ CDS3_TSCWAGOAPPSENSOR_PATH      := PATH=$(CROSS_PATH)
 CDS3_TSCWAGOAPPSENSOR_MAKE_ENV  := $(CROSS_ENV)
 CDS3_TSCWAGOAPPSENSOR_MAKE_OPT  := CC=$(CROSS_CC)
 
-ifdef PTXCONF_CDS3_TSCWAGOAPPSENSOR_TARGET_PFCXXX
-	CDS3_TSCWAGOAPPSENSOR_MAKE_ENV += TRG_PLATFORM=pfc
-else
-ifdef PTXCONF_CDS3_TSCWAGOAPPSENSOR_TARGET_PAC
-	CDS3_TSCWAGOAPPSENSOR_MAKE_ENV += TRG_PLATFORM=pac
-endif
-endif
-
 $(STATEDIR)/cds3-tscwagoappsensor.compile:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-#	@$(call xslt_compile, $(CDS3_TSCWAGOAPPSENSOR_DIR)/xml/codesys3.xml)
 	$(call world/compile, CDS3_TSCWAGOAPPSENSOR)
 endif
 	@$(call touch)
@@ -96,17 +87,21 @@ endif
 # Install
 # ----------------------------------------------------------------------------
 
+TSCWAGOAPPSENSOR_SYSROOT_INCLUDES= $(PTXCONF_SYSROOT_TARGET)/usr/include/TscWagoAppSensor
 $(STATEDIR)/cds3-tscwagoappsensor.install:
 	@$(call targetinfo)
+
+	@mkdir -p $(TSCWAGOAPPSENSOR_SYSROOT_INCLUDES)
+
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
+	@cp $(CDS3_TSCWAGOAPPSENSOR_DIR)/*.h $(TSCWAGOAPPSENSOR_SYSROOT_INCLUDES)/
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
-
+	@cd $(CDS3_TSCWAGOAPPSENSOR_DIR) && tar cvzf $(CDS3_TSCWAGOAPPSENSOR_PLATFORMCONFIGPACKAGEDIR)/$(CDS3_TSCWAGOAPPSENSOR_PACKAGE_NAME).tgz *.h
 endif
 else
 	#PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES - Install header from archive
-	tar -xzvf $(CDS3_TSCWAGOAPPSENSOR_PLATFORMCONFIGPACKAGEDIR)/$(CDS3_TSCWAGOAPPSENSOR_PACKAGE_NAME).tgz -C $(PTXCONF_SYSROOT_TARGET)
-	tar -xzvf $(CDS3_TSCWAGOAPPSENSOR_PLATFORMCONFIGPACKAGEDIR)/$(CDS3_TSCWAGOAPPSENSOR_PACKAGE_NAME).tgz -C $(PKGDIR)
+	@tar -xzvf $(CDS3_TSCWAGOAPPSENSOR_PLATFORMCONFIGPACKAGEDIR)/$(CDS3_TSCWAGOAPPSENSOR_PACKAGE_NAME).tgz -C $(TSCWAGOAPPSENSOR_SYSROOT_INCLUDES)
 endif
 	@$(call touch)
 
@@ -119,6 +114,11 @@ $(STATEDIR)/cds3-tscwagoappsensor.targetinstall:
 	@$(call targetinfo)
 	@$(call install_init, cds3-tscwagoappsensor)
 
+	@$(call install_fixup,cds3-tscwagoappsensor,PRIORITY,optional)
+	@$(call install_fixup,cds3-tscwagoappsensor,SECTION,base)
+	@$(call install_fixup,cds3-tscwagoappsensor,AUTHOR,"WAGO")
+	@$(call install_fixup,cds3-tscwagoappsensor,DESCRIPTION,missing)
+
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 
 	# Extract precompiled binaries from archive
@@ -128,16 +128,11 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@$(call install_archive, cds3-tscwagoappsensor, 0, 0, $(CDS3_TSCWAGOAPPSENSOR_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, )
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	@$(call install_fixup,cds3-tscwagoappsensor,PRIORITY,optional)
-	@$(call install_fixup,cds3-tscwagoappsensor,SECTION,base)
-	@$(call install_fixup,cds3-tscwagoappsensor,AUTHOR,"WAGO")
-	@$(call install_fixup,cds3-tscwagoappsensor,DESCRIPTION,missing)
-
 
 	@$(call install_copy, cds3-tscwagoappsensor, 0, 0, 0750, $(CDS3_TSCWAGOAPPSENSOR_DIR)/$(CDS3_TSCWAGOAPPSENSOR_BIN), /usr/lib/$(CDS3_TSCWAGOAPPSENSOR_BIN))
 	@$(call install_link, cds3-tscwagoappsensor, ./$(CDS3_TSCWAGOAPPSENSOR_BIN), /usr/lib/lib$(CDS3_TSCWAGOAPPSENSOR).so);
 	@$(call install_link, cds3-tscwagoappsensor, ../$(CDS3_TSCWAGOAPPSENSOR_BIN), /usr/lib/cds3-custom-components/lib$(CDS3_TSCWAGOAPPSENSOR).so);
-
+#	@$(call install_copy, cds3-tscwagoappsensor, 0, 0, 0644, $(CDS3_TSCWAGOAPPSENSOR_DIR)/$(CDS3_TSCWAGOAPPSENSOR).cfg, $(PTXCONF_CDS3_PLCCONFIGDIR)/$(CDS3_TSCWAGOAPPSENSOR).cfg, n)
 
 endif
 	@$(call install_finish,cds3-tscwagoappsensor)
@@ -152,7 +147,6 @@ endif
 # ----------------------------------------------------------------------------
 
 $(STATEDIR)/cds3-tscwagoappsensor.clean:
-#	@$(call xslt_clean, $(CDS3_TSCWAGOAPPSENSOR_DIR)/xml/codesys3.xml)
 	rm -rf $(STATEDIR)/cds3-tscwagoappsensor.*
 	rm -rf $(PKGDIR)/cds3-tscwagoappsensor_*
 	rm -rf $(CDS3_TSCWAGOAPPSENSOR_DIR)

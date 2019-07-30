@@ -90,11 +90,11 @@ aide_check_or_update ()
   ${AIDE} "--${cmd}"
   ret=$?
 
-  if [ 0 -eq ${ret} ] && [ "update" = "${cmd}" ]; then
+  if [ ${ret} -lt 14 ] && [ "update" = "${cmd}" ]; then
     cp "${AIDE_NEW_DB}" "${AIDE_REF_DB}"
   fi
 
-  return ${ret}
+  return 0
 }
 
 aide_readlog ()

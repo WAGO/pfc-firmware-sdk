@@ -21,6 +21,9 @@ if LIBCURL
 config LIBCURL_CURL
        bool "install curl program"
 
+config LIBCURL_C_ARES
+	bool "enable c-ares for DNS lookups"
+
 config LIBCURL_HTTP
        bool "http"
        default y
@@ -35,13 +38,19 @@ config LIBCURL_FTP
 
 config LIBCURL_TFTP
        bool "tftp"
-       
-config LIBCURL_SMTP
-       bool "smtp"
-       default y      
 
 config LIBCURL_FILE
        bool "file"
+
+config LIBCURL_SMTP
+       bool "smtp"
+       help
+       enable smtp support for sending emails
+
+config LIBCURL_VERBOSE
+       bool "verbose messages"
+       help
+       enable verbose messages, helpful for error indication
 
 config LIBCURL_SSL
        bool "ssl"

@@ -124,9 +124,9 @@ $(OUT_DIR)/libconfigtoolutils.a/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPP
 
 libconfigtoolutils.a_PRECLANG_FILES=$(OUT_DIR)/libconfigtoolutils.a/lint_mac.h
 
-$(OUT_DIR)/libconfigtoolutils.a/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(libconfigtoolutils.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils.a/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/libconfigtoolutils.a/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(libconfigtoolutils.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils.a/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/libconfigtoolutils.a/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(libconfigtoolutils.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils.a/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/libconfigtoolutils.a/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(libconfigtoolutils.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils.a/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 
@@ -177,9 +177,9 @@ $(OUT_DIR)/libconfigtoolfail.a/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPO
 
 libconfigtoolfail.a_PRECLANG_FILES=$(OUT_DIR)/libconfigtoolfail.a/lint_mac.h
 
-$(OUT_DIR)/libconfigtoolfail.a/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(libconfigtoolfail.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolfail.a/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/libconfigtoolfail.a/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(libconfigtoolfail.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolfail.a/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/libconfigtoolfail.a/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(libconfigtoolfail.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolfail.a/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/libconfigtoolfail.a/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(libconfigtoolfail.a_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolfail.a/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 
@@ -230,9 +230,9 @@ $(OUT_DIR)/helloworld.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FI
 
 helloworld.elf_PRECLANG_FILES=$(OUT_DIR)/helloworld.elf/lint_mac.h
 
-$(OUT_DIR)/helloworld.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(helloworld.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/helloworld.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/helloworld.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(helloworld.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/helloworld.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/helloworld.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(helloworld.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/helloworld.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/helloworld.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(helloworld.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/helloworld.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 
@@ -283,9 +283,9 @@ $(OUT_DIR)/config_linux_user.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUP
 
 config_linux_user.elf_PRECLANG_FILES=$(OUT_DIR)/config_linux_user.elf/lint_mac.h
 
-$(OUT_DIR)/config_linux_user.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(config_linux_user.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/config_linux_user.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(config_linux_user.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/config_linux_user.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(config_linux_user.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/config_linux_user.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(config_linux_user.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 
@@ -336,9 +336,9 @@ $(OUT_DIR)/reserved_area.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT
 
 reserved_area.elf_PRECLANG_FILES=$(OUT_DIR)/reserved_area.elf/lint_mac.h
 
-$(OUT_DIR)/reserved_area.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(reserved_area.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/reserved_area.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(reserved_area.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/reserved_area.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(reserved_area.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/reserved_area.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(reserved_area.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 
@@ -389,9 +389,9 @@ $(OUT_DIR)/libconfigtoolutils_tests.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(L
 
 libconfigtoolutils_tests.elf_PRECLANG_FILES=$(OUT_DIR)/libconfigtoolutils_tests.elf/lint_mac.h
 
-$(OUT_DIR)/libconfigtoolutils_tests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(libconfigtoolutils_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils_tests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/libconfigtoolutils_tests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(libconfigtoolutils_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils_tests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/libconfigtoolutils_tests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(libconfigtoolutils_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils_tests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/libconfigtoolutils_tests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(libconfigtoolutils_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils_tests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 
@@ -442,9 +442,9 @@ $(OUT_DIR)/config_linux_user_tests.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LI
 
 config_linux_user_tests.elf_PRECLANG_FILES=$(OUT_DIR)/config_linux_user_tests.elf/lint_mac.h
 
-$(OUT_DIR)/config_linux_user_tests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(config_linux_user_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user_tests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/config_linux_user_tests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(config_linux_user_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user_tests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/config_linux_user_tests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(config_linux_user_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user_tests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/config_linux_user_tests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(config_linux_user_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user_tests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 
@@ -495,9 +495,9 @@ $(OUT_DIR)/reserved_area_tests.elf/%.lob: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_S
 
 reserved_area_tests.elf_PRECLANG_FILES=$(OUT_DIR)/reserved_area_tests.elf/lint_mac.h
 
-$(OUT_DIR)/reserved_area_tests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(reserved_area_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area_tests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
+$(OUT_DIR)/reserved_area_tests.elf/%.tidy: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(reserved_area_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area_tests.elf/%.o.d $(wildcard .clang-tidy); $(SILENT)$(call clang-tidy,$@,$<,$(FLAGS))
 
-$(OUT_DIR)/reserved_area_tests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(reserved_area_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area_tests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
+$(OUT_DIR)/reserved_area_tests.elf/%.plint: $(PROJECT_ROOT)/% $(MK_FILES) $(LINT_SUPPORT_FILES) $(reserved_area_tests.elf_PRECLANG_FILES) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area_tests.elf/%.o.d; $(SILENT)$(call clang-sa,$@,$<,$(FLAGS))
 
 
 

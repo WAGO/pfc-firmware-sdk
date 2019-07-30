@@ -10,15 +10,19 @@
     <h2>Firmware Restore</h2>
 
     <p><img style="vertical-align:middle" src="images/kaestchen_out.gif">Restore packages from selected source to active partition</p>
-
+    
     <p>Note: restoring system, settings or PLC runtime project will reset the controller.<br>
-    Firmware restore is not allowed, if active partition is "Memory Card".</p>
-
+    Firmware restore is not allowed, if active partition is "Memory Card".<br>
+    The decryption passphrase is used for all selected and encrypted backup files.<br>
+    For multiple encrypted backup files with different passphrases select files separately.</p>
 
     <form id="firmware_restore_form" action="receive_upload.php" target="firmware_restore_upload_iframe" method="POST" enctype="multipart/form-data" >
 
       <input type="hidden" name="upload_type" value="firmware_restore">
       <input type="hidden" name="csrf_id" value="">
+      <!-- Let the browser password store fill in this fields.. --!>
+      <input type="text" name="bogus_user" style="display:none;"/>
+      <input type="password" name="bogus_password" style="display:none;"/>
 
       <div class="config_form_box">
 
@@ -116,6 +120,19 @@
                 </span>
               </span>
             </p>
+        </div>
+         <div id="decryption_area">
+           <div class="config_data_list">
+                 <div class="label_value_pair">
+            <div class="label_field"><label for="encryption_active_state">Decryption Activation:</label></div>
+            <div class="value_field"><input id="encryption_active_state" type="checkbox" value="change_state" checked="checked" name="encryption_active_state" >
+            </div>
+          </div>
+          <div class="label_value_pair">
+            <div class="label_field"><label for="encryption-passphrase">Decryption Passphrase:</label></div>
+            <div class="value_field"><input autocomplete="off" id="encryption-passphrase" class="input_field" type="password" name="encryption-passphrase" size="30" maxlength="50" value=""></div>
+          </div>
+        </div>
         </div>
 
         <div class="config_data_list">

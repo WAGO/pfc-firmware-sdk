@@ -12,6 +12,8 @@ config MDMD
 	select FUSE
 	select TYPELABEL
 	select CT_WWAN_INTERFACE
+	select LIBOSLINUX
+	select BOOST
 	help
 	  WAGO Modem Management Daemon
 

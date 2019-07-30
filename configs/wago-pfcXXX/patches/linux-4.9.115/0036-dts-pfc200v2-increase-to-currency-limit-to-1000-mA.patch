@@ -1,0 +1,30 @@
+From 00e1bcc1c192d086a448c6a678c525c6fe1bf09d Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 24 Jan 2017 11:55:50 +0000
+Subject: [PATCH] dts: pfc200v2: increase to currency limit to 1000 mA
+
+        In schmatics 100 mA is stated. But this setting
+        the usb device is not being able to be enumurated
+        correctly. So we set it to 1000 mA up to now.
+---
+ arch/arm/boot/dts/wago-pfc200v2.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wago-pfc200v2.dtsi b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+index 82780b9..abc83e3 100644
+--- a/arch/arm/boot/dts/wago-pfc200v2.dtsi
++++ b/arch/arm/boot/dts/wago-pfc200v2.dtsi
+@@ -813,8 +813,8 @@
+                 compatible = "ti,tps65218-ls2";
+                 /* VDD_LS2 +5V15 for USB */
+                 regulator-name = "vdd_LS2_USB";
+-                regulator-min-microamp = <100000>; /* set to 100 mA according to SLP00000843.002 */
+-                regulator-max-microamp = <100000>;
++                regulator-min-microamp = <1000000>; /* Should be set to 100 mA according to SLP00000843.002 */
++                regulator-max-microamp = <1000000>; /* but 4G Modem is not being inumurated correctly, so we increase it */
+                 regulator-boot-on;
+                 regulator-always-on;
+         };
+-- 
+2.7.4
+

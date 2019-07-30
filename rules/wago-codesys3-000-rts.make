@@ -60,7 +60,10 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		--exclude="*.pdf"  \
 		--exclude="*tar.bz2" \
 		$(CODESYS3_SRC) $(CODESYS3_DIR)
+
+	@$(call patchin, CODESYS3)
 endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -79,6 +82,8 @@ endif
 
 $(STATEDIR)/codesys3.prepare:
 	@$(call targetinfo)
+
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES    
 	@cd $(CODESYS3_DIR)
 	grep -e PTXCONF_CDS3_RTS_ $(PTXDIST_PTXCONFIG) | \
 		sed -e 's/PTXCONF_CDS3_RTS_/RTS_/g' > $(CODESYS3_DIR)/buildconfig
@@ -86,6 +91,9 @@ ifeq ($(PTXCONF_PLATFORM), vtp-ctp)
 	sed -i s/"cflags QtGui QtWebKit"/"cflags Qt5Gui Qt5Widgets"/ $(CODESYS3_DIR)/script/visu.mk
 	sed -i "s,moc ,$(PTXCONF_SYSROOT_TARGET)/usr/bin/qt5/moc ,g" $(CODESYS3_DIR)/script/visu.mk
 endif
+
+endif
+
 	@$(call touch)
 
 
@@ -230,6 +238,9 @@ endif
 ifdef PTXCONF_CDS3_PRODUCT_PFC200_1210
 	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x1210.dat, n)
 endif
+ifdef PTXCONF_CDS3_PRODUCT_PFC200_1211
+	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x1211.dat, n)
+endif
 ifdef PTXCONF_CDS3_PRODUCT_VTPCTP_3200
 	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x3200.dat, n)
 endif
@@ -290,14 +301,8 @@ endif
 ifdef PTXCONF_CDS3_PRODUCT_VTPCTP_320D
 	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x320D.dat, n)
 endif
-ifdef PTXCONF_CDS3_PRODUCT_SRC_4000
-	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x4000.dat, n)
-endif
-ifdef PTXCONF_CDS3_PRODUCT_SRC_4001
-	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x4001.dat, n)
-endif
 ifdef PTXCONF_CDS3_PRODUCT_PAC_2101
-	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.dat, n)
+	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x2101.dat, n)
 endif
 
     # Codesys home

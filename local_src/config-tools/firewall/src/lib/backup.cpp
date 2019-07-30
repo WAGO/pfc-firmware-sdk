@@ -51,13 +51,13 @@ namespace wago
 void perform_backup(void)
 {
 #ifndef DEBUGPC
-    const std::string result(exe_cmd("sh /etc/firewall/fwbackup.sh"));
+    int ret_status;
+    const std::string result(exe_cmd("sh /etc/firewall/fwbackup.sh", ret_status));
 #else
     const std::string result(exe_cmd("cd test/; sh fwbackup.sh local"));
 #endif
     std::cout << result;
 }
-
 
 class sline
 {
@@ -250,13 +250,14 @@ static void prepare_files(files& fs, std::vector<sline>& source)
 
 static void store_files(files& fs)
 {
+    int ret;
     fs.ebtables.store();
     fs.iptables.store();
 
     for (file& f : fs.services)
         f.store();
 
-    (void)exe_cmd("sh /etc/firewall/permissions.sh");
+    (void)exe_cmd("sh /etc/firewall/permissions.sh", ret);
 
 
 // The code below is remarked because in the light of how change of configuration

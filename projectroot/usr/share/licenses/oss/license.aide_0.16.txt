@@ -1,3 +1,5 @@
+aide-0.16/AUTHORS
+
 If you have any questions about aide, it's use or applications please send
 your inquiries to the mailing list at aide@cs.tut.fi rather than to the
 individuals named below.
@@ -16,6 +18,8 @@ This package is currently maintained by:
 	* Hannes von Haugwitz (hannes@vonhaugwitz.com)
 
 Thanks to the people who have given good bug reports.
+
+aide-0.16/COPYING
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991

@@ -23,7 +23,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h> /* needed to define getpid() */
 #include <glib.h>
+#include <dbus/dbus-glib-lowlevel.h>
 
 /*typedef struct stDiectServers {
   DBusServer * server;
@@ -47,7 +49,6 @@ GList      * nameList = NULL;
 
 static const char * serverPathPrefix = "/tmp/";
 static const char * serverSocketTypePrefix = "unix:path=";
-static const char * serverSocketGuid       = "guid=";
 
 static const char * directObjectPath = "/wago/dbus/directCommnuication";
 static const char * startDirectCommunication = "start";
@@ -70,12 +71,17 @@ static DBusHandlerResult LocalObject(DBusConnection *connection,
                  DBusMessage    *message,void *blah)
 {
   (void)blah;
+  (void)message;
   directConnections = g_list_remove(directConnections,connection);
   dbus_connection_unref(connection);
+  return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 void NewDirectConnectionInit(DBusServer *server, DBusConnection *new_connection, void *data)
 {
+  (void)server; //unused
+  (void)data;   //unused
+
   static DBusObjectPathVTable vtable;
   dbus_connection_setup_with_g_main (new_connection, com_GEN_GetServerContext());
   //dbus_connection_set_route_peer_messages(new_connection, TRUE);
@@ -85,14 +91,15 @@ void NewDirectConnectionInit(DBusServer *server, DBusConnection *new_connection,
   vtable.unregister_function = (DBusObjectPathUnregisterFunction)NULL;
   dbus_connection_try_register_object_path  (new_connection,DBUS_PATH_LOCAL,&vtable,NULL,NULL);
   dbus_connection_ref   (new_connection);
-  g_hash_table_foreach(objectTable,RegisterObjectForNewConnection,new_connection);
+  g_hash_table_foreach(objectTable,(GHFunc)RegisterObjectForNewConnection,new_connection);
   directConnections = g_list_append(directConnections, new_connection);
 }
 
 static void EnableDirectCommunication(com_tConnection* con, com_tComMessage* msg, void* nothing)
 {
-  char * serverName = NULL;
-  char * method = NULL;
+  (void)nothing; //unused
+  const char * serverName = NULL;
+  const char * method = NULL;
   if(serverTable == NULL)
   {
     serverTable = g_hash_table_new_full(g_str_hash,g_str_equal,free,
@@ -107,7 +114,7 @@ static void EnableDirectCommunication(com_tConnection* con, com_tComMessage* msg
     char * namePath = pathContainer;
     DBusServer * server;
     con->type = COM_CONNECTION_DIRECT;
-    if(TRUE != g_hash_table_lookup_extended        (serverTable, serverName, NULL, &server))
+    if(TRUE != g_hash_table_lookup_extended(serverTable, serverName, NULL, (gpointer *)&server))
     {
       DBusError error;
 
@@ -165,7 +172,7 @@ void DIRECT_RemoveObject( const char *  path)
 {
   if(directConnections != NULL)
   {
-    g_list_foreach(directConnections,(GFunc)RemoveObjectFromPrivateConnection,path);
+    g_list_foreach(directConnections,(GFunc)RemoveObjectFromPrivateConnection, (gpointer)path);
   }
   g_hash_table_remove(objectTable,path);
 }
@@ -238,9 +245,12 @@ static int _GetDirectSocket(com_tConnection * globalConnection,
 }
 
 static int _GetDirectContext(com_tConnection * globalConnection,
-                                   com_tConnection * directConnection,
-                                   const char * name)
+                             com_tConnection * directConnection,
+                             const char * name)
 {
+  (void)name; //unused
+  (void)globalConnection; //unused
+
   int ret = -1;
 
   if(directConnection != NULL)
@@ -273,7 +283,7 @@ int com_DIRECT_GetDirectConnection(com_tConnection * globalConnection,
                                    const char * name)
 {
   int ret = -1;
-  if(NULL == g_list_find_custom (nameList, name,strcmp))
+  if(NULL == g_list_find_custom (nameList, name, (GCompareFunc)strcmp))
   {
     ret = _GetDirectSocket(globalConnection,directConnection,name);
   }

@@ -1,7 +1,7 @@
 From e1cd8d0fbe560f659b4fdb0a64705d4fed23d730 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 30 May 2018 09:18:57 +0200
-Subject: [PATCH 016/144] boards: wago-pfc-am335x: lowlevel: configure mem_size
+Subject: [PATCH] boards: wago-pfc-am335x: lowlevel: configure mem_size
  statically
 
 Older mlo implementations dont configure the whole ddr ram registers to determine

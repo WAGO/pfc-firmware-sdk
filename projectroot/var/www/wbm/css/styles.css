@@ -1865,6 +1865,28 @@ ul.check_list_important li
   font:             11px Verdana, sans-serif;
 }
 
+#opkg_list
+{
+  border:           1px solid #bebebe;
+  overflow:         auto;
+  width:            100%;
+  max-height:	    500px;
+}
+
+#opkg_list td
+{
+  margin:           5px;
+  font:             11px Verdana, sans-serif;
+  overflow:         auto;
+  width:            100%;
+  white-space:      nowrap;
+}
+
+#opkg_list tr.selected {
+    background-color: #000;
+    color: #FFF;
+}
+
 /*-----------------------------------------------------------------------------*/
 
 

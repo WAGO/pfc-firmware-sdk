@@ -354,6 +354,7 @@ start_update()
     update_rauc_progress &
     "$RAUC" install "$RAUCFILE" &> "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE"
     RESULT=$?
+
     if [[ -e "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" ]]; then
         RAUCOUT=$(< "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE")
         rm -f "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE"
@@ -618,8 +619,14 @@ timeout_watcher()
 
 # Function to clear/revert changes done by FW-Update.
 # This function is intended to work asynchronously.
+# May not return normally but reboots system instead.
 #
-# Return: 0 on success, unequal to 0 otherwise
+# Pre-condition: No asynchronous FW-Update operation is in progress
+#
+# Param 1: Old state when update was canceled/aborted (optional)
+# Param 2: Old sub state when update was canceled/aborted (optional)
+#
+# Return: 0 on success, system reboot otherwise
 #-----------------------------------------------------------------------------#
 revert()
 {

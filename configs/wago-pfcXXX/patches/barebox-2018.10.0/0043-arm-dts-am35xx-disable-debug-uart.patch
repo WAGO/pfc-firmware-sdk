@@ -1,7 +1,7 @@
 From bb1f3a9981f1fd081c384323b7665d6ec83bd94e Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 8 Aug 2018 14:46:46 +0200
-Subject: [PATCH 043/144] arm: dts: am35xx: disable debug uart
+Subject: [PATCH] arm: dts: am35xx: disable debug uart
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

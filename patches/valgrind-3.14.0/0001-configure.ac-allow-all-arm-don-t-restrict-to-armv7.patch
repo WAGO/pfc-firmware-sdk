@@ -1,0 +1,24 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Wed, 8 Jun 2011 00:58:59 +0200
+Subject: [PATCH] configure.ac: allow all arm, don't restrict to armv7
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+[mol: change configure.ac not configure]
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 229ab98..296de90 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -252,7 +252,7 @@ case "${host_cpu}" in
+         ARCH_MAX="s390x"
+         ;;
+
+-     armv7*)
++     arm*)
+ 	AC_MSG_RESULT([ok (${host_cpu})])
+ 	ARCH_MAX="arm"
+ 	;;

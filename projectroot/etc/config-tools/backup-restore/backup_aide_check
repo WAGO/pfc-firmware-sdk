@@ -57,7 +57,7 @@ function GetParameterCount
 #
 function Save
 {
-    local status; state=$SUCCESS
+    local status; status=$SUCCESS
     local file; file="$1"
 
     if [[ -h "${AIDE_CHECK_LNK}" ]]; then

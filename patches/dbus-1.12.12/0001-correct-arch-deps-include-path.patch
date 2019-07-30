@@ -1,0 +1,27 @@
+diff -Naur dbus-1.12.12_org dbus-1.12.12
+--- dbus-1.12.12_org/dbus/Makefile.in 2018-12-04 14:58:58.000000000 +0100
++++ dbus-1.12.12/dbus/Makefile.in 2019-03-21 09:44:15.297925190 +0100
+@@ -779,11 +779,12 @@
+ 	dbus-signature.h			\
+ 	dbus-syntax.h				\
+ 	dbus-threads.h				\
+-	dbus-types.h
+-
+-nodist_dbusarchinclude_HEADERS = \
++	dbus-types.h				\
+ 	dbus-arch-deps.h
+ 
++#nodist_dbusarchinclude_HEADERS = \
++#	dbus-arch-deps.h
++
+ 
+ ### source code that goes in the installed client library
+ ### and is specific to library functionality
+--- dbus-1.12.12_org/dbus-1.pc.in 2017-10-30 13:26:18.000000000 +0100
++++ dbus-1.12.12/dbus-1.pc.in 2019-03-21 09:51:14.709937333 +0100
+@@ -18,4 +18,4 @@
+ Version: @VERSION@
+ Libs: -L${libdir} -ldbus-1
+ Libs.private: @LIBDBUS_LIBS@
+-Cflags: -I${includedir}/dbus-1.0 -I${libdir}/dbus-1.0/include @DBUS_STATIC_BUILD_CPPFLAGS@
++Cflags: -I${includedir}/dbus-1.0 @DBUS_STATIC_BUILD_CPPFLAGS@

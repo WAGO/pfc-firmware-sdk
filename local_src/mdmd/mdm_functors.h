@@ -26,28 +26,6 @@ class dbus_swrite : public MdmStatemachine::transition_t::transistion_functor_t
       }
 };
 
-class log_swrite : public MdmStatemachine::transition_t::transistion_functor_t
-{
-    private:
-      std::string _text;
-      int _timeout;
-      unsigned int _logid;
-    public:
-      log_swrite( const std::string &text, int timeout, unsigned int logid )
-          : _text(text)
-          , _timeout(timeout)
-          , _logid(logid)
-      {}
-      bool operator () (MdmStatemachine &sm, State &src, State &dst, Event &ev)
-      {
-          (void)src; (void)dst; (void)ev; //unused parameter
-          sm.log_event( _logid );
-          sm.write(_text);
-          sm.kick_cmd_timeout(_timeout);
-          return true;
-      }
-};
-
 class swrite : public MdmStatemachine::transition_t::transistion_functor_t
 {
     private:

@@ -4,6 +4,7 @@
 #               2003      by Auerswald GmbH & Co. KG, Schandelah, Germany
 #               2005-2009 by Marc Kleine-Budde <mkl@pengutronix.de>, Pengutronix e.K., Hildesheim, Germany
 #           (C) 2010 by Michael Olbrich <m.olbrich@pengutronix.de>
+#           (C) 2016 by Clemens Gruber <clemens.gruber@pqgruber.com>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -20,7 +21,8 @@ PACKAGES-$(PTXCONF_GLIBC) += glibc
 # Paths and names
 #
 GLIBC_VERSION	:= $(call remove_quotes,$(PTXCONF_GLIBC_VERSION))
-GLIBC_LICENSE	:= GPLv2, LGPLv2.1
+# for license information
+-include $(PTXDIST_PLATFORMDIR)/selected_toolchain/../share/compliance/glibc.make
 
 # ----------------------------------------------------------------------------
 # Target-Install
@@ -83,6 +85,10 @@ ifdef PTXCONF_GLIBC_NSS_HESIOD
 	@$(call install_copy_toolchain_lib, glibc, libnss_hesiod.so)
 endif
 
+ifdef PTXCONF_GLIBC_ANL
+	@$(call install_copy_toolchain_lib, glibc, libanl.so)
+endif
+
 ifdef PTXCONF_GLIBC_NSS_NIS
 	@$(call install_copy_toolchain_lib, glibc, libnss_nis.so)
 endif
@@ -123,6 +129,22 @@ endif
 ifdef PTXCONF_GLIBC_GCONV_ZH
 	@$(call install_copy_toolchain_lib, glibc, gconv/GBBIG5.so)
 	@$(call install_copy_toolchain_lib, glibc, gconv/GB18030.so)
+endif
+
+ifdef PTXCONF_GLIBC_GETENT
+	@$(call install_copy_toolchain_usr, glibc, bin/getent)
+endif
+
+ifdef PTXCONF_GLIBC_LDCONFIG
+	@$(call install_copy, glibc, 0, 0, 0755, \
+	    $(PTXDIST_SYSROOT_TOOLCHAIN)/sbin/ldconfig, /usr/sbin/ldconfig)
+	@$(call install_alternative, glibc, 0, 0, 0644, /etc/ld.so.conf)
+	@$(call install_copy, glibc, 0, 0, 0755, /etc/ld.so.conf.d)
+endif
+
+ifdef PTXCONF_GLIBC_LDCONFIG_RC_ONCE
+	@$(call install_alternative, glibc, 0, 0, 0755, \
+	    /etc/rc.once.d/ldconfig)
 endif
 
 ifdef PTXCONF_GLIBC_I18N_BIN_LOCALE

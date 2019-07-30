@@ -3,9 +3,11 @@
 #
 # Starts bootp client and handles the parameters of a bootp reply.
 #
-# $Revision: 19762 $
+# $Revision: 40315 $
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 
+
+IP_CHANGE_NOTIFIED_FILE="/var/run/ipv4/ipconchg"
 interface_name=$1
 DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
 FILE=$DHCP_DATA_FILE_TEMPLATE$interface_name
@@ -60,3 +62,7 @@ fi
 EVENTDIR=/etc/config-tools/events/networking
 [ -e $EVENTDIR ] && run-parts -a config $EVENTDIR
 
+# read notified file to create a event for inotify command
+if [[ -f "$IP_CHANGE_NOTIFIED_FILE-$interface_name" ]]; then
+    echo "" > "$IP_CHANGE_NOTIFIED_FILE-$interface_name"
+fi    

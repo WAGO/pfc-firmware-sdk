@@ -1,11 +1,12 @@
 ## SECTION=networking
 
-config STRONGSWAN
+menuconfig STRONGSWAN
 	bool
-	default n
-	prompt "strongswan"
+	prompt "strongswan                    "
 	select LIBGMP
 	select LIBCURL if STRONGSWAN_LIBCURL
+	select OPENSSL if STRONGSWAN_OPENSSL
+	select SYSTEMD if STRONGSWAN_SYSTEMD_UNIT
 	help
 	  strongSwan is a complete IPsec implementation.
 	  Please keep in mind to configure the kernel accordingly to fulfill
@@ -16,7 +17,7 @@ if STRONGSWAN
 
 config STRONGSWAN_LIBCURL
 	bool
-	default n
+	default y
 	prompt "CURL fetcher plugin to fetch files"
 	help
 	  If you intend to dynamically fetch Certificate Revocation Lists
@@ -32,7 +33,7 @@ config STRONGSWAN_OPENSSL
 
 config STRONGSWAN_AFALG
 	bool
-	default n
+	default y
 	prompt "AF_ALG crypto interface to Linux Crypto API"
 	help
 	  Linux 2.6.38 introduced the AF_ALG Crypto API which makes the
@@ -47,8 +48,10 @@ config STRONGSWAN_AFALG
 
 config STRONGSWAN_SYSTEMD_UNIT
 	bool
-	default n
-	depends on SYSTEMD
+	default y
+	# uses old systemd-daemon / libsystemd-journal libs
+	depends on BROKEN
+	depends on INITMETHOD_SYSTEMD
 	prompt "install systemd service file"
 
 endif

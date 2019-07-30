@@ -1,3 +1,5 @@
+net-snmp-5.7.3/COPYING
+
 Various copyrights apply to this package, listed in various separate
 parts below.  Please make sure that you read all the parts.
 
@@ -325,6 +327,8 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+net-snmp-5.7.3/python/LICENSE
 
 Various copyrights apply to this package, listed in various separate
 parts below.  Please make sure that you read all the parts.

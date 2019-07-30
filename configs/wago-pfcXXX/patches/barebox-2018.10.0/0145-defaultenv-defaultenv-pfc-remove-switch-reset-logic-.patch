@@ -1,8 +1,8 @@
 From 397d1ce8e318bef0947e36c0bb009d071fc1ab1b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 8 Nov 2018 14:40:56 +0100
-Subject: [PATCH 145/145] defaultenv: defaultenv-pfc: remove switch reset logic
- for am35xx devices
+Subject: [PATCH] defaultenv: defaultenv-pfc: remove switch reset logic for
+ am35xx devices
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

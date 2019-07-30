@@ -16,5 +16,3 @@
 +libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/include)
 --i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/include"
 +libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/include)
---i"/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/bin/as -v -march=armv7-a -march=armv7-a -mfloat-abi=hard -mfpu=neon -mfpu=neon -mfpu=neon -meabi=5 -o co-gcc.mak.temp-empty.o /tmp/cc6stb0X.s"
-+libdir(/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/5.5.0/../../../../arm-linux-gnueabihf/bin/as -v -march=armv7-a -march=armv7-a -mfloat-abi=hard -mfpu=neon -mfpu=neon -mfpu=neon -meabi=5 -o co-gcc.mak.temp-empty.o /tmp/cc6stb0X.s)

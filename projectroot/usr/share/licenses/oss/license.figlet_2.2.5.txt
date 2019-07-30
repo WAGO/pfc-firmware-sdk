@@ -1,3 +1,5 @@
+figlet-2.2.5/LICENSE
+
 Copyright (C) 1991, 1993, 1994 Glenn Chappell and Ian Chai
 Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001 John Cowan
 Copyright (C) 2002 Christiaan Keet

@@ -24,16 +24,6 @@ function Log
 }
 
 
-function GetGeneralFirewallState
-{
-    if [ "enabled" = "${FIREWALL_GENERAL_STATE:-}" ]; then
-        echo "enabled"
-    else
-        echo "disabled"
-    fi
-}
-
-
 function AddDefaultRoute
 {
     local defgwip=$1
@@ -389,15 +379,13 @@ function DoUpdate
 
     sync
 
-    # Apply previously set changes.  
-    general_firewall_state=$(GetGeneralFirewallState)
-    if [[ "enabled" == "$general_firewall_state" ]]; then
+    # Apply previously set changes if no errors occurred.
+    if [[ $status == $SUCCESS ]]; then 
         $FIREWALL iptables --apply &> /dev/null
     else
-        $FIREWALL firewall --disable &> /dev/null
+        SetLastError "One or more errors occur during routing setup. See /var/log/messages for details."    
     fi
-    
-    [[ $status != $SUCCESS ]] && SetLastError "One or more errors occur during routing setup. See /var/log/messages for details."
+
     echo "$status"
 }
 
@@ -406,7 +394,6 @@ function DoUpdate
 ROUTING_CONFIG_FILE="/etc/specific/routing.conf"
 ROUTING_CONFIG_REMOVE_FILE="/tmp/routing_remove.conf"
 ROUTING_CONFIG_REMOVE_TMP_FILE="/tmp/routing_remove.conf.tmp"
-GENERAL_CONF="/etc/firewall/firewall.conf"
 DHCP_DATA_FILE_PREFIX="dhcp-bootp-data-"
 DHCP_DATA_FILE_TEMPLATE="/tmp/$DHCP_DATA_FILE_PREFIX"
 DHCP_DATA_FILE_BACKUP_PREFIX=backup-$DHCP_DATA_FILE_PREFIX
@@ -496,12 +483,6 @@ fi
 
 
 # Read configurtations from files
-if [ ! -s $GENERAL_CONF ]; then
-    SetLastError "$GENERAL_CONF is missing - can't execute."
-    exit 0
-fi
-. $GENERAL_CONF
-
 if [ ! -s "$ROUTING_CONFIG_FILE" ]; then
     SetLastError "$ROUTING_CONFIG_FILE is missing - can't execute."
     exit 0

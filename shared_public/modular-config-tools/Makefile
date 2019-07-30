@@ -141,7 +141,7 @@ libconfigtoolutils_tests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/test-src/
 # Settings for build target libconfigtoolcommonmain_tests.elf
 
 libconfigtoolcommonmain_tests.elf_STATICALLYLINKED += configtoolutils gmock_main gmock
-libconfigtoolcommonmain_tests.elf_LIBS += configtoolutils gmock gmock_main
+libconfigtoolcommonmain_tests.elf_LIBS += configtoolutils gmock_main gmock
 libconfigtoolcommonmain_tests.elf_LIBS += $(libconfigtoolutils.a_DYNAMICALLYREQUIRED)
 libconfigtoolcommonmain_tests.elf_PKG_CONFIGS += 
 libconfigtoolcommonmain_tests.elf_DISABLEDWARNINGS += 
@@ -223,7 +223,7 @@ config_linux_user.elf_SOURCES += $(PROJECT_ROOT)/src/common/main.c
 # Settings for build target config_linux_user_tests.elf
 
 config_linux_user_tests.elf_STATICALLYLINKED += configtoolutils gmock_main gmock
-config_linux_user_tests.elf_LIBS += configtoolutils crypt gmock gmock_main
+config_linux_user_tests.elf_LIBS += configtoolutils crypt gmock_main gmock
 config_linux_user_tests.elf_LIBS += $(libconfigtoolutils.a_DYNAMICALLYREQUIRED)
 config_linux_user_tests.elf_PKG_CONFIGS += 
 config_linux_user_tests.elf_DISABLEDWARNINGS += 
@@ -283,7 +283,7 @@ reserved_area.elf_SOURCES += $(PROJECT_ROOT)/src/common/main.c
 # Settings for build target reserved_area_tests.elf
 
 reserved_area_tests.elf_STATICALLYLINKED += configtoolutils gmock_main gmock
-reserved_area_tests.elf_LIBS += configtoolutils gmock gmock_main
+reserved_area_tests.elf_LIBS += configtoolutils gmock_main gmock
 reserved_area_tests.elf_LIBS += $(libconfigtoolutils.a_DYNAMICALLYREQUIRED)
 reserved_area_tests.elf_PKG_CONFIGS += 
 reserved_area_tests.elf_DISABLEDWARNINGS += 
@@ -318,7 +318,9 @@ reserved_area_tests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/src/reserved_a
 
 doc:
 	rm -rf out/doc/
-	doxygen doc/doxygen.config
+	# explicitly use line buffering for doxygen to avoid stdout being interrupted by stderr mid-line
+	stdbuf --output=L doxygen doc/doxygen.config
+
 
 #######################################################################################################################
 # Bootstrapping

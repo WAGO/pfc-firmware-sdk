@@ -45,6 +45,15 @@ $(STATEDIR)/led_server_legacy.extract: $(STATEDIR)/autogen-tools
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(LED_SERVER_LEGACY_SRC) $(BUILDDIR)
 #	cp -r $(SRCDIR)/$(LED_SERVER_LEGACY) $(LED_SERVER_LEGACY_DIR)
 	@$(call patchin, LED_SERVER_LEGACY)
+
+ifdef PTXCONF_LED_SERVER_LEGACY_TRUNK
+	#cd $(LED_SERVER_LEGACY_DIR) && sh autogen.sh
+	cd $(LED_SERVER_LEGACY_DIR) && sh autogen.sh
+else
+	#cd $(LED_SERVER_LEGACY_DIR) && [ -f configure ] || sh autogen.sh
+	cd $(LED_SERVER_LEGACY_DIR) && sh autogen.sh
+endif
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -84,19 +93,10 @@ ifdef PTXCONF_LED_SERVER_LEGACY_DEBUGGING
 	LED_SERVER_LEGACY_CONF_OPT += --enable-debug 
 endif
 
-$(STATEDIR)/led_server_legacy.prepare:
-	@$(call targetinfo)
-
-ifdef PTXCONF_LED_SERVER_LEGACY_TRUNK
-	#cd $(LED_SERVER_LEGACY_DIR) && sh autogen.sh
-	cd $(LED_SERVER_LEGACY_DIR) && sh autogen.sh
-else
-	#cd $(LED_SERVER_LEGACY_DIR) && [ -f configure ] || sh autogen.sh
-	cd $(LED_SERVER_LEGACY_DIR) && sh autogen.sh
-endif
-
-	@$(call world/prepare, LED_SERVER_LEGACY)
-	@$(call touch)
+#$(STATEDIR)/led_server_legacy.prepare:
+#	@$(call targetinfo)
+#	@$(call world/prepare, LED_SERVER_LEGACY)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Compile

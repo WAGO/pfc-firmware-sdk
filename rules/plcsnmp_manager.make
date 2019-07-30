@@ -48,6 +48,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(PLCSNMP_MANAGER_SRC) $(BUILDDIR)
 	@$(call patchin, PLCSNMP_MANAGER)
+	cd $(PLCSNMP_MANAGER_DIR) && sh autogen.sh
 endif
 	@$(call touch)
 
@@ -69,7 +70,6 @@ $(STATEDIR)/plcsnmp_manager.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
  	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	cd $(PLCSNMP_MANAGER_DIR) && sh autogen.sh
 	@$(call world/prepare, PLCSNMP_MANAGER)
 endif
 	@$(call touch)

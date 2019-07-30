@@ -156,11 +156,15 @@ var FirmwareRestoreContent = function(id)
     //------------------------------------------------------------------------------
     $('#' + firmwareRestoreContent.id + '_content #firmware_restore_form').bind('submit', function(event) 
     {
+      var decryptionArea = $('#' + firmwareRestoreContent.id + '_content #decryption_area');
+      var errorTxt  = firmwareRestoreContent.CheckFrontendDecryptionParas(decryptionArea);
+
       if('sd-card' === deviceParams.list['active_partition_medium'].value)
       {
-        $('body').trigger('event_errorOccured', [ 'Firmware restore is not allowed, if "Memory Card" is active partition.' ] );
+         event.preventDefault();
+    	 $('body').trigger('event_errorOccured', [ 'Firmware restore is not allowed, if "Memory Card" is active partition.' ] );
       }
-      else
+      else if ('' == errorTxt) // for usability reasons check right decryption arguments of frontend
       {
         // source is our own harddisc ("network") -> upload backup files via iframe, after completion, activate via ajax
         if('network' === $(this).find('[name=source_medium]').val())
@@ -179,6 +183,11 @@ var FirmwareRestoreContent = function(id)
           event.preventDefault();
           firmwareRestoreContent.ActivateBackup(this);
         }
+      }
+      else
+      {
+    	event.preventDefault();
+    	$('body').trigger('event_errorOccured', [ errorTxt ] );
       }
     });
     
@@ -309,9 +318,11 @@ FirmwareRestoreContent.prototype.ShowSourceSelectionDependencies = function(sour
   var firmwareRestoreContent  = this;
   var packageListArea         = $('#' + firmwareRestoreContent.id + '_content ul#firmware_restore_package_list');
   var sourceFileArea          = $('#' + firmwareRestoreContent.id + '_content #firmware_restore_network_source_file');
-  
+  var decryptionArea          = $('#' + firmwareRestoreContent.id + '_content #decryption_area');
+
   // remove all actual "checked" hooks
   $(packageListArea).find('li input').removeAttr('checked');
+  firmwareRestoreContent.InitDecryptionArea(decryptionArea);
 
   // network was selected - package "all" must be unavailable now
   if('network' === sourceMedium)
@@ -324,6 +335,8 @@ FirmwareRestoreContent.prototype.ShowSourceSelectionDependencies = function(sour
 
     // make upload source file fields visible
     $(sourceFileArea).show();
+    $(decryptionArea).show();
+    
   }
 
   // not network - show available packages on actual selected source device
@@ -338,15 +351,26 @@ FirmwareRestoreContent.prototype.ShowSourceSelectionDependencies = function(sour
     
     $(packageListArea).find('input').attr('disabled', true);
     $(packageListArea).find('label').addClass('grayed');
+    $(decryptionArea).hide();
 
     // loop over all packages and enable according checkbox if package is available 
     $.each(availablePackages, function(packageName, packageAvailable)
     {
       if(packageAvailable)
       {
-        var checkboxId  = 'firmware_restore_package_checkbox_' + packageName.replace('package', '').toLowerCase();
-        $(packageListArea).find('input[id=' + checkboxId + ']').removeAttr('disabled');
-        $(packageListArea).find('label[for=' + checkboxId + ']').removeClass('grayed');
+        if( 'encryption_active_state' == packageName)
+        {
+            $(decryptionArea).show();
+            $(decryptionArea).find('input[id^=encryption_active_state]').prop('checked', 'checked');
+            $(decryptionArea).find('input[id^=encryption_active_state]').attr('disabled', true);
+        }
+        else
+        {
+
+            var checkboxId  = 'firmware_restore_package_checkbox_' + packageName.replace('package', '').toLowerCase();
+            $(packageListArea).find('input[id=' + checkboxId + ']').removeAttr('disabled');
+            $(packageListArea).find('label[for=' + checkboxId + ']').removeClass('grayed');
+    	}
       }
     });
     
@@ -394,7 +418,7 @@ FirmwareRestoreContent.prototype.UploadBackupFiles = function(formObj)
   var firmwareRestoreContent  = this;
   var status                  = SUCCESS;
   var uploadDir               = $(formObj).find('input[name=upload_directory]').val();
-  
+  var encState				  = $(formObj).find('input[name=encryption_active_state]:checked').length;
   // check input error - no package selected (or not existing either)
   if(0 === $(formObj).find('input[id^=firmware_restore_package_checkbox]:checked').length)
   {
@@ -418,7 +442,11 @@ FirmwareRestoreContent.prototype.UploadBackupFiles = function(formObj)
           case 'codesys': destination = 'firmware_backup_codesys.tgz'; break;
           case 'settings': destination = 'firmware_backup_settings'; break;
         }
+        //if encryption is enabled and the encryption frontend parameters are successfully checked -> the destination must be with extension ".enc"
+        if (1 === encState)
+            destination += ".enc";
 
+		
         files.push({
           file: input.files[0],
           destination: destination
@@ -467,9 +495,8 @@ FirmwareRestoreContent.prototype.ActivateBackup = function(formObj)
   var packageSettings = $(formObj).find('input[name=package-settings]:checked').length;
   var packageSystem   = $(formObj).find('input[name=package-system]:checked').length;
   var uploadDir       = $(formObj).find('input[name=upload_directory]').val();
-
+  var encPassphrase   = $(formObj).find('input#encryption-passphrase').val();
   // check input error - no package selected (or not existing either)
-  //if(0 === $(formObj).find('input[id^=firmware_restore_package_checkbox]:checked').length)
   if((0 === packageCodesys) && (0 === packageSettings) && ( 0 === packageSystem))
   {
     $('body').trigger('event_errorOccured', [ 'No package selected.' ] );
@@ -480,7 +507,7 @@ FirmwareRestoreContent.prototype.ActivateBackup = function(formObj)
     pageElements.ShowBusyScreen('Restore firmware package(s)...');
 
     var newValueList  = { sourceDeviceMedium: deviceMedium, uploadDir: uploadDir, packageCodesysFlag: packageCodesys, 
-                          packageSettingsFlag: packageSettings, packageSystemFlag: packageSystem };
+                          packageSettingsFlag: packageSettings, packageSystemFlag: packageSystem, encPassphrase: encPassphrase, };
     
     deviceParams.ChangeValue('process_firmware_restore', newValueList, function(status, errorText)
     {
@@ -516,7 +543,7 @@ FirmwareRestoreContent.prototype.ActivateBackup = function(formObj)
         else
         {
           pageElements.RemoveBusyScreen();
-          
+          $(formObj).find('input#encryption-passphrase').val('');
           // clear upload of single codesys package, if it was uploaded
           firmwareRestoreContent.upload && firmwareRestoreContent.upload.cleanup();
           delete firmwareRestoreContent.upload;
@@ -532,4 +559,29 @@ FirmwareRestoreContent.prototype.ActivateBackup = function(formObj)
   
 };
 
+// check for right frontend configuration
+FirmwareRestoreContent.prototype.CheckFrontendDecryptionParas = function(decryptionArea)
+{
+	var encState        = $(decryptionArea).find('input[name=encryption_active_state]:checked').length;
+	var pass			= $(decryptionArea).find('input#encryption-passphrase').val();
+	var errorTxt		= '';
+	
+	if(0 === encState && '' != pass)
+	{
+		errorTxt		= "Decryption not selected but setting passphrase.";
+	}
+	else if(1 === encState && '' == pass)
+	{
+		errorTxt		= "Decryption selected without setting passphrase.";
+	}
+	
+	return errorTxt;
+};
 
+//check for right frontend configuration
+FirmwareRestoreContent.prototype.InitDecryptionArea = function(decryptionArea)
+{
+    $(decryptionArea).find('input[id^=encryption_active_state]').removeAttr('checked');
+    $(decryptionArea).find('input[id^=encryption_active_state]').removeAttr('disabled');
+    $(decryptionArea).find('input#encryption-passphrase').val('');
+};

@@ -74,7 +74,7 @@ static int               receiverThreadPriority = 49;
 static GMainLoop       * loop =  NULL;
 static pthread_mutex_t   mutexReceiver = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t   mutexStartReceiver = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t    condStartReceiver = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t    condStartReceiver = PTHREAD_COND_INITIALIZER;
 static const char      * receiverThreadName = "com_DBUS_worker";
 //static GMainContext *SERV_Context=NULL;
 
@@ -173,7 +173,7 @@ gboolean  timeHandler(gpointer data)
 //------------------------------------------------------------------------------
 static void * ReceiveServer(void * user_data)
 {
-  DBusError error;
+  (void)user_data; //unused
 
   DIRECT_EnableDirectCommunication();
 
@@ -236,6 +236,7 @@ static DBusHandlerResult CallSignalHandler(tMemberList * mbr, DBusMessage * mess
 static DBusHandlerResult com_SERV_SignalHandler (DBusConnection *connection,
                                  DBusMessage    *message)
 {
+  (void)connection; //unused
   DBusHandlerResult ret = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
   //check if message is a signal
@@ -398,7 +399,6 @@ void SERV_RecallServerThread(void)
   if(receiverState == REC_STATE_STOP)
   {
     pthread_attr_t attr;
-    int rc = 0;
     struct sched_param scheduling_parameter;
     int stackSize = 16*1024 <= 2 * PTHREAD_STACK_MIN ? 4 * PTHREAD_STACK_MIN : 16*1024;
     //prepare for starting the thread
@@ -656,7 +656,7 @@ tDbusWorker * com_SERV_CreateNewWorker(unsigned char priority,char * name)
 	//newWorker->name = strdup(name);
 	newWorker->name = malloc(WORKER_NAME_LEN(name));
     sprintf(newWorker->name,"%s%s_XXXXXX",WORKER_PREFIX,name);
-    mktemp(newWorker->name);
+    mkstemp(newWorker->name);
 
 	SERV_OpenQueue(newWorker, newWorker->name, sizeof(tWorkerMsgQ), 10);
 

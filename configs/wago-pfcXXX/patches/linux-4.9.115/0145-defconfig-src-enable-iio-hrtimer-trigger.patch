@@ -1,0 +1,38 @@
+From 255576b036ccc4725681a0f1af830193f8cb12a5 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Thu, 1 Feb 2018 14:47:53 +0100
+Subject: [PATCH] defconfig: src: enable iio hrtimer trigger.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ arch/arm/configs/wago_src_generic_defconfig | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/configs/wago_src_generic_defconfig b/arch/arm/configs/wago_src_generic_defconfig
+index ef656b4..375bc72 100644
+--- a/arch/arm/configs/wago_src_generic_defconfig
++++ b/arch/arm/configs/wago_src_generic_defconfig
+@@ -410,10 +410,10 @@ CONFIG_HWSPINLOCK_OMAP=m
+ # CONFIG_IOMMU_SUPPORT is not set
+ CONFIG_IIO=y
+ CONFIG_IIO_BUFFER_CB=y
+-CONFIG_IIO_CONFIGFS=y
+-CONFIG_IIO_TRIGGER=y
++CONFIG_IIO_SW_TRIGGER=y
+ CONFIG_MCP3422=y
+ CONFIG_TI_AM335X_ADC=y
++CONFIG_IIO_HRTIMER_TRIGGER=y
+ CONFIG_PWM=y
+ CONFIG_PWM_TIECAP=y
+ CONFIG_PWM_TIEHRPWM=y
+@@ -434,7 +434,6 @@ CONFIG_NTFS_FS=y
+ CONFIG_NTFS_RW=y
+ CONFIG_TMPFS=y
+ CONFIG_TMPFS_POSIX_ACL=y
+-CONFIG_CONFIGFS_FS=y
+ CONFIG_UBIFS_FS=y
+ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3_ACL=y
+-- 
+2.7.4
+

@@ -35,6 +35,7 @@ $(STATEDIR)/liboslinux.extract: $(STATEDIR)/autogen-tools
 	@$(call targetinfo)
 	@mkdir -p $(LIBOSLINUX_DIR)
 	@rsync -a --exclude=.libs/ --exclude="*.o" --exclude="*.a" --exclude="*.so" --exclude="*.so" $(LIBOSLINUX_SRC) $(BUILDDIR)
+	@cd $(LIBOSLINUX_DIR) && sh autogen.sh
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -50,7 +51,6 @@ endif
 $(STATEDIR)/liboslinux.prepare:
 	@$(call targetinfo)
 	echo $(LIBOSLINUX_CONF_OPT)
-	@cd $(LIBOSLINUX_DIR) && sh autogen.sh
 	@$(call world/prepare, LIBOSLINUX)
 	@$(call touch)
 

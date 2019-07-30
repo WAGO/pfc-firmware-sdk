@@ -69,7 +69,7 @@ function RestorePartition
     local result=$SUCCESS
 
     # Save the current settings to restore them in the new partition when user did not provide custom settings
-    if [[ -z "$settingsFilename" ]]; then
+    if [[ -z "$settingsFilename" ]] || [[ "$settingsFilename" == "-" ]]; then
         settingsFilename="/tmp/current_settings.txt"
 
         $WAGO_CT_DIR/settings_backup save "$settingsFilename"
@@ -79,6 +79,7 @@ function RestorePartition
     # Restore whole partition
     if [[ $result -eq $SUCCESS ]]; then
         print_dbg "RestorePartition: <$destinationPartition> <$sourceFilename> <$settingsFilename>"
+
         $WAGO_ST_DIR/${BOARD_ID}_restore_partition.sh \
           "$destinationPartition" "$sourceFilename" "$settingsFilename" &>/dev/null
         result=$?
@@ -216,7 +217,7 @@ if [[ "$1"  == "-h" ]] || [[ "$1" == "--help" ]]; then
     echo
     echo "* Process restore of firmware data from backup *"
     echo
-    echo "Usage: firmware_restore < package-settings=value package-system=value package-codesys=value device-medium=value > [ upload-dir=value ] [ testmode=value ] [reboot=value]"
+    echo "Usage: firmware_restore < package-settings=value package-system=value package-codesys=value device-medium=value > [ upload-dir=value ] [ testmode=value ] [reboot=value] [ passphrase=value ]"
     echo
     echo "package-settings, package-system, package-codesys: 1, if package should be saved, else parameter can be absent"
 
@@ -238,6 +239,7 @@ if [[ "$1"  == "-h" ]] || [[ "$1" == "--help" ]]; then
     echo "upload-dir: path of directory that contains files to restore; only used if the device-medium is network"
     echo "testmode: if this parameter is given (value equal), only check if restore file is existing, but do no processing"
     echo "reboot: if this parameter is set to 0, do not execute reboots. Default value is 1."
+    echo "passphrase: Passphrase to decrypt an encrypted backup file."
     exit $status
 fi
 
@@ -253,6 +255,10 @@ deviceMedium=$(GetParameterValue device-medium $*)
 testmode=$(GetParameterValue testmode $*)
 execute_reboot=$(GetParameterValue reboot $*)
 print_dbg "verbose: \"$verbose\", deviceMedium: \"$deviceMedium\", testmode: \"$testmode\", reboot: \"$execute_reboot\""
+
+### EDIT ###
+
+passphrase="$(GetParameterValue "passphrase" $*)"
 
 if [[ "${DO_PRINT_DBG}" == "yes" ]]; then
     QUIET=0
@@ -344,17 +350,31 @@ else
     fi
 fi
 
+backup_codesys_file="${sourceDir}/${CODESYS_FILENAME}.tgz"
+backup_system_file="${sourceDir}/${SYSTEM_FILENAME}.tgz"
+backup_settings_file="${sourceDir}/${SETTINGS_FILENAME}"
+
+enc='.enc'
+
+checkfile()
+{
+  # disabled packages mean success
+  if [ "$1" != "1" ]; then
+    return "$SUCCESS"
+  elif [ -f "${2}" ]; then
+    return "$SUCCESS"
+  elif [ -f "${2}${enc}" ]; then
+    return "$ENCRYPTED_FILE"
+  fi
+  return "$CONFIG_FILE_MISSING"
+}
+
 # now we should have any directory including our data
 if [[ "$status" == "$SUCCESS" ]]; then
-
     # first check if the advised backup files are even existing
-    if   [[ "$packageCodesys"  == "1" ]] && [[ ! -f "${sourceDir}/${CODESYS_FILENAME}.tgz" ]]; then
-        status=$CONFIG_FILE_MISSING
-    elif [[ "$packageSystem"   == "1" ]] && [[ ! -f "${sourceDir}/${SYSTEM_FILENAME}.tgz"  ]]; then
-        status=$CONFIG_FILE_MISSING
-    elif [[ "$packageSettings" == "1" ]] && [[ ! -f "${sourceDir}/${SETTINGS_FILENAME}"    ]]; then
-        status=$CONFIG_FILE_MISSING
-    fi
+    checkfile "$packageCodesys"  "${backup_codesys_file}"  || status="$?"
+    checkfile "$packageSystem"   "${backup_system_file}"   || status="$?"
+    checkfile "$packageSettings" "${backup_settings_file}" || status="$?"
 
     if [[ $status -eq $CONFIG_FILE_MISSING ]]; then
         print_dbg "config file missing"
@@ -368,6 +388,19 @@ fi
 
 # in testmode, our work is done here - otherwise we can start with reading and processing our data now
 if [[ "1" != "$testmode" ]]; then
+    # If passphrase is given, we expect an encrypted backup and
+    # decrypt it first.
+    [ "$status" -eq "$ENCRYPTED_FILE" ] && status="$SUCCESS"
+    if [ -n "${passphrase}" ]; then
+      for file in "${backup_codesys_file}" "${backup_system_file}" "${backup_settings_file}"; do
+        if test -f "${file}${enc}"; then
+          openssl enc -d -aes-256-cfb -md sha512 -pass fd:3 <"${file}${enc}" >"${file}" 3<< EOF
+${passphrase}
+EOF
+        fi
+      done
+    fi
+
     if [[ $status -eq $SUCCESS ]]; then
         WriteRestoreState "start"
 
@@ -398,10 +431,12 @@ if [[ "1" != "$testmode" ]]; then
 
         # first get device and partition of codesys (= home) device
         destinationPartition="$(/etc/config-tools/get_filesystem_data active-partition)"
-        RestorePartition "$destinationPartition" "${sourceDir}/${CODESYS_FILENAME}.tgz"
+
+        RestorePartition "$destinationPartition" "${backup_codesys_file}"
+
         status=$?
         if [[ $status -ne $SUCCESS ]]; then
-            ReportError $status "(RestorePartition $destinationPartition ${sourceDir}/${CODESYS_FILENAME}.tgz)"
+            ReportError $status "(RestorePartition $destinationPartition ${backup_codesys_file})"
         fi
     fi
 
@@ -416,13 +451,13 @@ if [[ "1" != "$testmode" ]]; then
         if [[ "$packageSettings" == "1" ]]; then
             # Pass settings file to RestorePartition. It will copy it into the restored partition and take care it will
             # be applied after the restored partition boots for the first time.
-            RestorePartition "$destinationPartition" "${sourceDir}/${SYSTEM_FILENAME}.tgz" "${sourceDir}/${SETTINGS_FILENAME}"
+            RestorePartition "$destinationPartition" "${backup_system_file}" "${backup_settings_file}"
             status=$?
 
             # signalise that package settings is already processed
             packageSettings=0
         else
-            RestorePartition "$destinationPartition" "${sourceDir}/${SYSTEM_FILENAME}.tgz"
+            RestorePartition "$destinationPartition" "${backup_system_file}"
             status=$?
         fi
 
@@ -439,10 +474,12 @@ if [[ "1" != "$testmode" ]]; then
                 rebootFlag=1
             fi
             ;;
+
           ${LAST_ERROR_SET})
             ;; # Just pass error to UI
+
           *)
-            ReportError $status "(RestorePartition $destinationPartition ${sourceDir}/${SYSTEM_FILENAME}.tgz)"
+            ReportError $status "(RestorePartition $destinationPartition ${backup_system_file})"
             ;;
         esac
     fi
@@ -453,9 +490,9 @@ if [[ "1" != "$testmode" ]]; then
     if [[ $status -eq $SUCCESS ]] && [[ "$packageSettings" == "1" ]]; then
         print_dbg "Restore settings" > $statusFile
 
-        $WAGO_CT_DIR/settings_backup restore "${sourceDir}/${SETTINGS_FILENAME}" #&>/dev/null
+        $WAGO_CT_DIR/settings_backup restore "${backup_settings_file}"
         if [[ $? -ne $SUCCESS ]]; then
-            status=$EXECUTABLE_ERROR
+          status=$EXECUTABLE_ERROR
           ReportError $status "(settings_backup)"
         else
             rebootFlag=1
@@ -472,12 +509,16 @@ fi
 
 
 # cleanup efforts:
+# in case of an encrypted backup, we have to delete the
+# unencrypted backup not to leak any data
+if [[ -n "${passphrase}" ]]; then
+  rm -f "${backup_codesys_file}" "${backup_system_file}" "${backup_settings_file}"
+fi
 
 # destination device is network -> uploaded files must be removed after we processed them
 if [[ "$deviceMedium" == "$NETWORK" && -d "$sourceDir" ]]; then
-    rm "${sourceDir}/${CODESYS_FILENAME}.tgz"  &>/dev/null
-    rm "${sourceDir}/${SYSTEM_FILENAME}.tgz"   &>/dev/null
-    rm "${sourceDir}/${SETTINGS_FILENAME}"     &>/dev/null
+  rm -f "${backup_codesys_file}" "${backup_system_file}" "${backup_settings_file}" \
+        "${backup_codesys_file}${enc}" "${backup_system_file}${enc}" "${backup_settings_file}${enc}"
 fi
 
 # check if source directory was mounted and if so, unmount it

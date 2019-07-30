@@ -9,7 +9,7 @@
 //--------------------------------------------------------------------------------------------------
 /// \file       mdmd_log.h
 ///
-/// \version    $Revision: 38420 $
+/// \version    $Revision: 37962 $
 ///
 /// \par        <b>Software Package</b>:
 ///             Modem Management Daemon (mdmd)

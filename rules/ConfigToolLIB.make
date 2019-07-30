@@ -43,6 +43,7 @@ $(STATEDIR)/configtoollib.extract: $(STATEDIR)/autogen-tools
 	@mkdir -p $(CONFIGTOOLLIB_DIR)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@rsync -a --exclude=".project" --exclude=".cproject"  $(CONFIGTOOLLIB_SRC) $(BUILDDIR)
+	cd $(CONFIGTOOLLIB_DIR) && sh autogen.sh
 endif
 	@$(call patchin, CONFIGTOOLLIB)
 	@$(call touch)
@@ -62,7 +63,6 @@ CONFIGTOOLLIB_CONF_OPT	:= $(CROSS_AUTOCONF_USR) --enable-debug=yes
 $(STATEDIR)/configtoollib.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-	cd $(CONFIGTOOLLIB_DIR) && sh autogen.sh
 	@$(call world/prepare, CONFIGTOOLLIB)
 endif
 	@$(call touch)
