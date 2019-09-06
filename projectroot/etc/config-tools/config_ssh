@@ -25,6 +25,7 @@ DROPBEAR_LINK_NAME="/etc/rc.d/S25_dropbear"
 DROPBEAR_INITFILE_NAME="/etc/init.d/dropbear"
 DROPBEAR_CONFIGFILE_NAME="/etc/dropbear/dropbear.conf"
 DROPBEAR_DEAMON="dropbear"
+DROPBEAR_KEY_DIR="$HOME/.ssh"
 
 # original dropbear args line
 #  DROPBEAR_EXTRA_ARGS="$DROPBEAR_EXTRA_ARGS -b $DROPBEAR_BANNER"
@@ -224,20 +225,21 @@ function ChangePublicKey
   newPublicKey=$*
  
   # make directory for public key file, if it is not already existing
-  ls /home/.ssh > /dev/null 2> /dev/null
+  ls $DROPBEAR_KEY_DIR > /dev/null 2> /dev/null
   if [ "$SUCCESS" != $? ]; then
-    mkdir /home/.ssh #> /dev/null 2> /dev/null
+    mkdir $DROPBEAR_KEY_DIR #> /dev/null 2> /dev/null
   fi
    
   # write new public key to file
   #echo key:$newPublicKey > /etc/config-tools/key_test
-  echo $newPublicKey > /home/.ssh/authorized_keys
+  echo $newPublicKey > $DROPBEAR_KEY_DIR/authorized_keys
   if [ "$SUCCESS" != $? ]; then
     status=$WRITE_FILE_ERROR
-    ReportError $status "(~/.ssh/authorized_keys)"
+    ReportError $status "($DROPBEAR_KEY_DIR/authorized_keys)"
     SetLastError "Key file write error."
   else
-    chmod 600 /home/.ssh/authorized_keys
+    chmod 700 $DROPBEAR_KEY_DIR
+    chmod 600 $DROPBEAR_KEY_DIR/authorized_keys
   fi
   
   return $status

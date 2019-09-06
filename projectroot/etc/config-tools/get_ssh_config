@@ -25,6 +25,7 @@ DROPBEAR_LINK_NAME="/etc/rc.d/S16dropbear"
 DROPBEAR_INITFILE_NAME="/etc/init.d/dropbear"
 DROPBEAR_CONFIGFILE_NAME="/etc/dropbear/dropbear.conf"
 DROPBEAR_DEAMON="dropbear"
+DROPBEAR_KEY_DIR="$HOME/.ssh"
 
 #--------------------------------------------------------------------
 # help text (requested with specified parameter)
@@ -107,7 +108,7 @@ function GetPublicKey
   # get content of private key file, in case of error (file is not existing) > key is not existing
   # sudo access is necessary, because key file is only readable by root
   #publicKey=`cat /home/.ssh/authorized_keys 2> /dev/null`
-  publicKey=`sudo sed -n '1p' /home/.ssh/authorized_keys 2> /dev/null`
+  publicKey=`sudo sed -n '1p' $DROPBEAR_KEY_DIR/authorized_keys 2> /dev/null`
 
   printf "$publicKey"
 }
