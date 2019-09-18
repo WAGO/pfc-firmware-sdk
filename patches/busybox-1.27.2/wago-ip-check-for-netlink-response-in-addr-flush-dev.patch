@@ -3,6 +3,10 @@ From: Andrej Gantvorg <andrej.gantvorg@wago.com>
 Date: Mon, 17 Mar 2014 17:21:39 +0000
 Subject: [PATCH] ip: check for netlink response in 'addr flush dev'
 
+Update: fixed in mainline
+https://git.busybox.net/busybox/commit/?id=028c5aa18b5273c029f0278232d922ee1a164de6
+
+Commit happened after v1.30.1 release.
 
 Signed-off-by: Gantvorg <u014301@lc80471.wago.local>
 ---

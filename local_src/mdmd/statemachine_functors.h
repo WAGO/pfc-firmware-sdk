@@ -20,7 +20,7 @@ class TransitionFunctionFunctor : public SM::transition_t::transistion_functor_t
 
 	~TransitionFunctionFunctor() {}
 
-	bool operator() (SM &sm, State &src, State &dst, Event &ev) {
+	bool operator() (SM &sm, State &src, State &dst, Event &ev) override {
 	    return _tf(sm,src,dst,ev);
 	}
 };
@@ -38,7 +38,7 @@ class ActionFunctionFunctor : public SM::action_t::action_functor_t
 
 	~ActionFunctionFunctor() {}
 
-	void operator() (SM &sm, Event &ev) {
+	void operator() (SM &sm, Event &ev) override {
 	    _af(sm,ev);
 	}
 };
@@ -56,7 +56,7 @@ class GuardFunctionFunctor : public SM::transition_t::guard_functor_t
 
 	~GuardFunctionFunctor() {}
 
-	bool operator() (const SM &sm) {
+	bool operator() (const SM &sm) override {
 	    return _gf(sm);
 	}
 };
@@ -65,23 +65,8 @@ template <class SM>
 class positive_guard : public SM::transition_t::guard_functor_t
 {
     public:
-	bool operator() (const SM &sm) { (void)sm; /*unused parameter*/ return true; }
+	bool operator() (const SM &sm) override { (void)sm; /*unused parameter*/ return true; }
 	~positive_guard() {}
-};
-
-template <class SM>
-class sm_write : public SM::transition_t::transistion_functor_t
-{
-    private:
-	std::string _text;
-    public:
-	sm_write( const std::string &text )
-	    : _text(text)
-	{}
-	bool operator () (SM &sm, State &src, State &dst, Event &ev) {
-	    sm.write(_text);
-	    return true;
-	}
 };
 
 #endif

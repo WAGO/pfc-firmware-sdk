@@ -1,7 +1,7 @@
 From a317267ee218a770f452b21cdb5746e44371313e Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 7 Dec 2016 06:55:44 +0000
-Subject: [PATCH 027/292] defconfig: pfc: turn on musb am35x
+Subject: [PATCH] defconfig: pfc: turn on musb am35x
 
 ---
  arch/arm/configs/wago_pfc_generic_defconfig | 5 ++++-

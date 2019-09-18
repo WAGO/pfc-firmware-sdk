@@ -49,6 +49,15 @@ function fetch {
     local output_file="$2"
     local md5sum_file="$3"
 
+    if [[ -f "${output_file}" ]] && [[ -f "${md5sum_file}" ]]; then
+        echo "Info: ${output_file} and ${md5sum_file} exist."
+        return 0
+    elif [[ -f "${output_file}" ]]; then
+        echo "Info: ${md5sum_file} missing, overwriting ${output_file}."
+    elif [[ -f "${md5sum_file}" ]]; then
+        echo "Info: ${output_file} missing, overwriting ${md5sum_file}."
+    fi
+
     # in case of a snapshot artifactory url (i.e. https://artifactory/project/artifact-1.0.0\[INTEGRATION\].bin):
     # get real snapshot file name and create an according url
     local real_url
@@ -61,34 +70,20 @@ function _fetch_source {
     local url="$1"
     local file="$2"
 
-    if [[ -f "${file}" ]]; then
-        echo "Error: $file exists."
-        return 1
-    fi
-
     downloads+=("${file}")
 
     echo "Downloading ${url}..."
 
-    curl -H "X-JFrog-Art-API:${JFROG_APIKEY}" -X GET "${url}" -f -L -o "${file}"
+    curl -H "X-JFrog-Art-API:${JFROG_APIKEY}" -X GET "${url}" -f -L > "${file}"
 }
 
 function _get_md5sum {
-    local url="$1"
-    local file="${2:-}"
+   local url="$1"
+   local file="${2:-}"
 
-    if [[ -f "${file}" ]]; then
-        echo "Error: $file exists."
-        return 1
-    fi
+   downloads+=("${file}")
 
-    downloads+=("${file}")
-
-    if [[ -n "${file}" ]]; then
-        exec >"${file}"
-    fi
-
-    "${CURL}" -H "X-JFrog-Art-API:$JFROG_APIKEY" -X GET "${url}" -f -L -sI | sed -ne 's/^X-Checksum-Md5:\s*\([0-9a-f]*\)/\1/p' | sed -e 's/\r$//'
+   "${CURL}" -H "X-JFrog-Art-API:$JFROG_APIKEY" -X GET "${url}" -f -L -sI | sed -ne 's/^X-Checksum-Md5:\s*\([0-9a-f]*\)/\1/p' | sed -e 's/\r$//' > "${file}"
 }
 
 # fetch_md5sum and fetch_source are only exposed for testing purposes and should not be invoked directly.

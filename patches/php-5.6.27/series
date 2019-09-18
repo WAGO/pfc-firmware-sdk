@@ -1,4 +1,0 @@
-#tag:base --start-number 1
-#tag:debian --start-number 1
-0001-Fix-dl-cross-compiling-issue.patch
-0002-Fix-strcasestr-cross-compiling-issue.patch

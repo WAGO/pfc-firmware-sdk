@@ -1,7 +1,7 @@
 From ae37d718c4bee9644752dabaecbbacd5501dfe7d Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 17 Oct 2018 07:25:56 +0000
-Subject: [PATCH] dts: am35xx: add davinci emac device registration
+Subject: [PATCH 129/144] dts: am35xx: add davinci emac device registration
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

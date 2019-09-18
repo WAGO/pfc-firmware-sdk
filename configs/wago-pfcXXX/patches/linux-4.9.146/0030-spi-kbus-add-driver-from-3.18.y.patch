@@ -1,7 +1,7 @@
 From 56c0a0669bbee8eb2d91d4edd3f9444d9e2abe86 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 7 Dec 2016 09:47:49 +0000
-Subject: [PATCH 030/292] spi: kbus: add driver from 3.18.y
+Subject: [PATCH] spi: kbus: add driver from 3.18.y
 
 ---
  drivers/spi/spi-kbus.c | 1242 ++++++++++++++++++++++++++++++++++++++++++++++++

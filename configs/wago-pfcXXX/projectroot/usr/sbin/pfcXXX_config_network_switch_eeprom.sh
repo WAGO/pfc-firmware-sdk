@@ -103,15 +103,19 @@ function write_eeprom
   return $status
 }
 
+function has_netdev_eeprom
+{
+  $($ETHTOOL -e "$NETWORK_DEVICE" length 4 1>/dev/null 2>&1)
+}
+
 #### MAIN ####
 function main
 {
   local status=0
   local is_equal="true"
 
-  # Only execute if device is a PFC 750-8215.
-  order=$(/etc/config-tools/get_typelabel_value ORDER)
-  if [[ ${order:0:8} != "750-8215" ]]; then
+  # Only execute if network device support eeprom
+  if ! has_netdev_eeprom; then
     exit 0
   fi
   

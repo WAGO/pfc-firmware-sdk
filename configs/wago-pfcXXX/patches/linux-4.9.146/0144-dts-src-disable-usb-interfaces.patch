@@ -1,7 +1,7 @@
 From 39dd9b987523f22bdc3199e8e1264822b9b2f2c3 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Mon, 29 Jan 2018 14:43:06 +0100
-Subject: [PATCH 144/292] dts: src: disable usb interfaces.
+Subject: [PATCH] dts: src: disable usb interfaces.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

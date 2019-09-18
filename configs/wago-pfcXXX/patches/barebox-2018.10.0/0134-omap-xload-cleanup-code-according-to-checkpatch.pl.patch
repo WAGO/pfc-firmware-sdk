@@ -1,7 +1,7 @@
 From 096b3b39f2f59d7c53a0149ec39fa79a97076d2e Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 5 Nov 2018 14:18:28 +0000
-Subject: [PATCH] omap: xload: cleanup code according to checkpatch.pl
+Subject: [PATCH 134/144] omap: xload: cleanup code according to checkpatch.pl
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

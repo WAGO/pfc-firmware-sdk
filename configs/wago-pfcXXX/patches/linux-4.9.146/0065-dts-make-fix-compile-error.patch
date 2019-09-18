@@ -1,7 +1,7 @@
 From 538b320e7c20dcbaa08042f8992cbbd048afae25 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Mon, 26 Jun 2017 12:04:06 +0000
-Subject: [PATCH 065/292] dts: make: fix compile error
+Subject: [PATCH] dts: make: fix compile error
 
 ---
  arch/arm/boot/dts/Makefile | 2 +-

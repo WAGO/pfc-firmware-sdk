@@ -1,7 +1,7 @@
 From e5b3ea305df94665f9286f917955c497134b2625 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 7 Sep 2017 16:18:31 +0200
-Subject: [PATCH 099/292] dts: pfc200v3: setupfw: disable dsa
+Subject: [PATCH] dts: pfc200v3: setupfw: disable dsa
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-setupfw.dts | 4 ++++

@@ -1,7 +1,7 @@
 From 9f0c2444a293f1cdbb59a22fcfc2c8818a5d6fc2 Mon Sep 17 00:00:00 2001
 From: Ralf Gliese <gliese@elrest.de>
 Date: Thu, 11 May 2017 16:29:43 +0200
-Subject: [PATCH 052/292] dts: vtpctp: add vtpctp specific oftrees for PTE507
+Subject: [PATCH] dts: vtpctp: add vtpctp specific oftrees for PTE507
 
 ---
  arch/arm/boot/dts/Makefile          |   3 +-

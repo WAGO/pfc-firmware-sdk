@@ -1,7 +1,7 @@
 From 853ca08e50be3ef40ae70a2a081b499ca9f98c68 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Mon, 11 Sep 2017 14:25:43 +0200
-Subject: [PATCH 101/292] dts: gpmc: disable gpmc monitoring  in v2
+Subject: [PATCH] dts: gpmc: disable gpmc monitoring  in v2
 
 ---
  arch/arm/boot/dts/wago-pfc200-dpc31.dtsi  | 2 --

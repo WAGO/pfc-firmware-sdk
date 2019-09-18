@@ -1,7 +1,7 @@
 From 6608b8212769cb743c5a01619f64f783b4d813be Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 17 Nov 2016 07:07:15 +0000
-Subject: [PATCH 004/292] ksz8863: cfg: remove dsa code
+Subject: [PATCH] ksz8863: cfg: remove dsa code
 
 ---
  drivers/net/phy/ksz8863-cfg.c | 42 +++++-------------------------------------

@@ -1,8 +1,8 @@
 From 7cfc2e545c8d6ff86d8af159c6cffca401a14b60 Mon Sep 17 00:00:00 2001
 From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
 Date: Fri, 30 Nov 2018 11:17:36 +0100
-Subject: [PATCH 281/292] mfd/tps65218.c: Remove initial config hack to be
- replaced by FDT
+Subject: [PATCH] mfd/tps65218.c: Remove initial config hack to be replaced by
+ FDT
 
 tps65218_set_interrupt_mask() needs no replacement.
 The interrupts are already masked correctly by initializing

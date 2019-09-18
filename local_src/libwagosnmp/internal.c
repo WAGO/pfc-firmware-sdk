@@ -10,7 +10,7 @@
 ///
 ///  \file     internal.c
 ///
-///  \version  $Rev: 17812 $
+///  \version  $Rev: 39636 $
 ///
 ///  \brief    <Insert description here>
 ///
@@ -373,6 +373,8 @@ INTERNAL_SYM tWagoSnmpReturnCode INTERNAL_GetSnmpSession(tWagoSnmpTranceiver * t
   INIT_SNMP_ONCE;
   snmp_sess_init( &tmpss );
   tmpss.version = trcv->version;
+  tmpss.retries = trcv->retries;
+  tmpss.timeout = trcv->timeout_us;
   if(trcv->sHost[0] != 0)
   {
     //tmpss.peername = strdup(msg->trcvData.sHost);//warum hier strdup und oben nicht?

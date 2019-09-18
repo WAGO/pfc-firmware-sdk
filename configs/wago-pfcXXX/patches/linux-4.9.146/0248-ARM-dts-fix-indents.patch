@@ -1,7 +1,7 @@
 From 4c9005c90c09162c1042644b32bf5584e064c3cb Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 15 Oct 2018 09:10:01 +0200
-Subject: [PATCH 248/292] ARM: dts: fix indents
+Subject: [PATCH] ARM: dts: fix indents
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1,8 +1,7 @@
 From 90d7dfbaef92193f3841276e7a75f41c9a9f7f10 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 15 Oct 2018 16:05:22 +0200
-Subject: [PATCH 250/292] dts: 750 8215: fix power down of mv88e6321 ports over
- eeprom
+Subject: [PATCH] dts: 750 8215: fix power down of mv88e6321 ports over eeprom
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

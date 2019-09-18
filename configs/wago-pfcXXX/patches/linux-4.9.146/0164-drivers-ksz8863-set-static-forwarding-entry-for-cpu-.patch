@@ -1,8 +1,7 @@
 From fc96e67555a4a52c555b7aacc395edc3ead567a2 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Mon, 19 Mar 2018 11:02:38 +0100
-Subject: [PATCH 164/292] drivers: ksz8863: set static forwarding entry for cpu
- port
+Subject: [PATCH] drivers: ksz8863: set static forwarding entry for cpu port
 
 ---
  drivers/net/dsa/ksz8863.c     |   4 +-

@@ -1,8 +1,8 @@
 From ce1856934dcb1233e90347e77f4ef45d59057f63 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 11 Jul 2018 09:47:26 +0200
-Subject: [PATCH 218/292] swconfig: mv88e6321: improve behavior while initiate
- of external phys
+Subject: [PATCH] swconfig: mv88e6321: improve behavior while initiate of
+ external phys
 
 Sometimes, the initiate of external PHYs, connected to MV88E6321 switch,
 failed. This patch extend the timeout and add a extra powercycle for phy

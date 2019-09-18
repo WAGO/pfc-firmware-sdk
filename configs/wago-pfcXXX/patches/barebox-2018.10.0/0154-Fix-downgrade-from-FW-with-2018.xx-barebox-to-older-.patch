@@ -1,0 +1,42 @@
+From 6c4767f98bae20224a138fc41b03c9873f04f758 Mon Sep 17 00:00:00 2001
+From: Boerje Sewing <Boerje.Sewing@who-ing.de>
+Date: Wed, 9 Jan 2019 09:23:32 +0100
+Subject: [PATCH] Fix downgrade from FW with 2018.xx barebox to older FW
+
+barebox.img and mlo--nand are downgrade bootloader files. Pre 2018.xx
+bootloaders load MLO and barebox from NAND and start
+downgrade.bin.pfc200 script from downgrade sd card which in turn starts
+the downgrade process. During the downgrade barebox.img and mlo--nand
+are copied to the NAND.
+Since barebox update to 2018.xx this doesn't work any more, cause
+barebox.img files have a new meaning. 2018.xx MLO now boots barebox.img
+from downgrade sd card instead of booting barebox from NAND and the
+downgrade process fails.
+This is solved by renaming the downgrade bootloader files and adapt the
+downgrade scripts.
+
+Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
+index c5e101a2b56..0b1bb617506 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
+@@ -27,9 +27,9 @@ mtd_parts="${mtd_linux1} ${mtd_linux2} ${mtd_data} ${mtd_xload} ${mtd_barebox} $
+ 
+ recovery_parts="512k@0k(${mtd_xload}),1024k@512k(${mtd_barebox}),256k@1536k(${mtd_barebox_env}),256k@1792k(${mtd_product}),40192k@2048k(${mtd_recovery}),4096k@42240k(${mtd_linux1}),4096k@46336k(${mtd_linux2}),-@50432k(${mtd_data})"
+ 
+-mlo="mlo--nand"
+-barebox="barebox.img"
+-recovery="recovery" # !! we need to rename the recovery-image !!
++mlo="downgrade.mlo--nand"
++barebox="downgrade.barebox.img"
++recovery="recovery"
+ 
+ ###############################
+ 
+-- 
+2.20.1
+

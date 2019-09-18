@@ -1,7 +1,7 @@
 From 2dba4084a8c7881b209472827135c0e251489a42 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 20 Mar 2018 12:28:24 +0000
-Subject: [PATCH 161/292] net: phy: mv88e6321-cfg: fix force speed to 100BASE-T
+Subject: [PATCH] net: phy: mv88e6321-cfg: fix force speed to 100BASE-T
 
 This patch fix two bugs:
 1) Call wrong functions for read/write to switch register

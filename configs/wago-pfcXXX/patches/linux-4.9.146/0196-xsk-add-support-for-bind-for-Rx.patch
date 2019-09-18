@@ -1,7 +1,7 @@
 From e776da97aadf17f2ffd8842882dd46000ab9b786 Mon Sep 17 00:00:00 2001
 From: Magnus Karlsson <magnus.karlsson@intel.com>
 Date: Wed, 2 May 2018 13:01:26 +0200
-Subject: [PATCH 196/292] xsk: add support for bind for Rx
+Subject: [PATCH] xsk: add support for bind for Rx
 
 Here, the bind syscall is added. Binding an AF_XDP socket, means
 associating the socket to an umem, a netdev and a queue index. This

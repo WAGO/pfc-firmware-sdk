@@ -1,7 +1,7 @@
 From 2b8a7a15c749a63801873f3bd22da654a7bcc349 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 18 Jan 2017 18:04:07 +0100
-Subject: [PATCH 032/292] dts: pfc-musb: turn on musb1 interface
+Subject: [PATCH] dts: pfc-musb: turn on musb1 interface
 
 ---
  arch/arm/boot/dts/wago-pfc100-musb.dtsi | 7 ++++---

@@ -1,8 +1,8 @@
 From 9805a0ef4cc3572353a0566858a3c1a9791b2484 Mon Sep 17 00:00:00 2001
 From: Andre Nahrwold <andre.nahrwold@wago.com>
 Date: Mon, 12 Jun 2017 10:20:55 +0200
-Subject: [PATCH 125/292] drv: watchdog: gpio-wdt: add rt thread support with
- dedicated rt-property from oftree
+Subject: [PATCH] drv: watchdog: gpio-wdt: add rt thread support with dedicated
+ rt-property from oftree
 
 -> use usleep_range in thread, to be called from hrtimer context
 -> fix calculating the right sleep range in usecs

@@ -117,19 +117,19 @@ class MdmPersistentStorageWithPresetConfigTest : public MdmPersistentStorageTest
 //------------------------------------------------------------------------------
 // test implementation
 //------------------------------------------------------------------------------
-TEST_F(MdmPersistentStorageTest, CreateInstance)
+TEST_F(MdmPersistentStorageTest, CreateInstance_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     EXPECT_TRUE(true);
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, CreateInstance_Host)
+TEST_F(MdmPersistentStorageWithPresetConfigTest, CreateInstance)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     EXPECT_TRUE(true);
 }
 
-TEST_F(MdmPersistentStorageTest, ModemManagementConfig)
+TEST_F(MdmPersistentStorageTest, ModemManagementConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     ModemManagementConfig defaultConfig = mdmParameterStorage.getModemManagementConfig();
@@ -142,7 +142,7 @@ TEST_F(MdmPersistentStorageTest, ModemManagementConfig)
     ExpectInFile(KEY_PORT_STATE, std::to_string(defaultConfig.get_port_state()));
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, ModemManagementConfig_Host)
+TEST_F(MdmPersistentStorageWithPresetConfigTest, ModemManagementConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     ModemManagementConfig defaultConfig = mdmParameterStorage.getModemManagementConfig();
@@ -156,7 +156,7 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, ModemManagementConfig_Host)
     ExpectInFile(KEY_PORT_STATE, std::to_string(newConfig.get_port_state()));
 }
 
-TEST_F(MdmPersistentStorageTest, UserIdentityConfig)
+TEST_F(MdmPersistentStorageTest, UserIdentityConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     UserIdentityConfig defaultConfig = mdmParameterStorage.getUserIdentityConfig();
@@ -169,7 +169,7 @@ TEST_F(MdmPersistentStorageTest, UserIdentityConfig)
     ExpectInFile(KEY_SIM_PIN,   defaultConfig.get_pin());
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, UserIdentityConfig_Host)
+TEST_F(MdmPersistentStorageWithPresetConfigTest, UserIdentityConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     UserIdentityConfig defaultConfig = mdmParameterStorage.getUserIdentityConfig();
@@ -183,7 +183,7 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, UserIdentityConfig_Host)
     ExpectInFile(KEY_SIM_PIN,   newConfig.get_pin());
 }
 
-TEST_F(MdmPersistentStorageTest, NetworkAccessConfig)
+TEST_F(MdmPersistentStorageTest, NetworkAccessConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     NetworkAccessConfig defaultConfig = mdmParameterStorage.getNetworkAccessConfig();
@@ -198,7 +198,7 @@ TEST_F(MdmPersistentStorageTest, NetworkAccessConfig)
     ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(defaultConfig.get_act()));
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, NetworkAccessConfig_Host)
+TEST_F(MdmPersistentStorageWithPresetConfigTest, NetworkAccessConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     NetworkAccessConfig defaultConfig = mdmParameterStorage.getNetworkAccessConfig();
@@ -214,7 +214,7 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, NetworkAccessConfig_Host)
     ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(newConfig.get_act()));
 }
 
-TEST_F(MdmPersistentStorageTest, GprsAccessConfig)
+TEST_F(MdmPersistentStorageTest, GprsAccessConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     GprsAccessConfig defaultConfig = mdmParameterStorage.getGprsAccessConfig();
@@ -233,7 +233,7 @@ TEST_F(MdmPersistentStorageTest, GprsAccessConfig)
     ExpectInFile(KEY_GPRS_PASS,                 defaultConfig.get_pass());
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, GprsAccessConfig_Host)
+TEST_F(MdmPersistentStorageWithPresetConfigTest, GprsAccessConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     GprsAccessConfig defaultConfig = mdmParameterStorage.getGprsAccessConfig();
@@ -253,7 +253,7 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, GprsAccessConfig_Host)
     ExpectInFile(KEY_GPRS_PASS,                 newConfig.get_pass());
 }
 
-TEST_F(MdmPersistentStorageTest, SmsEventReportingConfig)
+TEST_F(MdmPersistentStorageTest, SmsEventReportingConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     SmsEventReportingConfig defaultConfig = mdmParameterStorage.getSmsEventReportingConfig();
@@ -272,7 +272,7 @@ TEST_F(MdmPersistentStorageTest, SmsEventReportingConfig)
     ExpectInFile(KEY_SMS_CNMI_BFR,  std::to_string(defaultConfig.get_bfr()));
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsEventReportingConfig_Host)
+TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsEventReportingConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     SmsEventReportingConfig defaultConfig = mdmParameterStorage.getSmsEventReportingConfig();
@@ -292,7 +292,7 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsEventReportingConfig_Host)
     ExpectInFile(KEY_SMS_CNMI_BFR,  std::to_string(newConfig.get_bfr()));
 }
 
-TEST_F(MdmPersistentStorageTest, SmsStorageConfig)
+TEST_F(MdmPersistentStorageTest, SmsStorageConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     SmsStorageConfig defaultConfig = mdmParameterStorage.getSmsStorageConfig();
@@ -307,7 +307,7 @@ TEST_F(MdmPersistentStorageTest, SmsStorageConfig)
     ExpectInFile(KEY_SMS_CPMS_MEM3, defaultConfig.get_mem3());
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsStorageConfig_Host)
+TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsStorageConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     SmsStorageConfig defaultConfig = mdmParameterStorage.getSmsStorageConfig();

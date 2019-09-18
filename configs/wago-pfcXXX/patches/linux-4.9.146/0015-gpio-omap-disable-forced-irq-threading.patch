@@ -1,7 +1,7 @@
 From 8973b3d5339f8fd810e5fe3cd612061f7c0ea907 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 10 Jun 2016 07:43:38 +0200
-Subject: [PATCH 015/292] gpio: omap: disable forced irq threading
+Subject: [PATCH] gpio: omap: disable forced irq threading
 
 ---
  drivers/gpio/gpio-omap.c | 2 +-

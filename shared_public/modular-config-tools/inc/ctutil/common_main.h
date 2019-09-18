@@ -37,28 +37,28 @@ typedef struct ctparts_commonMainContext ctparts_commonMainContext_t;
 /// Function pointer type for PrintInfoText.
 /// \see ctparts_PrintInfoText
 //------------------------------------------------------------------------------
-typedef void         (*ctparts_PrintInfoText_ptr)            (ctparts_commonMainContext_t * const pstContext,
+typedef void         (ctparts_PrintInfoText_t)                (ctparts_commonMainContext_t * const pstContext,
                                                               char const * const szCallString);
 
 //------------------------------------------------------------------------------
 /// Function pointer type for SetOptionDefaults.
 /// \see ctparts_SetOptionDefaults
 //------------------------------------------------------------------------------
-typedef statusCode_t (*ctparts_SetOptionDefaults_ptr)        (ctparts_commonMainContext_t * const pstContext,
+typedef statusCode_t (ctparts_SetOptionDefaults_t)        (ctparts_commonMainContext_t * const pstContext,
                                                               ctutil_Options_t * const pstOptions);
 
 //------------------------------------------------------------------------------
 /// Function pointer type for ReleaseSpecificOptions.
 /// \see ctparts_ReleaseSpecificOptions
 //------------------------------------------------------------------------------
-typedef void         (*ctparts_ReleaseSpecificOptions_ptr)   (ctparts_commonMainContext_t * const pstContext,
+typedef void         (ctparts_ReleaseSpecificOptions_t)   (ctparts_commonMainContext_t * const pstContext,
                                                               ctutil_Options_t * const pstOptions);
 
 //------------------------------------------------------------------------------
 /// Function pointer type for EvaluateEarlyOptions.
 /// \see ctparts_EvaluateEarlyOptions
 //------------------------------------------------------------------------------
-typedef statusCode_t (*ctparts_EvaluateEarlyOptions_ptr)     (ctparts_commonMainContext_t * const pstContext,
+typedef statusCode_t (ctparts_EvaluateEarlyOptions_t)     (ctparts_commonMainContext_t * const pstContext,
                                                               int const argc,
                                                               char * const argv[],
                                                               ctutil_Options_t * const pstOptions);
@@ -67,7 +67,7 @@ typedef statusCode_t (*ctparts_EvaluateEarlyOptions_ptr)     (ctparts_commonMain
 /// Function pointer type for EvaluateOptions.
 /// \see ctparts_EvaluateOptions
 //------------------------------------------------------------------------------
-typedef statusCode_t (*ctparts_EvaluateOptions_ptr)          (ctparts_commonMainContext_t * const pstContext,
+typedef statusCode_t (ctparts_EvaluateOptions_t)          (ctparts_commonMainContext_t * const pstContext,
                                                               int const argc,
                                                               char * const argv[],
                                                               ctutil_Options_t * const pstOptions);
@@ -76,14 +76,14 @@ typedef statusCode_t (*ctparts_EvaluateOptions_ptr)          (ctparts_commonMain
 /// Function pointer type for OpenSpecificResources.
 /// \see ctparts_OpenSpecificResources
 //------------------------------------------------------------------------------
-typedef statusCode_t (*ctparts_InitSpecificResources_ptr)    (ctparts_commonMainContext_t * const pstContext,
+typedef statusCode_t (ctparts_InitSpecificResources_t)    (ctparts_commonMainContext_t * const pstContext,
                                                               ctutil_ResourcesSpecific_t * * const ppstResources);
 
 //------------------------------------------------------------------------------
 /// Function pointer type for ReleaseSpecificResources.
 /// \see ctparts_ReleaseSpecificResources
 //------------------------------------------------------------------------------
-typedef void         (*ctparts_ReleaseSpecificResources_ptr) (ctparts_commonMainContext_t * const pstContext,
+typedef void         (ctparts_ReleaseSpecificResources_t) (ctparts_commonMainContext_t * const pstContext,
                                                               ctutil_ResourcesSpecific_t * * const ppstResources);
 
 /// Function pointer structure for application specific functions called from \link ctutil_CommonMain \endlink.
@@ -91,25 +91,25 @@ typedef void         (*ctparts_ReleaseSpecificResources_ptr) (ctparts_commonMain
 typedef struct ctparts_commonMainFunctions
 {
   /// Pointer to common main part function PrintInfoText.
-  ctparts_PrintInfoText_ptr              pfPrintInfoText;
+  ctparts_PrintInfoText_t *              pfPrintInfoText;
 
   /// Pointer to common main part function SetOptionDefaults.
-  ctparts_SetOptionDefaults_ptr          pfSetOptionDefaults;
+  ctparts_SetOptionDefaults_t *          pfSetOptionDefaults;
 
   /// Pointer to common main part function ReleaseSpecificOptions.
-  ctparts_ReleaseSpecificOptions_ptr     pfReleaseSpecificOptions;
+  ctparts_ReleaseSpecificOptions_t *     pfReleaseSpecificOptions;
 
   /// Pointer to common main part function EvaluateEarlyOptions.
-  ctparts_EvaluateEarlyOptions_ptr       pfEvaluateEarlyOptions;
+  ctparts_EvaluateEarlyOptions_t *       pfEvaluateEarlyOptions;
 
   /// Pointer to common main part function EvaluateOptions.
-  ctparts_EvaluateOptions_ptr            pfEvaluateOptions;
+  ctparts_EvaluateOptions_t *            pfEvaluateOptions;
 
   /// Pointer to common main part function InitSpecificResources.
-  ctparts_InitSpecificResources_ptr      pfInitSpecificResources;
+  ctparts_InitSpecificResources_t *      pfInitSpecificResources;
 
   /// Pointer to common main part function ReleaseSpecificResources.
-  ctparts_ReleaseSpecificResources_ptr   pfReleaseSpecificResources;
+  ctparts_ReleaseSpecificResources_t *   pfReleaseSpecificResources;
 } ctparts_commonMainFunctions_t;
 
 //------------------------------------------------------------------------------

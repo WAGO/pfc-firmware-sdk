@@ -9,9 +9,7 @@
 <_8215:hide>
   <uid>PROFIBUS</uid>
   <uid>MODEM</uid>
-  <uid>BACNET</uid>
-  <uid>TCPIP_ETHERNET</uid> <!-- WBM -->
-  <uid>ETHERNET</uid>       <!-- CBM -->
+  <uid>BACNET</uid>  
   <udi>ADMIN_RS232</udi>
 </_8215:hide>
 

@@ -1,7 +1,7 @@
 From d7ca576f63e515e54d423a0db0fe1d7c76bbc577 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 28 Sep 2018 13:32:17 +0200
-Subject: [PATCH 267/292] net: dsa: mv88e6xxx: add atu flush
+Subject: [PATCH] net: dsa: mv88e6xxx: add atu flush
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -16,10 +16,9 @@ class MdmDBusServer : public DBusServer
     private:
 	MdmStatemachine *_statemachine;
     protected:
-	void method_call (MethodInvocation invocation);
-
-  void name_acquired(GDBusConnection *connection, const std::string &name);
-  void name_lost(GDBusConnection *connection, const std::string &name);
+	void method_call (MethodInvocation invocation) override;
+    void name_acquired(GDBusConnection *connection, const std::string &name) override;
+    void name_lost(GDBusConnection *connection, const std::string &name) override;
 
     public:
 	MdmDBusServer(MdmStatemachine *statemachine);

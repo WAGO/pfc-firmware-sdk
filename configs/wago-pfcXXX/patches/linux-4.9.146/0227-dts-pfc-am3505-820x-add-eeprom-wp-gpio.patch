@@ -1,7 +1,7 @@
 From 91486ad4b823e45c57d88589112e280dc6736c79 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 7 Aug 2018 17:10:25 +0200
-Subject: [PATCH 227/292] dts: pfc-am3505: 820x: add eeprom wp gpio
+Subject: [PATCH] dts: pfc-am3505: 820x: add eeprom wp gpio
 
 750-820x platforms have write protected eeproms installed.
 We have to make use of the write protect pin to be able

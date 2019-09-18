@@ -1,7 +1,7 @@
 From e61472722825bb9a556b85a38bb74f70dacd3f0d Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Fri, 14 Jul 2017 11:17:11 +0200
-Subject: [PATCH 079/292] pfc200v3: dts: disable reinit of gpio bank 1
+Subject: [PATCH] pfc200v3: dts: disable reinit of gpio bank 1
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 6 ++++++

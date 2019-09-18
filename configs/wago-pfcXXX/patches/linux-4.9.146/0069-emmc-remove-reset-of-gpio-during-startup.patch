@@ -1,7 +1,7 @@
 From 3572f548275761f6be17dda44f8c83e14b49e3ee Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Wed, 28 Jun 2017 08:52:16 +0000
-Subject: [PATCH 069/292] emmc: remove reset of gpio during startup
+Subject: [PATCH] emmc: remove reset of gpio during startup
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 4 +++-

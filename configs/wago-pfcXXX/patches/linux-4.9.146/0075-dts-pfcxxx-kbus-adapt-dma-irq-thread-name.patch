@@ -1,7 +1,7 @@
 From 2d20ea2b5b5b2651819578a10b5f36cfe436ba59 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 3 Jul 2017 16:32:19 +0200
-Subject: [PATCH 075/292] dts: pfcxxx: kbus: adapt dma irq thread name
+Subject: [PATCH] dts: pfcxxx: kbus: adapt dma irq thread name
 
 ---
  arch/arm/boot/dts/wago-pfc100.dtsi   | 2 +-

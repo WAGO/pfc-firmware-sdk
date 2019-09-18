@@ -1,8 +1,8 @@
-From 968912381e99bb1bac13602dec081c33ec269b59 Mon Sep 17 00:00:00 2001
+From d12bba5f6690ccf0159f938170783ee8b2372662 Mon Sep 17 00:00:00 2001
 From: "Rohe, Oliver" <Oliver.Rohe@wago.com>
 Date: Wed, 9 Jan 2019 10:22:51 +0000
-Subject: [PATCH 288/292] rtc: rs5c372: Fix reading from rtc when the
- oscillator got interrupted.
+Subject: [PATCH] rtc: rs5c372: Fix reading from rtc when the oscillator got
+ interrupted.
 
 When the oscillator of the rtc gets interrupted,
 e.g. due to an empty battery, reading from the rtc will now return an error

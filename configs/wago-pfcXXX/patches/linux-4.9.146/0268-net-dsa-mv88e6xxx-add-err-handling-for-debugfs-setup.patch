@@ -1,8 +1,8 @@
 From 46de34c4c36dbaf534238665c478a38d3798f19b Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 28 Sep 2018 13:37:12 +0200
-Subject: [PATCH 268/292] net: dsa: mv88e6xxx: add err handling for debugfs
- setup and distroy
+Subject: [PATCH] net: dsa: mv88e6xxx: add err handling for debugfs setup and
+ distroy
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -1,0 +1,28 @@
+From 3c0055ef0903b7d044faeb07789a6d72b121ba3c Mon Sep 17 00:00:00 2001
+From: Ralf Gliese <gliese@elrest.de>
+Date: Mon, 29 Apr 2019 08:46:29 +0200
+Subject: [PATCH] arm: boards: vtpctp: deactivate PWM for display backlight
+
+Signed-off-by: Ralf Gliese <gliese@elrest.de>
+---
+ arch/arm/boards/wago-vtpctp-imx6/board.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/board.c b/arch/arm/boards/wago-vtpctp-imx6/board.c
+index 6cbce38..74b1ce6 100644
+--- a/arch/arm/boards/wago-vtpctp-imx6/board.c
++++ b/arch/arm/boards/wago-vtpctp-imx6/board.c
+@@ -253,8 +253,8 @@ static int vtpctp_coredevices_init(void)
+ 	gpio_set_value(LCD_CTRL_LIGHT_ON, 1);
+ 	gpio_direction_output(LCD_CTRL_VLED_ON, 1);
+ 	gpio_set_value(LCD_CTRL_VLED_ON, 1);
+-	gpio_direction_output(LCD_CTRL_PWM, 1);
+-	gpio_set_value(LCD_CTRL_PWM, 1);
++	gpio_direction_output(LCD_CTRL_PWM, 0);
++	gpio_set_value(LCD_CTRL_PWM, 0);
+ 	gpio_set_value(CAPTAST_NRESET, 1);
+ 
+ 	return 0;
+-- 
+2.7.4
+

@@ -1,7 +1,7 @@
 From efc38126d0f90528b0b2f5bfd6e890d8658e0ce3 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Mon, 3 Apr 2017 06:26:45 +0000
-Subject: [PATCH 037/292] gpmc: CS 0 NAND remapping due to v4.9.y
+Subject: [PATCH] gpmc: CS 0 NAND remapping due to v4.9.y
 
 ---
  arch/arm/boot/dts/wago-pfc200v2.dtsi | 17 +++++++++++++----

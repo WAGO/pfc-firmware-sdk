@@ -1,7 +1,7 @@
 From 02c943496f74679eac1e282320d42e1daf32a120 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 18 Oct 2018 17:32:42 +0200
-Subject: [PATCH 271/292] net: swconf: remove setup_dflt
+Subject: [PATCH] net: swconf: remove setup_dflt
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

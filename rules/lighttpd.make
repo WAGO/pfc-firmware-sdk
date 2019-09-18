@@ -181,6 +181,10 @@ endif
 			/etc/lighttpd/$$file, n); \
 	done;
 
+# Config directory for FCGI plugins
+	@$(call install_copy, lighttpd, 0, 0, 0755, \
+		/etc/lighttpd/fastcgi.confd);
+
 ifdef PTXCONF_LIGHTTPD_MOD_FASTCGI_PHP
 	@$(call install_alternative, lighttpd, 0, 0, 0600, \
 		/etc/lighttpd/conf.d/mod_fastcgi_php.conf)

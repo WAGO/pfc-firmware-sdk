@@ -1,7 +1,7 @@
 From 0fdf2428505d3095ef79319d00d6bef194a674a0 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 25 Jul 2017 12:06:36 +0000
-Subject: [PATCH 111/292] dts: pfc200v3: 8215: turn on usb1
+Subject: [PATCH] dts: pfc200v3: 8215: turn on usb1
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 8 ++++----

@@ -1,7 +1,7 @@
 From 594dda45352635fbe3bee80ce31460bfc8c3376a Mon Sep 17 00:00:00 2001
 From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
 Date: Fri, 30 Nov 2018 15:53:33 +0100
-Subject: [PATCH 282/292] tps65218.c: Add input voltage options
+Subject: [PATCH] tps65218.c: Add input voltage options
 
 These options apply to all regulators in this chip.
 

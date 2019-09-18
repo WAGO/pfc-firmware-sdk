@@ -3,15 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# This file is part of project modular-config-tools (PTXdist package modular-config-tools).
+# This file is part of project / PTXdist package modular-config-tools.
 #
 # Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
 #
 # Contributors:
-#   JB: WAGO Kontakttechnik GmbH & Co. KG
+#   JB:  WAGO Kontakttechnik GmbH & Co. KG
 #   PEn: WAGO Kontakttechnik GmbH & Co. KG
 #######################################################################################################################
-# Makefile for PTXdist package modular-config-tools
 # This makefile uses the infrastructure provided by ct-build.
 
 
@@ -23,8 +22,8 @@ default: all doc
 
 #######################################################################################################################
 # Overridable project configuration
-DISABLE_LTO = T
 
+DISABLE_LTO = T
 #ENABLE_VERBOSE = T
 
 PROJECT_ROOT ?= .

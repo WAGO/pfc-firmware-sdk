@@ -1,7 +1,7 @@
 From 3faf747ff0cf3a1bc6c2b3bc31565ada6d48a7b4 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 18 Apr 2017 15:24:46 +0200
-Subject: [PATCH 039/292] dts: pfc200v2: opp: use only hw supported opps
+Subject: [PATCH] dts: pfc200v2: opp: use only hw supported opps
 
 ---
  arch/arm/boot/dts/wago-pfc200v2.dtsi | 16 ++++++++--------

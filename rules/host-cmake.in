@@ -1,0 +1,10 @@
+## SECTION=hosttools_noprompt
+
+config HOST_CMAKE
+	tristate
+	default y if ALLYES
+	help
+	  CMake is an open-source, cross-platfom
+	  build environment. It supports native
+	  build processes on Unix and Windows
+	  platforms under a variety of compilers.

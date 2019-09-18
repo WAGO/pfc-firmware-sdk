@@ -24,31 +24,28 @@ class MethodInvocation
 	    : _invocation(0)
 	{}
 
-	~MethodInvocation() {}
-
-
 	std::string sender() {
-    const gchar *retval = (0==_invocation) ? NULL :
+    const gchar *retval = (0==_invocation) ? nullptr :
         g_dbus_method_invocation_get_sender(_invocation);
-    return std::string((NULL==retval) ? "": retval);
+    return std::string((nullptr==retval) ? "": retval);
 	}
 
 	std::string object_path() {
-    const gchar *retval = (0==_invocation) ? NULL :
+    const gchar *retval = (0==_invocation) ? nullptr :
         g_dbus_method_invocation_get_object_path(_invocation);
-    return std::string((NULL==retval) ? "": retval);
+    return std::string((nullptr==retval) ? "": retval);
 	}
 
 	std::string interface_name() {
-    const gchar *retval = (0==_invocation) ? NULL :
+    const gchar *retval = (0==_invocation) ? nullptr :
         g_dbus_method_invocation_get_interface_name(_invocation);
-    return std::string((NULL==retval) ? "": retval);
+    return std::string((nullptr==retval) ? "": retval);
 	}
 
 	std::string method_name() {
-    const gchar *retval = (0==_invocation) ? NULL :
+    const gchar *retval = (0==_invocation) ? nullptr :
         g_dbus_method_invocation_get_method_name(_invocation);
-    return std::string((NULL==retval) ? "": retval);
+    return std::string((nullptr==retval) ? "": retval);
 	}
 
 	GVariant *parameters() {

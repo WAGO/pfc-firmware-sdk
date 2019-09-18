@@ -1,7 +1,7 @@
 From 628b28c9694ad867be93a4f69eb51a9da258a30e Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Wed, 21 Jun 2017 15:20:42 +0200
-Subject: [PATCH 083/292] src: dts: fix missing probe of bitbang_mdio driver.
+Subject: [PATCH] src: dts: fix missing probe of bitbang_mdio driver.
 
 - contributed by Oleg Karfich
 

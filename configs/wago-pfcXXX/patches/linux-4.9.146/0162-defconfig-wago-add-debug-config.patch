@@ -1,7 +1,7 @@
 From d6d168021b2c85511b72245caa804b437f4bd0d5 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 22 Mar 2018 16:44:41 +0100
-Subject: [PATCH 162/292] defconfig: wago: add debug config
+Subject: [PATCH] defconfig: wago: add debug config
 
 ---
  arch/arm/configs/wago_pfc_generic_debug_defconfig | 504 ++++++++++++++++++++++

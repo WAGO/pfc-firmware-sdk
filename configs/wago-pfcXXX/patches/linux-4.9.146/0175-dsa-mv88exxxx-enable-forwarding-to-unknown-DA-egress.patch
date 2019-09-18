@@ -1,8 +1,8 @@
 From b9416ae621d887df4a7e3aa5c5e5569300a6dbd4 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Tue, 5 Jun 2018 14:58:36 +0200
-Subject: [PATCH 175/292] dsa: mv88exxxx: enable forwarding to unknown DA
- (egress flood)
+Subject: [PATCH] dsa: mv88exxxx: enable forwarding to unknown DA (egress
+ flood)
 
 ---
  drivers/net/dsa/mv88e6xxx/chip.c | 4 +++-

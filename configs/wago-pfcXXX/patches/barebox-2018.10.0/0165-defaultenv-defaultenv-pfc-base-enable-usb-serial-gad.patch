@@ -1,0 +1,36 @@
+From 5825e307fff34af57fe89fdc81d2aef452e0a09c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 25 Mar 2019 11:47:22 +0100
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: enable usb serial gadget in
+ debug mode
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart b/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
+index 79d4feb..645d992 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
+@@ -9,5 +9,16 @@ if [ "${debug_mode_enable}" = "${debug_mode_mask}" ]; then
+ 	echo -e ${warning} "uart debug mode active"
+ 	global.autoboot_timeout=3
+ 	global.pfc.debug_mode_active=true
+-        uart_console -e ${global.pfc.barebox_uart}
++
++	# one some devices the debug uart interface is only
++	# available through the jtag interface. This is not
++	# always wired to the mainboard (e.g. PAC-Devices).
++	uart_console -e ${global.pfc.barebox_uart}
++
++	# on devices with usb interface enable the usb serial
++	# gadget, too.
++	if [ "$otg0.mode" = "otg" ]; then
++		otg0.mode=peripheral
++		usbgadget -a
++	fi
+ fi
+-- 
+2.7.4
+

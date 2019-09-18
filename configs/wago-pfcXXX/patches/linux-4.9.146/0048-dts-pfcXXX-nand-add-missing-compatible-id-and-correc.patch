@@ -1,8 +1,8 @@
 From ea5fdc2f12ac1583667aa07cf391b86fae8ccf58 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 2 May 2017 15:57:36 +0200
-Subject: [PATCH 048/292] dts: pfcXXX: nand: add missing compatible id and
- correct mapping address
+Subject: [PATCH] dts: pfcXXX: nand: add missing compatible id and correct
+ mapping address
 
 	Due to commit 51735ca and e2c5eb7 the nand parts need an additionally
 	compatible string. Furthermore correct mapping address to bootloader

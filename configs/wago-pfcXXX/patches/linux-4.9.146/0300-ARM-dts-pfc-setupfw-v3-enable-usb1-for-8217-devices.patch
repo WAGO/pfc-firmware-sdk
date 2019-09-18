@@ -1,0 +1,43 @@
+From 3ea8979aea98dd8b8b9090b2282dae4e04cca62d Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 25 Apr 2019 09:07:11 +0200
+Subject: [PATCH] ARM: dts: pfc-setupfw v3: enable usb1 for 8217 devices
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts b/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
+index 780e29c..4b698c3 100644
+--- a/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
++++ b/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
+@@ -235,3 +235,25 @@
+         gpios = <&gpio3 25 0>;
+         linux,default-trigger = "none";
+ };
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb1_phy {
++	status = "okay";
++};
++
++&usb1 {
++	status = "okay";
++	dr_mode = "host";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
+-- 
+2.7.4
+

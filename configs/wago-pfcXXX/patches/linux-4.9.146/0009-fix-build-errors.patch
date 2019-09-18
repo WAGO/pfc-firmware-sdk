@@ -1,7 +1,7 @@
 From 0267938e977befee8a95c70ea51d4fd44675c651 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 17 Nov 2016 07:15:42 +0000
-Subject: [PATCH 009/292] fix build errors
+Subject: [PATCH] fix build errors
 
 ---
  drivers/leds/leds-pca955x.c             | 2 +-

@@ -1,46 +1,48 @@
-\hypertarget{api__export_8h}{\section{inc/wc/api\+\_\+export.h File Reference}
+\hypertarget{api__export_8h}{}\section{inc/wc/api\+\_\+export.h File Reference}
 \label{api__export_8h}\index{inc/wc/api\+\_\+export.\+h@{inc/wc/api\+\_\+export.\+h}}
-}
 
 
-A\+P\+I export define.  
+A\+PI export define.  
 
 
-{\ttfamily \#include \char`\"{}wc/compiler.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}wc/compiler.\+h\char`\"{}}\newline
 \subsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
-\#define \hyperlink{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}
+\#define \hyperlink{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT}
 \end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
-A\+P\+I export define. 
+A\+PI export define. 
 
 \begin{DoxyAuthor}{Author}
-Patrick Enns \+: W\+A\+G\+O Kontakttechnik Gmb\+H \& Co. K\+G 
+P\+En\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
 \end{DoxyAuthor}
 
 
 \subsection{Macro Definition Documentation}
-\hypertarget{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}{\index{api\+\_\+export.\+h@{api\+\_\+export.\+h}!W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T@{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}}
-\index{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T@{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}!api\+\_\+export.\+h@{api\+\_\+export.\+h}}
-\subsubsection[{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T}}\label{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}
+\hypertarget{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079}{}\label{api__export_8h_aff1b8acaaf1880819d5ffaff164e4079} 
+\index{api\+\_\+export.\+h@{api\+\_\+export.\+h}!W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT@{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT}}
+\index{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT@{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT}!api\+\_\+export.\+h@{api\+\_\+export.\+h}}
+\subsubsection{\texorpdfstring{W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT}{WC\_API\_EXPORT}}
+{\footnotesize\ttfamily \#define W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT}
+
 Define to set public function/method/class visibilty (export symbols).
 
-This macro is {\bfseries not} intended to be used directly in front of your function/method or class. Instead of using it directly declare your project specific define (e. g. {\itshape M\+Y\+L\+I\+B\+\_\+\+A\+P\+I}) as empty define when not yet defined\+:
+This macro is {\bfseries not} intended to be used directly in front of your function/method or class. Instead of using it directly declare your project specific define (e. g. {\itshape M\+Y\+L\+I\+B\+\_\+\+A\+PI}) as empty define when not yet defined\+:
 
 \begin{quote}
-\#ifndef M\+Y\+L\+I\+B\+\_\+\+A\+P\+I~\newline
-\#define M\+Y\+L\+I\+B\+\_\+\+A\+P\+I~\newline
+\#ifndef M\+Y\+L\+I\+B\+\_\+\+A\+PI~\newline
+\#define M\+Y\+L\+I\+B\+\_\+\+A\+PI~\newline
 \#endif \end{quote}
 
 
 \begin{quote}
-M\+Y\+L\+I\+B\+\_\+\+A\+P\+I int My\+Func(int param); \end{quote}
+M\+Y\+L\+I\+B\+\_\+\+A\+PI int My\+Func(int param); \end{quote}
 
 
-To publish the marked A\+P\+I declare your project specific define to be equal to {\itshape W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T} in front of your build process like the following\+:
+To publish the marked A\+PI declare your project specific define to be equal to {\itshape W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT} in front of your build process like the following\+:
 
 \begin{quote}
-gcc mylib.\+c -\/\+D\+M\+Y\+L\+I\+B\+\_\+\+A\+P\+I=W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+R\+T \end{quote}
+gcc mylib.\+c -\/\+D\+M\+Y\+L\+I\+B\+\_\+\+A\+PI=W\+C\+\_\+\+A\+P\+I\+\_\+\+E\+X\+P\+O\+RT \end{quote}

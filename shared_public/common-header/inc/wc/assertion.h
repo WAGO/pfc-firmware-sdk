@@ -33,6 +33,17 @@
 //------------------------------------------------------------------------------
 #define WC_ASSERT_PREFIX   "Assertion failed: "
 
+/// \def WC_FAIL_SOURCE_FILE
+/// Internal macro to allow disabling of source information.
+/// \note Internal macro, don't use externally.
+///
+/// \def WC_FAIL_SOURCE_FUNC
+/// Internal macro to allow disabling of source information.
+/// \note For internal use only. Don't use externally.
+///
+/// \def WC_FAIL_SOURCE_LINE
+/// Internal macro to allow disabling of source information.
+/// \note For internal use only. Don't use externally.
 // This switch disables source information.
 #ifdef DISABLE_WC_FAIL_SOURCE
 #define WC_FAIL_SOURCE_FILE "[unknown source]"
@@ -152,7 +163,8 @@ extern "C"
 #define WC_FAIL(reason) \
   wc_Fail(reason, WC_FAIL_SOURCE_FILE, WC_FAIL_SOURCE_FUNC, WC_FAIL_SOURCE_LINE)
 #else // NDEBUG
-#define WC_FAIL(reason)
+/// Release version of fail to avoid unused variable warnings
+#define WC_FAIL(reason) do { ((void)sizeof(reason)); } while(false) //lint -e 506 Constant value Boolean
 #endif // NDEBUG
 
 

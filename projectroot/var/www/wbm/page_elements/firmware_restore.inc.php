@@ -124,13 +124,13 @@
          <div id="decryption_area">
            <div class="config_data_list">
                  <div class="label_value_pair">
-            <div class="label_field"><label for="encryption_active_state">Decryption Activation:</label></div>
-            <div class="value_field"><input id="encryption_active_state" type="checkbox" value="change_state" checked="checked" name="encryption_active_state" >
+            <div class="label_field"><label for="decryption_active_state">Decryption Activation:</label></div>
+            <div class="value_field"><input id="decryption_active_state" type="checkbox" value="change_state" checked="checked" name="decryption_active_state" >
             </div>
           </div>
           <div class="label_value_pair">
-            <div class="label_field"><label for="encryption-passphrase">Decryption Passphrase:</label></div>
-            <div class="value_field"><input autocomplete="off" id="encryption-passphrase" class="input_field" type="password" name="encryption-passphrase" size="30" maxlength="50" value=""></div>
+            <div class="label_field"><label for="decryption-passphrase">Decryption Passphrase:</label></div>
+            <div class="value_field"><input autocomplete="off" id="decryption-passphrase" class="input_field" type="password" name="decryption-passphrase" size="30" maxlength="50" value=""></div>
           </div>
         </div>
         </div>

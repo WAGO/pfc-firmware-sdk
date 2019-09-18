@@ -4,6 +4,7 @@ menuconfig LIBRLB
 	bool
 	prompt "librlb"
 	select HOST_CMAKE
+	select LIBUIO
 	select GOOGLETEST
 	help
 	  provides access to RLB stack
@@ -16,13 +17,20 @@ config LIBRLB_BUILD_TESTING
 endif
 
 config LIBRLB_URL_TEMPLATE
-      string
+	string
 # FIXME: Temporarily removed dependency so that the URL can be set even when the package is disabled (AGa)
 #        To be removed when the package's libuio related incompatibility has been fixed.
 #      depends on LIBRLB
-      prompt "URL template"
-      default "%ARTIFACTORY_BASE_URL%/rlb-generic-prod-local/wago/rlb-stack/librlb-Source/librlb-Source-%VERSION%.tgz"
-      help
-        Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
-        See Confluence for further details.
+	prompt "URL template"
+	default "%ARTIFACTORY_BASE_URL%/rlb-generic-prod-local/wago/rlb-stack/librlb-Source/librlb-Source-%VERSION%.tgz"
+	help
+	  Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+	  See Confluence for further details.
+
+config LIBRLB_FPGA_IMAGE
+	string
+	prompt "FPGA image"
+	default "rmd-01-01-f_reversed_rbf.img"
+	help
+	  Defines fpga image that needs to be used and installed under /lib/firmware/
 

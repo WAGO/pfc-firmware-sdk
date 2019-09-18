@@ -17,7 +17,7 @@ class dbus_swrite : public MdmStatemachine::transition_t::transistion_functor_t
       dbus_swrite( const std::string &text )
           : _text(text)
       {}
-      bool operator () (MdmStatemachine &sm, State &src, State &dst, Event &ev) {
+      bool operator () (MdmStatemachine &sm, State &src, State &dst, Event &ev) override {
           (void)src; (void)dst; //unused parameter
           DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
           sm.set_current_invocation(dev->invocation());
@@ -30,13 +30,13 @@ class swrite : public MdmStatemachine::transition_t::transistion_functor_t
 {
     private:
       std::string _text;
-      int _timeout;
+      unsigned int _timeout;
     public:
-      swrite( const std::string &text, int timeout )
+      swrite( const std::string &text, unsigned int timeout )
           : _text(text)
           , _timeout(timeout)
       {}
-      bool operator () (MdmStatemachine &sm, State &src, State &dst, Event &ev) {
+      bool operator () (MdmStatemachine &sm, State &src, State &dst, Event &ev) override {
           (void)src; (void)dst; (void)ev; //unused parameter
           sm.write(_text);
           sm.kick_cmd_timeout(_timeout);

@@ -1,6 +1,5 @@
-\hypertarget{compiler_8h}{\section{inc/wc/compiler.h File Reference}
+\hypertarget{compiler_8h}{}\section{inc/wc/compiler.h File Reference}
 \label{compiler_8h}\index{inc/wc/compiler.\+h@{inc/wc/compiler.\+h}}
-}
 
 
 Compiler specific helper macros.  
@@ -9,7 +8,21 @@ Compiler specific helper macros.
 \subsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
-\#define \hyperlink{compiler_8h_a2fd1b6955a7b8c2c97307709cd57cbe4}{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+E\+Q}(ma, mi)~(0 == 1)
+\#define \hyperlink{compiler_8h_a2fd1b6955a7b8c2c97307709cd57cbe4}{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+EQ}(ma,  mi)~(0 == 1)
+\item 
+\#define \hyperlink{compiler_8h_af0a39dd9955fc7117118638713496855}{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}(attribute)
+\item 
+\#define \hyperlink{compiler_8h_a95f5995427bba25905bae69b581098e9}{G\+N\+U\+C\+\_\+\+P\+R\+A\+G\+MA}(pragmatext)
+\item 
+\#define \hyperlink{compiler_8h_a1b7c1c3daf7864e62c652a8ef223ad1b}{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+E\+R\+R\+OR}(attribute)
+\item 
+\#define \hyperlink{compiler_8h_a582a651eb8825ae87656ef003a11893b}{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+W\+A\+R\+N\+I\+NG}(attribute)
+\item 
+\#define \hyperlink{compiler_8h_a5342c16e8e06e5f7764e332e66df92a1}{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+I\+G\+N\+O\+RE}(attribute)
+\item 
+\#define \hyperlink{compiler_8h_af5627298058f669e38456afb9bbc1b2f}{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+U\+SH}
+\item 
+\#define \hyperlink{compiler_8h_a1972635974eb88edd09cccd2638bcf45}{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+OP}
 \end{DoxyCompactItemize}
 
 
@@ -17,17 +30,59 @@ Compiler specific helper macros.
 Compiler specific helper macros. 
 
 \begin{DoxyAuthor}{Author}
-Osama El Hosami, Patrick Enns \+: W\+A\+G\+O Kontakttechnik Gmb\+H \& Co. K\+G 
+O\+E\+LH\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
+
+P\+En \+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
 \end{DoxyAuthor}
 
 
 \subsection{Macro Definition Documentation}
-\hypertarget{compiler_8h_a2fd1b6955a7b8c2c97307709cd57cbe4}{\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+E\+Q@{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+E\+Q}}
-\index{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+E\+Q@{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+E\+Q}!compiler.\+h@{compiler.\+h}}
-\subsubsection[{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+E\+Q}]{\setlength{\rightskip}{0pt plus 5cm}\#define G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+E\+Q(
-\begin{DoxyParamCaption}
-\item[{}]{ma, }
-\item[{}]{mi}
-\end{DoxyParamCaption}
-)~(0 == 1)}}\label{compiler_8h_a2fd1b6955a7b8c2c97307709cd57cbe4}
-Macro to test if we're using a specific version of gcc or later. 
+\hypertarget{compiler_8h_af0a39dd9955fc7117118638713496855}{}\label{compiler_8h_af0a39dd9955fc7117118638713496855} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE@{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}}
+\index{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE@{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}{GNUC\_ATTRIBUTE}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE(\begin{DoxyParamCaption}\item[{}]{attribute }\end{DoxyParamCaption})}
+
+Macro to add an attribute only for gnu gcc. \hypertarget{compiler_8h_a1b7c1c3daf7864e62c652a8ef223ad1b}{}\label{compiler_8h_a1b7c1c3daf7864e62c652a8ef223ad1b} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+E\+R\+R\+OR@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+E\+R\+R\+OR}}
+\index{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+E\+R\+R\+OR@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+E\+R\+R\+OR}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+E\+R\+R\+OR}{GNUC\_DIAGNOSTIC\_ERROR}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+E\+R\+R\+OR(\begin{DoxyParamCaption}\item[{}]{attribute }\end{DoxyParamCaption})}
+
+Macro to raise an error for a diagnostic attribute only on gnu gcc. \hypertarget{compiler_8h_a5342c16e8e06e5f7764e332e66df92a1}{}\label{compiler_8h_a5342c16e8e06e5f7764e332e66df92a1} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+I\+G\+N\+O\+RE@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+I\+G\+N\+O\+RE}}
+\index{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+I\+G\+N\+O\+RE@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+I\+G\+N\+O\+RE}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+I\+G\+N\+O\+RE}{GNUC\_DIAGNOSTIC\_IGNORE}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+I\+G\+N\+O\+RE(\begin{DoxyParamCaption}\item[{}]{attribute }\end{DoxyParamCaption})}
+
+Macro to ignore a diagnostic attribute only for gnu gcc. \hypertarget{compiler_8h_a1972635974eb88edd09cccd2638bcf45}{}\label{compiler_8h_a1972635974eb88edd09cccd2638bcf45} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+OP@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+OP}}
+\index{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+OP@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+OP}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+OP}{GNUC\_DIAGNOSTIC\_POP}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+OP}
+
+Macro to pop diagnostic settings only for gnu gcc. \hypertarget{compiler_8h_af5627298058f669e38456afb9bbc1b2f}{}\label{compiler_8h_af5627298058f669e38456afb9bbc1b2f} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+U\+SH@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+U\+SH}}
+\index{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+U\+SH@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+U\+SH}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+U\+SH}{GNUC\_DIAGNOSTIC\_PUSH}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+P\+U\+SH}
+
+Macro to push diagnostic settings only for gnu gcc. \hypertarget{compiler_8h_a582a651eb8825ae87656ef003a11893b}{}\label{compiler_8h_a582a651eb8825ae87656ef003a11893b} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+W\+A\+R\+N\+I\+NG@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+W\+A\+R\+N\+I\+NG}}
+\index{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+W\+A\+R\+N\+I\+NG@{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+W\+A\+R\+N\+I\+NG}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+W\+A\+R\+N\+I\+NG}{GNUC\_DIAGNOSTIC\_WARNING}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+D\+I\+A\+G\+N\+O\+S\+T\+I\+C\+\_\+\+W\+A\+R\+N\+I\+NG(\begin{DoxyParamCaption}\item[{}]{attribute }\end{DoxyParamCaption})}
+
+Macro to raise a warning for a diagnostic attribute only on gnu gcc. \hypertarget{compiler_8h_a95f5995427bba25905bae69b581098e9}{}\label{compiler_8h_a95f5995427bba25905bae69b581098e9} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+P\+R\+A\+G\+MA@{G\+N\+U\+C\+\_\+\+P\+R\+A\+G\+MA}}
+\index{G\+N\+U\+C\+\_\+\+P\+R\+A\+G\+MA@{G\+N\+U\+C\+\_\+\+P\+R\+A\+G\+MA}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+P\+R\+A\+G\+MA}{GNUC\_PRAGMA}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+P\+R\+A\+G\+MA(\begin{DoxyParamCaption}\item[{}]{pragmatext }\end{DoxyParamCaption})}
+
+Macro to add an pragma only for gnu gcc. \hypertarget{compiler_8h_a2fd1b6955a7b8c2c97307709cd57cbe4}{}\label{compiler_8h_a2fd1b6955a7b8c2c97307709cd57cbe4} 
+\index{compiler.\+h@{compiler.\+h}!G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+EQ@{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+EQ}}
+\index{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+EQ@{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+EQ}!compiler.\+h@{compiler.\+h}}
+\subsubsection{\texorpdfstring{G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+EQ}{GNUC\_PREREQ}}
+{\footnotesize\ttfamily \#define G\+N\+U\+C\+\_\+\+P\+R\+E\+R\+EQ(\begin{DoxyParamCaption}\item[{}]{ma,  }\item[{}]{mi }\end{DoxyParamCaption})~(0 == 1)}
+
+Macro to test if we\textquotesingle{}re using a specific version of gcc or later. 

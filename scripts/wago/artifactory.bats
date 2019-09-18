@@ -33,19 +33,19 @@ function teardown {
 }
 
 
-@test "fetch_md5sum: valid URL, no output file => print md5sum to stdout" {
-
-    run ./artifactory.sh \
-        fetch_md5sum \
-        "https://artifactory-test/playground-generic-dev-local/wago/rlb-stack/rlb-stack-Source/rlb-stack-Source-1-93177_64.tgz"
-
-    echo "${output}"
-
-    [[ "$status" == "0" ]]
-
-    #[[ "${lines[0]}" == $'6f06c42553730ab2f91c3c91ee9e00d2\r' ]]
-    [[ "${output}" == '9aa0622617774d9b25cdb3d88cf9b737' ]]
-}
+#@test "fetch_md5sum: valid URL, no output file => print md5sum to stdout" {
+#
+#    run ./artifactory.sh \
+#        fetch_md5sum \
+#        "https://artifactory-test/playground-generic-dev-local/wago/rlb-stack/rlb-stack-Source/rlb-stack-Source-1-93177_64.tgz"
+#
+#    echo "${output}"
+#
+#    [[ "$status" == "0" ]]
+#
+#    #[[ "${lines[0]}" == $'6f06c42553730ab2f91c3c91ee9e00d2\r' ]]
+#    [[ "${output}" == '9aa0622617774d9b25cdb3d88cf9b737' ]]
+#}
 
 @test "fetch_md5sum: valid url => checksum file is created" {
 
@@ -166,9 +166,51 @@ function teardown {
     [[ "$status" != "0" ]]
 }
 
-@test "fetch: source file exists => abort" {
+@test "fetch: source file and md5 exist => do nothing, return true" {
 
     local file="${TESTCASE_TMPDIR}/sourcefile.${BATS_TEST_NUMBER}"
+    local md5sum="${TESTCASE_TMPDIR}/md5sum.${BATS_TEST_NUMBER}"
+
+    touch "${file}"
+    touch "${md5sum}"
+
+    local file_metadata=
+
+    run ./artifactory.sh \
+        fetch \
+        "https://artifactory-test/playground-generic-dev-local/wago/rlb-stack/rlb-stack-Source/rlb-stack-Source-1-93177_64.tgz" \
+        "${file}" \
+        "${md5sum}"
+
+    [[ "$status" == "0" ]]
+    
+    echo "$output"
+    [[ $(expr "$output" : ".*Info: ${file} and ${md5sum} exist\..*") -ne 0 ]]
+}
+
+# Required for the BSP workflow to not publish proprietary sources by accident
+@test "fetch: source file path does not exist => do nothing, return error" {
+
+    local file="${TESTCASE_TMPDIR}/wago_intern/sourcefile.${BATS_TEST_NUMBER}"
+    local md5sum="${TESTCASE_TMPDIR}/md5sum.${BATS_TEST_NUMBER}"
+
+    run ./artifactory.sh \
+        fetch \
+        "https://artifactory-test/playground-generic-dev-local/wago/rlb-stack/rlb-stack-Source/rlb-stack-Source-1-93177_64.tgz" \
+        "${file}" \
+        "${md5sum}"
+
+    [[ "$status" != "0" ]]
+
+    [[ ! -f "${file}" ]]
+    [[ ! -f "${md5sum}" ]]
+}
+
+
+@test "fetch: only source file exists => remove existing file and download everything" {
+
+    local file="${TESTCASE_TMPDIR}/sourcefile.${BATS_TEST_NUMBER}"
+    local md5sum="${TESTCASE_TMPDIR}/md5sum.${BATS_TEST_NUMBER}"
 
     touch "${file}"
 
@@ -176,30 +218,48 @@ function teardown {
         fetch \
         "https://artifactory-test/playground-generic-dev-local/wago/rlb-stack/rlb-stack-Source/rlb-stack-Source-1-93177_64.tgz" \
         "${file}" \
-        "abc"
+        "${md5sum}"
 
-    [[ "$status" != "0" ]]
+    [[ "$status" == "0" ]]
     
     echo "$output"
-    [[ $(expr "$output" : ".*Error: ${file} exists\..*") -ne 0 ]]
+    [[ $(expr "$output" : ".*Info: ${md5sum} missing, overwriting ${file}\..*") -ne 0 ]]
+
+    run gzip -t "${file}"
+
+    echo "${output}"
+
+    [[ "$status" == "0" ]]
+
+    run cat "${md5sum}"
+    [[ "${output}" == '9aa0622617774d9b25cdb3d88cf9b737' ]]
 }
 
-@test "fetch: md5 file exists => abort" {
+@test "fetch: only md5 file exists => remove existing file and download everything" {
+    local file="${TESTCASE_TMPDIR}/sourcefile.${BATS_TEST_NUMBER}"
+    local md5sum="${TESTCASE_TMPDIR}/md5sum.${BATS_TEST_NUMBER}"
 
-    local md5file="${TESTCASE_TMPDIR}/md5file.${BATS_TEST_NUMBER}"
-
-    touch "${md5file}"
+    touch "${md5sum}"
 
     run ./artifactory.sh \
         fetch \
         "https://artifactory-test/playground-generic-dev-local/wago/rlb-stack/rlb-stack-Source/rlb-stack-Source-1-93177_64.tgz" \
-        "abc" \
-        "${md5file}"
+        "${file}" \
+        "${md5sum}"
 
-    [[ "$status" != "0" ]]
+    [[ "$status" == "0" ]]
     
     echo "$output"
-    [[ $(expr "$output" : ".*Error: ${md5file} exists\..*") -ne 0 ]]
+    [[ $(expr "$output" : ".*Info: ${file} missing, overwriting ${md5sum}\..*") -ne 0 ]]
+ 
+    run gzip -t "${file}"
+
+    echo "${output}"
+
+    [[ "$status" == "0" ]]
+
+    run cat "${md5sum}"
+    [[ "${output}" == '9aa0622617774d9b25cdb3d88cf9b737' ]]
 }
 
 @test "fetch: valid url => download file and checksum" {

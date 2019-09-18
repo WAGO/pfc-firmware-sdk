@@ -1,7 +1,7 @@
 From 61ffc9113816e399204ea92af9f8930136288077 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 18 Oct 2018 18:05:13 +0200
-Subject: [PATCH 272/292] net: swconf: remove atu flash device attribute
+Subject: [PATCH] net: swconf: remove atu flash device attribute
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

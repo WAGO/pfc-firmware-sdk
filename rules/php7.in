@@ -4,6 +4,9 @@
 menuconfig PHP7
 	tristate
 	prompt "php7                          "
+#	# we do not realy want valgrind, but if it is not installed before(!)
+#	# PHP 7 is build, build will fail as PHP wants valgrind.
+	select VALGRIND
 	select PHP7_SAPI_FPM		if PHP5
 	select APACHE2		if PHP7_SAPI_APXS2 || PHP7_SAPI_APXS2FILTER
 	select LIBCURL		if PHP7_EXT_CURL

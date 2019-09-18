@@ -1,7 +1,7 @@
 From bb06a62bbb07b0376fdc77857e2c562030a994b4 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Wed, 4 Apr 2018 11:57:04 +0200
-Subject: [PATCH 165/292] src: dts: fix wds isp device.
+Subject: [PATCH] src: dts: fix wds isp device.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

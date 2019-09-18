@@ -1,7 +1,7 @@
 From 033497f3a96d1a6d03be923a60c3d5dc4dcf2123 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 2 May 2017 15:34:32 +0200
-Subject: [PATCH 047/292] dts: pfcxxx: remove unused oftrees
+Subject: [PATCH] dts: pfcxxx: remove unused oftrees
 
 ---
  arch/arm/boot/dts/Makefile             |   3 -

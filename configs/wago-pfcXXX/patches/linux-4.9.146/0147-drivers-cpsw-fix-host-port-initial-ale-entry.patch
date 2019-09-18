@@ -1,7 +1,7 @@
 From 2834e4afb91e7ffbf417b780980891e6ffbe0533 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Thu, 1 Feb 2018 10:57:50 +0100
-Subject: [PATCH 147/292] drivers: cpsw: fix host port initial ale entry
+Subject: [PATCH] drivers: cpsw: fix host port initial ale entry
 
 ---
  drivers/net/ethernet/ti/cpsw.c | 2 +-

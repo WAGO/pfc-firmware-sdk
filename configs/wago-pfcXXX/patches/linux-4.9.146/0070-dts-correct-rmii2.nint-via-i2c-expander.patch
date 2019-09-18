@@ -1,7 +1,7 @@
 From e104e92ee98c8c3dd545a0e101d6044423d256a1 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Wed, 28 Jun 2017 14:42:04 +0000
-Subject: [PATCH 070/292] dts: correct rmii2.nint via i2c expander
+Subject: [PATCH] dts: correct rmii2.nint via i2c expander
 
 ---
  arch/arm/boot/dts/wago-pfc200v2.dtsi |   2 +-

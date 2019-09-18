@@ -52,7 +52,7 @@ if [ "$operation" = "restore" ]; then
         pin=$(echo "$3" | base64 -d)
         [ -n "$pin" ] && /etc/config-tools/config_mdmd --set --SIM SimPin="$pin"
         ;;
-    port-enabled)
+    port-state)
         if [ -n  "$3" ]; then   
 	        if [ $3 -eq 0 ] 
 	        then   
@@ -85,7 +85,7 @@ if [ "$operation" = "restore" ]; then
         "$md_config_tool" --set --gprsaccess GprsConnectivity=$3
         status=$?
         ;;         
-    net-selection)
+    net-selection-mode)
         if [ $3 -ge 0 ] && [ $3 -lt ${#NetworkSelectionEnum[*]} ] 
         then
            NetworkSelectionValue=${NetworkSelectionEnum[$3]}
@@ -119,9 +119,9 @@ elif [ "$operation" = "backup" ]; then
 		    status=$CONFIG_FILE_INCONSISTENT
 		  fi      
 		  ;;
-		port-enabled)
-		  if grep -q "port_enabled" "$md_config"; then 
-		  	cat "$md_config" |  awk -F = '$1=="port_enabled"{ printf $2 }' 
+		port-state)
+		  if grep -q "port_state" "$md_config"; then 
+		  	cat "$md_config" |  awk -F = '$1=="port_state"{ printf $2 }' 
 		    status=$SUCCESS
 		  else
 		    status=$CONFIG_FILE_INCONSISTENT
@@ -135,9 +135,9 @@ elif [ "$operation" = "backup" ]; then
 		    status=$CONFIG_FILE_INCONSISTENT
 		  fi  
       ;;
-		net-selection) 
-		  if grep -q "net_selection" "$md_config"; then 
-		  	cat "$md_config" |  awk -F = '$1=="net_selection" { printf $2 }' 
+		net-selection-mode) 
+		  if grep -q "net_selection_mode" "$md_config"; then 
+		  	cat "$md_config" |  awk -F = '$1=="net_selection_mode" { printf $2 }' 
 		    status=$SUCCESS
 		  else
 		    status=$CONFIG_FILE_INCONSISTENT
@@ -175,8 +175,8 @@ else
 	echo "Usage: $(basename "$0") < backup | restore > sim-pin [pin-base64]" 
   echo "       $(basename "$0") < backup | restore > gprs-access [GprsAccessPointName, GprsAuthType, GprsUserName, GprsPassword]"	
   echo "       $(basename "$0") < backup | restore > gprs-connectivity [DISABLED, ENABLED]"
-  echo "       $(basename "$0") < backup | restore > net-selection [0..5]"
-  echo "       $(basename "$0") < backup | restore > port-enabled [0, 1]"
+  echo "       $(basename "$0") < backup | restore > net-selection-mode [0..5]"
+  echo "       $(basename "$0") < backup | restore > port-state [0, 1]"
   echo "       $(basename "$0") < backup | restore > log-level [0..5]"
   echo
 fi

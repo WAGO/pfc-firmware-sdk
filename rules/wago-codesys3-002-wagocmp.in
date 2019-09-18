@@ -107,13 +107,6 @@ config CDS3_IODRVSERIAL
 	help
 		Builds and installs the Serial Driver.
 
-config CDS3_IODRVRLBEMVZPDH
-	bool "Io Driver Rlb Emv Zpdh"
-	default n
-	select CDS3_INCLUDES
-   	help
-		Builds and installs the Rlb Emv Test driver.
-
 config CDS3_IODRVPNC
   bool "Io Driver PROFINET Controller"
   default n
@@ -388,6 +381,7 @@ config CDS3_SYSUIO
 	default n
 	select CODESYS3
 	select CDS3_INCLUDES
+	select LIBUIO
 	help
 		Builds and installs the UIO block driver.
 
@@ -573,4 +567,16 @@ config CDS3_TSCSYNCBOOTPROJECT
     select CDS3_INCLUDES 
     help  
         This component synchronizes the bootproject to the storage after it has been uploaded to the controller
+        
+config CDS3_IODRVRLB
+    bool "IO driver rocket local bus"
+    default n
+    select HOST_CT_BUILD
+    select CDS3_INCLUDES
+    select CODESYS3
+    select LIBUIO
+    select LIBRLB
+    select LIBCOMMONHEADER
+    help
+        This component implements the process data communication between codesys3 and rocket local bus
 

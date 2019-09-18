@@ -1,8 +1,8 @@
 From a1f19c1c1a2d6e63de4a0ae0bea4204a36b5f864 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 22 Nov 2016 11:46:39 +0100
-Subject: [PATCH 017/292] dts: pfc100 usb: disable usb1 per default; enable it
- in specific targets
+Subject: [PATCH] dts: pfc100 usb: disable usb1 per default; enable it in
+ specific targets
 
 ---
  arch/arm/boot/dts/wago-pfc100-musb.dtsi   | 15 ++++++++++++---

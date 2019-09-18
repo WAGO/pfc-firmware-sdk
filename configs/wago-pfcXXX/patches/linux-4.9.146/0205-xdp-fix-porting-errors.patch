@@ -1,7 +1,7 @@
 From 15e280e70b82678015fd90e514a1e1ca81179435 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 3 Jul 2018 11:18:24 +0200
-Subject: [PATCH 205/292] xdp: fix porting errors
+Subject: [PATCH] xdp: fix porting errors
 
 Because XDP/XSK was ported from devnet/master based on 4.17.0 rc3
 some parts has to be backported to our 4.9.47

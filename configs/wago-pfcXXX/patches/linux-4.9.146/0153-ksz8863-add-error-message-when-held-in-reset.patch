@@ -1,7 +1,7 @@
 From e65a0e8f53bb1644e58021d2a460b8724054bbbf Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Wed, 21 Feb 2018 10:21:32 +0100
-Subject: [PATCH 153/292] ksz8863: add error message when held in reset.
+Subject: [PATCH] ksz8863: add error message when held in reset.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

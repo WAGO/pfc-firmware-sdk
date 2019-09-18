@@ -1,8 +1,7 @@
 From 7a8c687c7dd512d5bb58a9599a0539a8ed356e1f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 18 Jun 2018 16:48:04 +0200
-Subject: [PATCH 182/292] ARM: dts: pfc: rename oftrees and adjust compatible
- strings
+Subject: [PATCH] ARM: dts: pfc: rename oftrees and adjust compatible strings
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

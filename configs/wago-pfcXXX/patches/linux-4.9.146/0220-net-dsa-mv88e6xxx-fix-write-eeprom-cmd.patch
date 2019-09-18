@@ -1,7 +1,7 @@
 From 604fdfd9153dc9ecd67f62105a022e7d13cf4e49 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 7 Aug 2018 10:37:53 +0200
-Subject: [PATCH 220/292] net: dsa: mv88e6xxx: fix write eeprom cmd
+Subject: [PATCH] net: dsa: mv88e6xxx: fix write eeprom cmd
 
 The MV88E6321 needs about 10 miliseconds to write the EEPROM command
 register and to read back the ready flag. We have to wait for some ms

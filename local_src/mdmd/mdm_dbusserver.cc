@@ -214,7 +214,7 @@ MdmDBusServer::emit_diag_signal(unsigned int id, bool set, int intparam)
       return;
     }
 
-    gettimeofday( &tv, NULL );
+    gettimeofday( &tv, nullptr );
 
     params = g_variant_new( "(iisbi)", tv.tv_sec, tv.tv_usec, "mdmd", set, intparam );
 

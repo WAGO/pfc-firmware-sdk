@@ -1,7 +1,7 @@
 From de1d94d41f4fcdd14c380fbe1cfe850b0fe19cc4 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 26 Sep 2018 13:39:43 +0200
-Subject: [PATCH 265/292] net: dsa: mv88e6xxx: create MV88E6321 family flags
+Subject: [PATCH] net: dsa: mv88e6xxx: create MV88E6321 family flags
 
 The new family MV88E6321 is equal to MV88E6320 with
 additional TCAM flag.

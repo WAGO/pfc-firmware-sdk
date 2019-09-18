@@ -1,8 +1,7 @@
 From e5970531f886597f6bce74d400cf27458a170b5b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 12 Oct 2018 14:25:43 +0200
-Subject: [PATCH 245/292] ARM: dts: src: rename oftrees and adjust compatible
- strings
+Subject: [PATCH] ARM: dts: src: rename oftrees and adjust compatible strings
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

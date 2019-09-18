@@ -1,7 +1,7 @@
 From 9963024a851a121e013a200ecd68152203ab83e3 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 18 Apr 2017 15:30:46 +0200
-Subject: [PATCH 041/292] dts: pfc200v3: set memory size to 512MB
+Subject: [PATCH] dts: pfc200v3: set memory size to 512MB
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 2 +-

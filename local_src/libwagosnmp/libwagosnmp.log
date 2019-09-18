@@ -4,15 +4,16 @@ In file included from agent.c:21:0:
 wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
      uint32_t index;
               ^
-wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
+wagosnmp_internal.h:112:12: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
      size_t   objLen;
-              ^
-wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
+            ^
+In file included from agent.c:21:0:
+wagosnmp_internal.h:122:9: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
      int         oidShmSize;
-                 ^
-wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
+         ^
+wagosnmp_internal.h:123:9: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
      int         oidCount;
-                 ^
+         ^
 wagosnmp_internal.h:125:1: warning: packed attribute causes inefficient alignment [-Wpacked]
  }__attribute__ ((packed)) tOidShm;
  ^
@@ -20,9 +21,9 @@ agent.c: In function ‘_TrapSend’:
 agent.c:104:31: warning: conversion to ‘u_char {aka unsigned char}’ from ‘uint16_t {aka short unsigned int}’ may alter its value [-Wconversion]
                                trap->variable.type,
                                ^
-agent.c:107:77: warning: conversion to ‘int’ from ‘size_t {aka unsigned int}’ may change the sign of the result [-Wsign-conversion]
+agent.c:107:76: warning: conversion to ‘int’ from ‘size_t {aka unsigned int}’ may change the sign of the result [-Wsign-conversion]
    netsnmp_send_traps  (trap->trap_type,trap->specific_type,trap->enterprise,trap->enterprise_length,
-                                                                             ^
+                                                                            ^
 agent.c: In function ‘_OidHandler’:
 agent.c:131:55: warning: conversion to ‘u_char {aka unsigned char}’ from ‘uint16_t {aka short unsigned int}’ may alter its value [-Wconversion]
          snmp_set_var_typed_value(requests->requestvb, object->type, object->buf, object->len);
@@ -67,28 +68,23 @@ agent.c:543:19: warning: conversion to ‘uint16_t {aka short unsigned int}’ f
 agent.c:549:19: warning: conversion to ‘uint16_t {aka short unsigned int}’ from ‘size_t {aka unsigned int}’ may alter its value [-Wconversion]
      object->len = bufferLen;
                    ^
-In file included from agent.c:21:0:
 agent.c: In function ‘AGENT_CreateNewOidObject’:
-wagosnmp_internal.h:79:38: warning: conversion to ‘int’ from ‘unsigned int’ may change the sign of the result [-Wsign-conversion]
-                            else{ x = (sizeof(tOidObject) + (y -OID_BUFFER_LEN));}}
-                                      ^
-agent.c:564:5: note: in expansion of macro ‘CALC_OBJ_SIZE’
-     CALC_OBJ_SIZE(objectSize,stData->val_len,stData->val.string == stData->buf);
-     ^
+agent.c:564:100: warning: conversion to ‘int’ from ‘unsigned int’ may change the sign of the result [-Wsign-conversion]
 cc -o out/gcc_5_5_arm-linux-gnueabihf/Debug/libwagosnmp.so/internal.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wchkp -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wsuggest-attribute=const -Wsuggest-attribute=pure -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c internal.c
 In file included from internal.c:21:0:
 wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
      uint32_t index;
               ^
-wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
+wagosnmp_internal.h:112:12: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
      size_t   objLen;
-              ^
-wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
+            ^
+In file included from internal.c:21:0:
+wagosnmp_internal.h:122:9: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
      int         oidShmSize;
-                 ^
-wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
+         ^
+wagosnmp_internal.h:123:9: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
      int         oidCount;
-                 ^
+         ^
 wagosnmp_internal.h:125:1: warning: packed attribute causes inefficient alignment [-Wpacked]
  }__attribute__ ((packed)) tOidShm;
  ^
@@ -100,9 +96,7 @@ internal.c:42:51: warning: unused parameter ‘objidlen’ [-Wunused-parameter]
                          const oid * objid, size_t objidlen,
                                                    ^
 internal.c: In function ‘INTERNAL_SnmpInput’:
-internal.c:236:41: warning: unused parameter ‘operation’ [-Wunused-parameter]
- INTERNAL_SYM int INTERNAL_SnmpInput(int operation,
-                                         ^
+internal.c:236:69: warning: unused parameter ‘operation’ [-Wunused-parameter]
 internal.c:237:30: warning: unused parameter ‘session’ [-Wunused-parameter]
             netsnmp_session * session,
                               ^
@@ -116,31 +110,31 @@ internal.c:238:47: warning: unused parameter ‘magic’ [-Wunused-parameter]
             int reqid, netsnmp_pdu *pdu, void *magic)
                                                ^
 internal.c: In function ‘INTERNAL_GetSnmpPdu’:
-internal.c:533:36: warning: declaration of ‘objid_sysuptime’ shadows a global declaration [-Wshadow]
+internal.c:535:24: warning: declaration of ‘objid_sysuptime’ shadows a global declaration [-Wshadow]
        static const oid             objid_sysuptime[] = { 1, 3, 6, 1, 2, 1, 1, 3, 0 };
-                                    ^
-internal.c:29:30: note: shadowed declaration is here
+                        ^
+internal.c:29:18: note: shadowed declaration is here
  static const oid             objid_sysuptime[] = { 1, 3, 6, 1, 2, 1, 1, 3, 0 };
-                              ^
-internal.c:534:36: warning: declaration of ‘objid_snmptrap’ shadows a global declaration [-Wshadow]
+                  ^
+internal.c:536:24: warning: declaration of ‘objid_snmptrap’ shadows a global declaration [-Wshadow]
        static const oid             objid_snmptrap[] = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
-                                    ^
-internal.c:30:30: note: shadowed declaration is here
+                        ^
+internal.c:30:18: note: shadowed declaration is here
  static const oid             objid_snmptrap[] = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
-                              ^
-internal.c:548:16: warning: conversion to ‘u_long {aka long unsigned int}’ from ‘long int’ may change the sign of the result [-Wsign-conversion]
+                  ^
+internal.c:550:16: warning: conversion to ‘u_long {aka long unsigned int}’ from ‘long int’ may change the sign of the result [-Wsign-conversion]
        uptime = get_uptime();
                 ^
 internal.c: In function ‘INTERNAL_ConvertTlvToTrapVar’:
-internal.c:692:12: warning: conversion to ‘uint16_t {aka short unsigned int}’ from ‘size_t {aka unsigned int}’ may alter its value [-Wconversion]
+internal.c:694:12: warning: conversion to ‘uint16_t {aka short unsigned int}’ from ‘size_t {aka unsigned int}’ may alter its value [-Wconversion]
    var->len=stData->val_len;
             ^
 internal.c: In function ‘INTERNAL_AddVarAndSend’:
-internal.c:839:60: warning: conversion to ‘u_char {aka unsigned char}’ from ‘uint16_t {aka short unsigned int}’ may alter its value [-Wconversion]
+internal.c:841:59: warning: conversion to ‘u_char {aka unsigned char}’ from ‘uint16_t {aka short unsigned int}’ may alter its value [-Wconversion]
        if (NULL == snmp_pdu_add_variable(pdu,OID,OID_length,var.type ,var.buf,var.len))
-                                                            ^
+                                                           ^
 internal.c: In function ‘INTERNAL_GetTrap2PDU_v2_v3’:
-internal.c:873:12: warning: conversion to ‘u_long {aka long unsigned int}’ from ‘long int’ may change the sign of the result [-Wsign-conversion]
+internal.c:875:12: warning: conversion to ‘u_long {aka long unsigned int}’ from ‘long int’ may change the sign of the result [-Wsign-conversion]
    uptime = get_uptime();
             ^
 cc -o out/gcc_5_5_arm-linux-gnueabihf/Debug/libwagosnmp.so/libwagosnmp.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wchkp -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wsuggest-attribute=const -Wsuggest-attribute=pure -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c libwagosnmp.c
@@ -148,178 +142,19 @@ In file included from libwagosnmp.c:15:0:
 wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
      uint32_t index;
               ^
-wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
+wagosnmp_internal.h:112:12: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
      size_t   objLen;
-              ^
-wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
+            ^
+In file included from libwagosnmp.c:15:0:
+wagosnmp_internal.h:122:9: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
      int         oidShmSize;
-                 ^
-wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
+         ^
+wagosnmp_internal.h:123:9: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
      int         oidCount;
-                 ^
+         ^
 wagosnmp_internal.h:125:1: warning: packed attribute causes inefficient alignment [-Wpacked]
  }__attribute__ ((packed)) tOidShm;
  ^
-libwagosnmp.c:19:17: warning: no previous prototype for ‘init_libwagosnmp_AgentEntry’ [-Wmissing-prototypes]
- PUBLIC_SYM void init_libwagosnmp_AgentEntry(void)
-                 ^
-libwagosnmp.c: In function ‘libwagosnmp_GetErrorString’:
-libwagosnmp.c:41:54: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_OK),
-                                                      ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:42:70: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_INIT_SESSION_ERROR),
-                                                                      ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:43:64: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_BAD_MSG_TYPE),
-                                                                ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:44:67: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_PARSE_OID_ERROR),
-                                                                   ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:45:68: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_TRANSCEIVE_ERROR),
-                                                                    ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:46:64: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_BAD_DATATYPE),
-                                                                ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:47:72: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_WARN_STR_VAL_TO_LONG),
-                                                                        ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:48:62: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERR_MALLOC),
-                                                              ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:49:65: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_BAD_STR_VALUE),
-                                                                 ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:50:69: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_UNINIT_DATA),
-                                                                     ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:51:59: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_TIMEOUT),
-                                                           ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:52:65: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_PACKAGE_ERROR),
-                                                                 ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:53:60: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_FB_ERROR),
-                                                            ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:54:60: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_AUTH_ERR),
-                                                            ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:55:60: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_PRIV_ERR),
-                                                            ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:56:73: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_BUFFER_TO_SMALL),
-                                                                         ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:57:65: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_CONVERT),
-                                                                 ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:58:71: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_BAD_ENGINE_ID),
-                                                                       ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:59:75: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_INVALID_ENGINE_ID),
-                                                                           ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:60:75: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_INVALID_ENGINE_ID),
-                                                                           ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:61:63: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_EXIST),
-                                                               ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:62:61: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_SHM),
-                                                             ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:63:61: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_NOT_FOUND),
-                                                             ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c:64:67: warning: initialization discards ‘const’ qualifier from pointer target type [-Wdiscarded-qualifiers]
-                      RET_TO_STRING(WAGOSNMP_RETURN_ERROR_PARAMETER)
-                                                                   ^
-libwagosnmp.c:39:45: note: in definition of macro ‘RET_TO_STRING’
- #define RET_TO_STRING(x) {.code=x, .string=#x}
-                                             ^
-libwagosnmp.c: In function ‘libwagosnmp_StrToTlv’:
-libwagosnmp.c:260:24: warning: conversion to ‘u_char {aka unsigned char}’ from ‘int’ may alter its value [-Wconversion]
-           str_val[i] = IPaddr[i];
-                        ^
-libwagosnmp.c: In function ‘libwagosnmp_TlvToUint32’:
-libwagosnmp.c:347:14: warning: conversion to ‘uint32_t {aka unsigned int}’ from ‘long int’ may change the sign of the result [-Wsign-conversion]
-     *input = *(stData->val.integer);
-              ^
-libwagosnmp.c: In function ‘libwagosnmp_TlvToStr’:
-libwagosnmp.c:402:16: warning: conversion to ‘size_t {aka unsigned int}’ from ‘int’ may change the sign of the result [-Wsign-conversion]
-       bufsiz = (p-buf);
-                ^
 libwagosnmp.c: In function ‘libwagosnmp_SendTrapToAdrV1’:
 libwagosnmp.c:567:16: warning: conversion to ‘u_long {aka long unsigned int}’ from ‘long int’ may change the sign of the result [-Wsign-conversion]
     pdu->time = get_uptime();
@@ -328,10 +163,6 @@ libwagosnmp.c: In function ‘libwagosnmp_SendTrapToAdrV3’:
 libwagosnmp.c:688:24: warning: conversion to ‘u_int {aka unsigned int}’ from ‘long int’ may change the sign of the result [-Wsign-conversion]
      tmpss.engineTime = get_uptime();  /* but it'll work. Sort of. */
                         ^
-libwagosnmp.c: In function ‘libwagosnmp_GetCustomOid’:
-libwagosnmp.c:764:41: warning: conversion to ‘u_char {aka unsigned char}’ from ‘uint16_t {aka short unsigned int}’ may alter its value [-Wconversion]
-     if(INTERNAL_SetVarTypedValue(stData,object->type,object->buf,object->len))
-                                         ^
 linking shared library out/gcc_5_5_arm-linux-gnueabihf/Debug/libwagosnmp.so.dbg
 splitting debug symbols from out/gcc_5_5_arm-linux-gnueabihf/Debug/libwagosnmp.so.dbg
 cc -o out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/test-src/test.cpp.o -xc++ -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wchkp -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wctor-dtor-privacy -Wdelete-non-virtual-dtor -Wnon-virtual-dtor -Wpmf-conversions -Winherited-variadic-ctor -Wliteral-suffix -Wuseless-cast -Wvirtual-move-assign -Wconditionally-supported -Wdelete-incomplete -Wc++14-compat -Wodr -Wsized-deallocation -Wsizeof-array-argument -Wsuggest-final-methods -Wsuggest-final-types -Wsuggest-override -Wswitch-bool -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wsuggest-attribute=const -Wsuggest-attribute=pure -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Wc++0x-compat -Wconversion-null -Winvalid-offsetof -Wnarrowing -Wnoexcept -Wnon-template-friend -Woverloaded-virtual -Wreorder -Wsign-promo -Wstrict-null-sentinel -Wsynth -Wnormalized=id -Wno-aggregate-return -std=gnu++11 -iquote. -c test-src/test.cpp
@@ -339,15 +170,16 @@ In file included from test-src/test.cpp:26:0:
 ./wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘<anonymous struct>::index’ [-Wattributes]
      uint32_t index;
               ^
-./wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘<anonymous struct>::objLen’ [-Wattributes]
+./wagosnmp_internal.h:112:12: warning: packed attribute causes inefficient alignment for ‘<anonymous struct>::objLen’ [-Wattributes]
      size_t   objLen;
-              ^
-./wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘<anonymous struct>::oidShmSize’ [-Wattributes]
+            ^
+In file included from test-src/test.cpp:26:0:
+./wagosnmp_internal.h:122:9: warning: packed attribute causes inefficient alignment for ‘<anonymous struct>::oidShmSize’ [-Wattributes]
      int         oidShmSize;
-                 ^
-./wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘<anonymous struct>::oidCount’ [-Wattributes]
+         ^
+./wagosnmp_internal.h:123:9: warning: packed attribute causes inefficient alignment for ‘<anonymous struct>::oidCount’ [-Wattributes]
      int         oidCount;
-                 ^
+         ^
 ./wagosnmp_internal.h:121:16: warning: packed attribute causes inefficient alignment for ‘._141’ [-Wpacked]
  typedef struct {
                 ^

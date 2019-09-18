@@ -1,8 +1,8 @@
 From 85917fa6cfcbfbc0e053faeafa2db2052745fa4c Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 13 Oct 2017 12:04:33 +0200
-Subject: [PATCH 105/292] dts: pfc8xxx: move ksz8863 definition to a seperated
- oftree file
+Subject: [PATCH] dts: pfc8xxx: move ksz8863 definition to a seperated oftree
+ file
 
 ---
  arch/arm/boot/dts/wago-pfc100.dtsi          | 65 ++-------------------

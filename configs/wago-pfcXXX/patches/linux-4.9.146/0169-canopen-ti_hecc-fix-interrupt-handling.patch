@@ -1,7 +1,7 @@
 From 5c3f2af9a22d7b543c6ac49d62a599c6a6c3c0c6 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Tue, 5 Sep 2017 08:18:57 +0200
-Subject: [PATCH 169/292] canopen: ti_hecc: fix interrupt handling
+Subject: [PATCH] canopen: ti_hecc: fix interrupt handling
 
 This code section lead to a blocking state during CAN packet processing.
 Our testing showed that always enabling packet interrupt fixes the issue.

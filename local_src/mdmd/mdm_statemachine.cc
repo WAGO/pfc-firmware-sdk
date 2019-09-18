@@ -20,7 +20,7 @@
 
 static void h_strip_newline(char *pChar)
 {
-  if (pChar != NULL)
+  if (pChar != nullptr)
   {
     while (*pChar != 0)
     {
@@ -63,9 +63,9 @@ MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_
 
 #define _GPRS_REG_INIT_STATE   (-1)
 
-#define _GPRS_CONNECTIVITY_DISABLED  int(0)
-#define _GPRS_CONNECTIVITY_ENABLED   int(1)
-#define _GPRS_CONNECTIVITY_DEFAULT   _GPRS_CONNECTIVITY_ENABLED
+constexpr auto _GPRS_CONNECTIVITY_DISABLED = 0;
+//#define _GPRS_CONNECTIVITY_ENABLED   int(1)
+//#define _GPRS_CONNECTIVITY_DEFAULT   _GPRS_CONNECTIVITY_ENABLED
 void
 MdmStatemachine::init()
 {
@@ -341,22 +341,22 @@ int
 MdmStatemachine::execute_command(const std::string &cmd, std::string &cmd_output, std::string &cmd_error)
 {
   int status = -1;
-  gchar * std_output = NULL;
-  gchar * std_error = NULL;
+  gchar * std_output = nullptr;
+  gchar * std_error = nullptr;
   gint exit_status = -1;
   const gboolean cmd_ok =
-      g_spawn_command_line_sync(cmd.c_str(), &std_output, &std_error, &exit_status, NULL);
+      g_spawn_command_line_sync(cmd.c_str(), &std_output, &std_error, &exit_status, nullptr);
   if (cmd_ok && WIFEXITED(exit_status))
   {
     status = WEXITSTATUS(exit_status);
   }
   h_strip_newline(std_output);
   h_strip_newline(std_error);
-  cmd_output = (std_output != NULL) ? std_output : "";
-  cmd_error = (std_error != NULL) ? std_error : "";
+  cmd_output = (std_output != nullptr) ? std_output : "";
+  cmd_error = (std_error != nullptr) ? std_error : "";
   mdmd_Log(MD_LOG_DBG, "%s: executed command '%s', status: %d, std_out: '%s', err_out: '%s'\n", get_state().c_str(),
            cmd.c_str(), status, cmd_output.c_str(), cmd_error.c_str());
-  //Note: NULL pointer is tolerated by g_free()
+  //Note: nullptr pointer is tolerated by g_free()
   g_free(std_output);
   g_free(std_error);
   return status;
@@ -785,7 +785,7 @@ MdmStatemachine::get_var_smsread() const
   GVariant* retVal;
   if (_sms_list.empty())
   {
-    retVal = NULL;
+    retVal = nullptr;
   }
   else
   {
@@ -799,7 +799,7 @@ MdmStatemachine::get_var_smsread() const
     }
     else
     {
-      retVal = NULL;
+      retVal = nullptr;
     }
   }
   return retVal;

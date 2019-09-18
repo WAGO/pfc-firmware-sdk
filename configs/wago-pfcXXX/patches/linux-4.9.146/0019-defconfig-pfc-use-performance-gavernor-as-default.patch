@@ -1,7 +1,7 @@
 From 0fdd593c19559309771d2aa8c82385b8bf097228 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 22 Nov 2016 11:51:33 +0100
-Subject: [PATCH 019/292] defconfig: pfc: use performance gavernor as default
+Subject: [PATCH] defconfig: pfc: use performance gavernor as default
 
 ---
  arch/arm/configs/wago_pfc_generic_defconfig | 3 +--

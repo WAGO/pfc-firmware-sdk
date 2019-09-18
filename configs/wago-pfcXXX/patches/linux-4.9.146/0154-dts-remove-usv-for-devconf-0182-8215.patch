@@ -1,7 +1,7 @@
 From 477bab05f4f0d249da69223a4e66b1bc201f13d3 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 26 Feb 2018 13:15:05 +0100
-Subject: [PATCH 154/292] dts: remove usv for devconf 0182 (8215)
+Subject: [PATCH] dts: remove usv for devconf 0182 (8215)
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

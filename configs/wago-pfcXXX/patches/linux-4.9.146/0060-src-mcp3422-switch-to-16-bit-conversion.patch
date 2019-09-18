@@ -1,7 +1,7 @@
 From 440ac10a7f8c172ae08792b8d6166c3bdad54433 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <boerje.sewing@who-ing.de>
 Date: Wed, 15 Jun 2016 17:44:09 +0200
-Subject: [PATCH 060/292] src: mcp3422: switch to 16 bit conversion.
+Subject: [PATCH] src: mcp3422: switch to 16 bit conversion.
 
 Signed-off-by: Boerje Sewing <boerje.sewing@who-ing.de>
 ---

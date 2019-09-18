@@ -1,0 +1,27 @@
+From eaa31fedf4d2fdb5fc607df52cb92a60b0662c25 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 7 May 2019 10:51:28 +0200
+Subject: [PATCH] Revert "defaultenv-pfc: config: set partitions binding to
+ donttouch"
+
+This reverts commit 24f652a1a53ba97c70fa8bb22bf45fa028ec8b24.
+
+Above commit also disables fixup of bootstate partitions. These
+partitions are required for rauc.
+---
+ defaultenv/defaultenv-pfc-base/config | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index 1bb7ec7..16d95d9 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -192,5 +192,3 @@ magicvar -a global.linux.bootargs.watchdog "board specific watchdog kernel param
+ [ -z "${global.bootchooser.retry}" ] && global.bootchooser.retry=1
+ 
+ [ -z "${global.linux.bootargs.watchdog}" ] && global.linux.bootargs.watchdog="omap_wdt.early_enable omap_wdt.timer_margin=${global.pfc.watchdog_timeout_linux_boot}"
+-
+-[ "${global.of_partition_binding}" != "donttouch" ] &&	global.of_partition_binding=donttouch
+-- 
+2.7.4
+

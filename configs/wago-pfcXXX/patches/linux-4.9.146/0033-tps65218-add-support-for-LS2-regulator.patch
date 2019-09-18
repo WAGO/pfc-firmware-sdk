@@ -1,7 +1,7 @@
 From e35ec3273a418e6a2ba31f16ca72a40679d0f369 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 23 Jan 2017 08:42:14 +0000
-Subject: [PATCH 033/292] tps65218: add support for LS2 regulator
+Subject: [PATCH] tps65218: add support for LS2 regulator
 
 ---
  drivers/regulator/tps65218-regulator.c | 17 ++++++++++++++++-

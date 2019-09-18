@@ -1,7 +1,7 @@
 From 06b9263054bca0fe5691132be93f28864513bd25 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 11 Oct 2018 15:10:44 +0200
-Subject: [PATCH] commands: miitool: remove unsupported options a and b
+Subject: [PATCH 111/144] commands: miitool: remove unsupported options a and b
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

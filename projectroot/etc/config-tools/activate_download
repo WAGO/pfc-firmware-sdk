@@ -99,21 +99,21 @@ else
                             if [ $? != $SUCCESS ]; then
 
                               status=$SHELL_ERROR
-                              ReportError $status "(usr/bin/opkg -install $path$filename)"
+                              ReportError $status "(/usr/bin/opkg install $path$filename)"
                               SetLastError "Error while execution"
                             fi
                           fi
-		          #force overwrite
-			  if [ "force" = $action ]; then
+              #force overwrite
+        if [ "force" = $action ]; then
                             #echo "force-overwrite" $path$filename "for update-script"
-                            sudo /usr/bin/opkg install -force-overwrite "$path$filename" > /dev/null 2> /dev/null
+                            sudo /usr/bin/opkg install --force-overwrite --force-reinstall --force-downgrade "$path$filename" > /dev/null 2> /dev/null
 
-			    if [ $? != $SUCCESS ]; then
- 			      status=$SHELL_ERROR
-			      ReportError $status "(usr/bin/opkg -install $path$filename)"
-			      SetLastError "Error while execution"
-		            fi
-		          fi
+          if [ $? != $SUCCESS ]; then
+            status=$SHELL_ERROR
+            ReportError $status "(/usr/bin/opkg install --force-overwrite --force-reinstall --force-downgrade $path$filename)"
+            SetLastError "Error while execution"
+                fi
+              fi
                           # delete download-file
                           rm $path/$filename
                           if [ $? != $SUCCESS ]; then

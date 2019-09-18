@@ -1,7 +1,7 @@
 From b8b3553959357e6f15e8df3c3374a4e0bb2b7701 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>
 Date: Mon, 7 May 2018 19:43:50 +0200
-Subject: [PATCH 204/292] xsk: fix 64-bit division
+Subject: [PATCH] xsk: fix 64-bit division
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

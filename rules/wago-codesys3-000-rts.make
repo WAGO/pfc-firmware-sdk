@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CODESYS3) += codesys3
 
-CODESYS3_VERSION    := 3.5.13.2
+CODESYS3_VERSION    := 3.5.14.3.1
 CODESYS3            := codesys-3
 CODESYS3_DIR        := $(BUILDDIR)/$(CODESYS3)
 CODESYS3_URL        := file://$(PTXDIST_WORKSPACE)/wago_intern/plc/codesys/$(CODESYS3)/
@@ -307,7 +307,8 @@ endif
 
     # Codesys home
 ifdef PTXCONF_CDS3_HOME
-# Set setgid bit so that every file created in /home_codesys_root will have group 'admin'.  
+# Set setgid bit so that every file created in /home_codesys_root will have group 'admin'. 
+	@$(call install_copy. codesys3, 0, 0, 0755, /home) 
 	@$(call install_copy, codesys3, 0, $(PTXCONF_ROOTFS_PASSWD_ADMIN_GID), 2775, /home/codesys_root)
 	@$(call install_link, codesys3, /home/codesys_root, /home/codesys)
 	@$(call install_replace, codesys3, $(PTXCONF_CDS3_PLCCONFIGDIR)/$(PTXCONF_CDS3_PLCCONFIGFILE), @CDS3_HOME@, $(PTXCONF_CDS3_HOME_PATH));

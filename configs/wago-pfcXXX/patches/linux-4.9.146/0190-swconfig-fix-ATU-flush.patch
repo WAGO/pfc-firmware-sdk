@@ -1,7 +1,7 @@
 From d1bc9676d5c2833c1f7eda97c6be93b5785b0397 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 20 Jul 2018 12:01:07 +0200
-Subject: [PATCH 190/292] swconfig: fix ATU flush
+Subject: [PATCH] swconfig: fix ATU flush
 
 For ATU flush operation the EntryState has to be 0
 before execution of ATU flush operation.

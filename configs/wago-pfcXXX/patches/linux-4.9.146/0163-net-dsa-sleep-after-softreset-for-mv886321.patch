@@ -1,7 +1,7 @@
 From cdc2407b12aee9fa263f8083ce5454d43b307425 Mon Sep 17 00:00:00 2001
 From: "Schmidt, Andreas" <Andreas.Schmidt@wago.com>
 Date: Tue, 27 Mar 2018 09:35:54 +0000
-Subject: [PATCH 163/292] net:dsa: sleep after softreset for mv886321
+Subject: [PATCH] net:dsa: sleep after softreset for mv886321
 
 One mv88e6321 in PFC200v3 8215 P50 hang while setup function.
 Precise MDIO communication after softreset is not immediatly

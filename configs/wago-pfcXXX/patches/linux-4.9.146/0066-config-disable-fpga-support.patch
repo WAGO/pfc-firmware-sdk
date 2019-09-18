@@ -1,7 +1,7 @@
 From d9b76322b1e1fded8c2b21b2d33e01fe4378de32 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Mon, 26 Jun 2017 12:16:50 +0000
-Subject: [PATCH 066/292] config: disable fpga support
+Subject: [PATCH] config: disable fpga support
 
 ---
  arch/arm/configs/wago_pfc_generic_defconfig | 1 +

@@ -1,8 +1,7 @@
 From 1dd1bf62abf88ff5ec80addad37065411ba57f04 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 18 Oct 2018 10:29:41 +0200
-Subject: [PATCH 259/292] net: phy: marvell: add mdix handling to mv88e6321
- phys
+Subject: [PATCH] net: phy: marvell: add mdix handling to mv88e6321 phys
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

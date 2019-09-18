@@ -462,7 +462,15 @@ endif
 
 ifdef PTXCONF_CT_CONFIG_TOOL_LIB_BASH
 	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/config_tool_lib);
-endif
+
+ifdef PTXCONF_BUSYBOX_FEATURE_PASSWD_WEAK_CHECK
+	@$(call install_replace, config-tools, /etc/config-tools/config_tool_lib, @PASSWORD_WEAKCHECK@, "check_passwd");
+	@$(call install_replace, config-tools, /etc/config-tools/config_tool_lib, @PASSWORD_MINLEN@, $(PTXCONF_BUSYBOX_PASSWORD_MINLEN));
+else
+	@$(call install_replace, config-tools, /etc/config-tools/config_tool_lib, @PASSWORD_WEAKCHECK@, "/usr/bin/true");
+	@$(call install_replace, config-tools, /etc/config-tools/config_tool_lib, @PASSWORD_MINLEN@, 0);
+endif # PTXCONF_BUSYBOX_FEATURE_PASSWD_WEAK_CHECK
+endif # PTXCONF_CT_CONFIG_TOOL_LIB_BASH
 
 ifdef PTXCONF_CT_CONFIG_TOOL_DEFINES
 	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/config_tool_defines);
@@ -478,13 +486,6 @@ endif
 
 ifdef PTXCONF_CT_CONFIG_USER
 	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/config_user);
-
-ifdef PTXCONF_BUSYBOX_PASSWORD_MINLEN
-	@$(call install_replace, config-tools, /etc/config-tools/config_user, @PASSWORD_MINLEN@, $(PTXCONF_BUSYBOX_PASSWORD_MINLEN));
-endif
-ifdef PTXCONF_BUSYBOX_FEATURE_PASSWD_WEAK_CHECK
-	@$(call install_replace, config-tools, /etc/config-tools/config_user, @PASSWD_WEAK_CHECK@, $(PTXCONF_BUSYBOX_FEATURE_PASSWD_WEAK_CHECK));
-endif
 endif
 
 ifdef PTXCONF_CT_CONFIG_OPCUA
@@ -553,7 +554,7 @@ ifdef PTXCONF_CT_RESTART_WEBSERVER
 endif
 
 ifdef PTXCONF_CT_RS232_OWNER
-	@$(call install_copy, config-tools, 0, 0, 0640, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/RS232_OWNER, /etc/config-tools/RS232_OWNER);
+	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/config-tools/RS232_OWNER);
 endif
 
 ifdef PTXCONF_CT_SETTINGS_BACKUP
@@ -561,7 +562,7 @@ ifdef PTXCONF_CT_SETTINGS_BACKUP
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_factory, /etc/config-tools/settings_factory);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_factory, /etc/config-tools/settings_factory);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/rc.once.d/save-factory-defaults, /etc/rc.once.d/save-factory-defaults);
-	@$(call install_copy, config-tools, 0, 0, 0750, /etc/config-tools/backup-restore);
+	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/backup-restore);
 endif
 
 ifdef PTXCONF_CT_START_REBOOT
@@ -839,7 +840,9 @@ endif
 	@$(call install_copy, config-tools, 0, 0, 0755, $(CONFIG_TOOLS_DIR)/liblog/libctlog.so, /usr/lib/libctlog.so);
 
 ifdef PTXCONF_CT_LIBCTNETWORK
+ifndef PTXCONF_NETCONFD
 	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/network-interfaces.xsl)
+endif #PTXCONF_NETCONFD
 	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/network-interfaces.xml)
 
 	@$(call install_copy, config-tools, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/README, /etc/config-tools/events/README);
@@ -888,13 +891,17 @@ ifdef PTXCONF_CT_CONFIG_INTERFACES
         # compatibility wrapper for config_interfaces_c
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_interfaces, /etc/config-tools/config_interfaces);
 endif
+ifndef PTXCONF_NETCONFD
 ifdef PTXCONF_CT_SET_DSA_MODE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/set_dsa_mode, /etc/config-tools/set_dsa_mode_c);
+
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/set_dsa_mode, /etc/config-tools/set_dsa_mode);
 endif
+
 ifdef PTXCONF_CT_GET_DSA_MODE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/get_dsa_mode, /etc/config-tools/get_dsa_mode);
 endif
+endif #PTXCONF_NETCONFD
 ifdef PTXCONF_CT_GET_SWITCH_SETTINGS
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/get_switch_settings, /etc/config-tools/get_switch_settings);
 	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/switch_settings.conf)

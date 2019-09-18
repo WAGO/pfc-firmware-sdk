@@ -1,7 +1,7 @@
 From 669bbf12afdfecb969a22c824e8155ffddae7a53 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 25 Sep 2018 12:22:40 +0200
-Subject: [PATCH 262/292] net: dsa: mv88e6xxx: enable dsa at boot
+Subject: [PATCH] net: dsa: mv88e6xxx: enable dsa at boot
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

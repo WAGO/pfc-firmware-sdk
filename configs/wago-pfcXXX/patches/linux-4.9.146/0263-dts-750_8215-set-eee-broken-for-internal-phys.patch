@@ -1,7 +1,7 @@
 From a0ade073f9a6bb71bd203cbd794b9c358f602e5c Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 25 Sep 2018 13:47:51 +0200
-Subject: [PATCH 263/292] dts: 750_8215: set eee broken for internal phys
+Subject: [PATCH] dts: 750_8215: set eee broken for internal phys
 
 Internal PHYs of MV88E6321 have EEE enabled by default.
 But EEE in combination with e.g. Cut Through not reliable work.

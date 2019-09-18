@@ -1,7 +1,7 @@
 From e9bd0c86d132a4e31b8a178d14f81842efb322b2 Mon Sep 17 00:00:00 2001
 From: Magnus Karlsson <magnus.karlsson@intel.com>
 Date: Wed, 2 May 2018 13:01:32 +0200
-Subject: [PATCH 200/292] xsk: add Tx queue setup and mmap support
+Subject: [PATCH] xsk: add Tx queue setup and mmap support
 
 Another setsockopt (XDP_TX_QUEUE) is added to let the process allocate
 a queue, where the user process can pass frames to be transmitted by

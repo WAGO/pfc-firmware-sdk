@@ -1,7 +1,7 @@
 From bba9968c0c708807ebf895bcbfc44978f60e24ab Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <boerje.sewing@who-ing.de>
 Date: Mon, 6 Jun 2016 10:51:54 +0200
-Subject: [PATCH 061/292] src: dts: Build src specific device tree.
+Subject: [PATCH] src: dts: Build src specific device tree.
 
 Signed-off-by: Boerje Sewing <boerje.sewing@who-ing.de>
 ---

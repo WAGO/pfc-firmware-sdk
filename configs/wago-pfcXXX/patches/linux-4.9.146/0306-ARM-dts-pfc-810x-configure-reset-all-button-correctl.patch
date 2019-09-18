@@ -1,0 +1,42 @@
+From 0bf28d5bf329b6e52e03e505680e0bdc366bc70f Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 7 May 2019 12:25:40 +0200
+Subject: [PATCH] ARM: dts: pfc-810x: configure reset-all button correctly
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_810x.dtsi | 4 ++++
+ arch/arm/boot/dts/am335x-pfc.dtsi          | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_810x.dtsi b/arch/arm/boot/dts/am335x-pfc-750_810x.dtsi
+index 38f9724..66e02b1 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_810x.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc-750_810x.dtsi
+@@ -22,6 +22,10 @@
+ 
+ /delete-node/ &led_bar61;
+ 
++&oms_reset_all {
++	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
++};
++
+ &cpu_0 {
+ 	/*
+ 	 * To consider voltage drop between PMIC and SoC,
+diff --git a/arch/arm/boot/dts/am335x-pfc.dtsi b/arch/arm/boot/dts/am335x-pfc.dtsi
+index 8bff2ee..690f4eb 100644
+--- a/arch/arm/boot/dts/am335x-pfc.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc.dtsi
+@@ -85,7 +85,7 @@
+ 			debounce-interval = <1>;
+ 		};
+ 
+-		reset_all {
++		oms_reset_all: reset_all {
+ 			label = "RESET_ALL";
+ 			gpios = <&gpio3 15 GPIO_ACTIVE_HIGH>;
+ 			linux,code = <4>;
+-- 
+2.7.4
+

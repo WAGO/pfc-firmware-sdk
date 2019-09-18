@@ -53,10 +53,6 @@ extern "C"
   void ctparts_PrintInfoText(ctparts_commonMainContext_t * const pstContext,
                              char const * const szCallString);
 
-  // Compile time check for matching prototype and function pointer definition
-  // Check produces a warning on pointer type mismatch
-  WC_STATIC_ASSERT(&ctparts_PrintInfoText != (ctparts_PrintInfoText_ptr)NULL);
-
   //------------------------------------------------------------------------------
   /// Prototype description<br>
   /// ======================<br>
@@ -91,10 +87,6 @@ extern "C"
   statusCode_t ctparts_SetOptionDefaults(ctparts_commonMainContext_t * const pstContext,
                                          ctutil_Options_t * const pstOptions);
 
-  // Compile time check for matching prototype and function pointer definition
-  // Check produces a warning on pointer type mismatch
-  WC_STATIC_ASSERT(&ctparts_SetOptionDefaults != (ctparts_SetOptionDefaults_ptr)NULL);
-
   //------------------------------------------------------------------------------
   /// Prototype description<br>
   /// ======================<br>
@@ -122,10 +114,6 @@ extern "C"
   //------------------------------------------------------------------------------
   void ctparts_ReleaseSpecificOptions(ctparts_commonMainContext_t * const pstContext,
                                       ctutil_Options_t * const pstOptions);
-
-  // Compile time check for matching prototype and function pointer definition
-  // Check produces a warning on pointer type mismatch
-  WC_STATIC_ASSERT(&ctparts_ReleaseSpecificOptions != (ctparts_ReleaseSpecificOptions_ptr)NULL);
 
   //------------------------------------------------------------------------------
   /// Prototype description<br>
@@ -157,10 +145,6 @@ extern "C"
                                             char * const argv[],
                                             ctutil_Options_t * const pstOptions);
 
-  // Compile time check for matching prototype and function pointer definition
-  // Check produces a warning on pointer type mismatch
-  WC_STATIC_ASSERT(&ctparts_EvaluateEarlyOptions != (ctparts_EvaluateEarlyOptions_ptr)NULL);
-
   //------------------------------------------------------------------------------
   /// Prototype description<br>
   /// ======================<br>
@@ -187,10 +171,6 @@ extern "C"
                                        int const argc,
                                        char * const argv[],
                                        ctutil_Options_t * const pstOptions);
-
-  // Compile time check for matching prototype and function pointer definition
-  // Check produces a warning on pointer type mismatch
-  WC_STATIC_ASSERT(&ctparts_EvaluateOptions != (ctparts_EvaluateOptions_ptr)NULL);
 
   //------------------------------------------------------------------------------
   /// Prototype description<br>
@@ -226,10 +206,6 @@ extern "C"
   statusCode_t ctparts_InitSpecificResources(ctparts_commonMainContext_t * const pstContext,
                                              ctutil_ResourcesSpecific_t * * const ppstResources);
 
-  // Compile time check for matching prototype and function pointer definition
-  // Check produces a warning on pointer type mismatch
-  WC_STATIC_ASSERT(&ctparts_InitSpecificResources != (ctparts_InitSpecificResources_ptr)NULL);
-
   //------------------------------------------------------------------------------
   /// Prototype description<br>
   /// ======================<br>
@@ -255,10 +231,6 @@ extern "C"
   //------------------------------------------------------------------------------
   void ctparts_ReleaseSpecificResources(ctparts_commonMainContext_t * const pstContext,
                                         ctutil_ResourcesSpecific_t * * const ppstResources);
-
-  // Compile time check for matching prototype and function pointer definition
-  // Check produces a warning on pointer type mismatch
-  WC_STATIC_ASSERT(&ctparts_ReleaseSpecificResources != (ctparts_ReleaseSpecificResources_ptr)NULL);
 
   /// Sets default prototypes into function table for \link ctutil_CommonMain \endlink.
   ///

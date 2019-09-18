@@ -358,11 +358,12 @@ FirmwareRestoreContent.prototype.ShowSourceSelectionDependencies = function(sour
     {
       if(packageAvailable)
       {
+	// This is sent by "get_firmware_restore_packages"
         if( 'encryption_active_state' == packageName)
         {
             $(decryptionArea).show();
-            $(decryptionArea).find('input[id^=encryption_active_state]').prop('checked', 'checked');
-            $(decryptionArea).find('input[id^=encryption_active_state]').attr('disabled', true);
+            $(decryptionArea).find('input[id^=decryption_active_state]').prop('checked', 'checked');
+            $(decryptionArea).find('input[id^=decryption_active_state]').attr('disabled', true);
         }
         else
         {
@@ -393,19 +394,32 @@ FirmwareRestoreContent.prototype.ShowSourceSelectionDependencies = function(sour
 FirmwareRestoreContent.prototype.CheckUploadFileSelection = function(inputObj)
 {
   var firmwareRestoreContent  = this;
+  var decryptionArea = $('#' + firmwareRestoreContent.id + '_content #decryption_area');
 
   // filter package name from input field name
   var uploadPackage = $(inputObj).attr('name').replace('_source_file','');
   var filename      = $(inputObj).val();
-  
+  var msg = [];
+  var fname_match = DOWNLOAD_FILENAME_FRAGMENT['prefix'] + '.*' + DOWNLOAD_FILENAME_FRAGMENT[uploadPackage];
+
   $('#firmware_restore_package_list input[type=checkbox][name$=' + uploadPackage + ']').prop('checked', 'checked');
 
-  if(   !filename.match(DOWNLOAD_FILENAME_FRAGMENT)
-     || ((uploadPackage == 'codesys')   && !filename.match(CODESYS_FILENAME_FRAGMENT) )
-     || ((uploadPackage == 'settings')  && !filename.match(SETTINGS_FILENAME_FRAGMENT) )
-     || ((uploadPackage == 'system')    && !filename.match(SYSTEM_FILENAME_FRAGMENT) ) )
+  if (!RegExp(fname_match).test(filename))
   {
-    $('body').trigger('event_errorOccured', [ 'Filename does not fit to the naming conventions - please check considerate if selected file really includes package ' + uploadPackage ] );
+    msg.push('The "' + uploadPackage + '" restore file name should match the pattern: "' + fname_match + '".');
+  }
+  var enc_checked = $('input[name=decryption_active_state]').prop('checked');
+  var enc_file = /\.enc$/.test(filename);
+
+  console.log("enc_checked", enc_checked, "enc_file", enc_file, "fname_match", fname_match, RegExp(fname_match).test(filename));
+  if (enc_checked != enc_file) {
+    if (enc_file)
+      msg.push("The file name looks like an encrypted file, but decryption is not activated.");
+    else
+      msg.push("The file name looks like an unencrypted file, but decryption is activated.");
+  }
+  if (msg.length > 0) {
+    $('body').trigger('event_errorOccured', [ 'The file name does not match the expectations. Please check whether the correct file has been selected.', msg.join('\n') ]);
   }
 };
 
@@ -418,7 +432,7 @@ FirmwareRestoreContent.prototype.UploadBackupFiles = function(formObj)
   var firmwareRestoreContent  = this;
   var status                  = SUCCESS;
   var uploadDir               = $(formObj).find('input[name=upload_directory]').val();
-  var encState				  = $(formObj).find('input[name=encryption_active_state]:checked').length;
+  var encState				  = $(formObj).find('input[name=decryption_active_state]:checked').length;
   // check input error - no package selected (or not existing either)
   if(0 === $(formObj).find('input[id^=firmware_restore_package_checkbox]:checked').length)
   {
@@ -495,7 +509,7 @@ FirmwareRestoreContent.prototype.ActivateBackup = function(formObj)
   var packageSettings = $(formObj).find('input[name=package-settings]:checked').length;
   var packageSystem   = $(formObj).find('input[name=package-system]:checked').length;
   var uploadDir       = $(formObj).find('input[name=upload_directory]').val();
-  var encPassphrase   = $(formObj).find('input#encryption-passphrase').val();
+  var encPassphrase   = $(formObj).find('input#decryption-passphrase').val();
   // check input error - no package selected (or not existing either)
   if((0 === packageCodesys) && (0 === packageSettings) && ( 0 === packageSystem))
   {
@@ -543,7 +557,7 @@ FirmwareRestoreContent.prototype.ActivateBackup = function(formObj)
         else
         {
           pageElements.RemoveBusyScreen();
-          $(formObj).find('input#encryption-passphrase').val('');
+          $(formObj).find('input#decryption-passphrase').val('');
           // clear upload of single codesys package, if it was uploaded
           firmwareRestoreContent.upload && firmwareRestoreContent.upload.cleanup();
           delete firmwareRestoreContent.upload;
@@ -562,8 +576,8 @@ FirmwareRestoreContent.prototype.ActivateBackup = function(formObj)
 // check for right frontend configuration
 FirmwareRestoreContent.prototype.CheckFrontendDecryptionParas = function(decryptionArea)
 {
-	var encState        = $(decryptionArea).find('input[name=encryption_active_state]:checked').length;
-	var pass			= $(decryptionArea).find('input#encryption-passphrase').val();
+	var encState        = $(decryptionArea).find('input[name=decryption_active_state]:checked').length;
+	var pass			= $(decryptionArea).find('input#decryption-passphrase').val();
 	var errorTxt		= '';
 	
 	if(0 === encState && '' != pass)
@@ -581,7 +595,7 @@ FirmwareRestoreContent.prototype.CheckFrontendDecryptionParas = function(decrypt
 //check for right frontend configuration
 FirmwareRestoreContent.prototype.InitDecryptionArea = function(decryptionArea)
 {
-    $(decryptionArea).find('input[id^=encryption_active_state]').removeAttr('checked');
-    $(decryptionArea).find('input[id^=encryption_active_state]').removeAttr('disabled');
-    $(decryptionArea).find('input#encryption-passphrase').val('');
+    $(decryptionArea).find('input[id^=decryption_active_state]').removeAttr('checked');
+    $(decryptionArea).find('input[id^=decryption_active_state]').removeAttr('disabled');
+    $(decryptionArea).find('input#decryption-passphrase').val('');
 };

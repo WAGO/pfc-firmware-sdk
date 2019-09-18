@@ -1,7 +1,7 @@
 From 3625fb8577049c28922aaa3c03ea32d0042303b8 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 3 Aug 2018 12:44:36 +0200
-Subject: [PATCH 223/292] defconfig: enable intel xwax phy
+Subject: [PATCH] defconfig: enable intel xwax phy
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

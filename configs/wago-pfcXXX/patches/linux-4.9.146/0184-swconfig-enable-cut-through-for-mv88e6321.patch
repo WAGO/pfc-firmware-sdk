@@ -1,7 +1,7 @@
 From 2a2bf431f3e85f9ebb3a8adfd71988dd469efcd3 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 10 Jul 2018 17:06:44 +0200
-Subject: [PATCH 184/292] swconfig: enable cut through for mv88e6321
+Subject: [PATCH] swconfig: enable cut through for mv88e6321
 
 PROFINET needs cut through functionality. This patch
 enables cut through for ports 3 and 4 on mv88e6321

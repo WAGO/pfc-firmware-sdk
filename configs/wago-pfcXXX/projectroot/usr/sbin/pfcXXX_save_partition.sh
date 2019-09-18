@@ -93,7 +93,7 @@ trap - EXIT
 # Backup file may contain sensitive data.
 umask 137
 
-dest="${destinationDir}/${filename}.tgz$encExt"
+dest="${destinationDir}/${filename}.tgz$ENC_EXT"
 : > "$dest"
 chgrp www "$dest" 2>/dev/null ||:
 

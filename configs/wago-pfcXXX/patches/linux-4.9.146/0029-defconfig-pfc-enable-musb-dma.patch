@@ -1,7 +1,7 @@
 From 2f07ee03563eb0299fae2255a309dae9d22e49ac Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 7 Dec 2016 09:26:12 +0000
-Subject: [PATCH 029/292] defconfig: pfc: enable musb dma
+Subject: [PATCH] defconfig: pfc: enable musb dma
 
 ---
  arch/arm/configs/wago_pfc_generic_defconfig | 3 ++-

@@ -1,7 +1,7 @@
 From a27e20fdebca4435136283db6f209a38b504e49a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>
 Date: Wed, 2 May 2018 13:01:25 +0200
-Subject: [PATCH 195/292] xsk: add Rx queue setup and mmap support
+Subject: [PATCH] xsk: add Rx queue setup and mmap support
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

@@ -1,7 +1,7 @@
 From 0f5724ddce3ab0df6e7cb51eeb436cc8d4532309 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 14 May 2018 15:58:02 +0200
-Subject: [PATCH 168/292] net: swconfig: add ATU entries flush
+Subject: [PATCH] net: swconfig: add ATU entries flush
 
 For ProfiNet (e.t. MRP) is it necessary to flush ATU
 (Address Translation Unit) entries. It has to

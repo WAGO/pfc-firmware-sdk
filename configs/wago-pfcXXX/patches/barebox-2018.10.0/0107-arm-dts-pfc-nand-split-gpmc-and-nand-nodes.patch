@@ -1,7 +1,7 @@
 From ae5967cd43a64927a5af9e052466f08ce487ca3f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 12 Oct 2018 14:54:55 +0200
-Subject: [PATCH] arm: dts: pfc-nand: split gpmc and nand nodes
+Subject: [PATCH 107/144] arm: dts: pfc-nand: split gpmc and nand nodes
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1,8 +1,8 @@
 From b301df309431d815842d8b504cd4da138145ac8f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 8 Nov 2018 15:40:42 +0100
-Subject: [PATCH] defaultenv: defaultenv-pfc200: add script to set pyhs to
- default state
+Subject: [PATCH 146/146] defaultenv: defaultenv-pfc200: add script to set pyhs
+ to default state
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

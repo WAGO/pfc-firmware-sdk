@@ -29,6 +29,8 @@ $(DEP_FILES) : | $(GEN_DIRS)
 
 -include $(DEP_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(CLANG_TIDY_RULESET)),$(error CLANG_TIDY_RULESET has "$(CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(CLANG_TIDY_RULESET))"))
+
 libwagosnmp.so_LINT_SOURCES ?= $(filter-out $(libwagosnmp.so_NOLINT_SOURCES),$(libwagosnmp.so_SOURCES))
 OBJS_libwagosnmp.so := $(call objs,$(libwagosnmp.so_SOURCES),libwagosnmp.so/)
 DEPS_libwagosnmp.so := $(call deps,$(libwagosnmp.so_SOURCES),libwagosnmp.so/)
@@ -37,6 +39,8 @@ TIDYS_libwagosnmp.so := $(call tidys,$(libwagosnmp.so_LINT_SOURCES),libwagosnmp.
 $(TIDYS_libwagosnmp.so): $(libwagosnmp.so_PRECLANG_FILES)
 PLINTS_libwagosnmp.so := $(call plints,$(libwagosnmp.so_LINT_SOURCES),libwagosnmp.so/)
 $(PLINTS_libwagosnmp.so): $(libwagosnmp.so_PRECLANG_FILES)
+
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(libwagosnmp.so_CLANG_TIDY_RULESET)),$(error libwagosnmp.so_CLANG_TIDY_RULESET has "$(libwagosnmp.so_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(libwagosnmp.so_CLANG_TIDY_RULESET))"))
 
 libwagosnmp.so: $(BIN_DIR)/libwagosnmp.so
 
@@ -50,7 +54,7 @@ lint-libwagosnmp.so: flexelint-libwagosnmp.so clang-tidy-libwagosnmp.so
 
 $(LOBS_libwagosnmp.so): BUILDTARGET_LINTFLAGS:=$(libwagosnmp.so_LINTFLAGS)
 
-flexelint-libwagosnmp.so: $($(libwagosnmp.so_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_libwagosnmp.so)
+flexelint-libwagosnmp.so: $($(libwagosnmp.so_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(libwagosnmp.so_DISABLE_LINT)$(DISABLE_LINT)LOBS_libwagosnmp.so)
 
 $(TIDYS_libwagosnmp.so): BUILDTARGET_TIDYFLAGS:=$(libwagosnmp.so_TIDYFLAGS) -isystem $(OUT_DIR)/libwagosnmp.so -include lint_mac.h
 
@@ -60,7 +64,7 @@ $(TIDYS_libwagosnmp.so): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(l
 
 $(PLINTS_libwagosnmp.so): BUILDTARGET_PLINTFLAGS:=$(libwagosnmp.so_PLINTSFLAGS) -isystem $(OUT_DIR)/libwagosnmp.so -include lint_mac.h
 
-clang-tidy-libwagosnmp.so: $($(libwagosnmp.so_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_libwagosnmp.so)
+clang-tidy-libwagosnmp.so: $($(libwagosnmp.so_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(libwagosnmp.so_DISABLE_LINT)$(DISABLE_LINT)TIDYS_libwagosnmp.so)
 
 clean-clang-tidy-libwagosnmp.so:; $(SILENT)rm --force $(TIDYS_libwagosnmp.so)
 
@@ -91,6 +95,8 @@ $(TIDYS_alltests.elf): $(alltests.elf_PRECLANG_FILES)
 PLINTS_alltests.elf := $(call plints,$(alltests.elf_LINT_SOURCES),alltests.elf/)
 $(PLINTS_alltests.elf): $(alltests.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(alltests.elf_CLANG_TIDY_RULESET)),$(error alltests.elf_CLANG_TIDY_RULESET has "$(alltests.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(alltests.elf_CLANG_TIDY_RULESET))"))
+
 alltests.elf: $(BIN_DIR)/alltests.elf
 
 $(DEPS_alltests.elf) $(OBJS_alltests.elf) $(LOBS_alltests.elf) $(TIDYS_alltests.elf) $(PLINTS_alltests.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(alltests.elf_CPPFLAGS)
@@ -103,7 +109,7 @@ lint-alltests.elf: flexelint-alltests.elf clang-tidy-alltests.elf
 
 $(LOBS_alltests.elf): BUILDTARGET_LINTFLAGS:=$(alltests.elf_LINTFLAGS)
 
-flexelint-alltests.elf: $($(alltests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_alltests.elf)
+flexelint-alltests.elf: $($(alltests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(alltests.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_alltests.elf)
 
 $(TIDYS_alltests.elf): BUILDTARGET_TIDYFLAGS:=$(alltests.elf_TIDYFLAGS) -isystem $(OUT_DIR)/alltests.elf -include lint_mac.h
 
@@ -113,7 +119,7 @@ $(TIDYS_alltests.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(all
 
 $(PLINTS_alltests.elf): BUILDTARGET_PLINTFLAGS:=$(alltests.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/alltests.elf -include lint_mac.h
 
-clang-tidy-alltests.elf: $($(alltests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_alltests.elf)
+clang-tidy-alltests.elf: $($(alltests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(alltests.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_alltests.elf)
 
 clean-clang-tidy-alltests.elf:; $(SILENT)rm --force $(TIDYS_alltests.elf)
 

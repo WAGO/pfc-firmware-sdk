@@ -1,8 +1,8 @@
 From 8dc76cd30db9ecb60fcc14a00d294df02c3f26a9 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 9 Aug 2018 09:24:07 +0200
-Subject: [PATCH] arm: dts: am35xx: do uart3 pinmux statically and reorder
- serial aliases
+Subject: [PATCH 045/144] arm: dts: am35xx: do uart3 pinmux statically and
+ reorder serial aliases
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

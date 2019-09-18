@@ -1,7 +1,7 @@
 From 440f52e95613ee9fe82bfe1cffe7b9390c8c33c6 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Thu, 14 Jun 2018 11:10:12 +0200
-Subject: [PATCH 176/292] dsa: marvell: add defaul vlan for profinet ports
+Subject: [PATCH] dsa: marvell: add defaul vlan for profinet ports
 
 we don't want the profinet frames to egress from all switch ports
 when learning. so in addition to the port based vlan, we add

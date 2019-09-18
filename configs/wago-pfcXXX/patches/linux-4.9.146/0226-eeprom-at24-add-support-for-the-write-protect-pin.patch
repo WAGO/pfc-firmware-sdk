@@ -1,7 +1,7 @@
 From 68cc256bfdff4754badde1e8aa0142ace17ede07 Mon Sep 17 00:00:00 2001
 From: Bartosz Golaszewski <brgl@bgdev.pl>
 Date: Tue, 19 Dec 2017 11:28:54 +0100
-Subject: [PATCH 226/292] eeprom: at24: add support for the write-protect pin
+Subject: [PATCH] eeprom: at24: add support for the write-protect pin
 
 AT24 EEPROMs have a write-protect pin, which - when pulled high -
 inhibits writes to the upper quadrant of memory (although it has been

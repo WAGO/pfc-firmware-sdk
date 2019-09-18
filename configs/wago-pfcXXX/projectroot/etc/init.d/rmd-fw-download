@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# download firmware image into altera's cycl. IV fpga.
+
+fpga_image="@RMD_FW_DOWNLOAD_IMG@"
+psdev="/dev/psdev0"
+
+function download_fw
+{
+	if [ -f "$fpga_image" ] && [ -w "$psdev" ]; then
+
+		echo "FPGA: loading <$fpga_image> into fpga memory ..."
+		cat $fpga_image > $psdev
+
+		dmesg | grep -q -E "psdev.*is still"
+
+		status=$?
+		if [ $status -eq 1 ]; then
+			echo "FPGA: success."
+		else
+			echo "FPGA: failed!"
+			exit 1
+		fi
+	else
+		echo "FPGA: failed to load <$fpga_image> into fpga memory ..."
+		exit 1
+	fi
+}
+
+case $1 in
+	restart)
+		download_fw
+	;;
+
+	start)
+		download_fw
+	;;
+
+	*)
+		echo "Usage: $0 {start|restart}"
+		exit 1
+	;;
+esac
+
+exit 0

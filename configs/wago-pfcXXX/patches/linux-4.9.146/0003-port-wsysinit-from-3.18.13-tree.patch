@@ -1,7 +1,7 @@
 From 237cc611a109c0d4858ab3b0bb2742375d6d02df Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 17 Nov 2016 07:03:42 +0000
-Subject: [PATCH 003/292] port wsysinit from 3.18.13 tree
+Subject: [PATCH] port wsysinit from 3.18.13 tree
 
 ---
  arch/arm/mach-omap2/Kconfig               |   5 +

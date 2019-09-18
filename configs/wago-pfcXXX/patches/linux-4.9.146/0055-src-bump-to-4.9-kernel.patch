@@ -1,7 +1,7 @@
 From cb36d84c7e78b335103065d054a5a4beecad0716 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Thu, 13 Apr 2017 09:25:33 +0200
-Subject: [PATCH 055/292] src: bump to 4.9 kernel
+Subject: [PATCH] src: bump to 4.9 kernel
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

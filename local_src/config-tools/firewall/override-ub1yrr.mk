@@ -1,1 +1,0 @@
-unexport QEMU_GUEST_BASE

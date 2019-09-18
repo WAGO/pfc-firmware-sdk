@@ -1,7 +1,7 @@
 From a6567a4187dcf5006baf206246558f51f96b7e03 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Wed, 21 Jun 2017 15:19:51 +0200
-Subject: [PATCH 082/292] src: dts: enable dsa.
+Subject: [PATCH] src: dts: enable dsa.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

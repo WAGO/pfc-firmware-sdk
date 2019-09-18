@@ -1,7 +1,7 @@
 From 246d3773017a2fb8ced14a1d4a5edb403de124cd Mon Sep 17 00:00:00 2001
 From: Axel Wueste <axel.wueste@wago.com>
 Date: Mon, 19 Feb 2018 10:16:11 +0100
-Subject: [PATCH 152/292] dts: pfc200v2: netx: change interrupt mode
+Subject: [PATCH] dts: pfc200v2: netx: change interrupt mode
 
 Signed-off-by: Peter Galka <peter.galka@wago.com>
 ---

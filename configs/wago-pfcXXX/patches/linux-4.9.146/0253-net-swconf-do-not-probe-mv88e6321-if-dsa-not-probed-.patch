@@ -1,7 +1,7 @@
 From 58a1bbe0b0b6652bc62442a8a2536f5f06fd16ae Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <Andreas.Schmidt@wago.com>
 Date: Thu, 18 Oct 2018 08:49:35 +0000
-Subject: [PATCH 253/292] net: swconf: do not probe mv88e6321 if dsa not probed
+Subject: [PATCH] net: swconf: do not probe mv88e6321 if dsa not probed
  successful
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>

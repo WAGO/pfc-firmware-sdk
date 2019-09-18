@@ -1,7 +1,7 @@
 From a593ce812c2ae6480147514fff78729ca18f1e5d Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 4 Jul 2018 15:42:43 +0200
-Subject: [PATCH 209/292] xdp/pn: rename XDP to PN
+Subject: [PATCH] xdp/pn: rename XDP to PN
 
 Rename all xdp to pn and xsk to pnsk. Also rename
 local xs variables to ps.

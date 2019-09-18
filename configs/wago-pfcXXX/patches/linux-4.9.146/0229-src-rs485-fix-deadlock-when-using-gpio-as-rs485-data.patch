@@ -1,8 +1,7 @@
 From d04e5f8152b8fc09959bb13dfbc9b50431701718 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Tue, 14 Aug 2018 16:01:24 +0200
-Subject: [PATCH 229/292] src: rs485: fix deadlock when using gpio as rs485
- data enable
+Subject: [PATCH] src: rs485: fix deadlock when using gpio as rs485 data enable
 
 Rs485 driver uses deprecated gpio interface to handle data enable pin. The
 deprecated gpio interface is mapped to new descriptor based interface.

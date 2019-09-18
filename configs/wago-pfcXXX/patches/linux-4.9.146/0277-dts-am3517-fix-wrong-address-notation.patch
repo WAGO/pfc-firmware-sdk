@@ -1,7 +1,7 @@
 From 53f05896081bff95d1fe29a575a0d67fd207f747 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 28 Nov 2018 09:52:15 +0000
-Subject: [PATCH 277/292] dts: am3517: fix wrong address notation
+Subject: [PATCH] dts: am3517: fix wrong address notation
 
 The address notation within the nodepath string is not following
 the convention as it is generally used. This naming is important

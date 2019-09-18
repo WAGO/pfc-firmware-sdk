@@ -1,7 +1,7 @@
 From 453cbb2c30e85615c42eda4389fd5af8748b667c Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Heinrich=20T=C3=B6ws?= <heinrich.toews@wago.com>
 Date: Tue, 3 Mar 2015 11:20:36 +0000
-Subject: [PATCH 026/292] am35x-musb: add oftree support through pdata quirks
+Subject: [PATCH] am35x-musb: add oftree support through pdata quirks
 
 ---
  arch/arm/mach-omap2/pdata-quirks.c | 55 ++++++++++++++++++++++++++++++++++++++

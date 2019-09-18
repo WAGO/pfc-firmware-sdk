@@ -1,7 +1,7 @@
 From 462bccd989b83e8f909e5904546d853bdd8e5489 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 8 Dec 2016 12:53:41 +0000
-Subject: [PATCH 031/292] scripts: extract kernel version from kernel binary
+Subject: [PATCH] scripts: extract kernel version from kernel binary
 
 ---
  scripts/extract-kernelversion | 63 +++++++++++++++++++++++++++++++++++++++++++

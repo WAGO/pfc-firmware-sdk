@@ -1,7 +1,7 @@
 From 3ae047980c0039f8641665c9bb3e25daf0549982 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Heinrich=20T=C3=B6ws?= <heinrich.toews@wago.com>
 Date: Thu, 12 Feb 2015 16:52:21 +0000
-Subject: [PATCH 012/292] omap3: pfc200: skip pm init to get the device booted
+Subject: [PATCH] omap3: pfc200: skip pm init to get the device booted
 
 ---
  arch/arm/mach-omap2/io.c | 4 +++-

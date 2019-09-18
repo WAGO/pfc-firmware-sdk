@@ -1,7 +1,7 @@
 From 723015bcaa74a27dcfc202e0010f473a4d815e7d Mon Sep 17 00:00:00 2001
 From: Marc Oestermann <marc.oestermann@wago.com>
 Date: Fri, 10 Aug 2018 10:32:37 +0000
-Subject: [PATCH 225/292] dts: 750-8215: Rename led from pn to bf
+Subject: [PATCH] dts: 750-8215: Rename led from pn to bf
 
 Signed-off-by: Marc Oestermann <marc.oestermann@wago.com>
 ---

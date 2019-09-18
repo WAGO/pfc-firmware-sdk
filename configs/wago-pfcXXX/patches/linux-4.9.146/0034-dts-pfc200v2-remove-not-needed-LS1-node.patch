@@ -1,7 +1,7 @@
 From 477ab6736f4c65df806fa626ec895a7d625468ac Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 23 Jan 2017 08:50:27 +0000
-Subject: [PATCH 034/292] dts: pfc200v2: remove not needed LS1 node
+Subject: [PATCH] dts: pfc200v2: remove not needed LS1 node
 
         LS1 is enable by HW and has a fixed current limitation to 350 mA.
 ---

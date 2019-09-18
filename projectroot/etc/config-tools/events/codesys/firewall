@@ -10,8 +10,8 @@
 # Firewall: codesys and codesys3 demons events handler
 #
 
-enabled=`/etc/config-tools/firewall firewall --is-enabled`
-[ "enabled" != "$enabled" ] && exit 0
+enabled=$(/etc/config-tools/firewall firewall --is-enabled)
+[[ "enabled" != $enabled ]] && exit 0
 
 
 switch_versions()
@@ -44,36 +44,43 @@ switch_versions()
 
 start()
 {
-    local running=`/etc/config-tools/get_plc_config`
+    local running=$(/etc/config-tools/get_plc_config)
     local actionr="down"
     local actionw="down"
+    local action_opcua="down"
 
     switch_versions $running
 
-    if [ "2" == "$running" ] ; then
+    if [[ "2" == $running ]] ; then
 
-        local stater=`/etc/config-tools/get_rts3scfg_value PLC DisableTcpIpProgramming`
-        [ "NO" == "$stater" ] && actionr="up"
+        local stater=$(/etc/config-tools/get_rts3scfg_value PLC DisableTcpIpProgramming)
+        [[ "NO" == $stater ]] && actionr="up"
 
-        local statew=`/etc/config-tools/get_port_state codesys-webserver`
-        [ "enabled" == "$statew" ] && actionw="up"
+        local statew=$(/etc/config-tools/get_port_state codesys-webserver)
+        [[ "enabled" == $statew ]] && actionw="up"
 
-    elif [ "3" == "$running" ] ; then
+    elif [[ "3" == $running ]] ; then
 
         actionr="up"
-        local statew=`/etc/config-tools/get_port_state codesys3-webserver`
-        [ "enabled" == "$statew" ] && actionw="up"
-
+        local statew=$(/etc/config-tools/get_port_state codesys3-webserver)
+        [[ "enabled" == $statew ]] && actionw="up"
+        
+        action_opcua="up"
+        local state_opcua=$(/etc/config-tools/config_opcua state)  
+        [[ "enabled" == $state_opcua ]] && action_opcua="up"
     fi
 
     /etc/config-tools/firewall codesysr --apply ${actionr} >/dev/null 2>&1
     /etc/config-tools/firewall codesysw --apply ${actionw} >/dev/null 2>&1
+    /etc/config-tools/firewall opcua --apply ${action_opcua} >/dev/null 2>&1
 }
+ 
 
 stop()
 {
     /etc/config-tools/firewall codesysr --apply down >/dev/null 2>&1
     /etc/config-tools/firewall codesysw --apply down >/dev/null 2>&1
+    /etc/config-tools/firewall opcua --apply down >/dev/null 2>&1
 }
 
 case "$1" in

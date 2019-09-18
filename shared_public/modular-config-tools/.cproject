@@ -67,6 +67,7 @@
 		<buildTargets>
 			<target name="check" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
+				<buildArguments/>
 				<buildTarget>check</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -74,6 +75,7 @@
 			</target>
 			<target name="clean" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
+				<buildArguments/>
 				<buildTarget>clean</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -81,6 +83,7 @@
 			</target>
 			<target name="all" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
+				<buildArguments/>
 				<buildTarget>all</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -88,45 +91,13 @@
 			</target>
 			<target name="doc" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>doc</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="memcheck" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildTarget>memcheck</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="helgrind" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildTarget>helgrind</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="helgrind-libconfigtoolutils_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
-				<buildTarget>helgrind-libconfigtoolutils_tests.elf</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="memcheck-libconfigtoolutils_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
-				<buildTarget>memcheck-libconfigtoolutils_tests.elf</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
 			<target name="lint" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>lint</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -134,7 +105,6 @@
 			</target>
 			<target name="check-config_linux_user_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>check-config_linux_user_tests.elf</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -142,7 +112,6 @@
 			</target>
 			<target name="check-libconfigtoolutils_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>check-libconfigtoolutils_tests.elf</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -150,7 +119,6 @@
 			</target>
 			<target name="check-reserved_area_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>check-reserved_area_tests.elf</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -158,7 +126,6 @@
 			</target>
 			<target name="lint-config_linux_user.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>lint-config_linux_user.elf</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -166,7 +133,6 @@
 			</target>
 			<target name="lint-reserved_area.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>lint-reserved_area.elf</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
@@ -174,40 +140,7 @@
 			</target>
 			<target name="lint-libconfigtoolutils_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>lint-libconfigtoolutils_tests.elf</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="memcheck-reserved_area_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
-				<buildTarget>memcheck-reserved_area_tests.elf</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="helgrind-reserved_area_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
-				<buildTarget>helgrind-reserved_area_tests.elf</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="helgrind-config_linux_user_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
-				<buildTarget>helgrind-config_linux_user_tests.elf</buildTarget>
-				<stopOnError>true</stopOnError>
-				<useDefaultCommand>true</useDefaultCommand>
-				<runAllBuilders>true</runAllBuilders>
-			</target>
-			<target name="memcheck-config_linux_user_tests.elf" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
-				<buildTarget>memcheck-config_linux_user_tests.elf</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
@@ -221,7 +154,6 @@
 			</target>
 			<target name="clean-lint" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>${ProjDirPath}/make-wrapper</buildCommand>
-				<buildArguments/>
 				<buildTarget>clean-lint</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>

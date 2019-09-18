@@ -1,7 +1,7 @@
 From 191c707d69833ad7082abc942f2934e2d4405462 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Thu, 17 May 2018 18:15:12 +0200
-Subject: [PATCH 230/292] arm: disable most usage of ldrex/strex
+Subject: [PATCH] arm: disable most usage of ldrex/strex
 
 It appears to be broken on AM3517. The only remaining one is in
 swp_handlder and kuser_cmpxchg helper.

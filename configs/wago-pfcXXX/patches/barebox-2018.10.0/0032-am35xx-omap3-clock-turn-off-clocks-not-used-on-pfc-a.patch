@@ -1,8 +1,8 @@
 From af664a318b9a9a1d89179554e7ea55d2fd0709a6 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 18 Jun 2018 13:50:31 +0200
-Subject: [PATCH] am35xx: omap3-clock: turn off clocks not used on pfc-am3505
- platform
+Subject: [PATCH 032/144] am35xx: omap3-clock: turn off clocks not used on
+ pfc-am3505 platform
 
 We need to disable iva and fusb clock because of the following reasons:
 

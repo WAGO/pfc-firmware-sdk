@@ -37,8 +37,10 @@
 #include "communication_API.h"
 #include "communication_internal.h"
 
+#define TEMP_DIR      "/tmp/"
+#define ID_TEMPLATE   "_XXXXXX"
 #define WORKER_PREFIX "wdbw_"
-#define WORKER_NAME_LEN(name) (strlen(WORKER_PREFIX)+strlen(name)+strlen("_XXXXXX")+1)
+#define WORKER_NAME_LEN(name) (strlen(WORKER_PREFIX)+strlen(name)+strlen(ID_TEMPLATE)+1)
 
 
 struct stDbusWorker{
@@ -654,9 +656,17 @@ tDbusWorker * com_SERV_CreateNewWorker(unsigned char priority,char * name)
 	newWorker = malloc(sizeof(struct stDbusWorker));
 	newWorker->priority = priority;
 	//newWorker->name = strdup(name);
-	newWorker->name = malloc(WORKER_NAME_LEN(name));
-    sprintf(newWorker->name,"%s%s_XXXXXX",WORKER_PREFIX,name);
-    mkstemp(newWorker->name);
+  newWorker->name = malloc(WORKER_NAME_LEN(name));
+  sprintf(newWorker->name,"%s%s" ID_TEMPLATE,WORKER_PREFIX,name);
+  //create temporary file for unique worker ID
+  char* tmpFileName = malloc(strlen(TEMP_DIR) + strlen(newWorker->name) + 1);
+  sprintf(tmpFileName, "%s%s", TEMP_DIR, newWorker->name);
+  mkstemp(tmpFileName);
+  //copy unique worker name back to newWorker control structure
+  memcpy(newWorker->name,
+         tmpFileName + strlen(TEMP_DIR),
+         strlen(newWorker->name));
+  free(tmpFileName);
 
 	SERV_OpenQueue(newWorker, newWorker->name, sizeof(tWorkerMsgQ), 10);
 

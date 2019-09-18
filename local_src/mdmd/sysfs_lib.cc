@@ -28,7 +28,7 @@ int SYSFS_Access::sysfs_write(const char *file, const char *value) const
 	}
 	else {
 	  const size_t length = strlen(value);
-	  const int written = write(fd, (void *)value, length);
+	  const int written = write(fd, (const void *)value, length);
 	  if ((written < 0) || ((size_t(written) != length))) {
 	    result = -1;
 	  }
@@ -64,7 +64,7 @@ int SYSFS_Access::sysfs_read(const char *file, char *buf, size_t nbyte) const
 int GPIO_Control::gpio_export() const
 {
   int result = 0;
-	char *gpiostr = NULL;
+	char *gpiostr = nullptr;
 	if (asprintf(&gpiostr, "%d", _gpio) == -1) {
 	  result = -1;
 	}
@@ -78,7 +78,7 @@ int GPIO_Control::gpio_export() const
 int GPIO_Control::gpio_unexport() const
 {
   int result = 0;
-  char *gpiostr = NULL;
+  char *gpiostr = nullptr;
   if (asprintf(&gpiostr, "%d", _gpio) == -1) {
     result = -1;
   }
@@ -92,7 +92,7 @@ int GPIO_Control::gpio_unexport() const
 int GPIO_Control::gpio_set_direction(const char * direction) const
 {
   int result = 0;
-  char *filepath = NULL;
+  char *filepath = nullptr;
   if (asprintf(&filepath, SYSFS_GPIO_PATH"/gpio%d/direction", _gpio) == -1) {
     result = -1;
   }
@@ -116,7 +116,7 @@ int GPIO_Control::gpio_set_direction_out() const
 int GPIO_Control::gpio_write_value(int value) const
 {
   int result = 0;
-  char *filepath = NULL;
+  char *filepath = nullptr;
   if (asprintf(&filepath, SYSFS_GPIO_PATH"/gpio%d/value", _gpio) == -1) {
     result = -1;
   }
@@ -130,7 +130,7 @@ int GPIO_Control::gpio_write_value(int value) const
 int GPIO_Control::gpio_read_value(int &value) const
 {
   int result = 0;
-  char *filepath = NULL;
+  char *filepath = nullptr;
   if (asprintf(&filepath, SYSFS_GPIO_PATH"/gpio%d/value", _gpio) == -1) {
     result = -1;
   }
@@ -152,7 +152,7 @@ int GPIO_Control::gpio_read_value(int &value) const
 int MUSB_Control::musb_bind() const
 {
   int result = 0;
-  char *portstr = NULL;
+  char *portstr = nullptr;
   if (asprintf(&portstr, "musb-hdrc.%d.auto", _port) == -1) {
     result = -1;
   }
@@ -166,7 +166,7 @@ int MUSB_Control::musb_bind() const
 int MUSB_Control::musb_unbind() const
 {
   int result = 0;
-  char *portstr = NULL;
+  char *portstr = nullptr;
   if (asprintf(&portstr, "musb-hdrc.%d.auto", _port) == -1) {
     result = -1;
   }

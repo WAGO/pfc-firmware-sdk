@@ -1,7 +1,7 @@
 From 152ff3adfc4a9afbedf6ffbe8400716037903587 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Thu, 24 May 2018 15:12:00 +0200
-Subject: [PATCH 203/292] net: add page pool implementation from net-next
+Subject: [PATCH] net: add page pool implementation from net-next
 
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 ---

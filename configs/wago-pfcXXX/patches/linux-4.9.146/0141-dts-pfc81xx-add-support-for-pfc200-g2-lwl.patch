@@ -1,7 +1,7 @@
 From 216981899a2b646a73596d67c08808c38ac1563b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 19 Jan 2018 13:53:14 +0100
-Subject: [PATCH 141/292] dts: pfc81xx: add support for pfc200-g2-lwl
+Subject: [PATCH] dts: pfc81xx: add support for pfc200-g2-lwl
 
 ---
  arch/arm/boot/dts/Makefile                       |   1 +

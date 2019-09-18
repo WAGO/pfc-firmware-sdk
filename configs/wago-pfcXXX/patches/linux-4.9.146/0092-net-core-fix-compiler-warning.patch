@@ -1,7 +1,7 @@
 From d262ec40763d386b9ca84dac83fa3bef4d316cd1 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 14 Aug 2017 14:47:12 +0200
-Subject: [PATCH 092/292] net: core: fix compiler warning
+Subject: [PATCH] net: core: fix compiler warning
 
 ---
  net/core/dev.c | 2 +-

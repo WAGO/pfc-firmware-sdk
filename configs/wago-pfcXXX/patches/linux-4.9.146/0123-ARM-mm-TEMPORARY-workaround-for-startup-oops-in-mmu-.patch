@@ -1,8 +1,7 @@
 From 404bbbc8097d8fa5a497292dba3478d2965e165a Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Fri, 10 Nov 2017 09:18:15 +0000
-Subject: [PATCH 123/292] ARM: mm: TEMPORARY workaround for startup oops in mmu
- init
+Subject: [PATCH] ARM: mm: TEMPORARY workaround for startup oops in mmu init
 
 	this is only a temporary workaround. remove this commit
 	if the root cause is determined and properly fixed.

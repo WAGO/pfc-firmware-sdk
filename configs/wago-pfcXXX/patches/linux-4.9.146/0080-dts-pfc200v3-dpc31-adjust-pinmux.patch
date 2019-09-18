@@ -1,7 +1,7 @@
 From 707a1a5e8cc3e2f3ea4db87d1e2700a64b428dd8 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Fri, 14 Jul 2017 11:18:01 +0000
-Subject: [PATCH 080/292] dts: pfc200v3: dpc31: adjust pinmux
+Subject: [PATCH] dts: pfc200v3: dpc31: adjust pinmux
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi | 14 ++++++--------

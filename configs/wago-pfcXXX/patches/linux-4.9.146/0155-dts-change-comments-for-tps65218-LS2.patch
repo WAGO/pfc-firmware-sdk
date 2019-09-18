@@ -1,7 +1,7 @@
 From 95c034183c45967accf6b9aabc3e6fea21f55863 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 26 Feb 2018 13:17:09 +0100
-Subject: [PATCH 155/292] dts: change comments for tps65218 LS2
+Subject: [PATCH] dts: change comments for tps65218 LS2
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -128,6 +128,7 @@ $(STATEDIR)/libbacnetstack.targetinstall:
 	@$(call install_fixup, libbacnetstack,AUTHOR,"Andreas Hiebert <andreas.hiebert@wago.com>")
 	@$(call install_fixup, libbacnetstack,DESCRIPTION,"BACnet stack for the PFC controller" )
 
+	@$(call install_copy, libbacnetstack, ${PTXCONF_ROOTFS_PASSWD_USER_UID}, ${PTXCONF_ROOTFS_PASSWD_USER_GID}, 0744, /home/user)
 	@$(call install_copy, libbacnetstack, 0, 0, 0755, /home/user/bacnet)
 
 	@$(call install_finish, libbacnetstack)

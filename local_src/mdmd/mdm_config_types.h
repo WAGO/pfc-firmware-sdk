@@ -24,8 +24,6 @@ public:
           _pass(std::move(pass))
     {}
 
-    ~GprsAccessConfig() = default;
-
     int         get_state() const noexcept { return _state; }
     std::string get_apn()   const noexcept { return _apn; }
     int         get_auth()  const noexcept { return _auth; }
@@ -60,8 +58,6 @@ public:
           _bfr(bfr)
     {}
 
-    ~SmsEventReportingConfig() = default;
-
     int get_mode() const noexcept { return _mode; }
     int get_mt()   const noexcept { return _mt; }
     int get_bm()   const noexcept { return _bm; }
@@ -92,8 +88,6 @@ public:
           _mem3(std::move(mem3))
     {}
 
-    ~SmsStorageConfig() = default;
-
     std::string get_mem1() const noexcept { return _mem1; }
     std::string get_mem2() const noexcept { return _mem2; }
     std::string get_mem3() const noexcept { return _mem3; }
@@ -118,8 +112,6 @@ public:
           _act(act)
     {}
 
-    ~NetworkAccessConfig() = default;
-
     int get_mode() const noexcept { return _mode; }
     int get_oper() const noexcept { return _oper; }
     int get_act()  const noexcept { return _act; }
@@ -142,8 +134,6 @@ public:
           _pin(std::move(pin))
     {}
 
-    ~UserIdentityConfig() = default;
-
     std::string get_iccid() const noexcept { return _iccid; }
     std::string get_pin()   const noexcept { return _pin; }
 
@@ -162,8 +152,6 @@ public:
         : _log_level(log_level),
           _port_state(port_state)
     {}
-
-    ~ModemManagementConfig() = default;
 
     int get_log_level()  const noexcept { return _log_level; }
     int get_port_state() const noexcept { return _port_state; }

@@ -1,7 +1,7 @@
 From 57b0a1150e3a6b886093a9c03b5f2dc0598b685f Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 26 Feb 2018 13:31:44 +0100
-Subject: [PATCH 157/292] dts: adapt mv88e6321 settings
+Subject: [PATCH] dts: adapt mv88e6321 settings
 
 * change switch mdio address to 0 (single chip)
 * set phy address 0 for phy on port0

@@ -3,31 +3,34 @@
             failures="0"
             disabled="0"
             errors="0"
-            timestamp="2019-07-06T15:08:35"
-            time="0.052"
+            timestamp="2019-08-22T21:58:35"
+            time="0.054"
             name="AllTests">
    <testsuite name="libwagosnmp.Tlv"
               tests="5"
               failures="0"
               disabled="0"
               errors="0"
-              time="0.047">
+              time="0.049">
       <testcase name="success"
+                status="run"
+                time="0.002"
+                classname="libwagosnmp.Tlv"/>
+      <testcase name="callSo"
                 status="run"
                 time="0.001"
                 classname="libwagosnmp.Tlv"/>
-      <testcase name="callSo" status="run" time="0" classname="libwagosnmp.Tlv"/>
       <testcase name="CallSoWithParameter"
                 status="run"
                 time="0"
                 classname="libwagosnmp.Tlv"/>
       <testcase name="Uninitialized_DeathTest"
                 status="run"
-                time="0.044"
+                time="0.045"
                 classname="libwagosnmp.Tlv"/>
       <testcase name="Conversion"
                 status="run"
-                time="0"
+                time="0.001"
                 classname="libwagosnmp.Tlv"/>
    </testsuite>
 </testsuites>

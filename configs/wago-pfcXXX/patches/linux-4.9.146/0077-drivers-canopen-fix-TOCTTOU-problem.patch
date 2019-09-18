@@ -1,7 +1,7 @@
 From 0b7c1dd46ae0a052a40d84f84042ddfc6116030a Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Thu, 22 Jun 2017 10:18:02 +0200
-Subject: [PATCH 077/292] drivers: canopen: fix TOCTTOU problem
+Subject: [PATCH] drivers: canopen: fix TOCTTOU problem
 
 ---
  drivers/net/can/ti_hecc.c | 13 ++++++++-----

@@ -1,8 +1,7 @@
 From 3e1158313a4a01fc51670baacca82373fb1d54fa Mon Sep 17 00:00:00 2001
 From: Schwalowsky <u014487@LC76855.wago.local>
 Date: Mon, 3 Sep 2018 16:51:46 +0200
-Subject: [PATCH 237/292] net: cpsw: prevent drop of clrpc packets in receive
- path
+Subject: [PATCH] net: cpsw: prevent drop of clrpc packets in receive path
 
 In order to pass the PROFINET netload test clrpc packets
 must not be dropped under load conditions.

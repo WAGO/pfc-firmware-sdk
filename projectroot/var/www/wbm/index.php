@@ -188,7 +188,7 @@ if (!Array.prototype.indexOf) {
 <script type='text/javascript' src="js/tls.js"></script>
 <script type='text/javascript' src="js/integrity.js"></script>
 <script type='text/javascript' src="js/opcua.js"></script>
-<script type='text/javascript' src="js/cloud_connectivity.js?20190325"></script>
+<script type='text/javascript' src="js/cloud_connectivity.js?20190806"></script>
 <script type='text/javascript' src="js/routing.js"></script>
 <script type='text/javascript' src="js/bacnet_diagnostic.js"></script>
 <script type='text/javascript' src="js/bacnet_general_configuration.js"></script>

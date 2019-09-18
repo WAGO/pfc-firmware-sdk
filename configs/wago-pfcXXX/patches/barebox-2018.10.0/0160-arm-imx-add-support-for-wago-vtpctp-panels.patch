@@ -1,0 +1,1220 @@
+From 0b03539b67a663a7613b9168ea9272b0a426bc6e Mon Sep 17 00:00:00 2001
+From: Ralf Gliese <ralf.gliese@wago.com>
+Date: Thu, 17 Jan 2019 10:53:08 +0000
+Subject: [PATCH 160/160] arm: imx: add support for wago vtpctp panels
+
+Signed-off-by: Ralf Gliese <ralf.gliese@wago.com>
+---
+ arch/arm/boards/Makefile                           |   1 +
+ .../wago-vtpctp-imx6/1066mhz_4x128mx16.imxcfg      |  42 +++
+ .../wago-vtpctp-imx6/1066mhz_4x256mx16.imxcfg      |  45 +++
+ arch/arm/boards/wago-vtpctp-imx6/Makefile          |   3 +
+ arch/arm/boards/wago-vtpctp-imx6/board.c           | 262 +++++++++++++++
+ arch/arm/boards/wago-vtpctp-imx6/clocks.imxcfg     |  10 +
+ .../bin/pfc-config-production-boot                 |  17 +
+ .../init/aa-vtpctp-setup-board-env                 |  16 +
+ .../wago-vtpctp-imx6/flash-header-vtpctp_q.imxcfg  |  10 +
+ arch/arm/boards/wago-vtpctp-imx6/lowlevel.c        |  41 +++
+ arch/arm/boards/wago-vtpctp-imx6/ram-base.imxcfg   |  67 ++++
+ arch/arm/configs/imx6_vtpctp_defconfig             | 153 +++++++++
+ arch/arm/dts/Makefile                              |   1 +
+ arch/arm/dts/imx6q-vtpctp-762-4xxx.dts             | 358 +++++++++++++++++++++
+ arch/arm/mach-imx/Kconfig                          |   6 +
+ arch/arm/tools/mach-types                          |   1 +
+ .../defaultenv-pfc-base/init/a-pfc-switch-reset    |   3 +
+ images/Makefile.imx                                |   5 +
+ 18 files changed, 1041 insertions(+)
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x128mx16.imxcfg
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x256mx16.imxcfg
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/Makefile
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/board.c
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/clocks.imxcfg
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/bin/pfc-config-production-boot
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/init/aa-vtpctp-setup-board-env
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/flash-header-vtpctp_q.imxcfg
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/lowlevel.c
+ create mode 100644 arch/arm/boards/wago-vtpctp-imx6/ram-base.imxcfg
+ create mode 100644 arch/arm/configs/imx6_vtpctp_defconfig
+ create mode 100644 arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
+
+diff --git a/arch/arm/boards/Makefile b/arch/arm/boards/Makefile
+index 895191d..b8670e4 100644
+--- a/arch/arm/boards/Makefile
++++ b/arch/arm/boards/Makefile
+@@ -156,3 +156,4 @@ obj-$(CONFIG_MACH_ZII_RDU2)			+= zii-imx6q-rdu2/
+ obj-$(CONFIG_MACH_ZII_VF610_DEV)		+= zii-vf610-dev/
+ obj-$(CONFIG_MACH_WAGO_PFC_AM335X)		+= wago-pfc-am335x/
+ obj-$(CONFIG_MACH_WAGO_PFC_AM35XX)		+= wago-pfc-am35xx/
++obj-$(CONFIG_MACH_WAGO_VTPCTP_MX6)		+= wago-vtpctp-imx6/
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x128mx16.imxcfg b/arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x128mx16.imxcfg
+new file mode 100644
+index 0000000..fd0d0e2
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x128mx16.imxcfg
+@@ -0,0 +1,42 @@
++wm 32 MX6_MMDC_P0_MDPDC			0x00020036
++wm 32 MX6_MMDC_P0_MDSCR			0x00008000
++wm 32 MX6_MMDC_P0_MDCFG0		0x54597955
++wm 32 MX6_MMDC_P0_MDCFG1		0xFF328F64
++wm 32 MX6_MMDC_P0_MDCFG2		0x01FF00DB
++wm 32 MX6_MMDC_P0_MDRWD			0x000026D2
++wm 32 MX6_MMDC_P0_MDOR			0x00591023
++wm 32 MX6_MMDC_P0_MDOTC			0x09444040
++wm 32 MX6_MMDC_P0_MDPDC			0x00025576
++wm 32 MX6_MMDC_P0_MDASP			0x00000027
++wm 32 MX6_MMDC_P0_MDCTL			0x831A0000
++wm 32 MX6_MMDC_P0_MDSCR			0x02088032
++wm 32 MX6_MMDC_P0_MDSCR			0x00008033
++wm 32 MX6_MMDC_P0_MDSCR			0x00048031
++wm 32 MX6_MMDC_P0_MDSCR			0x19408030
++wm 32 MX6_MMDC_P0_MDSCR			0x04008040
++wm 32 MX6_MMDC_P0_MPZQHWCTRL	0xA1390003
++wm 32 MX6_MMDC_P1_MPZQHWCTRL	0xA1390003
++wm 32 MX6_MMDC_P0_MDREF			0x00007800
++wm 32 MX6_MMDC_P0_MPODTCTRL		0x00022227
++wm 32 MX6_MMDC_P1_MPODTCTRL		0x00022227
++
++wm 32 MX6_MMDC_P0_MPDGCTRL0		0x0338034C
++wm 32 MX6_MMDC_P0_MPDGCTRL1		0x03340334
++wm 32 MX6_MMDC_P1_MPDGCTRL0		0x03400350
++wm 32 MX6_MMDC_P1_MPDGCTRL1		0x03340304
++
++wm 32 MX6_MMDC_P0_MPRDDLCTL		0x4A383C42
++wm 32 MX6_MMDC_P1_MPRDDLCTL		0x3C3E3A46
++
++wm 32 MX6_MMDC_P0_MPWRDLCTL		0x3A3C4040
++wm 32 MX6_MMDC_P1_MPWRDLCTL		0x48384840
++
++wm 32 MX6_MMDC_P0_MPWLDECTRL0	0x00220022
++wm 32 MX6_MMDC_P0_MPWLDECTRL1	0x002F0024
++wm 32 MX6_MMDC_P1_MPWLDECTRL0	0x001B002B
++wm 32 MX6_MMDC_P1_MPWLDECTRL1	0x00110026
++
++wm 32 MX6_MMDC_P0_MPMUR0		0x00000800
++wm 32 MX6_MMDC_P1_MPMUR0		0x00000800
++wm 32 MX6_MMDC_P0_MDSCR			0x00000000
++wm 32 MX6_MMDC_P0_MAPSR			0x00011006
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x256mx16.imxcfg b/arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x256mx16.imxcfg
+new file mode 100644
+index 0000000..e095b796
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/1066mhz_4x256mx16.imxcfg
+@@ -0,0 +1,45 @@
++wm 32 MX6_MMDC_P0_MDPDC			0x00020036
++wm 32 MX6_MMDC_P0_MDOTC			0x09444040
++wm 32 MX6_MMDC_P0_MDCFG0		0x898E7955
++wm 32 MX6_MMDC_P0_MDCFG1		0xFF328F64
++wm 32 MX6_MMDC_P0_MDCFG2		0x01FF00DB
++wm 32 MX6_MMDC_P0_MDMISC		0x00011740
++wm 32 MX6_MMDC_P0_MDSCR			0x00008000
++wm 32 MX6_MMDC_P0_MDRWD			0x000026D2
++wm 32 MX6_MMDC_P0_MDOR			0x008E1023
++wm 32 MX6_MMDC_P0_MDASP			0x00000047
++wm 32 MX6_MMDC_P0_MDCTL			0x841A0000 // row/column address width
++
++//Mode register writes we use only CS0
++wm 32 MX6_MMDC_P0_MDSCR			0x02088032
++wm 32 MX6_MMDC_P0_MDSCR			0x00008033
++wm 32 MX6_MMDC_P0_MDSCR			0x00048031
++wm 32 MX6_MMDC_P0_MDSCR			0x19408030
++wm 32 MX6_MMDC_P0_MDSCR			0x04008040
++
++wm 32 MX6_MMDC_P0_MPZQHWCTRL	0xA1390003
++wm 32 MX6_MMDC_P1_MPZQHWCTRL	0xA1390003
++wm 32 MX6_MMDC_P0_MDREF			0x00007800
++wm 32 MX6_MMDC_P0_MPODTCTRL		0x00022227
++wm 32 MX6_MMDC_P1_MPODTCTRL		0x00022227
++
++wm 32 MX6_MMDC_P0_MPDGCTRL0		0x03100324
++wm 32 MX6_MMDC_P0_MPDGCTRL1		0x030C0304
++wm 32 MX6_MMDC_P1_MPDGCTRL0		0x03180328
++wm 32 MX6_MMDC_P1_MPDGCTRL1		0x0310025C
++
++wm 32 MX6_MMDC_P0_MPRDDLCTL		0x4230363A
++wm 32 MX6_MMDC_P1_MPRDDLCTL		0x3A363442
++
++wm 32 MX6_MMDC_P0_MPWRDLCTL		0x34363E38
++wm 32 MX6_MMDC_P1_MPWRDLCTL		0x442C483C
++
++wm 32 MX6_MMDC_P0_MPWLDECTRL0	0x001F001F
++wm 32 MX6_MMDC_P0_MPWLDECTRL1	0x00280023
++wm 32 MX6_MMDC_P1_MPWLDECTRL0	0x00190030
++wm 32 MX6_MMDC_P1_MPWLDECTRL1	0x00190028
++
++wm 32 MX6_MMDC_P0_MPMUR0		0x00000800
++wm 32 MX6_MMDC_P1_MPMUR0		0x00000800
++wm 32 MX6_MMDC_P0_MDSCR			0x00000000
++wm 32 MX6_MMDC_P0_MAPSR			0x00011006
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/Makefile b/arch/arm/boards/wago-vtpctp-imx6/Makefile
+new file mode 100644
+index 0000000..c7a078b
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/Makefile
+@@ -0,0 +1,3 @@
++obj-y += board.o
++lwl-y += lowlevel.o
++bbenv-y += defaultenv-vtpctp-imx6
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/board.c b/arch/arm/boards/wago-vtpctp-imx6/board.c
+new file mode 100644
+index 0000000..6cbce38
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/board.c
+@@ -0,0 +1,262 @@
++/*
++ * Copyright (C) 2012 Steffen Trumtrar, Pengutronix
++ *
++ * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Ralf Gliese <ralf.gliese@wago.com>
++ *
++ * Device initialization for the following touch panel variants:
++ *   - 762-4x0x Touch Panel 600 Standard Line
++ *   - 762-5x0x Touch Panel 600 Advanced Line
++ *   - 762-620x Touch Panel 600 Marine Line
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <common.h>
++#include <init.h>
++#include <gpio.h>
++#include <mach/bbu.h>
++#include <mach/generic.h>
++#include <mach/iomux-mx6.h>
++#include <asm/armlinux.h>
++#include <generated/mach-types.h>
++#include <linux/micrel_phy.h>
++#include <net.h>
++#include <envfs.h>
++#include <globalvar.h>
++#include <xsection.h>
++
++#define LCD_CTRL_VLCD_ON	IMX_GPIO_NR(6, 11)
++#define LCD_CTRL_LIGHT_ON	IMX_GPIO_NR(2, 8)
++#define LCD_CTRL_VLED_ON	IMX_GPIO_NR(2, 11)
++#define LCD_CTRL_PWM		IMX_GPIO_NR(2, 9)
++#define CAPTAST_NRESET		IMX_GPIO_NR(2, 3)
++
++#define ETH_DEVICE_0 0
++#define ETH_DEVICE_1 1
++
++#define KSZ8863_GLOBAL_CONTROL_4		0x06
++#define KSZ8863_PORT1_Q0_INGRESS_DATA_RATE	0x16
++#define KSZ8863_PORT1_GLOBAL_CONTRL12		0x1c
++#define KSZ8863_PORT1_GLOBAL_CONTRL13		0x1d
++#define KSZ8863_PORT1_STATUS1			0x1f
++
++static iomux_v3_cfg_t vtpctp_enet_gpio_pads[] = {
++	/* Ethernet */
++	MX6Q_PAD_EIM_D23__GPIO_3_23,		/* RGMII_nRST */
++	MX6Q_PAD_RGMII_RXC__GPIO_6_30,		/* PHYAD */
++	MX6Q_PAD_RGMII_RD0__GPIO_6_25,		/* MODE0 */
++	MX6Q_PAD_RGMII_RD1__GPIO_6_27,		/* MODE1 */
++	MX6Q_PAD_RGMII_RD2__GPIO_6_28,		/* MODE2 */
++	MX6Q_PAD_RGMII_RD3__GPIO_6_29,		/* MODE3 */
++	MX6Q_PAD_RGMII_RX_CTL__GPIO_6_24,
++};
++
++static struct gpio fec_gpios[] = {
++	{
++		.gpio = 105,
++		.flags = GPIOF_OUT_INIT_LOW,
++		.label = "phy-rst",
++	}, {
++		.gpio = 190,
++		.flags = GPIOF_OUT_INIT_HIGH,
++		.label = "phy-addr2",
++	}, {
++		.gpio = 23,
++		.flags = GPIOF_OUT_INIT_LOW,
++		.label = "phy-led-mode",
++	}, {
++		/* MODE strap-in pins: advertise all capabilities */
++		.gpio = 185,
++		.flags = GPIOF_OUT_INIT_HIGH,
++		.label = "phy-adv1",
++	}, {
++		.gpio = 187,
++		.flags = GPIOF_OUT_INIT_HIGH,
++		.label = "phy-adv1",
++	}, {
++		.gpio = 188,
++		.flags = GPIOF_OUT_INIT_HIGH,
++		.label = "phy-adv1",
++	}, {
++		.gpio = 189,
++		.flags = GPIOF_OUT_INIT_HIGH,
++		.label = "phy-adv1",
++	}, {
++		/* Enable 125 MHz clock output */
++		.gpio = 184,
++		.flags = GPIOF_OUT_INIT_HIGH,
++		.label = "phy-125MHz",
++	},
++};
++
++static int pfc_set_ethaddr(void)
++{
++	u8 mac[6];
++	int ret;
++
++	ret = xsection_get_ethaddr1(mac);
++	if (ret < 0)
++		return ret;
++
++	eth_register_ethaddr(ETH_DEVICE_0, mac);
++	eth_register_ethaddr(ETH_DEVICE_1, mac);
++
++	return 0;
++}
++
++static int pfc_rewrite_compatible(void)
++{
++	struct device_node *root;
++	int ret;
++	u16 devconf;
++	char const *first_compat_str;
++	char *new_string;
++
++	ret = xsection_get_devconf(&devconf);
++	if (ret < 0)
++		goto out;
++
++	root = of_get_root_node();
++	if (!root) {
++		ret = -ENOENT;
++		goto out;
++	}
++
++	ret = of_property_read_string_index(root, "compatible", 0,
++							&first_compat_str);
++	if (ret < 0)
++		goto out;
++
++	new_string = basprintf("%s-%04x", first_compat_str, devconf);
++	if (!new_string) {
++		ret = -EFAULT;
++		goto out;
++	}
++
++	ret = of_property_write_string(root, "compatible", new_string);
++	free(new_string);
++
++out:
++	return ret < 0 ? ret : 0;
++}
++
++static int ksz8863_phy_fixup(struct phy_device *phydev)
++{
++	phy_write(phydev, KSZ8863_PORT1_STATUS1, 0x8190);
++	phy_write(phydev, KSZ8863_PORT1_Q0_INGRESS_DATA_RATE, 0x202);
++	phy_write(phydev, KSZ8863_GLOBAL_CONTROL_4, 0x30);
++	phy_write(phydev, KSZ8863_PORT1_GLOBAL_CONTRL12, 0x9f);
++	phy_write(phydev, KSZ8863_PORT1_GLOBAL_CONTRL13, 0x00);
++
++	return 0;
++}
++
++static int vtpctp_ksz8863_setup(void)
++{
++	int ret;
++
++	if (!of_machine_is_compatible("wago,imx6q-vtpctp"))
++		return 0;
++
++	mxc_iomux_v3_setup_multiple_pads(vtpctp_enet_gpio_pads,
++			ARRAY_SIZE(vtpctp_enet_gpio_pads));
++
++	ret = gpio_request_array(fec_gpios, ARRAY_SIZE(fec_gpios));
++	if (ret) {
++		pr_err("Failed to request fec gpios: %s\n", strerror(-ret));
++		return ret;
++	}
++
++	mdelay(10);
++
++	/* FEC driver picks up the reset gpio later and
++	 * releases the phy reset
++	 */
++	gpio_free_array(fec_gpios, ARRAY_SIZE(fec_gpios));
++
++	phy_register_fixup_for_uid(PHY_ID_KSZ8863, MICREL_PHY_ID_MASK,
++							ksz8863_phy_fixup);
++
++	return 0;
++}
++/*
++ * Do this before the fec initializes but after our
++ * gpios are available.
++ */
++fs_initcall(vtpctp_ksz8863_setup);
++
++static int vtpctp_devices_init(void)
++{
++	int ret;
++	const char *s = NULL;
++
++	if (!of_machine_is_compatible("wago,imx6q-vtpctp"))
++		return 0;
++
++	ret = of_property_read_string(of_get_root_node(), "board-variant", &s);
++	if (!ret)
++		globalvar_add_simple("board.variant", s);
++	else
++		pr_warn("failed to get board.variant from oftree\n");
++
++	imx6_bbu_internal_mmc_register_handler("boot.emmc", "/dev/mmc2",
++						BBU_HANDLER_FLAG_DEFAULT);
++
++	of_device_enable_path("/chosen/environment-sd");
++	defaultenv_append_directory(defaultenv_vtpctp_imx6);
++
++	armlinux_set_architecture(MACH_TYPE_VTPCTP_MX6);
++
++	ret = pfc_set_ethaddr();
++	if (ret < 0)
++		pr_info("no valid ethaddr in eeprom found. Using randomized MAC address\n");
++
++	barebox_set_hostname("tp600");
++
++	/* Rewrite the compatible string in the internal barebox device-tree
++	 * (located in ram), and add the eeprom devconf as suffix.
++	 * This string is used by the bootloader-spec module to search for
++	 * correct bootloader-spec entry
++	 * to load the corrosponding kernel device-tree.
++	 */
++	ret = pfc_rewrite_compatible();
++	if (ret < 0)
++		pr_err("failed to rewrite the internal compatible string with devconf from eeprom\n");
++
++	return 0;
++}
++device_initcall(vtpctp_devices_init);
++
++static int vtpctp_coredevices_init(void)
++{
++	if (!of_machine_is_compatible("wago,imx6q-vtpctp"))
++		return 0;
++
++	gpio_request(LCD_CTRL_VLCD_ON, "LCD_CTRL_VLCD_ON");
++	gpio_request(LCD_CTRL_LIGHT_ON, "LCD_CTRL_LIGHT_ON");
++	gpio_request(LCD_CTRL_VLED_ON, "LCD_CTRL_VLED_ON");
++	gpio_request(LCD_CTRL_PWM, "LCD_CTRL_PWM");
++	gpio_request(CAPTAST_NRESET, "CAPTAST_NRESET");
++	gpio_direction_output(LCD_CTRL_VLCD_ON, 1);
++	gpio_set_value(LCD_CTRL_VLCD_ON, 1);
++	mdelay(30);
++	gpio_direction_output(LCD_CTRL_LIGHT_ON, 1);
++	gpio_set_value(LCD_CTRL_LIGHT_ON, 1);
++	gpio_direction_output(LCD_CTRL_VLED_ON, 1);
++	gpio_set_value(LCD_CTRL_VLED_ON, 1);
++	gpio_direction_output(LCD_CTRL_PWM, 1);
++	gpio_set_value(LCD_CTRL_PWM, 1);
++	gpio_set_value(CAPTAST_NRESET, 1);
++
++	return 0;
++}
++coredevice_initcall(vtpctp_coredevices_init);
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/clocks.imxcfg b/arch/arm/boards/wago-vtpctp-imx6/clocks.imxcfg
+new file mode 100644
+index 0000000..582ec0b
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/clocks.imxcfg
+@@ -0,0 +1,10 @@
++wm 32 0x020c4068 0x00c03f3f
++wm 32 0x020c406c 0x0030fc03
++wm 32 0x020c4070 0x0fffc000
++wm 32 0x020c4074 0x3ff00000
++wm 32 0x020c4078 0x00fff300
++wm 32 0x020c407c 0x0f0000c3
++wm 32 0x020c4080 0x000003ff
++wm 32 0x020e0010 0xf00000cf
++wm 32 0x020e0018 0x007f007f
++wm 32 0x020e001c 0x007f007f
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/bin/pfc-config-production-boot b/arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/bin/pfc-config-production-boot
+new file mode 100644
+index 0000000..6b00d83
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/bin/pfc-config-production-boot
+@@ -0,0 +1,17 @@
++#!/bin/sh
++
++source env/data/print-msg-formats
++
++uart_console -e ${global.pfc.barebox_uart}
++
++global.linux.bootargs.console="console=${global.pfc.linux_uart_device}${global.pfc.barebox_linux_uart},115200n8"
++global.linux.bootargs.base="root=/dev/mmcblk0p2 rw rootwait cma=64M consoleblank=0"
++global.boot.watchdog_timeout=0
++
++if [ -e "${global.pfc.sd}" ] && [ -e "${global.pfc.sd_boot}/production_mode.sh" ]; then
++	global.boot.default="${global.pfc.sd_boot}/production_mode.sh"
++else
++	echo -e ${error} "vtpctp no script found for production-mode"
++	pfc-config-broken-boot
++	exit 1
++fi
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/init/aa-vtpctp-setup-board-env b/arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/init/aa-vtpctp-setup-board-env
+new file mode 100644
+index 0000000..4a13031
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/init/aa-vtpctp-setup-board-env
+@@ -0,0 +1,16 @@
++#!/bin/sh
++
++# set variables for vtpctp
++
++# emmc settings
++global.pfc.emmc_name="mmc2"
++global.pfc.emmc="/dev/mmc2"
++global.pfc.emmc_boot="/mnt/mmc2.0"
++global.pfc.emmc_dev_rootfs0="/dev/mmc2.4"
++global.pfc.emmc_dev_rootfs1="/dev/mmc2.7"
++
++global.pfc.linux_uart_device="ttymxc"
++global.pfc.linux_uart="1"
++global.pfc.barebox_uart="0"
++
++global.linux.bootargs.watchdog="imx2-wdt.timeout=${global.pfc.watchdog_timeout_linux_boot}"
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/flash-header-vtpctp_q.imxcfg b/arch/arm/boards/wago-vtpctp-imx6/flash-header-vtpctp_q.imxcfg
+new file mode 100644
+index 0000000..8ebda4a
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/flash-header-vtpctp_q.imxcfg
+@@ -0,0 +1,10 @@
++soc imx6
++loadaddr 0x20000000
++dcdofs 0x400
++
++#include <mach/imx6-ddr-regs.h>
++#include <mach/imx6q-ddr-regs.h>
++
++#include "ram-base.imxcfg"
++#include "1066mhz_4x256mx16.imxcfg"
++#include "clocks.imxcfg"
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/lowlevel.c b/arch/arm/boards/wago-vtpctp-imx6/lowlevel.c
+new file mode 100644
+index 0000000..05a4dc0
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/lowlevel.c
+@@ -0,0 +1,41 @@
++#include <common.h>
++#include <linux/sizes.h>
++#include <mach/generic.h>
++#include <asm/barebox-arm-head.h>
++#include <asm/barebox-arm.h>
++#include <mach/imx6-regs.h>
++#include <io.h>
++#include <mach/debug_ll.h>
++#include <mach/esdctl.h>
++#include <asm/cache.h>
++
++extern char __dtb_imx6q_vtpctp_762_4xxx_start[];
++
++static noinline void imx6q_vtpctp_start(void)
++{
++	void __iomem *iomuxbase = IOMEM(MX6_IOMUXC_BASE_ADDR);
++	void __iomem *uart = IOMEM(MX6_UART1_BASE_ADDR);
++
++	writel(0x4, iomuxbase + 0x0bc);
++
++	imx6_ungate_all_peripherals();
++	imx6_uart_setup(uart);
++	pbl_set_putc(imx_uart_putc, uart);
++
++	pr_debug("Freescale i.MX6q VTPCTP\n");
++
++	imx6q_barebox_entry(__dtb_imx6q_vtpctp_762_4xxx_start);
++}
++
++ENTRY_FUNCTION(start_imx6q_vtpctp, r0, r1, r2)
++{
++	imx6_cpu_lowlevel_init();
++
++	arm_early_mmu_cache_invalidate();
++
++	relocate_to_current_adr();
++	setup_c();
++	barrier();
++
++	imx6q_vtpctp_start();
++}
+diff --git a/arch/arm/boards/wago-vtpctp-imx6/ram-base.imxcfg b/arch/arm/boards/wago-vtpctp-imx6/ram-base.imxcfg
+new file mode 100644
+index 0000000..cf303ed
+--- /dev/null
++++ b/arch/arm/boards/wago-vtpctp-imx6/ram-base.imxcfg
+@@ -0,0 +1,67 @@
++wm 32 MX6_IOM_DRAM_SDQS0		0x00000028
++wm 32 MX6_IOM_DRAM_SDQS1		0x00000028
++wm 32 MX6_IOM_DRAM_SDQS2		0x00000028
++wm 32 MX6_IOM_DRAM_SDQS3		0x00000028
++wm 32 MX6_IOM_DRAM_SDQS4		0x00000028
++wm 32 MX6_IOM_DRAM_SDQS5		0x00000028
++wm 32 MX6_IOM_DRAM_SDQS6		0x00000028
++wm 32 MX6_IOM_DRAM_SDQS7		0x00000028
++
++wm 32 MX6_IOM_GRP_B0DS			0x00000028
++wm 32 MX6_IOM_GRP_B1DS			0x00000028
++wm 32 MX6_IOM_GRP_B2DS			0x00000028
++wm 32 MX6_IOM_GRP_B3DS			0x00000028
++wm 32 MX6_IOM_GRP_B4DS			0x00000028
++wm 32 MX6_IOM_GRP_B5DS			0x00000028
++wm 32 MX6_IOM_GRP_B6DS			0x00000028
++wm 32 MX6_IOM_GRP_B7DS			0x00000028
++wm 32 MX6_IOM_GRP_ADDDS			0x00000028
++/* 40 Ohm drive strength for cs0/1,sdba2,cke0/1,sdwe */
++wm 32 MX6_IOM_GRP_CTLDS			0x00000028
++
++wm 32 MX6_IOM_DRAM_DQM0			0x00000028
++wm 32 MX6_IOM_DRAM_DQM1			0x00000028
++wm 32 MX6_IOM_DRAM_DQM2			0x00000028
++wm 32 MX6_IOM_DRAM_DQM3			0x00000028
++wm 32 MX6_IOM_DRAM_DQM4			0x00000028
++wm 32 MX6_IOM_DRAM_DQM5			0x00000028
++wm 32 MX6_IOM_DRAM_DQM6			0x00000028
++wm 32 MX6_IOM_DRAM_DQM7			0x00000028
++
++wm 32 MX6_IOM_DRAM_CAS			0x00000028
++wm 32 MX6_IOM_DRAM_RAS			0x00000028
++wm 32 MX6_IOM_DRAM_SDCLK_0		0x00000028
++wm 32 MX6_IOM_DRAM_SDCLK_1		0x00000028
++
++wm 32 MX6_IOM_DRAM_RESET		0x00000028
++wm 32 MX6_IOM_DRAM_SDCKE0		0x00003000
++wm 32 MX6_IOM_DRAM_SDCKE1		0x00003000
++
++wm 32 MX6_IOM_DRAM_SDODT0		0x00000028
++wm 32 MX6_IOM_DRAM_SDODT1		0x00000028
++
++/* (differential input) */
++wm 32 MX6_IOM_DDRMODE_CTL		0x00020000
++/* (differential input) */
++wm 32 MX6_IOM_GRP_DDRMODE		0x00020000
++/* disable ddr pullups */
++wm 32 MX6_IOM_GRP_DDRPKE		0x00000000
++wm 32 MX6_IOM_DRAM_SDBA2		0x00000000
++/* 40 Ohm drive strength for cs0/1,sdba2,cke0/1,sdwe */
++wm 32 MX6_IOM_GRP_DDR_TYPE		0x000C0000
++
++/* Read data DQ Byte0-3 delay */
++wm 32 MX6_MMDC_P0_MPRDDQBY0DL	0x33333333
++wm 32 MX6_MMDC_P0_MPRDDQBY1DL	0x33333333
++wm 32 MX6_MMDC_P0_MPRDDQBY2DL	0x33333333
++wm 32 MX6_MMDC_P0_MPRDDQBY3DL	0x33333333
++wm 32 MX6_MMDC_P1_MPRDDQBY0DL	0x33333333
++wm 32 MX6_MMDC_P1_MPRDDQBY1DL	0x33333333
++wm 32 MX6_MMDC_P1_MPRDDQBY2DL	0x33333333
++wm 32 MX6_MMDC_P1_MPRDDQBY3DL	0x33333333
++
++/* MDMISC	mirroring	interleaved (row/bank/col) */
++wm 32 MX6_MMDC_P0_MDMISC		0x00011740
++
++/* MDSCR	con_req */
++wm 32 MX6_MMDC_P0_MDSCR			0x00008000
+diff --git a/arch/arm/configs/imx6_vtpctp_defconfig b/arch/arm/configs/imx6_vtpctp_defconfig
+new file mode 100644
+index 0000000..df7cf04
+--- /dev/null
++++ b/arch/arm/configs/imx6_vtpctp_defconfig
+@@ -0,0 +1,153 @@
++CONFIG_ARCH_IMX=y
++CONFIG_IMX_MULTI_BOARDS=y
++CONFIG_MACH_WAGO_VTPCTP_MX6=y
++CONFIG_IMX_IIM=y
++CONFIG_IMX_IIM_FUSE_BLOW=y
++CONFIG_THUMB2_BAREBOX=y
++CONFIG_ARM_BOARD_APPEND_ATAG=y
++CONFIG_ARM_OPTIMZED_STRING_FUNCTIONS=y
++CONFIG_ARM_UNWIND=y
++CONFIG_ARM_PSCI=y
++CONFIG_MMU=y
++CONFIG_MALLOC_SIZE=0x0
++CONFIG_MALLOC_TLSF=y
++CONFIG_KALLSYMS=y
++CONFIG_RELOCATABLE=y
++CONFIG_PROMPT="barebox> "
++CONFIG_HUSH_FANCY_PROMPT=y
++CONFIG_AUTO_COMPLETE=y
++CONFIG_MENU=y
++# CONFIG_TIMESTAMP is not set
++CONFIG_BOOTM_SHOW_TYPE=y
++CONFIG_BOOTM_VERBOSE=y
++CONFIG_BOOTM_INITRD=y
++CONFIG_BOOTM_OFTREE=y
++CONFIG_BLSPEC=y
++CONFIG_IMD=y
++CONFIG_CONSOLE_ACTIVATE_NONE=y
++CONFIG_CONSOLE_ALLOW_COLOR=y
++CONFIG_CONSOLE_RATP=y
++CONFIG_DEFAULT_ENVIRONMENT_GENERIC_NEW=y
++CONFIG_DEFAULT_ENVIRONMENT_PATH="defaultenv/defaultenv-pfc-base/ arch/arm/boards/wago-vtpctp-imx6/defaultenv-vtpctp-imx6/"
++CONFIG_STATE=y
++CONFIG_BOOTCHOOSER=y
++CONFIG_RESET_SOURCE=y
++CONFIG_DEBUG_INFO=y
++CONFIG_LONGHELP=y
++CONFIG_CMD_IOMEM=y
++CONFIG_CMD_MEMINFO=y
++CONFIG_CMD_ARM_MMUINFO=y
++CONFIG_CMD_MMC_EXTCSD=y
++# CONFIG_CMD_BOOTU is not set
++CONFIG_CMD_BOOTZ=y
++CONFIG_CMD_GO=y
++CONFIG_CMD_LOADB=y
++CONFIG_CMD_RESET=y
++CONFIG_CMD_UIMAGE=y
++CONFIG_CMD_PARTITION=y
++CONFIG_CMD_EXPORT=y
++CONFIG_CMD_LOADENV=y
++CONFIG_CMD_PRINTENV=y
++CONFIG_CMD_MAGICVAR=y
++CONFIG_CMD_MAGICVAR_HELP=y
++CONFIG_CMD_SAVEENV=y
++CONFIG_CMD_FILETYPE=y
++CONFIG_CMD_LN=y
++CONFIG_CMD_MD5SUM=y
++CONFIG_CMD_UNCOMPRESS=y
++CONFIG_CMD_LET=y
++CONFIG_CMD_MSLEEP=y
++CONFIG_CMD_READF=y
++CONFIG_CMD_SLEEP=y
++CONFIG_CMD_DHCP=y
++CONFIG_CMD_MIITOOL=y
++CONFIG_CMD_PING=y
++CONFIG_CMD_TFTP=y
++CONFIG_CMD_ECHO_E=y
++CONFIG_CMD_EDIT=y
++CONFIG_CMD_MENU=y
++CONFIG_CMD_MENUTREE=y
++CONFIG_CMD_READLINE=y
++CONFIG_CMD_TIMEOUT=y
++CONFIG_CMD_CRC=y
++CONFIG_CMD_CRC_CMP=y
++CONFIG_CMD_MM=y
++CONFIG_CMD_DETECT=y
++CONFIG_CMD_FLASH=y
++CONFIG_CMD_GPIO=y
++CONFIG_CMD_I2C=y
++CONFIG_CMD_LED=y
++CONFIG_CMD_LED_MODE=y
++CONFIG_CMD_SPI=y
++CONFIG_CMD_LED_TRIGGER=y
++CONFIG_CMD_WD=y
++CONFIG_CMD_BAREBOX_UPDATE=y
++CONFIG_CMD_OF_NODE=y
++CONFIG_CMD_OF_PROPERTY=y
++CONFIG_CMD_OFTREE=y
++CONFIG_CMD_TIME=y
++CONFIG_CMD_STATE=y
++CONFIG_CMD_BOOTCHOOSER=y
++CONFIG_CMD_UART_CONSOLE=y
++CONFIG_CMD_ETHADDR_MATCH=y
++CONFIG_NET=y
++CONFIG_NET_NFS=y
++CONFIG_NET_NETCONSOLE=y
++CONFIG_NET_RESOLV=y
++CONFIG_OFDEVICE=y
++CONFIG_DRIVER_NET_FEC_IMX=y
++CONFIG_DRIVER_NET_MICREL=y
++CONFIG_MICREL_PHY=y
++CONFIG_DRIVER_SPI_GPIO=y
++CONFIG_DRIVER_SPI_IMX=y
++CONFIG_DISK_AHCI=y
++CONFIG_DISK_AHCI_IMX=y
++CONFIG_DISK_INTF_PLATFORM_IDE=y
++CONFIG_DISK_PATA_IMX=y
++CONFIG_USB_HOST=y
++CONFIG_USB_IMX_CHIPIDEA=y
++CONFIG_USB_EHCI=y
++CONFIG_USB_ULPI=y
++CONFIG_USB_STORAGE=y
++CONFIG_MCI=y
++CONFIG_MCI_STARTUP=y
++CONFIG_MCI_MMC_BOOT_PARTITIONS=y
++CONFIG_MCI_IMX_ESDHC=y
++CONFIG_MFD_DA9063=y
++CONFIG_MFD_MC13XXX=y
++CONFIG_MFD_MC34704=y
++CONFIG_MFD_MC9SDZ60=y
++CONFIG_MFD_STMPE=y
++CONFIG_STATE_DRV=y
++CONFIG_XSECTION=y
++CONFIG_BOOTMATRIX=y
++CONFIG_LED=y
++CONFIG_LED_GPIO=y
++CONFIG_LED_GPIO_OF=y
++CONFIG_LED_TRIGGERS=y
++CONFIG_LED_PCA955X=y
++CONFIG_EEPROM_AT25=y
++CONFIG_KEYBOARD_GPIO=y
++CONFIG_WATCHDOG=y
++CONFIG_WATCHDOG_IMX=y
++CONFIG_PWM=y
++CONFIG_PWM_IMX=y
++CONFIG_MXS_APBH_DMA=y
++CONFIG_GPIO_74164=y
++CONFIG_GPIO_STMPE=y
++CONFIG_NVMEM=y
++CONFIG_IMX_OCOTP=y
++CONFIG_IMX_OCOTP_WRITE=y
++CONFIG_REGULATOR=y
++CONFIG_REGULATOR_FIXED=y
++CONFIG_GENERIC_PHY=y
++CONFIG_USB_NOP_XCEIV=y
++CONFIG_FS_EXT4=y
++CONFIG_FS_TFTP=y
++CONFIG_FS_NFS=y
++CONFIG_FS_FAT=y
++CONFIG_FS_FAT_WRITE=y
++CONFIG_FS_FAT_LFN=y
++CONFIG_ZLIB=y
++CONFIG_LZO_DECOMPRESS=y
++CONFIG_ARCH_IMX_USBLOADER=y
+diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
+index 086173d..2e5b17a 100644
+--- a/arch/arm/dts/Makefile
++++ b/arch/arm/dts/Makefile
+@@ -117,4 +117,5 @@ pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X) += am335x-pfc-750_810x.dtb.o am335x-pfc-7
+ 	am335x-pfc-750_8208.dtb.o am335x-pfc-750_8208-mlo.dtb.o am335x-pfc-750_821x.dtb.o \
+ 	am335x-pfc-750_821x-mlo.dtb.o am335x-src-2850_311x.dtb.o am335x-src-2850_311x-mlo.dtb.o
+ pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM35XX) += am35xx-pfc-750_820x.dtb.o
++pbl-dtb-$(CONFIG_MACH_WAGO_VTPCTP_MX6) += imx6q-vtpctp-762-4xxx.dtb.o
+ clean-files := *.dtb *.dtb.S .*.dtc .*.pre .*.dts *.dtb.lzo
+diff --git a/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts b/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
+new file mode 100644
+index 0000000..4212f84
+--- /dev/null
++++ b/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
+@@ -0,0 +1,358 @@
++/*
++ * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Ralf Gliese <ralf.gliese@wago.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include <arm/imx6q.dtsi>
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/input/input.h>
++#include "bootchooser.dtsi"
++
++/ {
++	model = "VTPCTP-762-4xxx";
++	compatible = "wago,imx6q-vtpctp-762_4xxx", "wago,imx6q-vtpctp", "fsl,imx6q";
++	board-variant = "vtpctp";
++
++	aliases {
++		bootstate = &bootstate;
++		xsection = &xsection;
++		bootmatrix = &bootmatrix;
++		ethernet1 = &fec;
++	};
++
++	chosen {
++		stdout-path = &uart1;
++
++		environment-sd {
++			compatible = "barebox,environment";
++			device-path = &usdhc1, "partname:0";
++			file-path = "barebox.env";
++			status = "disabled";
++		};
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x10000000 0x80000000>; /* 2GB */
++	};
++
++	xsection: xsection {
++		compatible = "xsection";
++		status = "okay";
++
++		boot_mode_id = <&boot_mode_id>;
++		devconf = <&devconf>;
++		ethaddr1 = <&ethaddr1>;
++		ethaddr2 = <&ethaddr2>;
++		blidx = <&blidx>;
++	};
++
++	bootmatrix: bootmatrix {
++		compatible = "bootmatrix";
++		status = "okay";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_bas>;
++
++		/* seconds for factory reset or setup-fw startup */
++		rst-timeout-secs = <7>;
++
++		run:   run   { gpios = <&gpio2 12 GPIO_ACTIVE_LOW>; };
++		stop:  stop  { gpios = <&gpio2 13 GPIO_ACTIVE_LOW>; };
++		reset: reset { gpios = <&gpio2 15 GPIO_ACTIVE_LOW>; };
++		rst:   rst   { gpios = <&gpio4 7  GPIO_ACTIVE_LOW>; };
++	};
++
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		reg_2p5v: regulator@0 {
++			compatible = "regulator-fixed";
++			reg = <0>;
++			regulator-name = "2P5V";
++			regulator-min-microvolt = <2500000>;
++			regulator-max-microvolt = <2500000>;
++			regulator-always-on;
++		};
++
++		reg_3p3v: regulator@1 {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			regulator-name = "3P3V";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			regulator-always-on;
++		};
++
++		reg_usb_otg_vbus: regulator@2 {
++			compatible = "regulator-fixed";
++			reg = <0>;
++			regulator-name = "usb_otg_vbus";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			gpio = <&gpio4 15 GPIO_ACTIVE_LOW>;
++			enable-active-high;
++		};
++
++		reg_lvds_backlight_3v3: regulator@3 {
++			compatible = "regulator-fixed";
++			regulator-name = "lvds-3v3";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++		};
++	};
++
++	front_rgb_leds {
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_rgb_led>;
++		compatible = "gpio-leds";
++
++		sys-red {
++			label = "sys-red";
++			gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "none";
++		};
++
++		sys-green {
++			label = "sys-green";
++			gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "none";
++		};
++
++		sys-blue {
++			label = "sys-blue";
++			gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "none";
++		};
++	};
++};
++
++&ecspi1 {
++	fsl,spi-num-chipselects = <1>;
++	cs-gpios = <&gpio3 19 0>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ecspi1>;
++	status = "okay";
++};
++
++&fec {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_enet>;
++	phy-mode = "rmii";
++	phy-handle = <&ethphy0>;
++	phy-reset-gpios = <&gpio4 9 GPIO_ACTIVE_LOW>;
++	status = "okay";
++
++	mdio {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		ethphy0: ethernet-phy@0 {
++			compatible = "micrel,ksz8863";
++			device_type = "ethernet-phy";
++			reg = <0>;
++		};
++	};
++};
++
++&i2c2 {
++	clock-frequency = <400000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2>;
++	status = "okay";
++
++	eeprom: eeprom@54 {
++		status = "okay";
++		compatible = "atmel,24c512";
++		pagesize = <128>;
++		reg = <0x54>;
++	};
++};
++
++&iomuxc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_hog>;
++
++	imx6q-nitrogen6x {
++		pinctrl_hog: hoggrp {
++			fsl,pins = <
++				/* SGTL5000 sys_mclk */
++				MX6QDL_PAD_GPIO_0__CCM_CLKO1    0x030b0
++			>;
++		};
++
++		pinctrl_ecspi1: ecspi1grp {
++			fsl,pins = <
++				MX6QDL_PAD_EIM_D17__ECSPI1_MISO	0x100b1
++				MX6QDL_PAD_EIM_D18__ECSPI1_MOSI	0x100b1
++				MX6QDL_PAD_EIM_D16__ECSPI1_SCLK	0x100b1
++				MX6QDL_PAD_EIM_D19__GPIO3_IO19  0x000b1	/* CS */
++			>;
++		};
++
++		pinctrl_enet: enetgrp {
++			fsl,pins = <
++				MX6QDL_PAD_ENET_MDIO__ENET_MDIO	    0x1b0b0
++				MX6QDL_PAD_ENET_MDC__ENET_MDC	    0x1b0b0
++				MX6QDL_PAD_ENET_RXD0__ENET_RX_DATA0 0x1b0b0
++				MX6QDL_PAD_ENET_RXD1__ENET_RX_DATA1 0x1b0b0
++				MX6QDL_PAD_ENET_CRS_DV__ENET_RX_EN  0x1b0b0
++				MX6QDL_PAD_ENET_TXD0__ENET_TX_DATA0 0x1b0b0
++				MX6QDL_PAD_ENET_TXD1__ENET_TX_DATA1 0x1b0b0
++				MX6QDL_PAD_ENET_TX_EN__ENET_TX_EN   0x1b0b0
++				MX6QDL_PAD_GPIO_16__ENET_REF_CLK    0x1b0b0
++				/* Phy reset */
++				MX6QDL_PAD_KEY_ROW1__GPIO4_IO09	    0x1B0B0
++				//MX6QDL_PAD_KEY_ROW1__GPIO4_IO09   0x80000000
++				/* phy irq */
++				MX6QDL_PAD_GPIO_6__ENET_IRQ         0x000b1
++			>;
++		};
++
++		pinctrl_i2c2: i2c2grp {
++			fsl,pins = <
++				MX6QDL_PAD_KEY_COL3__I2C2_SCL	  0x4001b8b1
++				MX6QDL_PAD_KEY_ROW3__I2C2_SDA 	  0x4001b8b1
++				/* EEPROM WP GPIO169 */
++				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x1b0b0
++			>;
++		};
++
++		pinctrl_uart1: uart1grp {
++			fsl,pins = <
++				MX6QDL_PAD_CSI0_DAT11__UART1_RX_DATA 0x1b0b1
++				MX6QDL_PAD_CSI0_DAT10__UART1_TX_DATA 0x1b0b1
++			>;
++		};
++
++		pinctrl_uart2: uart2grp {
++			fsl,pins = <
++				MX6QDL_PAD_EIM_D26__UART2_TX_DATA 0x1b0b1
++				MX6QDL_PAD_EIM_D27__UART2_RX_DATA 0x1b0b1
++			>;
++		};
++
++		pinctrl_usbotg: usbotggrp {
++			fsl,pins = <
++				/* OTG_ID */
++				MX6QDL_PAD_ENET_RX_ER__USB_OTG_ID  0x1b0b1
++				/* OTG_OC */
++				MX6QDL_PAD_KEY_COL4__USB_OTG_OC	   0x1b0b1
++				/* OTG_PWR */
++				//MX6QDL_PAD_KEY_ROW4__USB_OTG_PWR 0x130b0
++				/* OTG_PWR */
++				MX6QDL_PAD_KEY_ROW4__GPIO4_IO15	   0x130b0
++			>;
++		};
++
++		pinctrl_usdhc1: usdhc1grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD1_CMD__SD1_CMD	0x17059
++				MX6QDL_PAD_SD1_CLK__SD1_CLK	0x10059
++				MX6QDL_PAD_SD1_DAT0__SD1_DATA0	0x17059
++				MX6QDL_PAD_SD1_DAT1__SD1_DATA1	0x17059
++				MX6QDL_PAD_SD1_DAT2__SD1_DATA2	0x17059
++				MX6QDL_PAD_SD1_DAT3__SD1_DATA3	0x17059
++				/* CD */
++				MX6QDL_PAD_GPIO_1__SD1_CD_B	0x1b0b0
++				/* SD-CARD.EN */
++				MX6QDL_PAD_SD4_CMD__GPIO7_IO09	0x1b0b0
++			>;
++		};
++
++		pinctrl_usdhc3: usdhc3grp {
++			fsl,pins = <
++				MX6QDL_PAD_SD3_CMD__SD3_CMD	0x17059
++				MX6QDL_PAD_SD3_CLK__SD3_CLK	0x10059
++				MX6QDL_PAD_SD3_DAT0__SD3_DATA0	0x17059
++				MX6QDL_PAD_SD3_DAT1__SD3_DATA1	0x17059
++				MX6QDL_PAD_SD3_DAT2__SD3_DATA2	0x17059
++				MX6QDL_PAD_SD3_DAT3__SD3_DATA3	0x17059
++				MX6QDL_PAD_SD3_DAT4__SD3_DATA4	0x17059
++				MX6QDL_PAD_SD3_DAT5__SD3_DATA5	0x17059
++				MX6QDL_PAD_SD3_DAT6__SD3_DATA6	0x17059
++				MX6QDL_PAD_SD3_DAT7__SD3_DATA7	0x17059
++			>;
++		};
++
++		pinctrl_rgb_led: rgb_led {
++			fsl,pins = <
++				/* LED-RD-ON */
++				MX6QDL_PAD_NANDF_D4__GPIO2_IO04	0x1b0b0
++				/* LED-GN-ON */
++				MX6QDL_PAD_NANDF_D5__GPIO2_IO05	0x1b0b0
++				/* LED-BL-ON */
++				MX6QDL_PAD_NANDF_D6__GPIO2_IO06	0x1b0b0
++			>;
++		};
++
++		pinctrl_bas: basgrp {
++			fsl,pins = <
++				/* BAS-NRUN */
++				MX6QDL_PAD_SD4_DAT4__GPIO2_IO12	0x1b0b0
++				/* BAS-NSTOP */
++				MX6QDL_PAD_SD4_DAT5__GPIO2_IO13	0x1b0b0
++				/* BAS-NRESET */
++				MX6QDL_PAD_SD4_DAT7__GPIO2_IO15	0x1b0b0
++				/* RESET-ALL */
++				MX6QDL_PAD_KEY_ROW0__GPIO4_IO07	0x1b0b0
++			>;
++		};
++
++	};
++};
++
++&uart1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart1>;
++	status = "disabled";
++};
++
++&uart2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_uart2>;
++	status = "disabled";
++};
++
++&usbh1 {
++	status = "okay";
++};
++
++&usbotg {
++	vbus-supply = <&reg_usb_otg_vbus>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_usbotg>;
++	disable-over-current;
++	phy_type = "utmi";
++	status = "okay";
++};
++
++&usdhc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_usdhc1>;
++	cd-gpios = <&gpio7 9 GPIO_ACTIVE_LOW>;
++	status = "okay";
++};
++
++&usdhc3 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_usdhc3>;
++	non-removable;
++	bus-width = <8>;
++	status = "okay";
++};
++
++#include "eepromparts.dtsi"
+diff --git a/arch/arm/mach-imx/Kconfig b/arch/arm/mach-imx/Kconfig
+index 1d6b4e1..975d2a2 100644
+--- a/arch/arm/mach-imx/Kconfig
++++ b/arch/arm/mach-imx/Kconfig
+@@ -401,6 +401,12 @@ config MACH_ADVANTECH_ROM_742X
+ 	select ARCH_IMX6
+ 	select ARM_USE_COMPRESSED_DTB
+ 
++config MACH_WAGO_VTPCTP_MX6
++	bool "Wago VTPCTP Panels"
++	select ARCH_IMX6
++	help
++	  Support for Wago i.MX6 Quad-Core Touch-Panels
++
+ config MACH_WARP7
+ 	bool "NXP i.MX7: element 14 WaRP7 Board"
+ 	select ARCH_IMX7
+diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
+index d193685..e86b91c 100644
+--- a/arch/arm/tools/mach-types
++++ b/arch/arm/tools/mach-types
+@@ -4725,3 +4725,4 @@ sbc_phycore_am335x	MACH_SBC_PHYCORE_AM335X	SBC_PHYCORE_AM335X	4770
+ tsc			MACH_TSC		TSC			4771
+ pfc_am35xx		MACH_PFC_AM35XX		PFC_AM35XX		9000
+ pfc_am335x		MACH_PFC_AM335X		PFC_AM335X		9002
++vtpctp_imx6		MACH_VTPCTP_MX6		VTPCTP_MX6		9003
+diff --git a/defaultenv/defaultenv-pfc-base/init/a-pfc-switch-reset b/defaultenv/defaultenv-pfc-base/init/a-pfc-switch-reset
+index 962ede7..3dc8de5 100644
+--- a/defaultenv/defaultenv-pfc-base/init/a-pfc-switch-reset
++++ b/defaultenv/defaultenv-pfc-base/init/a-pfc-switch-reset
+@@ -8,6 +8,7 @@ source env/data/print-msg-formats
+ pfc100_sw_reset_pin=85
+ pfc200v2_sw_reset_pin=106
+ pfc200v3_sw_reset_pin=132
++vtpctp_sw_reset_pin=105
+ src_sw_reset_pin=${pfc200v2_sw_reset_pin}
+ 
+ if [ "${global.board.variant}" = "pfc100" ]; then
+@@ -16,6 +17,8 @@ elif [ "${global.board.variant}" = "pfc200v2" ]; then
+ 	current_reset_pin="${pfc200v2_sw_reset_pin}"
+ elif [ "${global.board.variant}" = "pfc200v3" ]; then
+ 	current_reset_pin="${pfc200v3_sw_reset_pin}"
++elif [ "${global.board.variant}" = "vtpctp" ]; then
++	current_reset_pin="${vtpctp_sw_reset_pin}"
+ elif [ "${global.board.variant}" = "src" ]; then
+ 	current_reset_pin="${src_sw_reset_pin}"
+ else
+diff --git a/images/Makefile.imx b/images/Makefile.imx
+index f0014ac..fb41b15 100644
+--- a/images/Makefile.imx
++++ b/images/Makefile.imx
+@@ -526,6 +526,11 @@ CFG_start_zii_vf610_dev.pblx.imximg = $(board)/zii-vf610-dev/flash-header-zii-vf
+ FILE_barebox-zii-vf610-dev.img = start_zii_vf610_dev.pblx.imximg
+ image-$(CONFIG_MACH_ZII_VF610_DEV) += barebox-zii-vf610-dev.img
+ 
++pblx-$(CONFIG_MACH_WAGO_VTPCTP_MX6) += imx6q_vtpctp_start
++CFG_start_imx6q_vtpctp.pblx.imximg = $(board)/wago-vtpctp-imx6/flash-header-vtpctp_q.imxcfg
++FILE_barebox-imx6q-vtpctp.img = start_imx6q_vtpctp.pblx.imximg
++image-$(CONFIG_MACH_WAGO_VTPCTP_MX6) += barebox-imx6q-vtpctp.img
++
+ # ----------------------- i.MX7 based boards ---------------------------
+ pblx-$(CONFIG_MACH_FREESCALE_MX7_SABRESD) += start_imx7d_sabresd
+ CFG_start_imx7d_sabresd.pblx.imximg = $(board)/freescale-mx7-sabresd/flash-header-mx7-sabresd.imxcfg
+-- 
+2.7.4
+

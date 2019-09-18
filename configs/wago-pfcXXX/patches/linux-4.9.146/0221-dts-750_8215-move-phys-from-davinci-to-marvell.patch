@@ -1,7 +1,7 @@
 From 79b463fffa41321cd001cc775548676731183b0a Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 3 Aug 2018 09:32:36 +0200
-Subject: [PATCH 221/292] dts: 750_8215: move phys from davinci to marvell
+Subject: [PATCH] dts: 750_8215: move phys from davinci to marvell
 
 After rework of interface board of 8215 Marvell Switch is
 in single chip mode now. The PHYs are not connected to CPU

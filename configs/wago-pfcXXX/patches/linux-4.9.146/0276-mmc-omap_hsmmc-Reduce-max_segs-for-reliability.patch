@@ -1,7 +1,7 @@
 From 0461dac8194814de3fabf202a72c954b7399483a Mon Sep 17 00:00:00 2001
 From: Will Newton <will.newton@gmail.com>
 Date: Thu, 22 Jun 2017 11:57:53 +0100
-Subject: [PATCH 276/292] mmc: omap_hsmmc: Reduce max_segs for reliability
+Subject: [PATCH] mmc: omap_hsmmc: Reduce max_segs for reliability
 
 Backport from upstream kernel. Commit 9442400486a1ec28915e9ab31517a5665ed35705
 

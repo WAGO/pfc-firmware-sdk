@@ -1,0 +1,4 @@
+0001-add-uio_find_by_base_addr.patch
+0002-fix-wrong-argument-in-uio_unmap-calls.patch
+0003-lsuio_update.patch
+0004_uio_mmap_with_addr_WAT26756.patch

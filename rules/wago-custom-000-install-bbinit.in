@@ -171,5 +171,10 @@ config WAGO_CUSTOM_BOOT_WDG_BBINIT_LINK
 	prompt "boot watchdog"
 	default "S00_boot_wdg"
 
+config WAGO_CUSTOM_RMD_FW_DOWNLOAD_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD
+	prompt "rmd fw download"
+	default "S00_rmd_fw_download"
 
 comment ""

@@ -1,8 +1,7 @@
 From 23571a2879e7829482138a03a4a39111d87bb060 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 17 Nov 2016 07:15:00 +0000
-Subject: [PATCH 008/292] serial: modbus-rtu: hrtimer_start() gives no return
- value
+Subject: [PATCH] serial: modbus-rtu: hrtimer_start() gives no return value
 
 ---
  drivers/tty/serial/pfc-modbus-rtu.c | 7 ++++---

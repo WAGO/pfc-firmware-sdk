@@ -1,7 +1,7 @@
 From 0fb96f25db100ffb60a16541f3fd7f0ce4afddb0 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 16 Nov 2016 14:37:49 +0000
-Subject: [PATCH 002/292] initial port from v3.18.13
+Subject: [PATCH] initial port from v3.18.13
 
 remove Lauterbach files
 

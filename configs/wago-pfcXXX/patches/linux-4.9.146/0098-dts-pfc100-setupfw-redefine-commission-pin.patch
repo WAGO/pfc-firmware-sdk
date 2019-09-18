@@ -1,7 +1,7 @@
 From 249db1e57622896259f2ee1df196c7f5e67091ac Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 31 Aug 2017 15:19:12 +0200
-Subject: [PATCH 098/292] dts: pfc100: setupfw: redefine commission pin
+Subject: [PATCH] dts: pfc100: setupfw: redefine commission pin
 
 ---
  arch/arm/boot/dts/wago-pfc100-setupfw.dts | 24 ++++++++++++++++++++++++

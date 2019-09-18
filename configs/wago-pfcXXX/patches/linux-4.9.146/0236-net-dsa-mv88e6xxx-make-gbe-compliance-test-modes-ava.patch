@@ -1,8 +1,8 @@
 From a48fec6c07b0654012ac2a387cde5ccd864fed88 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Thu, 6 Sep 2018 09:37:59 +0200
-Subject: [PATCH 236/292] net: dsa: mv88e6xxx: make gbe compliance test modes
- available in debugfs
+Subject: [PATCH] net: dsa: mv88e6xxx: make gbe compliance test modes available
+ in debugfs
 
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 ---

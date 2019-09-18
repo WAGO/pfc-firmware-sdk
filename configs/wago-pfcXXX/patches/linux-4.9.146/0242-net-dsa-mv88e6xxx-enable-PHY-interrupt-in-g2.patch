@@ -1,7 +1,7 @@
 From e72e8e35d1d9f6761cf931f727ccc90298ffaf4a Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 21 Sep 2018 08:55:23 +0200
-Subject: [PATCH 242/292] net: dsa: mv88e6xxx: enable PHY interrupt in g2
+Subject: [PATCH] net: dsa: mv88e6xxx: enable PHY interrupt in g2
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

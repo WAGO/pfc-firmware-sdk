@@ -1,7 +1,7 @@
 From b4cea01d74c6816f6192dc5b6b6c5be77c67f7cd Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 6 Nov 2018 08:59:03 +0100
-Subject: [PATCH 273/292] net: dsa: mv88e6xxx: add wago class device
+Subject: [PATCH] net: dsa: mv88e6xxx: add wago class device
 
 For abstraction of tcam rules access this patch add a
 class device in wago sysfs class.

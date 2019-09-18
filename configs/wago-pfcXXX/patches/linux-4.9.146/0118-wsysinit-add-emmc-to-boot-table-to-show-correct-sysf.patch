@@ -1,8 +1,8 @@
 From a4c73496ebb82b3e0ac7099778374ca2972326c5 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Thu, 5 Oct 2017 13:12:26 +0200
-Subject: [PATCH 118/292] wsysinit: add emmc to boot table to show correct
- sysfs boot mode values.
+Subject: [PATCH] wsysinit: add emmc to boot table to show correct sysfs boot
+ mode values.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

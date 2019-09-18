@@ -1,7 +1,7 @@
 From 2a6b922d96be8796da083a2918a00321c76f8dda Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Fri, 2 Dec 2016 12:48:45 +0000
-Subject: [PATCH 024/292] defconfig: pfc: turn on cpufreq stat
+Subject: [PATCH] defconfig: pfc: turn on cpufreq stat
 
 ---
  arch/arm/configs/wago_pfc_generic_defconfig | 34 ++++++-----------------------

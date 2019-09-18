@@ -1,8 +1,8 @@
 From 125e2b3615911cb650a2dbe324eb137bf56cd871 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Sep 2018 15:12:07 +0200
-Subject: [PATCH] arm: dts: am335x: add alias for board info; remove i2c0 from
- stripping
+Subject: [PATCH 100/144] arm: dts: am335x: add alias for board info; remove
+ i2c0 from stripping
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

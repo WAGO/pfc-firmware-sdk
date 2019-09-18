@@ -1,0 +1,43 @@
+From beeee78b71b468a55d10ea4b67b71b1935402e8a Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 13 May 2019 12:08:00 +0200
+Subject: [PATCH] ARM: dts: pfc 8217: switch to new devconf layout
+
+New released devices should use the new devconf layout. This layout
+allows us to use different oftrees (e.g. only hardware changes) for the
+same device.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8217.dts | 2 +-
+ arch/arm/boot/dts/wago-devconf.dtsi       | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8217.dts b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
+index 91c4ffe..5ffc7e5 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8217.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
+@@ -14,7 +14,7 @@
+ 
+ / {
+ 	model = "WAGO PFC200 750-8217";
+-	compatible = "wago,am335x-pfc-750_821x-001c", "wago,am335x-pfc", "ti,am33xx";
++	compatible = "wago,am335x-pfc-750_821x-1006", "wago,am335x-pfc", "ti,am33xx";
+ };
+ 
+ &cppi41dma {
+diff --git a/arch/arm/boot/dts/wago-devconf.dtsi b/arch/arm/boot/dts/wago-devconf.dtsi
+index 5f0c9e4..e5b1f6e 100644
+--- a/arch/arm/boot/dts/wago-devconf.dtsi
++++ b/arch/arm/boot/dts/wago-devconf.dtsi
+@@ -46,6 +46,7 @@
+  * |            1003 |   VTP 10" 762-4xxx |
+  * |            1004 |       PFC 750-8211 |
+  * |            1005 |       PAC 763-3301 |
++ * |            1006 |       PFC 750-8217 |
+  * |-----------------|--------------------|
+  *
+  * ============== LEGACY FORMAT ================================================
+-- 
+2.7.4
+

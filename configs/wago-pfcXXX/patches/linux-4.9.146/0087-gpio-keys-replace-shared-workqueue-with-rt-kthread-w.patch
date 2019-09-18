@@ -1,8 +1,7 @@
 From 4bd642ce8d916ade5b612326f090bdd8cbb2948e Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 18 May 2015 14:11:02 +0200
-Subject: [PATCH 087/292] gpio-keys: replace shared workqueue with rt kthread
- worker
+Subject: [PATCH] gpio-keys: replace shared workqueue with rt kthread worker
 
 * 3.18 version contributed by Oleg Karfich
 * ported to v4.9 kernel

@@ -77,6 +77,8 @@ $(DEP_FILES) : | $(GEN_DIRS)
 
 -include $(DEP_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(CLANG_TIDY_RULESET)),$(error CLANG_TIDY_RULESET has "$(CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(CLANG_TIDY_RULESET))"))
+
 libconfigtoolutils.a_LINT_SOURCES ?= $(filter-out $(libconfigtoolutils.a_NOLINT_SOURCES),$(libconfigtoolutils.a_SOURCES))
 OBJS_libconfigtoolutils.a := $(call objs,$(libconfigtoolutils.a_SOURCES),libconfigtoolutils.a/)
 DEPS_libconfigtoolutils.a := $(call deps,$(libconfigtoolutils.a_SOURCES),libconfigtoolutils.a/)
@@ -85,6 +87,8 @@ TIDYS_libconfigtoolutils.a := $(call tidys,$(libconfigtoolutils.a_LINT_SOURCES),
 $(TIDYS_libconfigtoolutils.a): $(libconfigtoolutils.a_PRECLANG_FILES)
 PLINTS_libconfigtoolutils.a := $(call plints,$(libconfigtoolutils.a_LINT_SOURCES),libconfigtoolutils.a/)
 $(PLINTS_libconfigtoolutils.a): $(libconfigtoolutils.a_PRECLANG_FILES)
+
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(libconfigtoolutils.a_CLANG_TIDY_RULESET)),$(error libconfigtoolutils.a_CLANG_TIDY_RULESET has "$(libconfigtoolutils.a_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(libconfigtoolutils.a_CLANG_TIDY_RULESET))"))
 
 libconfigtoolutils.a: $(BIN_DIR)/libconfigtoolutils.a
 
@@ -98,7 +102,7 @@ lint-libconfigtoolutils.a: flexelint-libconfigtoolutils.a clang-tidy-libconfigto
 
 $(LOBS_libconfigtoolutils.a): BUILDTARGET_LINTFLAGS:=$(libconfigtoolutils.a_LINTFLAGS)
 
-flexelint-libconfigtoolutils.a: $($(libconfigtoolutils.a_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_libconfigtoolutils.a)
+flexelint-libconfigtoolutils.a: $($(libconfigtoolutils.a_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(libconfigtoolutils.a_DISABLE_LINT)$(DISABLE_LINT)LOBS_libconfigtoolutils.a)
 
 $(TIDYS_libconfigtoolutils.a): BUILDTARGET_TIDYFLAGS:=$(libconfigtoolutils.a_TIDYFLAGS) -isystem $(OUT_DIR)/libconfigtoolutils.a -include lint_mac.h
 
@@ -108,7 +112,7 @@ $(TIDYS_libconfigtoolutils.a): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(str
 
 $(PLINTS_libconfigtoolutils.a): BUILDTARGET_PLINTFLAGS:=$(libconfigtoolutils.a_PLINTSFLAGS) -isystem $(OUT_DIR)/libconfigtoolutils.a -include lint_mac.h
 
-clang-tidy-libconfigtoolutils.a: $($(libconfigtoolutils.a_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_libconfigtoolutils.a)
+clang-tidy-libconfigtoolutils.a: $($(libconfigtoolutils.a_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(libconfigtoolutils.a_DISABLE_LINT)$(DISABLE_LINT)TIDYS_libconfigtoolutils.a)
 
 clean-clang-tidy-libconfigtoolutils.a:; $(SILENT)rm --force $(TIDYS_libconfigtoolutils.a)
 
@@ -139,6 +143,8 @@ $(TIDYS_libconfigtoolfail.a): $(libconfigtoolfail.a_PRECLANG_FILES)
 PLINTS_libconfigtoolfail.a := $(call plints,$(libconfigtoolfail.a_LINT_SOURCES),libconfigtoolfail.a/)
 $(PLINTS_libconfigtoolfail.a): $(libconfigtoolfail.a_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(libconfigtoolfail.a_CLANG_TIDY_RULESET)),$(error libconfigtoolfail.a_CLANG_TIDY_RULESET has "$(libconfigtoolfail.a_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(libconfigtoolfail.a_CLANG_TIDY_RULESET))"))
+
 libconfigtoolfail.a: $(BIN_DIR)/libconfigtoolfail.a
 
 $(DEPS_libconfigtoolfail.a) $(OBJS_libconfigtoolfail.a) $(LOBS_libconfigtoolfail.a) $(TIDYS_libconfigtoolfail.a) $(PLINTS_libconfigtoolfail.a) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolfail.a/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(libconfigtoolfail.a_CPPFLAGS)
@@ -151,7 +157,7 @@ lint-libconfigtoolfail.a: flexelint-libconfigtoolfail.a clang-tidy-libconfigtool
 
 $(LOBS_libconfigtoolfail.a): BUILDTARGET_LINTFLAGS:=$(libconfigtoolfail.a_LINTFLAGS)
 
-flexelint-libconfigtoolfail.a: $($(libconfigtoolfail.a_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_libconfigtoolfail.a)
+flexelint-libconfigtoolfail.a: $($(libconfigtoolfail.a_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(libconfigtoolfail.a_DISABLE_LINT)$(DISABLE_LINT)LOBS_libconfigtoolfail.a)
 
 $(TIDYS_libconfigtoolfail.a): BUILDTARGET_TIDYFLAGS:=$(libconfigtoolfail.a_TIDYFLAGS) -isystem $(OUT_DIR)/libconfigtoolfail.a -include lint_mac.h
 
@@ -161,7 +167,7 @@ $(TIDYS_libconfigtoolfail.a): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(stri
 
 $(PLINTS_libconfigtoolfail.a): BUILDTARGET_PLINTFLAGS:=$(libconfigtoolfail.a_PLINTSFLAGS) -isystem $(OUT_DIR)/libconfigtoolfail.a -include lint_mac.h
 
-clang-tidy-libconfigtoolfail.a: $($(libconfigtoolfail.a_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_libconfigtoolfail.a)
+clang-tidy-libconfigtoolfail.a: $($(libconfigtoolfail.a_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(libconfigtoolfail.a_DISABLE_LINT)$(DISABLE_LINT)TIDYS_libconfigtoolfail.a)
 
 clean-clang-tidy-libconfigtoolfail.a:; $(SILENT)rm --force $(TIDYS_libconfigtoolfail.a)
 
@@ -192,6 +198,8 @@ $(TIDYS_helloworld.elf): $(helloworld.elf_PRECLANG_FILES)
 PLINTS_helloworld.elf := $(call plints,$(helloworld.elf_LINT_SOURCES),helloworld.elf/)
 $(PLINTS_helloworld.elf): $(helloworld.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(helloworld.elf_CLANG_TIDY_RULESET)),$(error helloworld.elf_CLANG_TIDY_RULESET has "$(helloworld.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(helloworld.elf_CLANG_TIDY_RULESET))"))
+
 helloworld.elf: $(BIN_DIR)/helloworld.elf
 
 $(DEPS_helloworld.elf) $(OBJS_helloworld.elf) $(LOBS_helloworld.elf) $(TIDYS_helloworld.elf) $(PLINTS_helloworld.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/helloworld.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(helloworld.elf_CPPFLAGS)
@@ -204,7 +212,7 @@ lint-helloworld.elf: flexelint-helloworld.elf clang-tidy-helloworld.elf
 
 $(LOBS_helloworld.elf): BUILDTARGET_LINTFLAGS:=$(helloworld.elf_LINTFLAGS)
 
-flexelint-helloworld.elf: $($(helloworld.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_helloworld.elf)
+flexelint-helloworld.elf: $($(helloworld.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(helloworld.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_helloworld.elf)
 
 $(TIDYS_helloworld.elf): BUILDTARGET_TIDYFLAGS:=$(helloworld.elf_TIDYFLAGS) -isystem $(OUT_DIR)/helloworld.elf -include lint_mac.h
 
@@ -214,7 +222,7 @@ $(TIDYS_helloworld.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(h
 
 $(PLINTS_helloworld.elf): BUILDTARGET_PLINTFLAGS:=$(helloworld.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/helloworld.elf -include lint_mac.h
 
-clang-tidy-helloworld.elf: $($(helloworld.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_helloworld.elf)
+clang-tidy-helloworld.elf: $($(helloworld.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(helloworld.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_helloworld.elf)
 
 clean-clang-tidy-helloworld.elf:; $(SILENT)rm --force $(TIDYS_helloworld.elf)
 
@@ -245,6 +253,8 @@ $(TIDYS_config_linux_user.elf): $(config_linux_user.elf_PRECLANG_FILES)
 PLINTS_config_linux_user.elf := $(call plints,$(config_linux_user.elf_LINT_SOURCES),config_linux_user.elf/)
 $(PLINTS_config_linux_user.elf): $(config_linux_user.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(config_linux_user.elf_CLANG_TIDY_RULESET)),$(error config_linux_user.elf_CLANG_TIDY_RULESET has "$(config_linux_user.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(config_linux_user.elf_CLANG_TIDY_RULESET))"))
+
 config_linux_user.elf: $(BIN_DIR)/config_linux_user.elf
 
 $(DEPS_config_linux_user.elf) $(OBJS_config_linux_user.elf) $(LOBS_config_linux_user.elf) $(TIDYS_config_linux_user.elf) $(PLINTS_config_linux_user.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(config_linux_user.elf_CPPFLAGS)
@@ -257,7 +267,7 @@ lint-config_linux_user.elf: flexelint-config_linux_user.elf clang-tidy-config_li
 
 $(LOBS_config_linux_user.elf): BUILDTARGET_LINTFLAGS:=$(config_linux_user.elf_LINTFLAGS)
 
-flexelint-config_linux_user.elf: $($(config_linux_user.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_config_linux_user.elf)
+flexelint-config_linux_user.elf: $($(config_linux_user.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(config_linux_user.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_config_linux_user.elf)
 
 $(TIDYS_config_linux_user.elf): BUILDTARGET_TIDYFLAGS:=$(config_linux_user.elf_TIDYFLAGS) -isystem $(OUT_DIR)/config_linux_user.elf -include lint_mac.h
 
@@ -267,7 +277,7 @@ $(TIDYS_config_linux_user.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(st
 
 $(PLINTS_config_linux_user.elf): BUILDTARGET_PLINTFLAGS:=$(config_linux_user.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/config_linux_user.elf -include lint_mac.h
 
-clang-tidy-config_linux_user.elf: $($(config_linux_user.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_config_linux_user.elf)
+clang-tidy-config_linux_user.elf: $($(config_linux_user.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(config_linux_user.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_config_linux_user.elf)
 
 clean-clang-tidy-config_linux_user.elf:; $(SILENT)rm --force $(TIDYS_config_linux_user.elf)
 
@@ -298,6 +308,8 @@ $(TIDYS_reserved_area.elf): $(reserved_area.elf_PRECLANG_FILES)
 PLINTS_reserved_area.elf := $(call plints,$(reserved_area.elf_LINT_SOURCES),reserved_area.elf/)
 $(PLINTS_reserved_area.elf): $(reserved_area.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(reserved_area.elf_CLANG_TIDY_RULESET)),$(error reserved_area.elf_CLANG_TIDY_RULESET has "$(reserved_area.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(reserved_area.elf_CLANG_TIDY_RULESET))"))
+
 reserved_area.elf: $(BIN_DIR)/reserved_area.elf
 
 $(DEPS_reserved_area.elf) $(OBJS_reserved_area.elf) $(LOBS_reserved_area.elf) $(TIDYS_reserved_area.elf) $(PLINTS_reserved_area.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(reserved_area.elf_CPPFLAGS)
@@ -310,7 +322,7 @@ lint-reserved_area.elf: flexelint-reserved_area.elf clang-tidy-reserved_area.elf
 
 $(LOBS_reserved_area.elf): BUILDTARGET_LINTFLAGS:=$(reserved_area.elf_LINTFLAGS)
 
-flexelint-reserved_area.elf: $($(reserved_area.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_reserved_area.elf)
+flexelint-reserved_area.elf: $($(reserved_area.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(reserved_area.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_reserved_area.elf)
 
 $(TIDYS_reserved_area.elf): BUILDTARGET_TIDYFLAGS:=$(reserved_area.elf_TIDYFLAGS) -isystem $(OUT_DIR)/reserved_area.elf -include lint_mac.h
 
@@ -320,7 +332,7 @@ $(TIDYS_reserved_area.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip 
 
 $(PLINTS_reserved_area.elf): BUILDTARGET_PLINTFLAGS:=$(reserved_area.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/reserved_area.elf -include lint_mac.h
 
-clang-tidy-reserved_area.elf: $($(reserved_area.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_reserved_area.elf)
+clang-tidy-reserved_area.elf: $($(reserved_area.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(reserved_area.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_reserved_area.elf)
 
 clean-clang-tidy-reserved_area.elf:; $(SILENT)rm --force $(TIDYS_reserved_area.elf)
 
@@ -351,6 +363,8 @@ $(TIDYS_libconfigtoolutils_tests.elf): $(libconfigtoolutils_tests.elf_PRECLANG_F
 PLINTS_libconfigtoolutils_tests.elf := $(call plints,$(libconfigtoolutils_tests.elf_LINT_SOURCES),libconfigtoolutils_tests.elf/)
 $(PLINTS_libconfigtoolutils_tests.elf): $(libconfigtoolutils_tests.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(libconfigtoolutils_tests.elf_CLANG_TIDY_RULESET)),$(error libconfigtoolutils_tests.elf_CLANG_TIDY_RULESET has "$(libconfigtoolutils_tests.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(libconfigtoolutils_tests.elf_CLANG_TIDY_RULESET))"))
+
 libconfigtoolutils_tests.elf: $(BIN_DIR)/libconfigtoolutils_tests.elf
 
 $(DEPS_libconfigtoolutils_tests.elf) $(OBJS_libconfigtoolutils_tests.elf) $(LOBS_libconfigtoolutils_tests.elf) $(TIDYS_libconfigtoolutils_tests.elf) $(PLINTS_libconfigtoolutils_tests.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/libconfigtoolutils_tests.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(libconfigtoolutils_tests.elf_CPPFLAGS)
@@ -363,7 +377,7 @@ lint-libconfigtoolutils_tests.elf: flexelint-libconfigtoolutils_tests.elf clang-
 
 $(LOBS_libconfigtoolutils_tests.elf): BUILDTARGET_LINTFLAGS:=$(libconfigtoolutils_tests.elf_LINTFLAGS)
 
-flexelint-libconfigtoolutils_tests.elf: $($(libconfigtoolutils_tests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_libconfigtoolutils_tests.elf)
+flexelint-libconfigtoolutils_tests.elf: $($(libconfigtoolutils_tests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(libconfigtoolutils_tests.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_libconfigtoolutils_tests.elf)
 
 $(TIDYS_libconfigtoolutils_tests.elf): BUILDTARGET_TIDYFLAGS:=$(libconfigtoolutils_tests.elf_TIDYFLAGS) -isystem $(OUT_DIR)/libconfigtoolutils_tests.elf -include lint_mac.h
 
@@ -373,7 +387,7 @@ $(TIDYS_libconfigtoolutils_tests.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(
 
 $(PLINTS_libconfigtoolutils_tests.elf): BUILDTARGET_PLINTFLAGS:=$(libconfigtoolutils_tests.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/libconfigtoolutils_tests.elf -include lint_mac.h
 
-clang-tidy-libconfigtoolutils_tests.elf: $($(libconfigtoolutils_tests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_libconfigtoolutils_tests.elf)
+clang-tidy-libconfigtoolutils_tests.elf: $($(libconfigtoolutils_tests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(libconfigtoolutils_tests.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_libconfigtoolutils_tests.elf)
 
 clean-clang-tidy-libconfigtoolutils_tests.elf:; $(SILENT)rm --force $(TIDYS_libconfigtoolutils_tests.elf)
 
@@ -404,6 +418,8 @@ $(TIDYS_config_linux_user_tests.elf): $(config_linux_user_tests.elf_PRECLANG_FIL
 PLINTS_config_linux_user_tests.elf := $(call plints,$(config_linux_user_tests.elf_LINT_SOURCES),config_linux_user_tests.elf/)
 $(PLINTS_config_linux_user_tests.elf): $(config_linux_user_tests.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(config_linux_user_tests.elf_CLANG_TIDY_RULESET)),$(error config_linux_user_tests.elf_CLANG_TIDY_RULESET has "$(config_linux_user_tests.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(config_linux_user_tests.elf_CLANG_TIDY_RULESET))"))
+
 config_linux_user_tests.elf: $(BIN_DIR)/config_linux_user_tests.elf
 
 $(DEPS_config_linux_user_tests.elf) $(OBJS_config_linux_user_tests.elf) $(LOBS_config_linux_user_tests.elf) $(TIDYS_config_linux_user_tests.elf) $(PLINTS_config_linux_user_tests.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/config_linux_user_tests.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(config_linux_user_tests.elf_CPPFLAGS)
@@ -416,7 +432,7 @@ lint-config_linux_user_tests.elf: flexelint-config_linux_user_tests.elf clang-ti
 
 $(LOBS_config_linux_user_tests.elf): BUILDTARGET_LINTFLAGS:=$(config_linux_user_tests.elf_LINTFLAGS)
 
-flexelint-config_linux_user_tests.elf: $($(config_linux_user_tests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_config_linux_user_tests.elf)
+flexelint-config_linux_user_tests.elf: $($(config_linux_user_tests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(config_linux_user_tests.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_config_linux_user_tests.elf)
 
 $(TIDYS_config_linux_user_tests.elf): BUILDTARGET_TIDYFLAGS:=$(config_linux_user_tests.elf_TIDYFLAGS) -isystem $(OUT_DIR)/config_linux_user_tests.elf -include lint_mac.h
 
@@ -426,7 +442,7 @@ $(TIDYS_config_linux_user_tests.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,
 
 $(PLINTS_config_linux_user_tests.elf): BUILDTARGET_PLINTFLAGS:=$(config_linux_user_tests.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/config_linux_user_tests.elf -include lint_mac.h
 
-clang-tidy-config_linux_user_tests.elf: $($(config_linux_user_tests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_config_linux_user_tests.elf)
+clang-tidy-config_linux_user_tests.elf: $($(config_linux_user_tests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(config_linux_user_tests.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_config_linux_user_tests.elf)
 
 clean-clang-tidy-config_linux_user_tests.elf:; $(SILENT)rm --force $(TIDYS_config_linux_user_tests.elf)
 
@@ -457,6 +473,8 @@ $(TIDYS_reserved_area_tests.elf): $(reserved_area_tests.elf_PRECLANG_FILES)
 PLINTS_reserved_area_tests.elf := $(call plints,$(reserved_area_tests.elf_LINT_SOURCES),reserved_area_tests.elf/)
 $(PLINTS_reserved_area_tests.elf): $(reserved_area_tests.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(reserved_area_tests.elf_CLANG_TIDY_RULESET)),$(error reserved_area_tests.elf_CLANG_TIDY_RULESET has "$(reserved_area_tests.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(reserved_area_tests.elf_CLANG_TIDY_RULESET))"))
+
 reserved_area_tests.elf: $(BIN_DIR)/reserved_area_tests.elf
 
 $(DEPS_reserved_area_tests.elf) $(OBJS_reserved_area_tests.elf) $(LOBS_reserved_area_tests.elf) $(TIDYS_reserved_area_tests.elf) $(PLINTS_reserved_area_tests.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Debug/reserved_area_tests.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(reserved_area_tests.elf_CPPFLAGS)
@@ -469,7 +487,7 @@ lint-reserved_area_tests.elf: flexelint-reserved_area_tests.elf clang-tidy-reser
 
 $(LOBS_reserved_area_tests.elf): BUILDTARGET_LINTFLAGS:=$(reserved_area_tests.elf_LINTFLAGS)
 
-flexelint-reserved_area_tests.elf: $($(reserved_area_tests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_reserved_area_tests.elf)
+flexelint-reserved_area_tests.elf: $($(reserved_area_tests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(reserved_area_tests.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_reserved_area_tests.elf)
 
 $(TIDYS_reserved_area_tests.elf): BUILDTARGET_TIDYFLAGS:=$(reserved_area_tests.elf_TIDYFLAGS) -isystem $(OUT_DIR)/reserved_area_tests.elf -include lint_mac.h
 
@@ -479,7 +497,7 @@ $(TIDYS_reserved_area_tests.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(
 
 $(PLINTS_reserved_area_tests.elf): BUILDTARGET_PLINTFLAGS:=$(reserved_area_tests.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/reserved_area_tests.elf -include lint_mac.h
 
-clang-tidy-reserved_area_tests.elf: $($(reserved_area_tests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_reserved_area_tests.elf)
+clang-tidy-reserved_area_tests.elf: $($(reserved_area_tests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(reserved_area_tests.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_reserved_area_tests.elf)
 
 clean-clang-tidy-reserved_area_tests.elf:; $(SILENT)rm --force $(TIDYS_reserved_area_tests.elf)
 

@@ -1,7 +1,7 @@
 From f233fab5f6600f3acfc0dc9361bff006433961c2 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 10 Jul 2018 11:40:43 +0200
-Subject: [PATCH] xload-pfc: adjust handling for AM35XX MLO with !OF
+Subject: [PATCH 039/144] xload-pfc: adjust handling for AM35XX MLO with !OF
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

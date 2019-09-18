@@ -1,7 +1,7 @@
 From 12b71b150e3e96010c086ebcef603bcb275bd067 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Wed, 28 Jun 2017 08:14:04 +0000
-Subject: [PATCH 068/292] dts: pfc200v3: remove led definition; add usv node
+Subject: [PATCH] dts: pfc200v3: remove led definition; add usv node
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 67 +++++-------------------

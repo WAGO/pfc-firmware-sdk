@@ -1,7 +1,7 @@
 From 7c65faccd183a57645942cf4c67e1a6df86d7dab Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 20 Apr 2018 11:54:05 +0200
-Subject: [PATCH] arm: dts: am335x: add wago pfc200 750-821x
+Subject: [PATCH 004/144] arm: dts: am335x: add wago pfc200 750-821x
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

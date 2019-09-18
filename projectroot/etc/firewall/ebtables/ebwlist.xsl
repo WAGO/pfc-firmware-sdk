@@ -15,7 +15,10 @@
 *filter
 :INPUT ACCEPT
 :FORWARD ACCEPT
+-A FORWARD --logical-in br0 -j DROP
+-A FORWARD --logical-in br1 -j DROP
 -A FORWARD --logical-in br2 -j DROP
+-A FORWARD --logical-in br3 -j DROP
 :OUTPUT ACCEPT
 
 *nat

@@ -1,0 +1,34 @@
+From 322d2bc25089a730b482ab8b6a3796b478aa7583 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 15 Jan 2019 15:55:33 +0100
+Subject: [PATCH 156/160] misc: xsection: add imx6 i2c dependency in case of
+ vtpctp config
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ drivers/misc/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 402d644..c1874bf 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -20,12 +20,12 @@ config STATE_DRV
+ 	depends on OFDEVICE
+ 	depends on STATE
+ 
+-if MACH_WAGO_PFC_AM335X || MACH_WAGO_PFC_AM35XX
+-
++if MACH_WAGO_PFC_AM335X || MACH_WAGO_PFC_AM35XX || MACH_WAGO_VTPCTP_MX6
+ config XSECTION
+ 	bool "Xsection driver"
+ 	select I2C
+-	select I2C_OMAP
++	select I2C_OMAP if ARCH_OMAP
++	select I2C_IMX if ARCH_IMX
+ 	select EEPROM_AT24
+ 	help
+ 	  Controls the XSECTION items that are located e.g. in eeprom like
+-- 
+2.7.4
+

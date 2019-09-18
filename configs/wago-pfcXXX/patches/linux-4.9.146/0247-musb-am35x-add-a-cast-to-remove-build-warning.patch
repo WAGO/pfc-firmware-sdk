@@ -1,7 +1,7 @@
 From 9625a911a9dba63ce8259a3b05bb74e174f0f0eb Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 2 Oct 2018 10:28:53 +0000
-Subject: [PATCH 247/292] musb: am35x: add a cast to remove build warning
+Subject: [PATCH] musb: am35x: add a cast to remove build warning
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

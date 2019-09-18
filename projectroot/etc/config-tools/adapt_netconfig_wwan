@@ -76,7 +76,8 @@ WWAN_INTERFACE_DEFINITION="\<iface\>\n\
 
 OUTFILE="$2"
 devconf_flag_modem="$(($(/etc/config-tools/get_typelabel_value DEVCONF) & (1 << 4) ? 1 : 0 ))"
-if [ "$devconf_flag_modem" == "1" ]; then
+devconf_flag_4g_modem=$(/etc/config-tools/get_typelabel_value DEVCONF)
+if [ "$devconf_flag_modem" == "1" -o "$devconf_flag_4g_modem" == "0x1006" ]; then
   cat $NETCONFIG_FILE | sed "/\/interfaces/i$WWAN_INTERFACE_DEFINITION" > $OUTFILE
 else
   cp $NETCONFIG_FILE $OUTFILE &> /dev/null

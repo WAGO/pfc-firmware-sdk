@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBCOMMONHEADER) += libcommonheader
 #
 # Paths and names
 #
-LIBCOMMONHEADER_VERSION        := 0.0.1
+LIBCOMMONHEADER_VERSION        := 0.1.0
 LIBCOMMONHEADER_MD5            :=
 LIBCOMMONHEADER                := common-header
 LIBCOMMONHEADER_URL            := file://shared_public/$(LIBCOMMONHEADER)

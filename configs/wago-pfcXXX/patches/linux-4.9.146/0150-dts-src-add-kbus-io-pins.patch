@@ -1,7 +1,7 @@
 From 1a26b21b309d263ad00977477ed638c909f28702 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Mon, 12 Feb 2018 11:42:08 +0100
-Subject: [PATCH 150/292] dts: src: add kbus io pins.
+Subject: [PATCH] dts: src: add kbus io pins.
 
 * configure kbus io pins as gpios, spi and uart
 * add src specific kbus spi device to spidev driver

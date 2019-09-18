@@ -1,7 +1,7 @@
 From 9e72fbcb1ad056b79e335d4f92c92fb35b1cc3d3 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 3 Jul 2017 16:20:20 +0200
-Subject: [PATCH 074/292] net: dsa: ksz8863: fix compiler warning
+Subject: [PATCH] net: dsa: ksz8863: fix compiler warning
 
 ---
  drivers/net/dsa/ksz8863.c | 1 -

@@ -1,7 +1,7 @@
 From 3a42c9f197b306881b0235b855d9d109ba8eabdc Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 18 Oct 2018 18:55:43 +0200
-Subject: [PATCH 254/292] ARM: dts: pfc-setupfw: add proper switch config
+Subject: [PATCH] ARM: dts: pfc-setupfw: add proper switch config
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1,7 +1,7 @@
 From a2d0c6c0d380692afdd5eae4d658e6f1801dc709 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 20 Jul 2018 12:05:46 +0200
-Subject: [PATCH 191/292] swconfig: speed up ATU flush for MV88E6321
+Subject: [PATCH] swconfig: speed up ATU flush for MV88E6321
 
 ATU flush functionality is needed by PROFINET.
 The requirement is to start ATU flush and return

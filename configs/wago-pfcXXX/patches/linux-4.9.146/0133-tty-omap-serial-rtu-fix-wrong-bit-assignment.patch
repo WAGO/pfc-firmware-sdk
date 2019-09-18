@@ -1,7 +1,7 @@
 From 568e5117151a30dfdcf1f19effb24d7975c44e5f Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 11 Jan 2017 10:57:54 +0000
-Subject: [PATCH 133/292] tty: omap-serial-rtu: fix wrong bit assignment
+Subject: [PATCH] tty: omap-serial-rtu: fix wrong bit assignment
 
         This Bugfix fixes issue WAT22319. The tty driver object
         was currupted due to wrong bit assignment handling.

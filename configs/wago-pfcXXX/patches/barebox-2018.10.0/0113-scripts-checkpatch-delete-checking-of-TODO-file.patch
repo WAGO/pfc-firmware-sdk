@@ -1,7 +1,7 @@
 From 65084ada8b297d075563687ae9a9af43c51b61ea Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 12 Oct 2018 12:07:28 +0200
-Subject: [PATCH] scripts: checkpatch: delete checking of TODO file
+Subject: [PATCH 113/144] scripts: checkpatch: delete checking of TODO file
 
 checkpatch checks if TODO file is in root directory. But TODO file
 was removed by b3baf2d861490184f058ed5966a36bf5679ef181 commit.

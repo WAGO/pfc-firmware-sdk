@@ -1,7 +1,7 @@
 From 2030605af4c8c2c238bb1076404254a9aecc3a70 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Thu, 1 Feb 2018 14:47:53 +0100
-Subject: [PATCH 145/292] defconfig: src: enable iio hrtimer trigger.
+Subject: [PATCH] defconfig: src: enable iio hrtimer trigger.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

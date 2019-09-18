@@ -1,8 +1,7 @@
 From e8735b2e591eae884ce5c9d0a62f02a080894551 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 27 Jun 2016 15:26:33 +0000
-Subject: [PATCH 062/292] omap: iocnt: add io counter based on raw hwmod and dm
- timer
+Subject: [PATCH] omap: iocnt: add io counter based on raw hwmod and dm timer
 
 ---
  arch/arm/configs/wago_src_generic_defconfig |   8 +

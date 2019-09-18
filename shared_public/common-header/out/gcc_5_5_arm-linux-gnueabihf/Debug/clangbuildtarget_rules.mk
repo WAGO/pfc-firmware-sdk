@@ -21,6 +21,8 @@ $(DEP_FILES) : | $(GEN_DIRS)
 
 -include $(DEP_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(CLANG_TIDY_RULESET)),$(error CLANG_TIDY_RULESET has "$(CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(CLANG_TIDY_RULESET))"))
+
 alltests.elf_LINT_SOURCES ?= $(filter-out $(alltests.elf_NOLINT_SOURCES),$(alltests.elf_SOURCES))
 OBJS_alltests.elf := $(call objs,$(alltests.elf_SOURCES),alltests.elf/)
 DEPS_alltests.elf := $(call deps,$(alltests.elf_SOURCES),alltests.elf/)
@@ -29,6 +31,8 @@ TIDYS_alltests.elf := $(call tidys,$(alltests.elf_LINT_SOURCES),alltests.elf/)
 $(TIDYS_alltests.elf): $(alltests.elf_PRECLANG_FILES)
 PLINTS_alltests.elf := $(call plints,$(alltests.elf_LINT_SOURCES),alltests.elf/)
 $(PLINTS_alltests.elf): $(alltests.elf_PRECLANG_FILES)
+
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(alltests.elf_CLANG_TIDY_RULESET)),$(error alltests.elf_CLANG_TIDY_RULESET has "$(alltests.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(alltests.elf_CLANG_TIDY_RULESET))"))
 
 alltests.elf: $(BIN_DIR)/alltests.elf
 
@@ -42,7 +46,7 @@ lint-alltests.elf: flexelint-alltests.elf clang-tidy-alltests.elf
 
 $(LOBS_alltests.elf): BUILDTARGET_LINTFLAGS:=$(alltests.elf_LINTFLAGS)
 
-flexelint-alltests.elf: $($(alltests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_alltests.elf)
+flexelint-alltests.elf: $($(alltests.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(alltests.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_alltests.elf)
 
 $(TIDYS_alltests.elf): BUILDTARGET_TIDYFLAGS:=$(alltests.elf_TIDYFLAGS) -isystem $(OUT_DIR)/alltests.elf -include lint_mac.h
 
@@ -52,7 +56,7 @@ $(TIDYS_alltests.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(all
 
 $(PLINTS_alltests.elf): BUILDTARGET_PLINTFLAGS:=$(alltests.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/alltests.elf -include lint_mac.h
 
-clang-tidy-alltests.elf: $($(alltests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_alltests.elf)
+clang-tidy-alltests.elf: $($(alltests.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(alltests.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_alltests.elf)
 
 clean-clang-tidy-alltests.elf:; $(SILENT)rm --force $(TIDYS_alltests.elf)
 

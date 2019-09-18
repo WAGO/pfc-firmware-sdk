@@ -1,8 +1,7 @@
 From 06f5a88cb72c00b3c93b277789b94db34edfe2d7 Mon Sep 17 00:00:00 2001
 From: Axel Wueste <axel.wueste@wago.com>
 Date: Fri, 15 Sep 2017 07:10:16 +0200
-Subject: [PATCH 102/292] drivers: can: ensure can restart after bus
- short-circuit
+Subject: [PATCH] drivers: can: ensure can restart after bus short-circuit
 
 ---
  drivers/net/can/c_can/c_can.c | 16 +++++++++++++---

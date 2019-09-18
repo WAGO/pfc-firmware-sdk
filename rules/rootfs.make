@@ -47,7 +47,7 @@ ifdef PTXCONF_ROOTFS_DEV_INITIAL
 endif
 ifdef PTXCONF_ROOTFS_HOME
 # add full access for group admin
-	@$(call install_copy, rootfs, 0, $(PTXCONF_ROOTFS_PASSWD_ADMIN_GID), 2775, /home)
+	@$(call install_copy, rootfs, 0, 0, 0755, /home)
 endif
 ifdef PTXCONF_ROOTFS_HOME_ROOT
 	@$(call install_copy, rootfs, 0, 0, 0700, /root)

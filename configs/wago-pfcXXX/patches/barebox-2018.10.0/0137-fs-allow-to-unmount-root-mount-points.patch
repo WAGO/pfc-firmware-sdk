@@ -1,7 +1,7 @@
 From 41af8805a45c8d46980a72bf66734423cd5a10e5 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 7 Nov 2018 10:09:22 +0000
-Subject: [PATCH] fs: allow to unmount root mount points
+Subject: [PATCH 137/144] fs: allow to unmount root mount points
 
 In our AM335x based products we use eMMC as an internal boot device and
 as alternative boot peripheral a SD card. When a SD card is detected it will be

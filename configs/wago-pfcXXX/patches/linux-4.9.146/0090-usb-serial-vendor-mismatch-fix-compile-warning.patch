@@ -1,7 +1,7 @@
 From 3359637e11ae4eb47e445334e4054efd00857553 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 14 Aug 2017 12:30:47 +0200
-Subject: [PATCH 090/292] usb: serial: vendor mismatch; fix compile warning
+Subject: [PATCH] usb: serial: vendor mismatch; fix compile warning
 
 	due to kernel version 4.9.y the commit
 	21586e4dcc9b815555a848f6151e96247f1c2f3f add

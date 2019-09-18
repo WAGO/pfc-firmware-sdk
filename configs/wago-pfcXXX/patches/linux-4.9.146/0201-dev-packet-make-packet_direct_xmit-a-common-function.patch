@@ -1,8 +1,7 @@
 From 2c7e4b0a6dedc2fa3244891466451953765f9b3b Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Wed, 23 May 2018 13:21:49 +0200
-Subject: [PATCH 201/292] dev: packet: make packet_direct_xmit a common
- function
+Subject: [PATCH] dev: packet: make packet_direct_xmit a common function
 
 The new dev_direct_xmit will be used by AF_XDP in later commits.
 

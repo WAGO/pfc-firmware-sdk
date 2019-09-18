@@ -23,7 +23,6 @@ fi
 
 statusFile="/var/www/wbm/firmware_backup_status"
 DEFAULTDESTDIR="/mnt/__destination_dir"
-DELETE_ALL_BACKUP_FILES=1
 
 function SavePartition
 {
@@ -44,7 +43,7 @@ function SavePartition
     status=$?
     # Provide encryption passphrase via filedescriptor 5 to not show up in "ps"
   fi 5<< EOF
-${encPassphrase}
+${ENCPASSPHRASE}
 EOF
 
   return $status
@@ -64,11 +63,8 @@ function do_cleanup
      if [[ "$usedSpace" == "100%" ]]; then
        status=$NOT_ENOUGH_SPACE_ERROR
        SetLastError "Not enough space on target. Could not generate backup files."
-     else
-       status=$SHELL_ERROR
-       SetLastError "Could not generate backup files. Please check your backup target."
      fi
-     initPartition 0
+     initPartition
      ;;
   esac
 
@@ -77,43 +73,31 @@ function do_cleanup
     umount "${DEFAULTDESTDIR}"
   fi
 
-  # remove status file
   rm -rf "${DEFAULTDESTDIR}"
   rm -f "$statusFile" /tmp/ignored_file_list.txt
 }
 
 function initPartition
 {
-  local codeSysResFile="${destinationDir}/${CODESYS_FILENAME}.tgz$encExt"
-  local systemResFile="${destinationDir}/${SYSTEM_FILENAME}.tgz$encExt"
-  local settingsResFile="${destinationDir}/${SETTINGS_FILENAME}$encExt"
+  local deleteAll="$1"
+  local codeSysResFile="${destinationDir}/${CODESYS_FILENAME}.tgz$ENC_EXT"
+  local systemResFile="${destinationDir}/${SYSTEM_FILENAME}.tgz$ENC_EXT"
+  local settingsResFile="${destinationDir}/${SETTINGS_FILENAME}$ENC_EXT"
   local autoAttr="auto_"
-  local deleteAll=$1
- 
-  if [ "$deleteAll" = "$DELETE_ALL_BACKUP_FILES" ] || [ "$packageCodesys" = "1" ]; then
-    rm -f $codeSysResFile
-  fi
-  if [ "$deleteAll" = "$DELETE_ALL_BACKUP_FILES" ] || [ "$packageSystem" = "1" ]; then
-    rm -f $systemResFile
-  fi
-  if [ "$deleteAll" = "$DELETE_ALL_BACKUP_FILES" ] || [ "$packageSettings" = "1" ]; then
-    rm -f $settingsResFile
-  fi
-  
+
+  [ "$deleteAll" ]             && rm -f "$codeSysResFile" "$systemResFile" "$settingsResFile"
+  [ "$packageCodesys" = "1" ]  && rm -f "$codeSysResFile"
+  [ "$packageSystem" = "1" ]   && rm -f "$systemResFile"
+  [ "$packageSettings" = "1" ] && rm -f "$settingsResFile"
+
   # delete all (?) plaintext auto update files when generating new backups?
   # encrypted auto files were not generated (we prevent this)
-  
+
   # in case of an error during backup process delete all generated auto backup files
-  if [ "$deleteAll" != "$DELETE_ALL_BACKUP_FILES" ] && [ "$activateAutoUpdate" = 1 ]; then
-    if [ "$packageCodesys" = "1" ]; then
-      rm -f ${destinationDir}/$autoAttr${CODESYS_FILENAME}.tgz
-    fi
-    if [ "$packageSystem" = "1" ]; then
-      rm -f ${destinationDir}/$autoAttr${SYSTEM_FILENAME}.tgz
-    fi
-    if [ "$packageSettings" = "1" ]; then
-      rm -f ${destinationDir}/$autoAttr${SETTINGS_FILENAME}
-    fi
+  if [ -z "$deleteAll" ] && [ "$activateAutoUpdate" = "1" ]; then
+    [ "$packageCodesys" = "1" ]  && rm -f "${destinationDir}/$autoAttr${CODESYS_FILENAME}.tgz"
+    [ "$packageSystem" = "1" ]   && rm -f "${destinationDir}/$autoAttr${SYSTEM_FILENAME}.tgz"
+    [ "$packageSettings" = "1" ] && rm -f "${destinationDir}/$autoAttr${SETTINGS_FILENAME}"
   fi
 }
 
@@ -152,7 +136,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 
   echo "auto-update: 1 to activate auto update. May be omitted otherwise"
   echo "download-dir: directory to save the backup file if the device medium is network"
-  echo "passphrase: password for backup encryption"
+  echo "passphrase: backup will optionally be encrypted with this passphrase if given"
   exit $status
 fi
 
@@ -162,7 +146,7 @@ packageCodesys=`GetParameterValue package-codesys $*`
 packageSettings=`GetParameterValue package-settings $*`
 packageSystem=`GetParameterValue package-system $*`
 # FIXME: Encryption password on the command line (sigh)
-encPassphrase=`GetParameterValue passphrase $*`
+ENCPASSPHRASE=`GetParameterValue passphrase $*`
 callMode=$(GetParameterValue callMode $*)
 #echo "packageAll:"$packageAll "packageCodesys:"$packageCodesys "packageSettings:"$packageSettings "packageSystem:"$packageSystem
 
@@ -176,18 +160,18 @@ if [ -n "$packageAll" ] && [ "$packageAll" = "1" ]; then
   packageSystem=1
 fi
 
-if [ -n "$encPassphrase" ]; then
-  do_encrypt="yes"
+if [ -n "$ENCPASSPHRASE" ]; then
+  DO_ENCRYPT="yes"
   # Provide encryption passphrase via filedescriptor 5 to not show up in "ps"
   # Filedescriptor 3 and 4 are occupied by "SuppressMessageOutput"
   ENCRYPT="openssl enc -aes-256-cfb -md sha512 -pass fd:5"
-  encExt=".enc"
+  ENC_EXT=".enc"
 else
-  do_encrypt="no"
+  DO_ENCRYPT="no"
   ENCRYPT=cat
-  encExt=""
+  ENC_EXT=""
 fi
-export ENCRYPT encExt do_encrypt
+export ENCRYPT ENC_EXT DO_ENCRYPT
 
 # check input parameter
 if [ "$packageCodesys" != "1" ] && [ "$packageSettings" != "1" ] && [ "$packageSystem" != "1" ]; then
@@ -196,8 +180,8 @@ if [ "$packageCodesys" != "1" ] && [ "$packageSettings" != "1" ] && [ "$packageS
 fi
 
 # check input parameter passphrase
-if [ "$do_encrypt" = yes ]; then
-    CheckEncryptionPassphrase "$encPassphrase"
+if [ "$DO_ENCRYPT" = yes ]; then
+    CheckEncryptionPassphrase "$ENCPASSPHRASE"
     if [ $? -ne 0 ]; then
       SetLastError "weak/invalid encryption passphrase"
       exit $INVALID_PARAMETER
@@ -235,7 +219,7 @@ fi
 # set filename appendix for auto update feature if requested
 autoUpdateAppendix=""
 if [ "$activateAutoUpdate" = 1 ]; then
-  if [ "$do_encrypt" = no ]; then
+  if [ "$DO_ENCRYPT" = no ]; then
     autoUpdateAppendix="auto_"
   else
     status=$EXECUTABLE_ERROR
@@ -306,7 +290,7 @@ else
   # We have to delete the plaintext files in destination partition if encrypted mode is active.
   # In this case we could delete all plaintext files before backup.
   # If encryption is active there schould no plaintext backup file in destination partition !!!!  
-  initPartition "$DELETE_ALL_BACKUP_FILES"
+  initPartition deleteAll
 fi
 
 # now we should have any directory to save our data and can continue with generating it
@@ -314,7 +298,7 @@ if [ "$status" = "$SUCCESS" ]; then
 
   # settings must be saved -> use special script to create settings file and move it directly to destination (device or directory for download)
   if [ "$packageSettings" = "1" ]; then
-    settingsBackupFile="${destinationDir}/${autoUpdateAppendix}${SETTINGS_FILENAME}${encExt}"
+    settingsBackupFile="${destinationDir}/${autoUpdateAppendix}${SETTINGS_FILENAME}${ENC_EXT}"
     #echo "save settings destinationDir:${destinationDir}"
     echo "Saving settings" > "$statusFile"
 
@@ -325,12 +309,12 @@ if [ "$status" = "$SUCCESS" ]; then
     fi
 
     # Provide encryption passphrase via filedescriptor 5 to not show up in "ps"
-    if [ "${do_encrypt}" = 'yes' ]; then
+    if [ "${DO_ENCRYPT}" = 'yes' ]; then
       $ENCRYPT <"${settingsBackupFile}" >"${settingsBackupFile}.tmp" \
         && mv "${settingsBackupFile}.tmp" "${settingsBackupFile}" \
         && sync
     fi 5<< EOF
-${encPassphrase}
+${ENCPASSPHRASE}
 EOF
 
   fi
@@ -355,9 +339,5 @@ trap - EXIT
 do_cleanup
 
 sync
-
-if [[ "$status" == "$NOT_ENOUGH_SPACE_ERROR" ]]; then
-  SetLastError "Not enough space on target."
-fi
 
 exit $status

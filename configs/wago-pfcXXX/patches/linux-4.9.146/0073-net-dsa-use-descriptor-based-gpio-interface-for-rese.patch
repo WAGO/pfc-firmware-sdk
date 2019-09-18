@@ -1,8 +1,7 @@
 From f148826178c30462620f7caf1f892ea4e4090a07 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 3 Jul 2017 09:53:05 +0200
-Subject: [PATCH 073/292] net: dsa: use descriptor based gpio interface for
- reset
+Subject: [PATCH] net: dsa: use descriptor based gpio interface for reset
 
 ---
  arch/arm/boot/dts/wago-pfc100.dtsi      |  2 +-

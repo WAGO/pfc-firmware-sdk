@@ -1,7 +1,7 @@
 From ae637cce6b11ff8c54d83108c2a8caceb7f08a9f Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 8 Dec 2017 09:33:54 +0100
-Subject: [PATCH 129/292] dts: pfc200v3: enable pullup for GPIO uart5.rx
+Subject: [PATCH] dts: pfc200v3: enable pullup for GPIO uart5.rx
 
 In PFC200v3 UART5 RX will driven by KBus CPU, but not till first communication.
 Till first communication UART5 RX could be low (after reset state of GPIO is

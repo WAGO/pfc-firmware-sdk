@@ -1,7 +1,7 @@
 From 553c60982756e41973faa11aa47844969448d0e5 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Thu, 29 Jun 2017 11:58:10 +0200
-Subject: [PATCH 071/292] pfcv3: dts: kbus: do pin muxing around kbus
+Subject: [PATCH] pfcv3: dts: kbus: do pin muxing around kbus
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 32 ++++++++++++++------------------

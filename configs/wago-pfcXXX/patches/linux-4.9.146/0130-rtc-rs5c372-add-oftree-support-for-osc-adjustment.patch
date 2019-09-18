@@ -1,7 +1,7 @@
 From dcd3253cb2091d21c42d65947cfd28b4fdd77896 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 14 Dec 2017 17:42:42 +0000
-Subject: [PATCH 130/292] rtc-rs5c372: add oftree support for osc adjustment
+Subject: [PATCH] rtc-rs5c372: add oftree support for osc adjustment
 
         This commit moves osc adjustment configuration to
         oftree setup. By this we are able to set platform

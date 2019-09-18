@@ -1,8 +1,8 @@
 From 721bf1973ca2410c8117a9aa4d1b1b6e5d348d88 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 15 Aug 2018 09:54:06 +0200
-Subject: [PATCH] defaultenv: defaultenv-pfc: use supported atag boot with
- global vars
+Subject: [PATCH 055/144] defaultenv: defaultenv-pfc: use supported atag boot
+ with global vars
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

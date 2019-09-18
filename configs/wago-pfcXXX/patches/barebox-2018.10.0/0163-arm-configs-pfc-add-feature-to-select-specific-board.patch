@@ -1,0 +1,176 @@
+From 71bd2091a55efbef920d3bdd5940180c0db01407 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 28 Mar 2019 08:33:11 +0100
+Subject: [PATCH] arm: configs: pfc: add feature to select specific boards
+
+Some devices (e.g. PAC100) share the same board code with other devices
+(e.g. PFC200v3) but need a different configuration with different
+compiled in drivers (e.g. PAC100 does not need GPMC stuff). This patch
+let one choose explicit devices per defconfig to be build.
+
+	[*]   Wago AM335X PFCs
+	 [ ]     PFC-750-810x
+	 [ ]     PFC-750-8208
+	 [ ]     PFC-750-821x
+	 [ ]     SRC-2850-311x
+	 [*]     PAC-768-330x
+---
+ arch/arm/configs/am335x_pfc_defconfig     |  4 ++++
+ arch/arm/configs/am335x_pfc_mlo_defconfig |  4 ++++
+ arch/arm/dts/Makefile                     | 15 ++++++++++++---
+ arch/arm/mach-omap/Kconfig                | 24 +++++++++++++++++++++++
+ images/Makefile.am33xx                    | 32 +++++++++++++++----------------
+ 5 files changed, 60 insertions(+), 19 deletions(-)
+
+diff --git a/arch/arm/configs/am335x_pfc_defconfig b/arch/arm/configs/am335x_pfc_defconfig
+index f5fe856..02a216f 100644
+--- a/arch/arm/configs/am335x_pfc_defconfig
++++ b/arch/arm/configs/am335x_pfc_defconfig
+@@ -4,6 +4,10 @@ CONFIG_BAREBOX_UPDATE_AM33XX_NAND=y
+ CONFIG_BAREBOX_UPDATE_AM33XX_EMMC=y
+ CONFIG_OMAP_MULTI_BOARDS=y
+ CONFIG_MACH_WAGO_PFC_AM335X=y
++CONFIG_MACH_WAGO_PFC_AM335X_750_810x=y
++CONFIG_MACH_WAGO_PFC_AM335X_750_8208=y
++CONFIG_MACH_WAGO_PFC_AM335X_750_821x=y
++CONFIG_MACH_WAGO_PFC_AM335X_2850_311x=y
+ CONFIG_THUMB2_BAREBOX=y
+ CONFIG_ARM_BOARD_APPEND_ATAG=y
+ CONFIG_ARM_OPTIMZED_STRING_FUNCTIONS=y
+diff --git a/arch/arm/configs/am335x_pfc_mlo_defconfig b/arch/arm/configs/am335x_pfc_mlo_defconfig
+index 203ae84..bc22d2c 100644
+--- a/arch/arm/configs/am335x_pfc_mlo_defconfig
++++ b/arch/arm/configs/am335x_pfc_mlo_defconfig
+@@ -3,6 +3,10 @@ CONFIG_OMAP_BUILD_IFT=y
+ CONFIG_OMAP_SERIALBOOT=y
+ CONFIG_OMAP_MULTI_BOARDS=y
+ CONFIG_MACH_WAGO_PFC_AM335X=y
++CONFIG_MACH_WAGO_PFC_AM335X_750_810x=y
++CONFIG_MACH_WAGO_PFC_AM335X_750_8208=y
++CONFIG_MACH_WAGO_PFC_AM335X_750_821x=y
++CONFIG_MACH_WAGO_PFC_AM335X_2850_311x=y
+ CONFIG_THUMB2_BAREBOX=y
+ CONFIG_MMU=y
+ CONFIG_BAREBOX_MAX_PBLX_SIZE=0x1b400
+diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
+index 2e5b17a..2fbbe0f 100644
+--- a/arch/arm/dts/Makefile
++++ b/arch/arm/dts/Makefile
+@@ -113,9 +113,18 @@ pbl-dtb-$(CONFIG_MACH_ZII_VF610_DEV) += \
+ 	vf610-zii-scu4-aib-rev-c.dtb.o
+ pbl-dtb-$(CONFIG_MACH_AT91SAM9263EK_DT) += at91sam9263ek.dtb.o
+ pbl-dtb-$(CONFIG_MACH_AT91SAM9X5EK) += at91sam9x5ek.dtb.o
+-pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X) += am335x-pfc-750_810x.dtb.o am335x-pfc-750_810x-mlo.dtb.o \
+-	am335x-pfc-750_8208.dtb.o am335x-pfc-750_8208-mlo.dtb.o am335x-pfc-750_821x.dtb.o \
+-	am335x-pfc-750_821x-mlo.dtb.o am335x-src-2850_311x.dtb.o am335x-src-2850_311x-mlo.dtb.o
++pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X_750_810x) += \
++	am335x-pfc-750_810x.dtb.o \
++	am335x-pfc-750_810x-mlo.dtb.o
++pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X_750_8208) += \
++	am335x-pfc-750_8208.dtb.o \
++	am335x-pfc-750_8208-mlo.dtb.o
++pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X_750_821x) += \
++	am335x-pfc-750_821x.dtb.o \
++	am335x-pfc-750_821x-mlo.dtb.o
++pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += \
++	am335x-src-2850_311x.dtb.o \
++	am335x-src-2850_311x-mlo.dtb.o
+ pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM35XX) += am35xx-pfc-750_820x.dtb.o
+ pbl-dtb-$(CONFIG_MACH_WAGO_VTPCTP_MX6) += imx6q-vtpctp-762-4xxx.dtb.o
+ clean-files := *.dtb *.dtb.S .*.dtc .*.pre .*.dts *.dtb.lzo
+diff --git a/arch/arm/mach-omap/Kconfig b/arch/arm/mach-omap/Kconfig
+index f7cd0bc..81a9e96 100644
+--- a/arch/arm/mach-omap/Kconfig
++++ b/arch/arm/mach-omap/Kconfig
+@@ -191,6 +191,30 @@ config MACH_WAGO_PFC_AM335X
+ 	help
+ 	  Say Y here if you are using a am335x based Wago PFC
+ 
++if MACH_WAGO_PFC_AM335X
++
++config MACH_WAGO_PFC_AM335X_750_810x
++	bool "PFC-750-810x"
++	help
++	  Say Y here if you are using a am335x based Wago PFC-750-810x
++
++config MACH_WAGO_PFC_AM335X_750_8208
++	bool "PFC-750-8208"
++	help
++	  Say Y here if you are using a am335x based Wago PFC-750-8208
++
++config MACH_WAGO_PFC_AM335X_750_821x
++	bool "PFC-750-821x"
++	help
++	  Say Y here if you are using a am335x based Wago PFC-750-821x
++
++config MACH_WAGO_PFC_AM335X_2850_311x
++	bool "SRC-2850-311x"
++	help
++	  Say Y here if you are using a am335x based Wago SRC-2850-311x
++
++endif
++
+ endif
+ 
+ if MACH_WAGO_PFC_AM335X || MACH_WAGO_PFC_AM35XX
+diff --git a/images/Makefile.am33xx b/images/Makefile.am33xx
+index 135a9e4..cead7d6 100644
+--- a/images/Makefile.am33xx
++++ b/images/Makefile.am33xx
+@@ -135,37 +135,37 @@ pblx-$(CONFIG_MACH_VSCOM_BALTOS) += start_am33xx_baltos_sram
+ FILE_barebox-am33xx-baltos-mlo.img = start_am33xx_baltos_sram.pblx.mlo
+ am33xx-mlo-$(CONFIG_MACH_VSCOM_BALTOS) += barebox-am33xx-baltos-mlo.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_pfc_750_810x_sdram
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_750_810x) += start_am33xx_pfc_750_810x_sdram
+ FILE_barebox-am33xx-pfc-750-810x.img = start_am33xx_pfc_750_810x_sdram.pblx
+-am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-pfc-750-810x.img
++am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X_750_810x) += barebox-am33xx-pfc-750-810x.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_pfc_750_810x_sram_256mb
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_750_810x) += start_am33xx_pfc_750_810x_sram_256mb
+ FILE_barebox-am33xx-pfc-750-810x-mlo.img = start_am33xx_pfc_750_810x_sram_256mb.pblx.mlo
+-am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-pfc-750-810x-mlo.img
++am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X_750_810x) += barebox-am33xx-pfc-750-810x-mlo.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_pfc_750_8208_sdram
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_750_8208) += start_am33xx_pfc_750_8208_sdram
+ FILE_barebox-am33xx-pfc-750-8208.img = start_am33xx_pfc_750_8208_sdram.pblx
+-am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-pfc-750-8208.img
++am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X_750_8208) += barebox-am33xx-pfc-750-8208.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_pfc_750_8208_sram_256mb
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_750_8208) += start_am33xx_pfc_750_8208_sram_256mb
+ FILE_barebox-am33xx-pfc-750-8208-mlo.img = start_am33xx_pfc_750_8208_sram_256mb.pblx.mlo
+-am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-pfc-750-8208-mlo.img
++am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X_750_8208) += barebox-am33xx-pfc-750-8208-mlo.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_pfc_750_821x_sdram
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_750_821x) += start_am33xx_pfc_750_821x_sdram
+ FILE_barebox-am33xx-pfc-750-821x.img = start_am33xx_pfc_750_821x_sdram.pblx
+-am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-pfc-750-821x.img
++am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X_750_821x) += barebox-am33xx-pfc-750-821x.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_pfc_750_821x_sram_512mb
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_750_821x) += start_am33xx_pfc_750_821x_sram_512mb
+ FILE_barebox-am33xx-pfc-750-821x-mlo.img = start_am33xx_pfc_750_821x_sram_512mb.pblx.mlo
+-am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-pfc-750-821x-mlo.img
++am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X_750_821x) += barebox-am33xx-pfc-750-821x-mlo.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_src_2850_311x_sdram
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += start_am33xx_src_2850_311x_sdram
+ FILE_barebox-am33xx-src-2850-311x.img = start_am33xx_src_2850_311x_sdram.pblx
+-am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-src-2850-311x.img
++am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += barebox-am33xx-src-2850-311x.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X) += start_am33xx_src_2850_311x_sram_256mb
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += start_am33xx_src_2850_311x_sram_256mb
+ FILE_barebox-am33xx-src-2850-311x-mlo.img = start_am33xx_src_2850_311x_sram_256mb.pblx.mlo
+-am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X) += barebox-am33xx-src-2850-311x-mlo.img
++am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += barebox-am33xx-src-2850-311x-mlo.img
+ 
+ ifdef CONFIG_OMAP_BUILD_IFT
+ image-y += $(am33xx-mlo-y)
+-- 
+2.7.4
+

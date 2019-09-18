@@ -28,6 +28,7 @@ PRODUCTION_ACTIVATED = $(shell echo "$(PTXCONF_HOST_WAGO_CM_PRODUCTION)")
 DOWNGRADE_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_SD_DOWNGRADE)")
 RAUC_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_RAUC)")
 PLATFORM ?= $(shell echo $(PTXCONF_PLATFORM))
+PROJECT ?= $(shell echo $(PTXCONF_PROJECT))
 KERNEL_VERSION ?= $(shell echo $(PTXCONF_KERNEL_VERSION))
 PLATFORMDIR ?= platform-$(PLATFORM)
 TARGETROOT ?= $(shell ptxdist print ROOTDIR)
@@ -46,15 +47,19 @@ FIRMWARE_REVISION_BUGFIX := $(shell echo "$(FIRMWARE_REVISION_STRING)" | sed -r 
 FIRMWARE_REVISION := $(FIRMWARE_REVISION_MAJOR)$(FIRMWARE_REVISION_MINOR)$(FIRMWARE_REVISION_BUGFIX)
 FIRMWARE_SVNREVISION := $(shell cat $(TARGETROOT)/etc/SVNREVISION | head -n1 | cut -dn -f2 | cut -d@ -f1)
 
-# Map platform names to more user friendly target names
+# Map platform/project names to more user friendly target names
 ifeq ($(PLATFORM),wago-pfcXXX)
+ifeq ($(PROJECT),PFC)
 FIRMWARE_PLATFORM ?= PFC-Linux
+else ifeq ($(PROJECT),PAC)
+FIRMWARE_PLATFORM ?= PAC-Linux
+endif
 else ifeq ($(PLATFORM),wago-pfcXXX-hardened)
 FIRMWARE_PLATFORM ?= PFC-Linux
 else ifeq ($(PLATFORM),vtp-ctp)
 FIRMWARE_PLATFORM ?= TP-Linux
 else
-FIRMWARE_PLATFORM ?= $(PLATFORM)
+FIRMWARE_PLATFORM ?= $(PLATFORM)_$(PROJECT)
 endif
 
 # Commonly used image ID build from firmware information
@@ -81,7 +86,6 @@ WUP_ZIP_CMD ?= $(if $(WUP_PASSWORD),zip -j --password $($$){WUP_PASSWORD},zip -j
 
 # Target update file (RAUC)
 RAUC_UPDATEFILE ?= $(OUT_DIR)/$(FIRMWARE_PLATFORM)_update_$(IMAGE_ID).raucb
-RAUC_UPDATEFILE_LEGACY ?= $(OUT_DIR)/update_$(IMAGE_ID).raucb
 RAUC_UPDATEFILE_ORIGINAL ?= $(PLATFORMDIR)/images/update.raucb
 
 # RAUC specific files
@@ -121,13 +125,6 @@ FW_DESC_FILES += $(OUT_DIR)/REVISIONS
 IMAGES_ARCHIVE += $(OUT_DIR)/images_$(IMAGE_ID).tar.gz
 ROOT_DEBUG_ARCHIVE += $(OUT_DIR)/root-debug_$(IMAGE_ID).tar.gz
 
-# Obsolete image files
-ifneq ($(BUILDTYPE),release)
-OBSOLETE_FILES += $(OUT_DIR)/vmlinux_$(IMAGE_ID)_obsolet
-OBSOLETE_FILES += $(OUT_DIR)/firmware_$(IMAGE_ID)_obsolet.hex
-OBSOLETE_FILES += $(OUT_DIR)/sd_$(IMAGE_ID)_obsolete.img
-endif
-
 # Select default dist targets
 DIST_TARGETS ?=
 DIST_TARGETS += $(FW_DESC_FILES)
@@ -142,7 +139,6 @@ DIST_TARGETS += $(DOWNGRADE_IMAGES)
 endif
 ifeq ($(RAUC_ACTIVATED),y)
 DIST_TARGETS += $(RAUC_UPDATEFILE)
-DIST_TARGETS += $(RAUC_UPDATEFILE_LEGACY)
 DIST_TARGETS += $(WUP_CONTROLFILE)
 DIST_TARGETS += $(WUP)
 endif
@@ -151,8 +147,6 @@ ifneq ($(IMAGE_DIR),$(OUT_DIR))
 DIST_TARGETS += $(IMAGES_ARCHIVE)
 DIST_TARGETS += $(ROOT_DEBUG_ARCHIVE)
 endif
-
-#DIST_TARGETS += $(OBSOLETE_FILES)
 
 
 # Main targets
@@ -209,22 +203,10 @@ $(OUT_DIR)/%_$(IMAGE_ID).ubi: $(IMAGE_DIR)/%.ubi | $(OUT_DIR)
 	@echo "Create versioned image by copy: $<"
 	cp $< $@
 
-#$(OUT_DIR)/%_$(IMAGE_ID)_obsolete.img: $(IMAGE_DIR)/%.hdimg | $(OUT_DIR)
-#	@echo "Create versioned image by copy: $<"
-#	cp $< $@
-
-#$(OUT_DIR)/firmware_$(IMAGE_ID)_obsolet.hex: $(IMAGE_DIR)/firmware.tar | $(OUT_DIR)
-#	@echo "Create versioned image by copy: $<"
-#	cp $< $@
-	
-#$(OUT_DIR)/vmlinux_$(IMAGE_ID)_obsolet: $(PLATFORMDIR)/build-target/linux-$(KERNEL_VERSION)/vmlinux | $(OUT_DIR)
-#	@echo "Create versioned kernel image by copy: $<"
-#	cp $< $@
-
 $(OUT_DIR)/firmware_$(IMAGE_ID).hex: $(IMAGE_DIR)/firmware.tar | $(OUT_DIR)
 	@echo "Create versioned image by copy: $<"
 	cp $< $@
-	
+
 $(OUT_DIR)/vmlinux_$(IMAGE_ID): $(PLATFORMDIR)/build-target/linux-$(KERNEL_VERSION)/vmlinux | $(OUT_DIR)
 	@echo "Create versioned kernel image by copy: $<"
 	cp $< $@
@@ -251,15 +233,8 @@ $(RAUC_UPDATEFILE): $(RAUC_UPDATEFILE_ORIGINAL) $(RAUC_CERTIFICATE) $(RAUC_KEY) 
 	@echo "Create RAUC update file \"$@\" for build type $(BUILDTYPE) by resign with key \"$(RAUC_KEY)\""
 	   rm -f $@ \
 	&& $(RAUC_CMD) resign --cert=$(RAUC_CERTIFICATE) --key=$(RAUC_KEY) --keyring=$(RAUC_KEYRING) $< $@
-$(RAUC_UPDATEFILE_LEGACY): $(RAUC_UPDATEFILE_ORIGINAL) $(RAUC_CERTIFICATE) $(RAUC_KEY) $(RAUC_KEYRING) Makefile | $(OUT_DIR)
-	@echo "Create RAUC update file \"$@\" for build type $(BUILDTYPE) by resign with key \"$(RAUC_KEY)\""
-	   rm -f $@ \
-	&& $(RAUC_CMD) resign --cert=$(RAUC_CERTIFICATE) --key=$(RAUC_KEY) --keyring=$(RAUC_KEYRING) $< $@
 else
 $(RAUC_UPDATEFILE): $(RAUC_UPDATEFILE_ORIGINAL) Makefile | $(OUT_DIR)
-	@echo "Create RAUC update file \"$@\" for build type $(BUILDTYPE) by copy"
-	cp $< $@
-$(RAUC_UPDATEFILE_LEGACY): $(RAUC_UPDATEFILE_ORIGINAL) Makefile | $(OUT_DIR)
 	@echo "Create RAUC update file \"$@\" for build type $(BUILDTYPE) by copy"
 	cp $< $@
 endif

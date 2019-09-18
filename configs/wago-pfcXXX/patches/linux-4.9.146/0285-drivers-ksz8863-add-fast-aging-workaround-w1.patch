@@ -1,7 +1,7 @@
 From 6ed780dda403b6d5a2d092559e75b421e94ec4a5 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Fri, 7 Dec 2018 12:00:21 +0100
-Subject: [PATCH 285/292] drivers: ksz8863: add fast aging workaround w1
+Subject: [PATCH] drivers: ksz8863: add fast aging workaround w1
 
 Signed-off-by: Peter Galka <peter.galka@wago.com>
 ---

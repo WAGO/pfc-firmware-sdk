@@ -1,8 +1,7 @@
 From 6bb7697561789cf00d213fdd79d8992a6aab5ddf Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Fri, 19 May 2017 08:26:50 +0000
-Subject: [PATCH 051/292] dts: pfc200v3: do initial pinmux for new pfc200
- hardware
+Subject: [PATCH] dts: pfc200v3: do initial pinmux for new pfc200 hardware
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts |  15 +-

@@ -1,7 +1,7 @@
 From 4809b2247d4966e2809fd25ee6fd737eb00f44d1 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 17 Oct 2018 10:18:00 +0200
-Subject: [PATCH 269/292] dts: 750 8215: remove phy-pwrdown for switch ports
+Subject: [PATCH] dts: 750 8215: remove phy-pwrdown for switch ports
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

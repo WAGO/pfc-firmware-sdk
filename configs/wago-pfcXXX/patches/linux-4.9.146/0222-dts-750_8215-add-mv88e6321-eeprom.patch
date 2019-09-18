@@ -1,7 +1,7 @@
 From d024cd71689e7895693ba548c9855a60c87cad7b Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 9 Aug 2018 10:31:45 +0200
-Subject: [PATCH 222/292] dts: 750_8215: add mv88e6321 eeprom
+Subject: [PATCH] dts: 750_8215: add mv88e6321 eeprom
 
 This patch add MV88E6321 EEPROM content and EEPROM
 lenght property to DT file. EEPROM length enables

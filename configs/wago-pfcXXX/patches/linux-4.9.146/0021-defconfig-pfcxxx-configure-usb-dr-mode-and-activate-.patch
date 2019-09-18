@@ -1,8 +1,8 @@
 From 19d30d91e7033c04a46bcbc622e36c0a8327c736 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 23 Nov 2016 14:29:14 +0100
-Subject: [PATCH 021/292] defconfig: pfcxxx: configure usb dr mode and activate
- usb serial gadget
+Subject: [PATCH] defconfig: pfcxxx: configure usb dr mode and activate usb
+ serial gadget
 
 ---
  arch/arm/configs/wago_pfc_generic_defconfig | 5 ++---

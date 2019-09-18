@@ -1,7 +1,8 @@
 From fd9da2ada8805370032bd27577a9f03f6ba5dc18 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 31 Oct 2018 17:03:55 +0100
-Subject: [PATCH] arm: configs: am35xx_pfc: enable watchdog functionality
+Subject: [PATCH 139/144] arm: configs: am35xx_pfc: enable watchdog
+ functionality
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

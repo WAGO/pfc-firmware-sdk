@@ -58,9 +58,9 @@ MODULAR_CONFIG_TOOLS_CONF_TOOL	:= NO
 $(STATEDIR)/modular-config-tools.compile:
 	@$(call targetinfo)
 
-#ifdef PTXCONF_CT_CONFIG_TOOL_UTILS_LIB_C
+ifdef PTXCONF_CT_CONFIG_TOOL_UTILS_LIB_C
 	@$(call world/compile, MODULAR_CONFIG_TOOLS)
-#endif
+endif
 
 	@$(call touch)
 
@@ -71,14 +71,14 @@ $(STATEDIR)/modular-config-tools.compile:
 $(STATEDIR)/modular-config-tools.install:
 	@$(call targetinfo)
 
-#ifdef PTXCONF_CT_CONFIG_TOOL_UTILS_LIB_C
+ifdef PTXCONF_CT_CONFIG_TOOL_UTILS_LIB_C
 	@mkdir -p $(PTXCONF_SYSROOT_TARGET)/usr/include/ctutil/
 	@install -m 0644 $(MODULAR_CONFIG_TOOLS_SRC_DIR)/inc/ctutil/*.h \
 		$(PTXCONF_SYSROOT_TARGET)/usr/include/ctutil
 	@mkdir -p $(PTXCONF_SYSROOT_TARGET)/usr/include/ctparts/
 	@install -m 0644 $(MODULAR_CONFIG_TOOLS_SRC_DIR)/inc/ctparts/*.h \
 		$(PTXCONF_SYSROOT_TARGET)/usr/include/ctparts
-#endif
+endif
 
 	@$(call touch)
 

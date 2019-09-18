@@ -1,7 +1,7 @@
 From 01e36ff262ed0fc687044e61ace82885dede8ac6 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 23 Jul 2018 14:43:22 +0200
-Subject: [PATCH 213/292] net: pn: add messages for init and creaet pn socket
+Subject: [PATCH] net: pn: add messages for init and creaet pn socket
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -1,8 +1,7 @@
 From 8d2de334ca6cebb3052dc1cee0e0c8b61c822c8b Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 7 Nov 2018 16:29:37 +0100
-Subject: [PATCH 275/292] defconfig: pfc: enable docker necessary kernel
- modules
+Subject: [PATCH] defconfig: pfc: enable docker necessary kernel modules
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

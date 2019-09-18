@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# Modulus of the non-unique weak default cert
+MODULUS="Modulus=965CE7CBE8206BE3FA7941222281CBEB79E22C38848EC43B8F06052D10EFBA7232B8EA9224A7BE833EEF703E3785F0607FD19428B205F2DD53A77AE2F8CA11AC2161F9CAC2BA7846836A850E6648D33BBDF3BA000D2513DC37FFDA2AC43EE03C79F60D2691577D0D186149BEB30E3AD639F791C9CAA1C8DB15C8CC45C1AC7933"
+
+LIGHTTPD_CERT="/etc/lighttpd/https-cert.pem"
+CERT_CONF="/etc/lighttpd/openssl-cert.conf"
+
+# Only Update the weak default cert
+[ "$(openssl x509 -noout -modulus < "$LIGHTTPD_CERT")" = "$MODULUS" ] || exit 0
+
+eval "$(/etc/config-tools/get_typelabel_value -a | sed "s/=/='/;s/\$/'/")"
+
+cat > "$CERT_CONF" << EOF
+# This template can be used to re-generate the HTTPS cert
+# or to generate a request to be issued by a CA
+[ req ]
+default_bits = 3072
+distinguished_name = dn
+x509_extensions = extensions
+string_mask = MASK:0x2002
+utf8 = yes
+prompt = no
+
+[ dn ]
+0.C=DE
+1.ST=Germany
+2.CN=$SYSDESC
+3.O=Wago Kontakttechnik GmbH & Co. KG
+4.L=Minden
+5.emailAddress=info@wago.com
+6.pseudonym=$MAC
+
+[ extensions ]
+nsCertType=server
+subjectAltName=IP:192.168.1.1
+extendedKeyUsage=serverAuth
+keyUsage=digitalSignature, nonRepudiation, keyEncipherment, keyAgreement
+subjectKeyIdentifier=hash
+basicConstraints=critical,CA:FALSE
+EOF
+
+set -e
+
+/usr/sbin/random_seed
+
+openssl req -x509 -nodes -new -config "$CERT_CONF" > "${LIGHTTPD_CERT}.tmp" &&
+mv "${LIGHTTPD_CERT}.tmp" "${LIGHTTPD_CERT}"
+
+exec sync

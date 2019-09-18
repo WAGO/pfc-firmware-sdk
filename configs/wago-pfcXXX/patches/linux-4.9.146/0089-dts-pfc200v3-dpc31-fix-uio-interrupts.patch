@@ -1,7 +1,7 @@
 From e0430733550fe34b4ca0e66af79358e9f6dc7086 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Thu, 10 Aug 2017 07:20:45 +0200
-Subject: [PATCH 089/292] dts: pfc200v3: dpc31: fix uio interrupts
+Subject: [PATCH] dts: pfc200v3: dpc31: fix uio interrupts
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-dpc31.dtsi | 12 +++---------

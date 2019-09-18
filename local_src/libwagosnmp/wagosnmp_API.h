@@ -10,7 +10,7 @@
 ///
 ///  \file     wagosnmp_API.h
 ///
-///  \version  $Revision: 35865 $
+///  \version  $Revision: 39636 $
 ///
 ///  \brief    <Insert description here>
 ///
@@ -92,7 +92,9 @@ typedef enum eMsgType{
 typedef struct {
         tWagoSnmpTrcvType   trcvType;
         long                version;
-        tWagoSnmpTlv      * typData;          /* VAR_OUTPUT */  /* Structured response data in Type-Length-Value(TLV) format */
+        int retries;
+        int timeout_us;
+        tWagoSnmpTlv *typData; /* VAR_OUTPUT */         /* Structured response data in Type-Length-Value(TLV) format */
         char              * sHost;      /* VAR_INPUT */ /* Hostname or IP-address in "dotted decimal format" */
         size_t              szHost;
         char              * sOID;     /* VAR_INPUT */ /* SNMP unique object identifier(OID) of requested data, e.g. '1.3.6.1.2.1.1.6.0' for "sysLocation"; also used as enterprise OID in case of trap/inform */

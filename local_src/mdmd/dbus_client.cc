@@ -12,22 +12,22 @@ DBusClient::call_sync(const char  *methodName,
                       GVariant    *parameters,
                       GVariant   **ppresult)
 {
-  if (_gDBusProxy != NULL)
+  if (_gDBusProxy != nullptr)
   {
-    GError *err = NULL;
+    GError *err = nullptr;
     GVariant *result = g_dbus_proxy_call_sync(_gDBusProxy,
                                               methodName,
                                               parameters,
                                               G_DBUS_CALL_FLAGS_NONE,
-                                              _timeout,
+                                              static_cast<gint>(_timeout),
                                               0,
                                               &err);
-    if (err == NULL)
+    if (err == nullptr)
     {
       *ppresult = result;
       return 0;
     }
-    if (result != NULL)
+    if (result != nullptr)
     {
       g_variant_unref(result);
     }
@@ -59,7 +59,7 @@ DBusClient::DBusClient( const gchar *name,
 
 DBusClient::~DBusClient()
 {
-  if (_gDBusProxy != NULL)
+  if (_gDBusProxy != nullptr)
   {
     g_object_unref(_gDBusProxy);
   }

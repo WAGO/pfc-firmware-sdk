@@ -1,7 +1,7 @@
 From ffb4694c31960b307e4397e38cd26474f435c4b4 Mon Sep 17 00:00:00 2001
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Date: Wed, 20 Jan 2016 13:37:39 +0100
-Subject: [PATCH 049/292] net: dsa: provide lockdep class for dsa
+Subject: [PATCH] net: dsa: provide lockdep class for dsa
 
 	port from v3.18.13
 	commit: 2566a52

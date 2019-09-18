@@ -1,7 +1,7 @@
 From 44565a10247c410843256ab04c17be570d50bb81 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bj=C3=B6rn=20T=C3=B6pel?= <bjorn.topel@intel.com>
 Date: Wed, 2 May 2018 13:01:23 +0200
-Subject: [PATCH 193/292] xsk: add user memory registration support sockopt
+Subject: [PATCH] xsk: add user memory registration support sockopt
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

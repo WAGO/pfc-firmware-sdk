@@ -1,0 +1,533 @@
+From 7ac20ccf9bb970f4607b2f91dc1a20e4f7b7f7ca Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 15 Apr 2019 16:36:25 +0200
+Subject: [PATCH] ARM: dts: add pac-768-3301
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/Makefile                 |   3 +-
+ arch/arm/boot/dts/am335x-pac-768_3301.dts  |  15 +
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi | 462 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/wago-devconf.dtsi        |   1 +
+ 4 files changed, 480 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am335x-pac-768_3301.dts
+ create mode 100644 arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index a4d8a9c..346dc7b 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -580,7 +580,8 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-pfc-750_8217.dtb \
+ 	am335x-pfc100-setupfw.dtb \
+ 	am335x-pfc200v2-setupfw.dtb \
+-	am335x-pfc200v3-setupfw.dtb
++	am335x-pfc200v3-setupfw.dtb \
++	am335x-pac-768_3301.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-duovero-parlor.dtb \
+ 	omap4-kc1.dtb \
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301.dts b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+new file mode 100644
+index 0000000..ca08c22
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+@@ -0,0 +1,15 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am335x-pac-768_330x.dtsi"
++
++/{
++	model = "WAGO PAC100 768-3301";
++	compatible = "wago,am335x-pac-768_330x-1005", "wago,am335x-pfc", "ti,am33xx";
++};
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+new file mode 100644
+index 0000000..b67366c
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+@@ -0,0 +1,462 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "am335x-pfc.dtsi"
++#include "am335x-pfc-750_8xxx-leds.dtsi"
++#include "am335x-pfc-750_821x-mv88e6321.dtsi"
++#include "wago-devconf.dtsi"
++
++/ {
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	uio_rmd_mem@1000000 {
++		compatible = "uio_pdrv_genirq";
++		reg = <0x01000000 0x01000000>;
++	};
++
++	uio_rmd_sysctrl@1000000 {
++		compatible = "uio_pdrv_genirq";
++		reg = <0x1000000 0x10000>;
++	};
++
++	uio_rmd_irq0 {
++		compatible = "uio_pdrv_genirq";
++		interrupts = <7>;
++		interrupt-parent = <&intc>;
++	};
++
++	uio_rmd_irq1 {
++		compatible = "uio_pdrv_genirq";
++		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
++};
++
++&cpu_0 {
++	operating-points = <
++		1000000  1325000
++		 800000  1260000
++		 720000  1200000
++		 600000  1100000
++		 300000  950000
++	>;
++};
++
++&am33xx_pinmux {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&gpio1_pins
++	>;
++
++	watchdog_pins: pinmux_watchdog_pins {
++		pinctrl-single,pins = <
++			AM33XX_EMU1_GPIO3_8(PIN_OUTPUT_PULLDOWN)
++		>;
++	};
++
++	spi1_pins: pinmux_spi1_pins {
++		pinctrl-single,pins = <
++			AM33XX_UART0_CTSN_SPI1_D0(PIN_INPUT)
++			AM33XX_UART0_RTSN_SPI1_D1(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_MCASP0_ACLKX_SPI1_SCLK(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_ECAP0_IN_PWM0_OUT_SPI1_CS1(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
++		>;
++	};
++
++	mmc1_cd_pins: pinmux_sdcard_cd_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A3_GPIO1_19(PIN_INPUT_PULLUP)
++		>;
++	};
++
++	emmc_pins: pinmux_emmc_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_CSN1_MMC1_CLK(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN2_MMC1_CMD(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_TX_CLK_MMC1_DAT0(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RX_CLK_MMC1_DAT1(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RXD3_MMC1_DAT2(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RXD2_MMC1_DAT3(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++		>;
++	};
++
++	rmii2_pins: pinmux_rmii2_pins {
++		pinctrl-single,pins = <
++			/* RMII 2 */
++			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
++			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
++			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
++			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++		>;
++	};
++
++	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
++		pinctrl-single,pins = <
++			/* RMII 2 */
++			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
++			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
++			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
++			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++		>;
++	};
++
++	rmii1_pins: pinmux_rmii1_pins {
++		pinctrl-single,pins = <
++			/* RMII1 could used on Marvell based devices only; default off*/
++			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
++			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
++			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
++			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
++			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
++			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
++			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
++		>;
++	};
++
++	rmii1_sleep_pins: pinmux_rmii1_sleep_pins {
++		pinctrl-single,pins = <
++			/* RMII1 could used on Marvell based devices only; default off*/
++			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
++			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
++			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
++			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
++			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
++			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
++			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
++		>;
++	};
++
++	gpio1_pins: pinmux_gpio1_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A2_GPIO1_18(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_data_pins: pinmux_gpmc_data_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_addr_pins: pinmux_gpmc_addr_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_LCD_HSYNC_GPMC_A9(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
++			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
++			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
++			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
++			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
++		>;
++	};
++
++	fpga_pins: pinmux_fpga_pins {
++		pinctrl-single,pins = <
++			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP)
++			AM33XX_LCD_DATA10_GPIO2_16(PIN_INPUT)
++			AM33XX_LCD_PCLK_GPIO2_24(PIN_INPUT)
++			AM33XX_LCD_DATA11_GPIO2_17(PIN_OUTPUT)
++			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT)
++			AM33XX_XDMA_EVENT_INTR0(PIN_INPUT)
++			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT)
++		>;
++	};
++};
++
++&aes {
++	status = "okay";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
++&elm {
++	status = "okay";
++};
++
++&oms {
++	status = "okay";
++};
++
++&sham {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "peripheral";
++	status = "okay";
++};
++
++&wsysinit {
++	board,variant = "pac100";
++	tty,rs232-485 = "nop";
++};
++
++&spi1 {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi1_pins>;
++	ti,pindir-d0-out-d1-in;
++
++	fpga_ps: fpga_ps@0 {
++		compatible = "altr,passive-serial";
++		pinctrl-names = "default";
++		pinctrl-0 = <&fpga_pins>;
++
++		reg = <0>;
++		spi-max-frequency = <48000000>;
++
++		reset-gpios = <&gpio2 17 GPIO_ACTIVE_LOW>;
++
++		gpio-nconfig = <&gpio0 16 GPIO_ACTIVE_LOW>;
++		gpio-nstatus = <&gpio2 24 GPIO_ACTIVE_LOW>;
++		gpio-confdone = <&gpio2 16 GPIO_ACTIVE_LOW>;
++	};
++};
++
++&watchdog {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&watchdog_pins>;
++
++	gpio-en = <&io_expander_70 0 GPIO_ACTIVE_LOW>;
++	gpios = <&gpio3 8 GPIO_ACTIVE_LOW>;
++};
++
++&mv88e6321_switch {
++	ports {
++		port@3 {
++			label = "ethX1";
++		};
++
++		port@4 {
++			label = "ethX2";
++		};
++	};
++};
++
++&i2c0 {
++	status = "okay";
++
++	io_expander_70: pca9554@70 { /* IO Port Expander only outputs*/
++		compatible = "nxp,pca9554";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		#gpio-cells = <2>;
++		gpio-controller;
++		reg = <0x70>;
++	};
++};
++
++/delete-node/ &led_bar61;
++
++&lb60_0 {
++	label = "ds-red";
++};
++
++&lb60_1 {
++	label = "ds-green";
++};
++
++&lb60_2 {
++	label = "ec-red";
++};
++
++&lb60_3 {
++	label = "ec-blue";
++};
++
++&lb60_4 {
++	label = "ms-red";
++};
++
++&lb60_5 {
++	label = "ms-green";
++};
++
++&lb60_6 {
++	label = "ns-red";
++};
++
++&lb60_7 {
++	label = "ns-green";
++};
++
++&lb60_8 {
++	label = "run-red";
++};
++
++&lb60_9 {
++	label = "run-green";
++};
++
++&lb60_10 {
++	label = "app-red";
++};
++
++&lb60_11 {
++	label = "app-green";
++};
++
++&rtc_i2c {
++	trim-data = <0 1 31>;
++};
++
++&tps {
++	interrupt-parent = <&gpio3>;
++	interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
++};
++
++&swcfg_mv88e6321 {
++	status = "okay";
++};
++
++&mac {
++	status = "okay";
++
++	pinctrl-0 = <
++		&rmii2_pins
++		&rmii1_pins
++	>;
++
++	pinctrl-1 = <
++		&rmii2_sleep_pins
++		&rmii1_sleep_pins
++	>;
++};
++
++&mmc1 {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&mmc1_pins
++		&mmc1_cd_pins
++	>;
++
++	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
++};
++
++&mmc2 {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	vmmc-supply = <&dcdc4_reg>;
++	bus-width = <4>;
++	ti,non-removable;
++};
++
++&gpio1 {
++	boot_select {
++		gpio-hog;
++		gpios = <18 GPIO_ACTIVE_LOW>;
++		output-high;
++		line-name = "boot_select";
++	};
++};
++
++&gpmc {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
++
++	ranges = <0 0 0x01000000 0x01000000>;
++
++	fpga: fpga@0,0 {
++		reg = <0 0 0x01000000>;
++		bank-width = <2>; /* 16 Bit */
++
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <80>;
++		gpmc,cs-wr-off-ns = <70>;
++
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <10>;
++		gpmc,adv-wr-off-ns = <10>;
++
++		gpmc,we-on-ns = <20>;
++		gpmc,we-off-ns = <70>;
++		gpmc,oe-on-ns = <10>;
++		gpmc,oe-off-ns = <80>;
++		gpmc,oe-extra-delay;
++
++		gpmc,access-ns = <80>;
++		gpmc,rd-cycle-ns = <100>;
++		gpmc,wr-cycle-ns = <90>;
++		gpmc,page-burst-access-ns = <0>;
++
++		gpmc,bus-turnaround-ns  = <0>;
++		gpmc,cycle2cycle-diffcsen;
++		gpmc,cycle2cycle-samecsen;
++		gpmc,cycle2cycle-delay-ns = <10>;
++		gpmc,wr-access-ns = <70>;
++		gpmc,wr-data-mux-bus-ns = <20>;
++
++		gpmc,wait-pin = <1>;
++		gpmc,wait-on-read;
++		gpmc,wait-on-write;
++		gpmc,mux-add-data = <2>; /* address-data multiplexing */
++	};
++};
+diff --git a/arch/arm/boot/dts/wago-devconf.dtsi b/arch/arm/boot/dts/wago-devconf.dtsi
+index baa36c8..5f0c9e4 100644
+--- a/arch/arm/boot/dts/wago-devconf.dtsi
++++ b/arch/arm/boot/dts/wago-devconf.dtsi
+@@ -45,6 +45,7 @@
+  * |            1002 |   VTP  7" 762-4xxx |
+  * |            1003 |   VTP 10" 762-4xxx |
+  * |            1004 |       PFC 750-8211 |
++ * |            1005 |       PAC 763-3301 |
+  * |-----------------|--------------------|
+  *
+  * ============== LEGACY FORMAT ================================================
+-- 
+2.7.4
+

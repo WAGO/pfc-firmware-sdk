@@ -1,7 +1,7 @@
 From 4f0fee912a1813eae5f5e9d1061bc27a68e39551 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 4 Jul 2018 12:40:52 +0200
-Subject: [PATCH 208/292] rename XDP->PN files
+Subject: [PATCH] rename XDP->PN files
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

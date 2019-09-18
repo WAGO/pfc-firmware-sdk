@@ -1,8 +1,7 @@
 From f8aac498b170cc81f244d5f961b16799ea28898c Mon Sep 17 00:00:00 2001
 From: Andre Nahrwold <andre.nahrwold@wago.com>
 Date: Mon, 11 Sep 2017 16:58:19 +0200
-Subject: [PATCH 116/292] dts: pfc200v3: delete activating usb for all hw3
- devices
+Subject: [PATCH] dts: pfc200v3: delete activating usb for all hw3 devices
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 17 -----------------

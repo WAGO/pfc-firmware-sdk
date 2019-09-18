@@ -1,7 +1,7 @@
 From d154b3aa24edf897173953fe70f35f27efb909db Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Mon, 29 Jan 2018 14:43:05 +0100
-Subject: [PATCH 143/292] dts: src: fix ksz8863 configuration.
+Subject: [PATCH] dts: src: fix ksz8863 configuration.
 
 * ksz8863 specific dts resides now in separate file
 * reorganise setupfw dts to meet pfc style

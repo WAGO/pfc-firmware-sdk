@@ -1,8 +1,8 @@
 From c168261a903ebbfb473630e70d0403373f5708fc Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Fri, 17 Nov 2017 08:59:56 +0000
-Subject: [PATCH 127/292] ARM: mm: TEMPORARY selective mm unit NULL-pointer
- workaround by if construct
+Subject: [PATCH] ARM: mm: TEMPORARY selective mm unit NULL-pointer workaround
+ by if construct
 
 ---
  arch/arm/mm/init.c | 10 ++++++----

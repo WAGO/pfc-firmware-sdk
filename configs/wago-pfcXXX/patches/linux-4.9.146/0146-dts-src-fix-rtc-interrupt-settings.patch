@@ -1,7 +1,7 @@
 From e99ee462a95bbffcb83870d72f26e18f1235f85e Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Fri, 2 Feb 2018 16:49:43 +0100
-Subject: [PATCH 146/292] dts: src: fix rtc interrupt settings.
+Subject: [PATCH] dts: src: fix rtc interrupt settings.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

@@ -1,7 +1,7 @@
 From 5b04c6b05002caba2f1a9e3c9d494ca460cc5468 Mon Sep 17 00:00:00 2001
 From: Charline Wueste <charline.wueste@wago.com>
 Date: Tue, 21 Aug 2018 13:20:14 +0200
-Subject: [PATCH 231/292] can: c_can: decrease cpu load when bus not terminated
+Subject: [PATCH] can: c_can: decrease cpu load when bus not terminated
 
 Signed-off-by: Peter Galka <peter.galka@wago.com>
 ---

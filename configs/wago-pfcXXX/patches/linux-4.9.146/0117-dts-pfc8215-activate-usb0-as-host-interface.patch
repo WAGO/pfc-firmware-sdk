@@ -1,7 +1,7 @@
 From 4e94fde4bc72f3dbcd0978a8c7f19f4cc56d7ebe Mon Sep 17 00:00:00 2001
 From: Andre Nahrwold <andre.nahrwold@wago.com>
 Date: Mon, 11 Sep 2017 16:57:16 +0200
-Subject: [PATCH 117/292] dts: pfc8215: activate usb0 as host interface
+Subject: [PATCH] dts: pfc8215: activate usb0 as host interface
 
 1) dts: pfc8215: activate and configure tps ls2 for usb power
 2) dts: pfc8215: delete activating usb1

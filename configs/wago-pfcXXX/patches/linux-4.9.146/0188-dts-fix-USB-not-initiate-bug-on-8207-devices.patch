@@ -1,7 +1,7 @@
 From 1469be096eb74b1e1e4ca7fc134d1b9b5483453d Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 19 Jul 2018 13:58:16 +0200
-Subject: [PATCH 188/292] dts: fix USB not initiate bug on 8207 devices
+Subject: [PATCH] dts: fix USB not initiate bug on 8207 devices
 
 The ti,am3517-evm compatible string got lost by rename of dts-tree
 in commit a88f655c29213a9c2885d9697f268b4c31335ea0.The "ti,am3517-evm"

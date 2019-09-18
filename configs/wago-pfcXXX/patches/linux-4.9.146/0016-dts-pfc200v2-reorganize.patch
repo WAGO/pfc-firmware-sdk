@@ -1,7 +1,7 @@
 From b0b5c8b1d1d2127908a64f12cd71e907a08c7f22 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Tue, 22 Nov 2016 06:53:41 +0000
-Subject: [PATCH 016/292] dts: pfc200v2: reorganize
+Subject: [PATCH] dts: pfc200v2: reorganize
 
 ---
  arch/arm/boot/dts/Makefile                       |   2 +-

@@ -38,7 +38,7 @@ SETTINGS_ENC_FLAG=4
 
 activePartitionMedium=$(/etc/config-tools/get_filesystem_data "active-partition-medium")
 
-mediumOutputCount=0
+comma=""
 
 echo "{"
 
@@ -106,19 +106,17 @@ while [ -n "$deviceMedium" ] && [ "$SUCCESS" = "$status" ]; do
       fi
     fi
 
-    if [ $mediumOutputCount -ne 0 ]; then
-      echo ", "
-    fi
+    cat <<-EOF
+	$comma
+	"$deviceMedium": {
+	  "packageCodesys": $codesysAvailable,
+	  "packageSystem": $systemAvailable,
+	  "packageSettings": $settingsAvailable,
+	  "encryption_active_state": $encryptedFlag
+	}
+	EOF
 
-    echo "\"$deviceMedium\": { "
-    echo "\"packageCodesys\": $codesysAvailable,"
-    echo "\"packageSystem\": $systemAvailable,"
-    echo "\"packageSettings\": $settingsAvailable,"
-    echo "\"encryption_active_state\": $encryptedFlag"
-    echo "}"
-
-    mediumOutputCount=$(( mediumOutputCount + 1 ))
-
+    comma=","
   fi
 
   # get next device

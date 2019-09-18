@@ -1,7 +1,7 @@
 From 69c8658bac92d55803a37e9511a74b2cf8ad2df9 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 29 Sep 2017 16:34:41 +0200
-Subject: [PATCH 114/292] drivers: net: mv88e6xxx: force 100mbit on all ports
+Subject: [PATCH] drivers: net: mv88e6xxx: force 100mbit on all ports
 
 ---
  drivers/net/dsa/mv88e6xxx/chip.c |   4 +

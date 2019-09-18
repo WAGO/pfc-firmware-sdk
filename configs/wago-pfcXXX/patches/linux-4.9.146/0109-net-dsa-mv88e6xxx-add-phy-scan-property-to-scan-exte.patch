@@ -1,8 +1,8 @@
 From 250aa18dfe9230e4d15b78f2f2c8cdc59f71c869 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 13 Jul 2017 14:39:53 +0200
-Subject: [PATCH 109/292] net: dsa: mv88e6xxx: add phy-scan property to scan
- external phys after reset
+Subject: [PATCH] net: dsa: mv88e6xxx: add phy-scan property to scan external
+ phys after reset
 
 ---
  drivers/net/dsa/mv88e6xxx/chip.c | 14 +++++++++++++-

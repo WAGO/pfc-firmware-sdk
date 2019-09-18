@@ -1,7 +1,7 @@
 From a349d8512b1b73ae991f338790099e8f78b1846b Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Mon, 12 Jun 2017 15:39:57 +0200
-Subject: [PATCH 059/292] iio: adc: mcp3422: add support for triggered buffer.
+Subject: [PATCH] iio: adc: mcp3422: add support for triggered buffer.
 
 Signed-off-by: Boerje Sewing <boerje.sewing@who-ing.de>
 ---

@@ -1,7 +1,7 @@
 From ee634bb8371cbf3c703d4c832b49054b40dbfc6e Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Mon, 2 Jul 2018 10:02:08 +0200
-Subject: [PATCH] omap: xload: add pfc boot order handling
+Subject: [PATCH 025/144] omap: xload: add pfc boot order handling
 
 Xload handler tries to boot from mmc first, if card inserted and barebox
 image available. Otherwise it boots from internal memory.

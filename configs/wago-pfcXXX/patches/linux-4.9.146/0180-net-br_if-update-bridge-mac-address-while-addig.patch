@@ -1,7 +1,7 @@
 From b4e2569283905eab646f254a4ddca215425a87b5 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 26 Jun 2018 15:45:25 +0200
-Subject: [PATCH 180/292] net: br_if: update bridge mac address while addig
+Subject: [PATCH] net: br_if: update bridge mac address while addig
 
 When adding a new bridge (brctl addbr), an initial
 MAC address is assigned to the bridge.

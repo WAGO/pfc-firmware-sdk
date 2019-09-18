@@ -1,8 +1,8 @@
 From 8f01d47709afaae70513aa1bb96d99d9c235f7e4 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 28 Nov 2018 12:12:01 +0000
-Subject: [PATCH 280/292] net: swcfg: ksz8863: use in-build func to check for
- valid mac addr
+Subject: [PATCH] net: swcfg: ksz8863: use in-build func to check for valid mac
+ addr
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

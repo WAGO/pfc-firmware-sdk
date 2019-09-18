@@ -1,7 +1,7 @@
 From eb45fa545b99408daf8b3a1866dc79650958e248 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Wed, 9 May 2018 09:15:44 +0200
-Subject: [PATCH] drivers: mci-core: omap hsmmc: add mmc card detection
+Subject: [PATCH 009/144] drivers: mci-core: omap hsmmc: add mmc card detection
 
 Signed-off-by: Peter Galka <peter.galka@wago.com>
 ---

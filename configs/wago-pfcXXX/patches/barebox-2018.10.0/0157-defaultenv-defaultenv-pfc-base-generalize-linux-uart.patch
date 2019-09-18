@@ -1,0 +1,117 @@
+From afd58bc7ff1409c3ffa9cbd219e83e787e4b92c1 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 16 Jan 2019 10:09:06 +0100
+Subject: [PATCH 157/160] defaultenv: defaultenv-pfc-base: generalize linux
+ uart and watchdog handling
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot    |  2 +-
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot |  2 +-
+ defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console      |  9 ++++-----
+ defaultenv/defaultenv-pfc-base/config                         | 11 +++++++++++
+ 4 files changed, 17 insertions(+), 7 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index 80ff8c8..bc49926 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -6,7 +6,7 @@ led_mode -s -c yellow -v on
+ 
+ global.autoboot_timeout=0
+ global.boot.watchdog_timeout=${global.pfc.watchdog_timeout_linux_load}
+-global.linux.bootargs.base="bootversion=${global.version} reset_state=${global.system.reset} omap_wdt.early_enable omap_wdt.timer_margin=${global.pfc.watchdog_timeout_linux_boot}"
++global.linux.bootargs.base="bootversion=${global.version} reset_state=${global.system.reset}"
+ 
+ sd_blspec="${global.pfc.sd_rootfs}/boot/sd/loader/entries/${global.model}-${global.pfc.devconf}.conf"
+ sd_legacy_uImage="${global.pfc.sd_boot}/uImage"
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
+index d77ab03..676d550 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-production-boot
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ 
+ global.linux.bootargs.productionmode="production_mode=1"
+-global.linux.bootargs.console="console=ttyO${global.pfc.barebox_linux_uart},115200n8"
++global.linux.bootargs.console="console=${global.pfc.linux_uart_device}${global.pfc.barebox_linux_uart},115200n8"
+ global.boot.watchdog_timeout=0
+ 
+ led_mode -m -c green
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console b/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
+index 37c2454..e644823 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-set-linux-console
+@@ -6,19 +6,18 @@ let uart_mask="(1<<1)"
+ let uart_enable="0x${global.pfc.boot_mode_id} & 0x${uart_mask}"
+ 
+ if [ "${uart_enable}" = "${uart_mask}" ]; then
+-        global.linux.bootargs.console="console=ttyO${global.pfc.linux_uart},115200n8"
++	global.linux.bootargs.console="console=${global.pfc.linux_uart_device}${global.pfc.linux_uart},115200n8"
+ 
+ elif [ "${global.bootm.boot_atag}" = true ]; then
+ 	# in case of an legacy boot (e.g. kernel 3.6.11, FW < 5) we are not
+ 	# allowed to set console=null because this will break the init-process
+ 	# and the boot hangs.
+-        global.linux.bootargs.console=""
++	global.linux.bootargs.console=""
+ 
+ elif [ "${global.pfc.debug_mode_active}" = true ]; then
+-        global.linux.bootargs.console="console=ttyO${global.pfc.barebox_linux_uart},115200n8"
+-
++	global.linux.bootargs.console="console=${global.pfc.linux_uart_device}${global.pfc.barebox_linux_uart},115200n8"
+ else
+-        global.linux.bootargs.console="console=null"
++	global.linux.bootargs.console="console=null"
+ fi
+ 
+ echo -e ${info} "setting linux console to: $global.linux.bootargs.console"
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index a85c9a9..16d95d9 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -42,10 +42,12 @@ global pfc.eth
+ global pfc.debug_mode_active
+ global pfc.watchdog_timeout_linux_load
+ global pfc.watchdog_timeout_linux_boot
++global pfc.linux_uart_device
+ 
+ global bootchooser.rootfs.1.boot
+ global bootchooser.rootfs.2.boot
+ global linux.bootargs.productionmode
++global linux.bootargs.watchdog
+ 
+ ################################
+ # global variable description
+@@ -128,8 +130,14 @@ magicvar -a global.pfc.watchdog_timeout_linux_boot "watchdog timeout when trying
+ 						    resetted when the kernel driver
+ 						    is probed"
+ 
++magicvar -a global.pfc.linux_uart_device "uart device string that is used when
++					  configuring the kernel parameter (e.g
++					  ttyO, ttymxc)."
++
++
+ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ 						  in production or wsc mode"
++magicvar -a global.linux.bootargs.watchdog "board specific watchdog kernel parameter"
+ 
+ 
+ ################################
+@@ -174,6 +182,7 @@ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ [ -z "${global.pfc.watchdog_timeout_linux_load}" ] && global.pfc.watchdog_timeout_linux_load=10
+ [ -z "${global.pfc.watchdog_timeout_linux_boot}" ] && global.pfc.watchdog_timeout_linux_boot=30
+ [ -z "${global.pfc.debug_mode_active}" ] && global.pfc.debug_mode_active=false
++[ -z "${global.pfc.linux_uart_device}" ] && global.pfc.linux_uart_device="ttyO"
+ 
+ [ -z "${global.bootchooser.targets}" ] && global.bootchooser.targets="rootfs.1 rootfs.2"
+ [ -z "${global.bootchooser.state_prefix}" ] && global.bootchooser.state_prefix="bootstate"
+@@ -181,3 +190,5 @@ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ [ -z "${global.bootchooser.reset_priorities}" ] && global.bootchooser.reset_priorities="all-zero"
+ [ -z "${global.bootchooser.disable_on_zero_attempts}" ] && global.bootchooser.disable_on_zero_attempts=0
+ [ -z "${global.bootchooser.retry}" ] && global.bootchooser.retry=1
++
++[ -z "${global.linux.bootargs.watchdog}" ] && global.linux.bootargs.watchdog="omap_wdt.early_enable omap_wdt.timer_margin=${global.pfc.watchdog_timeout_linux_boot}"
+-- 
+2.7.4
+

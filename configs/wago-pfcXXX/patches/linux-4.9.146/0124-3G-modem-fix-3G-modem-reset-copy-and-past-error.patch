@@ -1,7 +1,7 @@
 From acd71e68a055988944cac5c2a58555359b63448e Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Thu, 16 Nov 2017 08:54:45 +0000
-Subject: [PATCH 124/292] 3G-modem: fix 3G-modem reset copy and past error
+Subject: [PATCH] 3G-modem: fix 3G-modem reset copy and past error
 
 ---
  arch/arm/mach-omap2/wsysinit.c | 3 +--

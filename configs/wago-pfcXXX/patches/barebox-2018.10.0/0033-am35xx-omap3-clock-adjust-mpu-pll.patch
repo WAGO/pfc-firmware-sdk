@@ -1,7 +1,7 @@
 From 20b3d3a006b34e778fc15b8a5164a714fa5f32b6 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 18 Jun 2018 13:50:32 +0200
-Subject: [PATCH] am35xx: omap3-clock: adjust mpu pll
+Subject: [PATCH 033/144] am35xx: omap3-clock: adjust mpu pll
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

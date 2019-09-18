@@ -1,7 +1,7 @@
 From 0f19ff94e0570f4f610529b6356d4cbc55ef7aeb Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 17 Jan 2018 15:53:53 +0100
-Subject: [PATCH 139/292] net: cpsw: fix wrong handling of vlan aware mode
+Subject: [PATCH] net: cpsw: fix wrong handling of vlan aware mode
 
 	According to TI's datasheet (14.3.2.10.2 Dual Mac Mode)
 	ale_vlan_aware bit should be enabled when using

@@ -14,7 +14,7 @@ class RegexEvent : public Event
     Regex _re;
     MatchInfo _info;
   public:
-    bool match_string(const std::string &text );
+    bool match_string(const std::string &text ) override;
     std::string named_match( const std::string &name ) { return _info.fetch_named(name); }
     std::string get_match( int num ) { return _info.fetch_number(num); }
     int num_matches() { return _info.num_matches(); }
@@ -26,7 +26,7 @@ class RegexEvent : public Event
 class ModemEvent : public RegexEvent
 {
   public:
-    bool match_read( const std::string &text ) { return match_string(text); }
+    bool match_read( const std::string &text ) override { return match_string(text); }
 
     ModemEvent(const std::string &re) : RegexEvent(re) {}
     ~ModemEvent() {}
@@ -37,7 +37,7 @@ class TimeoutEvent : public Event
   private:
     int _id;
   public:
-    bool match_timeout( int i );
+    bool match_timeout( int i ) override;
 
     TimeoutEvent(int id=0);
     ~TimeoutEvent();
@@ -50,7 +50,7 @@ class DBusEvent : public Event
     bool _match_any;
     MethodInvocation _invocation;
   public:
-    bool match_dbus(MethodInvocation dbus_invocation);
+    bool match_dbus(MethodInvocation dbus_invocation) override;
     MethodInvocation invocation();
 
     DBusEvent( const std::string &method_name );

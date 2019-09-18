@@ -1,7 +1,7 @@
 From b185e35f0ba9a999cf0816a833da2f77eda60959 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Apr 2017 11:11:13 +0200
-Subject: [PATCH 043/292] watchdog: gpio_wdt: turn of pr_infos
+Subject: [PATCH] watchdog: gpio_wdt: turn of pr_infos
 
 	replace only pr_info to pr_debug
 ---

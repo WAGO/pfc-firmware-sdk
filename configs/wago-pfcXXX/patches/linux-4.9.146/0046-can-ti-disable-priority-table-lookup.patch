@@ -1,7 +1,7 @@
 From 9c96e5ac97dbc5c5391aee4f1974c4e117d1093e Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 7 Jul 2015 13:27:59 +0200
-Subject: [PATCH 046/292] can: ti: disable priority table lookup
+Subject: [PATCH] can: ti: disable priority table lookup
 
 ---
  drivers/net/can/ti_hecc.c | 7 ++++++-

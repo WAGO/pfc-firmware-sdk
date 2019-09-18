@@ -1,8 +1,8 @@
 From 16f4532f65317209578621508ca3faa0fd6d28de Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Wed, 4 Oct 2017 14:37:22 +0200
-Subject: [PATCH 121/292] 3G-modem: fix 3G-modem reset during soft reset an add
- new sysfs attr for modem reset
+Subject: [PATCH] 3G-modem: fix 3G-modem reset during soft reset an add new
+ sysfs attr for modem reset
 
 ---
  arch/arm/boot/dts/wago-pfc200-musb.dtsi |  5 +++

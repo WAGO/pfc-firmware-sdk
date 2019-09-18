@@ -1,8 +1,8 @@
 From 2afaf39abc461c2729364a6548d37b4227ae5f43 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 6 Jan 2014 13:43:00 +0000
-Subject: [PATCH 013/292] omap: 32k-timer: adjust freq value for sysclock to
- reduce drift
+Subject: [PATCH] omap: 32k-timer: adjust freq value for sysclock to reduce
+ drift
 
 omap 32k timer: fix comment
 

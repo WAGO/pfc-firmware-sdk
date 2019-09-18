@@ -1,0 +1,27 @@
+## SECTION=wago_specific_libs
+
+menuconfig LIBUIO
+	bool
+	select GLIB
+	default y
+	prompt "libuio"
+	help
+	  UserspaceIO helper library and examples
+
+if LIBUIO
+
+config LSUIO_GIT
+    bool
+    prompt "lsuio"
+	default y
+	help
+	  lists the UserspaceIO devices registered in your system
+
+config READUIO_GIT
+    bool
+    prompt "readuio"
+	default n
+	help
+	  read from Userspace IO devices registered in your system
+	  
+endif

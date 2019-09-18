@@ -1,8 +1,8 @@
 From d8ac6c6250985a5e1d549e358d86b737826f6686 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 12 Oct 2018 11:57:45 +0200
-Subject: [PATCH] arm: configs: am35xx_pfc_mlo: deactivate meminfo to reduce
- image size
+Subject: [PATCH 106/144] arm: configs: am35xx_pfc_mlo: deactivate meminfo to
+ reduce image size
 
 The am35xx based devices have only about 64kB SRAM size. If the image exceeds the
 size above ~61950 bytes the mlo does not boot anymore. Remove meminfo print on

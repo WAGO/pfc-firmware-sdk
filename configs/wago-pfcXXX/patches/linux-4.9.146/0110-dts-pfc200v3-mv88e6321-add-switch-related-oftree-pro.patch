@@ -1,8 +1,7 @@
 From 0ee44c59dbc55220f12bdddd087d55a92cf2e2cf Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 13 Jul 2017 14:41:26 +0200
-Subject: [PATCH 110/292] dts: pfc200v3: mv88e6321: add switch related oftree
- propertys
+Subject: [PATCH] dts: pfc200v3: mv88e6321: add switch related oftree propertys
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts | 140 ++++++++++++++++++++++-

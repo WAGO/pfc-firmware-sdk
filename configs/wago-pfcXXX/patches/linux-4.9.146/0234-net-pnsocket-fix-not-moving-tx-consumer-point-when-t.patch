@@ -1,7 +1,7 @@
 From 1bdb152c76996e8c5516dcc8607ffb26162ea30c Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Tue, 4 Sep 2018 09:50:33 +0200
-Subject: [PATCH 234/292] net: pnsocket: fix not moving tx-consumer-point when
+Subject: [PATCH] net: pnsocket: fix not moving tx-consumer-point when
  tx-packet is dropped
 
 This prevents the same buffer from being used multiple times.

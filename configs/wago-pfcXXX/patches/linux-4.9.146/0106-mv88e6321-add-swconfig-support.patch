@@ -1,7 +1,7 @@
 From 58f43d34837dbcb7283e41938d2fff5d9e3a83f2 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 14 Jun 2017 12:18:28 +0200
-Subject: [PATCH 106/292] mv88e6321: add swconfig support
+Subject: [PATCH] mv88e6321: add swconfig support
 
 ---
  arch/arm/configs/wago_pfc_generic_defconfig |   7 +-

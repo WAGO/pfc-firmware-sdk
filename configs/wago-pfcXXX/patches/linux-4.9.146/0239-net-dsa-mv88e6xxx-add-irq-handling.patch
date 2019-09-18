@@ -1,7 +1,7 @@
 From b47c906e663684dbf83ea94ac5c40e744e78c5ee Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 20 Sep 2018 12:13:36 +0200
-Subject: [PATCH 239/292] net: dsa: mv88e6xxx: add irq handling
+Subject: [PATCH] net: dsa: mv88e6xxx: add irq handling
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -1,8 +1,7 @@
 From a1bb0d7a67ec78c406dac65415a11cf647d4599f Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 26 Nov 2018 11:59:11 +0000
-Subject: [PATCH 274/292] net: swcfg: ksz8863: add support for oftree based mac
- address
+Subject: [PATCH] net: swcfg: ksz8863: add support for oftree based mac address
 
 The bootoader stores mac addresses in aliases 'ethernet0' and 'ethernet1'.
 Add the support for reading those nodes and getting the mac-address

@@ -1,8 +1,7 @@
 From b1bb257827f4961b9aeb77e0c8d49d2783f92cf2 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 12 Jan 2018 11:21:58 +0100
-Subject: [PATCH 137/292] dts: pfc821x: change i2c0 bus speed to 100KHz for
- tps65218
+Subject: [PATCH] dts: pfc821x: change i2c0 bus speed to 100KHz for tps65218
 
 	see upstream patch d279f7a7e95af6bb4b5eaea3527d1f85a28c5cf6
 ---

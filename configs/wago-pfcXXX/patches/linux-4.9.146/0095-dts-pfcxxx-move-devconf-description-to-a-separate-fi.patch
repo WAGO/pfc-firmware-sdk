@@ -1,8 +1,7 @@
 From e381e1fb21b4e22455d6389c42ac5e94fb61393f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 24 Aug 2017 14:02:22 +0200
-Subject: [PATCH 095/292] dts: pfcxxx: move devconf description to a separate
- file
+Subject: [PATCH] dts: pfcxxx: move devconf description to a separate file
 
 ---
  arch/arm/boot/dts/wago-devconf-desc.dtsi         | 34 ++++++++++++++++++++++++

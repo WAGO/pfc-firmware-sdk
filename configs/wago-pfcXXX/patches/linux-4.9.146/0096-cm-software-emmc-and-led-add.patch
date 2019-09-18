@@ -1,7 +1,7 @@
 From 552edb65391261d2cc7077631df4e5190ab41576 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Tue, 29 Aug 2017 10:35:37 +0000
-Subject: [PATCH 096/292] cm-software: emmc and led add
+Subject: [PATCH] cm-software: emmc and led add
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-setupfw.dts | 39 ++++++++++++++++++++++++++++-

@@ -1,8 +1,8 @@
 From 3d248e0adf962c460a417c315b4cfdce5625234e Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Tue, 9 Oct 2018 14:23:05 +0200
-Subject: [PATCH 243/292] phy: marvell: add mv88e6321 internal phys to the
- marvell phy driver
+Subject: [PATCH] phy: marvell: add mv88e6321 internal phys to the marvell phy
+ driver
 
 This enables interrupt driven link change detection.
 

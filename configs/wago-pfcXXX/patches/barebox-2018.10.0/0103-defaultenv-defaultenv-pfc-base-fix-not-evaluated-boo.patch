@@ -1,7 +1,7 @@
 From 004df8040ea084a8225e94b0afa8c5ebe2a9e150 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 28 Sep 2018 14:35:26 +0200
-Subject: [PATCH] defaultenv: defaultenv-pfc-base: fix not evaluated
+Subject: [PATCH 103/144] defaultenv: defaultenv-pfc-base: fix not evaluated
  boot-mode-id bug
 
 Command let needs hex values represented by an 0x prefix when using hex values

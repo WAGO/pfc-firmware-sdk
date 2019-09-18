@@ -1,8 +1,7 @@
 From f70ab076fd379071a018655d54cd11ef76eef554 Mon Sep 17 00:00:00 2001
 From: "Schmidt, Andreas" <Andreas.Schmidt@wago.com>
 Date: Mon, 19 Mar 2018 10:48:03 +0000
-Subject: [PATCH 160/292] net:phy: force speed to 100BASE-T for ports with ext.
- phys
+Subject: [PATCH] net:phy: force speed to 100BASE-T for ports with ext. phys
 
 The max. allowed speed for ports with external phy on
 mv88e6321 switch is 100 BASE-T. This patch force the

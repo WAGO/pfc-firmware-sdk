@@ -1,0 +1,43 @@
+diff -u test/base.c test2/base.c
+--- test/base.c	2019-05-09 16:19:26.217375520 +0200
++++ test2/base.c	2019-05-09 16:17:38.873299307 +0200
+@@ -71,6 +71,28 @@
+ 	return ret;
+ }
+ 
++void *uio_mmap_with_addr(void* map_addr, struct uio_info_t* info, int map_num)                                                                                                                                                                                                 
++{
++	char dev_name[16];
++	int fd;
++
++	if (info->maps[map_num].size <= 0)
++		return MAP_FAILED;
++
++	sprintf(dev_name,"/dev/uio%d",map_num);
++
++	fd = open(dev_name,O_RDWR);
++
++	if (fd < 0)
++		return MAP_FAILED;
++	map_addr = mmap(map_addr, info->maps[map_num].size, PROT_READ|PROT_WRITE,
++			MAP_SHARED|MAP_LOCKED|MAP_POPULATE|MAP_FIXED, fd,
++			map_num * getpagesize());
++
++        close(fd);
++        return map_addr;
++}
++
+ /**
+  * Set sysfs mount point
+  * @param sysfs_mpoint path to sysfs mount point
+diff -u test/libuio.h test2/libuio.h
+--- test/libuio.h	2019-05-10 13:36:56.649043186 +0200
++++ test2/libuio.h	2019-05-10 13:35:49.392903946 +0200
+@@ -35,6 +35,7 @@
+ struct uio_info_t;
+ 
+ /* base functions */
++void *uio_mmap_with_addr(void* map_addr, struct uio_info_t* info, int map_num);
+ struct uio_info_t **uio_find_devices ();
+ struct uio_info_t *uio_find_by_uio_name (char *uio_name);
+ struct uio_info_t *uio_find_by_uio_num (int num);

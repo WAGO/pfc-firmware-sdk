@@ -1,0 +1,229 @@
+From 506fc6e112136fc78b5463d72480d5cfbf451c94 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Mon, 27 May 2019 10:14:57 +0200
+Subject: [PATCH] ARM: dts: add pfc200 750-8210 device tree
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ arch/arm/boot/dts/Makefile                |   1 +
+ arch/arm/boot/dts/am335x-pfc-750_8210.dts | 183 ++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/wago-devconf.dtsi       |   1 +
+ 3 files changed, 185 insertions(+)
+ create mode 100644 arch/arm/boot/dts/am335x-pfc-750_8210.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 346dc7b..ef6c0d3 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -571,6 +571,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-pfc-750_8102.dtb \
+ 	am335x-pfc-750_8100_8101.dtb \
+ 	am335x-pfc-750_8208.dtb \
++	am335x-pfc-750_8210.dtb \
+ 	am335x-pfc-750_8211.dtb \
+ 	am335x-pfc-750_8212.dtb \
+ 	am335x-pfc-750_8213.dtb \
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8210.dts b/arch/arm/boot/dts/am335x-pfc-750_8210.dts
+new file mode 100644
+index 0000000..6baa033
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pfc-750_8210.dts
+@@ -0,0 +1,183 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am335x-pfc-750_821x.dtsi"
++#include "am335x-pfc-750_821x-mv88e6321.dtsi"
++#include "wago-devconf.dtsi"
++
++/{
++	model = "WAGO PFC200 750-8210";
++	compatible = "wago,am335x-pfc-750_821x-1007", "wago,am335x-pfc", "ti,am33xx";
++};
++
++&aes {
++	status = "okay";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
++&elm {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++};
++
++&i2c0 {
++	status = "okay";
++};
++
++&kbus0 {
++	status = "okay";
++};
++
++&mac {
++	status = "okay";
++};
++
++&mmc1 {
++	status = "okay";
++};
++
++&mmc2 {
++	status = "okay";
++};
++
++&oms {
++	status = "okay";
++};
++
++&sham {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&uart5 {
++	status = "okay";
++};
++
++&watchdog {
++	status = "okay";
++};
++
++&wsysinit {
++	tty,rs232-485 = "nop";
++	profinet-capable;
++};
++
++&am33xx_pinmux {
++	ext_phy0_pins: pinmux_ext_phy0_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_WPN_GPIO0_31(PIN_INPUT)
++		>;
++	};
++
++	ext_phy1_pins: pinmux_ext_phy1_pins {
++		pinctrl-single,pins = <
++			AM33XX_MII1_RX_ER_GPIO3_2(PIN_INPUT)
++		>;
++	};
++
++	usb1_pins: pinmux_usb0_pins {
++		pinctrl-single,pins = <
++			AM33XX_USB1_DRVVBUS(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++};
++
++&swcfg_mv88e6321 {
++	status = "okay";
++};
++
++&mv88e6321_switch {
++	eeprom-length = <256>;
++	eeprom = /bits/ 8 <0x20 0x80 0x09 0x5E 0x40 0x80 0x09 0x5E 0x01 0x7D 0x01 0x7D 0x01 0x7D 0x01 0x7D
++			   0xF9 0x7F 0x40 0x19 0xF8 0x7F 0x60 0x94 0xF9 0x7F 0x40 0x19 0xF8 0x7F 0x80 0x94
++			   0xF9 0x7F 0x40 0x19 0xF8 0x7F 0x00 0x94 0xF9 0x7F 0x40 0x19 0xF8 0x7F 0x20 0x94
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
++			   0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF>;
++
++	mdio {
++		ext_phy0: ethernet-phy@0 {
++			compatible = "ethernet-phy-idD565.A401", "ethernet-phy-ieee802.3-c22";
++			pinctrl-names = "default";
++			pinctrl-0 = <&ext_phy0_pins>;
++			reg = <0>;
++			max-speed = <100>;
++			interrupt-parent = <&gpio3>;
++			interrupts = <2 IRQ_TYPE_EDGE_FALLING>;
++		};
++
++		ext_phy1: ethernet-phy@1 {
++			compatible = "ethernet-phy-idD565.A401", "ethernet-phy-ieee802.3-c22";
++			pinctrl-names = "default";
++			pinctrl-0 = <&ext_phy1_pins>;
++			reg = <1>;
++			max-speed = <100>;
++			interrupt-parent = <&gpio0>;
++			interrupts = <31 IRQ_TYPE_EDGE_FALLING>;
++		};
++	};
++
++	ports {
++		port@0 {
++			reg = <0>;
++			label = "ethX1";
++			phy-mode = "sgmii";
++			phy-handle = <&ext_phy0>;
++			phy-external;
++		};
++
++		port@1 {
++			reg = <1>;
++			label = "ethX2";
++			phy-mode = "sgmii";
++			phy-handle = <&ext_phy1>;
++			phy-external;
++		};
++	};
++};
++
++&lb61_0 {
++	label = "bf-red";
++};
++
++&lb61_1 {
++	label = "bf-green";
++};
++
++&lb61_2 {
++	label = "dia-red";
++};
++
++&lb61_3 {
++	label = "dia-green";
++};
++
+diff --git a/arch/arm/boot/dts/wago-devconf.dtsi b/arch/arm/boot/dts/wago-devconf.dtsi
+index 1b5de36..5a9ea5e 100644
+--- a/arch/arm/boot/dts/wago-devconf.dtsi
++++ b/arch/arm/boot/dts/wago-devconf.dtsi
+@@ -47,6 +47,7 @@
+  * |            1004 |       PFC 750-8211 |
+  * |            1005 |       PAC 763-3301 |
+  * |            1006 |       PFC 750-8217 |
++ * |            1007 |       PFC 750-8210 |
+  * |-----------------|--------------------|
+  *
+  * ============== LEGACY FORMAT ================================================
+-- 
+2.7.4
+

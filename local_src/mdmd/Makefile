@@ -70,8 +70,8 @@ CLANG_TIDY_RULESET = $(CLANG_TIDY_BASE_CHECKS)
 #######################################################################################################################
 # Settings shared between build targets
 
-SHARED_CFLAGS   += $(call option_std,gnu99)
-SHARED_CXXFLAGS += $(call option_std,gnu++11)
+SHARED_CFLAGS   += $(call option_std,c99)
+SHARED_CXXFLAGS += $(call option_std,c++14)
 
 INCLUDES_OF_EXTERNAL_PACKAGES += -isystem $(SYSROOT)/usr/include/glib-2.0
 INCLUDES_OF_EXTERNAL_PACKAGES += -isystem $(SYSROOT)/usr/include/fuse3
@@ -154,7 +154,7 @@ alltests.elf_CPPFLAGS += $(call pkg_config_cppflags,$(alltests.elf_PKG_CONFIGS))
 alltests.elf_CPPFLAGS += $(INCLUDES_OF_EXTERNAL_PACKAGES)
 alltests.elf_CXXFLAGS += $(call option_disable_warning,$(alltests.elf_DISABLEDWARNINGS))
 alltests.elf_CXXFLAGS += $(call pkg_config_cxxflags,$(alltests.elf_PKG_CONFIGS))
-alltests.elf_CXXFLAGS += $(call option_std,gnu++11)
+alltests.elf_CXXFLAGS += $(call option_std,gnu++14)
 alltests.elf_LDFLAGS += $(call option_lib,$(alltests.elf_LIBS),alltests.elf)
 alltests.elf_LDFLAGS += $(call pkg_config_ldflags,$(alltests.elf_PKG_CONFIGS))
 alltests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/test-src,$(SOURCE_FILE_EXTENSIONS))

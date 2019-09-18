@@ -1,7 +1,7 @@
 From 357f0efecdae1a12e598aed194ae19b54eeba6ec Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 18 Apr 2017 14:38:12 +0200
-Subject: [PATCH 038/292] defconfig: pfcXXX: configure governors
+Subject: [PATCH] defconfig: pfcXXX: configure governors
 
 	+ disable powersave, ondemand and conservative governors
 	+ use performance governor as default to use max frequency at startup

@@ -12,7 +12,7 @@
 # /etc/specific/network-interfaces.xml accordingly. Restart network interfaces
 # X1 and X2
 #
-# $Revision: 36237 $
+# $Revision: 40179 $
 # Author: HJH, WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------
 
@@ -61,12 +61,6 @@ if [ $# -gt 0 ]; then
         fi
     fi
 fi
-
-if [[ ${ORDER:0:8} == "750-8215" ]]; then
-    # We do not allow to change dsa state for this device type.       
-    exit 0                                       
-fi
-
 
 if [ -z "$newmode" ]; then
     SetLastError "set_dsa_mode: missing argument"

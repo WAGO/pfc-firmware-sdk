@@ -1,7 +1,7 @@
 From fddc004a19fbe3b2bb62a92e219fc1d6018013f9 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 21 Sep 2018 13:24:00 +0200
-Subject: [PATCH] i2c-omap: correct to code convention
+Subject: [PATCH 089/144] i2c-omap: correct to code convention
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1,0 +1,38 @@
+#!/bin/bash
+# Init script for network configuration daemon
+# Author: WAGO Kontakttechnik GmbH & Co. KG
+
+RUNDIR="/var/run/netconfd"
+PIDFILE="netconfd.pid"
+STARTCMD="/usr/bin/netconfd --daemon --rundir=$RUNDIR --pidfile=$PIDFILE"
+
+set -e
+
+case $1 in
+start)
+    echo "Starting network configuration daemon"
+    mkdir -p $RUNDIR
+    if [ -f "$RUNDIR/$PIDFILE" ]; then
+        echo "Already running"
+    else
+        $STARTCMD
+    fi
+    ;;
+
+stop)	
+    echo "Stopping network configuration daemon"
+    if [ -f "$RUNDIR/$PIDFILE" ]; then
+        kill $(<$RUNDIR/$PIDFILE)
+        rm -f $RUNDIR/$PIDFILE
+    fi
+    ;;
+
+restart)
+    echo "Restart network configuration daemon"
+    [ -f "$RUNDIR/$PIDFILE" ] && kill $(<$RUNDIR/$PIDFILE)
+    $STARTCMD
+    ;;
+
+*)
+    echo "Usage $0 start | stop | restart"
+esac

@@ -1,8 +1,7 @@
 From 0a1fac1ae0fd2cfe9e040d54742ba9d100f25ebc Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Thu, 1 Mar 2018 10:17:35 +0100
-Subject: [PATCH 159/292] debug: Add unicast/multicast filter print out in
- sysfs
+Subject: [PATCH] debug: Add unicast/multicast filter print out in sysfs
 
 ---
  net/core/net-procfs.c |  2 +-

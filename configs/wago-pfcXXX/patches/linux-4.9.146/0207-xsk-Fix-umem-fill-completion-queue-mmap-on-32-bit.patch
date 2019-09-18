@@ -1,7 +1,7 @@
 From e4bb8c77a35c97c7f367ce7d040e7de1c220a59e Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 3 Jul 2018 12:14:09 +0200
-Subject: [PATCH 207/292] xsk: Fix umem fill/completion queue mmap on 32-bit
+Subject: [PATCH] xsk: Fix umem fill/completion queue mmap on 32-bit
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

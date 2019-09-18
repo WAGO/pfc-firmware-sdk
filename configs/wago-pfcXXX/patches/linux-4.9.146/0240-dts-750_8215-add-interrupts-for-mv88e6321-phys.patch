@@ -1,7 +1,7 @@
 From 09caddc7679d1d507b884bad2f72c8ecc9d1c63d Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 20 Sep 2018 12:15:37 +0200
-Subject: [PATCH 240/292] dts: 750_8215: add interrupts for mv88e6321 phys
+Subject: [PATCH] dts: 750_8215: add interrupts for mv88e6321 phys
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

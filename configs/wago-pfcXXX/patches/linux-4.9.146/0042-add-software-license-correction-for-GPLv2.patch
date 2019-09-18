@@ -1,7 +1,7 @@
 From 02c0bbe60ea7b7481c5fafe1af3bc6f0d5b69994 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 14 Nov 2016 15:21:37 +0000
-Subject: [PATCH 042/292] add software license correction for GPLv2
+Subject: [PATCH] add software license correction for GPLv2
 
 add further software license correction for GPLv2
 

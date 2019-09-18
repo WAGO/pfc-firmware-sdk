@@ -12,7 +12,7 @@
 # We provide this package
 #
 PACKAGES-$(PTXCONF_WAGO_CUSTOM_INSTALL) += wago-custom-install
- 
+
 # dummy to make ipkg happy
 WAGO_CUSTOM_INSTALL_VERSION	:= 1.0.0
 
@@ -45,36 +45,38 @@ $(STATEDIR)/wago-custom-install.targetinstall:
 
 
 ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_INSTALL_HOME_USER_GUEST
+ifdef PTXCONF_ROOTFS_PASSWD_USER
 	@$(call install_copy, wago-custom-install, ${PTXCONF_ROOTFS_PASSWD_USER_UID}, ${PTXCONF_ROOTFS_PASSWD_USER_GID}, 0744, /home/user)
+endif # PTXCONF_ROOTFS_PASSWD_USER
 
 ifdef PTXCONF_ROOTFS_PASSWD_GUEST
 	@$(call install_copy, wago-custom-install, ${PTXCONF_ROOTFS_PASSWD_GUEST_UID}, ${PTXCONF_ROOTFS_PASSWD_GUEST_GID}, 0744, /home/guest)
-endif
+endif # PTXCONF_ROOTFS_PASSWD_GUEST
 
 ifdef PTXCONF_PLCLINUXRT
-# make /home/admin a link to /home/codesys to provide codesys users with the expected ftp home dir
+	# make /home/admin a link to /home/codesys to provide codesys users with the expected ftp home dir
 	@$(call install_link, wago-custom-install, ./codesys, /home/admin)
 else
 	@$(call install_copy, wago-custom-install, ${PTXCONF_ROOTFS_PASSWD_ADMIN_UID}, ${PTXCONF_ROOTFS_PASSWD_ADMIN_GID}, 0744, /home/admin)
-endif
+endif # PTXCONF_PLCLINUXRT
 
-endif
-
+endif # PTXCONF_WAGO_CUSTOM_ROOTFS_INSTALL_HOME_USER_GUEST
 
 ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_INSTALL_CHECK_FOR_DEFAULT_PASSWORD
 	@$(call install_copy, wago-custom-install, 0, 0, 644, $(PTXDIST_WORKSPACE)/projectroot/etc/profile.passwd, /etc/profile.passwd)
-  
-# install per-user .profile file that parses /etc/profile.passwd for the users root, admin and user
+
+        # install per-user .profile file that sources /etc/profile.passwd for the users root, admin and user
 	@$(call install_copy, wago-custom-install, 0, 0, 0700, /root)
-	
 	@$(call install_copy, wago-custom-install, 0, 0, 600, $(PTXDIST_WORKSPACE)/projectroot/root/.profile, /root/.profile)
 
 ifndef PTXCONF_PLCLINUXRT
 	@$(call install_copy, wago-custom-install, ${PTXCONF_ROOTFS_PASSWD_ADMIN_UID}, ${PTXCONF_ROOTFS_PASSWD_ADMIN_GID}, 600, $(PTXDIST_WORKSPACE)/projectroot/root/.profile, /home/admin/.profile)
-endif
+endif # PTXCONF_PLCLINUXRT
 
+ifdef PTXCONF_ROOTFS_PASSWD_USER
 	@$(call install_copy, wago-custom-install, ${PTXCONF_ROOTFS_PASSWD_USER_UID}, ${PTXCONF_ROOTFS_PASSWD_USER_GID}, 600, $(PTXDIST_WORKSPACE)/projectroot/root/.profile, /home/user/.profile)
-endif
+endif # PTXCONF_ROOTFS_PASSWD_USER
+endif # PTXCONF_WAGO_CUSTOM_ROOTFS_INSTALL_CHECK_FOR_DEFAULT_PASSWORD
 
 ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_COPY_SD_INTERN
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, $(PTXDIST_WORKSPACE)/projectroot/etc/init.d/cpsd2intern, /etc/init.d/cpsd2intern, n)
@@ -340,15 +342,17 @@ endif
 # ------------------------------------------
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_BACKUP_SETTINGS
 # backup and restore settings
+ifndef PTXCONF_NETCONFD
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/usr/sbin/settings_backup_lib)
+endif
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/usr/sbin/settings_backup_store)
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/usr/sbin/settings_backup_restore)
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 	  $(PTXDIST_WORKSPACE)/projectroot/usr/sbin/settings_backup_checksys, \
-		/usr/sbin/settings_backup_checksys, n)		
+		/usr/sbin/settings_backup_checksys, n)
 endif
 
 #
@@ -464,7 +468,7 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 # backup generated diagnostic.xml file for BINARIES mode
 	@cp $(DIAGNOSTIC_XML_SOURCE_DIR)/diagnostic.xml $(PTXDIST_PLATFORMCONFIGDIR)/packages/
 endif
-    
+
 endif # PTXCONF_WAGO_CUSTOM_DIAGNOSTICS
 
 ifdef PTXCONF_WAGO_CUSTOM_PAC100_ETH_WORKAROUND
@@ -632,6 +636,21 @@ ifdef PTXCONF_WAGO_CUSTOM_INSTALL_RTSVERSION
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, /etc/specific/rtsversion, n)
 endif
 
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD
+
+ifneq ($(PTXCONF_WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD_IMG),)
+	@$(call install_alternative, wago-custom-install, 0, 0, 0755, /etc/init.d/rmd-fw-download, n)
+	@$(call install_replace, wago-custom-install, /etc/init.d/rmd-fw-download, @RMD_FW_DOWNLOAD_IMG@, \
+							$(PTXCONF_WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD_IMG))
+
+ifneq ($(PTXCONF_WAGO_CUSTOM_RMD_FW_DOWNLOAD_BBINIT_LINK),)
+	@$(call install_link, wago-custom-install, ../init.d/rmd-fw-download, /etc/rc.d/$(PTXCONF_WAGO_CUSTOM_RMD_FW_DOWNLOAD_BBINIT_LINK))
+
+endif
+endif
+endif
+
+
 ifdef PTXCONF_WAGO_ADJUST_DEFAULT_SETTINGS
 
 ifdef PTXCONF_INITMETHOD_SYSTEMD
@@ -643,6 +662,16 @@ ifdef PTXCONF_INITMETHOD_BBINIT
 endif
 
 endif #WAGO_ADJUST_DEFAULT_SETTINGS
+
+	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
+		$(PTXDIST_WORKSPACE)/projectroot/usr/sbin/setup_ssh_keys, \
+		/usr/sbin/setup_ssh_keys, n)
+	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
+		$(PTXDIST_WORKSPACE)/projectroot/usr/sbin/setup_https_key, \
+		/usr/sbin/setup_https_key, n)
+	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
+		$(PTXDIST_WORKSPACE)/projectroot/usr/sbin/random_seed, \
+		/usr/sbin/random_seed, n)
 
 	@$(call install_finish, wago-custom-install)
 

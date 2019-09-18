@@ -195,6 +195,7 @@ out/gcc_5_5_arm-linux-gnueabihf/Debug/alltests.elf/test-src/test_Persistent_Stor
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/allocator.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/codecvt.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/unique_ptr.h \
+ /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/quoted_string.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/map \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/stl_tree.h \
  /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/ext/aligned_buffer.h \
@@ -709,6 +710,8 @@ test-src/preinclude.h:
 /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/codecvt.h:
 
 /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/unique_ptr.h:
+
+/opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/bits/quoted_string.h:
 
 /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/arm-linux-gnueabihf/include/c++/5.5.0/map:
 

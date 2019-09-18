@@ -142,7 +142,7 @@ ifdef PTXCONF_INETUTILS_TFTPD
 	@$(call install_copy, inetutils, 0, 0, 0755, -, /usr/sbin/tftpd)
 ifneq ($(PTXCONF_INETUTILS_TFTPD_BASE_DIR),"")
 #	# create the base dir
-	@$(call install_copy, inetutils, 99, 0, 0755, \
+	@$(call install_copy, inetutils, 0, 0, 0755, \
 		$(PTXCONF_INETUTILS_TFTPD_BASE_DIR) )
 endif
 	@$(call install_alternative, inetutils, 0, 0, 0644, /etc/inetd.conf.d/tftp, n)

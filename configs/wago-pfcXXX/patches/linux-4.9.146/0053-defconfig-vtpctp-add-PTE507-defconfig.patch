@@ -1,7 +1,7 @@
 From 0a7deff97b0b0b202de066bc6febd08592e08108 Mon Sep 17 00:00:00 2001
 From: Ralf Gliese <gliese@elrest.de>
 Date: Mon, 22 May 2017 10:03:24 +0200
-Subject: [PATCH 053/292] defconfig: vtpctp: add PTE507 defconfig
+Subject: [PATCH] defconfig: vtpctp: add PTE507 defconfig
 
 ---
  arch/arm/configs/pte507_defconfig | 345 ++++++++++++++++++++++++++++++++++++++

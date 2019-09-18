@@ -1,0 +1,13 @@
+#!/bin/sh
+
+exec >/dev/urandom
+
+openssl rand -rand /dev/hwrng 1024 ||
+(
+  # Desperate attempt to get some entropy
+  date
+  ifconfig
+  /etc/config-tools/get_typelabel_value -a
+)
+# Don't fail if 'get_typelabel_value' fails
+exit 0

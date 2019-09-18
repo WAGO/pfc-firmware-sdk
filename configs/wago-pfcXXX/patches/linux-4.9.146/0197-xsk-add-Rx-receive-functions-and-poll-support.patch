@@ -1,7 +1,7 @@
 From 8e8426bbe5d47e93148cff7ab5e3751097a4cb58 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Wed, 23 May 2018 12:45:00 +0200
-Subject: [PATCH 197/292] xsk: add Rx receive functions and poll support
+Subject: [PATCH] xsk: add Rx receive functions and poll support
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

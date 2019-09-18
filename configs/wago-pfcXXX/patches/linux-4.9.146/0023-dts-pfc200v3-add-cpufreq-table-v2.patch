@@ -1,7 +1,7 @@
 From 64141f8a2934e016e831ba9f6c22b4418b2aedd8 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Fri, 2 Dec 2016 07:21:07 +0000
-Subject: [PATCH 023/292] dts: pfc200v3: add cpufreq table v2
+Subject: [PATCH] dts: pfc200v3: add cpufreq table v2
 
 ---
  arch/arm/boot/dts/wago-pfc200v2.dtsi | 18 ++--------

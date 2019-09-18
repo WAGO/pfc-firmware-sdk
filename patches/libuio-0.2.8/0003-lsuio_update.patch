@@ -1,0 +1,65 @@
+diff -u a/libuio.h b/libuio.h
+--- a/libuio.h	2019-04-25 15:08:47.789061777 +0200
++++ b/libuio.h	2019-04-25 15:05:52.000000000 +0200
+@@ -51,6 +51,7 @@
+ int uio_open_fix (struct uio_info_t* info, void *ptr);
+ int uio_open_private (struct uio_info_t* info);
+ int uio_close (struct uio_info_t* info);
++void uio_free_info(struct uio_info_t* info);
+ 
+ /* attribute functions */
+ char **uio_list_attr (struct uio_info_t* info);
+diff -u a/lsuio.c b/lsuio.c
+--- a/lsuio.c	2018-05-04 13:08:41.000000000 +0200
++++ b/lsuio.c	2019-04-25 11:52:47.000000000 +0200
+@@ -76,14 +76,13 @@
+ 
+ int main (int argc, char **argv)
+ {
+-	struct uio_info_t **uio_list, *info;
+-	char **attr, **tmp;
++	struct uio_info_t **uio_list, **uio_list_start, *info;
+ 	int i;
+ 
+ 	textdomain (PACKAGE);
+ 	argp_parse (&argp, argc, argv, 0, NULL, NULL);
+ 
+-	uio_list = uio_find_devices ();
++	uio_list_start = uio_list = uio_find_devices ();
+ 	if (!uio_list)
+ 	{
+ 		g_print (_("No UIO devices found\n"));
+@@ -114,20 +113,6 @@
+ 		}
+ 		g_print (_("\n"));
+ 
+-		g_print (_("Attr.  :\n"));
+-		attr = uio_list_attr (info);
+-		for (tmp = attr; tmp && *tmp; tmp++)
+-		{
+-			g_print (_("  %s\n"), *tmp);
+-			if (want_verbose)
+-				if (!strcmp (*tmp, "name") ||
+-				    !strcmp (*tmp, "version"))
+-					g_print (_("    %s\n"),
+-						uio_get_attr (info, *tmp));
+-			free (*tmp);
+-		}
+-		free (attr);
+-
+ 		if (want_access)
+ 		{
+ 			g_print (_("open : "));
+@@ -142,9 +127,11 @@
+ 			else
+ 				g_print (_("failed\n"));
+ 		}
++		
++		uio_free_info(info);
+ 	}
+ 
+-	free (uio_list);
++	free (uio_list_start);
+ 
+ 	return 0;
+ }

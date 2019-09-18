@@ -16,11 +16,8 @@ PACKAGES-$(PTXCONF_MOSQUITTO) += mosquitto
 #
 # Paths and names
 #
-MOSQUITTO_VERSION	:= 1.4.15
-MOSQUITTO_MD5		:= 546cb1ce35cc3f7d23e6d2f1f9a962e7
-# Mosquitto version 1.5.x is not tested to work well with data agent, yet
-#MOSQUITTO_VERSION	:= 1.5.7
-#MOSQUITTO_MD5		:= cdb4d2776e498d7a83b37921f9877e08
+MOSQUITTO_VERSION	:= 1.5.7
+MOSQUITTO_MD5		:= cdb4d2776e498d7a83b37921f9877e08
 MOSQUITTO		:= mosquitto-$(MOSQUITTO_VERSION)
 MOSQUITTO_SUFFIX	:= tar.gz
 MOSQUITTO_URL		:= https://mosquitto.org/files/source/$(MOSQUITTO).$(MOSQUITTO_SUFFIX)

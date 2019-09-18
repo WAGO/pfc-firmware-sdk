@@ -1,7 +1,7 @@
 From d7485fa319060038bb6e2b210cb2bb48c2d1850b Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 11 Oct 2018 15:08:24 +0200
-Subject: [PATCH] gitignore: add m-arm to ignored list
+Subject: [PATCH 110/144] gitignore: add m-arm to ignored list
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

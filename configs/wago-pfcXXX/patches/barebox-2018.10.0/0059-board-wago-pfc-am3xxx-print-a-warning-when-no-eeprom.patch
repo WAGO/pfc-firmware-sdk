@@ -1,8 +1,8 @@
 From 5968b88615da7e84804c14f84c8f2fd447fd1446 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 14 Aug 2018 14:28:31 +0200
-Subject: [PATCH] board: wago-pfc-am3xxx: print a warning when no eeprom
- ethaddr is found
+Subject: [PATCH 059/144] board: wago-pfc-am3xxx: print a warning when no
+ eeprom ethaddr is found
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

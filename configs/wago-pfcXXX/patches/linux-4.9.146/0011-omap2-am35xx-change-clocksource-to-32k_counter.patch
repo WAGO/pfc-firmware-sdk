@@ -1,7 +1,7 @@
 From e309f6e3cffe8dd329940d6e0b7ec6fbcdcfac9c Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 16 Sep 2015 05:39:13 +0000
-Subject: [PATCH 011/292] omap2: am35xx: change clocksource to 32k_counter
+Subject: [PATCH] omap2: am35xx: change clocksource to 32k_counter
 
 32k new kernel adjustment
 ---

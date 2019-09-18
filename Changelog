@@ -1,3 +1,26 @@
+Firmware Release 03.02.02 (99)
+System:
+[FIXED] e!COCKPIT BlkDrvTcp Exception
+[FIXED] "force" on the Software Uploads page in the Web based Management does not work
+
+Runtime System:
+[NEW] e!RUNTIME Upgrade to Version 3.5.14.3
+
+Fieldbus Interface & Protocols:
+ - Cloud Connectivity
+   [NEW] Compression method integrated
+   [NEW] WAGO protocol extended by data type String
+   [NEW] Recovery of an application backup via WAGO Cloud (application update)
+   [NEW] Restoring an application backup via WAGO Cloud in the context of a firmware update (device update)
+ - OPC UA
+   [FIXED] OPC UA inactive after firewall activation.
+ - Profibus
+  [FIXED] e!COCKPIT: Profibus Slave: wrong input data when mapping to existing variables
+  [FIXED] Profibus slave: no correct data transmission of array slots when accessing via addresses / existing variables
+
+Libraries:
+[FIXED] WagoSysCurl does not consider the udiStringLength of the method curl_easy_setopt_STRING2
+
 Firmware Release 03.01.07 (99)
 System:
 [NEW] New Device: PFC200 with BACnet (750-8212/000-100)

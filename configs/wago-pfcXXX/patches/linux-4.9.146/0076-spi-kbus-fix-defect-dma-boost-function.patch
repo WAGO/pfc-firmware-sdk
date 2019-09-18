@@ -1,7 +1,7 @@
 From 0cdf0cab4adff9880a584a4004b02cdb34b2c7c9 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Heinrich=20T=C3=B6ws?= <heinrich.toews@wago.com>
 Date: Thu, 6 Jul 2017 15:35:15 +0200
-Subject: [PATCH 076/292] spi: kbus: fix defect dma boost function
+Subject: [PATCH] spi: kbus: fix defect dma boost function
 
 ---
  drivers/spi/spi-kbus.c | 14 ++++++--------

@@ -1,7 +1,7 @@
 From 2fa0d7a2136eda1dd435a787821285d8c671a077 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Mon, 29 Jan 2018 14:43:04 +0100
-Subject: [PATCH 142/292] defconfig: src: add configuration for cm software
+Subject: [PATCH] defconfig: src: add configuration for cm software
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

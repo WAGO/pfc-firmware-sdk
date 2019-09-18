@@ -1,7 +1,7 @@
 From e824bba37fdfa8eb6165ad95143e631175be53e3 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 18 Jun 2018 12:48:40 +0200
-Subject: [PATCH 173/292] dts: 0182: fix format of swcfg struct
+Subject: [PATCH] dts: 0182: fix format of swcfg struct
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

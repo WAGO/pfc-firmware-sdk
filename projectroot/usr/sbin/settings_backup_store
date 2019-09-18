@@ -32,7 +32,7 @@ source /usr/sbin/settings_backup_lib
 #
 # Save the value of a parameter to config backup file.
 #
-# Param 1: 	parameterName: name of the parameter
+# Param 1:  parameterName: name of the parameter
 # Param 2:  parameterValue: value of the parameter 
 # Param 3:  backupFile:  backup filename
 #
@@ -47,13 +47,13 @@ SaveBackupValue ()
   local stringToSave="$parameterName=$parameterValue"
     
   if [ -n "$backupFile" ]; then
-  	echo "$stringToSave" >> "$backupFile"
-  	if [[ $? != $SUCCESS ]]; then
-  		status=$WRITE_FILE_ERROR
-  	fi	
+    echo "$stringToSave" >> "$backupFile"
+    if [[ $? != $SUCCESS ]]; then
+      status=$WRITE_FILE_ERROR
+    fi  
   else
     status=$CONFIG_FILE_MISSING
-  fi	
+  fi  
   return $status
 }
 
@@ -115,6 +115,7 @@ setupBackupFile()
   umask 130 &&
   : > "$backupFile" &&
   chgrp www "$backupFile" 2>/dev/null
+  chmod 644 "$backupFile" 2>/dev/null
   umask "$u"
 }
 

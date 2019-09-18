@@ -69,6 +69,13 @@ $(STATEDIR)/libsparkplug.compile:
 # ----------------------------------------------------------------------------
 $(STATEDIR)/libsparkplug.install:
 	@$(call targetinfo)
+
+	@mkdir -p $(PKGDIR)/$(LIBSPARKPLUG)/usr/include/libsparkplug
+	@install -m 0644 $(LIBSPARKPLUG_BUILD_C_DIR)/include/*.h $(PKGDIR)/$(LIBSPARKPLUG)/usr/include/libsparkplug
+
+	@mkdir -p $(PKGDIR)/$(LIBSPARKPLUG)/usr/lib/libsparkplug
+	@install -m 0644 $(LIBSPARKPLUG_BUILD_C_DIR)/lib/libsparkplug_b.so $(PKGDIR)/$(LIBSPARKPLUG)/usr/lib/libsparkplug
+
 	@$(call touch)
 
 # ----------------------------------------------------------------------------

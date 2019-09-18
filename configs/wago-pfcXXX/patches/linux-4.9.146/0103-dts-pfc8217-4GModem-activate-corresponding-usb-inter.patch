@@ -1,8 +1,7 @@
 From b76060084fe855568c6d77a06fd1bd189146d0c1 Mon Sep 17 00:00:00 2001
 From: Andre Nahrwold <andre.nahrwold@wago.com>
 Date: Tue, 12 Sep 2017 15:47:05 +0200
-Subject: [PATCH 103/292] dts: pfc8217: 4GModem: activate corresponding usb
- interface
+Subject: [PATCH] dts: pfc8217: 4GModem: activate corresponding usb interface
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-devconf-001c.dts | 27 ++++++++++++++++++++++++

@@ -130,7 +130,9 @@ ifdef PTXCONF_INITMETHOD_BBINIT_ETC_INITD_LOGROTATE
 endif
 
 ifdef PTXCONF_INITMETHOD_BBINIT_ETC_INITD_NETWORKING
+ifndef PTXCONF_NETCONFD
 	@$(call install_alternative, initmethod-bbinit, 0, 0, 0755, /etc/init.d/networking, n)
+endif
 	@$(call install_alternative, initmethod-bbinit, 0, 0, 0644, /etc/network/interfaces, n)
 	@$(call install_copy, initmethod-bbinit, 0, 0, 0755, /etc/network/if-down.d)
 	@$(call install_copy, initmethod-bbinit, 0, 0, 0755, /etc/network/if-up.d)
@@ -138,7 +140,9 @@ ifdef PTXCONF_INITMETHOD_BBINIT_ETC_INITD_NETWORKING
 	@$(call install_copy, initmethod-bbinit, 0, 0, 0755, /etc/network/if-pre-up.d)
 
 ifdef PTXCONF_INITMETHOD_BBINIT_ETC_INITD_NETWORKING_FINISH
+ifndef PTXCONF_NETCONFD
 	@$(call install_alternative, initmethod-bbinit, 0, 0, 0755, /etc/init.d/networking-finish, n)
+endif
 endif
 
 endif # PTXCONF_INITMETHOD_BBINIT_ETC_INITD_NETWORKING

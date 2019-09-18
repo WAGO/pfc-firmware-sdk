@@ -1,7 +1,0 @@
-SIZE=$(du --apparent-size -b  /etc/localtime | cut -d $'\t' -f 1)
-if [ $SIZE -gt 0 ]
-then
-        export TZ="/etc/localtime"
-else
-        export TZ=$(cat /etc/TZ)
-fi

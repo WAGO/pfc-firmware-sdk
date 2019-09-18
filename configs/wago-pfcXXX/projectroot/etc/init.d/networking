@@ -33,7 +33,8 @@ function is_initphase
 function is_4port_eth()
 {
     [[ ${order:0:8} == "750-8215" || \
-       ${order:0:8} == "750-8211" ]]
+       ${order:0:8} == "750-8211" || \
+       ${order:0:8} == "750-8210" ]]
 }
 
 function do_ifupdown

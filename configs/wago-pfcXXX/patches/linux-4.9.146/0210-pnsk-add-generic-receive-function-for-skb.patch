@@ -1,7 +1,7 @@
 From 2dfe1185fbaecb4a57754c1f179e149f115f5eee Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Fri, 6 Jul 2018 11:22:02 +0200
-Subject: [PATCH 210/292] pnsk: add generic receive function for skb
+Subject: [PATCH] pnsk: add generic receive function for skb
 
 The receive function will be call from hw ethernet driver
 to forward received PROFINET-frames to PROFINET-socket.

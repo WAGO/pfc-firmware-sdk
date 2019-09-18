@@ -3,7 +3,7 @@
 #
 # Starts bootp client and handles the parameters of a bootp reply.
 #
-# $Revision: 40315 $
+# $Revision: 39086 $
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 
 

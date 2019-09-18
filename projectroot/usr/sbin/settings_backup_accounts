@@ -260,6 +260,11 @@ if [ "$operation" = "restore" ]; then
   done
 
   # Check group by name in the backuped group config file
+
+  if [ -s "${backup_dir_merged}/group" -a "$(tail -c 1 "${backup_dir_merged}/group")" != '' ]; then
+    echo '' >>"${backup_dir_merged}/group"
+  fi
+
   while read group_data
   do
     if [ -n "$group_data" ]; then

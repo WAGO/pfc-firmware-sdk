@@ -1,8 +1,7 @@
 From f15084e21739ce220892bc4c6c13b14006b68ccf Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 17 Jan 2018 14:49:11 +0100
-Subject: [PATCH 138/292] drivers: gpio_wdt: defer probe if gpio_en is not
- ready
+Subject: [PATCH] drivers: gpio_wdt: defer probe if gpio_en is not ready
 
 	Its possible, that in some cases the corresponding gpio (gpio_en)
 	resource is not available when the probe function is called (e.g. we use

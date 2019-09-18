@@ -1,8 +1,8 @@
 From 90c71d336b2e9140f13382bee7a36c61d929ee04 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 12 Jun 2018 14:45:30 +0200
-Subject: [PATCH 170/292] ARM: dts: pfc200v3: use gpio-hog for boot_sel pin
- instead of disabling gpio bank init
+Subject: [PATCH] ARM: dts: pfc200v3: use gpio-hog for boot_sel pin instead of
+ disabling gpio bank init
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 8 ++++++--

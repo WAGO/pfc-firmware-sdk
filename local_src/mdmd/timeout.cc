@@ -35,7 +35,7 @@ void
 Timeout::kick_timeout( guint interval )
 {
 
-	if (_source != NULL) {
+	if (_source != nullptr) {
 			g_source_destroy(_source);
 			g_source_unref(_source);
 		}
@@ -52,7 +52,7 @@ Timeout::kick_timeout()
 void
 Timeout::deactivate()
 {
-	if (_source != NULL) {
+	if (_source != nullptr) {
 		g_source_destroy(_source);
 		g_source_unref(_source);
 	}

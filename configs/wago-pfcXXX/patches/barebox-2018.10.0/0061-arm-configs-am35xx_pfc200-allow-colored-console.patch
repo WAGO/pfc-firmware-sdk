@@ -1,7 +1,7 @@
 From 6a379e6859d07d5b148afaf1ba6df3c3f6ecf910 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 14 Aug 2018 15:55:18 +0200
-Subject: [PATCH] arm: configs: am35xx_pfc200: allow colored console
+Subject: [PATCH 061/144] arm: configs: am35xx_pfc200: allow colored console
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1,7 +1,7 @@
 From 016b14dad39e8ea2048400a2aa7fa440461e7bd7 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 29 Jun 2017 08:47:16 +0200
-Subject: [PATCH 108/292] swconfig: mv88e6321: add multichip mdio ops
+Subject: [PATCH] swconfig: mv88e6321: add multichip mdio ops
 
 ---
  drivers/net/phy/mv88e6321-cfg.c | 116 +++++++++++++++++++++++++++++++++++++++-

@@ -1,8 +1,7 @@
 From 950eecea861c3840959e4320631802192d554bd6 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 30 Jun 2017 15:56:11 +0200
-Subject: [PATCH 072/292] dts: pfc200v3: reorganize oftree; decouple from
- pfc200v2
+Subject: [PATCH] dts: pfc200v3: reorganize oftree; decouple from pfc200v2
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 1028 +++++++++++++++++-----------------

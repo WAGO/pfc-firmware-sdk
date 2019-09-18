@@ -1,7 +1,7 @@
 From a151ef9bd9ba65c57998a8da9ac2e306a651ddd5 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 2 Feb 2017 08:40:27 +0100
-Subject: [PATCH 045/292] dts: pfc200v3: add dpc31 to v3 platform
+Subject: [PATCH] dts: pfc200v3: add dpc31 to v3 platform
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-devconf-000f.dts |  2 +-

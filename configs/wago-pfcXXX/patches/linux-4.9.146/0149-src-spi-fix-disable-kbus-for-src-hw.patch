@@ -1,7 +1,7 @@
 From 353a7bb221a32702d9e94ff150bc0c2bec38cc60 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Mon, 12 Feb 2018 11:39:00 +0100
-Subject: [PATCH 149/292] src: spi: fix disable kbus for src hw.
+Subject: [PATCH] src: spi: fix disable kbus for src hw.
 
 * add several preprocessor directives to disable kbus extension when
 kconfig option is unset

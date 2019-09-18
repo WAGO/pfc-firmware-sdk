@@ -1,8 +1,7 @@
 From 80522b50fb1c86fb74f98513221b41ea2966aad6 Mon Sep 17 00:00:00 2001
 From: Philippe Reynes <tremyfr@gmail.com>
 Date: Sun, 9 Oct 2016 17:00:53 +0200
-Subject: [PATCH 258/292] net: dsa: slave: use new api
- ethtool_{get|set}_link_ksettings
+Subject: [PATCH] net: dsa: slave: use new api ethtool_{get|set}_link_ksettings
 
 The ethtool api {get|set}_settings is deprecated.
 We move this driver to new api {get|set}_link_ksettings.

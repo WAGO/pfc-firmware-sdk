@@ -1,7 +1,7 @@
 From e762d49d9881041c34a8ea777bfdc81839626a39 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 17 Nov 2016 16:07:04 +0000
-Subject: [PATCH 010/292] spi: kbus: add support from 3.18.y
+Subject: [PATCH] spi: kbus: add support from 3.18.y
 
 kbus: fix build errors
 ---

@@ -1,7 +1,7 @@
 From 73c15bf57ab5848eb109ea353348d727bdbe266e Mon Sep 17 00:00:00 2001
 From: Thomas Gleixner <tglx@linutronix.de>
 Date: Fri, 8 Jul 2011 20:25:16 +0200
-Subject: [PATCH 001/292] Linux 4.9.146-rt125 REBASE
+Subject: [PATCH] Linux 4.9.146-rt125 REBASE
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---

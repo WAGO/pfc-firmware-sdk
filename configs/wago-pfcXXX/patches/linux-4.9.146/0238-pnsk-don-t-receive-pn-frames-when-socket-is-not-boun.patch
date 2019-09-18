@@ -1,8 +1,8 @@
 From 0d863953a98d5f898af17a7094915966017b45ce Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Mon, 8 Oct 2018 10:45:54 +0200
-Subject: [PATCH 238/292] pnsk: don't receive pn frames when socket is not
- bound to a device
+Subject: [PATCH] pnsk: don't receive pn frames when socket is not bound to a
+ device
 
 This fixes a race during initialization of the pn socket. When we
 receive frames during initialization an access violation can happen,

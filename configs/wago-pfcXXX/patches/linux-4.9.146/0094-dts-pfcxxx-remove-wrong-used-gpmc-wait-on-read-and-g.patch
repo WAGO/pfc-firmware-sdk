@@ -1,7 +1,7 @@
 From fa875d4526bf26b0d352213eadecd59d829fed32 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 17 Aug 2017 16:37:23 +0200
-Subject: [PATCH 094/292] dts: pfcxxx: remove wrong used gpmc,wait-on-read and
+Subject: [PATCH] dts: pfcxxx: remove wrong used gpmc,wait-on-read and
  gpmc,wait-on-write propertys
 
 ---

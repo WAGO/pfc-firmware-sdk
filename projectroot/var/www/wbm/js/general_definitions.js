@@ -57,11 +57,12 @@ var UNKNOWN             = "unknown";
 // for backup and restore
 var DOWNLOAD_DIR                = '/tmp';
 var UPLOAD_DIR                  = '/tmp';
-var DOWNLOAD_FILENAME_FRAGMENT  = 'firmware_backup';
-var CODESYS_FILENAME_FRAGMENT   = 'codesys';
-var SETTINGS_FILENAME_FRAGMENT  = 'settings';
-var SYSTEM_FILENAME_FRAGMENT    = 'rootfs';
-
+var DOWNLOAD_FILENAME_FRAGMENT = {
+  'prefix': 'firmware_backup',
+  'codesys': 'codesys',
+  'settings': 'settings',
+  'system' : 'rootfs'
+};
 
 //------------------------------------------------------------------------------
 // Get text for device medium for output on screen 

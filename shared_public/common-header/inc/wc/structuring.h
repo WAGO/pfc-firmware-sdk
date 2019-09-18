@@ -5,7 +5,7 @@
 //
 // This file is part of project common-header (PTXdist package libcommonheader).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2019 WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     structuring.h
@@ -14,6 +14,7 @@
 ///            alignments and so on
 ///
 ///  \author   PEn : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   OELH: WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef INC_WC_STRUCTURING_H_
 #define INC_WC_STRUCTURING_H_
@@ -68,6 +69,8 @@
 //                              function-like macro defined
 //lint -estring(960, WC_TYPEOF) to disable Rule 19.4 it is necessary to disable all 960 messages,
 //                              disallowed definition for macro
+#define WC_TYPEOF(variable)
+#undef WC_TYPEOF
 #ifndef _lint // !Lint
 #ifndef __cplusplus // !C++
 #if GNUC_PREREQ(2, 0) // GCC >= 2.0
@@ -79,7 +82,7 @@
 #else // C++ < 201103
 #if GNUC_PREREQ(2, 0) // GCC >= 2.0
 #define WC_TYPEOF(variable)                                     typeof(variable)
-#endif // GCC >= 4.6
+#endif // GCC >= 2.0
 #endif // C++ >= 201103 / C++ < 201103
 #endif // !C++ / C++
 #if !defined(WC_TYPEOF)
@@ -147,6 +150,71 @@
 //lint -estring(961, WC_UNUSED_DATA) to disable Rule 19.7 it is necessary to disable all 961 messages,
 //                                   function-like macro defined
 #define WC_UNUSED_DATA(x) ((void)x)
+
+/// \def WC_DEPRECATED(func)
+/// Helper macro to indicate a deprecated function.
+#ifdef __GNUC__
+#define WC_DEPRECATED(func) func __attribute__ ((deprecated)) //lint !e960 !e961 No parentheses possible!
+#elif defined(_MSC_VER)
+#define WC_DEPRECATED(func) __declspec(deprecated) func //lint !e960 !e961 No parentheses possible!
+#else
+#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#define WC_DEPRECATED(func) func //lint !e960 !e961 No parentheses possible!
+#endif
+
+/// \def WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE(x)
+/// Helper macro to disable copy, assign and move for a class.
+//lint -estring(961, WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                                          function-like macro defined
+#ifdef __cplusplus // C++
+#if (__cplusplus >= 201103L) // C++ >= 201103
+#define WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE(x) \
+  x(x const &) = delete; \
+  x(x&&) = delete; \
+  x& operator=(const x&) = delete;
+#else // C++ < 201103
+#define WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE(x) \
+  private: \
+    x(x const &);
+    x& operator=(const x&);
+#endif // C++ >= 201103 / C++ < 201103
+#else // !C++
+#define WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE(x)
+#endif // C++ / !C++
+
+/// \def WC_DISBALE_CLASS_COPY_AND_ASSIGN(x)
+/// Helper macro to disable copy and assign for a class.
+//lint -estring(961, WC_DISBALE_CLASS_COPY_AND_ASSIGN) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                                     function-like macro defined
+#ifdef __cplusplus // C++
+#if (__cplusplus >= 201103L) // C++ >= 201103
+#define WC_DISBALE_CLASS_COPY_AND_ASSIGN(x) \
+  x(x const &) = delete; \
+  x& operator=(const x&) = delete;
+#else // C++ < 201103
+#define WC_DISBALE_CLASS_COPY_AND_ASSIGN(x) \
+  private: \
+    x(x const &);
+    x& operator=(const x&);
+#endif // C++ >= 201103 / C++ < 201103
+#else // !C++
+#define WC_DISBALE_CLASS_COPY_AND_ASSIGN(x)
+#endif // C++ / !C++
+
+/// \def WC_DISBALE_CLASS_MOVE(x)
+/// Helper macro to disable move for a class.
+//lint -estring(961, WC_DISBALE_CLASS_MOVE) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                          function-like macro defined
+#ifdef __cplusplus // C++
+#if (__cplusplus >= 201103L) // C++ >= 201103
+#define WC_DISBALE_CLASS_MOVE(x) \
+  x(x&&) = delete;
+#else // C++ < 201103
+#define WC_DISBALE_CLASS_MOVE(x)
+#endif // C++ >= 201103 / C++ < 201103
+#else // !C++
+#define WC_DISBALE_CLASS_MOVE(x)
+#endif // C++ / !C++
 
 
 //------------------------------------------------------------------------------

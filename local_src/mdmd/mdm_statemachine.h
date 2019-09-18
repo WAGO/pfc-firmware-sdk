@@ -246,8 +246,8 @@ class MdmSMPort : public SerialPort
     {}
     ~MdmSMPort() = default; 
 
-    void read_line_cb( const std::string &line );
-    void io_error();
+    void read_line_cb( const std::string &line ) override;
+    void io_error() override;
 };
 
 class MdmTimeout : public Timeout
@@ -257,13 +257,13 @@ class MdmTimeout : public Timeout
     int _id;
 
     public:
-    MdmTimeout( MdmStatemachine *sm, int seconds, int id )
+    MdmTimeout( MdmStatemachine *sm, unsigned int seconds, int id )
         : Timeout(seconds)
         , _sm(sm)
         , _id(id)
     {}
 
-    void callback();
+    void callback() override;
 };
 
 #endif

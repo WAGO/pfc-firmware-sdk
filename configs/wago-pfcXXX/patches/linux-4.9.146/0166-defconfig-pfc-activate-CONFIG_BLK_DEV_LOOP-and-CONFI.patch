@@ -1,7 +1,7 @@
 From 8c51ed5631f4be8e344d78454178de25e1410728 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 25 Apr 2018 15:51:40 +0200
-Subject: [PATCH 166/292] defconfig: pfc: activate CONFIG_BLK_DEV_LOOP and
+Subject: [PATCH] defconfig: pfc: activate CONFIG_BLK_DEV_LOOP and
  CONFIG_SQUASHFS
 
 ---

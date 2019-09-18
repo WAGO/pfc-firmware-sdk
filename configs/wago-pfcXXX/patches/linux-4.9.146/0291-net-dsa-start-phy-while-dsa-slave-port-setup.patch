@@ -1,0 +1,33 @@
+From 497ea705214787a150047988e776e876323626a0 Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Wed, 13 Feb 2019 11:55:45 +0100
+Subject: [PATCH] net: dsa: start phy while dsa slave port setup
+
+This patch executes the phy state machine after the dsa slave
+port was successfully initiated. The phy state machine synchronizes
+the advertising flags of phy device struct and phy registers. The
+synchronization of advertising flags while being setup avoid autoneg
+from being restart (link down/up) during the first call of
+"ip link set xxx up".
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ net/dsa/slave.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/net/dsa/slave.c b/net/dsa/slave.c
+index 4f418de..7e36a7e 100644
+--- a/net/dsa/slave.c
++++ b/net/dsa/slave.c
+@@ -1194,6 +1194,8 @@ static int dsa_slave_phy_setup(struct dsa_slave_priv *p,
+ 
+ 	if (of_property_read_bool(port_dn, "phy-pwrdown") && p->phy)
+ 		phy_suspend(p->phy);
++	else
++		phy_start(p->phy);
+ 
+ 	return 0;
+ }
+-- 
+2.7.4
+

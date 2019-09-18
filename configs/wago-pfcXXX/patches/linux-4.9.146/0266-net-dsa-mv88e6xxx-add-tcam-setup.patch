@@ -1,7 +1,7 @@
 From e669e15811afe84a724ddd5e731d3395df766985 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 28 Sep 2018 08:57:18 +0200
-Subject: [PATCH 266/292] net: dsa: mv88e6xxx: add tcam setup
+Subject: [PATCH] net: dsa: mv88e6xxx: add tcam setup
 
 During probe of mv88e6xxx for mv88e6321, tcam entries
 are reading from device tree and setup on switch.

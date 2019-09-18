@@ -1,7 +1,7 @@
 From 94d8943b424b13df709f67515a44038fbdf62daa Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 12 Jul 2016 14:08:05 +0000
-Subject: [PATCH 063/292] omap: iocnt: enable debugging
+Subject: [PATCH] omap: iocnt: enable debugging
 
 ---
  arch/arm/mach-omap2/io-cnt.c | 2 +-

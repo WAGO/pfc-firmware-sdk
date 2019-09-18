@@ -1,8 +1,7 @@
 From 2a1738051c6739f5c986c20594a0aca4f1bec03b Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Wed, 23 May 2018 13:03:01 +0200
-Subject: [PATCH 198/292] bpf: introduce new bpf AF_XDP map type
- BPF_MAP_TYPE_XSK
+Subject: [PATCH] bpf: introduce new bpf AF_XDP map type BPF_MAP_TYPE_XSK
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

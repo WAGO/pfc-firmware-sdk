@@ -1,7 +1,7 @@
 From 0a9915de5aa15cea541ab2c2e031aa9f0ac7f815 Mon Sep 17 00:00:00 2001
 From: Magnus Karlsson <magnus.karlsson@intel.com>
 Date: Wed, 2 May 2018 13:01:34 +0200
-Subject: [PATCH 202/292] xsk: support for Tx
+Subject: [PATCH] xsk: support for Tx
 
 Here, Tx support is added. The user fills the Tx queue with frames to
 be sent by the kernel, and let's the kernel know using the sendmsg

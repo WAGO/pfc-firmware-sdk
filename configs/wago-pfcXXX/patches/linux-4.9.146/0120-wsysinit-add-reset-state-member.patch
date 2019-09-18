@@ -1,7 +1,7 @@
 From 509a24d326f6a04f7154bdd090f4e13a17630038 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Wed, 18 Oct 2017 11:07:57 +0200
-Subject: [PATCH 120/292] wsysinit: add reset state member
+Subject: [PATCH] wsysinit: add reset state member
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

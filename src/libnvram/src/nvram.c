@@ -28,7 +28,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <libUIO.h>
+#include <libuio.h>
 
 static uint8_t *nvram_baseaddr;
 static unsigned long nvram_size;
@@ -47,41 +47,47 @@ static void set_errormsg(char *emsg, int error)
     }
 
 }
-
+/* Workaround for WAT26756 */
 int8_t nvram_init_with_addr(void* map_addr)
 {
 	/* TODO: Resolve code-duplication here */
-	nvram_uio_device = uio_find_devices_by_name("UIO_NVRAM");
+	nvram_uio_device = uio_find_by_uio_name ("UIO_NVRAM");
 	if (!nvram_uio_device) {
 		set_errormsg("libnvram error: Find NVRAM UIO device", errno);
-		return -ENODEV;
+			return -ENODEV;
 	}
 
 	nvram_baseaddr = uio_mmap_with_addr(map_addr, nvram_uio_device, 0);
-	nvram_size = nvram_uio_device->maps[0].size;
+	nvram_size = uio_get_mem_size(nvram_uio_device,0);
 
 	if (nvram_baseaddr == MAP_FAILED) {
 		uio_free_info(nvram_uio_device);
 		set_errormsg("NVRAM mapping failed", errno);
 		return -EIO;
 	}
-
 	return 0;	
 }
 
 int8_t nvram_init(void)
 {
-	nvram_uio_device = uio_find_devices_by_name("UIO_NVRAM");
+	nvram_uio_device = uio_find_by_uio_name("UIO_NVRAM");
 	if (!nvram_uio_device) {
 	    set_errormsg("libnvram error: Find NVRAM UIO device", errno);
 		return -ENODEV;
 	}
 
-	nvram_baseaddr = uio_mmap(nvram_uio_device, 0);
-	nvram_size = nvram_uio_device->maps[0].size;
+
+	if (uio_open(nvram_uio_device)) {
+	    set_errormsg("libnvram error: UIO device could not be openend", errno);
+		return -ENODEV;
+	}
+	
+	nvram_baseaddr = uio_get_mem_map(nvram_uio_device, 0);
+	nvram_size = uio_get_mem_size(nvram_uio_device,0);
 
 	if (nvram_baseaddr == MAP_FAILED) {
-	    uio_free_info(nvram_uio_device);
+		uio_free_info(nvram_uio_device);
+		uio_close(nvram_uio_device);
 		set_errormsg("NVRAM mapping failed", errno);
 		return -EIO;
 	}
@@ -96,10 +102,11 @@ const char *nvram_get_errmsg(void)
 
 void nvram_close(void)
 {
-	if (nvram_baseaddr)
-		uio_munmap(nvram_baseaddr, nvram_size);
 	if (nvram_uio_device)
+	{
 		uio_free_info(nvram_uio_device);
+		uio_close(nvram_uio_device);
+	}
 	nvram_baseaddr = NULL;
 	nvram_size = 0;
 }
@@ -111,15 +118,15 @@ void * nvram_get_mapping(void)
 
 unsigned long nvram_get_size(void)
 {
-	if (!nvram_size) 
+	if (!nvram_size)
 	{
-		nvram_uio_device = uio_find_devices_by_name("UIO_NVRAM");
-		if (!nvram_uio_device) 
+		nvram_uio_device = uio_find_by_uio_name("UIO_NVRAM");
+		if (!nvram_uio_device)
 		{
 			set_errormsg("libnvram error: Find NVRAM UIO device", errno);
 			return 0;
 		}
-		nvram_size = nvram_uio_device->maps[0].size;
+		nvram_size = uio_get_mem_size(nvram_uio_device,0);
 		uio_free_info(nvram_uio_device);
 	}
 

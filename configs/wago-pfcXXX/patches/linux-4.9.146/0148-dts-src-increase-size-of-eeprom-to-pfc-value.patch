@@ -1,7 +1,7 @@
 From 5ebb9daa6b307ca88407ed7b513e3a6396ee79cb Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Fri, 9 Feb 2018 11:05:50 +0100
-Subject: [PATCH 148/292] dts: src: increase size of eeprom to pfc value.
+Subject: [PATCH] dts: src: increase size of eeprom to pfc value.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

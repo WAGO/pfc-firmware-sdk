@@ -20,18 +20,15 @@ class GErrorException : public std::exception
 	std::string _domain;
 
     public:
-	GErrorException( GError *err )
+	explicit GErrorException( GError *err )
 	  : _message( err->message )
 	  , _code( err->code )
-          , _domain( g_quark_to_string( err->domain ) )
+      , _domain( g_quark_to_string( err->domain ) )
 	{
 	    g_error_free(err);
 	}
 
-	~GErrorException() throw() { }
-
-
-	const std::string & what() { return _message; }
+	const char* what() const noexcept override { return _message.c_str(); }
 	const std::string & domain() { return _domain; }
 	int code() { return _code; }
 };

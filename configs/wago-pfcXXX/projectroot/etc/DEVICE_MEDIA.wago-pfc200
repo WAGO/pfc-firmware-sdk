@@ -1,5 +1,0 @@
-# device describtion file for pac200
-# format: device; describtion string for processing; describtion string for frontend
-
-mmcblk0=sd-card
-mtd2=internal-flash-nand

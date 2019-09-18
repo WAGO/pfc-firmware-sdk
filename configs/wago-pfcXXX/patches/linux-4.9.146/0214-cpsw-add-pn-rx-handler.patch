@@ -1,7 +1,7 @@
 From 4eccf0c9313e6b52c26d70e2c6ad4a54fa5ae572 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 9 Jul 2018 08:34:24 +0200
-Subject: [PATCH 214/292] cpsw: add pn rx handler
+Subject: [PATCH] cpsw: add pn rx handler
 
 For PROFINET (pn) sockets cpsw has to filter pn frames and forward
 them to pn socket. All other frame are forward to linux stack,

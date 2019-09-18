@@ -1,8 +1,8 @@
 From a636cf538353dff62a980f6709d1a5e38555317e Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 22 Nov 2016 11:48:52 +0100
-Subject: [PATCH 018/292] dts: pfc200: refresh devconf tables and remove
- unnecessary propertys
+Subject: [PATCH] dts: pfc200: refresh devconf tables and remove unnecessary
+ propertys
 
 ---
  arch/arm/boot/dts/wago-pfc200-devconf-000a.dts | 18 ++++++++----------

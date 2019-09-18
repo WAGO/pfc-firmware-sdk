@@ -1,8 +1,8 @@
 From 656cd841b1bccbda70ad7817fa0bd297a0dad078 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Wed, 17 May 2017 12:55:31 +0000
-Subject: [PATCH 050/292] dts: introduce new devconf bits for usb, marvell and
- lwl devices
+Subject: [PATCH] dts: introduce new devconf bits for usb, marvell and lwl
+ devices
 
 ---
  arch/arm/boot/dts/Makefile                       |   3 +-

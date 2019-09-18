@@ -61,6 +61,8 @@ $(DEP_FILES) : | $(GEN_DIRS)
 
 -include $(DEP_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(CLANG_TIDY_RULESET)),$(error CLANG_TIDY_RULESET has "$(CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(CLANG_TIDY_RULESET))"))
+
 libcgroupcpuload.so_LINT_SOURCES ?= $(filter-out $(libcgroupcpuload.so_NOLINT_SOURCES),$(libcgroupcpuload.so_SOURCES))
 OBJS_libcgroupcpuload.so := $(call objs,$(libcgroupcpuload.so_SOURCES),libcgroupcpuload.so/)
 DEPS_libcgroupcpuload.so := $(call deps,$(libcgroupcpuload.so_SOURCES),libcgroupcpuload.so/)
@@ -69,6 +71,8 @@ TIDYS_libcgroupcpuload.so := $(call tidys,$(libcgroupcpuload.so_LINT_SOURCES),li
 $(TIDYS_libcgroupcpuload.so): $(libcgroupcpuload.so_PRECLANG_FILES)
 PLINTS_libcgroupcpuload.so := $(call plints,$(libcgroupcpuload.so_LINT_SOURCES),libcgroupcpuload.so/)
 $(PLINTS_libcgroupcpuload.so): $(libcgroupcpuload.so_PRECLANG_FILES)
+
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(libcgroupcpuload.so_CLANG_TIDY_RULESET)),$(error libcgroupcpuload.so_CLANG_TIDY_RULESET has "$(libcgroupcpuload.so_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(libcgroupcpuload.so_CLANG_TIDY_RULESET))"))
 
 libcgroupcpuload.so: $(BIN_DIR)/libcgroupcpuload.so
 
@@ -82,7 +86,7 @@ lint-libcgroupcpuload.so: flexelint-libcgroupcpuload.so clang-tidy-libcgroupcpul
 
 $(LOBS_libcgroupcpuload.so): BUILDTARGET_LINTFLAGS:=$(libcgroupcpuload.so_LINTFLAGS)
 
-flexelint-libcgroupcpuload.so: $($(libcgroupcpuload.so_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_libcgroupcpuload.so)
+flexelint-libcgroupcpuload.so: $($(libcgroupcpuload.so_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(libcgroupcpuload.so_DISABLE_LINT)$(DISABLE_LINT)LOBS_libcgroupcpuload.so)
 
 $(TIDYS_libcgroupcpuload.so): BUILDTARGET_TIDYFLAGS:=$(libcgroupcpuload.so_TIDYFLAGS) -isystem $(OUT_DIR)/libcgroupcpuload.so -include lint_mac.h
 
@@ -92,7 +96,7 @@ $(TIDYS_libcgroupcpuload.so): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(stri
 
 $(PLINTS_libcgroupcpuload.so): BUILDTARGET_PLINTFLAGS:=$(libcgroupcpuload.so_PLINTSFLAGS) -isystem $(OUT_DIR)/libcgroupcpuload.so -include lint_mac.h
 
-clang-tidy-libcgroupcpuload.so: $($(libcgroupcpuload.so_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_libcgroupcpuload.so)
+clang-tidy-libcgroupcpuload.so: $($(libcgroupcpuload.so_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(libcgroupcpuload.so_DISABLE_LINT)$(DISABLE_LINT)TIDYS_libcgroupcpuload.so)
 
 clean-clang-tidy-libcgroupcpuload.so:; $(SILENT)rm --force $(TIDYS_libcgroupcpuload.so)
 
@@ -123,6 +127,8 @@ $(TIDYS_loadcompare.elf): $(loadcompare.elf_PRECLANG_FILES)
 PLINTS_loadcompare.elf := $(call plints,$(loadcompare.elf_LINT_SOURCES),loadcompare.elf/)
 $(PLINTS_loadcompare.elf): $(loadcompare.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(loadcompare.elf_CLANG_TIDY_RULESET)),$(error loadcompare.elf_CLANG_TIDY_RULESET has "$(loadcompare.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(loadcompare.elf_CLANG_TIDY_RULESET))"))
+
 loadcompare.elf: $(BIN_DIR)/loadcompare.elf
 
 $(DEPS_loadcompare.elf) $(OBJS_loadcompare.elf) $(LOBS_loadcompare.elf) $(TIDYS_loadcompare.elf) $(PLINTS_loadcompare.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Release/loadcompare.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(loadcompare.elf_CPPFLAGS)
@@ -135,7 +141,7 @@ lint-loadcompare.elf: flexelint-loadcompare.elf clang-tidy-loadcompare.elf
 
 $(LOBS_loadcompare.elf): BUILDTARGET_LINTFLAGS:=$(loadcompare.elf_LINTFLAGS)
 
-flexelint-loadcompare.elf: $($(loadcompare.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_loadcompare.elf)
+flexelint-loadcompare.elf: $($(loadcompare.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(loadcompare.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_loadcompare.elf)
 
 $(TIDYS_loadcompare.elf): BUILDTARGET_TIDYFLAGS:=$(loadcompare.elf_TIDYFLAGS) -isystem $(OUT_DIR)/loadcompare.elf -include lint_mac.h
 
@@ -145,7 +151,7 @@ $(TIDYS_loadcompare.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(
 
 $(PLINTS_loadcompare.elf): BUILDTARGET_PLINTFLAGS:=$(loadcompare.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/loadcompare.elf -include lint_mac.h
 
-clang-tidy-loadcompare.elf: $($(loadcompare.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_loadcompare.elf)
+clang-tidy-loadcompare.elf: $($(loadcompare.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(loadcompare.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_loadcompare.elf)
 
 clean-clang-tidy-loadcompare.elf:; $(SILENT)rm --force $(TIDYS_loadcompare.elf)
 
@@ -176,6 +182,8 @@ $(TIDYS_checkcpu.elf): $(checkcpu.elf_PRECLANG_FILES)
 PLINTS_checkcpu.elf := $(call plints,$(checkcpu.elf_LINT_SOURCES),checkcpu.elf/)
 $(PLINTS_checkcpu.elf): $(checkcpu.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(checkcpu.elf_CLANG_TIDY_RULESET)),$(error checkcpu.elf_CLANG_TIDY_RULESET has "$(checkcpu.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(checkcpu.elf_CLANG_TIDY_RULESET))"))
+
 checkcpu.elf: $(BIN_DIR)/checkcpu.elf
 
 $(DEPS_checkcpu.elf) $(OBJS_checkcpu.elf) $(LOBS_checkcpu.elf) $(TIDYS_checkcpu.elf) $(PLINTS_checkcpu.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Release/checkcpu.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(checkcpu.elf_CPPFLAGS)
@@ -188,7 +196,7 @@ lint-checkcpu.elf: flexelint-checkcpu.elf clang-tidy-checkcpu.elf
 
 $(LOBS_checkcpu.elf): BUILDTARGET_LINTFLAGS:=$(checkcpu.elf_LINTFLAGS)
 
-flexelint-checkcpu.elf: $($(checkcpu.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_checkcpu.elf)
+flexelint-checkcpu.elf: $($(checkcpu.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(checkcpu.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_checkcpu.elf)
 
 $(TIDYS_checkcpu.elf): BUILDTARGET_TIDYFLAGS:=$(checkcpu.elf_TIDYFLAGS) -isystem $(OUT_DIR)/checkcpu.elf -include lint_mac.h
 
@@ -198,7 +206,7 @@ $(TIDYS_checkcpu.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(che
 
 $(PLINTS_checkcpu.elf): BUILDTARGET_PLINTFLAGS:=$(checkcpu.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/checkcpu.elf -include lint_mac.h
 
-clang-tidy-checkcpu.elf: $($(checkcpu.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_checkcpu.elf)
+clang-tidy-checkcpu.elf: $($(checkcpu.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(checkcpu.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_checkcpu.elf)
 
 clean-clang-tidy-checkcpu.elf:; $(SILENT)rm --force $(TIDYS_checkcpu.elf)
 
@@ -229,6 +237,8 @@ $(TIDYS_bellysmile.elf): $(bellysmile.elf_PRECLANG_FILES)
 PLINTS_bellysmile.elf := $(call plints,$(bellysmile.elf_LINT_SOURCES),bellysmile.elf/)
 $(PLINTS_bellysmile.elf): $(bellysmile.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(bellysmile.elf_CLANG_TIDY_RULESET)),$(error bellysmile.elf_CLANG_TIDY_RULESET has "$(bellysmile.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(bellysmile.elf_CLANG_TIDY_RULESET))"))
+
 bellysmile.elf: $(BIN_DIR)/bellysmile.elf
 
 $(DEPS_bellysmile.elf) $(OBJS_bellysmile.elf) $(LOBS_bellysmile.elf) $(TIDYS_bellysmile.elf) $(PLINTS_bellysmile.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Release/bellysmile.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(bellysmile.elf_CPPFLAGS)
@@ -241,7 +251,7 @@ lint-bellysmile.elf: flexelint-bellysmile.elf clang-tidy-bellysmile.elf
 
 $(LOBS_bellysmile.elf): BUILDTARGET_LINTFLAGS:=$(bellysmile.elf_LINTFLAGS)
 
-flexelint-bellysmile.elf: $($(bellysmile.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_bellysmile.elf)
+flexelint-bellysmile.elf: $($(bellysmile.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(bellysmile.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_bellysmile.elf)
 
 $(TIDYS_bellysmile.elf): BUILDTARGET_TIDYFLAGS:=$(bellysmile.elf_TIDYFLAGS) -isystem $(OUT_DIR)/bellysmile.elf -include lint_mac.h
 
@@ -251,7 +261,7 @@ $(TIDYS_bellysmile.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(b
 
 $(PLINTS_bellysmile.elf): BUILDTARGET_PLINTFLAGS:=$(bellysmile.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/bellysmile.elf -include lint_mac.h
 
-clang-tidy-bellysmile.elf: $($(bellysmile.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_bellysmile.elf)
+clang-tidy-bellysmile.elf: $($(bellysmile.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(bellysmile.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_bellysmile.elf)
 
 clean-clang-tidy-bellysmile.elf:; $(SILENT)rm --force $(TIDYS_bellysmile.elf)
 
@@ -282,6 +292,8 @@ $(TIDYS_testapp.elf): $(testapp.elf_PRECLANG_FILES)
 PLINTS_testapp.elf := $(call plints,$(testapp.elf_LINT_SOURCES),testapp.elf/)
 $(PLINTS_testapp.elf): $(testapp.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(testapp.elf_CLANG_TIDY_RULESET)),$(error testapp.elf_CLANG_TIDY_RULESET has "$(testapp.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(testapp.elf_CLANG_TIDY_RULESET))"))
+
 testapp.elf: $(BIN_DIR)/testapp.elf
 
 $(DEPS_testapp.elf) $(OBJS_testapp.elf) $(LOBS_testapp.elf) $(TIDYS_testapp.elf) $(PLINTS_testapp.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Release/testapp.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(testapp.elf_CPPFLAGS)
@@ -294,7 +306,7 @@ lint-testapp.elf: flexelint-testapp.elf clang-tidy-testapp.elf
 
 $(LOBS_testapp.elf): BUILDTARGET_LINTFLAGS:=$(testapp.elf_LINTFLAGS)
 
-flexelint-testapp.elf: $($(testapp.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_testapp.elf)
+flexelint-testapp.elf: $($(testapp.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(testapp.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_testapp.elf)
 
 $(TIDYS_testapp.elf): BUILDTARGET_TIDYFLAGS:=$(testapp.elf_TIDYFLAGS) -isystem $(OUT_DIR)/testapp.elf -include lint_mac.h
 
@@ -304,7 +316,7 @@ $(TIDYS_testapp.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip $(test
 
 $(PLINTS_testapp.elf): BUILDTARGET_PLINTFLAGS:=$(testapp.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/testapp.elf -include lint_mac.h
 
-clang-tidy-testapp.elf: $($(testapp.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_testapp.elf)
+clang-tidy-testapp.elf: $($(testapp.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(testapp.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_testapp.elf)
 
 clean-clang-tidy-testapp.elf:; $(SILENT)rm --force $(TIDYS_testapp.elf)
 
@@ -335,6 +347,8 @@ $(TIDYS_cpuloadmonitor.elf): $(cpuloadmonitor.elf_PRECLANG_FILES)
 PLINTS_cpuloadmonitor.elf := $(call plints,$(cpuloadmonitor.elf_LINT_SOURCES),cpuloadmonitor.elf/)
 $(PLINTS_cpuloadmonitor.elf): $(cpuloadmonitor.elf_PRECLANG_FILES)
 
+$(if $(filter CLANG_TIDY_BASE_CHECKS CLANG_TIDY_CHECKS,$(cpuloadmonitor.elf_CLANG_TIDY_RULESET)),$(error cpuloadmonitor.elf_CLANG_TIDY_RULESET has "$(cpuloadmonitor.elf_CLANG_TIDY_RULESET)" assigned to it. Instead, assign "$$($(cpuloadmonitor.elf_CLANG_TIDY_RULESET))"))
+
 cpuloadmonitor.elf: $(BIN_DIR)/cpuloadmonitor.elf
 
 $(DEPS_cpuloadmonitor.elf) $(OBJS_cpuloadmonitor.elf) $(LOBS_cpuloadmonitor.elf) $(TIDYS_cpuloadmonitor.elf) $(PLINTS_cpuloadmonitor.elf) ./out/gcc_5_5_arm-linux-gnueabihf/Release/cpuloadmonitor.elf/lint_mac.h: BUILDTARGET_CPPFLAGS:=$(cpuloadmonitor.elf_CPPFLAGS)
@@ -347,7 +361,7 @@ lint-cpuloadmonitor.elf: flexelint-cpuloadmonitor.elf clang-tidy-cpuloadmonitor.
 
 $(LOBS_cpuloadmonitor.elf): BUILDTARGET_LINTFLAGS:=$(cpuloadmonitor.elf_LINTFLAGS)
 
-flexelint-cpuloadmonitor.elf: $($(cpuloadmonitor.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)LOBS_cpuloadmonitor.elf)
+flexelint-cpuloadmonitor.elf: $($(cpuloadmonitor.elf_DISABLE_FLEXELINT)$(DISABLE_FLEXELINT)$(cpuloadmonitor.elf_DISABLE_LINT)$(DISABLE_LINT)LOBS_cpuloadmonitor.elf)
 
 $(TIDYS_cpuloadmonitor.elf): BUILDTARGET_TIDYFLAGS:=$(cpuloadmonitor.elf_TIDYFLAGS) -isystem $(OUT_DIR)/cpuloadmonitor.elf -include lint_mac.h
 
@@ -357,7 +371,7 @@ $(TIDYS_cpuloadmonitor.elf): CLANG_TIDY_CHECKS_OPTION:=$(subst $( ),$(,),$(strip
 
 $(PLINTS_cpuloadmonitor.elf): BUILDTARGET_PLINTFLAGS:=$(cpuloadmonitor.elf_PLINTSFLAGS) -isystem $(OUT_DIR)/cpuloadmonitor.elf -include lint_mac.h
 
-clang-tidy-cpuloadmonitor.elf: $($(cpuloadmonitor.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)TIDYS_cpuloadmonitor.elf)
+clang-tidy-cpuloadmonitor.elf: $($(cpuloadmonitor.elf_DISABLE_CLANG_TIDY)$(DISABLE_CLANG_TIDY)$(cpuloadmonitor.elf_DISABLE_LINT)$(DISABLE_LINT)TIDYS_cpuloadmonitor.elf)
 
 clean-clang-tidy-cpuloadmonitor.elf:; $(SILENT)rm --force $(TIDYS_cpuloadmonitor.elf)
 

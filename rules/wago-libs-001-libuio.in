@@ -1,5 +1,0 @@
-## SECTION=wago_specific_libs
-
-config LIBUIO
-	tristate
-	prompt "libuio"

@@ -71,10 +71,10 @@ SerialPort::open(int fd)
         throw SerialPortException();
     }
 
-    stbuf.c_iflag &= ~(IGNCR | ICRNL | IUCLC | INPCK | IXON | IXANY );
-    stbuf.c_oflag &= ~(OPOST | OLCUC | OCRNL | ONLCR | ONLRET);
-    stbuf.c_lflag &= ~(ICANON | XCASE | ECHO | ECHOE | ECHONL);
-    stbuf.c_lflag &= ~(ECHO | ECHOE);
+    stbuf.c_iflag &= static_cast<unsigned int>(~(IGNCR | ICRNL | IUCLC | INPCK | IXON | IXANY ));
+    stbuf.c_oflag &= static_cast<unsigned int>(~(OPOST | OLCUC | OCRNL | ONLCR | ONLRET));
+    stbuf.c_lflag &= static_cast<unsigned int>(~(ICANON | XCASE | ECHO | ECHOE | ECHONL));
+    stbuf.c_lflag &= static_cast<unsigned int>(~(ECHO | ECHOE));
     stbuf.c_cc[VMIN] = 1;
     stbuf.c_cc[VTIME] = 0;
     stbuf.c_cc[VEOF] = 1;
@@ -148,7 +148,7 @@ SerialPort::open(int fd)
 void
 SerialPort::write (const std::string &text)
 {
-    GError *err = NULL;
+    GError *err = nullptr;
     gsize written;
     GIOStatus status;
 
@@ -159,7 +159,7 @@ SerialPort::write (const std::string &text)
     status = g_io_channel_write_chars( _channel, out.c_str(), -1, &written, &err );
     if (status != G_IO_STATUS_NORMAL)
     {
-      if (err != NULL)
+      if (err != nullptr)
       {
         mdmd_Log(MD_LOG_ERR, "%s(%s): failed to write glib I/O channel; %s\n",
             __func__,_tty_fname.c_str(), err->message);
@@ -172,7 +172,7 @@ SerialPort::write (const std::string &text)
       }
       throw SerialPortException();
     }
-    if (err != NULL)
+    if (err != nullptr)
     {
       g_error_free(err);
     }
@@ -197,7 +197,7 @@ SerialPort::io_watch_callback(GIOChannel *source, GIOCondition cond, gpointer da
 void
 SerialPort::io_watch(GIOChannel *source, GIOCondition cond)
 {
-    GError *err = NULL;
+    GError *err = nullptr;
     gsize read;
     GIOStatus status;
 
@@ -207,7 +207,7 @@ SerialPort::io_watch(GIOChannel *source, GIOCondition cond)
 
     if ((status != G_IO_STATUS_NORMAL) && (status != G_IO_STATUS_AGAIN) )
     {
-      if (err != NULL)
+      if (err != nullptr)
       {
         mdmd_Log(MD_LOG_ERR, "%s(%s): failed to read glib I/O channel; %s\n",
             __func__,_tty_fname.c_str(), err->message);
@@ -220,18 +220,18 @@ SerialPort::io_watch(GIOChannel *source, GIOCondition cond)
       }
       throw SerialPortException();
     }
-    if (err != NULL)
+    if (err != nullptr)
     {
       g_error_free(err);
     }
     if (read > sizeof(_io_buffer))
     {
-      mdmd_Log(MD_LOG_ERR, "read(%s): %u bytes exceeds buffer size %d\n", _tty_fname.c_str(), read, sizeof(_io_buffer));
+      mdmd_Log(MD_LOG_ERR, "read(%s): %u bytes exceeds buffer size %u\n", _tty_fname.c_str(), read, sizeof(_io_buffer));
       throw SerialPortException();
     }
     mdmd_Log(MD_LOG_DBG2, "read(%s): %u bytes\n", _tty_fname.c_str(), read );
 
-    if (NULL == _read_buffer) return;
+    if (nullptr == _read_buffer) return;
 
     _read_buffer->append( _io_buffer,read );
 

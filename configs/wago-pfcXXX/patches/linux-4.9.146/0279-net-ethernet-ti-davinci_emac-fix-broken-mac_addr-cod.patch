@@ -1,8 +1,8 @@
 From 813460ef86e4f81a128ef2b0d83eea8581dc4018 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 28 Nov 2018 11:40:16 +0000
-Subject: [PATCH 279/292] net: ethernet: ti: davinci_emac: fix broken mac_addr
- code path
+Subject: [PATCH] net: ethernet: ti: davinci_emac: fix broken mac_addr code
+ path
 
 The current code path falsely overwrites the oftree based mac addr
 configuration which should always have the highest priority.

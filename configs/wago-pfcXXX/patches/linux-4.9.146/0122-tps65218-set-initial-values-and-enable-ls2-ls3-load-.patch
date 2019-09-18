@@ -1,8 +1,7 @@
 From 8cdcbdd990b1de449fe7036e2107200397887041 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Wed, 27 Sep 2017 11:50:34 +0200
-Subject: [PATCH 122/292] tps65218: set initial values and enable ls2/ls3 load
- switch.
+Subject: [PATCH] tps65218: set initial values and enable ls2/ls3 load switch.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

@@ -1,7 +1,7 @@
 From f1d466116ab36b8a15c7fb3154690ccdc7ce3dd7 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 12 Oct 2018 14:26:25 +0200
-Subject: [PATCH 246/292] ARM: wago_src_generic_defconfig: rename defconfig
+Subject: [PATCH] ARM: wago_src_generic_defconfig: rename defconfig
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

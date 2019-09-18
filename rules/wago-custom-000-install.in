@@ -310,4 +310,21 @@ config WAGO_CUSTOM_INSTALL_BOOT_WDG_DEVICE
 	The watchdog device that should be disabled
 endif
 
+config WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD
+    bool
+    default n
+    prompt "install /etc/init.d/rmd-fw-download"
+    help
+ 	 Install script to load the rmd firmware
+
+if WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD
+
+config WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD_IMG
+    string
+    prompt "rmd image name"
+    default "/lib/firmware/rmd-01-01-f.rbf"
+    help
+	Name of the rmd image that is loaded from /lib/firmware to the fpga
+endif
+
 endif

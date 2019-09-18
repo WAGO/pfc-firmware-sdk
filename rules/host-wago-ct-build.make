@@ -16,9 +16,9 @@ HOST_PACKAGES-$(PTXCONF_HOST_CT_BUILD) += host-ct-build
 #
 # Paths and names
 #
-HOST_CT_BUILD_VERSION := 1.8.3
+HOST_CT_BUILD_VERSION := 1.9.6
 HOST_CT_BUILD_LICENSE := MPL-2.0 
-HOST_CT_BUILD_MD5     := e209e2290067e1ebaac0c97482810a53
+HOST_CT_BUILD_MD5     := 5442789b8bf7fcbfef5adf4aefe84dc5
 HOST_CT_BUILD         := ct-build
 HOST_CT_BUILD_SUFFIX  := tar.xz
 HOST_CT_BUILD_URL	    := http://svsv01003.wago.local/wago-ptxdist-src/$(HOST_CT_BUILD)-$(HOST_CT_BUILD_VERSION).$(HOST_CT_BUILD_SUFFIX)

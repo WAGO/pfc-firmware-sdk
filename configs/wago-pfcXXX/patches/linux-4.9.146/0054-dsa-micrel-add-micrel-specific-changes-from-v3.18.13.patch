@@ -1,8 +1,7 @@
 From 68cb03464e3662989cc929111947757f983c5f90 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 24 May 2017 15:31:33 +0200
-Subject: [PATCH 054/292] dsa: micrel: add micrel specific changes from
- v3.18.13
+Subject: [PATCH] dsa: micrel: add micrel specific changes from v3.18.13
 
 	this commit adds the changes from kernel v3.18.13. Furthermmore
 	we merge the micrel ethernet driver in the micrel dsa driver to

@@ -1,8 +1,8 @@
 From 3eeed38e132c817a8a175621e608b4599e781453 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Tue, 4 Sep 2018 09:54:42 +0200
-Subject: [PATCH 233/292] net: pnsocket: fix socket not being closed properly
- when not bound to a device
+Subject: [PATCH] net: pnsocket: fix socket not being closed properly when not
+ bound to a device
 
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 ---

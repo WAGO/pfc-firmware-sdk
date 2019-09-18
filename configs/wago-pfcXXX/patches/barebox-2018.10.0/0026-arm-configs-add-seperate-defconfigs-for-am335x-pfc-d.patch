@@ -1,7 +1,8 @@
 From be95a35438643e49cd7a73acb74bd0822a6ee4cd Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 28 Jun 2018 14:35:10 +0200
-Subject: [PATCH] arm: configs: add seperate defconfigs for am335x pfc devices
+Subject: [PATCH 026/144] arm: configs: add seperate defconfigs for am335x pfc
+ devices
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

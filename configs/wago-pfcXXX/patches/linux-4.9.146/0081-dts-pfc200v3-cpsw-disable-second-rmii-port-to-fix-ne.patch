@@ -1,8 +1,8 @@
 From 50c6f2693c08e41aac55909a8ba1edfc1e06076f Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 18 Jul 2017 11:59:46 +0000
-Subject: [PATCH 081/292] dts: pfc200v3: cpsw: disable second rmii port to fix
- net traffic stagnation
+Subject: [PATCH] dts: pfc200v3: cpsw: disable second rmii port to fix net
+ traffic stagnation
 
 After receiving an unspecific amount of packets the network interface
 will stop to work on the receive channel.

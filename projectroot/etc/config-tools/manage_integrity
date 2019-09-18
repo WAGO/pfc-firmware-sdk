@@ -73,7 +73,7 @@ show_help ()
 
 aide_init ()
 {
-  ${AIDE} --init && cp "${AIDE_NEW_DB}" "${AIDE_REF_DB}"
+  ${AIDE} --init && mv "${AIDE_NEW_DB}" "${AIDE_REF_DB}"
   return $?
 }
 

@@ -1,8 +1,8 @@
 From ba5c539b7a15ff52d5ba32c088d2d38273bf065a Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Mon, 6 Aug 2018 12:04:09 +0200
-Subject: [PATCH 224/292] mv88e6321: configure ethernet leds according to RS010
- wago ethernet spec
+Subject: [PATCH] mv88e6321: configure ethernet leds according to RS010 wago
+ ethernet spec
 
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 ---

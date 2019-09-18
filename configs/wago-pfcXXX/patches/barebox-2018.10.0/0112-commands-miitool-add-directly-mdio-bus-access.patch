@@ -1,7 +1,7 @@
 From beb970b4eae1f38f0aa707e0558ec34dd896764e Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 12 Oct 2018 11:55:51 +0200
-Subject: [PATCH] commands: miitool: add directly mdio bus access
+Subject: [PATCH 112/144] commands: miitool: add directly mdio bus access
 
 For some devices, like switches, it could be neseccary to read
 or wirte registers. This patch adds directly access to MDIO

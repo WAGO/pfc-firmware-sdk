@@ -1,7 +1,7 @@
 From eac876ead0e44d740c6e9d5364d662ccd7966b38 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 20 Sep 2018 12:20:21 +0200
-Subject: [PATCH 241/292] net: phy: use threaded irqs
+Subject: [PATCH] net: phy: use threaded irqs
 
 ---
  drivers/net/phy/phy.c        | 40 ++++++++++++++++++----------------------

@@ -318,18 +318,18 @@ ifdef PTXCONF_STRONGSWAN_SYSTEMD_UNIT
 		/usr/lib/systemd/system/multi-user.target.wants/strongswan.service)
 endif
 
-	@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d)
-	@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d/aacerts)
-	@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d/acerts)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/aacerts)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/acerts)
 	#@$(call install_copy, strongswan, 0, 0, 0644, /etc/ipsec.d/cacerts)
 	@$(call install_link, strongswan, /etc/certificates, /etc/ipsec.d/cacerts)
 	#@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d/certs)
 	@$(call install_link, strongswan, /etc/certificates, /etc/ipsec.d/certs)
-	@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d/crls)
-	@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d/ocspcerts)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/crls)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/ocspcerts)
 	#@$(call install_copy, strongswan, 0, 0, 0600, /etc/ipsec.d/private)
 	@$(call install_link, strongswan, /etc/certificates/keys, /etc/ipsec.d/private)
-	@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d/reqs)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/reqs)
 
 	@$(call install_finish, strongswan)
 

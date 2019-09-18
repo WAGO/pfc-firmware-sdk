@@ -1,7 +1,7 @@
 From 97d3e9e2e63180fe68c33cff854b33875ead787b Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Fri, 25 Nov 2016 12:44:11 +0000
-Subject: [PATCH 132/292] tty: rs485: bugfix: move IGNORE_FLUSH to driver data
+Subject: [PATCH] tty: rs485: bugfix: move IGNORE_FLUSH to driver data
 
         For some reason the tty flag TTY_IGNORE_FLUSH was lost
         during communication. We fix it through move it to

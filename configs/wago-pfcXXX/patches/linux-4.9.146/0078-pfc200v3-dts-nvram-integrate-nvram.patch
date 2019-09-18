@@ -1,7 +1,7 @@
 From ccae17d6194cb829d812281d98a582f4cb5173f9 Mon Sep 17 00:00:00 2001
 From: Peter Galka <peter.galka@wago.com>
 Date: Thu, 13 Jul 2017 10:05:27 +0200
-Subject: [PATCH 078/292] pfc200v3: dts: nvram: integrate nvram
+Subject: [PATCH] pfc200v3: dts: nvram: integrate nvram
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 12 ++++++------

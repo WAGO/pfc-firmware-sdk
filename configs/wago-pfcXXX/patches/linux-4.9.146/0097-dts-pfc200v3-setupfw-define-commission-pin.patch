@@ -1,7 +1,7 @@
 From 0838acdb54d9622e25c77b4b8cfadfc9c095ab73 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 31 Aug 2017 15:18:55 +0200
-Subject: [PATCH 097/292] dts: pfc200v3: setupfw: define commission pin
+Subject: [PATCH] dts: pfc200v3: setupfw: define commission pin
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-setupfw.dts | 27 ++++++++++++++++++++++++---

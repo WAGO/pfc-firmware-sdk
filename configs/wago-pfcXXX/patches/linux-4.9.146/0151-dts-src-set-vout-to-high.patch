@@ -1,7 +1,7 @@
 From 839aed87b6f567e582b633cb70baac641c3da029 Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Wed, 14 Feb 2018 15:07:47 +0100
-Subject: [PATCH 151/292] dts: src: set vout to high.
+Subject: [PATCH] dts: src: set vout to high.
 
 Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
 ---

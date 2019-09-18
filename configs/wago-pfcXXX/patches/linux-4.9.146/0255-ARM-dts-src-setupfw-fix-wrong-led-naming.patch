@@ -1,7 +1,7 @@
 From 8aa13a68d7aee4a127d8b888f0318d992ea7bc14 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 30 Oct 2018 08:36:14 +0100
-Subject: [PATCH 255/292] ARM: dts: src: setupfw: fix wrong led naming
+Subject: [PATCH] ARM: dts: src: setupfw: fix wrong led naming
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

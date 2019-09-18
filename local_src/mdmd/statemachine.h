@@ -112,8 +112,6 @@ class Transition
 	    , _guard (g)
 	{}
 
-	~Transition() {}
-
 	State * get_dst() {
 	    return &_dst;
 	}
@@ -163,7 +161,7 @@ class Action
 	    , _function (af)
 	{}
 
-	~Action() {}
+
 
 	bool match_string( const std::string & str ) {
 	    return _ev->match_string( str );

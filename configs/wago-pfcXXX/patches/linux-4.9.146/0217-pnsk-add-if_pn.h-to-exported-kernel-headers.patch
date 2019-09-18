@@ -1,7 +1,7 @@
 From 2de33f112702afbcb13017520933fe6d50797c0b Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 24 Jul 2018 15:04:50 +0200
-Subject: [PATCH 217/292] pnsk: add if_pn.h to exported kernel-headers
+Subject: [PATCH] pnsk: add if_pn.h to exported kernel-headers
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -1,7 +1,7 @@
 From a5dfdf90f7b2fb7febaf6a258d28739f80cae838 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 18 Jun 2018 13:50:33 +0200
-Subject: [PATCH] arm: am35xx: fix: skip early mmu cache flush
+Subject: [PATCH 034/144] arm: am35xx: fix: skip early mmu cache flush
 
 Don't know why but the code is not booting when
 doing an early mmu cache flush here.

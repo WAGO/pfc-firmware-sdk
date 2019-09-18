@@ -1,8 +1,8 @@
 From aa1816ec84e538c70e2c28d5a6041d95e968ca9a Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 13 Oct 2017 10:57:32 +0200
-Subject: [PATCH 104/292] drivers: net: ks8863: convert ksz8863 swconfig driver
- to platform driver
+Subject: [PATCH] drivers: net: ks8863: convert ksz8863 swconfig driver to
+ platform driver
 
 ---
  arch/arm/boot/dts/wago-pfc100.dtsi      |  11 ++

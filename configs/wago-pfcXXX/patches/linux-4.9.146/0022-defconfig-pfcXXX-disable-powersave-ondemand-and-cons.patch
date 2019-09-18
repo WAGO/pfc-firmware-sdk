@@ -1,7 +1,7 @@
 From ac8fd43b1509b69aff3d093e9bedda6f0eaf225f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 24 Nov 2016 15:13:26 +0100
-Subject: [PATCH 022/292] defconfig: pfcXXX: disable powersave, ondemand and
+Subject: [PATCH] defconfig: pfcXXX: disable powersave, ondemand and
  conservative governar
 
 ---

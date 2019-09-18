@@ -1,8 +1,7 @@
 From 8df462abacb8d0b5554fcba1bea73071f3d3af67 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 20 Jun 2018 15:13:49 +0200
-Subject: [PATCH 179/292] dts: 0308: exchange ethX1 -> ethX11 and ethX2 ->
- ethX12
+Subject: [PATCH] dts: 0308: exchange ethX1 -> ethX11 and ethX2 -> ethX12
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -1,7 +1,7 @@
 From 86a28b2d6b0441d35feab8ecbe03d0eba6f2816d Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 25 Apr 2018 14:45:33 +0200
-Subject: [PATCH 167/292] mv88e6321-swconf: add tcam support
+Subject: [PATCH] mv88e6321-swconf: add tcam support
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

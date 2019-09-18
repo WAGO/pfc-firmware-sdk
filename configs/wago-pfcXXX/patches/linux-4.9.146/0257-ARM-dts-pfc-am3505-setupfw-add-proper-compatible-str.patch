@@ -1,8 +1,7 @@
 From 84de2ed3a24d429ec454aec7db1ebf82d5139ae6 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 30 Oct 2018 18:59:13 +0100
-Subject: [PATCH 257/292] ARM: dts: pfc-am3505: setupfw: add proper compatible
- string
+Subject: [PATCH] ARM: dts: pfc-am3505: setupfw: add proper compatible string
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

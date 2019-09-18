@@ -1,8 +1,8 @@
 From 53b4ce72f7f4d9e0517a8f8bdf1e14c7a207ed57 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 6 Dec 2018 15:30:48 +0100
-Subject: [PATCH 283/292] defconfig: pfc: compile docker related drivers as
- much as possible as modules
+Subject: [PATCH] defconfig: pfc: compile docker related drivers as much as
+ possible as modules
 
 To reduce the kernel boot time, compile drivers that are needed by the docker
 daemon as modules.

@@ -16,7 +16,7 @@
 //TODO: _gkeyfile make unique_ptr
 PersistentStorage::PersistentStorage()
 {
-    GError *err = NULL;
+    GError *err = nullptr;
 
     _gkeyfile = g_key_file_new();
 
@@ -33,7 +33,7 @@ PersistentStorage::PersistentStorage()
       if (err)
       {
         g_error_free(err);
-        err = NULL;
+        err = nullptr;
         mdmd_Log(MD_LOG_WRN, "Could not read configuration file %s\n", MDMD_CONFIG_FILE);
       }
     }
@@ -58,7 +58,7 @@ bool PersistentStorage::set_loglevel(const int loglevel)
 
 void PersistentStorage::init_loglevel(void)
 {
-    GError *err = NULL;
+    GError *err = nullptr;
     int value;
 
     value = g_key_file_get_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "log_level", &err);
@@ -67,7 +67,7 @@ void PersistentStorage::init_loglevel(void)
       value = mdmd_GetLogLevel();
       g_key_file_set_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "log_level", value);
       g_error_free(err);
-      err = NULL;
+      err = nullptr;
     }
     else
     {
@@ -87,7 +87,7 @@ bool PersistentStorage::get_sim(std::string &iccid, std::string &pin) const
     if (err)
     {
       g_error_free(err);
-      err = NULL;
+      err = nullptr;
       value = 0;
     }
     if (0 == value)
@@ -101,7 +101,7 @@ bool PersistentStorage::get_sim(std::string &iccid, std::string &pin) const
     if (err)
     {
       g_error_free(err);
-      err = NULL;
+      err = nullptr;
       value = 0;
     }
     if (0 == value)
@@ -121,7 +121,7 @@ void PersistentStorage::set_sim(const std::string &iccid, const std::string &pin
 
 bool PersistentStorage::get_selection(int &mode) const
 {
-  GError *err = NULL;
+  GError *err = nullptr;
   int value;
 
   value = g_key_file_get_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "net_selection_mode", &err);
@@ -141,7 +141,7 @@ void PersistentStorage::set_selection(const int mode)
 
 bool PersistentStorage::get_port_enabled() const
 {
-    GError *err = NULL;
+    GError *err = nullptr;
     int value;
 
     value = g_key_file_get_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "port_state", &err);
@@ -150,7 +150,7 @@ bool PersistentStorage::get_port_enabled() const
       value = 1;
       g_key_file_set_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "port_state", value);
       g_error_free(err);
-      err = NULL;
+      err = nullptr;
     }
     return (value != 0);
 }
@@ -163,7 +163,7 @@ void PersistentStorage::set_port_enabled(bool enabled)
 
 bool PersistentStorage::get_oper(int &id, int &act) const
 {
-    GError *err = NULL;
+    GError *err = nullptr;
     int value;
 
     value = g_key_file_get_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "net_manual_oper", &err);
@@ -197,13 +197,13 @@ void PersistentStorage::remove_oper()
     if (err)
     {
       g_error_free(err);
-      err = NULL;
+      err = nullptr;
     }
     g_key_file_remove_key(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "net_manual_act", &err);
     if (err)
     {
       g_error_free(err);
-      err = NULL;
+      err = nullptr;
     }
 }
 
@@ -212,10 +212,10 @@ bool PersistentStorage::get_gprs_access(GprsAccessConfig& gprs_access) const
 	GError *gprs_state_err = nullptr;
     GError *gprs_auth_err = nullptr;
 	int   gprs_state = g_key_file_get_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_state", &gprs_state_err);
-    char* gprs_apn  = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_apn", NULL);
+    char* gprs_apn  = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_apn", nullptr);
     int   gprs_auth = g_key_file_get_integer(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_auth_type", &gprs_auth_err);
-    char* gprs_user = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_username", NULL);
-    char* gprs_pass = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_password", NULL);
+    char* gprs_user = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_username", nullptr);
+    char* gprs_pass = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "gprs_password", nullptr);
     bool result = ((!gprs_state_err) && (gprs_apn) && (!gprs_auth_err) && (gprs_user) && (gprs_pass));
 
     if (result)
@@ -328,21 +328,21 @@ bool PersistentStorage::get_sms_storage_config(SmsStorageConfig& sms_storage_con
     char* mem2;
     char* mem3;
 
-    mem1 = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "sms_cpms_mem1", NULL);
-    if(mem1 == NULL)
+    mem1 = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "sms_cpms_mem1", nullptr);
+    if(mem1 == nullptr)
     {
       return false;
     }
 
-    mem2 = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "sms_cpms_mem2", NULL);
-    if(mem2 == NULL)
+    mem2 = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "sms_cpms_mem2", nullptr);
+    if(mem2 == nullptr)
     {
       g_free(mem1);
       return false;
     }
  
-    mem3 = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "sms_cpms_mem3", NULL);
-    if(mem3 == NULL)
+    mem3 = g_key_file_get_string(_gkeyfile, MDMD_CONFIG_FILE_SECTION, "sms_cpms_mem3", nullptr);
+    if(mem3 == nullptr)
     {
       g_free(mem1);
       g_free(mem2);
@@ -369,7 +369,7 @@ void PersistentStorage::set_sms_storage_config(const SmsStorageConfig& sms_stora
 
 void PersistentStorage::save()
 {
-    gchar *dat = g_key_file_to_data(_gkeyfile, NULL, NULL);
+    gchar *dat = g_key_file_to_data(_gkeyfile, nullptr, nullptr);
     if (dat==0)
       throw std::exception();
 

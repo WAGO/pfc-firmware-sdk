@@ -1,7 +1,7 @@
 From a806be4275de6bd368c911f28632ac2846279506 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 17 Oct 2018 07:37:31 +0200
-Subject: [PATCH] gitignore: ignore update-svn-patches.sh
+Subject: [PATCH 119/144] gitignore: ignore update-svn-patches.sh
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

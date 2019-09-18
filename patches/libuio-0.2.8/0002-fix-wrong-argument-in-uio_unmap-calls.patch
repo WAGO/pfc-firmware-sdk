@@ -1,0 +1,44 @@
+From b5018c62c137968de797e974674541c2fc2b11f7 Mon Sep 17 00:00:00 2001
+From: Stefan Wiehler <stefan.wiehler@missinglinkelectronics.com>
+Date: Tue, 11 Sep 2018 09:49:17 +0200
+Subject: [PATCH] fix wrong argument in uio_unmap() calls
+
+Signed-off-by: Stefan Wiehler <stefan.wiehler@missinglinkelectronics.com>
+---
+ base.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/base.c b/base.c
+index a69cf92..1e0ddde 100644
+--- a/base.c
++++ b/base.c
+@@ -365,7 +365,7 @@ int uio_open_fix (struct uio_info_t* info, void *ptr)
+ 					   MAP_SHARED, fd, i * getpagesize());
+ 		if (info->maps[i].map == MAP_FAILED) {
+ 			while (--i >= 0)
+-				uio_unmap (info->maps [i].map);
++				uio_unmap (&info->maps [i]);
+ 			g_warning (_("mmap: %s\n"), g_strerror (errno));
+ 			return -1;
+ 		}
+@@ -417,7 +417,7 @@ int uio_open_private (struct uio_info_t* info)
+ 
+ 		if (info->maps[i].map == MAP_FAILED) {
+ 			while (--i >= 0)
+-				uio_unmap(info->maps [i].map);
++				uio_unmap(&info->maps [i]);
+ 			g_warning (_("mmap: %s\n"), g_strerror (errno));
+ 			return -1;
+ 		}
+@@ -446,7 +446,7 @@ int uio_close (struct uio_info_t* info)
+ 
+ 	for (i = 0; i < info->maxmap; i++)
+ 		if (info->maps [i].map != MAP_FAILED)
+-			uio_unmap(info->maps [i].map);
++			uio_unmap(&info->maps [i]);
+ 
+ 	close (info->fd);
+ 
+-- 
+2.7.4
+

@@ -1,7 +1,7 @@
 From d9a8b9da5654f09230d30256d3794b2c444dc018 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 18 Jun 2018 08:22:13 +0200
-Subject: [PATCH 171/292] swconfig: read tcam rules at setup_dflt
+Subject: [PATCH] swconfig: read tcam rules at setup_dflt
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -1,7 +1,7 @@
 From 77a2c2478712d3aa3a3381313ea6ab314b0ad8bc Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 29 Jun 2018 14:26:12 +0200
-Subject: [PATCH] board: wago-pfc-am335x: set ethaddr also on eth1
+Subject: [PATCH 028/144] board: wago-pfc-am335x: set ethaddr also on eth1
 
 Ethernet device iteration during probing requires strict dependencies between
 ethernet alias and rmmi interface. Due to this restriction we also need to set

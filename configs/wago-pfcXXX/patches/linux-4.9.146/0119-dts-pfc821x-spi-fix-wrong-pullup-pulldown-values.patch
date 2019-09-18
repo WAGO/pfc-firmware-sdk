@@ -1,7 +1,7 @@
 From 141b5123c60fababb1dbc467c7e2d158a3c3e10a Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 12 Oct 2017 08:20:33 +0200
-Subject: [PATCH 119/292] dts: pfc821x: spi: fix wrong pullup/pulldown values
+Subject: [PATCH] dts: pfc821x: spi: fix wrong pullup/pulldown values
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 14 +++++++-------

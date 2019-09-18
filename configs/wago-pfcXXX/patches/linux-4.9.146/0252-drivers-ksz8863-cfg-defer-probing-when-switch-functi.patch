@@ -1,8 +1,8 @@
 From 05c2db5a9ee79d8997eb047a55791aba5e7d3b9b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 18 Oct 2018 10:51:13 +0200
-Subject: [PATCH 252/292] drivers: ksz8863-cfg: defer probing when switch
- functions not available
+Subject: [PATCH] drivers: ksz8863-cfg: defer probing when switch functions not
+ available
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

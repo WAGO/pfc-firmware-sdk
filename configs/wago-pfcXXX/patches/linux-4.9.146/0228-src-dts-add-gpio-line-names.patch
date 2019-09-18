@@ -1,7 +1,7 @@
 From 22963f384c08234f5ec5aa94fbe0ce9001d7361e Mon Sep 17 00:00:00 2001
 From: Boerje Sewing <Boerje.Sewing@who-ing.de>
 Date: Tue, 14 Aug 2018 16:01:23 +0200
-Subject: [PATCH 228/292] src: dts: add gpio line names
+Subject: [PATCH] src: dts: add gpio line names
 
 Add proper gpio line naming to ease up gpio debugging.
 Use tools from libgpiod to monitor, set and gather

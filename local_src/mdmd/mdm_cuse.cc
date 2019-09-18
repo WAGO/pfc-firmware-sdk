@@ -27,6 +27,8 @@
 #include "mdm_cuse.h"
 #include "mdm_cuse_worker.h"
 
+namespace {
+
 static const int cm_syslog_level = LOG_DEBUG;
 
 typedef struct mdm_cuse_ctx {
@@ -51,10 +53,10 @@ void mdm_cuse_init(void *userdata, struct fuse_conn_info *conn)
     {
       syslog(LOG_ERR, "%s: Create pipe %s failed: %s",
              __func__, pipe_name, strerror(err));
-      pipe_name = NULL;
+      pipe_name = nullptr;
     }
   }
-  if ((ctx != NULL) && (pipe_name != NULL))
+  if ((ctx != nullptr) && (pipe_name != nullptr))
   {
     ctx->fd_fifo_result = open(pipe_name, O_RDONLY|O_NONBLOCK);
     if (ctx->fd_fifo_result < 0)
@@ -87,13 +89,13 @@ void mdm_cuse_read(fuse_req_t req, size_t size, off_t off,
   char *buf = (char*)malloc(size);
   int reply_result;
   (void)off; (void)fi; //unused parameter
-  if (buf == NULL)
+  if (buf == nullptr)
   {
-    reply_result = fuse_reply_buf(req, NULL, 0);
+    reply_result = fuse_reply_buf(req, nullptr, 0);
   }
   else
   {
-    int buf_read = 0;
+    ssize_t buf_read = 0;
     mdm_cuse_ctx_t *ctx = (mdm_cuse_ctx_t *)fuse_req_userdata(req);
     if (ctx && (ctx->fd_fifo_result >= 0))
     {
@@ -110,7 +112,7 @@ void mdm_cuse_read(fuse_req_t req, size_t size, off_t off,
           }
       }
     }
-    reply_result = fuse_reply_buf(req, buf, buf_read);
+    reply_result = fuse_reply_buf(req, buf, (size_t)buf_read);
     free(buf);
   }
   if (reply_result != 0)
@@ -126,7 +128,7 @@ void mdm_cuse_write(fuse_req_t req, const char *buf, size_t size,
   //syslog(LOG_DEBUG, "%s: write %d bytes", __func__, size);
   (void)off; (void)fi; //unused parameter
   userdata = fuse_req_userdata(req);
-  if ((userdata != NULL) && (buf != NULL) && (size > 0))
+  if ((userdata != nullptr) && (buf != nullptr) && (size > 0))
   {
     const char * pipe_name = MDM_CUSE_FIFO_REQUEST;
     int fd = open(pipe_name, O_WRONLY|O_NONBLOCK);
@@ -173,7 +175,7 @@ void mdm_cuse_ioctl(fuse_req_t req, int cmd, void *arg,
     case TCGETS:
       if (!out_bufsz) {
         struct iovec iov = { arg, sizeof(ctx->termios_settings) };
-        fuse_reply_ioctl_retry(req, NULL, 0, &iov, 1);
+        fuse_reply_ioctl_retry(req, nullptr, 0, &iov, 1);
       } else {
         fuse_reply_ioctl(req, 0, &ctx->termios_settings, sizeof(ctx->termios_settings));
       }
@@ -183,25 +185,25 @@ void mdm_cuse_ioctl(fuse_req_t req, int cmd, void *arg,
     case TCSETSF:
       if (!in_bufsz) {
         struct iovec iov = { arg, sizeof(ctx->termios_settings) };
-        fuse_reply_ioctl_retry(req, &iov, 1, NULL, 0);
+        fuse_reply_ioctl_retry(req, &iov, 1, nullptr, 0);
       } else {
         memcpy(&ctx->termios_settings, in_buf, sizeof(ctx->termios_settings));
-        fuse_reply_ioctl(req, 0, NULL, 0);
+        fuse_reply_ioctl(req, 0, nullptr, 0);
       }
       break;
 
     default:
-      fuse_reply_ioctl(req, 0, NULL, 0);
+      fuse_reply_ioctl(req, 0, nullptr, 0);
     }
   }
   else
   {
-    fuse_reply_ioctl(req, 0, NULL, 0);
+    fuse_reply_ioctl(req, 0, nullptr, 0);
   }
 }
 
 
-static int mdm_cuse_setup(int argc, char **argv, mdm_cuse_ctx_t *ctx)
+int mdm_cuse_setup(int argc, char **argv, mdm_cuse_ctx_t *ctx)
 {
     struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
     struct cuse_info ci;
@@ -211,7 +213,7 @@ static int mdm_cuse_setup(int argc, char **argv, mdm_cuse_ctx_t *ctx)
     const char *dev_info_argv[] = { dev_info_name };
 
     ctx->fd_fifo_result = -1;
-    if (dev_info_name == NULL)
+    if (dev_info_name == nullptr)
     {
       syslog(LOG_ERR, "%s: Out of memory", __func__);
       return -1;
@@ -237,7 +239,7 @@ static int mdm_cuse_setup(int argc, char **argv, mdm_cuse_ctx_t *ctx)
                                    &multithreaded, ctx);
 
     free(dev_info_name);
-    if (ctx->session == NULL)
+    if (ctx->session == nullptr)
     {
       syslog(LOG_ERR, "%s: Start session failed.", __func__);
       return -1;
@@ -245,6 +247,7 @@ static int mdm_cuse_setup(int argc, char **argv, mdm_cuse_ctx_t *ctx)
     return 0;
 }
 
+} //namespace
 
 int main(int argc, char *argv[])
 {
@@ -253,7 +256,7 @@ int main(int argc, char *argv[])
 
   setlogmask (LOG_UPTO(cm_syslog_level));
   openlog ("mdm_cuse", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
-  syslog(LOG_NOTICE, "%s: Started by user %d", __func__, getuid ());
+  syslog(LOG_NOTICE, "%s: Started by user %u", __func__, getuid ());
 
   if (0 != mdm_cuse_setup(argc, argv, &ctx))
   {

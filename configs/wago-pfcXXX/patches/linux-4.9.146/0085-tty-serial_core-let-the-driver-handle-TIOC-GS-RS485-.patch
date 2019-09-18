@@ -1,8 +1,8 @@
 From 372e114388950756f3a8231919f719b91803bd3f Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 24 Jul 2017 16:38:09 +0000
-Subject: [PATCH 085/292] tty: serial_core: let the driver handle TIOC[GS]RS485
- ioctls as used in older kernels
+Subject: [PATCH] tty: serial_core: let the driver handle TIOC[GS]RS485 ioctls
+ as used in older kernels
 
 	The following commits of Ricardo Ribalda Delgado introduced ioctls handling
 	on serial core layer, firstly in Linux 3.19:

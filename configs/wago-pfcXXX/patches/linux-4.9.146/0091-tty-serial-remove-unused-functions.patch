@@ -1,7 +1,7 @@
 From 719446da7c9d6513a561182d3380080104721887 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 14 Aug 2017 14:28:34 +0200
-Subject: [PATCH 091/292] tty: serial: remove unused functions
+Subject: [PATCH] tty: serial: remove unused functions
 
 	commit ad34b58c6e9fe54103bd0d3b7a58bf1578689eb1 removes
 	handle of TIOC[GS]RS485 ioctls from serial_core driver.

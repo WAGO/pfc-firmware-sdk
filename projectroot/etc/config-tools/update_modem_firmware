@@ -54,7 +54,6 @@ function show_help
   echo -n "Usage: $0 [Firmware Image File]"
   echo
   echo
-  exit $status
 }
 
 function is_mdmd_port_enabled
@@ -134,7 +133,7 @@ function map_qflash_retval
 
 function __main
 {
-    local status=$SUCCESS
+    local result
 
     local fw_file=$1
     local progress_log_file=${2:-"/tmp/$(basename $0).log"}
@@ -143,10 +142,10 @@ function __main
 
     if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
         show_help
-        exit $status
+        exit $SUCCESS
     fi
 
-    if [[ ${fw_file} == "" ]]; then
+    if [[ ! -f ${fw_file} ]]; then
         show_help
         exit $INVALID_PARAMETER
     fi
@@ -162,31 +161,28 @@ function __main
     fi
 
     if deactivate_modem_daemon; then
-    
-        local result
         local fw_version=$(basename ${fw_file} .bin)
         
         if is_fw_version_different ${fw_version}; then
             if is_valid_fw_version ${fw_version}; then
                 ${QFLASH} -f ${fw_file} -p ${TTY} &>${progress_log_file}
-                result=$?
+                result=$(map_qflash_retval $?)
             else
                 SetLastError "Firmware version '${fw_version}' does not match device."
+                result=$INVALID_PARAMETER
             fi
         else
             SetLastError "Firmware version '${fw_version}' is already installed."
+            result=$INVALID_PARAMETER
         fi
 
         trap - INT TERM EXIT
 
-        if activate_modem_daemon; then
-            result=$(map_qflash_retval ${result})
-        else
+        if ! activate_modem_daemon; then
             result=$INTERNAL_ERROR
             ReportError $INTERNAL_ERROR "(could not restart mdmd)"
             SetLastError "Error: Could not restart mdmd."
         fi
-
 
     else
         result=$INTERNAL_ERROR

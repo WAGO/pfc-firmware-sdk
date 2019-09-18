@@ -10,7 +10,7 @@
 ///
 ///  \file     set_serial_mode.c
 ///
-///  \version  $Revision: 39661 $
+///  \version  $Revision: 39634 $
 ///
 ///  \brief    This config tool sets the PFCXXX transceiver to RS232 or RS485
 ///           Based on tty0modeswitch

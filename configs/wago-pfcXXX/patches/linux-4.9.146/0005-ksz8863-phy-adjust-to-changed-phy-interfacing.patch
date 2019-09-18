@@ -1,7 +1,7 @@
 From 20ac4261a489df2b6ba08c76379ae38e8bf93a25 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 17 Nov 2016 07:08:41 +0000
-Subject: [PATCH 005/292] ksz8863: phy: adjust to changed phy interfacing
+Subject: [PATCH] ksz8863: phy: adjust to changed phy interfacing
 
 ---
  drivers/net/phy/ksz8863-phy.c | 27 +++++++--------------------

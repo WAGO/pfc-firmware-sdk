@@ -1,0 +1,298 @@
+From 38d6bad3b7c85998867a3db270746865c7aca817 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 9 Apr 2019 12:00:49 +0200
+Subject: [PATCH] dts: 768_3301: add RMD configuration
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_3301.dts  |  85 +++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi | 108 ++++++++++-------------------
+ 2 files changed, 123 insertions(+), 70 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301.dts b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+index ca08c22..1e7e356 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_3301.dts
++++ b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+@@ -13,3 +13,88 @@
+ 	model = "WAGO PAC100 768-3301";
+ 	compatible = "wago,am335x-pac-768_330x-1005", "wago,am335x-pfc", "ti,am33xx";
+ };
++
++&aes {
++	status = "okay";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
++&elm {
++	status = "okay";
++};
++
++&oms {
++	status = "okay";
++};
++
++&sham {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "peripheral";
++	status = "okay";
++};
++
++&spi1 {
++	status = "okay";
++};
++
++&watchdog {
++	status = "okay";
++};
++
++&i2c0 {
++	status = "okay";
++};
++
++&swcfg_mv88e6321 {
++	status = "okay";
++};
++
++&mac {
++	status = "okay";
++};
++
++&mmc1 {
++	status = "okay";
++};
++
++&mmc2 {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++};
++
++&rmd {
++	status = "okay";
++};
++
++&uio_rmd_irq0 {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+index b67366c..6b4bf8b 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+@@ -22,22 +22,47 @@
+ 		reg = <0x01000000 0x01000000>;
+ 	};
+ 
+-	uio_rmd_sysctrl@1000000 {
+-		compatible = "uio_pdrv_genirq";
+-		reg = <0x1000000 0x10000>;
+-	};
+-
+-	uio_rmd_irq0 {
++	/* remove this node if interrupt is used in rmd driver and inform the
++	 * rlb team to use the rmd_irq1 node for error handling.
++	 */
++	uio_rmd_irq0: uio_rmd_irq0 {
++		status = "disabled";
+ 		compatible = "uio_pdrv_genirq";
+ 		interrupts = <7>;
+ 		interrupt-parent = <&intc>;
+ 	};
+ 
+-	uio_rmd_irq1 {
++	uio_rmd_irq1: uio_rmd_irq1 {
++		status = "disabled";
+ 		compatible = "uio_pdrv_genirq";
+ 		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+ 		interrupt-parent = <&gpio2>;
+ 	};
++
++	rmd: rmd {
++		status = "disabled";
++		compatible = "wago,rmd";
++		pinctrl-names = "default";
++		pinctrl-0 = <&rmd_pins>;
++
++		rmd,fifo-size = <0x1000>;
++		reg = <0x01000000 0x01000000>;
++
++		/*
++		 * Crossbar Mapped Channels
++		 *
++		 * 28: pi_x_dma_event_intr0
++		 * 29: pi_x_dma_event_intr1
++		 *
++		 * Map 28 and 29 to Open Channels 20 and 21
++		 *
++		 */
++		dmas = <&edma_xbar 20 0 28>, <&edma_xbar 21 0 29>;
++		dma-names = "rx", "tx";
++
++		interrupts = <12 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
+ };
+ 
+ &cpu_0 {
+@@ -192,6 +217,12 @@
+ 			AM33XX_LCD_DATA10_GPIO2_16(PIN_INPUT)
+ 			AM33XX_LCD_PCLK_GPIO2_24(PIN_INPUT)
+ 			AM33XX_LCD_DATA11_GPIO2_17(PIN_OUTPUT)
++		>;
++	};
++
++	rmd_pins: pinmux_rmd_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_DATA6_GPIO2_12(PIN_INPUT)
+ 			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT)
+ 			AM33XX_XDMA_EVENT_INTR0(PIN_INPUT)
+ 			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT)
+@@ -199,59 +230,12 @@
+ 	};
+ };
+ 
+-&aes {
+-	status = "okay";
+-};
+-
+-&cppi41dma {
+-	status = "okay";
+-};
+-
+-&elm {
+-	status = "okay";
+-};
+-
+-&oms {
+-	status = "okay";
+-};
+-
+-&sham {
+-	status = "okay";
+-};
+-
+-&spi0 {
+-	status = "okay";
+-};
+-
+-&uart0 {
+-	status = "okay";
+-};
+-
+-&usb {
+-	status = "okay";
+-};
+-
+-&usb_ctrl_mod {
+-	status = "okay";
+-};
+-
+-&usb0_phy {
+-	status = "okay";
+-};
+-
+-&usb0 {
+-	dr_mode = "peripheral";
+-	status = "okay";
+-};
+-
+ &wsysinit {
+ 	board,variant = "pac100";
+ 	tty,rs232-485 = "nop";
+ };
+ 
+ &spi1 {
+-	status = "okay";
+-
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi1_pins>;
+ 	ti,pindir-d0-out-d1-in;
+@@ -273,8 +257,6 @@
+ };
+ 
+ &watchdog {
+-	status = "okay";
+-
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&watchdog_pins>;
+ 
+@@ -295,8 +277,6 @@
+ };
+ 
+ &i2c0 {
+-	status = "okay";
+-
+ 	io_expander_70: pca9554@70 { /* IO Port Expander only outputs*/
+ 		compatible = "nxp,pca9554";
+ 		#address-cells = <1>;
+@@ -366,13 +346,7 @@
+ 	interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
+ };
+ 
+-&swcfg_mv88e6321 {
+-	status = "okay";
+-};
+-
+ &mac {
+-	status = "okay";
+-
+ 	pinctrl-0 = <
+ 		&rmii2_pins
+ 		&rmii1_pins
+@@ -385,8 +359,6 @@
+ };
+ 
+ &mmc1 {
+-	status = "okay";
+-
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <
+ 		&mmc1_pins
+@@ -397,8 +369,6 @@
+ };
+ 
+ &mmc2 {
+-	status = "okay";
+-
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&emmc_pins>;
+ 	vmmc-supply = <&dcdc4_reg>;
+@@ -416,8 +386,6 @@
+ };
+ 
+ &gpmc {
+-	status = "okay";
+-
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
+ 
+-- 
+2.7.4
+

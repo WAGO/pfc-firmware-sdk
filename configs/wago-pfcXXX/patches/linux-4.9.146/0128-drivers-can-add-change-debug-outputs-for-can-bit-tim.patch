@@ -1,8 +1,8 @@
 From d2a50b5986266cbf2fe23e698085924e96035d90 Mon Sep 17 00:00:00 2001
 From: Axel Wueste <axel.wueste@wago.com>
 Date: Thu, 7 Dec 2017 17:02:44 +0100
-Subject: [PATCH 128/292] drivers: can: add/change debug outputs for can bit
- timing register
+Subject: [PATCH] drivers: can: add/change debug outputs for can bit timing
+ register
 
 ---
  drivers/net/can/c_can/c_can.c |  2 +-

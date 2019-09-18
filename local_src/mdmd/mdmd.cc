@@ -9,15 +9,17 @@
 #include "events.h"
 #include "statemachine_functors.h"
 #include "mdm_functors.h"
-
-#include <stdlib.h>
-#include <vector>
-#include <algorithm>    // std::transformi, std::find
-#include <sstream>
-
 #include "mdmd_log.h"
+#include <algorithm>    // std::transform, std::find
+#include <sstream>
+#include <glib.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 GMainLoop *ml;
+
+using namespace std::string_literals;
 
 namespace {
 
@@ -42,10 +44,8 @@ constexpr auto timer_power_down = 65000;    //the maximum time for unregistering
 //constexpr auto timer_wait_suspendauto = 65000;
 //constexpr auto timer_wait_ps_detach = 65000;
 
-constexpr auto rmnet_profileid = 1;
+constexpr auto rmnet_profileid = '1';
 constexpr auto sms_format = 0; //Format = PDU
-
-constexpr auto MAX_AT_CMD_PRINT_LENGTH = 128;
 constexpr auto MDM_GPIO__PWRKEY_PIN = 132;
 constexpr auto MDM_MUSB_DRIVER_PORT = 1;
 constexpr auto MAX_PORT_WAIT_COUNT = 60;  /*number of wait cycles before automatic modem reset*/
@@ -53,22 +53,35 @@ constexpr auto MAX_CFUN_WAIT_COUNT = 60;  /*number of wait cycles before automat
 ///constexpr is currently not in used
 ///set as comment to keep the value in  the source code
 //constexpr auto MDM_GPIO__RESET_PIN = 130;
+//constexpr auto MAX_AT_CMD_PRINT_LENGTH = 128;
 
-enum class CME_ERROR : int
+enum class CME_ERROR 
 {
-    SIM_NOT_INSERTED = 10,//!< SIM_NOT_INSERTED
-    SIM_FAILURE = 13,     //!< SIM_FAILURE
-    SIM_BUSY = 14,        //!< SIM_BUSY
-    SIM_WRONG = 15,       //!< SIM_WRONG
+    SIM_NOT_INSERTED = 10,
+    SIM_PUK_REQUIRED = 12,
+    SIM_FAILURE = 13,     
+    SIM_BUSY = 14,        
+    SIM_WRONG = 15,       
+    INCORRECT_PASSWORD = 16,
 };
 
-enum class CMS_ERROR : int
+enum class CMS_ERROR 
 {
     SIM_NOT_INSERTED = 310,
     SIM_FAILURE = 313,
     SIM_BUSY = 314,
     SIM_WRONG = 315,
     SIM_NOT_READY = 512,
+};
+
+enum class MODE 
+{
+    AUTOMATIC = 0,
+    MANUAL = 1,
+    ONLY_GSM = 2,
+    ONLY_UMTS = 3,
+    PREFER_GSM = 4,
+    PREFER_UMTS = 5,
 };
 
 /*
@@ -81,7 +94,7 @@ bool gf_activation_required(const MdmStatemachine &sm)
 
 bool gf_dbus_offline(const MdmStatemachine &sm)
 {
-    return (false == sm.dbus_online());
+    return !sm.dbus_online();
 }
 
 bool gf_modem_port_open(const MdmStatemachine &sm)
@@ -150,11 +163,11 @@ bool gf_cme_incorrect_password(const MdmStatemachine &sm)
 {
     switch (sm.get_last_cme_error())
     {
-      case 12:
-      case 16:
-        return true;
-      default:
-        return false;
+        case static_cast<int>(CME_ERROR::SIM_PUK_REQUIRED): 
+        case static_cast<int>(CME_ERROR::INCORRECT_PASSWORD): 
+            return true;
+        default:
+            return false;
     }
 }
 
@@ -203,9 +216,9 @@ bool gf_renew_wwan_address(const MdmStatemachine &sm)
     //WWAN0 may hold up to one hour an invalid IP address due to long DHCP lease time.
     //This happens when modem gets a new PDP IP address without GPRS state change and restart of WWAN.
     //For fast reconnection an update of WWAN0 IP address is necessary in this case.
-    return ((sm.gprs_pdp_addr_changed() == true) &&
-            (sm.gprs_wwan_state_changed() == false) &&
-            (sm.is_gprs_registered() == true));
+    return (sm.gprs_pdp_addr_changed() &&
+            !sm.gprs_wwan_state_changed() &&
+            sm.is_gprs_registered());
 }
 
 bool gf_gprs_autoconnect_timeout(const MdmStatemachine &sm)
@@ -221,17 +234,17 @@ bool gf_gprs_autoconnect_timeout(const MdmStatemachine &sm)
  */
 void af_dbus_getsmsreportconfig(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     SmsEventReportingConfig sms_config;
     (void)sm.get_sms_report_config(sms_config);
     
-    GVariant* gvar = g_variant_new("(iiiii)",
+    auto* gvar = g_variant_new("(iiiii)",
                                     sms_config.get_mode(),
                                     sms_config.get_mt(),
                                     sms_config.get_bm(),
                                     sms_config.get_ds(),
                                     sms_config.get_bfr());
-    if (gvar != NULL)
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -243,8 +256,8 @@ void af_dbus_getsmsreportconfig(MdmStatemachine &sm, Event &ev)
 
 void af_dbus_getoperstate(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant * gvar;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = static_cast<GVariant*>(nullptr);
     int selmode;
     const int operator_id = sm.get_current_oper().get_id();
     const std::string operator_name = sm.get_operator_name(operator_id);
@@ -253,11 +266,11 @@ void af_dbus_getoperstate(MdmStatemachine &sm, Event &ev)
     {
       selmode = 1;
     }
-    else if (sm.get_oper_scan_mode())
+    else if (0 != sm.get_oper_scan_mode())
     {
       selmode = 1 + sm.get_oper_scan_mode();
     }
-    else if (sm.get_oper_scan_seq())
+    else if (0 != sm.get_oper_scan_seq())
     {
       selmode = 3 + sm.get_oper_scan_seq();
     }
@@ -274,7 +287,7 @@ void af_dbus_getoperstate(MdmStatemachine &sm, Event &ev)
                          operator_name.c_str(),
                          sm.get_oper_reg_lac().c_str(),
                          sm.get_oper_reg_cid().c_str());
-    if (gvar != NULL)
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -289,9 +302,9 @@ void af_dbus_getportstate2(MdmStatemachine &sm, Event &ev)
 {
     const int state = sm.is_port_enabled() ? 1 : 0;
     const int open = sm.is_modem_port_open() ? 1 : 0;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant* gvar = g_variant_new("(ii)", state, open);
-    if (gvar != NULL)
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = g_variant_new("(ii)", state, open);
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -305,8 +318,8 @@ void af_dbus_getsimstate(MdmStatemachine &sm, Event &ev)
 {
     int state;
     int attempts = -1;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant * gvar;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = static_cast<GVariant*>(nullptr);
     switch(sm.get_sim_state()) {
     case MdmSimState::SIM_PIN:
         state=1;
@@ -331,7 +344,7 @@ void af_dbus_getsimstate(MdmStatemachine &sm, Event &ev)
         state=0;
     }
     gvar = g_variant_new("(ii)", state, attempts);
-    if (gvar != NULL)
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -344,18 +357,18 @@ void af_dbus_getsimstate(MdmStatemachine &sm, Event &ev)
 void af_dbus_getgprsaccess2(MdmStatemachine &sm, Event &ev)
 {
     GprsAccessConfig gprsaccess;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
     if(sm.get_gprsaccess(gprsaccess)) {
-        GVariant* gvar = g_variant_new("(isissis)",
-                                        sm.get_gprs_reg_state(),
-                                        gprsaccess.get_apn().c_str(),
-                                        gprsaccess.get_auth(),
-                                        gprsaccess.get_user().c_str(),
-                                        gprsaccess.get_pass().c_str(),
-                                        gprsaccess.get_state(),
-                                        sm.get_pdp_address().c_str());
-        if (gvar != NULL)
+        auto* gvar = g_variant_new("(isissis)",
+                                    sm.get_gprs_reg_state(),
+                                    gprsaccess.get_apn().c_str(),
+                                    gprsaccess.get_auth(),
+                                    gprsaccess.get_user().c_str(),
+                                    gprsaccess.get_pass().c_str(),
+                                    gprsaccess.get_state(),
+                                    sm.get_pdp_address().c_str());
+        if (gvar != nullptr)
         {
           dev->invocation().return_value(gvar);
         }
@@ -370,12 +383,12 @@ void af_dbus_getgprsaccess2(MdmStatemachine &sm, Event &ev)
 
 void af_dbus_getmodeminfo(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant* gvar = g_variant_new("(sss)",
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = g_variant_new("(sss)",
                                     sm.get_modem_manufacturer().c_str(),
                                     sm.get_modem_model().c_str(),
                                     sm.get_modem_revision().c_str() );
-    if (gvar != NULL)
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -388,9 +401,9 @@ void af_dbus_getmodeminfo(MdmStatemachine &sm, Event &ev)
 
 void af_dbus_getmodemidentity(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent* const dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant* const gvar = g_variant_new("(s)", sm.get_modem_identity().c_str());
-    if (gvar != NULL) {
+    auto* const dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  const gvar = g_variant_new("(s)", sm.get_modem_identity().c_str());
+    if (gvar != nullptr) {
       dev->invocation().return_value(gvar);
     }
     else {
@@ -401,9 +414,9 @@ void af_dbus_getmodemidentity(MdmStatemachine &sm, Event &ev)
 void af_dbus_getsmsformat(MdmStatemachine &sm, Event &ev)
 {
     (void)sm;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant* gvar = g_variant_new("(i)", sms_format) ;
-    if (gvar != NULL)
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = g_variant_new("(i)", sms_format) ;
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -416,7 +429,7 @@ void af_dbus_getsmsformat(MdmStatemachine &sm, Event &ev)
 void af_dbus_setsmsformat(MdmStatemachine &sm, Event &ev)
 {
     (void)sm;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     int format;
     g_variant_get(dev->invocation().parameters(), "(i)", &format);
     if (format == sms_format)
@@ -431,11 +444,11 @@ void af_dbus_setsmsformat(MdmStatemachine &sm, Event &ev)
 
 void af_dbus_getsignalquality(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant* gvar = g_variant_new("(ii)",
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = g_variant_new("(ii)",
                                    sm.get_current_oper().get_rssi(),
                                    sm.get_current_oper().get_ber()) ;
-    if (gvar != NULL)
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -447,10 +460,10 @@ void af_dbus_getsignalquality(MdmStatemachine &sm, Event &ev)
 
 void af_dbus_getversion(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant* gvar = g_variant_new("(s)", _MDMD_VERSION);
-    (void)sm; //unused parameter
-    if (gvar != NULL)
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = g_variant_new("(s)", _MDMD_VERSION);
+    (void)sm; 
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -462,9 +475,9 @@ void af_dbus_getversion(MdmStatemachine &sm, Event &ev)
 
 void af_dbus_getloglevel(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    GVariant* gvar = g_variant_new("(i)", sm.get_loglevel());
-    if (gvar != NULL)
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto*  gvar = g_variant_new("(i)", sm.get_loglevel());
+    if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
@@ -476,12 +489,12 @@ void af_dbus_getloglevel(MdmStatemachine &sm, Event &ev)
 
 void af_dbus_setloglevel(MdmStatemachine &sm, Event &ev)
 {
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     int loglevel;
     g_variant_get(dev->invocation().parameters(), "(i)", &loglevel);
     if (sm.set_loglevel(loglevel))
     {
-      dev->invocation().return_value( 0 );
+      dev->invocation().return_value(nullptr);
     }
     else
     {
@@ -491,15 +504,15 @@ void af_dbus_setloglevel(MdmStatemachine &sm, Event &ev)
 
 void af_read_cops(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int id = atoi( rev->named_match("id").c_str() );
-    int act = atoi( rev->named_match("act").c_str() );
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int id = std::stoi( rev->named_match("id"));
+    int act = std::stoi( rev->named_match("act"));
     sm.set_current_oper(id, act);
 }
 
 void af_read_cops_null(MdmStatemachine &sm, Event &ev)
 {
-    (void)ev; //unused parameter
+    (void)ev; 
     //sm.clear_current_oper(); //COPS:0 does not show an invalid operator, but indication for status change
 
     mdmd_Log(MD_LOG_DBG, "%s: COPS indication\n", sm.get_state().c_str()); //log message for debug purpose only
@@ -507,14 +520,14 @@ void af_read_cops_null(MdmStatemachine &sm, Event &ev)
 
 void af_read_cgreg(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int state = atoi( rev->named_match("state").c_str() );
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int state = std::stoi(rev->named_match("state"));
     sm.set_gprs_reg_state(state);
 }
 
 void af_read_pdp_address(MdmStatemachine &sm, Event &ev)
 {
-  ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
+  auto* rev = dynamic_cast<ModemEvent *>(&ev);
   //const int cid = atoi( rev->named_match("cid").c_str() );
   const std::string pdp_addr = rev->named_match("pdp_addr");
   sm.set_pdp_address(pdp_addr);
@@ -522,52 +535,53 @@ void af_read_pdp_address(MdmStatemachine &sm, Event &ev)
 
 void af_read_creg(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int state = atoi( rev->named_match("state").c_str() );
-    std::string lac = "";  //location area code
-    std::string cid = "";  //cell id
-    int act = -1; //access technology
-    sm.set_oper_reg_state(state, lac, cid, act);
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int state = std::stoi(rev->named_match("state"));
+    std::string location_area_code;  
+    std::string cell_id;  
+    int access_technology = -1; 
+    sm.set_oper_reg_state(state, location_area_code, cell_id, access_technology);
 }
 
 void af_read_creg_full(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int state = atoi( rev->named_match("state").c_str() );
-    std::string lac = rev->named_match("lac"); //location area code
-    std::string cid = rev->named_match("cid"); //cell id
-    int act = atoi( rev->named_match("act").c_str() ); //access technology
-    sm.set_oper_reg_state(state, lac, cid, act);
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int state = std::stoi(rev->named_match("state"));
+    std::string location_area_code = rev->named_match("lac"); 
+    std::string cell_id = rev->named_match("cid"); 
+    int access_technology = std::stoi(rev->named_match("act")); 
+    sm.set_oper_reg_state(state, location_area_code, cell_id, access_technology);
 }
 
 void af_read_csq(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int ber = atoi( rev->named_match("ber").c_str() );
-    int rssi = atoi( rev->named_match("rssi").c_str() );
-    sm.set_current_oper_csq(ber, rssi);
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int bit_error_rate = std::stoi(rev->named_match("ber"));
+    int received_signal_strength = std::stoi(rev->named_match("rssi"));
+    sm.set_current_oper_csq(bit_error_rate, received_signal_strength);
 }
 
 void af_read_cme_error(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int err = atoi( rev->named_match("err").c_str() );
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int err = std::stoi(rev->named_match("err"));
     sm.set_last_cme_error(err);
 }
 
 void af_read_cms_error(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int err = atoi( rev->named_match("err").c_str() );
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int err = std::stoi(rev->named_match("err"));
     sm.set_last_cms_error(err);
 }
 
 void af_read_cfun_state(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    if (1 == atoi( rev->named_match("state").c_str() ))
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int state = std::stoi(rev->named_match("state"));
+    if (1 == state) 
     {
-      sm.set_cfun_state(1);
+      sm.set_cfun_state(state);
     }
     else
     {
@@ -577,7 +591,7 @@ void af_read_cfun_state(MdmStatemachine &sm, Event &ev)
 
 void af_read_cpin_state(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
     std::string state = rev->named_match("state");
     if (0 == state.compare("READY"))
     {
@@ -607,21 +621,21 @@ void af_read_cpin_state(MdmStatemachine &sm, Event &ev)
 
 void af_read_scan_mode(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int mode = atoi( rev->named_match("mode").c_str() );
+    auto* rev = dynamic_cast<ModemEvent*>(&ev);
+    int mode = std::stoi(rev->named_match("mode"));
     sm.set_oper_scan_mode(mode);
 }
 
 void af_read_scan_seq(MdmStatemachine &sm, Event &ev)
 {
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int seq = atoi( rev->named_match("seq").c_str() );
-    sm.set_oper_scan_seq(seq);
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int scan_sequence = std::stoi(rev->named_match("seq"));
+    sm.set_oper_scan_seq(scan_sequence);
 }
 
 void af_sms_event_report(MdmStatemachine &sm, Event &ev)
 {
-    (void)ev; //unused parameter
+    (void)ev; 
     sm.event_report_last_read();
 }
 
@@ -631,16 +645,11 @@ void af_sms_event_report(MdmStatemachine &sm, Event &ev)
  */
 bool tf_query_reg_state_full(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-    std::string at_cmd;
+    (void)src; (void)dst; (void)ev; 
+    auto at_cmd{"at+cops?;+csq;+creg=2;+creg?;+creg=0;+cgreg?;+cgpaddr="s};
+    at_cmd.push_back(rmnet_profileid);
     sm.reset_gprs_change_flags();
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH,
-              "at+cops?;+csq;+creg=2;+creg?;+creg=0;+cgreg?;+cgpaddr=%d",
-              rmnet_profileid );
-    at_cmd = cmd_buf;
     sm.write(at_cmd);
-
 	sm.set_gprs_autoconnect_count();
 //    sm.set_current_invocation(MethodInvocation());
     sm.kick_cmd_timeout(timer_at_cmd_short);
@@ -649,13 +658,13 @@ bool tf_query_reg_state_full(MdmStatemachine &sm, State &src, State &dst, Event 
 
 bool tf_do_nothing(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)sm; (void)src; (void)dst; (void)ev; //unused parameter
+  (void)sm; (void)src; (void)dst; (void)ev; 
   return true;
 }
 
 bool tf_openport(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.try_open_modem();
     sm.kick_cmd_timeout(timer_immediate);
     return true;
@@ -663,7 +672,7 @@ bool tf_openport(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_port_disabled(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_INF, "%s: modem port disabled\n", sm.get_state().c_str());
     sm.deactivate_cmd_timeout();
     return true;
@@ -671,7 +680,7 @@ bool tf_port_disabled(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_startinit(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_INF, "%s: modem port open\n", sm.get_state().c_str());
     sm.set_error_state(MdmErrorState::NONE);
     /*disable command echo mode*/
@@ -682,9 +691,9 @@ bool tf_startinit(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_dbus_modemreset(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    dev->invocation().return_value(0);
+    (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    dev->invocation().return_value(nullptr);
 
     //disable wwan interface before power down and restart
     sm.wwan_disable();
@@ -696,7 +705,7 @@ bool tf_dbus_modemreset(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_powerdown_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_INF, "%s: wait modem shutdown...\n", sm.get_state().c_str());
     sm.kick_cmd_timeout(timer_power_down);
     return true;
@@ -704,7 +713,7 @@ bool tf_powerdown_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_powerdown_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_ERR, "%s: modem shutdown error, restart with possible data corruption!\n", sm.get_state().c_str());
     //wwan interface should be already disabled before power down and restart
     sm.modem_hard_reset();
@@ -714,7 +723,7 @@ bool tf_powerdown_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_powerdown_finish(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_INF, "%s: modem shutdown successful\n", sm.get_state().c_str());
     //wwan interface should be already disabled before power down and restart
     sm.modem_hard_reset();
@@ -724,7 +733,7 @@ bool tf_powerdown_finish(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_powerdown_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_ERR, "%s: modem shutdown timeout, restart with possible data corruption!\n", sm.get_state().c_str());
     //wwan interface should be already disabled before power down and restart
     sm.modem_hard_reset();
@@ -734,9 +743,9 @@ bool tf_powerdown_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev
 
 bool tf_dbus_setpin_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)sm; (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    dev->invocation().return_value(0);
+    (void)sm; (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    dev->invocation().return_value(nullptr);
     return true;
 }
 
@@ -744,32 +753,33 @@ void presetoper(MdmStatemachine &sm, int id, int act, int mode)
 {
     switch(mode)
     {
-      case 5: /*prefer UMTS*/
-        sm.set_oper_scan_mode(0);
-        sm.set_oper_scan_seq(2);
-        break;
-      case 4: /*prefer GSM*/
-        sm.set_oper_scan_mode(0);
-        sm.set_oper_scan_seq(1);
-        break;
-      case 3: /*only UMTS*/
-        sm.set_oper_scan_mode(2);
-        sm.set_oper_scan_seq(0);
-        break;
-      case 2: /*only GSM*/
-        sm.set_oper_scan_mode(1);
-        sm.set_oper_scan_seq(0);
-        break;
-      case 1: /*MANUAL*/
-        //no break;
-      case 0: /*AUTOMATIC*/
-        //no break;
+        case static_cast<int>(MODE::PREFER_UMTS): 
+            sm.set_oper_scan_mode(0);
+            sm.set_oper_scan_seq(2);
+            break;
+        case static_cast<int>(MODE::PREFER_GSM): 
+            sm.set_oper_scan_mode(0);
+            sm.set_oper_scan_seq(1);
+            break;
+        case static_cast<int>(MODE::ONLY_UMTS): 
+            sm.set_oper_scan_mode(2);
+            sm.set_oper_scan_seq(0);
+            break;
+        case static_cast<int>(MODE::ONLY_GSM): 
+            sm.set_oper_scan_mode(1);
+            sm.set_oper_scan_seq(0);
+            break;
+        case static_cast<int>(MODE::MANUAL): 
+            //no break;
+        case static_cast<int>(MODE::AUTOMATIC): 
+            //no break;
       default:
         sm.set_oper_scan_mode(0);
         sm.set_oper_scan_seq(0);
         break;
     }
-    if (mode==1) /*MANUAL*/
+
+    if (mode == static_cast<int>(MODE::MANUAL))
     {
         sm.set_stored_oper(id,act);
     }
@@ -781,10 +791,10 @@ void presetoper(MdmStatemachine &sm, int id, int act, int mode)
 
 void dbus_presetoper(MdmStatemachine &sm, Event &ev)
 {
-    int id = -1;
-    int act = -1;
-    int mode = -1;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto id = -1;
+    auto act = -1;
+    auto mode = -1;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     g_variant_get(dev->invocation().parameters(), "(iii)", &mode, &id, &act);
     presetoper(sm, id, act, mode);
     sm.set_stored_selection(mode);
@@ -792,28 +802,26 @@ void dbus_presetoper(MdmStatemachine &sm, Event &ev)
 
 bool tf_dbus_setoper_return_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     dbus_presetoper(sm, ev);
-    dev->invocation().return_value( 0 );
+    dev->invocation().return_value(nullptr);
     return true;
 }
 
 void setoper(MdmStatemachine &sm, int id, int act)
 {
-  std::string at_cmd;
-  char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
+  auto at_cmd{""s};
+  at_cmd.append(R"(at+qcfg="nwscanmode",)" + std::to_string(sm.get_oper_scan_mode()) + ",1;");
+  at_cmd.append(R"(+qcfg="nwscanseq",)" + std::to_string(sm.get_oper_scan_seq()) + ",1;");
   if (sm.get_stored_oper(id, act))
   {
-      snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+qcfg=\"nwscanmode\",%d,1;+qcfg=\"nwscanseq\",%d,1;+cops=1,2,\"%d\",%d",
-                sm.get_oper_scan_mode(), sm.get_oper_scan_seq(), id, act );
+      at_cmd.append(R"(+cops=1,2,")" + std::to_string(id) + R"(",)" + std::to_string(act));
   }
   else
   {
-      snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cops=0,2;+qcfg=\"nwscanmode\",%d,1;+qcfg=\"nwscanseq\",%d,1",
-                sm.get_oper_scan_mode(), sm.get_oper_scan_seq() );
+      at_cmd.append("+cops=0,2");
   }
-  at_cmd = cmd_buf;
   sm.clear_current_oper();
   sm.write(at_cmd);
   sm.kick_cmd_timeout(timer_at_cmd_cops);
@@ -821,115 +829,115 @@ void setoper(MdmStatemachine &sm, int id, int act)
 
 bool tf_dbus_setoper(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    int id = 0;
-    int act = 0;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     dbus_presetoper(sm, ev);
     sm.set_current_invocation(dev->invocation());
+
+    int id = 0;
+    int act = 0;
     setoper(sm, id, act);
+
     return true;
 }
 
 bool tf_dbus_setoper_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    sm.current_invocation().return_value( 0 );
+    sm.current_invocation().return_value(nullptr);
     (void)tf_query_reg_state_full(sm, src, dst, ev);
     return true;
 }
 
 bool tf_gprsprofile_init(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     GprsAccessConfig gprsaccess;
     (void)sm.get_gprsaccess(gprsaccess);
 
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+qicsgp=%d,1,\"%s\",\"%s\",\"%s\",%d", rmnet_profileid,
-                                                                    gprsaccess.get_apn().c_str(),
-                                                                    gprsaccess.get_user().c_str(),
-                                                                    gprsaccess.get_pass().c_str(),
-                                                                    gprsaccess.get_auth() );
-    sm.write(cmd_buf);
+    auto at_cmd{"at+qicsgp="s};
+    at_cmd.push_back(rmnet_profileid);
+    at_cmd.append(",1,");
+    at_cmd.append(R"(")" + gprsaccess.get_apn() + R"(",)");
+    at_cmd.append(R"(")" + gprsaccess.get_user() + R"(",)");
+    at_cmd.append(R"(")" + gprsaccess.get_pass() + R"(",)");
+    at_cmd.append(std::to_string(gprsaccess.get_auth()));
+    sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
 bool extract_dbus_setgprsaccess2(GVariant *gvar, GprsAccessConfig& gprsaccess)
 {
-    char *c_apn = nullptr;
-    int auth;
-    char *c_user = nullptr;
-    char *c_pass = nullptr;
-    int conn;
-    g_variant_get(gvar, "(sissi)", &c_apn, &auth, &c_user, &c_pass, &conn);
+    gchar* apn = nullptr;
+    auto auth = 0;
+    gchar* user = nullptr;
+    gchar* pass = nullptr;
+    auto conn = 0;
+    g_variant_get(gvar, "(sissi)", &apn,
+                                   &auth,
+                                   &user,
+                                   &pass,
+                                   &conn);
 
-    bool result = ((c_apn) && (c_user) && (c_pass));
-    if (result)
+    if((apn != nullptr) && (user != nullptr) && (pass != nullptr))
     {
-        gprsaccess.set_apn(c_apn);
+        gprsaccess.set_apn(apn);
         gprsaccess.set_auth(auth);
-        gprsaccess.set_user(c_user);
-        gprsaccess.set_pass(c_pass);
+        gprsaccess.set_user(user);
+        gprsaccess.set_pass(pass);
 		gprsaccess.set_state(conn);
-        result = true;
+        g_free(apn);
+        g_free(user);
+        g_free(pass);
+
+        return true;
     }
-    if (c_apn) {
-      g_free(c_apn);
-    }
-    if (c_user) {
-      g_free(c_user);
-    }
-    if (c_pass) {
-      g_free(c_pass);
-    }
-    return result;
+    return false;
 }
 
 bool tf_setgprsaccess2_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
     GprsAccessConfig gprsaccess;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     if (extract_dbus_setgprsaccess2(dev->invocation().parameters(), gprsaccess))
     {
         sm.set_gprsaccess(gprsaccess);
-        dev->invocation().return_value( 0 );
+        dev->invocation().return_value(nullptr);
     }
     else
     {
         mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetGprsAccess\" with invalid parameter\n", sm.get_state().c_str());
         dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
     }
+
     return true;
 }
 
 bool tf_setgprsaccess2_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    bool do_state_change = true;
+    (void)src; (void)dst; 
     GprsAccessConfig gprsaccess;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     if (extract_dbus_setgprsaccess2(dev->invocation().parameters(), gprsaccess))
     {
-        char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-        snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+qicsgp=%d,1,\"%s\",\"%s\",\"%s\",%d",
-                                                    rmnet_profileid,
-                                                    gprsaccess.get_apn().c_str(),
-                                                    gprsaccess.get_user().c_str(),
-                                                    gprsaccess.get_pass().c_str(),
-                                                    gprsaccess.get_auth());
-        sm.write(cmd_buf);
+        auto at_cmd{"at+qicsgp="s};
+        at_cmd.push_back(rmnet_profileid);
+        at_cmd.append(",1,");
+        at_cmd.append(R"(")" + gprsaccess.get_apn() + R"(",)");
+        at_cmd.append(R"(")" + gprsaccess.get_user() + R"(",)");
+        at_cmd.append(R"(")" + gprsaccess.get_pass() + R"(",)");
+        at_cmd.append(std::to_string(gprsaccess.get_auth()));
+        sm.write(at_cmd);
         sm.kick_cmd_timeout(timer_at_cmd_short);
         sm.set_current_invocation(dev->invocation());
+        return true;
     }
-    else
-    {
-        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetGprsAccess2\" with invalid parameter\n", sm.get_state().c_str());
-        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
-        do_state_change = false;
-    }
-    return do_state_change;
+    mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetGprsAccess2\" with invalid parameter\n", sm.get_state().c_str());
+    dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+
+    return false;
 }
 
 bool extract_dbus_setsmsreportconfig(GVariant *gvar, SmsEventReportingConfig& sms_report_config)
@@ -941,11 +949,26 @@ bool extract_dbus_setsmsreportconfig(GVariant *gvar, SmsEventReportingConfig& sm
     int bfr;
     g_variant_get(gvar, "(iiiii)", &mode, &mt, &bm, &ds, &bfr);
 
-    if ((mode < 0) || (mode > 2)) return false; 
-    if ((mt < 0) || (mt > 1)) return false; //full SMS DELIVERS (+CMT) not supported by mdmd
-    if (bm != 0) return false; //broadcast message indications (+CBM) not supported by mdmd
-    if (ds != 0) return false; //SMS status reports (+CDS) not supported by mdmd
-    if ((bfr < 0) || (bfr > 1)) return false; 
+    if ((mode < 0) || (mode > 2))
+    {
+        return false; 
+    }
+    if ((mt < 0) || (mt > 1))
+    {
+        return false; //full SMS DELIVERS (+CMT) not supported by mdmd
+    }
+    if (bm != 0)
+    {
+        return false; //broadcast message indications (+CBM) not supported by mdmd
+    }
+    if (ds != 0)
+    {
+        return false; //SMS status reports (+CDS) not supported by mdmd
+    }
+    if ((bfr < 0) || (bfr > 1))
+    {
+        return false; 
+    }
 
     sms_report_config.set_mode(mode);
     sms_report_config.set_mt(mt);
@@ -958,58 +981,57 @@ bool extract_dbus_setsmsreportconfig(GVariant *gvar, SmsEventReportingConfig& sm
 
 bool tf_setsmsreportconfig_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
     SmsEventReportingConfig sms_report_config;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     if (extract_dbus_setsmsreportconfig(dev->invocation().parameters(), sms_report_config))
     {
         sm.set_sms_report_config(sms_report_config);
-        dev->invocation().return_value(0);
+        dev->invocation().return_value(nullptr);
     }
     else
     {
         mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsReportConfig\" with invalid parameter\n", sm.get_state().c_str());
         dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
     }
+
     return true;
 }
 
 bool tf_setsmsreportconfig_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
     SmsEventReportingConfig sms_report_config;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
     if (extract_dbus_setsmsreportconfig(dev->invocation().parameters(), sms_report_config))
     {
-        char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-        snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cnmi=%d,%d,%d,%d,%d",
-                  sms_report_config.get_mode(),
-                  sms_report_config.get_mt(),
-                  sms_report_config.get_bm(),
-                  sms_report_config.get_ds(),
-                  sms_report_config.get_bfr());
-        sm.write(cmd_buf);
+        auto at_cmd{"at+cnmi="s};
+        at_cmd.append(std::to_string(sms_report_config.get_mode()) + ",");
+        at_cmd.append(std::to_string(sms_report_config.get_mt()) + ",");
+        at_cmd.append(std::to_string(sms_report_config.get_bm()) + ",");
+        at_cmd.append(std::to_string(sms_report_config.get_ds()) + ",");
+        at_cmd.append(std::to_string(sms_report_config.get_bfr()));
+        sm.write(at_cmd);
         sm.kick_cmd_timeout(timer_at_cmd_short);
         sm.set_current_invocation(dev->invocation()); //set current invocation for following parameter handling
+
+        return true;
     }
-    else
-    {
-        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsReportConfig\" with invalid parameter\n", sm.get_state().c_str());
-        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
-        return false;
-    }
-    return true;
+    mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsReportConfig\" with invalid parameter\n", sm.get_state().c_str());
+    dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+
+    return false;
 }
 
 bool tf_dbus_setsmsreport_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     SmsEventReportingConfig sms_report_config;
     if (extract_dbus_setsmsreportconfig(sm.current_invocation().parameters(), sms_report_config))
     {
         sm.set_sms_report_config(sms_report_config);
-        sm.current_invocation().return_value( 0 );
+        sm.current_invocation().return_value(nullptr);
     }
     else
     {
@@ -1018,16 +1040,17 @@ bool tf_dbus_setsmsreport_ok(MdmStatemachine &sm, State &src, State &dst, Event 
         sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     }
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_dbus_setportstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
     bool do_transition = false; //do transition only on value change
     int state = sm.is_port_enabled() ? 1 : 0;
     bool request_port_enabled;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
     g_variant_get(dev->invocation().parameters(), "(i)", &state);
     request_port_enabled = (state != 0);
@@ -1037,13 +1060,14 @@ bool tf_dbus_setportstate(MdmStatemachine &sm, State &src, State &dst, Event &ev
       sm.kick_cmd_timeout(timer_immediate);
       do_transition = true;
     }
-    dev->invocation().return_value( 0 );
+    dev->invocation().return_value(nullptr);
+
     return do_transition;
 }
 
 bool tf_init_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_ERR, "%s: modem initialization failed\n", sm.get_state().c_str());
     sm.set_error_state(MdmErrorState::INIT_FAILED);
     sm.deactivate_cmd_timeout();
@@ -1052,36 +1076,37 @@ bool tf_init_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_cme_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int code = atoi( rev->named_match("err").c_str() );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int code = std::stoi(rev->named_match("err"));
     switch (code)
     {
-      case 10:
-        sm.set_sim_state(MdmSimState::NOT_INSERTED);
-        mdmd_Log(MD_LOG_WRN, "%s: SIM card not inserted\n", sm.get_state().c_str());
-        sm.set_error_state(MdmErrorState::SIM_REMOVED);
-        break;
-      case 13:
-      case 14:
-      case 15:
-        sm.set_sim_state(MdmSimState::SIM_ERROR);
-        mdmd_Log(MD_LOG_WRN, "%s: SIM card failure\n", sm.get_state().c_str());
-        sm.set_error_state(MdmErrorState::SIM_FAILURE);
-        break;
-      default:
-        mdmd_Log(MD_LOG_ERR, "%s: CME ERROR %d\n", sm.get_state().c_str(), code);
-        sm.set_error_state(MdmErrorState::INIT_FAILED);
-        break;
+        case static_cast<int>(CMS_ERROR::SIM_NOT_INSERTED): 
+            sm.set_sim_state(MdmSimState::NOT_INSERTED);
+            mdmd_Log(MD_LOG_WRN, "%s: SIM card not inserted\n", sm.get_state().c_str());
+            sm.set_error_state(MdmErrorState::SIM_REMOVED);
+            break;
+        case static_cast<int>(CMS_ERROR::SIM_FAILURE): 
+        case static_cast<int>(CMS_ERROR::SIM_BUSY): 
+        case static_cast<int>(CMS_ERROR::SIM_WRONG): 
+            sm.set_sim_state(MdmSimState::SIM_ERROR);
+            mdmd_Log(MD_LOG_WRN, "%s: SIM card failure\n", sm.get_state().c_str());
+            sm.set_error_state(MdmErrorState::SIM_FAILURE);
+            break;
+        default:
+            mdmd_Log(MD_LOG_ERR, "%s: CME ERROR %d\n", sm.get_state().c_str(), code);
+            sm.set_error_state(MdmErrorState::INIT_FAILED);
+            break;
     }
     sm.deactivate_cmd_timeout();
+
     return true;
 }
 
 // TODO: Reduce code doubling?
 bool tf_init_sim_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     switch (sm.get_sim_state())
     {
       case MdmSimState::NOT_INSERTED:
@@ -1098,32 +1123,32 @@ bool tf_init_sim_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
         break;
     }
     sm.deactivate_cmd_timeout();
+
     return true;
 }
 
 bool tf_modem_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_ERR, "%s: command timeout, restart modem with possible data corruption!\n", sm.get_state().c_str());
-
-    //disable wwan interface before restart
     sm.wwan_disable();
-
     sm.modem_hard_reset();
     sm.kick_cmd_timeout(timer_immediate);
+
     return true;
 }
 
 bool tf_io_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.kick_cmd_timeout(timer_wait_port_io_error);
+
     return true;
 }
 
 bool tf_io_error_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_ERR, "%s: io error timeout, restart modem with possible data corruption!\n", sm.get_state().c_str());
 
     //disable wwan interface before restart
@@ -1131,12 +1156,13 @@ bool tf_io_error_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
     sm.modem_hard_reset();
     sm.kick_cmd_timeout(timer_immediate);
+
     return true;
 }
 
 bool tf_modem_reconfig_restart(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_INF, "%s: reconfiguration, restart modem\n", sm.get_state().c_str());
 
     //disable wwan interface before power down and restart
@@ -1144,6 +1170,7 @@ bool tf_modem_reconfig_restart(MdmStatemachine &sm, State &src, State &dst, Even
 
     sm.write("at+qpowd");
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
@@ -1151,71 +1178,78 @@ bool tf_dbus_modem_timeout(MdmStatemachine &sm, State &src, State &dst, Event &e
 {
     sm.current_invocation().return_error("de.wago.mdmdError", "TIMEOUT");
     (void)tf_modem_timeout(sm, src, dst, ev);
+
     return true;
 }
 
 bool tf_void_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)sm; (void)src; (void)dst; (void)ev; //unused parameter
+    (void)sm; (void)src; (void)dst; (void)ev; 
     sm.deactivate_cmd_timeout();
+
     return true;
 }
 
 bool tf_wait_pin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_DBG, "%s: SIM PIN required, %d attempts remaining\n", sm.get_state().c_str(), sm.get_pin_count());
     sm.deactivate_cmd_timeout();
+
     return true;
 }
 
 bool tf_wait_puk(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_DBG, "%s: SIM PUK required, %d attempts remaining\n", sm.get_state().c_str(), sm.get_puk_count());
     sm.deactivate_cmd_timeout();
+
     return true;
 }
 
 bool tf_dbus_return_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR" + rev->named_match("err") );
+    (void)src; (void)dst; (void)ev;
+    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_get_network_registration_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_get_network_registration_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_init_network_state(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    std::string at_cmd("at+creg=0;+cgreg=0;+qcfg=\"nwscanmode\";+qcfg=\"nwscanseq\";+qindcfg=\"csq\",0");
+    (void)src; (void)dst; (void)ev; 
+    const auto at_cmd{R"(at+creg=0;+cgreg=0;+qcfg="nwscanmode";+qcfg="nwscanseq";+qindcfg="csq",0)"s};
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
 bool tf_query_simstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    std::string at_cmd("at+cpin?;+qpinc=\"SC\";+qccid");
+    (void)src; (void)dst; (void)ev; 
+    const auto at_cmd(R"(at+cpin?;+qpinc="SC";+qccid)"s);
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
@@ -1223,6 +1257,7 @@ bool tf_sim_not_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     sm.clear_current_oper();
     (void)tf_query_simstate(sm, src, dst, ev);
+
     return true;
 }
 
@@ -1231,6 +1266,7 @@ bool tf_dbus_return_sim_failure(MdmStatemachine &sm, State &src, State &dst, Eve
     sm.current_invocation().return_error("de.wago.mdmdError", "SIM FAILURE");
     sm.clear_current_oper();
     (void)tf_query_simstate(sm, src, dst, ev);
+
     return true;
 }
 
@@ -1240,30 +1276,36 @@ bool tf_dbus_return_sim_failure(MdmStatemachine &sm, State &src, State &dst, Eve
 /*i01*/
 bool tf_wait_dbus(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.kick_cmd_timeout(timer_dbus_retry);
+
     return true;
 }
+
 bool tf_dbus_up(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.kick_cmd_timeout(timer_immediate);
+
     return true;
 }
+
 /*i02_1*/
 bool tf_modem_port_not_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.set_error_state(MdmErrorState::PORT_NOT_READY);
     sm.set_port_wait_count(1);
     sm.kick_cmd_timeout(timer_wait_port);
     mdmd_Log(MD_LOG_WRN, "%s: modem port not ready (%d)\n", sm.get_state().c_str(), sm.get_port_wait_count());
+
     return true;
 }
+
 /*i02_2*/
 bool tf_openport_retry(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.try_open_modem();
     if (sm.is_modem_port_open())
     {
@@ -1275,95 +1317,110 @@ bool tf_openport_retry(MdmStatemachine &sm, State &src, State &dst, Event &ev)
       sm.kick_cmd_timeout(timer_wait_port);
       mdmd_Log(MD_LOG_WRN, "%s: modem port not ready (%d)\n", sm.get_state().c_str(), sm.get_port_wait_count());
     }
+
     return true;
 }
+
 bool tf_wait_modem_port_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_ERR, "%s: wait modem port timeout, restart modem with possible data corruption!\n", sm.get_state().c_str());
 
-    //disable wwan interface before restart
     sm.wwan_disable();
-
     sm.modem_hard_reset();
     sm.kick_cmd_timeout(timer_immediate);
+
     return true;
 }
+
 /*s03*/
 bool tf_getmodeminfo_revision(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    std::string revision = rev->named_match("revision");
-    sm.set_modem_revision( revision );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto revision = rev->named_match("revision");
+    sm.set_modem_revision(revision);
+
     return true;
 }
+
 /*s03*/
 bool tf_getmodeminfo_manufacturer(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    std::string manufacturer = rev->named_match("line");
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto manufacturer = rev->named_match("line");
     sm.set_modem_manufacturer( manufacturer );
+
     return true;
 }
+
 /*s03*/
 bool tf_getmodeminfo_model(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    std::string model = rev->named_match("line");
-    sm.set_modem_model( model );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto model = rev->named_match("line");
+    sm.set_modem_model(model);
+
     return true;
 }
+
 /*s03*/
 bool tf_getmodeminfo_imei(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    std::string imei = rev->named_match("line");
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto imei = rev->named_match("line");
     sm.set_modem_identity( imei );
+
     return true;
 }
 /*s04_1*/
 bool tf_wait_cfun(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.inc_cfun_wait_count();
     sm.kick_cmd_timeout(timer_wait_cfun);
     mdmd_Log(MD_LOG_INF, "%s: modem not ready (%d)\n", sm.get_state().c_str(), sm.get_cfun_wait_count());
+
     return true;
 }
+
 /*s08*/
 bool tf_getsimstate_setstoredpin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    std::string pin = sm.get_stored_sim_pin();
-
-    std::string at_cmd("at+cpin=");
+    (void)src; (void)dst; (void)ev; 
+    const auto pin = sm.get_stored_sim_pin();
+    auto at_cmd{"at+cpin="s};
     at_cmd += pin;
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
-
     sm.set_pin(pin);
+
     return true;
 }
+
 /*s08*/
 bool tf_getsim_iccid(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    std::string iccid = rev->named_match("id");
-    sm.set_iccid( iccid );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto iccid = rev->named_match("id");
+    sm.set_iccid(iccid);
+
     return true;
 }
+
 /*s08*/
 bool tf_sim_busy(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.kick_cmd_timeout(timer_wait_simstate);
+
     return true;
 }
+
 /*s08*/
 bool tf_init_sms(MdmStatemachine &sm, State &src, State &dst, Event &ev);
 bool tf_sim_ready_init_sms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
@@ -1372,89 +1429,105 @@ bool tf_sim_ready_init_sms(MdmStatemachine &sm, State &src, State &dst, Event &e
     sm.set_pin_count(-1);
     sm.set_puk_count(-1);
     (void)tf_init_sms(sm, src, dst, ev);
+
     return true;
 }
+
 /*s08*/
 bool tf_getsim_pincount(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    sm.set_pin_count( atoi( rev->named_match("s1").c_str() ) );
-    sm.set_puk_count( atoi( rev->named_match("s2").c_str() ) );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    sm.set_pin_count(std::stoi(rev->named_match("s1")));
+    sm.set_puk_count(std::stoi( rev->named_match("s2")));
+
     return true;
 }
+
 /*s10*/
 bool tf_waitpin_dbus_setpin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; //unused parameter
-    char *pin = NULL;
-    std::string at_cmd("at+cpin=");
-
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     sm.set_current_invocation(dev->invocation());
+    gchar* pin = nullptr;
     g_variant_get(sm.current_invocation().parameters(), "(s)", &pin);
-    if (pin)
+
+    auto at_cmd{"at+cpin="s};
+    if (pin != nullptr)
     {
-      sm.set_pin(pin);
-      at_cmd += pin;
+      std::string pin_str{pin};
+      sm.set_pin(pin_str);
+      at_cmd += pin_str;
       g_free(pin);
     }
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
+
 /*s11*/
 bool tf_waitpin_dbus_setpuk(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    char *pin = NULL;
-    char *puk = NULL;
-    std::string at_cmd("at+cpin=");
+    (void)src; (void)dst; 
+    gchar* pin = nullptr;
+    gchar* puk = nullptr;
+    auto at_cmd("at+cpin="s);
 
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     sm.set_current_invocation(dev->invocation());
     g_variant_get(sm.current_invocation().parameters(), "(ss)", &puk, &pin);
-    if (puk)
+    if (puk != nullptr)
     {
-      at_cmd += puk;
+      at_cmd.append(std::string(puk));
       g_free(puk);
     }
     at_cmd += ",";
-    if (pin)
+    if (pin != nullptr)
     {
-      sm.set_pin(pin);
-      at_cmd += pin;
+      std::string pin_str{pin};
+      sm.set_pin(pin_str);
+      at_cmd += pin_str;
       g_free(pin);
     }
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
+
 /*s12_1*/
 bool tf_setpin_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.set_sim_state(MdmSimState::READY);
     sm.set_pin_count(-1);
     sm.set_puk_count(-1);
     sm.kick_cmd_timeout(timer_wait_pb_done);
+
     return true;
 }
+
 /*s12_1*/
 bool tf_setpin_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     sm.reset_stored_sim_pin();
     (void)tf_query_simstate(sm, src, dst, ev);
+
     return true;
 }
+
 /*s12_2*/
 bool tf_dbus_setpin_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     sm.store_sim_pin();
-    sm.current_invocation().return_value( 0 );
+    sm.current_invocation().return_value(nullptr);
     (void)tf_setpin_ok(sm, src, dst, ev);
+
     return true;
 }
+
 /*s12_2*/
 bool tf_dbus_setpin_cme_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
@@ -1471,148 +1544,169 @@ bool tf_dbus_setpin_cme_err(MdmStatemachine &sm, State &src, State &dst, Event &
       sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     }
     (void)tf_setpin_err(sm, src, dst, ev);
+
     return true;
 }
+
 /*s12_2*/
 bool tf_dbus_setpin_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     (void)tf_setpin_err(sm, src, dst, ev);
+
     return true;
 }
+
 /*s14*/
 bool tf_init_sms_not_allowed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)src; (void)dst; (void)ev; //unused parameter
+  (void)src; (void)dst; (void)ev; 
   sm.kick_cmd_timeout(timer_wait_pb_done);
+
   return true;
 }
+
 /*s14*/
 bool tf_init_sms_sim_busy(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)src; (void)dst; (void)ev; //unused parameter
+  (void)src; (void)dst; (void)ev; 
   sm.kick_cmd_timeout(timer_wait_pb_done);
+
   return true;
 }
+
 /*s13*/
 bool tf_init_sms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)src; (void)dst; (void)ev; //unused parameter
+  (void)src; (void)dst; (void)ev; 
   SmsEventReportingConfig sms_config;
   (void)sm.get_sms_report_config(sms_config);//default if get_sms_config fails
+  auto at_cmd{"at+cmgf="s};
 
-  char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-  snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cmgf=%d;+cnmi=%d,%d,%d,%d,%d",
-          sms_format,
-          sms_config.get_mode(),
-          sms_config.get_mt(),
-          sms_config.get_bm(),
-          sms_config.get_ds(),
-          sms_config.get_bfr());
-  sm.write(cmd_buf);
+  at_cmd.append(std::to_string(sms_format) + ";");
+  at_cmd.append("+cnmi=");
+  at_cmd.append(std::to_string(sms_config.get_mode()) + ",");
+  at_cmd.append(std::to_string(sms_config.get_mt()) + ",");
+  at_cmd.append(std::to_string(sms_config.get_bm()) + ",");
+  at_cmd.append(std::to_string(sms_config.get_ds()) + ",");
+  at_cmd.append(std::to_string(sms_config.get_bfr()));
+  sm.write(at_cmd);
   sm.kick_cmd_timeout(timer_at_cmd_short);
+
   return true;
 }
+
 /*s17*/
 bool tf_readoperatorname(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    const int id = atoi( rev->named_match("id").c_str() );
-    const std::string name = rev->named_match("name");
-    const bool inserted = sm.insert_operator_name(id, name);
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto id = std::stoi(rev->named_match("id"));
+    const auto name = rev->named_match("name");
+    const auto inserted = sm.insert_operator_name(id, name);
     mdmd_Log(MD_LOG_DBG, "%s: operator %s %d %s\n", sm.get_state().c_str(),
              inserted ? ":" : "already exists:", id, name.c_str());
+
     return true;
 }
+
 /*s18*/
 bool tf_initoper(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    int id = 0;
-    int act = 0;
-    int mode = 0;
+    (void)src; (void)dst; (void)ev; 
+    auto id = 0;
+    auto act = 0;
+    auto mode = 0;
     sm.get_stored_selection(mode);
     sm.get_stored_oper(id, act);
     presetoper(sm, id, act, mode);
     setoper(sm, id, act);
+
     return true;
 }
+
 /*o05*/
 bool tf_dbus_return_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    sm.current_invocation().return_value( 0 );
+    (void)src; (void)dst; (void)ev; 
+    sm.current_invocation().return_value(nullptr);
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 /*o06_2*/
 bool tf_getopers(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    std::string line = rev->named_match("cops");
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    auto line = rev->named_match("cops");
     Regex re("(?U)\\((?<state>[0-9]),\"(?<long>.*)\",\"(?<short>.*)\",\"(?<id>[0-9]+)\",(?<act>[0-9])\\),(?<remains>.*)$");
 
     do {
         MatchInfo mi = re.match(line);
-        if (! mi.matches())
+        if (!static_cast<bool>(mi.matches()))
+        {
             break;
+        }
 
-        std::string state      = mi.fetch_named("state");
-        std::string id_oper    = mi.fetch_named("id");
-        std::string act        = mi.fetch_named("act");
+        const auto state      = mi.fetch_named("state");
+        const auto id_oper    = mi.fetch_named("id");
+        const auto act        = mi.fetch_named("act");
 
-        sm.add_opermap(atoi(id_oper.c_str()), atoi(act.c_str()), atoi(state.c_str()));
+        sm.add_opermap(std::stoi(id_oper), std::stoi(act), std::stoi(state));
 
         line = mi.fetch_named("remains");
-    } while (line.size() != 0);
+    } while (!line.empty());
+
     return true;
 }
+
 /*o10*/
 bool tf_listsms_next(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int sms_index = atoi( rev->named_match("index").c_str() );
-    int sms_state = atoi( rev->named_match("state").c_str() );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto sms_index = std::stoi(rev->named_match("index"));
+    const auto sms_state = std::stoi(rev->named_match("state"));
     size_t pos = sm.get_last_read().find_last_of(',');
-    int sms_length = (pos == std::string::npos) ? 0 : atoi( sm.get_last_read().substr(pos + 1).c_str() );
+    const auto sms_length = (pos == std::string::npos) ? 0 : std::stoi(sm.get_last_read().substr(pos + 1));
     sm.add_smslist(sms_index, sms_state, sms_length);
+
     return true;
 }
+
 /*o10*/
 bool tf_sms_get_body(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.set_sms_body_last_read();
+
     return true;
 }
 
 bool tf_dbus_listsms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-    std::string at_cmd;
-    int state = -1;
+    (void)src; (void)dst; 
+    auto at_cmd{"at+cmgl="s};
+    auto state = -1;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
     sm.set_current_invocation(dev->invocation());
     g_variant_get(sm.current_invocation().parameters(), "(i)", &state);
-
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cmgl=%d", state );
-    at_cmd = cmd_buf;
+    at_cmd.append(std::to_string(state));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
     sm.clear_smslist();
+
     return true;
 }
 
 bool tf_dbus_listsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    GVariant* gvar = sm.get_var_smslist();
-    if (gvar != NULL)
+    (void)src; (void)dst; (void)ev; 
+    auto*  gvar = sm.get_var_smslist();
+
+    if (gvar != nullptr)
     {
       sm.current_invocation().return_value( gvar );
     }
@@ -1621,64 +1715,64 @@ bool tf_dbus_listsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
       sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     }
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_dbus_deletesms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-    std::string at_cmd;
-    int index;
-    int delflag;
+    (void)src; (void)dst; 
+    auto at_cmd{"at+cmgd="s};
+    auto index = -1;
+    auto delflag = -1;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
     sm.set_current_invocation(dev->invocation());
     g_variant_get(sm.current_invocation().parameters(), "(ii)", &index, &delflag);
-
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cmgd=%d,%d", index, delflag );
-    at_cmd = cmd_buf;
+    at_cmd.append(std::to_string(index) + ',' + std::to_string(delflag));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
 bool tf_dbus_readsms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-    std::string at_cmd;
+    (void)src; (void)dst; 
+    auto at_cmd{"at+cmgr="s};
     int sms_index = -1;
-
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    
     sm.set_current_invocation(dev->invocation());
     g_variant_get(sm.current_invocation().parameters(), "(i)", &sms_index);
-
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cmgr=%d", sms_index);
-    at_cmd = cmd_buf;
+    at_cmd.append(std::to_string(sms_index));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
     sm.clear_smslist();
     sm.add_smslist(sms_index);
+
     return true;
 }
 
 bool tf_readsms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int sms_state = atoi( rev->named_match("state").c_str() );
-    size_t pos = sm.get_last_read().find_last_of(',');
-    int sms_length = (pos == std::string::npos) ? 0 : atoi( sm.get_last_read().substr(pos + 1).c_str() );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    auto sms_state = std::stoi(rev->named_match("state"));
+    const auto pos = sm.get_last_read().find_last_of(',');
+    const auto sms_length = (pos == std::string::npos) ? 0 : std::stoi(sm.get_last_read().substr(pos + 1));
+
     sm.set_last_sms(sms_state, sms_length);
+
     return true;
 }
 
 bool tf_dbus_readsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    GVariant* gvar = sm.get_var_smsread();
-    if (gvar != NULL)
+    (void)src; (void)dst; (void)ev; 
+    auto* gvar = sm.get_var_smsread();
+
+    if (gvar != nullptr)
     {
       sm.current_invocation().return_value( gvar );
     }
@@ -1687,74 +1781,72 @@ bool tf_dbus_readsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
       sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     }
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_dbus_sendsms_head(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-    std::string at_cmd;
-    int pdu_length = -1;
-    char *c_body = NULL;
-    std::string body;
+    (void)src; (void)dst; 
+    auto at_cmd{"at+cmgs="s};
+    auto pdu_length{-1};
+    gchar* body = nullptr;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
     sm.set_current_invocation(dev->invocation());
-    g_variant_get(sm.current_invocation().parameters(), "(is)", &pdu_length, &c_body);
-
-    if (c_body)
-    {
-      g_free(c_body);
-    }
-
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cmgs=%d", pdu_length);
-    at_cmd = cmd_buf;
+    g_variant_get(sm.current_invocation().parameters(), "(is)", &pdu_length, &body);
+    g_free(body);
+    at_cmd.append(std::to_string(pdu_length));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
     sm.set_last_sms_msg_ref(0);
+
     return true;
 }
 
 bool tf_sendsms_body(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    int pdu_length = -1;
-    char *c_body = NULL;
-    std::string body;
-
+    (void)src; (void)dst; (void)ev; 
+    auto pdu_length{-1};
+    gchar* c_body = nullptr;
     g_variant_get(sm.current_invocation().parameters(), "(is)", &pdu_length, &c_body);
 
-    if (c_body)
+    std::string body;
+    if (c_body != nullptr)
     {
-      body = c_body;
-      body += "\x1a";  /*CTRL+Z*/
+      constexpr auto ctrl_plus_z_key = "\x1a";
+      body = std::string(c_body);
+      body += ctrl_plus_z_key; 
       g_free(c_body);
     }
     else
     {
-      body = "\x1b";  /*ESC*/
+      constexpr auto esc_key = "\x1b";
+      body = esc_key; 
     }
 
     sm.write(body);
     sm.kick_cmd_timeout(timer_at_cmd_sms);
+
     return true;
 }
 
 bool tf_sendsms_result(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int msgref = atoi( rev->named_match("msgref").c_str() );
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    auto msgref = std::stoi(rev->named_match("msgref"));
+
     sm.set_last_sms_msg_ref(msgref);
+
     return true;
 }
 
 bool tf_dbus_sendsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    GVariant* gvar = g_variant_new("(i)", sm.get_last_sms_msg_ref());
-    if (gvar != NULL)
+    (void)src; (void)dst; (void)ev; 
+    auto*  gvar = g_variant_new("(i)", sm.get_last_sms_msg_ref());
+    if (gvar != nullptr)
     {
       sm.current_invocation().return_value( gvar );
     }
@@ -1763,24 +1855,25 @@ bool tf_dbus_sendsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
       sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     }
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_get_smsstorage_default(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)sm; (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    (void)sm; (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     SmsStorageConfig default_sms_storage;
     (void)sm.get_sms_storage_config(default_sms_storage);
-    GVariant* gvar = g_variant_new("(siisiisii)", default_sms_storage.get_mem1().c_str(),
-                                                  -1,
-                                                  -1,
-                                                  default_sms_storage.get_mem2().c_str(),
-                                                  -1,
-                                                  -1,
-                                                  default_sms_storage.get_mem3().c_str(),
-                                                  -1,
-                                                  -1);
+    auto* gvar = g_variant_new("(siisiisii)", default_sms_storage.get_mem1().c_str(),
+                                              -1,
+                                              -1,
+                                              default_sms_storage.get_mem2().c_str(),
+                                              -1,
+                                              -1,
+                                              default_sms_storage.get_mem3().c_str(),
+                                              -1,
+                                              -1);
     if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
@@ -1795,32 +1888,34 @@ bool tf_get_smsstorage_default(MdmStatemachine &sm, State &src, State &dst, Even
 
 bool tf_dbus_getsmsstorage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+
     sm.set_current_invocation(dev->invocation());
     sm.write("at+cpms?");
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
 bool tf_get_sms_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
+    (void)src; (void)dst; 
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
 
-    std::string mem1 = rev->named_match("mem1");
-    int used1 = atoi( rev->named_match("used1").c_str() );
-    int total1 = atoi( rev->named_match("total1").c_str() );
+    const auto mem1 = rev->named_match("mem1");
+    const auto used1 = std::stoi(rev->named_match("used1"));
+    const auto total1 = std::stoi(rev->named_match("total1"));
 
-    std::string mem2 = rev->named_match("mem2");
-    int used2 = atoi( rev->named_match("used2").c_str() );
-    int total2 = atoi( rev->named_match("total2").c_str() );
+    const auto mem2 = rev->named_match("mem2");
+    const auto used2 = std::stoi(rev->named_match("used2"));
+    const auto total2 = std::stoi(rev->named_match("total2"));
 
-    std::string mem3 = rev->named_match("mem3");
-    int used3 = atoi( rev->named_match("used3").c_str() );
-    int total3 = atoi( rev->named_match("total3").c_str() );
+    const auto mem3 = rev->named_match("mem3");
+    const auto used3 = std::stoi(rev->named_match("used3"));
+    const auto total3 = std::stoi(rev->named_match("total3"));
 
-    GVariant* gvar = g_variant_new("(siisiisii)", mem1.c_str(),
+    auto*  gvar = g_variant_new("(siisiisii)", mem1.c_str(),
                                                   used1,
                                                   total1,
                                                   mem2.c_str(),
@@ -1830,7 +1925,7 @@ bool tf_get_sms_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
                                                   used3,
                                                   total3);
                                                 
-    if (gvar != NULL)
+    if (gvar != nullptr)
     {
       sm.current_invocation().return_value(gvar);
     }
@@ -1844,26 +1939,29 @@ bool tf_get_sms_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_dbus_getsmsstorage_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_gprs_detach(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.write("at+cgatt=0"); //detach PS as trigger for rmnet/autoconnect
     sm.kick_cmd_timeout(timer_at_cmd_cgatt);
     //sm.set_gprs_reg_state(0); //necessary for "ifdown" trigger
+
     return true;
 }
 
 bool tf_gprs_detach_ok_getopernames(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.set_gprs_reg_state(0); //trigger for wwan interface restart or stop
     sm.write("at+copn");
     sm.kick_cmd_timeout(timer_at_cmd_copn);
+
     return true;
 }
 
@@ -1871,6 +1969,7 @@ bool tf_gprs_detach_ok_initoper(MdmStatemachine &sm, State &src, State &dst, Eve
 {
     sm.set_gprs_reg_state(0); //trigger for wwan interface restart or stop
     (void)tf_initoper(sm, src, dst, ev);
+
     return true;
 }
 
@@ -1885,46 +1984,49 @@ bool tf_dbus_setgprsaccess_ok(MdmStatemachine &sm, State &src, State &dst, Event
     else { //internal error that should not happen, current_invocation is possibly invalid
         mdmd_Log(MD_LOG_ERR, "%s: Could not store GPRS access parameter\n", sm.get_state().c_str());
     }
-    sm.current_invocation().return_value( 0 );
+    sm.current_invocation().return_value(nullptr);
     sm.set_gprs_reg_state(0); //trigger for wwan interface restart or stop
     (void)tf_query_reg_state_full(sm, src, dst, ev);
+
     return true;
 }
 
 bool tf_getoperlist_prepare(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    sm.set_current_invocation(dev->invocation());
+    (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
+    sm.set_current_invocation(dev->invocation());
     /* temporarily disable packet data service for a controlled disconnection of possible IP traffic */
     sm.set_gprs_temporary_disable();
     sm.write("at+cgatt=0");
     sm.kick_cmd_timeout(timer_at_cmd_cgatt);
+
     return true;
 }
 
 bool tf_getoperlist_prepare_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     /* PS detached now */
     sm.set_gprs_reg_state(0);  //trigger for wwan interface stop
-
     sm.clear_opermap();
     sm.write("at+cops=?");
     sm.kick_cmd_timeout(timer_at_cmd_cops);
+
     return true;
 }
 
 bool tf_getoperlist(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
-    sm.set_current_invocation(dev->invocation());
+    (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
+    sm.set_current_invocation(dev->invocation());
     sm.clear_opermap();
     sm.write("at+cops=?");
     sm.kick_cmd_timeout(timer_at_cmd_cops);
+
     return true;
 }
 
@@ -1937,6 +2039,7 @@ bool tf_getoperlist_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
       sm.set_gprs_reg_state(0);  //trigger for wwan interface restart
     }
     (void)tf_query_reg_state_full(sm, src, dst, ev);
+
     return true;
 }
 
@@ -1945,6 +2048,7 @@ bool tf_getoperlist_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     sm.set_gprs_temporary_enable();
     sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     (void)tf_query_reg_state_full(sm, src, dst, ev);
+
     return true;
 }
 
@@ -1953,6 +2057,7 @@ bool tf_getoperlist_fail_not_allowed(MdmStatemachine &sm, State &src, State &dst
     sm.set_gprs_temporary_enable();
     sm.current_invocation().return_error("de.wago.mdmdError", "NOT ALLOWED");
     (void)tf_query_reg_state_full(sm, src, dst, ev);
+
     return true;
 }
 
@@ -1960,83 +2065,92 @@ bool tf_getoperlist_fail_sim_failure(MdmStatemachine &sm, State &src, State &dst
 {
     sm.set_gprs_temporary_enable();
     (void)tf_dbus_return_sim_failure(sm, src, dst, ev);
+
     return true;
 }
 
 bool tf_dbus_not_allowed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)sm; (void)src; (void)dst; //unused parameter
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    (void)sm; (void)src; (void)dst; 
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
     dev->invocation().return_error("de.wago.mdmdError", "NOT ALLOWED");
+
     return true;
 }
 
 bool tf_renew_wwan_address(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     //renew WWAN IP address
     sm.wwan_renew();
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_gprs_autoconnect_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.write("at+cgatt=0"); //detach PS as trigger for rmnet/autoconnect
     sm.kick_cmd_timeout(timer_at_cmd_cgatt);
+
     return true;
 }
 
 bool tf_gprs_autoconnect_timeout_detach_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     sm.reset_gprs_autoconnect_count();
     mdmd_Log(MD_LOG_WRN, "%s: Autoconnect timeout\n", sm.get_state().c_str());
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_gprs_autoconnect_timeout_detach_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     //don't reset autoconnect_timeout counter to try again
     mdmd_Log(MD_LOG_ERR, "%s: Autoconnect timeout not resolved\n", sm.get_state().c_str());
     sm.kick_cmd_timeout(timer_status_query);
+
     return true;
 }
 
 bool tf_set_rmnet_profileid(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+qcfg=\"rmnet/profileid\",%d", rmnet_profileid );
-    sm.write(cmd_buf);
+    (void)src; (void)dst; (void)ev; 
+    auto at_cmd{R"(at+qcfg="rmnet/profileid",)"s};
+    at_cmd.push_back(rmnet_profileid);
+    sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
 bool tf_smsstorage_init(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
-    char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
+    (void)src; (void)dst; (void)ev; 
+    auto at_cmd{"at+cpms="s};
     SmsStorageConfig sms_storage_config;
+
     (void)sm.get_sms_storage_config(sms_storage_config);
-    snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cpms=\"%s\",\"%s\",\"%s\"",
-            sms_storage_config.get_mem1().c_str(),
-            sms_storage_config.get_mem2().c_str(),
-            sms_storage_config.get_mem3().c_str());
-    sm.write(cmd_buf);
+    at_cmd.append(R"(")" + sms_storage_config.get_mem1() + R"(",)");
+    at_cmd.append(R"(")" + sms_storage_config.get_mem2() + R"(",)");
+    at_cmd.append(R"(")" + sms_storage_config.get_mem3() + R"(")");
+    sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
 bool tf_sms_report_config_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
 
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int code = atoi( rev->named_match("err").c_str() );
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto code = std::stoi(rev->named_match("err"));
+
     mdmd_Log(MD_LOG_WRN, "%s: Sms report configuration failed: cms_error=%d\n", sm.get_state().c_str(), code);
 
     return tf_smsstorage_init(sm, src, dst, ev); //continue with sms storage configuration
@@ -2044,10 +2158,11 @@ bool tf_sms_report_config_error(MdmStatemachine &sm, State &src, State &dst, Eve
 
 bool tf_sms_storage_config_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
 
-    ModemEvent *rev = dynamic_cast<ModemEvent *>(&ev);
-    int code = atoi( rev->named_match("err").c_str() );
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto code = std::stoi(rev->named_match("err"));
+
     mdmd_Log(MD_LOG_WRN, "%s: Sms storage configuration failed: cms_error=%d\n", sm.get_state().c_str(), code);
 
     return tf_gprsprofile_init(sm, src, dst, ev); //continue with gprs configuration
@@ -2055,20 +2170,23 @@ bool tf_sms_storage_config_error(MdmStatemachine &sm, State &src, State &dst, Ev
 
 bool extract_dbus_setsmsstorage(GVariant *gvar, SmsStorageConfig& sms_storage_config, const std::vector<std::string> allowed_cpms_parameter)
 {
-    char *c_mem1 = nullptr;
-    char *c_mem2 = nullptr;
-    char *c_mem3 = nullptr;
+    gchar* c_mem1 = nullptr;
+    gchar* c_mem2 = nullptr;
+    gchar* c_mem3 = nullptr;
     g_variant_get(gvar, "(sss)", &c_mem1, &c_mem2, &c_mem3);
 
+    std::string mem1{c_mem1};
+    std::string mem2{c_mem2};
+    std::string mem3{c_mem3};
     bool result = ( (c_mem1 && c_mem2 && c_mem3) &&
-                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), std::string(c_mem1)) != allowed_cpms_parameter.end()) &&
-                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), std::string(c_mem2)) != allowed_cpms_parameter.end()) &&
-                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), std::string(c_mem3)) != allowed_cpms_parameter.end()));  
+                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem1) != allowed_cpms_parameter.end()) &&
+                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem2) != allowed_cpms_parameter.end()) &&
+                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem3) != allowed_cpms_parameter.end()));  
     if (result)
     {
-        sms_storage_config.set_mem1(c_mem1);
-        sms_storage_config.set_mem2(c_mem2);
-        sms_storage_config.set_mem3(c_mem3);
+        sms_storage_config.set_mem1(mem1);
+        sms_storage_config.set_mem2(mem2);
+        sms_storage_config.set_mem3(mem3);
     }
     
     g_free(c_mem1);
@@ -2080,35 +2198,37 @@ bool extract_dbus_setsmsstorage(GVariant *gvar, SmsStorageConfig& sms_storage_co
 
 bool tf_setsmsstorage_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
     SmsStorageConfig sms_storage_config;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+
     if (extract_dbus_setsmsstorage(dev->invocation().parameters(), sms_storage_config, {"SM", "ME", "MT", ""}))
     {
         sm.set_sms_storage_config(sms_storage_config);
-        dev->invocation().return_value( 0 );
+        dev->invocation().return_value(nullptr);
     }
     else
     {
         mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsStorage\" with invalid parameter\n", sm.get_state().c_str());
         dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
     }
+
     return true;
 }
 
 bool tf_setsmsstorage_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; //unused parameter
+    (void)src; (void)dst; 
     SmsStorageConfig sms_storage_config;
-    DBusEvent *dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+
     if (extract_dbus_setsmsstorage(dev->invocation().parameters(), sms_storage_config, {"SM", "ME", "MT"}))
     {
-        char cmd_buf[MAX_AT_CMD_PRINT_LENGTH];
-        snprintf( cmd_buf, MAX_AT_CMD_PRINT_LENGTH, "at+cpms=\"%s\",\"%s\",\"%s\"",
-                  sms_storage_config.get_mem1().c_str(),
-                  sms_storage_config.get_mem2().c_str(),
-                  sms_storage_config.get_mem3().c_str());
-        sm.write(cmd_buf);
+        auto at_cmd{"at+cpms="s};
+        at_cmd.append(R"(")" + sms_storage_config.get_mem1() + R"(",)");
+        at_cmd.append(R"(")" + sms_storage_config.get_mem2() + R"(",)");
+        at_cmd.append(R"(")" + sms_storage_config.get_mem3() + R"(")");
+        sm.write(at_cmd);
         sm.kick_cmd_timeout(timer_at_cmd_short);
         sm.set_current_invocation(dev->invocation()); //set current invocation for following parameter handling
     }
@@ -2116,19 +2236,21 @@ bool tf_setsmsstorage_to_modem(MdmStatemachine &sm, State &src, State &dst, Even
     {
         mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsStorage\" with invalid parameter\n", sm.get_state().c_str());
         dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+
         return false;
     }
+
     return true;
 }
 
 bool tf_dbus_setsmsstorage_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; //unused parameter
+    (void)src; (void)dst; (void)ev; 
     SmsStorageConfig sms_storage_config;
     if (extract_dbus_setsmsstorage(sm.current_invocation().parameters(), sms_storage_config, {"SM", "ME", "MT"}))
     {
         sm.set_sms_storage_config(sms_storage_config);
-        sm.current_invocation().return_value( 0 );
+        sm.current_invocation().return_value(nullptr);
     }
     else
     {
@@ -2151,7 +2273,7 @@ using GF = GuardFunctionFunctor<MdmStatemachine>;
 
 int main(int argc, char **argv)
 {
-    // (void)argc; (void)argv; //unused parameter
+    // (void)argc; (void)argv; 
 #if !GLIB_CHECK_VERSION(2,36,0)
     /* g_type_init has been deprecated since version 2.36 and should not be used in newly-written code.
        The type system is now initialised automatically. */
@@ -2634,13 +2756,13 @@ int main(int argc, char **argv)
   };
 
     GThread* worker_thread = g_thread_new("mdm_cuse_worker",
-                                          (GThreadFunc)mdm_cuse_worker_main,
-                                          NULL);
+                                          static_cast<GThreadFunc>(mdm_cuse_worker_main),
+                                          nullptr);
     MdmStatemachine sm(tl, i01, al, MDM_GPIO__PWRKEY_PIN, MDM_MUSB_DRIVER_PORT );
     //trigger initial timeout for statemachine entry
     sm.do_timeout(0,false);
 
-    ml = g_main_loop_new(0, true);
+    ml = g_main_loop_new(nullptr, TRUE);
     g_main_loop_run(ml);
 
     g_thread_join(worker_thread);

@@ -99,12 +99,18 @@ if [ -n "${backupFile}" ]; then
 
   # prepare progress bar
   BACKUP_FILE_LINE_COUNT=$(grep -Ev '^(firewall|vpn-|#packet)' "$backupFile" | wc -l | awk '{print $1}')
-  echo -n "" > "$progressFile"
-
+  m=$(umask)
+  umask 0177
+  rm -f "$progressFile"
+  : > "$progressFile"
+  umask "$m"
   (
   # check if backup file is existing and valid
-  if [ ! -e "$backupFile" ] && [ ! -f "$backupFile" ]; then
+  if [ ! -f "$backupFile" ]; then
     status=$CONFIG_FILE_MISSING
+    ProcessErrRestoreOperation $status "Invalid config file: " "$backupFile"
+  elif grep -q '[[:cntrl:]]' "$backupFile"; then
+    status="$CONFIG_FILE_INCONSISTENT"
     ProcessErrRestoreOperation $status "Invalid config file: " "$backupFile"
   else
 
@@ -374,28 +380,28 @@ if [ -n "${backupFile}" ]; then
 
     # end of other values to restore
     
-    if [ -n $restore_error_count ]; then
+    if [ "$restore_error_count" -gt 0 ]; then
         report_info "\"$restore_error_count\" restore error(s) found" "$LOG_PREFIX"
     fi  
     
     # remove file with last error (at this point we are not interested in errors of the single scripts)
-    rm "$LAST_ERROR_FILENAME" > /dev/null 2> /dev/null
+    rm -f "$LAST_ERROR_FILENAME"
 
   fi
+  exit "$status"
   ) &
   pid_restore=$!
 
   # display progress bar 
-  if [[ "$(which pv)" != "" ]]; then
+  if [ -x "$(which pv)" ]; then
 
-    cat "$progressFile"
     if [[ "$RELEASE_VERSION" == "yes" ]]; then
       RestoreMessageOutput
     fi
     (tail -f "$progressFile" | pv -N "settings" -l -s $BACKUP_FILE_LINE_COUNT -pt -w 70 >/dev/null ) &
 
     # wait for completion of backup, kill progress bar when finished
-    wait $pid_restore
+    wait "$pid_restore" || status="$?"
     killall tail
 
     if [[ "$RELEASE_VERSION" == "yes" ]]; then

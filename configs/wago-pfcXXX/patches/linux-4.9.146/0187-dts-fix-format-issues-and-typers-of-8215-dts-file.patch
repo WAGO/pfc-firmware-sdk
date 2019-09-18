@@ -1,7 +1,7 @@
 From 9b0968313049fbe4891c17be0aeab915c6db7269 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 12 Jul 2018 10:29:56 +0200
-Subject: [PATCH 187/292] dts: fix format issues and typers of 8215 dts file
+Subject: [PATCH] dts: fix format issues and typers of 8215 dts file
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

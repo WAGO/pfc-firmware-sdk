@@ -1,8 +1,8 @@
 From d9838f3f15abf28dfee978e3c3352f9fc16a60f6 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Thu, 21 Dec 2017 09:17:48 +0000
-Subject: [PATCH 135/292] dts: pfc200v3: i2c: Change address 0x20 to 0x70 for
- new HW-revision
+Subject: [PATCH] dts: pfc200v3: i2c: Change address 0x20 to 0x70 for new
+ HW-revision
 
 ---
  arch/arm/boot/dts/wago-pfc200v3-devconf-0182.dts |  2 +-

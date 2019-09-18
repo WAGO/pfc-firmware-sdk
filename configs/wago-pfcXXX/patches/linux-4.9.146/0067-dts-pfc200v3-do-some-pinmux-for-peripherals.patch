@@ -1,7 +1,7 @@
 From 34ed8d9cc908afb1faf98dbfc57b1e3069096015 Mon Sep 17 00:00:00 2001
 From: Oliver Schildan <oliver.schildan@wago.com>
 Date: Wed, 28 Jun 2017 09:00:29 +0200
-Subject: [PATCH 067/292] dts: pfc200v3: do some pinmux for peripherals
+Subject: [PATCH] dts: pfc200v3: do some pinmux for peripherals
 
 ---
  arch/arm/boot/dts/wago-pfc200v3.dtsi | 860 +++++++++++++++++++----------------

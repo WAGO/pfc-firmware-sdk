@@ -1,7 +1,7 @@
 From e64cebab4b691952b1381cbc9e53405380f20827 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Tue, 9 Oct 2018 15:44:07 +0200
-Subject: [PATCH 244/292] defconfig: pfc: enable marvell phy driver
+Subject: [PATCH] defconfig: pfc: enable marvell phy driver
 
 This patch enable marvell phy driver. Furthermore it removes
 CONFIG_TI_CPSW_ASYNC_NET, because it depends on CONFIG_PN_SOCK

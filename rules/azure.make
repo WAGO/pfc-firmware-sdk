@@ -30,7 +30,7 @@ AZURE_URL           := https://github.com/Azure/azure-iot-sdk-c/archive/$(AZURE_
 	  	    		# Linux: cd azure-iot-sdk-c - mkdir cmake - cd cmake - cmake .. - cmake --build .
 		    		# For further information have a look at: azure-iot-sdk-c/doc/devbox_setup.md
 
-AZURE		    	:= azure-iot-sdk-c-$(AZURE_VERSION)
+AZURE		    := azure-iot-sdk-c-$(AZURE_VERSION)
 AZURE_SOURCE        := $(SRCDIR)/$(AZURE).$(AZURE_SUFFIX)
 AZURE_DIR           := $(BUILDDIR)/$(AZURE)
 AZURE_LICENSE       := unknown
@@ -105,8 +105,38 @@ endif
 
 $(STATEDIR)/azure.install:
 	@$(call targetinfo)
-    
-#	make -C $(AZURE_DIR)-build  DESTDIR=$(PTXCONF_SYSROOT_TARGET) install
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/certs
+	@install -m 0644 $(AZURE_DIR)/certs/*.h \
+		$(PKGDIR)/$(AZURE)/usr/include/azure/certs
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/deps/parson
+	@install -m 0644 $(AZURE_DIR)/deps/parson/*.h \
+		$(PKGDIR)/$(AZURE)/usr/include/azure/deps/parson
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/iothub_client/inc
+	@install -m 0644 $(AZURE_DIR)/iothub_client/inc/*.h \
+		$(PKGDIR)/$(AZURE)/usr/include/azure/iothub_client/inc
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/c-utility/inc/azure_c_shared_utility
+	@install -m 0644 $(AZURE_DIR)/c-utility/inc/azure_c_shared_utility/*.h \
+		$(PKGDIR)/$(AZURE)/usr/include/azure/c-utility/inc/azure_c_shared_utility
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/lib/azure
+	@install -m 0644 $(AZURE_DIR)-build/*.a \
+		$(PKGDIR)/$(AZURE)/usr/lib/azure
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/lib/azure/umqtt
+	@install -m 0644 $(AZURE_DIR)-build/umqtt/*.a \
+		$(PKGDIR)/$(AZURE)/usr/lib/azure/umqtt
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/lib/azure/iothub_client
+	@install -m 0644 $(AZURE_DIR)-build/iothub_client/*.a \
+		$(PKGDIR)/$(AZURE)/usr/lib/azure/iothub_client
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/lib/azure/c-utility
+	@install -m 0644 $(AZURE_DIR)-build/c-utility/*.a \
+		$(PKGDIR)/$(AZURE)/usr/lib/azure/c-utility
 
 	@$(call touch)
 
@@ -114,35 +144,9 @@ $(STATEDIR)/azure.install:
 # Target-Install
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/azure.targetinstall:
-	@$(call targetinfo)
-
-	@$(call install_init, azure)
-	@$(call install_fixup, azure, PRIORITY, optional)
-	@$(call install_fixup, azure, SECTION, base)
-	@$(call install_fixup, azure, AUTHOR, "WAGO Kontakttechnik GmbH@AUTHOR@Co.KG <support@wago.com>")
-	@$(call install_fixup, azure, DESCRIPTION, missing)
-
-ifdef PTXCONF_AZURE_SAMPLES
-
-ifdef PTXCONF_AZURE_HTTP
-	@$(call install_copy, azure, 0, 0, 0755, $(AZURE_DIR)-build/c/iothub_client/samples/iothub_client_sample_http/iothub_client_sample_http, /usr/bin/iothub_client_sample_http)
-endif
-
-ifdef PTXCONF_AZURE_AMQP
-	@$(call install_copy, azure, 0, 0, 0755, $(AZURE_DIR)-build/c/iothub_client/samples/iothub_client_sample_amqp/iothub_client_sample_amqp, /usr/bin/iothub_client_sample_amqp)
-ifdef PTXCONF_AZURE_WSIO
-	@$(call install_copy, azure, 0, 0, 0755, $(AZURE_DIR)-build/c/iothub_client/samples/iothub_client_sample_amqp_websockets/iothub_client_sample_amqp_websockets, /usr/bin/#iothub_client_sample_amqp_websockets)
-endif
-endif
-
-ifdef PTXCONF_AZURE_MQTT
-	@$(call install_copy, azure, 0, 0, 0755, $(AZURE_DIR)-build/c/iothub_client/samples/iothub_client_sample_mqtt/iothub_client_sample_mqtt, /usr/bin/iothub_client_sample_mqtt)
-endif
-
-endif
-	@$(call install_finish, azure)
-	@$(call touch)
+#$(STATEDIR)/azure.targetinstall:
+#	@$(call targetinfo)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Clean

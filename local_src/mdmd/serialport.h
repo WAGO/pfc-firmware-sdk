@@ -16,9 +16,7 @@
 class SerialPortException : public std::exception
 {
     public:
-	SerialPortException() {}
-
-	const char* what() const throw() {
+	const char* what() const noexcept override {
 	    return "SerialPortError";
 	}
 
@@ -30,7 +28,7 @@ class SerialPort
   std::string _tty_fname;
 	int _fd;
 	GIOChannel *_channel;
-	int _watch_id;
+	unsigned int _watch_id;
 
 	gchar _io_buffer[1000];
 	std::string * _read_buffer;

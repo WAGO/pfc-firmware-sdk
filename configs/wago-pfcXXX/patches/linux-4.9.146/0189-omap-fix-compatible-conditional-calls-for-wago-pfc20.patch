@@ -1,8 +1,7 @@
 From 89e40fb26cae3e3810015add53e7d8220f055afa Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Thu, 19 Jul 2018 14:12:17 +0200
-Subject: [PATCH 189/292] omap: fix compatible conditional calls for
- wago,pfc200
+Subject: [PATCH] omap: fix compatible conditional calls for wago,pfc200
 
 In commit a88f655c29213a9c2885d9697f268b4c31335ea0 was compatible
 string "wago,pfc200" to "wago,am3505-pfc" renamed. But conditions

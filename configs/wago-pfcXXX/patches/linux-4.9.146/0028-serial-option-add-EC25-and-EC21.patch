@@ -1,7 +1,7 @@
 From 76bd6d41f277af0e83568afed77dbd53102bf422 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 14 Nov 2016 15:10:42 +0000
-Subject: [PATCH 028/292] serial: option: add EC25 and EC21
+Subject: [PATCH] serial: option: add EC25 and EC21
 
 ---
  drivers/usb/serial/option.c | 2 ++

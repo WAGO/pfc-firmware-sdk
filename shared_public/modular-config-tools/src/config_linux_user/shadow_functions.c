@@ -57,7 +57,7 @@
 //------------------------------------------------------------------------------
 // function implementation
 //------------------------------------------------------------------------------
-bool IsValidUser(const char* userName)
+static bool IsValidUser(const char* userName)
 {
   // TODO: Switch to a configurable white list solution
   return    (strcmp(userName, "admin") == 0)

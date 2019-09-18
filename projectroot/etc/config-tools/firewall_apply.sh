@@ -223,8 +223,6 @@ firewall_apply()
     fi
 }
 
-date +"%d.%m.%Y %H:%M $1" >> "/tmp/firewall.log"
-
 if [[ -n "$1" ]]; then
     firewall_apply "$@"
 else

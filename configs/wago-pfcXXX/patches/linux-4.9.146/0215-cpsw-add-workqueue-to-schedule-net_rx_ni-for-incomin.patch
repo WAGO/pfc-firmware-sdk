@@ -1,8 +1,7 @@
 From c413b9cecd3e4a8c54a6ce2d6502ba0492986b17 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Thu, 12 Jul 2018 09:57:48 +0200
-Subject: [PATCH 215/292] cpsw: add workqueue to schedule net_rx_ni for
- incoming frames
+Subject: [PATCH] cpsw: add workqueue to schedule net_rx_ni for incoming frames
 
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>

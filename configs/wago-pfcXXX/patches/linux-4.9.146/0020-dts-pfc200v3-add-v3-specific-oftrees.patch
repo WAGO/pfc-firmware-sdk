@@ -1,7 +1,7 @@
 From fcb46e494ea15114f41059031a8e5b2f0ab0d3be Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 22 Nov 2016 15:49:18 +0100
-Subject: [PATCH 020/292] dts: pfc200v3: add v3 specific oftrees
+Subject: [PATCH] dts: pfc200v3: add v3 specific oftrees
 
 ---
  arch/arm/boot/dts/Makefile                       |   7 +-

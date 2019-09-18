@@ -1,0 +1,395 @@
+\hypertarget{log_8h}{}\section{inc/wc/log.h File Reference}
+\label{log_8h}\index{inc/wc/log.\+h@{inc/wc/log.\+h}}
+
+
+Common log interface and framework to manage log messages. To use log functions it is necessary to implement log level and output functions (\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} /\hyperlink{log_8h_a0c7270e9a539b48f0d5df6f6959cf97c}{wc\+\_\+log\+\_\+output}).  
+
+
+{\ttfamily \#include \char`\"{}wc/assertion.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}wc/compiler.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}wc/std\+\_\+includes.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$stdarg.\+h$>$}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{log_8h_a6ae8a11b0ab211c050bc8e857792d825}{W\+C\+\_\+\+L\+O\+G\+\_\+\+F\+O\+R\+M\+A\+T\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}~(256)
+\item 
+\#define \hyperlink{log_8h_a998bad746d93c207cbe2c1b03605abdd}{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}~(4096)
+\item 
+\#define \hyperlink{log_8h_a1973ae82b11817180d68a64156531d78}{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH}~(50)
+\item 
+\#define \hyperlink{log_8h_aec0effddf113461cbacc49f9a01553a1}{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH}~(50)
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef enum \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level} \hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t}
+\end{DoxyCompactItemize}
+\subsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level} \{ \newline
+\hyperlink{log_8h_ac91d55174d383848b976a34de843748ea53ace14c115e45153a1c9105accceb4c}{off} = 0, 
+\hyperlink{log_8h_ac91d55174d383848b976a34de843748ea8ce9ca6f2c2ee2f80260f4ae4158e45f}{fatal} = 1, 
+\hyperlink{log_8h_ac91d55174d383848b976a34de843748ead606e435413ea0944dd00d49e901e4ed}{error} = 2, 
+\hyperlink{log_8h_ac91d55174d383848b976a34de843748ea8de9aef05fc85e519a0cfce33573f492}{warning} = 3, 
+\newline
+\hyperlink{log_8h_ac91d55174d383848b976a34de843748eaa4abb266e72efba828327b605b2ab0f4}{info} = 4, 
+\hyperlink{log_8h_ac91d55174d383848b976a34de843748ea5be0fd270d9cbf6a0b7445db855089da}{debug} = 5
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{log_8h_a0c7270e9a539b48f0d5df6f6959cf97c}{wc\+\_\+log\+\_\+output} (\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}, char const $\ast$const message)
+\item 
+\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} \hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} (void)
+\item 
+static void \hyperlink{log_8h_a72f7b769ef814a5d0399207d52402cdc}{wc\+\_\+log} (\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}, char const $\ast$const message)
+\item 
+static void \hyperlink{log_8h_a8a52538da88aae281f35ca29effc2b4c}{wc\+\_\+log\+\_\+format} (\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}, char const $\ast$const format,...) \hyperlink{compiler_8h_af0a39dd9955fc7117118638713496855}{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}(format(gnu\+\_\+printf
+\item 
+static void static void \hyperlink{log_8h_a38ce191459e8b6548530f6e9b8228ca5}{wc\+\_\+vlog\+\_\+format} (\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}, char const $\ast$const format, va\+\_\+list $\ast$const args) \hyperlink{compiler_8h_af0a39dd9955fc7117118638713496855}{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}(format(gnu\+\_\+printf
+\item 
+static void static void static void \hyperlink{log_8h_a07712cd6deb0e488155fbb724203dad0}{wc\+\_\+log\+\_\+advanced} (char const $\ast$const file, char const $\ast$const function, size\+\_\+t const line, \hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}, char const $\ast$const message)
+\item 
+static void \hyperlink{log_8h_a78968560d62e2b096012f29e2cda4a42}{wc\+\_\+log\+\_\+format\+\_\+advanced} (char const $\ast$const file, char const $\ast$const function, size\+\_\+t const line, \hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}, char const $\ast$const format,...) \hyperlink{compiler_8h_af0a39dd9955fc7117118638713496855}{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}(format(gnu\+\_\+printf
+\item 
+static void static void \hyperlink{log_8h_aa127404e23c382d53fe80b926d30fc28}{wc\+\_\+vlog\+\_\+format\+\_\+advanced} (char const $\ast$const file, char const $\ast$const function, size\+\_\+t const line, \hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}, char const $\ast$const format, va\+\_\+list $\ast$const args) \hyperlink{compiler_8h_af0a39dd9955fc7117118638713496855}{G\+N\+U\+C\+\_\+\+A\+T\+T\+R\+I\+B\+U\+TE}(format(gnu\+\_\+printf
+\item 
+static void static void static size\+\_\+t \hyperlink{log_8h_ab49db481ce104aaaf1fc086d8b26c836}{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size} ()
+\item 
+static size\+\_\+t \hyperlink{log_8h_a55d164fd2e50ee4fd9c011e244239c51}{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Common log interface and framework to manage log messages. To use log functions it is necessary to implement log level and output functions (\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} /\hyperlink{log_8h_a0c7270e9a539b48f0d5df6f6959cf97c}{wc\+\_\+log\+\_\+output}). 
+
+\begin{DoxyAuthor}{Author}
+Ma\+He\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
+
+P\+En \+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
+\end{DoxyAuthor}
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{log_8h_a998bad746d93c207cbe2c1b03605abdd}{}\label{log_8h_a998bad746d93c207cbe2c1b03605abdd} 
+\index{log.\+h@{log.\+h}!W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE@{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}}
+\index{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE@{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}{WC\_LOG\_BUFFER\_SIZE}}
+{\footnotesize\ttfamily \#define W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE~(4096)}
+
+Macro defining maximum length of message buffer containing log strings.
+
+\begin{DoxyNote}{Note}
+Do not use directly but function \hyperlink{log_8h_ab49db481ce104aaaf1fc086d8b26c836}{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size} instead.
+\end{DoxyNote}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_ab49db481ce104aaaf1fc086d8b26c836}{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size} 
+\end{DoxySeeAlso}
+\hypertarget{log_8h_a6ae8a11b0ab211c050bc8e857792d825}{}\label{log_8h_a6ae8a11b0ab211c050bc8e857792d825} 
+\index{log.\+h@{log.\+h}!W\+C\+\_\+\+L\+O\+G\+\_\+\+F\+O\+R\+M\+A\+T\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE@{W\+C\+\_\+\+L\+O\+G\+\_\+\+F\+O\+R\+M\+A\+T\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}}
+\index{W\+C\+\_\+\+L\+O\+G\+\_\+\+F\+O\+R\+M\+A\+T\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE@{W\+C\+\_\+\+L\+O\+G\+\_\+\+F\+O\+R\+M\+A\+T\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{W\+C\+\_\+\+L\+O\+G\+\_\+\+F\+O\+R\+M\+A\+T\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}{WC\_LOG\_FORMAT\_BUFFER\_SIZE}}
+{\footnotesize\ttfamily \#define W\+C\+\_\+\+L\+O\+G\+\_\+\+F\+O\+R\+M\+A\+T\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE~(256)}
+
+Macro defining maximum length of format buffer containing log format strings.
+
+\begin{DoxyNote}{Note}
+Do not use directly but function \hyperlink{log_8h_a55d164fd2e50ee4fd9c011e244239c51}{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size} instead.
+\end{DoxyNote}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_a55d164fd2e50ee4fd9c011e244239c51}{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size} 
+\end{DoxySeeAlso}
+\hypertarget{log_8h_a1973ae82b11817180d68a64156531d78}{}\label{log_8h_a1973ae82b11817180d68a64156531d78} 
+\index{log.\+h@{log.\+h}!W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH@{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH}}
+\index{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH@{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH}{WC\_LOG\_MAX\_FILE\_LENGTH}}
+{\footnotesize\ttfamily \#define W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH~(50)}
+
+Macro defining maximum length of logged file names.
+
+\begin{DoxyNote}{Note}
+For internal use only. Don\textquotesingle{}t use externally. 
+\end{DoxyNote}
+\hypertarget{log_8h_aec0effddf113461cbacc49f9a01553a1}{}\label{log_8h_aec0effddf113461cbacc49f9a01553a1} 
+\index{log.\+h@{log.\+h}!W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH@{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH}}
+\index{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH@{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH}{WC\_LOG\_MAX\_FUNCTION\_LENGTH}}
+{\footnotesize\ttfamily \#define W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH~(50)}
+
+Macro defining maximum length of logged function names.
+
+\begin{DoxyNote}{Note}
+For internal use only. Don\textquotesingle{}t use externally. 
+\end{DoxyNote}
+
+
+\subsection{Typedef Documentation}
+\hypertarget{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{}\label{log_8h_ae8208ffb3f6679921c91411a9737e4f1} 
+\index{log.\+h@{log.\+h}!log\+\_\+level\+\_\+t@{log\+\_\+level\+\_\+t}}
+\index{log\+\_\+level\+\_\+t@{log\+\_\+level\+\_\+t}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{log\+\_\+level\+\_\+t}{log\_level\_t}}
+{\footnotesize\ttfamily typedef enum \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}  \hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t}}
+
+Defines various log levels. \begin{DoxySeeAlso}{See also}
+\href{http://www.thejoyofcode.com/Logging_Levels_and_how_to_use_them.aspx}{\tt Logging Levels and how to use them} 
+\end{DoxySeeAlso}
+
+
+\subsection{Enumeration Type Documentation}
+\hypertarget{log_8h_ac91d55174d383848b976a34de843748e}{}\label{log_8h_ac91d55174d383848b976a34de843748e} 
+\index{log.\+h@{log.\+h}!log\+\_\+level@{log\+\_\+level}}
+\index{log\+\_\+level@{log\+\_\+level}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{log\+\_\+level}{log\_level}}
+{\footnotesize\ttfamily enum \hyperlink{log_8h_ac91d55174d383848b976a34de843748e}{log\+\_\+level}}
+
+Defines various log levels. \begin{DoxySeeAlso}{See also}
+\href{http://www.thejoyofcode.com/Logging_Levels_and_how_to_use_them.aspx}{\tt Logging Levels and how to use them} 
+\end{DoxySeeAlso}
+\begin{DoxyEnumFields}{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{off@{off}!log.\+h@{log.\+h}}\index{log.\+h@{log.\+h}!off@{off}}}\hypertarget{log_8h_ac91d55174d383848b976a34de843748ea53ace14c115e45153a1c9105accceb4c}{}\label{log_8h_ac91d55174d383848b976a34de843748ea53ace14c115e45153a1c9105accceb4c} 
+off&off Off Logging is disabled on this log level. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{fatal@{fatal}!log.\+h@{log.\+h}}\index{log.\+h@{log.\+h}!fatal@{fatal}}}\hypertarget{log_8h_ac91d55174d383848b976a34de843748ea8ce9ca6f2c2ee2f80260f4ae4158e45f}{}\label{log_8h_ac91d55174d383848b976a34de843748ea8ce9ca6f2c2ee2f80260f4ae4158e45f} 
+fatal&fatal Fatal Fatal is used to log all unhandled exceptions and handled errors where it is not recommend to continue program execution. This is typically logged inside a catch block at the boundary of your application. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{error@{error}!log.\+h@{log.\+h}}\index{log.\+h@{log.\+h}!error@{error}}}\hypertarget{log_8h_ac91d55174d383848b976a34de843748ead606e435413ea0944dd00d49e901e4ed}{}\label{log_8h_ac91d55174d383848b976a34de843748ead606e435413ea0944dd00d49e901e4ed} 
+error&error Error Errors are handled \textquotesingle{}exceptions\textquotesingle{} above warnings. While program operation can safely continue on warnings, errors indicate a critical program state where a master software part has to consider weather to continue or to stop program execution. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{warning@{warning}!log.\+h@{log.\+h}}\index{log.\+h@{log.\+h}!warning@{warning}}}\hypertarget{log_8h_ac91d55174d383848b976a34de843748ea8de9aef05fc85e519a0cfce33573f492}{}\label{log_8h_ac91d55174d383848b976a34de843748ea8de9aef05fc85e519a0cfce33573f492} 
+warning&warning Warning Warning is often used for handled \textquotesingle{}exceptions\textquotesingle{} or other important log events. For example, if your application requires a configuration setting but has a default in case the setting is missing, then the Warning level should be used to log the missing configuration setting. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{info@{info}!log.\+h@{log.\+h}}\index{log.\+h@{log.\+h}!info@{info}}}\hypertarget{log_8h_ac91d55174d383848b976a34de843748eaa4abb266e72efba828327b605b2ab0f4}{}\label{log_8h_ac91d55174d383848b976a34de843748eaa4abb266e72efba828327b605b2ab0f4} 
+info&info Information The Information level is typically used to output information that is useful to the running and management of your system. Information would also be the level used to log Entry and Exit points in key areas of your application. However, you may choose to add more entry and exit points at Debug level for more granularity during development and testing. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{debug@{debug}!log.\+h@{log.\+h}}\index{log.\+h@{log.\+h}!debug@{debug}}}\hypertarget{log_8h_ac91d55174d383848b976a34de843748ea5be0fd270d9cbf6a0b7445db855089da}{}\label{log_8h_ac91d55174d383848b976a34de843748ea5be0fd270d9cbf6a0b7445db855089da} 
+debug&debug Debug This is the most verbose logging level (maximum volume setting). I usually consider Debug to be out-\/of-\/bounds for a production system and used it only for development and testing. I prefer to aim to get my logging levels just right so I have just enough information and endeavour to log this at the Information level or above. \\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\subsection{Function Documentation}
+\hypertarget{log_8h_a788c161c88ab20b42918dc5645faadb9}{}\label{log_8h_a788c161c88ab20b42918dc5645faadb9} 
+\index{log.\+h@{log.\+h}!wc\+\_\+get\+\_\+log\+\_\+level@{wc\+\_\+get\+\_\+log\+\_\+level}}
+\index{wc\+\_\+get\+\_\+log\+\_\+level@{wc\+\_\+get\+\_\+log\+\_\+level}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+get\+\_\+log\+\_\+level()}{wc\_get\_log\_level()}}
+{\footnotesize\ttfamily \hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} wc\+\_\+get\+\_\+log\+\_\+level (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+Prototype for application specific source of log level setting.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific.
+\end{DoxyNote}
+\begin{DoxyReturn}{Returns}
+Currently active log level, used to forward or discard log messages. 
+\end{DoxyReturn}
+\hypertarget{log_8h_a55d164fd2e50ee4fd9c011e244239c51}{}\label{log_8h_a55d164fd2e50ee4fd9c011e244239c51} 
+\index{log.\+h@{log.\+h}!wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size@{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size}}
+\index{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size@{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size()}{wc\_get\_max\_log\_format\_size()}}
+{\footnotesize\ttfamily static size\+\_\+t wc\+\_\+get\+\_\+max\+\_\+log\+\_\+format\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Function (C variant) to determine maximum log format size.
+
+\begin{DoxyReturn}{Returns}
+Maximum log format size in bytes. 
+\end{DoxyReturn}
+\hypertarget{log_8h_ab49db481ce104aaaf1fc086d8b26c836}{}\label{log_8h_ab49db481ce104aaaf1fc086d8b26c836} 
+\index{log.\+h@{log.\+h}!wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size@{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size}}
+\index{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size@{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size()}{wc\_get\_max\_log\_message\_size()}}
+{\footnotesize\ttfamily static void static void static size\+\_\+t wc\+\_\+get\+\_\+max\+\_\+log\+\_\+message\+\_\+size (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Function (C variant) to determine maximum log message size.
+
+\begin{DoxyReturn}{Returns}
+Maximum log message size in bytes. 
+\end{DoxyReturn}
+\hypertarget{log_8h_a72f7b769ef814a5d0399207d52402cdc}{}\label{log_8h_a72f7b769ef814a5d0399207d52402cdc} 
+\index{log.\+h@{log.\+h}!wc\+\_\+log@{wc\+\_\+log}}
+\index{wc\+\_\+log@{wc\+\_\+log}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+log()}{wc\_log()}}
+{\footnotesize\ttfamily static void wc\+\_\+log (\begin{DoxyParamCaption}\item[{\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const}]{log\+\_\+level,  }\item[{char const $\ast$const}]{message }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Simple log function to log static messages.
+
+
+\begin{DoxyParams}{Parameters}
+{\em log\+\_\+level} & Log level for message, used to forward or discard message dependent on currently active application log level. \\
+\hline
+{\em message} & Log message to compute.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} 
+
+\hyperlink{log_8h_a07712cd6deb0e488155fbb724203dad0}{wc\+\_\+log\+\_\+advanced} 
+
+\hyperlink{log_8h_a8a52538da88aae281f35ca29effc2b4c}{wc\+\_\+log\+\_\+format} 
+\end{DoxySeeAlso}
+\hypertarget{log_8h_a07712cd6deb0e488155fbb724203dad0}{}\label{log_8h_a07712cd6deb0e488155fbb724203dad0} 
+\index{log.\+h@{log.\+h}!wc\+\_\+log\+\_\+advanced@{wc\+\_\+log\+\_\+advanced}}
+\index{wc\+\_\+log\+\_\+advanced@{wc\+\_\+log\+\_\+advanced}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+log\+\_\+advanced()}{wc\_log\_advanced()}}
+{\footnotesize\ttfamily static void wc\+\_\+log\+\_\+advanced (\begin{DoxyParamCaption}\item[{char const $\ast$const}]{file,  }\item[{char const $\ast$const}]{function,  }\item[{size\+\_\+t const}]{line,  }\item[{\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const}]{log\+\_\+level,  }\item[{char const $\ast$const}]{message }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Log function to log static messages with source (file, function, line) information. Source information is only computed when currently used application log level is \char`\"{}debug\char`\"{}, determined by function \hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em file} & File name as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+\char`\"{}. When N\+U\+LL source information is omitted. \\
+\hline
+{\em function} & Function name as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+func\+\_\+\+\_\+\char`\"{}. This source information is optional. Source information is completely omitted when file parameter is N\+U\+LL. \\
+\hline
+{\em line} & Line number as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+\char`\"{}. Source information is completely omitted when file parameter is N\+U\+LL. \\
+\hline
+{\em log\+\_\+level} & Log level for message, used to forward or discard message dependent on currently active application log level. \\
+\hline
+{\em message} & Log message to compute.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} 
+
+\hyperlink{log_8h_a72f7b769ef814a5d0399207d52402cdc}{wc\+\_\+log} 
+
+\hyperlink{log_8h_a78968560d62e2b096012f29e2cda4a42}{wc\+\_\+log\+\_\+format\+\_\+advanced} 
+\end{DoxySeeAlso}
+\hypertarget{log_8h_a8a52538da88aae281f35ca29effc2b4c}{}\label{log_8h_a8a52538da88aae281f35ca29effc2b4c} 
+\index{log.\+h@{log.\+h}!wc\+\_\+log\+\_\+format@{wc\+\_\+log\+\_\+format}}
+\index{wc\+\_\+log\+\_\+format@{wc\+\_\+log\+\_\+format}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+log\+\_\+format()}{wc\_log\_format()}}
+{\footnotesize\ttfamily static void wc\+\_\+log\+\_\+format (\begin{DoxyParamCaption}\item[{\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const}]{log\+\_\+level,  }\item[{char const $\ast$const}]{format,  }\item[{}]{... }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Log function to log formatted messages.
+
+
+\begin{DoxyParams}{Parameters}
+{\em log\+\_\+level} & Log level for message, used to forward or discard message dependent on currently active application log level. \\
+\hline
+{\em format} & Log message format in printf-\/style to generate log message. Format arguments follow in next parameters like on printf.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} 
+
+\hyperlink{log_8h_a38ce191459e8b6548530f6e9b8228ca5}{wc\+\_\+vlog\+\_\+format} 
+
+\hyperlink{log_8h_a72f7b769ef814a5d0399207d52402cdc}{wc\+\_\+log} 
+
+\hyperlink{log_8h_a07712cd6deb0e488155fbb724203dad0}{wc\+\_\+log\+\_\+advanced} 
+\end{DoxySeeAlso}
+\hypertarget{log_8h_a78968560d62e2b096012f29e2cda4a42}{}\label{log_8h_a78968560d62e2b096012f29e2cda4a42} 
+\index{log.\+h@{log.\+h}!wc\+\_\+log\+\_\+format\+\_\+advanced@{wc\+\_\+log\+\_\+format\+\_\+advanced}}
+\index{wc\+\_\+log\+\_\+format\+\_\+advanced@{wc\+\_\+log\+\_\+format\+\_\+advanced}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+log\+\_\+format\+\_\+advanced()}{wc\_log\_format\_advanced()}}
+{\footnotesize\ttfamily static void wc\+\_\+log\+\_\+format\+\_\+advanced (\begin{DoxyParamCaption}\item[{char const $\ast$const}]{file,  }\item[{char const $\ast$const}]{function,  }\item[{size\+\_\+t const}]{line,  }\item[{\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const}]{log\+\_\+level,  }\item[{char const $\ast$const}]{format,  }\item[{}]{... }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Log function to log formatted messages with source (file, function, line) information. Source information is only computed when currently used application log level is \char`\"{}debug\char`\"{}, determined by function \hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em file} & File name as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+\char`\"{}. When N\+U\+LL source information is omitted. \\
+\hline
+{\em function} & Function name as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+func\+\_\+\+\_\+\char`\"{}. This source information is optional. Source information is completely omitted when file parameter is N\+U\+LL. \\
+\hline
+{\em line} & Line number as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+\char`\"{}. Source information is completely omitted when file parameter is N\+U\+LL. \\
+\hline
+{\em log\+\_\+level} & Log level for message, used to forward or discard message dependent on currently active application log level. \\
+\hline
+{\em format} & Log message format in printf-\/style to generate log message. Format arguments follow in next parameters like on printf.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} 
+
+\hyperlink{log_8h_aa127404e23c382d53fe80b926d30fc28}{wc\+\_\+vlog\+\_\+format\+\_\+advanced} 
+
+\hyperlink{log_8h_a8a52538da88aae281f35ca29effc2b4c}{wc\+\_\+log\+\_\+format} 
+
+\hyperlink{log_8h_a07712cd6deb0e488155fbb724203dad0}{wc\+\_\+log\+\_\+advanced} 
+\end{DoxySeeAlso}
+\hypertarget{log_8h_a0c7270e9a539b48f0d5df6f6959cf97c}{}\label{log_8h_a0c7270e9a539b48f0d5df6f6959cf97c} 
+\index{log.\+h@{log.\+h}!wc\+\_\+log\+\_\+output@{wc\+\_\+log\+\_\+output}}
+\index{wc\+\_\+log\+\_\+output@{wc\+\_\+log\+\_\+output}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+log\+\_\+output()}{wc\_log\_output()}}
+{\footnotesize\ttfamily void wc\+\_\+log\+\_\+output (\begin{DoxyParamCaption}\item[{\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const}]{log\+\_\+level,  }\item[{char const $\ast$const}]{message }\end{DoxyParamCaption})}
+
+Prototype for application specific output function to write log output.
+
+\begin{DoxyNote}{Note}
+The function implementation has to be provided application specific.
+\end{DoxyNote}
+
+\begin{DoxyParams}{Parameters}
+{\em log\+\_\+level} & Log level of message to write, may be part of written message or used to categorize log message. \\
+\hline
+{\em message} & Log message to write to an output channel. \\
+\hline
+\end{DoxyParams}
+\hypertarget{log_8h_a38ce191459e8b6548530f6e9b8228ca5}{}\label{log_8h_a38ce191459e8b6548530f6e9b8228ca5} 
+\index{log.\+h@{log.\+h}!wc\+\_\+vlog\+\_\+format@{wc\+\_\+vlog\+\_\+format}}
+\index{wc\+\_\+vlog\+\_\+format@{wc\+\_\+vlog\+\_\+format}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+vlog\+\_\+format()}{wc\_vlog\_format()}}
+{\footnotesize\ttfamily static void wc\+\_\+vlog\+\_\+format (\begin{DoxyParamCaption}\item[{\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const}]{log\+\_\+level,  }\item[{char const $\ast$const}]{format,  }\item[{va\+\_\+list $\ast$const}]{args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Log function to log formatted messages.
+
+
+\begin{DoxyParams}{Parameters}
+{\em log\+\_\+level} & Log level for message, used to forward or discard message dependent on currently active application log level. \\
+\hline
+{\em format} & Log message format in printf-\/style to generate log message. Format arguments follow in next va\+\_\+list parameter like on vprintf. \\
+\hline
+{\em args} & Variable argument list with format arguments.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} 
+
+\hyperlink{log_8h_a8a52538da88aae281f35ca29effc2b4c}{wc\+\_\+log\+\_\+format} 
+
+\hyperlink{log_8h_aa127404e23c382d53fe80b926d30fc28}{wc\+\_\+vlog\+\_\+format\+\_\+advanced} 
+\end{DoxySeeAlso}
+\hypertarget{log_8h_aa127404e23c382d53fe80b926d30fc28}{}\label{log_8h_aa127404e23c382d53fe80b926d30fc28} 
+\index{log.\+h@{log.\+h}!wc\+\_\+vlog\+\_\+format\+\_\+advanced@{wc\+\_\+vlog\+\_\+format\+\_\+advanced}}
+\index{wc\+\_\+vlog\+\_\+format\+\_\+advanced@{wc\+\_\+vlog\+\_\+format\+\_\+advanced}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{wc\+\_\+vlog\+\_\+format\+\_\+advanced()}{wc\_vlog\_format\_advanced()}}
+{\footnotesize\ttfamily static void wc\+\_\+vlog\+\_\+format\+\_\+advanced (\begin{DoxyParamCaption}\item[{char const $\ast$const}]{file,  }\item[{char const $\ast$const}]{function,  }\item[{size\+\_\+t const}]{line,  }\item[{\hyperlink{log_8h_ae8208ffb3f6679921c91411a9737e4f1}{log\+\_\+level\+\_\+t} const}]{log\+\_\+level,  }\item[{char const $\ast$const}]{format,  }\item[{va\+\_\+list $\ast$const}]{args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+Log function to log formatted messages with source (file, function, line) information. Source information is only computed when currently used application log level is \char`\"{}debug\char`\"{}, determined by function \hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em file} & File name as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+\char`\"{}. When N\+U\+LL source information is omitted. \\
+\hline
+{\em function} & Function name as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+func\+\_\+\+\_\+\char`\"{}. This source information is optional. Source information is completely omitted when file parameter is N\+U\+LL. \\
+\hline
+{\em line} & Line number as source information for log message, normally compiler auto values used like \char`\"{}\+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+\char`\"{}. Source information is completely omitted when file parameter is N\+U\+LL. \\
+\hline
+{\em log\+\_\+level} & Log level for message, used to forward or discard message dependent on currently active application log level. \\
+\hline
+{\em format} & Log message format in printf-\/style to generate log message. Format arguments follow in next va\+\_\+list parameter like on vprintf. \\
+\hline
+{\em args} & Variable argument list with format arguments.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{log_8h_a788c161c88ab20b42918dc5645faadb9}{wc\+\_\+get\+\_\+log\+\_\+level} 
+
+\hyperlink{log_8h_a78968560d62e2b096012f29e2cda4a42}{wc\+\_\+log\+\_\+format\+\_\+advanced} 
+
+\hyperlink{log_8h_a8a52538da88aae281f35ca29effc2b4c}{wc\+\_\+log\+\_\+format} 
+
+\hyperlink{log_8h_a07712cd6deb0e488155fbb724203dad0}{wc\+\_\+log\+\_\+advanced} 
+\end{DoxySeeAlso}

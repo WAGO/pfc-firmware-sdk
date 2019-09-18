@@ -69,7 +69,7 @@ function RestorePartition
     local result=$SUCCESS
 
     # Save the current settings to restore them in the new partition when user did not provide custom settings
-    if [[ -z "$settingsFilename" ]] || [[ "$settingsFilename" == "-" ]]; then
+    if [[ -z "$settingsFilename" ]]; then
         settingsFilename="/tmp/current_settings.txt"
 
         $WAGO_CT_DIR/settings_backup save "$settingsFilename"
@@ -206,6 +206,26 @@ function OnExit
     fi
 }
 
+# Checks existence of a backup file of a requested package.
+# Requested means via commandline option "package-*"
+#
+# Returns:
+#  - SUCCESS if not requested or the file exists
+#  - ENCRYPTED_FILE if required and file exists with 'enc' postfix
+#  - CONFIG_FILE_MISSING if required and file does not exist
+#-----------------------------------------------------------------------------#
+checkfile()
+{
+  # disabled packages mean success
+  if [ "$1" != "1" ]; then
+    return "$SUCCESS"
+  elif [ -f "${2}" ]; then
+    return "$SUCCESS"
+  elif [ -f "${2}${enc}" ]; then
+    return "$ENCRYPTED_FILE"
+  fi
+  return "$CONFIG_FILE_MISSING"
+}
 
 # main-programm
 #-----------------------------------------------------------------------------#
@@ -255,8 +275,6 @@ deviceMedium=$(GetParameterValue device-medium $*)
 testmode=$(GetParameterValue testmode $*)
 execute_reboot=$(GetParameterValue reboot $*)
 print_dbg "verbose: \"$verbose\", deviceMedium: \"$deviceMedium\", testmode: \"$testmode\", reboot: \"$execute_reboot\""
-
-### EDIT ###
 
 passphrase="$(GetParameterValue "passphrase" $*)"
 
@@ -356,19 +374,6 @@ backup_settings_file="${sourceDir}/${SETTINGS_FILENAME}"
 
 enc='.enc'
 
-checkfile()
-{
-  # disabled packages mean success
-  if [ "$1" != "1" ]; then
-    return "$SUCCESS"
-  elif [ -f "${2}" ]; then
-    return "$SUCCESS"
-  elif [ -f "${2}${enc}" ]; then
-    return "$ENCRYPTED_FILE"
-  fi
-  return "$CONFIG_FILE_MISSING"
-}
-
 # now we should have any directory including our data
 if [[ "$status" == "$SUCCESS" ]]; then
     # first check if the advised backup files are even existing
@@ -390,13 +395,14 @@ fi
 if [[ "1" != "$testmode" ]]; then
     # If passphrase is given, we expect an encrypted backup and
     # decrypt it first.
-    [ "$status" -eq "$ENCRYPTED_FILE" ] && status="$SUCCESS"
-    if [ -n "${passphrase}" ]; then
+    if [ "$status" -eq "$ENCRYPTED_FILE" ] && [ "${passphrase}" ]; then
+      status="$SUCCESS"
       for file in "${backup_codesys_file}" "${backup_system_file}" "${backup_settings_file}"; do
         if test -f "${file}${enc}"; then
-          openssl enc -d -aes-256-cfb -md sha512 -pass fd:3 <"${file}${enc}" >"${file}" 3<< EOF
+          { openssl enc -d -aes-256-cfb -md sha512 -pass fd:3 <"${file}${enc}" >"${file}" 3<< EOF
 ${passphrase}
 EOF
+	  } || status="$ENCRYPTED_FILE"
         fi
       done
     fi

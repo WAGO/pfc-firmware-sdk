@@ -1,7 +1,7 @@
 From ecda70cd70ca547b5d554d03a05d99bb10b8b281 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Wed, 23 May 2018 12:14:29 +0200
-Subject: [PATCH 192/292] net: initial AF_XDP skeleton
+Subject: [PATCH] net: initial AF_XDP skeleton
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

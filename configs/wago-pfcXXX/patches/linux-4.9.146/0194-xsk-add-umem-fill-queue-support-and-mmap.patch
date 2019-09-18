@@ -1,7 +1,7 @@
 From 26e719b6240eb14f0750b7745af9713dfb099b33 Mon Sep 17 00:00:00 2001
 From: Magnus Karlsson <magnus.karlsson@intel.com>
 Date: Wed, 2 May 2018 13:01:24 +0200
-Subject: [PATCH 194/292] xsk: add umem fill queue support and mmap
+Subject: [PATCH] xsk: add umem fill queue support and mmap
 
 Here, we add another setsockopt for registered user memory (umem)
 called XDP_UMEM_FILL_QUEUE. Using this socket option, the process can

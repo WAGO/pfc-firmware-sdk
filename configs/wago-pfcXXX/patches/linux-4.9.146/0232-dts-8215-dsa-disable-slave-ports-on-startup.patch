@@ -1,7 +1,7 @@
 From fa2b2dd566ab33a309cc38a649cbd67b603a3c2e Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 28 Aug 2018 10:26:02 +0200
-Subject: [PATCH 232/292] dts: 8215: dsa: disable slave ports on startup
+Subject: [PATCH] dts: 8215: dsa: disable slave ports on startup
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

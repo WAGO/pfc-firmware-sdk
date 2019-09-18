@@ -1,7 +1,7 @@
 From 7587252f53c052bfcd3c6d24c9afea78c637124a Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 24 Jan 2017 11:55:50 +0000
-Subject: [PATCH 036/292] dts: pfc200v2: increase to currency limit to 1000 mA
+Subject: [PATCH] dts: pfc200v2: increase to currency limit to 1000 mA
 
         In schmatics 100 mA is stated. But this setting
         the usb device is not being able to be enumurated

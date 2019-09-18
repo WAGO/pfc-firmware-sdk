@@ -1,7 +1,7 @@
-From 270168128f3bc3cc47ff378fec6780ceeac04ec8 Mon Sep 17 00:00:00 2001
+From 12818bb276355f869f3cf9db645134781a8622c6 Mon Sep 17 00:00:00 2001
 From: "Rohe, Oliver" <Oliver.Rohe@wago.com>
 Date: Mon, 7 Jan 2019 14:52:47 +0000
-Subject: [PATCH 287/292] rtc: rs5c372: use the right XSTP bit
+Subject: [PATCH] rtc: rs5c372: use the right XSTP bit
 
 Signed-off-by: Oliver Rohe <oliver.rohe@wago.com>
 ---

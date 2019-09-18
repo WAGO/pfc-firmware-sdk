@@ -1,7 +1,7 @@
 From 34f584d527269bf3d0250389453c885ed90dfefe Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Mon, 18 Jun 2018 12:34:56 +0200
-Subject: [PATCH 172/292] dtsi: add 0182-tcam rules
+Subject: [PATCH] dtsi: add 0182-tcam rules
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

@@ -1,7 +1,7 @@
 From 65c950e98ca17acd3c4f404563bcc9c73dd4f224 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 31 Oct 2018 12:03:30 +0100
-Subject: [PATCH 256/292] dts: 821x: seperate switch related pinmuxing
+Subject: [PATCH] dts: 821x: seperate switch related pinmuxing
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

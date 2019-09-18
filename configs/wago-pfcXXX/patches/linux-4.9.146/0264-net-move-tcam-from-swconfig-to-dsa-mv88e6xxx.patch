@@ -1,7 +1,7 @@
 From d3ed38dce0271b9f7205b5572becaa1922a181f3 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 26 Sep 2018 13:36:48 +0200
-Subject: [PATCH 264/292] net: move tcam from swconfig to dsa mv88e6xxx
+Subject: [PATCH] net: move tcam from swconfig to dsa mv88e6xxx
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

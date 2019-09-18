@@ -1,7 +1,7 @@
 From 8eec860114a4c0c04e423767ba6a57fa6236b686 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Mon, 18 Jun 2018 13:03:46 +0200
-Subject: [PATCH 177/292] net: swcfg: don't flush static entries
+Subject: [PATCH] net: swcfg: don't flush static entries
 
 Flush only non-static ATU entries.
 For flushing of non-static ATU entries, ATU entry state

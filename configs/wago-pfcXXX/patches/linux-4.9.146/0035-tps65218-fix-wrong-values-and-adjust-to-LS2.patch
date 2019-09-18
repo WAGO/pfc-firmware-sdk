@@ -1,7 +1,7 @@
 From 8d7e2183a7c933c9d11be3eda0b87486724c8a98 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 24 Jan 2017 11:55:38 +0000
-Subject: [PATCH 035/292] tps65218: fix wrong values and adjust to LS2
+Subject: [PATCH] tps65218: fix wrong values and adjust to LS2
 
 ---
  drivers/regulator/tps65218-regulator.c | 23 ++++++++++++++++++-----

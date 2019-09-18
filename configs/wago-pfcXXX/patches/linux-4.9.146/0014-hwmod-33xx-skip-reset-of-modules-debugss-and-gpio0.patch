@@ -1,7 +1,7 @@
 From 6e656e595389bbc8df483583cc73c2dad304dbe2 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 28 Nov 2016 10:24:27 +0000
-Subject: [PATCH 014/292] hwmod 33xx: skip reset of modules debugss and gpio0
+Subject: [PATCH] hwmod 33xx: skip reset of modules debugss and gpio0
 
 ---
  arch/arm/mach-omap2/omap_hwmod_33xx_data.c | 3 ++-

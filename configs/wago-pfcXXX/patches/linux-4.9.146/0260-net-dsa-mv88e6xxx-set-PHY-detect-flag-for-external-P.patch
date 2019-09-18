@@ -1,8 +1,7 @@
 From dd27eede0b5637eccfa0baf5ec2356e1616c5f52 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Tue, 25 Sep 2018 11:02:00 +0200
-Subject: [PATCH 260/292] net: dsa: mv88e6xxx: set PHY-detect flag for external
- PHYs
+Subject: [PATCH] net: dsa: mv88e6xxx: set PHY-detect flag for external PHYs
 
 Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
 ---

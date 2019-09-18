@@ -13,7 +13,9 @@ const GDBusInterfaceVTable DBusServer::interface_vtable =
 {
     handle_method_call,
     handle_get_property,
-    handle_set_property
+    handle_set_property,
+    //padding
+    {0}
 };
 
 void
@@ -96,7 +98,7 @@ DBusServer::DBusServer( const std::string &bus_name, const std::string &object_n
 {
     _owner_id = 0;
     _connection = 0;
-    _introspection_data = g_dbus_node_info_new_for_xml (introspection_xml.c_str(), NULL);
+    _introspection_data = g_dbus_node_info_new_for_xml (introspection_xml.c_str(), nullptr);
 
     if (_introspection_data == 0)
 	throw std::exception();
@@ -133,8 +135,8 @@ DBusServer::bus_acquired(GDBusConnection *connection, const std::string &name)
 		*i,
 		&interface_vtable,
 		this,
-		NULL,  /* user_data_free_func */
-		NULL); /* GError** */
+		nullptr,  /* user_data_free_func */
+		nullptr); /* GError** */
 	g_assert (_registration_id > 0);
     }
 }

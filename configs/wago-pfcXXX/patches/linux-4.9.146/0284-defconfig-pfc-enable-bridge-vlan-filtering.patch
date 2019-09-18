@@ -1,7 +1,7 @@
 From 01d49fd1c64bbf77faae152b0f88ad0a96ed98e5 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 7 Dec 2018 14:27:54 +0100
-Subject: [PATCH 284/292] defconfig: pfc: enable bridge vlan filtering
+Subject: [PATCH] defconfig: pfc: enable bridge vlan filtering
 
 This config is used by docker to virtualize bridges in container
 

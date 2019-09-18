@@ -1,7 +1,7 @@
 From 1b0fd6aaa1697a4ed0de3fff0f3b9124a410eb57 Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Wed, 17 Oct 2018 11:14:16 +0200
-Subject: [PATCH 270/292] swconfig: remove tcam part
+Subject: [PATCH] swconfig: remove tcam part
 
 TCAM is moved to DSA
 

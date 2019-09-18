@@ -1,7 +1,7 @@
 From a560d9c9d8ac37f7e78ef5f08b2d7549edc8a30a Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 27 Jul 2018 12:02:33 +0200
-Subject: [PATCH 219/292] swconfig: mv88e6321: disable EEE
+Subject: [PATCH] swconfig: mv88e6321: disable EEE
 
 MV88E6321 internal phys on port 3 and 4 are capable to use EEE
 (Energy Efficient Ethernet). If two of this phys connected to

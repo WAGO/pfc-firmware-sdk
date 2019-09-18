@@ -1,7 +1,7 @@
 From da35e81e7cfd73f84500a5cd0cde3da4428e1705 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Mon, 4 Jun 2018 09:02:04 +0200
-Subject: [PATCH 206/292] samples: bpf: add xdp socket sample application
+Subject: [PATCH] samples: bpf: add xdp socket sample application
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
