@@ -305,6 +305,13 @@ else
 PHP7_AUTOCONF += --without-iconv
 endif
 
+ifdef PTXCONF_PHP7_EXT_LDAP
+PHP7_AUTOCONF += --with-ldap
+else
+# PHP7_AUTOCONF += --without-ldap
+endif
+
+
 # ----------------------------------------------------------------------------
 # Target-Install
 # ----------------------------------------------------------------------------

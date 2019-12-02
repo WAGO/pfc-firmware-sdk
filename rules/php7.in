@@ -335,6 +335,12 @@ config PHP7_EXT_ICONV
 	help
 	  Enable iconv support for PHP.
 
+config PHP7_EXT_LDAP
+        bool
+        prompt "ldap"
+        help
+          Enable ldap support for PHP.
+
 endmenu
 
 endif
