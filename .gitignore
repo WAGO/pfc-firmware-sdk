@@ -1,0 +1,8 @@
+src/*
+local_src/*
+configs/wago-pfcXXX/platformconfig.old
+platform-wago-pfcXXX/*
+selected_platformconfig
+selected_ptxconfig
+selected_toolchain
+
