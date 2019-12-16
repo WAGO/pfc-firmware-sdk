@@ -11,7 +11,7 @@
 ///
 ///  \file     config_switch.c
 ///
-///  \version  $Revision: 36511 $1
+///  \version  $Revision: 42234 $1
 ///
 ///  \brief    
 ///
@@ -273,7 +273,6 @@ int SetEthSettings(struct options *opts)
     assert(NULL != opts);
 
     int status = SUCCESS;
-    char currentMode[2];
 
     if(SUCCESS == status && (NULL != opts->bcastProtect) )
     {
@@ -290,12 +289,7 @@ int SetEthSettings(struct options *opts)
         status = ct_libnet_set_rate_limit(opts->switchName, opts->rateLimit);
     }
 
-    currentMode[0] = '\0';
-    //Read current dsa mode from switch hw.
-    status = ct_libnet_get_actual_dsa_state(currentMode, sizeof(currentMode));
-
-    //Fast Aging is only supported in switched mode
-    if(SUCCESS == status && !strcmp(currentMode,"0") && (NULL != opts->fastAging) )
+    if(SUCCESS == status && (NULL != opts->fastAging) )
     {
         status = ct_libnet_set_fast_aging(opts->switchName, opts->fastAging);
     }

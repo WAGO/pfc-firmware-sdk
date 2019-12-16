@@ -1,0 +1,44 @@
+From eaab30a4b26741c85240e84fb6d7257f06684fec Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 19 Sep 2019 12:39:35 +0200
+Subject: [PATCH] dts: 768_3301: add anv32aa1w spi mtd sram flash device
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_3301.dts | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301.dts b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+index 56f34f8..b688bed 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_3301.dts
++++ b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+@@ -50,10 +50,6 @@
+ 	status = "okay";
+ };
+ 
+-&spi0 {
+-	status = "okay";
+-};
+-
+ &uart0 {
+ 	status = "okay";
+ };
+@@ -135,3 +131,15 @@
+ 	status = "okay";
+ };
+ 
++&spi0 {
++	status = "okay";
++
++	spi-sram@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "anvo-systems,anv32aa1w";
++		reg = <0>;
++		spi-max-frequency = <48000000>;
++	};
++};
++
+-- 
+2.7.4
+

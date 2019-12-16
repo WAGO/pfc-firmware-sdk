@@ -2,13 +2,14 @@
 #
 # /etc/init.d/dnsmasq
 #
-# $Id: dnsmasq 9287 2014-07-14 08:57:24Z hans-josef.hoffmann@wago.com $
+# $Id: dnsmasq 42745 2019-09-13 10:23:09Z christian.hohnstaedt@wago.com $
 #
 PIDFILE=/var/run/dnsmasq.pid
 DNSMASQ=/usr/sbin/dnsmasq
 CONFIG_TOOL=/etc/config-tools/config_dnsmasq_c
 
 function start_dnsmasq {
+	touch "/etc/dnsmasq.d/dnsmasq_gadget.conf"
 	if [ ! -e $PIDFILE ]; then
                 echo "dnsmasq starting"
                 if [ -x $CONFIG_TOOL ]; then

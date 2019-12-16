@@ -376,7 +376,6 @@ source "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/ptxd_lib_kgen.sh
 # $2	output xml file	
 #
 ptxd_kconfig() {
-	local config="xml"
 	local part="ptx"
 	local config_prefix="${1}"
 	local xml_out="${2}"
@@ -392,28 +391,32 @@ ptxd_kconfig() {
 	fi
 	file_dotconfig="${PTXDIST_PTXCONFIG}"
 
-	local tmpdir
-	tmpdir="$(mktemp -d "${PTXDIST_TEMPDIR}/kconfig.XXXXXX")" || ptxd_bailout "unable to create tmpdir"
-	pushd "${tmpdir}" > /dev/null
+        local confdir="${PTXDIST_TEMPDIR}/kconfig"
+        if [ ! -d "${confdir}" ]; then
+                mkdir -p "${confdir}" || ptxd_bailout "unable to create tmpdir"
+                pushd "${confdir}" > /dev/null
 
-	ln -sf "${PTXDIST_TOPDIR}/rules" &&
-	ln -sf "${PTXDIST_TOPDIR}/config" &&
-	ln -sf "${PTXDIST_TOPDIR}/platforms" &&
-	ln -sf "${PTXDIST_WORKSPACE}" workspace &&
-	ln -sf "${PTX_KGEN_DIR}/${part}" generated || return
+                ln -sf "${PTXDIST_TOPDIR}/rules" &&
+                mkdir config &&
+                ptxd_in_path PTXDIST_PATH config &&
+                for dir in "${ptxd_reply[@]}"; do
+                        local tmp
+                        for tmp in $( ( cd "${dir}" && ls ) 2>/dev/null); do
+                                if [ ! -e "config/${tmp}" ]; then
+                                        ln -sfT "${dir}/${tmp}" "config/${tmp}" || break
+                                fi
+                        done
+                done &&
+                ln -sf "${PTXDIST_TOPDIR}/platforms" &&
+                ln -sf "${PTXDIST_WORKSPACE}" workspace &&
+                ln -sf "${PTX_KGEN_DIR}/generated"
+        else
+                pushd "${confdir}" > /dev/null
+        fi &&
 
-	if [ -e "${file_dotconfig}" ]; then
-		cp -- "${file_dotconfig}" ".config" || return
-	fi
-
-	local conf="${PTXDIST_TOPDIR}/scripts/kconfig/conf"
-	local mconf="${PTXDIST_TOPDIR}/scripts/kconfig/mconf"
-	local nconf="${PTXDIST_TOPDIR}/scripts/kconfig/nconf"
-
-	export \
-		KCONFIG_NOTIMESTAMP="1" \
-		PROJECT="ptxdist" \
-		FULLVERSION="${PTXDIST_VERSION_FULL}"
+        if [ -e "${file_dotconfig}" ]; then
+                cp -- "${file_dotconfig}" ".config" || return
+        fi
 
 	# write to the output file the xml header...
 	cat > ${xml_out} <<-EOT
@@ -423,7 +426,11 @@ ptxd_kconfig() {
 	EOT
 
 	# ... now the contents ...
-	${xmlconf} -m ${file_kconfig} -c ${PTXDIST_WORKSPACE}/selected_ptxconfig -p "${config_prefix}" >> "${xml_out}"
+    if [[ -n "${PYTHONHOME}" ]]; then
+    	PYTHONHOME="${PYTHONHOME}" ${xmlconf} -m ${file_kconfig} -c ${PTXDIST_WORKSPACE}/selected_ptxconfig -p "${config_prefix}" >> "${xml_out}"
+    else
+    	${xmlconf} -m ${file_kconfig} -c ${PTXDIST_WORKSPACE}/selected_ptxconfig -p "${config_prefix}" >> "${xml_out}"
+    fi
 	exit_status=$?
 
 	if [[ $exit_status == 0 ]]; then
@@ -436,15 +443,8 @@ ptxd_kconfig() {
 		exit 1
 	fi
 
-	local retval=${?}
-	unset \
-		KCONFIG_NOTIMESTAMP \
-		PROJECT \
-		FULLVERSION
-
 	popd > /dev/null
-	rm -fr "${tmpdir}"
 
-	return $retval
+	return
 }
 export -f ptxd_kconfig

@@ -147,6 +147,8 @@ Change12HourTo24Hour()
 
       if (( $hours12 < 12 )); then
         hours24=$(($hours12 + 12))
+      elif [ "12" == "$hours12" ]; then
+	hours24=12
       fi
       # else hour-value is invalid -> hours24 = ""
           
@@ -180,12 +182,6 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo "date-value: Format dd.mm.yyyy"
   echo
   exit $status
-fi
-
-
-# if config-file for time-display format doesn't exist
-if [ ! -f $CLOCK_FORMAT_FILENAME ]; then
-  displayMode="HOUR_FORMAT_24"
 fi
 
 # filter input parmeter of input-string
@@ -265,10 +261,7 @@ if [ -n "$newTime" ] || [ -n "$newDate" ]; then
   displayModeString=`Get12HourStringFromTimeString $time`
   #echo "hours:"$hours "minutes:"$minutes "displayModeString:"$displayModeString >> /etc/config-tools/debug
 
-  displayMode=`${CONFIG_TOOLS_PATH}get_clock_data display-mode`
-  #echo "displayMode:"$displayMode >> /etc/config-tools/debug
-
-  if [ "$HOUR_FORMAT_12" == "$displayMode" ]; then
+  if [ ! -z "$displayModeString" ]; then
     hours=`Change12HourTo24Hour $hours $displayModeString`
     #echo "new hours:"$hours >> /etc/config-tools/debug
   fi

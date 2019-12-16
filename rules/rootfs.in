@@ -147,6 +147,13 @@ config ROOTFS_MNT
 	  This is a common directory to temporarely mount external media. Its
 	  always a good idea to select this entry.
 
+config ROOTFS_CONFIGFS
+	bool
+	prompt "mount configfs on /config"
+	help
+	  If enabled, it creates "/config" and mounts configfs. Required for
+	  PAC100 USB gadget
+
 config ROOTFS_PROC
 	bool
 	prompt "/proc"
@@ -418,6 +425,26 @@ if ROOTFS_GROUP_ADMIN
     prompt "group entry"
 
 endif
+endif
+
+if ROOTFS_GROUP
+    menuconfig ROOTFS_GROUP_USER
+    bool
+    default y
+    prompt "Enable group 'user'"
+
+if ROOTFS_GROUP_USER
+    config ROOTFS_GROUP_USER_GID
+    string
+    default "1000"
+    prompt "GID for linux group 'user'"
+
+    config ROOTFS_GROUP_USER_ENTRY
+    string
+    default "user:x:${ROOTFS_GROUP_USER_GID}:"
+    prompt "group entry"
+endif
+
 endif
 
 if ROOTFS_GROUP

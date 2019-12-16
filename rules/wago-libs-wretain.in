@@ -1,0 +1,72 @@
+## SECTION=wago_specific_libs
+
+comment "wretain: libnvram is selected! Both solutions are mutually exclusive!"
+	depends on LIBNVRAM
+
+comment "wretain: retain_data is selected! Both solutions are mutually exclusive!"
+	depends on RETAIN_DATA
+
+config WRETAIN
+	bool
+	prompt "wretain"
+	select BOOST
+	select WSTD
+	select HOST_CMAKE
+	select GOOGLETEST
+	select LIBUIO
+	help
+	  Retain Variables CODESYS implementation (library and command line management tool) for PFC controller family.
+
+if WRETAIN
+
+choice
+	prompt "wretain hardware link type."
+
+	default WRETAIN_LINK_TYPE_DIRECT
+
+	config WRETAIN_LINK_TYPE_DIRECT
+	bool
+	prompt "direct"
+	help
+	  Direct variant should be selected for platforms with direct, GPMC-NVRAM hardware connection.
+
+	config WRETAIN_LINK_TYPE_SERIAL
+	bool
+	prompt "serial"
+	help
+	  Serial variant should be selected for platforms with serial, SPI-NVRAM hardware connection.
+endchoice
+
+config WRETAIN_BUILD_TESTING
+	bool
+	prompt "Build unit tests of wretain project."
+	default n
+
+config WRETAIN_DEV
+	bool
+	prompt "Use development version."
+	help
+	  Instead of released version use source code directly checked-out from repository.
+	  Use only for development!
+
+if WRETAIN_DEV
+
+config WRETAIN_DEV_BRANCH
+	string
+	prompt "Branch to be checked-out."
+	default "master"
+	help
+	  Name of branch which should be checked out or empty for default.
+
+endif
+
+config WRETAIN_URL_TEMPLATE
+	string
+    depends on WRETAIN
+	prompt "URL template"
+	default "%ARTIFACTORY_BASE_URL%/pl_controller-generic-prod-local/wago_intern/wretain-Source/wretain-Source-%VERSION%.tgz"
+	help
+	  Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+	  See Confluence for further details.
+
+endif

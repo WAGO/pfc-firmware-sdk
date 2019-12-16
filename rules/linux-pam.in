@@ -1,0 +1,303 @@
+## SECTION=system_libraries
+
+menuconfig LINUX_PAM
+	tristate
+	default n
+	select FLEX
+	select GLIBC
+	prompt "linux-pam"
+	help
+	  Linux-PAM library.
+
+if LINUX_PAM
+
+config LINUX_PAM_PAM_DEBUG
+	bool
+	default n
+	prompt "pam_debug"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_DENY
+	bool
+	default y
+	prompt "pam_deny"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_ECHO
+	bool
+	default n
+	prompt "pam_echo"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_EXEC
+	bool
+	default n
+	prompt "pam_exec"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_FAILDELAY
+	bool
+	default n
+	prompt "pam_faildelay"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_FTP
+	bool
+	default n
+	prompt "pam_ftp"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_ISSUE
+	bool
+	default n
+	prompt "pam_issue"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_KEYINIT
+	bool
+	default n
+	prompt "pam_keyinit"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_LASTLOG
+	bool
+	default n
+	prompt "pam_lastlog"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_LISTFILE
+	bool
+	default n
+	prompt "pam_listfile"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_LOCALUSER
+	bool
+	default n
+	prompt "pam_localuser"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_LOGINUID
+	bool
+	default n
+	prompt "pam_loginuid"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_MAIL
+	bool
+	default n
+	prompt "pam_mail"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_MOTD
+	bool
+	default n
+	prompt "pam_motd"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_NOLOGIN
+	bool
+	default n
+	prompt "pam_nologin"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_PERMIT
+	bool
+	default y
+	prompt "pam_permit"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_PWHISTORY
+	bool
+	default n
+	prompt "pam_pwhistory"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_RHOSTS
+	bool
+	default n
+	prompt "pam_rhosts"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_ROOTOK
+	bool
+	default n
+	prompt "pam_rootok"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_SECURETTY
+	bool
+	default n
+	prompt "pam_securetty"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_SHELLS
+	bool
+	default n
+	prompt "pam_shells"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_STRESS
+	bool
+	default n
+	prompt "pam_stress"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_SUCCEED_IF
+	bool
+	default n
+	prompt "pam_succeed_if"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_UMASK
+	bool
+	default n
+	prompt "pam_umask"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_USERDB
+	bool
+	default n
+	prompt "pam_userdb"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_WARN
+	bool
+	default y 
+	prompt "pam_warn"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_WHEEL
+	bool
+	default n
+	prompt "pam_wheel"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_XAUTH
+	bool
+	default n
+	prompt "pam_xauth"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_ACCESS
+	bool
+	default n
+	prompt "pam_access"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_ENV
+	bool
+	default n
+	prompt "pam_env"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_FILTER
+	bool
+	default n
+	prompt "pam_filter"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_GROUP
+	bool
+	default n
+	prompt "pam_group"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_MKHOMEDIR
+	bool
+	default n
+	prompt "pam_mkhomedir"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_LIMITS
+	bool
+	default n
+	prompt "pam_limits"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_NAMESPACE
+	bool
+	depends on GLOBAL_SELINUX
+	default n
+	prompt "pam_namespace"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_TALLY
+	bool
+	default n
+	prompt "pam_tally"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_TALLY2
+	bool
+	default n
+	prompt "pam_tally2"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_TIME
+	bool
+	default n
+	prompt "pam_time"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_TIMESTAMP
+	bool
+	default n
+	prompt "pam_timestamp"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_UNIX
+	bool
+	default y 
+	prompt "pam_unix"
+	help
+	  FIXME
+
+config LINUX_PAM_PAM_CRACKLIB
+	bool
+	default n
+	prompt "pam_cracklib"
+	help
+	  FIXME
+
+endif # if LINUX_PAM
+

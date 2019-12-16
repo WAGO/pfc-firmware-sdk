@@ -1,3 +1,29 @@
+Firmware Release 03.03.10 (99)
+System:
+[NEW]   The switch mode on 4-port PFC devices (750-8215) may now be configured
+    like 2-port devices for ports X1 & X2 via WBM.
+    The default switch configuration on 750-8215 has changed from a fixed
+    separated to an all switched setting.
+    It is now possible to configure all 4 ports, as you like via config-tool.
+    Our next release will make this feature available via WBM.
+[NEW]   By download of the CDS3 PROFINET i-Device functionality, the 
+    PROFINET-designated ports X11 & X12 are automatically combined in one bridge.
+[FIXED] Cloud-Connectivity: Improve robustness of Azure IoT hub connection
+    when using an unreliable network connection.
+[FIXED] Correct impact of SMS method calls and modem status requests from
+    Codesys IEC application to modem data service for PFC 750-8207
+
+Runtime System:
+[FIXED] Correct directory handling in e!Cockpit SysDirLinux library for PFC
+
+Fieldbus Interface & Protocols:
+ - Profibus
+   [FIXED] Correct mapping of PROFIBUS Bool variables for PFC. Possible wrong 
+           configuration of Bool arrays is now blocked in the
+           CODESYS 2.3 PROFIBUS configurator (requires new TSP).
+
+################################################################################
+
 Firmware Release 03.02.02 (99)
 System:
 [FIXED] e!COCKPIT BlkDrvTcp Exception

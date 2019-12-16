@@ -1,0 +1,47 @@
+From b6da2a904aa5989c0aa0097d5141c6297fc1bf27 Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Thu, 24 Oct 2019 09:42:38 +0200
+Subject: [PATCH] rmd: fix null-pointer exception introduced by the previous
+ patch
+
+In SoftCopy mode, there is no dma_info structure.
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/char/rmd.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
+index 0f42e8e9c978..3f140fe69040 100644
+--- a/drivers/char/rmd.c
++++ b/drivers/char/rmd.c
+@@ -637,13 +637,14 @@ static int rmd_dma_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
+ 
+ static int rmd_dma_enable_disable_tx(struct rmd_info *info, int enable)
+ {
+-	struct dma_chan *tx_chan = info->tx_channel.dma_info->chan;
++	struct rmd_dma_info *dma_info = info->tx_channel.dma_info;
+ 
+ 	info->is_tx_enabled = enable;
+-	if (rmd_softcopy_mode(&info->config))
++	if (rmd_softcopy_mode(&info->config) || !dma_info)
+ 		return 0;
+ 
+-	return enable ? dmaengine_resume(tx_chan) : dmaengine_pause(tx_chan);
++	return enable ? dmaengine_resume(dma_info->chan) :
++			dmaengine_pause(dma_info->chan);
+ }
+ 
+ static void rmd_dma_release_channel(struct rmd_channel *chan)
+@@ -678,7 +679,7 @@ static int rmd_dma_setup(struct rmd_info *info)
+ 	if (ret)
+ 		rmd_dma_release_channel(&info->rx_channel);
+ 	else
+-		ret = rmd_dma_enable_disable_tx(rmd->info, 0);
++		ret = rmd_dma_enable_disable_tx(info, 0);
+ 
+ 	return ret;
+ }
+-- 
+2.17.1
+

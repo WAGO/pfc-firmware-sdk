@@ -1,0 +1,481 @@
+From 1e88d6e908fc200d7ea6c9d6c9f73a9f60012b16 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Fri, 27 Sep 2019 16:32:16 +0200
+Subject: [PATCH] driver: net: swcfg: ksz8863: incorporate review feedback
+
+- replace custom mac print with mac address format specifier
+- remove unnecessary null checks
+- fix strcmp that would match arbitrary string starting with "off"
+- use ETH_ALEN instead of magic number
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/phy/ksz8863-cfg.c | 144 +++++++++++++++++++++---------------------
+ include/linux/ksz8863.h       |  21 +++---
+ 2 files changed, 84 insertions(+), 81 deletions(-)
+
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index fdde283..ca3586f 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -20,8 +20,6 @@
+ #define KSZ8863_CFG_VAL_BUF_SIZE 200
+ #define KSZ8863_CFG_TBL_BUF_SIZE 1024
+ 
+-#define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
+-
+ struct ksz8863_cfg {
+ 	struct switch_dev swdev;
+ 	struct device *dev;
+@@ -55,8 +53,9 @@ static inline void ksz8863_reg_unlock(struct ksz8863_cfg *cfg)
+ 	mutex_unlock(&cfg->chip->reg_lock);
+ }
+ 
+-static void ksz8863_cfg_set_str_val(struct switch_val *val, char buf[],
+-				    size_t size, const char *fmt, ...)
++static void __printf(4, 5)
++	ksz8863_cfg_set_str_val(struct switch_val *val, char buf[], size_t size,
++				const char *fmt, ...)
+ {
+ 	va_list args;
+ 
+@@ -120,7 +119,7 @@ static int ksz8863_cfg_set_bcast_rate(struct ksz8863_cfg *cfg,
+ 	gl_ctrl4_val |= (frames_per_interval >> 8) &
+ 			KSZ8863_REG_GL_CTRL4_BCAST_STORM_RATE_HI_MASK;
+ 	gl_ctrl5_val = frames_per_interval &
+-			KSZ8863_REG_GL_CTRL5_BCAST_STORM_RATE_LO_MASK;
++		       KSZ8863_REG_GL_CTRL5_BCAST_STORM_RATE_LO_MASK;
+ 
+ 	err = ksz8863_cfg_smi_write(cfg, KSZ8863_REG_GL_CTRL5, gl_ctrl5_val);
+ 	if (err)
+@@ -161,8 +160,6 @@ static int ksz8863_cfg_set_bcast_protect(struct switch_dev *dev,
+ 	u8 rv[KSZ8863_EXT_PORTS];
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	ksz8863_reg_lock(cfg);
+ 
+@@ -180,15 +177,19 @@ static int ksz8863_cfg_set_bcast_protect(struct switch_dev *dev,
+ 	if (!rate) {
+ 		for (port = 0; port < KSZ8863_EXT_PORTS; port++)
+ 			rv[port] &= ~KSZ8863_REG_PORT_CTRL0_BROADCAST_STORM;
+-		dev_info(cfg->dev, "disable broadcast storm protection on port 1 and port 2");
++		dev_info(
++			cfg->dev,
++			"disable broadcast storm protection on port 1 and port 2");
+ 	} else {
+ 		bool mode_10bt;
+ 		int frames_per_sec, ms_per_interval, frames_per_interval;
+ 		int div, num;
+ 
+ 		if (rate > 20) {
+-			dev_info(cfg->dev, "rate (%d) is too high, throttle to max. (20%%)",
+-				 rate);
++			dev_info(
++				cfg->dev,
++				"rate (%d) is too high, throttle to max. (20%%)",
++				rate);
+ 			rate = 20;
+ 		}
+ 
+@@ -216,10 +217,12 @@ static int ksz8863_cfg_set_bcast_protect(struct switch_dev *dev,
+ 		for (port = 0; port < KSZ8863_EXT_PORTS; port++)
+ 			rv[port] |= KSZ8863_REG_PORT_CTRL0_BROADCAST_STORM;
+ 
+-		dev_info(cfg->dev, "enable broadcast storm protection on port 1 and port 2 "
+-				   "(%s: rate %d, %d frames / interval",
+-				   mode_10bt ? "10BT" : "100BT", rate,
+-				   frames_per_interval);
++		dev_info(
++			cfg->dev,
++			"enable broadcast storm protection on port 1 and port 2 "
++			"(%s: rate %d, %d frames / interval",
++			mode_10bt ? "10BT" : "100BT", rate,
++			frames_per_interval);
+ 	}
+ 
+ 	for (port = 0; port < KSZ8863_EXT_PORTS; port++) {
+@@ -247,8 +250,6 @@ static int ksz8863_cfg_get_bcast_protect(struct switch_dev *dev,
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	ksz8863_reg_lock(cfg);
+ 
+@@ -289,11 +290,11 @@ static int ksz8863_cfg_get_bcast_protect(struct switch_dev *dev,
+ 			bcast_en = false;
+ 	}
+ 
+-	dev_info(cfg->dev, "broadcast storm protection is %s on port 1 and port 2 "
++	dev_info(cfg->dev,
++		 "broadcast storm protection is %s on port 1 and port 2 "
+ 		 "(%s: calculated rate %d, %d frames / interval )",
+ 		 bcast_en ? "enabled" : "disabled",
+-		 mode_10bt ? "10BT" : "100BT",
+-		 rate, frames_per_interval);
++		 mode_10bt ? "10BT" : "100BT", rate, frames_per_interval);
+ 
+ 	val->value.i = bcast_en ? rate : 0;
+ 
+@@ -306,9 +307,9 @@ static int ksz8863_cfg_get_bcast_protect(struct switch_dev *dev,
+ static int ksz8863_cfg_parse_ratelimit(const char *value, int *rate_limit,
+ 				       bool *mode_mbps)
+ {
+-	char modestr[5] = {0};
++	char modestr[5] = { 0 };
+ 
+-	if (!strncmp(value, "off", 3)) {
++	if (!strcmp(value, "off")) {
+ 		*rate_limit = -1;
+ 		return 0;
+ 	}
+@@ -372,8 +373,6 @@ static int ksz8863_cfg_set_ratelimit(struct switch_dev *dev,
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	err = ksz8863_cfg_parse_ratelimit(val->value.s, &rate_limit,
+ 					  &mode_mbps);
+@@ -399,8 +398,7 @@ static int ksz8863_cfg_set_ratelimit(struct switch_dev *dev,
+ 		goto out_unlock;
+ 
+ 	for (p3_erl_q = KSZ8863_REG_PORT3_EGRESS_RL_Q3;
+-	     p3_erl_q != KSZ8863_REG_PORT3_EGRESS_RL_Q1;
+-	     p3_erl_q--) {
++	     p3_erl_q != KSZ8863_REG_PORT3_EGRESS_RL_Q1; p3_erl_q--) {
+ 		err = ksz8863_cfg_smi_write(cfg, p3_erl_q, reg);
+ 		if (err)
+ 			goto out_unlock;
+@@ -431,8 +429,6 @@ static int ksz8863_cfg_get_ratelimit(struct switch_dev *dev,
+ 	char *modestr = "none";
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	ksz8863_reg_lock(cfg);
+ 
+@@ -486,8 +482,8 @@ static int ksz8863_cfg_get_ratelimit(struct switch_dev *dev,
+ static int ksz8863_cfg_flush_dyn_mac(struct ksz8863_cfg *cfg)
+ {
+ 	return ksz8863_cfg_set_bit(cfg, KSZ8863_REG_GL_CTRL0,
+-				  KSZ8863_REG_GL_CTRL0_FLUSH_DYN_MAC_TABLE,
+-				  true, true);
++				   KSZ8863_REG_GL_CTRL0_FLUSH_DYN_MAC_TABLE,
++				   true, true);
+ }
+ 
+ static int ksz8863_cfg_set_fastageing(struct switch_dev *dev,
+@@ -499,8 +495,6 @@ static int ksz8863_cfg_set_fastageing(struct switch_dev *dev,
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	enable = val->value.i;
+ 
+@@ -539,8 +533,6 @@ static int ksz8863_cfg_get_fastageing(struct switch_dev *dev,
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	if (!cfg->chip->switched) {
+ 		/* if switch is in separated mode then
+@@ -553,7 +545,7 @@ static int ksz8863_cfg_get_fastageing(struct switch_dev *dev,
+ 
+ 	ksz8863_reg_lock(cfg);
+ 
+-	for (port = 0; port < KSZ8863_NUM_PORTS; ++port){
++	for (port = 0; port < KSZ8863_NUM_PORTS; ++port) {
+ 		int pb = KSZ8863_REG_PORTS_BASE * port;
+ 
+ 		err = ksz8863_cfg_smi_read(cfg, pb + KSZ8863_REG_PORT1_CTRL2,
+@@ -569,7 +561,9 @@ static int ksz8863_cfg_get_fastageing(struct switch_dev *dev,
+ 	 * fast ageing is enabled
+ 	 */
+ 	val->value.i = ((rv[0] & rv[1] & rv[2]) &
+-			KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE) ? 1 : 0;
++			KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE) ?
++			       1 :
++			       0;
+ 
+ 	return 0;
+ 
+@@ -582,13 +576,12 @@ static int ksz8863_cfg_get_fastageing(struct switch_dev *dev,
+ static int ksz8863_cfg_set_port_mirror(struct switch_dev *dev,
+ 				       const struct switch_attr *attr,
+ 				       struct switch_val *val)
+-{	int err, port, mirror;
++{
++	int err, port, mirror;
+ 	u8 pc1v[KSZ8863_NUM_PORTS];
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	mirror = val->value.i;
+ 
+@@ -666,8 +659,6 @@ static int ksz8863_cfg_get_port_mirror(struct switch_dev *dev,
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	ksz8863_reg_lock(cfg);
+ 
+@@ -699,10 +690,10 @@ static int ksz8863_cfg_get_port_mirror(struct switch_dev *dev,
+ 	    !(pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
+ 		mirror = 1;
+ 	} else if (!(pc1v[0] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER) &&
+-		 (pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
++		   (pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
+ 		mirror = 2;
+ 	} else if (!(pc1v[0] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER) &&
+-		 !(pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
++		   !(pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
+ 		mirror = 0;
+ 	} else {
+ 		err = -EINVAL;
+@@ -727,7 +718,7 @@ ksz8863_cfg_get_dyn_mac_entry(struct ksz8863_cfg *cfg, u8 idx,
+ 			      struct ksz8863_dyn_mac_tbl_entry *entry)
+ {
+ 	return cfg->chip->mii_ops->read_table(cfg->chip, KSZ8863_TBL_DYN_MAC,
+-					     idx, (u8 *)entry, sizeof(*entry));
++					      idx, (u8 *)entry, sizeof(*entry));
+ }
+ 
+ static int ksz8863_cfg_get_dyn_macs(struct switch_dev *dev,
+@@ -739,15 +730,14 @@ static int ksz8863_cfg_get_dyn_macs(struct switch_dev *dev,
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+ 	err = ksz8863_cfg_get_dyn_mac_entry(cfg, 0, &entry);
+ 	if (err)
+ 		return err;
+ 
+-	ksz8863_cfg_set_str_val(val, cfg->buf_dyn_mac,
+-				sizeof(cfg->buf_dyn_mac), "");
++	cfg->buf_dyn_mac[0] = '\0';
++	val->value.s = &cfg->buf_dyn_mac[0];
++	val->len = 0;
+ 
+ 	if (entry.empty)
+ 		return 0;
+@@ -760,9 +750,7 @@ static int ksz8863_cfg_get_dyn_macs(struct switch_dev *dev,
+ 
+ 		val->len += snprintf(cfg->buf_dyn_mac + val->len,
+ 				     sizeof(cfg->buf_dyn_mac) - val->len,
+-				     "[%d: " MAC_FMT " %d %02d %d]\n", i,
+-				     entry.mac[5], entry.mac[4], entry.mac[3],
+-				     entry.mac[2], entry.mac[1], entry.mac[0],
++				     "[%d: %pM %d %02d %d]\n", i, entry.mac,
+ 				     entry.port, entry.fid, entry.time);
+ 	}
+ 
+@@ -795,11 +783,10 @@ static int ksz8863_cfg_get_static_macs(struct switch_dev *dev,
+ 	struct ksz8863_cfg *cfg;
+ 
+ 	cfg = get_ksz8863_cfg(dev);
+-	if (!cfg)
+-		return -ENODEV;
+ 
+-	ksz8863_cfg_set_str_val(val, cfg->buf_static_mac,
+-				sizeof(cfg->buf_static_mac), "");
++	cfg->buf_static_mac[0] = '\0';
++	val->value.s = &cfg->buf_static_mac[0];
++	val->len = 0;
+ 
+ 	for (i = 0; i < KSZ8863_SMAC_MAX_ENTRIES; i++) {
+ 		err = ksz8863_cfg_get_static_mac_entry(cfg, i, &entry);
+@@ -811,9 +798,7 @@ static int ksz8863_cfg_get_static_macs(struct switch_dev *dev,
+ 
+ 		val->len += snprintf(cfg->buf_static_mac + val->len,
+ 				     sizeof(cfg->buf_static_mac) - val->len,
+-				     "[%d: " MAC_FMT " 0x%x %02d %d]\n", i,
+-				     entry.mac[5], entry.mac[4], entry.mac[3],
+-				     entry.mac[2], entry.mac[1], entry.mac[0],
++				     "[%d: %pM 0x%x %02d %d]\n", i, entry.mac,
+ 				     entry.forward_ports,
+ 				     (entry.use_fid) ? entry.fid : -1,
+ 				     entry.override);
+@@ -839,43 +824,51 @@ static struct switch_attr ksz8863_cfg_global_attrs[] = {
+ 	{
+ 		.type = SWITCH_TYPE_INT,
+ 		.name = "bcast_protect",
+-		.description = "Sets the broadcast storm protection rate limit"
++		.description =
++			"Sets the broadcast storm protection rate limit"
+ 			" (0..20) for Port 1 & 2. '0' will disable protection",
+ 		.set = ksz8863_cfg_set_bcast_protect,
+ 		.get = ksz8863_cfg_get_bcast_protect,
+-	}, {
++	},
++	{
+ 		.type = SWITCH_TYPE_STRING,
+ 		.name = "rate_limit",
+-		.description = "Enables rate limiting on egress"
++		.description =
++			"Enables rate limiting on egress"
+ 			" Port3(CPU-Ingress), format='50.mbps'/'64.kbps'. 'off'"
+ 			" will disable rate limiting.",
+ 		.set = ksz8863_cfg_set_ratelimit,
+ 		.get = ksz8863_cfg_get_ratelimit,
+-	}, {
++	},
++	{
+ 		.type = SWITCH_TYPE_INT,
+ 		.name = "port_mirror",
+ 		.description = "Sets the mirror port"
+-			" [0 = disable port mirroring]"
+-			" [1 = mirror port X1 to port X2]"
+-			" [2 = mirror port X2 to port X1]",
++			       " [0 = disable port mirroring]"
++			       " [1 = mirror port X1 to port X2]"
++			       " [2 = mirror port X2 to port X1]",
+ 		.set = ksz8863_cfg_set_port_mirror,
+ 		.get = ksz8863_cfg_get_port_mirror,
+-	}, {
++	},
++	{
+ 		.type = SWITCH_TYPE_INT,
+ 		.name = "fast_aging",
+ 		.description = "Sets fast aging [0 = disable] [1 = enable]",
+ 		.set = ksz8863_cfg_set_fastageing,
+ 		.get = ksz8863_cfg_get_fastageing,
+-	}, {
++	},
++	{
+ 		.type = SWITCH_TYPE_STRING,
+ 		.name = "dynmacs",
+ 		.description = "Show dynamic MAC address table"
+-			" - read: 'mac, port, fid, ageing'",
++			       " - read: 'mac, port, fid, ageing'",
+ 		.get = ksz8863_cfg_get_dyn_macs,
+-	}, {
++	},
++	{
+ 		.type = SWITCH_TYPE_STRING,
+ 		.name = "statmacs",
+-		.description = "Read/Write static MAC address table"
++		.description =
++			"Read/Write static MAC address table"
+ 			" - read: 'mac, forward ports, fid, override'"
+ 			" - write: 'idx, mac, forward ports, valid, override,"
+ 			" use_fid, fid'",
+@@ -884,13 +877,17 @@ static struct switch_attr ksz8863_cfg_global_attrs[] = {
+ 	},
+ };
+ 
++
++// clang-format off
+ struct switch_dev_ops ksz8863_cfg_switch_dev_ops = {
+ 	.attr_global = {
+-		.attr = ksz8863_cfg_global_attrs,
+-		.n_attr = ARRAY_SIZE(ksz8863_cfg_global_attrs),
+-	},
++			.attr = ksz8863_cfg_global_attrs,
++			.n_attr = ARRAY_SIZE(ksz8863_cfg_global_attrs),
++		},
+ };
+ 
++// clang-format on
++
+ static struct ksz8863_cfg *ksz8863_cfg_alloc(struct device *dev)
+ {
+ 	struct ksz8863_cfg *cfg;
+@@ -1044,6 +1041,7 @@ static int ksz8863_cfg_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++// clang-format off
+ #ifdef CONFIG_OF
+ static const struct of_device_id ksz8863_of_match[] = {
+ 	{ .compatible = "swcfg,ksz8863" },
+@@ -1063,6 +1061,8 @@ static struct platform_driver ksz8863_driver = {
+ #endif
+ 	},
+ };
++
++// clang-format on
+ module_platform_driver(ksz8863_driver);
+ 
+ MODULE_AUTHOR("andreas.schmidt@wago.com>");
+diff --git a/include/linux/ksz8863.h b/include/linux/ksz8863.h
+index 27c857a..297fa46 100644
+--- a/include/linux/ksz8863.h
++++ b/include/linux/ksz8863.h
+@@ -25,6 +25,7 @@
+ #define KSZ8863_EXT_PORT1_ID 1
+ #define KSZ8863_EXT_PORT2_ID 2
+ 
++// clang-format off
+ #define KSZ8863_REG_CHIP_ID0			0x00
+ #define KSZ8863_REG_CHIP_ID0_FAMILY_ID			0x88
+ 
+@@ -242,6 +243,8 @@
+ #define KSZ8863_REG_PWR_LED_PWR_MODE_MASK		0x03
+ #define KSZ8863_REG_PWR_LED_PWR_MODE_SEL_SHIFT		0
+ 
++// clang-format on
++
+ struct ksz8863_port {
+ 	struct net_device *bridge;
+ };
+@@ -280,7 +283,7 @@ struct ksz8863_chip {
+ 	bool switched;
+ 
+ 	/* device mac address */
+-	u8 eth_addr[6];
++	u8 eth_addr[ETH_ALEN];
+ };
+ 
+ enum ksz8863_tables {
+@@ -295,7 +298,7 @@ enum ksz8863_tables {
+  * the fields order!
+  */
+ struct ksz8863_static_mac_tbl_entry {
+-	u8 mac[6];
++	u8 mac[ETH_ALEN];
+ 	u16 forward_ports:3;
+ 	u16 valid:1;
+ 	u16 override:1;
+@@ -309,14 +312,14 @@ struct ksz8863_static_mac_tbl_entry {
+  * the fields order!
+  */
+ struct ksz8863_dyn_mac_tbl_entry {
+-	u8 mac[6];
+-	u8 fid : 4;
+-	u8 port : 2;
+-	u8 time : 2;
+-	u16 valid_nb : 10;
+-	u16 empty : 1;
++	u8 mac[ETH_ALEN];
++	u8 fid:4;
++	u8 port:2;
++	u8 time:2;
++	u16 valid_nb:10;
++	u16 empty:1;
+ 	u16:4;
+-	u16 nrdy : 1;
++	u16 nrdy:1;
+ } __packed;
+ 
+ #define KSZ8863_SMAC_ENTRY_FWD_PORTS_PORT1	0x1
+-- 
+2.7.4
+

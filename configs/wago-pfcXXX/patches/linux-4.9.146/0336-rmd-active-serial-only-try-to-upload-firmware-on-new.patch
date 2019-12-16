@@ -1,0 +1,39 @@
+From 3e99c1731421be16d9cdb390f6279b6658d355c2 Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Mon, 23 Sep 2019 16:16:11 +0200
+Subject: [PATCH] rmd: active serial: only try to upload firmware on new PAC
+ devices
+
+On the old PAC100 devices the nrst, nce and nconfig GPIOs
+were not defined and Firmware upload via active serial mode
+is not supported.
+
+Only try active serial mode of those GPIOs are defined.
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/char/rmd.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
+index 363b810..985721e 100644
+--- a/drivers/char/rmd.c
++++ b/drivers/char/rmd.c
+@@ -683,9 +683,11 @@ static int rmd_open(struct inode *inode, struct file *filep)
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (rmd_load_firmware(rmd) != 0) {
+-		clear_bit(0, &rmd->is_open);
+-		return -ENODEV;
++	if (rmd->nrst && rmd->nce && rmd->nconfig) {
++		if (rmd_load_firmware(rmd) < 0) {
++			clear_bit(0, &rmd->is_open);
++			return -ENODEV;
++		}
+ 	}
+ 
+ 	rmd->info = info;
+-- 
+2.7.4
+

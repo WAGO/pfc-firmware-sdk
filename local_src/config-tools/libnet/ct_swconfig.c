@@ -72,6 +72,14 @@ int ct_swconfig_start_session(const char *switchName, swconfigSession_t **sessio
     return status;
 }
 
+const char *ct_swconfig_get_switch_alias(swconfigSession_t *sessionHandle)
+{
+  assert(NULL != sessionHandle);
+  assert(NULL != sessionHandle->dev);
+
+  return sessionHandle->dev->alias;
+}
+
 void ct_swconfig_finish_session(swconfigSession_t *sessionHandle)
 {
     assert(NULL != sessionHandle);

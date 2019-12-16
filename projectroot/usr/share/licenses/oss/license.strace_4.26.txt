@@ -1,9 +1,4 @@
-strace-4.26/AUTHORS
-
 See the file CREDITS.  Automake likes us to have this file called AUTHORS.
-
-strace-4.26/COPYING
-
 Copyright (c) 1991, 1992 Paul Kranenburg <pk@cs.few.eur.nl>
 Copyright (c) 1993 Branko Lankester <branko@hacktic.nl>
 Copyright (c) 1993 Ulrich Pegelow <pegelow@moorea.uni-muenster.de>
@@ -24,9 +19,6 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See LGPL-2.1-or-later for more details.
 
 strace test suite is provided under the terms of the GNU General Public License
 version 2 or later, see tests/COPYING for more details.
-
-strace-4.26/tests/COPYING
-
 Copyright (c) 2011-2018 The strace developers.
 All rights reserved.
 
@@ -38,9 +30,6 @@ option) any later version.
 strace test suite is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE. See GPL-2.0-or-later for more details.
-
-strace-4.26/debian/copyright
-
 This is the Debian packaged version of strace. For a complete list of
 changes from the upstream version please see the changelog.
 
@@ -68,9 +57,6 @@ or FITNESS FOR A PARTICULAR PURPOSE.  See LGPL-2.1-or-later for more details.
 
 strace test suite is provided under the terms of the GNU General Public License
 version 2 or later, see tests/COPYING for more details.
-
-strace-4.26/tests-m32/COPYING
-
 Copyright (c) 2011-2018 The strace developers.
 All rights reserved.
 
@@ -82,9 +68,6 @@ option) any later version.
 strace test suite is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE. See GPL-2.0-or-later for more details.
-
-strace-4.26/tests-mx32/COPYING
-
 Copyright (c) 2011-2018 The strace developers.
 All rights reserved.
 
@@ -96,4 +79,3 @@ option) any later version.
 strace test suite is distributed in the hope that it will be useful, but
 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE. See GPL-2.0-or-later for more details.
-

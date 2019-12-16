@@ -113,6 +113,7 @@ alltests.elf_LDFLAGS += $(call pkg_config_ldflags,$(alltests.elf_PKG_CONFIGS))
 # Build infrastructure
 
 include $(SCRIPT_DIR)/buildclang_1.mk
+-include $(PTXDIST_WORKSPACE)/../wago_intern/debugging/scripts/valgrind-target.mk
 
 #######################################################################################################################
 # Custom rules

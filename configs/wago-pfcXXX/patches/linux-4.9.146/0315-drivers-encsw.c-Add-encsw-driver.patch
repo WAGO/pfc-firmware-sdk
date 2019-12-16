@@ -1,0 +1,284 @@
+From e89f2b35f844da4640fa842754e2bdc78876c240 Mon Sep 17 00:00:00 2001
+From: Maxim Laschinsky <maxim.laschinsky@wago.com>
+Date: Wed, 21 Aug 2019 18:34:43 +0200
+Subject: [PATCH] drivers: encsw.c: Add encsw driver
+
+ARM: dts: pac100:
+
+ - added i2c io_expander_71
+ - dts: added encsw driver to dtsi (lost change on first commit).
+
+ARM: pac100:
+ - added dip-switch (encsw) driver to PAC100
+ - changes according to review 1
+---
+ arch/arm/boot/dts/am335x-pac-768_3301.dts  |   8 ++
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi |  30 +++++-
+ drivers/misc/Kconfig                       |   7 ++
+ drivers/misc/Makefile                      |   1 +
+ drivers/misc/encsw.c                       | 150 +++++++++++++++++++++++++++++
+ 5 files changed, 194 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/misc/encsw.c
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301.dts b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+index 1ca9433..2aaa282 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_3301.dts
++++ b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+@@ -14,6 +14,14 @@
+ 	compatible = "wago,am335x-pac-768_330x-1005", "wago,am335x-pfc", "ti,am33xx";
+ };
+ 
++&encsw {
++	status ="okay";
++};
++
++&encsw {
++	status ="okay";
++};
++
+ &aes {
+ 	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+index 6b4bf8b..fb56178 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+@@ -63,6 +63,21 @@
+ 		interrupts = <12 IRQ_TYPE_EDGE_RISING>;
+ 		interrupt-parent = <&gpio2>;
+ 	};
++
++	encsw: dip-switch {
++		status = "disabled";
++		compatible = "encsw";
++		encsw-gpios = <
++			&io_expander_71 0 GPIO_ACTIVE_LOW
++			&io_expander_71 1 GPIO_ACTIVE_LOW
++			&io_expander_71 2 GPIO_ACTIVE_LOW
++			&io_expander_71 3 GPIO_ACTIVE_LOW
++			&io_expander_71 4 GPIO_ACTIVE_LOW
++			&io_expander_71 5 GPIO_ACTIVE_LOW
++			&io_expander_71 6 GPIO_ACTIVE_LOW
++			&io_expander_71 7 GPIO_ACTIVE_LOW
++			>;
++	};
+ };
+ 
+ &cpu_0 {
+@@ -277,14 +292,25 @@
+ };
+ 
+ &i2c0 {
+-	io_expander_70: pca9554@70 { /* IO Port Expander only outputs*/
+-		compatible = "nxp,pca9554";
++	/* IO Port Expander outputs only */
++	io_expander_70: pca9538@70 {
++		compatible = "nxp,pca9538";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+ 		#gpio-cells = <2>;
+ 		gpio-controller;
+ 		reg = <0x70>;
+ 	};
++
++	/* IO Port Expander for DIP-switch, inputs only */
++	io_expander_71: pca9538@71 {
++		compatible = "nxp,pca9538";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0x71>;
++		#gpio-cells = <2>;
++		gpio-controller;
++        };
+ };
+ 
+ /delete-node/ &led_bar61;
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index a6c4f5f..0c9b15d 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -785,6 +785,13 @@ config TI_SN74LV165A
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called ti_sn74lv165a.
+ 
++config ENCSW
++        tristate "GPIO based encoder switch driver"
++        default m
++        help
++                This driver allows GPIO connected encoder switches e.g. dip switches
++                or hexadicmal encoders to group its inputs logically and make
++                their compounded values accessible over the sysfs.
+ 
+ source "drivers/misc/c2port/Kconfig"
+ source "drivers/misc/eeprom/Kconfig"
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 99287e2..fa75ac5 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -54,6 +54,7 @@ obj-$(CONFIG_VEXPRESS_SYSCFG)	+= vexpress-syscfg.o
+ obj-$(CONFIG_CXL_BASE)		+= cxl/
+ obj-$(CONFIG_PANEL)             += panel.o
+ obj-$(CONFIG_TI_SN74LV165A)     += ti_sn74lv165a.o
++obj-$(CONFIG_ENCSW)             += encsw.o
+ 
+ lkdtm-$(CONFIG_LKDTM)		+= lkdtm_core.o
+ lkdtm-$(CONFIG_LKDTM)		+= lkdtm_bugs.o
+diff --git a/drivers/misc/encsw.c b/drivers/misc/encsw.c
+new file mode 100644
+index 0000000..35ba10d
+--- /dev/null
++++ b/drivers/misc/encsw.c
+@@ -0,0 +1,150 @@
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/of_gpio.h>
++#include <linux/slab.h>
++#include <linux/gpio.h>
++#include <linux/fs.h>
++
++#define DRIVER_NAME "encsw"
++
++
++static const struct of_device_id encsw_of_ids[] = {
++	{.compatible = DRIVER_NAME},
++	{}
++};
++
++MODULE_DEVICE_TABLE(of, encsw_of_ids);
++
++struct encsw_dev_data {
++	int gpios_num;
++	struct device *sysfs_dev;
++	struct gpio_desc *gpios[];
++};
++
++static ssize_t encsw_sysfs_value_show(struct device *dev,
++				      struct device_attribute *attr,
++				      char *buf)
++{
++	struct encsw_dev_data const *data = dev_get_drvdata(dev);
++	int value = 0;
++
++	int i;
++	for (i = 0; i < data->gpios_num; i++) {
++		if (gpiod_get_value_cansleep(data->gpios[i]) > 0) {
++			value |= 1 << i;
++		}
++	}
++
++	return sprintf(buf, "%u", value);
++}
++
++DEVICE_ATTR(value, 0444, encsw_sysfs_value_show, NULL);
++
++static struct attribute *encsw_attrs[] = {
++	&dev_attr_value.attr,
++	NULL,
++};
++
++static struct attribute_group encsw_attr_group = {
++	.attrs = encsw_attrs,
++};
++
++static int encsw_probe(struct platform_device *pdev)
++{
++	struct encsw_dev_data *data;
++	int err, i;
++	struct device *dev = &pdev->dev;
++	int const gpios_num = of_gpio_named_count(dev->of_node, "encsw-gpios");
++
++	if (gpios_num <= 0)
++		return -EINVAL;
++
++	data = devm_kzalloc(dev,
++			    sizeof(*data) + gpios_num * sizeof(*(data->gpios)),
++			    GFP_KERNEL);
++
++	if (!data)
++		return -ENOMEM;
++
++	for (i = 0; i < gpios_num; i++) {
++		data->gpios[i] = gpiod_get_index(
++					dev, DRIVER_NAME, i, GPIOD_IN);
++		if (IS_ERR(data->gpios[i])) {
++			err = PTR_ERR(data->gpios[i]);
++			goto out_with_err_message;
++		}
++		if(gpiod_direction_input(data->gpios[i])) {
++			err = -EINVAL;
++			goto out_with_err_message;
++		}
++	}
++	data->gpios_num = gpios_num;
++
++	err = sysfs_create_group(&dev->kobj, &encsw_attr_group);
++	if (err) {
++		dev_err(dev, "cant export dip-switch sysfs group attribute\n");
++		goto out_with_err_message;
++	}
++	dev_set_drvdata(dev, data);
++
++	dev_info(&pdev->dev, "device installed successfully\n");
++
++	return 0;
++
++out_with_err_message:
++
++	dev_info(&pdev->dev, "failed to install device ret=%d\n", err);
++	return err;
++}
++
++
++static int encsw_remove(struct platform_device *pdev)
++{
++	struct encsw_dev_data *data = platform_get_drvdata(pdev);
++	struct device *dev = &pdev->dev;
++	int i;
++
++	for (i = 0; i < data->gpios_num; i++) {
++		gpiod_put(data->gpios[i]);
++	}
++	dev_set_drvdata(&pdev->dev, NULL);
++	sysfs_remove_group(&dev->kobj, &encsw_attr_group);
++
++	dev_info(&pdev->dev, "device removed\n");
++
++	return 0;
++}
++
++static struct platform_driver encsw_driver = {
++	.driver	= {
++		.name  = DRIVER_NAME,
++		.owner = THIS_MODULE,
++		.of_match_table	= of_match_ptr(encsw_of_ids),
++	},
++	.probe	= encsw_probe,
++	.remove	= encsw_remove,
++};
++
++static int __init encsw_init(void)
++{
++	int ret = platform_driver_register(&encsw_driver);
++
++	if (ret)
++		printk(KERN_ERR "register encsw driver failed %d\n", ret);
++
++	return ret;
++}
++
++
++static void __exit encsw_exit(void)
++{
++	platform_driver_unregister(&encsw_driver);
++}
++
++module_exit(encsw_exit);
++module_init(encsw_init);
++
++
++MODULE_DESCRIPTION("Encoder Switch");
++MODULE_AUTHOR("Peter Galka <peter.galka@wago.com>");
++MODULE_LICENSE("GPL");
+-- 
+2.7.4
+

@@ -1,0 +1,72 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------
+# Script-name: set_dsa_mode
+#
+# Calls C program set_dsa_mode_c to set eth switch configuration and change
+# /etc/specific/network-interfaces.xml accordingly. Restart network interfaces
+# X1 and X2
+#
+# $Revision: 36237 $
+# Author: HJH, WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------
+
+# set error on use of undefined shell variables
+set -u
+
+newmode=""
+
+# main program
+
+# Load general definitions and functions.
+CTDIR=/etc/config-tools
+if [ ! -f "$CTDIR/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 255
+fi
+. $CTDIR/config_tool_lib
+status=$SUCCESS
+NETINTERFACES=/etc/network/interfaces
+
+# show help-text if requested
+if [ $# -gt 0 ]; then
+    if [ "$1" = "-h" -o "$1" = "--help" ]; then
+        echo
+        echo "* Change network switch configuration *"
+        echo
+        echo "Usage: set_dsa_mode -h | --help       	print this usage"
+        echo "       set_dsa_mode -v|--value <value>	set separated resp. switched interface mode"
+        echo
+        echo "<value> = 0	  set switched interface mode"
+        echo "<value> = 1     set separated interface mode"
+        exit 0
+    fi
+
+    if [ "$1" = "-v" -o "$1" = "--value" ]; then
+        if [ "$#" -ge "2" ]; then
+            newmode="$2"
+            shift 2
+        fi
+    fi
+fi
+
+if [ -z "$newmode" ]; then
+    SetLastError "set_dsa_mode: missing argument"
+    exit $MISSING_PARAMETER
+fi
+
+current_mode=$(/etc/config-tools/get_dsa_mode)
+if [ "$newmode" != "$current_mode" ]; then
+
+    $CTDIR/set_dsa_mode_c -v $newmode
+    status=$?
+fi
+
+sync
+exit $status
+

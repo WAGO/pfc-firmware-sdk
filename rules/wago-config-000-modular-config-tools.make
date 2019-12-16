@@ -105,6 +105,10 @@ ifdef PTXCONF_CT_RESERVED_AREA
 	@$(call install_copy, modular-config-tools, 0, 0, 0750, $(MODULAR_CONFIG_TOOLS_BUILD_DIR)/reserved_area.elf, /etc/config-tools/reserved_area)
 endif
 
+ifdef PTXCONF_CT_CONFIG_RMD
+	@$(call install_copy, modular-config-tools, 0, 0, 0750, $(MODULAR_CONFIG_TOOLS_BUILD_DIR)/config_rmd.elf, /etc/config-tools/config_rmd)
+endif
+
 	@$(call install_finish, modular-config-tools)
 
 	@$(call touch)
@@ -123,5 +127,6 @@ $(STATEDIR)/modular-config-tools.clean:
 	@$(call clean_pkg, MODULAR_CONFIG_TOOLS)
 	@rm -rf $(MODULAR_CONFIG_TOOLS_BUILDROOT_DIR)
 
+	@$(call touch)
 # vim: syntax=make
 

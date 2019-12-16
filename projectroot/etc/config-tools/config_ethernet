@@ -8,7 +8,7 @@
 #-----------------------------------------------------------------------------#
 # Script-name: config_ethernet
 #
-# Compatibility wrapper for config_ethernet_c
+# Configure Ethernet
 #
 # Author: WAGO Kontakttechnik GmbH
 #-----------------------------------------------------------------------------#
@@ -23,6 +23,17 @@ fi
 
 status=$SUCCESS
 
+set_interface_config () {
+  local json_config="$1"
+  out=$(dbus-send --system --print-reply --reply-timeout=15000 --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.setinterfaceconfig string:"${json_config}")
+  for token in $out; do 
+      dbus_out=$token
+  done  
+  dbus_out=${dbus_out#\"}
+  dbus_out=${dbus_out%\"}  
+  echo "$dbus_out"
+}
+
 # show help-text if requested
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo
@@ -30,7 +41,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo
   echo "Usage: $0 < [interface=interface-value] port=port-value [state=state-value ] [ autoneg=autoneg-value ] [ speed=speed-value ] [duplex=duplex-value ]"
   echo "With autoneg=on, no speed or duplex values have to be provided."
-	echo
+  echo
 # pfc200-specific settings
   echo "interface-value: eth0 [ignored]"
   echo "port-value: $(/etc/config-tools/get_eth_config --print-ports)"
@@ -42,7 +53,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   exit $status
 fi
 
-parameters=
+declare -A params
 
 while [[ $# -ne 0 ]]; do
     case "$1" in
@@ -50,35 +61,42 @@ while [[ $# -ne 0 ]]; do
             ;; # value is ignored
         port=*)
             port=${1#port=}
-            parameters="$parameters -p $port"
+            params[device]="\"$port\""
             ;;
         state=*)
 
-            if [[ "${1#state=}" == "on" ]]; then
-                state="enabled"
-            elif [[ "${1#state=}" == "off" ]]; then
-                state="disabled"
+            if [[ "${1#state=}" == "on" || "${1#state=}" == "enabled" ]]; then
+                state="up"
+            elif [[ "${1#state=}" == "off" || "${1#state=}" == "disabled" ]]; then
+                state="down"
             else
                 state="${1#state=}"
             fi
-            parameters="$parameters -S $state"
+            params[state]="\"$state\""
             ;;
         autoneg=*)
 
-            if [[ "${1#autoneg=}" == "on" ]]; then
-                parameters="$parameters -a enabled"
-            elif [[ "${1#autoneg=}" == "off" ]]; then
-                parameters="$parameters -a disabled"
+            if [[ "${1#autoneg=}" == "on" || "${1#autoneg=}" == "enabled" ]]; then
+                autoneg=true
+            elif [[ "${1#autoneg=}" == "off" || "${1#autoneg=}" == "disabled" ]]; then
+                autoneg=false
             else
-                parameters="$parameters -a ${1#autoneg=}"
+                autoneg=${1#autoneg=}
             fi
-
+            params[autonegotiation]="$autoneg"
             ;;
         speed=*)
-            parameters="$parameters -s ${1#speed=}"
+            if [[ "${1#speed=}" == "10M" ]]; then
+                speed=10
+            elif [[ "${1#speed=}" == "100M" ]]; then
+                speed=100
+            else
+                speed="${1#speed=}"
+            fi
+            params[speed]=$speed
             ;;
         duplex=*)
-            parameters="$parameters -d ${1#duplex=}"
+            params[duplex]="\"${1#duplex=}\""
             ;;
         *)
             status=$INVALID_PARAMETER
@@ -89,31 +107,19 @@ while [[ $# -ne 0 ]]; do
 
 done
 
-# write new configuration into /etc/specific/network-interfaces.xml followed by
-# creating network-interfaces-current.xml with dip switch and wwan config.
-NETINTERFACES=/etc/network/interfaces
-[ "$status" == "$SUCCESS" ] && /etc/config-tools/config_ethernet_c $parameters || status=$?
-
-if [ "$status" == "$SUCCESS" ]; then
-    /etc/config-tools/adapt_netconfig -o $NETINTERFACES.tmp
+if [[ $status == $SUCCESS ]]; then
+    add_separator=false
+    json_content=""
+    for i in "${!params[@]}" ; do
+        if [[ $add_separator == false ]]; then
+                json_content="\"$i\":${params[$i]}"
+                add_separator=true
+        else
+                json_content="$json_content,\"$i\":${params[$i]}"
+        fi
+    done    
+    set_interface_config "{${json_content}}"
     status=$?
 fi
 
-if [ "$status" == "$SUCCESS" ]; then
-    diff -q $NETINTERFACES $NETINTERFACES.tmp > /dev/null
-    if [ "$?" = "1" ]; then
-        # network config changed. Do ifdown/ifup
-        if [ "$port" = "X1" -o "$port" = "X2" ]; then
-            ifdown -i $NETINTERFACES eth$port &> /dev/null
-            ifup -i $NETINTERFACES.tmp eth$port &> /dev/null
-        else
-            status=$INVALID_PARAMETER
-            SetLastError "missing or wrong port parameter"
-        fi
-        mv $NETINTERFACES.tmp $NETINTERFACES
-    fi
-    rm -f $NETINTERFACES.tmp
-fi
-
-sync
 exit $status

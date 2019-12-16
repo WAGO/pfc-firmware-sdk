@@ -1,0 +1,136 @@
+# -*-makefile-*-
+#
+# Copyright (C) @YEAR@ by @AUTHOR@
+#
+# See CREDITS for details about who has contributed to this project.
+#
+# For further information about the PTXdist project and license conditions
+# see the README file.
+#
+
+#
+# We provide this package
+#
+PACKAGES-$(PTXCONF_@PACKAGE@) += @package@
+
+#
+# Paths and names
+#
+@PACKAGE@_VERSION        := @VERSION@
+@PACKAGE@_MD5            :=
+@PACKAGE@                := @package_filename@
+@PACKAGE@_BUILDCONFIG    := Release
+@PACKAGE@_SRC_DIR        := $(PTXDIST_WORKSPACE)/@BASE_FOLDER@/$(@PACKAGE@)
+@PACKAGE@_BUILDROOT_DIR  := $(BUILDDIR)/$(@PACKAGE@)
+@PACKAGE@_DIR            := $(@PACKAGE@_BUILDROOT_DIR)/src
+@PACKAGE@_BUILD_DIR      := $(@PACKAGE@_BUILDROOT_DIR)/bin/$(@PACKAGE@_BUILDCONFIG)
+@PACKAGE@_LICENSE        := WAGO
+@PACKAGE@_CONF_TOOL      := NO
+@PACKAGE@_MAKE_ENV       := $(CROSS_ENV) \
+BUILDCONFIG=$(@PACKAGE@_BUILDCONFIG) \
+BIN_DIR=$(@PACKAGE@_BUILD_DIR) \
+SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
+
+@IS_WAGO_INTERN@@PACKAGE@_PACKAGE_NAME             := $(@PACKAGE@)_$(@PACKAGE@_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
+@IS_WAGO_INTERN@@PACKAGE@_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
+
+# ----------------------------------------------------------------------------
+# Extract
+# ----------------------------------------------------------------------------
+
+@IS_LOCAL_SRC@# During BSP creation local_src is deleted and the source code directories are
+@IS_LOCAL_SRC@# copied on demand. To handle this condition an order-only dependency on
+@IS_LOCAL_SRC@# the source code directory is created. When it is missing, the target below
+@IS_LOCAL_SRC@# is executed and an error message is generated.
+@IS_LOCAL_SRC@$(@PACKAGE@_SRC_DIR):
+@IS_LOCAL_SRC@	@echo "Error: $@: directory not found!" >&2; exit 2
+
+$(STATEDIR)/@package@.extract: @IS_LOCAL_SRC@ | $(@PACKAGE@_SRC_DIR) 
+	@$(call targetinfo)
+	@mkdir -p $(@PACKAGE@_BUILDROOT_DIR)
+@IS_WAGO_INTERN@ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@if [ ! -L $(@PACKAGE@_DIR) ]; then \
+	  ln -s $(@PACKAGE@_SRC_DIR) $(@PACKAGE@_DIR); \
+	fi
+@IS_WAGO_INTERN@endif
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Prepare
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/@package@.prepare:
+	@$(call targetinfo)
+@IS_WAGO_INTERN@ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@$(call world/prepare, @PACKAGE@)
+@IS_WAGO_INTERN@endif
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Compile
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/@package@.compile:
+	@$(call targetinfo)
+@IS_WAGO_INTERN@ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@$(call world/compile, @PACKAGE@)
+@IS_WAGO_INTERN@endif
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Install
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/@package@.install:
+	@$(call targetinfo)
+@IS_WAGO_INTERN@ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+@IS_WAGO_INTERN@# BSP mode: install by extracting tgz file
+@IS_WAGO_INTERN@	@mkdir -p $(@PACKAGE@_PKGDIR) && \
+@IS_WAGO_INTERN@	  tar xvzf $(@PACKAGE@_PLATFORMCONFIGPACKAGEDIR)/$(@PACKAGE@_PACKAGE_NAME).tgz -C $(@PACKAGE@_PKGDIR)
+@IS_WAGO_INTERN@else
+@IS_WAGO_INTERN@# normal mode, call "make install"
+
+	@$(call world/install, @PACKAGE@)
+
+@IS_WAGO_INTERN@ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
+@IS_WAGO_INTERN@# save install directory to tgz for BSP mode
+@IS_WAGO_INTERN@	@mkdir -p $(@PACKAGE@_PLATFORMCONFIGPACKAGEDIR)
+@IS_WAGO_INTERN@	@cd $(@PACKAGE@_PKGDIR) && tar cvzf $(@PACKAGE@_PLATFORMCONFIGPACKAGEDIR)/$(@PACKAGE@_PACKAGE_NAME).tgz *
+@IS_WAGO_INTERN@endif
+@IS_WAGO_INTERN@endif
+
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Target-Install
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/@package@.targetinstall:
+	@$(call targetinfo)
+
+	@$(call install_init, @package@)
+	@$(call install_fixup, @package@,PRIORITY,optional)
+	@$(call install_fixup, @package@,SECTION,base)
+	@$(call install_fixup, @package@,AUTHOR,"@AUTHOR@")
+	@$(call install_fixup, @package@,DESCRIPTION,missing)
+
+	@$(call install_lib, @package@, 0, 0, 0644, lib@package@)
+	@$(call install_copy, @package@, 0, 0, 0755, -, /usr/bin/@package@)
+
+	@$(call install_finish, @package@)
+
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Clean
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/@package@.clean:
+	@$(call targetinfo)
+	@if [ -d $(@PACKAGE@_DIR) ]; then \
+		$(@PACKAGE@_MAKE_ENV) $(@PACKAGE@_PATH) $(MAKE) $(MFLAGS) -C $(@PACKAGE@_DIR) clean; \
+	fi
+	@$(call clean_pkg, @PACKAGE@)
+	@rm -rf $(@PACKAGE@_BUILDROOT_DIR)
+
+# vim: syntax=make

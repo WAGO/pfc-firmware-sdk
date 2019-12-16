@@ -1,0 +1,184 @@
+From d4fcbf9e5aee4a2dfbcde3b188ca8472c4ec3c76 Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Tue, 17 Sep 2019 08:05:42 +0200
+Subject: [PATCH] rmd: add non-softcopy mode, using the new DMA feature
+
+Common initial buffer association:
+ 0:Kernel, 1:Free, 2:User
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/char/rmd.c | 77 ++++++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 51 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
+index 8d87027..f3c998e 100644
+--- a/drivers/char/rmd.c
++++ b/drivers/char/rmd.c
+@@ -106,6 +106,7 @@ struct rmd_info {
+ 
+ 	/* control structure for pdi and pdo tripple buffer */
+ 	u32			*tripple_buf_ctrl;
++	dma_addr_t		tripple_buf_ctrl_dma;
+ 	size_t			tripple_buf_ctrl_size;
+ };
+ 
+@@ -314,17 +315,23 @@ static int rmd_mem_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
+ 	if (!chan->buf)
+ 		return -ENOMEM;
+ 
+-	chan->user_buf_idx = 0;
+-	chan->kernel_buf_idx = 1;
++	chan->user_buf_idx = 2;
++	chan->kernel_buf_idx = 0;
+ 	chan->tripple_buf_ctrl_offset = direction == DEV_TO_MEM ? 0 :
+ 								sizeof(u32);
+-	*rmd_channel_tripple_buf_virt(chan) = 2;
++
++	*rmd_channel_tripple_buf_virt(chan) = 1;
+ 
+ 	return 0;
+ }
+ 
+ static int rmd_mem_setup(struct rmd_info *info)
+ {
++
++	info->tripple_buf_ctrl = kzalloc(info->tripple_buf_ctrl_size, GFP_USER);
++	if (!info->tripple_buf_ctrl)
++		return -ENOMEM;
++
+ 	if (rmd_mem_setup_channel(info->rmd, &info->rx_channel, DEV_TO_MEM))
+ 		return -EINVAL;
+ 
+@@ -339,7 +346,7 @@ static int rmd_mem_setup(struct rmd_info *info)
+ static int rmd_dma_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
+ 					enum rmd_channel_direction direction)
+ {
+-	int ret;
++	int ret = 0;
+ 	struct rmd_dma_info *dma_info;
+ 	char *chan_name;
+ 	enum dma_transfer_direction dma_dir;
+@@ -374,21 +381,26 @@ static int rmd_dma_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
+ 	}
+ 
+ 	dma_info->buf = chan->buf_dma;
+-//	dma_info->desc = dmaengine_prep_rmd(dma_info->chan, rmd->base_phys,
+-//					&rmd->info->config, dma_dir,
+-//					dma_info->buf, rmd->fifo_max_size, 0);
++
++	chan->tripple_buf_ctrl_offset = direction == DEV_TO_MEM ? 0 :
++								sizeof(u32);
++
++	dma_info->desc = dmaengine_prep_rmd(dma_info->chan, rmd->base_phys,
++					&rmd->info->config, dma_dir,
++					dma_info->buf,
++					rmd->info->tripple_buf_ctrl_dma +
++						chan->tripple_buf_ctrl_offset
++						* sizeof(u32),
++					rmd->fifo_max_size, 0);
+ 
+ 	if (!dma_info->desc) {
+ 		ret = -EINVAL;
+ 		goto dma_release_channel;
+ 	}
+ 
+-	/* get initial buffer index */
+-//	ret = dmaengine_switch_rmd(dma_info->chan, -1);
+-//	if (ret < 0)
+-//		goto dma_release_channel;
++	chan->user_buf_idx = 2;
++	*rmd_channel_tripple_buf_virt(chan) = 1;
+ 
+-	chan->user_buf_idx = ret;
+ 	chan->dma_info = dma_info;
+ 
+ 	dma_info->cookie = dmaengine_submit(dma_info->desc);
+@@ -397,7 +409,7 @@ static int rmd_dma_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
+ 	return 0;
+ 
+ dma_release_channel:
+-	dma_release_channel(chan->dma_info->chan);
++	dma_release_channel(dma_info->chan);
+ free_chan_buf:
+ 	dmam_free_coherent(rmd->dev, chan->buf_size, chan->buf, chan->buf_dma);
+ free_dma_info:
+@@ -421,6 +433,15 @@ static int rmd_dma_setup(struct rmd_info *info)
+ 	int ret;
+ 	struct rmd *rmd = info->rmd;
+ 
++	info->tripple_buf_ctrl_size = PAGE_SIZE;
++	info->tripple_buf_ctrl = dmam_alloc_coherent(rmd->dev,
++						info->tripple_buf_ctrl_size,
++						&info->tripple_buf_ctrl_dma,
++						GFP_USER);
++
++	if (!info->tripple_buf_ctrl)
++		return -ENOMEM;
++
+ 	ret = rmd_dma_setup_channel(rmd, &info->rx_channel, DEV_TO_MEM);
+ 	if (ret)
+ 		return ret;
+@@ -456,16 +477,9 @@ static int rmd_open(struct inode *inode, struct file *filep)
+ 		return -ENOMEM;
+ 	}
+ 
+-	info->tripple_buf_ctrl_size = PAGE_SIZE;
+-	info->tripple_buf_ctrl = kzalloc(info->tripple_buf_ctrl_size, GFP_USER);
+-	if (!info->tripple_buf_ctrl) {
+-		kfree(info);
+-		clear_bit(0, &rmd->is_open);
+-		return -ENOMEM;
+-	}
+-
+ 	rmd->info = info;
+ 	info->rmd = rmd;
++	info->tripple_buf_ctrl_size = PAGE_SIZE;
+ 
+ 	filep->private_data = info;
+ 
+@@ -542,6 +556,7 @@ static int rmd_wait_for_next_cycle(struct rmd *rmd, void __user *argp)
+ static int rmd_setup(struct rmd_info *info, void __user *argp)
+ {
+ 	int ret;
++	struct rmd *rmd = info->rmd;
+ 
+ 	rmd_cleanup(info);
+ 
+@@ -628,11 +643,19 @@ static int rmd_mmap(struct file *filep, struct vm_area_struct *vma)
+ 	if (!(vma->vm_flags & VM_SHARED))
+ 		return -EINVAL;
+ 
+-	if ((vma->vm_flags & VM_READ) && (vma->vm_flags & VM_WRITE))
+-		return remap_pfn_range(vma, vma->vm_start,
+-			virt_to_phys(info->tripple_buf_ctrl) >> PAGE_SHIFT,
+-			info->tripple_buf_ctrl_size,
+-			vma->vm_page_prot);
++	if ((vma->vm_flags & VM_READ) && (vma->vm_flags & VM_WRITE)) {
++		if (rmd_softcopy_mode(&info->config))
++			return remap_pfn_range(vma, vma->vm_start,
++				virt_to_phys(info->tripple_buf_ctrl) >>
++								PAGE_SHIFT,
++				info->tripple_buf_ctrl_size,
++				vma->vm_page_prot);
++		else
++			return dma_mmap_coherent(rmd->dev, vma,
++						info->tripple_buf_ctrl,
++						info->tripple_buf_ctrl_dma,
++						info->tripple_buf_ctrl_size);
++	}
+ 
+ 	if (vma->vm_flags & VM_READ)
+ 		chan = &info->rx_channel;
+@@ -740,6 +763,8 @@ static int rmd_probe(struct platform_device *pdev)
+ 		rmd_free_minor(rmd);
+ 		return PTR_ERR(rmd->dev);
+ 	}
++	rmd->dev->coherent_dma_mask = DMA_BIT_MASK(32);
++	rmd->dev->of_node = parent->of_node;
+ 
+ 	platform_set_drvdata(pdev, rmd);
+ 
+-- 
+2.7.4
+

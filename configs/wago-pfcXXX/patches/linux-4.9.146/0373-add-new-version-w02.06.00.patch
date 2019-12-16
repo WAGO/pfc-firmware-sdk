@@ -1,0 +1,21 @@
+From ef3beb6a622e1c6e3a4c23129094def36bb18407 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 20 Nov 2019 16:52:35 +0100
+Subject: [PATCH] add new version w02.06.00
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ localversion-wago | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 localversion-wago
+
+diff --git a/localversion-wago b/localversion-wago
+new file mode 100644
+index 0000000..a789196
+--- /dev/null
++++ b/localversion-wago
+@@ -0,0 +1 @@
++w02.06.00
+-- 
+2.7.4
+

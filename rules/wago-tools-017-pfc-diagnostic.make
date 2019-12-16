@@ -127,6 +127,7 @@ $(STATEDIR)/wago-pfc-diagnostic.targetinstall:
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /usr/lib/libdiagnostic.so)
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /usr/lib/libdiagxml.so)
 
+	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x0000.default.xml)
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x000C.PFC100.xml)
 	@$(call install_link, wago-pfc-diagnostic, "../../etc/specific/led.0x000C.PFC100.xml", "/etc/specific/led.0x0008.PFC100.xml")
 	@$(call install_link, wago-pfc-diagnostic, "../../etc/specific/led.0x000C.PFC100.xml", "/etc/specific/led.0x0028.PFC100.xml")
@@ -141,11 +142,13 @@ $(STATEDIR)/wago-pfc-diagnostic.targetinstall:
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1001.TP600.xml)
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1002.TP600.xml)
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1003.TP600.xml)
+	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1004.TP600.xml)
+	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1005.TP600.xml)
+	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x1006.PFC200.xml)
 	@$(call install_link, wago-pfc-diagnostic, "../../etc/specific/led.0x000C.PFC200.xml", "/etc/specific/led.0x1004.PFC200.xml")
 	@$(call install_link, wago-pfc-diagnostic, "../../etc/specific/led.0x000C.PFC200.xml", "/etc/specific/led.0x1007.PFC200.xml")
 	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x108E.CTP.xml)
 	@$(call install_link, wago-pfc-diagnostic, "../../etc/specific/led.0x000F.PFC200.xml", "/etc/specific/led.0x004E.PFC200.xml")
-	@$(call install_copy, wago-pfc-diagnostic, 0, 0, 0755, -, /etc/specific/led.0x000C.SRC.xml)
 	@$(call install_link, wago-pfc-diagnostic, "../../tmp/led.xml", "/etc/specific/led.xml")
 
 ifdef PTXCONF_LOGFORWARD_STARTSCRIPT

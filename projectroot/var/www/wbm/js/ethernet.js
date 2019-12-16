@@ -284,16 +284,35 @@ function EthernetContent(id)
 
   ethernetContent.compatibilityMode = false;
 
+  
 
   //------------------------------------------------------------------------------
   // first creation of area
   //------------------------------------------------------------------------------
   $('#content_area').bind(ethernetContent.id + '_create', function(event)
   {
-    ethernetContent.Create();
-
-    ethernetContent.dsaConfig.Create();
-    ethernetContent.switchConfiguration.Create();
+	  ethernetContent.Create();
+	  ethernetContent.dsaConfig.Create();
+	  
+      var paramId = 'order_number';
+      deviceParams.ReadValue({ id: paramId}, function() {
+        var param = deviceParams.list[paramId];
+        if (SUCCESS == param.status)
+        {
+          if (param.value.includes('750-8210') ||
+              param.value.includes('750-8211') ||
+              param.value.includes('750-8215') ) {
+        	$('#switch_configuration_area').remove();
+            $('#dsa_configuration_area .config_form_box.group').removeClass('group');
+          }
+          else{
+            ethernetContent.switchConfiguration.Create();
+          }
+        } else {
+          var errorText = param.errorText;
+          $('body').trigger('event_errorOccured', [ 'Error while reading order number.', errorText ]);
+        }
+      });
   });
 
 
@@ -305,9 +324,23 @@ function EthernetContent(id)
     ethernetContent.Refresh();
 
     ethernetContent.dsaConfig.Refresh();
-    ethernetContent.switchConfiguration.Refresh();
+    
+    var paramId = 'order_number';
+    deviceParams.ReadValue({ id: paramId}, function() {
+      var param = deviceParams.list[paramId];
+      if (SUCCESS == param.status)
+      {
+        if (!param.value.includes('750-8210') &&
+            !param.value.includes('750-8211') &&
+            !param.value.includes('750-8215') ) {
+          ethernetContent.switchConfiguration.Refresh();
+        }
+      } else {
+        var errorText = param.errorText;
+        $('body').trigger('event_errorOccured', [ 'Error while reading order number.', errorText ]);
+      }
+    });
   });
-
 };
 
 

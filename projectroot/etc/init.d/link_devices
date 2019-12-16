@@ -83,9 +83,10 @@ else
 fi
 
 # get configured kbus uart from sys-fs
-KBUS_TTY_PFCXXX_DEV_NAME="$(cat /sys/class/wago/system/kbus_tty_device_name)"
-KBUS_TTY_PFCXXX_LINK_NAME="/dev/ttyKbus"
-
+if [ -e /dev/kbus0 ]; then
+    KBUS_TTY_PFCXXX_DEV_NAME="$(cat /sys/class/wago/system/kbus_tty_device_name)"
+    KBUS_TTY_PFCXXX_LINK_NAME="/dev/ttyKbus"
+fi
 # get configured rs232_485 uart from sys-fs
 SERIAL_TTY_PFCXXX_DEV_NAME="$(cat /sys/class/wago/system/tty_rs232_485)"
 SERIAL_TTY_PFCXXX_LINK_NAME="/dev/serial"
@@ -142,7 +143,7 @@ case $1 in
         if [ -c "/dev/${SERIAL_TTY_PFCXXX_DEV_NAME}" ]; then
                 ln -s /dev/${SERIAL_TTY_PFCXXX_DEV_NAME} "${SERIAL_TTY_PFCXXX_LINK_NAME}"
         else
-                echo "ERROR: could not set ${SERIAL_TTY_PFCXXX_LINK_NAME}, getty will fail"
+                echo "INFO: tty_rs232_485 is not available"
         fi
 
         if [ -c "/dev/${SERVICE_TTY_PFCXXX_DEV_NAME}" ]; then

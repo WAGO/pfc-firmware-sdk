@@ -105,7 +105,7 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTRW_STARTSCRIPT
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/init.d/remountrw, \
 		/etc/init.d/remountrw, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTRW_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTRW_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/remountrw, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTRW_BBINIT_LINK))
 endif
@@ -119,7 +119,7 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTVARLOG_STARTSCRIPT
 		$(PTXDIST_WORKSPACE)/projectroot/etc/logging.conf, \
 		/etc/logging.conf, n)
 
-ifneq ($(PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTVARLOG_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTVARLOG_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/mountvarlog, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTVARLOG_BBINIT_LINK))
 endif
@@ -129,7 +129,7 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_AUTOFIRMREST_STARTSCRIPT
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/init.d/auto_firmware_restore, \
 		/etc/init.d/auto_firmware_restore, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_AUTOFIRMREST_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_AUTOFIRMREST_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/auto_firmware_restore, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_AUTOFIRMREST_BBINIT_LINK))
 endif
@@ -137,7 +137,7 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_MOUNTHD2_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/etc/init.d/mounthd2, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_MOUNTHD2_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_MOUNTHD2_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/mounthd2, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_MOUNTHD2_BBINIT_LINK))
 endif
@@ -145,7 +145,7 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_FINALIZE_ROOT_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/etc/init.d/finalize_root, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_FINALIZE_ROOT_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_FINALIZE_ROOT_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/finalize_root, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_FINALIZE_ROOT_BBINIT_LINK))
 endif
@@ -153,7 +153,7 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_CONFIG_SERIAL_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/etc/init.d/config_serial, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_SERIAL_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_SERIAL_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/config_serial, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_CONFIG_SERIAL_BBINIT_LINK))
 endif
@@ -162,9 +162,24 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/etc/init.d/config_usb_gadget, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_BBINIT_LINK),"")
+	@$(call install_replace, wago-custom-install, \
+		/etc/init.d/config_usb_gadget, @USB_GADGET_STORAGE_FILE@, \
+		$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE))
+ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/config_usb_gadget, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_BBINIT_LINK))
+endif
+endif
+ifdef PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_STARTSCRIPT
+	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
+		/etc/init.d/usb_gadget_network, n)
+ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_BBINIT_LINK),)
+	@$(call install_link, wago-custom-install, ../init.d/usb_gadget_network, \
+		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_BBINIT_LINK))
+endif
+ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE),)
+	@$(call install_alternative, wago-custom-install, 0, 0, 0644, \
+		$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE), n)
 endif
 endif
 
@@ -177,7 +192,7 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_PERMISSIONS_STARTSCRIPT
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/init.d/permissions, \
 		/etc/init.d/permissions, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_PERMISSIONS_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_PERMISSIONS_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/permissions, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_PERMISSIONS_BBINIT_LINK))
 endif
@@ -189,7 +204,7 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_KBUSPRIO_STARTSCRIPT
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/init.d/kbusprio, \
 		/etc/init.d/kbusprio, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_KBUSPRIO_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_KBUSPRIO_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/kbusprio, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_KBUSPRIO_BBINIT_LINK))
 endif
@@ -198,7 +213,7 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_SCREEN_INIT_STARTSCRIPT
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/init.d/screen_init, \
 		/etc/init.d/screen_init, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_ROOTFS_SCREEN_INIT_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_ROOTFS_SCREEN_INIT_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/screen_init, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_ROOTFS_SCREEN_INIT_BBINIT_LINK))
 endif
@@ -207,7 +222,7 @@ ifdef PTXCONF_WAGO_CUSTOM_LOG_SYSTEMSTART_INIT_STARTSCRIPT
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/init.d/logsystemstart, \
 		/etc/init.d/logsystemstart, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_LOG_SYSTEMSTART_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_LOG_SYSTEMSTART_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/logsystemstart, \
 	/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_LOG_SYSTEMSTART_LINK))
 endif
@@ -215,7 +230,7 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
                  /etc/init.d/cbm_set_config)
-ifneq ($(PTXCONF_WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/cbm_set_config, \
 	/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK))
 endif
@@ -223,7 +238,7 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_WBM_MULTI_PRODUCT_CONFIG_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
                  /etc/init.d/wbm_set_config)
-ifneq ($(PTXCONF_WAGO_CUSTOM_WBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_WBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/wbm_set_config, \
 	/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_WBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK))
 endif
@@ -231,7 +246,7 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_OMS_CONFIG_STARTSCRIPT
 #	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 #		/etc/init.d/omsdaemon)
-ifneq ($(PTXCONF_WAGO_CUSTOM_OMS_CONFIG_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_OMS_CONFIG_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/omsdaemon, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_OMS_CONFIG_BBINIT_LINK))
 endif
@@ -240,7 +255,7 @@ endif
 ifdef PTXCONF_WAGO_CUSTOM_MDMD_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/etc/init.d/mdmd, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_MDMD_BBINIT_LINK),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_MDMD_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/mdmd, \
 	/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_MDMD_BBINIT_LINK))
 endif
@@ -255,12 +270,15 @@ ifneq ($(PTXCONF_WAGO_CUSTOM_RAUC_BBINIT_LINK), "")
 endif
 endif
 
+
+ifndef PTXCONF_NETCONFD
 ifdef PTXCONF_WAGO_CUSTOM_WATCH_IP_CHANGE_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/etc/init.d/watch_ip_change, n)
 ifneq ($(WAGO_CUSTOM_BOOT_WATCH_IP_CHANGE_BBINIT_LINK), "")
 	@$(call install_link, wago-custom-install, ../init.d/watch_ip_change, \
 	/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_WATCH_IP_CHANGE_BBINIT_LINK))
+endif
 endif
 endif
 
@@ -573,7 +591,7 @@ endif
 
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_LINKIN_DEVS
 
-ifneq ($(PTXCONF_WAGO_CUSTOM_INSTALL_LINKIN_DEVS_NAMES),"")
+ifneq ($(PTXCONF_WAGO_CUSTOM_INSTALL_LINKIN_DEVS_NAMES),)
 	@$(eval _DEVS := $(call remove_quotes,$(PTXCONF_WAGO_CUSTOM_INSTALL_LINKIN_DEVS_NAMES)))
 	@$(eval _TMP_FILE := $(PTXDIST_TEMPDIR)/.devs_to_link)
 

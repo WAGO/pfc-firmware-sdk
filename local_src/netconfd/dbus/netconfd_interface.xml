@@ -1,0 +1,249 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd" >
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <interface name="de.wago.netconfd1.interface_config">
+    <method name="set">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Bridge configuration as comma and semicolon
+            separated string of interfaces</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Set the bridge into the desired configuration.
+            The
+            configuration string is composed of the bridge instances
+            together with the interfaces in JSON format.
+            Example:
+            {
+            "bridges": [ {"0": [ "X1", "X2" ]}, {"1": [ "X11" ]}, {"2":
+            [
+            "X12" ]} ] }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="get">
+      <arg name="config" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The bridge configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the current bridge configuration as JSON string.
+            Example:
+            { "bridges": [ {"0": [ "X1", "X2" ]}, {"1": [ "X11"
+            ]}, {"2": [ "X12" ]} ] }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="getdeviceinterfaces">
+      <arg name="interfaces" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The device interfaces</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the interfaces of the device as JSON string.
+            Example result:
+            [{"label":"X1","state":true,"autonegotiation":true,
+            "speed":100,"duplex":"full" },...]
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="getinterfaceconfig">
+      <arg name="config" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The configuration as JSON string</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the interface configuration of the ethernet interfaces as JSON string.
+            Example result:
+            [{"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full"},{"device":"X2","state":true,"autonegotiation":true,"speed":100,"duplex":"full"}]
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="setinterfaceconfig">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The device interface configuration as JSON String</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Set the interface configuration of ethernet ports
+            Example:
+            {"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full"}
+            or
+            [{"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full"},{"device":"X2","state":true,"autonegotiation":true,"speed":100,"duplex":"full"}]
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="getbackupparamcount">
+      <arg name="interfaces" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Get number of backup parameters.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get number of parameters that are concerned during
+            netconfd backup.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="backup">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Backup netconfd configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Save netconfd configuration to given backup file.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="restore">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Restore netconfd configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Restore netconfd configuration from given backup
+            file.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+  </interface>
+  <interface name="de.wago.netconfd1.ip_config">
+    <method name="setall">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>IP configuration </doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Set the ip configuration.
+            Example:
+            { "br0": { "source": "static", "ipaddr": "192.168.1.17", "netmask": "255.255.255.0", "bcast": "192.168.1.255"} }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="set">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>IP configuration for a single interface</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Set the ip configuration for a single interface.
+            Example:
+            { "br0": { "source": "static", "ipaddr": "192.168.1.17", "netmask": "255.255.255.0", "bcast": "192.168.1.255"} }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="get">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Minimal IP config containing at least interface name</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="config" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The IP configuration of a single interface</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the current ip configuration of a single interface as JSON string.
+            Example:
+            { "br0": {
+            "source": "static", 
+            "ipaddr": "192.168.1.17",
+            "netmask": "255.255.255.0",
+            "bcast": "192.168.1.255"} }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="getall">
+      <arg name="config" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The ip configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the current ip configuration as JSON string.
+            Example:
+            { "br0": {
+            "source": "static", 
+            "ipaddr": "192.168.1.17",
+            "netmask": "255.255.255.0",
+            "bcast": "192.168.1.255"} }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+  </interface>
+</node>

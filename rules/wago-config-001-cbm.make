@@ -60,27 +60,29 @@ $(STATEDIR)/cbm.extract:
 # Prepare
 # ----------------------------------------------------------------------------
 
+CBM_MAKE_XML_CONFIG_ENV = PTXDIST_DEP_TARGET="all" \
+	                      xmlconf=$(PTXCONF_SYSROOT_HOST)/bin/make-xml-config/make-xml-config
+
+
 CBM_PATH	:= PATH=$(CROSS_PATH)
 CBM_ENV 	:= $(CROSS_ENV)
 
-#
-# The XML configuration's integrity considering the other configure options is
-# of crucial importance: otherwise the configuration frontend would contain
-# erroneous menu entries. That's why we have to recreate the config file each
-# time the configuration has been changed and use the dependency from the
-# main configuration here.
-#
+# use host-python if some other package needs it.
+# fall back to the changeroot version otherwise.
+ifdef PTXCONF_HOST_PYTHON
+$(STATEDIR)/cbm.prepare: $(STATEDIR)/host-python.install.post
+CBM_MAKE_XML_CONFIG_ENV += PYTHONHOME="$(HOST_PYTHON_PKGDIR)" 
+endif
 
-$(STATEDIR)/cbm.prepare: $(STATEDIR)/host-ct-make-xml-config.install.post $(PTXDIST_PLATFORMDIR)/selected_ptxconfig
+$(STATEDIR)/cbm.prepare: $(STATEDIR)/host-ct-make-xml-config.install.post 
 	@$(call targetinfo)
 
 # generate xml configuration file for cbm using a patched libptxdist.sh
 # in $(SYSROOT_HOST) which is part of host-ct-make-xml-config:
 	
 	@source $(PTXDIST_SYSROOT_HOST)/bin/make-xml-config/libptxdist+xml.sh && \
-  export PYTHONHOME=$(HOST_PYTHON_PKGDIR) && \
-  xmlconf=$(PTXCONF_SYSROOT_HOST)/bin/make-xml-config/make-xml-config &&\
-  PTXDIST_DEP_TARGET="all" ptxd_kconfig CT_MENU_CBM_ $(CBM_DIR)/$(CBM_XML_CONFIG_FILE_TEMPLATE) 
+    $(CBM_MAKE_XML_CONFIG_ENV) \
+    ptxd_kconfig CT_MENU_CBM_ $(CBM_DIR)/$(CBM_XML_CONFIG_FILE_TEMPLATE) 
 # check output for conformity with XSD definition.
 	@$(PTXDIST_SYSROOT_HOST)/bin/xmllint --noout --schema \
 	$(SRCDIR)/ct-make-xml-config/xsd/menu.xsd \
@@ -103,13 +105,6 @@ endif
 
 $(STATEDIR)/cbm.compile:
 	@$(call targetinfo)
-
-#	@if [ "$(PTXCONF_PLATFORM)" = "IO-IPC-Codesys-Tele" ] || [ "$(PTXCONF_PLATFORM)" = "IO-IPC-P-Codesys-Tele" ]; then \
-#		cd $(CBM_DIR) && echo $$PWD && $(CBM_ENV) $(CBM_PATH) $(MAKE) CROSS_COMPILE=$(COMPILER_PREFIX) EXTRAS=TELECONTROL $(PARALLELMFLAGS); \
-#	else \
-#		cd $(CBM_DIR) && echo $$PWD && $(CBM_ENV) $(CBM_PATH) $(MAKE) CROSS_COMPILE=$(COMPILER_PREFIX) EXTRAS=NO $(PARALLELMFLAGS); \
-#	fi;
-
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -118,26 +113,6 @@ $(STATEDIR)/cbm.compile:
 
 $(STATEDIR)/cbm.install: $(cbm_install_deps_default)
 	@$(call targetinfo)
-# FIXME: rsc: this needs a proper SYSROOT description!
-#
-# TODO:	For files that are required at compiletime (headers, libs to link against)
-#	you can copy these files to the sysroot directory.
-#	Use macro $(PTXCONF_SYSROOT_TARGET) for host files and $(PTXCONF_GNU_TARGET)
-#	for target files
-#
-#	Example for a host header file:
-#		@cp friesel.h $(PTXCONF_SYSROOT_TARGET)/include
-#	Example for a host library file:
-#		@cp friesel.so $(PTXCONF_SYSROOT_TARGET)/lib
-#	Example for a target file:
-#		@cp frasel.h  $(PTXCONF_GNU_TARGET)/include
-#	Example for a target library file:
-#		@cp frasel.so $(PTXCONF_GNU_TARGET)/lib
-
-# Ought to be done by config-tools
-#	cp $(SRCDIR)/$(CBM)/get_rts_info.h $(PTXDIST_PLATFORMDIR)/sysroot-target/usr/include/
-#	cp $(SRCDIR)/$(CBM)/ipc_msg_com.h $(PTXDIST_PLATFORMDIR)/sysroot-target/usr/include/
-
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -177,13 +152,11 @@ ifdef PTXCONF_CBM
 	# Only install script modules selected via XML configuration
 	@script_modules=$$(xmlstarlet sel -t -m "//simple_level" -v "@ressource" -n  $(CBM_DIR)/$(CBM_XML_CONFIG_FILE_TEMPLATE)) && \
   for script in $${script_modules}; do \
-		$(call install_copy, cbm, 0, 0, 0640, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/cbm-script-modules/$$script, \
-    /etc/config-tools/cbm-script-modules/$$script, n); \
+		$(call install_alternative, cbm, 0, 0, 0640, /etc/config-tools/cbm-script-modules/$$script); \
   done && \
   state_submodules=$$(xmlstarlet sel -t -m "//simple_level" -v "@dyn_state_ressource" -n  $(CBM_DIR)/$(CBM_XML_CONFIG_FILE_TEMPLATE)) && \
   for script in $${state_submodules}; do \
-		$(call install_copy, cbm, 0, 0, 0640, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/cbm-script-modules/$$script, \
-    /etc/config-tools/cbm-script-modules/$$script, n); \
+		$(call install_alternative, cbm, 0, 0, 0640, /etc/config-tools/cbm-script-modules/$$script); \
   done
 
 

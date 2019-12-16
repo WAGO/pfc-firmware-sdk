@@ -1,0 +1,114 @@
+From e4e799ef137f7a8de67356de7f7b15da98bfa641 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Fri, 18 Oct 2019 09:01:47 +0200
+Subject: [PATCH] drivers: net: phy: ksz8863.cfg: fix removal of trailing \n
+ when reading fdb entries
+
+---
+ drivers/net/phy/ksz8863-cfg.c | 45 +++++++++++++++----------------------------
+ 1 file changed, 15 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index ca3586f..f6ca69d 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -727,39 +727,32 @@ static int ksz8863_cfg_get_dyn_macs(struct switch_dev *dev,
+ {
+ 	struct ksz8863_dyn_mac_tbl_entry entry;
+ 	int i, cnt, err;
+-	struct ksz8863_cfg *cfg;
+-
+-	cfg = get_ksz8863_cfg(dev);
++	struct ksz8863_cfg *cfg = get_ksz8863_cfg(dev);
++	char *buffer = cfg->buf_dyn_mac;
++	const size_t buffer_size = sizeof(cfg->buf_dyn_mac);
+ 
+ 	err = ksz8863_cfg_get_dyn_mac_entry(cfg, 0, &entry);
+ 	if (err)
+ 		return err;
+ 
+-	cfg->buf_dyn_mac[0] = '\0';
+-	val->value.s = &cfg->buf_dyn_mac[0];
++	*buffer = '\0';
++	val->value.s = buffer;
+ 	val->len = 0;
+ 
+ 	if (entry.empty)
+ 		return 0;
+ 
+ 	cnt = entry.valid_nb + 1;
+-	for (i = 0; i < cnt && sizeof(cfg->buf_dyn_mac) > val->len + 64; i++) {
++	for (i = 0; i < cnt && buffer_size > val->len + 64; i++) {
+ 		err = ksz8863_cfg_get_dyn_mac_entry(cfg, i, &entry);
+ 		if (err)
+ 			return err;
+ 
+-		val->len += snprintf(cfg->buf_dyn_mac + val->len,
+-				     sizeof(cfg->buf_dyn_mac) - val->len,
+-				     "[%d: %pM %d %02d %d]\n", i, entry.mac,
++		val->len += snprintf(buffer + val->len, buffer_size - val->len,
++				     "\n[%d: %pM %d %02d %d]", i, entry.mac,
+ 				     entry.port, entry.fid, entry.time);
+ 	}
+ 
+-	/* erase last \n */
+-	if (val->len) {
+-		cfg->buf_static_mac[val->len] = '\0';
+-		val->len--;
+-	}
+-
+ 	if (i < cnt)
+ 		dev_warn(cfg->dev, "%d dynamic MACs not displayed", cnt - i);
+ 
+@@ -780,12 +773,12 @@ static int ksz8863_cfg_get_static_macs(struct switch_dev *dev,
+ {
+ 	struct ksz8863_static_mac_tbl_entry entry;
+ 	int i, err;
+-	struct ksz8863_cfg *cfg;
++	struct ksz8863_cfg *cfg = get_ksz8863_cfg(dev);
++	const size_t buffer_size = sizeof(cfg->buf_static_mac);
++	char *buffer = cfg->buf_static_mac;
+ 
+-	cfg = get_ksz8863_cfg(dev);
+-
+-	cfg->buf_static_mac[0] = '\0';
+-	val->value.s = &cfg->buf_static_mac[0];
++	*buffer = '\0';
++	val->value.s = buffer;
+ 	val->len = 0;
+ 
+ 	for (i = 0; i < KSZ8863_SMAC_MAX_ENTRIES; i++) {
+@@ -796,20 +789,13 @@ static int ksz8863_cfg_get_static_macs(struct switch_dev *dev,
+ 		if (!entry.valid)
+ 			continue;
+ 
+-		val->len += snprintf(cfg->buf_static_mac + val->len,
+-				     sizeof(cfg->buf_static_mac) - val->len,
+-				     "[%d: %pM 0x%x %02d %d]\n", i, entry.mac,
++		val->len += snprintf(buffer + val->len, buffer_size - val->len,
++				     "\n[%d: %pM 0x%x %02d %d]", i, entry.mac,
+ 				     entry.forward_ports,
+ 				     (entry.use_fid) ? entry.fid : -1,
+ 				     entry.override);
+ 	}
+ 
+-	/* erase last \n */
+-	if (val->len) {
+-		cfg->buf_static_mac[val->len] = '\0';
+-		val->len--;
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -877,7 +863,6 @@ static struct switch_attr ksz8863_cfg_global_attrs[] = {
+ 	},
+ };
+ 
+-
+ // clang-format off
+ struct switch_dev_ops ksz8863_cfg_switch_dev_ops = {
+ 	.attr_global = {
+-- 
+2.7.4
+

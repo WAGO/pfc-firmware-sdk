@@ -1,0 +1,49 @@
+From e00cf5c1eaadc095c58dc218fd947776e5457ccb Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 24 Sep 2019 13:05:48 +0200
+Subject: [PATCH] dts: 768_330x: rmd: change to SYNC1 for both platforms
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi     | 2 +-
+ arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+index 20a1ce9..b3fedae 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+@@ -60,7 +60,7 @@
+ 		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
+ 		dma-names = "rx", "tx";
+ 
+-		interrupts = <12 IRQ_TYPE_EDGE_RISING>;
++		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
+ 		interrupt-parent = <&gpio2>;
+ 	};
+ 
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
+index 6406b59..24734ea 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
+@@ -60,7 +60,7 @@
+ 		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
+ 		dma-names = "rx", "tx";
+ 
+-		interrupts = <12 IRQ_TYPE_EDGE_RISING>;
++		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
+ 		interrupt-parent = <&gpio2>;
+ 	};
+ 
+@@ -237,7 +237,7 @@
+ 
+ 	rmd_pins: pinmux_rmd_pins {
+ 		pinctrl-single,pins = <
+-			AM33XX_LCD_DATA6_GPIO2_12(PIN_INPUT)
++			AM33XX_LCD_DATA7_GPIO2_13(PIN_INPUT)
+ 			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT)
+ 			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT)
+ 			AM33XX_SPI0_CS1_XDMA_EVENT_INTR2(PIN_INPUT)
+-- 
+2.7.4
+

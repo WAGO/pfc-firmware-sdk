@@ -34,6 +34,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <chrono>
+
 
 //
 //  BEFORE YOU START
@@ -288,7 +290,7 @@ static void transform_xmldoc (const std::string& xmlshema,
         (void)exe_cmd(cmd, ret);
         if (ret != 0)
         {
-           throw invalid_config_error ("failed to transform into rules file");
+           throw  system_call_error ("call: " + cmd + " failed");
         }
     }
     else
@@ -307,15 +309,33 @@ static void apply_rule (const std::string& rule)
     if (check_file(rule) && check_file(FW_IPR))
     {
         std::ostringstream oss;
+        const int RESOURCE_PROBLEM = 4;
+        int ret = 0;
 
         oss << FW_IPR + " -n > /dev/null 2>&1 < " << rule;
         const std::string cmd(oss.str());
-        int ret;
-        (void)exe_cmd(cmd, ret);
+
+        // try to call iptables-restore, repeat by resource conflict
+        auto start_time = std::chrono::steady_clock::now();
+        while (1)
+        {
+            (void)exe_cmd(cmd, ret);
+
+            if (ret != RESOURCE_PROBLEM)  break;
+            auto current_time =  std::chrono::steady_clock::now();
+            if ( timeout < std::chrono::duration_cast<std::chrono::milliseconds>(current_time-start_time).count() )
+            {
+                throw  system_call_error("Timeout by calling :" + cmd);
+                break;
+            }
+        }
+#ifdef SHOW_ERRORS
+        syslog(LOG_ERR, "Execute command: %s  status: %i", oss.str().c_str(), ret);
+#endif
     }
     else
     {
-        throw file_open_error();
+        throw file_open_error("apply_rule: error check file");
     }
 }
 
@@ -355,8 +375,9 @@ static void process_configuration(const std::string& conf,
 static void apply_conf(const std::string& conf, const std::string& updown)
 {
     if (!are_apply_options_valid(conf, updown))
-        throw invalid_param_error();
-
+    {
+        throw invalid_param_error("apply_conf");
+    }
     update_network_interface_name_mapping();
 
     if (conf == "iptables" || conf == "ebtables")
@@ -390,7 +411,7 @@ static void apply_conf(const std::string& conf, const std::string& updown)
         }
         else
         {
-            throw invalid_param_error();
+            throw invalid_param_error( "apply_conf failed:", updown.c_str());
         }
     }
 }
@@ -502,7 +523,7 @@ static void firewall_change(const std::string& command)
         }
         else
         {
-            throw invalid_param_error();
+            throw invalid_param_error("firewall_change: ", command.c_str());
         }
     }
     else
@@ -555,7 +576,7 @@ static void execute(int argc, char** argv)
     else
     {
         if (!regex::is_match(regex::rex_name, conf))
-            throw invalid_param_error(conf);
+            throw invalid_param_error(conf.c_str());
 
         if (argc < 3)
             throw invalid_param_error("Too few arguments.");
@@ -607,7 +628,10 @@ static void execute(int argc, char** argv)
                     updown = optv[optc - 1];
 
                     if (!are_apply_options_valid(conf, updown))
-                        throw invalid_param_error();
+                    {
+                      std::string str = "apply_options_valid:" + conf + "  " + updown;
+                      throw invalid_param_error(str);
+                    }
 
                     apply = true;
                     optc -= 2;
@@ -719,6 +743,7 @@ int main(int argc, char** argv)
 
     int result = 0;
     std::string result_msg;
+    std::string result_what;
 
     // TODO: Below in error catch blocks add logging "what" strings.
 
@@ -730,6 +755,8 @@ int main(int argc, char** argv)
     {
         result = ex.code();
         result_msg = ex.msg();
+        result_what = ex.what();
+
         #ifdef SHOW_ERRORS
         std::cout << "Excecution failed." << std::endl
                   << "Exception: " << ex.what() << std::endl;
@@ -758,7 +785,10 @@ int main(int argc, char** argv)
     xmlMemoryDump();
 
     if (0 != result && 0 != result_msg.size())
+    {
+        syslog(LOG_ERR, "log_error_message: %s %s", result_msg.c_str(), result_what.c_str());
         wago::log_error_message(result_msg);
+    }
 
     wago::log_exit(result);
 

@@ -1,0 +1,195 @@
+From ffebcdbc6c6dca8c54212d806664bc45bcde11b6 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Wed, 28 Aug 2019 11:30:29 +0200
+Subject: [PATCH] net: dsa: tag tail: remeove TWEAK stuff and cleanup code
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ net/dsa/tag_tail.c | 106 +++++++++--------------------------------------------
+ 1 file changed, 18 insertions(+), 88 deletions(-)
+
+diff --git a/net/dsa/tag_tail.c b/net/dsa/tag_tail.c
+index 432700b..be7e85f 100644
+--- a/net/dsa/tag_tail.c
++++ b/net/dsa/tag_tail.c
+@@ -27,68 +27,29 @@
+ 
+ #include "dsa_priv.h"
+ 
+-/*
+- * CONFIG_NET_DSA_TAG_TWEAK
+- * ATM !TAIL_BUG_TWEAK code in tail_xmit might lead to memory corruption
+- * and random Oopses with our Picochip BSP (c.f bug #211).
+- * This 2.6.28 BSP ships with timestamping patches within which the bug
+- * triggers (note that e.g. orphaning the skb clears the symptom).
+- * Maybe check Patrick Ohly's patches.
+- * The 2.6.34 network code is vanilla so no need to use it there.
+- * CONFIG_NET_DSA_TAG_TWEAK shortcuts (no copy) xmit and while at it recv.
+- * and leaves the tag null.
+- */
+-
+-
+-#ifndef CONFIG_NET_DSA_TAG_TWEAK
+-#define PORT1_TX_PRIO                                   3
+-#define PORT2_TX_PRIO                                   3
+-#endif
+-
+-#define DSA_PHY_OFFSET                                  0
++#define PORT1_TX_PRIO	3
++#define PORT2_TX_PRIO	3
++#define DSA_PHY_OFFSET	1
+ 
+ static struct sk_buff *tail_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct dsa_slave_priv *p = netdev_priv(dev);
+-	struct sk_buff *nskb;
+-#ifndef CONFIG_NET_DSA_TAG_TWEAK
+ 	int padlen;
+ 	u8 *tail;
+-#endif
+-	unsigned char *mh;
+ 
+-	if (!is_dsa_enabled()) {
+-		trace_net_dsa_info(skb, skb->len, dev, p->port, __func__, "DSA is DISABLED");
+-		return NETDEV_TX_OK;
+-	}
++	/* expand skb to min length
++	 * ensure that the dsa tail tag is always at the end, even when
++	 * padding is needed
++	 */
++	padlen = (skb->len < ETH_ZLEN) ? ETH_ZLEN - skb->len : 0;
+ 
+-	dev->stats.tx_packets++;
+-	dev->stats.tx_bytes += skb->len;
+-
+-#ifndef CONFIG_NET_DSA_TAG_TWEAK
+-	padlen = 0;
+-	if (skb->len < ETH_ZLEN)
+-		padlen = ETH_ZLEN - skb->len;
+-
+-	nskb = alloc_skb(NET_IP_ALIGN + skb->len + padlen + 1, GFP_ATOMIC);
+-	if (nskb == NULL) {
+-		kfree_skb(skb);
++	if (unlikely(skb_padto(skb, ETH_ZLEN)))
+ 		return NETDEV_TX_OK;
+-	}
+-	skb_reserve(nskb, NET_IP_ALIGN);
+ 
+-	skb_reset_mac_header(nskb);
+-	skb_set_network_header(nskb, skb_network_header(skb) - skb->data);
+-	skb_set_transport_header(nskb, skb_transport_header(skb) - skb->data);
+-	skb_copy_and_csum_dev(skb, skb_put(nskb, skb->len));
+-	kfree_skb(skb);
++	skb_put(skb, padlen);
+ 
+-	if (padlen) {
+-		u8 *pad = skb_put(nskb, padlen);
+-		memset(pad, 0, padlen);
+-	}
+-
+-	tail = skb_put(nskb, 1);
++	/* trail tag */
++	tail = skb_put(skb, 1);
+ 
+ 	tail[0] = 1 << (p->port - DSA_PHY_OFFSET);
+         if (!p->port)
+@@ -96,19 +57,12 @@ static struct sk_buff *tail_xmit(struct sk_buff *skb, struct net_device *dev)
+         else
+                 tail[0] |= (PORT2_TX_PRIO & 3) << 2;
+ 
+-#else
+-	nskb = skb;
+-#endif
+-
+-	nskb->protocol = htons(ETH_P_TAIL);
++	skb->protocol = htons(ETH_P_TAIL);
+ 
+-	nskb->dev = p->parent->dst->master_netdev;
++	trace_net_dsa_info(skb, skb->len, dev, p->port, __func__,
++			   skb->dev->name);
+ 
+-	mh = skb_mac_header(nskb);
+-
+-	trace_net_dsa_info(skb, skb->len, dev, p->port, __func__, nskb->dev->name);
+-
+-	return nskb;
++	return skb;
+ }
+ 
+ static int tail_rcv(struct sk_buff *skb, struct net_device *dev,
+@@ -116,23 +70,14 @@ static int tail_rcv(struct sk_buff *skb, struct net_device *dev,
+ {
+ 	struct dsa_switch_tree *dst = dev->dsa_ptr;
+ 	struct dsa_switch *ds;
+-#ifndef CONFIG_NET_DSA_TAG_TWEAK
+ 	u8 *tail;
+-#endif
+ 	int source_port;
+ 
+-	unsigned char *mh;
+-
+-	if (!is_dsa_enabled()) {
+-		trace_net_dsa_info(skb, skb->len, dev, -1, __func__, "DSA is DISABLED");
+-		return 0; 	/* goto out_drop; */
+-	}
+-
+ 	if (unlikely(dst == NULL))
+ 		goto out_drop;
++
+ 	ds = dst->ds[0];
+ 
+-#ifndef CONFIG_NET_DSA_TAG_TWEAK
+ 	skb = skb_unshare(skb, GFP_ATOMIC);
+ 	if (skb == NULL)
+ 		goto out;
+@@ -140,22 +85,14 @@ static int tail_rcv(struct sk_buff *skb, struct net_device *dev,
+ 	if (skb_linearize(skb))
+ 		goto out_drop;
+ 
+-	//tail = skb_tail_pointer(skb) - 5;
+ 	tail = skb_tail_pointer(skb) - 1;
+ 
+ 	source_port = (tail[0] & 3) + DSA_PHY_OFFSET;
+ 
+-	if (source_port >= DSA_MAX_PORTS || ds->ports[source_port].netdev == NULL)
++	if (source_port >= DSA_MAX_PORTS || !ds->ports[source_port].netdev)
+ 		goto out_drop;
+ 
+-	//pskb_trim_rcsum(skb, skb->len - 5);
+ 	pskb_trim_rcsum(skb, skb->len - 1);
+-#else
+-	source_port = (skb->data[skb->len - 5] & 3) + DSA_PHY_OFFSET;
+-
+-	if (source_port >= DSA_MAX_PORTS || ds->ports[source_port].netdev == NULL)
+-		goto out_drop;
+-#endif
+ 
+ 	skb->dev = ds->ports[source_port].netdev;
+ 	skb_push(skb, ETH_HLEN);
+@@ -166,23 +103,16 @@ static int tail_rcv(struct sk_buff *skb, struct net_device *dev,
+ 	skb->dev->stats.rx_packets++;
+ 	skb->dev->stats.rx_bytes += skb->len;
+ 
+-	mh = skb_mac_header(skb);
+-
+ 	trace_net_dsa_info(skb, skb->len, dev, source_port, __func__,
+ 			   skb->dev->name ? : "NULL");
+ 
+ 	netif_receive_skb(skb);
+ 
+-	trace_net_dsa_info(skb, skb->len, dev, source_port, __func__,
+-			   skb->dev->name ? : "NULL");
+-
+ 	return 0;
+ 
+ out_drop:
+ 	kfree_skb(skb);
+-#ifndef CONFIG_NET_DSA_TAG_TWEAK
+ out:
+-#endif
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
+

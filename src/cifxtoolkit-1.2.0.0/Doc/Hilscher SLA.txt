@@ -1,0 +1,64 @@
+HILSCHER SOFTWARE LICENSE AGREEMENT 
+
+1. Copyright
+This software program (the “Software”) is protected under German and
+international copyright law as well as under international laws and regulations
+governing commerce and the protection of intellectual property. The Software is
+provided under a license and is not available for sale. Hilscher retains all
+ownership rights thereto, including all intellectual property rights. You are
+granted a non-exclusive license. The images, photographs, and text of the
+printed materials accompanying it (user manual, accompanying text,
+documentation, etc.) are protected under copyright and are the property of
+Hilscher.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so.
+
+2. Disclaimer
+Using the Software for military purposes, or utilizing it in applications or
+systems in which potential Software malfunctions might, as far as it is humanly
+possible to determine, cause or entail bodily injury or injuries leading to
+death, is prohibited. If you use the Software in such an environment, you do so
+at your own risk. The Software is not designed, intended, or licensed for use in
+dangerous environments that demand fail-safe control mechanisms. Use of the
+Software is strictly prohibited in the fields of design, construction,
+maintenance, or operation of nuclear facilities and of air traffic control or
+air communications systems, as well as the field of life support or weapons
+systems. Hilscher disclaims any and all liability for damage or losses resulting
+from such use of the Software in violation of this provision.
+
+3. Warranty / Liability
+The Software was produced and tested by Hilscher with care and is provided to
+you purely as is. Hilscher cannot make any warranty that the Software is
+functional or free of errors with regard to all conditions and cases arising in
+the application thereof, or for the results of work produced when the Software
+is used by the user. Hilscher cannot guarantee that the Software will meet your
+requirements, that you will enjoy uninterrupted use thereof, or that the
+Software is free of errors and defects.
+
+Hilscher makes no further representations or warranties and grants no further
+provisions or conditions (whether express or implied, arising from a business
+relationship or customary practice, or derived from statutory, common-law, or
+other laws and regulations) with regard to the Software’s merchantability,
+freedom from defects in title, suitability for integration or usability for
+particular purposes, unless such representations, warranties, and/or provisions
+are stipulated under applicable law and cannot be restricted.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+
+In all cases of contractual or non-contractual liability, Hilscher shall pay
+damages only within the following limits:
+
+a)  The liability of the rights holder is limited to intent and gross negligence
+(§ 521 German Civil Code).
+
+b)  If the law provides for a warranty of the licensor in case of malicious
+concealment of defects, the statutory provisions shall apply
+(523, 524 German Civil Code).
+

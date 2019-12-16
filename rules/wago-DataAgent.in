@@ -22,6 +22,7 @@ menuconfig DATAAGENT
 	select LIBWAGODRM
 	select LICENSE_INFO
 	select ZLIB
+	select WRETAIN
 
 	help
 	  The Data Agent application provides IoT Connectivity

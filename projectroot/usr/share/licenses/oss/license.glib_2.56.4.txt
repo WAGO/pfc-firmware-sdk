@@ -1,5 +1,3 @@
-glib-2.56.4/AUTHORS
-
 Below are just a few of the people who have contributed
 to GLib. Please don't mail these people about problems you
 have with GTK+; see the README file for information about
@@ -40,9 +38,6 @@ Original Authors
 Peter Mattis       <petm@xcf.berkeley.edu>
 Spencer Kimball    <spencer@xcf.berkeley.edu>
 Josh MacDonald     <jmacd@xcf.berkeley.edu>
-
-glib-2.56.4/COPYING
-
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
 
@@ -545,13 +540,7 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
-glib-2.56.4/gmodule/AUTHORS
-
 Tim Janik <timj@gtk.org>
-
-glib-2.56.4/gmodule/COPYING
-
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
 
@@ -1054,17 +1043,11 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
-glib-2.56.4/glib/pcre/COPYING
-
 PCRE LICENCE
 
 Please see the file LICENCE in the PCRE distribution for licensing details.
 
 End
-
-glib-2.56.4/docs/reference/AUTHORS
-
 Damon Chaplin <damon@karuna.freeserve.co.uk> and others.
 
 See:
@@ -1072,9 +1055,6 @@ See:
  http://www.gtk.org/rdp/status.html
 
 for a complete list.
-
-glib-2.56.4/docs/reference/COPYING
-
 This work may be reproduced and distributed in whole or in part, in
 any medium, physical or electronic, so as long as this copyright
 notice remains intact and unchanged on all copies.  Commercial
@@ -1105,4 +1085,3 @@ FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR
 CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE
 WORK, EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE 
 POSSIBILITY OF SUCH DAMAGES.
-

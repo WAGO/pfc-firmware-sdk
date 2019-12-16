@@ -171,32 +171,6 @@ do_update()
     return $local_status
 }
 
-waitrtsstop()
-{
-    local start=$(date +%s)
-    local end=$((start+$1))
-    local akt=$start
-
-    while [ $end -gt $akt ]
-    do
-        (  flock -xn 200 || exit 1;  ) 200>/var/run/dal.lock
-        if [ $? -eq 0 ]
-        then
-            break
-        fi
-        usleep 100000
-        akt=$(date +%s)
-    done
-    if [ $end -le $akt ]
-    then
-        if [ "$2" == "kill" ]
-        then
-            killall -9 codesys3 &
-            killall -9 plclinux_rt &
-        fi
-    fi
-}
-
 reset_origin()
 {
     rm -rf /home/codesys/*
@@ -204,13 +178,8 @@ reset_origin()
 
 clear_runtime()
 {
-    rm /tmp/clr_runtime &> /dev/null
-    rm /var/run/runtime &> /dev/null
-   
     if [ -f /etc/rc.d/S98_runtime ]; then
-        #/etc/rc.d/S98_runtime stop &> /dev/null
-        killall plclinux_rt &> /dev/null
-        killall codesys3 &> /dev/null
+        /etc/rc.d/S98_runtime stop &> /dev/null
         rm /etc/rc.d/S98_runtime &> /dev/null
         echo 0 > /etc/specific/rtsversion
     fi
@@ -221,22 +190,14 @@ clear_runtime()
     fi
 }
 
-wait_start_runtime()
+start_runtime()
 {
-    local start=$(date +%s)
-    local end=$((start+$1))
-    local akt=$start
-    local link="$2"
-    waitrtsstop 5 kill
-    if [ $akt -le $end ]
-    then
-        echo $NEW_RUNTIME_VERSION > /etc/specific/rtsversion
-        if [ "$NEW_RUNTIME_VERSION" != "0" ]
-        then
-            ln -s /etc/init.d/runtime /etc/rc.d/S98_runtime &> /dev/null
-            /etc/rc.d/S98_runtime start &> /dev/null &
-        fi
-    fi
+  echo $NEW_RUNTIME_VERSION > /etc/specific/rtsversion
+  if [ "$NEW_RUNTIME_VERSION" != "0" ]
+  then
+    ln -s /etc/init.d/runtime /etc/rc.d/S98_runtime &> /dev/null
+    /etc/rc.d/S98_runtime start &> /dev/null &
+  fi
 }
 
 bg_cds_webserver()
@@ -485,9 +446,7 @@ elif [ "$NEW_RUNTIME_VERSION" ] && [ "$NEW_RUNTIME_VERSION" != "$CURRENT_RUNTIME
 
     #1. If there is a runtime running: stop it
     if [ $CURRENT_RUNTIME_VERSION -ne 0 ]; then
-        clear_runtime &
-    else
-        touch /tmp/clr_runtime
+        clear_runtime
     fi
 
     # Optionally start the new runtime, also switch default webpage.
@@ -498,13 +457,13 @@ elif [ "$NEW_RUNTIME_VERSION" ] && [ "$NEW_RUNTIME_VERSION" != "$CURRENT_RUNTIME
         2)  bg_cds_webserver &
             bg_wbm_webserver "$RESTART_SERVER" &
             sleep 2
-            wait_start_runtime 8 /etc/init.d/runtime
+            start_runtime
             [ "$WAIT_OPTION" ] && wait
             ;;
 
         3)  bg_wbm_webserver "$RESTART_SERVER" &
             sleep 2
-            wait_start_runtime 8 /etc/init.d/runtime
+            start_runtime
             if [ "$WAIT_OPTION" ]; then
                 wait
                 sleep 5

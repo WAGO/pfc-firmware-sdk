@@ -128,6 +128,9 @@ endif
 ifdef PTXCONF_ROOTFS_VAR_TMP
 	@$(call install_copy, rootfs, 0, 0, 0755, /var/tmp)
 endif
+ifdef PTXCONF_ROOTFS_CONFIGFS
+	@$(call install_copy, rootfs, 0, 0, 0755, /config)
+endif
 
 
 #	#
@@ -198,12 +201,21 @@ ifdef PTXCONF_ROOTFS_GROUP
 	@$(call install_replace, rootfs, /etc/group, \
 		@GROUP_VISUALISATION@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_VISUALISATION_ENTRY)))
+	@$(call install_replace, rootfs, /etc/group, \
+		@GROUP_USER@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_USER_ENTRY)))
 endif
 ifdef PTXCONF_ROOTFS_GSHADOW
 	@$(call install_alternative, rootfs, 0, 0, 0640, /etc/gshadow)
 endif
 ifdef PTXCONF_ROOTFS_FSTAB
 	@$(call install_alternative, rootfs, 0, 0, 0640, /etc/fstab)
+ifdef PTXCONF_ROOTFS_CONFIGFS
+	@$(call install_replace, rootfs, /etc/fstab, @CONFIGFS@, \
+                "none /config configfs defaults 0 0")
+else
+	@$(call install_replace, rootfs, /etc/fstab, @CONFIGFS@, "")
+endif
 endif
 ifdef PTXCONF_ROOTFS_MTAB_FILE
 	@$(call install_alternative, rootfs, 0, 0, 0644, /etc/mtab)

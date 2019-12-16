@@ -1,0 +1,264 @@
+## SECTION=shell_and_console
+menuconfig BASH
+	tristate "bash                          "
+	select LIBC_DL
+	select GCCLIBS_GCC_S
+	select NCURSES if BASH_CURSES
+	help
+	  The GNU Bourne Again SHell
+	  Bash is an sh-compatible command language interpreter that executes
+ 	  commands read from the standard input or from a file.  Bash also
+ 	  incorporates useful features from the Korn and C shells (ksh and csh).
+
+	  Bash is ultimately intended to be a conformant implementation of the
+ 	  IEEE POSIX Shell and Tools specification (IEEE Working Group 1003.2).
+
+	  Included in the bash package is the Programmable Completion Code,
+	  by Ian Macdonald.
+
+	  http://www.gnu.org/software/bash/
+
+if BASH
+
+config BASH_SHLIKE
+	bool
+	prompt "Enable minimal sh like configuration"
+	help
+	  This produces a shell with minimal features, close to the
+	  historical Bourne shell.
+
+comment ""
+	depends on INVISIBLE
+
+if !BASH_SHLIKE
+
+config BASH_ALIASES
+	bool
+	prompt "Enable aliases"
+	default y
+	help
+	  Aliases allow a string to be substituted for a word
+	  when it is used as the first word of a simple command.
+	  The shell maintains a list of aliases that may be
+	  set  and unset with the alias and unalias builtin commands
+
+config BASH_ARITHMETIC_FOR
+	bool
+	prompt "Enable arithmetic for command"
+	help
+	  Include support for the alternate form of the for command that
+	  behaves like the C language for statement.
+	  This does not work properly in bash-2.05b!
+
+config BASH_ARRAY
+	bool
+	prompt "Include shell array variables"
+	default y
+
+config BASH_HISTORY
+	bool
+	prompt "Turn on csh-style history substitution"
+	default y
+	help
+	  The bash shell supports a history expansion feature
+	  that is similar to the history expansion in csh.
+
+config BASH_BRACE
+	bool
+	prompt "Include brace expansion"
+	default y
+	help
+	  Brace  expansion is a mechanism by which arbitrary
+	  strings may be generated.  This mechanism is similar
+	  to pathname expansion, but the filenames generated
+	  need not exist.
+
+config BASH_CASEMODATTR
+	bool
+	prompt "include case-modifying variable attributes"
+
+config BASH_CASEMODEXP
+	bool
+	prompt "include case-modifying word expansions"
+
+config BASH_CMDTIMING
+	bool
+	prompt "enable the time reserved word and command timing"
+
+config BASH_CONDITIONAL
+	bool
+	default y
+	prompt "Enable the conditional command"
+
+config BASH_CONDITIONAL_REGEX
+	bool
+	prompt "enable extended regular expression matching in conditional commands"
+	depends on BASH_CONDITIONAL
+
+config BASH_COPROCESSES
+	bool
+	default y
+	prompt "enable coprocess support and the coproc reserved word"
+
+config BASH_DEBUGGER
+	bool
+	prompt "enable support for bash debugger"
+
+config BASH_DIREXPDEFLT
+	bool
+	prompt "enable the direxpand shell option by default"
+
+config BASH_DIRSTACK
+	bool
+	prompt "Enable builtins pushd/popd/dirs"
+	default y
+	help
+	   Without  options, "dirs" displays the list of
+	   currently remembered directories.  The default
+	   display is on a single line with directory
+	   names separated by spaces.  Directories are
+	   added to the list with the pushd command;
+	   the popd command removes entries from the list.
+
+config BASH_DISABLED_BUILDINS
+	bool
+	prompt "Allow disabled builtins to still be invoked"
+
+config BASH_DPARAN_ARITH
+	bool
+	prompt "include ((...)) command"
+	default y
+
+config BASH_EXTPATTERN
+	bool
+	default y
+	# fails to build without this in 4.3.30
+	prompt "Include ksh-style extended pattern matching" if BROKEN
+
+config BASH_EXTPATTERN_DEFLT
+	bool
+	prompt "force extended pattern matching to be enabled by default"
+
+config BASH_GLOB_ASCIIRANGE_DEFLT
+	bool
+	prompt "bracket range pattern matching uses C locale"
+	help
+	  force bracket range expressions in pattern matching to use the C
+	  locale by default
+
+config BASH_HELP
+	bool
+	prompt "Include the help builtin"
+	help
+	  This builtin supports minimal help features inside bash
+
+config BASH_CMDHISTORY
+	bool
+	prompt "Turn on command history"
+	default y
+	help
+	  This enables command history features. The shell
+	  buffers commands in a ringbuffer, which can be listed,
+	  searched and accessed by various commands and magic
+	  shell expansion features.
+
+config BASH_JOBS
+	bool
+	prompt "Enable job control features"
+	default y
+	help
+	  This enables support for background jobs in bash.
+	  You can list the actual managed jobs by the "jobs" command.
+
+config BASH_MULTIBYTE
+	bool
+	prompt "Enable multibyte characters"
+	default y
+	help
+	  Enable multibyte characters if OS supports them.
+
+config BASH_PROCSUBST
+	bool
+	prompt "Enable process substitution"
+	default y
+	help
+	  This enables process substitution if the operating system
+	  provides the necessary support.
+	  Process substitution is supported on systems that support
+	  named pipes (FIFOs) or the '/dev/fd' method of naming open
+	  files. It takes the form of <(list) or >(list).
+
+config BASH_BASHCOMPLETION
+	bool
+	prompt "Enable programmable completion"
+	help
+	  Enable the programmable completion facilities.
+	  When word completion is attempted for an argument to a
+	  command for which a completion specification (a compspec) has
+	  been defined using the complete builtin, the programmable
+	  completion facilities are invoked.
+	  If Readline is not enabled, this option has no effect.
+
+config BASH_ESC
+	bool
+	prompt "Turn on escape character decoding in prompts"
+	default y
+	help
+	  Turn on the interpretation of a number of backslash-escaped
+	  characters in the $PS1, $PS2, $PS3, and $PS4 prompt strings.
+
+config BASH_EDIT
+	bool
+#	prompt "Turn on command line editing"
+	default y
+	help
+	  Include support for command-line editing and history with
+	  the Bash version of the Readline library.
+
+config BASH_RESTRICTED
+	bool
+	prompt "Enable a restricted shell"
+	help
+	  Include support for a restricted shell. If this is enabled,
+	  Bash enters a restricted mode, when called as rbash or invoked
+	  with the `--restricted' or `-r' option.
+	  A restricted shell is used to set up an environment
+	  more controlled than the standard shell.
+
+config BASH_SELECT
+	bool
+	prompt "Include select command"
+	help
+	  Include the select builtin, which allows the generation of
+	  simple menus.
+
+config BASH_SEP_HELPFILES
+	bool
+	depends on BROKEN
+	prompt "use external files for help builtin documentation"
+
+config BASH_SINGLE_HELPLINE
+	bool
+	prompt "store help documentation as a single string to ease translation"
+
+endif
+
+config BASH_GPROF
+	bool
+	prompt "Allow profiling with gprof"
+	help
+	  This builds a Bash binary that produces profiling information
+	  to be processed by gprof each time it is executed.
+
+config BASH_STATIC
+	bool
+	prompt "Link bash statically"
+	help
+	  This causes Bash to be linked statically, if gcc is being used.
+	  This could be used to build a version to use as root's shell.
+
+config BASH_CURSES
+	bool
+	prompt "Use libcurses instead of libtermcap"
+
+endif

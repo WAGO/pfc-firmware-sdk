@@ -109,7 +109,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 
 	@cd $(CDS3_TSCRETAINUIO_DIR) && \
-	for header in *.h include/*.h; do \
+	for header in *.h ; do \
 		install -D $$header $(CDS3_TSCRETAINUIO_PKGDIR)/usr/include/TscRetainUIO/$$(basename $$header); \
 	done; 
 
@@ -149,7 +149,6 @@ else
 	@$(call install_copy, cds3-tscretainuio, 0, 0, 0750, $(CDS3_TSCRETAINUIO_DIR)/$(CDS3_TSCRETAINUIO_BIN), /usr/lib/$(CDS3_TSCRETAINUIO_BIN))
 	@$(call install_link, cds3-tscretainuio, ./$(CDS3_TSCRETAINUIO_BIN), /usr/lib/lib$(CDS3_TSCRETAINUIO).so);
 	@$(call install_link, cds3-tscretainuio, ../$(CDS3_TSCRETAINUIO_BIN), /usr/lib/cds3-custom-components/lib$(CDS3_TSCRETAINUIO).so);
-	@$(call install_copy, cds3-tscretainuio, 0, 0, 0750, $(CDS3_TSCRETAINUIO_DIR)/lib/libwagoretain_uio.so, /usr/lib/libwagoretain_uio.so)
 	
 
 endif

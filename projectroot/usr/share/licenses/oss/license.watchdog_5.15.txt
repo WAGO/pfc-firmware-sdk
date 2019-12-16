@@ -1,5 +1,3 @@
-watchdog-5.15/AUTHORS
-
 Watchdog developer and credits list
 ===================================
 
@@ -30,9 +28,6 @@ Marcel Jansen <marcel@appliancestudio.com>
 - Quite a lot of additions. 
 
 Several people who worked on mount/umount and/or send me patches.
-
-watchdog-5.15/COPYING
-
 Copyright (C) 1996-2012 Michael Meskes
 
 WATCHDOG is free software; you can redistribute it and/or modify it under
@@ -45,4 +40,28 @@ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
 more details.
 
+This is the Debian GNU/Linux prepackaged version of watchdog.
+Watchdog was written by Michael Meskes <meskes@informatik.rwth-aachen.de>.
 
+Copying:
+
+   Copyright (C) 1996-2012 Michael Meskes
+
+   WATCHDOG is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free
+   Software Foundation; either version 2, or (at your option) any later
+   version.
+
+   WATCHDOG is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+   more details.
+
+On Debian GNU/Linux systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
+
+* Michael Meskes <meskes@debian.org> Wed Jan  15 11:36:42 +0100 1997
+
+Modifications for Debian are copyright (C) 1997-2012 Michael Meskes, (C)
+1997-2000 Johnie Ingram, and also released under the terms of the GPL
+as stated above.

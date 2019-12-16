@@ -1,0 +1,355 @@
+From ea3027206e3efdc024d2f87f0b99f0c788b08d60 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Tue, 15 Oct 2019 10:24:21 +0200
+Subject: [PATCH] driver: net: dsa: ksz8863: use rmw to write registers
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Credits to Christan Hohnstädt for providing this patch.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/dsa/ksz886x/ksz8863.c | 219 ++++++++++++++------------------------
+ 1 file changed, 77 insertions(+), 142 deletions(-)
+
+diff --git a/drivers/net/dsa/ksz886x/ksz8863.c b/drivers/net/dsa/ksz886x/ksz8863.c
+index 9a0fedea8..df99dcf 100644
+--- a/drivers/net/dsa/ksz886x/ksz8863.c
++++ b/drivers/net/dsa/ksz886x/ksz8863.c
+@@ -78,36 +78,42 @@ static inline void ksz8863_assert_reg_lock(struct ksz8863_chip *chip)
+ 
+ static inline int ksz8863_mii_read(struct ksz8863_chip *chip, int reg, u8 *rv)
+ {
++	ksz8863_assert_reg_lock(chip);
+ 	return chip->mii_ops->read(chip, reg, rv);
+ }
+ 
+ static inline int ksz8863_mii_write(struct ksz8863_chip *chip, int reg, u8 val)
+ {
++	ksz8863_assert_reg_lock(chip);
+ 	return chip->mii_ops->write(chip, reg, val);
+ }
+ 
+-static inline int ksz8863_set_bit(struct ksz8863_chip *chip, int reg, u8 mask,
+-				  bool val, bool lock)
++static inline int ksz8863_set_bits_unlocked(struct ksz8863_chip *chip, int reg,
++					    u8 reset, u8 set)
+ {
+-	int err;
+-	u8 rv;
++	u8 rv, orig;
++	int err = ksz8863_mii_read(chip, reg, &rv);
+ 
+-	if (lock)
+-		ksz8863_reg_lock(chip);
++	orig = rv;
++	rv &= ~reset;
++	rv |= set;
+ 
+-	err = ksz8863_mii_read(chip, reg, &rv);
+-	if (err)
+-		goto out_unlock;
++	if (!err && rv != orig)
++		err = ksz8863_mii_write(chip, reg, rv);
++
++	return err;
++}
+ 
+-	rv &= ~mask;
+-	if (val)
+-		rv |= mask;
++static inline int ksz8863_set_bits(struct ksz8863_chip *chip, int reg, u8 reset,
++				   u8 set)
++{
++	int err;
+ 
+-	err = ksz8863_mii_write(chip, reg, rv);
++	ksz8863_reg_lock(chip);
+ 
+-out_unlock:
+-	if (lock)
+-		ksz8863_reg_unlock(chip);
++	err = ksz8863_set_bits_unlocked(chip, reg, reset, set);
++
++	ksz8863_reg_unlock(chip);
+ 
+ 	return err;
+ }
+@@ -140,40 +146,31 @@ static int ksz8863_set_eth_addr(struct ksz8863_chip *chip)
+ static int ksz8863_setup_global(struct ksz8863_chip *chip)
+ {
+ 	int err;
+-	u8 val;
++
++	ksz8863_reg_lock(chip);
+ 
+ 	/* Enable tail tagging */
+-	err = ksz8863_set_bit(chip, KSZ8863_REG_GL_CTRL1,
+-			      KSZ8863_REG_GL_CTRL1_TAIL_TAG_ENABLE, true, true);
++	err = ksz8863_set_bits_unlocked(chip, KSZ8863_REG_GL_CTRL1, 0,
++					KSZ8863_REG_GL_CTRL1_TAIL_TAG_ENABLE);
+ 	if (err)
+-		return err;
++		goto out_unlock;
+ 
+ 	/* Turn on IGMP Snooping */
+-	err = ksz8863_set_bit(chip, KSZ8863_REG_GL_CTRL3,
+-			      KSZ8863_REG_GL_CTRL3_IGMP_SNOOP, true, true);
++	err = ksz8863_set_bits_unlocked(chip, KSZ8863_REG_GL_CTRL3, 0,
++					KSZ8863_REG_GL_CTRL3_IGMP_SNOOP);
+ 	if (err)
+-		return err;
++		goto out_unlock;
+ 
+ 	/* Set broadcast and unknown MAC address forwarding */
+-	ksz8863_reg_lock(chip);
+-
+-	err = ksz8863_mii_read(chip, KSZ8863_REG_GL_CTRL12, &val);
++	err = ksz8863_set_bits_unlocked(
++		chip, KSZ8863_REG_GL_CTRL12, 0,
++		KSZ8863_REG_GL_CTRL12_PORT_MASK |
++			KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_ENABLE);
+ 	if (err)
+ 		goto out_unlock;
+ 
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_ENABLE;
+-
+-	val &= ~KSZ8863_REG_GL_CTRL12_PORT_MASK;
+-
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT1;
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT2;
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT3;
+-
+-	err = ksz8863_mii_write(chip, KSZ8863_REG_GL_CTRL12, val);
+-
+ out_unlock:
+ 	ksz8863_reg_unlock(chip);
+-
+ 	return err;
+ }
+ 
+@@ -185,7 +182,7 @@ static int ksz8863_setup_port(struct ksz8863_chip *chip, int port)
+ 	if (!dsa_is_cpu_port(chip->ds, port)) {
+ 		struct phy_device *phydev;
+ 
+-		/* Scan the mdiobus for the internal phy.
++		/* Scan the mdiobus for the internal phys.
+ 		 * This is needed because libphy may scan the
+ 		 * bus when the switch is still in reset.
+ 		 */
+@@ -199,16 +196,14 @@ static int ksz8863_setup_port(struct ksz8863_chip *chip, int port)
+ 		/* Enable broadcast storm protection for all ports
+ 		 * except cpu port.
+ 		 */
+-		err = ksz8863_set_bit(chip, pb + KSZ8863_REG_PORT1_CTRL0,
+-				      KSZ8863_REG_PORT_CTRL0_BROADCAST_STORM,
+-				      true, true);
++		err = ksz8863_set_bits(chip, pb + KSZ8863_REG_PORT1_CTRL0, 0,
++				       KSZ8863_REG_PORT_CTRL0_BROADCAST_STORM);
+ 		if (err)
+ 			return err;
+ 	} else {
+ 		/* set MAC mode for cpu port */
+-		err = ksz8863_set_bit(chip, pb + KSZ8863_REG_PORT1_CTRL5,
+-				      KSZ8863_REG_PORT_CTRL5_3_MII_MAC_MODE,
+-				      true, true);
++		err = ksz8863_set_bits(chip, pb + KSZ8863_REG_PORT1_CTRL5, 0,
++				       KSZ8863_REG_PORT_CTRL5_3_MII_MAC_MODE);
+ 		if (err)
+ 			return err;
+ 	}
+@@ -218,34 +213,14 @@ static int ksz8863_setup_port(struct ksz8863_chip *chip, int port)
+ 
+ static int ksz8863_setup_adv_ctrl(struct ksz8863_chip *chip)
+ {
+-	int err;
+-	u8 val;
+-
+ 	/* LEDs - yellow led -> link, green led -> act */
+-	ksz8863_reg_lock(chip);
+-
+-	err = ksz8863_mii_read(chip, KSZ8863_REG_PWR_LED, &val);
+-	if (err)
+-		goto out_unlock;
+-
+-	val &= ~KSZ8863_REG_PWR_LED_LED_MODE_SEL_MASK;
+-	val |= (KSZ8863_REG_PWR_LED_LED_MODE_1
+-		<< KSZ8863_REG_PWR_LED_LED_MODE_SEL_SHIFT);
+-
+-	err = ksz8863_mii_write(chip, KSZ8863_REG_PWR_LED, val);
+-	if (err)
+-		goto out_unlock;
+-
+-	ksz8863_reg_unlock(chip);
+-
+-	err = ksz8863_set_eth_addr(chip);
+-
+-	return err;
+-
+-out_unlock:
+-	ksz8863_reg_unlock(chip);
++	int err = ksz8863_set_bits(
++		chip, KSZ8863_REG_PWR_LED,
++		KSZ8863_REG_PWR_LED_LED_MODE_SEL_MASK,
++		KSZ8863_REG_PWR_LED_LED_MODE_1
++			<< KSZ8863_REG_PWR_LED_LED_MODE_SEL_SHIFT);
+ 
+-	return err;
++	return err ? err : ksz8863_set_eth_addr(chip);
+ }
+ 
+ static int ksz8863_setup(struct dsa_switch *ds)
+@@ -287,9 +262,9 @@ static int ksz8863_phy_write(struct dsa_switch *ds, int port, int reg, u16 val)
+ 
+ static int ks8863_flush_dyn_mac_tables(struct ksz8863_chip *chip)
+ {
+-	return ksz8863_set_bit(chip, KSZ8863_REG_GL_CTRL0,
+-			      KSZ8863_REG_GL_CTRL0_FLUSH_DYN_MAC_TABLE, true,
+-			      false);
++	return ksz8863_set_bits_unlocked(
++		chip, KSZ8863_REG_GL_CTRL0, 0,
++		KSZ8863_REG_GL_CTRL0_FLUSH_DYN_MAC_TABLE);
+ }
+ 
+ static int ksz8863_flush_mac_tables(struct ksz8863_chip *chip)
+@@ -348,86 +323,49 @@ static void ksz8863_adjust_link(struct dsa_switch *ds, int port,
+ {
+ 	struct ksz8863_chip *chip = ds->priv;
+ 	int pb = KSZ8863_REG_PORTS_BASE * port_to_index(port);
+-	int err;
+-	u8 old_val, val;
+ 
+ 	phy_print_status(phydev);
+ 
+-	err = ksz8863_flush_mac_tables(chip);
+-	if (err)
++	if (ksz8863_flush_mac_tables(chip))
+ 		return;
+ 
+-	ksz8863_reg_lock(chip);
+-
+-	err = ksz8863_mii_read(chip, pb + KSZ8863_REG_PORT1_CTRL13, &val);
+-	if (err)
+-		goto out_unlock;
+-
+-	old_val = val;
+-
+ 	if (phydev->state == PHY_HALTED || phydev->state == PHY_DOWN)
+-		val |= KSZ8863_REG_PORT_CTRL13_POWER_DOWN;
++		ksz8863_set_bits(chip, pb + KSZ8863_REG_PORT1_CTRL13, 0,
++				 KSZ8863_REG_PORT_CTRL13_POWER_DOWN);
+ 	else
+-		val &= ~KSZ8863_REG_PORT_CTRL13_POWER_DOWN;
+-
+-	if (val != old_val)
+-		ksz8863_mii_write(chip, pb + KSZ8863_REG_PORT1_CTRL13, val);
+-
+-out_unlock:
+-	ksz8863_reg_unlock(chip);
++		ksz8863_set_bits(chip, pb + KSZ8863_REG_PORT1_CTRL13,
++				 KSZ8863_REG_PORT_CTRL13_POWER_DOWN, 0);
+ }
+ 
+ static int ksz8863_set_switched_mode(struct ksz8863_chip *chip)
+ {
+-	int err;
+-	u8 val;
+-
+-	err = ksz8863_mii_read(chip, KSZ8863_REG_GL_CTRL12, &val);
+-	if (err)
+-		return err;
+-
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_ENABLE;
+-
+-	val &= ~KSZ8863_REG_GL_CTRL12_PORT_MASK;
+-
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT1;
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT2;
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT3;
+-
+-	err = ksz8863_mii_write(chip, KSZ8863_REG_GL_CTRL12, val);
+-	if (err)
+-		return err;
+-
+-	dev_info(chip->dev, "set ksz8863 in switched mode\n");
+-
+-	chip->switched = true;
++	/* Set broadcast and unknown MAC address forwarding */
++	int err = ksz8863_set_bits_unlocked(
++		chip, KSZ8863_REG_GL_CTRL12, 0,
++		KSZ8863_REG_GL_CTRL12_PORT_MASK |
++			KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_ENABLE);
++
++	if (!err) {
++		dev_info(chip->dev, "set ksz8863 in switched mode\n");
++		chip->switched = true;
++	}
+ 
+-	return 0;
++	return err;
+ }
+ 
+ static int ksz8863_set_separated_mode(struct ksz8863_chip *chip)
+ {
+-	int err;
+-	u8 val;
++	int err = ksz8863_set_bits_unlocked(
++		chip, KSZ8863_REG_GL_CTRL12, KSZ8863_REG_GL_CTRL12_PORT_MASK,
++		KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT3 |
++			KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_ENABLE);
+ 
+-	err = ksz8863_mii_read(chip, KSZ8863_REG_GL_CTRL12, &val);
+-	if (err)
+-		return err;
+-
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_ENABLE;
+-
+-	val &= ~KSZ8863_REG_GL_CTRL12_PORT_MASK;
+-	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT3;
+-
+-	err = ksz8863_mii_write(chip, KSZ8863_REG_GL_CTRL12, val);
+-	if (err)
+-		return err;
+-
+-	dev_info(chip->dev, "set ksz8863 in separated mode\n");
+-
+-	chip->switched = false;
++	if (!err) {
++		dev_info(chip->dev, "set ksz8863 in separated mode\n");
++		chip->switched = false;
++	}
+ 
+-	return 0;
++	return err;
+ }
+ 
+ static int ksz8863_set_bridged_mode(struct ksz8863_chip *chip)
+@@ -480,10 +418,8 @@ static int ksz8863_set_bridged_mode(struct ksz8863_chip *chip)
+ 		if (dsa_is_cpu_port(chip->ds, index_to_port(port_index)))
+ 			continue;
+ 
+-		if (!chip->switched)
+-			state |= KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE;
+-		else
+-			state |= KSZ8863_REG_PORT_CTRL2_TX_ENABLE;
++		state |= chip->switched ? KSZ8863_REG_PORT_CTRL2_TX_ENABLE :
++					  KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE;
+ 
+ 		err = ksz8863_mii_write(chip, pb + KSZ8863_REG_PORT1_CTRL2,
+ 					state);
+@@ -861,9 +797,8 @@ static int ksz8863_set_internal_ldo(struct ksz8863_chip *chip)
+ 	if (!chip->disable_internal_ldo)
+ 		return 0;
+ 
+-	err = ksz8863_set_bit(chip, KSZ8863_REG_INTERNAL_1V8_LDO_CTRL,
+-			      KSZ8863_REG_INTERNAL_1V8_LDO_CTRL_DISABLE, true,
+-			      true);
++	err = ksz8863_set_bits(chip, KSZ8863_REG_INTERNAL_1V8_LDO_CTRL, 0,
++			       KSZ8863_REG_INTERNAL_1V8_LDO_CTRL_DISABLE);
+ 	if (err)
+ 		return err;
+ 
+-- 
+2.7.4
+

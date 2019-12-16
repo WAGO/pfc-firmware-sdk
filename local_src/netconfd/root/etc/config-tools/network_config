@@ -1,0 +1,235 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   network_config
+#
+# Brief:    WAGO network configuration tool. Replaces former config-tools
+#           and redirects config-tool calls to netconfd daemon.
+#
+# Author:   StS: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   JSo: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   StB: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+usage () {
+
+	cat <<USAGE
+
+* Configuration of network *
+
+!!! The API is preliminary and subject to change in the future !!!
+
+Usage: 
+  /etc/config-tools/network_config [ --get-bridge-config | --get-all-ip-configs | --interface-config --get --json ]
+  /etc/config-tools/network_config [ --set-bridge-config | --set-all-ip-configs | --interface-config --set --json ] <config>
+	
+Parameters:	
+  --get-bridge-config: 
+    Get the current bridge configuration as JSON string.
+
+  --get-all-ip-configs: 
+    Get the current ip configuration as JSON string.
+
+  --set-bridge-config <config>: 
+    Set a new bridge configuration. e.g. '{"br0":["X1"],"br2":["X2"]}'
+
+  --set-all-ip-configs: 
+    Set a new ip configuration as JSON string. The confgiguration is expected as JSON object.
+    e.g. {"br0":{"bcast":"192.168.1.255","ipaddr":"192.168.1.10","netmask":"255.255.255.0","source":"dhcp"}}
+
+  --interface-config:
+    --get --json: 
+      Get the ethernet interface configuration as JSON string.
+    --set --json:
+      Set a new ethernet interface configuration as JSON list of objects.
+      e.g. [{"autonegotiation":true,"device":"X1","state":"up"},{"autonegotiation":true,"device":"X2","state":"up"}]
+USAGE
+}
+
+called_name=$(basename $0)
+
+DBUS_TIMEOUT=15000
+
+
+get_last_string_token () {
+  for token in $@; do
+    json=$token
+  done
+  json=${json#\"}
+  json=${json%\"}
+  echo "$json"
+}
+
+
+# Interface configuration
+
+get_bridge_config () {
+
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.get)
+  echo $(get_last_string_token $out)
+}
+
+set_bridge_config () {
+  local json_config="$1"
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.set string:"${json_config}")
+	echo $(get_last_string_token $out)
+}
+
+get_device_interfaces () {
+
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.getdeviceinterfaces)
+	echo $(get_last_string_token $out)
+}
+
+
+# IP configuration
+
+get_all_ip_configs () {
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/ip_config de.wago.netconfd1.ip_config.getall)
+	echo $(get_last_string_token $out)
+}
+
+get_ip_configs () {
+	local bridges_json_list=$1
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/ip_config de.wago.netconfd1.ip_config.get string:"${bridges_json_list}")
+	echo $(get_last_string_token $out)
+}
+
+set_all_ip_configs () {
+  local json_config="$1"
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/ip_config de.wago.netconfd1.ip_config.setall string:"${json_config}")
+	echo $(get_last_string_token $out)
+}
+
+set_ip_config () {
+  local json_config="$1"
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/ip_config de.wago.netconfd1.ip_config.set string:"${json_config}")
+	echo $(get_last_string_token $out)
+}
+
+set_interface_config () {
+  local json_config="$1"
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.setinterfaceconfig string:"${json_config}")
+	echo $(get_last_string_token $out)
+}
+
+get_interface_config () {
+  out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.getinterfaceconfig)
+	echo $(get_last_string_token $out)
+}
+
+
+network_config_tool () {
+
+  if [ $# -lt 1 ]; then
+    exit 1
+  fi
+
+  local command="$1"
+  case $command in
+    # Interface config
+    --get-bridge-config)
+      out=$(get_bridge_config)
+      echo -n "$out"
+    ;;
+    --get-device-interfaces)
+      out=$(get_device_interfaces)
+      echo -n "$out"
+    ;;
+    --set-bridge-config)
+      if [ $# = 2 ]; then
+        local param=$2
+        out=$(set_bridge_config "$param")
+        exit $out
+      else
+        exit 1
+      fi
+    ;;
+    # IP Config
+    --get-all-ip-configs)
+      out=$(get_all_ip_configs)
+      echo -n "$out"
+    ;;
+    --set-all-ip-configs)
+      if [ $# = 2 ]; then
+        local param=$2
+        out=$(set_all_ip_configs "$param")
+        exit $out
+      else
+        exit 1
+      fi
+    ;;
+    --set-ip-config)
+      if [ $# = 2 ]; then
+        local param=$2
+        out=$(set_ip_config "$param")
+        exit $out
+      else
+        exit 1
+      fi
+    ;;
+    --interface-config)
+    	local action="$2"
+    	if [[ "$action" == "--set" ]]; then
+    		if [[ "$3" == "--json" ]]; then
+    			local param=$4
+    			out=$(set_interface_config "$param")
+    			exit $out
+    		else
+    			exit 1;
+    		fi
+    	elif [[ "$action" == "--get" ]]; then
+    		if [[ "$3" == "--json" ]]; then
+    			local param=$4
+    			out=$(get_interface_config "$param")
+    			echo -n $out
+    		else
+    			exit 1;
+    		fi
+    	else
+    		exit 1;
+    	fi
+		;;
+		--help|-h)
+			usage
+		;;
+		*)
+			echo "unknown parameter: $@" >&2
+			usage
+			exit 1;
+		;;
+  esac
+ }
+
+dbus-wait -t 30 de.wago.netconfd
+if [ $? != 0 ]; then
+  logger -t network_config "ERROR: netconfd: de.wago.netconfd not reachable!"
+  exit -1
+fi
+
+case $called_name in
+  set_dsa_mode_c)
+    new_mode=$2
+    json=$(bc2dsa -f $new_mode)
+    reply=$(set_bridge_config $json)
+  ;;
+  get_dsa_mode)
+    json=$(get_bridge_config)
+    echo -n $(bc2dsa -t $json)
+  ;;
+  network_config)
+    network_config_tool "$@"
+  ;;
+  *)
+  echo "calling \"$called_name\" directly is not intended!"
+  exit 1
+esac
+
+exit 0

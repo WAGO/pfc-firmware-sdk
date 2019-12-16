@@ -1,5 +1,3 @@
-cpufrequtils-007/AUTHORS
-
 Dominik Brodowski
 Karlstr. 11a
 72072 Tübingen
@@ -15,9 +13,6 @@ Italy
 Goran Koruga
 Slovenia
 <korugag@siol.net>
-
-cpufrequtils-007/COPYING
-
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -358,4 +353,3 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
-

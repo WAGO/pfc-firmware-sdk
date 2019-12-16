@@ -1,0 +1,252 @@
+From ae3fdc9742517e508f1277f5b613611ba6566768 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 12 Sep 2019 16:34:59 +0200
+Subject: [PATCH] arm: dts: pac: rename oftree (prepare for active serial mode)
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_3301.dts     | 112 --------------------------
+ arch/arm/boot/dts/am335x-pac-768_3301_psm.dts | 112 ++++++++++++++++++++++++++
+ 2 files changed, 112 insertions(+), 112 deletions(-)
+ delete mode 100644 arch/arm/boot/dts/am335x-pac-768_3301.dts
+ create mode 100644 arch/arm/boot/dts/am335x-pac-768_3301_psm.dts
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301.dts b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+deleted file mode 100644
+index 2aaa282..0000000
+--- a/arch/arm/boot/dts/am335x-pac-768_3301.dts
++++ /dev/null
+@@ -1,112 +0,0 @@
+-/*
+- * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-
+-#include "am335x-pac-768_330x.dtsi"
+-
+-/{
+-	model = "WAGO PAC100 768-3301";
+-	compatible = "wago,am335x-pac-768_330x-1005", "wago,am335x-pfc", "ti,am33xx";
+-};
+-
+-&encsw {
+-	status ="okay";
+-};
+-
+-&encsw {
+-	status ="okay";
+-};
+-
+-&aes {
+-	status = "okay";
+-};
+-
+-&cppi41dma {
+-	status = "okay";
+-};
+-
+-&elm {
+-	status = "okay";
+-};
+-
+-&oms {
+-	status = "okay";
+-};
+-
+-&oms_reset_all {
+-	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
+-};
+-
+-&sham {
+-	status = "okay";
+-};
+-
+-&spi0 {
+-	status = "okay";
+-};
+-
+-&uart0 {
+-	status = "okay";
+-};
+-
+-&usb {
+-	status = "okay";
+-};
+-
+-&usb_ctrl_mod {
+-	status = "okay";
+-};
+-
+-&usb0_phy {
+-	status = "okay";
+-};
+-
+-&usb0 {
+-	dr_mode = "peripheral";
+-	status = "okay";
+-};
+-
+-&spi1 {
+-	status = "okay";
+-};
+-
+-&watchdog {
+-	status = "okay";
+-};
+-
+-&i2c0 {
+-	status = "okay";
+-};
+-
+-&swcfg_mv88e6321 {
+-	status = "okay";
+-};
+-
+-&mac {
+-	status = "okay";
+-};
+-
+-&mmc1 {
+-	status = "okay";
+-};
+-
+-&mmc2 {
+-	status = "okay";
+-};
+-
+-&gpmc {
+-	status = "okay";
+-};
+-
+-&rmd {
+-	status = "okay";
+-};
+-
+-&uio_rmd_irq0 {
+-	status = "okay";
+-};
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301_psm.dts b/arch/arm/boot/dts/am335x-pac-768_3301_psm.dts
+new file mode 100644
+index 0000000..2aaa282
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pac-768_3301_psm.dts
+@@ -0,0 +1,112 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am335x-pac-768_330x.dtsi"
++
++/{
++	model = "WAGO PAC100 768-3301";
++	compatible = "wago,am335x-pac-768_330x-1005", "wago,am335x-pfc", "ti,am33xx";
++};
++
++&encsw {
++	status ="okay";
++};
++
++&encsw {
++	status ="okay";
++};
++
++&aes {
++	status = "okay";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
++&elm {
++	status = "okay";
++};
++
++&oms {
++	status = "okay";
++};
++
++&oms_reset_all {
++	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
++};
++
++&sham {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "peripheral";
++	status = "okay";
++};
++
++&spi1 {
++	status = "okay";
++};
++
++&watchdog {
++	status = "okay";
++};
++
++&i2c0 {
++	status = "okay";
++};
++
++&swcfg_mv88e6321 {
++	status = "okay";
++};
++
++&mac {
++	status = "okay";
++};
++
++&mmc1 {
++	status = "okay";
++};
++
++&mmc2 {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++};
++
++&rmd {
++	status = "okay";
++};
++
++&uio_rmd_irq0 {
++	status = "okay";
++};
+-- 
+2.7.4
+

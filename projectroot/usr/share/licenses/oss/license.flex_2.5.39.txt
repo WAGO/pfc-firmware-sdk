@@ -1,5 +1,3 @@
-flex-2.5.39/AUTHORS
-
 
 In 2001, Will Estes took over as maintainer of flex.
 
@@ -16,9 +14,6 @@ inspiration from Van Jacobson.  Original version by Jef Poskanzer.
 The fast table representation is a partial implementation of a design
 done by Van Jacobson.  The implementation was done by Kevin Gong and
 Vern Paxson.
-
-flex-2.5.39/COPYING
-
 Flex carries the copyright used for BSD software, slightly modified
 because it originated at the Lawrence Berkeley (not Livermore!) Laboratory,
 which operates under a contract with the Department of Energy:
@@ -61,4 +56,3 @@ authors') name".
 Note that the "flex.skl" scanner skeleton carries no copyright notice.
 You are free to do whatever you please with scanners generated using flex;
 for them, you are not even bound by the above copyright.
-

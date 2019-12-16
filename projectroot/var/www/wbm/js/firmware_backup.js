@@ -101,11 +101,18 @@ var FirmwareBackupContent = function(id)
       // if destination actually is network, reset all other packages (only one then can be selected at one time)
       else if('network' === $('#' + firmwareBackupContent.id + '_content select#firmware_backup_destination_medium_select').val()) 
       {
+        var encryption_selected = $('#' + firmwareBackupContent.id + '_content input[id=encryption_active_state]').prop('checked');
         $('#' + firmwareBackupContent.id + '_content input[type=checkbox]').removeAttr('checked');
-        $('#' + firmwareBackupContent.id + '_content input[name=encryption-passphrase]').val('');
-        $('#' + firmwareBackupContent.id + '_content input[name=confirm_encryption-passphrase]').val('');
-        // encryption is default
-        $('#' + firmwareBackupContent.id + '_content input[id=encryption_active_state]').prop('checked', 'checked');
+        if( encryption_selected )
+        {
+            $('#' + firmwareBackupContent.id + '_content input[id=encryption_active_state]').prop('checked', 'checked');
+        }
+        else
+        {
+            $('#' + firmwareBackupContent.id + '_content input[name=encryption-passphrase]').val('');
+            $('#' + firmwareBackupContent.id + '_content input[name=confirm_encryption-passphrase]').val('');
+        }
+
         $(this).prop('checked','checked');
       }
     });

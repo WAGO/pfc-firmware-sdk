@@ -1,0 +1,139 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   backup_netconfd
+#
+# Brief:    Backup and restore network configuration accessed by netconfd.
+#
+# Author:   StB: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+set -u
+
+DBUS_TIMEOUT=60000
+
+# load common backup/restore functions
+if [ ! -f "/usr/sbin/settings_backup_lib" ]; then
+  echo "settings_backup_lib missing"
+  exit 64
+fi
+
+source /usr/sbin/settings_backup_lib
+
+GetParameterCount()
+{
+    local status=0
+    local dbus_out=""
+    
+    out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.getbackupparamcount)
+    for token in $out; do
+      dbus_out=$token
+    done
+    dbus_out=${dbus_out#\"}
+    dbus_out=${dbus_out%\"}
+    echo "$dbus_out"
+    
+    return $status
+}
+
+Save()
+{
+    if IsNetworkSettingsV2 ; then
+    
+        local file_path="$1"
+        local dbus_out=""
+        
+        out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.backup string:"${file_path}")
+        for token in $out; do
+          dbus_out=$token
+        done
+        dbus_out=${dbus_out#\"}
+        dbus_out=${dbus_out%\"}
+        echo "$dbus_out"
+    fi
+}
+
+Restore()
+{
+    local file_path="$1"
+    local dbus_out=""
+
+    out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.restore string:"${file_path}")
+    for token in $out; do
+        dbus_out=$token
+    done
+    dbus_out=${dbus_out#\"}
+    dbus_out=${dbus_out%\"}
+    echo "$dbus_out"
+}
+
+PrintUsage()
+{
+    echo "backup_netconfd --save <backup-file>      backup routing parameters"
+    echo "backup_netconfd --restore <backup-file>   restore routing parameters"
+    echo "backup_netconfd --param-count             get number of routing parameters to save"
+}
+
+
+#### MAIN ##########################################################################################
+
+# wait for netconfd dbus interface to become available
+dbus-wait -t 30 de.wago.netconfd
+if [ $? != 0 ]; then
+    logger -t backup_netconfd "ERROR: netconfd: de.wago.netconfd not reachable!"
+    exit -1
+fi
+
+status=0
+
+if [[ $# -ge 1 ]]; then
+    operation=$1
+
+    if [[ $# -ge 2 ]]; then
+        if [[ "$2" = /* ]]; then
+            file="$2"
+        else
+            file="$(pwd)/$2"
+        fi
+        
+        if [[ -e "$file" ]]; then
+            if [[ "$operation" == "--save" ]]; then
+                Save "$file"
+                status=$?
+            elif [[ "$operation" == "--restore" ]]; then
+                Restore "$file"
+                status=$?
+            else
+                # Unknown operation
+                status=1
+            fi
+        else
+            # File does not exist.
+            logger -t backup_netconfd "backup file does not exist."
+            #Invalid parameter
+            status=3
+        fi
+    else
+        if [[ "$operation" == "--param-count" ]]; then
+            GetParameterCount
+        elif [[ "$operation" == "-h" || "$operation" == "--help" ]]; then
+            PrintUsage
+        else
+            # Unknown operation
+            status=1
+        fi
+    fi
+fi
+
+if [[ $status != 0 ]]; then
+    logger -t backup_netconfd "BackupRestore operation failed"
+fi
+
+exit $status

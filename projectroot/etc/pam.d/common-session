@@ -1,0 +1,9 @@
+#
+# /etc/pam.d/common-session; Linux-PAM configuration file
+#
+
+session  [default=1]                                      pam_permit.so
+session  requisite                                        pam_deny.so
+session  required                                         pam_permit.so
+session  required                                         pam_unix.so
+

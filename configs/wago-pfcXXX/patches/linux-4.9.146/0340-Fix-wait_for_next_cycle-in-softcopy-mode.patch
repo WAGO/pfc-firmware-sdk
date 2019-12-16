@@ -1,0 +1,29 @@
+From e41be1ca10ed8fed4b6f941d838e51bf98b800a9 Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Mon, 30 Sep 2019 16:58:19 +0200
+Subject: [PATCH] Fix wait_for_next_cycle() in softcopy mode
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/char/rmd.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
+index e195aea..bd1331c 100644
+--- a/drivers/char/rmd.c
++++ b/drivers/char/rmd.c
+@@ -516,10 +516,8 @@ static irqreturn_t rmd_isr(int irq, void *data)
+ 			rmd_tx_softcopy(&rmd->info->tx_channel);
+ 
+ 		enable_irq(irq);
+-	} else {
+-		complete(&rmd->completion);
+-		disable_irq_nosync(irq);
+ 	}
++	complete(&rmd->completion);
+ 
+ 	return IRQ_HANDLED;
+ }
+-- 
+2.7.4
+

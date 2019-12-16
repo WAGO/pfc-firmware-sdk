@@ -1,8 +1,0 @@
-## SECTION=wago_specific_libs
-
-config LIBNVRAM
-	bool
-	select LIBUIO
-	prompt "libnvram"
-	help
-	  library to connect to a nvram uio device of PFC200

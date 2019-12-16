@@ -5,6 +5,7 @@ menuconfig IMAGE_BOOT_VFAT
 	select HOST_GENIMAGE
 	select HOST_MTOOLS
 	select HOST_DOSFSTOOLS
+	select HOST_U_BOOT_TOOLS
 	select BAREBOX
 	select BAREBOX_MLO
 	prompt "Generate images/boot.vfat     "

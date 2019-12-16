@@ -1,0 +1,80 @@
+From 9e450f194787b09a37c710ed193c289865369505 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 21 Oct 2019 13:48:26 +0200
+Subject: [PATCH] char: rmd: fix unbalanced irq warning
+
+We get a WARNING dump if the irq is enabled twice (see below). In
+this case the kernel follows the slow path to print the dump and
+enlarges the process time to handle the interrupt request
+(read/write hw fifos). The consequence is that we miss rlb cycles and
+therefore miss to fill the hw fifos.
+Fix this by enabling irq by default. Userspace app is responsible for
+enable/disable irq source in the rmd device. Missed rlb cycles need to
+be detected by Userspace application.
+
+    [  912.584791] ------------[ cut here ]------------
+    [  912.584823] WARNING: CPU: 0 PID: 1433 at kernel/irq/manage.c:568 __enable_irq+0x44/0x84
+    [  912.584826] Unbalanced enable for IRQ 106
+    [  912.584837] Modules linked in: rmd [last unloaded: rmd]
+    [  912.584849] CPU: 0 PID: 1433 Comm: rlbpde-demo Tainted: G W 4.9.146-rt125-00362-gfe3a6a5-dirty #8
+    [  912.584853] Hardware name: Generic AM33XX (Flattened Device Tree)
+    [  912.584891] [<c010e454>] (unwind_backtrace) from [<c010bf10>] (show_stack+0x20/0x24)
+    [  912.584907] [<c010bf10>] (show_stack) from [<c0458d28>] (dump_stack+0x20/0x28)
+    [  912.584931] [<c0458d28>] (dump_stack) from [<c0134bb8>] (__warn+0xd8/0x108)
+    [  912.584944] [<c0134bb8>] (__warn) from [<c0134c30>] (warn_slowpath_fmt+0x48/0x50)
+    [  912.584956] [<c0134c30>] (warn_slowpath_fmt) from [<c017420c>] (__enable_irq+0x44/0x84)
+    [  912.584968] [<c017420c>] (__enable_irq) from [<c01742b8>] (enable_irq+0x6c/0x80)
+    [  912.584997] [<c01742b8>] (enable_irq) from [<bf0071d0>] (rmd_enable_irq+0x40/0x4c [rmd])
+    [  912.585019] [<bf0071d0>] (rmd_enable_irq [rmd]) from [<bf007dd8>] (rmd_ioctl+0x488/0x5c4 [rmd])
+    [  912.585045] [<bf007dd8>] (rmd_ioctl [rmd]) from [<c025679c>] (vfs_ioctl+0x30/0x44)
+    [  912.585058] [<c025679c>] (vfs_ioctl) from [<c0257058>] (do_vfs_ioctl+0x754/0x88c)
+    [  912.585069] [<c0257058>] (do_vfs_ioctl) from [<c02571ec>] (SyS_ioctl+0x5c/0x84)
+    [  912.585086] [<c02571ec>] (SyS_ioctl) from [<c0107dc0>] (ret_fast_syscall+0x0/0x50)
+    [  912.585092] ---[ end trace 0000000000000003 ]---
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ drivers/char/rmd.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
+index dd333a4..3365770 100644
+--- a/drivers/char/rmd.c
++++ b/drivers/char/rmd.c
+@@ -727,7 +727,6 @@ static void rmd_cleanup(struct rmd_info *info)
+ 	info->is_tx_enabled = false;
+ 
+ 	if (rmd_softcopy_mode(&info->config)) {
+-		disable_irq(rmd->irq);
+ 		kfree(rx->buf);
+ 		kfree(tx->buf);
+ 	} else {
+@@ -771,7 +770,6 @@ static int rmd_wait_for_next_cycle(struct rmd *rmd, void __user *argp)
+ 	cycle.cycle_time_us = delta_time_us;
+ 
+ 	reinit_completion(&rmd->completion);
+-	enable_irq(rmd->irq);
+ 	ret = wait_for_completion_interruptible_timeout(&rmd->completion,
+ 					usecs_to_jiffies(cycle.timeout_us));
+ 
+@@ -796,8 +794,6 @@ static int rmd_setup(struct rmd_info *info, void __user *argp)
+ 	else
+ 		ret = rmd_dma_setup(info);
+ 
+-	enable_irq(info->rmd->irq);
+-
+ 	if (ret)
+ 		return ret;
+ 
+@@ -938,8 +934,6 @@ static int of_rmd(struct device *dev, struct rmd *rmd)
+ 	if (ret)
+ 		return ret;
+ 
+-	disable_irq(rmd->irq);
+-
+ 	if (of_property_read_string(np, "firmware", &rmd->fw_name))
+ 		rmd->fw_name = DEFAULT_IMAGE;
+ 
+-- 
+2.7.4
+

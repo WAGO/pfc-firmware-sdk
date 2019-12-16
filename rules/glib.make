@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_GLIB) += glib
 #
 # Paths and names
 #
-GLIB_VERSION    := 2.56.4
+GLIB_VERSION	:= 2.56.4
 GLIB_MD5	:= 17c3dca43d99a4882384f1a7b530b80b
 GLIB		:= glib-$(GLIB_VERSION)
 GLIB_SUFFIX	:= tar.xz
@@ -92,10 +92,8 @@ GLIB_CFLAGS:= -Wl,-rpath-link,$(GLIB_DIR)/gmodule/.libs
 $(STATEDIR)/glib.install:
 	@$(call targetinfo)
 	@$(call world/install, GLIB)
+	@mkdir -p $(PTXCONF_SYSROOT_TARGET)/usr/include/glib-2.0
 	@cp $(GLIB_DIR)/glib/glibconfig.h $(PTXCONF_SYSROOT_TARGET)/usr/include
-	@cp $(GLIB_DIR)/glib/glib.h $(PTXCONF_SYSROOT_TARGET)/usr/include
-	@mkdir -p $(PTXCONF_SYSROOT_TARGET)/usr/lib/glib-2.0/include
-	@cp $(GLIB_DIR)/glib/glibconfig.h $(PTXCONF_SYSROOT_TARGET)/usr/lib/glib-2.0/include
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -111,13 +109,6 @@ $(STATEDIR)/glib.targetinstall:
 	@$(call install_fixup, glib,AUTHOR,"Robert Schwebel <r.schwebel@pengutronix.de>")
 	@$(call install_fixup, glib,DESCRIPTION,missing)
 
-#	# /usr/bin/gtester-report
-#	# /usr/bin/glib-genmarshal
-#	# /usr/bin/glib-gettextize
-#	# /usr/bin/gobject-query
-#	# /usr/bin/glib-mkenums
-#	# /usr/bin/gtester
-
 	@$(call install_copy, glib, 0, 0, 0755, /usr/lib/gio/modules)
 
 	@for i in libgio-2.0 libglib-2.0 libgmodule-2.0 libgobject-2.0 libgthread-2.0; do \
@@ -130,5 +121,16 @@ endif
 	@$(call install_finish, glib)
 
 	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Clean
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/glib.clean:
+	@$(call targetinfo)
+	@$(call clean_pkg, glib)
+	rm -f $(STATEDIR)/glib.*
+	rm -rf $(GLIB_DIR)
+	rm -Rf $(PTXCONF_SYSROOT_TARGET)/usr/include/glib-2.0
 
 # vim: syntax=make

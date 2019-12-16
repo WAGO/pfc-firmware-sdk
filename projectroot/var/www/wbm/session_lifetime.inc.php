@@ -19,6 +19,13 @@ define("USER_USER", "user");
 define("USER_ADMIN", "admin");
 const CSRF_TOKEN_LENGTH = 48;
 
+function system_uptime ()
+{
+  $proc_uptime = file_get_contents( '/proc/uptime' );
+  $uptime = explode( ' ', $proc_uptime )[0];
+  return $uptime;
+}
+
 // Handle Session Lifetime
 function Session_HandleSessionLifeTime($csrfToken, $shouldResetSessionTimeout)
 {
@@ -46,11 +53,7 @@ function StartLoginSession($username)
   session_unset();
   session_regenerate_id(true);
   $_SESSION['username']  = $username;
-
-  $uptimeOutput = exec('cat /proc/uptime');
-  $uptime = explode(' ', $uptimeOutput)[0];
-
-  $_SESSION['timeout'] = $uptime + SESSION_LIFETIME;
+  $_SESSION['timeout'] = system_uptime() + SESSION_LIFETIME;
   $_SESSION["csrf_token"] = Session_GenerateCSRFToken();
   $_SESSION['userAgent'] = $_SERVER['HTTP_USER_AGENT'];
 }
@@ -79,8 +82,7 @@ function Session_DestroySession()
 function Session_CheckSessionLifeTime($shouldResetSessionTimeout)
 {
   $status = SUCCESS;
-  $uptimeOutput = exec('cat /proc/uptime');
-  $uptime = explode(' ', $uptimeOutput)[0];
+  $uptime = system_uptime();
 
   if($uptime > $_SESSION['timeout'])
     $status = SESSION_EXPIRED;

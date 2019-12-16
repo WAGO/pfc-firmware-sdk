@@ -1,5 +1,3 @@
-dropbear-2018.76/LICENSE
-
 Dropbear contains a number of components from different sources, hence there
 are a few licenses and authors involved. All licenses are fairly 
 non-restrictive.
@@ -141,9 +139,6 @@ curve25519-donna:
  * uses many of the tricks described therein. Only the crecip function is taken
  * from the sample implementation.
  */
-
-dropbear-2018.76/libtommath/LICENSE
-
 LibTomMath is licensed under DUAL licensing terms.
 
 Choose and use the license of your needs.
@@ -173,9 +168,6 @@ Tom St Denis
   0. You just DO WHAT THE FUCK YOU WANT TO. 
 
 [/LICENSE #2]
-
-dropbear-2018.76/libtomcrypt/LICENSE
-
 LibTomCrypt is licensed under DUAL licensing terms.
 
 Choose and use the license of your needs.
@@ -205,4 +197,3 @@ Tom St Denis
   0. You just DO WHAT THE FUCK YOU WANT TO. 
 
 [/LICENSE #2]
-

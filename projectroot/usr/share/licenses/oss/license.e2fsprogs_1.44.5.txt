@@ -1,5 +1,3 @@
-e2fsprogs-1.44.5/debian/copyright
-
 This is the Debian GNU/Linux prepackaged version of the EXT2 file
 system utilities (e2fsck, mke2fs, etc.).  The EXT2 utilities were
 written by Theodore Ts'o <tytso@mit.edu> and Remy Card <card@masi.ibp.fr>.
@@ -73,9 +71,6 @@ The license used for lib/uuid is:
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
    USE OF THIS SOFTWARE, EVEN IF NOT ADVISED OF THE POSSIBILITY OF SUCH
    DAMAGE.
-
-e2fsprogs-1.44.5/ext2ed/COPYRIGHT
-
 EXT2ED is hereby placed under the terms of the GNU General Public License.
 Follows the GNU license.
 
@@ -422,9 +417,6 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
-
-e2fsprogs-1.44.5/lib/uuid/COPYING
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
@@ -450,9 +442,6 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
 USE OF THIS SOFTWARE, EVEN IF NOT ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
-
-e2fsprogs-1.44.5/lib/ext2fs/tdb/patches/copyright
-
 Index: tdbsa/tdb.c
 ===================================================================
 --- tdbsa.orig/tdb.c
@@ -473,4 +462,3 @@ Index: tdbsa/tdb.c
     
       ** NOTE! The following LGPL license applies to the tdb
       ** library. This does NOT imply that all of Samba is released
-

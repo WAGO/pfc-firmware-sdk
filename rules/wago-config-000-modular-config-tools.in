@@ -23,6 +23,8 @@ menuconfig MODULAR_CONFIG_TOOLS
   select HOST_CT_BUILD
   select LIBCOMMONHEADER
   select GLIB
+  select LIBRLB if CT_CONFIG_RMD
+  select LIBUIO if CT_CONFIG_RMD
 
 # basic parts
   select CT_CONFIG_TOOL_UTILS_LIB_C
@@ -30,7 +32,6 @@ menuconfig MODULAR_CONFIG_TOOLS
 
   help
    "Set of command line tools to change system configuration"
-
 
 ###############################################################
 comment "Users"
@@ -43,8 +44,15 @@ config CT_CONFIG_LINUX_USER
   select CT_CONFIG_TOOL_LIB_C
   prompt "config_linux_user"
   help
-   Change Linux user passwords.
+  Change Linux user passwords.
 
+config CT_CONFIG_RMD
+  bool
+  default n
+  depends on MODULAR_CONFIG_TOOLS
+  prompt "config_rmd"
+   help
+     RMD-Rocket Master Device config tool.
 
 ###############################################################
 comment "Memory"
@@ -58,7 +66,6 @@ config CT_RESERVED_AREA
   help
    Control reserved data area.
 
-
 ######################### BASIC PARTS #########################
 config CT_CONFIG_TOOL_UTILS_LIB_C
   bool
@@ -67,4 +74,5 @@ config CT_CONFIG_TOOL_UTILS_LIB_C
   select GLIB
   help
    Shared C functions used across multiple binaries.
+
 

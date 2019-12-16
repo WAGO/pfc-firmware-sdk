@@ -3,7 +3,8 @@ menuconfig PUREFTPD
 	tristate
 	prompt "pureftpd                      "
 	select LIBC_CRYPT
-  select OPENSSL if PUREFTPD_SSL
+	select OPENSSL		if PUREFTPD_SSL
+	select LINUX_PAM	if PUREFTPD_PAM
 	help
 	  Pure-FTPd is a fast, production-quality, standards-conformant
 	  FTP server based upon Troll-FTPd. Features include chrooted
@@ -65,6 +66,13 @@ config PUREFTPD_INSTALL_CUSTOM_CONFIG_FILE
      NOTE: currently there is no solution for systemd.
 
 comment "build options   ---"
+
+config PUREFTPD_PAM
+	bool
+	default n
+	prompt "Include Linux-PAM (Pluggable Authentication Module) support"
+	help
+	  FIXME
 
 config PUREFTPD_VIRTUALHOSTS
 	bool

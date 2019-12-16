@@ -19,6 +19,9 @@ specificconf_DATA += xml/led.0x1000.TP600.xml
 specificconf_DATA += xml/led.0x1001.TP600.xml
 specificconf_DATA += xml/led.0x1002.TP600.xml
 specificconf_DATA += xml/led.0x1003.TP600.xml
+specificconf_DATA += xml/led.0x1004.TP600.xml
+specificconf_DATA += xml/led.0x1005.TP600.xml
+specificconf_DATA += xml/led.0x1006.PFC200.xml
 specificconf_DATA += xml/led.0x108E.CTP.xml
-specificconf_DATA += xml/led.0x000C.SRC.xml
+specificconf_DATA += xml/led.0x0000.default.xml
 

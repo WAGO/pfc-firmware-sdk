@@ -1,1810 +1,384 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites tests="336"
-            failures="0"
-            disabled="0"
-            errors="0"
-            timestamp="2019-08-22T21:59:14"
-            time="0.412"
-            name="AllTests">
-   <testsuite name="mdmd.MdmDiagnosticTest"
-              tests="23"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.012">
-      <testcase name="Initialization"
-                status="run"
-                time="0.002"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetSignalLevelWithoutNet"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetAccessClassWithoutSignal"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="RegistrationAfterSignal"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetSignalAfterRegistration"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="RegistrationLoss"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="ChangeSignalAfterRegistration"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SameSignalAgain"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SignalLoss"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="ChangeAccessClass2GTo3G"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="ChangeAccessClass3GTo2G"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SameAccessClassAgain"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetPortError"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetInitError"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetResetError"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetNoSimError"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetSimError"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="UnsetError"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetSimErrorAfterRegistration"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="UnsetSimErrorAfterRegistration"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="ChangeAccessClassWhileError"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="ChangeError"
-                status="run"
-                time="0.001"
-                classname="mdmd.MdmDiagnosticTest"/>
-      <testcase name="SetSimFailureTwice"
-                status="run"
-                time="0"
-                classname="mdmd.MdmDiagnosticTest"/>
-   </testsuite>
-   <testsuite name="mdmd.MdmPersistentStorageWithPresetConfigTest"
-              tests="7"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.27">
-      <testcase name="CreateInstance"
-                status="run"
-                time="0.05"
-                classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
-      <testcase name="ModemManagementConfig"
-                status="run"
-                time="0.072"
-                classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
-      <testcase name="UserIdentityConfig"
-                status="run"
-                time="0.044"
-                classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
-      <testcase name="NetworkAccessConfig"
-                status="run"
-                time="0.012"
-                classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
-      <testcase name="GprsAccessConfig"
-                status="run"
-                time="0.011"
-                classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
-      <testcase name="SmsEventReportingConfig"
-                status="run"
-                time="0.016"
-                classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
-      <testcase name="SmsStorageConfig"
-                status="run"
-                time="0.065"
-                classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
-   </testsuite>
-   <testsuite name="mdmd.PersistentStorageTest"
-              tests="8"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.054">
-      <testcase name="CheckSetup"
-                status="run"
-                time="0.018"
-                classname="mdmd.PersistentStorageTest"/>
-      <testcase name="GprsAccessConfig"
-                status="run"
-                time="0.007"
-                classname="mdmd.PersistentStorageTest"/>
-      <testcase name="CreateInstance"
-                status="run"
-                time="0.004"
-                classname="mdmd.PersistentStorageTest"/>
-      <testcase name="Sim"
-                status="run"
-                time="0.003"
-                classname="mdmd.PersistentStorageTest"/>
-      <testcase name="NetSelection"
-                status="run"
-                time="0.004"
-                classname="mdmd.PersistentStorageTest"/>
-      <testcase name="OperationContext"
-                status="run"
-                time="0.007"
-                classname="mdmd.PersistentStorageTest"/>
-      <testcase name="SmsEventReportingConfig"
-                status="run"
-                time="0.005"
-                classname="mdmd.PersistentStorageTest"/>
-      <testcase name="SmsStorageConfig"
-                status="run"
-                time="0.005"
-                classname="mdmd.PersistentStorageTest"/>
-   </testsuite>
-   <testsuite name="mdmd.PersistentStorageWithPresetConfigTest"
-              tests="2"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.054">
-      <testcase name="CheckSetup_Host"
-                status="run"
-                time="0.01"
-                classname="mdmd.PersistentStorageWithPresetConfigTest"/>
-      <testcase name="CreateInstance_Host"
-                status="run"
-                time="0.044"
-                classname="mdmd.PersistentStorageWithPresetConfigTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyLineCR/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;A0-61 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;A4-61 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;C4-61 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;E4-61 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;04-62 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;28-62 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;4C-62 17-00 C4-60 17-00 64-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;A0-61 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0.001"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;A4-61 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;C4-61 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;E4-61 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;04-62 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;28-62 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;4C-62 17-00 C4-60 17-00 64-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCR/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyLineLF/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;7C-62 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;80-62 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;90-62 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;A0-62 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;B0-62 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;C4-62 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;D8-62 17-00 C4-60 17-00 F0-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;7C-62 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0.001"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;80-62 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;90-62 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;A0-62 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;B0-62 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;C4-62 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;D8-62 17-00 C4-60 17-00 F0-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLF/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyLineCRLF/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;08-63 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;0C-63 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;1C-63 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;30-63 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;44-63 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;58-63 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;6C-63 17-00 C4-60 17-00 88-63 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;08-63 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;0C-63 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;1C-63 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;30-63 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;44-63 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;58-63 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;6C-63 17-00 C4-60 17-00 88-63 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineCRLF/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyLineLFCR/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;A0-63 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;A4-63 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;B4-63 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;C8-63 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;DC-63 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;F0-63 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;04-64 17-00 C4-60 17-00 20-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;A0-63 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;A4-63 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;B4-63 17-00 C4-60 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;C8-63 17-00 C4-60 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;DC-63 17-00 C4-60 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;F0-63 17-00 C4-60 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;04-64 17-00 C4-60 17-00 20-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyLineLFCR/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestLineCR/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;38-64 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;50-64 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;68-64 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;84-64 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;A0-64 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;BC-64 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;D8-64 17-00 44-64 17-00 64-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;38-64 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;50-64 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;68-64 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;84-64 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;A0-64 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;BC-64 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;D8-64 17-00 44-64 17-00 64-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCR/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestLineLF/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;FC-64 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;08-65 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;20-65 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;3C-65 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;58-65 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;74-65 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;90-65 17-00 44-64 17-00 F0-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;FC-64 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;08-65 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;20-65 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;3C-65 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;58-65 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;74-65 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;90-65 17-00 44-64 17-00 F0-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLF/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestLineCRLF/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;B4-65 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;C0-65 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;DC-65 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;F8-65 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;14-66 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;30-66 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;4C-66 17-00 44-64 17-00 88-63 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;B4-65 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;C0-65 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;DC-65 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;F8-65 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;14-66 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;30-66 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;4C-66 17-00 44-64 17-00 88-63 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineCRLF/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestLineLFCR/LineInputTest"
-              tests="14"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;70-66 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;7C-66 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;98-66 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;B4-66 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;D0-66 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;EC-66 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;08-67 17-00 44-64 17-00 20-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;70-66 17-00 44-64 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;7C-66 17-00 44-64 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;98-66 17-00 44-64 17-00 D4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;B4-66 17-00 44-64 17-00 F4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/4"
-                value_param="12-byte object &lt;D0-66 17-00 44-64 17-00 18-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/5"
-                value_param="12-byte object &lt;EC-66 17-00 44-64 17-00 3C-62 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-      <testcase name="GetLine/6"
-                value_param="12-byte object &lt;08-67 17-00 44-64 17-00 20-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestLineLFCR/LineInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestInvalidLine/LineInputErrorTest"
-              tests="8"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;C4-60 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;54-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;6C-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-      <testcase name="GetLine/0"
-                value_param="12-byte object &lt;C4-60 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-      <testcase name="GetLine/1"
-                value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-      <testcase name="GetLine/2"
-                value_param="12-byte object &lt;54-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-      <testcase name="GetLine/3"
-                value_param="12-byte object &lt;6C-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyPDU_CTRL_Z/PduInputTest"
-              tests="10"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyPDU_ESC/PduInputTest"
-              tests="20"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/7"
-                value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/8"
-                value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="CheckSetup/9"
-                value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/6"
-                value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/7"
-                value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/8"
-                value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-      <testcase name="GetPdu/9"
-                value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestPDU/PduInputTest"
-              tests="12"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0.001"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduInputTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestInvalidPDU/PduInputErrorTest"
-              tests="28"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/7"
-                value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/8"
-                value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/9"
-                value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/10"
-                value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/11"
-                value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/12"
-                value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="CheckSetup/13"
-                value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/6"
-                value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/7"
-                value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/8"
-                value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/9"
-                value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/10"
-                value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/11"
-                value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/12"
-                value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-      <testcase name="GetPdu/13"
-                value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyPDU_CTRL_Z/PduGetTest"
-              tests="10"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0.001"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
-   </testsuite>
-   <testsuite name="mdmd.EmptyPDU_ESC/PduGetTest"
-              tests="20"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/7"
-                value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/8"
-                value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="CheckSetup/9"
-                value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/6"
-                value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/7"
-                value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/8"
-                value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-      <testcase name="GetPdu/9"
-                value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestPDU/PduGetTest"
-              tests="12"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0.001"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestPDU/PduGetTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"
-              tests="28"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/7"
-                value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/8"
-                value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/9"
-                value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/10"
-                value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/11"
-                value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/12"
-                value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="CheckSetup/13"
-                value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/6"
-                value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/7"
-                value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/8"
-                value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/9"
-                value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/10"
-                value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/11"
-                value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/12"
-                value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-      <testcase name="GetPdu/13"
-                value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestInvalidPDU/PduGetToBigErrorTest"
-              tests="12"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;44-6B 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0.001"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;48-6D 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;58-6F 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;68-71 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;84-73 17-00 C4-60 17-00 84-73 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;88-75 17-00 C4-60 17-00 88-75 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;44-6B 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;48-6D 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;58-6F 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;68-71 17-00 C4-60 17-00 B4-61 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;84-73 17-00 C4-60 17-00 84-73 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;88-75 17-00 C4-60 17-00 88-75 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
-   </testsuite>
-   <testsuite name="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"
-              tests="24"
-              failures="0"
-              disabled="0"
-              errors="0"
-              time="0.001">
-      <testcase name="CheckSetup/0"
-                value_param="12-byte object &lt;C0-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/1"
-                value_param="12-byte object &lt;CC-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/2"
-                value_param="12-byte object &lt;D8-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/3"
-                value_param="12-byte object &lt;E4-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/4"
-                value_param="12-byte object &lt;F4-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/5"
-                value_param="12-byte object &lt;04-78 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/6"
-                value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 44-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/7"
-                value_param="12-byte object &lt;38-64 17-00 C4-60 17-00 38-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/8"
-                value_param="12-byte object &lt;FC-64 17-00 C4-60 17-00 FC-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/9"
-                value_param="12-byte object &lt;B4-65 17-00 C4-60 17-00 B4-65 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/10"
-                value_param="12-byte object &lt;70-66 17-00 C4-60 17-00 70-66 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="CheckSetup/11"
-                value_param="12-byte object &lt;1C-78 17-00 C4-60 17-00 1C-78 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/0"
-                value_param="12-byte object &lt;C0-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/1"
-                value_param="12-byte object &lt;CC-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/2"
-                value_param="12-byte object &lt;D8-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/3"
-                value_param="12-byte object &lt;E4-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0.001"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/4"
-                value_param="12-byte object &lt;F4-77 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/5"
-                value_param="12-byte object &lt;04-78 17-00 C4-60 17-00 C4-60 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/6"
-                value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 44-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/7"
-                value_param="12-byte object &lt;38-64 17-00 C4-60 17-00 38-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/8"
-                value_param="12-byte object &lt;FC-64 17-00 C4-60 17-00 FC-64 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/9"
-                value_param="12-byte object &lt;B4-65 17-00 C4-60 17-00 B4-65 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/10"
-                value_param="12-byte object &lt;70-66 17-00 C4-60 17-00 70-66 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-      <testcase name="GetPdu/11"
-                value_param="12-byte object &lt;1C-78 17-00 C4-60 17-00 1C-78 17-00&gt;"
-                status="run"
-                time="0"
-                classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
-   </testsuite>
+<?xml version="1.0" encoding="UTF-8"?><testsuites tests="336" failures="0" disabled="0" errors="0" timestamp="2019-12-05T19:34:04" time="0.234" name="AllTests">
+  <testsuite name="mdmd.MdmDiagnosticTest" tests="23" failures="0" disabled="0" errors="0" time="0.012">
+    <testcase name="Initialization" status="run" time="0.003" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetSignalLevelWithoutNet" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetAccessClassWithoutSignal" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="RegistrationAfterSignal" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetSignalAfterRegistration" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="RegistrationLoss" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="ChangeSignalAfterRegistration" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SameSignalAgain" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SignalLoss" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="ChangeAccessClass2GTo3G" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="ChangeAccessClass3GTo2G" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SameAccessClassAgain" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetPortError" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetInitError" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetResetError" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetNoSimError" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetSimError" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="UnsetError" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetSimErrorAfterRegistration" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="UnsetSimErrorAfterRegistration" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="ChangeAccessClassWhileError" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="ChangeError" status="run" time="0.001" classname="mdmd.MdmDiagnosticTest"/>
+    <testcase name="SetSimFailureTwice" status="run" time="0" classname="mdmd.MdmDiagnosticTest"/>
+  </testsuite>
+  <testsuite name="mdmd.MdmPersistentStorageWithPresetConfigTest" tests="7" failures="0" disabled="0" errors="0" time="0.146">
+    <testcase name="CreateInstance" status="run" time="0.041" classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
+    <testcase name="ModemManagementConfig" status="run" time="0.018" classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
+    <testcase name="UserIdentityConfig" status="run" time="0.013" classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
+    <testcase name="NetworkAccessConfig" status="run" time="0.012" classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
+    <testcase name="GprsAccessConfig" status="run" time="0.024" classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
+    <testcase name="SmsEventReportingConfig" status="run" time="0.022" classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
+    <testcase name="SmsStorageConfig" status="run" time="0.016" classname="mdmd.MdmPersistentStorageWithPresetConfigTest"/>
+  </testsuite>
+  <testsuite name="mdmd.PersistentStorageTest" tests="8" failures="0" disabled="0" errors="0" time="0.036">
+    <testcase name="CheckSetup" status="run" time="0.006" classname="mdmd.PersistentStorageTest"/>
+    <testcase name="GprsAccessConfig" status="run" time="0.004" classname="mdmd.PersistentStorageTest"/>
+    <testcase name="CreateInstance" status="run" time="0.008" classname="mdmd.PersistentStorageTest"/>
+    <testcase name="Sim" status="run" time="0.003" classname="mdmd.PersistentStorageTest"/>
+    <testcase name="NetSelection" status="run" time="0.003" classname="mdmd.PersistentStorageTest"/>
+    <testcase name="OperationContext" status="run" time="0.004" classname="mdmd.PersistentStorageTest"/>
+    <testcase name="SmsEventReportingConfig" status="run" time="0.003" classname="mdmd.PersistentStorageTest"/>
+    <testcase name="SmsStorageConfig" status="run" time="0.004" classname="mdmd.PersistentStorageTest"/>
+  </testsuite>
+  <testsuite name="mdmd.PersistentStorageWithPresetConfigTest" tests="2" failures="0" disabled="0" errors="0" time="0.019">
+    <testcase name="CheckSetup_Host" status="run" time="0.01" classname="mdmd.PersistentStorageWithPresetConfigTest"/>
+    <testcase name="CreateInstance_Host" status="run" time="0.009" classname="mdmd.PersistentStorageWithPresetConfigTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyLineCR/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;A0-61 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;A4-61 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;C4-61 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;E4-61 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;04-62 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;28-62 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;4C-62 17-00 C4-60 17-00 64-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;A0-61 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0.001" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;A4-61 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;C4-61 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;E4-61 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;04-62 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;28-62 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;4C-62 17-00 C4-60 17-00 64-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCR/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyLineLF/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;7C-62 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;80-62 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;90-62 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;A0-62 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;B0-62 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;C4-62 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;D8-62 17-00 C4-60 17-00 F0-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;7C-62 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;80-62 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;90-62 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;A0-62 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;B0-62 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;C4-62 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;D8-62 17-00 C4-60 17-00 F0-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLF/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyLineCRLF/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;08-63 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;0C-63 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;1C-63 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;30-63 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;44-63 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;58-63 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;6C-63 17-00 C4-60 17-00 88-63 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;08-63 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;0C-63 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;1C-63 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;30-63 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;44-63 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;58-63 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;6C-63 17-00 C4-60 17-00 88-63 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineCRLF/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyLineLFCR/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;A0-63 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;A4-63 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;B4-63 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;C8-63 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;DC-63 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;F0-63 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;04-64 17-00 C4-60 17-00 20-64 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;A0-63 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;A4-63 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;B4-63 17-00 C4-60 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;C8-63 17-00 C4-60 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;DC-63 17-00 C4-60 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;F0-63 17-00 C4-60 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;04-64 17-00 C4-60 17-00 20-64 17-00&gt;" status="run" time="0" classname="mdmd.EmptyLineLFCR/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestLineCR/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;38-64 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;50-64 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;68-64 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;84-64 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;A0-64 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;BC-64 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;D8-64 17-00 44-64 17-00 64-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;38-64 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;50-64 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;68-64 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;84-64 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;A0-64 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0.001" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;BC-64 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;D8-64 17-00 44-64 17-00 64-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCR/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestLineLF/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;FC-64 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;08-65 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;20-65 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;3C-65 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;58-65 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;74-65 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;90-65 17-00 44-64 17-00 F0-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;FC-64 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;08-65 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;20-65 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;3C-65 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;58-65 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;74-65 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;90-65 17-00 44-64 17-00 F0-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLF/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestLineCRLF/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;B4-65 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;C0-65 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;DC-65 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;F8-65 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;14-66 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;30-66 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;4C-66 17-00 44-64 17-00 88-63 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;B4-65 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;C0-65 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;DC-65 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;F8-65 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;14-66 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;30-66 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;4C-66 17-00 44-64 17-00 88-63 17-00&gt;" status="run" time="0" classname="mdmd.TestLineCRLF/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestLineLFCR/LineInputTest" tests="14" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;70-66 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;7C-66 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;98-66 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;B4-66 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;D0-66 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;EC-66 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;08-67 17-00 44-64 17-00 20-64 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;70-66 17-00 44-64 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;7C-66 17-00 44-64 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;98-66 17-00 44-64 17-00 D4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;B4-66 17-00 44-64 17-00 F4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/4" value_param="12-byte object &lt;D0-66 17-00 44-64 17-00 18-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/5" value_param="12-byte object &lt;EC-66 17-00 44-64 17-00 3C-62 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+    <testcase name="GetLine/6" value_param="12-byte object &lt;08-67 17-00 44-64 17-00 20-64 17-00&gt;" status="run" time="0" classname="mdmd.TestLineLFCR/LineInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestInvalidLine/LineInputErrorTest" tests="8" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;C4-60 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0.001" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;54-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;6C-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+    <testcase name="GetLine/0" value_param="12-byte object &lt;C4-60 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+    <testcase name="GetLine/1" value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+    <testcase name="GetLine/2" value_param="12-byte object &lt;54-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+    <testcase name="GetLine/3" value_param="12-byte object &lt;6C-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidLine/LineInputErrorTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyPDU_CTRL_Z/PduInputTest" tests="10" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0.001" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyPDU_ESC/PduInputTest" tests="20" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/7" value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/8" value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="CheckSetup/9" value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0.001" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/6" value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/7" value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/8" value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+    <testcase name="GetPdu/9" value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestPDU/PduInputTest" tests="12" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduInputTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestInvalidPDU/PduInputErrorTest" tests="28" failures="0" disabled="0" errors="0" time="0.002">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/7" value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/8" value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/9" value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/10" value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/11" value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/12" value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="CheckSetup/13" value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/6" value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/7" value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/8" value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/9" value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/10" value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/11" value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/12" value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+    <testcase name="GetPdu/13" value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduInputErrorTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyPDU_CTRL_Z/PduGetTest" tests="10" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;D4-67 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;D8-67 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;E8-67 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;08-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;28-68 17-00 C4-60 17-00 40-68 17-00&gt;" status="run" time="0.001" classname="mdmd.EmptyPDU_CTRL_Z/PduGetTest"/>
+  </testsuite>
+  <testsuite name="mdmd.EmptyPDU_ESC/PduGetTest" tests="20" failures="0" disabled="0" errors="0" time="0">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/7" value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/8" value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="CheckSetup/9" value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;58-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;5C-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;6C-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;7C-68 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;8C-68 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;BC-68 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/6" value_param="12-byte object &lt;CC-68 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/7" value_param="12-byte object &lt;E8-68 17-00 C4-60 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/8" value_param="12-byte object &lt;04-69 17-00 C4-60 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+    <testcase name="GetPdu/9" value_param="12-byte object &lt;20-69 17-00 C4-60 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.EmptyPDU_ESC/PduGetTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestPDU/PduGetTest" tests="12" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;" status="run" time="0.001" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;44-69 17-00 54-69 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;60-69 17-00 7C-69 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;8C-69 17-00 A8-69 17-00 F8-67 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;B8-69 17-00 D8-69 17-00 18-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;E8-69 17-00 10-6A 17-00 40-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;20-6A 17-00 50-6A 17-00 A4-68 17-00&gt;" status="run" time="0" classname="mdmd.TestPDU/PduGetTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest" tests="28" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/7" value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/8" value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/9" value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/10" value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/11" value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/12" value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="CheckSetup/13" value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;7C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;80-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;84-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;88-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;8C-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;90-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/6" value_param="12-byte object &lt;98-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/7" value_param="12-byte object &lt;54-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/8" value_param="12-byte object &lt;A0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/9" value_param="12-byte object &lt;B0-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/10" value_param="12-byte object &lt;7C-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/11" value_param="12-byte object &lt;A8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/12" value_param="12-byte object &lt;D8-69 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+    <testcase name="GetPdu/13" value_param="12-byte object &lt;10-6A 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetIncompleteErrorTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestInvalidPDU/PduGetToBigErrorTest" tests="12" failures="0" disabled="0" errors="0" time="0.001">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;44-6B 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0.001" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;48-6D 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;58-6F 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;68-71 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;84-73 17-00 C4-60 17-00 84-73 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;88-75 17-00 C4-60 17-00 88-75 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;44-6B 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;48-6D 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;58-6F 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;68-71 17-00 C4-60 17-00 B4-61 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;84-73 17-00 C4-60 17-00 84-73 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;88-75 17-00 C4-60 17-00 88-75 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetToBigErrorTest"/>
+  </testsuite>
+  <testsuite name="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest" tests="24" failures="0" disabled="0" errors="0" time="0.002">
+    <testcase name="CheckSetup/0" value_param="12-byte object &lt;C0-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0.001" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/1" value_param="12-byte object &lt;CC-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/2" value_param="12-byte object &lt;D8-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/3" value_param="12-byte object &lt;E4-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/4" value_param="12-byte object &lt;F4-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/5" value_param="12-byte object &lt;04-78 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/6" value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 44-64 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/7" value_param="12-byte object &lt;38-64 17-00 C4-60 17-00 38-64 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/8" value_param="12-byte object &lt;FC-64 17-00 C4-60 17-00 FC-64 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/9" value_param="12-byte object &lt;B4-65 17-00 C4-60 17-00 B4-65 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/10" value_param="12-byte object &lt;70-66 17-00 C4-60 17-00 70-66 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="CheckSetup/11" value_param="12-byte object &lt;1C-78 17-00 C4-60 17-00 1C-78 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/0" value_param="12-byte object &lt;C0-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/1" value_param="12-byte object &lt;CC-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/2" value_param="12-byte object &lt;D8-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/3" value_param="12-byte object &lt;E4-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/4" value_param="12-byte object &lt;F4-77 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/5" value_param="12-byte object &lt;04-78 17-00 C4-60 17-00 C4-60 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/6" value_param="12-byte object &lt;44-64 17-00 C4-60 17-00 44-64 17-00&gt;" status="run" time="0.001" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/7" value_param="12-byte object &lt;38-64 17-00 C4-60 17-00 38-64 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/8" value_param="12-byte object &lt;FC-64 17-00 C4-60 17-00 FC-64 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/9" value_param="12-byte object &lt;B4-65 17-00 C4-60 17-00 B4-65 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/10" value_param="12-byte object &lt;70-66 17-00 C4-60 17-00 70-66 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+    <testcase name="GetPdu/11" value_param="12-byte object &lt;1C-78 17-00 C4-60 17-00 1C-78 17-00&gt;" status="run" time="0" classname="mdmd.TestInvalidPDU/PduGetWithoutLengthErrorTest"/>
+  </testsuite>
 </testsuites>

@@ -1,5 +1,3 @@
-opkg-0.4.0/AUTHORS
-
 % Opkg Authors and Maintainers
 
 ## Current Maintainer
@@ -50,9 +48,6 @@ We don't have your name / email:
 
 And anyone else who has sent patches or bug reports. If your name isn't on this
 list, please forgive us and send an email to a maintainer.
-
-opkg-0.4.0/COPYING
-
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -393,4 +388,3 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
-

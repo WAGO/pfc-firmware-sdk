@@ -380,15 +380,6 @@ config CT_EDIT_DNS_SERVER_DHCP
   help
    use given dns server from dhcp offer and mix them static assigned ones.
 
-config CT_SET_NETWORK_INTERFACES
-  bool
-  default n
-  prompt "set_network_interfaces"	
-  depends on CONFIG_TOOLS
-  select CT_LIBCTNETWORK
-  help
-   Updates network interface settings.
-
 config CT_WWAN_INTERFACE
   bool
   default n
@@ -396,17 +387,6 @@ config CT_WWAN_INTERFACE
   depends on CONFIG_TOOLS
   help
    Configures WWAN network interface.
-
-config CT_DIP_SWITCH_SUPPORT
-  bool
-  default n
-  prompt "DIP Switch Modifies IP Address"	
-  depends on CONFIG_TOOLS
-  select CT_SET_NETWORK_INTERFACES
-  select CT_WWAN_INTERFACE
-  help
-   Enables ip address modification through dip switch values. Adds
-   script adapt_netconfig to config tools.
 
 config CT_HTTPS_CIPHER_SELECTION
   bool
@@ -460,6 +440,18 @@ config CT_FEATURE_DETECT
 #################################################################
 comment "CODESYS-related config-tools"
 depends on CONFIG_TOOLS && PLCLINUXRT
+
+###############################################################
+comment "WebVisu related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_CHANGE_DEFAULT_WEBSERVER
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "change_default_webserver"
+  help
+   Switch default web server btw. lighthttpd and CoDeSys WebVisu webserver.
 
 comment "CODESYS2 related config-tools disabled!"
 	depends on CONFIG_TOOLS && !PLCLINUXRT
@@ -548,21 +540,12 @@ config CT_GET_POSSIBLE_RUNTIMES
   help
    Get possible runtimes for this device
 
-
 ###############################################################
 comment "CODESYS2 Webserver related config-tools"
 depends on CONFIG_TOOLS && PLCLINUXRT_WEBSERVER
 
 comment "CODESYS2 webserver related config-tools disabled!"
 depends on CONFIG_TOOLS && !PLCLINUXRT_WEBSERVER
-
-config CT_CHANGE_DEFAULT_WEBSERVER
-  bool
-  default n
-  depends on CONFIG_TOOLS && PLCLINUXRT_WEBSERVER
-  prompt "change_default_webserver"
-  help
-   Switch default web server btw. lighthttpd and CoDeSys WebVisu webserver.
 
 config CT_CODESYS_WEBSERVER_WATCHDOG
   bool
@@ -575,7 +558,7 @@ config CT_CODESYS_WEBSERVER_WATCHDOG
 config CT_RESTART_WEBSERVER
   bool
   default n
-  depends on CONFIG_TOOLS && PLCLINUXRT_WEBSERVER
+  depends on CONFIG_TOOLS
   prompt "restart_webserver"
   help
    Restart both lighthttpd and WebVisu webservers.
@@ -743,22 +726,6 @@ config CT_GET_CLOCK_DATA
   prompt "get_clock_data"
   help
    Read current time and date settings.
-
-config CT_GET_LOCAL_DATE
-  bool
-  default n
-  depends on CONFIG_TOOLS
-  prompt "get_local_date"
-  help
-   Read local date.
-
-config CT_GET_LOCAL_TIME
-  bool
-  default n
-  depends on CONFIG_TOOLS
-  prompt "get_local_time"
-  help
-   Read local time.
 
 ###############################################################
 comment "Users"

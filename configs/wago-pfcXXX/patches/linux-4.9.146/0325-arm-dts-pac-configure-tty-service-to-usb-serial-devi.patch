@@ -1,0 +1,25 @@
+From 170d062265ba0c9a7acfe5f9b1cdda1af1c17f5e Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 11 Sep 2019 08:56:13 +0200
+Subject: [PATCH] arm: dts: pac: configure tty,service to usb serial device
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+index 603ab29..5ee4c41 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+@@ -248,6 +248,7 @@
+ &wsysinit {
+ 	board,variant = "pac100";
+ 	tty,rs232-485 = "nop";
++	tty,service   = "ttyGS0";
+ };
+ 
+ &spi1 {
+-- 
+2.7.4
+

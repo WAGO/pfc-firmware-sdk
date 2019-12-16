@@ -30,7 +30,7 @@ function AddDefaultRoute
     local defgwmetric=$2
     
     local status=$SUCCESS
-    ret=$(route add default gw "$defgwip" metric "$defgwmetric" 2>&1)
+    ret=$($ROUTE add default gw "$defgwip" metric "$defgwmetric" 2>&1)
     # Ignore duplicates
     if [[ $? != 0 && $ret != "route: SIOCADDRT: File exists" ]]; then
         status=$INVALID_PARAMETER
@@ -48,7 +48,7 @@ function AddHostRoute
     local metric=$3
 
     local status=$SUCCESS
-    ret=$(route add "$dest_addr" gw "$gw_addr" metric "$metric" 2>&1)
+    ret=$($ROUTE add "$dest_addr" gw "$gw_addr" metric "$metric" 2>&1)
     # Ignore duplicates
     if [[ $? != 0 && $ret != "route: SIOCADDRT: File exists" ]]; then
         status=$INVALID_PARAMETER
@@ -68,7 +68,7 @@ function AddRoute
 
     local status=$SUCCESS
 
-    ret=$(route add -net "$dest_addr" netmask "$dest_mask" gw "$gw_addr" metric "$metric" 2>&1)
+    ret=$($ROUTE add -net "$dest_addr" netmask "$dest_mask" gw "$gw_addr" metric "$metric" 2>&1)
     # Ignore duplicates
     if [[ $? != 0 && $ret != "route: SIOCADDRT: File exists" ]]; then
         status=$INVALID_PARAMETER
@@ -87,9 +87,9 @@ function DeleteRoute
     local metric=$4
         
     if [[ "$dest_addr" != "default" ]]; then
-        route del -net "$dest_addr" netmask "$dest_mask" gw "$gw_addr" metric "$metric"  2>/dev/null
+        $ROUTE del -net "$dest_addr" netmask "$dest_mask" gw "$gw_addr" metric "$metric"  2>/dev/null
     else
-        route del "$dest_addr" gw "$gw_addr" metric "$metric"  2>/dev/null
+        $ROUTE del "$dest_addr" gw "$gw_addr" metric "$metric"  2>/dev/null
     fi
 }
 
@@ -116,10 +116,10 @@ function DeleteDhcpDefaultGateways()
         fi
 
         # remove gateway entries
-        if [[ "true" == $_remove ]]; then
+        if [[ "true" == "$_remove" ]]; then
             #Load dhcp-data-file content to array. Remove only gateways which are not part of this list.
             new_gateways=()
-            [[ -e  $DHCP_DATA_FILE_TEMPLATE$device_name ]] && new_gateways=($(awk 'BEGIN{RS="[ \t\n]+"; FS="="} /DEFAULT_GATEWAY/ {print $2}' $DHCP_DATA_FILE_TEMPLATE$device_name ))
+    [[ -e  $DHCP_DATA_FILE_TEMPLATE$device_name ]] && new_gateways=($($AWK 'BEGIN{RS="[ \t\n]+"; FS="="} /DEFAULT_GATEWAY/ {print $2}' "$DHCP_DATA_FILE_TEMPLATE$device_name" ))
 
             # Load backup file content.
             . "$cfgfile"
@@ -139,13 +139,13 @@ function DeleteDhcpDefaultGateways()
                     done
                 fi
                 [[ "true" == "$_remove_gw" ]] && DeleteRoute 0.0.0.0 "$GWVALUE" 0.0.0.0 "$DHCP_DEFAULT_METRIC"
-                unset eval ${varname-}
+                unset eval "${varname-}"
 
                 index=$((index + 1))
                 varname="DEFAULT_GATEWAY_$index"
                 GWVALUE=$(eval echo \${$varname-})
             done
-            unset eval ${varname-}
+            unset eval "${varname-}"
         fi
     done
 }
@@ -291,7 +291,7 @@ function SetRoutes
         # Using eval is save because no user input is fed into its arguments.
         GWVALUE=$(eval "echo \${$varname-}")
 
-        while [[ $ret == "$SUCCESS" && "$GWVALUE" ]]; do
+        while [[ "$GWVALUE" ]]; do
             ((gwindex++))
             status=$(AddDefaultRoute "$GWVALUE" "$DHCP_DEFAULT_METRIC")
             [[ $status != $SUCCESS ]] && ret=$INTERNAL_ERROR
@@ -380,7 +380,7 @@ function DoUpdate
     sync
 
     # Apply previously set changes if no errors occurred.
-    if [[ $status == $SUCCESS ]]; then 
+    if [[ $status == "$SUCCESS" ]]; then 
         $FIREWALL iptables --apply &> /dev/null
     else
         SetLastError "One or more errors occur during routing setup. See /var/log/messages for details."    
@@ -393,21 +393,15 @@ function DoUpdate
 
 ROUTING_CONFIG_FILE="/etc/specific/routing.conf"
 ROUTING_CONFIG_REMOVE_FILE="/tmp/routing_remove.conf"
-ROUTING_CONFIG_REMOVE_TMP_FILE="/tmp/routing_remove.conf.tmp"
 DHCP_DATA_FILE_PREFIX="dhcp-bootp-data-"
 DHCP_DATA_FILE_TEMPLATE="/tmp/$DHCP_DATA_FILE_PREFIX"
 DHCP_DATA_FILE_BACKUP_PREFIX=backup-$DHCP_DATA_FILE_PREFIX
 DHCP_DATA_FILE_BACKUP_TEMPLATE=/tmp/$DHCP_DATA_FILE_BACKUP_PREFIX
 IP_FORWARD="/proc/sys/net/ipv4/ip_forward"
-IP_DATA_CHECK="/etc/config-tools/ipdatacheck"
 DHCP_DEFAULT_METRIC=10
-INTERFACE_NAME_MAX=15
 FIREWALL="/etc/config-tools/firewall"
 AWK="/usr/bin/awk"
 ROUTE="/sbin/route"
-XMLSTARLET="/usr/bin/xmlstarlet"
-COPY="/usr/bin/cp"
-MOVE="/bin/mv"
 
 # Static route parameters
 declare -a static_dest
@@ -446,7 +440,7 @@ status=$SUCCESS
 
 # Replace default configuration file if requested
 if [[ $# -gt 0 ]]; then
-    while [[ $# -ne 0 && $status == $SUCCESS ]]; do
+    while [[ $# -ne 0 && $status == "$SUCCESS" ]]; do
         case "$1" in
             file=*)
                 _file="${1#file=}"
@@ -482,12 +476,12 @@ if [[ $# -gt 0 ]]; then
 fi
 
 
-# Read configurtations from files
+# Read configurations from files
 if [ ! -s "$ROUTING_CONFIG_FILE" ]; then
     SetLastError "$ROUTING_CONFIG_FILE is missing - can't execute."
     exit 0
 fi
-. $ROUTING_CONFIG_FILE
+. "$ROUTING_CONFIG_FILE"
 
 # Use advisory lock to avoid race with config_routing and this script on more than one 
 # interface with dhcp

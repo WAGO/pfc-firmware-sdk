@@ -11,49 +11,30 @@ define("MISSING_PARAMETER", 1);
 define("AUTH_FAILURE", 20);
 
 define("PASSWORD_FILENAME", "/etc/lighttpd/lighttpd-htpasswd.user");
-#define("PASSWORD_FILENAME", "/etc/shadow");
 
-
-
-function PasswordCorrect($passwordFilename, $username = '', $password = '')
+function PasswordCorrect($passwd_file, $username, $passwd)
 {
-  $pwCorrect  = false;
-  //var_dump($username); var_dump($password);
+  $passwd_correct = false;
 
-  // get password file and iterate over every line
-  $pwFileArray = file($passwordFilename);
-
-  foreach($pwFileArray as $lineNo => $pwFileLine)
+  $passwd_fd = fopen( $passwd_file, 'r' );
+  if($passwd_fd)
   {
-    //var_dump($pwFileLine);
-    // if username was found, filter password key
-    if(preg_match("/^".$username.":/", $pwFileLine))
+    while(($line = fgets($passwd_fd)) !== false)
     {
-      $pwFileKey  = str_replace($username.":", "", $pwFileLine);
-      $pwFileKey  = str_replace("\n", "", $pwFileKey);
+      $passwd_fields = explode(':', trim($line));
 
-      if (preg_match('/\$(?P<algo>\d)\$(?P<salt>[a-zA-Z0-9\.\/]{2,16})\$(?<hash>.*)/', $pwFileKey, $userInfo))
+      if($passwd_fields[0] === $username)
       {
-        $algo = $userInfo["algo"];
-        $salt = $userInfo["salt"];
-        //$hash = $userInfo["hash"];
-
-        // evaluate key of password given by user and compare both
-        $userKey    = crypt($password, "$".$algo."$".$salt);
-
-        //var_dump($pwFileKey); printf("\n"); var_dump($userKey);   printf("\n");
-        if($pwFileKey == $userKey)
-        {
-          $pwCorrect = true;
-        }
+        $passwd_correct = password_verify( $passwd, $passwd_fields[1]);
+        break;
       }
     }
+
+    fclose($passwd_fd);
   }
 
-  return $pwCorrect;
+  return $passwd_correct;
 }
-
-
 
 function Login()
 {

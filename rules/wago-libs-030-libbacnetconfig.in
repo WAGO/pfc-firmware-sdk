@@ -5,11 +5,9 @@ config LIBBACNETCONFIG
 	default n
 	select GLIB
 	select HOST_CT_BUILD
-	select GOOGLETEST	
-	select LIBXML2
+	select GOOGLETEST
+	select TYPELABEL
 	select LIBCTCALLHELPER
-	select LIBOSAL
-	select DBUS
 	prompt "BACnet configuration tool"
 	help
 	  BACnet configuration tool

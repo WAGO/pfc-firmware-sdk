@@ -4,8 +4,9 @@ config PLCSNMP_AGENT
 	bool
 	prompt "plcsnmp_agent"
 	select PLCLINUXRT
-        select NET_SNMP
+    select NET_SNMP
 	select LIBWAGOSNMP
+	select CROSS_LIBTOOL
 	help
 	  Library to become an SNMP agent out of an IEC61131 Program
 

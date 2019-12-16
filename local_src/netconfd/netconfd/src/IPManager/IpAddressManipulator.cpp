@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include <boost/asio.hpp>
+#include <IpAddressManipulator.hpp>
+
+namespace netconfd {
+
+using ::boost::asio::ip::make_address_v4;
+using ::boost::system::error_code;
+
+IPConfig IpAddressManipulator::ChangeHost(IPConfig const& current, uint32_t new_host){
+  IPConfig new_cfg{current};
+  error_code error;
+  auto current_address = make_address_v4(current.address_,error).to_uint();
+
+  auto current_netmask = make_address_v4(current.netmask_,error).to_uint();
+
+  if(!error && current_address != 0){
+    uint32_t new_address = (current_address & current_netmask) + (new_host & (~current_netmask));
+    new_cfg.address_ = make_address_v4(new_address).to_string();
+  }
+
+
+  return new_cfg;
+}
+
+} /* namespace netconfd */

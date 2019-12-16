@@ -8,95 +8,95 @@ udev_log="err"
 PATH=/usr/lib/udev:$PATH
 
 make_extra_nodes () {
-	# there are a few things that sysfs does not export for us.
-	# these things go here (and remember to remove them in
-	# remove_extra_nodes()
-	#
-	# Thanks to Gentoo for the initial list of these.
-	if ! mount | grep -q devtmpfs; then
-		ln -snf /proc/self/fd /dev/fd
-		ln -snf /proc/self/fd/0 /dev/stdin
-		ln -snf /proc/self/fd/1 /dev/stdout
-		ln -snf /proc/self/fd/2 /dev/stderr
-		ln -snf /proc/kcore /dev/core
+  # there are a few things that sysfs does not export for us.
+  # these things go here (and remember to remove them in
+  # remove_extra_nodes()
+  #
+  # Thanks to Gentoo for the initial list of these.
+  if ! mount | grep -q devtmpfs; then
+    ln -snf /proc/self/fd /dev/fd
+    ln -snf /proc/self/fd/0 /dev/stdin
+    ln -snf /proc/self/fd/1 /dev/stdout
+    ln -snf /proc/self/fd/2 /dev/stderr
+    ln -snf /proc/kcore /dev/core
 
-		mknod /dev/null c 1 3
-		mknod /dev/console c 5 1
-		mknod /dev/zero c 1 5
-	fi
+    mknod /dev/null c 1 3
+    mknod /dev/console c 5 1
+    mknod /dev/zero c 1 5
+  fi
 
-	mkdir /dev/pts
-	mkdir /dev/shm
+  mkdir /dev/pts
+  mkdir /dev/shm
 }
 
 case $1 in
 start)
-	echo "starting udev"
+  echo "starting udev"
 
-	# don't use udev if sysfs is not mounted.
-	if [ ! -d /sys/kernel ]; then
-		echo "failed"
-		echo "error: sysfs not mounted"
-		exit 1
-	fi
+  # don't use udev if sysfs is not mounted.
+  if [ ! -d /sys/kernel ]; then
+    echo "failed"
+    echo "error: sysfs not mounted"
+    exit 1
+  fi
 
-	# only mount a tmpfs if devtmpfs is not already there
-	if ! mount | grep -q devtmpfs; then
-		# The reason we don't write to mtab is because we don't ever
-		# want /dev to be unavailable (such as by `umount -a').
-		echo "mounting tmpfs at $udev_root"
-		mount -n -t tmpfs tmpfs $udev_root -o mode=755
-	fi
+  # only mount a tmpfs if devtmpfs is not already there
+  if ! mount | grep -q devtmpfs; then
+    # The reason we don't write to mtab is because we don't ever
+    # want /dev to be unavailable (such as by `umount -a').
+    echo "mounting tmpfs at $udev_root"
+    mount -n -t tmpfs tmpfs $udev_root -o mode=755
+  fi
 
-	# The /run is used by udev and must be mounted at this early stage
-	echo "mounting tmpfs at /run"
-	mount -n -t tmpfs tmpfs /run -o mode=755
+  # The /run is used by udev and must be mounted at this early stage
+  echo "mounting tmpfs at /run"
+  mount -n -t tmpfs tmpfs /run -o mode=755
 
-	# udev handles uevents itself, so we don't need to have
-	# the kernel call out to any binary in response to them
-	if [ -e /sys/kernel/uevent_helper ]; then
-		echo > /proc/sys/kernel/hotplug
-	fi
+  # udev handles uevents itself, so we don't need to have
+  # the kernel call out to any binary in response to them
+  if [ -e /sys/kernel/uevent_helper ]; then
+    echo > /proc/sys/kernel/hotplug
+  fi
 
-	echo "creating static nodes"
-	make_extra_nodes
+  echo "creating static nodes"
+  make_extra_nodes
 
-	# Start the udev daemon to continually
-	# watch for, and act on, uevents
-	echo -n "starting udevd..."
-	udevd --daemon
-	if [ "$?" = "0" ]; then
-		echo "done"
-	else
-		echo "failed"
-	fi
+  # Start the udev daemon to continually
+  # watch for, and act on, uevents
+  echo -n "starting udevd..."
+  udevd --daemon
+  if [ "$?" = "0" ]; then
+    echo "done"
+  else
+    echo "failed"
+  fi
 
-	# Now traverse sys/ in order to "coldplug"
-	# devices that have already been discovered
-	udevadm trigger --action=add
-	# Now wait for udevd to process
-	# the uevents we triggered
-	echo -n "waiting for devices..."
-	udevadm settle --timeout=10
-	if [ "$?" = "0" ]; then
-		echo "done"
-	else
-		echo "failed"
-	fi
+  # Now traverse sys/ in order to "coldplug"
+  # devices that have already been discovered
+  udevadm trigger --action=add
+  # Now wait for udevd to process
+  # the uevents we triggered
+  echo -n "waiting for devices (timeout=30s) ..."
+  udevadm settle --timeout=30
+  if [ "$?" = "0" ]; then
+    echo "done"
+  else
+    echo "failed"
+  fi
 
-	# We can only mount /dev/pts after initialising udev
-	if [ -d "/dev/pts" ]; then
-		mount /dev/pts
-	fi
+  # We can only mount /dev/pts after initialising udev
+  if [ -d "/dev/pts" ]; then
+    mount /dev/pts
+  fi
 
-	exit 0
+  exit 0
 
-	;;
+  ;;
 stop)
-	echo "stopping udevd... error, udevd cannot be stopped, aborting"
-	;;
+  echo "stopping udevd... error, udevd cannot be stopped, aborting"
+  ;;
 *)
-	echo "usage: $0 [start|stop]"
-	;;
+  echo "usage: $0 [start|stop]"
+  ;;
 esac
 

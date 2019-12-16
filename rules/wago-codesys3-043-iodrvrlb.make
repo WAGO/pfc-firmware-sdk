@@ -21,7 +21,7 @@ CDS3_IODRVRLB_SRC_DIR       := $(PTXDIST_WORKSPACE)/wago_intern/codesys3-Compone
 CDS3_IODRVRLB_SRC           := $(CDS3_IODRVRLB_SRC_DIR)/$(CDS3_IODRVRLB)
 CDS3_IODRVRLB_SO_NAME       := lib$(CDS3_IODRVRLB).so
 CDS3_IODRVRLB_BIN           := $(CDS3_IODRVRLB_SO_NAME).$(CDS3_IODRVRLB_VERSION)
-CDS3_IODRVRLB_BUILDCONFIG   := Debug
+CDS3_IODRVRLB_BUILDCONFIG   := Release
 CDS3_IODRVRLB_BUILDROOT_DIR := $(BUILDDIR)/$(CDS3_IODRVRLB)
 CDS3_IODRVRLB_DIR           := $(CDS3_IODRVRLB_BUILDROOT_DIR)
 CDS3_IODRVRLB_BUILD_DIR     := $(CDS3_IODRVRLB_BUILDROOT_DIR)/bin/$(CDS3_IODRVRLB_BUILDCONFIG)
@@ -39,8 +39,6 @@ CDS3_IODRVRLB_MAKE_OPT  := CC=$(CROSS_CC)
 
 
 
-ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-
 # ----------------------------------------------------------------------------
 # Get
 # ----------------------------------------------------------------------------
@@ -55,18 +53,21 @@ $(STATEDIR)/cds3-iodrvrlb.get:
 
 $(STATEDIR)/cds3-iodrvrlb.extract:
 	@$(call targetinfo)
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@if [ ! -L $(CDS3_IODRVRLB_DIR) ]; then \
 		ln -s $(CDS3_IODRVRLB_SRC_DIR) $(CDS3_IODRVRLB_DIR); \
 	fi
+endif
 	@$(call touch)
-
-
+	
 # ----------------------------------------------------------------------------
 # Compile
 # ----------------------------------------------------------------------------
 $(STATEDIR)/cds3-iodrvrlb.compile:
 	@$(call targetinfo)
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	$(call world/compile, CDS3_IODRVRLB)
+endif
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -74,7 +75,21 @@ $(STATEDIR)/cds3-iodrvrlb.compile:
 # ----------------------------------------------------------------------------
 $(STATEDIR)/cds3-iodrvrlb.install:
 	@$(call targetinfo)
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+#   BSP mode: install by extracting tgz file
+	@mkdir -p $(CDS3_IODRVRLB_PKGDIR) && \
+	tar xvzf $(CDS3_IODRVRLB_PLATFORMCONFIGPACKAGEDIR)/$(CDS3_IODRVRLB_PACKAGE_NAME).tgz -C $(CDS3_IODRVRLB_PKGDIR)
+else
+#   normal mode, call "make install"
 	@$(call world/install, CDS3_IODRVRLB)
+	@mkdir -p $(CDS3_IODRVRLB_PKGDIR)/etc/specific/
+	@cp $(CDS3_IODRVRLB_SRC_DIR)/src/rlb/rlb.conf $(CDS3_IODRVRLB_PKGDIR)/etc/specific/
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
+#   save install directory to tgz for BSP mode
+	@mkdir -p $(CDS3_IODRVRLB_PLATFORMCONFIGPACKAGEDIR)
+	@cd $(CDS3_IODRVRLB_PKGDIR) && tar cvzf $(CDS3_IODRVRLB_PLATFORMCONFIGPACKAGEDIR)/$(CDS3_IODRVRLB_PACKAGE_NAME).tgz *
+endif
+endif
 	@$(call touch)
 
 
@@ -88,19 +103,28 @@ $(STATEDIR)/cds3-iodrvrlb.targetinstall:
 
 	@$(call install_fixup, cds3-iodrvrlb, PRIORITY, optional)
 	@$(call install_fixup, cds3-iodrvrlb, SECTION, base)
-	@$(call install_fixup, cds3-iodrvrlb, AUTHOR, "WAGO")
+	@$(call install_fixup, cds3-iodrvrlb, AUTHOR, "WAGO-BSP-Team")
 	@$(call install_fixup, cds3-iodrvrlb, DESCRIPTION, "Codesys3 IO-Driver for rocket local bus")
 
 	@$(call install_lib, cds3-iodrvrlb, 0, 0, 0644, libIoDrvRlb)
 	@$(call install_link, cds3-iodrvrlb, ../$(CDS3_IODRVRLB_BIN), /usr/lib/cds3-custom-components/$(CDS3_IODRVRLB_SO_NAME))
-  
+	@$(call install_copy, cds3-iodrvrlb, 0, 0, 0644, -, /etc/specific/rlb.conf) 
 	@$(call install_finish, cds3-iodrvrlb)
 
 	@$(call touch)
 
+# ----------------------------------------------------------------------------
+# Clean
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/cds3-iodrvrlb.clean:
+	rm -rf $(STATEDIR)/cds3-iodrvrlb.*
+	rm -rf $(PKGDIR)/cds3-iodrvrlb_*
+	rm -rf $(CDS3_IODRVRLB_DIR)
+	@rm -rf $(PTXDIST_PLATFORMDIR)/root/etc/specific/rlb.conf
 
 
-else
+
 # Putting them into one rule creates circular dependencies...
 $(STATEDIR)/cds3-iodrvrlb.%:
 	@$(call targetinfo)
@@ -114,15 +138,6 @@ $(STATEDIR)/cds3-iodrvrlb.%.post:
 	@$(call targetinfo)
 	@echo "Skipping ($*) for PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES"
 	@$(call touch)
-endif
 
 
 
-# ----------------------------------------------------------------------------
-# Clean
-# ----------------------------------------------------------------------------
-
-$(STATEDIR)/cds3-iodrvrlb.clean:
-	rm -rf $(STATEDIR)/cds3-iodrvrlb.*
-	rm -rf $(PKGDIR)/cds3-iodrvrlb_*
-	rm -rf $(CDS3_IODRVRLB_DIR)

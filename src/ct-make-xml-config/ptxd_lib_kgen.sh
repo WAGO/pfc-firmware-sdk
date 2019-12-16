@@ -8,6 +8,8 @@
 # see the README file.
 #
 
+export PTX_KGEN_DIR="${PTXDIST_TEMPDIR}/kgen"
+
 ptxd_kgen_awk()
 {
     kgen_part="${kgen_part}" \
@@ -35,7 +37,7 @@ ptxd_kgen_awk()
 		section = sep[1];
 		pkg = sep[2];
 
-		output = "'"${PTX_KGEN_DIR}/${kgen_part}"'" "/" section ".in";
+		output = "'"${PTX_KGEN_DIR}/generated/"'" section ".in";
 
 #		print output ":", "source \"" file "\""
 		print "source \"" file "\"" > output
@@ -43,6 +45,8 @@ ptxd_kgen_awk()
 	}
 	'
 }
+export -f ptxd_kgen_awk
+
 
 ptxd_kgen_generate_sections()
 {
@@ -66,6 +70,8 @@ ptxd_kgen_generate_sections()
     } | ptxd_kgen_awk
     check_pipe_status
 }
+export -f ptxd_kgen_generate_sections
+
 
 ptxd_kgen()
 {
@@ -81,11 +87,14 @@ EOF
 	exit 1
     fi
 
+    if [ -d "${PTX_KGEN_DIR}/generated" ]; then
+	return
+    fi
+
     # transmogrify part into subdir
     local oldIFS="$IFS"
     case "${kgen_part}" in
-	ptx)	  IFS=: kgen_dirs=( ${PTXDIST_PATH_RULES} ) ;;
-	platform) IFS=: kgen_dirs=( ${PTXDIST_PATH_PLATFORMS} ) ;;
+	ptx|platform) IFS=: kgen_dirs=( ${PTXDIST_PATH_RULES} ${PTXDIST_PATH_PLATFORMS} ) ;;
 	board|user|collection) return 0 ;;
 	*) cat <<EOF
 
@@ -96,8 +105,8 @@ EOF
     esac
     IFS="$oldIFS"
 
-    rm -rf "${PTX_KGEN_DIR}/${kgen_part}" &&
-    mkdir -p "${PTX_KGEN_DIR}/${kgen_part}" &&
+    mkdir -p "${PTX_KGEN_DIR}/generated" &&
 
     ptxd_kgen_generate_sections
 }
+export -f ptxd_kgen

@@ -7,7 +7,7 @@
 #  software implicitly accepts the terms of the license.
 ###############################################################################
 
-SCRIPT_DIR ?= ../../wago_intern/debugging/scripts
+DEBUGGING_DIR ?= ../../wago_intern/debugging/scripts
 
 
 VALGRIND_TARGET_FOLDER=bin/gcc_5_5_arm-linux-gnueabihf/Debug/
@@ -19,5 +19,5 @@ MEMCHECK_OPTIONS +=
 HELGRIND_OPTIONS += 
 VALGRIND_OPTIONS += 
 
--include $(SCRIPT_DIR)/valgrind.mk
+include $(DEBUGGING_DIR)/valgrind.mk
 

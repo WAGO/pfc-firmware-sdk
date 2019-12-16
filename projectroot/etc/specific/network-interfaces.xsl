@@ -84,7 +84,7 @@ iface <xsl:value-of select="device_name"/> <xsl:text> inet manual</xsl:text>
         </xsl:when>
 
         <xsl:when test="type='bootp'">
- up /sbin/bootpc-startup <xsl:value-of select="../device_name"/> &amp;
+ up daemonize /sbin/bootpc-startup <xsl:value-of select="../device_name"/>
  down /usr/bin/killall bootpc-startup || true
  down   sudo ip addr flush dev <xsl:value-of select="../device_name"/> <xsl:text> || true</xsl:text>
         </xsl:when>

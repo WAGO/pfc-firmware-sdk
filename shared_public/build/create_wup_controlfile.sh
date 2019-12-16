@@ -114,6 +114,10 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0762-6203/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-6204/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         ;;
+        
+    wago-pac100)
+        echo "    <Article OrderNo=\"0768-3301\"                      GroupRef=\"PAC-Common\"/>" >> "$FILE"
+        ;;
 
     *)
         echo "<!-- No supported articles found for platform \"$PLATFORM\"! -->" >> "$FILE"
@@ -142,6 +146,23 @@ case "$PLATFORM" in
 
     vtp-ctp)
         echo "    <Group RefID=\"TP-Common\">" >> "$FILE"
+        echo "      <Upgrade>" >> "$FILE"
+        echo "        <VersionList>" >> "$FILE"
+        echo "          <!-- Currently we only allow Upgrade inside FW${FIRMWARE_INDEX} (${FIRMWARE_BASE}.x) -->" >> "$FILE"
+        echo "          <VersionRange SoftwareRevision=\"${FIRMWARE_BASE}.0-${FIRMWARE_BASE}.99\"/>" >> "$FILE"
+        echo "        </VersionList>" >> "$FILE"
+        echo "      </Upgrade>" >> "$FILE"
+        echo "      <Downgrade>" >> "$FILE"
+        echo "        <VersionList>" >> "$FILE"
+        echo "          <!-- Currently we only allow Downgrade from any version beginning with FW12 (3.0.x) -->" >> "$FILE"
+        echo "          <VersionRange SoftwareRevision=\"3.0.0-99.99.99\"/>" >> "$FILE"
+        echo "        </VersionList>" >> "$FILE"
+        echo "      </Downgrade>" >> "$FILE"
+        echo "    </Group>" >> "$FILE"
+        ;;
+        
+    wago-pac100)
+        echo "    <Group RefID=\"PAC-Common\">" >> "$FILE"
         echo "      <Upgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"
         echo "          <!-- Currently we only allow Upgrade inside FW${FIRMWARE_INDEX} (${FIRMWARE_BASE}.x) -->" >> "$FILE"

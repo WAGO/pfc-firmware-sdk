@@ -55,6 +55,9 @@ $(DISABLE_NOT_PTXDIST)MAIN_BUILDTARGETS += libconfigtoolfail.a
 $(DISABLE_NOT_PTXDIST)MAIN_BUILDTARGETS += helloworld.elf
 $(DISABLE_NOT_PTXDIST)MAIN_BUILDTARGETS += config_linux_user.elf
 $(DISABLE_NOT_PTXDIST)MAIN_BUILDTARGETS += reserved_area.elf
+ifdef CT_CONFIG_RMD
+$(DISABLE_NOT_PTXDIST)MAIN_BUILDTARGETS += config_rmd.elf
+endif
 
 $(DISABLE_NOT_PTXDIST)TEST_BUILDTARGETS += libconfigtoolutils_tests.elf
 #$(DISABLE_NOT_PTXDIST)TEST_BUILDTARGETS += libconfigtoolcommonmain_tests.elf
@@ -306,6 +309,33 @@ reserved_area_tests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/test-src/commo
 reserved_area_tests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/test-src/reserved_area,$(SOURCE_FILE_EXTENSIONS))
 reserved_area_tests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/src/reserved_area,$(SOURCE_FILE_EXTENSIONS))
 
+#######################################################################################################################
+# Settings for build target config_rmd.elf
+
+config_rmd.elf_VERSION = 1.0.0
+config_rmd.elf_STATICALLYLINKED += configtoolutils configtoolfail uio
+config_rmd.elf_LIBS += configtoolutils configtoolfail uio
+config_rmd.elf_LIBS += $(libconfigtoolutils.a_DYNAMICALLYREQUIRED)
+config_rmd.elf_PKG_CONFIGS += 
+config_rmd.elf_PKG_CONFIG_LIBS += 
+config_rmd.elf_DISABLEDWARNINGS += 
+config_rmd.elf_PREREQUISITES += $(call lib_buildtarget,$(config_rmd.elf_LIBS),config_rmd.elf)
+config_rmd.elf_CPPFLAGS += -I$(PROJECT_ROOT)/inc
+config_rmd.elf_CPPFLAGS += -I$(PROJECT_ROOT)/src/config_rmd
+config_rmd.elf_CPPFLAGS += -I$(PTXCONF_SYSROOT_TARGET)/usr/include/wago -I$(PTXCONF_SYSROOT_TARGET)/usr/include/wago/hardware_header
+config_rmd.elf_CPPFLAGS += $(call pkg_config_cppflags,$(config_rmd.elf_PKG_CONFIGS))
+config_rmd.elf_CCXXFLAGS += $(OPTION_PIC)
+config_rmd.elf_CCXXFLAGS += $(call option_disable_warning,$(config_rmd.elf_DISABLEDWARNINGS))
+config_rmd.elf_CCXXFLAGS += $(call pkg_config_cflags,$(config_rmd.elf_PKG_CONFIGS))
+config_rmd.elf_CFLAGS += $(config_rmd.elf_CCXXFLAGS)
+config_rmd.elf_CFLAGS += $(call option_std,gnu99)
+config_rmd.elf_CFLAGS += -D__STDC_FORMAT_MACROS
+config_rmd.elf_CXXFLAGS += $(config_rmd.elf_CCXXFLAGS)
+config_rmd.elf_CXXFLAGS += $(call option_std,gnu++14)
+config_rmd.elf_LDFLAGS += $(call option_lib,$(config_rmd.elf_LIBS),config_rmd.elf)
+config_rmd.elf_LDFLAGS += $(call pkg_config_ldflags,$(config_rmd.elf_PKG_CONFIGS))
+config_rmd.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/src/config_rmd,$(SOURCE_FILE_EXTENSIONS))
+config_rmd.elf_SOURCES += $(PROJECT_ROOT)/src/common/main.c
 
 #######################################################################################################################
 # Build infrastructure

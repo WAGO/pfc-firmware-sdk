@@ -31,7 +31,8 @@
 // 2013-05-10  v1.3:  - Generate string-based uids based on ptxdist's target
 //					   variables from the .in file 
 // 2013-11-15  v1.4:  - Print fatal parsing errors to stderr instead of stdout
-
+// 2019-08-28  v1.5:  - Print all unset keys instead of aborting on the first
+// occurence
 //
 
 
@@ -296,13 +297,19 @@ static bool find_unset_keys(struct menu *menu)
     return false;
 
   sym = menu->sym;
+  
   if (sym && !sym_has_value(sym)) {
-    fprintf(stderr, "make-xml-config: %s has no value assigned!\n", sym->name); 
-    return true;
+    fprintf(stderr, "Checking ptxconfig: %s has no value assigned!\n", sym->name); 
+    found = true;
   }
 
-  for (child = menu->list; child && !found; child = child->next)
-    found = find_unset_keys(child);
+  for (child = menu->list; child; child = child->next) {
+
+    // only change value from false to true
+    if(find_unset_keys(child)) {
+       found = true;
+    }
+  }
 
   return found;
 }
@@ -377,7 +384,7 @@ int main(int argc, char **argv)
  
 	if(find_unset_keys(&rootmenu))
   {
-    fprintf(stderr, "make-xml-config: Error in configuration: ");
+    fprintf(stderr, "\nmake-xml-config: Error in configuration: ");
     fprintf(stderr, "New unset config keys found (see above).\n");
     fprintf(stderr, "Update the ptxconfig file by calling 'ptxdist ");
     fprintf(stderr, "menuconfig' and saving the changes.\n");

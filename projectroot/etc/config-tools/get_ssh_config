@@ -21,7 +21,7 @@ fi
 
 . /etc/config-tools/config_tool_lib
 
-DROPBEAR_LINK_NAME="/etc/rc.d/S16dropbear"
+DROPBEAR_LINK_NAME="/etc/rc.d/S25_dropbear"
 DROPBEAR_INITFILE_NAME="/etc/init.d/dropbear"
 DROPBEAR_CONFIGFILE_NAME="/etc/dropbear/dropbear.conf"
 DROPBEAR_DEAMON="dropbear"

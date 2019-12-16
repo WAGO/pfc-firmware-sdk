@@ -83,6 +83,34 @@ struct option g_longopts[] = {
 // function implementation
 //------------------------------------------------------------------------------
 
+static void printfParamValue(BAC_CONFIG_PARAMETER_VALUE *pParamValue)
+{
+  if(pParamValue != NULL)
+  {
+    switch(pParamValue->dataType)
+    {
+      case BAC_CONFIG_DATA_TYPE_INT:
+        printf("%i",*((int*) pParamValue->pValue));
+        break;
+      case BAC_CONFIG_DATA_TYPE_BOOL:
+        if(*((int*) pParamValue->pValue) == 1)
+        {
+          printf("true");
+        }
+        else
+        {
+          printf("false");
+        }
+        break;
+      case BAC_CONFIG_DATA_TYPE_STRING:
+        printf("%s",((char*)pParamValue->pValue));
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 static int GetRequest(char* pParameter)
 {
   int status = ERROR;
@@ -94,13 +122,13 @@ static int GetRequest(char* pParameter)
   {
     BAC_CONFIG_PARAMETER_VALUE getParamValue = {0,0,NULL};
 
-    getParamValue.paramId = bac_CONFIG_getParameterIdByIndex(parameterIndex);
-    getParamValue.dataType = BAC_CONFIG_DATA_TYPE_STRING;
+    getParamValue.paramId = bac_CONFIG_getParameterIdByIndex((unsigned int) parameterIndex);
+    getParamValue.dataType = BAC_CONFIG_DATA_TYPE_UNKNOWN;
     // call get function
     libConfigStatus = bac_CONFIG_getParameterValue(&getParamValue);
     if(libConfigStatus == BAC_CONFIG_STATUS_OK)
     {
-      printf("%s",getParamValue.pValue);
+      printfParamValue(&getParamValue);
       bac_CONFIG_freeParameterValue(&getParamValue);
       status = SUCCESS;
     }
@@ -117,38 +145,25 @@ static int GetRequest(char* pParameter)
 static int JsonRequest(void)
 {
   int status = ERROR;
-  int libConfigStatus = BAC_CONFIG_STATUS_OK;
-  int paramId = 0;
-  char *pParamName = NULL;
+  BAC_CONFIG_PARAMETER_LIST *pParamList;
 
-  printf("[ ");
-  while(paramId < BAC_CONFIG_PARAM_END && libConfigStatus == BAC_CONFIG_STATUS_OK)
+  pParamList = bac_CONFIG_getParameterList();
+  if(NULL != pParamList)
   {
-    BAC_CONFIG_PARAMETER_VALUE getParamValue = {0,0,NULL};
-    int parameterIndex = bac_CONFIG_getIndexbyParameterId(paramId);
+    status = SUCCESS;
+    printf("{");
 
-    if(parameterIndex != INVALID_INDEX)
+    for(unsigned int i = 0; i < pParamList->listSize; i++)
     {
-      getParamValue.paramId = bac_CONFIG_getParameterIdByIndex(parameterIndex);
-      getParamValue.dataType = BAC_CONFIG_DATA_TYPE_STRING;
-      // call get function
-      libConfigStatus = bac_CONFIG_getParameterValue(&getParamValue);
-      pParamName = (char*) bac_CONFIG_getNameByIndex(parameterIndex);
-      if(libConfigStatus == BAC_CONFIG_STATUS_OK)
+      if(i != 0)
       {
-        if(0 != paramId)
-        {
-          printf(", ");
-        }
-        printf("\"%s\":\"%s\"", pParamName, getParamValue.pValue);
-        status = SUCCESS;
-        bac_CONFIG_freeParameterValue(&getParamValue);
+        printf(",");
       }
+      printf("\n   \"%s\": ", pParamList->paramContents[i].pName);
+      printfParamValue(&pParamList->paramContents[i].paramVal);
     }
-
-    paramId++;
+    printf("\n}\n");
   }
-  printf(" ]");
 
   return status;
 }

@@ -11,7 +11,7 @@
 ///
 ///  \file     get_coupler_details.c
 ///
-///  \version  $Revision: 29292 $1
+///  \version  $Revision: 43802 $1
 ///
 ///  \brief
 ///
@@ -1528,12 +1528,15 @@ int GetCodesysWebserverVersion(char* pOutputString)
   // initialise output-string
   sprintf(pOutputString, "none");
 
-  // get version number (note: only works with webserver version as off 1.1.9.10 !)
-  if(NULL != (pacWebserverVersion = SystemCall_GetOutput("/usr/sbin/webserver --version")))
+  if (g_file_test("/usr/sbin/webserver", G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE))
   {
-    CutWord(pacWebserverVersion, MAX_LENGTH_COUPLER_DETAIL_STRING);
-    snprintf(pOutputString, MAX_LENGTH_COUPLER_DETAIL_STRING, pacWebserverVersion);
-    SystemCall_Destruct(&pacWebserverVersion);
+    // get version number (note: only works with webserver version as off 1.1.9.10 !)
+    if(NULL != (pacWebserverVersion = SystemCall_GetOutput("/usr/sbin/webserver --version")))
+    {
+      CutWord(pacWebserverVersion, MAX_LENGTH_COUPLER_DETAIL_STRING);
+      snprintf(pOutputString, MAX_LENGTH_COUPLER_DETAIL_STRING, pacWebserverVersion);
+      SystemCall_Destruct(&pacWebserverVersion);
+    }
   }
 
   return status;
@@ -1590,11 +1593,11 @@ int GetSerialNumber(char *pOutputString)
 {
   int   status                 = SUCCESS;
   char* pRevisionsFileContent  = NULL;
-  char  stPrgdate[64] = "";
-  char  stWagoNr[64]= "";
+  char  stPrgdate[MAX_LENGTH_COUPLER_DETAIL_STRING + 1] = "";
+  char  stWagoNr[MAX_LENGTH_COUPLER_DETAIL_STRING + 1] = "";
   uint32_t iWagoNr = 0;
-  char  stMarking[64]= "";
-  char stMac[64]= "";
+  char  stMarking[MAX_LENGTH_COUPLER_DETAIL_STRING + 1] = "";
+  char stMac[MAX_LENGTH_COUPLER_DETAIL_STRING + 1] = "";
   unsigned int macInt[6]={0,0,0,0,0,0};
 
   if(pOutputString == NULL)

@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CDS3_TSCCURL) += cds3-tsccurl
 
-CDS3_TSCCURL_VERSION	 := 0.0.3
+CDS3_TSCCURL_VERSION	 := 0.0.4
 CDS3_TSCCURL              := TscCurl
 CDS3_TSCCURL_DIR          := $(BUILDDIR)/$(CDS3_TSCCURL)
 CDS3_TSCCURL_URL          := file://$(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_TSCCURL)

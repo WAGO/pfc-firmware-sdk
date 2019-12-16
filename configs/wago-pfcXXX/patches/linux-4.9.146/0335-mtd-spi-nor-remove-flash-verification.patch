@@ -1,0 +1,56 @@
+From 5aaa73a450ae3a385c6933bbe35ee10a67b35fa0 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 19 Sep 2019 13:56:30 +0200
+Subject: [PATCH] mtd: spi-nor: remove flash verification
+
+In our use case the flash is only accessible after spi pins are in a correct
+mux state. During boot those pins are disabled in our configuration in order
+to protect from damage caused by to masters on the bus.
+
+So we would have no chance to read the jedec-id yet.
+
+Why to verify the chip id? If oftree sets it the user whats to use it.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ drivers/mtd/spi-nor/spi-nor.c | 24 ------------------------
+ 1 file changed, 24 deletions(-)
+
+diff --git a/drivers/mtd/spi-nor/spi-nor.c b/drivers/mtd/spi-nor/spi-nor.c
+index c42523b..77d2b99 100644
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -1334,30 +1334,6 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+ 	if (IS_ERR_OR_NULL(info))
+ 		return -ENOENT;
+ 
+-	/*
+-	 * If caller has specified name of flash model that can normally be
+-	 * detected using JEDEC, let's verify it.
+-	 */
+-	if (name && info->id_len) {
+-		const struct flash_info *jinfo;
+-
+-		jinfo = spi_nor_read_id(nor);
+-		if (IS_ERR(jinfo)) {
+-			return PTR_ERR(jinfo);
+-		} else if (jinfo != info) {
+-			/*
+-			 * JEDEC knows better, so overwrite platform ID. We
+-			 * can't trust partitions any longer, but we'll let
+-			 * mtd apply them anyway, since some partitions may be
+-			 * marked read-only, and we don't want to lose that
+-			 * information, even if it's not 100% accurate.
+-			 */
+-			dev_warn(dev, "found %s, expected %s\n",
+-				 jinfo->name, info->name);
+-			info = jinfo;
+-		}
+-	}
+-
+ 	mutex_init(&nor->lock);
+ 
+ 	/*
+-- 
+2.7.4
+

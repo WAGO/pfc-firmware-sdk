@@ -52,21 +52,24 @@ $(STATEDIR)/wbm.extract:
 # Prepare
 # ----------------------------------------------------------------------------
 
-# The XML configuration's integrity considering the other configure options is
-# of crucial importance: otherwise the configuration frontend would contain
-# erroneous menu entries. That's why we have to recreate the config file each
-# time the configuration has been changed and use the dependency from the
-# main configuration here.
+WBM_MAKE_XML_CONFIG_ENV = PTXDIST_DEP_TARGET="all" \
+		                   xmlconf=$(PTXCONF_SYSROOT_HOST)/bin/make-xml-config/make-xml-config
 
-$(STATEDIR)/wbm.prepare: $(STATEDIR)/host-ct-make-xml-config.install.post $(PTXDIST_PLATFORMDIR)/selected_ptxconfig
+# use host-python if some other package needs it.
+# fall back to the changeroot version otherwise.
+ifdef PTXCONF_HOST_PYTHON
+$(STATEDIR)/wbm.prepare: $(STATEDIR)/host-python.install.post
+WBM_MAKE_XML_CONFIG_ENV += PYTHONHOME="$(HOST_PYTHON_PKGDIR)" 
+endif
+
+$(STATEDIR)/wbm.prepare: $(STATEDIR)/host-ct-make-xml-config.install.post 
 	@$(call targetinfo)
 
 	# generate xml configuration file for wbm using a patched libptxdist.sh
 	# in $(SYSROOT_HOST) which is part of host-ct-make-xml-config:
-	@source $(PTXDIST_SYSROOT_HOST)/bin/make-xml-config/libptxdist+xml.sh && \
-		export PYTHONHOME=$(HOST_PYTHON_PKGDIR) && \
-		xmlconf=$(PTXCONF_SYSROOT_HOST)/bin/make-xml-config/make-xml-config &&\
-		PTXDIST_DEP_TARGET="all" ptxd_kconfig CT_MENU_WBM_ $(WBM_DIR)/$(WBM_XML_CONFIG_FILE_TEMPLATE)
+	source $(PTXDIST_SYSROOT_HOST)/bin/make-xml-config/libptxdist+xml.sh && \
+		    $(WBM_MAKE_XML_CONFIG_ENV) \
+            ptxd_kconfig CT_MENU_WBM_ $(WBM_DIR)/$(WBM_XML_CONFIG_FILE_TEMPLATE)
 
 #	# patch generated *.xml to adjust user levels
 	test -e $(PTXDIST_PLATFORMCONFIGDIR)/products/user_level.json && \

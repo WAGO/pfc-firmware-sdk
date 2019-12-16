@@ -1,0 +1,60 @@
+From e82492df14a2b184dcebb8c65c91267eb42967c6 Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Wed, 23 Oct 2019 14:04:14 +0200
+Subject: [PATCH] rmd: disable TX DMA channel if not needed
+
+The RMD_ACTIVATE_TX_PATH now not only [en|dis]ables the
+TX tube in SoftCopy mode, but also in DMA mode.
+
+We hoped, it helps with the curren issues, but it doesn't.
+Anyway, it is sane to do this.
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/char/rmd.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
+index 680a8cc89122..0f42e8e9c978 100644
+--- a/drivers/char/rmd.c
++++ b/drivers/char/rmd.c
+@@ -635,6 +635,17 @@ static int rmd_dma_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
+ 	return ret;
+ }
+ 
++static int rmd_dma_enable_disable_tx(struct rmd_info *info, int enable)
++{
++	struct dma_chan *tx_chan = info->tx_channel.dma_info->chan;
++
++	info->is_tx_enabled = enable;
++	if (rmd_softcopy_mode(&info->config))
++		return 0;
++
++	return enable ? dmaengine_resume(tx_chan) : dmaengine_pause(tx_chan);
++}
++
+ static void rmd_dma_release_channel(struct rmd_channel *chan)
+ {
+ 	struct rmd *rmd = rmd_channel_to_rmd(chan);
+@@ -666,6 +677,8 @@ static int rmd_dma_setup(struct rmd_info *info)
+ 	ret = rmd_dma_setup_channel(rmd, &info->tx_channel, MEM_TO_DEV);
+ 	if (ret)
+ 		rmd_dma_release_channel(&info->rx_channel);
++	else
++		ret = rmd_dma_enable_disable_tx(rmd->info, 0);
+ 
+ 	return ret;
+ }
+@@ -836,8 +849,7 @@ static long rmd_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+ 		return rmd_wait_for_next_cycle(info->rmd, (void __user *)arg);
+ 
+ 	case RMD_ACTIVATE_TX_PATH:
+-		info->is_tx_enabled = arg ? 1 : 0;
+-		return info->is_tx_enabled;
++		return rmd_dma_enable_disable_tx(info, arg ? 1 : 0);
+ 
+ 	case RMD_GET_READ_TRIPPLE_BUF_CTRL_OFFSET:
+ 		return info->rx_channel.tripple_buf_ctrl_offset;
+-- 
+2.17.1
+

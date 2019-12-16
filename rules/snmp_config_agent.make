@@ -123,6 +123,8 @@ else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE	
 
 	@$(call install_copy, snmpconfigagent, 0, 0, 0755, $(SNMPCONFIGAGENT_BUILD_DIR)/snmp_config_agentd.elf, /usr/sbin/snmp_config_agentd)
+	#@$(call install_copy, snmpconfigagent, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/snmp/snmpd_agentx.conf, /etc/snmp/snmpd_agentx.conf);
+	@$(call install_alternative, snmpconfigagent, 0, 0, 0644, /etc/snmp/snmpd_agentx.conf)
 
 ifdef PTXCONF_INITMETHOD_BBINIT
 	@$(call install_copy, snmpconfigagent, 0, 0, 0755, $(SNMPCONFIGAGENT_DIR)/res/snmpconfigagent, /etc/init.d/snmpconfigagent)

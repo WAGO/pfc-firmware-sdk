@@ -50,8 +50,8 @@ function do_ifupdown
         ifup ethX1
         ifup ethX2
         if is_4port_eth; then
-        	ifconfig ethX11 up
-        	ifconfig ethX12 up
+            ifconfig ethX11 up
+            ifconfig ethX12 up
         fi
         if is_initphase "$@"; then
             /etc/init.d/networking-finish bridgeup &
@@ -99,7 +99,7 @@ function networking_stop
     brctl delbr br1
     brctl delbr br0
     if is_4port_eth; then
-    	brctl delbr br2
+        brctl delbr br2
     fi
 }
 
@@ -112,13 +112,13 @@ function enable_interrupt_pacing
 
 function set_dsa_tag_in_config_file
 {
-	count=$(grep -c '<dsa_mode>0<\/dsa_mode>' /etc/specific/network-interfaces.xml)
-	if [[ $count != 0 ]]; then 
-	    sed -e 's/<dsa_mode>0<\/dsa_mode>/<dsa_mode>1<\/dsa_mode>/g' -e 's/<show_in_wbm>0<\/show_in_wbm>/<show_in_wbm>1<\/show_in_wbm>/g' /etc/specific/network-interfaces.xml > /etc/specific/network-interfaces.xml.tmp
-	    sync
-	    mv /etc/specific/network-interfaces.xml.tmp /etc/specific/network-interfaces.xml
-	    sync
-	fi
+    count=$(grep -c '<dsa_mode>0<\/dsa_mode>' /etc/specific/network-interfaces.xml)
+    if [[ $count != 0 ]]; then 
+        sed -e 's/<dsa_mode>0<\/dsa_mode>/<dsa_mode>1<\/dsa_mode>/g' -e 's/<show_in_wbm>0<\/show_in_wbm>/<show_in_wbm>1<\/show_in_wbm>/g' /etc/specific/network-interfaces.xml > /etc/specific/network-interfaces.xml.tmp
+        sync
+        mv /etc/specific/network-interfaces.xml.tmp /etc/specific/network-interfaces.xml
+        sync
+    fi
 }
 
 
@@ -166,10 +166,10 @@ function networking_start
         ifconfig ethX1 hw ether "$macaddr"
         ifconfig ethX2 hw ether "$macaddr"
     else
-	    # Get next MAC addresses and store them to macs.
+        # Get next MAC addresses and store them to macs.
         # macs[0] contains the original MAC address ($macaddr).
         declare -a macs
-    	  get_next_macs "$macaddr" 4
+          get_next_macs "$macaddr" 4
         # Add the main MAC to the ATU, CPU port is 6.
         /sbin/pfcXXX_mv88e6321_write_atu.sh $macaddr 6 
         # Add the other MACs to the ATU as well.
@@ -185,7 +185,7 @@ function networking_start
         brctl addif br2 ethX11
         brctl addif br2 ethX12
 
-        # Set device MAC address for bridges.        
+        # Set device MAC address for bridges.
         ifconfig br0 hw ether ${macaddr}
         ifconfig br1 hw ether ${macaddr}
         ifconfig br2 hw ether ${macaddr}
@@ -222,7 +222,10 @@ function networking_start
     do_ifupdown UP
 
     local SWCONFIG=$(which swconfig)
-    if ! is_4port_eth; then
+    if is_4port_eth || [[ $board_variant =~ ^pac100* ]]; then
+        # Check EEPROM content and update if necessary.
+       /sbin/pfcXXX_config_network_switch_eeprom.sh /proc/device-tree/ocp/ethernet@4a100000/mdio@4a101000/switch@0/eeprom
+    else
         if [[ -e /etc/switch_settings.conf ]] && [[ -x "${SWCONFIG}" ]]; then
             echo "setting extra switch settings..."
             . /etc/switch_settings.conf
@@ -234,18 +237,15 @@ function networking_start
         else
             echo "Info: no extra switch settings configured!"
         fi
-    else
-    	# Check EEPROM content and update if necessary.
-       /sbin/pfcXXX_config_network_switch_eeprom.sh /proc/device-tree/ocp/ethernet@4a100000/mdio@4a101000/switch@0/eeprom
     fi
 }
 
 if is_4port_eth || [[ $board_variant =~ ^pac100* ]]; then
-	# We only support separated mode.
-	dsa_mode=2
-	echo "DSA mode selected"
+    # We only support separated mode.
+    dsa_mode=2
+    echo "DSA mode selected"
 else
-	dsa_mode=$(sed -n 's/# dsa_mode=\(.*\)/\1/p' /etc/network/interfaces)
+    dsa_mode=$(sed -n 's/# dsa_mode=\(.*\)/\1/p' /etc/network/interfaces)
 fi
 
 case "$1" in

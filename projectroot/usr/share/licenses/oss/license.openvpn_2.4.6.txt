@@ -1,9 +1,4 @@
-openvpn-2.4.6/AUTHORS
-
 James Yonan <jim@yonan.net>
-
-openvpn-2.4.6/COPYING
-
 OpenVPN (TM) -- An Open Source VPN daemon
 
 Copyright (C) 2002-2018 OpenVPN Inc <sales@openvpn.net>
@@ -220,5 +215,4 @@ GNU Public License (GPL)
 
   In the Windows binary distribution of OpenVPN, the
   GPL is reproduced below.
-
 

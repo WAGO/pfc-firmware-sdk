@@ -23,7 +23,7 @@
 <div class="config_form_box">
   <div class="config_data_list"
   <div class="label_value_pair">
-    <div class="label_field"><label for="attention">1.3.0</label></div>
+    <div class="label_field"><label for="attention">1.3.2</label></div>
   </div>
 </div>
 
@@ -185,7 +185,6 @@
 	    <select id="selectCacheMode" class="wide" name="selectCacheMode" size="1">
 		  <option value="RAM">RAM (volatile)</option>
 		  <option value="SDCard" >SD Card (non-volatile)</option>
-		  <option value="Unknown" selected>Please select...</option>
 		</select>
 		</div>
 	</div>

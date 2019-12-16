@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+
+RUNDIR="/var/run/netconfd"
+PIDFILE="netconfd.pid"
+STARTCMD="/usr/bin/netconfd --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=info"
+
+set -e
+
+function wait_for_dbus () {
+	dbus-wait -t 30 de.wago.netconfd
+	if [ $? != 0 ]; then
+	  logger -t netconfd.init.d "ERROR: netconfd: DBUS interface de.wago.netconfd not reachable!"
+	  exit -1
+	fi
+}
+
+case $1 in
+start)
+    $STARTCMD
+    wait_for_dbus
+    echo "done"
+    ;;
+
+stop)
+    echo "Stopping network configuration daemon"
+    if [ -f "$RUNDIR/$PIDFILE" ]; then
+        kill $(<$RUNDIR/$PIDFILE)
+        rm -f $RUNDIR/$PIDFILE
+    fi
+    ;;
+
+restart)
+    echo "Restart network configuration daemon"
+    [ -f "$RUNDIR/$PIDFILE" ] && kill $(<$RUNDIR/$PIDFILE)
+    $STARTCMD
+    wait_for_dbus
+    echo "done"
+    ;;
+
+*)
+    echo "Usage $0 start | stop | restart"
+esac

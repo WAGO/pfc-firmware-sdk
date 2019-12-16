@@ -1,0 +1,128 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2013-2018  WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   config_interfaces
+#
+#  Brief:   Change the configuration of the interfaces.
+#
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HFS: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   FR:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 64
+fi
+
+source "/etc/config-tools/config_tool_lib"
+
+set_ip_config () {
+  local json_config="$1"
+  out=$(dbus-send --system --print-reply --reply-timeout=15000 --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/ip_config de.wago.netconfd1.ip_config.set string:"${json_config}")
+  for token in $out; do 
+      dbus_out=$token
+  done  
+  dbus_out=${dbus_out#\"}
+  dbus_out=${dbus_out%\"}  
+  echo "$dbus_out"
+}
+
+#-------------- main-program ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
+  echo
+  echo "* Change the configuration of the interfaces *"
+  echo
+  echo -n "Usage: config_interfaces interface=interface-value [state=state-value] [config-type=config-type-value] [ip-address=ip-address-value] [subnet-mask=subnet-mask-value] [broadcast=broadcast-value]"
+  echo
+  echo "interface-value (must always be set): $(/etc/config-tools/get_eth_config --print-ports)"
+  echo "state-value: enabled | disabled"
+  echo "config-type-value: static | bootp | dhcp"
+  echo "ip-address-value: ip-address for config-type static"
+  echo "subnet-mask-value: subnet-mask for config-type static"
+  echo "broadcast-value: broadcast for config-type static"
+  echo
+  exit $status
+fi
+
+ipaddr=
+netmask=
+bridge=
+source=
+conf_type=
+broadcast=
+declare -A interface_map=( [X1]=br0 [X2]=br1 )
+
+while [[ $# -ne 0 ]]; do
+    case "$1" in
+       interface=*)
+            port=${1#interface=}
+            bridge="${interface_map[$port]}"
+            [[ $bridge == "" ]] && status=$INVALID_PARAMETER
+            ipaddr=$(/etc/config-tools/get_eth_config $port 'ip-address')
+            netmask=$(/etc/config-tools/get_eth_config $port 'subnet-mask')
+            source=$(/etc/config-tools/get_eth_config $port 'config-type')
+            ;;
+        state=*)
+            #ignored here
+            ;;
+        config-type=*)
+            if [ -n "${1#config-type=}" ]; then
+                source="${1#config-type=}"
+            fi
+            ;;
+        ip-address=*)
+            if [ -n "${1#ip-address=}" ]; then
+                ipaddr="${1#ip-address=}"
+            fi            
+            ;;
+        subnet-mask=*)
+            if [ -n "${1#subnet-mask=}" ]; then
+                netmask="${1#subnet-mask=}"
+            fi
+            ;;
+        broadcast=*)
+            if [ -n "${1#broadcast=}" ]; then
+                broadcast="${1#broadcast=}"
+            fi
+            ;;
+        *)
+            status=$INVALID_PARAMETER
+            break
+            ;;
+    esac
+    shift 1
+
+done
+
+if [[ "$status" != "$SUCCESS" ]]; then
+  echo $status > /tmp/config_ethernet 
+  exit $status
+fi
+
+json_string="{\"$bridge\":{\"source\":\"$source\",\"ipaddr\":\"$ipaddr\",\"netmask\":\"$netmask\"}}"
+
+status=$(set_ip_config $json_string)
+if [[ "$status" != "$SUCCESS" ]]; then
+  echo $status > /tmp/config_ethernet 
+  exit $status
+fi
+
+sync
+
+exit $status

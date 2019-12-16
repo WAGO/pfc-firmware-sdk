@@ -11,6 +11,8 @@ var BacnetGeneralContent = function(id)
   bacnetGeneralContent.id    = id || 'bacnet_general_configuration';  
   bacnetGeneralContent.uploadDir    = UPLOAD_DIR + '/bacnet_upload';
   bacnetGeneralContent.newOverrideName    = 'override.xml';
+  var statusImage;
+  var statusinfo;
   
   /*
    * Display BACnet device id
@@ -19,12 +21,51 @@ var BacnetGeneralContent = function(id)
   {    
     if((SUCCESS === paramStatus) && ('-1' === paramValue))
     {
-      $('#' + outputElementId).text('currently unconfigured');
+      $('#' + outputElementId).text('unknown');
     }
     else
     {
       $('#' + outputElementId).text(paramValue);
     }
+  };
+  
+  /*
+   * Display BACnet current state
+   */
+  var DisplayCurrentState = function(paramStatus, paramValue, outputElementId)
+  { 
+    var parentElemIdPrefix = "#" + bacnetGeneralContent.id + "_content ";
+    var spanElem = $(parentElemIdPrefix + "#spanCurrentState");
+
+    if((SUCCESS === paramStatus) && ('true' === paramValue))
+    {
+      statusImage = $('<img class="state" src="images/haken_gruen_10.gif" />');
+    }
+    else
+    {
+      statusImage = $('<img class="state" src="images/kreuz_rot_10.gif" />');
+    }
+  };
+  
+  /*
+   * Display BACnet status info
+   */
+  var DisplayStatusInfo = function(paramStatus, paramValue, outputElementId)
+  { 
+    var parentElemIdPrefix = "#" + bacnetGeneralContent.id + "_content ";
+    var spanElem = $(parentElemIdPrefix + "#spanCurrentState");
+
+    spanElem.empty();    
+    if(SUCCESS === paramStatus)
+    {
+      spanElem.text(paramValue);
+    }
+    else
+    {
+      spanElem.text("updating... please wait");
+    }
+    
+    statusImage.prependTo(spanElem);
   };
   
   /*
@@ -77,6 +118,27 @@ var BacnetGeneralContent = function(id)
       paramId         : 'bacnet_device_id',
       outputElementId : bacnetGeneralContent.id + '_content #spanDeviceId',
       outputFkt       : DisplayDeviceId
+    });
+    
+    bacnetGeneralContent.paramView.Add(
+    {
+      paramId         : 'bacnet_current_state',
+      outputElementId : bacnetGeneralContent.id + '_content #spanCurrentState',
+      outputFkt       : DisplayCurrentState
+    });
+    
+    bacnetGeneralContent.paramView.Add(
+    {
+      paramId         : 'bacnet_status_info',
+      outputElementId : bacnetGeneralContent.id + '_content #spanCurrentState',
+      outputFkt       : DisplayStatusInfo
+    });
+    
+    bacnetGeneralContent.paramView.Add(
+    {
+      paramId         : 'bacnet_enabled',
+      outputElementId : bacnetGeneralContent.id + '_content #bacnet_enabled_active_state',
+      outputFkt       : DisplayState
     });
 
     bacnetGeneralContent.paramView.Add(
@@ -140,6 +202,12 @@ var BacnetGeneralContent = function(id)
     {
       event.preventDefault();
       bacnetGeneralContent.ChangeState(event, "bacnet_persistence_delete", "persDelState", "bacnet_pers_del_active_state", "persistence delete");
+    });
+    
+    $("#bacnet_enabled_form").bind('submit', function(event)
+    {
+      event.preventDefault();
+      bacnetGeneralContent.ChangeState(event, "bacnet_enabled", "enabledState", "bacnet_enabled_active_state", "bacnet enabled");
     });
     
     $("#bacnet_del_all_form").bind('submit', function(event)
@@ -239,7 +307,10 @@ BacnetGeneralContent.prototype.ChangeState = function(event, paramId, paramName,
     {
       $('body').trigger('event_errorOccured', [ 'Error while changing ' + paramText, errorText ]);
     }
-    
+    else
+    {
+        $('#rebootHint').css('color','orangered').css('font-weight', 'bold');
+    }
     bacnetGeneralContent.Refresh();
   });
 };
@@ -262,7 +333,10 @@ BacnetGeneralContent.prototype.ChangePort = function()
     {
       $('body').trigger('event_errorOccured', [ 'Error while changing port number.', errorText ]);
     }
-    
+    else
+    {
+        $('#rebootHint').css('color','orangered').css('font-weight', 'bold');
+    }
     bacnetGeneralContent.Refresh();
   });
 };
@@ -285,7 +359,10 @@ BacnetGeneralContent.prototype.ChangeWhoIsOnlineInterval = function()
     {
       $('body').trigger('event_errorOccured', [ 'Error while changing Who-Is online interval time.', errorText ]);
     }
-    
+    else
+    {
+        $('#rebootHint').css('color','orangered').css('font-weight', 'bold');
+    }
     bacnetGeneralContent.Refresh();
   });
 };
@@ -308,7 +385,6 @@ BacnetGeneralContent.prototype.Delete = function()
     {
       $('body').trigger('event_errorOccured', [ 'Error while delete BACnet Upload', errorText ]);
     }
-    
     bacnetGeneralContent.Refresh();
   });
 };

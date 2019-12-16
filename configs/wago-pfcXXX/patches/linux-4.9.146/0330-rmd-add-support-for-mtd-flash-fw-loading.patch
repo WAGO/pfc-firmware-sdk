@@ -1,0 +1,304 @@
+From 223a57642d98dcb6fe05cf97da3123c904fec66b Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 19 Sep 2019 11:27:30 +0200
+Subject: [PATCH] rmd: add support for mtd flash fw loading
+
+When opening the /dev/rmd0 device, the RMD will be reset.
+If the FPGA timestamp does not match the firmware timestamp,
+it will be updated.
+
+The test and update only happens once after module load.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/char/rmd.c | 187 ++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 158 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
+index 6359e8c..363b810 100644
+--- a/drivers/char/rmd.c
++++ b/drivers/char/rmd.c
+@@ -15,8 +15,12 @@
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/uaccess.h>
++#include <linux/gpio.h>
+ #include <linux/rmd.h>
+ #include <linux/firmware.h>
++#include <linux/pinctrl/consumer.h>
++#include <linux/mtd/mtd.h>
++#include <linux/delay.h>
+ 
+ #include <linux/debugfs.h>
+ 
+@@ -27,6 +31,7 @@
+ #define SARDTF_OFFS 0x10
+ #define FIRMWARE_TYPE "rmd-01-01-f"
+ #define DEFAULT_IMAGE FIRMWARE_TYPE "_reversed_rbf.img"
++#define NUM_HEADERS 4
+ 
+ static struct rmd_base_t {
+ 	int		major;
+@@ -91,6 +96,9 @@ struct rmd {
+ 	bool			fw_loaded;
+ 
+ 	struct rmd_info		*info;
++	struct gpio_desc	*nce;
++	struct gpio_desc	*nrst;
++	struct gpio_desc	*nconfig;
+ 
+ 	/* ioremaped and mapped rmd memory */
+ 	__iomem void		*base;
+@@ -120,6 +128,42 @@ struct rmd_info {
+ 	size_t			tripple_buf_ctrl_size;
+ };
+ 
++struct rmd_firmware {
++	u32 datetime;
++	size_t size;
++	/* Firmware must be 64 byte aligned to match SPI FIFO size */
++	u8 data[0] __aligned(64);
++};
++
++static int rmd_set_fpga_reset(struct rmd *rmd, int val)
++{
++	if (!rmd->nce)
++		return -ENXIO;
++
++	gpiod_set_value_cansleep(rmd->nconfig, val);
++	gpiod_set_value_cansleep(rmd->nce, val);
++
++	return 0;
++}
++
++static int rmd_disable(struct rmd *rmd, int val)
++{
++	struct pinctrl *pinctrl;
++	int ret = rmd_set_fpga_reset(rmd, val);
++
++	if (ret)
++		return ret;
++
++	pinctrl = devm_pinctrl_get_select(rmd->dev->parent,
++			val ? "active" : PINCTRL_STATE_SLEEP);
++
++	if (IS_ERR(pinctrl))
++		return PTR_ERR(pinctrl);
++
++	devm_pinctrl_put(pinctrl);
++
++	return 0;
++}
+ 
+ #define two_digit(p, x) (((p)[0] - '0') * (x) + (p)[1] - '0')
+ #define to_bcd(p) two_digit((p), 16)
+@@ -134,45 +178,105 @@ static u32 stamp_to_version(const char *stamp)
+ 		(to_bcd(stamp + 8) << 24);
+ }
+ 
+-static u32 parse_fw_header(struct device *dev, const char *buf, size_t len)
++static struct rmd_firmware *parse_fw(struct device *dev,
++					const u8 *buf, size_t len)
+ {
+-	int i;
+-	static const char *const names[] = { "Version", "Type", "Stamp" };
++	int i, l;
++	u32 datetime = 0;
++	struct rmd_firmware *rmd_fw = NULL;
++	static const char *const names[NUM_HEADERS] = {
++		"Version", "Type", "Stamp", NULL
++	};
+ 
+-	if (!buf || len < 5 || buf[0] < 3)
+-		return 0;
++	if (!buf || len < 5 || buf[0] != NUM_HEADERS)
++		return rmd_fw;
+ 
+-	for (i = 0, buf++, len--; len > 0 && i < 3; i++) {
+-		int l = buf[0];
++	for (i = 0, buf++, len--; len > 0 && i < NUM_HEADERS; i++) {
++		l = buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
+ 
+-		if (buf[1] + buf[2] + buf[3] != 0 || len < l+4)
+-			return -EINVAL;
++		if (len < l+4)
++			return rmd_fw;
+ 
+ 		buf += 4;
+-		dev_info(dev, "FW %s' = '%.*s'\n", names[i], l, buf);
++		if (names[i])
++			dev_info(dev, "FW %s' = '%.*s'\n", names[i], l, buf);
++		else
++			dev_info(dev, "FW len = %d\n", l);
+ 
+ 		if (i == 1 && (l != sizeof(FIRMWARE_TYPE) - 1 ||
+ 				memcmp(buf, FIRMWARE_TYPE, l)))
+-			return -EINVAL;
+-
+-		if (i == 2 && l == sizeof("YYYY-MM-ddThh:mm:ss") - 1)
+-			return stamp_to_version(buf);
++			return rmd_fw;
+ 
++		if (i == 2 && l == sizeof("YYYY-MM-ddThh:mm:ss") - 1) {
++			datetime = stamp_to_version(buf);
++			if (datetime == 0)
++				return NULL;
++		}
++		if (i == 3 && l == len - 4) {
++			rmd_fw = kmalloc(sizeof(*rmd_fw) + l, GFP_KERNEL);
++			if (!rmd_fw)
++				return NULL;
++			rmd_fw->datetime = datetime;
++			rmd_fw->size = l;
++			memcpy(rmd_fw->data, buf, l);
++		}
+ 		buf += l;
+ 		len -= l + 4;
+ 	}
+-	return 0;
++	if (len != 0) {
++		dev_err(dev, "Invalid firmware\n");
++		kfree(rmd_fw);
++		rmd_fw = NULL;
++	}
++	return rmd_fw;
+ }
++
+ static int store_fw(struct rmd *rmd, const void *data, size_t len)
+ {
+-	/* TODO: This is the stub, writing the firmware to the SPI Flash */
+-	return 0;
++	int ret, retlen = 0;
++	struct erase_info erase = { 0, };
++
++	erase.mtd = get_mtd_device_nm("firmware");
++	if (IS_ERR(erase.mtd)) {
++		dev_err(rmd->dev, "Flash device 'firmware' not found.\n");
++		return -ENODEV;
++	}
++	erase.addr = 0,
++	erase.len = roundup(len, erase.mtd->erasesize);
++
++	ret = rmd_disable(rmd, 1);
++	if (!ret)
++		ret = mtd_erase(erase.mtd, &erase);
++	if (!ret)
++		ret = mtd_write(erase.mtd, 0, len, &retlen, data);
++	if (!ret)
++		ret = rmd_disable(rmd, 0);
++
++	put_mtd_device(erase.mtd);
++
++	return ret;
+ }
++
+ static int rmd_load_firmware(struct rmd *rmd)
+ {
+ 	const struct firmware *fw;
+-	u32 datetime, fw_dtf;
+-	int ret;
++	struct rmd_firmware *rmd_fw;
++	u32 datetime;
++	int ret, i;
++
++	rmd_set_fpga_reset(rmd, 0);
++
++	if (!rmd->nrst)
++		return -ENXIO;
++
++	/*
++	 * make sure that the fpga is out of reset
++	 * we need a rising edge here
++	 */
++	gpiod_set_value_cansleep(rmd->nrst, 0);
++	udelay(100);
++	gpiod_set_value_cansleep(rmd->nrst, 1);
++	mdelay(1);
+ 
+ 	if (rmd->fw_loaded)
+ 		return 0;
+@@ -183,18 +287,30 @@ static int rmd_load_firmware(struct rmd *rmd)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	fw_dtf = parse_fw_header(rmd->dev, fw->data, fw->size);
++	rmd_fw = parse_fw(rmd->dev, fw->data, fw->size);
++	release_firmware(fw);
++	if (!rmd_fw)
++		return -EINVAL;
++
+ 	datetime = ioread32(rmd->base + SARDTF_OFFS);
+ 
+-	if (datetime == fw_dtf) {
+-		dev_info(rmd->dev, "Firmware 0x%x up to date", fw_dtf);
++	if (datetime == rmd_fw->datetime) {
++		dev_info(rmd->dev, "Firmware 0x%x up to date", datetime);
+ 	} else {
+ 		dev_info(rmd->dev, "Updating RMD from 0x%x to 0x%x",
+-							datetime, fw_dtf);
+-		ret = store_fw(rmd, fw->data, fw->size);
++					datetime, rmd_fw->datetime);
++		ret = store_fw(rmd, rmd_fw->data, rmd_fw->size);
++		for (i = 0; i < 100 && datetime != rmd_fw->datetime; i++) {
++			/* Wait for RMD to boot. It usually takes 100ms */
++			datetime = ioread32(rmd->base + SARDTF_OFFS);
++			mdelay(5);
++		}
++		dev_info(rmd->dev, "Firmware update %s (stamp: 0x%x)\n",
++			 ret == 0 && datetime == rmd_fw->datetime ?
++				"succeeded" : "failed", datetime);
+ 	}
+ 
+-	release_firmware(fw);
++	kfree(rmd_fw);
+ 	rmd->fw_loaded = !ret;
+ 
+ 	return ret;
+@@ -660,12 +776,12 @@ static int rmd_setup(struct rmd_info *info, void __user *argp)
+ 	if (copy_from_user(&info->config, argp, sizeof(info->config)))
+ 		return -EFAULT;
+ 
+-	if (rmd_softcopy_mode(&info->config)) {
++	if (rmd_softcopy_mode(&info->config))
+ 		ret = rmd_mem_setup(info);
+-		enable_irq(info->rmd->irq);
+-	} else {
++	else
+ 		ret = rmd_dma_setup(info);
+-	}
++
++	enable_irq(info->rmd->irq);
+ 
+ 	if (ret)
+ 		return ret;
+@@ -675,6 +791,7 @@ static int rmd_setup(struct rmd_info *info, void __user *argp)
+ 	rmd->debug = debugfs_create_dir(dev_name(rmd->dev), NULL);
+ 	debugfs_create_x32("tripple_buf_ctrl_rx", 0600, rmd->debug,
+ 				info->tripple_buf_ctrl);
++
+ 	debugfs_create_x32("tripple_buf_ctrl_tx", 0600, rmd->debug,
+ 				info->tripple_buf_ctrl + sizeof(u32));
+ 	return ret;
+@@ -809,6 +926,18 @@ static int of_rmd(struct device *dev, struct rmd *rmd)
+ 	if (of_property_read_string(np, "firmware", &rmd->fw_name))
+ 		rmd->fw_name = DEFAULT_IMAGE;
+ 
++	rmd->nrst = devm_gpiod_get_optional(dev, "nrst", GPIOD_OUT_LOW);
++	if (IS_ERR(rmd->nrst))
++		return PTR_ERR(rmd->nrst);
++
++	rmd->nce = devm_gpiod_get_optional(dev, "nce", GPIOD_OUT_LOW);
++	if (IS_ERR(rmd->nce))
++		return PTR_ERR(rmd->nce);
++
++	rmd->nconfig = devm_gpiod_get_optional(dev, "nconfig", GPIOD_OUT_LOW);
++	if (IS_ERR(rmd->nconfig))
++		return PTR_ERR(rmd->nconfig);
++
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
+

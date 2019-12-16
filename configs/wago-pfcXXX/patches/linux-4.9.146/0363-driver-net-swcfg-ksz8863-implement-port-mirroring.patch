@@ -1,0 +1,295 @@
+From 98973bd337898e5167290adf964b7c2bf5f40fca Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Tue, 9 Jul 2019 11:43:01 +0200
+Subject: [PATCH] driver: net: swcfg: ksz8863: implement port mirroring
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/phy/ksz8863-cfg.c | 256 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 255 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index 4705b88..e486854 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -478,6 +478,245 @@ static int ksz8863_cfg_get_ratelimit(struct switch_dev *dev,
+ 	return err;
+ }
+ 
++static int ksz8863_cfg_flush_dyn_mac(struct ksz8863_cfg *cfg)
++{
++	return ksz8863_cfg_set_bit(cfg, KSZ8863_REG_GL_CTRL0,
++				  KSZ8863_REG_GL_CTRL0_FLUSH_DYN_MAC_TABLE,
++				  true, true);
++}
++
++static int ksz8863_cfg_set_fastageing(struct switch_dev *dev,
++				      const struct switch_attr *attr,
++				      struct switch_val *val)
++{
++	int err, port;
++	bool enable;
++	struct ksz8863_cfg *cfg;
++
++	cfg = get_ksz8863_cfg(dev);
++	if (!cfg)
++		return -ENODEV;
++
++	enable = val->value.i;
++
++	/* set fast ageing over global ctrl1 bit[1] register is
++	 * not working correctly. The workaround is to disable
++	 * learning on all ports, so that the dynamic table will
++	 * not be built.
++	 */
++	for (port = 0; port < KSZ8863_NUM_PORTS; port++) {
++		int pb = KSZ8863_REG_PORTS_BASE * port;
++
++		err = ksz8863_cfg_set_bit(cfg, pb + KSZ8863_REG_PORT1_CTRL2,
++					  KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE,
++					  enable, true);
++		if (err)
++			return err;
++	}
++
++	if (enable) {
++		err = ksz8863_cfg_flush_dyn_mac(cfg);
++		if (err)
++			return err;
++	}
++
++	dev_info(cfg->dev, "fast aging %s", enable ? "enabled" : "disabled");
++
++	return 0;
++}
++
++static int ksz8863_cfg_get_fastageing(struct switch_dev *dev,
++				      const struct switch_attr *attr,
++				      struct switch_val *val)
++{
++	int err, port;
++	u8 rv[KSZ8863_NUM_PORTS];
++	struct ksz8863_cfg *cfg;
++
++	cfg = get_ksz8863_cfg(dev);
++	if (!cfg)
++		return -ENODEV;
++
++	if (!cfg->chip->switched) {
++		/* if switch is in separated mode then
++		 * fast ageing is always disabled. In
++		 * separated mode it makes no sense.
++		 */
++		val->value.i = 0;
++		return 0;
++	}
++
++	ksz8863_reg_lock(cfg);
++
++	for (port = 0; port < KSZ8863_NUM_PORTS; ++port){
++		int pb = KSZ8863_REG_PORTS_BASE * port;
++
++		err = ksz8863_cfg_smi_read(cfg, pb + KSZ8863_REG_PORT1_CTRL2,
++					   &rv[port]);
++		if (err)
++			goto out_unlock;
++	}
++
++	ksz8863_reg_unlock(cfg);
++
++	/*
++	 * when learning is disabled on all ports,
++	 * fast ageing is enabled
++	 */
++	val->value.i = ((rv[0] & rv[1] & rv[2]) &
++			KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE) ? 1 : 0;
++
++	return 0;
++
++out_unlock:
++	ksz8863_reg_unlock(cfg);
++
++	return err;
++}
++
++static int ksz8863_cfg_set_port_mirror(struct switch_dev *dev,
++				       const struct switch_attr *attr,
++				       struct switch_val *val)
++{	int err, port, mirror;
++	u8 pc1v[KSZ8863_NUM_PORTS];
++	struct ksz8863_cfg *cfg;
++
++	cfg = get_ksz8863_cfg(dev);
++	if (!cfg)
++		return -ENODEV;
++
++	mirror = val->value.i;
++
++	if (mirror < 0 || mirror > 2)
++		return -EINVAL;
++
++	if (!mirror) {
++		err = ksz8863_cfg_set_bit(cfg, KSZ8863_REG_GL_CTRL3,
++					  KSZ8863_REG_GL_CTRL3_MIRROR_RX_TX,
++					  false, true);
++		dev_info(cfg->dev, "disable port mirroring");
++		return err;
++	}
++
++	ksz8863_reg_lock(cfg);
++
++	for (port = 0; port < KSZ8863_NUM_PORTS; port++) {
++		int pb = KSZ8863_REG_PORTS_BASE * port;
++
++		err = ksz8863_cfg_smi_read(cfg, pb + KSZ8863_REG_PORT1_CTRL1,
++					   &pc1v[port]);
++		if (err)
++			goto out_unlock;
++
++		pc1v[port] &= ~KSZ8863_REG_PORT_CTRL1_MIRROR_MASK;
++	}
++
++	if (mirror == 1) {
++		pc1v[0] |= KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER;
++
++		pc1v[1] |= KSZ8863_REG_PORT_CTRL1_MIRROR_RX;
++		pc1v[1] |= KSZ8863_REG_PORT_CTRL1_MIRROR_TX;
++
++	} else {
++		pc1v[0] |= KSZ8863_REG_PORT_CTRL1_MIRROR_RX;
++		pc1v[0] |= KSZ8863_REG_PORT_CTRL1_MIRROR_TX;
++
++		pc1v[1] |= KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER;
++	}
++
++	/* cpu port is alway mirrored */
++	pc1v[2] |= KSZ8863_REG_PORT_CTRL1_MIRROR_RX;
++	pc1v[2] |= KSZ8863_REG_PORT_CTRL1_MIRROR_TX;
++
++	for (port = 0; port < KSZ8863_NUM_PORTS; port++) {
++		int pb = KSZ8863_REG_PORTS_BASE * port;
++
++		err = ksz8863_cfg_smi_write(cfg, pb + KSZ8863_REG_PORT1_CTRL1,
++					    pc1v[port]);
++		if (err)
++			goto out_unlock;
++	}
++
++	err = ksz8863_cfg_set_bit(cfg, KSZ8863_REG_GL_CTRL3,
++				  KSZ8863_REG_GL_CTRL3_MIRROR_RX_TX, true,
++				  false);
++	if (err)
++		goto out_unlock;
++
++	dev_info(cfg->dev, "enable port X%d mirroring to port X%d", mirror,
++		 mirror ^ 3);
++
++out_unlock:
++	ksz8863_reg_unlock(cfg);
++
++	return err;
++}
++
++static int ksz8863_cfg_get_port_mirror(struct switch_dev *dev,
++				       const struct switch_attr *attr,
++				       struct switch_val *val)
++{
++	int err, port, mirror;
++	u8 pc1v[KSZ8863_NUM_PORTS], gc3v;
++	struct ksz8863_cfg *cfg;
++
++	cfg = get_ksz8863_cfg(dev);
++	if (!cfg)
++		return -ENODEV;
++
++	ksz8863_reg_lock(cfg);
++
++	err = ksz8863_cfg_smi_read(cfg, KSZ8863_REG_GL_CTRL3, &gc3v);
++	if (err)
++		goto out_unlock;
++
++	if (!(gc3v & KSZ8863_REG_GL_CTRL3_MIRROR_RX_TX)) {
++		val->value.i = 0;
++		dev_info(cfg->dev, "port mirroring is disabled");
++		goto out_unlock;
++	}
++
++	for (port = 0; port < KSZ8863_NUM_PORTS; port++) {
++		int pb = KSZ8863_REG_PORTS_BASE * port;
++
++		err = ksz8863_cfg_smi_read(cfg, pb + KSZ8863_REG_PORT1_CTRL1,
++					   &pc1v[port]);
++		if (err)
++			goto out_unlock;
++	}
++
++	if (pc1v[2] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER) {
++		err = -EINVAL;
++		goto out_unlock;
++	}
++
++	if ((pc1v[0] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER) &&
++	    !(pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
++		mirror = 1;
++	} else if (!(pc1v[0] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER) &&
++		 (pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
++		mirror = 2;
++	} else if (!(pc1v[0] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER) &&
++		 !(pc1v[1] & KSZ8863_REG_PORT_CTRL1_MIRROR_SNIFFER)) {
++		mirror = 0;
++	} else {
++		err = -EINVAL;
++		goto out_unlock;
++	}
++
++	val->value.i = mirror;
++
++	if (mirror)
++		dev_info(cfg->dev, "mirror-port: X%d", mirror);
++	else
++		dev_info(cfg->dev, "port mirroring is disabled");
++
++out_unlock:
++	ksz8863_reg_unlock(cfg);
++
++	return err;
++}
++
+ static struct switch_attr ksz8863_cfg_global_attrs[] = {
+ 	{
+ 		.type = SWITCH_TYPE_INT,
+@@ -494,6 +733,21 @@ static struct switch_attr ksz8863_cfg_global_attrs[] = {
+ 			" will disable rate limiting.",
+ 		.set = ksz8863_cfg_set_ratelimit,
+ 		.get = ksz8863_cfg_get_ratelimit,
++	}, {
++		.type = SWITCH_TYPE_INT,
++		.name = "port_mirror",
++		.description = "Sets the mirror port"
++			" [0 = disable port mirroring]"
++			" [1 = mirror port X1 to port X2]"
++			" [2 = mirror port X2 to port X1]",
++		.set = ksz8863_cfg_set_port_mirror,
++		.get = ksz8863_cfg_get_port_mirror,
++	}, {
++		.type = SWITCH_TYPE_INT,
++		.name = "fast_aging",
++		.description = "Sets fast aging [0 = disable] [1 = enable]",
++		.set = ksz8863_cfg_set_fastageing,
++		.get = ksz8863_cfg_get_fastageing,
+ 	},
+ };
+ 
+@@ -599,7 +853,7 @@ static int ksz8863_cfg_get_chip(struct ksz8863_cfg *cfg)
+ 		return -EPROBE_DEFER;
+ 
+ 	if (!ds->priv) {
+-		dev_err(cfg->dev, "ksz8863 chip structur is not available");
++		dev_err(cfg->dev, "ksz8863 chip structure is not available");
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+2.7.4
+

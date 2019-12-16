@@ -1,0 +1,50 @@
+## SECTION=shell_and_console
+menuconfig SUDO
+	tristate
+	prompt "sudo                          "
+	select LIBC_CRYPT
+	select LIBC_UTIL
+	select LIBC_DL
+	select ZLIB
+	help
+	  Sudo is a program designed to allow a sysadmin
+	  to give limited root privileges to users and log
+	  root activity.  The basic philosophy is to give
+ 	  as few privileges as possible but still allow
+	  people to get their work done.
+
+if SUDO
+
+config SUDO_USE_SENDMAIL
+	bool
+	# FIXME: sendmail support is buggy and searches for
+	# /sbin/sendmail on the host
+	#prompt "sendmail support"
+
+config SUDO_INSTALL_ETC_SUDOERS
+	bool "Install sudoers file into /etc"
+	default y
+	help
+	  Installs /etc/sudoers from a selectable source
+
+config SUDO_INSTALL_VISUDO
+	bool "Install visudo to edit /etc/sudoers"
+	help
+	  Installs visudo to edit /etc/sudoers.
+
+if SUDO_INSTALL_VISUDO
+
+config SUDO_DEFAULT_EDITOR
+	string "visudo default editor"
+	default "/bin/vi"
+	help
+	  Default editor for visudo
+
+config SUDO_USE_ENV_EDITOR
+	bool "Use EDITOR env for visudo"
+	help
+	  Uses editor from EDITOR env for visudo
+
+endif
+
+endif

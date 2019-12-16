@@ -1,0 +1,10 @@
+## SECTION=system_libraries
+
+config NLOHMANN_JSON
+	tristate
+	prompt "nlohmann JSON"
+	select HOST_CMAKE
+	help
+	  JSON library designed for trivial integration with intuitive syntax.
+	  This project is following the Core Infrastructure Initiative (CII)
+	  best practices.

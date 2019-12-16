@@ -7,6 +7,7 @@ var searchData=
   ['wc_5fbreakable_5fscope',['WC_BREAKABLE_SCOPE',['../structuring_8h.html#af0be53b479ab23dc42f358b421622f68',1,'structuring.h']]],
   ['wc_5fcontainer_5fof',['WC_CONTAINER_OF',['../structuring_8h.html#a93e5a054ec246223cc9a036588bc5f8b',1,'structuring.h']]],
   ['wc_5fcontainer_5fof_5fr',['WC_CONTAINER_OF_R',['../structuring_8h.html#acbe7cb1c9a40dcacab33123c1548f3b8',1,'structuring.h']]],
+  ['wc_5fdebug_5flog',['WC_DEBUG_LOG',['../log_8h.html#a2d2feb56755ea0161c277a27b84db6b7',1,'log.h']]],
   ['wc_5fdeprecated',['WC_DEPRECATED',['../structuring_8h.html#a768501d7e6c74550d8d82d58e22f73a3',1,'structuring.h']]],
   ['wc_5fdisbale_5fclass_5fcopy_5fand_5fassign',['WC_DISBALE_CLASS_COPY_AND_ASSIGN',['../structuring_8h.html#a6b69f1f219fc5154255e56de360b79a9',1,'structuring.h']]],
   ['wc_5fdisbale_5fclass_5fcopy_5fassign_5fand_5fmove',['WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE',['../structuring_8h.html#aed5deff6528d6dcb52f08c6ea0679624',1,'structuring.h']]],

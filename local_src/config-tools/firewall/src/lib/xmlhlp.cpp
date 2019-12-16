@@ -17,16 +17,19 @@
 
 #include "xmlhlp.hpp"
 #include "error.hpp"
+#include "system.hpp"
 
 #include <libxml/xpathInternals.h>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <unistd.h>
+#include <chrono>
 
 
 namespace wago
 {
+
 
 static xmlChar * xmlChar_cast(char const * szValue)
 {
@@ -194,15 +197,22 @@ void store_file(const std::string& fname, const xmldoc& doc)
 
     if (bytes < 0)
     {
-        throw std::runtime_error("Failed to store xml document.");
+        throw std::runtime_error("Failed to store xml document: "+ temp_file);
     }
     else
     {
         sync();
-        if( 0 != rename(temp_file.c_str(), fname.c_str()))
+        // wait for complete of synchronization
+        auto start_time = std::chrono::steady_clock::now();
+        while(1)
         {
-            remove (temp_file.c_str());
-            throw invalid_param_error("Couldn't remove file:" + temp_file);
+            if (0 == rename(temp_file.c_str(), fname.c_str())) break;
+            auto current_time =  std::chrono::steady_clock::now();
+            if ( timeout < std::chrono::duration_cast<std::chrono::milliseconds>(current_time-start_time).count() )
+            {
+                throw file_close_error("Timeout by removing of file:" + temp_file);
+                break;
+            }
         }
     }
 }

@@ -3189,7 +3189,7 @@
       </string>
     
   </event>
-  <event id="x0004" name="ERR_INIT_FAIL" persistent="yes">
+  <event id="x0004" name="ERR_INIT_FAIL">
     <led name="NET" state="BLINK_SEQ_750">
       <blinkcode>2</blinkcode>
       <blinkarg>2</blinkarg>
@@ -3200,7 +3200,7 @@
       </string>
     
   </event>
-  <event id="x0005" name="ERR_RESET_FAIL" persistent="yes">
+  <event id="x0005" name="ERR_RESET_FAIL">
     <led name="NET" state="BLINK_SEQ_750">
       <blinkcode>2</blinkcode>
       <blinkarg>3</blinkarg>
@@ -3211,7 +3211,7 @@
       </string>
     
   </event>
-  <event id="x0006" name="ERR_MODEM_VERSION" persistent="yes">
+  <event id="x0006" name="ERR_MODEM_VERSION">
     <string>
         <en>The firmware version of the modem is incompatible with the firmware of the controller</en>
         <de>Die Firmware Version des Modems ist inkompatibel zur Firmware der Steuerung</de>

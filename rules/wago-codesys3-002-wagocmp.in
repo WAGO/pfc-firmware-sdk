@@ -122,6 +122,8 @@ config CDS3_IODRVPN
   select GOOGLETEST
   select LIBPROFINET
   select CDS3_INCLUDES
+  select DBUS
+  select NLOHMANN_JSON
   select DAL
   help
     Builds and installs the Profinet Controller/Driver Cds driver
@@ -341,7 +343,7 @@ config CDS3_TSCRETAINUIO
 	select CDS3_INCLUDES
 	select CDS3_TSCRETAINUIO_TARGET_PFCXXX if (CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_PAC)
 	select CDS3_TSCRETAINUIO_TARGET_VTPCTP if CDS3_RTS_PRODUCT_VTPCTP
-	select LIBNVRAM
+	select WRETAIN
 	help
 		Builds and installs WAGO time extentions.
 
@@ -449,7 +451,7 @@ config CDS3_TSCDRM
 	default n
 	select CODESYS3
 	select CDS3_INCLUDES
-	select DRM
+	select LIBWAGODRM
 	select OPENSSL
 	help
 		Builds and installs WAGO licensing component.
@@ -579,4 +581,23 @@ config CDS3_IODRVRLB
     select LIBCOMMONHEADER
     help
         This component implements the process data communication between codesys3 and rocket local bus
+
+config CDS3_TSCDRMIECINTERFACE
+	bool "TscDrmIecInterface"
+	default n
+	select CODESYS3
+	select CDS3_INCLUDES
+	select LIBWAGODRM
+  select HOST_CT_BUILD
+  select GOOGLETEST
+    help
+		Builds and installs an IEC61131-Interface for CODESYSv3 to the WAGO licensing component
+
+config CDS3_TSCPAMIECINTERFACE
+	bool "TscPamIecInterface"
+	default n
+	select CODESYS3
+	select CDS3_INCLUDES
+	help
+		Builds and installs lib-interface for PAM library
 

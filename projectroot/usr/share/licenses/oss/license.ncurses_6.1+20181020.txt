@@ -1,5 +1,3 @@
-ncurses-6.1/AUTHORS
-
 -------------------------------------------------------------------------------
 -- Copyright (c) 2006,2017 Free Software Foundation, Inc.                    --
 --                                                                           --
@@ -27,7 +25,6 @@ ncurses-6.1/AUTHORS
 -- sale, use or other dealings in this Software without prior written        --
 -- authorization.                                                            --
 -------------------------------------------------------------------------------
--- $Id: license.ncurses_6.1+20181020.txt 38284 2019-04-09 09:05:39Z henrik.lampe@wago.com $
 -------------------------------------------------------------------------------
 These are the principal authors/contributors of ncurses since 1.9.9e,
 in decreasing order of their contribution:
@@ -39,9 +36,6 @@ AVL	Alexander V Lukyanov
 PB	Philippe Blain
 SV	Sven Verdoolaege
 NB  Nicolas Boulenguez
-
-ncurses-6.1/COPYING
-
 Copyright (c) 1998-2017,2018 Free Software Foundation, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a
@@ -69,10 +63,6 @@ sale, use or other dealings in this Software without prior written
 authorization.
 
 -- vile:txtmode fc=72
--- $Id: license.ncurses_6.1+20181020.txt 38284 2019-04-09 09:05:39Z henrik.lampe@wago.com $
-
-ncurses-6.1/package/debian/copyright
-
 Upstream source https://invisible-island.net/ncurses/ncurses.html
 This package is used for testing builds of ncurses.
 
@@ -172,9 +162,6 @@ License: BSD
     SUCH DAMAGE.
 
 -- vile: txtmode file-encoding=utf-8
-
-ncurses-6.1/test/package/debian/copyright
-
 Upstream source https://invisible-island.net/ncurses/ncurses-examples.html
 
 Current ncurses maintainer: Thomas Dickey <dickey@invisible-island.net>
@@ -253,9 +240,6 @@ On Debian systems, the complete text of the GNU General
 Public License can be found in '/usr/share/common-licenses/GPL-2'
 
 -- vile: txtmode file-encoding=utf-8
-
-ncurses-6.1/Ada95/package/debian/copyright
-
 Upstream source https://invisible-island.net/ncurses/ncurses-examples.html
 
 Current ncurses maintainer: Thomas Dickey <dickey@invisible-island.net>
@@ -334,9 +318,6 @@ On Debian systems, the complete text of the GNU General
 Public License can be found in '/usr/share/common-licenses/GPL-2'
 
 -- vile: txtmode file-encoding=utf-8
-
-ncurses-6.1/package/debian-mingw/copyright
-
 Upstream source https://invisible-island.net/ncurses/ncurses.html
 This package is used for testing builds of ncurses.
 
@@ -436,9 +417,6 @@ License: BSD
     SUCH DAMAGE.
 
 -- vile: txtmode file-encoding=utf-8
-
-ncurses-6.1/package/debian-mingw64/copyright
-
 Upstream source https://invisible-island.net/ncurses/ncurses.html
 This package is used for testing builds of ncurses.
 
@@ -538,9 +516,6 @@ License: BSD
     SUCH DAMAGE.
 
 -- vile: txtmode file-encoding=utf-8
-
-ncurses-6.1/test/package/debian-mingw/copyright
-
 Upstream source https://invisible-island.net/ncurses/ncurses-examples.html
 
 Current ncurses maintainer: Thomas Dickey <dickey@invisible-island.net>
@@ -619,9 +594,6 @@ On Debian systems, the complete text of the GNU General
 Public License can be found in '/usr/share/common-licenses/GPL-2'
 
 -- vile: txtmode file-encoding=utf-8
-
-ncurses-6.1/test/package/debian-mingw64/copyright
-
 Upstream source https://invisible-island.net/ncurses/ncurses-examples.html
 
 Current ncurses maintainer: Thomas Dickey <dickey@invisible-island.net>
@@ -700,4 +672,3 @@ On Debian systems, the complete text of the GNU General
 Public License can be found in '/usr/share/common-licenses/GPL-2'
 
 -- vile: txtmode file-encoding=utf-8
-

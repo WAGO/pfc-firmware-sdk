@@ -1,5 +1,3 @@
-libgpg-error-1.35/AUTHORS
-
 Package: libgpg-error
 Maintainer: Werner Koch <wk@gnupg.org>
 Bug reports: bug-gnupg@gnupg.org
@@ -71,9 +69,6 @@ implementation for Windows.
  This file is distributed in the hope that it will be useful, but
  WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-libgpg-error-1.35/COPYING
-
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -414,9 +409,6 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
-
-libgpg-error-1.35/COPYING.LIB
-
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
@@ -925,6 +917,5 @@ if necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
 
 

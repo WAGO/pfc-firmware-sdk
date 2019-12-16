@@ -1,0 +1,72 @@
+#!/bin/sh
+# BOOTP handling
+#
+# Starts bootp client and handles the parameters of a bootp reply.
+#
+# $Revision: 39086 $
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+
+
+
+set_ip_config () {
+  local iface="$1"
+  local source="$2"
+  local address="$3"
+  local mask="$4"
+  local bcast="$5"
+  
+  local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
+  
+  out=$(dbus-send --system --print-reply --reply-timeout=15000 --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/ip_config de.wago.netconfd1.ip_config.set string:"${json_config}")
+
+}
+
+
+interface_name=$1
+DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
+FILE=$DHCP_DATA_FILE_TEMPLATE$interface_name
+
+/sbin/route add default $interface_name
+
+# Open firewall ports if firewall is enabled.
+if [[ `/etc/config-tools/firewall firewall --is-enabled` == "enabled" ]]; then
+
+    if [[ $interface_name == "br0" ]]; then
+        port_name="X1"
+    elif [[ $interface_name == "br1" ]]; then
+        port_name="X2"
+    fi
+
+    /etc/config-tools/firewall bootp --set-if on $port_name --apply up
+
+    trap "/etc/config-tools/set_bootp_config $interface_name close" EXIT
+fi
+
+while [ -z "$IPADDR" ]
+do
+    eval `/sbin/bootpc --dev $interface_name --serverbcast --returniffail --timeoutwait 0` >> /dev/null
+    #echo IP = $IPADDR
+    sleep 3
+done
+
+# Close firewall ports
+if [[ `/etc/config-tools/firewall firewall --is-enabled` == "enabled" ]]; then
+    /etc/config-tools/firewall bootp --set-if off $port_name --apply up
+    trap "" EXIT
+fi
+
+set_ip_config $interface_name temporary $IPADDR $NETMASK $BROADCAST
+
+# Save default gateways
+if [ -n "$GATEWAYS" ] ; then
+    > $FILE
+    index=1
+    for i in $GATEWAYS; do
+        echo "DEFAULT_GATEWAY_$index=$i" >> $FILE
+        index=$(($index + 1))
+    done
+fi
+
+# Save hostname and dns domainname
+[ "$HOSTNAME" ] && echo "DHCPHOSTNAME=$HOSTNAME" >> $FILE
+[ "$DOMAIN" ] && echo "DHCPDOMAIN=$DOMAIN" >> $FILE

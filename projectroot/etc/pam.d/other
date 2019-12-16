@@ -1,0 +1,15 @@
+#
+# /etc/pam.d/other; Linux-PAM configuration file
+#
+
+# fall back configuration for unknown/non-configured services
+
+auth     required pam_warn.so
+auth     include  common-auth
+account  required pam_warn.so
+account  include  common-account
+password required pam_warn.so
+password include  common-password
+session  required pam_warn.so
+session  include  common-session
+

@@ -14,6 +14,8 @@ typedef struct swconfigSession swconfigSession_t;
 int ct_swconfig_start_session(const char *switchDev, swconfigSession_t **handle);
 void ct_swconfig_finish_session(swconfigSession_t *handle);
 
+const char *ct_swconfig_get_switch_alias(swconfigSession_t *sessionHandle);
+
 int ct_swconfig_set_attr(const char *attrName, const char *attrValue, int portNr, swconfigSession_t *sessionHandle);
 int ct_swconfig_get_attr(const char *attrName, char *attrValue, size_t attrValueLen, swconfigSession_t *sessionHandle);
 

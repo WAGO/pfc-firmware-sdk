@@ -11,7 +11,7 @@
 ///
 ///  \file     config_dnsmasq.c
 ///
-///  \version  $Revision: 15358 $
+///  \version  $Revision: 44515 $
 ///
 ///  \brief    Configuration tool to configure DNS and DHCP service on PFC200. 
 ///
@@ -804,6 +804,7 @@ static xml_param_t xml_param_name_list[] = {
     { "dhcpd-fix-host",   "dhcpdFixHost",   DHCPD, true,  true,  "fix_host",     xml_check_dhcpdhost },
     { "ip_addr",          "",               DHCPD, false, false, "ip_addr",      xml_check_nop },
     { "netmask",          "",               DHCPD, false, false, "netmask",      xml_check_nop },
+    { "port-name",        "",               DHCPD, false, false, "port_name",    xml_check_nop },
     { NULL, NULL, UNDEF, false, false, NULL, xml_check_nop }              // Endmarker, do not remove.
 };
 
@@ -1635,6 +1636,7 @@ static char *cfg_dnsmasq_end =
     "\n"
     "# Include default config file\n"
     "conf-file=/etc/dnsmasq.d/dnsmasq_default.conf\n"
+    "conf-file=/etc/dnsmasq.d/dnsmasq_gadget.conf\n"
     "";
 
 // Check if DNSMASQ_MARKER line is present in dnsmasq.conf.
@@ -1668,6 +1670,8 @@ static void add_dhcpd_port_config(dnsmasq_handle_t *xmlhandle, char *port, GStri
         char **range = g_strsplit(ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-range", NULL), "_", 0);
         char *lease = ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-lease-time", NULL);
         g_string_append_printf(config, "dhcp-range=%s,%s,%sm\n", range[0], range[1], lease);
+        g_string_append_printf(config, "interface=br0,eth%s\n",
+			ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "port-name", NULL));
         g_strfreev(range);
 
         char **hosts = g_strsplit(ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-fix-host", ""), ",", 0);
@@ -1843,11 +1847,10 @@ static char *legal_port_names[] = {
 
 static bool is_legal_port_name(char *pname)
 {
-    int maxn = sizeof (legal_port_names) / sizeof (char *);
     int i;
     bool valid = false;
 
-    for(i = 0; i < maxn; i++)
+    for(i = 0; legal_port_names[i]; i++)
     {
         if(0 == strcmp(legal_port_names[i], pname))
         {

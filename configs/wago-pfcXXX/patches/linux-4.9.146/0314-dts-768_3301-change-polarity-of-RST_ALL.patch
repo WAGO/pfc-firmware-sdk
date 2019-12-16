@@ -1,0 +1,28 @@
+From a713cc2d2f436cf115bdc75b63e86b081a7536e1 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Fri, 23 Aug 2019 13:56:00 +0200
+Subject: [PATCH] dts: 768_3301: change polarity of RST_ALL
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_3301.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301.dts b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+index 1e7e356..1ca9433 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_3301.dts
++++ b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+@@ -30,6 +30,10 @@
+ 	status = "okay";
+ };
+ 
++&oms_reset_all {
++	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
++};
++
+ &sham {
+ 	status = "okay";
+ };
+-- 
+2.7.4
+

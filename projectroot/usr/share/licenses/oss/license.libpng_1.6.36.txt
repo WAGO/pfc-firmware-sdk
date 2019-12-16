@@ -1,5 +1,3 @@
-libpng-1.6.36/AUTHORS
-
 PNG REFERENCE LIBRARY AUTHORS
 =============================
 
@@ -45,9 +43,6 @@ copyright owners, but are released under the libpng license.
 Some files in the "contrib" directory, and some tools-generated files
 that are distributed with libpng, have other copyright owners, and are
 released under other open source licenses.
-
-libpng-1.6.36/LICENSE
-
 COPYRIGHT NOTICE, DISCLAIMER, and LICENSE
 =========================================
 
@@ -182,9 +177,6 @@ without fee, and encourage the use of this source code as a component
 to supporting the PNG file format in commercial products.  If you use
 this source code in a product, acknowledgment is not required but would
 be appreciated.
-
-libpng-1.6.36/contrib/gregbook/COPYING
-
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 
@@ -525,9 +517,6 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
-
-libpng-1.6.36/contrib/gregbook/LICENSE
-
   ---------------------------------------------------------------------------
 
       Copyright (c) 1998-2008 Greg Roelofs.  All rights reserved.
@@ -578,4 +567,3 @@ libpng-1.6.36/contrib/gregbook/LICENSE
       Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
   ---------------------------------------------------------------------------
-

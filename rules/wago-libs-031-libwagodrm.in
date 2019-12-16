@@ -6,6 +6,7 @@ config LIBWAGODRM
 	select HOST_CT_BUILD
 	select GOOGLETEST
 	select OPENSSL
+	select DRM
 	prompt "libwagodrm"
 	help
 	  Library for PFC DRM functions - select DRM in WAGO specific tools 

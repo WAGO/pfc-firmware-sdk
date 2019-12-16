@@ -1,0 +1,10 @@
+#
+# /etc/pam.d/pure-ftpd - "Pure-FTPd" configuration for Linux-PAM
+#
+
+# type     control-flag module          module-arguments
+auth     include  common-auth
+account  include  common-account
+password include  common-password
+session  include  common-session
+

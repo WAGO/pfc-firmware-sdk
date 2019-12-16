@@ -1,9 +1,4 @@
-htop-2.2.0/AUTHORS
-
 Hisham H. Muhammad
-
-htop-2.2.0/COPYING
-
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -359,5 +354,4 @@ Public License instead of this License.
  applicable licenses of the version of PLPA used in your combined work,
  provided that you include the source code of such version of PLPA when
  and as the GNU GPL requires distribution of source code.
-
 

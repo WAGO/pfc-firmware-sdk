@@ -1,0 +1,403 @@
+From 6df157877ff3dfbcbe04a5e9a497a4fe836b3039 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Thu, 22 Aug 2019 10:38:46 +0200
+Subject: [PATCH] driver: net: dsa: ksz8863: delete old "dsa1" driver
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/dsa/ksz8863.c | 383 ----------------------------------------------
+ 1 file changed, 383 deletions(-)
+ delete mode 100644 drivers/net/dsa/ksz8863.c
+
+diff --git a/drivers/net/dsa/ksz8863.c b/drivers/net/dsa/ksz8863.c
+deleted file mode 100644
+index 51db0c8..0000000
+--- a/drivers/net/dsa/ksz8863.c
++++ /dev/null
+@@ -1,383 +0,0 @@
+-/*
+- * net/dsa/ksz8863.c - Micrel KSZ8863 switch chip support
+- * Use with the interrupt code of PAL drivers/net/phy/ksz8863*
+- *
+- * Copyright (c) 2010 SAGEMCOM
+- * Copyright (C) 2017 Wago Kontakttechnik GmbH
+- *
+- * Author: Karl Beldan <karl.beldan@sagemcom.com>
+- * Author: Heinrich Toews <heinrich.toews@wago.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-#include <linux/netdevice.h>
+-#include <linux/phy.h>
+-#include <linux/module.h>
+-#include <linux/ksz8863.h>
+-#include <linux/of.h>
+-#include <linux/of_device.h>
+-#include <linux/of_gpio.h>
+-#include <linux/of_mdio.h>
+-#include <linux/of_irq.h>
+-#include <linux/of_platform.h>
+-#include <net/dsa.h>
+-
+-#define DRIVER_NAME "ksz8863"
+-#define SWITCH_NAME "Micrel KSZ8863"
+-
+-struct ksz8863_info {
+-	struct device *dev;
+-	struct mii_bus *mii_bus;
+-	struct gpio_desc *reset_gpio;
+-	bool disable_internal_ldo;
+-	bool reset;
+-};
+-struct ksz8863_info *ksz_info = NULL;
+-
+-struct ksz8863_fns_t ksz8863_fns_data = {0};
+-struct ksz8863_fns_t *ksz8863_fns = &ksz8863_fns_data;
+-
+-static void ksz8863_hw_reset(struct ksz8863_info *ksz_info)
+-{
+-	dev_info(ksz_info->dev, "Going to reset gpio%d\n", desc_to_gpio(ksz_info->reset_gpio));
+-	gpiod_set_value_cansleep(ksz_info->reset_gpio, 1);
+-	msleep(100);
+-	gpiod_set_value_cansleep(ksz_info->reset_gpio, 0);
+-	dev_info(ksz_info->dev, "KSZ8863 Switch resetted!\n");
+-}
+-
+-static int ksz8863_smi_nread(u8 reg, u8 *rxbuf, int len)
+-{
+-	int i;
+-	int nreg = (int) reg;
+-
+-	if (!ksz_info || !ksz_info->mii_bus)
+-		return -1;
+-
+-	nreg |= MII_ADDR_KSZ;
+-
+-	for (i = 0; i < len; i++) {
+-		rxbuf[i] = mdiobus_read(ksz_info->mii_bus, 0, nreg + i) & 0xff;
+-		pr_debug("%s:%d: read %d byte(s), reg 0x%x, val 0x%x\n",
+-			 __func__, __LINE__, len, reg, rxbuf[i]);
+-	}
+-
+-	return 0;
+-}
+-
+-static int ksz8863_smi_nwrite(u8 reg, u8 *txbuf, int len)
+-{
+-	int i;
+-	int nreg = (int) reg;
+-
+-	if (!ksz_info || !ksz_info->mii_bus)
+-		return -1;
+-
+-	nreg |= MII_ADDR_KSZ;
+-
+-	for (i = 0; i < len; i++) {
+-		mdiobus_write(ksz_info->mii_bus, 0, nreg + i, txbuf[i]);
+-		pr_debug("%s:%d: wrote %d byte(s), reg 0x%x, val 0x%x\n",
+-			 __func__, __LINE__, len, reg, txbuf[i]);
+-	}
+-
+-	return 0;
+-}
+-
+-static int ksz8863_phy_read(struct dsa_switch *ds, int port, int regnum)
+-{
+-	struct mii_bus *bus = dsa_host_dev_to_mii_bus(ds->cd->host_dev);
+-
+-	if (bus == NULL)
+-		return -EINVAL;
+-
+-	return mdiobus_read(bus, port, regnum);
+-}
+-
+-static int ksz8863_phy_write(struct dsa_switch *ds, int port, int regnum, u16 val)
+-{
+-	struct mii_bus *bus = dsa_host_dev_to_mii_bus(ds->cd->host_dev);
+-
+-	if (bus == NULL)
+-		return -EINVAL;
+-
+-        return mdiobus_write(bus, port, regnum, val);
+-}
+-
+-/*
+- * ksz8863_flush_mac_tables:
+- *      Flush mac table entries
+- *
+- *      We need to flush the mac tables after
+- *      ports have been re-plugged. Otherwise
+- *      it will take several seconds until the switch
+- *      will learn the new entries.
+- */
+-static void ksz8863_flush_mac_tables(void)
+-{
+-        u8 reg_val, saveval1, saveval2, saveval3;
+-
+-	if (is_dsa_enabled())
+-		return;
+-
+-	/* backup port states */
+-        if (ksz8863_nread(Port1Control2, &saveval1, 1))
+-		return;
+-        if (ksz8863_nread(Port2Control2, &saveval2, 1))
+-		return;
+-        if (ksz8863_nread(Port3Control2, &saveval3, 1))
+-		return;
+-
+-	/* disable RX of cpu port (3) */
+-/* 	reg_val = 0x4; */
+-/* 	ksz8863_nwrite(Port3Control2, &reg_val, 1); */
+-
+-	/*  disable learning */
+-	reg_val = 0x1;
+-	ksz8863_nwrite(Port1Control2, &reg_val, 1);
+-	ksz8863_nwrite(Port2Control2, &reg_val, 1);
+-	ksz8863_nwrite(Port3Control2, &reg_val, 1);
+-
+-	/* flush dynamic mac table */
+-        if (ksz8863_nread(GlobalControl0, &reg_val, 1))
+-		return;
+-	reg_val |= 0x20;
+-	ksz8863_nwrite(GlobalControl0, &reg_val, 1);
+-
+-	/*  restore port states */
+-	ksz8863_nwrite(Port1Control2, &saveval1, 1);
+-	ksz8863_nwrite(Port2Control2, &saveval2, 1);
+-	ksz8863_nwrite(Port3Control2, &saveval3, 1);
+-}
+-
+-static void ksz8863_adjust_link(struct dsa_switch *ds, int port,
+-				struct phy_device *phydev)
+-{
+-        u8 reg, reg_val, _reg_val;
+-
+-        phy_print_status(phydev);
+-
+-	ksz8863_flush_mac_tables();
+-
+-        /* better in adjust_state ? */
+-        reg = Port1Control13 + (port - 1) * KSZ8863_PORTS_REGS_OFFSET;
+-        if (ksz8863_nread(reg, &reg_val, 1))
+-                return;
+-#define PC1_POWER_DOWN_SHIFT                            3
+-        _reg_val = reg_val;
+-        if (phydev->state == PHY_HALTED || phydev->state == PHY_DOWN)
+-                _reg_val |=   1 << PC1_POWER_DOWN_SHIFT;
+-        else
+-                _reg_val &= ~(1 << PC1_POWER_DOWN_SHIFT);
+-
+-        if (_reg_val != reg_val)
+-                ksz8863_nwrite(reg, &_reg_val, 1);
+-}
+-
+-static enum dsa_tag_protocol ksz8863_get_tag_protocol(struct dsa_switch *ds)
+-{
+-	return DSA_TAG_PROTO_TAIL;
+-}
+-
+-static const char *ksz8863_probe(struct device *dsa_dev,
+-				 struct device *host_dev, int sw_addr,
+-				 void **_priv)
+-{
+-	struct device_node *np = ksz_info->dev->of_node;
+-	struct device_node *mdio_node;
+-	int ret;
+-	u8 v, chipid[2];
+-
+-	if (!ksz_info)
+-		return ERR_PTR(-EFAULT);
+-
+-	mdio_node = of_parse_phandle(np, "ksz,mii-bus", 0);
+-	if (!mdio_node) {
+-		dev_err(ksz_info->dev, "can't find node 'ksz,mii-bus'\n");
+-		return ERR_PTR(-EINVAL);
+-	}
+-
+-	ksz_info->mii_bus = of_mdio_find_bus(mdio_node);
+-	if (!ksz_info->mii_bus) {
+-		dev_err(ksz_info->dev, "can't find mii bus device\n");
+-		return ERR_PTR(-EPROBE_DEFER);
+-	}
+-
+-	dev_info(ksz_info->dev, "found and using '%s'.\n", ksz_info->mii_bus->name);
+-
+-	if ((ret = ksz8863_smi_nread(ChipID0, chipid, 2)))
+-		return NULL;
+-
+-	if (chipid[0] != KSZ8863_FAMILY_ID ||
+-	    (chipid[1] >> 4) != KSZ8863_CHIP_ID) {
+-		dev_err(ksz_info->dev, "could not detect ksz8863 switch.\n");
+-		return NULL;
+-	}
+-
+-	dev_info(ksz_info->dev, "Detected Family ID 0x%x, Chip ID 0x%x\n", chipid[0], chipid[1] >> 4);
+-
+-	if (ksz_info->disable_internal_ldo) {
+-                if ((ret = ksz8863_smi_nread(Internal1v8ldoControl, &v, 1)))
+-                        return NULL;
+-
+-		/* disable internal 1.8V LDO */
+-		v |= BIT(6);
+-
+-		if ((ret = ksz8863_smi_nwrite(Internal1v8ldoControl, &v, 1)))
+-			return NULL;
+-
+-		pr_info("%s: 1.8V LDO disabled\n", __func__);
+-	}
+-
+-	ksz8863_fns->nread  = ksz8863_smi_nread;
+-	ksz8863_fns->nwrite = ksz8863_smi_nwrite;
+-
+-        return SWITCH_NAME;
+-}
+-
+-/*
+- * ksz8863_setup:
+- *
+- *      Called from net/dsa/dsa.c
+- *
+- *      Program the hw ethernet address (mac address) of the
+- *      master net device into the switch
+- *
+- */
+-static int ksz8863_setup(struct dsa_switch *ds)
+-{
+-        u8 reg_val;
+-        int ret, flags = 0;
+-
+-	if (is_dsa_enabled())
+-		flags |= KSZ8863_CFG_DSA_FLAGS;
+-
+-	pr_info("DSA is %s\n", is_dsa_enabled() ? "enabled" : "disabled");
+-
+-	if (!ksz8863_fns->setup_dflt_cfg)
+-		return -EPROBE_DEFER;
+-
+-        if ((ret = ksz8863_fns->setup_dflt_cfg(flags)))
+-                return ret;
+-
+-        if ((ret = ksz8863_nread(Port1Control13, &reg_val, 1)))
+-                return ret;
+-
+-#define PC1_POWER_DOWN_SHIFT                            3
+-	if (is_dsa_enabled())
+-		reg_val |= 1 << PC1_POWER_DOWN_SHIFT;
+-
+-        if ((ret = ksz8863_nwrite(Port1Control13, &reg_val, 1)))
+-                return ret;
+-
+-        if ((ret = ksz8863_nwrite(Port2Control13, &reg_val, 1)))
+-                return ret;
+-
+-        return 0;
+-}
+-
+-struct ksz8863_info *of_get_ksz8863_pdata(struct device *dev)
+-{
+-	struct device_node *np = dev->of_node;
+-	struct pinctrl *pinctrl;
+-
+-	ksz_info = devm_kzalloc(dev, sizeof(*ksz_info), GFP_KERNEL);
+-	if (!ksz_info)
+-		return NULL; /* out of memory */
+-
+-	ksz_info->reset = false;
+-	ksz_info->disable_internal_ldo = false;
+-
+-	if (np) {
+-
+-		pinctrl = devm_pinctrl_get_select_default(dev);
+-		if (IS_ERR(pinctrl))
+-			dev_warn(dev, "pins are not configured from the driver\n");
+-
+-		if (of_find_property(np, "ksz,disable-internal-ldo", NULL))
+-			ksz_info->disable_internal_ldo = true;
+-
+-		ksz_info->reset_gpio = devm_gpiod_get_optional(dev, "ksz,reset", GPIOD_OUT_HIGH);
+-		if (IS_ERR(ksz_info->reset_gpio) && PTR_ERR(ksz_info->reset_gpio) == -EPROBE_DEFER)
+-			return ERR_PTR(PTR_ERR(ksz_info->reset_gpio));
+-
+-		if (IS_ERR(ksz_info->reset_gpio)) {
+-			ksz_info->reset = false;
+-			dev_warn(dev, "No gpio reset pin given\n");
+-			goto skip_reset;
+-		}
+-
+-		if (of_find_property(np, "ksz,reset-switch", NULL))
+-			ksz_info->reset = true;
+-
+-	skip_reset:
+-
+-		dev_warn(dev, "Switch will %s resetted.\n",
+-			 ksz_info->reset ? "be" : "NOT be");	
+-	}
+-
+-	ksz_info->dev = dev;
+-
+-	return ksz_info;
+-}
+-
+-static struct dsa_switch_ops ksz8863_switch_driver = {
+-	.get_tag_protocol = ksz8863_get_tag_protocol,
+-        .probe            = ksz8863_probe,
+-        .setup            = ksz8863_setup,
+-        .phy_read         = ksz8863_phy_read,
+-        .phy_write        = ksz8863_phy_write,
+-        .adjust_link      = ksz8863_adjust_link,
+-};
+-
+-static int ksz8863_drv_probe(struct platform_device *pdev)
+-{
+-	struct ksz8863_info *pdata;
+-
+-	if (pdev->dev.of_node) {
+-		pdata = of_get_ksz8863_pdata(&pdev->dev);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
+-	}
+-
+-	if (pdata && pdata->reset)
+-		ksz8863_hw_reset(pdata);
+-
+-	pdev->dev.platform_data = pdata;
+-
+-        register_switch_driver(&ksz8863_switch_driver);
+-
+-	dev_info(&pdev->dev, "KSZ8863 DSA Switch Driver probed\n");
+-
+-	return 0;
+-}
+-
+-static int ksz8863_drv_remove(struct platform_device *pdev)
+-{
+-	unregister_switch_driver(&ksz8863_switch_driver);
+-	return 0;
+-}
+-
+-static const struct of_device_id ksz8863_dt_ids[] = {
+-	{ .compatible = "micrel,ksz8863", },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(of, ksz8863_dt_ids);
+-
+-static struct platform_driver ksz8863_driver = {
+-	.probe  = ksz8863_drv_probe,
+-	.remove = ksz8863_drv_remove,
+-	.driver = {
+-		.name   = DRIVER_NAME,
+-		.of_match_table = ksz8863_dt_ids,
+-	},
+-};
+-module_platform_driver(ksz8863_driver);
+-
+-MODULE_AUTHOR("Karl Beldan <karl.beldan@sagemcom.com>");
+-MODULE_DESCRIPTION("Driver for micrel 8863 ethernet switch chip");
+-MODULE_LICENSE("GPL");
+-MODULE_ALIAS("platform:ksz8863");
+-- 
+2.7.4
+

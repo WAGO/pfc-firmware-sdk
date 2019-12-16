@@ -1,0 +1,172 @@
+From ae28e0deaa748a87409c9e7d94fc1229124b0f8f Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Fri, 27 Sep 2019 10:28:33 +0200
+Subject: [PATCH] net: phy: micrel: remove unused ksz8863-phy
+
+---
+ drivers/net/phy/Kconfig       |   5 --
+ drivers/net/phy/Makefile      |   1 -
+ drivers/net/phy/ksz8863-phy.c | 123 ------------------------------------------
+ 3 files changed, 129 deletions(-)
+ delete mode 100644 drivers/net/phy/ksz8863-phy.c
+
+diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
+index a4fb062..306b393 100644
+--- a/drivers/net/phy/Kconfig
++++ b/drivers/net/phy/Kconfig
+@@ -247,11 +247,6 @@ config DP83867_PHY
+ 	---help---
+ 	  Currently supports the DP83867 PHY.
+ 
+-config MICREL_KSZ8863_PHY
+-	tristate "Driver for Micrel KSZ8863 PHY"
+-	---help---
+-	  Supports the KSZ8863 PHY.
+-
+ config FIXED_PHY
+ 	tristate "MDIO Bus/PHY emulation with fixed speed/link PHYs"
+ 	depends on PHYLIB
+diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
+index 467fef8..f18b5d9 100644
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -45,7 +45,6 @@ obj-$(CONFIG_LXT_PHY)		+= lxt.o
+ obj-$(CONFIG_MARVELL_PHY)	+= marvell.o
+ obj-$(CONFIG_MICREL_KS8995MA)	+= spi_ks8995.o
+ obj-$(CONFIG_MICREL_PHY)	+= micrel.o
+-obj-$(CONFIG_MICREL_KSZ8863_PHY) += ksz8863-phy.o
+ obj-$(CONFIG_MICROCHIP_PHY)	+= microchip.o
+ obj-$(CONFIG_MICROSEMI_PHY)	+= mscc.o
+ obj-$(CONFIG_NATIONAL_PHY)	+= national.o
+diff --git a/drivers/net/phy/ksz8863-phy.c b/drivers/net/phy/ksz8863-phy.c
+deleted file mode 100644
+index a78eb9e..0000000
+--- a/drivers/net/phy/ksz8863-phy.c
++++ /dev/null
+@@ -1,123 +0,0 @@
+-/*
+- * drivers/net/phy/phy_device.c
+- *
+- * Copyright (c) 2010 SAGEMCOM
+- *
+- * Author: Karl Beldan <karl.beldan@sagemcom.com>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
+- *
+- */
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/phy.h>
+-#include <linux/ksz8863.h>
+-
+-// genphy_config_init
+-static int ksz8863_config_init(struct phy_device *phydev)
+-{
+-        int val;
+-        u32 features;
+-
+-        features = SUPPORTED_MII;
+-
+-        /* Do we support autonegotiation? */
+-        val = phy_read(phydev, MII_BMSR);
+-
+-        if (val < 0)
+-                return val;
+-
+-        if (val & BMSR_ANEGCAPABLE)
+-                features |= SUPPORTED_Autoneg;
+-
+-        if (val & BMSR_100FULL)
+-                features |= SUPPORTED_100baseT_Full;
+-        if (val & BMSR_100HALF)
+-                features |= SUPPORTED_100baseT_Half;
+-        if (val & BMSR_10FULL)
+-                features |= SUPPORTED_10baseT_Full;
+-        if (val & BMSR_10HALF)
+-                features |= SUPPORTED_10baseT_Half;
+-
+-        if (val & BMSR_ESTATEN) {
+-                val = phy_read(phydev, MII_ESTATUS);
+-
+-                if (val < 0)
+-                        return val;
+-
+-                if (val & ESTATUS_1000_TFULL)
+-                        features |= SUPPORTED_1000baseT_Full;
+-                if (val & ESTATUS_1000_THALF)
+-                        features |= SUPPORTED_1000baseT_Half;
+-        }
+-
+-        phydev->supported = features;
+-        phydev->advertising = features;
+-
+-        return 0;
+-}
+-
+-static int ksz8863_ack_interrupt(struct phy_device *phydev)
+-{
+-        u8 val;
+-        int ret;
+-
+-        ret = ksz8863_nread(LinkChangeInterrupt, &val, 1);
+-        if (ret < 0)
+-                return ret;
+-
+-        val |= 1 << (phydev->mdio.addr - 1);
+-
+-        return ksz8863_nwrite(LinkChangeInterrupt, &val, 1);
+-}
+-
+-static int ksz8863_config_intr(struct phy_device *phydev)
+-{
+-        u8 val;
+-        int ret;
+-
+-        ret = ksz8863_nread(InterruptEnable, &val, 1);
+-        if (ret < 0)
+-                return ret;
+-
+-        if (phydev->interrupts == PHY_INTERRUPT_ENABLED)
+-                val |= 1 << (phydev->mdio.addr - 1);
+-        else
+-                val &= ~(1 << (phydev->mdio.addr - 1));
+-
+-        return ksz8863_nwrite(InterruptEnable, &val, 1);
+-}
+-
+-static int ksz8863_did_interrupt(struct phy_device *phydev)
+-{
+-        u8 val;
+-        int ret;
+-
+-        ret = ksz8863_nread(LinkChangeInterrupt, &val, 1);
+-        if (ret < 0)
+-                return ret;
+-
+-        return val & (1 << (phydev->mdio.addr - 1));
+-}
+-
+-static struct phy_driver ksz8863_driver[] = { {
+-        .phy_id         = (KSZ8863_PHYID1 << 16) | KSZ8863_PHYID2,
+-        .phy_id_mask    = ~0x6,
+-        .name           = "Micrel KSZ8863",
+-        .config_init    = ksz8863_config_init,
+-        .features       = PHY_BASIC_FEATURES,
+-        .flags          = PHY_HAS_INTERRUPT,
+-        .config_aneg    = genphy_config_aneg,
+-        .read_status    = genphy_read_status,
+-        .ack_interrupt  = ksz8863_ack_interrupt,
+-        .config_intr    = ksz8863_config_intr,
+-        .did_interrupt  = ksz8863_did_interrupt,
+-} };
+-
+-module_phy_driver(ksz8863_driver);
+-
+-MODULE_AUTHOR("karl.beldan@sagemcom.com");
+-MODULE_LICENSE("GPL");
+-- 
+2.7.4
+

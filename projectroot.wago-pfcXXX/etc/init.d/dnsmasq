@@ -15,6 +15,7 @@ DNSMASQ=/usr/sbin/dnsmasq
 CONFIG_TOOL=/etc/config-tools/config_dnsmasq_c
 
 function start_dnsmasq {
+	touch "/etc/dnsmasq.d/dnsmasq_gadget.conf"
 	if [ ! -e $PIDFILE ]; then
                 echo "dnsmasq starting"
                 if [ -x $CONFIG_TOOL ]; then

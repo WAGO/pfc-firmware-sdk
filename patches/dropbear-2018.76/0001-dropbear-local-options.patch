@@ -2,7 +2,7 @@ Index: dropbear-2018.76/localoptions.h
 ===================================================================
 --- dropbear-2018.76.orig/localoptions.h (revision 0)
 +++ dropbear-2018.76/localoptions.h (revision 0)
-@@ -0,0 +1,134 @@
+@@ -0,0 +1,137 @@
 +//------------------------------------------------------------------------------
 +// Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
 +// All rights reserved.
@@ -128,6 +128,9 @@ Index: dropbear-2018.76/localoptions.h
 +/* Authentication Types - at least one required.
 +   RFC Draft requires pubkey auth, and recommends password */
 +#define DROPBEAR_SVR_PASSWORD_AUTH 1
++
++/* Linux-PAM support */
++#define DROPBEAR_SVR_PAM_AUTH 0
 +
 +/* ~/.ssh/authorized_keys authentication */
 +#define DROPBEAR_SVR_PUBKEY_AUTH 1

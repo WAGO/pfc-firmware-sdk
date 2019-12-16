@@ -1,0 +1,25 @@
+From cd2fe95034029e28e03afa3a76d8da4aa0b27b47 Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Wed, 25 Sep 2019 16:51:26 +0200
+Subject: [PATCH] pac: disable GPIO debugging
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ arch/arm/configs/am335x_pac_generic_defconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/arm/configs/am335x_pac_generic_defconfig b/arch/arm/configs/am335x_pac_generic_defconfig
+index f16285b..9f1b2108 100644
+--- a/arch/arm/configs/am335x_pac_generic_defconfig
++++ b/arch/arm/configs/am335x_pac_generic_defconfig
+@@ -359,7 +359,6 @@ CONFIG_SPI_SC18IS602=m
+ CONFIG_SPI_XCOMM=m
+ CONFIG_SPI_SPIDEV=y
+ CONFIG_PINCTRL_SINGLE=y
+-CONFIG_DEBUG_GPIO=y
+ CONFIG_GPIO_SYSFS=y
+ CONFIG_GPIO_PCA953X=y
+ CONFIG_GPIO_PCA953X_IRQ=y
+-- 
+2.7.4
+

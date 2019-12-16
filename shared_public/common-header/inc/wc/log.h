@@ -111,6 +111,18 @@ typedef enum log_level
   debug = 5   //!< debug
 } log_level_t;
 
+/// \def WC_DEBUG_LOG
+/// Defines an advanced debug log call, fully optimized out on release builds.
+//lint -estring(961, WC_DEBUG_LOG) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                 function-like macro defined
+//lint -estring(960, WC_DEBUG_LOG) to disable Rule 19.4 it is necessary to disable all 960 messages,
+//                                 disallowed definition for macro
+#ifndef NDEBUG
+#define WC_DEBUG_LOG(message)                              wc_log_advanced(__FILE__, __func__, __LINE__, debug, message)
+#else
+#define WC_DEBUG_LOG(message)                                                                             (void)message
+#endif
+
 //------------------------------------------------------------------------------
 // function prototypes
 //------------------------------------------------------------------------------

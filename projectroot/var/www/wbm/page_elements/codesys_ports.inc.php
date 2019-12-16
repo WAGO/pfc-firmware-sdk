@@ -10,7 +10,7 @@
 
     <h2>Configuration of PLC Runtime Services</h2>
 
-    <p>Changes will take effect immediately.</p>
+    <p>Changes of port authentication state will take effect after the next controller reboot.<br>All other changes will take effect immediately.</p>
 
     <h3>General Configuration</h3>
     

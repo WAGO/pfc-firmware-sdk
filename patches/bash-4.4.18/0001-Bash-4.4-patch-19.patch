@@ -1,0 +1,25 @@
+diff --recursive --unified a/lib/readline/display.c b/lib/readline/display.c
+--- a/lib/readline/display.c	2019-09-18 11:24:48.072514902 +0200
++++ b/lib/readline/display.c	2019-09-18 11:25:10.624514902 +0200
+@@ -771,7 +771,9 @@
+ 	 appear in the first and last lines of the prompt */
+       wadjust = (newlines == 0)
+ 		  ? prompt_invis_chars_first_line
+-		  : ((newlines == prompt_lines_estimate) ? wrap_offset : prompt_invis_chars_first_line);
++		  : ((newlines == prompt_lines_estimate)
++		  	? (wrap_offset - prompt_invis_chars_first_line)
++		  	: 0);
+ 
+       /* fix from Darin Johnson <darin@acuson.com> for prompt string with
+          invisible characters that is longer than the screen width.  The
+diff --recursive --unified a/patchlevel.h b/patchlevel.h
+--- a/patchlevel.h	2019-09-18 11:24:48.060514902 +0200
++++ b/patchlevel.h	2019-09-18 11:25:10.628514902 +0200
+@@ -25,6 +25,6 @@
+    regexp `^#define[ 	]*PATCHLEVEL', since that's what support/mkversion.sh
+    looks for to find the patch level (for the sccs version string). */
+ 
+-#define PATCHLEVEL 18
++#define PATCHLEVEL 19
+ 
+ #endif /* _PATCHLEVEL_H_ */

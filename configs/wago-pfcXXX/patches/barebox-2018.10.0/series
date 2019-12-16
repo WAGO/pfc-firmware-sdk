@@ -168,3 +168,8 @@
 0168-defaultenv-pfc-config-set-partitions-binding-to-dont.patch
 0169-arm-boards-vtpctp-deactivate-PWM-for-display-backlig.patch
 0170-Revert-defaultenv-pfc-config-set-partitions-binding-.patch
+0171-miitool-Add-support-for-extended-registers.patch
+0172-boards-wago-pfc-cyclone5-add-support-for-PFC8230.patch
+0173-xload-pfc-mount-root-and-devices-properly.patch
+0174-xload-pfc-print-important-messages-with-printf.patch
+0175-add-new-version-w03.01.03_08.patch

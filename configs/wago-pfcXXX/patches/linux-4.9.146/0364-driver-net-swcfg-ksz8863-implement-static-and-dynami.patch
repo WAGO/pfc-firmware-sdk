@@ -1,0 +1,179 @@
+From acfeeffdcc69c02e7d375425204077beea95cbda Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Wed, 28 Aug 2019 14:18:37 +0200
+Subject: [PATCH] driver: net: swcfg: ksz8863: implement static and dynamic mac
+ table
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/phy/ksz8863-cfg.c | 133 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 133 insertions(+)
+
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+index e486854..fdde283 100644
+--- a/drivers/net/phy/ksz8863-cfg.c
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -18,6 +18,9 @@
+ #define DRIVER_NAME "ksz8863-cfg"
+ 
+ #define KSZ8863_CFG_VAL_BUF_SIZE 200
++#define KSZ8863_CFG_TBL_BUF_SIZE 1024
++
++#define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
+ 
+ struct ksz8863_cfg {
+ 	struct switch_dev swdev;
+@@ -26,6 +29,8 @@ struct ksz8863_cfg {
+ 	struct ksz8863_chip *chip;
+ 	struct mii_bus *mii_bus;
+ 	char buf_ratelimit[KSZ8863_CFG_VAL_BUF_SIZE];
++	char buf_dyn_mac[KSZ8863_CFG_TBL_BUF_SIZE];
++	char buf_static_mac[KSZ8863_CFG_TBL_BUF_SIZE];
+ };
+ 
+ #define get_ksz8863_cfg(_dev) container_of((_dev), struct ksz8863_cfg, swdev)
+@@ -717,6 +722,119 @@ static int ksz8863_cfg_get_port_mirror(struct switch_dev *dev,
+ 	return err;
+ }
+ 
++static inline int
++ksz8863_cfg_get_dyn_mac_entry(struct ksz8863_cfg *cfg, u8 idx,
++			      struct ksz8863_dyn_mac_tbl_entry *entry)
++{
++	return cfg->chip->mii_ops->read_table(cfg->chip, KSZ8863_TBL_DYN_MAC,
++					     idx, (u8 *)entry, sizeof(*entry));
++}
++
++static int ksz8863_cfg_get_dyn_macs(struct switch_dev *dev,
++				    const struct switch_attr *attr,
++				    struct switch_val *val)
++{
++	struct ksz8863_dyn_mac_tbl_entry entry;
++	int i, cnt, err;
++	struct ksz8863_cfg *cfg;
++
++	cfg = get_ksz8863_cfg(dev);
++	if (!cfg)
++		return -ENODEV;
++
++	err = ksz8863_cfg_get_dyn_mac_entry(cfg, 0, &entry);
++	if (err)
++		return err;
++
++	ksz8863_cfg_set_str_val(val, cfg->buf_dyn_mac,
++				sizeof(cfg->buf_dyn_mac), "");
++
++	if (entry.empty)
++		return 0;
++
++	cnt = entry.valid_nb + 1;
++	for (i = 0; i < cnt && sizeof(cfg->buf_dyn_mac) > val->len + 64; i++) {
++		err = ksz8863_cfg_get_dyn_mac_entry(cfg, i, &entry);
++		if (err)
++			return err;
++
++		val->len += snprintf(cfg->buf_dyn_mac + val->len,
++				     sizeof(cfg->buf_dyn_mac) - val->len,
++				     "[%d: " MAC_FMT " %d %02d %d]\n", i,
++				     entry.mac[5], entry.mac[4], entry.mac[3],
++				     entry.mac[2], entry.mac[1], entry.mac[0],
++				     entry.port, entry.fid, entry.time);
++	}
++
++	/* erase last \n */
++	if (val->len) {
++		cfg->buf_static_mac[val->len] = '\0';
++		val->len--;
++	}
++
++	if (i < cnt)
++		dev_warn(cfg->dev, "%d dynamic MACs not displayed", cnt - i);
++
++	return 0;
++}
++
++static inline int
++ksz8863_cfg_get_static_mac_entry(struct ksz8863_cfg *cfg, u8 idx,
++				 struct ksz8863_static_mac_tbl_entry *entry)
++{
++	return cfg->chip->mii_ops->read_table(cfg->chip, KSZ8863_TBL_STATIC_MAC,
++					      idx, (u8 *)entry, sizeof(*entry));
++}
++
++static int ksz8863_cfg_get_static_macs(struct switch_dev *dev,
++				       const struct switch_attr *attr,
++				       struct switch_val *val)
++{
++	struct ksz8863_static_mac_tbl_entry entry;
++	int i, err;
++	struct ksz8863_cfg *cfg;
++
++	cfg = get_ksz8863_cfg(dev);
++	if (!cfg)
++		return -ENODEV;
++
++	ksz8863_cfg_set_str_val(val, cfg->buf_static_mac,
++				sizeof(cfg->buf_static_mac), "");
++
++	for (i = 0; i < KSZ8863_SMAC_MAX_ENTRIES; i++) {
++		err = ksz8863_cfg_get_static_mac_entry(cfg, i, &entry);
++		if (err)
++			return err;
++
++		if (!entry.valid)
++			continue;
++
++		val->len += snprintf(cfg->buf_static_mac + val->len,
++				     sizeof(cfg->buf_static_mac) - val->len,
++				     "[%d: " MAC_FMT " 0x%x %02d %d]\n", i,
++				     entry.mac[5], entry.mac[4], entry.mac[3],
++				     entry.mac[2], entry.mac[1], entry.mac[0],
++				     entry.forward_ports,
++				     (entry.use_fid) ? entry.fid : -1,
++				     entry.override);
++	}
++
++	/* erase last \n */
++	if (val->len) {
++		cfg->buf_static_mac[val->len] = '\0';
++		val->len--;
++	}
++
++	return 0;
++}
++
++static int ksz8863_cfg_set_static_macs(struct switch_dev *dev,
++				       const struct switch_attr *attr,
++				       struct switch_val *val)
++{
++	return 0;
++}
++
+ static struct switch_attr ksz8863_cfg_global_attrs[] = {
+ 	{
+ 		.type = SWITCH_TYPE_INT,
+@@ -748,6 +866,21 @@ static struct switch_attr ksz8863_cfg_global_attrs[] = {
+ 		.description = "Sets fast aging [0 = disable] [1 = enable]",
+ 		.set = ksz8863_cfg_set_fastageing,
+ 		.get = ksz8863_cfg_get_fastageing,
++	}, {
++		.type = SWITCH_TYPE_STRING,
++		.name = "dynmacs",
++		.description = "Show dynamic MAC address table"
++			" - read: 'mac, port, fid, ageing'",
++		.get = ksz8863_cfg_get_dyn_macs,
++	}, {
++		.type = SWITCH_TYPE_STRING,
++		.name = "statmacs",
++		.description = "Read/Write static MAC address table"
++			" - read: 'mac, forward ports, fid, override'"
++			" - write: 'idx, mac, forward ports, valid, override,"
++			" use_fid, fid'",
++		.set = ksz8863_cfg_set_static_macs,
++		.get = ksz8863_cfg_get_static_macs,
+ 	},
+ };
+ 
+-- 
+2.7.4
+

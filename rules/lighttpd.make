@@ -22,8 +22,8 @@ PACKAGES-$(PTXCONF_LIGHTTPD) += lighttpd
 #
 # Paths and names
 #
-LIGHTTPD_VERSION	:= 1.4.53
-LIGHTTPD_MD5		:= f93436d8d400b2b0e26ee4bcc60b9ac7
+LIGHTTPD_VERSION	:= 1.4.54
+LIGHTTPD_MD5		:= 7abc776243c811e9872f73ab38b7f8b5
 LIGHTTPD		:= lighttpd-$(LIGHTTPD_VERSION)
 LIGHTTPD_SUFFIX		:= tar.xz
 LIGHTTPD_URL		:= http://download.lighttpd.net/lighttpd/releases-1.4.x/$(LIGHTTPD).$(LIGHTTPD_SUFFIX)
@@ -263,7 +263,7 @@ endif
 #	#
 #	# WBM user database
 #	#
-	@$(call install_alternative, lighttpd, 12, 102, 0600, \
+	@$(call install_alternative, lighttpd, 0, 102, 0640, \
 		/etc/lighttpd/lighttpd-htpasswd.user)
 
 #	#

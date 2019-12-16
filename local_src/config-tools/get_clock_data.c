@@ -11,7 +11,7 @@
 ///
 ///  \file     get_clock_data.c
 ///
-///  \version  $Revision: 33114 $1
+///  \version  $Revision: 41321 $1
 ///
 ///  \brief    
 ///
@@ -312,12 +312,6 @@ int GetTimeLocal(char* pAdditionalParam,
   // initialise output-string
   sprintf(pOutputString, "");
 
-  // use bash-script to get local-time - the normal way in C always delivers UTC-time at user www
-  pTimeString = SystemCall_GetOutput("/etc/config-tools/get_local_time");
-  strncpy(pOutputString, pTimeString, MAX_LENGTH_CLOCK_OUTPUT);
-  SystemCall_Destruct(&pTimeString);
-
-  #if 0
   // get time-value (first get system-time, then convert it to time-struct as local-time)
   time(&tTime);
   stTmTime = localtime(&tTime);
@@ -336,7 +330,6 @@ int GetTimeLocal(char* pAdditionalParam,
       strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%I:%M:%S %p", stTmTime);
     }
   }
-  #endif
 
   return(SUCCESS);
 }
@@ -404,6 +397,8 @@ int GetDateLocal(char* pAdditionalParam,
 //
 {
   char* pDateString = NULL;
+  time_t      tTime     = 0;
+  struct tm*  stTmTime;
 
   // check input-parameter
   if(pOutputString == NULL)
@@ -414,10 +409,11 @@ int GetDateLocal(char* pAdditionalParam,
   // initialise output-string
   sprintf(pOutputString, "");
 
-  // use bash-script to get local date - the normal way in C always delivers UTC date with user www
-  pDateString = SystemCall_GetOutput("/etc/config-tools/get_local_date");
-  strncpy(pOutputString, pDateString, MAX_LENGTH_CLOCK_OUTPUT);
-  SystemCall_Destruct(&pDateString);
+   // get time-value (first get system-time, then convert it to time-struct as utc-time) and at least put date to string
+  time(&tTime);
+  stTmTime = localtime(&tTime);
+  strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%d.%m.%Y", stTmTime);
+ 
   return SUCCESS;
 }
 
@@ -928,6 +924,10 @@ int main(int    argc,
          char** argv)
 {
   int   status            = SUCCESS;
+
+  // set TZ variable to ensure locale is usable by date and time functions
+  setenv("TZ","/etc/localtime", 1);
+  tzset();
 
   // help-text requested?
   if((argc == 2) && ((strcmp(argv[1], "--help") == 0) || strcmp(argv[1], "-h") == 0))

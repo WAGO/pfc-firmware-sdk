@@ -1,1 +1,3 @@
-0001-mosquitto_add_handling_of_fatal_errors.patch
+0001-Add-error-message-for-keepalive-timeout.patch
+0002-Add-error-message-for-fatal-error-in-loop-forever.patch
+0003-Add-handling-of-fatal-errors.patch

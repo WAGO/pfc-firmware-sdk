@@ -22,8 +22,8 @@ config WAGO_FWUPDATE
   select UTIL_LINUX_NG_MOUNT
   select UTIL_LINUX_NG_UMOUNT
   select PHP7 if !PHP5
-  select RETAIN_DATA if PLCLINUXRT
-  select RETAIN_DATA if CODESYS3
+  select WRETAIN if PLCLINUXRT
+  select WRETAIN if CODESYS3
 
   help
    "WAGO remote firmware update service"

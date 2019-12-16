@@ -10,10 +10,19 @@
 
     <h2>Configuration of General BACnet</h2>
 
-    <p>Changes will take effect after next controller reboot.</p>
+    <p id="rebootHint">Changes will take effect after next controller reboot.<br>
+    (BACnet is only available when e!RUNTIME is activated)</p>
 
     <h3>BACnet Status</h3>
     
+    <div class="config_form_box group">
+      <div class="config_data_list">
+        <div class="label_value_pair">
+          <div class="label_field">Current State:</div>
+          <div class="value_field"><span id="spanCurrentState">updating... please wait</span></div>
+        </div>
+      </div>
+    </div>
     <div class="config_form_box">
       <div class="config_data_list">
         <div class="label_value_pair">
@@ -24,6 +33,22 @@
     </div>
     
     <h3>BACnet General Configuration</h3>
+    
+    <div class="config_form_box group">
+      <form id="bacnet_enabled_form" action="javascript_requested.php" method="POST">
+        <div class="config_data_list">
+          <div class="label_value_pair">
+            <div class="label_field">BACnet enabled:</div>
+            <div class="value_field">
+              <input id="bacnet_enabled_active_state" type="checkbox" name="bacnet_enabled_active_state" value="true" >
+            </div>
+          </div>
+        </div>
+        <p class="button_area">
+          <input id="button bacnet_enabled_submit_button" class="button" type="submit" value="Submit" name="Change">
+        </p>      
+      </form>
+    </div>
     
     <div class="config_form_box group">
       <form id="bacnet_port_form" action="javascript_requested.php" method="POST">

@@ -1,0 +1,17 @@
+#/# For a description of pkg-config, see
+#/# https://people.freedesktop.org/~dbn/pkg-config-guide.html
+
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: @name@
+Description: An example on how to use WAGO ct-build
+Requires: 
+Requires.private: 
+#/# If this library installs its headers into a non-standard folder, an additional entry to the
+#/# include search path is necessary.
+#Cflags: -I${includedir}/@name@
+#Libs: -L${libdir} -l@name@
+Libs.private:

@@ -93,6 +93,8 @@ Macros</h2></td></tr>
 <tr class="separator:a1973ae82b11817180d68a64156531d78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec0effddf113461cbacc49f9a01553a1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log_8h.html#aec0effddf113461cbacc49f9a01553a1">WC_LOG_MAX_FUNCTION_LENGTH</a>&#160;&#160;&#160;(50)</td></tr>
 <tr class="separator:aec0effddf113461cbacc49f9a01553a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d2feb56755ea0161c277a27b84db6b7"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="log_8h.html#a2d2feb56755ea0161c277a27b84db6b7">WC_DEBUG_LOG</a>(message)&#160;&#160;&#160;<a class="el" href="log_8h.html#a07712cd6deb0e488155fbb724203dad0">wc_log_advanced</a>(__FILE__, __func__, __LINE__, <a class="el" href="log_8h.html#ac91d55174d383848b976a34de843748ea5be0fd270d9cbf6a0b7445db855089da">debug</a>, message)</td></tr>
+<tr class="separator:a2d2feb56755ea0161c277a27b84db6b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -142,6 +144,25 @@ Functions</h2></td></tr>
 <dd>
 PEn : WAGO Kontakttechnik GmbH &amp; Co. KG </dd></dl>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a2d2feb56755ea0161c277a27b84db6b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d2feb56755ea0161c277a27b84db6b7">&sect;&nbsp;</a></span>WC_DEBUG_LOG</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define WC_DEBUG_LOG</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">message</td><td>)</td>
+          <td>&#160;&#160;&#160;<a class="el" href="log_8h.html#a07712cd6deb0e488155fbb724203dad0">wc_log_advanced</a>(__FILE__, __func__, __LINE__, <a class="el" href="log_8h.html#ac91d55174d383848b976a34de843748ea5be0fd270d9cbf6a0b7445db855089da">debug</a>, message)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Defines an advanced debug log call, fully optimized out on release builds. </p>
+
+</div>
+</div>
 <a id="a998bad746d93c207cbe2c1b03605abdd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a998bad746d93c207cbe2c1b03605abdd">&sect;&nbsp;</a></span>WC_LOG_BUFFER_SIZE</h2>
 
@@ -765,7 +786,7 @@ PEn : WAGO Kontakttechnik GmbH &amp; Co. KG </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Aug 22 2019 13:48:11 for common-header by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Dec 5 2019 17:05:03 for common-header by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.12
 </small></address>

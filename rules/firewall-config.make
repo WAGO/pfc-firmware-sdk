@@ -150,8 +150,10 @@ $(STATEDIR)/firewall-config.targetinstall:
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/snmp/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/ssh/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/ssl/firewall)
+ifneq ($(PTXCONF_PLATFORM), wago-pac100)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/telnet/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/tftp/firewall)
+endif
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iocheckport/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/dnp3/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iec60870_5_104/firewall)

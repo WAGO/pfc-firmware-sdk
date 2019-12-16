@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+
+SWCONFIG=$(which swconfig)
+
+if [[ -e /etc/switch_settings.conf ]] && [[ -x "${SWCONFIG}" ]]; then
+    echo "setting extra switch settings..."  
+    . /etc/switch_settings.conf
+    
+    ${SWCONFIG} dev switch0 set port_mirror     $PORT_MIRROR
+    ${SWCONFIG} dev switch0 set bcast_protect   $BCAST_PROTECT
+    ${SWCONFIG} dev switch0 set rate_limit      $RATE_LIMIT
+    ${SWCONFIG} dev switch0 set fast_aging      $FAST_AGING
+else
+    echo "Info: no extra switch settings configured!"
+fi

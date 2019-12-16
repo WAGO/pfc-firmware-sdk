@@ -41,10 +41,24 @@ $(STATEDIR)/host-ct-make-xml-config.extract:
 # Prepare
 # ----------------------------------------------------------------------------
 
-HOST_PYTHON_CPPFLAGS = $(shell $(PTXCONF_SYSROOT_HOST)/bin/python2 \
-$(PTXCONF_SYSROOT_HOST)/bin/python2-config --cflags)
-HOST_PYTHON_LDFLAGS = $(shell $(PTXCONF_SYSROOT_HOST)/bin/python2 \
-$(PTXCONF_SYSROOT_HOST)/bin/python2-config --ldflags)
+#
+# if host-python is selected (i.e. vtp-ctp), use it.
+# Otherwise (i.e. pfcXXX) use the version installed on the host
+#
+ifdef PTXCONF_HOST_PYTHON
+HOST_PYTHON_CPPFLAGS = $(shell $(PTXCONF_SYSROOT_HOST)/bin/python2 $(PTXCONF_SYSROOT_HOST)/bin/python2-config --cflags)
+HOST_PYTHON_LDFLAGS = $(shell $(PTXCONF_SYSROOT_HOST)/bin/python2 $(PTXCONF_SYSROOT_HOST)/bin/python2-config --ldflags)
+HOST_CT_MAKE_XML_CONFIG__ENV=EXTRA_CPPFLAGS="$(HOST_PYTHON_CPPFLAGS)"  \
+                             EXTRA_LDFLAGS="$(HOST_PYTHON_LDFLAGS)" \
+                             PYTHON=$(PTXCONF_SYSROOT_HOST)/bin/python2
+
+$(STATEDIR)/host-ct-make-xml-config.prepare: $(STATEDIR)/host-python.install.post
+else
+HOST_CT_MAKE_XML_CONFIG__ENV = EXTRA_CPPFLAGS="$(shell python2-config --cflags)"  \
+                             EXTRA_LDFLAGS="$(shell python2-config --ldflags)" \
+                             PYTHON=/usr/bin/python2
+
+endif
 
 #DEBUG: kick optimization flags out of python-config output
 #HOST_PYTHON_CPPFLAGS:=$(subst O2,O0,$(HOST_PYTHON_CPPFLAGS))
@@ -54,9 +68,6 @@ $(PTXCONF_SYSROOT_HOST)/bin/python2-config --ldflags)
 #END DEBUG
 
 HOST_CT_MAKE_XML_CONFIG_PATH	:= PATH=$(HOST_PATH)
-HOST_CT_MAKE_XML_CONFIG__ENV 	= $(HOST_ENV) \
-EXTRA_CPPFLAGS="$(HOST_PYTHON_CPPFLAGS)" EXTRA_LDFLAGS="$(HOST_PYTHON_LDFLAGS)" \
-PYTHON=$(PTXCONF_SYSROOT_HOST)/bin/python2
 
 $(STATEDIR)/host-ct-make-xml-config.prepare:
 	@$(call targetinfo)

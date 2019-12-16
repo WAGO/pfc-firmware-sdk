@@ -21,6 +21,8 @@ Common log interface and framework to manage log messages. To use log functions 
 \#define \hyperlink{log_8h_a1973ae82b11817180d68a64156531d78}{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+I\+L\+E\+\_\+\+L\+E\+N\+G\+TH}~(50)
 \item 
 \#define \hyperlink{log_8h_aec0effddf113461cbacc49f9a01553a1}{W\+C\+\_\+\+L\+O\+G\+\_\+\+M\+A\+X\+\_\+\+F\+U\+N\+C\+T\+I\+O\+N\+\_\+\+L\+E\+N\+G\+TH}~(50)
+\item 
+\#define \hyperlink{log_8h_a2d2feb56755ea0161c277a27b84db6b7}{W\+C\+\_\+\+D\+E\+B\+U\+G\+\_\+\+L\+OG}(message)~\hyperlink{log_8h_a07712cd6deb0e488155fbb724203dad0}{wc\+\_\+log\+\_\+advanced}(\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+, \+\_\+\+\_\+func\+\_\+\+\_\+, \+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+, \hyperlink{log_8h_ac91d55174d383848b976a34de843748ea5be0fd270d9cbf6a0b7445db855089da}{debug}, message)
 \end{DoxyCompactItemize}
 \subsection*{Typedefs}
 \begin{DoxyCompactItemize}
@@ -76,7 +78,13 @@ P\+En \+: W\+A\+GO Kontakttechnik GmbH \& Co. KG
 
 
 \subsection{Macro Definition Documentation}
-\hypertarget{log_8h_a998bad746d93c207cbe2c1b03605abdd}{}\label{log_8h_a998bad746d93c207cbe2c1b03605abdd} 
+\hypertarget{log_8h_a2d2feb56755ea0161c277a27b84db6b7}{}\label{log_8h_a2d2feb56755ea0161c277a27b84db6b7} 
+\index{log.\+h@{log.\+h}!W\+C\+\_\+\+D\+E\+B\+U\+G\+\_\+\+L\+OG@{W\+C\+\_\+\+D\+E\+B\+U\+G\+\_\+\+L\+OG}}
+\index{W\+C\+\_\+\+D\+E\+B\+U\+G\+\_\+\+L\+OG@{W\+C\+\_\+\+D\+E\+B\+U\+G\+\_\+\+L\+OG}!log.\+h@{log.\+h}}
+\subsubsection{\texorpdfstring{W\+C\+\_\+\+D\+E\+B\+U\+G\+\_\+\+L\+OG}{WC\_DEBUG\_LOG}}
+{\footnotesize\ttfamily \#define W\+C\+\_\+\+D\+E\+B\+U\+G\+\_\+\+L\+OG(\begin{DoxyParamCaption}\item[{}]{message }\end{DoxyParamCaption})~\hyperlink{log_8h_a07712cd6deb0e488155fbb724203dad0}{wc\+\_\+log\+\_\+advanced}(\+\_\+\+\_\+\+F\+I\+L\+E\+\_\+\+\_\+, \+\_\+\+\_\+func\+\_\+\+\_\+, \+\_\+\+\_\+\+L\+I\+N\+E\+\_\+\+\_\+, \hyperlink{log_8h_ac91d55174d383848b976a34de843748ea5be0fd270d9cbf6a0b7445db855089da}{debug}, message)}
+
+Defines an advanced debug log call, fully optimized out on release builds. \hypertarget{log_8h_a998bad746d93c207cbe2c1b03605abdd}{}\label{log_8h_a998bad746d93c207cbe2c1b03605abdd} 
 \index{log.\+h@{log.\+h}!W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE@{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}}
 \index{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE@{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}!log.\+h@{log.\+h}}
 \subsubsection{\texorpdfstring{W\+C\+\_\+\+L\+O\+G\+\_\+\+B\+U\+F\+F\+E\+R\+\_\+\+S\+I\+ZE}{WC\_LOG\_BUFFER\_SIZE}}

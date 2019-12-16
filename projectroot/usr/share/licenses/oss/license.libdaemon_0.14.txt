@@ -1,5 +1,3 @@
-libdaemon-0.14/LICENSE
-
 
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
@@ -508,6 +506,5 @@ if necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
 
 

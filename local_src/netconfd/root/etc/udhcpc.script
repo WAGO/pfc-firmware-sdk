@@ -1,0 +1,101 @@
+#!/bin/sh
+# DHCP client script. Set parameters gained via DHCP_ACK.
+#
+# $Revision: 37359 $
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+
+[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
+
+RESOLV_CONF="/etc/resolv.conf"
+DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
+EVENTDIR=/etc/config-tools/events/networking
+
+# Function to access notified files.
+# The notified file will be accessed (read) by configuration change of
+# given interface.
+# The files can be watched through inotify command.
+# Allowed interaces: br0, br1, wwan0.
+#
+# Prerequestions: The script /etc/rc.d/s97_watch_ip_change is called.
+#
+# Param 1: network interface
+#
+# Return: 0 on success, unequal to 0 otherwise
+#
+#-----------------------------------------------------------------------------#
+
+set_ip_config () {
+  local iface="$1"
+  local source="$2"
+  local address="$3"
+  local mask="$4"
+  local bcast="$5"
+
+  local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
+
+  out=$(dbus-send --system --print-reply --reply-timeout=15000 --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/ip_config de.wago.netconfd1.ip_config.set string:"${json_config}")
+
+  if [[ $? != 0 ]]; then
+  	logger -t "udhcpc-script" "failed to set ip via dbus-send: $out"
+  fi
+
+}
+
+[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+[ -n "$subnet" ] && NETMASK="netmask $subnet"
+
+dbus-wait -t 30 de.wago.netconfd
+if [ $? != 0 ]; then
+  logger -t udhcpc.script "ERROR: netconfd: de.wago.netconfd not reachable!"
+  exit -1
+fi
+
+case "$1" in
+    deconfig)
+        #set_ip_config $interface temporary 0.0.0.0 0.0.0.0
+        /sbin/route del -net 224.0.0.0 netmask 224.0.0.0 $interface || true
+        ;;
+
+    renew|bound)
+        /sbin/route add -net 224.0.0.0 netmask 224.0.0.0 $interface || true
+
+        FILE="$DHCP_DATA_FILE_TEMPLATE$interface"
+        > "$FILE"
+        if [ -n "$router" ] ; then
+            index=1
+            for i in $router; do
+                echo "DEFAULT_GATEWAY_$index=$i" >> "$FILE"
+                index=$(($index + 1))
+            done
+        fi
+
+        [ "$hostname" ] && echo "DHCPHOSTNAME=$hostname" >> "$FILE"
+        [ "$domain" ] && echo "DHCPDOMAIN=$domain" >> "$FILE"
+
+
+        # write ntp server to tmp file
+        if [ -n "$ntpsrv" ] ; then
+            index=1
+            for i in $ntpsrv; do
+                echo "NTP_SERVER_$index=$i" >> "$FILE"
+                index=$((index + 1))
+            done
+        fi
+
+        #write dns server to tmp file
+        if [ -n "$dns" ] ; then
+            index=1
+            for i in $dns; do
+                echo "DNS_SERVER_$index=$i" >> "$FILE"
+                index=$((index + 1))
+            done
+        fi
+
+        set_ip_config $interface temporary $ip $subnet $broadcast
+
+        # send gratuitous ARP.
+        arping -I $interface -c1 -s $ip $ip
+
+        ;;
+esac
+exit 0

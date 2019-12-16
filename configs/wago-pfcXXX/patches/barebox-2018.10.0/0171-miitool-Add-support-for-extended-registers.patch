@@ -1,0 +1,116 @@
+From 4847f8e9f115da30331bc26b9a79a6561544d15d Mon Sep 17 00:00:00 2001
+From: "Schildan, Oliver" <Oliver.Schildan@wago.com>
+Date: Mon, 2 Sep 2019 10:49:44 +0000
+Subject: [PATCH] miitool: Add support for extended registers
+
+Signed-off-by: Oliver Schildan <oliver.schildan@wago.com>
+---
+ commands/miitool.c | 36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
+
+diff --git a/commands/miitool.c b/commands/miitool.c
+index d9fbc0c..46941ec 100644
+--- a/commands/miitool.c
++++ b/commands/miitool.c
+@@ -324,7 +324,7 @@ static int miitool_parse(const char *str, int *bus, struct mii_bus **mii,
+ 	return 0;
+ }
+ 
+-static int miitool_mdio_write(const char *str, const char *variable)
++static int miitool_mdio_write(const char *str, const char *variable, int ext)
+ {
+ 	int ret;
+ 	struct mii_bus *mii;
+@@ -348,12 +348,19 @@ static int miitool_mdio_write(const char *str, const char *variable)
+ 		return COMMAND_ERROR;
+ 	}
+ 
+-	ret = mdiobus_write(mii, addr, reg, val);
++	if (ext) {
++		mdiobus_write(mii, addr, MII_MMD_CTRL, MII_MMD_CTRL_DEVAD_MASK);
++		mdiobus_write(mii, addr, MII_MMD_DATA, reg);
++		mdiobus_write(mii, addr, MII_MMD_CTRL, MII_MMD_CTRL_DEVAD_MASK |
++						MII_MMD_CTRL_NOINCR);
++		ret = mdiobus_write(mii, addr, MII_MMD_DATA, val);
++	} else
++		ret = mdiobus_write(mii, addr, reg, val);
+ 
+ 	return (!ret) ? ret : COMMAND_ERROR_USAGE;
+ }
+ 
+-static int miitool_mdio_read(const char *str, const char *variable)
++static int miitool_mdio_read(const char *str, const char *variable, int ext)
+ {
+ 	int ret;
+ 	struct mii_bus *mii;
+@@ -367,7 +374,15 @@ static int miitool_mdio_read(const char *str, const char *variable)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = mdiobus_read(mii, addr, reg);
++	if (ext) {
++		mdiobus_write(mii, addr, MII_MMD_CTRL, MII_MMD_CTRL_DEVAD_MASK);
++		mdiobus_write(mii, addr, MII_MMD_DATA, reg);
++		mdiobus_write(mii, addr, MII_MMD_CTRL, MII_MMD_CTRL_DEVAD_MASK |
++							MII_MMD_CTRL_NOINCR);
++		ret = mdiobus_read(mii, addr, MII_MMD_DATA);
++	} else
++		ret = mdiobus_read(mii, addr, reg);
++
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -383,6 +398,7 @@ static int do_miitool(int argc, char *argv[])
+ 	char *phydevname = NULL;
+ 	char *regstr = NULL;
+ 	char *variable = NULL;
++	int ext = 0;
+ 	struct mii_bus *mii;
+ 	int opt, ret;
+ 	int verbose = 0;
+@@ -390,8 +406,11 @@ static int do_miitool(int argc, char *argv[])
+ 	enum miitool_operations action = MIITOOL_NOOP;
+ 	int addr, bus;
+ 
+-	while ((opt = getopt(argc, argv, "vs:r:w:x:p:")) > 0) {
++	while ((opt = getopt(argc, argv, "evs:r:w:x:p:")) > 0) {
+ 		switch (opt) {
++		case 'e':
++			ext = 1;
++			break;
+ 		case 's':
+ 			action = MIITOOL_SHOW;
+ 			phydevname = xstrdup(optarg);
+@@ -438,12 +457,12 @@ static int do_miitool(int argc, char *argv[])
+ 		}
+ 		break;
+ 	case MIITOOL_MDIO_WRITE:
+-		ret = miitool_mdio_write(regstr, variable);
++		ret = miitool_mdio_write(regstr, variable, ext);
+ 		if (ret)
+ 			goto out;
+ 		break;
+ 	case MIITOOL_MDIO_READ:
+-		ret = miitool_mdio_read(regstr, variable);
++		ret = miitool_mdio_read(regstr, variable, ext);
+ 		if (ret)
+ 			goto out;
+ 		break;
+@@ -478,12 +497,13 @@ BAREBOX_CMD_HELP_OPT("-s <devpath/devname>", "show PHY status (not providing PHY
+ BAREBOX_CMD_HELP_OPT("-r <busno>:<addr>", "register a PHY")
+ BAREBOX_CMD_HELP_OPT("-w <busno>:<addr>:<reg> -p variable", "read value from variable and writes it to MDIO bus")
+ BAREBOX_CMD_HELP_OPT("-x <busno>:<addr>:<reg> -p variable", "read value from MDIO bus and writes it to variable")
++BAREBOX_CMD_HELP_OPT("-e", "enable (once) extended register read/write")
+ BAREBOX_CMD_HELP_END
+ 
+ BAREBOX_CMD_START(miitool)
+ 	.cmd		= do_miitool,
+ 	BAREBOX_CMD_DESC("media-independent interface access")
+-	BAREBOX_CMD_OPTS("[-vsrwxp]")
++	BAREBOX_CMD_OPTS("[-evsrwxp]")
+ 	BAREBOX_CMD_GROUP(CMD_GRP_NET)
+ 	BAREBOX_CMD_HELP(cmd_miitool_help)
+ BAREBOX_CMD_END
+-- 
+2.7.4
+

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!-- LED configuration of pac100 product! -->
+<ledconfig>
+<led name="DS"  number="0" state="STATIC_GRN" id="AA000000" />
+<led name="EC"  number="1" state="STATIC_OFF" id="BB000000" />
+<led name="MS"  number="2" state="STATIC_OFF" id="0000000B" />
+<led name="NS"  number="3" state="STATIC_OFF" id="00000004" />
+<led name="RUN" number="4" state="STATIC_OFF" id="00040004" />
+<led name="APP" number="5" state="STATIC_OFF" id="00010000" >
+<alias>U1</alias>
+</led>
+</ledconfig>

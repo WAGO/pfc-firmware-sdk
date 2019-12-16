@@ -6,6 +6,7 @@ config CDS3_TSCSECURE
   default n
   select GOOGLETEST
   select HOST_CT_BUILD
+  select CODESYS3
   select CDS3_INCLUDES
   select CDS3_RTS_TESTS
   select OPENSSL

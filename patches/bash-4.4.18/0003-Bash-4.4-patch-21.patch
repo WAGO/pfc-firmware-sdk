@@ -1,0 +1,33 @@
+diff --recursive --unified a/jobs.c b/jobs.c
+--- a/jobs.c	2019-09-18 11:27:58.388514902 +0200
++++ b/jobs.c	2019-09-18 11:28:08.552514902 +0200
+@@ -2689,7 +2689,17 @@
+   wait_sigint_received = child_caught_sigint = 0;
+   if (job_control == 0 || (subshell_environment&SUBSHELL_COMSUB))
+     {
+-      old_sigint_handler = set_signal_handler (SIGINT, wait_sigint_handler);
++      SigHandler *temp_sigint_handler;
++
++      temp_sigint_handler = set_signal_handler (SIGINT, wait_sigint_handler);
++      if (temp_sigint_handler == wait_sigint_handler)
++        {
++#if defined (DEBUG)
++	  internal_warning ("wait_for: recursively setting old_sigint_handler to wait_sigint_handler: running_trap = %d", running_trap);
++#endif
++        }
++      else
++	old_sigint_handler = temp_sigint_handler;
+       waiting_for_child = 0;
+       if (old_sigint_handler == SIG_IGN)
+ 	set_signal_handler (SIGINT, old_sigint_handler);
+diff --recursive --unified a/patchlevel.h b/patchlevel.h
+--- a/patchlevel.h	2019-09-18 11:27:58.388514902 +0200
++++ b/patchlevel.h	2019-09-18 11:28:08.552514902 +0200
+@@ -25,6 +25,6 @@
+    regexp `^#define[ 	]*PATCHLEVEL', since that's what support/mkversion.sh
+    looks for to find the patch level (for the sccs version string). */
+ 
+-#define PATCHLEVEL 20
++#define PATCHLEVEL 21
+ 
+ #endif /* _PATCHLEVEL_H_ */

@@ -232,16 +232,6 @@ ifdef PTXCONF_CT_GET_ACTUAL_ETH_CONFIG
 	CT_MAKE_ARGS+=get_actual_eth_config
 endif
 
-ifdef PTXCONF_CT_CONFIG_ETHERNET
-	CT_MAKE_ARGS+=config_ethernet
-endif
-
-ifdef PTXCONF_CT_CONFIG_INTERFACES
-	CT_MAKE_ARGS+=config_interfaces
-endif
-ifdef PTXCONF_CT_SET_DSA_MODE
-	CT_MAKE_ARGS+=set_dsa_mode
-endif
 ifdef PTXCONF_CT_GET_DSA_MODE
 	CT_MAKE_ARGS+=get_dsa_mode
 endif
@@ -250,9 +240,6 @@ ifdef PTXCONF_CT_GET_SWITCH_SETTINGS
 endif
 ifdef PTXCONF_CT_CONFIG_SWITCH
 	CT_MAKE_ARGS+=config_switch
-endif
-ifdef PTXCONF_CT_SET_NETWORK_INTERFACES
-	CT_MAKE_ARGS+=set_network_interfaces
 endif
 ifdef PTXCONF_CT_IPDATACHECK
 	CT_MAKE_ARGS+=ipdatacheck
@@ -527,14 +514,6 @@ endif
 ifdef PTXCONF_CT_FIRMWARE_RESTORE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/firmware_restore, /etc/config-tools/firmware_restore);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/firmware_restore_admin, /etc/config-tools/firmware_restore_admin);
-endif
-
-ifdef PTXCONF_CT_GET_LOCAL_DATE
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_local_date, /etc/config-tools/get_local_date);
-endif
-
-ifdef PTXCONF_CT_GET_LOCAL_TIME
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_local_time, /etc/config-tools/get_local_time);
 endif
 
 ifdef PTXCONF_CT_GET_PLC_CONFIG
@@ -840,9 +819,6 @@ endif
 	@$(call install_copy, config-tools, 0, 0, 0755, $(CONFIG_TOOLS_DIR)/liblog/libctlog.so, /usr/lib/libctlog.so);
 
 ifdef PTXCONF_CT_LIBCTNETWORK
-ifndef PTXCONF_NETCONFD
-	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/network-interfaces.xsl)
-endif #PTXCONF_NETCONFD
 	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/network-interfaces.xml)
 
 	@$(call install_copy, config-tools, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/README, /etc/config-tools/events/README);
@@ -853,8 +829,10 @@ endif #PTXCONF_NETCONFD
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/snmp/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/ssh/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/ssl/);
+ifneq ($(PTXCONF_PLATFORM), wago-pac100)
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/telnet/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/tftp/);
+endif
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/iocheckport/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/networking/);
 
@@ -881,20 +859,14 @@ ifdef PTXCONF_CT_GET_ACTUAL_ETH_CONFIG
 endif
 
 ifdef PTXCONF_CT_CONFIG_ETHERNET
-	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/config_ethernet, /etc/config-tools/config_ethernet_c);
-        # compatibility wrapper for config_ethernet_c
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_ethernet, /etc/config-tools/config_ethernet);
 endif
 
+ifndef PTXCONF_NETCONFD
 ifdef PTXCONF_CT_CONFIG_INTERFACES
-	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/config_interfaces, /etc/config-tools/config_interfaces_c);
-        # compatibility wrapper for config_interfaces_c
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_interfaces, /etc/config-tools/config_interfaces);
 endif
-ifndef PTXCONF_NETCONFD
 ifdef PTXCONF_CT_SET_DSA_MODE
-	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/set_dsa_mode, /etc/config-tools/set_dsa_mode_c);
-
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/set_dsa_mode, /etc/config-tools/set_dsa_mode);
 endif
 
@@ -905,6 +877,7 @@ endif #PTXCONF_NETCONFD
 ifdef PTXCONF_CT_GET_SWITCH_SETTINGS
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/get_switch_settings, /etc/config-tools/get_switch_settings);
 	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/switch_settings.conf)
+	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/events/networking/update_switch_config);
 endif
 ifdef PTXCONF_CT_CONFIG_SWITCH
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/config_switch, /etc/config-tools/config_switch);
@@ -912,18 +885,13 @@ endif
 ifdef PTXCONF_CT_IPDATACHECK
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/ipdatacheck, /etc/config-tools/ipdatacheck);
 endif
-ifdef PTXCONF_CT_SET_NETWORK_INTERFACES
-	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/set_network_interfaces, /etc/config-tools/set_network_interfaces);
-endif
 ifdef PTXCONF_CT_SET_SERIAL_MODE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/set_serial_mode, /etc/config-tools/set_serial_mode);
 endif
-ifdef PTXCONF_CT_DIP_SWITCH_SUPPORT
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/adapt_netconfig, /etc/config-tools/adapt_netconfig);
-endif
 ifdef PTXCONF_CT_WWAN_INTERFACE
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/adapt_netconfig_wwan, /etc/config-tools/adapt_netconfig_wwan);
+ifndef PTXCONF_NETCONFD
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_wwan, /etc/config-tools/config_wwan);
+endif #PTXCONF_NETCONFD
 	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/wwan.conf);
 endif
 

@@ -1,0 +1,681 @@
+From 19893d51cd9504de726ec662fee965cf4f2dedfb Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Tue, 17 Sep 2019 11:38:50 +0200
+Subject: [PATCH] dma: edma.c: implement EDMA tripple buffer exchange
+
+For RX and TX paths there are state machines in DMA,
+performing the memory access and buffer-switch
+by using self-modifying DMA-transfer-tasks.
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/dma/edma.c       | 538 +++++++++++++++++++++++++++++++++++++++++++++--
+ include/uapi/linux/rmd.h |   5 +-
+ 2 files changed, 525 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 90fe5ca..197872d 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -41,6 +41,7 @@
+ #define PARM_OPT		0x00
+ #define PARM_SRC		0x04
+ #define PARM_A_B_CNT		0x08
++#define PARM_B_CNT		(PARM_A_B_CNT + 2)
+ #define PARM_DST		0x0c
+ #define PARM_SRC_DST_BIDX	0x10
+ #define PARM_LINK_BCNTRLD	0x14
+@@ -124,7 +125,7 @@
+  * fail. Today davinci-pcm is the only user of this driver and
+  * requires atleast 17 slots, so we setup the default to 20.
+  */
+-#define MAX_NR_SG		20
++#define MAX_NR_SG		32
+ #define EDMA_MAX_SLOTS		MAX_NR_SG
+ #define EDMA_DESCRIPTORS	16
+ 
+@@ -134,6 +135,40 @@
+ #define EDMA_CONT_PARAMS_FIXED_EXACT	 1002
+ #define EDMA_CONT_PARAMS_FIXED_NOT_EXACT 1003
+ 
++/* Number of RMD transfer chains per channel */
++#define RMD_TRANSFER_CHAINS 3
++
++/* number of transfer working slots per channel */
++#define RMD_WORKING_SLOTS 1
++
++enum {
++	rmd_rx_fifo_trans = 0,
++	rmd_rx_ack_write = 1,
++	rmd_rx_data_valid = 2,
++	rmd_rx_data_switch = 3,
++	rmd_rx_reload_dummy = 4,
++	rmd_rx_lock_bufctrl = 5,
++	rmd_rx_copy_bufctrl = 6,
++	rmd_rx_update_link = 7,
++	rmd_rx_update_bufctrl = 8,
++	rmd_rx_max
++};
++#define RMD_SLOTS_RX (rmd_rx_max * RMD_TRANSFER_CHAINS + RMD_WORKING_SLOTS)
++
++enum {
++	rmd_tx_new_data = 0,
++	rmd_tx_switch_buf = 1,
++	rmd_tx_lock_bufctrl = 2,
++	rmd_tx_get_bufnum = 3,
++	rmd_tx_update_link = 4,
++	rmd_tx_update_bufctrl = 5,
++	rmd_tx_unlock = 6,
++	rmd_tx_fifo_trans = 7,
++	rmd_tx_ack_write = 8,
++	rmd_tx_max
++};
++#define RMD_SLOTS_TX (rmd_tx_max * RMD_TRANSFER_CHAINS + RMD_WORKING_SLOTS)
++
+ /* PaRAM slots are laid out like this */
+ struct edmacc_param {
+ 	u32 opt;
+@@ -162,6 +197,7 @@ struct edmacc_param {
+ struct edma_pset {
+ 	u32				len;
+ 	dma_addr_t			addr;
++	int				link;
+ 	struct edmacc_param		param;
+ };
+ 
+@@ -169,8 +205,9 @@ struct edma_desc {
+ 	struct virt_dma_desc		vdesc;
+ 	struct list_head		node;
+ 	enum dma_transfer_direction	direction;
+-	int				cyclic;
+-	int				absync;
++	int				cyclic:1;
++	int				rmd_transfer:1;
++	int				absync:1;
+ 	int				pset_nr;
+ 	struct edma_chan		*echan;
+ 	int				processed;
+@@ -200,6 +237,10 @@ struct edma_desc {
+ 	u32				residue;
+ 	u32				residue_stat;
+ 
++	dma_addr_t			rmd_mem;
++	size_t				rmd_chunk_size;
++	int				rmd_task_num;
++
+ 	struct edma_pset		pset[0];
+ };
+ 
+@@ -254,6 +295,7 @@ struct edma_cc {
+ 	struct edma_chan		*slave_chans;
+ 	struct edma_tc			*tc_list;
+ 	int				dummy_slot;
++	phys_addr_t			phys;
+ };
+ 
+ /* dummy param set used to (re)initialize parameter RAM slots */
+@@ -729,6 +771,11 @@ static void edma_free_channel(struct edma_chan *echan)
+ 	edma_setup_interrupt(echan, false);
+ }
+ 
++static dma_addr_t param_addr(struct edma_chan *echan, int slot_num)
++{
++	return echan->ecc->phys + PARM_OFFSET(echan->slot[slot_num]);
++}
++
+ static inline struct edma_cc *to_edma_cc(struct dma_device *d)
+ {
+ 	return container_of(d, struct edma_cc, dma_slave);
+@@ -801,8 +848,13 @@ static void edma_execute(struct edma_chan *echan)
+ 			 edesc->pset[j].param.src_dst_cidx,
+ 			 edesc->pset[j].param.link_bcntrld);
+ 		/* Link to the previous slot if not the last set */
+-		if (i != (nslots - 1))
+-			edma_link(ecc, echan->slot[i], echan->slot[i + 1]);
++		if (i != nslots - 1) {
++			int target = i + 1;
++
++			if (edesc->rmd_transfer && edesc->pset[i].link != -1)
++				target = edesc->pset[i].link;
++			edma_link(ecc, echan->slot[i], echan->slot[target]);
++		}
+ 	}
+ 
+ 	edesc->processed += nslots;
+@@ -814,9 +866,13 @@ static void edma_execute(struct edma_chan *echan)
+ 	 */
+ 	if (edesc->processed == edesc->pset_nr) {
+ 		if (edesc->cyclic)
+-			edma_link(ecc, echan->slot[nslots - 1], echan->slot[1]);
+-		else
+-			edma_link(ecc, echan->slot[nslots - 1],
++			edma_link(ecc, echan->slot[nslots-1], echan->slot[1]);
++		else if (edesc->rmd_transfer &&
++			 edesc->pset[nslots-1].link != -1) {
++			edma_link(ecc, echan->slot[nslots-1],
++				  echan->slot[edesc->pset[nslots-1].link]);
++		} else
++			edma_link(ecc, echan->slot[nslots-1],
+ 				  echan->ecc->dummy_slot);
+ 	}
+ 
+@@ -993,6 +1049,7 @@ static int edma_config_pset(struct dma_chan *chan, struct edma_pset *epset,
+ 	}
+ 
+ 	epset->len = dma_length;
++	epset->link = -1;
+ 
+ 	if (direction == DMA_MEM_TO_DEV) {
+ 		src_bidx = acnt;
+@@ -1405,6 +1462,457 @@ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+ }
+ 
++static void update_link(struct edma_desc *edesc, int tx_start, int dest)
++{
++	int n, cidx, chain_num;
++	struct edma_chan *echan = edesc->echan;
++
++	/* The CIDX of "Update-Link" (dest) contains the relative addresses of
++	 * "tx_start[1]" in DSTCIDX and "tx_start[2]" in SRCCIDX
++	 */
++	n = tx_start + edesc->rmd_task_num + 1;
++	cidx =  PARM_OFFSET(echan->slot[n]) |
++		PARM_OFFSET(echan->slot[n + edesc->rmd_task_num]) << 16;
++
++	/* Write the CIDX to all 3 "Update-Link":SRC_DST_CIDX */
++	for (chain_num = 0; chain_num < RMD_TRANSFER_CHAINS; chain_num++) {
++		int slot_idx = dest + chain_num * edesc->rmd_task_num + 1;
++		edesc->pset[slot_idx].param.src_dst_cidx = cidx;
++	}
++}
++
++static struct edma_desc *device_prep_dma_rmd_from_device(
++	struct edma_chan *echan, dma_addr_t fpga_base, struct rmd_config *rmd,
++	dma_addr_t mem, size_t chunk_size, dma_addr_t buf_ctrl)
++{
++	struct edma_desc *edesc;
++	struct dma_chan *chan = &echan->vchan.chan;
++	struct device *dev = chan->device->dev;
++	struct edma_cc *ecc = echan->ecc;
++	int i, n, ret, len = rmd->idet_fifo_pdi_size;
++
++	edesc = kzalloc(sizeof(*edesc) + RMD_SLOTS_RX*sizeof(edesc->pset[0]),
++			GFP_ATOMIC);
++	if (!edesc)
++		return NULL;
++
++	edesc->pset_nr = RMD_SLOTS_RX;
++	edesc->residue = edesc->residue_stat = len;
++	edesc->direction = DMA_DEV_TO_MEM;
++	edesc->echan = echan;
++	edesc->rmd_mem = mem;
++	edesc->rmd_chunk_size = chunk_size;
++	edesc->rmd_transfer = 1;
++	edesc->rmd_task_num = rmd_rx_max;
++
++	BUILD_BUG_ON(RMD_SLOTS_RX > EDMA_MAX_SLOTS);
++
++	for (i = 0; i < RMD_SLOTS_RX; i++) {
++		/* Chain 0, 1 or 2 == tripple buffer number */
++		int chain_num = (i-1) / edesc->rmd_task_num;
++
++		if (echan->slot[i] < 0)
++			echan->slot[i] = edma_alloc_slot(ecc, EDMA_SLOT_ANY);
++		if (echan->slot[i] < 0) {
++			dev_err(dev, "%s: Failed to allocate slot\n", __func__);
++			return NULL;
++		}
++
++		/* Setup 3 chains: 1-9 (Buf0), 10-19 (Buf1), 19-27 (Buf2) */
++		switch ((i-1) % edesc->rmd_task_num) {
++		case -1:
++			/* Working buffer. Initially a dummy set */
++			ret = edma_config_pset(chan, edesc->pset + i,
++						0, 0, 0, 1, 0, DMA_MEM_TO_MEM);
++			/* Links and triggers "Fifo-Trans" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_fifo_trans:
++			/* "FIFO-Trans": Transfers up to 2K FIFO data
++			 * from the RMD to the DRAM Buffer
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				fpga_base + rmd->idet_fifo_pdi_offset,
++				mem + chain_num * chunk_size,
++				len / DMA_SLAVE_BUSWIDTH_4_BYTES,
++				DMA_SLAVE_BUSWIDTH_4_BYTES, len,
++				DMA_DEV_TO_MEM);
++			/* "FIFO-Trans" links and triggers "ACK-Write" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_ack_write:
++			/* "ACK-Write": Acknowledge data transmition.
++			 * Set the ACK bit in the FPGA:IDET_CS after transfer.
++			 * The unused PARM_SRC_DST_CIDX is used as source.
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				fpga_base + rmd->idet_pdi_cs_offset, 1,
++				sizeof(u32), sizeof(u32), DMA_MEM_TO_MEM);
++			edesc->pset[i].param.src_dst_cidx =
++					BIT(rmd->rx_read_finish_bit_offset);
++			/* "ACK-write" links and triggers "Data-Valid" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_data_valid:
++			/* "Data-Valid": Re-programs the linked "Data-Switch".
++			 * Transfers 8bit DataValidBit(3) from FPGA:IDET_CS
++			 * to "Data-Switch":ACNT
++			 * Because loading the linked PaRAM already happened
++			 * when this transfer takes place,
++			 * we need to overwrite ACNT in the working slot (i=0)
++			 * and not slot[case rmd_rx_data_switch]
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++					fpga_base + rmd->idet_pdi_cs_offset,
++					param_addr(echan, 0) + PARM_A_B_CNT,
++					1, 1, 1, DMA_MEM_TO_MEM);
++			if (rmd->rx_data_valid_bit_offset != 2)
++				ret = -EINVAL;
++			/* "Data-Valid" links and triggers "Data-Switch" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_data_switch:
++			/* "Data-Switch": Transfers (or not) "Buffer-Lock"
++			 * to slot[0]. Depending on the ACNT,
++			 * set by "Data-Valid"
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				0, // SRC will be set by "Buffer-Lock" setup
++				param_addr(echan, 0), PARM_SIZE / sizeof(u32),
++				sizeof(u32), PARM_SIZE, DMA_MEM_TO_MEM);
++			/* "Data-Switch" links "Reload-Dummy" to prepare
++			 * "FIFO-Trans" with the same buffer
++			 * if "Data-Valid" was not set
++			 */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_reload_dummy:
++			/* "Reload-Dummy": Dummy transfer, linking but not
++			 * starting FIFO-Trans
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++						0, 0, 0, 1, 0, DMA_MEM_TO_MEM);
++			/* "Reload-Dummy" links "FIFO-Trans" and repeats
++			 * with the same buffer on the next TR event
++			 */
++			n = i - (rmd_rx_reload_dummy - rmd_rx_fifo_trans);
++			edesc->pset[i].link = n;
++			break;
++		case rmd_rx_lock_bufctrl:
++			/* "Buffer-Lock": Sets "buf_ctrl:flag" word to 0x101 to
++			 * temporarily lock out the consumer.
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				buf_ctrl + RMD_FLAG_NEW_DATA_BYTE, 1,
++				sizeof(u16), sizeof(u16), DMA_MEM_TO_MEM);
++			edesc->pset[i].param.src_dst_cidx =
++				(RMD_FLAG_NEW_DATA | RMD_FLAG_LOCK) >> 16;
++
++			/* Set SRC of "Data-Switch" transfer to us */
++			n = i - (rmd_rx_lock_bufctrl - rmd_rx_data_switch);
++			edesc->pset[n].param.src = param_addr(echan, i);
++
++			/* "Buffer-Lock" links and triggers "Copy-BufCtrl" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_copy_bufctrl:
++			/* "Copy-BufCtrl": Copy number of third, unused buffer
++			 * 0, 1 or 2 to "Update-Link":BCNT in slot 0
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				buf_ctrl,
++				param_addr(echan, 0) + PARM_B_CNT,
++				1, 1, 1, DMA_MEM_TO_DEV);
++
++			/* "Copy-BufCtrl" links and triggers "Update-Link" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_update_link:
++			/* "Update-Link": Update the LINK register of
++			 * "Update-BufCtrl" in slot[0]
++			 * Copies either nothing, DST_CIDX or SRC_CIDX
++			 * to "Update-BufCtrl":LINK in slot 0
++			 * DST_CIDX and SRC_CIDX cannot be calculated, yet.
++			 * Will happen in another loop below
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				param_addr(echan, 0) + PARM_LINK_BCNTRLD,
++				sizeof(u16), sizeof(u16),
++				(RMD_TRANSFER_CHAINS -1) * sizeof(u16),
++				DMA_MEM_TO_DEV);
++
++			/* "Update-Link" links and triggers "Update-BufCtrl" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_rx_update_bufctrl:
++			/* "Update-BufCtrl": write our index and
++			 * RMD_FLAG_NEW_DATA to BufCtrl and also reset the
++			 * RMD_FLAG_LOCK bit
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				buf_ctrl, 1, sizeof(u32), sizeof(u32),
++				DMA_MEM_TO_DEV);
++
++			edesc->pset[i].param.src_dst_cidx =
++						chain_num + RMD_FLAG_NEW_DATA;
++			/* Chaintrigger ends and awaits the next HW trigger
++			 * "Update-BufCtrl" links FIRST "FIFO-Trans"
++			 */
++			edesc->pset[i].link = rmd_rx_fifo_trans + 1;
++			/* If we want to trigger an interrupt after the
++			 * write - read cycle:
++				edesc->pset[i].param.opt |= TCINTEN;
++			 */
++			break;
++		}
++
++		if (ret < 0) {
++			kfree(edesc);
++			return NULL;
++		}
++	}
++
++	update_link(edesc, rmd_rx_fifo_trans, rmd_rx_update_link);
++	return edesc;
++}
++
++static struct edma_desc *device_prep_dma_rmd_to_device(
++	struct edma_chan *echan, dma_addr_t fpga_base, struct rmd_config *rmd,
++	dma_addr_t mem, size_t chunk_size, dma_addr_t buf_ctrl)
++{
++	struct edma_desc *edesc;
++	struct dma_chan *chan = &echan->vchan.chan;
++	struct device *dev = chan->device->dev;
++	struct edma_cc *ecc = echan->ecc;
++	int i, ret, len = rmd->idet_fifo_pdo_size, n;
++
++	edesc = kzalloc(sizeof(*edesc) + RMD_SLOTS_TX*sizeof(edesc->pset[0]),
++			GFP_ATOMIC);
++	if (!edesc)
++		return NULL;
++
++	edesc->pset_nr = RMD_SLOTS_TX;
++	edesc->residue = edesc->residue_stat = len;
++	edesc->direction = DMA_MEM_TO_DEV;
++	edesc->echan = echan;
++	edesc->rmd_mem = mem;
++	edesc->rmd_chunk_size = chunk_size;
++	edesc->rmd_transfer = 1;
++	edesc->rmd_task_num = rmd_tx_max;
++
++	BUILD_BUG_ON(RMD_SLOTS_TX > EDMA_MAX_SLOTS);
++
++	for (i = 0; i < RMD_SLOTS_TX; i++) {
++		/* Chain 0, 1 or 2 == tripple buffer number */
++		int chain_num = (i-1) / edesc->rmd_task_num;
++
++		if (echan->slot[i] < 0)
++			echan->slot[i] = edma_alloc_slot(ecc, EDMA_SLOT_ANY);
++		if (echan->slot[i] < 0) {
++			dev_err(dev, "%s: Failed to allocate slot\n", __func__);
++			return NULL;
++		}
++
++		/* Setup 3 chains: 1-5 (Buf0), 5-8 (Buf1), 9-12 (Buf2) */
++		switch ((i-1) % edesc->rmd_task_num) {
++		case -1:
++			/* Working buffer. Initially a dummy set */
++			ret = edma_config_pset(chan, edesc->pset + i,
++						0, 0, 0, 1, 0, DMA_MEM_TO_MEM);
++			/* Links and triggers "New-Data" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_tx_new_data:
++			/* "New-Data": Copy new-data flag to
++			 * "Switch-Buf":BCNT in slot 0
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				buf_ctrl + 2,
++				param_addr(echan, 0) + PARM_A_B_CNT + 2,
++				1, 1, 1, DMA_MEM_TO_DEV);
++			/* Links and triggers "Switch-Buf" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_tx_switch_buf:
++			/* "Switch-Buf:" Copy (or not) "Lock-BufCtrl" to
++			 * slot 0. If not, we link to "FIFO-Trans"
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				0, /* SRC will be set by "Lock-BufCtrl" */
++				param_addr(echan, 0), 1, PARM_SIZE,
++				PARM_SIZE, DMA_MEM_TO_MEM);
++			/* "Switch-Buf" links "FIFO-Trans" to read from the old
++			 * buffer without switching
++			 */
++			edesc->pset[i].param.opt |= TCCHEN;
++			edesc->pset[i].link = i - rmd_tx_switch_buf
++						+ rmd_tx_fifo_trans;
++			break;
++		case rmd_tx_lock_bufctrl:
++			/* "Lock-BufCtrl": Sets "buf_ctrl:flag" byte to 0x1 to
++			 * temporarily lock out the producer.
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				buf_ctrl + RMD_FLAG_LOCK_BYTE,
++				1, 1, 1, DMA_MEM_TO_MEM);
++			edesc->pset[i].param.src_dst_cidx = RMD_FLAG_LOCK >> 24;
++
++			/* Set SRC of "Switch-Buf" transfer to us */
++			n = i - (rmd_tx_lock_bufctrl - rmd_tx_switch_buf);
++			edesc->pset[n].param.src = param_addr(echan, i);
++
++			/* "Lock-BufCtrl" links and triggers "Get-BufNum" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_tx_get_bufnum:
++			/* "Get-BufNum": Copy BufNum -> "Update-Link":BCNT"
++			 * in slot 0
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				buf_ctrl,
++				param_addr(echan, 0) + PARM_B_CNT,
++				1, 1, 1, DMA_MEM_TO_DEV);
++			/* Links and triggers "Switch-Buf" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_tx_update_link:
++			/* "Update-Link": Set "Update-BufCtrl":LINK to
++			 * one of the other 2 chains.
++			 * Copies either nothing, DST_CIDX or SRC_CIDX
++			 * to "Update-BufCtrl":LINK in slot 0
++			 * DST_CIDX and SRC_CIDX cannot be calculated, yet.
++			 * Will happen in another loop below
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				param_addr(echan, 0) + PARM_LINK_BCNTRLD,
++				sizeof(u16), sizeof(u16),
++				(RMD_TRANSFER_CHAINS -1) * sizeof(u16),
++				DMA_MEM_TO_DEV);
++
++			/* "Update-Link" links and triggers "Update-BufCtrl" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_tx_update_bufctrl:
++			/* "Update-BufCtrl": write our index and reset
++			 * RMD_FLAG_NEW_DATA and keep RMD_FLAG_LOCK bit
++			 * in buf_ctrl
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				buf_ctrl, 1,
++				sizeof(u32), sizeof(u32), DMA_MEM_TO_DEV);
++
++			edesc->pset[i].param.src_dst_cidx =
++						chain_num | RMD_FLAG_LOCK;
++			/* "Update-BufCtrl" triggers "Unlock-BufCtrl" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			edesc->pset[i].link = rmd_tx_unlock + 1;
++			break;
++		case rmd_tx_unlock:
++			/* "Unlock-BufCtrl":reset RMD_FLAG_LOCK bit
++			 * in buf_ctrl
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				buf_ctrl + RMD_FLAG_LOCK_BYTE,
++				1, 1, 1, DMA_MEM_TO_MEM);
++			edesc->pset[i].param.src_dst_cidx = 0;
++
++			/* "Update-BufCtrl" triggers "FIFO-Trans"
++			 * in the first chain, because "Update-Link"
++			 * for Buffer 0 does not copy anything.
++			 */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_tx_fifo_trans:
++			/* "FIFO-Trans": Transfers up to 2K FIFO data
++			 * from the DRAM Buffer to the RMD TX FIFO
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				mem + chain_num * chunk_size,
++				fpga_base + rmd->idet_fifo_pdo_offset,
++				len / DMA_SLAVE_BUSWIDTH_4_BYTES,
++				DMA_SLAVE_BUSWIDTH_4_BYTES, len,
++				DMA_MEM_TO_DEV);
++			/* "FIFO-Trans" links and triggers "ACK-Write" */
++			edesc->pset[i].param.opt |= TCCHEN;
++			break;
++		case rmd_tx_ack_write:
++			/* "ACK-Write": Acknowledge data transmition.
++			 * Set the ACK bit in the FPGA:IDET_CS after transfer.
++			 * The unused PARM_SRC_DST_BIDX is used as source.
++			 */
++			ret = edma_config_pset(chan, edesc->pset + i,
++				param_addr(echan, i) + PARM_SRC_DST_CIDX,
++				fpga_base + rmd->idet_pdo_cs_offset, 1,
++				sizeof(u32), sizeof(u32), DMA_MEM_TO_MEM);
++
++			edesc->pset[i].param.src_dst_cidx =
++					BIT(rmd->tx_commit_bit_offset);
++
++			/* Chaining ends here and awaits the next HW trigger */
++			edesc->pset[i].link = i - rmd_tx_ack_write
++						+ rmd_tx_new_data;
++			break;
++		}
++
++		if (ret < 0) {
++			kfree(edesc);
++			return NULL;
++		}
++	}
++
++	update_link(edesc, rmd_tx_unlock, rmd_tx_update_link);
++	return edesc;
++}
++
++static struct dma_async_tx_descriptor *edma_prep_dma_rmd(
++	struct dma_chan *chan, dma_addr_t fpga_base, struct rmd_config *rmd,
++	enum dma_transfer_direction direction, dma_addr_t mem,
++	dma_addr_t buf_ctrl,
++	size_t chunk_size, unsigned long tx_flags)
++{
++	struct edma_chan *echan = to_edma_chan(chan);
++	struct device *dev = chan->device->dev;
++	struct edma_desc *edesc;
++
++	if (unlikely(!echan || !rmd || !rmd->idet_fifo_pdi_size ||
++					!rmd->idet_fifo_pdo_size)) {
++		if (dev && rmd)
++			dev_dbg(dev, "Invalid RMD FIFO configuration %d %d\n",
++				rmd->idet_fifo_pdi_size,
++				rmd->idet_fifo_pdo_size);
++		return NULL;
++	}
++	switch (direction) {
++	case DMA_DEV_TO_MEM:
++		edesc = device_prep_dma_rmd_from_device(echan, fpga_base, rmd,
++						mem, chunk_size, buf_ctrl);
++		break;
++	case DMA_MEM_TO_DEV:
++		edesc = device_prep_dma_rmd_to_device(echan, fpga_base, rmd,
++						mem, chunk_size, buf_ctrl);
++		break;
++	default:
++		dev_err(dev, "%s: bad direction: %d\n", __func__, direction);
++		return NULL;
++	}
++	if (!edesc)
++		return NULL;
++
++	/* Place channel to highest priority queue */
++	if (!echan->tc)
++		edma_assign_channel_eventq(echan, EVENTQ_0);
++
++	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
++}
++
+ static void edma_completion_handler(struct edma_chan *echan)
+ {
+ 	struct device *dev = echan->vchan.chan.device->dev;
+@@ -1421,6 +1929,10 @@ static void edma_completion_handler(struct edma_chan *echan)
+ 			edesc->residue = 0;
+ 			edma_stop(echan);
+ 			vchan_cookie_complete(&edesc->vdesc);
++			if (edesc->pset_nr > 2) {
++				edma_read_slot(echan->ecc, echan->slot[2],
++						&edesc->pset[2].param);
++			}
+ 			echan->edesc = NULL;
+ 
+ 			dev_dbg(dev, "Transfer completed on channel %d\n",
+@@ -1442,15 +1954,6 @@ static void edma_completion_handler(struct edma_chan *echan)
+ 	spin_unlock(&echan->vchan.lock);
+ }
+ 
+-static struct dma_async_tx_descriptor *edma_prep_dma_rmd(
+-	struct dma_chan *chan, dma_addr_t fpga_base, struct rmd_config *rmd,
+-	enum dma_transfer_direction direction, dma_addr_t mem,
+-	dma_addr_t buf_ctrl,
+-	size_t chunk_size, unsigned long tx_flags)
+-{
+-	return NULL;
+-}
+-
+ /* eDMA interrupt handler */
+ static irqreturn_t dma_irq_handler(int irq, void *data)
+ {
+@@ -2260,6 +2763,7 @@ static int edma_probe(struct platform_device *pdev)
+ 	if (IS_ERR(ecc->base))
+ 		return PTR_ERR(ecc->base);
+ 
++	ecc->phys = mem->start;
+ 	platform_set_drvdata(pdev, ecc);
+ 
+ 	/* Get eDMA3 configuration from IP */
+diff --git a/include/uapi/linux/rmd.h b/include/uapi/linux/rmd.h
+index 61bb5ae..f096f55 100644
+--- a/include/uapi/linux/rmd.h
++++ b/include/uapi/linux/rmd.h
+@@ -10,7 +10,10 @@
+ #define RMD_DRV_VERSION 0x00000001
+ 
+ #define RMD_FLAG_SOFTCOPY	1
+-#define RMD_FLAG_NEW_DATA	(1 << 2)
++#define RMD_FLAG_NEW_DATA_BYTE	2
++#define RMD_FLAG_NEW_DATA	(1 << (RMD_FLAG_NEW_DATA_BYTE * 8))
++#define RMD_FLAG_LOCK_BYTE	3
++#define RMD_FLAG_LOCK		(1 << (RMD_FLAG_LOCK_BYTE * 8))
+ 
+ #define RMD_BUFFER_INDEX_SIZE	3
+ 
+-- 
+2.7.4
+

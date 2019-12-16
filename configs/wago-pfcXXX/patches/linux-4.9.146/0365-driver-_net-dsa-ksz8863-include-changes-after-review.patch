@@ -1,0 +1,406 @@
+From f628b8158031d0bf1c499cf80d7cee3da752a22d Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Fri, 27 Sep 2019 16:27:57 +0200
+Subject: [PATCH] driver:_net: dsa: ksz8863: include changes after review
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/dsa/ksz886x/ksz8863.c | 135 +++++++++++++++++++-------------------
+ 1 file changed, 68 insertions(+), 67 deletions(-)
+
+diff --git a/drivers/net/dsa/ksz886x/ksz8863.c b/drivers/net/dsa/ksz886x/ksz8863.c
+index bfdd98e..1963903 100644
+--- a/drivers/net/dsa/ksz886x/ksz8863.c
++++ b/drivers/net/dsa/ksz886x/ksz8863.c
+@@ -36,9 +36,9 @@ static inline int port_to_index(int port)
+ 	return port - KSZ8863_EXT_PORT1_ID;
+ }
+ 
+-static inline int index_to_port(int port)
++static inline int index_to_port(int index)
+ {
+-	return port + KSZ8863_EXT_PORT1_ID;
++	return index + KSZ8863_EXT_PORT1_ID;
+ }
+ 
+ static enum dsa_tag_protocol ksz8863_get_tag_protocol(struct dsa_switch *ds)
+@@ -76,6 +76,16 @@ static inline void ksz8863_assert_reg_lock(struct ksz8863_chip *chip)
+ 	}
+ }
+ 
++static inline int ksz8863_mii_read(struct ksz8863_chip *chip, int reg, u8 *rv)
++{
++	return chip->mii_ops->read(chip, reg, rv);
++}
++
++static inline int ksz8863_mii_write(struct ksz8863_chip *chip, int reg, u8 val)
++{
++	return chip->mii_ops->write(chip, reg, val);
++}
++
+ static inline int ksz8863_set_bit(struct ksz8863_chip *chip, int reg, u8 mask,
+ 				  bool val, bool lock)
+ {
+@@ -85,7 +95,7 @@ static inline int ksz8863_set_bit(struct ksz8863_chip *chip, int reg, u8 mask,
+ 	if (lock)
+ 		ksz8863_reg_lock(chip);
+ 
+-	err = chip->mii_ops->read(chip, reg, &rv);
++	err = ksz8863_mii_read(chip, reg, &rv);
+ 	if (err)
+ 		goto out_unlock;
+ 
+@@ -93,7 +103,7 @@ static inline int ksz8863_set_bit(struct ksz8863_chip *chip, int reg, u8 mask,
+ 	if (val)
+ 		rv |= mask;
+ 
+-	err = chip->mii_ops->write(chip, reg, rv);
++	err = ksz8863_mii_write(chip, reg, rv);
+ 
+ out_unlock:
+ 	if (lock)
+@@ -105,6 +115,7 @@ static inline int ksz8863_set_bit(struct ksz8863_chip *chip, int reg, u8 mask,
+ static int ksz8863_set_eth_addr(struct ksz8863_chip *chip)
+ {
+ 	int err;
++	int i;
+ 	struct ksz8863_static_mac_tbl_entry entry;
+ 
+ 	if (!is_valid_ether_addr(chip->eth_addr))
+@@ -112,12 +123,8 @@ static int ksz8863_set_eth_addr(struct ksz8863_chip *chip)
+ 
+ 	memset(&entry, 0, sizeof(entry));
+ 
+-	entry.mac[0] = chip->eth_addr[5];
+-	entry.mac[1] = chip->eth_addr[4];
+-	entry.mac[2] = chip->eth_addr[3];
+-	entry.mac[3] = chip->eth_addr[2];
+-	entry.mac[4] = chip->eth_addr[1];
+-	entry.mac[5] = chip->eth_addr[0];
++	for (i = 0; i < ETH_ALEN; ++i)
++		entry.mac[i] = chip->eth_addr[ETH_ALEN - 1 - i];
+ 
+ 	entry.forward_ports = KSZ8863_SMAC_ENTRY_FWD_PORTS_PORT3;
+ 	entry.valid = 1;
+@@ -150,7 +157,7 @@ static int ksz8863_setup_global(struct ksz8863_chip *chip)
+ 	/* Set broadcast and unknown MAC address forwarding */
+ 	ksz8863_reg_lock(chip);
+ 
+-	err = chip->mii_ops->read(chip, KSZ8863_REG_GL_CTRL12, &val);
++	err = ksz8863_mii_read(chip, KSZ8863_REG_GL_CTRL12, &val);
+ 	if (err)
+ 		goto out_unlock;
+ 
+@@ -162,7 +169,7 @@ static int ksz8863_setup_global(struct ksz8863_chip *chip)
+ 	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT2;
+ 	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT3;
+ 
+-	err = chip->mii_ops->write(chip, KSZ8863_REG_GL_CTRL12, val);
++	err = ksz8863_mii_write(chip, KSZ8863_REG_GL_CTRL12, val);
+ 
+ out_unlock:
+ 	ksz8863_reg_unlock(chip);
+@@ -183,11 +190,10 @@ static int ksz8863_setup_port(struct ksz8863_chip *chip, int port)
+ 		 * bus when the switch is still in reset.
+ 		 */
+ 		phydev = mdiobus_scan(chip->sw_bus, port);
+-
+ 		if (!phydev || (IS_ERR(phydev))) {
+ 			pr_err("failed to probe phydev via mdio at port %i\n",
+ 			       port);
+-			return IS_ERR(phydev);
++			return PTR_ERR(phydev);
+ 		}
+ 
+ 		/* Enable broadcast storm protection for all ports
+@@ -198,9 +204,7 @@ static int ksz8863_setup_port(struct ksz8863_chip *chip, int port)
+ 				      true, true);
+ 		if (err)
+ 			return err;
+-	}
+-
+-	if (dsa_is_cpu_port(chip->ds, port)) {
++	} else {
+ 		/* set MAC mode for cpu port */
+ 		err = ksz8863_set_bit(chip, pb + KSZ8863_REG_PORT1_CTRL5,
+ 				      KSZ8863_REG_PORT_CTRL5_3_MII_MAC_MODE,
+@@ -220,15 +224,15 @@ static int ksz8863_setup_adv_ctrl(struct ksz8863_chip *chip)
+ 	/* LEDs - yellow led -> link, green led -> act */
+ 	ksz8863_reg_lock(chip);
+ 
+-	err = chip->mii_ops->read(chip, KSZ8863_REG_PWR_LED, &val);
++	err = ksz8863_mii_read(chip, KSZ8863_REG_PWR_LED, &val);
+ 	if (err)
+ 		goto out_unlock;
+ 
+ 	val &= ~KSZ8863_REG_PWR_LED_LED_MODE_SEL_MASK;
+-	val |= (KSZ8863_REG_PWR_LED_LED_MODE_1 <<
+-		KSZ8863_REG_PWR_LED_LED_MODE_SEL_SHIFT);
++	val |= (KSZ8863_REG_PWR_LED_LED_MODE_1
++		<< KSZ8863_REG_PWR_LED_LED_MODE_SEL_SHIFT);
+ 
+-	err = chip->mii_ops->write(chip, KSZ8863_REG_PWR_LED, val);
++	err = ksz8863_mii_write(chip, KSZ8863_REG_PWR_LED, val);
+ 	if (err)
+ 		goto out_unlock;
+ 
+@@ -257,8 +261,7 @@ static int ksz8863_setup(struct dsa_switch *ds)
+ 		return err;
+ 
+ 	for (port = KSZ8863_EXT_PORT1_ID;
+-	     port < KSZ8863_NUM_PORTS + KSZ8863_EXT_PORT1_ID;
+-	     port++) {
++	     port < KSZ8863_NUM_PORTS + KSZ8863_EXT_PORT1_ID; port++) {
+ 		err = ksz8863_setup_port(chip, port);
+ 		if (err)
+ 			return err;
+@@ -301,8 +304,8 @@ static int ksz8863_flush_mac_tables(struct ksz8863_chip *chip)
+ 	for (port_index = 0; port_index < KSZ8863_NUM_PORTS; port_index++) {
+ 		int pb = KSZ8863_REG_PORTS_BASE * port_index;
+ 
+-		err = chip->mii_ops->read(chip, pb + KSZ8863_REG_PORT1_CTRL2,
+-					  &states[port_index]);
++		err = ksz8863_mii_read(chip, pb + KSZ8863_REG_PORT1_CTRL2,
++				       &states[port_index]);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -313,9 +316,8 @@ static int ksz8863_flush_mac_tables(struct ksz8863_chip *chip)
+ 	for (port_index = 0; port_index < KSZ8863_NUM_PORTS; port_index++) {
+ 		int pb = KSZ8863_REG_PORTS_BASE * port_index;
+ 
+-		err = chip->mii_ops->write(
+-			chip, pb + KSZ8863_REG_PORT1_CTRL2,
+-			KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE);
++		err = ksz8863_mii_write(chip, pb + KSZ8863_REG_PORT1_CTRL2,
++					KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -329,8 +331,8 @@ static int ksz8863_flush_mac_tables(struct ksz8863_chip *chip)
+ 	for (port_index = 0; port_index < KSZ8863_NUM_PORTS; port_index++) {
+ 		int pb = KSZ8863_REG_PORTS_BASE * port_index;
+ 
+-		err = chip->mii_ops->write(chip, pb + KSZ8863_REG_PORT1_CTRL2,
+-					   states[port_index]);
++		err = ksz8863_mii_write(chip, pb + KSZ8863_REG_PORT1_CTRL2,
++					states[port_index]);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -357,7 +359,7 @@ static void ksz8863_adjust_link(struct dsa_switch *ds, int port,
+ 
+ 	ksz8863_reg_lock(chip);
+ 
+-	err = chip->mii_ops->read(chip, pb + KSZ8863_REG_PORT1_CTRL13, &val);
++	err = ksz8863_mii_read(chip, pb + KSZ8863_REG_PORT1_CTRL13, &val);
+ 	if (err)
+ 		goto out_unlock;
+ 
+@@ -369,7 +371,7 @@ static void ksz8863_adjust_link(struct dsa_switch *ds, int port,
+ 		val &= ~KSZ8863_REG_PORT_CTRL13_POWER_DOWN;
+ 
+ 	if (val != old_val)
+-		chip->mii_ops->write(chip, pb + KSZ8863_REG_PORT1_CTRL13, val);
++		ksz8863_mii_write(chip, pb + KSZ8863_REG_PORT1_CTRL13, val);
+ 
+ out_unlock:
+ 	ksz8863_reg_unlock(chip);
+@@ -380,7 +382,7 @@ static int ksz8863_set_switched_mode(struct ksz8863_chip *chip)
+ 	int err;
+ 	u8 val;
+ 
+-	err = chip->mii_ops->read(chip, KSZ8863_REG_GL_CTRL12, &val);
++	err = ksz8863_mii_read(chip, KSZ8863_REG_GL_CTRL12, &val);
+ 	if (err)
+ 		return err;
+ 
+@@ -392,7 +394,7 @@ static int ksz8863_set_switched_mode(struct ksz8863_chip *chip)
+ 	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT2;
+ 	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT3;
+ 
+-	err = chip->mii_ops->write(chip, KSZ8863_REG_GL_CTRL12, val);
++	err = ksz8863_mii_write(chip, KSZ8863_REG_GL_CTRL12, val);
+ 	if (err)
+ 		return err;
+ 
+@@ -408,7 +410,7 @@ static int ksz8863_set_separated_mode(struct ksz8863_chip *chip)
+ 	int err;
+ 	u8 val;
+ 
+-	err = chip->mii_ops->read(chip, KSZ8863_REG_GL_CTRL12, &val);
++	err = ksz8863_mii_read(chip, KSZ8863_REG_GL_CTRL12, &val);
+ 	if (err)
+ 		return err;
+ 
+@@ -417,7 +419,7 @@ static int ksz8863_set_separated_mode(struct ksz8863_chip *chip)
+ 	val &= ~KSZ8863_REG_GL_CTRL12_PORT_MASK;
+ 	val |= KSZ8863_REG_GL_CTRL12_UNKNOWN_DA_2_PORT3;
+ 
+-	err = chip->mii_ops->write(chip, KSZ8863_REG_GL_CTRL12, val);
++	err = ksz8863_mii_write(chip, KSZ8863_REG_GL_CTRL12, val);
+ 	if (err)
+ 		return err;
+ 
+@@ -458,8 +460,8 @@ static int ksz8863_set_bridged_mode(struct ksz8863_chip *chip)
+ 		if (dsa_is_cpu_port(chip->ds, index_to_port(port_index)))
+ 			continue;
+ 
+-		err = chip->mii_ops->read(chip, pb + KSZ8863_REG_PORT1_CTRL2,
+-					  &states[port_index]);
++		err = ksz8863_mii_read(chip, pb + KSZ8863_REG_PORT1_CTRL2,
++				       &states[port_index]);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -473,9 +475,8 @@ static int ksz8863_set_bridged_mode(struct ksz8863_chip *chip)
+ 		if (dsa_is_cpu_port(chip->ds, index_to_port(port_index)))
+ 			continue;
+ 
+-		err = chip->mii_ops->write(
+-			chip, pb + KSZ8863_REG_PORT1_CTRL2,
+-			KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE);
++		err = ksz8863_mii_write(chip, pb + KSZ8863_REG_PORT1_CTRL2,
++					KSZ8863_REG_PORT_CTRL2_LEARN_DISABLE);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -492,8 +493,8 @@ static int ksz8863_set_bridged_mode(struct ksz8863_chip *chip)
+ 		if (dsa_is_cpu_port(chip->ds, index_to_port(port_index)))
+ 			continue;
+ 
+-		err = chip->mii_ops->write(chip, pb + KSZ8863_REG_PORT1_CTRL2,
+-					   states[port_index]);
++		err = ksz8863_mii_write(chip, pb + KSZ8863_REG_PORT1_CTRL2,
++					states[port_index]);
+ 		if (err)
+ 			goto out_unlock;
+ 	}
+@@ -536,28 +537,26 @@ static void ksz8863_port_bridge_leave(struct dsa_switch *ds, int port)
+ }
+ 
+ static struct dsa_switch_ops ksz8863_switch_ops = {
+-	.get_tag_protocol	= ksz8863_get_tag_protocol,
+-	.setup			= ksz8863_setup,
+-	.phy_read		= ksz8863_phy_read,
+-	.phy_write		= ksz8863_phy_write,
+-	.adjust_link		= ksz8863_adjust_link,
+-	.port_bridge_join	= ksz8863_port_bridge_join,
+-	.port_bridge_leave	= ksz8863_port_bridge_leave,
++	.get_tag_protocol = ksz8863_get_tag_protocol,
++	.setup = ksz8863_setup,
++	.phy_read = ksz8863_phy_read,
++	.phy_write = ksz8863_phy_write,
++	.adjust_link = ksz8863_adjust_link,
++	.port_bridge_join = ksz8863_port_bridge_join,
++	.port_bridge_leave = ksz8863_port_bridge_leave,
+ };
+ 
+ static int ksz8863_smi_read(struct ksz8863_chip *chip, int reg, u8 *val)
+ {
+ 	int ret;
+-	int nreg = reg;
+ 
+ 	if (!chip->sw_bus)
+ 		return -ENODEV;
+ 
+ 	ksz8863_assert_reg_lock(chip);
+ 
+-	nreg |= MII_ADDR_KSZ;
+-
+-	ret = mdiobus_read_nested(chip->sw_bus, chip->sw_addr, nreg);
++	ret = mdiobus_read_nested(chip->sw_bus, chip->sw_addr,
++				  reg | MII_ADDR_KSZ);
+ 	if (ret < 0 || ret > 0xFF) {
+ 		/* ksz8863 never return values over 0xFF in smi mode */
+ 		if (ret > 0xFF)
+@@ -574,22 +573,20 @@ static int ksz8863_smi_read(struct ksz8863_chip *chip, int reg, u8 *val)
+ static int ksz8863_smi_write(struct ksz8863_chip *chip, int reg, u8 val)
+ {
+ 	int ret;
+-	int nreg = reg;
+ 
+ 	if (!chip->sw_bus)
+ 		return -ENODEV;
+ 
+ 	ksz8863_assert_reg_lock(chip);
+ 
+-	nreg |= MII_ADDR_KSZ;
+-
+-	ret = mdiobus_write_nested(chip->sw_bus, chip->sw_addr, nreg, val);
++	ret = mdiobus_write_nested(chip->sw_bus, chip->sw_addr,
++				   reg | MII_ADDR_KSZ, val);
+ 	return ret;
+ }
+ 
+ static int ksz8863_tbl_write(struct ksz8863_chip *chip,
+-			     enum ksz8863_tables table,
+-			     u16 addr, u8 *buffer, size_t size)
++			     enum ksz8863_tables table, u16 addr, u8 *buffer,
++			     size_t size)
+ {
+ 	int err, i;
+ 	u8 iac0v, iac1v;
+@@ -605,8 +602,9 @@ static int ksz8863_tbl_write(struct ksz8863_chip *chip,
+ 
+ 	for (i = 0; i < size; i++) {
+ 		int reg = KSZ8863_REG_INDIRECT_DATA_REG0 - i;
+-		u8 mask = (i != KSZ8863_REG_INDIRECT_DATA_REG8) ? 0xFF :
+-			KSZ8863_REG_INDIRECT_DATA_REG8_DATA_MASK;
++		u8 mask = (i != KSZ8863_REG_INDIRECT_DATA_REG8) ?
++				  0xFF :
++				  KSZ8863_REG_INDIRECT_DATA_REG8_DATA_MASK;
+ 
+ 		err = ksz8863_smi_write(chip, reg, buffer[i] & mask);
+ 		if (err)
+@@ -652,8 +650,8 @@ static int ksz8863_tbl_wait_read_ready(struct ksz8863_chip *chip)
+ }
+ 
+ static int ksz8863_tbl_read(struct ksz8863_chip *chip,
+-			    enum ksz8863_tables table,
+-			    u16 addr, u8 *buffer, size_t size)
++			    enum ksz8863_tables table, u16 addr, u8 *buffer,
++			    size_t size)
+ {
+ 	int err, i;
+ 	u8 iac0v, iac1v;
+@@ -843,7 +841,7 @@ static int ksz8863_detect(struct ksz8863_chip *chip)
+ 		goto out_unlock;
+ 
+ 	chip_id = val & KSZ8863_REG_CHIP_ID1_ID_MASK;
+-	chip_id	>>= KSZ8863_REG_CHIP_ID1_ID_SHIFT;
++	chip_id >>= KSZ8863_REG_CHIP_ID1_ID_SHIFT;
+ 
+ 	chip_rev = val & KSZ8863_REG_CHIP_ID1_REV_ID_MASK;
+ 	chip_rev >>= KSZ8863_REG_CHIP_ID1_REV_ID_SHIFT;
+@@ -872,8 +870,8 @@ static int ksz8863_set_internal_ldo(struct ksz8863_chip *chip)
+ 		return 0;
+ 
+ 	err = ksz8863_set_bit(chip, KSZ8863_REG_INTERNAL_1V8_LDO_CTRL,
+-			      KSZ8863_REG_INTERNAL_1V8_LDO_CTRL_DISABLE,
+-			      true, true);
++			      KSZ8863_REG_INTERNAL_1V8_LDO_CTRL_DISABLE, true,
++			      true);
+ 	if (err)
+ 		return err;
+ 
+@@ -975,6 +973,7 @@ static void ksz8863_remove(struct mdio_device *mdiodev)
+ 	ksz8863_free_chip(chip);
+ }
+ 
++// clang-format off
+ static const struct of_device_id ksz8863_of_match[] = {
+ 	{
+ 		.compatible = "micrel,ksz8863",
+@@ -993,6 +992,8 @@ static struct mdio_driver ksz8863_driver = {
+ 	},
+ };
+ 
++// clang-format on
++
+ static int __init ksz8863_init(void)
+ {
+ 	return mdio_driver_register(&ksz8863_driver);
+-- 
+2.7.4
+

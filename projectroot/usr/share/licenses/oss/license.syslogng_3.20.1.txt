@@ -1,5 +1,3 @@
-syslog-ng-3.20.1/AUTHORS
-
 
 syslog-ng was written by Balázs Scheidler <bazsi@balabit.hu>
 
@@ -41,9 +39,6 @@ miss your name from this list, just let me know :)
 
 Balazs Scheidler
 2008-11-06
-
-
-syslog-ng-3.20.1/COPYING
 
 Copyright (c) 2002-2015 Balabit
 Copyright (c) 1996-2015 BalÃ¡zs Scheidler
@@ -141,9 +136,6 @@ lib/compat:
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-syslog-ng-3.20.1/debian/copyright
-
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: syslog-ng
 Upstream-Contact: Syslog-ng users' and developers' mailing list <syslog-ng@lists.balabit.hu>
@@ -572,13 +564,7 @@ License: BSD-3-clause
  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-syslog-ng-3.20.1/lib/ivykis/AUTHORS
-
 Lennert Buytenhek <ivykis@wantstofly.org>
-
-syslog-ng-3.20.1/lib/ivykis/COPYING
-
                   GNU LESSER GENERAL PUBLIC LICENSE
                        Version 2.1, February 1999
 
@@ -1081,13 +1067,7 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-
-syslog-ng-3.20.1/lib/eventlog/AUTHORS
-
 EventLog has been written by Balazs Scheidler <bazsi@balabit.hu>
-
-syslog-ng-3.20.1/lib/eventlog/COPYING
-
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
@@ -1111,9 +1091,6 @@ syslog-ng-3.20.1/lib/eventlog/COPYING
  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  SUCH DAMAGE.
-
-syslog-ng-3.20.1/packaging/debian/copyright
-
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: syslog-ng
 Upstream-Contact: Syslog-ng users' and developers' mailing list <syslog-ng@lists.balabit.hu>
@@ -1542,9 +1519,6 @@ License: BSD-3-clause
  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-syslog-ng-3.20.1/tests/copyright/license.text.GPLv2+.txt
-
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License version 2 as published
 by the Free Software Foundation, or (at your option) any later version.
@@ -1557,9 +1531,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-syslog-ng-3.20.1/tests/copyright/license.text.LGPLv2.1+.txt
-
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
@@ -1573,9 +1544,6 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-syslog-ng-3.20.1/tests/copyright/license.text.GPLv2+_SSL.txt
-
 This program is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License version 2 as published
 by the Free Software Foundation, or (at your option) any later version.
@@ -1592,9 +1560,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 As an additional exemption you are allowed to compile & link against the
 OpenSSL libraries as published by the OpenSSL project. See the file
 COPYING for details.
-
-syslog-ng-3.20.1/tests/copyright/license.text.LGPLv2.1+_SSL.txt
-
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
@@ -1612,4 +1577,3 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 As an additional exemption you are allowed to compile & link against the
 OpenSSL libraries as published by the OpenSSL project. See the file
 COPYING for details.
-

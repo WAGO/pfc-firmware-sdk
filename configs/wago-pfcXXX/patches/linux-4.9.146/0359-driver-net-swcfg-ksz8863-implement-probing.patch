@@ -1,0 +1,243 @@
+From f2fb2ad7b6d0c8faa08f0523b6735bef1844144d Mon Sep 17 00:00:00 2001
+From: Andreas Schmidt <andreas.schmidt@wago.com>
+Date: Wed, 3 Jul 2019 11:37:12 +0200
+Subject: [PATCH] driver: net: swcfg: ksz8863: implement probing
+
+Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
+---
+ drivers/net/phy/ksz8863-cfg.c | 223 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 223 insertions(+)
+ create mode 100644 drivers/net/phy/ksz8863-cfg.c
+
+diff --git a/drivers/net/phy/ksz8863-cfg.c b/drivers/net/phy/ksz8863-cfg.c
+new file mode 100644
+index 0000000..f732dba
+--- /dev/null
++++ b/drivers/net/phy/ksz8863-cfg.c
+@@ -0,0 +1,223 @@
++/*
++ * Micrel ksz8863 dsa switch support
++ *
++ * Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/switch.h>
++#include <linux/of_mdio.h>
++#include <linux/ksz8863.h>
++
++#define DRIVER_NAME "ksz8863-cfg"
++
++struct ksz8863_cfg {
++	struct switch_dev swdev;
++	struct device *dev;
++	u32 sw_addr;
++	struct ksz8863_chip *chip;
++	struct mii_bus *mii_bus;
++};
++
++#define get_ksz8863_cfg(_dev) container_of((_dev), struct ksz8863_cfg, swdev)
++
++static struct switch_attr ksz8863_cfg_global_attrs[] = {
++	{
++		.type = SWITCH_TYPE_INT,
++		.name = "bcast_protect",
++		.description = "Sets the broadcast storm protection rate limit"
++			" (0..20%) for Port 1 & 2. '0' will disable protection",
++		//.set = ksz8863_sw_set_bcast_protect,
++		//.get = ksz8863_sw_get_bcast_protect,
++	},
++};
++
++struct switch_dev_ops ksz8863_cfg_switch_dev_ops = {
++	.attr_global = {
++		.attr = ksz8863_cfg_global_attrs,
++		.n_attr = ARRAY_SIZE(ksz8863_cfg_global_attrs),
++	},
++};
++
++static struct ksz8863_cfg *ksz8863_cfg_alloc(struct device *dev)
++{
++	struct ksz8863_cfg *cfg;
++
++	cfg = devm_kzalloc(dev, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	cfg->dev = dev;
++	cfg->swdev.ops = &ksz8863_cfg_switch_dev_ops;
++
++	return cfg;
++}
++
++static void ksz8863_cfg_free(struct ksz8863_cfg *cfg)
++{
++	if (cfg)
++		devm_kfree(cfg->dev, cfg);
++}
++
++static int ksz8863_cfg_of_get_data(struct ksz8863_cfg *cfg)
++{
++	struct device *dev = cfg->dev;
++	struct device_node *np = dev->of_node;
++	struct device_node *mdio_node;
++	struct device_node *switch_node;
++
++	if (!np)
++		return -ENODATA;
++
++	cfg->swdev.name = np->name;
++
++	if (of_property_read_string(np, "swcfg,alias", &cfg->swdev.alias)) {
++		dev_err(dev, "no switch alias given");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32(np, "swcfg,cpu_port", &cfg->swdev.cpu_port)) {
++		dev_err(dev, "no cpu port given");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32(np, "swcfg,ports", &cfg->swdev.ports)) {
++		dev_err(dev, "no ports given");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32(np, "swcfg,vlans", &cfg->swdev.vlans)) {
++		dev_err(dev, "no vlans given");
++		return -EINVAL;
++	}
++
++	switch_node = of_parse_phandle(np, "swcfg,switch", 0);
++	if (!switch_node) {
++		dev_err(dev, "no switch node given");
++		return -EINVAL;
++	}
++
++	if (of_property_read_u32(switch_node, "reg", &cfg->sw_addr)) {
++		dev_err(dev, "no switch mdio address given");
++		return -EINVAL;
++	}
++
++	mdio_node = of_parse_phandle(np, "swcfg,mii-bus", 0);
++	if (!mdio_node) {
++		dev_err(dev, "can not find node 'swcfg,mii-bus'");
++		return -EINVAL;
++	}
++
++	cfg->mii_bus = of_mdio_find_bus(mdio_node);
++	if (!cfg->mii_bus) {
++		dev_err(dev, "can not find mii bus device");
++		return -EPROBE_DEFER;
++	}
++
++	cfg->swdev.of_node = np;
++
++	return 0;
++}
++
++static int ksz8863_cfg_get_chip(struct ksz8863_cfg *cfg)
++{
++	struct mdio_device *mdio_dev;
++	struct dsa_switch *ds;
++
++	mdio_dev = cfg->mii_bus->mdio_map[cfg->sw_addr];
++	if (!mdio_dev)
++		return -EPROBE_DEFER;
++
++	ds = dev_get_drvdata(&mdio_dev->dev);
++
++	if (!ds)
++		return -EPROBE_DEFER;
++
++	if (!ds->priv) {
++		dev_err(cfg->dev, "ksz8863 chip structur is not available");
++		return -EINVAL;
++	}
++
++	cfg->chip = ds->priv;
++
++	return 0;
++}
++
++static int ksz8863_cfg_probe(struct platform_device *pdev)
++{
++	int err;
++	struct ksz8863_cfg *cfg;
++
++	cfg = ksz8863_cfg_alloc(&pdev->dev);
++	if (!cfg) {
++		err = -ENOMEM;
++		goto err;
++	}
++
++	err = ksz8863_cfg_of_get_data(cfg);
++	if (err)
++		goto err_free;
++
++	err = ksz8863_cfg_get_chip(cfg);
++	if (err)
++		goto err_free;
++
++	err = register_switch(&cfg->swdev, NULL);
++	if (err) {
++		dev_err(cfg->dev, "switch registration failed");
++		goto err_free;
++	}
++
++	pdev->dev.platform_data = cfg;
++
++	dev_info(&pdev->dev, "driver probed successful");
++	return 0;
++
++err_free:
++	ksz8863_cfg_free(cfg);
++err:
++	return err;
++}
++
++static int ksz8863_cfg_remove(struct platform_device *pdev)
++{
++	struct ksz8863_cfg *cfg = platform_get_drvdata(pdev);
++
++	if (!cfg)
++		return 0;
++
++	unregister_switch(&cfg->swdev);
++	ksz8863_cfg_free(cfg);
++
++	return 0;
++}
++
++#ifdef CONFIG_OF
++static const struct of_device_id ksz8863_of_match[] = {
++	{ .compatible = "swcfg,ksz8863" },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ksz8863_of_match);
++#endif
++
++static struct platform_driver ksz8863_driver = {
++	.probe  = ksz8863_cfg_probe,
++	.remove = ksz8863_cfg_remove,
++	.driver = {
++		.name   = DRIVER_NAME,
++		.owner  = THIS_MODULE,
++#ifdef CONFIG_OF
++		.of_match_table = ksz8863_of_match,
++#endif
++	},
++};
++module_platform_driver(ksz8863_driver);
++
++MODULE_AUTHOR("andreas.schmidt@wago.com>");
++MODULE_LICENSE("GPL");
+-- 
+2.7.4
+

@@ -1,10 +1,5 @@
-libtirpc-1.1.4/AUTHORS
-
 Gilles Quillard <gilles.quillard@bull.net>
 Antoine Fraticelli <antoine.fraticelli@bull.net>
-
-
-libtirpc-1.1.4/COPYING
 
 /*
  * Copyright (c) Copyright (c) Bull S.A.  2005  All Rights Reserved.
@@ -30,5 +25,4 @@ libtirpc-1.1.4/COPYING
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 

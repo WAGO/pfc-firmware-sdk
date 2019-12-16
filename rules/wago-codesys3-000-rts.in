@@ -317,7 +317,7 @@ endif
 if CDS3_RTS_PRODUCT_VTPCTP
 
 config CDS3_PRODUCT_VTPCTP_3200
-        bool "e!DISPLAY 762-3100 (Target-ID: 3200)"
+        bool "TP600 762-3100 (Target-ID: 3200)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3100
@@ -325,7 +325,7 @@ config CDS3_PRODUCT_VTPCTP_3200
 
 
 config CDS3_PRODUCT_VTPCTP_3201
-        bool "e!DISPLAY 762-3101 (Target-ID: 3201)"
+        bool "TP600 762-3101 (Target-ID: 3201)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3101
@@ -333,7 +333,7 @@ config CDS3_PRODUCT_VTPCTP_3201
 
 
 config CDS3_PRODUCT_VTPCTP_3202
-        bool "e!DISPLAY 762-3102 (Target-ID: 3202)"
+        bool "TP600 762-3102 (Target-ID: 3202)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3102
@@ -341,7 +341,7 @@ config CDS3_PRODUCT_VTPCTP_3202
 
 
 config CDS3_PRODUCT_VTPCTP_3203
-        bool "e!DISPLAY 762-3103 (Target-ID: 3203)"
+        bool "TP600 762-3103 (Target-ID: 3203)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3103
@@ -349,7 +349,7 @@ config CDS3_PRODUCT_VTPCTP_3203
 
 
 config CDS3_PRODUCT_VTPCTP_3204
-        bool "e!DISPLAY 762-3104 (Target-ID: 3204)"
+        bool "TP600 762-3104 (Target-ID: 3204)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3104
@@ -357,7 +357,7 @@ config CDS3_PRODUCT_VTPCTP_3204
 
 
 config CDS3_PRODUCT_VTPCTP_3205
-        bool "e!DISPLAY 762-3105 (Target-ID: 3205)"
+        bool "TP600 762-3105 (Target-ID: 3205)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3105
@@ -365,7 +365,7 @@ config CDS3_PRODUCT_VTPCTP_3205
 
 
 config CDS3_PRODUCT_VTPCTP_3206
-        bool "e!DISPLAY 762-3106 (Target-ID: 3206)"
+        bool "TP600 762-3106 (Target-ID: 3206)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3106
@@ -373,7 +373,7 @@ config CDS3_PRODUCT_VTPCTP_3206
 
 
 config CDS3_PRODUCT_VTPCTP_3207
-        bool "e!DISPLAY 762-3107 (Target-ID: 3207)"
+        bool "TP600 762-3107 (Target-ID: 3207)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3107
@@ -381,7 +381,7 @@ config CDS3_PRODUCT_VTPCTP_3207
 
 
 config CDS3_PRODUCT_VTPCTP_3208
-        bool "e!DISPLAY 762-3108 (Target-ID: 3208)"
+        bool "TP600 762-3108 (Target-ID: 3208)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3108
@@ -389,7 +389,7 @@ config CDS3_PRODUCT_VTPCTP_3208
 
 
 config CDS3_PRODUCT_VTPCTP_3211
-        bool "e!DISPLAY 762-3111 (Target-ID: 3211)"
+        bool "TP600 762-3111 (Target-ID: 3211)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3111
@@ -397,7 +397,7 @@ config CDS3_PRODUCT_VTPCTP_3211
 
 
 config CDS3_PRODUCT_VTPCTP_3212
-        bool "e!DISPLAY 762-3112 (Target-ID: 3212)"
+        bool "TP600 762-3112 (Target-ID: 3212)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3112
@@ -405,7 +405,7 @@ config CDS3_PRODUCT_VTPCTP_3212
 
 
 config CDS3_PRODUCT_VTPCTP_3215
-        bool "e!DISPLAY 762-3115 (Target-ID: 3215)"
+        bool "TP600 762-3115 (Target-ID: 3215)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3115
@@ -413,7 +413,7 @@ config CDS3_PRODUCT_VTPCTP_3215
 
 
 config CDS3_PRODUCT_VTPCTP_3216
-        bool "e!DISPLAY 762-3116 (Target-ID: 3216)"
+        bool "TP600 762-3116 (Target-ID: 3216)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3116
@@ -421,7 +421,7 @@ config CDS3_PRODUCT_VTPCTP_3216
 
 
 config CDS3_PRODUCT_VTPCTP_3217
-        bool "e!DISPLAY 762-3117 (Target-ID: 3217)"
+        bool "TP600 762-3117 (Target-ID: 3217)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3117
@@ -429,7 +429,7 @@ config CDS3_PRODUCT_VTPCTP_3217
 
 
 config CDS3_PRODUCT_VTPCTP_3218
-        bool "e!DISPLAY 762-3118 (Target-ID: 3218)"
+        bool "TP600 762-3118 (Target-ID: 3218)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3118
@@ -437,7 +437,7 @@ config CDS3_PRODUCT_VTPCTP_3218
 
 
 config CDS3_PRODUCT_VTPCTP_3219
-        bool "e!DISPLAY 762-3119 (Target-ID: 3219)"
+        bool "TP600 762-3119 (Target-ID: 3219)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3119
@@ -445,39 +445,124 @@ config CDS3_PRODUCT_VTPCTP_3219
 
 
 config CDS3_PRODUCT_VTPCTP_3220
-        bool "e!DISPLAY 762-3120 (Target-ID: 3220)"
+        bool "TP600 762-3120 (Target-ID: 3220)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-3120
                 e.g. 3S.dat license file
 
 config CDS3_PRODUCT_VTPCTP_320A
-        bool "e!DISPLAY 762-4101 (Target-ID: 320A)"
+        bool "TP600 762-4101 (Target-ID: 320A)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-4101
                 e.g. 3S.dat license file
 
 config CDS3_PRODUCT_VTPCTP_320B
-        bool "e!DISPLAY 762-4102 (Target-ID: 320B)"
+        bool "TP600 762-4102 (Target-ID: 320B)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-4102
                 e.g. 3S.dat license file
 
 config CDS3_PRODUCT_VTPCTP_320C
-        bool "e!DISPLAY 762-4103 (Target-ID: 320C)"
+        bool "TP600 762-4103 (Target-ID: 320C)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-4103
                 e.g. 3S.dat license file
 
 config CDS3_PRODUCT_VTPCTP_320D
-        bool "e!DISPLAY 762-4104 (Target-ID: 320D)"
+        bool "TP600 762-4104 (Target-ID: 320D)"
         default n
         help
                 Install Product-Specific Files for e!DISPLAY 762-4104
                 e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3225
+        bool "TP600 762-4205/8000-0001 (Target-ID: 3225)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-4205/8000-0001
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3226
+        bool "TP600 762-4206/8000-0001 (Target-ID: 3226)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-4206/8000-0001
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3227
+        bool "TP600 762-4305/8000-0001 (Target-ID: 3227)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-4305/8000-0001
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3228
+        bool "TP600 762-4306/8000-0001 (Target-ID: 3228)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-4306/8000-0001
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3229
+        bool "TP600 762-5205/8000-0001 (Target-ID: 3229)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-5205/8000-0001
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_322A
+        bool "TP600 762-5206/8000-0001 (Target-ID: 322A)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-5206/8000-0001
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_322B
+        bool "TP600 762-5305/8000-0001 (Target-ID: 322B)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-5305/8000-0001
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_322C
+        bool "TP600 762-5306/8000-0001 (Target-ID: 322C)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-5306/8000-0001
+                e.g. 3S.dat license file
+                
+config CDS3_PRODUCT_VTPCTP_3221
+        bool "TP600 762-6301/8000-0002 (Target-ID: 3221)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-6301/8000-0002
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3222
+        bool "TP600 762-6302/8000-0002 (Target-ID: 3222)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-6302/8000-0002
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3223
+        bool "TP600 762-6303/8000-0002 (Target-ID: 3223)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-6303/8000-0002
+                e.g. 3S.dat license file
+
+config CDS3_PRODUCT_VTPCTP_3224
+        bool "TP600 762-6304/8000-0002 (Target-ID: 3224)"
+        default n
+        help
+                Install Product-Specific Files for TP600 762-6304/8000-0002
+                e.g. 3S.dat license file
+
 
 endif
 

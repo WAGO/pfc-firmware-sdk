@@ -98,7 +98,6 @@ backupFile="$1"
 if [ -n "${backupFile}" ]; then
 
   # prepare progress bar
-  BACKUP_FILE_LINE_COUNT=$(grep -Ev '^(firewall|vpn-|#packet)' "$backupFile" | wc -l | awk '{print $1}')
   m=$(umask)
   umask 0177
   rm -f "$progressFile"
@@ -398,7 +397,7 @@ if [ -n "${backupFile}" ]; then
     if [[ "$RELEASE_VERSION" == "yes" ]]; then
       RestoreMessageOutput
     fi
-    (tail -f "$progressFile" | pv -N "settings" -l -s $BACKUP_FILE_LINE_COUNT -pt -w 70 >/dev/null ) &
+    (tail -f "$progressFile" | pv -N "settings" -l -pt -w 70 >/dev/null ) &
 
     # wait for completion of backup, kill progress bar when finished
     wait "$pid_restore" || status="$?"

@@ -18,9 +18,7 @@ endif
 
 config LIBRLB_URL_TEMPLATE
 	string
-# FIXME: Temporarily removed dependency so that the URL can be set even when the package is disabled (AGa)
-#        To be removed when the package's libuio related incompatibility has been fixed.
-#      depends on LIBRLB
+    depends on LIBRLB
 	prompt "URL template"
 	default "%ARTIFACTORY_BASE_URL%/rlb-generic-prod-local/wago/rlb-stack/librlb-Source/librlb-Source-%VERSION%.tgz"
 	help

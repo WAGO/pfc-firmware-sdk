@@ -1,0 +1,25 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Wed, 13 Jan 2010 09:29:27 +0100
+Subject: [PATCH] install-sh: disable stripping
+
+This patch disables stripping because the install-sh would use
+/usr/bin/strip which doesn't work during cross compilation.
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ install-sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/install-sh b/install-sh
+index 79e7f408172c..9e78efae7a2e 100755
+--- a/install-sh
++++ b/install-sh
+@@ -141,7 +141,7 @@ while ${MORETODO} ; do
+ 	fi
+ 	;;
+     X-s)
+-	STRIPIT=true
++	STRIPIT=false
+ 	;;
+     X--)
+ 	shift

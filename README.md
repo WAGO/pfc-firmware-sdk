@@ -1,6 +1,6 @@
 ***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
-# Install WAGO-PFC-SDK-2019.9.1 on Ubuntu 16.04.5 (64bit) LTS
+# Install WAGO-PFC-SDK-2019.12.1 on Ubuntu 16.04.5 (64bit) LTS
 
 This HowTo describes steps to install the Software-Development-Kit (SDK) for PFC's on Ubuntu16.04
 
@@ -24,6 +24,12 @@ This document describes the installation and usage of the binary toolchain.
 The advantages of the ready to use toolchain have to be paid with some dependencies,
 which make a uniquely defined host environment mandatory. Ubuntu 16.04 (64bit) fits these requirements,
 others may or may not.
+
+# PREREQUISITES
+You need a internet connection on your development host. Because during image creation the source file
+"nlohmann-json-v3.7.0.tar.gz" will be downloaded automatically.
+In case you do not have a internet connetion on your development host. Please refer to section
+[ 4.6) Download packages ].
 
 # Installation and building STEP-BY-STEP:
 
@@ -253,6 +259,25 @@ The output looks like this:
     Leave dialog with [Exit]
 ```
 
+### 4.6) Download packages
+In case you have a internet connection skip this section.
+Otherwise follow along.
+
+The source file can be found at:
+
+https://github.com/nlohmann/json/archive/v3.7.0.tar.gz
+
+Download it. Store it to an exchangable storage device of your choise.
+After you have downloaded the source file and copied it for example to a USB thumb drive.
+
+On development host:
+ * On Ubuntu 16.04 USB drives are mounted automatically.
+ * copy the file: nlohmann-json-v3.7.0.tar.gz to the following location
+ ```
+    ~/<pfc-firmware-sdk-directory/src
+ ```
+Now you are able to build the firmware image.
+
 ## 5) Build the firmware image file "sd.hdimg"
 
 ### 5.1) Compile all packages of PFC firmware
@@ -344,7 +369,7 @@ By default, PFC tries to find a DHCP-Server to retrieve an IP-Address.
 2. Insert SD-Card with custom-image
 3. PowerOn PFC
 
-## 8.) Default settings for PFC 03.02.02
+## 8.) Default settings for PFC 03.03.10
 
 ### 8.1) User accounts (usr/pwd):
 

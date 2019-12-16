@@ -1,5 +1,3 @@
-dbus-1.12.12/AUTHORS
-
 Alban Crequy <alban.crequy@collabora.co.uk>
 Alexander Larsson <alexl@redhat.com>
 Anders Carlsson <andersca@codefactory.se>
@@ -122,9 +120,6 @@ Wulf C. Krueger <philantrop@exherbo.org>
 Xan Lopez <xan@gnome.org>
 Yaakov Selkowitz <yselkowitz@users.sourceforge.net>
 Zack Rusin <zack@kde.org>
-
-dbus-1.12.12/COPYING
-
 D-Bus is licensed to you under your choice of the Academic Free
 License version 2.1, or the GNU General Public License version 2
 (or, at your option any later version).
@@ -677,9 +672,6 @@ proprietary programs.  If your program is a subroutine library, you may
 consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
-
-dbus-1.12.12/cmake/modules/COPYING-CMAKE-SCRIPTS
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
@@ -702,4 +694,3 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-

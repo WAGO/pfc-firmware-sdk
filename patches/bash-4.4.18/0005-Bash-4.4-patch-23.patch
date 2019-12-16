@@ -1,0 +1,32 @@
+diff --recursive --unified a/builtins/trap.def b/builtins/trap.def
+--- a/builtins/trap.def	2019-09-18 11:31:18.184514902 +0200
++++ b/builtins/trap.def	2019-09-18 11:31:34.470249695 +0200
+@@ -98,6 +98,7 @@
+ #define IGNORE 2		/* Ignore this signal. */
+ 
+ extern int posixly_correct, subshell_environment;
++extern int sourcelevel, running_trap;
+ 
+ int
+ trap_builtin (list)
+@@ -212,6 +213,9 @@
+ 			   was SIG_IGN? */
+ 			if (interactive)
+ 			  set_signal_handler (SIGINT, sigint_sighandler);
++			/* special cases for interactive == 0 */
++			else if (interactive_shell && (sourcelevel||running_trap))
++			  set_signal_handler (SIGINT, sigint_sighandler);
+ 			else
+ 			  set_signal_handler (SIGINT, termsig_sighandler);
+ 			break;
+diff --recursive --unified a/patchlevel.h b/patchlevel.h
+--- a/patchlevel.h	2019-09-18 11:31:18.128514902 +0200
++++ b/patchlevel.h	2019-09-18 11:31:34.470249695 +0200
+@@ -25,6 +25,6 @@
+    regexp `^#define[ 	]*PATCHLEVEL', since that's what support/mkversion.sh
+    looks for to find the patch level (for the sccs version string). */
+ 
+-#define PATCHLEVEL 22
++#define PATCHLEVEL 23
+ 
+ #endif /* _PATCHLEVEL_H_ */

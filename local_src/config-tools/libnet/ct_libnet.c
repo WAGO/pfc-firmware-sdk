@@ -1788,6 +1788,40 @@ int ct_libnet_calculate_broadcast(const char *ipAddr,
 
 #ifdef __ENABLE_DSA
 
+bool ct_libnet_swconfig_is(const char* alias)
+{
+  swconfigSession_t *sessionHandle = NULL;
+  int status = ct_swconfig_start_session(SWCONFIG_SWITCH_NAME, &sessionHandle);
+  const char *found_alias;
+
+  if(SUCCESS == status)
+  {
+    found_alias = ct_swconfig_get_switch_alias(sessionHandle);
+  }
+
+  if(NULL != sessionHandle)
+  {
+      ct_swconfig_finish_session(sessionHandle);
+  }
+
+  return strcmp(alias, found_alias) == 0;
+}
+
+static bool ct_libnet_swconfig_is_unsupported_switch(void)
+{
+  return ct_libnet_swconfig_is("mv88e6321");
+}
+
+bool ct_libnet_swconfig_default_for_unsupported_switch(const char* default_value, char *value, size_t valueLen)
+{
+  if (ct_libnet_swconfig_is_unsupported_switch())
+  {
+    g_strlcpy(value, default_value, valueLen);
+    return true;
+  }
+  return false;
+}
+
 // Set requested dsa state to hw switch AND configuration file.
 int ct_libnet_set_dsa_state(const char *value, libnetSession_t *sessionHandle)
 {
@@ -1924,12 +1958,15 @@ static int __swconfig_get_attr(const char *dev, const char *attr, char *value, s
     return status;
 }
 
+#define BCAST_DEFAULT "0"
 static const char *bcast_protect_arg_list[] = {"0","1","2","3","4","5",NULL};
 
 int ct_libnet_set_bcast_protect(const char *dev, const char *value)
 {
+    if (ct_libnet_swconfig_is_unsupported_switch())
+      return strcmp(BCAST_DEFAULT, value);
     return __swconfig_set_attr(dev, "bcast_protect", value, bcast_protect_arg_list);
-} 
+}
 
 void ct_libnet_print_bcast_protect_args(void)
 {
@@ -1941,11 +1978,12 @@ int ct_libnet_get_bcast_protect(const char *dev, char *value, size_t valueLen)
     assert(NULL != value);
     assert(valueLen > 2);
 
+    if (ct_libnet_swconfig_default_for_unsupported_switch(BCAST_DEFAULT, value, valueLen))
+      return 0;
+
     return __swconfig_get_attr(dev, "bcast_protect", value, valueLen);
 }
 
-
-static const char *port_mirror_arg_list[] = {"0","1","2", NULL};
 
 static int ct_libnet_is_pfc100(void)
 {
@@ -1980,6 +2018,9 @@ static int ct_libnet_is_pfc100(void)
     return retVal;
 }
 
+#define PORT_MIRROR_DEFAULT "0"
+static const char *port_mirror_arg_list[] = {"0","1","2", NULL};
+
 int ct_libnet_set_port_mirror(const char *dev, const char *value)
 {
     //A workaround is needed here because on PFC100 the ports X1 and X2
@@ -1990,6 +2031,9 @@ int ct_libnet_set_port_mirror(const char *dev, const char *value)
     char newValue[2];
     newValue[0]='0';
     newValue[1]='\0';
+
+    if (ct_libnet_swconfig_is_unsupported_switch())
+      return strcmp(PORT_MIRROR_DEFAULT, value);
 
     if (ct_libnet_is_pfc100())
     {
@@ -2024,6 +2068,10 @@ int ct_libnet_get_port_mirror(const char *dev, char *value, size_t valueLen)
     assert(NULL != value);
     assert(valueLen > 1);
 
+    if (ct_libnet_swconfig_default_for_unsupported_switch(PORT_MIRROR_DEFAULT,
+                                                          value, valueLen))
+      return 0;
+
     //Original has to be commented out!
     //return __swconfig_get_attr(dev, "port_mirror", value, valueLen);
     //---BEGIN WORKAROUND---
@@ -2057,6 +2105,8 @@ int ct_libnet_get_port_mirror(const char *dev, char *value, size_t valueLen)
 
 }
 
+#define RATE_LIMIT_DEFAULT_GET "disabled"
+#define RATE_LIMIT_DEFAULT_SET "off"
 static const char *rate_limit_arg_list[] = {    "off",
                                                 "64.kbps", "128.kbps", "192.kbps", "256.kbps", "320.kbps", "384.kbps", "448.kbps", "512.kbps", 
                                                 "576.kbps", "640.kbps", "704.kbps", "768.kbps", "832.kbps", "896.kbps", "960.kbps", 
@@ -2075,6 +2125,9 @@ static const char *rate_limit_arg_list[] = {    "off",
 
 int ct_libnet_set_rate_limit(const char *dev, const char *value)
 {
+    if (ct_libnet_swconfig_is_unsupported_switch())
+      return strcmp(RATE_LIMIT_DEFAULT_SET, value);
+    
     return __swconfig_set_attr(dev, "rate_limit", value, rate_limit_arg_list);
 }
 
@@ -2088,10 +2141,13 @@ int ct_libnet_get_rate_limit(const char *dev, char *value, size_t valueLen)
     assert(NULL != value);
     assert(valueLen > 2);
 
+    if (ct_libnet_swconfig_default_for_unsupported_switch(RATE_LIMIT_DEFAULT_GET, value, valueLen))
+      return 0;
+
     return __swconfig_get_attr(dev, "rate_limit", value, valueLen);
 }
 
-
+#define FAST_AGING_DEFAULT "0"
 static const char *fast_aging_arg_list[] = {"0","1", NULL};
 
 void ct_libnet_print_fast_aging_args(void)
@@ -2101,6 +2157,9 @@ void ct_libnet_print_fast_aging_args(void)
 
 int ct_libnet_set_fast_aging(const char *dev, const char *value)
 {
+    if (ct_libnet_swconfig_is_unsupported_switch())
+        return strcmp(FAST_AGING_DEFAULT, value);
+    
     return __swconfig_set_attr(dev, "fast_aging", value, fast_aging_arg_list);
 }
 
@@ -2108,6 +2167,9 @@ int ct_libnet_get_fast_aging(const char *dev, char *value, size_t valueLen)
 {
     assert(NULL != value);
     assert(valueLen > 1);
+
+    if (ct_libnet_swconfig_default_for_unsupported_switch(FAST_AGING_DEFAULT, value, valueLen))
+      return 0;
 
     return __swconfig_get_attr(dev, "fast_aging", value, valueLen);
 }

@@ -90,24 +90,6 @@ if [ -z "$backupFile" ]; then
   exit "$INVALID_PARAMETER"
 fi
 
-countLinesOfBackup()
-{
-    # Get parameter count for progress bar computations of modular backup scripts.
-    BACKUP_FILE_LINE_COUNT=0
-    for file in "$BACKUP_RESTORE_SCRIPT_DIR/"*; do
-        if [ -x "$file" ]; then
-            count=$("$file" --param-count)
-            ret=$?
-            if [ $ret = $SUCCESS ] && [ -n "$count" ]; then
-                BACKUP_FILE_LINE_COUNT="$((BACKUP_FILE_LINE_COUNT + count))"
-            else
-                ReportError $INTERNAL_ERROR "Failed to get parameter from \"$file\" "     
-                backup_error_count=$((backup_error_count+1))
-            fi
-        fi
-    done
-}
-
 setupBackupFile()
 {
   local u="$(umask)"
@@ -184,62 +166,65 @@ createBackupFile()
     done
     #-------------------------------------------------------------
     # save network settings
-    interfaceNo=0
-    ports=$(GetPortsList)
-    
-    for port in $ports; do
-
-        #-------------------------------------------------------------
-        # save eth ip configs which must be processed together
-        ethIpConfigType=$(/etc/config-tools/get_eth_config $port config-type)
-        ProcessErrBackupOperation $? "Failed to get eth config type from port:" $port
-        ethState=$(/etc/config-tools/get_eth_config $port state)
-        ProcessErrBackupOperation $? "Failed to get eth config state from port:"  $port
-        SaveBackupValue "ip-config-type-eth${interfaceNo}" "$ethIpConfigType" "$backupFile"
-        SaveBackupValue "ip-state-eth${interfaceNo}"       "$ethState"        "$backupFile"
-
-        # save network settings
-        ethIpAddress=$(/etc/config-tools/get_eth_config $port ip-address)
-        ProcessErrBackupOperation $? "Failed to get eth config ip address from port:" $port
-        ethIpSubnetmask=$(/etc/config-tools/get_eth_config $port subnet-mask)
-        ProcessErrBackupOperation $? "Failed to get eth config subnet mask from port:" $port
-        SaveBackupValue "ip-address-eth${interfaceNo}" "$ethIpAddress" "$backupFile"
-        SaveBackupValue "subnet-mask-eth${interfaceNo}" "$ethIpSubnetmask" "$backupFile"
-
-        #-------------------------------------------------------------
-        # save ethernet settings
-        # 
-        state=$(/etc/config-tools/get_eth_config   $port state)
-        ProcessErrBackupOperation $? "Failed to get eth config state from port:" $port
-        autoneg=`/etc/config-tools/get_eth_config $port autoneg`
-        ProcessErrBackupOperation $? "Failed to get eth config autoneg from port:" $port
-        speed=`/etc/config-tools/get_eth_config   $port speed`
-        ProcessErrBackupOperation $? "Failed to get eth config speed from port:" $port
-        duplex=`/etc/config-tools/get_eth_config  $port duplex`
-        ProcessErrBackupOperation $? "Failed to get eth config duplex from port:" $port
-        SaveBackupValue "eth${interfaceNo}-state" "$state" "$backupFile"
-        SaveBackupValue "eth${interfaceNo}-autoneg" "$autoneg" "$backupFile"
-        SaveBackupValue "eth${interfaceNo}-speed" "${speed}" "$backupFile"
-        SaveBackupValue "eth${interfaceNo}-duplex" "${duplex}" "$backupFile"
-
-        #-------------------------------------------------------------
-        # save dhcp server settings
-        # 
-        state=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-state)
-        ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-state from port:" $port
-        range=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-range)
-        ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-range from port:" $port
-        lease=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-lease-time)
-        ProcessErrBackupOperation $? "Failed to get dhcpd config lease time from port:" $port
-        fixhost=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-fix-host)
-        ProcessErrBackupOperation $? "Failed to get dhcpd config fixhost from port:" $port
-        SaveBackupValue "$port-dhcpd-state" "${state}" "$backupFile"
-        SaveBackupValue "$port-dhcpd-range" "${range}" "$backupFile"
-        SaveBackupValue "$port-dhcpd-lease-time" "${lease}" "$backupFile"
-        SaveBackupValue "$port-dhcpd-fix-host" "${fixhost}" "$backupFile"
-
-        interfaceNo=$[$interfaceNo + 1]
-    done
+    if ! IsNetworkSettingsV2 ; then
+      
+      interfaceNo=0
+      ports=$(GetPortsList)
+      
+      for port in $ports; do
+  
+          #-------------------------------------------------------------
+          # save eth ip configs which must be processed together
+          ethIpConfigType=$(/etc/config-tools/get_eth_config $port config-type)
+          ProcessErrBackupOperation $? "Failed to get eth config type from port:" $port
+          ethState=$(/etc/config-tools/get_eth_config $port state)
+          ProcessErrBackupOperation $? "Failed to get eth config state from port:"  $port
+          SaveBackupValue "ip-config-type-eth${interfaceNo}" "$ethIpConfigType" "$backupFile"
+          SaveBackupValue "ip-state-eth${interfaceNo}"       "$ethState"        "$backupFile"
+  
+          # save network settings
+          ethIpAddress=$(/etc/config-tools/get_eth_config $port ip-address)
+          ProcessErrBackupOperation $? "Failed to get eth config ip address from port:" $port
+          ethIpSubnetmask=$(/etc/config-tools/get_eth_config $port subnet-mask)
+          ProcessErrBackupOperation $? "Failed to get eth config subnet mask from port:" $port
+          SaveBackupValue "ip-address-eth${interfaceNo}" "$ethIpAddress" "$backupFile"
+          SaveBackupValue "subnet-mask-eth${interfaceNo}" "$ethIpSubnetmask" "$backupFile"
+  
+          #-------------------------------------------------------------
+          # save ethernet settings
+          # 
+          state=$(/etc/config-tools/get_eth_config   $port state)
+          ProcessErrBackupOperation $? "Failed to get eth config state from port:" $port
+          autoneg=`/etc/config-tools/get_eth_config $port autoneg`
+          ProcessErrBackupOperation $? "Failed to get eth config autoneg from port:" $port
+          speed=`/etc/config-tools/get_eth_config   $port speed`
+          ProcessErrBackupOperation $? "Failed to get eth config speed from port:" $port
+          duplex=`/etc/config-tools/get_eth_config  $port duplex`
+          ProcessErrBackupOperation $? "Failed to get eth config duplex from port:" $port
+          SaveBackupValue "eth${interfaceNo}-state" "$state" "$backupFile"
+          SaveBackupValue "eth${interfaceNo}-autoneg" "$autoneg" "$backupFile"
+          SaveBackupValue "eth${interfaceNo}-speed" "${speed}" "$backupFile"
+          SaveBackupValue "eth${interfaceNo}-duplex" "${duplex}" "$backupFile"
+  
+          #-------------------------------------------------------------
+          # save dhcp server settings
+          # 
+          state=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-state)
+          ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-state from port:" $port
+          range=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-range)
+          ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-range from port:" $port
+          lease=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-lease-time)
+          ProcessErrBackupOperation $? "Failed to get dhcpd config lease time from port:" $port
+          fixhost=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-fix-host)
+          ProcessErrBackupOperation $? "Failed to get dhcpd config fixhost from port:" $port
+          SaveBackupValue "$port-dhcpd-state" "${state}" "$backupFile"
+          SaveBackupValue "$port-dhcpd-range" "${range}" "$backupFile"
+          SaveBackupValue "$port-dhcpd-lease-time" "${lease}" "$backupFile"
+          SaveBackupValue "$port-dhcpd-fix-host" "${fixhost}" "$backupFile"
+  
+          interfaceNo=$[$interfaceNo + 1]
+      done
+    fi
  
     #-------------------------------------------------------------
     # save dns service settings
@@ -388,14 +373,13 @@ fi
 if [ -x "$(which pv)" ]; then
     # start backup as subprocess (we start progress bar in parallel and have to
     # know when the backup is over
-    countLinesOfBackup
     createBackupFile &
     pid_backup="$!"
 
     if [[ "$RELEASE_VERSION" == "yes" ]]; then
       RestoreMessageOutput
     fi
-    (tail -f "$backupFile" | pv -N "settings" -l -s "$BACKUP_FILE_LINE_COUNT" -pt -w 70 >/dev/null ) &
+    (tail -f "$backupFile" | pv -N "settings" -l -pt -w 70 >/dev/null ) &
 
     # wait for completion of backup, kill progress bar when finished
     wait "$pid_backup"

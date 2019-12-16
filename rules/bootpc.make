@@ -110,7 +110,9 @@ $(STATEDIR)/bootpc.targetinstall: $(bootpc_targetinstall_deps_default)
 
 	@$(call install_copy, bootpc, 0, 0, 0755, $(BOOTPC_DIR)/bootpc, /sbin/bootpc)
 ifdef PTXCONF_BOOTPC_STARTUP_DEFAULT
+ifndef PTXCONF_NETCONFD
 	@$(call install_copy, bootpc, 0, 0, 0755, $(PTXDIST_WORKSPACE)/projectroot/sbin/bootpc-startup.default, /sbin/bootpc-startup)
+endif #PTXCONF_NETCONFD
 endif
 	@$(call install_finish, bootpc)
 

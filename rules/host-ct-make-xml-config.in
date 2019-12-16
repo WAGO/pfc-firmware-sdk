@@ -2,9 +2,8 @@
 
 config HOST_CT_MAKE_XML_CONFIG
 	bool
-    default n
-    select HOST_PYTHON
+	default n
 	help
-    A kconfig- and generateDS.py-based tool used to generate XML menu
-    definitions for configuration frontends (wbm, ipcconfig etc.) via ptxdist
-    menuconfig
+	 A kconfig- and generateDS.py-based tool used to generate XML menu
+	 definitions for configuration frontends (wbm, ipcconfig etc.) via ptxdist
+	 menuconfig

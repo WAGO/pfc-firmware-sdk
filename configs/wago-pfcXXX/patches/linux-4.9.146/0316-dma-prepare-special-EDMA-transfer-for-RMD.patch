@@ -1,0 +1,128 @@
+From 77ecb57d1dad1f8f0bb9afd59a7112b4266cb1ce Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Wed, 25 Sep 2019 17:41:55 +0200
+Subject: [PATCH] dma: prepare special EDMA transfer for RMD
+
+This adds the framework to setup RMD DMA transfer chains
+with "dmaengine_prep_rmd()"
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ drivers/dma/dmaengine.c   |  2 ++
+ drivers/dma/edma.c        | 12 ++++++++++++
+ include/linux/dmaengine.h | 21 +++++++++++++++++++++
+ 3 files changed, 35 insertions(+)
+
+diff --git a/drivers/dma/dmaengine.c b/drivers/dma/dmaengine.c
+index 3db94e8..9225eb2 100644
+--- a/drivers/dma/dmaengine.c
++++ b/drivers/dma/dmaengine.c
+@@ -942,6 +942,8 @@ int dma_async_device_register(struct dma_device *device)
+ 		!device->device_prep_dma_cyclic);
+ 	BUG_ON(dma_has_cap(DMA_INTERLEAVE, device->cap_mask) &&
+ 		!device->device_prep_interleaved_dma);
++	BUG_ON(dma_has_cap(DMA_RMD, device->cap_mask) &&
++		!device->device_prep_dma_rmd);
+ 
+ 	BUG_ON(!device->device_tx_status);
+ 	BUG_ON(!device->device_issue_pending);
+diff --git a/drivers/dma/edma.c b/drivers/dma/edma.c
+index 57962bf..90fe5ca 100644
+--- a/drivers/dma/edma.c
++++ b/drivers/dma/edma.c
+@@ -20,6 +20,7 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/list.h>
++#include <linux/rmd.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+@@ -1441,6 +1442,15 @@ static void edma_completion_handler(struct edma_chan *echan)
+ 	spin_unlock(&echan->vchan.lock);
+ }
+ 
++static struct dma_async_tx_descriptor *edma_prep_dma_rmd(
++	struct dma_chan *chan, dma_addr_t fpga_base, struct rmd_config *rmd,
++	enum dma_transfer_direction direction, dma_addr_t mem,
++	dma_addr_t buf_ctrl,
++	size_t chunk_size, unsigned long tx_flags)
++{
++	return NULL;
++}
++
+ /* eDMA interrupt handler */
+ static irqreturn_t dma_irq_handler(int irq, void *data)
+ {
+@@ -1843,6 +1853,7 @@ static void edma_dma_init(struct edma_cc *ecc, bool legacy_mode)
+ 	dma_cap_zero(s_ddev->cap_mask);
+ 	dma_cap_set(DMA_SLAVE, s_ddev->cap_mask);
+ 	dma_cap_set(DMA_CYCLIC, s_ddev->cap_mask);
++	dma_cap_set(DMA_RMD, s_ddev->cap_mask);
+ 	if (ecc->legacy_mode && !memcpy_channels) {
+ 		dev_warn(ecc->dev,
+ 			 "Legacy memcpy is enabled, things might not work\n");
+@@ -1854,6 +1865,7 @@ static void edma_dma_init(struct edma_cc *ecc, bool legacy_mode)
+ 
+ 	s_ddev->device_prep_slave_sg = edma_prep_slave_sg;
+ 	s_ddev->device_prep_dma_cyclic = edma_prep_dma_cyclic;
++	s_ddev->device_prep_dma_rmd = edma_prep_dma_rmd;
+ 	s_ddev->device_alloc_chan_resources = edma_alloc_chan_resources;
+ 	s_ddev->device_free_chan_resources = edma_free_chan_resources;
+ 	s_ddev->device_issue_pending = edma_issue_pending;
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index cc535a4..290de39 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -26,6 +26,8 @@
+ #include <linux/types.h>
+ #include <asm/page.h>
+ 
++struct rmd_config;
++
+ /**
+  * typedef dma_cookie_t - an opaque DMA cookie
+  *
+@@ -74,6 +76,7 @@ enum dma_transaction_type {
+ 	DMA_SLAVE,
+ 	DMA_CYCLIC,
+ 	DMA_INTERLEAVE,
++	DMA_RMD,
+ /* last transaction type for creation of the capabilities mask */
+ 	DMA_TX_TYPE_END,
+ };
+@@ -783,6 +786,11 @@ struct dma_device {
+ 	struct dma_async_tx_descriptor *(*device_prep_dma_imm_data)(
+ 		struct dma_chan *chan, dma_addr_t dst, u64 data,
+ 		unsigned long flags);
++	struct dma_async_tx_descriptor *(*device_prep_dma_rmd)(
++		struct dma_chan *chan, dma_addr_t fpga_base,
++		struct rmd_config *rmd,	enum dma_transfer_direction direction,
++		dma_addr_t mem, dma_addr_t buf_ctrl, size_t chunk_size,
++		unsigned long tx_flags);
+ 
+ 	int (*device_config)(struct dma_chan *chan,
+ 			     struct dma_slave_config *config);
+@@ -865,6 +873,19 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_cyclic(
+ 						period_len, dir, flags);
+ }
+ 
++static inline struct dma_async_tx_descriptor *dmaengine_prep_rmd(
++		struct dma_chan *chan, dma_addr_t fpga_base,
++		struct rmd_config *rmd, enum dma_transfer_direction direction,
++		dma_addr_t mem, dma_addr_t buf_ctrl, size_t chunk_size,
++		unsigned long tx_flags)
++{
++	if (!chan || !chan->device || !chan->device->device_prep_dma_rmd)
++		return NULL;
++
++	return chan->device->device_prep_dma_rmd(chan, fpga_base, rmd,
++				direction, mem, buf_ctrl, chunk_size, tx_flags);
++}
++
+ static inline struct dma_async_tx_descriptor *dmaengine_prep_interleaved_dma(
+ 		struct dma_chan *chan, struct dma_interleaved_template *xt,
+ 		unsigned long flags)
+-- 
+2.7.4
+

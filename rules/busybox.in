@@ -1,0 +1,104 @@
+## SECTION=shell_and_console
+
+menuconfig BUSYBOX
+	tristate
+	prompt "busybox                       "
+	select LIBSELINUX	if BUSYBOX_SELINUX
+	select LIBC_C		if !BUSYBOX_STATIC
+	select LIBC_NSS_FILES	if !BUSYBOX_STATIC
+	select LIBC_M		if !BUSYBOX_STATIC && BUSYBOX_FEATURE_AWK_LIBM
+	select LIBC_CRYPT	if !BUSYBOX_STATIC && !BUSYBOX_USE_BB_CRYPT
+	select GCCLIBS_GCC_S	if !BUSYBOX_STATIC
+	select LINUX_PAM	if BUSYBOX_PAM
+	select BUSYBOX_PLATFORM_LINUX
+	select BUSYBOX_INSTALL_NO_USR
+	help
+	  BusyBox is the Swiss Army Knife of embedded Linux. It is a
+	  multi call program which hosts nearly all important unix
+	  tools in one small executable.
+
+	  For more information see http://www.busybox.net
+
+if BUSYBOX
+
+config BUSYBOX_INETD_STARTSCRIPT
+	bool
+	depends on BUSYBOX_INETD
+	default y
+	prompt "install /etc/init.d/inetd"
+
+config BUSYBOX_FTPD_INETD
+	depends on BUSYBOX_FTPD
+	bool
+	prompt "ftpd startup type (inetd)"
+	help
+	  start busybox ftpd server from inetd
+
+choice
+	prompt "telnetd startup type"
+	depends on BUSYBOX_TELNETD
+
+	config BUSYBOX_TELNETD_STARTSCRIPT
+		bool
+		prompt "startscript (standalone)"
+		depends on BUSYBOX_FEATURE_TELNETD_STANDALONE
+		help
+		  start busybox telnetd server in standalone mode.
+		  I.e. without inetd.
+
+	config BUSYBOX_TELNETD_INETD
+		bool
+		prompt "inetd"
+		help
+		  start busybox telnetd server from inetd
+endchoice
+
+config BUSYBOX_UDHCPD_STARTSCRIPT
+	bool
+	depends on BUSYBOX_UDHCPD
+	default y
+	prompt "Install /etc/init.d/udhcpd"
+
+config BUSYBOX_SYSLOGD_STARTSCRIPT
+	bool
+	depends on BUSYBOX_SYSLOGD
+	default y
+	prompt "install /etc/init.d/syslogd"
+
+config BUSYBOX_CROND_STARTSCRIPT
+	bool
+	depends on BUSYBOX_CROND
+	default y
+	prompt "install /etc/init.d/crond"
+
+config BUSYBOX_HWCLOCK_STARTSCRIPT
+	bool
+	depends on BUSYBOX_HWCLOCK
+	default y
+	prompt "install /etc/init.d/hwclock"
+
+config BUSYBOX_BB_SYSCTL_STARTSCRIPT
+	bool
+	depends on BUSYBOX_BB_SYSCTL
+	default y
+	prompt "Install /etc/init.d/sysctl"
+
+comment "---"
+
+config BUSYBOX_TELNETD_SYSTEMD_UNIT
+	bool
+	default y
+	depends on BUSYBOX_TELNETD && SYSTEMD
+	prompt "telnetd systemd service files"
+
+config BUSYBOX_CROND_SYSTEMD_UNIT
+	bool
+	default y
+	depends on BUSYBOX_CROND && SYSTEMD
+	prompt "crond systemd service files"
+
+comment "---"
+
+source "config/busybox/Config.in"
+
+endif

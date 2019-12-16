@@ -45,7 +45,7 @@ print_help()
 #
 check_prerequisites()
 {
-    which "$FW_EBR" 2>&1 > /dev/null
+    which "$FW_EBR" >/dev/null 2>&1
     if [[ $? -ne 0 ]]; then
         eblog "err" "$FW_EBR tool isn't available - can't execute."
         exit 1
@@ -96,13 +96,13 @@ set_firewall()
 {
     local is_changed=0
     if [[ "${FW_EB_TRANSFORM:-true}" != "false" ]]; then
-        $FW_XST val --xsd $FW_EB_WLIST_XSD "$FW_EB_WLIST_XML" 2>&1 > /dev/null
+        $FW_XST val --xsd $FW_EB_WLIST_XSD "$FW_EB_WLIST_XML" >/dev/null 2>&1
         result1=$?
-        $FW_XST val --xsd $FW_PARAMS_XSD "$FW_PARAMS_XML" 2>&1 > /dev/null
+        $FW_XST val --xsd $FW_PARAMS_XSD "$FW_PARAMS_XML" >/dev/null 2>&1
         result2=$?
         if [[ $result1 -eq 0 ]] && [[ $result2 -eq 0 ]]; then
-            $FW_XST tr "$FW_EB_WLIST_XSL" "$FW_EB_WLIST_XML" > "$FW_EB_RULES_TEMP"
-            cmp "$FW_EB_RULES_TEMP" "$FW_EB_RULES" 2>&1 > /dev/null
+            $FW_XST tr "$FW_EB_WLIST_XSL" "$FW_EB_WLIST_XML" >"$FW_EB_RULES_TEMP"
+            cmp "$FW_EB_RULES_TEMP" "$FW_EB_RULES" >/dev/null 2>&1
             if [[ $? -ne 0 ]]; then
                 mv $FW_EB_RULES_TEMP "$FW_EB_RULES"
                 is_changed=1
@@ -116,7 +116,7 @@ set_firewall()
         fi
     fi
     if [[ $is_changed -ne 0 ]]; then
-        $FW_EBR  > /dev/null 2>&1 < "$FW_EB_RULES"
+        $FW_EBR >/dev/null 2>&1 <"$FW_EB_RULES"
         if [[ $? -ne 0 ]]; then
             eblog "err" "Failed do set-up link-layer firewall!"
         fi
@@ -132,7 +132,7 @@ clean_firewall()
         exit 1
     fi
 
-    $FW_EBR  > /dev/null 2>&1 < "$FW_EB_RULES_AA"
+    $FW_EBR >/dev/null 2>&1 <"$FW_EB_RULES_AA"
 }
 
 

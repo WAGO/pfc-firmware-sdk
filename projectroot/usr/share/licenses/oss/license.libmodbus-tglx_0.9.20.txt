@@ -1,9 +1,4 @@
-libModbus-0.9.20/AUTHORS
-
 Thomas Gleixner <tglx@linutronix.de>
-
-libModbus-0.9.20/COPYING
-
 		  GNU LIBRARY GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
 
@@ -485,4 +480,3 @@ necessary.  Here is a sample; alter the names:
   Ty Coon, President of Vice
 
 That's all there is to it!
-

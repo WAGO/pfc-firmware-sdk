@@ -17,8 +17,8 @@ PACKAGES-$(PTXCONF_LICENSES) += licenses
 # Paths and names
 #
 LICENSES                := licenses
-LICENSES_SRC_DIR		:= /usr/share/licenses
-LICENSES_TARGET_DIR		:= /var/www/wbm/licenses
+LICENSES_SRC_DIR				:= /usr/share/licenses
+LICENSES_TARGET_DIR			:= /var/www/wbm/licenses
 LICENSES_VERSION        := 1.0
 
 LICENSES_LICENSE        := unknown
@@ -86,7 +86,6 @@ $(STATEDIR)/licenses.targetinstall:
 # Clean
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/licenses.clean:
-	@$(call targetinfo)
+# use ptxdist default
 
 # vim: syntax=make

@@ -4,6 +4,7 @@ config LIBPROFINET
 	tristate
 	select LIBNL3
 	select NET_SNMP
+	select SNMPCONFIGAGENT
 	select HOST_CT_BUILD
 	select GOOGLETEST
 	select BOOST

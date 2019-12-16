@@ -34,7 +34,6 @@ PUREFTPD_LICENSE	:= Custom License
 PUREFTPD_AUTOCONF := \
 	$(CROSS_AUTOCONF_USR) \
 	--without-ascii \
-	--without-pam \
 	--without-cookie \
 	--without-throttling \
 	--without-ratios \
@@ -58,6 +57,9 @@ PUREFTPD_AUTOCONF := \
 # instead of target's one
 #
 # Can --with-probe-random-dev solve this?
+
+# Enable or disable Linux-PAM support
+PUREFTPD_AUTOCONF += --$(call ptx/wwo, PTXCONF_PUREFTPD_PAM)-pam
 
 ifdef PTXCONF_PUREFTPD_SYSTEMD_UNIT
 PUREFTPD_AUTOCONF += --with-inetd
@@ -97,7 +99,7 @@ endif
 
 ifdef PTXCONF_PUREFTPD_SSL
 # use https certificate from lighttpd
-PUREFTPD_AUTOCONF += --with-tls --with-certfile=/etc/lighttpd/https-cert.pem
+PUREFTPD_AUTOCONF += --with-tls
 endif
 
 # ----------------------------------------------------------------------------
@@ -132,6 +134,16 @@ endif
 ifdef PTXCONF_PUREFTPD_UPLOADSCRIPT
 	@$(call install_copy, pureftpd, 0, 0, 0755, -, \
 		/usr/sbin/pure-uploadscript)
+endif
+
+ifdef PTXCONF_PUREFTPD_PAM
+	@$(call install_alternative, pureftpd, 0, 0, 644, /etc/pam.d/pure-ftpd)
+endif
+
+ifdef PTXCONF_PUREFTPD_SSL
+	@$(call install_copy, pureftpd, 0, 0, 0740, /etc/ssl/private/)
+	@$(call install_link, pureftpd, /etc/lighttpd/https-cert.pem, /etc/ssl/private/pure-ftpd.pem)
+	@$(call install_link, pureftpd, /etc/lighttpd/dh3072.pem, /etc/ssl/private/pure-ftpd-dhparams.pem)
 endif
 
 #	#

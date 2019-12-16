@@ -49,11 +49,9 @@ FIRMWARE_SVNREVISION := $(shell cat $(TARGETROOT)/etc/SVNREVISION | head -n1 | c
 
 # Map platform/project names to more user friendly target names
 ifeq ($(PLATFORM),wago-pfcXXX)
-ifeq ($(PROJECT),PFC)
 FIRMWARE_PLATFORM ?= PFC-Linux
-else ifeq ($(PROJECT),PAC)
+else ifeq ($(PLATFORM),wago-pac100)
 FIRMWARE_PLATFORM ?= PAC-Linux
-endif
 else ifeq ($(PLATFORM),wago-pfcXXX-hardened)
 FIRMWARE_PLATFORM ?= PFC-Linux
 else ifeq ($(PLATFORM),vtp-ctp)

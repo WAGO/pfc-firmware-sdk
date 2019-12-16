@@ -1,0 +1,9 @@
+## SECTION=@section@
+
+config @PACKAGE@
+	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	prompt "@package@"
+	help
+	  FIXME

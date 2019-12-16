@@ -526,7 +526,7 @@ MdmStatemachine::wwan_renew()
   }
   else
   {
-    mdmd_Log(MD_LOG_ERR, "%s: wwan IP address renew successfully triggered\n", get_state().c_str());
+    mdmd_Log(MD_LOG_INF, "%s: wwan IP address renew successfully triggered\n", get_state().c_str());
   }
 }
 
@@ -649,25 +649,25 @@ MdmStatemachine::set_gprs_reg_state(int state)
 bool
 MdmStatemachine::is_new_sim_iccid() const
 {
-	if (0<_iccid.length())
-	{
-		std::string iccid;
-		std::string pin;
-		if(_storage.get_sim(iccid, pin))
-		{
-			return (0!=_iccid.compare(iccid));
-		}
-	}
-	return true; //assume new SIM when information is not available
+  if (0<_iccid.length())
+  {
+    std::string iccid;
+    std::string pin;
+    if(_storage.get_sim(iccid, pin))
+    {
+      return (0!=_iccid.compare(iccid));
+    }
+  }
+  return true; //assume new SIM when information is not available
 }
 
 std::string
 MdmStatemachine::get_stored_sim_pin() const
 {
-	std::string iccid;
-	std::string pin;
-	_storage.get_sim(iccid, pin);
-	return pin;
+  std::string iccid;
+  std::string pin;
+  _storage.get_sim(iccid, pin);
+  return pin;
 }
 
 void

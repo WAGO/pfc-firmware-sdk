@@ -1,0 +1,6 @@
+#
+# /etc/pam.d/sshd - "dropbear" configuration for Linux-PAM
+#
+
+auth     include  common-auth
+

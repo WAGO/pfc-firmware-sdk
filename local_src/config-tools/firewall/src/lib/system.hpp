@@ -25,7 +25,7 @@
 namespace wago
 {
 
-
+  const int timeout = 5; // timeout 5 ms
  //------------------------------------------------------------------------------
  /// Executes an external command (can be shell call).
  /// \param cmd command to be executed

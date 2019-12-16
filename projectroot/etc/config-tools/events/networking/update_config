@@ -22,242 +22,6 @@
 
 set -u      # error exit on undefined shell variables
 
-_dest_gw_value_remove_1=""
-_dest_gw_mask_remove_1=""
-_default_gw_value_remove_1=""
-_default_gw_state_remove_1=""
-_default_gw_metric_remove_1=""
-
-_dest_gw_value_remove_2=""
-_dest_gw_mask_remove_2=""
-_default_gw_value_remove_2=""
-_default_gw_state_remove_2=""
-_default_gw_metric_remove_2=""
-
-
-AddDefaultRoute()
-{
-    local defgwip=$1
-    local defgwmetric=$2
-    route add default gw $defgwip metric $defgwmetric 2> /dev/null
-}
-
-AddRoute()
-{
-    local dest_addr=$1
-    local gw_addr=$2
-    local dest_mask=$3
-    local metric=$4
-
-    route add -net $dest_addr netmask $dest_mask gw $gw_addr metric $metric 2> /dev/null
-}
-
-DeleteRoute()
-{
-    local dest_addr=$1
-    local gw_addr=$2
-    local dest_mask=$3
-    local metric=$4
-    
-    if [[ "$dest_addr" != "default" ]]; then
-        route del -net $dest_addr netmask $dest_mask gw $gw_addr metric $metric  2>/dev/null
-    else
-        route del $dest_addr gw $gw_addr metric $metric  2>/dev/null
-    fi
-}
-
-CollectGatewayRoutesRemoveData()
-{
-    if [[ "${DEST_GW_VALUE_REMOVE_1-}" || "${DEST_GW_MASK_REMOVE_1-}" || "${DEFAULT_GW_VALUE_REMOVE_1-}" || "${DEFAULT_GW_STATE_REMOVE_1-}" || "${DEFAULT_GW_METRIC_REMOVE_1-}" ]]; then
-        # We have to remove a routing table entry for gateway 1
-        if [[ "${DEST_GW_VALUE_REMOVE_1-}" ]]; then 
-            _dest_gw_value_remove_1="$DEST_GW_VALUE_REMOVE_1"
-        else
-            _dest_gw_value_remove_1="$DEST_GW_VALUE_1"
-        fi
-        if [[ "${DEST_GW_MASK_REMOVE_1-}" ]]; then
-            _dest_gw_mask_remove_1="$DEST_GW_MASK_REMOVE_1"
-        else
-            _dest_gw_mask_remove_1="$DEST_GW_MASK_1"
-        fi
-        if [[ "${DEFAULT_GW_VALUE_REMOVE_1-}" ]]; then
-            _default_gw_value_remove_1="$DEFAULT_GW_VALUE_REMOVE_1"
-        else
-            _default_gw_value_remove_1="$DEFAULT_GW_VALUE_1"
-        fi
-        if [[ "${DEFAULT_GW_STATE_REMOVE_1-}" ]]; then
-            _default_gw_state_remove_1="$DEFAULT_GW_STATE_REMOVE_1"
-        else
-            _default_gw_state_remove_1="$DEFAULT_GW_STATE_1"
-        fi
-        if [[ "${DEFAULT_GW_METRIC_REMOVE_1-}" ]]; then
-            _default_gw_metric_remove_1="$DEFAULT_GW_METRIC_REMOVE_1"
-        else
-            _default_gw_metric_remove_1="$DEFAULT_GW_METRIC_1"
-        fi
-        _remove1="true"
-    fi
-    
-    if [[ "${DEST_GW_VALUE_REMOVE_2-}" || "${DEST_GW_MASK_REMOVE_2-}" || "${DEFAULT_GW_VALUE_REMOVE_2-}" || "${DEFAULT_GW_STATE_REMOVE_2-}" || "${DEFAULT_GW_METRIC_REMOVE_2-}" ]]; then
-        # We have to remove a routing table entry for gateway 2
-        if [[ "${DEST_GW_VALUE_REMOVE_2-}" ]]; then 
-            _dest_gw_value_remove_2="$DEST_GW_VALUE_REMOVE_2"
-        else
-            _dest_gw_value_remove_2="$DEST_GW_VALUE_2"
-        fi
-        if [[ "${DEST_GW_MASK_REMOVE_2-}" ]]; then
-            _dest_gw_mask_remove_2="$DEST_GW_MASK_REMOVE_2"
-        else
-            _dest_gw_mask_remove_2="$DEST_GW_MASK_2"
-        fi
-        if [[ "${DEFAULT_GW_VALUE_REMOVE_2-}" ]]; then
-            _default_gw_value_remove_2="$DEFAULT_GW_VALUE_REMOVE_2"
-        else
-            _default_gw_value_remove_2="$DEFAULT_GW_VALUE_2"
-        fi
-        if [[ "${DEFAULT_GW_STATE_REMOVE_2-}" ]]; then
-            _default_gw_state_remove_2="$DEFAULT_GW_STATE_REMOVE_2"
-        else
-            _default_gw_state_remove_2="$DEFAULT_GW_STATE_2"
-        fi
-        if [[ "${DEFAULT_GW_METRIC_REMOVE_2-}" ]]; then
-            _default_gw_metric_remove_2="$DEFAULT_GW_METRIC_REMOVE_2"
-        else
-            _default_gw_metric_remove_2="$DEFAULT_GW_METRIC_2"
-        fi
-        _remove2="true"
-    fi
-}
-
-DeleteGatewayRoutes()
-{
-    # Is there anything to do for gateway/route 1 or 2 ?
-    local _remove1="false"
-    local _remove2="false"
-    CollectGatewayRoutesRemoveData # sets _remove1 and _remove2 variable
-    
-    if [[ "true" == $_remove1 ]]; then
-        DeleteRoute $_dest_gw_value_remove_1 $_default_gw_value_remove_1 $_dest_gw_mask_remove_1 $_default_gw_metric_remove_1
-    fi
-    
-    if [[ "true" == $_remove2 ]]; then
-        DeleteRoute $_dest_gw_value_remove_2 $_default_gw_value_remove_2 $_dest_gw_mask_remove_2 $_default_gw_metric_remove_2
-    fi
-}
-
-DeleteDhcpDefaultGateways()
-{
-    local _remove="false"
-    
-    # Are there previously delivert gateway values (route entries) that have to be removed?
-    IFS=$'\n'
-   
-    if [ "$(ls /tmp | grep ^$DHCP_DATA_FILE_BACKUP_PREFIX)" ]; then
-        for cfgfile in $(ls -rt $DHCP_DATA_FILE_BACKUP_TEMPLATE*); do
-            # Get corresponding original (non-backup) configuration file
-            local device_name=${cfgfile#$DHCP_DATA_FILE_BACKUP_TEMPLATE}
-            
-            if [[ -e $DHCP_DATA_FILE_TEMPLATE$device_name ]]; then
-                # Configuration file exists. Check if it differs from backup file.
-                local ret=$(diff -q $cfgfile $DHCP_DATA_FILE_TEMPLATE$device_name)
-                [[ $ret ]] && _remove="true" # We do not have to change anything if files differ.
-            else
-                # Configuration file does not exist. Therefore remove routes stored to backup configuration file.
-                _remove="true"
-            fi
-        
-            # remove gateway entries
-            if [[ "true" == $_remove ]]; then
-                #Load dhcp-data-file content to array. Remove only gateways which are not part of this list.
-                new_gateways=()
-                [[ -e  $DHCP_DATA_FILE_TEMPLATE$device_name ]] && new_gateways=($(awk 'BEGIN{RS="[ \t\n]+"; FS="="} /DEFAULT_GATEWAY/ {print $2}' $DHCP_DATA_FILE_TEMPLATE$device_name ))
-            
-                # Load backup file content.
-                . "$cfgfile"
-                local index=1
-                local varname="DEFAULT_GATEWAY_$index"
-
-                # Following line supports set -u. If variable given by varname is currently
-                # not defined as shell variable, it will come into life with an empty value.
-                # Using eval is save because no user input is fed into its arguments.
-                local GWVALUE=$(eval echo \${$varname-})
-
-                while [ "$GWVALUE" ]; do
-                    local _remove_gw="true"
-                    if [[ 0 < ${#new_gateways[@]} ]]; then
-                        for gw in ${new_gateways[@]}; do
-                            [[ "$gw" == "$GWVALUE" ]] && _remove_gw="false"; break
-                        done
-                    fi
-                    [[ "true" == "$_remove_gw" ]] && DeleteRoute 0.0.0.0 $GWVALUE 0.0.0.0 $DHCP_DEFAULT_METRIC
-                    unset eval ${varname-}
-
-                    index=$(($index + 1))
-                    varname="DEFAULT_GATEWAY_$index"
-                    GWVALUE=$(eval echo \${$varname-})
-                done
-                unset eval ${varname-}
-            fi
-        done
-    fi
-}
-
-
-SetDefaultGateways()
-{
-    # Configure static gateways.
-    [ -e $STATIC_GW_FILE ] && . $STATIC_GW_FILE
-    
-    DeleteGatewayRoutes
-    
-    for number in 1 2; do
-        statename="DEFAULT_GW_STATE_$number"
-        if [ "${!statename}" = "enabled" ]; then
-            destinationname="DEST_GW_VALUE_$number"
-            dest_maskname="DEST_GW_MASK_$number"
-            valuename="DEFAULT_GW_VALUE_$number"
-            metricname="DEFAULT_GW_METRIC_$number"
-            if [ "${!destinationname}" == "default" ]; then
-                if [ "${!valuename}" ]; then
-                    AddDefaultRoute ${!valuename} ${!metricname}
-                fi
-            else
-                if [ "${!valuename}" ]; then
-                    AddRoute ${!destinationname} ${!valuename} ${!dest_maskname} ${!metricname}
-                fi
-            fi
-        fi
-    done
-
-    # DHCP
-    # Are there previously delivert gateway values (route entries) that have to be removed?
-    DeleteDhcpDefaultGateways
-
-    IFS=$'\n'
-    # Configure DHCP/BOOTP dynamic gateways
-    if [ "$(ls /tmp | grep ^$DHCP_DATA_FILE_PREFIX)" ]; then
-        for cfgfile in $(ls -rt $DHCP_DATA_FILE_TEMPLATE*); do
-            . "$cfgfile"
-            local index=1
-            local varname="DEFAULT_GATEWAY_$index"
-
-            # Following line supports set -u. If variable given by varname is currently
-            # not defined as shell variable, it will come into life with an empty value.
-            # Using eval is save because no user input is fed into its arguments.
-            local GWVALUE=$(eval echo \${$varname-})
-
-            while [ "$GWVALUE" ]; do
-                AddDefaultRoute $GWVALUE $DHCP_DEFAULT_METRIC
-                unset eval ${varname-}
-                index=$(($index + 1))
-                varname="DEFAULT_GATEWAY_$index"
-                GWVALUE=$(eval echo \${$varname-})
-            done
-            
-            unset eval ${varname-}
-        done
-    fi
-}
 
 function DomainToResolvConf()
 {
@@ -288,7 +52,7 @@ function DomainToDNSMASQ()
 
     #get actual domain
     local act_domain=""
-    IFS== read -r dummy act_domain <<< "`egrep \"^domain=\" $dnsmasq_conf`"
+    IFS== read -r dummy act_domain <<< "$(egrep \"^domain=\" $dnsmasq_conf)"
 
     #check if act_domain differs from new_domain
     local domain_search="/^\(#\)\?domain=.*"
@@ -313,8 +77,8 @@ function UpdateLocalDNSResolve()
    local hostname=$1
    local FQDN="$hostname.$2"
 
-   local x1ip=`/etc/config-tools/get_eth_config X1 ip-address`
-   local x2ip=`/etc/config-tools/get_eth_config X2 ip-address`
+   local x1ip=$(/etc/config-tools/get_eth_config X1 ip-address)
+   local x2ip=$(/etc/config-tools/get_eth_config X2 ip-address)
 
    local marker_text_1="#SYSTEM HOST ENTRY -- DO NOT REMOVE -- WILL BE CREATED BY CONFIG-TOOLS"
    local marker_text_2="#END SYSTEM HOST -- DO NOT REMOVE"
@@ -346,16 +110,16 @@ function UpdateHostConf()
     grep -q "^127\.0\.1\.1" /etc/hosts || sed -i -e "/^127\.0\.0\.1/a127.0.1.1\t$defaulthost\t$defaulthost" /etc/hosts
 
     # load static names
-    . $HOSTCONFFILE
+    . "$HOSTCONFFILE"
     [ "$HOSTNAME" ] && validhost=$HOSTNAME
     [ "$DNSDOMAIN" ] && validdomain=$DNSDOMAIN
 
     # now load dynamic dhcp names of newest file
-    if [ "$(ls /tmp | grep ^$DHCP_DATA_FILE_PREFIX)" ]; then
-        cfgfile=$(ls -rt $DHCP_DATA_FILE_TEMPLATE* | tail -1)
+    if [ "$(find /tmp -name "dhcp-bootp-data-"* -type f -printf . | wc -c)" -gt 0 ]; then
+        cfgfile=$(ls -rt "$DHCP_DATA_FILE_TEMPLATE"* | tail -1)
         DHCPHOSTNAME=
         DHCPDOMAIN=
-        . $cfgfile
+        . "$cfgfile"
         [ "$DHCPHOSTNAME" ] && validhost=$DHCPHOSTNAME
         [ "$DHCPDOMAIN" ] && validdomain=$DHCPDOMAIN
     fi
@@ -373,8 +137,8 @@ function UpdateHostConf()
             else
                 echo -e "127.0.1.1\t$FQDN\t$validhost" >> /etc/hosts
             fi
-            echo $validhost > /etc/hostname
-            echo $validhost > /proc/sys/kernel/hostname
+            echo "$validhost" > /etc/hostname
+            echo "$validhost" > /proc/sys/kernel/hostname
         else
             # empty hostname, clear hostname files and set default hostname in kernel
             if [ "${validdomain-}" ]; then
@@ -383,7 +147,7 @@ function UpdateHostConf()
                 sed -i -e "/^127\.0\.1\.1/c127.0.1.1\t$defaulthost\t$defaulthost" /etc/hosts
             fi
             rm -f /etc/hostname
-            echo $defaulthost > /proc/sys/kernel/hostname
+            echo "$defaulthost" > /proc/sys/kernel/hostname
         fi
         DomainToResolvConf "${validdomain-}"
         if [ "${validhost-}" ]; then
@@ -397,21 +161,13 @@ function UpdateHostConf()
 
 function DoUpdates()
 {
-    # Gateways are setup via update_routing script.
-    # Execute SetDefaultGateways only in absence of update_routing script for bachward compatibility.
-    [[ ! -e /etc/config-tools/events/networking/update_routing ]] && SetDefaultGateways
     UpdateHostConf
 }
 
 # main: set global variables
 PATH="/bin:/sbin:/usr/bin:/usr/sbin"
-CFGT="/etc/config-tools"
 DHCP_DATA_FILE_PREFIX=dhcp-bootp-data-
 DHCP_DATA_FILE_TEMPLATE=/tmp/$DHCP_DATA_FILE_PREFIX
-DHCP_DATA_FILE_BACKUP_PREFIX=backup-$DHCP_DATA_FILE_PREFIX
-DHCP_DATA_FILE_BACKUP_TEMPLATE=/tmp/$DHCP_DATA_FILE_BACKUP_PREFIX
-STATIC_GW_FILE=/etc/specific/static_gateway.conf
-DHCP_DEFAULT_METRIC=10
 HOSTCONFFILE=/etc/specific/host.conf
 
 # Use advisory lock to avoid race with config_dnsmasq_c and this script on more then one 

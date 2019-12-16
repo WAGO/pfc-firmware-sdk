@@ -72,10 +72,10 @@ DROPBEAR_CONF_OPT 	:= \
 	$(CROSS_AUTOCONF_USR) \
 	$(GLOBAL_LARGE_FILE_OPTION) \
 	--$(call ptx/endis, PTXCONF_DROPBEAR_ZLIB)-zlib \
-	--disable-pam \
+	--$(call ptx/endis, PTXCONF_DROPBEAR_PAM)-pam \
 	--$(call ptx/disen, PTXCONF_DROPBEAR_DIS_OPENPTY)-openpty \
 	--$(call ptx/disen, PTXCONF_DROPBEAR_DIS_SYSLOG)-syslog \
-	--enable-shadow \
+	--$(call ptx/disen, PTXCONF_DROPBEAR_PAM)-shadow \
 	--enable-bundled-libtom \
 	--$(call ptx/disen, PTXCONF_DROPBEAR_DIS_LASTLOG)-lastlog \
 	--$(call ptx/disen, PTXCONF_DROPBEAR_DIS_UTMP)-utmp \
@@ -302,13 +302,22 @@ endif
 
 ifdef PTXCONF_DROPBEAR_PASSWD
 	@echo "ptxdist: enabling passwd"
-	@$(call enable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_SVR_PASSWORD_AUTH)
 	@$(call enable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_CLI_PASSWORD_AUTH)
+ifdef PTXCONF_DROPBEAR_PAM
+	@echo "ptxdist: enabling Linux-PAM"
+	@$(call disable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_SVR_PASSWORD_AUTH)
+	@$(call enable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_SVR_PAM_AUTH)
+else
+	@echo "ptxdist: enabling shadow"
+	@$(call enable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_SVR_PASSWORD_AUTH)
+	@$(call disable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_SVR_PAM_AUTH)
+endif # PTXCONF_DROPBEAR_PAM
 else
 	@echo "ptxdist: disabling passwd"
 	@$(call disable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_SVR_PASSWORD_AUTH)
+	@$(call disable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_SVR_PAM_AUTH)
 	@$(call disable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_CLI_PASSWORD_AUTH)
-endif
+endif # PTXCONF_DROPBEAR_PASSWD
 
 ifdef PTXCONF_DROPBEAR_PUBKEY
 	@echo "ptxdist: enabling pubkey"
@@ -358,6 +367,10 @@ ifdef PTXCONF_DROPBEAR_SCP
 		/usr/bin/scp)
 	@$(call install_copy, dropbear, 0, 0, 0755, -, \
 		/usr/bin/dbclient)
+endif
+
+ifdef PTXCONF_DROPBEAR_PAM
+	@$(call install_alternative, dropbear, 0, 0, 0644, /etc/pam.d/sshd)
 endif
 
 #	#

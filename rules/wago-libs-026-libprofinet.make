@@ -111,9 +111,7 @@ $(STATEDIR)/libprofinet.targetinstall:
 	@$(call install_fixup, libprofinet,DESCRIPTION,missing)
 
 	@$(call install_lib, libprofinet, 0, 0, 0644, libprofinet)
-	
-	@$(call install_copy, libprofinet, 0, 0, 0644, - ,/etc/snmp/snmpd_lldp_agent.conf)
-	
+		
 	@$(call install_copy, libprofinet, 0, 0, 0644, -, /usr/share/snmp/mibs/LLDP-EXT-DOT1-MIB.txt)
 	@$(call install_copy, libprofinet, 0, 0, 0644, -, /usr/share/snmp/mibs/LLDP-EXT-DOT3-MIB.txt)
 	@$(call install_copy, libprofinet, 0, 0, 0644, -, /usr/share/snmp/mibs/LLDP-EXT-IEC61158-TYPE10-V2.3.2.32-MIB.txt)

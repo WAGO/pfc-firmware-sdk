@@ -91,8 +91,6 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	cp $(LIBDBUSKBUSCOMMON_DIR)/include/ldkc_kbus_information.h $(PTXCONF_SYSROOT_TARGET)/usr/include/
 	cp $(LIBDBUSKBUSCOMMON_DIR)/include/ldkc_kbus_register_communication.h $(PTXCONF_SYSROOT_TARGET)/usr/include/
-	-cp $(LIBDBUSKBUSCOMMON_DIR)/lib/.libs/libdbuskbuscommon.a $(PTXCONF_SYSROOT_TARGET)/usr/lib/
-	-cp $(LIBDBUSKBUSCOMMON_DIR)/lib/libdbuskbuscommon.a $(PTXCONF_SYSROOT_TARGET)/usr/lib/
 	cp $(LIBDBUSKBUSCOMMON_DIR)/lib/.libs/libdbuskbuscommon.la $(PTXCONF_SYSROOT_TARGET)/usr/lib/
 	cp $(LIBDBUSKBUSCOMMON_DIR)/lib/.libs/libdbuskbuscommon.lai $(PTXCONF_SYSROOT_TARGET)/usr/lib/
 	cp $(LIBDBUSKBUSCOMMON_DIR)/lib/.libs/libdbuskbuscommon.so $(PTXCONF_SYSROOT_TARGET)/usr/lib/

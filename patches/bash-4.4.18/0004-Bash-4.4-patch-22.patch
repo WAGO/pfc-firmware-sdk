@@ -1,0 +1,32 @@
+diff --recursive --unified a/lib/readline/readline.c b/lib/readline/readline.c
+--- a/lib/readline/readline.c	2019-09-18 11:29:16.880514902 +0200
++++ b/lib/readline/readline.c	2019-09-18 11:30:14.344514902 +0200
+@@ -1057,7 +1057,7 @@
+ 	/* We probably shadowed a keymap, so keep going. */
+ 	r = _rl_dispatch (ANYOTHERKEY, m);
+     }
+-  else if (r && map[ANYOTHERKEY].function)
++  else if (r < 0 && map[ANYOTHERKEY].function)
+     {
+       /* We didn't match (r is probably -1), so return something to
+ 	 tell the caller that it should try ANYOTHERKEY for an
+@@ -1069,7 +1069,7 @@
+       _rl_dispatching_keymap = map;
+       return -2;
+     }
+-  else if (r && got_subseq)
++  else if (r < 0 && got_subseq)		/* XXX */
+     {
+       /* OK, back up the chain. */
+       if (RL_ISSTATE (RL_STATE_MACROINPUT))
+diff --recursive --unified a/patchlevel.h b/patchlevel.h
+--- a/patchlevel.h	2019-09-18 11:29:16.872514902 +0200
++++ b/patchlevel.h	2019-09-18 11:30:14.344514902 +0200
+@@ -25,6 +25,6 @@
+    regexp `^#define[ 	]*PATCHLEVEL', since that's what support/mkversion.sh
+    looks for to find the patch level (for the sccs version string). */
+ 
+-#define PATCHLEVEL 21
++#define PATCHLEVEL 22
+ 
+ #endif /* _PATCHLEVEL_H_ */

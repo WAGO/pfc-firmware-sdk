@@ -1,5 +1,3 @@
-pure-ftpd-1.0.47/AUTHORS
-
 Credits for Troll-FTPd are going to the following dudes.
 
 * Original Troll-FTPd authors :
@@ -343,9 +341,6 @@ Copyright 1995-2000 Trolltech AS. Copyright 2001-2002 Arnt Gulbrandsen.
 Use, modification and distribution is allowed without limitation,
 warranty, or liability of any kind.
 
-pure-ftpd-1.0.47/COPYING
-
-
 Pure-FTPd is covered by the following license :
 
 /*
@@ -374,4 +369,3 @@ bsd-getopt_long.h and alt_arc4random.c source files are based on the
 OpenBSD and NetBSD projects and they are covered by the BSD license.
 
   The original license is enclosed at the beginning of the related files.
-

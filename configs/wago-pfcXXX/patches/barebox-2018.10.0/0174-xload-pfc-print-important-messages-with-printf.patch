@@ -1,0 +1,123 @@
+From e4e9379823f12d75daa61fb14d4972cc78e17dd7 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 16 Oct 2019 07:38:10 +0200
+Subject: [PATCH] xload-pfc: print important messages with printf
+
+Due to the fact, that the compile log level of am35xx based devices
+(e.g. PFC200) is reduced [1] (see commit "xload-pfc: mount root and devices
+properly"), we print important boot messages with printf instead of
+pr_info macro to get this messages at boot time.
+
+[1] log level is reduced to get an maximum image size of 61900 bytes
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/mach-omap/xload-pfc.c | 32 +++++++++++++++++++-------------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/mach-omap/xload-pfc.c b/arch/arm/mach-omap/xload-pfc.c
+index 216cdc0..a2d0e23 100644
+--- a/arch/arm/mach-omap/xload-pfc.c
++++ b/arch/arm/mach-omap/xload-pfc.c
+@@ -192,18 +192,18 @@ static __noreturn int pfc_xload(void)
+ 		goto out;
+ 	}
+ 
+-	pr_info("%s: rom-code boots us from: ", __func__);
++	printf("%s: rom-code boots us from: ", __func__);
+ 
+ 	bootsource = bootsource_get();
+ 	switch (bootsource) {
+ 		case BOOTSOURCE_MMC:
+-			pr_info("mmc%d\n", bootsource_get_instance());
++			printf("mmc%d\n", bootsource_get_instance());
+ 			break;
+ 		case BOOTSOURCE_NAND:
+-			pr_info("nand%d\n", bootsource_get_instance());
++			printf("nand%d\n", bootsource_get_instance());
+ 			break;
+ 		default:
+-			pr_info("unknown\n");
++			printf("unknown\n");
+ 	}
+ 
+ 	if (!board->board_variant)
+@@ -211,27 +211,30 @@ static __noreturn int pfc_xload(void)
+ 	else
+ 		bootfile = basprintf("barebox.bin.%s", board->board_variant);
+ 
+-	pr_info("%s: board-variant: %s\n", __func__, board->board_variant ?
++	printf("%s: board-variant: %s\n", __func__, board->board_variant ?
+ 							board->board_variant :
+ 							"none");
+ 
+ 	if (test_bit(HAS_SD, board->boot_devices) && pfc_mmc_inserted()) {
+ 		omap_set_bootmmc_devname("mmc0");
+-		pr_info("%s: try to boot vfat from %s\n", __func__,
++		printf("%s: boot %s vfat from %s\n", __func__, bootfile,
+ 						omap_get_bootmmc_devname());
+ 
+ 		barebox = pfc_xload_boot_mmc(bootfile);
+ 		if (!barebox) {
+-			pr_info("%s: file %s not found on %s\n", __func__,
++			printf("%s: file %s not found on %s\n", __func__,
+ 					bootfile, omap_get_bootmmc_devname());
+ 
+ 			/* legacy support for FW < 05 */
++			printf("%s: boot %s vfat from %s\n", __func__,
++						bootfile_legacy,
++						omap_get_bootmmc_devname());
+ 			barebox = pfc_xload_boot_mmc(bootfile_legacy);
+ 			if (barebox) {
+ 				/* skip uimage header */
+ 				barebox += UIMAGE_HEADER_SIZE;
+ 			} else {
+-				pr_info("%s: file %s not found on %s\n",
++				printf("%s: file %s not found on %s\n",
+ 						__func__, bootfile_legacy,
+ 						omap_get_bootmmc_devname());
+ 			}
+@@ -242,7 +245,7 @@ static __noreturn int pfc_xload(void)
+ 		omap_set_bootmmc_devname("mmc1");
+ 
+ 		if (barebox_boot_parts) {
+-			pr_info("%s: try to boot raw from %s\n", __func__,
++			printf("%s: boot raw from %s\n", __func__,
+ 						omap_get_bootmmc_devname());
+ 
+ 			barebox = pfc_xload_boot_parts(
+@@ -251,7 +254,11 @@ static __noreturn int pfc_xload(void)
+ 		}
+ 
+ 		if (!barebox) {
+-			pr_info("%s: try to boot vfat from %s\n", __func__,
++			printf("%s: no raw image file found on %s\n", __func__,
++						omap_get_bootmmc_devname());
++
++			printf("%s: boot %s vfat from %s\n", __func__,
++						bootfile,
+ 						omap_get_bootmmc_devname());
+ 			barebox = pfc_xload_boot_mmc(bootfile);
+ 		}
+@@ -259,7 +266,7 @@ static __noreturn int pfc_xload(void)
+ 
+ 	if (test_bit(HAS_NAND, board->boot_devices) && !barebox) {
+ 		if (barebox_boot_parts) {
+-			pr_info("%s: try to boot raw from nand\n", __func__);
++			printf("%s: boot raw from nand\n", __func__);
+ 			barebox = pfc_xload_boot_parts(
+ 					barebox_boot_parts->boot_nandslots,
+ 					barebox_boot_parts->num_boot_nandslots);
+@@ -270,8 +277,7 @@ static __noreturn int pfc_xload(void)
+ 		omap_start_barebox(barebox);
+ 
+ out:
+-	pr_err("%s: could not boot %s from any boot device\n", __func__,
+-								bootfile);
++	pr_err("%s: could not boot from any boot device\n", __func__);
+ 	free(bootfile);
+ 	while (1);
+ }
+-- 
+2.7.4
+

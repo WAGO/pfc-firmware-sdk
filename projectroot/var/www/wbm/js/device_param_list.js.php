@@ -3020,6 +3020,48 @@ var CreateDeviceparams = (function()
           sudo      : true
         }
       });
+      
+      deviceParams.Add(
+      {
+        id                    : 'bacnet_current_state',
+        exampleValue          : '',
+        configtoolReadParams  :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-g', 'current-state' ],
+          sudo      : true
+        }
+      });
+      
+      deviceParams.Add(
+      {
+        id                    : 'bacnet_status_info',
+        exampleValue          : '',
+        configtoolReadParams  :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-g', 'status-info' ],
+          sudo      : true
+        }
+      });
+      
+      deviceParams.Add(
+      {
+        id                    : 'bacnet_enabled',
+        exampleValue          : '',
+        configtoolReadParams  :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-g', 'config-state' ],
+          sudo      : true
+        },
+        configtoolWriteParams :
+        {
+          name      : 'bacnet_config',
+          parameter : [ '-s', 'config-state', '-v', '$enabledState' ],
+          sudo      : true
+        }
+      });
 
       deviceParams.Add(
       {
