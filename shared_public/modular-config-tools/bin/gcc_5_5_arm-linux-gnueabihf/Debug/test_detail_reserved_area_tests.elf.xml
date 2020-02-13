@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?><testsuites tests="9" failures="0" disabled="0" errors="0" timestamp="2019-12-05T19:34:52" time="0.052" name="AllTests">
-  <testsuite name="modular-config-tools.FileSystem" tests="9" failures="0" disabled="0" errors="0" time="0.047">
+<?xml version="1.0" encoding="UTF-8"?><testsuites tests="9" failures="0" disabled="0" errors="0" timestamp="2020-01-16T17:37:38" time="0.06" name="AllTests">
+  <testsuite name="modular-config-tools.FileSystem" tests="9" failures="0" disabled="0" errors="0" time="0.055">
     <testcase name="CheckForMountPoint" status="run" time="0.002" classname="modular-config-tools.FileSystem"/>
     <testcase name="CheckForMountPointEmptyPath" status="run" time="0" classname="modular-config-tools.FileSystem"/>
     <testcase name="CheckForMountPointAbsolutePath" status="run" time="0" classname="modular-config-tools.FileSystem"/>
     <testcase name="GetParentFolderStringRoot" status="run" time="0" classname="modular-config-tools.FileSystem"/>
-    <testcase name="GetParentFolderString" status="run" time="0.001" classname="modular-config-tools.FileSystem"/>
+    <testcase name="GetParentFolderString" status="run" time="0" classname="modular-config-tools.FileSystem"/>
     <testcase name="IsFileAvailableExistingDirectory" status="run" time="0" classname="modular-config-tools.FileSystem"/>
-    <testcase name="IsFileAvailableMissingDirectory" status="run" time="0.027" classname="modular-config-tools.FileSystem"/>
+    <testcase name="IsFileAvailableMissingDirectory" status="run" time="0.036" classname="modular-config-tools.FileSystem"/>
     <testcase name="CreateFolderHierarchy" status="run" time="0.015" classname="modular-config-tools.FileSystem"/>
     <testcase name="CreateFolderHierarchyFolderExists" status="run" time="0" classname="modular-config-tools.FileSystem"/>
   </testsuite>

@@ -371,3 +371,5 @@
 0371-rmd-fix-null-pointer-exception-introduced-by-the-pre.patch
 0372-net-dsa-slave-Don-t-propagate-flag-changes-on-down-s.patch
 0373-add-new-version-w02.06.00.patch
+0374-net-dsa-tag_tail-fix-bug-when-no-space-is-left-in-th.patch
+0375-add-new-version-w02.06.01.patch

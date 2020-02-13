@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><testsuites tests="71" failures="0" disabled="0" errors="0" timestamp="2019-12-05T19:34:51" time="0.084" name="AllTests">
-  <testsuite name="modular-config-tools.CommonMain" tests="5" failures="0" disabled="0" errors="0" time="0.042">
+<?xml version="1.0" encoding="UTF-8"?><testsuites tests="71" failures="0" disabled="0" errors="0" timestamp="2020-01-16T17:37:37" time="0.093" name="AllTests">
+  <testsuite name="modular-config-tools.CommonMain" tests="5" failures="0" disabled="0" errors="0" time="0.041">
     <testcase name="CheckFlow" status="run" time="0.034" classname="modular-config-tools.CommonMain"/>
     <testcase name="FailSetOptionDefaults" status="run" time="0.002" classname="modular-config-tools.CommonMain"/>
     <testcase name="FailEvaluateEarlyOptions" status="run" time="0.001" classname="modular-config-tools.CommonMain"/>
@@ -9,26 +9,26 @@
   <testsuite name="modular-config-tools.ErrorCodeHelper" tests="3" failures="0" disabled="0" errors="0" time="0.001">
     <testcase name="StatusOk" status="run" time="0" classname="modular-config-tools.ErrorCodeHelper"/>
     <testcase name="StatusFailure" status="run" time="0" classname="modular-config-tools.ErrorCodeHelper"/>
-    <testcase name="StatusCodeMapping" status="run" time="0" classname="modular-config-tools.ErrorCodeHelper"/>
+    <testcase name="StatusCodeMapping" status="run" time="0.001" classname="modular-config-tools.ErrorCodeHelper"/>
   </testsuite>
-  <testsuite name="modular-config-tools.EarlyOptionEvaluation" tests="9" failures="0" disabled="0" errors="0" time="0.003">
-    <testcase name="EvaluateShortOption_q" status="run" time="0.001" classname="modular-config-tools.EarlyOptionEvaluation"/>
+  <testsuite name="modular-config-tools.EarlyOptionEvaluation" tests="9" failures="0" disabled="0" errors="0" time="0.002">
+    <testcase name="EvaluateShortOption_q" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
     <testcase name="EvaluateShortOption_qMix" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
-    <testcase name="EvaluateShortOption_x" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
+    <testcase name="EvaluateShortOption_x" status="run" time="0.001" classname="modular-config-tools.EarlyOptionEvaluation"/>
     <testcase name="EvaluateShortOption_xMix" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
     <testcase name="EvaluateShortOption_xqMix" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
-    <testcase name="EvaluateLongOption_q" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
-    <testcase name="EvaluateLongOption_x" status="run" time="0.001" classname="modular-config-tools.EarlyOptionEvaluation"/>
+    <testcase name="EvaluateLongOption_q" status="run" time="0.001" classname="modular-config-tools.EarlyOptionEvaluation"/>
+    <testcase name="EvaluateLongOption_x" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
     <testcase name="EvaluateLongOption_xqMix" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
     <testcase name="DecodeUriIfPredefined" status="run" time="0" classname="modular-config-tools.EarlyOptionEvaluation"/>
   </testsuite>
   <testsuite name="modular-config-tools.CommonResources" tests="1" failures="0" disabled="0" errors="0" time="0">
     <testcase name="LastErrorFile" status="run" time="0" classname="modular-config-tools.CommonResources"/>
   </testsuite>
-  <testsuite name="modular-config-tools.ChangeableFile" tests="3" failures="0" disabled="0" errors="0" time="0.031">
+  <testsuite name="modular-config-tools.ChangeableFile" tests="3" failures="0" disabled="0" errors="0" time="0.04">
     <testcase name="PrepareChangeableFile" status="run" time="0" classname="modular-config-tools.ChangeableFile"/>
-    <testcase name="ReleaseEmptyHandle" status="run" time="0" classname="modular-config-tools.ChangeableFile"/>
-    <testcase name="CommitChangedFile" status="run" time="0.031" classname="modular-config-tools.ChangeableFile"/>
+    <testcase name="ReleaseEmptyHandle" status="run" time="0.001" classname="modular-config-tools.ChangeableFile"/>
+    <testcase name="CommitChangedFile" status="run" time="0.039" classname="modular-config-tools.ChangeableFile"/>
   </testsuite>
   <testsuite name="modular-config-tools.ParamHandling/ParamHandlingUriChar" tests="47" failures="0" disabled="0" errors="0" time="0.002">
     <testcase name="DecodeUriChar/0" value_param="8-byte object &lt;88-F4 15-00 8C-F4 15-00&gt;" status="run" time="0.001" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
@@ -55,7 +55,7 @@
     <testcase name="DecodeUriChar/21" value_param="8-byte object &lt;1C-F5 15-00 04-F5 15-00&gt;" status="run" time="0" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
     <testcase name="DecodeUriChar/22" value_param="8-byte object &lt;20-F5 15-00 24-F5 15-00&gt;" status="run" time="0" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
     <testcase name="DecodeUriChar/23" value_param="8-byte object &lt;28-F5 15-00 2C-F5 15-00&gt;" status="run" time="0" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
-    <testcase name="DecodeUriChar/24" value_param="8-byte object &lt;30-F5 15-00 34-F5 15-00&gt;" status="run" time="0" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
+    <testcase name="DecodeUriChar/24" value_param="8-byte object &lt;30-F5 15-00 34-F5 15-00&gt;" status="run" time="0.001" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
     <testcase name="DecodeUriChar/25" value_param="8-byte object &lt;38-F5 15-00 3C-F5 15-00&gt;" status="run" time="0" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
     <testcase name="DecodeUriChar/26" value_param="8-byte object &lt;40-F5 15-00 44-F5 15-00&gt;" status="run" time="0" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>
     <testcase name="DecodeUriChar/27" value_param="8-byte object &lt;48-F5 15-00 4C-F5 15-00&gt;" status="run" time="0" classname="modular-config-tools.ParamHandling/ParamHandlingUriChar"/>

@@ -1,16 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?><testsuites tests="44" failures="0" disabled="0" errors="0" timestamp="2019-12-05T19:33:48" time="0.106" name="AllTests">
-  <testsuite name="libcommonheader.Assert" tests="4" failures="0" disabled="0" errors="0" time="0.089">
+<?xml version="1.0" encoding="UTF-8"?><testsuites tests="44" failures="0" disabled="0" errors="0" timestamp="2020-01-16T17:36:40" time="0.102" name="AllTests">
+  <testsuite name="libcommonheader.Assert" tests="4" failures="0" disabled="0" errors="0" time="0.088">
     <testcase name="SucceedC" status="run" time="0.001" classname="libcommonheader.Assert"/>
-    <testcase name="FailC_DeathTest" status="run" time="0.05" classname="libcommonheader.Assert"/>
+    <testcase name="FailC_DeathTest" status="run" time="0.051" classname="libcommonheader.Assert"/>
     <testcase name="SucceedCPP" status="run" time="0" classname="libcommonheader.Assert"/>
-    <testcase name="FailCPP_DeathTest" status="run" time="0.037" classname="libcommonheader.Assert"/>
+    <testcase name="FailCPP_DeathTest" status="run" time="0.034" classname="libcommonheader.Assert"/>
   </testsuite>
   <testsuite name="libcommonheader.Export" tests="5" failures="0" disabled="0" errors="0" time="0.001">
     <testcase name="ExportedCFunction" status="run" time="0" classname="libcommonheader.Export"/>
     <testcase name="NotExportedCFunction" status="run" time="0" classname="libcommonheader.Export"/>
     <testcase name="InheritedExportedCPPMethod" status="run" time="0" classname="libcommonheader.Export"/>
     <testcase name="ExportedCPPMethod" status="run" time="0" classname="libcommonheader.Export"/>
-    <testcase name="NotExportedCPPMethod" status="run" time="0.001" classname="libcommonheader.Export"/>
+    <testcase name="NotExportedCPPMethod" status="run" time="0" classname="libcommonheader.Export"/>
   </testsuite>
   <testsuite name="libcommonheader.Log_Fixture" tests="9" failures="0" disabled="0" errors="0" time="0.003">
     <testcase name="DebugMessageWhileOff" status="run" time="0" classname="libcommonheader.Log_Fixture"/>
@@ -43,12 +43,12 @@
   </testsuite>
   <testsuite name="libcommonheader.Structuring" tests="12" failures="0" disabled="0" errors="0" time="0.002">
     <testcase name="BreakableScopeC" status="run" time="0" classname="libcommonheader.Structuring"/>
-    <testcase name="InfiniteLoopC" status="run" time="0.001" classname="libcommonheader.Structuring"/>
+    <testcase name="InfiniteLoopC" status="run" time="0" classname="libcommonheader.Structuring"/>
     <testcase name="MemberSizeC" status="run" time="0" classname="libcommonheader.Structuring"/>
     <testcase name="ElementSizeC" status="run" time="0" classname="libcommonheader.Structuring"/>
-    <testcase name="ContainerFromMemberC" status="run" time="0" classname="libcommonheader.Structuring"/>
+    <testcase name="ContainerFromMemberC" status="run" time="0.001" classname="libcommonheader.Structuring"/>
     <testcase name="ConstContainerFromMemberC" status="run" time="0" classname="libcommonheader.Structuring"/>
-    <testcase name="BreakableScopeCPP" status="run" time="0.001" classname="libcommonheader.Structuring"/>
+    <testcase name="BreakableScopeCPP" status="run" time="0" classname="libcommonheader.Structuring"/>
     <testcase name="InfiniteLoopCPP" status="run" time="0" classname="libcommonheader.Structuring"/>
     <testcase name="MemberSizeCPP" status="run" time="0" classname="libcommonheader.Structuring"/>
     <testcase name="ElementSizeCPP" status="run" time="0" classname="libcommonheader.Structuring"/>

@@ -1,6 +1,6 @@
 ***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
-# Install WAGO-PFC-SDK-2019.12.1 on Ubuntu 16.04.5 (64bit) LTS
+# Install WAGO-PFC-SDK on Ubuntu 16.04.5 (64bit) LTS
 
 This HowTo describes steps to install the Software-Development-Kit (SDK) for PFC's on Ubuntu16.04
 
@@ -369,7 +369,7 @@ By default, PFC tries to find a DHCP-Server to retrieve an IP-Address.
 2. Insert SD-Card with custom-image
 3. PowerOn PFC
 
-## 8.) Default settings for PFC 03.03.10
+## 8.) Default settings for PFC
 
 ### 8.1) User accounts (usr/pwd):
 
