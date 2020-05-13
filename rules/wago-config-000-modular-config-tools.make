@@ -1,6 +1,8 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by <PEn>
+# Copyright (C) 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
+#
+# Makefile-Author: PEn (WAGO Kontakttechnik GmbH & Co. KG)
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +18,7 @@ PACKAGES-$(PTXCONF_MODULAR_CONFIG_TOOLS) += modular-config-tools
 #
 # Paths and names
 #
-MODULAR_CONFIG_TOOLS_VERSION        := 0.2.1
+MODULAR_CONFIG_TOOLS_VERSION        := 0.3.1
 MODULAR_CONFIG_TOOLS_MD5            :=
 MODULAR_CONFIG_TOOLS                := modular-config-tools
 MODULAR_CONFIG_TOOLS_URL            := file://shared_public/$(MODULAR_CONFIG_TOOLS)
@@ -105,8 +107,8 @@ ifdef PTXCONF_CT_RESERVED_AREA
 	@$(call install_copy, modular-config-tools, 0, 0, 0750, $(MODULAR_CONFIG_TOOLS_BUILD_DIR)/reserved_area.elf, /etc/config-tools/reserved_area)
 endif
 
-ifdef PTXCONF_CT_CONFIG_RMD
-	@$(call install_copy, modular-config-tools, 0, 0, 0750, $(MODULAR_CONFIG_TOOLS_BUILD_DIR)/config_rmd.elf, /etc/config-tools/config_rmd)
+ifdef PTXCONF_CT_DETECT_FEATURE
+	@$(call install_copy, modular-config-tools, 0, 0, 0750, $(MODULAR_CONFIG_TOOLS_BUILD_DIR)/detect_feature.elf, /etc/config-tools/detect_feature)
 endif
 
 	@$(call install_finish, modular-config-tools)
@@ -127,6 +129,5 @@ $(STATEDIR)/modular-config-tools.clean:
 	@$(call clean_pkg, MODULAR_CONFIG_TOOLS)
 	@rm -rf $(MODULAR_CONFIG_TOOLS_BUILDROOT_DIR)
 
-	@$(call touch)
 # vim: syntax=make
 

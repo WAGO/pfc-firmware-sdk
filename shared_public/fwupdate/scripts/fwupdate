@@ -46,7 +46,7 @@ FUNCTION="no"
 #
 # Return: Exit code, 0 on success, unequal to 0 otherwise
 #-----------------------------------------------------------------------------#
-main()
+fwupdate_main()
 {
     local RESULT=0
 
@@ -649,5 +649,5 @@ fwupdate_frontend_state()
 }
 
 # Start main function
-main "$@"
+fwupdate_main "$@"
 exit $?

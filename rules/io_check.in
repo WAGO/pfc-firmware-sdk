@@ -13,6 +13,9 @@ menuconfig IO_CHECK
 	select LIBXML2			  if IO_CHECK_PROT_1288
 	select CROSS_LIBTOOL
 	select LIBWAGODRM                 if IO_CHECK_PROT_1288 
+	select MDMD_NG
+	select NETCONFD
+
 	help
 	  server for handling with the WAGO-Service-Protocoll
 

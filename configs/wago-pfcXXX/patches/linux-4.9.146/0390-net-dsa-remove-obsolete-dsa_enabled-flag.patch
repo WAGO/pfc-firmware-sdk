@@ -1,0 +1,156 @@
+From 15b6b880202a49ef60244ce5d9fa1d4aa2d4e065 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Tue, 10 Mar 2020 17:30:14 +0100
+Subject: [PATCH] net: dsa: remove obsolete dsa_enabled flag
+
+DSA is always enabled, its not necessary anymore to enable/disable dsa
+at runtime.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ .../dts/am335x-pfc-750_821x-mv88e6321.dtsi     |  1 -
+ .../boot/dts/am3505-pfc-750_820x-ksz8863.dtsi  |  1 -
+ drivers/net/dsa/ksz886x/ksz8863.c              |  3 ---
+ drivers/net/dsa/mv88e6xxx/chip.c               |  5 -----
+ include/net/dsa.h                              | 16 +---------------
+ net/dsa/dsa.c                                  | 18 ------------------
+ 6 files changed, 1 insertion(+), 43 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
+index 64504ada8e98..7e3472674a75 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
+@@ -60,7 +60,6 @@
+ 		reg = <0>;
+ 		dsa,member = <0 0>;
+ 		phy-scan;
+-		dsa,enable-on-boot;
+ 
+ 		interrupt-controller;
+ 		#interrupt-cells = <2>;
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi b/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
+index df202c1c17ea..6df6319c19b2 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
++++ b/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
+@@ -43,7 +43,6 @@
+ 
+ 		reg = <0>;
+ 		dsa,member = <0 0>;
+-		dsa,enable-on-boot;
+ 
+ 		ksz,reset-switch;
+ 
+diff --git a/drivers/net/dsa/ksz886x/ksz8863.c b/drivers/net/dsa/ksz886x/ksz8863.c
+index df99dcf456d3..51410a288330 100644
+--- a/drivers/net/dsa/ksz886x/ksz8863.c
++++ b/drivers/net/dsa/ksz886x/ksz8863.c
+@@ -865,9 +865,6 @@ static int ksz8863_probe(struct mdio_device *mdiodev)
+ 	if (err)
+ 		goto err_free;
+ 
+-	/* cleanup dsa enable stuff its not needed anymore */
+-	dsa_enable(1);
+-
+ 	err = ksz8863_detect(chip);
+ 	if (err)
+ 		goto err_free;
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index 06ea9063ff1a..d5bd3d5951fd 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -4352,11 +4352,6 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 			mdiobus_scan(mdiodev->bus, i);
+ 	}
+ 
+-	if (of_property_read_bool(np, "dsa,enable-on-boot"))
+-		dsa_enable(1);
+-	else
+-		dsa_enable(0);
+-
+ 	err = mv88e6xxx_detect(chip);
+ 	if (err)
+ 		return err;
+diff --git a/include/net/dsa.h b/include/net/dsa.h
+index 8f369db527fe..d9f19dd499af 100644
+--- a/include/net/dsa.h
++++ b/include/net/dsa.h
+@@ -397,21 +397,10 @@ struct mii_bus *dsa_host_dev_to_mii_bus(struct device *dev);
+ 
+ #ifdef CONFIG_NET_DSA
+ 
+-void dsa_enable(int enable);
+-bool is_dsa_enabled(void);
+ bool is_dsa_slave(struct net_device *slave_dev);
+ 
+ #else
+ 
+-static inline void dsa_enable(int enable)
+-{
+-}
+-
+-static inline bool is_dsa_enabled(void)
+-{
+-	return 0;
+-}
+-
+ static inline bool is_dsa_slave(struct net_device *slave_dev)
+ {
+ 	return 0;
+@@ -421,10 +410,7 @@ static inline bool is_dsa_slave(struct net_device *slave_dev)
+ 
+ static inline bool dsa_uses_tagged_protocol(struct dsa_switch_tree *dst)
+ {
+-	if (is_dsa_enabled())
+-		return dst->rcv != NULL;
+-	else
+-		return false;
++	return dst->rcv != NULL;
+ }
+ 
+ void dsa_unregister_switch(struct dsa_switch *ds);
+diff --git a/net/dsa/dsa.c b/net/dsa/dsa.c
+index 967067ef154c..ed593589b86e 100644
+--- a/net/dsa/dsa.c
++++ b/net/dsa/dsa.c
+@@ -31,9 +31,6 @@
+ 
+ char dsa_driver_version[] = "0.1";
+ 
+-static int __dsa_enable = 0;
+-core_param(dsa_enable, __dsa_enable, int, 0000);
+-
+ static struct sk_buff *dsa_slave_notag_xmit(struct sk_buff *skb,
+ 					    struct net_device *dev)
+ {
+@@ -72,16 +69,6 @@ const struct dsa_device_ops *dsa_device_ops[DSA_TAG_LAST] = {
+ static DEFINE_MUTEX(dsa_switch_drivers_mutex);
+ static LIST_HEAD(dsa_switch_drivers);
+ 
+-bool is_dsa_enabled(void)
+-{
+-	return __dsa_enable == 1;
+-}
+-
+-void dsa_enable(int enable)
+-{
+-	__dsa_enable = (!!enable);
+-}
+-
+ void register_switch_driver(struct dsa_switch_ops *ops)
+ {
+ 	mutex_lock(&dsa_switch_drivers_mutex);
+@@ -758,11 +745,6 @@ static int dsa_of_probe(struct device *dev)
+ 	u32 eeprom_len;
+ 	int ret;
+ 
+-	if (of_property_read_bool(np, "dsa,enable-on-boot"))
+-		dsa_enable(1);
+-	else
+-		dsa_enable(0);
+-
+ 	mdio = of_parse_phandle(np, "dsa,mii-bus", 0);
+ 	if (!mdio)
+ 		return -EINVAL;
+-- 
+2.17.1
+

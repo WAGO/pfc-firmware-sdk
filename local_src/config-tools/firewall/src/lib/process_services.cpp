@@ -224,6 +224,44 @@ static void get_ifs_status(std::string dir,
 
     const std::vector<std::string> fnames(list_configs(dir));
 
+    std::vector<status> sts; // Status of all services on all interfaces.
+
+    for (const std::string& fname : fnames)
+        scan_service(dir + fname, sts);
+
+    // Replace br0 and br1 entries by X1 and X2, respectively.
+    for (auto& serviceState : sts) {
+      if (serviceState.interface == "br0") {
+        serviceState.interface = "X1";
+      }else if (serviceState.interface == "br1") {
+        serviceState.interface = "X2";
+      }
+    }
+
+    std::sort(sts.begin(), sts.end());
+
+    if ("xml" == format)
+        print_xml(sts);
+    else
+        print_json(sts);
+}
+
+static void get_ifs_status_ng(std::string dir,
+                           const std::vector<std::string>& argv)
+{
+    if (dir.length() < 1 || 1 != argv.size())
+        throw invalid_param_error();
+
+    if ('/' != dir.at(dir.length() - 1))
+        dir += '/';
+
+    const std::string& format(argv[0]);
+
+    if ("xml" != format && "json" != format)
+        throw invalid_param_error("Unsupported format requested.");
+
+    const std::vector<std::string> fnames(list_configs(dir));
+
     std::vector<status> sts; // Statuses of all services on all interfaces.
 
     for (const std::string& fname : fnames)
@@ -241,10 +279,15 @@ void process_services(const std::string& cmd,
                       const std::string& dir,
                       const std::vector<std::string>& argv)
 {
-    if ("--get-ifs-status" == cmd)
+    if ("--get-ifs-status" == cmd) {
         get_ifs_status(dir, argv);
-    else
+    }
+    else if ("--get-ifs-status-ng" == cmd) {
+        get_ifs_status_ng(dir, argv);
+    }
+    else {
         throw invalid_param_error("Unrecognized command.");
+    }
 }
 
 

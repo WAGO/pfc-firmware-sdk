@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -81,7 +81,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		$(LIBCTCALLHELPER_PATH) \
 		$(LIBCTCALLHELPER_ENV) \
 		$(LIBCTCALLHELPER_BUILD_PARAMS) \
-		make $(PARALLELMFLAGS) 
+		make $(PARALLELMFLAGS)
 endif
 	@$(call touch)
 
@@ -123,14 +123,14 @@ $(STATEDIR)/libctcallhelper.targetinstall:
 	@$(call install_init, libctcallhelper)
 	@$(call install_fixup, libctcallhelper,PRIORITY,optional)
 	@$(call install_fixup, libctcallhelper,SECTION,base)
-	@$(call install_fixup, libctcallhelper,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, libctcallhelper,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, libctcallhelper,DESCRIPTION,missing)
 
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(LIBCTCALLHELPER_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	rm -rf $(LIBCTCALLHELPER_PLATFORMCONFIGPACKAGEDIR)/tmp/*
 	cd $(LIBCTCALLHELPER_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(LIBCTCALLHELPER_PLATFORMCONFIGPACKAGEDIR)/$(LIBCTCALLHELPER_PACKAGE_NAME).ipk  
+	ar -xov $(LIBCTCALLHELPER_PLATFORMCONFIGPACKAGEDIR)/$(LIBCTCALLHELPER_PACKAGE_NAME).ipk
 	@$(call install_archive, libctcallhelper, 0, 0, $(LIBCTCALLHELPER_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE

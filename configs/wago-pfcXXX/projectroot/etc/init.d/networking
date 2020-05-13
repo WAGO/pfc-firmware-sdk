@@ -9,6 +9,8 @@
 order=$(/etc/config-tools/get_typelabel_value ORDER)
 board_variant=$(< /sys/class/wago/system/board_variant)
 
+DIPSWITCHDIR=/dev/dip-switch  
+
 # go up process hierarchy to see if we were started from rcS
 # during system initialisation.
 function is_initphase
@@ -37,6 +39,16 @@ function is_4port_eth()
        ${order:0:8} == "750-8210" ]]
 }
 
+# read dip switch value from sysfs
+function get_dip_netvalue
+{
+    local dipvalue=0
+    if [ -d $DIPSWITCHDIR ]; then
+        dipvalue=$(($(<$DIPSWITCHDIR/value)))
+    fi
+    echo $dipvalue
+}
+
 function do_ifupdown
 {
     mode=$1
@@ -46,23 +58,10 @@ function do_ifupdown
         # ifup of ethX1 or ethX2 powers on the network ports. If a port is disabled,
         # /etc/network/interfaces is set so that no power on occurs.
         ifup lo
-        ifup eth0
-        ifup ethX1
-        ifup ethX2
-        if is_4port_eth; then
-            ifconfig ethX11 up
-            ifconfig ethX12 up
-        fi
-        if is_initphase "$@"; then
-            /etc/init.d/networking-finish bridgeup &
-        else
-            /etc/init.d/networking-finish bridgeup
-        fi
     else
         ifdown -a
     fi
 }
-
 
 function get_next_macs()
 {
@@ -94,38 +93,16 @@ function networking_stop
         echo "booting from nfs, skip networking stop"
         exit 0
     fi
-
-    do_ifupdown DOWN
-    brctl delbr br1
-    brctl delbr br0
-    if is_4port_eth; then
-        brctl delbr br2
-    fi
 }
-
 
 function enable_interrupt_pacing
 {
     ethtool -C eth0 rx-usecs 1000
 }
 
-
-function set_dsa_tag_in_config_file
-{
-    count=$(grep -c '<dsa_mode>0<\/dsa_mode>' /etc/specific/network-interfaces.xml)
-    if [[ $count != 0 ]]; then 
-        sed -e 's/<dsa_mode>0<\/dsa_mode>/<dsa_mode>1<\/dsa_mode>/g' -e 's/<show_in_wbm>0<\/show_in_wbm>/<show_in_wbm>1<\/show_in_wbm>/g' /etc/specific/network-interfaces.xml > /etc/specific/network-interfaces.xml.tmp
-        sync
-        mv /etc/specific/network-interfaces.xml.tmp /etc/specific/network-interfaces.xml
-        sync
-    fi
-}
-
-
 function networking_start
 {
     if is_4port_eth || [[ $board_variant =~ ^pac100* ]]; then
-        set_dsa_tag_in_config_file
         enable_interrupt_pacing
     fi
 
@@ -135,21 +112,13 @@ function networking_start
     fi
     echo "starting network interfaces..."
 
+    echo "DIP_SWITCH_VALUE=$(get_dip_netvalue)" > /etc/specific/dipvalue-on-reset
+
     # set weak endsystem mode as default. See rfc1122 and kernel Documentation/networking/ip-sysctl.txt.
     echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
 
     # set arp accept to send replies on gratuitous arp's with our own ip address.
     echo 1 > /proc/sys/net/ipv4/conf/all/arp_accept
-
-    # create /etc/specific/network-interfaces-current with dip switch and gsm modem related configs
-    [ -x /etc/config-tools/adapt_netconfig ] && /etc/config-tools/adapt_netconfig --save-dipswitch
-
-    # configure switch, setup bridges etc.
-    brctl addbr br0
-    brctl addbr br1
-    if is_4port_eth; then
-        brctl addbr br2
-    fi
 
     # Setup mac addresses - default behaviour is to use the controller's mac address for all interfaces
     # If you want to use different mac addresses you need to enable promiscous mode of eth0
@@ -160,16 +129,13 @@ function networking_start
     # get configured mac address and use it for the dsa slave devices
 
     # NOTE: config-tools dependency here!!
-    local macaddr=$(/etc/config-tools/get_typelabel_value MAC | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
-    if ! is_4port_eth; then
-        # Set same MAC address for ethX1 and ethX2.
-        ifconfig ethX1 hw ether "$macaddr"
-        ifconfig ethX2 hw ether "$macaddr"
-    else
-        # Get next MAC addresses and store them to macs.
+    local macaddr
+    macaddr=$(/etc/config-tools/get_typelabel_value MAC | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
+    if is_4port_eth; then
+      # Get next MAC addresses and store them to macs.
         # macs[0] contains the original MAC address ($macaddr).
         declare -a macs
-          get_next_macs "$macaddr" 4
+        get_next_macs "$macaddr" 4
         # Add the main MAC to the ATU, CPU port is 6.
         /sbin/pfcXXX_mv88e6321_write_atu.sh $macaddr 6 
         # Add the other MACs to the ATU as well.
@@ -177,76 +143,10 @@ function networking_start
         /sbin/pfcXXX_mv88e6321_write_atu.sh ${macs[2]} 6
         /sbin/pfcXXX_mv88e6321_write_atu.sh ${macs[3]} 6
         /sbin/pfcXXX_mv88e6321_write_atu.sh ${macs[4]} 6
-                        
-        ifconfig ethX1 hw ether ${macs[3]}
-        ifconfig ethX2 hw ether ${macs[4]}
-        ifconfig ethX11 hw ether ${macs[1]}
-        ifconfig ethX12 hw ether ${macs[2]}
-        brctl addif br2 ethX11
-        brctl addif br2 ethX12
-
-        # Set device MAC address for bridges.
-        ifconfig br0 hw ether ${macaddr}
-        ifconfig br1 hw ether ${macaddr}
-        ifconfig br2 hw ether ${macaddr}
-        ifconfig br2 up
     fi
-
-    case $dsa_mode in
-        0)
-            swconfig dev switch0 set dsa_enable 0
-            ;;
-        1)
-            swconfig dev switch0 set dsa_enable 1
-
-            # ht: we no more need to setup the switch static mac table.
-            #     Separation of port 1 and 2 is now reached through configuration of
-            #     unicast mac address filtering. Traffic received on ports 1 and 2 will
-            #     be always forwarded to port 3. The CPU has programmed a unicast match list to allow only
-            #     thouse packets that are of interest.
-
-            ## you need to add one static mac table entry per interface (0x4 = CPU Port)
-            # swconfig dev switch0 set statmacs "0,$macaddr,0x4,1,1,0,0"
-            ## add broadcast entry
-            #swconfig dev switch0 set statmacs "1,ff:ff:ff:ff:ff:ff,0x4,1,1,0,0"
-            ;;
-        2)
-            # do not set DSA
-            ;;
-        *)
-            echo "Error setting DSA mode!"
-            ;;
-
-    esac
 
     do_ifupdown UP
-
-    local SWCONFIG=$(which swconfig)
-    if is_4port_eth || [[ $board_variant =~ ^pac100* ]]; then
-        # Check EEPROM content and update if necessary.
-       /sbin/pfcXXX_config_network_switch_eeprom.sh /proc/device-tree/ocp/ethernet@4a100000/mdio@4a101000/switch@0/eeprom
-    else
-        if [[ -e /etc/switch_settings.conf ]] && [[ -x "${SWCONFIG}" ]]; then
-            echo "setting extra switch settings..."
-            . /etc/switch_settings.conf
-
-            ${SWCONFIG} dev switch0 set port_mirror     $PORT_MIRROR
-            ${SWCONFIG} dev switch0 set bcast_protect   $BCAST_PROTECT
-            ${SWCONFIG} dev switch0 set rate_limit      $RATE_LIMIT
-            ${SWCONFIG} dev switch0 set fast_aging      $FAST_AGING
-        else
-            echo "Info: no extra switch settings configured!"
-        fi
-    fi
 }
-
-if is_4port_eth || [[ $board_variant =~ ^pac100* ]]; then
-    # We only support separated mode.
-    dsa_mode=2
-    echo "DSA mode selected"
-else
-    dsa_mode=$(sed -n 's/# dsa_mode=\(.*\)/\1/p' /etc/network/interfaces)
-fi
 
 case "$1" in
 start)

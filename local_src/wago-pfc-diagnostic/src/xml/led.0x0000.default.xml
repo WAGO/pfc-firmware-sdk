@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF8" ?>
-<!-- LED configuration of pac100 product! -->
+<!-- LED configuration of pfc200adv product! -->
 <ledconfig>
 <led name="DS"  number="0" state="STATIC_GRN" id="AA000000" />
 <led name="EC"  number="1" state="STATIC_OFF" id="BB000000" />

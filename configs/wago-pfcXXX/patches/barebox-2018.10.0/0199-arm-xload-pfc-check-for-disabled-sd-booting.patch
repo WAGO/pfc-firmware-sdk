@@ -1,0 +1,40 @@
+From 5e2ced516ba0797051fadc543b1ae336c27921c3 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 31 Jan 2020 11:07:59 +0100
+Subject: [PATCH] arm: xload-pfc: check for disabled sd booting
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h | 1 +
+ arch/arm/mach-omap/xload-pfc.c                       | 3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h b/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h
+index cc672b5..3d671d5 100644
+--- a/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h
++++ b/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h
+@@ -19,6 +19,7 @@ enum omap_board_boot_device {
+ struct omap_board_info {
+ 	char *board_variant;
+ 	bool production_mode;
++	bool disable_sd_boot;
+ 	DECLARE_BITMAP(boot_devices, NUM_BOOT_DEVICES);
+ };
+ 
+diff --git a/arch/arm/mach-omap/xload-pfc.c b/arch/arm/mach-omap/xload-pfc.c
+index 8489134..c5e698b 100644
+--- a/arch/arm/mach-omap/xload-pfc.c
++++ b/arch/arm/mach-omap/xload-pfc.c
+@@ -244,7 +244,8 @@ static __noreturn int pfc_xload(void)
+ 							board->board_variant :
+ 							"none");
+ 
+-	if (test_bit(HAS_SD, board->boot_devices) && pfc_mmc_inserted()) {
++	if (test_bit(HAS_SD, board->boot_devices) && pfc_mmc_inserted() &&
++						!board->disable_sd_boot) {
+ 		omap_set_bootmmc_devname("mmc0");
+ 		printf("%s: boot %s vfat from %s\n", __func__, bootfile,
+ 						omap_get_bootmmc_devname());
+-- 
+2.7.4
+

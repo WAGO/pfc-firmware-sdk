@@ -4,6 +4,7 @@
 //
 // Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
 
+#include "mdm_config_types.h"
 #include "mdm_cuse_worker.h"
 #include "mdm_statemachine.h"
 #include "events.h"
@@ -16,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "gkeyfile_storage.h"
 
 GMainLoop *ml;
 
@@ -29,13 +31,14 @@ constexpr auto timer_at_cmd_cops = 185000; //for network selection that is deter
 constexpr auto timer_at_cmd_sms = 125000;  //for sms transmission that is determined by the network
 constexpr auto timer_at_cmd_cfun = 125000; //15s specified into UC20 AT command manual but 120s timeout with R04A07
 constexpr auto timer_at_cmd_short = 5000;  //for commands without mobile network dependency
-constexpr auto timer_at_cmd_cgatt = 15000; //for GPRS attachment / detachment
 constexpr auto timer_dbus_retry = 5000;
 constexpr auto timer_wait_port = 10000;
-constexpr auto timer_wait_port_io_error = 10000; //wait time after modem port io error
 constexpr auto timer_wait_pb_done = 15000;
 constexpr auto timer_wait_cfun = 10000;
-constexpr auto timer_wait_simstate = 5000;
+constexpr auto timer_poll_simstate = 10000;
+constexpr auto timer_sim_busy = 60000;
+constexpr auto timer_wait_network_service = 20000; //wait time for operator selection retry when service is unavailable
+constexpr auto timer_retry_network_access = 1000;  //wait time for operator selection retry after network timeout
 constexpr auto timer_status_query = 10000;  //for periodic status queries
 constexpr auto timer_immediate = 10;
 constexpr auto timer_power_down = 65000;    //the maximum time for unregistering network is 60 seconds
@@ -44,194 +47,448 @@ constexpr auto timer_power_down = 65000;    //the maximum time for unregistering
 //constexpr auto timer_wait_suspendauto = 65000;
 //constexpr auto timer_wait_ps_detach = 65000;
 
-constexpr auto rmnet_profileid = '1';
-constexpr auto sms_format = 0; //Format = PDU
 constexpr auto MDM_GPIO__PWRKEY_PIN = 132;
 constexpr auto MDM_MUSB_DRIVER_PORT = 1;
-constexpr auto MAX_PORT_WAIT_COUNT = 60;  /*number of wait cycles before automatic modem reset*/
-constexpr auto MAX_CFUN_WAIT_COUNT = 60;  /*number of wait cycles before automatic modem reset*/
+constexpr auto MAX_PORT_WAIT_COUNT = 3;  /*number of wait cycles before automatic modem reset*/
+constexpr auto MAX_CFUN_WAIT_COUNT = 12;  /*number of wait cycles before automatic modem reset*/
+
+constexpr auto MAX_GPRS_AUTOCONNECT_COUNT = 30; /*number of status update periods for autoconnect*/
+
 ///constexpr is currently not in used
 ///set as comment to keep the value in  the source code
 //constexpr auto MDM_GPIO__RESET_PIN = 130;
 //constexpr auto MAX_AT_CMD_PRINT_LENGTH = 128;
 
+constexpr auto MDMD_CONFIG_FILE_GROUP = "DEFAULT";
+constexpr auto MDMD_CONFIG_FILE_PATH =  "/etc/specific/mdmd_init.conf";
+
 enum class CME_ERROR 
 {
+    PHONE_FAILURE = 0,
+    NO_CONNECTION_TO_PHONE = 1,
+    PHONE_LINK_RESERVED = 2,
+    OPERATION_NOT_ALLOWED = 3,
+    OPERATION_NOT_SUPPORTED = 4,
+    PH_SIM_PIN_REQUIRED = 5,
+    PH_FSIM_PIN_REQUIRED = 6,
+    PH_FSIM_PUK_REQUIRED = 7,
     SIM_NOT_INSERTED = 10,
+    SIM_PIN_REQUIRED = 11,
     SIM_PUK_REQUIRED = 12,
     SIM_FAILURE = 13,     
     SIM_BUSY = 14,        
     SIM_WRONG = 15,       
     INCORRECT_PASSWORD = 16,
+    SIM_PIN2_REQUIRED = 17,
+    SIM_PUK2_REQUIRED = 18,
+    MEMORY_FULL = 20,
+    INVALID_INDEX = 21,
+    NOT_FOUND = 22,
+    MEMORY_FAILURE = 23,
+    TEXT_STRING_TOO_LONG = 24,
+    INVALID_CHARACTERS_IN_TEXT_STRING = 25,
+    DIAL_STRING_TOO_LONG = 26,
+    INVALID_CHARACTERS_IN_DIAL_STRING = 27,
+    NO_NETWORK_SERVICE = 30,
+    NETWORK_TIMEOUT = 31,
+    EMERGENCY_CALLS_ONLY = 32,
+    NETWORK_PIN_REQUIRED = 40,
+    NETWORK_PUK_REQUIRED = 41,
+    NETWORK_SUBSET_PIN_REQUIRED = 42,
+    NETWORK_SUBSET_PUK_REQUIRED = 43,
+    SERVICE_PROVIDER_PIN_REQUIRED = 44,
+    SERVICE_PROVIDER_PUK_REQUIRED = 45,
+    CORPORATE_PIN_REQUIRED = 46,
+    CORPORATE_PUK_REQUIRED = 47,
 };
+
+std::string cme_to_string( int err_id )
+{
+    switch (err_id)
+    {
+      case static_cast<int>(CME_ERROR::PHONE_FAILURE):                     return "PHONE_FAILURE";
+      case static_cast<int>(CME_ERROR::NO_CONNECTION_TO_PHONE):            return "NO_CONNECTION_TO_PHONE";
+      case static_cast<int>(CME_ERROR::PHONE_LINK_RESERVED):               return "PHONE_LINK_RESERVED";
+      case static_cast<int>(CME_ERROR::OPERATION_NOT_ALLOWED):             return "OPERATION_NOT_ALLOWED";
+      case static_cast<int>(CME_ERROR::OPERATION_NOT_SUPPORTED):           return "OPERATION_NOT_SUPPORTED";
+      case static_cast<int>(CME_ERROR::PH_SIM_PIN_REQUIRED):               return "PH_SIM_PIN_REQUIRED";
+      case static_cast<int>(CME_ERROR::PH_FSIM_PIN_REQUIRED):              return "PH_FSIM_PIN_REQUIRED";
+      case static_cast<int>(CME_ERROR::PH_FSIM_PUK_REQUIRED):              return "PH_FSIM_PUK_REQUIRED";
+      case static_cast<int>(CME_ERROR::SIM_NOT_INSERTED):                  return "SIM_NOT_INSERTED";
+      case static_cast<int>(CME_ERROR::SIM_PIN_REQUIRED):                  return "SIM_PIN_REQUIRED";
+      case static_cast<int>(CME_ERROR::SIM_PUK_REQUIRED):                  return "SIM_PUK_REQUIRED";
+      case static_cast<int>(CME_ERROR::SIM_FAILURE):                       return "SIM_FAILURE";
+      case static_cast<int>(CME_ERROR::SIM_BUSY):                          return "SIM_BUSY";
+      case static_cast<int>(CME_ERROR::SIM_WRONG):                         return "SIM_WRONG";
+      case static_cast<int>(CME_ERROR::INCORRECT_PASSWORD):                return "INCORRECT_PASSWORD";
+      case static_cast<int>(CME_ERROR::SIM_PIN2_REQUIRED):                 return "SIM_PIN2_REQUIRED";
+      case static_cast<int>(CME_ERROR::SIM_PUK2_REQUIRED):                 return "SIM_PUK2_REQUIRED";
+      case static_cast<int>(CME_ERROR::MEMORY_FULL):                       return "MEMORY_FULL";
+      case static_cast<int>(CME_ERROR::INVALID_INDEX):                     return "INVALID_INDEX";
+      case static_cast<int>(CME_ERROR::NOT_FOUND):                         return "NOT_FOUND";
+      case static_cast<int>(CME_ERROR::MEMORY_FAILURE):                    return "MEMORY_FAILURE";
+      case static_cast<int>(CME_ERROR::TEXT_STRING_TOO_LONG):              return "TEXT_STRING_TOO_LONG";
+      case static_cast<int>(CME_ERROR::INVALID_CHARACTERS_IN_TEXT_STRING): return "INVALID_CHARACTERS_IN_TEXT_STRING";
+      case static_cast<int>(CME_ERROR::DIAL_STRING_TOO_LONG):              return "DIAL_STRING_TOO_LONG";
+      case static_cast<int>(CME_ERROR::INVALID_CHARACTERS_IN_DIAL_STRING): return "INVALID_CHARACTERS_IN_DIAL_STRING";
+      case static_cast<int>(CME_ERROR::NO_NETWORK_SERVICE):                return "NO_NETWORK_SERVICE";
+      case static_cast<int>(CME_ERROR::NETWORK_TIMEOUT):                   return "NETWORK_TIMEOUT";
+      case static_cast<int>(CME_ERROR::EMERGENCY_CALLS_ONLY):              return "EMERGENCY_CALLS_ONLY";
+      case static_cast<int>(CME_ERROR::NETWORK_PIN_REQUIRED):              return "NETWORK_PIN_REQUIRED";
+      case static_cast<int>(CME_ERROR::NETWORK_PUK_REQUIRED):              return "NETWORK_PUK_REQUIRED";
+      case static_cast<int>(CME_ERROR::NETWORK_SUBSET_PIN_REQUIRED):       return "NETWORK_SUBSET_PIN_REQUIRED";
+      case static_cast<int>(CME_ERROR::NETWORK_SUBSET_PUK_REQUIRED):       return "NETWORK_SUBSET_PUK_REQUIRED";
+      case static_cast<int>(CME_ERROR::SERVICE_PROVIDER_PIN_REQUIRED):     return "SERVICE_PROVIDER_PIN_REQUIRED";
+      case static_cast<int>(CME_ERROR::SERVICE_PROVIDER_PUK_REQUIRED):     return "SERVICE_PROVIDER_PUK_REQUIRED";
+      case static_cast<int>(CME_ERROR::CORPORATE_PIN_REQUIRED):            return "CORPORATE_PIN_REQUIRED";
+      case static_cast<int>(CME_ERROR::CORPORATE_PUK_REQUIRED):            return "CORPORATE_PUK_REQUIRED";
+      default:
+        return std::to_string(err_id);
+    }
+}
 
 enum class CMS_ERROR 
 {
+    ME_FAILURE = 300,
+    SMS_ME_RESERVED = 301,
+    OPERATION_NOT_ALLOWED = 302,
+    OPERATION_NOT_SUPPORTED = 303,
+    INVALID_PDU_MODE = 304,
+    INVALID_TEXT_MODE = 305,
     SIM_NOT_INSERTED = 310,
+    SIM_PIN_REQUIRED = 311,
+    PH_SIM_PIN_REQUIRED = 312,
     SIM_FAILURE = 313,
     SIM_BUSY = 314,
     SIM_WRONG = 315,
+    SIM_PUK_REQUIRED = 316,
+    SIM_PIN2_REQUIRED = 317,
+    SIM_PUK2_REQUIRED = 318,
+    MEMORY_FAILURE = 320,
+    INVALID_MEMORY_INDEX = 321,
+    MEMORY_FULL = 322,
+    SMSC_ADDRESS_UNKNOWN = 330,
+    NO_NETWORK = 331,
+    NETWORK_TIMEOUT = 332,
+    UNKNOWN = 500,
     SIM_NOT_READY = 512,
+    MESSAGE_LENGTH_EXCEEDS = 513,
+    INVALID_REQUEST_PARAMETERS = 514,
+    ME_STORAGE_FAILURE = 515,
+    INVALID_SERVICE_MODE = 517,
+    MORE_MESSAGE_TO_SEND_STATE_ERROR = 528,
+    MO_SMS_IS_NOT_ALLOW = 529,
+    GPRS_IS_SUSPENDED = 530,
+    ME_STORAGE_FULL = 531,
 };
 
-enum class MODE 
+std::string cms_to_string( int err_id )
 {
-    AUTOMATIC = 0,
-    MANUAL = 1,
-    ONLY_GSM = 2,
-    ONLY_UMTS = 3,
-    PREFER_GSM = 4,
-    PREFER_UMTS = 5,
-};
+    switch (err_id)
+    {
+      case static_cast<int>(CMS_ERROR::ME_FAILURE):                        return "ME_FAILURE";
+      case static_cast<int>(CMS_ERROR::SMS_ME_RESERVED):                   return "SMS_ME_RESERVED";
+      case static_cast<int>(CMS_ERROR::OPERATION_NOT_ALLOWED):             return "OPERATION_NOT_ALLOWED";
+      case static_cast<int>(CMS_ERROR::OPERATION_NOT_SUPPORTED):           return "OPERATION_NOT_SUPPORTED";
+      case static_cast<int>(CMS_ERROR::INVALID_PDU_MODE):                  return "INVALID_PDU_MODE";
+      case static_cast<int>(CMS_ERROR::INVALID_TEXT_MODE):                 return "INVALID_TEXT_MODE";
+      case static_cast<int>(CMS_ERROR::SIM_NOT_INSERTED):                  return "SIM_NOT_INSERTED";
+      case static_cast<int>(CMS_ERROR::SIM_PIN_REQUIRED):                  return "SIM_PIN_REQUIRED";
+      case static_cast<int>(CMS_ERROR::PH_SIM_PIN_REQUIRED):               return "PH_SIM_PIN_REQUIRED";
+      case static_cast<int>(CMS_ERROR::SIM_FAILURE):                       return "SIM_FAILURE";
+      case static_cast<int>(CMS_ERROR::SIM_BUSY):                          return "SIM_BUSY";
+      case static_cast<int>(CMS_ERROR::SIM_WRONG):                         return "SIM_WRONG";
+      case static_cast<int>(CMS_ERROR::SIM_PUK_REQUIRED):                  return "SIM_PUK_REQUIRED";
+      case static_cast<int>(CMS_ERROR::SIM_PIN2_REQUIRED):                 return "SIM_PIN2_REQUIRED";
+      case static_cast<int>(CMS_ERROR::SIM_PUK2_REQUIRED):                 return "SIM_PUK2_REQUIRED";
+      case static_cast<int>(CMS_ERROR::MEMORY_FAILURE):                    return "MEMORY_FAILURE";
+      case static_cast<int>(CMS_ERROR::INVALID_MEMORY_INDEX):              return "INVALID_MEMORY_INDEX";
+      case static_cast<int>(CMS_ERROR::MEMORY_FULL):                       return "MEMORY_FULL";
+      case static_cast<int>(CMS_ERROR::SMSC_ADDRESS_UNKNOWN):              return "SMSC_ADDRESS_UNKNOWN";
+      case static_cast<int>(CMS_ERROR::NO_NETWORK):                        return "NO_NETWORK";
+      case static_cast<int>(CMS_ERROR::NETWORK_TIMEOUT):                   return "NETWORK_TIMEOUT";
+      case static_cast<int>(CMS_ERROR::UNKNOWN):                           return "UNKNOWN";
+      case static_cast<int>(CMS_ERROR::SIM_NOT_READY):                     return "SIM_NOT_READY";
+      case static_cast<int>(CMS_ERROR::MESSAGE_LENGTH_EXCEEDS):            return "MESSAGE_LENGTH_EXCEEDS";
+      case static_cast<int>(CMS_ERROR::INVALID_REQUEST_PARAMETERS):        return "INVALID_REQUEST_PARAMETERS";
+      case static_cast<int>(CMS_ERROR::ME_STORAGE_FAILURE):                return "ME_STORAGE_FAILURE";
+      case static_cast<int>(CMS_ERROR::INVALID_SERVICE_MODE):              return "INVALID_SERVICE_MODE";
+      case static_cast<int>(CMS_ERROR::MORE_MESSAGE_TO_SEND_STATE_ERROR):  return "MORE_MESSAGE_TO_SEND_STATE_ERROR";
+      case static_cast<int>(CMS_ERROR::MO_SMS_IS_NOT_ALLOW):               return "MO_SMS_IS_NOT_ALLOW";
+      case static_cast<int>(CMS_ERROR::GPRS_IS_SUSPENDED):                 return "GPRS_IS_SUSPENDED";
+      case static_cast<int>(CMS_ERROR::ME_STORAGE_FULL):                   return "ME_STORAGE_FULL";
+      default:
+        return std::to_string(err_id);
+    }
+}
+
 
 /*
  * Guard functions
  */
-bool gf_activation_required(const MdmStatemachine &sm)
+bool gf_is_cfun_full(const MdmStatemachine &sm, Event &ev)
 {
-    return (1 != sm.get_cfun_state());
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto state = std::stoi(rev->named_match("state"));
+    return (state == static_cast<int>(CFUN_STATE::FULL));
 }
 
-bool gf_dbus_offline(const MdmStatemachine &sm)
+bool gf_dbus_offline(const MdmStatemachine &sm, Event &ev)
 {
+    (void)ev; //unused parameter
     return !sm.dbus_online();
 }
 
-bool gf_modem_port_open(const MdmStatemachine &sm)
+bool gf_modem_port_open(const MdmStatemachine &sm, Event &ev)
 {
+    (void)ev; //unused parameter
     return (sm.is_modem_port_open());
 }
 
-bool gf_modem_port_disabled(const MdmStatemachine &sm)
+bool gf_modem_port_open_continue_getoperlist(const MdmStatemachine &sm, Event &ev)
 {
+    (void)ev; //unused parameter
+    return (sm.is_modem_port_open() && sm.get_continue_getoperlist());
+}
+
+
+bool gf_modem_port_disabled(const MdmStatemachine &sm, Event &ev)
+{
+    (void)ev; //unused parameter
     return (!sm.is_port_enabled());
 }
 
-bool gf_have_no_manufacturer(const MdmStatemachine &sm)
+bool gf_have_no_manufacturer(const MdmStatemachine &sm, Event &ev)
 {
+    (void)ev; //unused parameter
     return (0 == sm.get_modem_manufacturer().length());
 }
 
-bool gf_gprs_disabled(const MdmStatemachine &sm)
+bool gf_wait_cfun_abort(const MdmStatemachine &sm, Event &ev)
 {
-    return sm.is_gprs_disabled();
+    (void)ev; //unused parameter
+    return (sm.get_cfun_wait_count() >= MAX_CFUN_WAIT_COUNT);
 }
 
-bool gf_oper_stored(const MdmStatemachine &sm)
+bool gf_wait_modem_port_abort(const MdmStatemachine &sm, Event &ev)
 {
-    int id, act;
-    return sm.get_stored_oper(id,act);
-}
-
-bool gf_pin_needed(const MdmStatemachine &sm)
-{
-    return (MdmSimState::SIM_PIN == sm.get_sim_state());
-}
-
-bool gf_wait_modem_port_limit(const MdmStatemachine &sm)
-{
+    (void)ev; //unused parameter
     return (sm.get_port_wait_count() >= MAX_PORT_WAIT_COUNT);
 }
 
-bool gf_wait_cfun_state_limit(const MdmStatemachine &sm)
+bool gf_set_rmnet_profileid_required(const MdmStatemachine &sm, Event &ev)
 {
-    return (sm.get_cfun_wait_count() >= MAX_CFUN_WAIT_COUNT);
-}
-bool gf_puk_needed(const MdmStatemachine &sm)
-{
-    return (MdmSimState::SIM_PUK == sm.get_sim_state());
-}
-
-bool gf_set_stored_pin(const MdmStatemachine &sm)
-{
-    return ( !sm.is_new_sim_iccid() &&
-             (MdmSimState::SIM_PIN == sm.get_sim_state()) &&
-             (0 < sm.get_stored_sim_pin().length()) );
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto id = std::stoi(rev->named_match("id"));
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+    return (id != gprs_access_config.get_profile());
 }
 
-bool gf_sim_ready(const MdmStatemachine &sm)
+bool gf_set_rmnet_autoconnect_required(const MdmStatemachine &sm, Event &ev)
 {
-    return (MdmSimState::READY == sm.get_sim_state());
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto status = std::stoi(rev->named_match("status"));
+    const auto linkprot = std::stoi(rev->named_match("linkprot"));
+    //DTR set in qmiwwan driver
+    return ((status != 1) || (linkprot != 0));
 }
 
-bool gf_sim_state_not_ready(const MdmStatemachine &sm)
+bool gf_set_rmnet_autoconnect_required2(const MdmStatemachine &sm, Event &ev)
 {
-    return (MdmSimState::NOT_READY == sm.get_sim_state());
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto status = std::stoi(rev->named_match("status"));
+    const auto linkprot = std::stoi(rev->named_match("linkprot"));
+    const auto dtrset = std::stoi(rev->named_match("dtrset"));
+    return ((status != 1) || (linkprot != 0) || (dtrset != 1));
 }
 
-bool gf_sim_state_not_inserted(const MdmStatemachine &sm)
+bool gf_set_gprs_profile_required(const MdmStatemachine &sm, Event &ev)
 {
-    return (MdmSimState::NOT_INSERTED == sm.get_sim_state());
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto apn = rev->named_match("apn");
+    const auto user = rev->named_match("user");
+    const auto pass = rev->named_match("pass");
+    const auto auth = std::stoi(rev->named_match("auth"));
+    const GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+
+    return ( (0 != apn.compare(gprs_access_config.get_apn())) ||
+             (0 != user.compare(gprs_access_config.get_user())) ||
+             (0 != pass.compare(gprs_access_config.get_pass())) ||
+             (auth != gprs_access_config.get_auth()) );
 }
 
-bool gf_cme_command_not_allowed(const MdmStatemachine &sm)
+bool gf_set_sms_format_required(const MdmStatemachine &sm, Event &ev)
 {
-    return (3 == sm.get_last_cme_error());
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto mode = std::stoi(rev->named_match("mode"));
+    const MessageServiceConfig message_service_config = sm.get_message_service_config();
+
+    return ( mode != message_service_config.get_sms_format() );
 }
 
-bool gf_cme_incorrect_password(const MdmStatemachine &sm)
+
+bool gf_set_sms_report_config_required(const MdmStatemachine &sm, Event &ev)
 {
-    switch (sm.get_last_cme_error())
-    {
-        case static_cast<int>(CME_ERROR::SIM_PUK_REQUIRED): 
-        case static_cast<int>(CME_ERROR::INCORRECT_PASSWORD): 
-            return true;
-        default:
-            return false;
-    }
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto mode = std::stoi(rev->named_match("mode"));
+    const auto mt = std::stoi(rev->named_match("mt"));
+    const auto bm = std::stoi(rev->named_match("bm"));
+    const auto ds = std::stoi(rev->named_match("ds"));
+    const auto bfr = std::stoi(rev->named_match("bfr"));
+    SmsEventReportingConfig sms_report_config = sm.get_sms_report_config();
+
+    return ( mode != sms_report_config.get_mode() ||
+             mt != sms_report_config.get_mt() ||
+             bm != sms_report_config.get_bm() ||
+             ds != sms_report_config.get_ds() ||
+             bfr != sms_report_config.get_bfr() );
 }
 
-bool gf_cme_sim_busy(const MdmStatemachine &sm)
+bool gf_set_sms_storage_config_required(const MdmStatemachine &sm, Event &ev)
 {
-    return (sm.get_last_cme_error() == static_cast<int>(CME_ERROR::SIM_BUSY));
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto mem1 = rev->named_match("mem1");
+    const auto mem2 = rev->named_match("mem2");
+    const auto mem3 = rev->named_match("mem3");
+    SmsStorageConfig sms_storage_config = sm.get_sms_storage_config();
+
+    return ( (0 != mem1.compare(sms_storage_config.get_mem1())) ||
+             (0 != mem2.compare(sms_storage_config.get_mem2())) ||
+             (0 != mem3.compare(sms_storage_config.get_mem3())) );
 }
 
-bool gf_cme_sim_not_inserted(const MdmStatemachine &sm)
+bool gf_get_opernames_required(const MdmStatemachine &sm, Event &ev)
 {
-    return (sm.get_last_cme_error() == static_cast<int>(CME_ERROR::SIM_NOT_INSERTED));
-}
-
-bool gf_cme_sim_failure(const MdmStatemachine &sm)
-{
-    switch (sm.get_last_cme_error())
-    {
-        case static_cast<int>(CME_ERROR::SIM_NOT_INSERTED): 
-        case static_cast<int>(CME_ERROR::SIM_FAILURE): 
-        case static_cast<int>(CME_ERROR::SIM_BUSY): 
-        case static_cast<int>(CME_ERROR::SIM_WRONG): 
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool gf_cms_sim_failure(const MdmStatemachine &sm)
-{
-    switch (sm.get_last_cms_error())
-    {
-        case static_cast<int>(CMS_ERROR::SIM_NOT_INSERTED): 
-        case static_cast<int>(CMS_ERROR::SIM_FAILURE): 
-        case static_cast<int>(CMS_ERROR::SIM_BUSY): 
-        case static_cast<int>(CMS_ERROR::SIM_WRONG): 
-        case static_cast<int>(CMS_ERROR::SIM_NOT_READY): 
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool gf_sim_not_ready(const MdmStatemachine &sm)
-{
-    return (MdmSimState::READY != sm.get_sim_state());
-}
-
-bool gf_have_no_operatornames(const MdmStatemachine &sm)
-{
+    (void)ev; //unused parameter
     return (sm.get_count_operator_names() == 0);
 }
 
-bool gf_renew_wwan_address(const MdmStatemachine &sm)
+bool gf_cme_sim_not_inserted(const MdmStatemachine &sm, Event &ev)
 {
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto err = std::stoi(rev->named_match("err"));
+    return (err == static_cast<int>(CME_ERROR::SIM_NOT_INSERTED));
+}
+
+bool gf_cme_sim_pin_required(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto err = std::stoi(rev->named_match("err"));
+    return (err == static_cast<int>(CME_ERROR::SIM_PIN_REQUIRED));
+}
+
+bool gf_cme_sim_puk_required(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto err = std::stoi(rev->named_match("err"));
+    return (err == static_cast<int>(CME_ERROR::SIM_PUK_REQUIRED));
+}
+
+bool gf_cme_sim_failure(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto err = std::stoi(rev->named_match("err"));
+    return ((err == static_cast<int>(CME_ERROR::SIM_FAILURE)) || (err == static_cast<int>(CME_ERROR::SIM_WRONG)));
+}
+
+
+bool gf_cme_sim_busy(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto err = std::stoi(rev->named_match("err"));
+    return (err == static_cast<int>(CME_ERROR::SIM_BUSY));
+}
+
+bool gf_cme_incorrect_password(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto err = std::stoi(rev->named_match("err"));
+    return (err == static_cast<int>(CME_ERROR::INCORRECT_PASSWORD));
+}
+
+bool gf_cme_no_network_service(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto err = std::stoi(rev->named_match("err"));
+    switch (err)
+    {
+        case static_cast<int>(CME_ERROR::NO_NETWORK_SERVICE):
+        case static_cast<int>(CME_ERROR::EMERGENCY_CALLS_ONLY):
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool gf_cpin_ready(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string state = rev->named_match("state");
+    return (0 == state.compare("READY"));
+}
+
+bool gf_cpin_sim_pin(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string state = rev->named_match("state");
+    return (0 == state.compare("SIM PIN"));
+}
+
+bool gf_cpin_sim_puk(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string state = rev->named_match("state");
+    return (0 == state.compare("SIM PUK"));
+}
+
+bool gf_cpin_not_inserted(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string state = rev->named_match("state");
+    return (0 == state.compare("NOT INSERTED"));
+}
+
+bool gf_cpin_not_ready(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string state = rev->named_match("state");
+    return (0 == state.compare("NOT READY"));
+}
+
+bool gf_qccid_match_storage(const MdmStatemachine &sm, Event &ev)
+{
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string iccid_modem = rev->named_match("iccid");
+    std::string iccid_stored = sm.get_stored_sim_iccid();
+    return (((iccid_modem.length() > 0) && (0 == iccid_modem.compare(iccid_stored))));
+}
+
+bool gf_qinistat_complete(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    const auto state = std::stoi(rev->named_match("state"));
+    return (state == static_cast<int>(SIM_INIT_STATUS::COMPLETED));
+}
+
+bool gf_renew_wwan_address(const MdmStatemachine &sm, Event &ev)
+{
+    (void)ev; //unused parameter
     //FIX for connectivity problem:
     //WWAN0 may hold up to one hour an invalid IP address due to long DHCP lease time.
     //This happens when modem gets a new PDP IP address without GPRS state change and restart of WWAN.
@@ -241,13 +498,116 @@ bool gf_renew_wwan_address(const MdmStatemachine &sm)
             sm.is_gprs_registered());
 }
 
-bool gf_gprs_autoconnect_timeout(const MdmStatemachine &sm)
+bool gf_gprs_autoconnect_abort(const MdmStatemachine &sm, Event &ev)
 {
+    (void)ev; //unused parameter
     //FIX for connection establishment problem:
-	//Autoconnect function seems to get stuck sometimes in case of roaming and in GSM networks.
-	return sm.is_gprs_autoconnect_count_exceeded();
+    //Autoconnect function seems to get stuck sometimes in case of roaming and in GSM networks.
+    return (sm.get_gprs_autoconnect_count() >= MAX_GPRS_AUTOCONNECT_COUNT);
 }
 
+bool set_operselection_required(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; (void)ev; //unused parameter
+    NetworkAccessConfig network_access_config = sm.get_network_access_config();
+    Oper current_oper = sm.get_current_oper();
+    return (current_oper.get_selection_mode() != network_access_config.get_selection_mode());
+}
+
+bool extract_dbus_setoper(GVariant *gvar, NetworkAccessConfig& network_access_config)
+{
+    int setoper_id = -1;
+    int setoper_act = -1;
+    int setoper_mode = -1;
+    g_variant_get(gvar, "(iii)", &setoper_mode, &setoper_id, &setoper_act);
+
+    int selection_mode;               //0=AUTOMATIC, 1=MANUAL
+    int autoselect_scanseq;           //0=AUTO, 1=GSM, 2=UMTS
+    int autoselect_scanmode;          //0=AUTO, 1=GSM_ONLY, 2=UMTS_ONLY
+    int manual_selection_act = 0;     //0=NONE, 1=GSM, 2=UMTS
+    int manual_selection_oper = 0;    //0=NONE, other values see 3GPP TS 27.007
+
+    //mapping of setoper mode to internal network access configuration
+    switch(setoper_mode)
+    {
+      case static_cast<int>(OPER_SEL_MODE::PREFER_UMTS):
+        selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
+        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::AUTO);
+        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::UMTS_PRIOR);
+        break;
+      case static_cast<int>(OPER_SEL_MODE::PREFER_GSM):
+        selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
+        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::AUTO);
+        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::GSM_PRIOR);
+        break;
+      case static_cast<int>(OPER_SEL_MODE::ONLY_UMTS):
+        selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
+        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::UMTS_ONLY);
+        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::UMTS_PRIOR);
+        break;
+      case static_cast<int>(OPER_SEL_MODE::ONLY_GSM):
+        selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
+        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::GSM_ONLY);
+        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::GSM_PRIOR);
+        break;
+      case static_cast<int>(OPER_SEL_MODE::MANUAL):
+        selection_mode = static_cast<int>(OPER_SEL_MODE::MANUAL);
+        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::AUTO);
+        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::AUTO);
+        break;
+      case static_cast<int>(OPER_SEL_MODE::AUTOMATIC):
+        selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
+        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::AUTO);
+        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::AUTO);
+        break;
+      default:
+        //not supported by mdmd and UC20
+        return false;
+    }
+    if (selection_mode == static_cast<int>(OPER_SEL_MODE::MANUAL))
+    {
+        if (setoper_id < 0)
+        {
+            return false;
+        }
+        manual_selection_oper = setoper_id;
+        switch (setoper_act)
+        {
+          case static_cast<int>(OPER_SEL_ACT::GSM):
+              //no break;
+          case static_cast<int>(OPER_SEL_ACT::GSM_COMPACT):
+              //no break;
+          case static_cast<int>(OPER_SEL_ACT::GSM_EGPRS):
+              manual_selection_act = static_cast<int>(OPER_SEL_ACT::GSM);
+              break;
+          case static_cast<int>(OPER_SEL_ACT::UMTS):
+              //no break;
+          case static_cast<int>(OPER_SEL_ACT::UMTS_HSDPA):
+              //no break;
+          case static_cast<int>(OPER_SEL_ACT::UMTS_HSUPA):
+              //no break;
+          case static_cast<int>(OPER_SEL_ACT::UMTS_HSPA):
+              manual_selection_act = static_cast<int>(OPER_SEL_ACT::UMTS);
+              break;
+          default:
+              //network access type not supported by mdmd and UC20
+              return false;
+        }
+    }
+    network_access_config.set_autoselect_scanmode(autoselect_scanmode);
+    network_access_config.set_autoselect_scanseq(autoselect_scanseq);
+    network_access_config.set_manual_act(manual_selection_act);
+    network_access_config.set_manual_oper(manual_selection_oper);
+    network_access_config.set_selection_mode(selection_mode);
+    return true;
+}
+
+bool gf_is_oper_selection_manual(const MdmStatemachine &sm, Event &ev)
+{
+    (void)sm; (void)ev; //unused parameter
+    NetworkAccessConfig network_access_config = sm.get_network_access_config();
+    return (network_access_config.get_selection_mode() == static_cast<int>(OPER_SEL_MODE::MANUAL));
+}
 
 /*
  * Action functions
@@ -255,8 +615,7 @@ bool gf_gprs_autoconnect_timeout(const MdmStatemachine &sm)
 void af_dbus_getsmsreportconfig(MdmStatemachine &sm, Event &ev)
 {
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    SmsEventReportingConfig sms_config;
-    (void)sm.get_sms_report_config(sms_config);
+    SmsEventReportingConfig sms_config = sm.get_sms_report_config();
     
     auto* gvar = g_variant_new("(iiiii)",
                                     sms_config.get_mode(),
@@ -274,49 +633,78 @@ void af_dbus_getsmsreportconfig(MdmStatemachine &sm, Event &ev)
     }
 }
 
+
 void af_dbus_getoperstate(MdmStatemachine &sm, Event &ev)
 {
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    auto*  gvar = static_cast<GVariant*>(nullptr);
-    int selmode;
-    const int operator_id = sm.get_current_oper().get_id();
-    const std::string operator_name = sm.get_operator_name(operator_id);
+    auto* gvar = static_cast<GVariant*>(nullptr);
+    NetworkAccessConfig oper_config = sm.get_network_access_config();
+    Oper current_oper               = sm.get_current_oper();
+    int setoper_mode;
+    int setoper_id;
+    int setoper_act;
 
-    if (gf_oper_stored(sm))
+    //reverse mapping of setoper mode to internal network access configuration (see extract_dbus_setoper method)
+    if (oper_config.get_selection_mode() == static_cast<int>(OPER_SEL_MODE::MANUAL))
     {
-      selmode = 1;
-    }
-    else if (0 != sm.get_oper_scan_mode())
-    {
-      selmode = 1 + sm.get_oper_scan_mode();
-    }
-    else if (0 != sm.get_oper_scan_seq())
-    {
-      selmode = 3 + sm.get_oper_scan_seq();
+        setoper_id   = oper_config.get_manual_oper();
+        setoper_act  = oper_config.get_manual_act();
+        setoper_mode = static_cast<int>(OPER_SEL_MODE::MANUAL);
     }
     else
     {
-      selmode = 0;
+        setoper_id   = current_oper.get_id();
+        setoper_act  = current_oper.get_act();
+        if (oper_config.get_autoselect_scanseq() == static_cast<int>(NW_SCAN_SEQ::GSM_PRIOR))
+        {
+            if (oper_config.get_autoselect_scanmode() == static_cast<int>(NW_SCAN_MODE::GSM_ONLY))
+            {
+                setoper_mode = static_cast<int>(OPER_SEL_MODE::ONLY_GSM);
+            }
+            else
+            {
+                setoper_mode = static_cast<int>(OPER_SEL_MODE::PREFER_GSM);
+            }
+        }
+        else if (oper_config.get_autoselect_scanseq() == static_cast<int>(NW_SCAN_SEQ::UMTS_PRIOR))
+        {
+          if (oper_config.get_autoselect_scanmode() == static_cast<int>(NW_SCAN_MODE::UMTS_ONLY))
+          {
+              setoper_mode = static_cast<int>(OPER_SEL_MODE::ONLY_UMTS);
+          }
+          else
+          {
+              setoper_mode = static_cast<int>(OPER_SEL_MODE::PREFER_UMTS);
+          }
+        }
+        else
+        {
+            setoper_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
+        }
     }
+    const int oper_state = ((sm.get_error_state() == MdmErrorState::NET_NO_SERVICE) ? static_cast<int>(SERVICE_REG_STATE::NOSERVICE) :
+                                                                                      sm.get_oper_reg_state());
+    std::string oper_name = sm.get_operator_name(setoper_id);
+    std::string oper_lac  = sm.get_oper_reg_lac();
+    std::string oper_cid  = sm.get_oper_reg_cid();
     gvar = g_variant_new("(iiiiisss)",
-                         sm.get_oper_reg_state(),
-                         selmode,
-                         operator_id,
-                         sm.get_current_oper().get_act(),
-                         sm.get_current_oper().get_quality_percent(),
-                         operator_name.c_str(),
-                         sm.get_oper_reg_lac().c_str(),
-                         sm.get_oper_reg_cid().c_str());
+                         oper_state,
+                         setoper_mode,
+                         setoper_id,
+                         setoper_act,
+                         current_oper.get_quality_percent(),
+                         oper_name.c_str(),
+                         oper_lac.c_str(),
+                         oper_cid.c_str());
     if (gvar != nullptr)
     {
-      dev->invocation().return_value(gvar);
+        dev->invocation().return_value(gvar);
     }
     else
     {
-      dev->invocation().return_error("de.wago.mdmdError", "ERROR");
+        dev->invocation().return_error("de.wago.mdmdError", "ERROR");
     }
 }
-
 
 void af_dbus_getportstate2(MdmStatemachine &sm, Event &ev)
 {
@@ -334,69 +722,24 @@ void af_dbus_getportstate2(MdmStatemachine &sm, Event &ev)
     }
 }
 
-void af_dbus_getsimstate(MdmStatemachine &sm, Event &ev)
+void af_dbus_getgprsaccess2(MdmStatemachine &sm, Event &ev)
 {
-    int state;
-    int attempts = -1;
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    auto*  gvar = static_cast<GVariant*>(nullptr);
-    switch(sm.get_sim_state()) {
-    case MdmSimState::SIM_PIN:
-        state=1;
-        attempts = sm.get_pin_count();
-        break;
-    case MdmSimState::SIM_PUK:
-        state=2;
-        attempts = sm.get_puk_count();
-        break;
-    case MdmSimState::READY:
-        state=3;
-        break;
-    case MdmSimState::NOT_INSERTED:
-        state=4;
-        break;
-    case MdmSimState::SIM_ERROR:
-        state=5;
-        break;
-    case MdmSimState::UNKNOWN:
-        /*no break*/
-    default:
-        state=0;
-    }
-    gvar = g_variant_new("(ii)", state, attempts);
+    auto* gvar = g_variant_new("(isissis)",
+                                sm.get_gprs_reg_state(),
+                                gprs_access_config.get_apn().c_str(),
+                                gprs_access_config.get_auth(),
+                                gprs_access_config.get_user().c_str(),
+                                gprs_access_config.get_pass().c_str(),
+                                gprs_access_config.get_state(),
+                                sm.get_pdp_address().c_str());
     if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
     }
     else
     {
-      dev->invocation().return_error("de.wago.mdmdError", "ERROR");
-    }
-}
-
-void af_dbus_getgprsaccess2(MdmStatemachine &sm, Event &ev)
-{
-    GprsAccessConfig gprsaccess;
-    auto* dev = dynamic_cast<DBusEvent *>(&ev);
-
-    if(sm.get_gprsaccess(gprsaccess)) {
-        auto* gvar = g_variant_new("(isissis)",
-                                    sm.get_gprs_reg_state(),
-                                    gprsaccess.get_apn().c_str(),
-                                    gprsaccess.get_auth(),
-                                    gprsaccess.get_user().c_str(),
-                                    gprsaccess.get_pass().c_str(),
-                                    gprsaccess.get_state(),
-                                    sm.get_pdp_address().c_str());
-        if (gvar != nullptr)
-        {
-          dev->invocation().return_value(gvar);
-        }
-        else
-        {
-          dev->invocation().return_error("de.wago.mdmdError", "ERROR");
-        }
-    } else {
       dev->invocation().return_error("de.wago.mdmdError", "ERROR");
     }
 }
@@ -404,10 +747,10 @@ void af_dbus_getgprsaccess2(MdmStatemachine &sm, Event &ev)
 void af_dbus_getmodeminfo(MdmStatemachine &sm, Event &ev)
 {
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    auto*  gvar = g_variant_new("(sss)",
-                                    sm.get_modem_manufacturer().c_str(),
-                                    sm.get_modem_model().c_str(),
-                                    sm.get_modem_revision().c_str() );
+    auto* gvar = g_variant_new("(sss)",
+                               sm.get_modem_manufacturer().c_str(),
+                               sm.get_modem_model().c_str(),
+                               sm.get_modem_revision().c_str() );
     if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
@@ -416,17 +759,18 @@ void af_dbus_getmodeminfo(MdmStatemachine &sm, Event &ev)
     {
       dev->invocation().return_error("de.wago.mdmdError", "ERROR");
     }
-
 }
 
 void af_dbus_getmodemidentity(MdmStatemachine &sm, Event &ev)
 {
-    auto* const dev = dynamic_cast<DBusEvent *>(&ev);
-    auto*  const gvar = g_variant_new("(s)", sm.get_modem_identity().c_str());
-    if (gvar != nullptr) {
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* gvar = g_variant_new("(s)", sm.get_modem_identity().c_str());
+    if (gvar != nullptr)
+    {
       dev->invocation().return_value(gvar);
     }
-    else {
+    else
+    {
       dev->invocation().return_error("de.wago.mdmdError", "ERROR");
     }
 }
@@ -435,7 +779,9 @@ void af_dbus_getsmsformat(MdmStatemachine &sm, Event &ev)
 {
     (void)sm;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    auto*  gvar = g_variant_new("(i)", sms_format) ;
+    const MessageServiceConfig message_service_config = sm.get_message_service_config();
+
+    auto*  gvar = g_variant_new("(i)", message_service_config.get_sms_format()) ;
     if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
@@ -450,9 +796,11 @@ void af_dbus_setsmsformat(MdmStatemachine &sm, Event &ev)
 {
     (void)sm;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    const MessageServiceConfig message_service_config = sm.get_message_service_config();
+
     int format;
     g_variant_get(dev->invocation().parameters(), "(i)", &format);
-    if (format == sms_format)
+    if (format == message_service_config.get_sms_format())
     {
       dev->invocation().return_value( 0 );
     }
@@ -522,20 +870,64 @@ void af_dbus_setloglevel(MdmStatemachine &sm, Event &ev)
     }
 }
 
+void af_dbus_getsimautoactivation(MdmStatemachine &sm, Event &ev)
+{
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* gvar = g_variant_new("(ss)", sm.get_stored_sim_iccid().c_str(),
+                                       sm.get_stored_sim_pin().c_str());
+    if (gvar != nullptr)
+    {
+      dev->invocation().return_value(gvar);
+    }
+    else
+    {
+      dev->invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+}
+
+void af_dbus_setsimautoactivation(MdmStatemachine &sm, Event &ev)
+{
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    //extract dbus SetSimAutoAuth
+    gchar* iccid = nullptr;
+    gchar* pin = nullptr;
+    g_variant_get(dev->invocation().parameters(), "(ss)", &iccid, &pin);
+    if((iccid != nullptr) && (pin != nullptr))
+    {
+        sm.store_sim_pin(iccid, pin);
+        dev->invocation().return_value(nullptr);
+    }
+    else
+    {
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSimAutoActivation\" with invalid parameter\n", sm.get_state().c_str());
+        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+    }
+    if (iccid != nullptr)
+    {
+        g_free(iccid);
+    }
+    if (pin != nullptr)
+    {
+        g_free(pin);
+    }
+}
+
 void af_read_cops(MdmStatemachine &sm, Event &ev)
 {
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    int mode = std::stoi( rev->named_match("mode"));
     int id = std::stoi( rev->named_match("id"));
     int act = std::stoi( rev->named_match("act"));
-    sm.set_current_oper(id, act);
+    sm.set_current_oper(mode, id, act);
 }
 
 void af_read_cops_null(MdmStatemachine &sm, Event &ev)
 {
-    (void)ev; 
-    //sm.clear_current_oper(); //COPS:0 does not show an invalid operator, but indication for status change
-
-    mdmd_Log(MD_LOG_DBG, "%s: COPS indication\n", sm.get_state().c_str()); //log message for debug purpose only
+    (void)sm; (void)ev; //unused parameter
+    //COPS: 0 indicates automatic selection is ongoing, currently no operator is selected
+    sm.clear_current_oper();
+    Oper current_oper = sm.get_current_oper();
+    sm.set_current_oper(static_cast<int>(OPER_SEL_MODE::AUTOMATIC), current_oper.get_id(), current_oper.get_act());
 }
 
 void af_read_cgreg(MdmStatemachine &sm, Event &ev)
@@ -581,110 +973,184 @@ void af_read_csq(MdmStatemachine &sm, Event &ev)
     sm.set_current_oper_csq(bit_error_rate, received_signal_strength);
 }
 
-void af_read_cme_error(MdmStatemachine &sm, Event &ev)
-{
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    int err = std::stoi(rev->named_match("err"));
-    sm.set_last_cme_error(err);
-}
-
-void af_read_cms_error(MdmStatemachine &sm, Event &ev)
-{
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    int err = std::stoi(rev->named_match("err"));
-    sm.set_last_cms_error(err);
-}
-
-void af_read_cfun_state(MdmStatemachine &sm, Event &ev)
-{
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    int state = std::stoi(rev->named_match("state"));
-    if (1 == state) 
-    {
-      sm.set_cfun_state(state);
-    }
-    else
-    {
-      sm.set_cfun_state(0);
-    }
-}
-
-void af_read_cpin_state(MdmStatemachine &sm, Event &ev)
-{
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    std::string state = rev->named_match("state");
-    if (0 == state.compare("READY"))
-    {
-        sm.set_sim_state(MdmSimState::READY);
-    }
-    else if (0 == state.compare("SIM PIN"))
-    {
-        sm.set_sim_state(MdmSimState::SIM_PIN);
-    }
-    else if (0 == state.compare("SIM PUK"))
-    {
-        sm.set_sim_state(MdmSimState::SIM_PUK);
-    }
-    else if (0 == state.compare("NOT INSERTED"))
-    {
-        sm.set_sim_state(MdmSimState::NOT_INSERTED);
-    }
-    else if (0 == state.compare("NOT READY"))
-    {
-        sm.set_sim_state(MdmSimState::NOT_READY);
-    }
-    else
-    {
-        sm.set_sim_state(MdmSimState::UNKNOWN);
-    }
-}
-
-void af_read_scan_mode(MdmStatemachine &sm, Event &ev)
-{
-    auto* rev = dynamic_cast<ModemEvent*>(&ev);
-    int mode = std::stoi(rev->named_match("mode"));
-    sm.set_oper_scan_mode(mode);
-}
-
-void af_read_scan_seq(MdmStatemachine &sm, Event &ev)
-{
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    int scan_sequence = std::stoi(rev->named_match("seq"));
-    sm.set_oper_scan_seq(scan_sequence);
-}
-
 void af_sms_event_report(MdmStatemachine &sm, Event &ev)
 {
     (void)ev; 
     sm.event_report_last_read();
 }
 
+void af_cme_error(MdmStatemachine &sm, Event &ev)
+{
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string cme_string = cme_to_string(std::stoi(rev->named_match("err")));
+    mdmd_Log(MD_LOG_DBG, "%s: CME ERROR: %s\n", sm.get_state().c_str(), cme_string.c_str());
+}
+
+void af_cms_error(MdmStatemachine &sm, Event &ev)
+{
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string cms_string = cms_to_string(std::stoi(rev->named_match("err")));
+    mdmd_Log(MD_LOG_DBG, "%s: CMS ERROR: %s\n", sm.get_state().c_str(), cms_string.c_str());
+}
 
 /*
- * Common transaction functions (used in different states)
+ * Transaction functions
  */
-bool tf_query_reg_state_full(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_trigger_modem_shutdown(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    auto at_cmd{"at+cops?;+csq;+creg=2;+creg?;+creg=0;+cgreg?;+cgpaddr="s};
-    at_cmd.push_back(rmnet_profileid);
-    sm.reset_gprs_change_flags();
-    sm.write(at_cmd);
-    sm.set_gprs_autoconnect_count();
-//    sm.set_current_invocation(MethodInvocation());
+    (void) src; (void)dst; (void)ev; //unused parameter
+    sm.write("at+qpowd");
     sm.kick_cmd_timeout(timer_at_cmd_short);
     return true;
 }
 
-bool tf_do_nothing(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_modemreset_request(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)sm; (void)src; (void)dst; (void)ev; 
-  return true;
+    (void)src; (void)dst;
+    //user trigger for modem reset
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    sm.set_current_invocation(dev->invocation());
+    mdmd_Log(MD_LOG_INF, "%s: Reset request from user -> trigger modem restart\n", sm.get_state().c_str());
+    (void)tf_trigger_modem_shutdown(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_wait_modem_port_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.set_error_state(MdmErrorState::PORT_NOT_READY);
+    mdmd_Log(MD_LOG_ERR, "%s: modem port timeout, restart modem without recommended shutdown!\n", sm.get_state().c_str());
+    sm.modem_reset(ModemResetMode::MUSB_RESET);
+    sm.kick_cmd_timeout(timer_wait_port);
+    return true;
+}
+
+bool tf_shutdown_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //modem shutdown successfully triggered
+    (void)src; (void)dst; (void)ev;
+    sm.kick_cmd_timeout(timer_power_down);
+    return true;
+}
+
+bool tf_shutdown_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //shutdown command not supported or not allowed -> reset modem immediately
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_ERR, "%s: modem shutdown error, restart without recommended shutdown!\n", sm.get_state().c_str());
+    sm.modem_reset(ModemResetMode::DEFAULT);
+    sm.kick_cmd_timeout(timer_wait_port);
+    return true;
+}
+
+bool tf_shutdown_err_dbus_return(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_value(nullptr);
+    (void)tf_shutdown_err(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_shutdown_finish(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //modem shutdown completed -> reset modem now
+    (void)src; (void)dst; (void)ev; 
+    mdmd_Log(MD_LOG_INF, "%s: modem shutdown successful\n", sm.get_state().c_str());
+    sm.modem_reset(ModemResetMode::DEFAULT);
+    sm.kick_cmd_timeout(timer_wait_port);
+    return true;
+}
+
+bool tf_getoperlist_shutdown_finish(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)tf_shutdown_finish(sm, src, dst, ev);
+    //set flag to continue after reset
+    sm.set_continue_getoperlist(true);
+    return true;
+}
+
+bool tf_shutdown_finish_dbus_return(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_value(nullptr);
+    (void)tf_shutdown_finish(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_shutdown_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //modem hang-up -> reset modem including USB stack
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_ERR, "%s: modem shutdown timeout, restart without recommended shutdown!\n", sm.get_state().c_str());
+    sm.modem_reset(ModemResetMode::MUSB_RESET);
+    sm.kick_cmd_timeout(timer_wait_port);
+    return true;
+}
+
+bool tf_shutdown_timeout_dbus_return(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_value(nullptr);
+    (void)tf_shutdown_timeout(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_modem_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //modem freeze -> reset modem including USB stack
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_ERR, "%s: modem command timeout, restart modem without recommended shutdown!\n", sm.get_state().c_str());
+    sm.modem_reset(ModemResetMode::MUSB_RESET);
+    sm.kick_cmd_timeout(timer_wait_port);
+    return true;
+}
+
+bool tf_modem_timeout_dbus_return(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_error("de.wago.mdmdError", "MODEM COMMAND TIMEOUT");
+    (void)tf_modem_timeout(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_io_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //modem crash -> reset modem including USB stack
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_WRN, "%s: modem io error, restart modem without recommended shutdown!\n", sm.get_state().c_str());
+    sm.modem_reset(ModemResetMode::MUSB_RESET);
+    sm.kick_cmd_timeout(timer_wait_port);
+    return true;
+}
+
+bool tf_io_error_dbus_return(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_error("de.wago.mdmdError", "MODEM IO ERROR");
+    (void)tf_io_error(sm, src, dst, ev);
+    return true;
+}
+
+
+bool tf_query_reg_state_full(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+    auto at_cmd{"at+cops?;+csq;+creg=2;+creg?;+creg=0;+cgreg?;+cgpaddr="s};
+    at_cmd.append(std::to_string(gprs_access_config.get_profile()));
+    sm.reset_gprs_change_flags();
+    sm.write(at_cmd);
+    sm.update_gprs_autoconnect_count();
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+    return true;
+}
+
+bool tf_operation_failure_dbus_return(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    (void)tf_query_reg_state_full(sm, src, dst, ev);
+
+    return true;
 }
 
 bool tf_openport(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
+    (void)src; (void)dst; (void)ev;
     sm.try_open_modem();
     sm.kick_cmd_timeout(timer_immediate);
     return true;
@@ -692,7 +1158,7 @@ bool tf_openport(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_port_disabled(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
+    (void)src; (void)dst; (void)ev;
     mdmd_Log(MD_LOG_INF, "%s: modem port disabled\n", sm.get_state().c_str());
     sm.deactivate_cmd_timeout();
     return true;
@@ -700,7 +1166,7 @@ bool tf_port_disabled(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_startinit(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
+    (void)src; (void)dst; (void)ev;
     mdmd_Log(MD_LOG_INF, "%s: modem port open\n", sm.get_state().c_str());
     sm.set_error_state(MdmErrorState::NONE);
     /*disable command echo mode*/
@@ -709,58 +1175,139 @@ bool tf_startinit(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     return true;
 }
 
-bool tf_dbus_modemreset(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+void return_dbus_getsimstate(DBusEvent *dev, int state, int attempts)
 {
-    (void)src; (void)dst; 
+    auto* gvar = g_variant_new("(ii)", state, attempts);
+    if (gvar != nullptr)
+    {
+      dev->invocation().return_value(gvar);
+    }
+    else
+    {
+      dev->invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+}
+
+bool tf_dbus_getsimstate_unknown(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)sm; (void)src; (void)dst; //unused parameter
+    return_dbus_getsimstate(dynamic_cast<DBusEvent *>(&ev), static_cast<int>(SIM_STATE::UNKNOWN), -1);
+
+    return true;
+}
+
+bool tf_dbus_getsimstate_activation_required(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; //unused parameter
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    dev->invocation().return_value(nullptr);
-
-    //disable wwan interface before power down and restart
-    sm.wwan_disable();
-
-    sm.write("at+qpowd");
+    sm.set_current_invocation(dev->invocation());
+    sm.write("at+qpinc=\"SC\"");
     sm.kick_cmd_timeout(timer_at_cmd_short);
+
     return true;
 }
 
-bool tf_powerdown_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_getsim_pincount(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_INF, "%s: wait modem shutdown...\n", sm.get_state().c_str());
-    sm.kick_cmd_timeout(timer_power_down);
+    (void)src; (void)dst; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    auto* gvar = g_variant_new("(ii)", static_cast<int>(SIM_STATE::PIN_REQUIRED), std::stoi(rev->named_match("s1")));
+    if (gvar != nullptr)
+    {
+        sm.current_invocation().return_value(gvar);
+    }
+    else
+    {
+        sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+    sm.deactivate_cmd_timeout();
+
     return true;
 }
 
-bool tf_powerdown_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_getsim_nopincount(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_ERR, "%s: modem shutdown error, restart with possible data corruption!\n", sm.get_state().c_str());
-    //wwan interface should be already disabled before power down and restart
-    sm.modem_hard_reset();
-    sm.kick_cmd_timeout(timer_immediate);
+    (void)src; (void)dst; (void)ev; //unused parameter
+    auto* gvar = g_variant_new("(ii)", static_cast<int>(SIM_STATE::PIN_REQUIRED), -1);
+    if (gvar != nullptr)
+    {
+        sm.current_invocation().return_value(gvar);
+    }
+    else
+    {
+        sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+    sm.deactivate_cmd_timeout();
+
     return true;
 }
 
-bool tf_powerdown_finish(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_getsim_pukcount(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_INF, "%s: modem shutdown successful\n", sm.get_state().c_str());
-    //wwan interface should be already disabled before power down and restart
-    sm.modem_hard_reset();
-    sm.kick_cmd_timeout(timer_immediate);
+    (void)src; (void)dst; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    auto* gvar = g_variant_new("(ii)", static_cast<int>(SIM_STATE::PUK_REQUIRED), std::stoi(rev->named_match("s2")));
+    if (gvar != nullptr)
+    {
+        sm.current_invocation().return_value(gvar);
+    }
+    else
+    {
+        sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+    sm.deactivate_cmd_timeout();
+
     return true;
 }
 
-bool tf_powerdown_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_getsim_nopukcount(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_ERR, "%s: modem shutdown timeout, restart with possible data corruption!\n", sm.get_state().c_str());
-    //wwan interface should be already disabled before power down and restart
-    sm.modem_hard_reset();
-    sm.kick_cmd_timeout(timer_immediate);
+    (void)src; (void)dst; (void)ev; //unused parameter
+    auto* gvar = g_variant_new("(ii)", static_cast<int>(SIM_STATE::PUK_REQUIRED), -1);
+    if (gvar != nullptr)
+    {
+        sm.current_invocation().return_value(gvar);
+    }
+    else
+    {
+        sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+    sm.deactivate_cmd_timeout();
+
     return true;
 }
 
+bool tf_dbus_getsimstate_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)sm; (void)src; (void)dst; //unused parameter
+    return_dbus_getsimstate(dynamic_cast<DBusEvent *>(&ev), static_cast<int>(SIM_STATE::READY), -1);
+
+    return true;
+}
+
+bool tf_dbus_getsimstate_not_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)sm; (void)src; (void)dst; //unused parameter
+    return_dbus_getsimstate(dynamic_cast<DBusEvent *>(&ev), static_cast<int>(SIM_STATE::NOT_READY), -1);
+
+    return true;
+}
+
+bool tf_dbus_getsimstate_not_inserted(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)sm; (void)src; (void)dst; //unused parameter
+    return_dbus_getsimstate(dynamic_cast<DBusEvent *>(&ev), static_cast<int>(SIM_STATE::NOT_INSERTED), -1);
+
+    return true;
+}
+
+bool tf_dbus_getsimstate_failure(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)sm; (void)src; (void)dst; //unused parameter
+    return_dbus_getsimstate(dynamic_cast<DBusEvent *>(&ev), static_cast<int>(SIM_STATE::ERROR), -1);
+
+    return true;
+}
 bool tf_dbus_setpin_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)sm; (void)src; (void)dst; 
@@ -769,134 +1316,173 @@ bool tf_dbus_setpin_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev
     return true;
 }
 
-void presetoper(MdmStatemachine &sm, int id, int act, int mode)
-{
-    switch(mode)
-    {
-        case static_cast<int>(MODE::PREFER_UMTS): 
-            sm.set_oper_scan_mode(0);
-            sm.set_oper_scan_seq(2);
-            break;
-        case static_cast<int>(MODE::PREFER_GSM): 
-            sm.set_oper_scan_mode(0);
-            sm.set_oper_scan_seq(1);
-            break;
-        case static_cast<int>(MODE::ONLY_UMTS): 
-            sm.set_oper_scan_mode(2);
-            sm.set_oper_scan_seq(0);
-            break;
-        case static_cast<int>(MODE::ONLY_GSM): 
-            sm.set_oper_scan_mode(1);
-            sm.set_oper_scan_seq(0);
-            break;
-        case static_cast<int>(MODE::MANUAL): 
-            //no break;
-        case static_cast<int>(MODE::AUTOMATIC): 
-            //no break;
-      default:
-        sm.set_oper_scan_mode(0);
-        sm.set_oper_scan_seq(0);
-        break;
-    }
 
-    if (mode == static_cast<int>(MODE::MANUAL))
+bool tf_dbus_setoper_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; //unused parameter
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    NetworkAccessConfig network_access_config = sm.get_network_access_config();
+    if (extract_dbus_setoper(dev->invocation().parameters(), network_access_config))
     {
-        sm.set_stored_oper(id,act);
+        sm.set_network_access_config(network_access_config);
+        dev->invocation().return_value(nullptr);
     }
     else
     {
-        sm.remove_stored_oper();
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetOper\" with invalid parameter\n", sm.get_state().c_str());
+        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
     }
+
+    return true;
 }
 
-void dbus_presetoper(MdmStatemachine &sm, Event &ev)
+bool tf_set_operselection(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    auto id = -1;
-    auto act = -1;
-    auto mode = -1;
+    (void)src; (void)dst; (void)ev;
+    NetworkAccessConfig network_access_config = sm.get_network_access_config();
+    auto at_cmd{"at+cops="s};
+    if (network_access_config.get_selection_mode() == 0)
+    {
+        at_cmd.append("0,2");
+    }
+    else
+    {
+        at_cmd.append("1,2,");
+        at_cmd.append(std::to_string(network_access_config.get_manual_oper()) + ",");
+        at_cmd.append(std::to_string(network_access_config.get_manual_act()));
+    }
+    sm.write(at_cmd);
+    sm.kick_cmd_timeout(timer_at_cmd_cops);
+
+    return true;
+}
+
+bool tf_dbus_setoper_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; //unused parameter
+    bool do_transition;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    g_variant_get(dev->invocation().parameters(), "(iii)", &mode, &id, &act);
-    presetoper(sm, id, act, mode);
-    sm.set_stored_selection(mode);
-}
-
-bool tf_dbus_setoper_return_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-    auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    dbus_presetoper(sm, ev);
-    dev->invocation().return_value(nullptr);
-    return true;
-}
-
-void setoper(MdmStatemachine &sm, int id, int act)
-{
-  auto at_cmd{""s};
-  at_cmd.append(R"(at+qcfg="nwscanmode",)" + std::to_string(sm.get_oper_scan_mode()) + ",1;");
-  at_cmd.append(R"(+qcfg="nwscanseq",)" + std::to_string(sm.get_oper_scan_seq()) + ",1;");
-  if (sm.get_stored_oper(id, act))
-  {
-      at_cmd.append(R"(+cops=1,2,")" + std::to_string(id) + R"(",)" + std::to_string(act));
-  }
-  else
-  {
-      at_cmd.append("+cops=0,2");
-  }
-  sm.clear_current_oper();
-  sm.write(at_cmd);
-  sm.kick_cmd_timeout(timer_at_cmd_cops);
-}
-
-bool tf_dbus_setoper(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-    auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    dbus_presetoper(sm, ev);
-    sm.set_current_invocation(dev->invocation());
-
-    int id = 0;
-    int act = 0;
-    setoper(sm, id, act);
-
-    return true;
-}
-
-bool tf_dbus_setoper_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_value(nullptr);
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
-
-bool tf_dbus_setoper_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
+    NetworkAccessConfig network_access_config = sm.get_network_access_config();
+    if (extract_dbus_setoper(dev->invocation().parameters(), network_access_config))
+    {
+        //compare new and actual configuration to avoid unnecessary actions
+        if (0 != network_access_config.compare(sm.get_network_access_config()))
+        {
+            //set parameter to storage
+            sm.set_network_access_config(network_access_config);
+            (void)tf_set_operselection(sm, src, dst, ev);
+            do_transition = true;
+        }
+        else
+        {
+            //no configuration change -> nothing to do
+            do_transition = false;
+        }
+        dev->invocation().return_value(nullptr);
+    }
+    else
+    {
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetOper\" with invalid parameter\n", sm.get_state().c_str());
+        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+        do_transition = false;
+    }
+    return do_transition;
 }
 
 
-bool tf_gprsprofile_init(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_set_nwscan_config(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    GprsAccessConfig gprsaccess;
-    (void)sm.get_gprsaccess(gprsaccess);
-
-    auto at_cmd{"at+qicsgp="s};
-    at_cmd.push_back(rmnet_profileid);
-    at_cmd.append(",1,");
-    at_cmd.append(R"(")" + gprsaccess.get_apn() + R"(",)");
-    at_cmd.append(R"(")" + gprsaccess.get_user() + R"(",)");
-    at_cmd.append(R"(")" + gprsaccess.get_pass() + R"(",)");
-    at_cmd.append(std::to_string(gprsaccess.get_auth()));
+    //nwscan parameter must be set again when operator selection is set to automatic
+    (void)src; (void)dst; (void)ev;
+    NetworkAccessConfig network_access_config = sm.get_network_access_config();
+    auto at_cmd{"at"s};
+    at_cmd.append(R"(+qcfg="nwscanmode",)" + std::to_string(network_access_config.get_autoselect_scanmode()) + ",1;");
+    at_cmd.append(R"(+qcfg="nwscanseq",)" + std::to_string(network_access_config.get_autoselect_scanseq()) + ",1");
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
 
-bool extract_dbus_setgprsaccess2(GVariant *gvar, GprsAccessConfig& gprsaccess)
+bool tf_no_network_service(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
+    //The access to mobile network may be temporarily not allowed. We have to wait and try operator selection again.
+    (void)src; (void)dst; (void)ev;
+    sm.reset_service_states();
+    sm.set_error_state(MdmErrorState::NET_NO_SERVICE);
+    sm.kick_cmd_timeout(timer_wait_network_service);
+    return true;
+}
+
+bool tf_get_oper_regstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+csq;+creg=2;+creg?;+creg=0");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+    return true;
+}
+
+bool tf_set_operator_selection_manual_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //Reset possible network access failure
+    sm.set_error_state(MdmErrorState::NONE);
+    (void)tf_get_oper_regstate(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_set_operator_selection_automatic_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //Reset possible network access failure
+    sm.set_error_state(MdmErrorState::NONE);
+    //automatic network selection requires always scan configuration (fix WAT20902)
+    (void)tf_set_nwscan_config(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_get_gprsprofile(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+    auto at_cmd{"at+qicsgp="s};
+    at_cmd.append(std::to_string(gprs_access_config.get_profile()));
+    sm.write(at_cmd);
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+
+    return true;
+}
+
+bool tf_set_gprsprofile(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev; 
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+
+    auto at_cmd{"at+qicsgp="s};
+    at_cmd.append(std::to_string(gprs_access_config.get_profile()));
+    at_cmd.append(",1,");
+    at_cmd.append(R"(")" + gprs_access_config.get_apn() + R"(",)");
+    at_cmd.append(R"(")" + gprs_access_config.get_user() + R"(",)");
+    at_cmd.append(R"(")" + gprs_access_config.get_pass() + R"(",)");
+    at_cmd.append(std::to_string(gprs_access_config.get_auth()));
+    sm.write(at_cmd);
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+
+    return true;
+}
+
+bool tf_get_gprs_regstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+    auto at_cmd{"at+cgreg?;+cgpaddr="s};
+    at_cmd.append(std::to_string(gprs_access_config.get_profile()));
+    sm.write(at_cmd);
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+    return true;
+}
+
+bool extract_dbus_setgprsaccess2(GVariant *gvar, GprsAccessConfig& gprs_access_config)
+{
+    bool result = false;
     gchar* apn = nullptr;
     auto auth = 0;
     gchar* user = nullptr;
@@ -910,62 +1496,79 @@ bool extract_dbus_setgprsaccess2(GVariant *gvar, GprsAccessConfig& gprsaccess)
 
     if((apn != nullptr) && (user != nullptr) && (pass != nullptr))
     {
-        gprsaccess.set_apn(apn);
-        gprsaccess.set_auth(auth);
-        gprsaccess.set_user(user);
-        gprsaccess.set_pass(pass);
-		gprsaccess.set_state(conn);
-        g_free(apn);
-        g_free(user);
-        g_free(pass);
-
-        return true;
+        gprs_access_config.set_apn(apn);
+        gprs_access_config.set_auth(auth);
+        gprs_access_config.set_user(user);
+        gprs_access_config.set_pass(pass);
+		    gprs_access_config.set_state(conn);
+		    result = true;
     }
-    return false;
+    if (apn != nullptr)
+    {
+        g_free(apn);
+    }
+    if (user != nullptr)
+    {
+        g_free(user);
+    }
+    if (pass != nullptr)
+    {
+        g_free(pass);
+    }
+
+    return result;
 }
 
-bool tf_setgprsaccess2_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_setgprsaccess_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
-    GprsAccessConfig gprsaccess;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    if (extract_dbus_setgprsaccess2(dev->invocation().parameters(), gprsaccess))
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+    if (extract_dbus_setgprsaccess2(dev->invocation().parameters(), gprs_access_config))
     {
-        sm.set_gprsaccess(gprsaccess);
+        sm.set_gprs_access_config(gprs_access_config);
         dev->invocation().return_value(nullptr);
     }
     else
     {
-        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetGprsAccess\" with invalid parameter\n", sm.get_state().c_str());
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetGprsAccess2\" with invalid parameter\n", sm.get_state().c_str());
         dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
     }
 
     return true;
 }
 
-bool tf_setgprsaccess2_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_setgprsaccess_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; 
-    GprsAccessConfig gprsaccess;
+    (void)src; (void)dst; //unused parameter
+    bool do_transition;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    if (extract_dbus_setgprsaccess2(dev->invocation().parameters(), gprsaccess))
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
+    if (extract_dbus_setgprsaccess2(dev->invocation().parameters(), gprs_access_config))
     {
-        auto at_cmd{"at+qicsgp="s};
-        at_cmd.push_back(rmnet_profileid);
-        at_cmd.append(",1,");
-        at_cmd.append(R"(")" + gprsaccess.get_apn() + R"(",)");
-        at_cmd.append(R"(")" + gprsaccess.get_user() + R"(",)");
-        at_cmd.append(R"(")" + gprsaccess.get_pass() + R"(",)");
-        at_cmd.append(std::to_string(gprsaccess.get_auth()));
-        sm.write(at_cmd);
-        sm.kick_cmd_timeout(timer_at_cmd_short);
-        sm.set_current_invocation(dev->invocation());
-        return true;
+        //compare new and actual configuration to avoid unnecessary actions
+        if (0 != gprs_access_config.compare(sm.get_gprs_access_config()))
+        {
+            //set parameter to storage
+            sm.set_gprs_access_config(gprs_access_config);
+            (void)tf_set_gprsprofile(sm, src, dst, ev);
+            do_transition = true;
+        }
+        else
+        {
+            //no configuration change -> nothing to do
+            do_transition = false;
+        }
+        dev->invocation().return_value(nullptr);
     }
-    mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetGprsAccess2\" with invalid parameter\n", sm.get_state().c_str());
-    dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+    else
+    {
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetGprsAccess2\" with invalid parameter\n", sm.get_state().c_str());
+        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+        do_transition = false;
+    }
 
-    return false;
+    return do_transition;
 }
 
 bool extract_dbus_setsmsreportconfig(GVariant *gvar, SmsEventReportingConfig& sms_report_config)
@@ -1007,11 +1610,11 @@ bool extract_dbus_setsmsreportconfig(GVariant *gvar, SmsEventReportingConfig& sm
     return true;
 }
 
-bool tf_setsmsreportconfig_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_setsmsreportconfig_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; 
-    SmsEventReportingConfig sms_report_config;
+    (void)src; (void)dst; //unused parameter
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    SmsEventReportingConfig sms_report_config = sm.get_sms_report_config();
     if (extract_dbus_setsmsreportconfig(dev->invocation().parameters(), sms_report_config))
     {
         sm.set_sms_report_config(sms_report_config);
@@ -1026,55 +1629,53 @@ bool tf_setsmsreportconfig_to_parameter_storage(MdmStatemachine &sm, State &src,
     return true;
 }
 
-bool tf_setsmsreportconfig_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_set_sms_report_config(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; 
-    SmsEventReportingConfig sms_report_config;
-    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    (void)src; (void)dst; (void)ev; //unused parameter
+    SmsEventReportingConfig sms_config = sm.get_sms_report_config();
+    auto at_cmd{"at+cnmi="s};
+    at_cmd.append(std::to_string(sms_config.get_mode()) + ",");
+    at_cmd.append(std::to_string(sms_config.get_mt()) + ",");
+    at_cmd.append(std::to_string(sms_config.get_bm()) + ",");
+    at_cmd.append(std::to_string(sms_config.get_ds()) + ",");
+    at_cmd.append(std::to_string(sms_config.get_bfr()));
+    sm.write(at_cmd);
+    sm.kick_cmd_timeout(timer_at_cmd_short);
 
-    if (extract_dbus_setsmsreportconfig(dev->invocation().parameters(), sms_report_config))
-    {
-        auto at_cmd{"at+cnmi="s};
-        at_cmd.append(std::to_string(sms_report_config.get_mode()) + ",");
-        at_cmd.append(std::to_string(sms_report_config.get_mt()) + ",");
-        at_cmd.append(std::to_string(sms_report_config.get_bm()) + ",");
-        at_cmd.append(std::to_string(sms_report_config.get_ds()) + ",");
-        at_cmd.append(std::to_string(sms_report_config.get_bfr()));
-        sm.write(at_cmd);
-        sm.kick_cmd_timeout(timer_at_cmd_short);
-        sm.set_current_invocation(dev->invocation()); //set current invocation for following parameter handling
-
-        return true;
-    }
-    mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsReportConfig\" with invalid parameter\n", sm.get_state().c_str());
-    dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
-
-    return false;
+    return true;
 }
 
-bool tf_dbus_setsmsreport_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_setsmsreportconfig_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    SmsEventReportingConfig sms_report_config;
-    if (extract_dbus_setsmsreportconfig(sm.current_invocation().parameters(), sms_report_config))
+    (void)src; (void)dst; //unused parameter
+    bool do_transition;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    SmsEventReportingConfig sms_report_config = sm.get_sms_report_config();
+    if (extract_dbus_setsmsreportconfig(dev->invocation().parameters(), sms_report_config))
     {
-        sm.set_sms_report_config(sms_report_config);
-        sm.current_invocation().return_value(nullptr);
+        //compare new and actual configuration to avoid unnecessary actions
+        if (0 != sms_report_config.compare(sm.get_sms_report_config()))
+        {
+            //set parameter to storage
+            sm.set_sms_report_config(sms_report_config);
+            (void)tf_set_sms_report_config(sm, src, dst, ev);
+            do_transition = true;
+        }
+        else
+        {
+            //no configuration change -> nothing to do
+            do_transition = false;
+        }
+        dev->invocation().return_value(nullptr);
     }
     else
     {
-        //this should not happen when current invocation is set on DBusEvent, see above tf_setsmsstorage_to_modem
-        mdmd_Log(MD_LOG_ERR, "%s: DBUS method invocation \"SetSmsReportConfig\" invalid\n", sm.get_state().c_str());
-        sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsReportConfig\" with invalid parameter\n", sm.get_state().c_str());
+        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+        do_transition = false;
     }
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
 
-bool tf_dbus_setsmsreport_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
+    return do_transition;
 }
 
 bool tf_dbus_setportstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
@@ -1098,95 +1699,23 @@ bool tf_dbus_setportstate(MdmStatemachine &sm, State &src, State &dst, Event &ev
     return do_transition;
 }
 
+
+bool tf_wait_user_command(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.set_error_state(MdmErrorState::NONE);
+    sm.kick_cmd_timeout(timer_status_query);
+    return true;
+}
+
 bool tf_init_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
+    //Kritischer, unerwarteter Fehler. Die Modem-Schnittstelle ist nicht verwendbar.
     (void)src; (void)dst; (void)ev; 
     mdmd_Log(MD_LOG_ERR, "%s: modem initialization failed\n", sm.get_state().c_str());
+    sm.reset_service_states();
     sm.set_error_state(MdmErrorState::INIT_FAILED);
     sm.deactivate_cmd_timeout();
-    return true;
-}
-
-
-bool tf_init_cme_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev;
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    int code = std::stoi(rev->named_match("err"));
-    mdmd_Log(MD_LOG_ERR, "%s: CME ERROR %d\n", sm.get_state().c_str(), code);
-    sm.set_error_state(MdmErrorState::INIT_FAILED);
-    sm.deactivate_cmd_timeout();
-    return true;
-}
-
-bool tf_init_sim_state_unknown(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-  (void)src; (void)dst; (void)ev;
-  mdmd_Log(MD_LOG_ERR, "%s: SIM state unknown\n", sm.get_state().c_str());
-  sm.deactivate_cmd_timeout();
-  return true;
-}
-
-bool tf_modem_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_ERR, "%s: command timeout, restart modem with possible data corruption!\n", sm.get_state().c_str());
-    sm.wwan_disable();
-    sm.modem_hard_reset();
-    sm.kick_cmd_timeout(timer_immediate);
-
-    return true;
-}
-
-bool tf_io_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    sm.kick_cmd_timeout(timer_wait_port_io_error);
-
-    return true;
-}
-
-bool tf_io_error_dbus_return(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev;
-    sm.current_invocation().return_error("de.wago.mdmdError", "MODEM IO ERROR");
-    sm.kick_cmd_timeout(timer_wait_port_io_error);
-
-    return true;
-}
-bool tf_io_error_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_ERR, "%s: io error timeout, restart modem with possible data corruption!\n", sm.get_state().c_str());
-
-    //disable wwan interface before restart
-    sm.wwan_disable();
-
-    sm.modem_hard_reset();
-    sm.kick_cmd_timeout(timer_immediate);
-
-    return true;
-}
-
-bool tf_modem_reconfig_restart(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_INF, "%s: reconfiguration, restart modem\n", sm.get_state().c_str());
-
-    //disable wwan interface before power down and restart
-    sm.wwan_disable();
-
-    sm.write("at+qpowd");
-    sm.kick_cmd_timeout(timer_at_cmd_short);
-
-    return true;
-}
-
-bool tf_dbus_modem_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "TIMEOUT");
-    (void)tf_modem_timeout(sm, src, dst, ev);
-
     return true;
 }
 
@@ -1198,81 +1727,51 @@ bool tf_void_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     return true;
 }
 
-bool tf_wait_pin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_disable_status_reports(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_DBG, "%s: SIM PIN required, %d attempts remaining\n", sm.get_state().c_str(), sm.get_pin_count());
-    sm.deactivate_cmd_timeout();
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+creg=0;+cgreg=0;+qindcfg=\"csq\",0");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
 
-bool tf_wait_puk(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_sms_format(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_DBG, "%s: SIM PUK required, %d attempts remaining\n", sm.get_state().c_str(), sm.get_puk_count());
-    sm.deactivate_cmd_timeout();
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+cmgf?");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
 
-bool tf_get_network_registration_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_set_sms_format(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    sm.kick_cmd_timeout(timer_status_query);
+    (void)src; (void)dst; (void)ev;
+    const MessageServiceConfig message_service_config = sm.get_message_service_config();
 
-    return true;
-}
-
-bool tf_get_network_registration_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    sm.kick_cmd_timeout(timer_status_query);
-
-    return true;
-}
-
-bool tf_init_network_state(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    const auto at_cmd{R"(at+creg=0;+cgreg=0;+qcfg="nwscanmode";+qcfg="nwscanseq";+qindcfg="csq",0)"s};
+    auto at_cmd{"at+cmgf="s};
+    at_cmd.append(std::to_string(message_service_config.get_sms_format()));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
 
-bool tf_query_simstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_simstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; 
-    const auto at_cmd(R"(at+cpin?;+qpinc="SC";+qccid)"s);
-    sm.write(at_cmd);
+    sm.write("at+cpin?");
     sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
 
-bool tf_sim_not_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.clear_current_oper();
-    (void)tf_query_simstate(sm, src, dst, ev);
-
-    return true;
-}
-
-bool tf_dbus_return_sim_failure(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "SIM FAILURE");
-    sm.clear_current_oper();
-    (void)tf_query_simstate(sm, src, dst, ev);
-
-    return true;
-}
 
 /*
  * Specific transaction functions
  */
-/*i01*/
+/*s01*/
 bool tf_wait_dbus(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; 
@@ -1289,19 +1788,17 @@ bool tf_dbus_up(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     return true;
 }
 
-/*i02_1*/
+/*s02*/
 bool tf_modem_port_not_ready(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; 
-    sm.set_error_state(MdmErrorState::PORT_NOT_READY);
     sm.set_port_wait_count(1);
     sm.kick_cmd_timeout(timer_wait_port);
-    mdmd_Log(MD_LOG_WRN, "%s: modem port not ready (%d)\n", sm.get_state().c_str(), sm.get_port_wait_count());
-
+    mdmd_Log(MD_LOG_WRN, "%s: modem port not ready\n", sm.get_state().c_str());
     return true;
 }
 
-/*i02_2*/
+/*s03*/
 bool tf_openport_retry(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; 
@@ -1320,20 +1817,18 @@ bool tf_openport_retry(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     return true;
 }
 
-bool tf_wait_modem_port_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_modeminfo(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    mdmd_Log(MD_LOG_ERR, "%s: wait modem port timeout, restart modem with possible data corruption!\n", sm.get_state().c_str());
-
-    sm.wwan_disable();
-    sm.modem_hard_reset();
-    sm.kick_cmd_timeout(timer_immediate);
+    (void)src; (void)dst; (void)ev; //unused parameter
+    sm.write("ati");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
 
+
 /*s03*/
-bool tf_getmodeminfo_revision(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_modeminfo_revision(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
@@ -1344,7 +1839,7 @@ bool tf_getmodeminfo_revision(MdmStatemachine &sm, State &src, State &dst, Event
 }
 
 /*s03*/
-bool tf_getmodeminfo_manufacturer(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_modeminfo_manufacturer(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
@@ -1355,7 +1850,7 @@ bool tf_getmodeminfo_manufacturer(MdmStatemachine &sm, State &src, State &dst, E
 }
 
 /*s03*/
-bool tf_getmodeminfo_model(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_modeminfo_model(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
@@ -1365,8 +1860,17 @@ bool tf_getmodeminfo_model(MdmStatemachine &sm, State &src, State &dst, Event &e
     return true;
 }
 
+bool tf_get_modemidentity(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev; //unused parameter
+    sm.write("at+gsn");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+
+    return true;
+}
+
 /*s03*/
-bool tf_getmodeminfo_imei(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_modemidentity(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
@@ -1375,19 +1879,38 @@ bool tf_getmodeminfo_imei(MdmStatemachine &sm, State &src, State &dst, Event &ev
 
     return true;
 }
-/*s04_1*/
+/*i01_05*/
 bool tf_wait_cfun(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
+    //The access to cfun state may be not yet allowed (e.g. after modem reset). We have to wait for CFUN indication here.
     (void)src; (void)dst; (void)ev; 
     sm.inc_cfun_wait_count();
     sm.kick_cmd_timeout(timer_wait_cfun);
-    mdmd_Log(MD_LOG_INF, "%s: modem not ready (%d)\n", sm.get_state().c_str(), sm.get_cfun_wait_count());
+    mdmd_Log(MD_LOG_DBG, "%s: modem not ready (%d)\n", sm.get_state().c_str(), sm.get_cfun_wait_count());
 
     return true;
 }
 
-/*s08*/
-bool tf_getsimstate_setstoredpin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_modem_function_state(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev; //unused parameter
+    sm.write("at+cfun?");
+    sm.kick_cmd_timeout(timer_at_cmd_cfun);
+
+    return true;
+}
+
+bool tf_set_modem_full_function(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev; //unused parameter
+    sm.write("at+cfun=1");
+    sm.kick_cmd_timeout(timer_at_cmd_cfun);
+
+    return true;
+}
+
+/*i02_01*/
+bool tf_setsimpin_from_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; 
     const auto pin = sm.get_stored_sim_pin();
@@ -1395,280 +1918,305 @@ bool tf_getsimstate_setstoredpin(MdmStatemachine &sm, State &src, State &dst, Ev
     at_cmd += pin;
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
-    sm.set_pin(pin);
 
     return true;
 }
 
-/*s08*/
-bool tf_getsim_iccid(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    const auto iccid = rev->named_match("id");
-    sm.set_iccid(iccid);
-
-    return true;
-}
-
-/*s08*/
-bool tf_sim_busy(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    sm.set_sim_state(MdmSimState::NOT_READY);
-    sm.kick_cmd_timeout(timer_wait_simstate);
-
-    return true;
-}
-
-/*s08*/
-bool tf_sim_not_inserted(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_waitsim_pin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev;
-    sm.set_sim_state(MdmSimState::NOT_INSERTED);
-    sm.set_error_state(MdmErrorState::SIM_REMOVED);
+    sm.reset_service_states();
+    sm.set_error_state(MdmErrorState::SIM_PIN_NEEDED);
+    //stop command timer, wait for user set pin
     sm.deactivate_cmd_timeout();
     return true;
 }
 
-/*s08*/
+bool tf_waitsim_puk(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.reset_service_states();
+    sm.set_error_state(MdmErrorState::SIM_PUK_NEEDED);
+    //stop command timer, wait for user set pin
+    sm.deactivate_cmd_timeout();
+    return true;
+}
+
+bool tf_waitsim_removed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.reset_service_states();
+    sm.set_error_state(MdmErrorState::SIM_REMOVED);
+    //start timer to get sim state again
+    sm.kick_cmd_timeout(timer_poll_simstate);
+    return true;
+}
+
+bool tf_waitsim_busy(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.reset_service_states();
+    sm.kick_cmd_timeout(timer_sim_busy);
+    return true;
+}
+
+bool tf_waitsim_busy_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    //Set error not before timeout. SIM is for some seconds after modem restart not ready and this is no failure.
+    sm.set_error_state(MdmErrorState::SIM_NOT_READY);
+    (void)tf_get_simstate(sm, src, dst, ev);
+    return true;
+}
+
 bool tf_sim_failure(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev;
-    sm.set_sim_state(MdmSimState::SIM_ERROR);
-    sm.set_error_state(MdmErrorState::SIM_FAILURE);
+    sm.reset_service_states();
+    sm.set_error_state(MdmErrorState::SIM_INVALID);
+    //stop command timer, user has to switch off and change the SIM card
     sm.deactivate_cmd_timeout();
     return true;
 }
 
-/*s08*/
-bool tf_init_sms(MdmStatemachine &sm, State &src, State &dst, Event &ev);
-bool tf_sim_ready_init_sms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_activatesim_get_iccid(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    sm.set_sim_state(MdmSimState::READY);
-    sm.set_pin_count(-1);
-    sm.set_puk_count(-1);
-    (void)tf_init_sms(sm, src, dst, ev);
-
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+qccid");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
     return true;
 }
 
-/*s08*/
-bool tf_getsim_pincount(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_waitsim_init_complete(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; 
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    sm.set_pin_count(std::stoi(rev->named_match("s1")));
-    sm.set_puk_count(std::stoi( rev->named_match("s2")));
-
+    (void)src; (void)dst; (void)ev;
+    //start timer for sim activation completed (CPIN READY & SMS DONE & PHB DONE)
+    sm.kick_cmd_timeout(timer_wait_pb_done);
     return true;
 }
 
-/*s10*/
-bool tf_waitpin_dbus_setpin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+
+bool tf_get_sim_initialization_state(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+qinistat");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+    return true;
+}
+
+bool extract_dbus_setsimpin(GVariant *gvar, std::string &pin_str)
+{
+    bool result = false;
+    gchar* pin = nullptr;
+    g_variant_get(gvar, "(s)", &pin);
+    if (pin != nullptr)
+    {
+        pin_str = pin;
+        g_free(pin);
+        result = true;
+    }
+
+    return result;
+}
+
+bool tf_dbus_setpin(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; //unused parameter
+    bool do_transition;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    sm.set_current_invocation(dev->invocation());
-    gchar* pin = nullptr;
-    g_variant_get(sm.current_invocation().parameters(), "(s)", &pin);
-
-    auto at_cmd{"at+cpin="s};
-    if (pin != nullptr)
+    std::string pin;
+    if (extract_dbus_setsimpin(dev->invocation().parameters(), pin))
     {
-      std::string pin_str{pin};
-      sm.set_pin(pin_str);
-      at_cmd += pin_str;
-      g_free(pin);
-    }
-    sm.write(at_cmd);
-    sm.kick_cmd_timeout(timer_at_cmd_short);
+        auto at_cmd("at+cpin="s);
+        at_cmd.append(pin);
+        sm.write(at_cmd);
+        sm.kick_cmd_timeout(timer_at_cmd_short);
 
-    return true;
-}
-
-/*s11*/
-bool tf_waitpin_dbus_setpuk(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-    gchar* pin = nullptr;
-    gchar* puk = nullptr;
-    auto at_cmd("at+cpin="s);
-
-    auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    sm.set_current_invocation(dev->invocation());
-    g_variant_get(sm.current_invocation().parameters(), "(ss)", &puk, &pin);
-    if (puk != nullptr)
-    {
-      at_cmd.append(std::string(puk));
-      g_free(puk);
-    }
-    at_cmd += ",";
-    if (pin != nullptr)
-    {
-      std::string pin_str{pin};
-      sm.set_pin(pin_str);
-      at_cmd += pin_str;
-      g_free(pin);
-    }
-    sm.write(at_cmd);
-    sm.kick_cmd_timeout(timer_at_cmd_short);
-
-    return true;
-}
-
-/*s12_1*/
-bool tf_setpin_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    sm.set_sim_state(MdmSimState::READY);
-    sm.set_pin_count(-1);
-    sm.set_puk_count(-1);
-    sm.kick_cmd_timeout(timer_wait_pb_done);
-
-    return true;
-}
-
-/*s12_1*/
-bool tf_setpin_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.reset_stored_sim_pin();
-    (void)tf_query_simstate(sm, src, dst, ev);
-
-    return true;
-}
-
-/*s12_2*/
-bool tf_dbus_setpin_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.store_sim_pin();
-    sm.current_invocation().return_value(nullptr);
-    (void)tf_setpin_ok(sm, src, dst, ev);
-
-    return true;
-}
-
-/*s12_2*/
-bool tf_dbus_setpin_cme_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    if (gf_cme_incorrect_password(sm))
-    {
-      sm.current_invocation().return_error("de.wago.mdmdError", "WRONG PASSWORD");
-    }
-    else if (gf_cme_sim_failure(sm))
-    {
-      sm.current_invocation().return_error("de.wago.mdmdError", "SIM FAILURE");
+        //store pin here, iccid will be stored later when SIM activation is successful
+        sm.store_sim_pin("", pin);
+        sm.set_current_invocation(dev->invocation());
+        do_transition = true;
     }
     else
     {
-      sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSimPin\" with invalid parameter\n", sm.get_state().c_str());
+        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+        do_transition = false;
     }
-    (void)tf_setpin_err(sm, src, dst, ev);
 
+    return do_transition;
+}
+
+bool extract_dbus_setsimpuk(GVariant *gvar, std::string &puk_str, std::string &pin_str)
+{
+    bool result = false;
+    gchar* puk = nullptr;
+    gchar* pin = nullptr;
+    g_variant_get(gvar, "(ss)", &puk, &pin);
+    if ((puk != nullptr) && (pin != nullptr))
+    {
+        puk_str = puk;
+        pin_str = pin;
+        result = true;
+    }
+    if (puk != nullptr)
+    {
+        g_free(puk);
+    }
+    if (pin != nullptr)
+    {
+        g_free(pin);
+    }
+
+    return result;
+}
+
+bool tf_dbus_setpuk(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; //unused parameter
+    bool do_transition;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    std::string puk;
+    std::string pin;
+    if (extract_dbus_setsimpuk(dev->invocation().parameters(), puk, pin))
+    {
+        auto at_cmd("at+cpin="s);
+        at_cmd.append(puk + ',' + pin);
+        sm.write(at_cmd);
+        sm.kick_cmd_timeout(timer_at_cmd_short);
+
+        //store pin already here and iccid when SIM activation is successful
+        sm.store_sim_pin("", pin);
+        sm.set_current_invocation(dev->invocation());
+        do_transition = true;
+    }
+    else
+    {
+        mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSimPuk\" with invalid parameter\n", sm.get_state().c_str());
+        dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
+        do_transition = false;
+    }
+
+    return do_transition;
+}
+
+bool tf_dbus_setpin_cme_sim_not_inserted(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_error("de.wago.mdmdError", "SIM REMOVED");
+    (void)tf_waitsim_removed(sm, src, dst, ev);
     return true;
 }
 
-/*s12_2*/
+bool tf_dbus_setpin_cme_sim_busy(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_error("de.wago.mdmdError", "SIM BUSY");
+    (void)tf_waitsim_busy(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_dbus_setpin_cme_sim_failure(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_error("de.wago.mdmdError", "SIM FAILURE");
+    (void)tf_sim_failure(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_dbus_setpin_cme_wrong_password(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_error("de.wago.mdmdError", "WRONG PASSWORD");
+    //sim state could be different, get state again
+    (void)tf_get_simstate(sm, src, dst, ev);
+    return true;
+}
+
 bool tf_dbus_setpin_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_setpin_err(sm, src, dst, ev);
+    (void)tf_get_simstate(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_set_iccid_to_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string iccid_modem = rev->named_match("iccid");
+    std::string simpin_stored = sm.get_stored_sim_pin();
+
+    //SIM activation is successful here, store iccid together with already stored pin
+    sm.store_sim_pin(iccid_modem, simpin_stored);
+    return true;
+}
+
+bool tf_dbus_setpin_ok_not_persistent(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_value(nullptr);
+    mdmd_Log(MD_LOG_WRN, "%s: Set PIN successful but no ICCID for automatic activation\n", sm.get_state().c_str());
+    (void)tf_get_sim_initialization_state(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_dbus_setpin_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.current_invocation().return_value(nullptr);
+    (void)tf_get_sim_initialization_state(sm, src, dst, ev);
+    return true;
+}
+
+bool tf_init_sim_complete_get_opernames(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.set_error_state(MdmErrorState::NONE);
+    sm.write("at+copn");
+    sm.kick_cmd_timeout(timer_at_cmd_copn);
 
     return true;
 }
 
-/*s14*/
-bool tf_init_sms_not_allowed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_operselection(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)src; (void)dst; (void)ev; 
-  sm.kick_cmd_timeout(timer_wait_pb_done);
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+cops?");
+    sm.kick_cmd_timeout(timer_at_cmd_cops);
 
-  return true;
+    return true;
 }
 
-/*s14*/
-bool tf_init_sms_sim_busy(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_init_sim_complete_get_operselection(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)src; (void)dst; (void)ev; 
-  sm.kick_cmd_timeout(timer_wait_pb_done);
+    sm.set_error_state(MdmErrorState::NONE);
+    (void)tf_get_operselection(sm, src, dst, ev);
 
-  return true;
+    return true;
 }
 
-/*s13*/
-bool tf_init_sms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_sim_activation_required(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-  (void)src; (void)dst; (void)ev; 
-  SmsEventReportingConfig sms_config;
-  (void)sm.get_sms_report_config(sms_config);//default if get_sms_config fails
-  auto at_cmd{"at+cmgf="s};
+    //SIM needs activation again after previous SIM initialization completed
 
-  at_cmd.append(std::to_string(sms_format) + ";");
-  at_cmd.append("+cnmi=");
-  at_cmd.append(std::to_string(sms_config.get_mode()) + ",");
-  at_cmd.append(std::to_string(sms_config.get_mt()) + ",");
-  at_cmd.append(std::to_string(sms_config.get_bm()) + ",");
-  at_cmd.append(std::to_string(sms_config.get_ds()) + ",");
-  at_cmd.append(std::to_string(sms_config.get_bfr()));
-  sm.write(at_cmd);
-  sm.kick_cmd_timeout(timer_at_cmd_short);
+    sm.reset_service_states();
+    //start SIM initialization again
+    (void)tf_get_simstate(sm, src, dst, ev);
 
-  return true;
+    return true;
 }
 
-/*s17*/
+bool tf_get_sms_report_config(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+cnmi?");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+
+    return true;
+}
+
+/*i03_01*/
 bool tf_readoperatorname(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
     const auto id = std::stoi(rev->named_match("id"));
     const auto name = rev->named_match("name");
-    const auto inserted = sm.insert_operator_name(id, name);
-    mdmd_Log(MD_LOG_DBG, "%s: operator %s %d %s\n", sm.get_state().c_str(),
-             inserted ? ":" : "already exists:", id, name.c_str());
-
-    return true;
-}
-
-/*s18*/
-bool tf_initoper(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    auto id = 0;
-    auto act = 0;
-    auto mode = 0;
-    sm.get_stored_selection(mode);
-    sm.get_stored_oper(id, act);
-    presetoper(sm, id, act, mode);
-    setoper(sm, id, act);
-
-    return true;
-}
-
-/*o06_2*/
-bool tf_getopers(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    auto line = rev->named_match("cops");
-    Regex re("(?U)\\((?<state>[0-9]),\"(?<long>.*)\",\"(?<short>.*)\",\"(?<id>[0-9]+)\",(?<act>[0-9])\\),(?<remains>.*)$");
-
-    do {
-        MatchInfo mi = re.match(line);
-        if (!static_cast<bool>(mi.matches()))
-        {
-            break;
-        }
-
-        const auto state      = mi.fetch_named("state");
-        const auto id_oper    = mi.fetch_named("id");
-        const auto act        = mi.fetch_named("act");
-
-        sm.add_opermap(std::stoi(id_oper), std::stoi(act), std::stoi(state));
-
-        line = mi.fetch_named("remains");
-    } while (!line.empty());
-
+    (void)sm.insert_operator_name(id, name);
     return true;
 }
 
@@ -1702,12 +2250,12 @@ bool tf_dbus_listsms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     auto state = -1;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
 
+    sm.clear_smslist();
     sm.set_current_invocation(dev->invocation());
     g_variant_get(sm.current_invocation().parameters(), "(i)", &state);
     at_cmd.append(std::to_string(state));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
-    sm.clear_smslist();
 
     return true;
 }
@@ -1723,13 +2271,6 @@ bool tf_dbus_listsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     {
       sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     }
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
-
-bool tf_dbus_listsms_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     (void)tf_query_reg_state_full(sm, src, dst, ev);
     return true;
 }
@@ -1758,14 +2299,6 @@ bool tf_dbus_deletesms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev
     return true;
 }
 
-bool tf_dbus_deletesms_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
-
-
 bool tf_dbus_readsms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
@@ -1773,12 +2306,12 @@ bool tf_dbus_readsms(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     int sms_index = -1;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
     
+    sm.clear_smslist();
     sm.set_current_invocation(dev->invocation());
     g_variant_get(sm.current_invocation().parameters(), "(i)", &sms_index);
     at_cmd.append(std::to_string(sms_index));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
-    sm.clear_smslist();
     sm.add_smslist(sms_index);
 
     return true;
@@ -1812,13 +2345,6 @@ bool tf_dbus_readsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     return true;
 }
 
-bool tf_dbus_readsms_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
-
 bool tf_dbus_sendsms_head(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
@@ -1833,7 +2359,6 @@ bool tf_dbus_sendsms_head(MdmStatemachine &sm, State &src, State &dst, Event &ev
     at_cmd.append(std::to_string(pdu_length));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
-    sm.set_last_sms_msg_ref(0);
 
     return true;
 }
@@ -1858,27 +2383,18 @@ bool tf_sendsms_body(MdmStatemachine &sm, State &src, State &dst, Event &ev)
       constexpr auto esc_key = "\x1b";
       body = esc_key; 
     }
-
     sm.write(body);
     sm.kick_cmd_timeout(timer_at_cmd_sms);
 
     return true;
 }
 
-bool tf_sendsms_result(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_sendsms_result(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; 
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    auto msgref = std::stoi(rev->named_match("msgref"));
-
-    sm.set_last_sms_msg_ref(msgref);
-
-    return true;
-}
-
-bool tf_dbus_sendsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    auto*  gvar = g_variant_new("(i)", sm.get_last_sms_msg_ref());
+    const auto msgref = std::stoi(rev->named_match("msgref"));
+    auto*  gvar = g_variant_new("(i)", msgref);
     if (gvar != nullptr)
     {
       sm.current_invocation().return_value( gvar );
@@ -1887,14 +2403,7 @@ bool tf_dbus_sendsms_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     {
       sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
     }
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
 
-bool tf_dbus_sendsms_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
     return true;
 }
 
@@ -1902,8 +2411,7 @@ bool tf_get_smsstorage_default(MdmStatemachine &sm, State &src, State &dst, Even
 {
     (void)sm; (void)src; (void)dst; 
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-    SmsStorageConfig default_sms_storage;
-    (void)sm.get_sms_storage_config(default_sms_storage);
+    SmsStorageConfig default_sms_storage = sm.get_sms_storage_config();
     auto* gvar = g_variant_new("(siisiisii)", default_sms_storage.get_mem1().c_str(),
                                               -1,
                                               -1,
@@ -1913,6 +2421,23 @@ bool tf_get_smsstorage_default(MdmStatemachine &sm, State &src, State &dst, Even
                                               default_sms_storage.get_mem3().c_str(),
                                               -1,
                                               -1);
+    if (gvar != nullptr)
+    {
+      dev->invocation().return_value(gvar);
+    }
+    else
+    {
+      dev->invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+
+    return true;
+}
+
+bool tf_get_operlist_default(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)sm; (void)src; (void)dst;
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    auto* gvar = sm.get_var_opermap();
     if (gvar != nullptr)
     {
       dev->invocation().return_value(gvar);
@@ -1937,9 +2462,9 @@ bool tf_dbus_getsmsstorage(MdmStatemachine &sm, State &src, State &dst, Event &e
     return true;
 }
 
-bool tf_get_sms_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_getsmsstorage_result(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; 
+    (void)src; (void)dst; //unused parameter
     auto* rev = dynamic_cast<ModemEvent *>(&ev);
 
     const auto mem1 = rev->named_match("mem1");
@@ -1976,143 +2501,7 @@ bool tf_get_sms_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     return true;
 }
 
-bool tf_dbus_getsmsstorage_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
 
-bool tf_gprs_detach(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    sm.write("at+cgatt=0"); //detach PS as trigger for rmnet/autoconnect
-    sm.kick_cmd_timeout(timer_at_cmd_cgatt);
-    //sm.set_gprs_reg_state(0); //necessary for "ifdown" trigger
-
-    return true;
-}
-
-bool tf_gprs_detach_ok_getopernames(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    sm.set_gprs_reg_state(0); //trigger for wwan interface restart or stop
-    sm.write("at+copn");
-    sm.kick_cmd_timeout(timer_at_cmd_copn);
-
-    return true;
-}
-
-bool tf_gprs_detach_ok_initoper(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.set_gprs_reg_state(0); //trigger for wwan interface restart or stop
-    (void)tf_initoper(sm, src, dst, ev);
-
-    return true;
-}
-
-bool tf_dbus_setgprsaccess_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-	//set gprs acccess to storage
-    GprsAccessConfig gprsaccess;
-    if (extract_dbus_setgprsaccess2(sm.current_invocation().parameters(), gprsaccess))
-    {
-        sm.set_gprsaccess(gprsaccess);
-    }
-    else { //internal error that should not happen, current_invocation is possibly invalid
-        mdmd_Log(MD_LOG_ERR, "%s: Could not store GPRS access parameter\n", sm.get_state().c_str());
-    }
-    sm.current_invocation().return_value(nullptr);
-    sm.set_gprs_reg_state(0); //trigger for wwan interface restart or stop
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-
-    return true;
-}
-
-bool tf_dbus_setgprsaccess_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-    return true;
-}
-
-bool tf_getoperlist_prepare(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-    auto* dev = dynamic_cast<DBusEvent *>(&ev);
-
-    sm.set_current_invocation(dev->invocation());
-    /* temporarily disable packet data service for a controlled disconnection of possible IP traffic */
-    sm.set_gprs_temporary_disable();
-    sm.write("at+cgatt=0");
-    sm.kick_cmd_timeout(timer_at_cmd_cgatt);
-
-    return true;
-}
-
-bool tf_getoperlist_prepare_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    /* PS detached now */
-    sm.set_gprs_reg_state(0);  //trigger for wwan interface stop
-    sm.clear_opermap();
-    sm.write("at+cops=?");
-    sm.kick_cmd_timeout(timer_at_cmd_cops);
-
-    return true;
-}
-
-bool tf_getoperlist(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-    auto* dev = dynamic_cast<DBusEvent *>(&ev);
-
-    sm.set_current_invocation(dev->invocation());
-    sm.clear_opermap();
-    sm.write("at+cops=?");
-    sm.kick_cmd_timeout(timer_at_cmd_cops);
-
-    return true;
-}
-
-bool tf_getoperlist_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.current_invocation().return_value( sm.get_var_opermap() );
-    sm.set_gprs_temporary_enable();
-    if (!sm.is_gprs_disabled())
-    {
-      sm.set_gprs_reg_state(0);  //trigger for wwan interface restart
-    }
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-
-    return true;
-}
-
-bool tf_getoperlist_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.set_gprs_temporary_enable();
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-
-    return true;
-}
-
-bool tf_getoperlist_fail_not_allowed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.set_gprs_temporary_enable();
-    sm.current_invocation().return_error("de.wago.mdmdError", "NOT ALLOWED");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
-
-    return true;
-}
-
-bool tf_getoperlist_fail_sim_failure(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    sm.set_gprs_temporary_enable();
-    (void)tf_dbus_return_sim_failure(sm, src, dst, ev);
-
-    return true;
-}
 
 bool tf_dbus_not_allowed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
@@ -2125,7 +2514,8 @@ bool tf_dbus_not_allowed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 
 bool tf_renew_wwan_address(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_INF, "%s: IP address change detected, trigger renew\n", sm.get_state().c_str());
     //renew WWAN IP address
     sm.wwan_renew();
     sm.kick_cmd_timeout(timer_status_query);
@@ -2133,31 +2523,11 @@ bool tf_renew_wwan_address(MdmStatemachine &sm, State &src, State &dst, Event &e
     return true;
 }
 
-bool tf_gprs_autoconnect_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_rmnet_profileid(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; (void)ev; 
-    sm.write("at+cgatt=0"); //detach PS as trigger for rmnet/autoconnect
-    sm.kick_cmd_timeout(timer_at_cmd_cgatt);
-
-    return true;
-}
-
-bool tf_gprs_autoconnect_timeout_detach_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    sm.reset_gprs_autoconnect_count();
-    mdmd_Log(MD_LOG_WRN, "%s: Autoconnect timeout\n", sm.get_state().c_str());
-    sm.kick_cmd_timeout(timer_status_query);
-
-    return true;
-}
-
-bool tf_gprs_autoconnect_timeout_detach_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; (void)ev; 
-    //don't reset autoconnect_timeout counter to try again
-    mdmd_Log(MD_LOG_ERR, "%s: Autoconnect timeout not resolved\n", sm.get_state().c_str());
-    sm.kick_cmd_timeout(timer_status_query);
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+qcfg=\"rmnet/profileid\"");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
@@ -2165,21 +2535,56 @@ bool tf_gprs_autoconnect_timeout_detach_err(MdmStatemachine &sm, State &src, Sta
 bool tf_set_rmnet_profileid(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; 
+    GprsAccessConfig gprs_access_config = sm.get_gprs_access_config();
     auto at_cmd{R"(at+qcfg="rmnet/profileid",)"s};
-    at_cmd.push_back(rmnet_profileid);
+    at_cmd.append(std::to_string(gprs_access_config.get_profile()));
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
 
     return true;
 }
 
-bool tf_smsstorage_init(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_rmnet_autoconnect(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+qcfg=\"rmnet/autoconnect\"");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+
+    return true;
+}
+
+bool tf_get_rmnet_autoconnect_with_dtrset(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev; //unused parameter
+    //remember autoconnect format e.g. for operator detection
+    sm.set_rmnet_autoconnect_with_dtrset(true);
+
+    return true;
+}
+
+bool tf_get_rmnet_autoconnect_no_dtrset(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev; //unused parameter
+    //remember autoconnect format e.g. for operator detection
+    sm.set_rmnet_autoconnect_with_dtrset(false);
+
+    return true;
+}
+
+bool tf_get_sms_storage_config(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.write("at+cpms?");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+
+    return true;
+}
+
+bool tf_set_sms_storage_config(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
     (void)src; (void)dst; (void)ev; 
     auto at_cmd{"at+cpms="s};
-    SmsStorageConfig sms_storage_config;
-
-    (void)sm.get_sms_storage_config(sms_storage_config);
+    SmsStorageConfig sms_storage_config = sm.get_sms_storage_config();
     at_cmd.append(R"(")" + sms_storage_config.get_mem1() + R"(",)");
     at_cmd.append(R"(")" + sms_storage_config.get_mem2() + R"(",)");
     at_cmd.append(R"(")" + sms_storage_config.get_mem3() + R"(")");
@@ -2189,64 +2594,52 @@ bool tf_smsstorage_init(MdmStatemachine &sm, State &src, State &dst, Event &ev)
     return true;
 }
 
-bool tf_sms_report_config_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    const auto code = std::stoi(rev->named_match("err"));
-
-    mdmd_Log(MD_LOG_WRN, "%s: Sms report configuration failed: cms_error=%d\n", sm.get_state().c_str(), code);
-
-    return tf_smsstorage_init(sm, src, dst, ev); //continue with sms storage configuration
-}
-
-bool tf_sms_storage_config_error(MdmStatemachine &sm, State &src, State &dst, Event &ev)
-{
-    (void)src; (void)dst; 
-
-    auto* rev = dynamic_cast<ModemEvent *>(&ev);
-    const auto code = std::stoi(rev->named_match("err"));
-
-    mdmd_Log(MD_LOG_WRN, "%s: Sms storage configuration failed: cms_error=%d\n", sm.get_state().c_str(), code);
-
-    return tf_gprsprofile_init(sm, src, dst, ev); //continue with gprs configuration
-}
-
 bool extract_dbus_setsmsstorage(GVariant *gvar, SmsStorageConfig& sms_storage_config, const std::vector<std::string> allowed_cpms_parameter)
 {
+
+    bool result = false;
     gchar* c_mem1 = nullptr;
     gchar* c_mem2 = nullptr;
     gchar* c_mem3 = nullptr;
     g_variant_get(gvar, "(sss)", &c_mem1, &c_mem2, &c_mem3);
 
-    std::string mem1{c_mem1};
-    std::string mem2{c_mem2};
-    std::string mem3{c_mem3};
-    bool result = ( (c_mem1 && c_mem2 && c_mem3) &&
-                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem1) != allowed_cpms_parameter.end()) &&
-                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem2) != allowed_cpms_parameter.end()) &&
-                    (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem3) != allowed_cpms_parameter.end()));  
-    if (result)
+    if ((c_mem1 != nullptr) && (c_mem2 != nullptr) && (c_mem3 != nullptr))
     {
-        sms_storage_config.set_mem1(mem1);
-        sms_storage_config.set_mem2(mem2);
-        sms_storage_config.set_mem3(mem3);
+        std::string mem1{c_mem1};
+        std::string mem2{c_mem2};
+        std::string mem3{c_mem3};
+        if ( (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem1) != allowed_cpms_parameter.end()) &&
+             (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem2) != allowed_cpms_parameter.end()) &&
+             (std::find(allowed_cpms_parameter.begin(), allowed_cpms_parameter.end(), mem3) != allowed_cpms_parameter.end()) )
+        {
+            sms_storage_config.set_mem1(mem1);
+            sms_storage_config.set_mem2(mem2);
+            sms_storage_config.set_mem3(mem3);
+            result = true;
+        }
     }
     
-    g_free(c_mem1);
-    g_free(c_mem2);
-    g_free(c_mem3);
+    if (c_mem1 != nullptr)
+    {
+        g_free(c_mem1);
+    }
+    if (c_mem2 != nullptr)
+    {
+        g_free(c_mem2);
+    }
+    if (c_mem3 != nullptr)
+    {
+        g_free(c_mem3);
+    }
 
     return result;
 }
 
-bool tf_setsmsstorage_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_setsmsstorage_to_parameter_storage(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; 
-    SmsStorageConfig sms_storage_config;
+    (void)src; (void)dst; //unused parameter
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-
+    SmsStorageConfig sms_storage_config = sm.get_sms_storage_config();
     if (extract_dbus_setsmsstorage(dev->invocation().parameters(), sms_storage_config, {"SM", "ME", "MT", ""}))
     {
         sm.set_sms_storage_config(sms_storage_config);
@@ -2261,62 +2654,458 @@ bool tf_setsmsstorage_to_parameter_storage(MdmStatemachine &sm, State &src, Stat
     return true;
 }
 
-bool tf_setsmsstorage_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_dbus_setsmsstorage_to_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    (void)src; (void)dst; 
-    SmsStorageConfig sms_storage_config;
+    (void)src; (void)dst; //unused parameter
+    bool do_transition;
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
-
+    SmsStorageConfig sms_storage_config = sm.get_sms_storage_config();
     if (extract_dbus_setsmsstorage(dev->invocation().parameters(), sms_storage_config, {"SM", "ME", "MT"}))
     {
-        auto at_cmd{"at+cpms="s};
-        at_cmd.append(R"(")" + sms_storage_config.get_mem1() + R"(",)");
-        at_cmd.append(R"(")" + sms_storage_config.get_mem2() + R"(",)");
-        at_cmd.append(R"(")" + sms_storage_config.get_mem3() + R"(")");
-        sm.write(at_cmd);
-        sm.kick_cmd_timeout(timer_at_cmd_short);
-        sm.set_current_invocation(dev->invocation()); //set current invocation for following parameter handling
+        //compare new and actual configuration to avoid unnecessary actions
+        if (0 != sms_storage_config.compare(sm.get_sms_storage_config()))
+        {
+            //set parameter to storage
+            sm.set_sms_storage_config(sms_storage_config);
+            (void)tf_set_sms_storage_config(sm, src, dst, ev);
+            do_transition = true;
+        }
+        else
+        {
+            //no configuration change -> nothing to do
+            do_transition = false;
+        }
+        dev->invocation().return_value(nullptr);
     }
     else
     {
         mdmd_Log(MD_LOG_WRN, "%s: DBUS method \"SetSmsStorage\" with invalid parameter\n", sm.get_state().c_str());
         dev->invocation().return_error("de.wago.mdmdError", "INVALID PARAMETER");
-
-        return false;
+        do_transition = false;
     }
+    return do_transition;
+}
+
+bool tf_get_modeminfo_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Get modem information failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge ist lediglich, dass Informationen nicht angezeigt werden.
+    //-> weiter mit Modem-Initialisierung
+    (void)tf_get_modemidentity(sm, src, dst, ev);
 
     return true;
 }
 
-bool tf_dbus_setsmsstorage_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_get_modemidentity_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    SmsStorageConfig sms_storage_config;
-    if (extract_dbus_setsmsstorage(sm.current_invocation().parameters(), sms_storage_config, {"SM", "ME", "MT"}))
+    mdmd_Log(MD_LOG_WRN, "%s: Get modem identity failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge ist lediglich, dass IMEI nicht angezeigt wird.
+    //-> weiter mit Modem-Initialisierung
+    (void)tf_get_modem_function_state(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_init_modem_function_state_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_ERR, "%s: Init modem functionality failed -> trigger modem restart\n", sm.get_state().c_str());
+    sm.set_error_state(MdmErrorState::INIT_FAILED);
+    //Kritischer Fehler. Das Modem muss in einen voll funktionsfähigen Zustand gebracht werden.
+    //-> weiter mit vollständigem Reset
+    (void)tf_trigger_modem_shutdown(sm, src, dst, ev);
+
+    return true;
+}
+
+
+bool tf_disable_status_reports_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Disable modem status reports failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge können unerwartete Events vom Modem sein, die aber verworfen werden.
+    //-> weiter mit SIM-Initialisierung
+    (void)tf_get_simstate(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_setsimpin_from_storage_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Set SIM PIN from storage failed\n", sm.get_state().c_str());
+    //Die SIM-Karte kann mit dem gespeicherten PIN nicht automatisch aktiviert werden.
+    //Eventuell wurde die Karte getauscht oder ist defekt.
+    //-> Lösche gespeicherte ICCID und PIN, dann weiter mit erneuter SIM-Initialisierung
+    sm.store_sim_pin("","");
+    (void)tf_get_simstate(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_get_opernames_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Get operator names failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge ist lediglich, dass die Providernamen nicht angezeigt werden.
+    //-> Weiter mit Provider-Initialisierung
+    (void)tf_get_operselection(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_operselection_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_WRN, "%s: Operator selection failed\n", sm.get_state().c_str());
+    sm.set_error_state(MdmErrorState::NET_NO_SERVICE);
+    sm.clear_current_oper();
+    //Die Provider-Auswahl und deren Status wird für weitere Dienste des Modems benötigt.
+    //-> Weiter nach kurzer Wartezeit mit erneutem Versuch
+    sm.kick_cmd_timeout(timer_retry_network_access);
+
+    return true;
+}
+
+bool tf_set_nwscan_config_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Set network scan config failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge ist, dass Vorgaben für die automatische Providerauswahl nicht beachtet werden.
+    //-> Weiter mit Provider-Initialisierung
+    (void)tf_get_oper_regstate(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_get_oper_regstate_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Get operator registration status failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge ist, dass der Status hier nicht korrekt angezeigt wird.
+    //Aktualisierung erfolgt später aber periodisch
+    //-> Weiter mit Datendienst-Initialisierung
+    (void)tf_get_rmnet_profileid(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_get_rmnet_profileid_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_INF, "%s: Get data service profile id not possible\n", sm.get_state().c_str());
+    //Kein Fehler. Ältere Firmware-Versionen des Modems lassen einen Zugriff auf die Profile-ID nicht zu.
+    //In diesem Fall entspricht die ID dem konstanten Default-Wert (1)
+    //-> Weiter mit Datendienst-Initialisierung
+    (void)tf_get_rmnet_autoconnect(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_set_rmnet_profileid_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Set data service profile id failed\n", sm.get_state().c_str());
+    //Das sollte nicht passieren, Datendienst-Konfiguration nicht möglich
+    //-> Weiter mit Datendienst-Initialisierung
+    (void)tf_get_rmnet_autoconnect(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_set_rmnet_profileid_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_INF, "%s: Data service profile changed -> trigger modem restart\n", sm.get_state().c_str());
+    //Eine Änderung der Profile ID wird nur mit Neustart des Modems wirksam
+    (void)tf_trigger_modem_shutdown(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_rmnet_autoconnect_config_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_INF, "%s: Data service autoconnect configuration failed\n", sm.get_state().c_str());
+    //Das sollte nicht passieren, Autoconnect eventuell nicht aktiviert
+    //-> Weiter mit Datendienst-Initialisierung
+    (void)tf_get_gprsprofile(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_rmnet_autoconnect_config_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_INF, "%s: Data service autoconnect changed -> trigger modem restart\n", sm.get_state().c_str());
+    //Eine Änderung der Autoconnect-Einstellung wird nur mit Neustart des Modems wirksam
+    (void)tf_trigger_modem_shutdown(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_gprsprofile_config_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_INF, "%s: Data service configuration failed\n", sm.get_state().c_str());
+    //Das sollte nicht passieren, Datendienst eventuell nicht möglich mit aktuellen Einstellungen im Modem
+    //-> Weiter mit Datendienst-Initialisierung
+    (void)tf_get_gprs_regstate(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_gprsprofile_config_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_INF, "%s: Data service configuration changed -> trigger modem restart\n", sm.get_state().c_str());
+    //Eine Änderung der Profile-Parameter wird nur mit Neustart des Modems wirksam
+    (void)tf_trigger_modem_shutdown(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_get_gprs_regstate_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Get data service registration status failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge ist, dass der Status hier nicht korrekt angezeigt wird.
+    //Aktualisierung erfolgt später aber periodisch
+    //-> Weiter mit SMS-Initialisierung
+    (void)tf_get_sms_storage_config(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_sms_storage_config_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_WRN, "%s: SMS storage configuration failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge können falsch oder nicht gespeicherte Nachrichten sein
+    //-> Weiter mit SMS-Initialisierung
+    (void)tf_get_sms_format(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_sms_format_config_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_WRN, "%s: SMS format configuration failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge können unerwartete Events vom Modem sein, die aber verworfen werden.
+    //-> Weiter mit SMS-Initialisierung
+    (void)tf_get_sms_report_config(sm, src, dst, ev);
+
+    return true;
+}
+
+
+bool tf_sms_report_config_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    mdmd_Log(MD_LOG_WRN, "%s: SMS report configuration failed\n", sm.get_state().c_str());
+    //Unkritischer Fehler. Folge können unerwartete Events vom Modem sein, die aber verworfen werden.
+    //-> Weiter mit SMS-Initialisierung
+    (void)tf_query_reg_state_full(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_get_registration_status_failed(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Could not fetch modem status\n", sm.get_state().c_str());
+    (void)tf_wait_user_command(sm, src, dst, ev);
+
+    return true;
+}
+
+
+bool tf_gprs_autoconnect_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Data service autoconnect timeout ->  trigger modem restart\n", sm.get_state().c_str());
+    //In seltenenen Fällen kann sich die Autoconnect-Dienst im Modem aufhängen.
+    //Über einen Neustart des Modems wird der Dienst wieder gestartet.
+    //Hinweis: Dies ist lediglich ein Workaround für einen Fehler im Modem, der mit neuer Modem-Firmware gelöst sein kann.
+    (void)tf_trigger_modem_shutdown(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_getoperlist_autoconnect_disable_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+
+    mdmd_Log(MD_LOG_WRN, "%s: Could not scan provider, disable autoconnect failed\n", sm.get_state().c_str());
+    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    (void)tf_query_reg_state_full(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_autoconnect_enable(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    sm.write(sm.get_rmnet_autoconnect_with_dtrset() ? "at+qcfg=\"rmnet/autoconnect\",1,0,1"
+                                                   : "at+qcfg=\"rmnet/autoconnect\",1,0");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+
+    return true;
+}
+
+bool tf_getoperlist_request(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    bool do_transition;
+    (void)src; (void)dst; //unused parameter
+    auto* dev = dynamic_cast<DBusEvent *>(&ev);
+
+    //check preconditions
+    //1) automatic sim activation is required after modem soft reset
+    std::string stored_iccid = sm.get_stored_sim_iccid();
+    std::string stored_pin = sm.get_stored_sim_pin();
+    if ((stored_iccid.length() == 0) || (stored_pin.length() == 0))
     {
-        sm.set_sms_storage_config(sms_storage_config);
-        sm.current_invocation().return_value(nullptr);
+        dev->invocation().return_error("de.wago.mdmdError", "NOT ALLOWED");
+        do_transition = false;
     }
     else
     {
-        //this should not happen when current invocation is set on DBusEvent, see above tf_setsmsstorage_to_modem
-        mdmd_Log(MD_LOG_ERR, "%s: DBUS method invocation \"SetSmsStorage\" invalid\n", sm.get_state().c_str());
-        sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+        /* Disable autoconnect function in modem (fix WAT21951)
+        *  The problem is that at+cops=? sometimes returns CME ERROR 3 (Operation not allowed) when autoconnect is active.
+        *  But the command "at+qndisop=suspendauto=1" to disable autoconnect is not supported on UC20G devices anymore.
+        */
+        sm.write(sm.get_rmnet_autoconnect_with_dtrset() ? "at+qcfg=\"rmnet/autoconnect\",0,0,1"
+                                                       : "at+qcfg=\"rmnet/autoconnect\",0,0");
+        sm.kick_cmd_timeout(timer_at_cmd_short);
+        sm.set_current_invocation(dev->invocation());
+
+        /*Note: New autoconnect configuration takes effect after modem reset*/
+        do_transition = true;
     }
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
+
+    return do_transition;
+}
+
+bool tf_getoperlist_from_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev; //unused parameter
+    sm.clear_opermap();
+    sm.write("at+cops=?");
+    sm.kick_cmd_timeout(timer_at_cmd_cops);
+
     return true;
 }
 
-bool tf_dbus_setsmsstorage_err(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+bool tf_getoperlist_nextentry(MdmStatemachine &sm, State &src, State &dst, Event &ev)
 {
-    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
-    (void)tf_query_reg_state_full(sm, src, dst, ev);
+    (void)src; (void)dst;
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    auto line = rev->named_match("cops");
+    Regex re("(?U)\\((?<state>[0-9]),\"(?<long>.*)\",\"(?<short>.*)\",\"(?<id>[0-9]+)\",(?<act>[0-9])\\),(?<remains>.*)$");
+
+    do {
+        MatchInfo mi = re.match(line);
+        if (!static_cast<bool>(mi.matches()))
+        {
+            break;
+        }
+
+        const auto state      = mi.fetch_named("state");
+        const auto id_oper    = mi.fetch_named("id");
+        const auto act        = mi.fetch_named("act");
+
+        sm.add_opermap(std::stoi(id_oper), std::stoi(act), std::stoi(state));
+
+        line = mi.fetch_named("remains");
+    } while (!line.empty());
+
     return true;
 }
+
+bool tf_getoperlist_ok(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    auto* gvar = sm.get_var_opermap();
+    if (gvar != nullptr)
+    {
+      sm.current_invocation().return_value(gvar);
+    }
+    else
+    {
+      sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    }
+    //-> zum Abschluss erneute Aktivierung von autoconnect
+    tf_autoconnect_enable(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_getoperlist_wrong_simstate(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)sm; (void)src; (void)dst; //unused parameter
+    auto* rev = dynamic_cast<ModemEvent *>(&ev);
+    std::string state = rev->named_match("state");
+    mdmd_Log(MD_LOG_WRN, "%s: Unexpected sim state '%s'\n", sm.get_state().c_str(), state.c_str());
+
+    return true;
+}
+
+bool tf_getoperlist_shutdown_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Could not scan provider, modem shutdown failed\n", sm.get_state().c_str());
+    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    //-> zum Abschluss erneute Aktivierung von autoconnect
+    tf_autoconnect_enable(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_getoperlist_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Could not scan provider, command failure\n", sm.get_state().c_str());
+    sm.current_invocation().return_error("de.wago.mdmdError", "COMMAND FAILURE");
+    //-> zum Abschluss erneute Aktivierung von autoconnect
+    tf_autoconnect_enable(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_continue_getoperlist(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    sm.set_continue_getoperlist(false);
+    (void)tf_startinit(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_getoperlist_init_fail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Could not scan provider, Modem initialization failure\n", sm.get_state().c_str());
+    sm.current_invocation().return_error("de.wago.mdmdError", "ERROR");
+    //-> zum Abschluss erneute Aktivierung von autoconnect
+    tf_autoconnect_enable(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_getoperlist_simfail(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Could not scan provider, SIM failure\n", sm.get_state().c_str());
+    sm.current_invocation().return_error("de.wago.mdmdError", "SIM FAILURE");
+    //-> zum Abschluss erneute Aktivierung von autoconnect
+    tf_autoconnect_enable(sm, src, dst, ev);
+
+    return true;
+}
+
+bool tf_getoperlist_waitsim(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    (void)src; (void)dst; (void)ev;
+    //start timer to get sim state again
+    sm.kick_cmd_timeout(timer_poll_simstate);
+
+    return true;
+}
+
+bool tf_getoperlist_siminit_timeout(MdmStatemachine &sm, State &src, State &dst, Event &ev)
+{
+    mdmd_Log(MD_LOG_WRN, "%s: Could not scan provider, SIM timeout\n", sm.get_state().c_str());
+    sm.current_invocation().return_error("de.wago.mdmdError", "SIM TIMEOUT");
+    //-> zum Abschluss erneute Aktivierung von autoconnect
+    tf_autoconnect_enable(sm, src, dst, ev);
+
+    return true;
+}
+
 
 } //namespace
 
 /****************************/
 
+using NT = no_op_transition<MdmStatemachine>;
 using TF = TransitionFunctionFunctor<MdmStatemachine>;
 using AF = ActionFunctionFunctor<MdmStatemachine>;
 using PG = positive_guard<MdmStatemachine>;
@@ -2333,459 +3122,827 @@ int main(int argc, char **argv)
 
     (void)argc; (void)argv;
 
-    /*Init states*/
-    State i01("i01", "wait dbus");
-    State i02_1("i02_1", "open modem port");
-    State i02_2("i02_2", "wait modem port", true);
-    State i03("i03", "wait modem port enable", true);
+    /*Start states*/
+    State s01("s01", "wait dbus");
+    State s02("s02", "open modem port");
+    State s03("s03", "wait modem port", true);
+    State s04("s04", "wait modem port enable", true);
+
     /*Error states*/
-    State e01("e01", "init failed", true);
-    State e02("e02", "modem port io error", true);
-    /*Start-up states*/
-    State s01("s01", "set command echo mode");
-    State s02("s02", "set error format");
-    State s03_1("s03_1", "get modem information");
-    State s03_2("s03_2", "get IMEI");
-    State s04_0("s04_0", "wait cfun state", true);
-    State s04_1("s04_1", "get cfun state");
-    State s04_2("s04_2", "set modem full functional");
-    State s05_1("s05_1", "get network state");
-    State s05_2("s05_2", "set rmnet profile id");
-    State s06_1("s06_1", "get rmnet autoconnect state");
-    State s06_2("s06_2", "set autoconnect required");
-    State s06_3("s06_3", "set autoconnect legacy required");
-    State s07("s07", "set autoconnect");
-    State s08("s08", "get SIM state");
-    State s09("s09", "wait SIM state", true);
-    State s10("s10", "wait SIM PIN", true);
-    State s11("s11", "wait SIM PUK", true);
-    State s12_1("s12_1", "set SIM PIN (stored)");
-    State s12_2("s12_2", "set SIM PIN (dbus)");
-    State s13("s13", "wait SMS / PB done");
-    State s14("s14", "init SMS report");
-    State s15("s15", "init SMS storage");
-    State s16_1("s16_1", "GPRS init: set profile parameter");
-    State s16_2("s16_2", "GPRS init: detach PS");
-    State s17("s17", "get operator names");
-    State s18("s18", "init operator");
-    /*Operation states*/
-    State o01("o01", "set operator");
-    State o04("o04", "wait user command", true);
-    //State o05("o05", "common command");
-    State o05_1("o05_1", "set sms storage");
-    State o05_2("o05_2", "set sms report config");
-    State o05_3("o05_3", "delete sms");
-    State o06_1("o06_1", "get OPER list: prepare");
-    State o06_2("o06_2", "get OPER list: list available networks");
-    State o10("o10", "get SMS list");
-    State o11("o11", "read SMS");
-    State o12("o12", "send SMS");
-    State o13_1("o13_1", "get SMS storage");
-    State o13_2("o13_2", "got SMS storage");
-    State o15_2("o15_2", "get network registration details (periodic)");
-    State o15_3("o15_3", "GPRS autoconnect timeout: detach PS");
-    State o16_1("o16_1", "GPRS config: set profile parameter");
-    State o16_2("o16_2", "GPRS config: detach PS");
+    State i00("i00", "init failed", true);
+
+    /*Modem initialisation states*/
+    State i01_01("i01_01", "init modem, deactivate echo mode");
+    State i01_02("i01_02", "init modem, set error format");
+    State i01_03("i01_03", "init modem, get info");
+    State i01_04("i01_04", "init modem, get identity");
+    State i01_05("i01_05", "init modem, get functionality state");
+    State i01_06("i01_06", "init modem, get functionality state, is full");
+    State i01_07("i01_07", "wait modem", true);
+    State i01_08("i01_08", "init modem, set full functional");
+    State i01_09("i01_09", "init modem, disable status reports");
+
+    State i02_01("i02_01", "init SIM, get state");
+    State i02_02("i02_02", "init SIM, got state, ready");
+    State i02_03("i02_03", "init SIM, got state, PIN required");
+    State i02_04("i02_04", "init SIM, got state, PUK required");
+    State i02_05("i02_05", "init SIM, got state, not inserted");
+    State i02_06("i02_06", "init SIM, got state, busy");
+    State i02_10("i02_10", "wait SIM, PIN required", true);
+    State i02_11("i02_11", "wait SIM, get PIN count");
+    State i02_12("i02_12", "wait SIM, PUK required", true);
+    State i02_13("i02_13", "wait SIM, get PUK count");
+    State i02_14("i02_14", "wait SIM, not inserted", true);
+    State i02_15("i02_15", "wait SIM, not ready", true);
+    State i02_16("i02_16", "SIM failure", true);
+    State i02_20("i02_20", "activate SIM, get iccid to compare");
+    State i02_21("i02_21", "activate SIM, got iccid, match storage");
+    State i02_22("i02_22", "activate SIM, set PIN from storage");
+    State i02_23("i02_23", "activate SIM, set PIN/PUK from user");
+    State i02_24("i02_24", "activate SIM, get iccid to persist");
+    State i02_25("i02_25", "activate SIM, got iccid");
+    State i02_26("i02_26", "activate SIM, check initialization completed");
+    State i02_27("i02_27", "activate SIM, wait initialization completed", true);
+    State i02_28("i02_28", "activate SIM, initialization completed");
+
+    State i03_01("i03_01", "init network access, get operator names");
+    State i03_02("i03_02", "init network access, get operator selection");
+    State i03_03("i03_03", "init network access, set operator selection");
+    State i03_04("i03_04", "wait network access", true);
+    State i03_05("i03_05", "init network access, set scan configuration");
+    State i03_06("i03_06", "init network access, get registration status");
+
+
+    State i04_01("i04_01", "init data service, get profile id");
+    State i04_02("i04_02", "init data service, get profile id, set required");
+    State i04_03("i04_03", "init data service, set profile id");
+    State i04_04("i04_04", "init data service, get autoconnect state");
+    State i04_05("i04_05", "init data service, get autoconnect state, set required");
+    State i04_06("i04_06", "init data service, set autoconnect state");
+    State i04_07("i04_07", "init data service, get gprs profile");
+    State i04_08("i04_08", "init data service, get gprs profile, set required");
+    State i04_09("i04_09", "init data service, set gprs profile");
+    State i04_10("i04_10", "init data service, get registration status");
+
+    State i05_01("i05_01", "init sms service, get storage config");
+    State i05_02("i05_02", "init sms service, get storage config, set required");
+    State i05_03("i05_03", "init sms service, set storage config");
+    State i05_04("i05_04", "init sms service, get format");
+    State i05_05("i05_05", "init sms service, get format, set required");
+    State i05_06("i05_06", "init sms service, set format");
+    State i05_07("i05_07", "init sms service, get event report config");
+    State i05_08("i05_08", "init sms service, get event report config, set required");
+    State i05_09("i05_09", "init sms service, set event report config");
+
+    /*Operational states*/
+    State o01("o01",       "wait user command", true);
+    State o02("o02",       "get network registration details (periodic)");
+
+    State o06_01("o06_01", "detect network access, deactivate autoconnect");
+    State o06_02("o06_02", "detect network access, trigger shutdown");
+    State o06_03("o06_03", "detect network access, wait shutdown complete");
+    State o06_04("o06_04", "detect network access, deactivate echo mode");
+    State o06_05("o06_05", "detect network access, get modem functionality");
+    State o06_06("o06_06", "detect network access, get modem functionality, is full");
+    State o06_07("o06_06", "detect network access, wait modem functionality");
+    State o06_10("o06_10", "detect network access, get sim state");
+    State o06_11("o06_11", "detect network access, sim ready");
+    State o06_12("o06_12", "detect network access, sim pin required");
+    State o06_13("o06_13", "detect network access, wait sim state");
+    State o06_14("o06_14", "detect network access, activate SIM with stored PIN");
+    State o06_15("o06_15", "detect network access, check SIM initialization completed");
+    State o06_16("o06_16", "detect network access, wait SIM initialization completed");
+    State o06_17("o06_17", "detect network access, SIM initialization completed");
+    State o06_20("o06_20", "detect network access, list operators");
+
+    State o10("o10",       "get SMS list");
+    State o11("o11",       "read SMS");
+    State o12_01("o12_01", "send SMS");
+    State o12_02("o12_02", "send SMS, result returned");
+    State o13("o13",       "delete sms");
+    State o14_01("o14_01", "get SMS storage");
+    State o14_02("o14_02", "get SMS storage, result returned");
+
     /*Shutdown states*/
-    State x01("x01", "trigger power down");
-    State x02("x02", "wait power down");
+    State x01_01("x01_01",  "trigger shutdown (user)");
+    State x01_02("x01_02",  "wait shutdown complete");
+    State x02_01("x02_01",  "trigger shutdown (internal)");
+    State x02_02("x02_02",  "wait shutdown complete (internal)");
 
   MdmStatemachine::transition_list_t tl {
 
-    /*wait dbus*/
-    { i01, new RegexEvent("DBus_Connection_up"), i01, new TF(tf_dbus_up), new PG },
-    { i01, new RegexEvent("DBus_Connection_down"), i01, new TF(tf_wait_dbus), new PG },
-    { i01, new TimeoutEvent(), i01, new TF(tf_wait_dbus), new GF(gf_dbus_offline) },
-    { i01, new TimeoutEvent(), i03, new TF(tf_port_disabled), new GF(gf_modem_port_disabled) },
-    { i01, new TimeoutEvent(), s01, new TF(tf_startinit), new GF(gf_modem_port_open) },
-    { i01, new TimeoutEvent(), i02_1, new TF(tf_openport), new PG },
-    /*i02_1: open modem port*/
-    { i02_1, new TimeoutEvent(), s01, new TF(tf_startinit), new GF(gf_modem_port_open) },
-    { i02_1, new TimeoutEvent(), i02_2, new TF(tf_modem_port_not_ready), new PG },
-    /*wait modem port*/
-    { i02_2, new TimeoutEvent(), s01, new TF(tf_startinit), new GF(gf_modem_port_open) },
-    { i02_2, new TimeoutEvent(), i01, new TF(tf_wait_modem_port_timeout), new GF(gf_wait_modem_port_limit) },
-    { i02_2, new TimeoutEvent(), i02_2, new TF(tf_openport_retry), new PG },
-    { i02_2, new DBusEvent("SetGprsAccess2"), i02_2, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { i02_2, new DBusEvent("GetSmsStorage"), i02_2, new TF(tf_get_smsstorage_default), new PG },
-    { i02_2, new DBusEvent("SetSmsStorage"), i02_2, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { i02_2, new DBusEvent("SetSmsReportConfig"), i02_2, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { i02_2, new DBusEvent("SetOper"), i02_2, new TF(tf_dbus_setoper_return_ok), new PG },
-    { i02_2, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_modemreset), new PG },
-    { i02_2, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    /*wait modem port enable*/
-    { i03, new DBusEvent("SetGprsAccess2"), i03, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { i03, new DBusEvent("GetSmsStorage"), i03, new TF(tf_get_smsstorage_default), new PG },
-    { i03, new DBusEvent("SetSmsStorage"), i03, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { i03, new DBusEvent("SetSmsReportConfig"), i03, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { i03, new DBusEvent("SetOper"), i03, new TF(tf_dbus_setoper_return_ok), new PG },
-    { i03, new DBusEvent("ModemReset"), i03, new TF(tf_dbus_not_allowed), new PG },
-    { i03, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { i03, new TimeoutEvent(), i03, new TF(tf_void_timeout), new PG },
-    /*unrecoverable initialization error*/
-    { e01, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { e01, new DBusEvent("SetGprsAccess2"), e01, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { e01, new DBusEvent("GetSmsStorage"), e01, new TF(tf_get_smsstorage_default), new PG },
-    { e01, new DBusEvent("SetSmsStorage"), e01, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { e01, new DBusEvent("SetSmsReportConfig"), e01, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { e01, new DBusEvent("SetOper"), e01, new TF(tf_dbus_setoper_return_ok), new PG },
-    { e01, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_modemreset), new PG },
-    { e01, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { e01, new TimeoutEvent(), e01, new TF(tf_void_timeout), new PG },
-    /*e02: modem port io error*/
-    { e02, new DBusEvent("SetGprsAccess2"), e02, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { e02, new DBusEvent("GetSmsStorage"), e02, new TF(tf_get_smsstorage_default), new PG },
-    { e02, new DBusEvent("SetSmsStorage"), e02, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { e02, new DBusEvent("SetSmsReportConfig"), e02, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { e02, new DBusEvent("SetOper"), e02, new TF(tf_dbus_setoper_return_ok), new PG },
-    { e02, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_not_allowed), new PG },
-    { e02, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { e02, new TimeoutEvent(), i01, new TF(tf_io_error_timeout), new PG },
-    /*set command echo mode*/
-    { s01, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s01, new ModemEvent("^ATE0$"), s01, new TF(tf_do_nothing), new PG },
-    { s01, new ModemEvent("^OK$"), s02, new swrite("at+cmee=1", timer_at_cmd_short), new PG },
-    { s01, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s01, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*set error format*/
-    { s02, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s02, new ModemEvent("^OK$"), s03_1, new swrite("ati", timer_at_cmd_short), new PG },
-    { s02, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s02, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*get modem information*/
-    { s03_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s03_1, new ModemEvent("^OK$"), s03_2, new swrite("at+gsn", timer_at_cmd_short), new PG },
-    { s03_1, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s03_1, new ModemEvent("^Revision: (?<revision>.*)"), s03_1, new TF(tf_getmodeminfo_revision), new PG },
-    { s03_1, new ModemEvent("(?<line>.*)"), s03_1, new TF(tf_getmodeminfo_manufacturer), new GF(gf_have_no_manufacturer) },
-    { s03_1, new ModemEvent("(?<line>.*)"), s03_1, new TF(tf_getmodeminfo_model), new PG },
-    { s03_1, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*get IMEI*/
-    { s03_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s03_2, new ModemEvent("^OK$"), s04_1, new swrite("at+cfun?", timer_at_cmd_cfun), new PG },
-    { s03_2, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s03_2, new ModemEvent("(?<line>.*)"), s03_2, new TF(tf_getmodeminfo_imei), new PG },
-    { s03_2, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*s04_0: wait cfun state*/
-    { s04_0, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s04_0, new DBusEvent("SetGprsAccess2"), s04_0, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { s04_0, new DBusEvent("GetSmsStorage"), s04_0, new TF(tf_get_smsstorage_default), new PG },
-    { s04_0, new DBusEvent("SetSmsStorage"), s04_0, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { s04_0, new DBusEvent("SetSmsReportConfig"), s04_0, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { s04_0, new DBusEvent("SetOper"), s04_0, new TF(tf_dbus_setoper_return_ok), new PG },
-    { s04_0, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_modemreset), new PG },
-    { s04_0, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { s04_0, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), s04_1, new swrite("at+cfun?", timer_at_cmd_cfun), new PG },
-    { s04_0, new TimeoutEvent(), s04_1, new swrite("at+cfun?", timer_at_cmd_cfun), new PG },
-    /*s04_1: get cfun state*/
-    { s04_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s04_1, new ModemEvent("^OK$"), s04_2, new swrite("at+cfun=1", timer_at_cmd_cfun), new GF(gf_activation_required) },
-    { s04_1, new ModemEvent("^OK$"), s05_1, new TF(tf_init_network_state), new PG },
-    //Note: after modem hard reset it may be not yet allowed to set cfun -> wait for CFUN indication or timeout
-    { s04_1, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s04_0, new TF(tf_wait_cfun), new GF(gf_wait_cfun_state_limit) },
-    { s04_1, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_init_err), new PG },
-    { s04_1, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s04_1, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*s04_2: set modem full functionality*/
-    { s04_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s04_2, new ModemEvent("^OK$"), s05_1, new TF(tf_init_network_state), new PG },
-    { s04_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s04_0, new TF(tf_wait_cfun), new GF(gf_wait_cfun_state_limit) },
-    { s04_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_init_err), new PG },
-    { s04_2, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s04_2, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*s05_1: get network state*/
-    { s05_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s05_1, new ModemEvent("^OK$"), s05_2, new TF(tf_set_rmnet_profileid), new PG },
-    { s05_1, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s05_1, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*s05_2: set rmnet profile id*/
-    { s05_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s05_2, new ModemEvent("^OK$"), s06_1, new swrite("at+qcfg=\"rmnet/autoconnect\"", timer_at_cmd_short), new PG },
-    //Note: ignore error, rmnet/profileid may be not supported by the modem, assume default profileid 1 in this case
-    { s05_2, new ModemEvent("ERROR"), s06_1, new swrite("at+qcfg=\"rmnet/autoconnect\"", timer_at_cmd_short), new PG },
-    { s05_2, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*s06_1: get rmnet autoconnect state*/
-    { s06_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s06_1, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",1,0,1"), s06_1, new TF(tf_do_nothing), new PG },
-    { s06_1, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",(?<status>[0-9]),(?<linkprot>[0-9]),(?<dtrset>[0-9])"), s06_2, new TF(tf_do_nothing), new PG },
-    { s06_1, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",1,0"), s06_1, new TF(tf_do_nothing), new PG }, //DTR set in qmiwwan driver
-    { s06_1, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",(?<status>[0-9]),(?<linkprot>[0-9])"), s06_3, new TF(tf_do_nothing), new PG },
-    { s06_1, new ModemEvent("^OK$"), s08, new TF(tf_query_simstate), new PG },
-    { s06_1, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s06_1, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*set autoconnect required*/
-    { s06_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s06_2, new ModemEvent("^OK$"), s07, new swrite("at+qcfg=\"rmnet/autoconnect\",1,0,1", timer_at_cmd_short), new PG },
-    { s06_2, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s06_2, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*set autoconnect legacy required*/
-    { s06_3, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s06_3, new ModemEvent("^OK$"), s07, new swrite("at+qcfg=\"rmnet/autoconnect\",1,0", timer_at_cmd_short), new PG },
-    { s06_3, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s06_3, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*set autoconnect*/
-    { s07, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s07, new ModemEvent("^OK$"), x01, new TF(tf_modem_reconfig_restart), new PG },
-    { s07, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s07, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*get SIM state*/
-    { s08, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s08, new ModemEvent("^\\+QCCID: (?<id>[0-9]+)"), s08, new TF(tf_getsim_iccid), new PG },
-    { s08, new ModemEvent("^\\+QPINC: \"SC\",(?<s1>[0-9]+),(?<s2>[0-9]+)"), s08, new TF(tf_getsim_pincount), new PG },
-    { s08, new ModemEvent("^OK$"), s14, new TF(tf_sim_ready_init_sms), new GF(gf_sim_ready) },
-    { s08, new ModemEvent("^OK$"), s12_1, new TF(tf_getsimstate_setstoredpin), new GF(gf_set_stored_pin) },
-    { s08, new ModemEvent("^OK$"), s11, new TF(tf_wait_puk), new GF(gf_puk_needed) },
-    { s08, new ModemEvent("^OK$"), s10, new TF(tf_wait_pin), new GF(gf_pin_needed) },
-    { s08, new ModemEvent("^OK$"), s09, new TF(tf_sim_busy), new GF(gf_sim_state_not_ready) },
-    { s08, new ModemEvent("^OK$"), e01, new TF(tf_sim_not_inserted), new GF(gf_sim_state_not_inserted) },
-    { s08, new ModemEvent("^OK$"), e01, new TF(tf_init_sim_state_unknown), new PG },
-    //Note: SIM card may be busy when modem set to full functionality (at+cfun=1) quite recently
-    { s08, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s09, new TF(tf_sim_busy), new GF(gf_cme_sim_busy) },
-    { s08, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_sim_not_inserted), new GF(gf_cme_sim_not_inserted) },
-    { s08, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
-    { s08, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_init_cme_error), new PG },
-    { s08, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s08, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*wait SIM state*/
-    { s09, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s09, new ModemEvent("^\\+CPIN: (?<state>.*)"), s13, new TF(tf_setpin_ok), new GF(gf_sim_ready) },
-    { s09, new ModemEvent("^\\+CPIN: (?<state>.*)"), s08, new TF(tf_query_simstate), new PG },
-    { s09, new DBusEvent("SetGprsAccess2"), s09, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { s09, new DBusEvent("GetSmsStorage"), s09, new TF(tf_get_smsstorage_default), new PG },
-    { s09, new DBusEvent("SetSmsStorage"), s09, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { s09, new DBusEvent("SetSmsReportConfig"), s09, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { s09, new DBusEvent("SetOper"), s09, new TF(tf_dbus_setoper_return_ok), new PG },
-    { s09, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_modemreset), new PG },
-    { s09, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { s09, new TimeoutEvent(), s08, new TF(tf_query_simstate), new PG },
-    /*wait PIN*/
-    { s10, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s10, new DBusEvent("SetGprsAccess2"), s10, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { s10, new DBusEvent("GetSmsStorage"), s10, new TF(tf_get_smsstorage_default), new PG },
-    { s10, new DBusEvent("SetSmsStorage"), s10, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { s10, new DBusEvent("SetSmsReportConfig"), s10, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { s10, new DBusEvent("SetOper"), s10, new TF(tf_dbus_setoper_return_ok), new PG },
-    { s10, new DBusEvent("SetSimPin"), s12_2, new TF(tf_waitpin_dbus_setpin), new PG },
-    { s10, new DBusEvent("SetSimPuk"), s12_2, new TF(tf_waitpin_dbus_setpuk), new PG },
-    { s10, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_modemreset), new PG },
-    { s10, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { s10, new TimeoutEvent(), s10, new TF(tf_void_timeout), new PG },
-    /*wait PUK*/
-    { s11, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s11, new DBusEvent("SetGprsAccess2"), s11, new TF(tf_setgprsaccess2_to_parameter_storage), new PG },
-    { s11, new DBusEvent("GetSmsStorage"), s11, new TF(tf_get_smsstorage_default), new PG },
-    { s11, new DBusEvent("SetSmsStorage"), s11, new TF(tf_setsmsstorage_to_parameter_storage), new PG },
-    { s11, new DBusEvent("SetSmsReportConfig"), s11, new TF(tf_setsmsreportconfig_to_parameter_storage), new PG },
-    { s11, new DBusEvent("SetOper"), s11, new TF(tf_dbus_setoper_return_ok), new PG },
-    { s11, new DBusEvent("SetSimPuk"), s12_2, new TF(tf_waitpin_dbus_setpuk), new PG },
-    { s11, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_modemreset), new PG },
-    { s11, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { s11, new TimeoutEvent(), s11, new TF(tf_void_timeout), new PG },
-    /*set PIN (stored)*/
-    { s12_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s12_1, new ModemEvent("^OK$"), s13, new TF(tf_setpin_ok), new PG },
-    { s12_1, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_setpin_err), new PG },
-    { s12_1, new ModemEvent("ERROR"), s08, new TF(tf_setpin_err), new PG },
-    { s12_1, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*set PIN (dbus)*/
-    { s12_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s12_2, new ModemEvent("^OK$"), s13, new TF(tf_dbus_setpin_ok), new PG },
-    { s12_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_setpin_cme_err), new PG },
-    { s12_2, new ModemEvent("ERROR"), s08, new TF(tf_dbus_setpin_err), new PG },
-    { s12_2, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*wait SMS / PB done*/
-    { s13, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s13, new ModemEvent("^\\+QUSIM: (?<simtype>[0-9]+)"), s13, new TF(tf_do_nothing), new PG },
-    { s13, new ModemEvent("^\\+QIND: SMS DONE"), s13, new TF(tf_do_nothing), new PG },
-    { s13, new ModemEvent("^\\+QIND: PB DONE"), s14, new TF(tf_init_sms), new PG },
-    { s13, new TimeoutEvent(), s14, new TF(tf_init_sms), new PG },
-    /*init SMS report*/
-    { s14, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s14, new ModemEvent("^OK$"), s15, new TF(tf_smsstorage_init), new PG },
-    { s14, new ModemEvent("^\\+CME ERROR: 3"), s13, new TF(tf_init_sms_not_allowed), new PG },
-    { s14, new ModemEvent("^\\+CME ERROR: 14"), s13, new TF(tf_init_sms_sim_busy), new PG },
-    { s14, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s15, new TF(tf_sms_report_config_error), new PG },
-    { s14, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s14, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*init SMS storage*/
-    { s15, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s15, new ModemEvent("^OK$"), s16_1, new TF(tf_gprsprofile_init), new PG },
-    { s15, new ModemEvent("^\\+CPMS: (?<used1>[0-9]+),(?<total1>[0-9]+),(?<used2>[0-9]+),(?<total2>[0-9]+),(?<used3>[0-9]+),(?<total3>[0-9]+)"), s15, new TF(tf_do_nothing), new PG },
-    { s15, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s16_1, new TF(tf_sms_storage_config_error), new PG },
-    { s15, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s15, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*s16_1: GPRS init: set profile parameter*/
-    { s16_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s16_1, new ModemEvent("^OK$"), s16_2, new TF(tf_gprs_detach), new PG },
-    { s16_1, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s16_1, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*s16_2: GPRS init: detach PS*/
-    { s16_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s16_2, new ModemEvent("^OK$"), s17, new TF(tf_gprs_detach_ok_getopernames), new GF(gf_have_no_operatornames) },
-    { s16_2, new ModemEvent("^OK$"), s18, new TF(tf_gprs_detach_ok_initoper), new PG },
-    { s16_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_query_simstate), new GF(gf_cme_sim_failure) },
-    { s16_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_init_cme_error), new PG },
-    { s16_2, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s16_2, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*get operator names*/
-    { s17, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s17, new ModemEvent("^\\+COPN: \"(?<id>[0-9]+)\",\"(?<name>.*)\""), s17, new TF(tf_readoperatorname), new PG },
-    { s17, new ModemEvent("^OK$"), s18, new TF(tf_initoper), new PG },
-    { s17, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_query_simstate), new GF(gf_cme_sim_failure) },
-    { s17, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_init_cme_error), new PG },
-    { s17, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s17, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*init operator*/
-    { s18, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { s18, new ModemEvent("^OK$"), o15_2, new TF(tf_query_reg_state_full), new PG },
-    { s18, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_query_simstate), new GF(gf_cme_sim_failure) },
-    { s18, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), e01, new TF(tf_init_cme_error), new PG },
-    { s18, new ModemEvent("ERROR"), e01, new TF(tf_init_err), new PG },
-    { s18, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*set operator*/
-    { o01, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o01, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_setoper_ok), new PG },
-    { o01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o01, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_setoper_err), new PG },
-    { o01, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*wait user command*/
-    { o04, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { o04, new ModemEvent("^\\+CPIN: (?<state>.*)"), s08, new TF(tf_sim_not_ready), new GF(gf_sim_not_ready) },
-    { o04, new DBusEvent("GetOperList"), o06_2, new TF(tf_getoperlist), new GF(gf_gprs_disabled) },
-    { o04, new DBusEvent("GetOperList"), o06_1, new TF(tf_getoperlist_prepare), new PG },
-    { o04, new DBusEvent("ListSms"), o10, new TF(tf_dbus_listsms), new PG },
-    { o04, new DBusEvent("ReadSms"), o11, new TF(tf_dbus_readsms), new PG },
-    { o04, new DBusEvent("SendSms"), o12, new TF(tf_dbus_sendsms_head), new PG },
-    { o04, new DBusEvent("GetSmsStorage"), o13_1, new TF(tf_dbus_getsmsstorage), new PG },
-    { o04, new DBusEvent("SetGprsAccess2"), o16_1, new TF(tf_setgprsaccess2_to_modem), new PG },
-    { o04, new DBusEvent("SetSmsStorage"), o05_1, new TF(tf_setsmsstorage_to_modem), new PG },
-    { o04, new DBusEvent("SetSmsReportConfig"), o05_2, new TF(tf_setsmsreportconfig_to_modem), new PG },
-    { o04, new DBusEvent("DeleteSms"), o05_3, new TF(tf_dbus_deletesms), new PG },
-    { o04, new DBusEvent("SetOper"), o01, new TF(tf_dbus_setoper), new PG },
-    { o04, new DBusEvent("SetSimPin"), o04, new TF(tf_dbus_setpin_ready), new PG },
-    { o04, new DBusEvent("SetSimPuk"), o04, new TF(tf_dbus_setpin_ready), new PG },
-    { o04, new DBusEvent("ModemReset"), x01, new TF(tf_dbus_modemreset), new PG },
-    { o04, new DBusEvent("SetPortState"), i01, new TF(tf_dbus_setportstate), new PG },
-    { o04, new TimeoutEvent(), o15_2, new TF(tf_query_reg_state_full), new PG },
-    /*set sms storage*/
-    { o05_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o05_1, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_setsmsstorage_ok), new PG },
-    { o05_1, new ModemEvent("^\\+CPMS: (?<used1>[0-9]+),(?<total1>[0-9]+),(?<used2>[0-9]+),(?<total2>[0-9]+),(?<used3>[0-9]+),(?<total3>[0-9]+)"), o05_1, new TF(tf_do_nothing), new PG },
-    { o05_1, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o05_1, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cms_sim_failure) },
-    { o05_1, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_setsmsstorage_err), new PG },
-    { o05_1, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*set sms report config*/
-    { o05_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o05_2, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_setsmsreport_ok), new PG },
-    { o05_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o05_2, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cms_sim_failure) },
-    { o05_2, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_setsmsreport_err), new PG },
-    { o05_2, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*delete sms*/
-    { o05_3, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o05_3, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_deletesms_ok), new PG },
-    { o05_3, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o05_3, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cms_sim_failure) },
-    { o05_3, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_deletesms_err), new PG },
-    { o05_3, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*o06_1: get OPER list: prepare*/
-    { o06_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o06_1, new ModemEvent("^OK$"), o06_2, new TF(tf_getoperlist_prepare_ok), new PG },
-    { o06_1, new ModemEvent("ERROR"), o15_2, new TF(tf_getoperlist_fail), new PG },
-    { o06_1, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*o06_2: get OPER list: list available networks*/
-    { o06_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o06_2, new ModemEvent("^\\+COPS: (?<cops>\\([0-9],\".*\",\".*\",\"[0-9]+\",[0-9]\\),)"), o06_2, new TF(tf_getopers), new PG },
-    { o06_2, new ModemEvent("^OK$"), o15_2, new TF(tf_getoperlist_ok), new PG },
-    { o06_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_getoperlist_fail_sim_failure), new GF(gf_cme_sim_failure) },
-    { o06_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), o15_2, new TF(tf_getoperlist_fail_not_allowed), new GF(gf_cme_command_not_allowed) },
-    /*todo: WAT21951 - PFC200 3G: Keine Aktualisierung der Provider Liste
-     *      Sometimes CME ERROR 3 (Operation not allowed) is returned when autoconnect does an internal action.
-     *      The problem is that autoconnect can not be disabled temporarily because the suitable command
-     *      "at+qndisop=suspendauto=1" returns an error on UC20G devices. It seems not supported anymore.
-     *      A solution would be to handle connection completely in mdmd instead using Quectel specific autoconnect.
-     */
-    { o06_2, new ModemEvent("ERROR"), o15_2, new TF(tf_getoperlist_fail), new PG },
-    { o06_2, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*get SMS list*/
-    { o10, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
+    /*s01: wait dbus*/
+    { s01, new RegexEvent("DBus_Connection_up"), s01, new TF(tf_dbus_up), new PG },
+    { s01, new RegexEvent("DBus_Connection_down"), s01, new TF(tf_wait_dbus), new PG },
+    { s01, new TimeoutEvent(), s01, new TF(tf_wait_dbus), new GF(gf_dbus_offline) },
+    { s01, new TimeoutEvent(), s04, new TF(tf_port_disabled), new GF(gf_modem_port_disabled) },
+    { s01, new TimeoutEvent(), o06_04, new TF(tf_continue_getoperlist), new GF(gf_modem_port_open_continue_getoperlist) },
+    { s01, new TimeoutEvent(), i01_01, new TF(tf_startinit), new GF(gf_modem_port_open) },
+    { s01, new TimeoutEvent(), s02, new TF(tf_openport), new PG },
+    /*s02: open modem port*/
+    { s02, new TimeoutEvent(), o06_04, new TF(tf_continue_getoperlist), new GF(gf_modem_port_open_continue_getoperlist) },
+    { s02, new TimeoutEvent(), i01_01, new TF(tf_startinit), new GF(gf_modem_port_open) },
+    { s02, new TimeoutEvent(), s03, new TF(tf_modem_port_not_ready), new PG },
+    /*s03: wait modem port*/
+    { s03, new TimeoutEvent(), o06_04, new TF(tf_continue_getoperlist), new GF(gf_modem_port_open_continue_getoperlist) },
+    { s03, new TimeoutEvent(), i01_01, new TF(tf_startinit), new GF(gf_modem_port_open) },
+    { s03, new TimeoutEvent(), s01, new TF(tf_wait_modem_port_timeout), new GF(gf_wait_modem_port_abort) },
+    { s03, new TimeoutEvent(), s03, new TF(tf_openport_retry), new PG },
+    { s03, new DBusEvent("GetSmsStorage"), s03, new TF(tf_get_smsstorage_default), new PG },
+    { s03, new DBusEvent("SetSmsStorage"), s03, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { s03, new DBusEvent("SetSmsReportConfig"), s03, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { s03, new DBusEvent("SetGprsAccess2"), s03, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { s03, new DBusEvent("GetOperList"), s03, new TF(tf_get_operlist_default), new PG },
+    { s03, new DBusEvent("SetOper"), s03, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { s03, new DBusEvent("GetSimState"), s03, new TF(tf_dbus_getsimstate_unknown), new PG },
+    { s03, new DBusEvent("ModemReset"), s01, new TF(tf_dbus_not_allowed), new PG },
+    { s03, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    /*s04: wait modem port enable*/
+    { s04, new DBusEvent("GetSmsStorage"), s04, new TF(tf_get_smsstorage_default), new PG },
+    { s04, new DBusEvent("SetSmsStorage"), s04, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { s04, new DBusEvent("SetSmsReportConfig"), s04, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { s04, new DBusEvent("SetGprsAccess2"), s04, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { s04, new DBusEvent("GetOperList"), s04, new TF(tf_get_operlist_default), new PG },
+    { s04, new DBusEvent("SetOper"), s04, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { s04, new DBusEvent("GetSimState"), s04, new TF(tf_dbus_getsimstate_unknown), new PG },
+    { s04, new DBusEvent("ModemReset"), s04, new TF(tf_dbus_not_allowed), new PG },
+    { s04, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { s04, new TimeoutEvent(), s04, new TF(tf_void_timeout), new PG },
+    /*i00: unrecoverable initialization error*/
+    { i00, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i00, new DBusEvent("GetSmsStorage"), i00, new TF(tf_get_smsstorage_default), new PG },
+    { i00, new DBusEvent("SetSmsStorage"), i00, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i00, new DBusEvent("SetSmsReportConfig"), i00, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i00, new DBusEvent("SetGprsAccess2"), i00, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i00, new DBusEvent("GetOperList"), i00, new TF(tf_get_operlist_default), new PG },
+    { i00, new DBusEvent("SetOper"), i00, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i00, new DBusEvent("GetSimState"), i00, new TF(tf_dbus_getsimstate_unknown), new PG },
+    { i00, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i00, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i00, new TimeoutEvent(), i00, new TF(tf_void_timeout), new PG },
+    /*i01_01: init modem, deactivate echo mode*/
+    { i01_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_01, new ModemEvent("^ATE0$"), i01_01, new NT, new PG },
+    { i01_01, new ModemEvent("ERROR"), i00, new TF(tf_init_err), new PG },
+    { i01_01, new ModemEvent("^OK$"), i01_02, new swrite("at+cmee=1", timer_at_cmd_short), new PG },
+    { i01_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i01_02: init modem, set error format*/
+    { i01_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_02, new ModemEvent("ERROR"), i00, new TF(tf_init_err), new PG },
+    { i01_02, new ModemEvent("^OK$"), i01_03, new TF(tf_get_modeminfo), new PG },
+    { i01_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i01_03: init modem, get info*/
+    { i01_03, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_03, new ModemEvent("ERROR"), i01_04, new TF(tf_get_modeminfo_fail), new PG },
+    { i01_03, new ModemEvent("^OK$"), i01_04, new TF(tf_get_modemidentity), new PG },
+    { i01_03, new ModemEvent("^Revision: (?<revision>.*)"), i01_03, new TF(tf_modeminfo_revision), new PG },
+    { i01_03, new ModemEvent("(?<line>.*)"), i01_03, new TF(tf_modeminfo_manufacturer), new GF(gf_have_no_manufacturer) },
+    { i01_03, new ModemEvent("(?<line>.*)"), i01_03, new TF(tf_modeminfo_model), new PG },
+    { i01_03, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i01_04: init modem, get identity*/
+    { i01_04, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_04, new ModemEvent("ERROR"), i01_05, new TF(tf_get_modemidentity_fail), new PG },
+    { i01_04, new ModemEvent("^OK$"), i01_05, new TF(tf_get_modem_function_state), new PG },
+    { i01_04, new ModemEvent("(?<line>.*)"), i01_04, new TF(tf_modemidentity), new PG },
+    { i01_04, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i01_05: init modem, get functionality state*/
+    { i01_05, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_05, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), i01_06, new NT, new GF(gf_is_cfun_full) },
+    { i01_05, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), i01_05, new NT, new PG },
+    { i01_05, new ModemEvent("ERROR"), x02_01, new TF(tf_init_modem_function_state_fail), new GF(gf_wait_cfun_abort) },
+    { i01_05, new ModemEvent("ERROR"), i01_07, new TF(tf_wait_cfun), new PG },
+    { i01_05, new ModemEvent("^OK$"), i01_08, new TF(tf_set_modem_full_function), new PG },
+    { i01_05, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i01_06: init modem, get functionality state, is full*/
+    { i01_06, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_06, new ModemEvent("ERROR"), i01_09, new TF(tf_disable_status_reports), new PG },
+    { i01_06, new ModemEvent("^OK$"), i01_09, new TF(tf_disable_status_reports), new PG },
+    { i01_06, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i01_07: wait modem*/
+    { i01_07, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_07, new DBusEvent("GetSmsStorage"), i01_07, new TF(tf_get_smsstorage_default), new PG },
+    { i01_07, new DBusEvent("SetSmsStorage"), i01_07, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i01_07, new DBusEvent("SetSmsReportConfig"), i01_07, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i01_07, new DBusEvent("SetGprsAccess2"), i01_07, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i01_07, new DBusEvent("GetOperList"), i01_07, new TF(tf_get_operlist_default), new PG },
+    { i01_07, new DBusEvent("SetOper"), i01_07, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i01_07, new DBusEvent("GetSimState"), i01_07, new TF(tf_dbus_getsimstate_unknown), new PG },
+    { i01_07, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i01_07, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i01_07, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), i01_09, new TF(tf_disable_status_reports), new GF(gf_is_cfun_full) },
+    { i01_07, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), i01_08, new TF(tf_set_modem_full_function), new PG },
+    { i01_07, new TimeoutEvent(), i01_05, new TF(tf_get_modem_function_state), new PG },
+    /*i01_08: init modem, set full functional*/
+    { i01_08, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_08, new ModemEvent("ERROR"), i01_07, new TF(tf_wait_cfun), new PG },
+    { i01_08, new ModemEvent("^OK$"), i01_09, new TF(tf_disable_status_reports), new PG },
+    { i01_08, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i01_09: init modem, disable status reports*/
+    { i01_09, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i01_09, new ModemEvent("ERROR"), i02_01, new TF(tf_disable_status_reports_fail), new PG },
+    { i01_09, new ModemEvent("^OK$"), i02_01, new TF(tf_get_simstate), new PG },
+    { i01_09, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_01: init SIM, get state*/
+    { i02_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_01, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_02, new NT, new GF(gf_cpin_ready) },
+    { i02_01, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_03, new NT, new GF(gf_cpin_sim_pin) },
+    { i02_01, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_04, new NT, new GF(gf_cpin_sim_puk) },
+    { i02_01, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_05, new NT, new GF(gf_cpin_not_inserted) },
+    { i02_01, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_06, new NT, new GF(gf_cpin_not_ready) },
+    { i02_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_20, new TF(tf_activatesim_get_iccid), new GF(gf_cme_sim_pin_required) },
+    { i02_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_12, new TF(tf_waitsim_puk), new GF(gf_cme_sim_puk_required) },
+    { i02_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i02_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i02_01, new ModemEvent("ERROR"), i02_16, new TF(tf_sim_failure), new PG },
+    { i02_01, new ModemEvent("^OK$"), i02_16, new TF(tf_sim_failure), new PG }, //unknown SIM state ?
+    { i02_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_02: init SIM, got state, ready*/
+    { i02_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_02, new ModemEvent("ERROR"), i02_26, new TF(tf_get_sim_initialization_state), new PG }, //got state, continue anyway
+    { i02_02, new ModemEvent("^OK$"), i02_26, new TF(tf_get_sim_initialization_state), new PG },
+    { i02_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_03: init SIM, got state, PIN required*/
+    { i02_03, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_03, new ModemEvent("ERROR"), i02_20, new TF(tf_activatesim_get_iccid), new PG }, //got state, continue anyway
+    { i02_03, new ModemEvent("^OK$"), i02_20, new TF(tf_activatesim_get_iccid), new PG },
+    { i02_03, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_04: init SIM, got state, PUK required*/
+    { i02_04, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_04, new ModemEvent("ERROR"), i02_12, new TF(tf_waitsim_puk), new PG }, //got state, continue anyway
+    { i02_04, new ModemEvent("^OK$"), i02_12, new TF(tf_waitsim_puk), new PG },
+    { i02_04, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_05: init SIM, got state, not inserted*/
+    { i02_05, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_05, new ModemEvent("ERROR"), i02_14, new TF(tf_waitsim_removed), new PG }, //got state, continue anyway
+    { i02_05, new ModemEvent("^OK$"), i02_14, new TF(tf_waitsim_removed), new PG },
+    { i02_05, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_06: init SIM, got state, busy*/
+    { i02_06, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_06, new ModemEvent("ERROR"), i02_15, new TF(tf_waitsim_busy), new PG }, //got state, continue anyway
+    { i02_06, new ModemEvent("^OK$"), i02_15, new TF(tf_waitsim_busy), new PG },
+    { i02_06, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_10: wait SIM, PIN required*/
+    { i02_10, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_10, new DBusEvent("GetSmsStorage"), i02_10, new TF(tf_get_smsstorage_default), new PG },
+    { i02_10, new DBusEvent("SetSmsStorage"), i02_10, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i02_10, new DBusEvent("SetSmsReportConfig"), i02_10, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i02_10, new DBusEvent("SetGprsAccess2"), i02_10, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i02_10, new DBusEvent("GetOperList"), i02_10, new TF(tf_get_operlist_default), new PG },
+    { i02_10, new DBusEvent("SetOper"), i02_10, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i02_10, new DBusEvent("GetSimState"), i02_11, new TF(tf_dbus_getsimstate_activation_required), new PG },
+    { i02_10, new DBusEvent("SetSimPin"), i02_23, new TF(tf_dbus_setpin), new PG },
+    { i02_10, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i02_10, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i02_10, new ModemEvent("^OK$"), i02_10, new TF(tf_void_timeout), new PG }, //OK for QPINC, see i02_11
+    { i02_10, new TimeoutEvent(), i02_10, new TF(tf_void_timeout), new PG },
+    /*i02_11: wait SIM, get PIN count*/
+    { i02_11, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_11, new ModemEvent("^\\+QPINC: \"SC\",(?<s1>[0-9]+),(?<s2>[0-9]+)"), i02_10, new TF(tf_getsim_pincount), new PG },
+    { i02_11, new ModemEvent("ERROR"), i02_10, new TF(tf_getsim_nopincount), new PG },
+    { i02_11, new ModemEvent("^OK$"), i02_10, new TF(tf_getsim_nopincount), new PG },
+    { i02_11, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_12: wait SIM, PUK required*/
+    { i02_12, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_12, new DBusEvent("GetSmsStorage"), i02_12, new TF(tf_get_smsstorage_default), new PG },
+    { i02_12, new DBusEvent("SetSmsStorage"), i02_12, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i02_12, new DBusEvent("SetSmsReportConfig"), i02_12, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i02_12, new DBusEvent("SetGprsAccess2"), i02_12, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i02_12, new DBusEvent("GetOperList"), i02_12, new TF(tf_get_operlist_default), new PG },
+    { i02_12, new DBusEvent("SetOper"), i02_12, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i02_12, new DBusEvent("GetSimState"), i02_13, new TF(tf_dbus_getsimstate_activation_required), new PG },
+    { i02_12, new DBusEvent("SetSimPuk"), i02_23, new TF(tf_dbus_setpuk), new PG },
+    { i02_12, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i02_12, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i02_12, new ModemEvent("^OK$"), i02_12, new TF(tf_void_timeout), new PG }, //OK for QPINC, see i02_13
+    { i02_12, new TimeoutEvent(), i02_12, new TF(tf_void_timeout), new PG },
+    /*i02_13: wait SIM, get PUK count*/
+    { i02_13, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_13, new ModemEvent("^\\+QPINC: \"SC\",(?<s1>[0-9]+),(?<s2>[0-9]+)"), i02_12, new TF(tf_getsim_pukcount), new PG },
+    { i02_13, new ModemEvent("ERROR"), i02_12, new TF(tf_getsim_nopukcount), new PG },
+    { i02_13, new ModemEvent("^OK$"), i02_12, new TF(tf_getsim_nopukcount), new PG },
+    { i02_13, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_14: wait SIM, not inserted*/
+    { i02_14, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_14, new DBusEvent("GetSmsStorage"), i02_14, new TF(tf_get_smsstorage_default), new PG },
+    { i02_14, new DBusEvent("SetSmsStorage"), i02_14, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i02_14, new DBusEvent("SetSmsReportConfig"), i02_14, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i02_14, new DBusEvent("SetGprsAccess2"), i02_14, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i02_14, new DBusEvent("GetOperList"), i02_14, new TF(tf_get_operlist_default), new PG },
+    { i02_14, new DBusEvent("SetOper"), i02_14, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i02_14, new DBusEvent("GetSimState"), i02_14, new TF(tf_dbus_getsimstate_not_inserted), new PG },
+    { i02_14, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i02_14, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i02_14, new TimeoutEvent(), i02_01, new TF(tf_get_simstate), new PG },
+    /*i02_15: wait SIM, not ready*/
+    { i02_15, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_15, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_27, new TF(tf_waitsim_init_complete), new GF(gf_cpin_ready) },
+    { i02_15, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_20, new TF(tf_activatesim_get_iccid), new GF(gf_cpin_sim_pin) },
+    { i02_15, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_12, new TF(tf_waitsim_puk), new GF(gf_cpin_sim_puk) },
+    { i02_15, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cpin_not_inserted) },
+    { i02_15, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_15, new NT, new GF(gf_cpin_not_ready) },
+    { i02_15, new DBusEvent("GetSmsStorage"), i02_15, new TF(tf_get_smsstorage_default), new PG },
+    { i02_15, new DBusEvent("SetSmsStorage"), i02_15, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i02_15, new DBusEvent("SetSmsReportConfig"), i02_15, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i02_15, new DBusEvent("SetGprsAccess2"), i02_15, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i02_15, new DBusEvent("GetOperList"), i02_15, new TF(tf_get_operlist_default), new PG },
+    { i02_15, new DBusEvent("SetOper"), i02_15, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i02_15, new DBusEvent("GetSimState"), i02_15, new TF(tf_dbus_getsimstate_not_ready), new PG },
+    { i02_15, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i02_15, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i02_15, new TimeoutEvent(), i02_01, new TF(tf_waitsim_busy_timeout), new PG },
+    /*i02_16: SIM failure*/
+    { i02_16, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_16, new DBusEvent("GetSmsStorage"), i02_16, new TF(tf_get_smsstorage_default), new PG },
+    { i02_16, new DBusEvent("SetSmsStorage"), i02_16, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i02_16, new DBusEvent("SetSmsReportConfig"), i02_16, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i02_16, new DBusEvent("SetGprsAccess2"), i02_16, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i02_16, new DBusEvent("GetOperList"), i02_16, new TF(tf_get_operlist_default), new PG },
+    { i02_16, new DBusEvent("SetOper"), i02_16, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i02_16, new DBusEvent("GetSimState"), i02_16, new TF(tf_dbus_getsimstate_failure), new PG },
+    { i02_16, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i02_16, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i02_16, new ModemEvent("^OK$"), i02_16, new TF(tf_void_timeout), new PG }, //OK for previous command, e.g. COPS or QINISTAT
+    { i02_16, new TimeoutEvent(), i02_16, new TF(tf_void_timeout), new PG },
+    /*i02_20: activate SIM, get iccid to compare*/
+    { i02_20, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_20, new ModemEvent("^\\+QCCID: (?<iccid>.*)"), i02_21, new NT, new GF(gf_qccid_match_storage)},
+    { i02_20, new ModemEvent("^\\+QCCID: (?<iccid>.*)"), i02_20, new NT, new PG},
+    { i02_20, new ModemEvent("ERROR"), i02_10, new TF(tf_waitsim_pin), new PG }, //ICCID not available
+    { i02_20, new ModemEvent("^OK$"), i02_10, new TF(tf_waitsim_pin), new PG }, //ICCID not matching
+    { i02_20, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_21: activate SIM, got iccid, match storage*/
+    { i02_21, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_21, new ModemEvent("ERROR"), i02_22, new TF(tf_setsimpin_from_storage), new PG },
+    { i02_21, new ModemEvent("^OK$"), i02_22, new TF(tf_setsimpin_from_storage), new PG },
+    { i02_21, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_22: activate SIM, set PIN from storage*/
+    { i02_22, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_22, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i02_22, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i02_22, new ModemEvent("ERROR"), i02_01, new TF(tf_setsimpin_from_storage_fail), new PG },
+    { i02_22, new ModemEvent("^OK$"), i02_27, new TF(tf_waitsim_init_complete), new PG },
+    { i02_22, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_23: activate SIM, set PIN/PUK from user*/
+    { i02_23, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { i02_23, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_dbus_setpin_cme_sim_not_inserted), new GF(gf_cme_sim_not_inserted) },
+    { i02_23, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_dbus_setpin_cme_sim_busy), new GF(gf_cme_sim_busy) },
+    { i02_23, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_dbus_setpin_cme_sim_failure), new GF(gf_cme_sim_failure) },
+    { i02_23, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_dbus_setpin_cme_wrong_password), new GF(gf_cme_sim_pin_required) },
+    { i02_23, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_dbus_setpin_cme_wrong_password), new GF(gf_cme_sim_puk_required) },
+    { i02_23, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_dbus_setpin_cme_wrong_password), new GF(gf_cme_incorrect_password) },
+    { i02_23, new ModemEvent("ERROR"), i02_01, new TF(tf_dbus_setpin_err), new PG },
+    { i02_23, new ModemEvent("^OK$"), i02_24, new TF(tf_activatesim_get_iccid), new PG },
+    { i02_23, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*i02_24: activate SIM, get iccid to persist*/
+    { i02_24, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { i02_24, new ModemEvent("^\\+QCCID: (?<iccid>.*)"), i02_25, new TF(tf_set_iccid_to_storage), new PG },
+    { i02_24, new ModemEvent("ERROR"), i02_26, new TF(tf_dbus_setpin_ok_not_persistent), new PG }, //ICCID not available
+    { i02_24, new ModemEvent("^OK$"), i02_26, new TF(tf_dbus_setpin_ok_not_persistent), new PG }, //ICCID not detected?
+    { i02_24, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*i02_25: activate SIM, got iccid*/
+    { i02_25, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { i02_25, new ModemEvent("ERROR"), i02_26, new TF(tf_dbus_setpin_ok), new PG },
+    { i02_25, new ModemEvent("^OK$"), i02_26, new TF(tf_dbus_setpin_ok), new PG },
+    { i02_25, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*i02_26: activate SIM, check initialization completed*/
+    { i02_26, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_26, new ModemEvent("ERROR"), i02_16, new TF(tf_sim_failure), new PG },
+    { i02_26, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), i02_28, new NT, new GF(gf_qinistat_complete) },
+    { i02_26, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), i02_26, new NT, new PG },
+    { i02_26, new ModemEvent("^OK$"), i02_27, new TF(tf_waitsim_init_complete), new PG }, //initialization not complete
+    { i02_26, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i02_27: activate SIM, wait initialization completed*/
+    { i02_27, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_27, new ModemEvent("^OK$"), i02_27, new NT, new PG }, //OK e.g. for QINISTAT, see i02_26
+    { i02_27, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_27, new NT, new GF(gf_cpin_ready) },
+    { i02_27, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_16, new TF(tf_sim_failure), new PG },
+    { i02_27, new ModemEvent("^\\+QUSIM: (?<simtype>[0-9]+)"), i02_27, new NT, new PG },
+    { i02_27, new ModemEvent("^\\+QIND: SMS DONE"), i02_27, new NT, new PG },
+    { i02_27, new ModemEvent("^\\+QIND: PB DONE"), i03_01, new TF(tf_init_sim_complete_get_opernames), new GF(gf_get_opernames_required) },
+    { i02_27, new ModemEvent("^\\+QIND: PB DONE"), i03_02, new TF(tf_init_sim_complete_get_operselection), new PG },
+    { i02_27, new DBusEvent("GetSmsStorage"), i02_27, new TF(tf_get_smsstorage_default), new PG },
+    { i02_27, new DBusEvent("SetSmsStorage"), i02_27, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i02_27, new DBusEvent("SetSmsReportConfig"), i02_27, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i02_27, new DBusEvent("SetGprsAccess2"), i02_27, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i02_27, new DBusEvent("GetOperList"), i02_27, new TF(tf_get_operlist_default), new PG },
+    { i02_27, new DBusEvent("SetOper"), i02_27, new TF(tf_dbus_setoper_to_parameter_storage), new PG },
+    { i02_27, new DBusEvent("GetSimState"), i02_27, new TF(tf_dbus_getsimstate_ready), new PG },
+    { i02_27, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i02_27, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i02_27, new TimeoutEvent(), i02_26, new TF(tf_get_sim_initialization_state), new PG },
+    /*i02_28: activate SIM, initialization completed*/
+    { i02_28, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i02_28, new ModemEvent("ERROR"), i03_01, new TF(tf_init_sim_complete_get_opernames), new GF(gf_get_opernames_required) },
+    { i02_28, new ModemEvent("ERROR"), i03_02, new TF(tf_init_sim_complete_get_operselection), new PG },
+    { i02_28, new ModemEvent("^OK$"), i03_01, new TF(tf_init_sim_complete_get_opernames), new GF(gf_get_opernames_required) },
+    { i02_28, new ModemEvent("^OK$"), i03_02, new TF(tf_init_sim_complete_get_operselection), new PG },
+    { i02_28, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i03_01: init network access, get operator names*/
+    { i03_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i03_01, new ModemEvent("^\\+COPN: \"(?<id>[0-9]+)\",\"(?<name>.*)\""), i03_01, new TF(tf_readoperatorname), new PG },
+    { i03_01, new ModemEvent("ERROR"), i03_02, new TF(tf_get_opernames_fail), new PG },
+    { i03_01, new ModemEvent("^OK$"), i03_02, new TF(tf_get_operselection), new PG },
+    { i03_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i03_02: init network access, get operator selection*/
+    { i03_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i03_02, new ModemEvent("^\\+COPS: 2"), i03_02, new NT, new PG }, //network access blocked, set_operselection should fail with SIM_FAILURE
+    { i03_02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i03_02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i03_02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i03_02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i03_02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i03_02, new ModemEvent("ERROR"), i03_04, new TF(tf_operselection_fail), new PG },
+    { i03_02, new ModemEvent("^OK$"), i03_03, new TF(tf_set_operselection), new GF(set_operselection_required) },
+    { i03_02, new ModemEvent("^OK$"), i03_06, new TF(tf_get_oper_regstate), new GF(gf_is_oper_selection_manual) },
+    { i03_02, new ModemEvent("^OK$"), i03_05, new TF(tf_set_nwscan_config), new PG },
+    { i03_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i03_03: init network access, set operator selection*/
+    { i03_03, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i03_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i03_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i03_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i03_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i03_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i03_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i03_03, new ModemEvent("ERROR"), i03_04, new TF(tf_operselection_fail), new PG },
+    { i03_03, new ModemEvent("^OK$"), i03_06, new TF(tf_set_operator_selection_manual_ok), new GF(gf_is_oper_selection_manual) },
+    { i03_03, new ModemEvent("^OK$"), i03_05, new TF(tf_set_operator_selection_automatic_ok), new PG },
+    { i03_03, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i03_04: wait network aceess*/
+    { i03_04, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i03_04, new ModemEvent("^\\+CPIN: (?<state>.*)"), i03_04, new NT, new GF(gf_cpin_ready) },
+    { i03_04, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_16, new TF(tf_sim_failure), new PG },
+    { i03_04, new DBusEvent("GetSmsStorage"), i03_04, new TF(tf_get_smsstorage_default), new PG },
+    { i03_04, new DBusEvent("SetSmsStorage"), i03_04, new TF(tf_dbus_setsmsstorage_to_parameter_storage), new PG },
+    { i03_04, new DBusEvent("SetSmsReportConfig"), i03_04, new TF(tf_dbus_setsmsreportconfig_to_parameter_storage), new PG },
+    { i03_04, new DBusEvent("SetGprsAccess2"), i03_04, new TF(tf_dbus_setgprsaccess_to_parameter_storage), new PG },
+    { i03_04, new DBusEvent("GetOperList"), i03_04, new TF(tf_get_operlist_default), new PG },
+    { i03_04, new DBusEvent("SetOper"), i03_03, new TF(tf_dbus_setoper_to_modem), new PG },
+    { i03_04, new DBusEvent("GetSimState"), i03_04, new TF(tf_dbus_getsimstate_ready), new PG },
+    { i03_04, new DBusEvent("SetSimPin"), i03_04, new TF(tf_dbus_setpin_ready), new PG },
+    { i03_04, new DBusEvent("SetSimPuk"), i03_04, new TF(tf_dbus_setpin_ready), new PG },
+    { i03_04, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { i03_04, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { i03_04, new TimeoutEvent(), i03_03, new TF(tf_set_operselection), new PG },
+    /*i03_05: init network access, set scan configuration*/
+    { i03_05, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i03_05, new ModemEvent("ERROR"), i03_06, new TF(tf_set_nwscan_config_fail), new PG },
+      //INFO: network scan configuration takes effect immediately -> continue with data service initialization
+    { i03_05, new ModemEvent("^OK$"), i03_06, new TF(tf_get_oper_regstate), new PG },
+    { i03_05, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i03_06: init network access, get registration status*/
+    { i03_06, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i03_06, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i03_06, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i03_06, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i03_06, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i03_06, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i03_06, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i03_06, new ModemEvent("ERROR"), i04_01, new TF(tf_get_oper_regstate_fail), new PG },
+    { i03_06, new ModemEvent("^OK$"), i04_01, new TF(tf_get_rmnet_profileid), new PG },
+    { i03_06, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_01: init data service, get profile id*/
+    { i04_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_01, new ModemEvent("^\\+QCFG: \"rmnet/profileid\",(?<id>[0-9])"), i04_02, new NT, new GF(gf_set_rmnet_profileid_required) },
+    { i04_01, new ModemEvent("^\\+QCFG: \"rmnet/profileid\",(?<id>[0-9])"), i04_01, new NT, new PG },
+    { i04_01, new ModemEvent("ERROR"), i04_04, new TF(tf_get_rmnet_profileid_fail), new PG },
+    { i04_01, new ModemEvent("^OK$"), i04_04, new TF(tf_get_rmnet_autoconnect), new PG },
+    { i04_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_02: init data service, get profile id, set required*/
+    { i04_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_02, new ModemEvent("ERROR"), i04_03, new TF(tf_set_rmnet_profileid), new PG },
+    { i04_02, new ModemEvent("^OK$"), i04_03, new TF(tf_set_rmnet_profileid), new PG },
+    { i04_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_03: init data service, set profile id*/
+    { i04_03, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_03, new ModemEvent("ERROR"), i04_04, new TF(tf_set_rmnet_profileid_fail), new PG },
+    { i04_03, new ModemEvent("^OK$"), x02_01, new TF(tf_set_rmnet_profileid_ok), new PG },
+    { i04_03, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_04: init data service, get autoconnect state*/
+    { i04_04, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_04, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",(?<status>[0-9]),(?<linkprot>[0-9]),(?<dtrset>[0-9])"), i04_05, new TF(tf_get_rmnet_autoconnect_with_dtrset), new GF(gf_set_rmnet_autoconnect_required2) },
+    { i04_04, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",(?<status>[0-9]),(?<linkprot>[0-9]),(?<dtrset>[0-9])"), i04_04, new TF(tf_get_rmnet_autoconnect_with_dtrset), new PG },
+    { i04_04, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",(?<status>[0-9]),(?<linkprot>[0-9])"), i04_05, new TF(tf_get_rmnet_autoconnect_no_dtrset), new GF(gf_set_rmnet_autoconnect_required) },
+    { i04_04, new ModemEvent("^\\+QCFG: \"rmnet/autoconnect\",(?<status>[0-9]),(?<linkprot>[0-9])"), i04_04, new TF(tf_get_rmnet_autoconnect_no_dtrset), new PG },
+    { i04_04, new ModemEvent("ERROR"), i04_07, new TF(tf_rmnet_autoconnect_config_fail), new PG },
+    { i04_04, new ModemEvent("^OK$"), i04_07, new TF(tf_get_gprsprofile), new PG },
+    { i04_04, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_05: init data service, get autoconnect state, set required*/
+    { i04_05, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_05, new ModemEvent("ERROR"), i04_06, new TF(tf_autoconnect_enable), new PG },
+    { i04_05, new ModemEvent("^OK$"), i04_06, new TF(tf_autoconnect_enable), new PG },
+    { i04_05, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_06: init data service, set autoconnect state*/
+    { i04_06, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_06, new ModemEvent("ERROR"), i04_07, new TF(tf_rmnet_autoconnect_config_fail), new PG },
+    { i04_06, new ModemEvent("^OK$"), x02_01, new TF(tf_rmnet_autoconnect_config_ok), new PG },
+    { i04_06, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_07: init data service, get gprs profile*/
+    { i04_07, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_07, new ModemEvent("^\\+QICSGP: (?<type>[0-9]+),\"(?<apn>.*)\",\"(?<user>.*)\",\"(?<pass>.*)\",(?<auth>[0-9]+)"), i04_08, new NT, new GF(gf_set_gprs_profile_required) },
+    { i04_07, new ModemEvent("^\\+QICSGP: (?<type>[0-9]+),\"(?<apn>.*)\",\"(?<user>.*)\",\"(?<pass>.*)\",(?<auth>[0-9]+)"), i04_07, new NT, new PG },
+    { i04_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i04_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i04_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i04_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i04_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i04_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i04_07, new ModemEvent("ERROR"), i04_10, new TF(tf_gprsprofile_config_fail), new PG },
+    { i04_07, new ModemEvent("^OK$"), i04_10, new TF(tf_get_gprs_regstate), new PG },
+    { i04_07, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_08: init data service, get gprs profile, set required*/
+    { i04_08, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_08, new ModemEvent("ERROR"), i04_09, new TF(tf_set_gprsprofile), new PG },
+    { i04_08, new ModemEvent("^OK$"), i04_09, new TF(tf_set_gprsprofile), new PG },
+    { i04_08, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_09: init data service, set gprs profile*/
+    { i04_09, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i04_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i04_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i04_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i04_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i04_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i04_09, new ModemEvent("ERROR"), i04_10, new TF(tf_gprsprofile_config_fail), new PG },
+    { i04_09, new ModemEvent("^OK$"), x02_01, new TF(tf_gprsprofile_config_ok), new PG },
+    { i04_09, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i04_10: init data service, get registration status*/
+    { i04_10, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i04_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i04_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i04_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i04_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i04_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i04_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i04_10, new ModemEvent("ERROR"), i05_01, new TF(tf_get_gprs_regstate_fail), new PG },
+    { i04_10, new ModemEvent("^OK$"), i05_01, new TF(tf_get_sms_storage_config), new PG },
+    { i04_10, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_01: init SMS service, get storage config*/
+    { i05_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_01, new ModemEvent("^\\+CPMS: \"(?<mem1>.*)\",(?<used1>[0-9]+),(?<total1>[0-9]+),\"(?<mem2>.*)\",(?<used2>[0-9]+),(?<total2>[0-9]+),\"(?<mem3>.*)\",(?<used3>[0-9]+),(?<total3>[0-9]+)"), i05_03, new NT, new GF(gf_set_sms_storage_config_required) },
+    { i05_01, new ModemEvent("^\\+CPMS: \"(?<mem1>.*)\",(?<used1>[0-9]+),(?<total1>[0-9]+),\"(?<mem2>.*)\",(?<used2>[0-9]+),(?<total2>[0-9]+),\"(?<mem3>.*)\",(?<used3>[0-9]+),(?<total3>[0-9]+)"), i05_01, new NT, new PG },
+    { i05_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i05_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i05_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i05_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i05_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i05_01, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i05_01, new ModemEvent("ERROR"), i05_04, new TF(tf_sms_storage_config_fail), new PG },
+    { i05_01, new ModemEvent("^OK$"), i05_04, new TF(tf_get_sms_format), new PG },
+    { i05_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_02: init SMS service, get storage config, set required*/
+    { i05_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_02, new ModemEvent("ERROR"), i05_03, new TF(tf_set_sms_storage_config), new PG },
+    { i05_02, new ModemEvent("^OK$"), i05_03, new TF(tf_set_sms_storage_config), new PG },
+    { i05_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_03: init SMS service, set storage config*/
+    { i05_03, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_03, new ModemEvent("^\\+CPMS: (?<used1>[0-9]+),(?<total1>[0-9]+),(?<used2>[0-9]+),(?<total2>[0-9]+),(?<used3>[0-9]+),(?<total3>[0-9]+)"), i05_03, new NT, new PG },
+    { i05_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i05_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i05_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i05_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i05_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i05_03, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i05_03, new ModemEvent("ERROR"), i05_04, new TF(tf_sms_storage_config_fail), new PG },
+    { i05_03, new ModemEvent("^OK$"), i05_04, new TF(tf_get_sms_format), new PG },
+    { i05_03, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_04: init SMS service, get format*/
+    { i05_04, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_04, new ModemEvent("^\\+CMGF: (?<mode>[0-9]+)"), i05_05, new NT, new GF(gf_set_sms_format_required) },
+    { i05_04, new ModemEvent("^\\+CMGF: (?<mode>[0-9]+)"), i05_04, new NT, new PG },
+    { i05_04, new ModemEvent("ERROR"), i05_07, new TF(tf_sms_format_config_fail), new PG },
+    { i05_04, new ModemEvent("^OK$"), i05_07, new TF(tf_get_sms_report_config), new PG },
+    { i05_04, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_05: init SMS service, get format, set required*/
+    { i05_05, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_05, new ModemEvent("ERROR"), i05_06, new TF(tf_set_sms_format), new PG },
+    { i05_05, new ModemEvent("^OK$"), i05_06, new TF(tf_set_sms_format), new PG },
+    { i05_05, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_06: init SMS service, set format*/
+    { i05_06, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_06, new ModemEvent("ERROR"), i05_07, new TF(tf_sms_format_config_fail), new PG },
+    { i05_06, new ModemEvent("^OK$"), i05_07, new TF(tf_get_sms_report_config), new PG },
+    { i05_06, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_07: init SMS service, get event report config*/
+    { i05_07, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_07, new ModemEvent("^\\+CNMI: (?<mode>[0-9]+),(?<mt>[0-9]+),(?<bm>[0-9]+),(?<ds>[0-9]+),(?<bfr>[0-9]+)"), i05_08, new NT, new GF(gf_set_sms_report_config_required) },
+    { i05_07, new ModemEvent("^\\+CNMI: (?<mode>[0-9]+),(?<mt>[0-9]+),(?<bm>[0-9]+),(?<ds>[0-9]+),(?<bfr>[0-9]+)"), i05_07, new NT, new PG },
+    { i05_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i05_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i05_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i05_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i05_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i05_07, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i05_07, new ModemEvent("ERROR"), o02, new TF(tf_sms_report_config_fail), new PG },
+    { i05_07, new ModemEvent("^OK$"), o02, new TF(tf_query_reg_state_full), new PG },
+    { i05_07, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_08: init SMS service, get event report config, set required*/
+    { i05_08, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_08, new ModemEvent("ERROR"), i05_09, new TF(tf_set_sms_report_config), new PG },
+    { i05_08, new ModemEvent("^OK$"), i05_09, new TF(tf_set_sms_report_config), new PG },
+    { i05_08, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*i05_09: init SMS service, set event report config*/
+    { i05_09, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { i05_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { i05_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { i05_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { i05_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { i05_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { i05_09, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i03_04, new TF(tf_no_network_service), new GF(gf_cme_no_network_service) },
+    { i05_09, new ModemEvent("ERROR"), o02, new TF(tf_sms_report_config_fail), new PG },
+    { i05_09, new ModemEvent("^OK$"), o02, new TF(tf_query_reg_state_full), new PG },
+    { i05_09, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+
+    /*o01: wait user command*/
+    { o01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { o01, new ModemEvent("^\\+CPIN: (?<state>.*)"), o01, new NT, new GF(gf_cpin_ready) },
+    { o01, new ModemEvent("^\\+CPIN: (?<state>.*)"), i02_16, new TF(tf_sim_failure), new PG },
+    { o01, new DBusEvent("ListSms"), o10, new TF(tf_dbus_listsms), new PG },
+    { o01, new DBusEvent("ReadSms"), o11, new TF(tf_dbus_readsms), new PG },
+    { o01, new DBusEvent("SendSms"), o12_01, new TF(tf_dbus_sendsms_head), new PG },
+    { o01, new DBusEvent("DeleteSms"), o13, new TF(tf_dbus_deletesms), new PG },
+    { o01, new DBusEvent("GetSmsStorage"), o14_01, new TF(tf_dbus_getsmsstorage), new PG },
+    { o01, new DBusEvent("SetSmsStorage"), i05_03, new TF(tf_dbus_setsmsstorage_to_modem), new PG },
+    { o01, new DBusEvent("SetSmsReportConfig"), i05_09, new TF(tf_dbus_setsmsreportconfig_to_modem), new PG },
+    { o01, new DBusEvent("SetGprsAccess2"), i04_09, new TF(tf_dbus_setgprsaccess_to_modem), new PG },
+    { o01, new DBusEvent("GetOperList"), o06_01, new TF(tf_getoperlist_request), new PG },
+    { o01, new DBusEvent("SetOper"), i03_03, new TF(tf_dbus_setoper_to_modem), new PG },
+    { o01, new DBusEvent("GetSimState"), o01, new TF(tf_dbus_getsimstate_ready), new PG },
+    { o01, new DBusEvent("SetSimPin"), o01, new TF(tf_dbus_setpin_ready), new PG },
+    { o01, new DBusEvent("SetSimPuk"), o01, new TF(tf_dbus_setpin_ready), new PG },
+    { o01, new DBusEvent("ModemReset"), x01_01, new TF(tf_modemreset_request), new PG },
+    { o01, new DBusEvent("SetPortState"), s01, new TF(tf_dbus_setportstate), new PG },
+    { o01, new TimeoutEvent(), o02, new TF(tf_query_reg_state_full), new PG },
+    /*o02: get network registration details (periodic)*/
+    { o02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { o02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_14, new TF(tf_waitsim_removed), new GF(gf_cme_sim_not_inserted) },
+    { o02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_15, new TF(tf_waitsim_busy), new GF(gf_cme_sim_busy) },
+    { o02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_16, new TF(tf_sim_failure), new GF(gf_cme_sim_failure) },
+    { o02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_pin_required) },
+    { o02, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), i02_01, new TF(tf_sim_activation_required), new GF(gf_cme_sim_puk_required) },
+    { o02, new ModemEvent("ERROR"), o01, new TF(tf_renew_wwan_address), new GF(gf_renew_wwan_address) },
+    { o02, new ModemEvent("ERROR"), x02_01, new TF(tf_gprs_autoconnect_timeout), new GF(gf_gprs_autoconnect_abort) },
+    { o02, new ModemEvent("ERROR"), o01, new TF(tf_get_registration_status_failed), new PG },
+    { o02, new ModemEvent("^OK$"), o01, new TF(tf_renew_wwan_address), new GF(gf_renew_wwan_address) },
+    { o02, new ModemEvent("^OK$"), x02_01, new TF(tf_gprs_autoconnect_timeout), new GF(gf_gprs_autoconnect_abort) },
+    { o02, new ModemEvent("^OK$"), o01, new TF(tf_wait_user_command), new PG },
+    { o02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*o06_01: detect network access, deactivate autoconnect*/
+    { o06_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_01, new ModemEvent("ERROR"), o02, new TF(tf_getoperlist_autoconnect_disable_fail), new PG },
+    { o06_01, new ModemEvent("^OK$"), o06_02, new TF(tf_trigger_modem_shutdown), new PG },
+    { o06_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_02: detect network access, trigger shutdown*/
+    { o06_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_02, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_shutdown_fail), new PG },
+    { o06_02, new ModemEvent("^OK$"), o06_03, new TF(tf_shutdown_ok), new PG },
+    { o06_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_03: detect network access, wait shutdown complete*/
+    { o06_03, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_03, new ModemEvent("^POWERED DOWN$"), s01, new TF(tf_getoperlist_shutdown_finish), new PG },
+    { o06_03, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_04: detect network access, deactivate echo mode*/
+    { o06_04, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_04, new ModemEvent("^ATE0$"), o06_04, new NT, new PG },
+    { o06_04, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_init_fail), new PG },
+    { o06_04, new ModemEvent("^OK$"), o06_05, new TF(tf_get_modem_function_state), new PG },
+    { o06_04, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_05: detect network access, get modem functionality*/
+    { o06_05, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_05, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), o06_06, new NT, new GF(gf_is_cfun_full) },
+    { o06_05, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), o06_05, new NT, new PG },
+    { o06_05, new ModemEvent("ERROR"), o06_07, new TF(tf_wait_cfun), new PG },
+    { o06_05, new ModemEvent("^OK$"), o06_07, new TF(tf_wait_cfun), new PG },
+    { o06_05, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_06: detect network access, get modem functionality, is full*/
+    { o06_06, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_06, new ModemEvent("ERROR"), o06_10, new TF(tf_get_simstate), new PG },
+    { o06_06, new ModemEvent("^OK$"), o06_10, new TF(tf_get_simstate), new PG },
+    { o06_06, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_07: wait modem functionality*/
+    { o06_07, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_07, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), o06_10, new TF(tf_get_simstate), new GF(gf_is_cfun_full) },
+    { o06_07, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), o06_06, new NT, new PG },
+    { o06_07, new TimeoutEvent(), i04_06, new TF(tf_getoperlist_init_fail), new PG },
+    /*o06_10: detect network access, get sim state*/
+    { o06_10, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_11, new NT, new GF(gf_cpin_ready) },
+    { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_12, new NT, new GF(gf_cpin_sim_pin) },
+    { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_10, new TF(tf_getoperlist_wrong_simstate), new GF(gf_cpin_sim_puk) },
+    { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_10, new TF(tf_getoperlist_wrong_simstate), new GF(gf_cpin_not_inserted) },
+    { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_13, new NT, new GF(gf_cpin_not_ready) },
+    { o06_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), o06_14, new TF(tf_setsimpin_from_storage), new GF(gf_cme_sim_pin_required) },
+    { o06_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), o06_13, new TF(tf_getoperlist_waitsim), new GF(gf_cme_sim_busy) },
+    { o06_10, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
+    { o06_10, new ModemEvent("^OK$"), i04_06, new TF(tf_getoperlist_simfail), new PG }, //unhandled event, to be fixed
+    { o06_10, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_11: detect network access, sim ready*/
+    { o06_11, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_11, new ModemEvent("ERROR"), o06_15, new TF(tf_get_sim_initialization_state), new PG }, //got state, continue anyway
+    { o06_11, new ModemEvent("^OK$"), o06_15, new TF(tf_get_sim_initialization_state), new PG },
+    { o06_11, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_12: detect network access, sim pin required*/
+    { o06_12, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_12, new ModemEvent("ERROR"), o06_14, new TF(tf_setsimpin_from_storage), new PG }, //got state, continue anyway
+    { o06_12, new ModemEvent("^OK$"), o06_14, new TF(tf_setsimpin_from_storage), new PG },
+    { o06_12, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_13: detect network access, wait sim state*/
+    { o06_13, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_13, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_10, new TF(tf_get_simstate), new PG },
+    { o06_13, new TimeoutEvent(), i04_06, new TF(tf_getoperlist_siminit_timeout), new PG },
+    /*o06_14: detect network access, activate SIM with stored PIN*/
+    { o06_14, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_14, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
+    { o06_14, new ModemEvent("^OK$"), o06_16, new TF(tf_waitsim_init_complete), new PG },
+    { o06_14, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_15: detect network access, check SIM initialization completed*/
+    { o06_15, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_15, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
+    { o06_15, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), o06_17, new NT, new GF(gf_qinistat_complete) },
+    { o06_15, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), o06_15, new NT, new PG },
+    { o06_15, new ModemEvent("^OK$"), o06_16, new TF(tf_waitsim_init_complete), new PG }, //initialization not complete
+    { o06_15, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_16: detect network access, wait SIM initialization completed*/
+    { o06_16, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_16, new ModemEvent("^OK$"), o06_16, new NT, new PG }, //OK e.g. for QINISTAT, see o06_15
+    { o06_16, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_16, new NT, new GF(gf_cpin_ready) },
+    { o06_16, new ModemEvent("^\\+CPIN: (?<state>.*)"), i04_06, new TF(tf_getoperlist_simfail), new PG },
+    { o06_16, new ModemEvent("^\\+QUSIM: (?<simtype>[0-9]+)"), o06_16, new NT, new PG },
+    { o06_16, new ModemEvent("^\\+QIND: SMS DONE"), o06_16, new NT, new PG },
+    { o06_16, new ModemEvent("^\\+QIND: PB DONE"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
+    { o06_16, new TimeoutEvent(), i04_06, new TF(tf_getoperlist_siminit_timeout), new PG },
+    /*o06_17: detect network access, SIM initialization completed*/
+    { o06_17, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_17, new ModemEvent("ERROR"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
+    { o06_17, new ModemEvent("^OK$"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
+    { o06_17, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_20: detect network access, list operators*/
+    { o06_20, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_20, new ModemEvent("^\\+COPS: (?<cops>\\([0-9],\".*\",\".*\",\"[0-9]+\",[0-9]\\),)"), o06_20, new TF(tf_getoperlist_nextentry), new PG },
+    { o06_20, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_fail), new PG },
+    { o06_20, new ModemEvent("^OK$"), i04_06, new TF(tf_getoperlist_ok), new PG },
+    { o06_20, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o10: get SMS list*/
+    { o10, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
     { o10, new ModemEvent("^\\+CMGL: (?<index>[0-9]+),(?<state>[0-9]+)"), o10, new TF(tf_listsms_next), new PG },
-    { o10, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_listsms_ok), new PG },
-    { o10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o10, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cms_sim_failure) },
-    { o10, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_listsms_err), new PG },
+    { o10, new ModemEvent("ERROR"), o02, new TF(tf_operation_failure_dbus_return), new PG },
+    { o10, new ModemEvent("^OK$"), o02, new TF(tf_dbus_listsms_ok), new PG },
     { o10, new ModemEvent("(?<line>.*)"), o10, new TF(tf_sms_get_body), new PG },
-    { o10, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*read SMS*/
-    { o11, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
+    { o10, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o11: read SMS*/
+    { o11, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
     { o11, new ModemEvent("^\\+CMGR: (?<state>[0-9]+)"), o11, new TF(tf_readsms), new PG },
-    { o11, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_readsms_ok), new PG },
-    { o11, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o11, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cms_sim_failure) },
-    { o11, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_readsms_err), new PG },
+    { o11, new ModemEvent("ERROR"), o02, new TF(tf_operation_failure_dbus_return), new PG },
+    { o11, new ModemEvent("^OK$"), o02, new TF(tf_dbus_readsms_ok), new PG },
     { o11, new ModemEvent("(?<line>.*)"), o11, new TF(tf_sms_get_body), new PG },
-    { o11, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*send SMS*/
-    { o12, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o12, new ModemEvent("^(?<prompt>[>])"), o12, new TF(tf_sendsms_body), new PG },
-    { o12, new ModemEvent("^\\+CMGS: (?<msgref>[0-9]+)"), o12, new TF(tf_sendsms_result), new PG },
-    { o12, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_sendsms_ok), new PG },
-    { o12, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o12, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cms_sim_failure) },
-    { o12, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_sendsms_err), new PG },
-    { o12, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*get SMS storage (dbus invocation not yet returned here)*/
-    { o13_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o13_1, new ModemEvent("^\\+CPMS: \"(?<mem1>.*)\",(?<used1>[0-9]+),(?<total1>[0-9]+),\"(?<mem2>.*)\",(?<used2>[0-9]+),(?<total2>[0-9]+),\"(?<mem3>.*)\",(?<used3>[0-9]+),(?<total3>[0-9]+)"), o13_2, new TF(tf_get_sms_storage), new PG },
-    { o13_1, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_getsmsstorage_fail), new PG },
-    { o13_1, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o13_1, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cms_sim_failure) },
-    { o13_1, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_getsmsstorage_fail), new PG },
-    { o13_1, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*got SMS storage (dbus invocation already returned here)*/
-    { o13_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o13_2, new ModemEvent("^OK$"), o15_2, new TF(tf_query_reg_state_full), new PG },
-    { o13_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_query_simstate), new GF(gf_cme_sim_failure) },
-    { o13_2, new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), s08, new TF(tf_query_simstate), new GF(gf_cms_sim_failure) },
-    { o13_2, new ModemEvent("ERROR"), o15_2, new TF(tf_query_reg_state_full), new PG },
-    { o13_2, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*get network registration details (periodic)*/
-    { o15_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { o15_2, new ModemEvent("^OK$"), o04, new TF(tf_renew_wwan_address), new GF(gf_renew_wwan_address) },
-    { o15_2, new ModemEvent("^OK$"), o15_3, new TF(tf_gprs_autoconnect_timeout), new GF(gf_gprs_autoconnect_timeout) },
-    { o15_2, new ModemEvent("^OK$"), o04, new TF(tf_get_network_registration_ok), new PG },
-    { o15_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_query_simstate), new GF(gf_cme_sim_failure) },
-    { o15_2, new ModemEvent("ERROR"), o04, new TF(tf_renew_wwan_address), new GF(gf_renew_wwan_address) },
-    { o15_2, new ModemEvent("ERROR"), o15_3, new TF(tf_gprs_autoconnect_timeout), new GF(gf_gprs_autoconnect_timeout) },
-    { o15_2, new ModemEvent("ERROR"), o04, new TF(tf_get_network_registration_error), new PG },
-    { o15_2, new TimeoutEvent(), i01, new TF(tf_modem_timeout), new PG },
-    /*o15_3: GPRS autoconnect timeout: detach PS*/
-    { o15_3, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { o15_3, new ModemEvent("^OK$"), o04, new TF(tf_gprs_autoconnect_timeout_detach_ok), new PG },
-    { o15_3, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_query_simstate), new GF(gf_cme_sim_failure) },
-    { o15_3, new ModemEvent("ERROR"), o04, new TF(tf_gprs_autoconnect_timeout_detach_err), new PG },
-    { o15_3, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*o16_1: GPRS config: set profile parameter*/
-    { o16_1, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o16_1, new ModemEvent("^OK$"), o16_2, new TF(tf_gprs_detach), new PG },
-    { o16_1, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_setgprsaccess_err), new PG },
-    { o16_1, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*o16_2: GPRS config: detach PS*/
-    { o16_2, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error_dbus_return), new PG },
-    { o16_2, new ModemEvent("^OK$"), o15_2, new TF(tf_dbus_setgprsaccess_ok), new PG },
-    { o16_2, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), s08, new TF(tf_dbus_return_sim_failure), new GF(gf_cme_sim_failure) },
-    { o16_2, new ModemEvent("ERROR"), o15_2, new TF(tf_dbus_setgprsaccess_err), new PG },
-    { o16_2, new TimeoutEvent(), i01, new TF(tf_dbus_modem_timeout), new PG },
-    /*x01: trigger power down*/
-    { x01, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { x01, new ModemEvent("^OK$"), x02, new TF(tf_powerdown_ok), new PG },
-    { x01, new ModemEvent("ERROR"), i01, new TF(tf_powerdown_err), new PG },
-    { x01, new TimeoutEvent(), i01, new TF(tf_powerdown_err), new PG },
-    /*x02: wait power down*/
-    { x02, new RegexEvent("ModemPort_IO_error"), e02, new TF(tf_io_error), new PG },
-    { x02, new ModemEvent("^POWERED DOWN$"), i01, new TF(tf_powerdown_finish), new PG },
-    { x02, new TimeoutEvent(), i01, new TF(tf_powerdown_timeout), new PG },
+    { o11, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o12_01: send SMS*/
+    { o12_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o12_01, new ModemEvent("^(?<prompt>[>])"), o12_01, new TF(tf_sendsms_body), new PG },
+    { o12_01, new ModemEvent("^\\+CMGS: (?<msgref>[0-9]+)"), o12_02, new TF(tf_dbus_sendsms_result), new PG },
+    { o12_01, new ModemEvent("ERROR"), o02, new TF(tf_operation_failure_dbus_return), new PG },
+    { o12_01, new ModemEvent("^OK$"), o02, new TF(tf_operation_failure_dbus_return), new PG },
+    { o12_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o12_02: send SMS, result returned*/
+    { o12_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { o12_02, new ModemEvent("ERROR"), o02, new TF(tf_query_reg_state_full), new PG },
+    { o12_02, new ModemEvent("^OK$"), o02, new TF(tf_query_reg_state_full), new PG },
+    { o12_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*o13: delete sms*/
+    { o13, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o13, new ModemEvent("ERROR"), o02, new TF(tf_operation_failure_dbus_return), new PG },
+    { o13, new ModemEvent("^OK$"), o02, new TF(tf_dbus_deletesms_ok), new PG },
+    { o13, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o14_01: get SMS storage*/
+    { o14_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o14_01, new ModemEvent("^\\+CPMS: \"(?<mem1>.*)\",(?<used1>[0-9]+),(?<total1>[0-9]+),\"(?<mem2>.*)\",(?<used2>[0-9]+),(?<total2>[0-9]+),\"(?<mem3>.*)\",(?<used3>[0-9]+),(?<total3>[0-9]+)"), o14_02, new TF(tf_dbus_getsmsstorage_result), new PG },
+    { o14_01, new ModemEvent("ERROR"), o02, new TF(tf_operation_failure_dbus_return), new PG },
+    { o14_01, new ModemEvent("^OK$"), o02, new TF(tf_operation_failure_dbus_return), new PG },
+    { o14_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o14_02: get SMS storage, result returned*/
+    { o14_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { o14_02, new ModemEvent("ERROR"), o02, new TF(tf_query_reg_state_full), new PG },
+    { o14_02, new ModemEvent("^OK$"), o02, new TF(tf_query_reg_state_full), new PG },
+    { o14_02, new TimeoutEvent(), s01, new TF(tf_modem_timeout), new PG },
+    /*x01_01: trigger shutdown (dbus)*/
+    { x01_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { x01_01, new ModemEvent("ERROR"), s01, new TF(tf_shutdown_err_dbus_return), new PG },
+    { x01_01, new ModemEvent("^OK$"), x01_02, new TF(tf_shutdown_ok), new PG },
+    { x01_01, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*x01_02: wait shutdown complete*/
+    { x01_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { x01_02, new ModemEvent("^POWERED DOWN$"), s01, new TF(tf_shutdown_finish_dbus_return), new PG },
+    { x01_02, new TimeoutEvent(), s01, new TF(tf_shutdown_timeout_dbus_return), new PG },
+    /*x02_01: trigger shutdown (internal)*/
+    { x02_01, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { x02_01, new ModemEvent("ERROR"), s01, new TF(tf_shutdown_err), new PG },
+    { x02_01, new ModemEvent("^OK$"), x02_02, new TF(tf_shutdown_ok), new PG },
+    { x02_01, new TimeoutEvent(), s01, new TF(tf_shutdown_err), new PG },
+    /*x02_02: wait shutdown complete (internal)*/
+    { x02_02, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error), new PG },
+    { x02_02, new ModemEvent("^POWERED DOWN$"), s01, new TF(tf_shutdown_finish), new PG },
+    { x02_02, new TimeoutEvent(), s01, new TF(tf_shutdown_timeout), new PG },
   };
 
   MdmStatemachine::action_list_t al {
@@ -2796,16 +3953,11 @@ int main(int argc, char **argv)
     { new ModemEvent("^\\+CREG: (?<mode>[0-9]+),(?<state>[0-9]+)"), new AF(af_read_creg)},
     { new ModemEvent("^\\+CGREG: (?<mode>[0-9]+),(?<state>[0-9]+)"), new AF(af_read_cgreg)},
     { new ModemEvent("^\\+CGPADDR: (?<cid>[0-9]+),\"(?<pdp_addr>.*)\""), new AF(af_read_pdp_address) },
-    { new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), new AF(af_read_cme_error) },
-    { new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), new AF(af_read_cms_error) },
-    { new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), new AF(af_read_cfun_state) },
-    { new ModemEvent("^\\+CPIN: (?<state>.*)"), new AF(af_read_cpin_state)},
-    { new ModemEvent("^\\+QCFG: \"nwscanmode\",(?<mode>.*)"), new AF(af_read_scan_mode) },
-    { new ModemEvent("^\\+QCFG: \"nwscanseq\",(?<seq>.*)"), new AF(af_read_scan_seq) },
+    { new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), new AF(af_cme_error) },
+    { new ModemEvent("^\\+CMS ERROR: (?<err>[0-9]+)"), new AF(af_cms_error) },
     { new ModemEvent("^\\+CMTI: "), new AF(af_sms_event_report) },
     { new DBusEvent("GetOperState"), new AF(af_dbus_getoperstate) },
     { new DBusEvent("GetPortState2"), new AF(af_dbus_getportstate2) },
-    { new DBusEvent("GetSimState"), new AF(af_dbus_getsimstate) },
     { new DBusEvent("GetGprsAccess2"), new AF(af_dbus_getgprsaccess2) },
     { new DBusEvent("GetModemInfo"), new AF(af_dbus_getmodeminfo) },
     { new DBusEvent("GetModemIdentity"), new AF(af_dbus_getmodemidentity) },
@@ -2816,12 +3968,16 @@ int main(int argc, char **argv)
     { new DBusEvent("GetLogLevel"), new AF(af_dbus_getloglevel) },
     { new DBusEvent("SetLogLevel"), new AF(af_dbus_setloglevel) },
     { new DBusEvent("GetSmsReportConfig"), new AF(af_dbus_getsmsreportconfig) },
+    { new DBusEvent("GetSimAutoActivation"), new AF(af_dbus_getsimautoactivation) },
+    { new DBusEvent("SetSimAutoActivation"), new AF(af_dbus_setsimautoactivation) },
   };
 
     GThread* worker_thread = g_thread_new("mdm_cuse_worker",
                                           static_cast<GThreadFunc>(mdm_cuse_worker_main),
                                           nullptr);
-    MdmStatemachine sm(tl, i01, al, MDM_GPIO__PWRKEY_PIN, MDM_MUSB_DRIVER_PORT );
+
+    GKeyFileStorage gKeyFileStorage(MDMD_CONFIG_FILE_PATH, MDMD_CONFIG_FILE_GROUP);
+    MdmStatemachine sm(tl, s01, al, MDM_GPIO__PWRKEY_PIN, MDM_MUSB_DRIVER_PORT, gKeyFileStorage );
     //trigger initial timeout for statemachine entry
     sm.do_timeout(0,false);
 

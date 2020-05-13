@@ -34,7 +34,7 @@ case $1 in
 		;;
 
 	stop)
-		echo "${PREFIX}stoppping"
+		echo "${PREFIX}stopping"
 		
 		if start-stop-daemon --stop --quiet --oknodo --exec ${LIGHTTPD}; then
 			echo "${PREFIX}done"

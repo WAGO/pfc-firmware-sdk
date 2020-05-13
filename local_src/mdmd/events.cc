@@ -29,12 +29,6 @@ TimeoutEvent::TimeoutEvent(int id)
 TimeoutEvent::~TimeoutEvent()
 {}
 
-bool
-TimeoutEvent::match_timeout(int id)
-{
-    return _id == id;
-}
-
 DBusEvent::DBusEvent( const std::string &method_name )
     : _method_name(method_name)
     , _match_any(false)
@@ -67,8 +61,3 @@ DBusEvent::match_dbus(MethodInvocation dbus_invocation)
     return false;
 }
 
-MethodInvocation
-DBusEvent::invocation()
-{
-    return _invocation;
-}

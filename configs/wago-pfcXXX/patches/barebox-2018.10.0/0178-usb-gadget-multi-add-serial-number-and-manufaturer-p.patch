@@ -1,0 +1,56 @@
+From 96e180ffb6c0fca135741be5d292090de229e16c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 18 Nov 2019 07:35:30 +0100
+Subject: [PATCH] usb: gadget: multi: add serial number and manufaturer param
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ drivers/usb/gadget/multi.c    | 3 +++
+ drivers/usb/gadget/udc-core.c | 2 ++
+ include/usb/gadget.h          | 1 +
+ 3 files changed, 6 insertions(+)
+
+diff --git a/drivers/usb/gadget/multi.c b/drivers/usb/gadget/multi.c
+index d6edfb8..fe3bc15 100644
+--- a/drivers/usb/gadget/multi.c
++++ b/drivers/usb/gadget/multi.c
+@@ -182,8 +182,11 @@ static int multi_bind(struct usb_composite_dev *cdev)
+ 
+ 	strings_dev[USB_GADGET_MANUFACTURER_IDX].s = gadget->manufacturer;
+ 	strings_dev[USB_GADGET_PRODUCT_IDX].s = gadget->productname;
++	strings_dev[USB_GADGET_SERIAL_IDX].s = gadget->serial_number;
+ 
+ 	device_desc.iProduct = strings_dev[USB_GADGET_PRODUCT_IDX].id;
++	device_desc.iSerialNumber = strings_dev[USB_GADGET_SERIAL_IDX].id;
++	device_desc.iManufacturer = strings_dev[USB_GADGET_MANUFACTURER_IDX].id;
+ 
+ 	config.label          = strings_dev[STRING_DESCRIPTION_IDX].s;
+ 	config.iConfiguration = strings_dev[STRING_DESCRIPTION_IDX].id;
+diff --git a/drivers/usb/gadget/udc-core.c b/drivers/usb/gadget/udc-core.c
+index ed99b53..8f31a57 100644
+--- a/drivers/usb/gadget/udc-core.c
++++ b/drivers/usb/gadget/udc-core.c
+@@ -197,6 +197,8 @@ int usb_add_gadget_udc_release(struct device_d *parent, struct usb_gadget *gadge
+ 	gadget->productname = xstrdup(barebox_get_model());
+ 	dev_add_param_string(&gadget->dev, "productname", NULL, NULL,
+ 			&gadget->productname, NULL);
++	dev_add_param_string(&gadget->dev, "serial_number", NULL, NULL,
++			&gadget->serial_number, NULL);
+ 
+ 	strcpy(udc->dev.name, "udc");
+ 	udc->dev.id = DEVICE_ID_DYNAMIC;
+diff --git a/include/usb/gadget.h b/include/usb/gadget.h
+index 80418a9..4a1b135 100644
+--- a/include/usb/gadget.h
++++ b/include/usb/gadget.h
+@@ -561,6 +561,7 @@ struct usb_gadget {
+ 	uint32_t			product_id;
+ 	char				*manufacturer;
+ 	char				*productname;
++	char				*serial_number;
+ };
+ #define work_to_gadget(w)	(container_of((w), struct usb_gadget, work))
+ 
+-- 
+2.7.4
+

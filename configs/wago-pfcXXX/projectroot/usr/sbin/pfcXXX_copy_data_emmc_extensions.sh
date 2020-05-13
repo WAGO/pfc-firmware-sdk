@@ -185,7 +185,7 @@ function do_mkfs
             ;;
         ext3)
             /sbin/mke2fs "${device}" -L "${label}" -F && \
-            /sbin/tune2fs "${EXT3_OPTIONS[@]}" "${device}"
+            /sbin/tune2fs "${EXT3_OPTIONS[@]}" "${device}" || true   #do not trap on "journal already exists"
             ;;
         ext4)
             /sbin/mkfs.ext4 -L "${label}" -F "${device}" && \

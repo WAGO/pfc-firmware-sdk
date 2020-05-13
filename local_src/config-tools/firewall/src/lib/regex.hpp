@@ -13,10 +13,7 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-
-
-#ifndef WAGO_REGEX_HPP
-#define WAGO_REGEX_HPP
+#pragma once
 
 
 #include <glib.h>
@@ -196,7 +193,3 @@ std::vector<std::string> get_match(const regex& rexobj, const std::string& line)
 
 } // namespace regex
 } // namespace wago
-
-
-#endif // WAGO_REGEX_HPP
-

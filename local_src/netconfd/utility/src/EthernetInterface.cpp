@@ -212,6 +212,7 @@ MediaType EthernetInterface::GetMediaType() const {
   return data_get_.media_type_;
 }
 
+[[gnu::pure]]
 ::std::uint32_t EthernetInterface::GetMTU() const {
   return mtu_;
 }
@@ -285,6 +286,7 @@ constexpr auto GetAutonegAdvertisedCapability(::std::uint32_t advertised) {
   return advertised_capability;
 }
 
+[[gnu::pure]]
 ::std::uint32_t EthernetInterface::GetAutonegCapabilitiesXdot3() const {
   return GetAutonegAdvertisedCapability(data_get_.autoneg_advertising_);
 }
@@ -303,9 +305,6 @@ int16_t EthernetInterface::GetIfFlags() const {
   return ifreq_.ifr_flags;  // NOLINT: must access union members in legacy data structures.
 }
 
-::std::string const & EthernetInterface::GetName() const {
-  return name_;
-}
 
 DeviceState EthernetInterface::GetState() const {
   guard with(data_mutex_);
@@ -445,6 +444,7 @@ void EthernetInterface::SetState(DeviceState state) {
   data_set_.if_state_ = state;
 }
 
+[[gnu::pure]]
 ::std::uint32_t EthernetInterface::GetInterfaceIndex() const {
   return if_index_;
 }

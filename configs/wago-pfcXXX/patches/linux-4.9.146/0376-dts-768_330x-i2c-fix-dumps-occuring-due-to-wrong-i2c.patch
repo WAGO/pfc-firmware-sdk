@@ -1,0 +1,34 @@
+From 5d519fc429ff8cabeea6cb3287b091812c20755b Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 26 Nov 2019 15:51:57 +0100
+Subject: [PATCH] dts: 768_330x: i2c: fix dumps occuring due to wrong i2c freq
+
+This fixes dumps or hang ups happening on poweron-resets of the target.
+
+During startup the kernel accesses the i2c pmic to increase the cpu frequency.
+As the pmic is not suited to handle 400.000 KHz i2c comminication we run
+into a lot of problems related to the kernel memory.
+
+Sometimes the hangs during boot. sometings different kernel dumps occur.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+index 5b2a7a8..f7b481a 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+@@ -298,6 +298,8 @@
+ };
+ 
+ &i2c0 {
++	clock-frequency = <100000>;
++
+ 	/* IO Port Expander outputs only */
+ 	io_expander_70: pca9538@70 {
+ 		compatible = "nxp,pca9538";
+-- 
+2.7.4
+

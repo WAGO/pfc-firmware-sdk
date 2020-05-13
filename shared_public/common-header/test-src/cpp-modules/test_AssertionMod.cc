@@ -52,5 +52,19 @@ void TriggerFailCPP(void)
 }
 
 
+int TriggerSuccessReturnCPP(int const value)
+{
+  WC_ASSERT_RETURN(ONE==ONE, value);
+  return -1;
+}
+
+
+int TriggerFailReturnCPP(int const value)
+{
+  WC_ASSERT_RETURN(ONE==ZERO, value);
+  return -1;
+}
+
+
 //---- End of source file ------------------------------------------------------
 

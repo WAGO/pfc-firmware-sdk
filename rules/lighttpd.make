@@ -174,12 +174,34 @@ endif
 #	#
 #	# Configuration files
 #	#
-	@cd $(LIGHTTPD_PROJECTROOT) && \
-	for file in *.conf; do \
-			$(call install_copy, lighttpd, 0, 0, 0600, \
-			$(LIGHTTPD_PROJECTROOT)/$$file, \
-			/etc/lighttpd/$$file, n); \
-	done;
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/auth.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/mode_http+https.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/redirect_wbm.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/websocket_off.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/lighttpd.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/mode_https.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/redirect_webvisu.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/websocket_on.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/mime_types.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/mode_off.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/tls-standard.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/mode_http.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/mod_fastcgi.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/tls-strong.conf)
 
 # Config directory for FCGI plugins
 	@$(call install_copy, lighttpd, 0, 0, 0755, \

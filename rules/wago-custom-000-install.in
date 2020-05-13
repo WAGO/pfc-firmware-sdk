@@ -68,6 +68,11 @@ config WAGO_CUSTOM_FINALIZE_ROOT_STARTSCRIPT
        default n
        prompt "install /etc/init.d/finalize_root"
 
+config WAGO_CUSTOM_DEVICE_SETUP_STARTSCRIPT
+       bool
+       default n
+       prompt "install /etc/init.d/device-setup"
+
 config WAGO_CUSTOM_CONFIG_SERIAL_STARTSCRIPT
        bool
        default n
@@ -336,4 +341,24 @@ config WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD_IMG
 	Name of the rmd image that is loaded from /lib/firmware to the fpga
 endif
 
+config WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
+    bool
+    default n
+    prompt "install /etc/special/features/tftp"
+    help
+	Install to enable TFTP service in wbm/firewall
+
+config WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
+    bool
+    default n
+    prompt "install /etc/special/features/telnet"
+    help
+	Install to enable Telnet protocol in wbm/firewall
+
+config WAGO_CUSTOM_INSTALL_PROTOCOL_BOOTP_ON
+    bool
+    default n
+    prompt "install /etc/special/features/bootp"
+    help
+	Install to enable BootP protocol in wbm/firewall
 endif

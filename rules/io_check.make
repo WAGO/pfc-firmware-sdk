@@ -19,7 +19,7 @@ PACKAGES-$(PTXCONF_IO_CHECK) += io_check
 ifdef PTXCONF_IO_CHECK_TRUNK
 IO_CHECK_VERSION	:= trunk
 else
-IO_CHECK_VERSION	:= 1.2
+IO_CHECK_VERSION	:= 1.3
 endif
 IO_CHECK		:= io_check
 IO_CHECK_URL		:= file://$(PTXDIST_WORKSPACE)/wago_intern/$(IO_CHECK)

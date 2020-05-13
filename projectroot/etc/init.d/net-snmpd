@@ -37,7 +37,7 @@ case $1 in
                 ;;                                         
                                                                                                                             
         stop)                                
-                echo "${PREFIX}stoppping"
+                echo "${PREFIX}stopping"
                 [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT stop
                 [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a stop /etc/config-tools/events/snmp/ >/dev/null 2>&1
         if [ -f $SNMPD_PID ]; then                                                                                         

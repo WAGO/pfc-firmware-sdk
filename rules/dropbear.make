@@ -18,8 +18,8 @@ PACKAGES-$(PTXCONF_DROPBEAR) += dropbear
 #
 # Paths and names
 #
-DROPBEAR_VERSION	:= 2018.76
-DROPBEAR_MD5		:= c3912f7fcdcc57c99937e4a79480d2c2
+DROPBEAR_VERSION	:= 2019.78
+DROPBEAR_MD5		:= a972c85ed678ad0fdcb7844e1294fb54
 DROPBEAR		:= dropbear-$(DROPBEAR_VERSION)
 DROPBEAR_SUFFIX		:= tar.bz2
 DROPBEAR_URL		:= http://matt.ucc.asn.au/dropbear/releases/$(DROPBEAR).$(DROPBEAR_SUFFIX)
@@ -300,6 +300,14 @@ else
 	@$(call disable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_DH_GROUP1)
 endif
 
+ifdef PTXCONF_DROPBEAR_KEXGUESS2
+	@echo "ptxdist: enabling kexguess2@matt.ucc.asn.au"
+	@$(call enable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_KEXGUESS2)
+else
+	@echo "ptxdist: disabling kexguess2@matt.ucc.asn.au"
+	@$(call disable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_KEXGUESS2)
+endif
+
 ifdef PTXCONF_DROPBEAR_PASSWD
 	@echo "ptxdist: enabling passwd"
 	@$(call enable_dropbear_option, $(DROPBEAR_DIR)/localoptions.h,DROPBEAR_CLI_PASSWORD_AUTH)
@@ -373,6 +381,13 @@ ifdef PTXCONF_DROPBEAR_PAM
 	@$(call install_alternative, dropbear, 0, 0, 0644, /etc/pam.d/sshd)
 endif
 
+#       #
+#       # install backup/restore script
+#       #
+ifdef PTXCONF_CT_SETTINGS_BACKUP
+	@$(call install_alternative, dropbear, 0, 0, 0755, /etc/config-tools/backup-restore/backup_dropbear_host_keys)
+endif
+
 #	#
 #	# busybox init: start script
 #	#
@@ -395,15 +410,24 @@ endif
 endif
 
 	@$(call install_copy, dropbear, 0, 0, 0755, $(PTXCONF_DROPBEAR_KEY_DIR))
+
+ifdef PTXCONF_DROPBEAR_RSA
 	@$(call install_copy, dropbear, 0, 0, 0400, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/dropbear/dropbear_rsa_host_key, \
 		/etc/dropbear/dropbear_rsa_host_key)
+endif
+
+ifdef PTXCONF_DROPBEAR_DSS
 	@$(call install_copy, dropbear, 0, 0, 0400, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/dropbear/dropbear_dss_host_key, \
 		/etc/dropbear/dropbear_dss_host_key)
+endif
+
+ifdef PTXCONF_DROPBEAR_ECDSA
 	@$(call install_copy, dropbear, 0, 0, 0400, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/dropbear/dropbear_ecdsa_host_key, \
 		/etc/dropbear/dropbear_ecdsa_host_key)
+endif
 	@$(call install_alternative, dropbear, 0, 0, 0600, \
 		/etc/dropbear/dropbear.conf)
 

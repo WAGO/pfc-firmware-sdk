@@ -5,7 +5,7 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     resources.c
@@ -22,10 +22,10 @@
 #include "wc/structuring.h"
 #include "wc/assertion.h"
 #include "ctutil/log.h"
+#include "ctutil/filesystem.h"
 #include "ctparts/common_main_defaults.h"
 #include "resources.h"
 #include "params.h"
-#include "filesystem.h"
 #include <stdlib.h>
 
 //------------------------------------------------------------------------------
@@ -70,12 +70,15 @@ statusCode_t ctparts_InitSpecificResources(ctparts_commonMainContext_t * const W
     pstResources->szDeviceFilePath = RESERVED_AREA_DEVICE;
     pstResources->szFileSystemType = RESERVED_AREA_FSTYPE;
     pstResources->szTargetDirectory = NULL;
-    pstResources->pfMount = &Mount;
-    pstResources->pfUmount = &Umount;
-    pstResources->pfClearFolder = &ClearFolder;
-    pstResources->pfGetFreeBytes = &GetFreeBytes;
-    pstResources->pfGetAvailableBytes = &GetAvailableBytes;
-    pstResources->pfGetMountPoint = &GetMountPointForDevice;
+    pstResources->pfMount = &ctutil_Mount;
+    pstResources->pfUmount = &ctutil_Umount;
+    pstResources->pfClearFolder = &ctutil_ClearFolder;
+    pstResources->pfGetFreeBytes = &ctutil_GetFreeBytes;
+    pstResources->pfGetAvailableBytes = &ctutil_GetAvailableBytes;
+    pstResources->pfGetMountPointForDevice = &ctutil_GetMountPointForDevice;
+    pstResources->pfIsFileAvailable = &ctutil_IsFileAvailable;
+    pstResources->pfIsFolderAccessible = &ctutil_IsFolderAccessible;
+    pstResources->pfCreateFolder = &ctutil_CreateFolder;
   }
 
   if(ctutil_IsStatusOk(status))

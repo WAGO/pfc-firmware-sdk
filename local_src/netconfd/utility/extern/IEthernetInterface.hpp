@@ -20,7 +20,6 @@ class IEthernetInterface {
   virtual ~IEthernetInterface() = default;
 
   virtual void UpdateConfig() = 0;
-  virtual ::std::string const& GetName() const = 0;
   virtual eth::EthernetMauType GetMauType() const = 0;
   virtual const MacAddress GetMac() const = 0;
   virtual bool GetAutonegSupport() const = 0;

@@ -1,23 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-//------------------------------------------------------------------------------
-///  \file     IInterfaceEventHandler.h
-///
-///  \brief    <short description of the file contents>
-///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-#ifndef PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_IINTERFACEMONITOR_H_
-#define PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_IINTERFACEMONITOR_H_
+#pragma once
 
-//------------------------------------------------------------------------------
-// include files
-//------------------------------------------------------------------------------
 #include <cstdint>
 #include "IInterfaceEvent.hpp"
-
-//------------------------------------------------------------------------------
-// defines; structure, enumeration and type definitions
-//------------------------------------------------------------------------------
 
 namespace netconfd {
 
@@ -34,9 +19,4 @@ class IInterfaceMonitor {
 };
 
 
-}  // namespace pfcspecific
-
-
-#endif /* PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_IINTERFACEMONITOR_H_ */
-//---- End of source file ------------------------------------------------------
-
+}

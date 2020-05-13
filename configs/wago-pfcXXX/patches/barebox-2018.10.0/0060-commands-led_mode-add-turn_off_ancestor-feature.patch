@@ -1,7 +1,7 @@
 From 7645cc3d8333fb2699503714953c33d01c19c0f4 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 14 Aug 2018 14:31:02 +0200
-Subject: [PATCH 060/144] commands: led_mode: add turn_off_ancestor feature
+Subject: [PATCH] commands: led_mode: add turn_off_ancestor feature
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

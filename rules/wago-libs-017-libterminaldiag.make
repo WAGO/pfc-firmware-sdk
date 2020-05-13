@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -73,7 +73,7 @@ endif
 
 LIBTERMINALDIAG_BUILD_PARAMS:= 			\
 	LIBTERMINALDIAG_DEBUG_LEVEL=$(PTXCONF_LIBTERMINALDIAG_BUILD_CFG_DEBUG_LEVEL)\
-	LIBTERMINALDIAG_COMPILER_OPTIMIZATION=$(PTXCONF_LIBTERMINALDIAG_BUILD_CFG_OPTIMIZATION) 
+	LIBTERMINALDIAG_COMPILER_OPTIMIZATION=$(PTXCONF_LIBTERMINALDIAG_BUILD_CFG_OPTIMIZATION)
 
 $(STATEDIR)/libterminaldiag.compile:
 	@$(call targetinfo)
@@ -83,7 +83,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		$(LIBTERMINALDIAG_PATH)  \
 		$(LIBTERMINALDIAG_ENV)   \
 		$(LIBTERMINALDIAG_BUILD_PARAMS) \
-		make $(PARALLELMFLAGS) 
+		make $(PARALLELMFLAGS)
 endif
 	@$(call touch)
 
@@ -104,14 +104,14 @@ $(STATEDIR)/libterminaldiag.targetinstall:
 	@$(call install_init, libterminaldiag)
 	@$(call install_fixup, libterminaldiag,PRIORITY,optional)
 	@$(call install_fixup, libterminaldiag,SECTION,base)
-	@$(call install_fixup, libterminaldiag,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, libterminaldiag,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, libterminaldiag,DESCRIPTION,missing)
 
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(LIBTERMINALDIAG_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	rm -rf $(LIBTERMINALDIAG_PLATFORMCONFIGPACKAGEDIR)/tmp/*
 	cd $(LIBTERMINALDIAG_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(LIBTERMINALDIAG_PLATFORMCONFIGPACKAGEDIR)/$(LIBTERMINALDIAG_PACKAGE_NAME).ipk  
+	ar -xov $(LIBTERMINALDIAG_PLATFORMCONFIGPACKAGEDIR)/$(LIBTERMINALDIAG_PACKAGE_NAME).ipk
 	@$(call install_archive, libterminaldiag, 0, 0, $(LIBTERMINALDIAG_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE

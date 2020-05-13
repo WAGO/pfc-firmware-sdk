@@ -27,14 +27,19 @@ if [[ ! -x "$GET_FS_DATA" ]]; then
 fi
 
 if ! [[ "$($GET_FS_DATA active-partition-medium)" =~ internal-flash-.* ]]; then
-  echo "$0: DEBUG: root partition is not flash - do nothing."
+  #echo "$0: DEBUG: root partition is not flash - do nothing."
   exit 0
 fi
 
 case $1 in
 
   start)
-    [ -x ${RAUC} ] && ${RAUC} status mark-good && ${RAUC} status mark-active
+    [ -x ${RAUC} ] &&
+      ${RAUC} status mark-good > /dev/null &&
+      ${RAUC} status mark-active > /dev/null
+    if [[ $? -ne 0 ]]; then
+      echo "Error: Failed to mark the active system as good!"
+    fi
   ;;
   stop)
   ;;

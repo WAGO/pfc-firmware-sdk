@@ -29,7 +29,7 @@ class AnIpAddressManipulator : public ::testing::Test
 TEST_F(AnIpAddressManipulator, DoesNotChangeEmptyStringAddress)
 {
 
-  auto new_config = IpAddressManipulator::ChangeHost(test_config, 123);
+  auto new_config = IpAddressManipulator::ChangeLastAddressOctet(test_config, 123);
 
   EXPECT_STREQ("", new_config.address_.c_str());
 
@@ -38,13 +38,13 @@ TEST_F(AnIpAddressManipulator, DoesNotChangeEmptyStringAddress)
 TEST_F(AnIpAddressManipulator, DoesNotChangeZeroAddress)
 {
 
-  SetAddressToConfig("0.0.0.0");
-  SetNetmaskToConfig("0.0.0.0");
+  SetAddressToConfig(ZeroIP);
+  SetNetmaskToConfig(ZeroIP);
 
 
-  auto new_config = IpAddressManipulator::ChangeHost(test_config, 123);
+  auto new_config = IpAddressManipulator::ChangeLastAddressOctet(test_config, 123);
 
-  EXPECT_STREQ("0.0.0.0", new_config.address_.c_str());
+  EXPECT_STREQ(ZeroIP, new_config.address_.c_str());
 
 }
 
@@ -55,7 +55,7 @@ TEST_F(AnIpAddressManipulator, ChangesHostPartOfClassCAddress)
   SetNetmaskToConfig("255.255.255.0");
 
 
-  auto new_config = IpAddressManipulator::ChangeHost(test_config, 123);
+  auto new_config = IpAddressManipulator::ChangeLastAddressOctet(test_config, 123);
 
   EXPECT_STREQ("192.168.5.123", new_config.address_.c_str());
 
@@ -68,9 +68,9 @@ TEST_F(AnIpAddressManipulator, ChangesHostPartOfSmallSubnet)
   SetNetmaskToConfig("255.255.255.240");
 
 
-  auto new_config = IpAddressManipulator::ChangeHost(test_config, 123);
+  auto new_config = IpAddressManipulator::ChangeLastAddressOctet(test_config, 123);
 
-  EXPECT_STREQ("192.168.5.11", new_config.address_.c_str());
+  EXPECT_STREQ("192.168.5.123", new_config.address_.c_str());
 
 }
 
@@ -81,9 +81,9 @@ TEST_F(AnIpAddressManipulator, ChangesHostPartOfBiggerSubnet)
   SetNetmaskToConfig("255.255.128.0");
 
 
-  auto new_config = IpAddressManipulator::ChangeHost(test_config, 123);
+  auto new_config = IpAddressManipulator::ChangeLastAddressOctet(test_config, 123);
 
-  EXPECT_STREQ("192.168.0.123", new_config.address_.c_str());
+  EXPECT_STREQ("192.168.5.123", new_config.address_.c_str());
 
 }
 
@@ -91,4 +91,3 @@ TEST_F(AnIpAddressManipulator, ChangesHostPartOfBiggerSubnet)
 
 
 //---- End of source file ------------------------------------------------------
-

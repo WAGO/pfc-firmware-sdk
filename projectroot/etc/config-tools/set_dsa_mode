@@ -3,23 +3,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------
 # Script-name: set_dsa_mode
 #
-# Calls C program set_dsa_mode_c to set eth switch configuration and change
-# /etc/specific/network-interfaces.xml accordingly. Restart network interfaces
-# X1 and X2
+# Calls C program to set eth switch configuration.
 #
-# $Revision: 40179 $
 # Author: HJH, WAGO Kontakttechnik GmbH & Co. KG.
+#         StB, WAGO Kontakttechnik GmbH & Co. KG.
+#         MOe, WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------
 
 # set error on use of undefined shell variables
 set -u
 
-newmode=""
+dsa_mode=""
 
 # main program
 
@@ -31,8 +30,6 @@ if [ ! -f "$CTDIR/config_tool_lib" ]; then
 fi
 . $CTDIR/config_tool_lib
 status=$SUCCESS
-NETINTERFACES=/etc/network/interfaces
-ORDER=$(/etc/config-tools/get_typelabel_value ORDER)
 
 # show help-text if requested
 if [ $# -gt 0 ]; then
@@ -40,79 +37,29 @@ if [ $# -gt 0 ]; then
         echo
         echo "* Change network switch configuration *"
         echo
-        echo "Usage: set_dsa_mode -h | --help       	print this usage"
-        
-        if [[ ${ORDER:0:8} == "750-8215" ]]; then
-            echo 
-            echo "NOTE: It is not allowed to change dsa mode for this device type."
-        else
-            echo "       set_dsa_mode -v|--value <value>	set separated resp. switched interface mode"
-            echo
-            echo "<value> = 0	  set switched interface mode"
-            echo "<value> = 1     set separated interface mode"
-        fi
+        echo "Usage: set_dsa_mode -h | --help         print this usage"
+        echo "       set_dsa_mode -v|--value <value>  set separated resp. switched interface mode"
+        echo
+        echo "<value> = 0   set switched interface mode"
+        echo "<value> = 1     set separated interface mode"
         exit 0
     fi
 
     if [ "$1" = "-v" -o "$1" = "--value" ]; then
         if [ "$#" -ge "2" ]; then
-            newmode="$2"
+            dsa_mode="$2"
             shift 2
         fi
     fi
 fi
 
-if [ -z "$newmode" ]; then
+if [ -z "$dsa_mode" ]; then
     SetLastError "set_dsa_mode: missing argument"
     exit $MISSING_PARAMETER
 fi
 
-current_mode=$(/etc/config-tools/get_dsa_mode)
-if [ "$newmode" != "$current_mode" ]; then
-    # ifplugd is triggered by the DSA mode change.
-    # It also calls ifdown/ifup and may interfere with this script.
-    # It is stopped here and restarted after DSA mode has been changed.
-    RESTART_IFPLUGD="no"
-    if [[ -x /etc/init.d/ifplugd ]] && [[ "$(pidof ifplugd)" != "" ]]; then
-        /etc/init.d/ifplugd stop &> /dev/null
-        RESTART_IFPLUGD="yes"
-    fi
+$CTDIR/network_config --dsa-mode --set $dsa_mode
+status=$?
 
-    "$IFDOWN" ethX1
-    "$IFDOWN" ethX2
-    $CTDIR/set_dsa_mode_c -v $newmode
-    status=$?
-    "$IFUP" ethX1
-    "$IFUP" ethX2
-
-    if [ "$status" == "$SUCCESS" ]; then
-        $CTDIR/adapt_netconfig -o $NETINTERFACES.tmp
-        status=$?
-        if [ "$status" != $SUCCESS ]; then
-            SetLastError "set_dsa_mode: could not create /etc/network/interfaces"
-        fi
-    else
-        SetLastError "set_dsa_mode setting switch config failed"
-    fi
-
-    if [ "$status" == "$SUCCESS" ]; then
-        diff -q $NETINTERFACES $NETINTERFACES.tmp > /dev/null
-        if [ "$?" = "1" ]; then
-            # network config changed
-            "$IFDOWN" -f br0 -i $NETINTERFACES &> /dev/null
-            "$IFDOWN" -f br1 -i $NETINTERFACES &> /dev/null
-            mv $NETINTERFACES.tmp $NETINTERFACES
-            "$IFUP" br0 -i $NETINTERFACES &> /dev/null
-            "$IFUP" br1 -i $NETINTERFACES &> /dev/null
-        fi
-        rm -f $NETINTERFACES.tmp
-    fi
-
-    if [[ "$RESTART_IFPLUGD" == "yes"  ]]; then
-        /etc/init.d/ifplugd start &> /dev/null
-    fi
-fi
-
-sync
 exit $status
 

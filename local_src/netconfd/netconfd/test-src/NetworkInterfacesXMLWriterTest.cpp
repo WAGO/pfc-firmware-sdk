@@ -103,8 +103,8 @@ class ANetworkInterfacesXML : public Test {
       <static_netmask_long>255.255.0.0</static_netmask_long>
       <static_broadcast>192.168.255.255</static_broadcast>
     </ip_settings>
-  </iface>        
-</interfaces>     
+  </iface>
+</interfaces>
 )";
 
   ::std::string NetworkInterfacesXMLSwitchedContent =
@@ -178,8 +178,83 @@ class ANetworkInterfacesXML : public Test {
       <static_netmask_long>255.255.0.0</static_netmask_long>
       <static_broadcast>192.168.255.255</static_broadcast>
    </ip_settings>
- </iface>        
-</interfaces>         
+ </iface>
+</interfaces>
+)";
+
+  ::std::string NetworkInterfacesXMLStartup =
+      R"(
+<?xml version="1.0" encoding="UTF-8"?>
+<!--This file is generated. Do not edit manually! Content will be overwritten.-->
+<interfaces>
+  <dsa_mode>0</dsa_mode>
+  <iface>
+    <device_name>eth0</device_name>
+    <state>enabled</state>
+    <no_dsa_disable>no</no_dsa_disable>
+    <promisc>off</promisc>
+  </iface>
+  <iface>
+    <device_name>ethX1</device_name>
+    <state>enabled</state>
+    <no_dsa_disable>no</no_dsa_disable>
+    <ethernet_settings>
+      <port_name>X1</port_name>
+      <autoneg>enabled</autoneg>
+      <speed>100M</speed>
+      <duplex>full</duplex>
+      <mac></mac>
+    </ethernet_settings>
+  </iface>
+  <iface>
+    <device_name>ethX2</device_name>
+    <state>enabled</state>
+    <no_dsa_disable>no</no_dsa_disable>
+    <ethernet_settings>
+      <port_name>X2</port_name>
+      <autoneg>enabled</autoneg>
+      <speed>100M</speed>
+      <duplex>full</duplex>
+      <mac></mac>
+    </ethernet_settings>
+  </iface>
+  <iface>
+    <device_name>br0</device_name>
+    <state>enabled</state>
+    <no_dsa_disable>no</no_dsa_disable>
+    <bridge>
+      <dsa_slave>ethX1</dsa_slave>
+      <no_dsa_slave>eth0</no_dsa_slave>
+    </bridge>
+    <ip_settings>
+      <show_in_wbm>1</show_in_wbm>
+      <port_name>X1</port_name>
+      <type>dhcp</type>
+      <static_ipaddr>0.0.0.0</static_ipaddr>
+      <static_netmask>0</static_netmask>
+      <static_netmask_long>0.0.0.0</static_netmask_long>
+      <static_broadcast>0.0.0.0</static_broadcast>
+    </ip_settings>
+  </iface>
+  <iface>
+    <device_name>br1</device_name>
+    <state>enabled</state>
+    <no_dsa_disable>yes</no_dsa_disable>
+    <bridge>
+      <dsa_slave>ethX2</dsa_slave>
+      <no_dsa_slave></no_dsa_slave>
+    </bridge>
+    <ip_settings>
+      <show_in_wbm>0</show_in_wbm>
+      <port_name>X2</port_name>
+      <type>static</type>
+      <static_ipaddr>0.0.0.0</static_ipaddr>
+      <static_netmask>0</static_netmask>
+      <static_netmask_long>0.0.0.0</static_netmask_long>
+      <static_broadcast>0.0.0.0</static_broadcast>
+   </ip_settings>
+ </iface>
+</interfaces>
 )";
 
 };
@@ -239,6 +314,35 @@ TEST_F(ANetworkInterfacesXML, PersistASwitchedBridgeConfig) {
   WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
 
   ExpectStringEqIgnoreNewlineAndBlank(NetworkInterfacesXMLSwitchedContent, actual_content.data_);
+}
+
+TEST_F(ANetworkInterfacesXML, PersistsAStartupConfig) {
+
+  StrArg actual_content;
+
+  EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
+
+  BridgeConfig bridge_config { { "br0", { "X1", "X2" } }};
+  IPConfigs ip_configs = { { "br0", IPSource::DHCP, ZeroIP, ZeroIP, ZeroIP } };
+  InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
+      "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
+  auto write_result = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
+  EXPECT_EQ(Status{}, write_result);
+  ExpectStringEqIgnoreNewlineAndBlank(NetworkInterfacesXMLStartup, actual_content.data_);
+}
+
+TEST_F(ANetworkInterfacesXML, PersistsAnZeroIPAndBridgeConfig) {
+
+  StrArg actual_content;
+
+  EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
+
+  BridgeConfig bridge_config {};
+  IPConfigs ip_configs = {};
+  InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
+      "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
+  auto write_result = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
+  EXPECT_EQ(Status{}, write_result);
 }
 
 } /* namespace netconfd */

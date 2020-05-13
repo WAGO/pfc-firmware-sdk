@@ -317,7 +317,7 @@ config CT_CONFIG_INTERFACES
   default n
   prompt "config_interfaces"
   depends on CONFIG_TOOLS
-  select CT_LIBCTNETWORK
+  select CT_NETWORK_CONFIG
   help
    Edit network settings.
 
@@ -326,16 +326,16 @@ config CT_GET_DSA_MODE
   default n
   prompt "get_dsa_mode"
   depends on CONFIG_TOOLS && CT_FEATURE_ETH_SWITCH_DSA
-  select CT_LIBCTNETWORK
+  select CT_NETWORK_CONFIG
   help
-   Check if dual ethernet mode is active.
+   Get ethernet mode.
 
 config CT_SET_DSA_MODE
   bool
   default n
   prompt "set_dsa_mode"
   depends on CONFIG_TOOLS && CT_FEATURE_ETH_SWITCH_DSA
-  select CT_LIBCTNETWORK
+  select CT_NETWORK_CONFIG
   help
    Toggle dual ethernet mode.
 
@@ -385,6 +385,7 @@ config CT_WWAN_INTERFACE
   default n
   prompt "Configure WWAN interface" 
   depends on CONFIG_TOOLS
+  select CT_NETWORK_CONFIG
   help
    Configures WWAN network interface.
 
@@ -460,7 +461,7 @@ config CT_GET_RTS_INFO
   bool
   default n
   prompt "get_rts_info"
-  depends on CONFIG_TOOLS && PLCLINUXRT
+  depends on CONFIG_TOOLS && (PLCLINUXRT || PLC_CODESYS_V3)
   help
    Get informations about the PLC: state, project info and task infos.
 
@@ -572,11 +573,19 @@ config CT_CONFIG_ETHERNET
   bool
   default n
   depends on CONFIG_TOOLS
-  select CT_LIBCTNETWORK
+  select CT_NETWORK_CONFIG
   prompt "config_ethernet"
   help
     Interface for setting ethernet parameters like link speed,duplex 
     etc.
+
+config CT_NETWORK_CONFIG
+  bool
+  default n
+  select NETWORK_CONFIG
+  prompt "network_config"
+	help
+	  Configure networks, ip addresses and physical ethernet parameters. 
 
 #################################################################
 comment "Administration-related information"

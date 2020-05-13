@@ -1,0 +1,23 @@
+--- a/lib/url.c	1991-09-17 14:37:00.141592653 +0100
++++ b/lib/url.c	1991-09-17 14:37:00.141592653 +0100
+@@ -403,9 +403,11 @@
+     Curl_share_unlock(data, CURL_LOCK_DATA_SHARE);
+   }
+ 
++#ifndef CURL_DISABLE_DOH
+   free(data->req.doh.probe[0].serverdoh.memory);
+   free(data->req.doh.probe[1].serverdoh.memory);
+   curl_slist_free_all(data->req.doh.headers);
++#endif
+ 
+   /* destruct wildcard structures if it is needed */
+   Curl_wildcard_dtor(&data->wildcard);
+@@ -1987,8 +1989,10 @@
+ {
+   Curl_safefree(data->req.protop);
+   Curl_safefree(data->req.newurl);
++#ifndef CURL_DISABLE_DOH
+   Curl_close(&data->req.doh.probe[0].easy);
+   Curl_close(&data->req.doh.probe[1].easy);
++#endif
+ }

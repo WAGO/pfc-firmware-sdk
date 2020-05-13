@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF8" ?>
+<!-- LED configuration of PFC200-ADV product! -->
+<ledconfig>
+<led name="DS"  number="0" state="STATIC_GRN" id="000000C0" >
+<alias>SYS</alias>
+</led>
+<led name="EC"  number="1" state="STATIC_OFF" id="00170001" />
+<led name="H11"  number="2" state="STATIC_OFF" id="0000000B" >
+<alias>MS</alias> 
+</led>
+<led name="H12"  number="3" state="STATIC_OFF" id="00000004" >
+<alias>NS</alias>
+</led>
+<led name="RUN" number="4" state="STATIC_OFF" id="00040004" />
+<led name="APP" number="5" state="STATIC_OFF" id="00010000" >
+<alias>U1</alias>
+</led>
+</ledconfig>

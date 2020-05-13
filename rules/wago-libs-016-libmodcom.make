@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -84,7 +84,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		$(LIBMODCOM_PATH)  \
 		$(LIBMODCOM_ENV)   \
       $(LIBMODCOM_BUILD_PARAMS) \
-		make $(PARALLELMFLAGS) 
+		make $(PARALLELMFLAGS)
 endif
 	@$(call touch)
 
@@ -105,14 +105,14 @@ $(STATEDIR)/libmodcom.targetinstall:
 	@$(call install_init, libmodcom)
 	@$(call install_fixup, libmodcom,PRIORITY,optional)
 	@$(call install_fixup, libmodcom,SECTION,base)
-	@$(call install_fixup, libmodcom,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, libmodcom,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, libmodcom,DESCRIPTION,missing)
 
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(LIBMODCOM_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	rm -rf $(LIBMODCOM_PLATFORMCONFIGPACKAGEDIR)/tmp/*
 	cd $(LIBMODCOM_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(LIBMODCOM_PLATFORMCONFIGPACKAGEDIR)/$(LIBMODCOM_PACKAGE_NAME).ipk  
+	ar -xov $(LIBMODCOM_PLATFORMCONFIGPACKAGEDIR)/$(LIBMODCOM_PACKAGE_NAME).ipk
 	@$(call install_archive, libmodcom, 0, 0, $(LIBMODCOM_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE

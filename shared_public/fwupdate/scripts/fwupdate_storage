@@ -61,7 +61,7 @@ GETKEY=""
 #
 # Return: Exit code, 0 on success, unequal to 0 otherwise
 #-----------------------------------------------------------------------------#
-main()
+fwupdate_storage_main()
 {
     local RESULT=0
 
@@ -619,5 +619,5 @@ storage_release_lock()
 }
 
 # Start main function
-main "$@"
+fwupdate_storage_main "$@"
 exit $?

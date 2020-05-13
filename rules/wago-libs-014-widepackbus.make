@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -112,9 +112,9 @@ $(STATEDIR)/libwidepackbus.targetinstall:
 	@$(call install_init, libwidepackbus)
 	@$(call install_fixup, libwidepackbus,PRIORITY,optional)
 	@$(call install_fixup, libwidepackbus,SECTION,base)
-	@$(call install_fixup, libwidepackbus,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, libwidepackbus,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, libwidepackbus,DESCRIPTION,missing)
-	
+
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
 	rm -rf $(LIBWIDEPACKBUS_PLATFORMCONFIGPACKAGEDIR)/tmp/*
@@ -124,11 +124,11 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@$(call install_lib, libwidepackbus, 0, 0, 0644, libwidepackbus)
-	
+
 #	@$(call install_copy, libwidepackbus, 0, 0, 0755, $(LIBWIDEPACKBUS_DIR)/libwidepackbus/.libs/libwidepackbus.so.0.0.0, /usr/lib/libwidepackbus.so.0.0.0)
 #	@$(call install_link, libwidepackbus, libwidepackbus.so.0.0.0, /usr/lib/libwidepackbus.so.0)
 #	@$(call install_link, libwidepackbus, libwidepackbus.so.0.0.0, /usr/lib/libwidepackbus.so)
-	
+
 	@$(call install_link, libwidepackbus, ../$(LIBWIDEPACKBUS_BIN), /usr/lib/wide/libwidepackbus.so)
 endif
 	@$(call install_finish, libwidepackbus)

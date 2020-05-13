@@ -31,14 +31,21 @@ class JsonConfigConverter : public IJsonConfigConverter {
   Status JsonToIPConfigs(const ::std::string& json, IPConfigs& ip_configs) const override;
   Status BridgeConfigToJson(const BridgeConfig& bridge_config, ::std::string& json) const override;
   ::std::string IPConfigsToJson(const IPConfigs& ip_configs) const override;
+  ::std::string DipSwitchIPConfigToJson(const DipSwitchIpConfig& config) const override;
+  ::std::string DipSwitchConfigToJson(const DipSwitchConfig& config) const override;
+  Status JsonToDipSwitchIPConfig(const ::std::string& json, DipSwitchIpConfig& config) const override;
   ::std::string InterfacesToJson(const Interfaces& interfaces) const override;
   ::std::string InterfaceConfigToJson(const InterfaceConfigs& port_configs) const override;
   Status InterfaceConfigFromJson(const ::std::string& json, InterfaceConfigs& interface_configs) const override;
- protected:
 
-  Status NJsonToBridgeConfig(const nlohmann::json& json, BridgeConfig& bridge_config) const;
-  Status NJsonToIPConfigs(const nlohmann::json&, IPConfigs& ip_configs) const;
-  Status NJsonToInterfaceConfigs(const nlohmann::json&, InterfaceConfigs& interface_configs) const;
+ protected:
+  Status NJsonToBridgeConfig(const nlohmann::json& json_object, BridgeConfig& bridge_config) const;
+  Status NJsonToDipIPConfig(const nlohmann::json& json_object, DipSwitchIpConfig& ip_config) const;
+  Status NJsonToIPConfigs(const nlohmann::json& json_object, IPConfigs& ip_configs) const;
+  Status NJsonToInterfaceConfigs(const nlohmann::json& json_object, InterfaceConfigs& interface_configs) const;
+  nlohmann::json DipSwitchIpConfigToNJson(const DipSwitchIpConfig& ip_config) const;
+  nlohmann::json DipSwitchConfigToNJson(const DipSwitchConfig& ip_config) const;
+  nlohmann::json IpConfigToNJson(const IPConfig& ip_config) const;
   nlohmann::json IPConfigsToNJson(const IPConfigs& ip_configs) const;
   nlohmann::json BridgeConfigToNJson(const BridgeConfig& bridge_config) const;
   Status JsonToNJson(::std::string const& json_str, nlohmann::json& json) const;

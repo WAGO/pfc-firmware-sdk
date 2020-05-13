@@ -17,12 +17,17 @@
 
 set -u
 
-DBUS_TIMEOUT=60000
+CONFIG_TOOL=/etc/config-tools/network_config
 
 # load common backup/restore functions
 if [ ! -f "/usr/sbin/settings_backup_lib" ]; then
   echo "settings_backup_lib missing"
-  exit 64
+  exit 64	
+fi
+
+BACKUP_TARGET_VERSION_PARAM=
+if [ -n "${WAGO_BACKUP_TARGET_VERSION:-}" ]; then
+	BACKUP_TARGET_VERSION_PARAM="--backup-targetversion ${WAGO_BACKUP_TARGET_VERSION:-}"
 fi
 
 source /usr/sbin/settings_backup_lib
@@ -32,46 +37,35 @@ GetParameterCount()
     local status=0
     local dbus_out=""
     
-    out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.getbackupparamcount)
-    for token in $out; do
-      dbus_out=$token
-    done
-    dbus_out=${dbus_out#\"}
-    dbus_out=${dbus_out%\"}
-    echo "$dbus_out"
+    out=$($CONFIG_TOOL --get-backup-parameter-count)
+    status=$?
+    echo "$out"
     
     return $status
 }
 
 Save()
 {
+    local status=0
     if IsNetworkSettingsV2 ; then
-    
-        local file_path="$1"
-        local dbus_out=""
-        
-        out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.backup string:"${file_path}")
-        for token in $out; do
-          dbus_out=$token
-        done
-        dbus_out=${dbus_out#\"}
-        dbus_out=${dbus_out%\"}
-        echo "$dbus_out"
+	    local file_path="$1"
+	
+	    out=$($CONFIG_TOOL --backup "${file_path}" $BACKUP_TARGET_VERSION_PARAM )
+	    status=$?
+	    echo "$out"
     fi
+	  return $status
 }
 
 Restore()
 {
     local file_path="$1"
-    local dbus_out=""
+    local status=0
 
-    out=$(dbus-send --system --print-reply --reply-timeout=$DBUS_TIMEOUT --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.restore string:"${file_path}")
-    for token in $out; do
-        dbus_out=$token
-    done
-    dbus_out=${dbus_out#\"}
-    dbus_out=${dbus_out%\"}
-    echo "$dbus_out"
+    out=$($CONFIG_TOOL --restore "${file_path}")
+    status=$?
+    echo "$out"
+    return $status
 }
 
 PrintUsage()
@@ -83,13 +77,6 @@ PrintUsage()
 
 
 #### MAIN ##########################################################################################
-
-# wait for netconfd dbus interface to become available
-dbus-wait -t 30 de.wago.netconfd
-if [ $? != 0 ]; then
-    logger -t backup_netconfd "ERROR: netconfd: de.wago.netconfd not reachable!"
-    exit -1
-fi
 
 status=0
 

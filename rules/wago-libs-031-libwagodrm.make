@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBWAGODRM) += libwagodrm
 #
 # Paths and names
 #
-LIBWAGODRM_VERSION        := 1.0.0
+LIBWAGODRM_VERSION        := 1.0.1
 LIBWAGODRM_MD5            :=
 LIBWAGODRM                := libwagodrm
 LIBWAGODRM_URL            := file://$(PTXDIST_WORKSPACE)/wago_intern/$(LIBWAGODRM)

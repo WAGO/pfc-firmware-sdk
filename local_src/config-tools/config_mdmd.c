@@ -11,7 +11,7 @@
 ///
 ///  \file     config_mdmd.c
 ///
-///  \version  $Revision: 38215 $
+///  \version  $Revision: 47174 $
 ///
 ///  \brief    Configuration tool for WAGO Modem Management Daemon. 
 ///
@@ -527,6 +527,20 @@ static gint GetLogLevel(gint *loglevel)
   return retVal;
 }
 
+static gint GetSimAutoActivation(gchar **ppId, gchar **ppPin)
+{
+  GVariant *result = NULL;
+  gint retVal = MdmDBusClientCallSync("GetSimAutoActivation",
+                                      NULL, /* no method parameters */
+                                      &result);
+  if (result)
+  {
+    g_variant_get(result,"(ss)", ppId, ppPin);
+    g_variant_unref(result);
+  }
+  return retVal;
+}
+
 static gint GetSmsStorageConfig(tSmsStorageConfig* storageConfig)
 {
   GVariant *result = NULL;
@@ -690,6 +704,19 @@ static gint SetLogLevel(gint loglevel)
   return retVal;
 }
 
+static gint SetSimAutoActivation(const gchar* id, const gchar* pin)
+{
+  GVariant *result = NULL;
+  gint retVal = MdmDBusClientCallSync("SetSimAutoActivation",
+                                      g_variant_new("(ss)", id, pin),
+                                      &result);
+  if (result)
+  {
+    g_variant_unref(result);
+  }
+  return retVal;
+}
+
 //------------------------------------------------------------------------------
 // SECTION Main function, command line option handling.
 //------------------------------------------------------------------------------
@@ -708,27 +735,28 @@ static const gchar *usage_text =
   "  config_mdmd <command> [<option>] [<param>, ...]\n"
   "\n"
   "Commands:\n"
-  "  -h/--help                  Print this usage message.\n"
-  "  -g/--get                   Query parameters and print as name=value pairs, one per line.\n"
-  "  -j/--get-json              Query parameters and print as JSON format string.\n"
-  "  -s/--set [param] ...       Set parameters.\n"
-  "  -r/--reset                 Trigger a modem hard reset.\n"
-  "     --reset-all             Trigger a modem hard reset and restart modem software environment.\n"
+  "  -h/--help                  Print this usage message\n"
+  "  -g/--get                   Query parameters and print as name=value pairs, one per line\n"
+  "  -j/--get-json              Query parameters and print as JSON format string\n"
+  "  -s/--set [param] ...       Set parameters\n"
+  "  -r/--reset                 Trigger a modem hard reset\n"
+  "     --reset-all             Trigger a modem hard reset and restart modem software environment\n"
   "  -v/--version               Print version of modem manager daemon (mdmd)\n"
-  "  -c/--check                 Check the compatibility between the PFC firmware and the modem firmware.\n"
+  "  -c/--check                 Check the compatibility between the PFC firmware and the modem firmware\n"
   "\n"
   "Options:\n"
-  "  -d/--device                Modem device information.\n"
+  "  -d/--device                Modem device information\n"
   "  -i/--identity              Mobile equipment identity\n"
-  "  -n/--network               Configuration of mobile network.\n"
-  "  -l/--network-list          List of detected mobile networks.\n"
-  "  -G/--gprsaccess            Configuration of packet data service.\n"
-  "  -S/--SIM                   Subscriber identity authentication.\n"
+  "  -n/--network               Configuration of mobile network\n"
+  "  -l/--network-list          List of detected mobile networks\n"
+  "  -G/--gprsaccess            Configuration of packet data service\n"
+  "  -S/--SIM                   Subscriber identity authentication\n"
   "  -p/--port                  Configuration of modem control port\n"
   "  -L/--logging               Configuration of log output\n"
-  "  -q/--signal-quality        Get measured signal quality values.\n"
-  "  -T/--smsstorage            Configuration of sms storage.\n"
-  "  -R/--smseventreporting     Configuration of sms event reporting.\n"
+  "  -q/--signal-quality        Get measured signal quality values\n"
+  "  -T/--smsstorage            Configuration of sms storage\n"
+  "  -R/--smseventreporting     Configuration of sms event reporting\n"
+  "  -a/--simautoactivation     Configuration of automatic SIM activation, parameters: SimId, SimPin\n"
 
 /*
  * Added functionality to fetch message list from command line.
@@ -752,11 +780,12 @@ static const gchar *usage_text =
   "  GprsRegistrationState      type: enum\n"
   "                             access: read only\n"
   "                             - registration state:\n"
-  "                               STOPPED: not registered, the manually selected network is not available.\n"
-  "                               HOMENET: registered with home network.\n"
+  "                               STOPPED: not registered, the manually selected network is not available\n"
+  "                               HOMENET: registered with home network\n"
   "                               STARTED: not registered, automatic network selection ongoing or no network available\n"
-  "                               DENIED:  not registered, the manually selected network allows no registration.\n"
-  "                               ROAMING: registered with roaming network.\n"
+  "                               DENIED:  not registered, the manually selected network allows no registration\n"
+  "                               UNKNOWN: not registered, status not available, e.g. while modem initialization\n"
+  "                               ROAMING: registered with roaming network\n"
   "  GprsAccessPointName        type: string\n"
   "                             access: read/write\n"
   "                             - logical name of GGSN or provider specific data network\n"
@@ -837,20 +866,22 @@ static const gchar *usage_text =
   "  NetworkSelection           type: enum\n"
   "                             access: read/write\n"
   "                             - strategy of network selection:\n"
-  "                               MANUAL:      select the given network fix.\n"
-  "                               AUTOMATIC:   automatic network selection without priorisation.\n"
-  "                               ONLY_GSM:    automatic network selection with restriction to GSM networks.\n"
-  "                               ONLY_UMTS:   automatic network selection with restriction to UMTS networks.\n"
-  "                               PREFER_GSM:  automatic network selection with preference for GSM networks.\n"
-  "                               PREFER_UMTS: automatic network selection with preference for UMTS networks.\n"
+  "                               MANUAL:      select the given network fix\n"
+  "                               AUTOMATIC:   automatic network selection without priorisation\n"
+  "                               ONLY_GSM:    automatic network selection with restriction to GSM networks\n"
+  "                               ONLY_UMTS:   automatic network selection with restriction to UMTS networks\n"
+  "                               PREFER_GSM:  automatic network selection with preference for GSM networks\n"
+  "                               PREFER_UMTS: automatic network selection with preference for UMTS networks\n"
   "  NetworkRegistrationState   type: enum\n"
   "                             access: read only\n"
   "                             - status of network registration:\n"
-  "                               STOPPED: not registered, the manually selected network is not available.\n"
-  "                               HOMENET: registered with home network.\n"
+  "                               STOPPED: not registered, the manually selected network is not available\n"
+  "                               HOMENET: registered with home network\n"
   "                               STARTED: not registered, automatic network selection ongoing or no network available\n"
-  "                               DENIED:  not registered, the manually selected network allows no registration.\n"
-  "                               ROAMING: registered with roaming network.\n"
+  "                               DENIED:  not registered, the manually selected network allows no registration\n"
+  "                               UNKNOWN: not registered, status not available, e.g. while modem initialization\n"
+  "                               ROAMING: registered with roaming network\n"
+  "                               NOSERVICE: network access is not available or emergency calls only\n"
   "  NetworkId                  type: numeric\n"
   "                             access: read/write\n"
   "                             - unique identifier of the mobile network as 5- or 6 digit number (MCC + MNC)\n"
@@ -867,8 +898,8 @@ static const gchar *usage_text =
   "  NetworkState               type: enum\n"
   "                             access: read only\n"
   "                             - availability of the the listed network:\n"
-  "                               AVAILABLE: registration is possible.\n"
-  "                               CURRENT:   currently registered network.\n"
+  "                               AVAILABLE: registration is possible\n"
+  "                               CURRENT:   currently registered network\n"
   "                               FORBIDDEN: registration is not allowed\n"
 
   "  SimPin                     type: numeric\n"
@@ -881,14 +912,20 @@ static const gchar *usage_text =
   "  SimState                   type: enum\n"
   "                             access: read only\n"
   "                             - sim card status\n"
-  "                               SIM_PIN:      authentication with PIN necessary.\n"
-  "                               SIM_PUK:      authentication with PUK necessary.\n"
-  "                               READY:        authentication successful.\n"
-  "                               ERROR:        sim card is not valid.\n"
-  "                               NOT_INSERTED: sim card is not inserted.\n"
+  "                               UNKNOWN:      status not available, e.g. while modem initialization\n"
+  "                               SIM_PIN:      authentication with PIN necessary\n"
+  "                               SIM_PUK:      authentication with PUK necessary\n"
+  "                               READY:        authentication successful\n"
+  "                               ERROR:        sim card is not valid\n"
+  "                               NOT_INSERTED: sim card is not inserted\n"
+  "                               NOT_READY:    sim card is not ready\n"
   "  SimAttempts                type: numeric\n"
   "                             access: read only\n"
   "                             - the remaining attempts for SIM authentication when SimState SIM_PIN or SIM_PUK\n"
+
+  "  SimId                      type: numeric\n"
+  "                             access: read/write\n"
+  "                             - sim card id for for automatic activation\n"
 
   "  RSSI                       type: integer\n"
   "                             access: read only\n"
@@ -948,6 +985,7 @@ static tIntToStringMap _mapSimState[] = {
   { 3, "READY" },
   { 4, "NOT_INSERTED" },
   { 5, "ERROR" },
+  { 6, "NOT_READY" },
   { -1, "INVALID" }        // End marker, don't remove.
 };
 
@@ -970,6 +1008,7 @@ static tIntToStringMap _mapRegState[] = {
   { 3, "DENIED" },
   { 4, "UNKNOWN" },
   { 5, "ROAMING" },
+  { 6, "NOSERVICE" },
   { -1, "INVALID" }        // End marker, don't remove.
 };
 
@@ -1044,6 +1083,7 @@ typedef enum
   OPT_SMS_EVENT_REPORTING,
   OPT_MESSAGE_LIST,
   OPT_LOGGING,
+  OPT_SIM_AUTO_ACTIVATION,
   OPT_NONE,
 } tOption;
 
@@ -1061,6 +1101,7 @@ static struct option _commandOptions[] =
   { "smseventreporting", no_argument, NULL, 'R' },
   { "message-list", no_argument, NULL, 'm' },
   { "logging", no_argument, NULL, 'L' },
+  { "simautoactivation", no_argument, NULL, 'a' },
   { NULL, 0, NULL, 0 }, // End marker, don't remove.
 };
 
@@ -1235,45 +1276,42 @@ static void PrintDeviceParams(tPrintFormat format)
   switch (format)
   {
     case FMT_JSON:
-      printf("{");
-      if ((manufacturer != NULL) && (type != NULL))
+      printf("{\"ModemDevice\": \"");
+      if ((manufacturer != NULL) && (strlen(manufacturer) > 0))
       {
-        printf("\"ModemDevice\": \"%s %s\"", manufacturer, type);
+        printf("%s ", manufacturer);
       }
-      else
+      if ((type != NULL) && (strlen(type) > 0))
       {
-        printf("\"ModemDevice\": \"unknown\"");
+        printf("%s", type);
       }
-      printf(", ");
+      printf("\", \"ModemFirmware\": \"");
       if (firmware != NULL)
       {
-        printf("\"ModemFirmware\": \"%s\"", firmware);
+        printf("%s", firmware);
       }
-      else
-      {
-        printf("\"ModemFirmware\": \"unknown\"");
-      }
-      printf("}");
+      printf("\"}");
       break;
     case FMT_DEFAULT:
       /*no break*/
     default:
-      if ((manufacturer != NULL) && (type != NULL))
+      printf("ModemDevice=");
+      if ((manufacturer != NULL) && (strlen(manufacturer) > 0))
       {
-        printf("ModemDevice=%s %s\n", manufacturer, type);
+        printf("%s ", manufacturer);
       }
-      else
+      if ((type != NULL) && (strlen(type) > 0))
       {
-        printf("ModemDevice=unknown\n");
+        printf("%s", type);
       }
+      printf("\n");
+
+      printf("ModemFirmware=");
       if (firmware != NULL)
       {
-        printf("ModemFirmware=%s\n", firmware);
+        printf("%s", firmware);
       }
-      else
-      {
-        printf("ModemFirmware=unknown\n");
-      }
+      printf("\n");
   }
   if (manufacturer != NULL)
   {
@@ -1361,12 +1399,12 @@ static void PrintIdentity(tPrintFormat format)
   switch (format)
   {
     case FMT_JSON:
-      printf("{\"IMEI\": \"%s\"}", (imei != NULL) ? imei : "unknown");
+      printf("{\"IMEI\": \"%s\"}", (imei != NULL) ? imei : "");
       break;
     case FMT_DEFAULT:
       /*no break*/
     default:
-      printf("IMEI=%s\n", (imei != NULL) ? imei : "unknown");
+      printf("IMEI=%s\n", (imei != NULL) ? imei : "");
   }
   if (imei != NULL) {
     g_free(imei);
@@ -1424,7 +1462,7 @@ static void PrintNetworkParams(tPrintFormat format)
     }
     else
     {
-      g_string_assign(name, "INVALID");
+      g_string_assign(name, "UNKNOWN");
     }
     MapIntToString(_mapOperAct, oper.act, type);
   }
@@ -1755,6 +1793,56 @@ static void PrintLogging(tPrintFormat format)
 }
 
 
+static void PrintSimAutoActivation(tPrintFormat format)
+{
+  gchar *sim_id = NULL;
+  gchar *sim_pin = NULL;
+
+  gint result = GetSimAutoActivation(&sim_id, &sim_pin);
+  AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+
+  switch (format)
+  {
+    case FMT_JSON:
+      printf("{\"SimId\": \"");
+      if (sim_id != NULL)
+      {
+        printf("%s", sim_id);
+      }
+      printf("\", \"SimPin\": \"");
+      if (sim_pin != NULL)
+      {
+        printf("%s", sim_pin);
+      }
+      printf("\"}");
+      break;
+    case FMT_DEFAULT:
+      /*no break*/
+    default:
+      printf("SimId=");
+      if (sim_id != NULL)
+      {
+        printf("%s", sim_id);
+      }
+      printf("\n");
+      printf("SimPin=");
+      if (sim_pin != NULL)
+      {
+        printf("%s", sim_pin);
+      }
+      printf("\n");
+  }
+  if (sim_id != NULL)
+  {
+    g_free(sim_id);
+  }
+  if (sim_pin != NULL)
+  {
+    g_free(sim_pin);
+  }
+}
+
+
 static void PrintVersion()
 {
   gchar *version = NULL;
@@ -1765,13 +1853,10 @@ static void PrintVersion()
   printf("MdmdVersion=");
   if (version != NULL)
   {
-    printf("%s\n", version);
+    printf("%s", version);
     g_free(version);
   }
-  else
-  {
-    printf("unknown\n");
-  }
+  printf("\n");
 }
 
 /**
@@ -2174,6 +2259,28 @@ static void ChangeLogging(tNameValuePair *nvpairs, gint nparams)
   }
 }
 
+static void ChangeSimAutoActivation(tNameValuePair *nvpairs, gint nparams)
+{
+  gint result;
+  gint i;
+  tNameValuePair *sim_id= NULL;
+  tNameValuePair *sim_pin = NULL;
+  for (i = 0; i < nparams; i++)
+  {
+    if(0 == strcmp(nvpairs[i].name, "SimId"))
+    {
+      sim_id = &nvpairs[i];
+    }
+    else if(0 == strcmp(nvpairs[i].name, "SimPin"))
+    {
+      sim_pin = &nvpairs[i];
+    }
+  }
+  result = SetSimAutoActivation(sim_id != NULL ? sim_id->value : "",
+                                sim_pin != NULL ? sim_pin->value : "");
+  AssertCondition(result == 0, SYSTEM_CALL_ERROR, _mdmDBusClient.lastError);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -2257,6 +2364,9 @@ int main(int argc, char **argv)
         case OPT_LOGGING:
           PrintLogging(FMT_DEFAULT);
           break;
+        case OPT_SIM_AUTO_ACTIVATION:
+          PrintSimAutoActivation(FMT_DEFAULT);
+          break;
         default:
           ExitWithError(INVALID_PARAMETER, "Illegal get-option");
       }
@@ -2302,6 +2412,9 @@ int main(int argc, char **argv)
         case OPT_LOGGING:
           PrintLogging(FMT_JSON);
           break;
+        case OPT_SIM_AUTO_ACTIVATION:
+          PrintSimAutoActivation(FMT_JSON);
+          break;
         default:
           ExitWithError(INVALID_PARAMETER, "Illegal get-option");
       }
@@ -2337,6 +2450,9 @@ int main(int argc, char **argv)
           break;
         case OPT_LOGGING:
           ChangeLogging(nvpairs, nparams);
+          break;
+        case OPT_SIM_AUTO_ACTIVATION:
+          ChangeSimAutoActivation(nvpairs, nparams);
           break;
         default:
           ExitWithError(INVALID_PARAMETER, "Illegal set-option");

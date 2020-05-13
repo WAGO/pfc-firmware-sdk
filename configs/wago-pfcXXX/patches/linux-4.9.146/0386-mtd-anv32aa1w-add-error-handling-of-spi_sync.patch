@@ -1,0 +1,42 @@
+From 51c05de4677ed6b094109cb26fc2fa70bf246665 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 5 Dec 2019 12:31:46 +0100
+Subject: [PATCH] mtd: anv32aa1w: add error handling of spi_sync
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ drivers/mtd/devices/anv32aa1w.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mtd/devices/anv32aa1w.c b/drivers/mtd/devices/anv32aa1w.c
+index b5b9302..6f7e1aa 100644
+--- a/drivers/mtd/devices/anv32aa1w.c
++++ b/drivers/mtd/devices/anv32aa1w.c
+@@ -146,6 +146,7 @@ static int anv32aa1w_rw(struct mtd_info *mtd, loff_t offs, size_t len,
+ 		write ? anv32aa1w_CMD_WRITE : anv32aa1w_CMD_READ,
+ 		offs >> 16, offs >> 8, offs
+ 	};
++	int ret;
+ 
+ 	if (write)
+ 		anv32aa1w_write_enable(flash->spi);
+@@ -170,14 +171,14 @@ static int anv32aa1w_rw(struct mtd_info *mtd, loff_t offs, size_t len,
+ 
+ 	mutex_lock(&flash->lock);
+ 
+-	spi_sync(flash->spi, &message);
++	ret = spi_sync(flash->spi, &message);
+ 
+ 	if (retlen && message.actual_length > sizeof(command))
+ 		*retlen += message.actual_length - sizeof(command);
+ 
+ 	mutex_unlock(&flash->lock);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int anv32aa1w_write(struct mtd_info *mtd, loff_t to, size_t len,
+-- 
+2.7.4
+

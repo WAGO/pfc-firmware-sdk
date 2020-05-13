@@ -44,8 +44,8 @@ bal/module.mk \
 libbridge/module.mk \
 netconfd/module.mk \
 dbus/module.mk \
-bridgeconfig_dsa/module.mk \
-utility/module.mk
+utility/module.mk \
+clientapi/module.mk
 
 MK_FILES += $(MODULES)
 

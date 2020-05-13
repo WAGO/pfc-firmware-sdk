@@ -8,15 +8,18 @@
 #include "IIPController.hpp"
 #include "IDHCPClientController.hpp"
 #include "IInterfaceInformation.hpp"
+#include "IIPLinks.hpp"
+#include "IIPConfigure.hpp"
 
 namespace netconfd {
 
-class IPConfigurator {
+class IPConfigurator : public IIPConfigure {
  public:
   IPConfigurator(IIPController& ip_controller,
                  const IDHCPClientController& dhcp_client_controller,
                  const IBootpClientController& bootp_client_controller,
-                 const IInterfaceInformation& itf_info);
+                 const IInterfaceInformation& itf_info,
+                 IIPLinks& ip_links);
   virtual ~IPConfigurator() = default;
 
   IPConfigurator(const IPConfigurator&) = delete;
@@ -24,10 +27,9 @@ class IPConfigurator {
   IPConfigurator(const IPConfigurator&&) = delete;
   IPConfigurator& operator=(const IPConfigurator&&) = delete;
 
-  IPConfigs GetConfigurations(const Bridges& bridges) const;
-  Status Configure(IPConfigs const& config) const;
-
-
+	IPConfigs GetConfigurations(const Bridges& bridges) const;
+  Status Configure(const IPConfigs& configs) const;
+  Status Configure(const IPConfig& config) const override;
 
  private:
 
@@ -35,7 +37,7 @@ class IPConfigurator {
   Status SetTemporary(const IPConfig& ip_config) const;
   Status SetDHCP(const IPConfig& ip_config) const;
   Status SetBootp(const IPConfig& ip_config) const;
-  Status SetNone(const IPConfig& ip_config) const;
+  void SetNone(const IPConfig& ip_config) const;
 
   Status EnableGratuitousArp(const IPConfig& ip_config) const;
 
@@ -43,10 +45,12 @@ class IPConfigurator {
 
   void DeleteTempFiles(const Bridge& bridge) const;
 
+
   IIPController& ip_controller_;
   const IDHCPClientController& dhcp_client_controller_;
   const IBootpClientController& bootp_client_controller_;
   const IInterfaceInformation& itf_info_;
+  IIPLinks& ip_links_;
 
   const ::std::string TMP_FILE_PATH = "/tmp/dhcp-bootp-data-";
 };

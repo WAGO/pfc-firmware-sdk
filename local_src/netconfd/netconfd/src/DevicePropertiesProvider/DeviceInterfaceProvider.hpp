@@ -22,6 +22,9 @@ class DeviceInterfaceProvider {
   Interfaces GetOSInterfaces() const;
   InterfaceNameMapping GetInterfacesNameMapping() const;
 
+  void ConvertProductToOSInterfaces(Interfaces& interfaces) const;
+  void ConvertOSToProductInterfaces(Interfaces& interfaces) const;
+
   bool HasInterface(const ::std::string& interface_name) const;
 
  private:

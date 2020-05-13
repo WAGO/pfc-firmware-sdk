@@ -1,0 +1,20 @@
+From fd4f3cb9912f9edb35ee0954cd64bbde9cf95f2a Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Thu, 16 Apr 2020 14:15:26 +0200
+Subject: [PATCH] add new version w02.08.01
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ localversion-wago | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/localversion-wago b/localversion-wago
+index 91c131972c65..42deb52d8ac1 100644
+--- a/localversion-wago
++++ b/localversion-wago
+@@ -1 +1 @@
+-w02.08.00
++w02.08.01
+-- 
+2.17.1
+

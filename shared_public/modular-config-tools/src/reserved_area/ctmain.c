@@ -5,7 +5,7 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     ctmain.c
@@ -24,13 +24,14 @@
 #include "wc/assertion.h"
 #include "ctutil/common_main.h"
 #include "ctutil/log.h"
+#include "ctutil/filesystem.h"
+#include "ctutil/json.h"
+#include "ctutil/common_functions.h"
 #include "ctparts/common_main_defaults.h"
 #include "ctparts/pmain.h"
 #include "ctparts/ctmain.h"
 #include "params.h"
 #include "resources.h"
-#include "filesystem.h"
-#include "json.h"
 
 #include <inttypes.h>
 
@@ -82,17 +83,6 @@ exitCode_t ctparts_PrepareMain(int const argc,
 }
 
 
-// TODO: Check for possible default implementation in libconfigtoolutils
-static void freeConst(void const * const pMemoryToFree)
-{
-  // The following pointer arithmetics removes the 'const' attribute from pointer avoiding any warnings
-  char const * const pConstMemory = pMemoryToFree;
-  char * pMemory = 0x0;
-  pMemory = pMemory + (pConstMemory - pMemory);
-  free(pMemory);
-}
-
-
 static bool IsMounted(char const * const szMountedPath)
 {
   return (szMountedPath != NULL);
@@ -102,8 +92,8 @@ static bool IsMounted(char const * const szMountedPath)
 static bool IsReservedAreaAvailable(ctutil_Options_t const * const pstOptions,
                                     ctutil_Resources_t const * const pstResources)
 {
-  // TODO: Add function pointer for IsFileAvailable in resource struct to improve testability
-  return IsFileAvailable(&(pstOptions->stCommonOptions), pstResources->pstSpecificResources->szDeviceFilePath, "bc");
+  return pstResources->pstSpecificResources->pfIsFileAvailable(&(pstOptions->stCommonOptions),
+                                                               pstResources->pstSpecificResources->szDeviceFilePath, "bc");
 }
 
 
@@ -118,10 +108,9 @@ static char const * CreateMountPointPath(ctutil_Options_t const * const pstOptio
                                          ctutil_Resources_t const * const pstResources)
 {
   char * szMountedPath = NULL;
-  // TODO: Add function pointer for GetMountPointForDevice in resource struct to improve testability
-  statusCode_t const status = GetMountPointForDevice(&(pstOptions->stCommonOptions),
-                                                     pstResources->pstSpecificResources->szDeviceFilePath,
-                                                     &szMountedPath, 0);
+  statusCode_t const status = pstResources->pstSpecificResources->pfGetMountPointForDevice(&(pstOptions->stCommonOptions),
+                                                                                           pstResources->pstSpecificResources->szDeviceFilePath,
+                                                                                           &szMountedPath, 0);
   if(ctutil_IsStatusFailure(status))
   {
     CTUTIL_LOG_ERROR(pstOptions->stCommonOptions.quiet, "Failed to determine mount point");
@@ -136,8 +125,7 @@ static bool IsMountPointPresent(ctutil_Options_t const * const WC_UNUSED_PARAM(p
 {
   bool result = false;
 
-  // TODO: Add function pointer for IsFolderAccessable in resource struct to improve testability
-  result = IsFolderAccessable(pstResources->pstSpecificResources->szTargetDirectory);
+  result = pstResources->pstSpecificResources->pfIsFolderAccessible(pstResources->pstSpecificResources->szTargetDirectory);
 
   return result;
 }
@@ -146,8 +134,9 @@ static bool IsMountPointPresent(ctutil_Options_t const * const WC_UNUSED_PARAM(p
 static statusCode_t CreateMountPoint(ctutil_Options_t const * const pstOptions,
                                      ctutil_Resources_t const * const pstResources)
 {
-  // TODO: Add function pointer for CreateFolderHierarchy in resource struct to improve testability
-  return CreateFolderHierarchy(&(pstOptions->stCommonOptions), pstResources->pstSpecificResources->szTargetDirectory);
+  return pstResources->pstSpecificResources->pfCreateFolder(&(pstOptions->stCommonOptions),
+                                                            pstResources->pstSpecificResources->szTargetDirectory,
+                                                            true);
 }
 
 
@@ -175,7 +164,7 @@ static statusCode_t UnmountReservedArea(ctutil_Options_t const * const pstOption
   statusCode_t const result = pstResources->pstSpecificResources->pfUmount(&(pstOptions->stCommonOptions),
                                                                            szMountedPath,
                                                                            unmountFlags);
-  freeConst(szMountedPath);
+  ctutil_FreeConst(szMountedPath);
 
   return result;
 }
@@ -208,7 +197,7 @@ static statusCode_t PrintJsonOutput(ctutil_Options_t const * const WC_UNUSED_PAR
   char * szJsonObject = szObjectBuffer;
   size_t freeBufferSize = sizeof(szObjectBuffer);
   size_t addedChars = 0U;
-  status = JsonObjectStringOpen(szJsonObject, freeBufferSize, &addedChars);
+  status = ctutil_JsonObjectStringOpen(szJsonObject, freeBufferSize, &addedChars);
   if(pstPrintOptions->printMountPoint)
   {
     if(ctutil_IsStatusOk(status))
@@ -217,8 +206,8 @@ static statusCode_t PrintJsonOutput(ctutil_Options_t const * const WC_UNUSED_PAR
       szJsonObject += addedChars;
       freeBufferSize -= addedChars;
       separatorNeeded = true;
-      status = JsonObjectStringWriteStringValue(szJsonObject, MOUNT_POINT_VALUE_NAME, pstPrintOptions->szMountPoint,
-                                                freeBufferSize, &addedChars);
+      status = ctutil_JsonObjectStringWriteStringValue(szJsonObject, MOUNT_POINT_VALUE_NAME, pstPrintOptions->szMountPoint,
+                                                       freeBufferSize, &addedChars);
     }
   }
   if(pstPrintOptions->printFreeCapacity)
@@ -229,7 +218,7 @@ static statusCode_t PrintJsonOutput(ctutil_Options_t const * const WC_UNUSED_PAR
       szJsonObject += addedChars;
       freeBufferSize -= addedChars;
       separatorNeeded = false;
-      status = JsonObjectStringWriteMemberSeparator(szJsonObject, freeBufferSize, &addedChars);
+      status = ctutil_JsonObjectStringWriteMemberSeparator(szJsonObject, freeBufferSize, &addedChars);
     }
     if(ctutil_IsStatusOk(status))
     {
@@ -237,8 +226,8 @@ static statusCode_t PrintJsonOutput(ctutil_Options_t const * const WC_UNUSED_PAR
       szJsonObject += addedChars;
       freeBufferSize -= addedChars;
       separatorNeeded = true;
-      status = JsonObjectStringWriteUInt64Value(szJsonObject, FREE_CAPACITY_VALUE_NAME, pstPrintOptions->free,
-                                                freeBufferSize, &addedChars);
+      status = ctutil_JsonObjectStringWriteUInt64Value(szJsonObject, FREE_CAPACITY_VALUE_NAME, pstPrintOptions->free,
+                                                       freeBufferSize, &addedChars);
     }
   }
   if(pstPrintOptions->printAvailableCapacity)
@@ -249,7 +238,7 @@ static statusCode_t PrintJsonOutput(ctutil_Options_t const * const WC_UNUSED_PAR
       szJsonObject += addedChars;
       freeBufferSize -= addedChars;
       separatorNeeded = false;
-      status = JsonObjectStringWriteMemberSeparator(szJsonObject, freeBufferSize, &addedChars);
+      status = ctutil_JsonObjectStringWriteMemberSeparator(szJsonObject, freeBufferSize, &addedChars);
     }
     if(ctutil_IsStatusOk(status))
     {
@@ -257,8 +246,8 @@ static statusCode_t PrintJsonOutput(ctutil_Options_t const * const WC_UNUSED_PAR
       szJsonObject += addedChars;
       freeBufferSize -= addedChars;
       separatorNeeded = true;
-      status = JsonObjectStringWriteUInt64Value(szJsonObject, AVAILABLE_CAPACITY_VALUE_NAME, pstPrintOptions->available,
-                                                freeBufferSize, &addedChars);
+      status = ctutil_JsonObjectStringWriteUInt64Value(szJsonObject, AVAILABLE_CAPACITY_VALUE_NAME, pstPrintOptions->available,
+                                                       freeBufferSize, &addedChars);
     }
   }
   if(ctutil_IsStatusOk(status))
@@ -266,7 +255,7 @@ static statusCode_t PrintJsonOutput(ctutil_Options_t const * const WC_UNUSED_PAR
     WC_ASSERT(addedChars < freeBufferSize);
     szJsonObject += addedChars;
     freeBufferSize -= addedChars;
-    status = JsonObjectStringClose(szJsonObject, freeBufferSize, &addedChars);
+    status = ctutil_JsonObjectStringClose(szJsonObject, freeBufferSize, &addedChars);
   }
   if(ctutil_IsStatusOk(status))
   {
@@ -430,7 +419,7 @@ exitCode_t ctparts_ctMain(int const WC_UNUSED_PARAM(argc),
   if(emulateReservedArea)
   {
     if(    (pstOptions->pstSpecificOptions->szTargetDirectory != NULL)
-        && IsFolderAccessable(pstOptions->pstSpecificOptions->szTargetDirectory))
+        && ctutil_IsFolderAccessible(pstOptions->pstSpecificOptions->szTargetDirectory))
     {
       // Folder was already created.
       szMountedPath = pstOptions->pstSpecificOptions->szTargetDirectory;
@@ -539,7 +528,7 @@ exitCode_t ctparts_ctMain(int const WC_UNUSED_PARAM(argc),
   // Remove directory if mount was only requested temporarily
   if(fIsTmpTargetDir)
   {
-    status = RemoveFolder(&pstOptions->stCommonOptions, pstResources->pstSpecificResources->szTargetDirectory);
+    status = ctutil_RemoveFolder(&pstOptions->stCommonOptions, pstResources->pstSpecificResources->szTargetDirectory);
     if(!ctutil_IsStatusOk(status))
     {
       CTUTIL_LOG_ERROR(pstOptions->stCommonOptions.quiet, "Removing folder failed");
@@ -548,7 +537,7 @@ exitCode_t ctparts_ctMain(int const WC_UNUSED_PARAM(argc),
 
   if(szMountedPath != pstResources->pstSpecificResources->szTargetDirectory)
   {
-    freeConst(szMountedPath);
+    ctutil_FreeConst(szMountedPath);
   }
 
   return result;

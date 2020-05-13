@@ -92,6 +92,9 @@ $(STATEDIR)/swconfig.targetinstall:
 	@$(call install_copy, swconfig, 0, 0, 0755, $(SWCONFIG_DIR)/swconfig, /sbin/swconfig);
 	@$(call install_lib, swconfig, 0, 0, 0644, libswconfig)
 
+	@$(call install_alternative, swconfig, 0, 0, 0755, /etc/init.d/featuredetect_switch)
+	@$(call install_link, swconfig, ../init.d/featuredetect_switch, /etc/rc.d/S99_featuredetect_switch)
+
 	@$(call install_finish, swconfig)
 
 	@$(call touch)

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "BridgeManager.hpp"
+#include "INetDevConstruction.hpp"
 #include "MockIBridgeController.hpp"
 #include "MockIDevicePropertiesProvider.hpp"
+#include "MockINetDevManager.hpp"
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <memory>
@@ -16,6 +18,7 @@ class InterfaceManagerTest : public Test {
 
   MockIBridgeController mock_bridge_controller_;
   MockIDevicePropertiesProvider mock_properties_provider_;
+  MockINetDevManager mock_netdev_manager_;
   Bridges any_bridges;
   Interfaces any_interfaces_of_br0;
   Interfaces any_interfaces_of_br1;
@@ -26,7 +29,8 @@ class InterfaceManagerTest : public Test {
     any_interfaces_of_br1 = Interfaces { "ethX2", "ethX3" };
 
     EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(_)).WillOnce(Return(Status()));
-    interface_manager_ = ::std::make_unique<BridgeManager>(mock_bridge_controller_, mock_properties_provider_);
+    interface_manager_ = ::std::make_unique<BridgeManager>(mock_bridge_controller_, mock_properties_provider_,
+                                                           mock_netdev_manager_);
   }
 
   void TearDown() override {

@@ -1,0 +1,983 @@
+From c696c3a996a47a0a8f333792c16ae2c051403c23 Mon Sep 17 00:00:00 2001
+From: Oliver Rohe <Oliver.Rohe@wago.com>
+Date: Fri, 24 Jan 2020 15:08:49 +0100
+Subject: [PATCH] arm: dts: pfc: rename pac100 to pfc200adv
+
+---
+ arch/arm/boards/wago-pfc-am335x/board.c            |   2 +-
+ .../bin/pfc-config-production-boot                 |  15 ---
+ .../bin/pfc-config-production-boot                 |  15 +++
+ arch/arm/boards/wago-pfc-am335x/lowlevel.c         |   4 +-
+ arch/arm/configs/am335x_pac_defconfig              | 144 --------------------
+ arch/arm/configs/am335x_pac_mlo_defconfig          |  36 -----
+ arch/arm/configs/am335x_pfc_adv_defconfig          | 144 ++++++++++++++++++++
+ arch/arm/configs/am335x_pfc_adv_mlo_defconfig      |  36 +++++
+ arch/arm/dts/Makefile                              |   4 +-
+ arch/arm/dts/am335x-pac-768_330x-mlo.dts           |  67 ----------
+ arch/arm/dts/am335x-pac-768_330x.dts               | 147 ---------------------
+ arch/arm/dts/am335x-pfc-768_330x-mlo.dts           |  67 ++++++++++
+ arch/arm/dts/am335x-pfc-768_330x.dts               | 147 +++++++++++++++++++++
+ images/Makefile.am33xx                             |  12 +-
+ 14 files changed, 420 insertions(+), 420 deletions(-)
+ delete mode 100644 arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot
+ create mode 100644 arch/arm/boards/wago-pfc-am335x/defaultenv-pfc-adv-am335x/bin/pfc-config-production-boot
+ delete mode 100644 arch/arm/configs/am335x_pac_defconfig
+ delete mode 100644 arch/arm/configs/am335x_pac_mlo_defconfig
+ create mode 100644 arch/arm/configs/am335x_pfc_adv_defconfig
+ create mode 100644 arch/arm/configs/am335x_pfc_adv_mlo_defconfig
+ delete mode 100644 arch/arm/dts/am335x-pac-768_330x-mlo.dts
+ delete mode 100644 arch/arm/dts/am335x-pac-768_330x.dts
+ create mode 100644 arch/arm/dts/am335x-pfc-768_330x-mlo.dts
+ create mode 100644 arch/arm/dts/am335x-pfc-768_330x.dts
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index a192c25..33efd19 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -8,7 +8,7 @@
+  *   - 750-810x	PFC100
+  *   - 750-8208	PFC200
+  *   - 750-821x	PFC200
+- *   - 768-330x	PAC100
++ *   - 768-330x	PFC200ADV
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
+diff --git a/arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot b/arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot
+deleted file mode 100644
+index 7641a93..0000000
+--- a/arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot
++++ /dev/null
+@@ -1,15 +0,0 @@
+-#!/bin/sh
+-
+-source env/data/print-msg-formats
+-
+-global.linux.bootargs.watchdog=""
+-global.boot.watchdog_timeout=0
+-global.autoboot=1
+-
+-uart_console -e ${global.pfc.barebox_uart}
+-led_mode -m -c green
+-usbgadget ${global.pfc.usbgadget_options}
+-
+-echo -e ${info} "waiting for commands over fastboot"
+-
+-exit 0
+diff --git a/arch/arm/boards/wago-pfc-am335x/defaultenv-pfc-adv-am335x/bin/pfc-config-production-boot b/arch/arm/boards/wago-pfc-am335x/defaultenv-pfc-adv-am335x/bin/pfc-config-production-boot
+new file mode 100644
+index 0000000..7641a93
+--- /dev/null
++++ b/arch/arm/boards/wago-pfc-am335x/defaultenv-pfc-adv-am335x/bin/pfc-config-production-boot
+@@ -0,0 +1,15 @@
++#!/bin/sh
++
++source env/data/print-msg-formats
++
++global.linux.bootargs.watchdog=""
++global.boot.watchdog_timeout=0
++global.autoboot=1
++
++uart_console -e ${global.pfc.barebox_uart}
++led_mode -m -c green
++usbgadget ${global.pfc.usbgadget_options}
++
++echo -e ${info} "waiting for commands over fastboot"
++
++exit 0
+diff --git a/arch/arm/boards/wago-pfc-am335x/lowlevel.c b/arch/arm/boards/wago-pfc-am335x/lowlevel.c
+index 79c3083..4031fc6 100644
+--- a/arch/arm/boards/wago-pfc-am335x/lowlevel.c
++++ b/arch/arm/boards/wago-pfc-am335x/lowlevel.c
+@@ -112,11 +112,11 @@ PFC_ENTRY_MLO(start_am33xx_pfc_750_821x_sram_512mb, am335x_pfc_750_821x_mlo,
+ 								PFC_DDR3_512MB);
+ PFC_ENTRY_MLO(start_am33xx_src_2850_311x_sram_256mb, am335x_src_2850_311x_mlo,
+ 								PFC_DDR3_256MB);
+-PFC_ENTRY_MLO(start_am33xx_pac_768_330x_sram_512mb, am335x_pac_768_330x_mlo,
++PFC_ENTRY_MLO(start_am33xx_pfc_768_330x_sram_512mb, am335x_pfc_768_330x_mlo,
+ 								PFC_DDR3_512MB);
+ 
+ PFC_ENTRY(start_am33xx_pfc_750_810x_sdram, am335x_pfc_750_810x, SZ_256M);
+ PFC_ENTRY(start_am33xx_pfc_750_8208_sdram, am335x_pfc_750_8208, SZ_256M);
+ PFC_ENTRY(start_am33xx_pfc_750_821x_sdram, am335x_pfc_750_821x, SZ_512M);
+ PFC_ENTRY(start_am33xx_src_2850_311x_sdram, am335x_src_2850_311x, SZ_256M);
+-PFC_ENTRY(start_am33xx_pac_768_330x_sdram, am335x_pac_768_330x, SZ_512M);
++PFC_ENTRY(start_am33xx_pfc_768_330x_sdram, am335x_pfc_768_330x, SZ_512M);
+diff --git a/arch/arm/configs/am335x_pac_defconfig b/arch/arm/configs/am335x_pac_defconfig
+deleted file mode 100644
+index db280dc..0000000
+--- a/arch/arm/configs/am335x_pac_defconfig
++++ /dev/null
+@@ -1,144 +0,0 @@
+-CONFIG_ARCH_OMAP=y
+-# CONFIG_OMAP_GPMC is not set
+-CONFIG_BAREBOX_UPDATE_AM33XX_EMMC=y
+-CONFIG_OMAP_MULTI_BOARDS=y
+-CONFIG_MACH_WAGO_PFC_AM335X=y
+-CONFIG_MACH_WAGO_PFC_AM335X_768_330x=y
+-CONFIG_THUMB2_BAREBOX=y
+-CONFIG_ARM_BOARD_APPEND_ATAG=y
+-CONFIG_ARM_OPTIMZED_STRING_FUNCTIONS=y
+-CONFIG_ARM_UNWIND=y
+-CONFIG_MMU=y
+-CONFIG_MALLOC_SIZE=0x0
+-CONFIG_MALLOC_TLSF=y
+-CONFIG_KALLSYMS=y
+-CONFIG_RELOCATABLE=y
+-CONFIG_PROMPT="barebox> "
+-CONFIG_HUSH_FANCY_PROMPT=y
+-CONFIG_AUTO_COMPLETE=y
+-CONFIG_MENU=y
+-# CONFIG_TIMESTAMP is not set
+-CONFIG_BOOTM_SHOW_TYPE=y
+-CONFIG_BOOTM_VERBOSE=y
+-CONFIG_BOOTM_INITRD=y
+-CONFIG_BOOTM_OFTREE=y
+-CONFIG_BOOTM_AIMAGE=y
+-CONFIG_BLSPEC=y
+-CONFIG_CONSOLE_ACTIVATE_NONE=y
+-CONFIG_CONSOLE_ALLOW_COLOR=y
+-CONFIG_CONSOLE_RATP=y
+-CONFIG_DEFAULT_ENVIRONMENT_GENERIC_NEW=y
+-CONFIG_DEFAULT_ENVIRONMENT_PATH="defaultenv/defaultenv-pfc-base/ arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/"
+-CONFIG_STATE=y
+-CONFIG_BOOTCHOOSER=y
+-CONFIG_RESET_SOURCE=y
+-CONFIG_DEBUG_INFO=y
+-CONFIG_LONGHELP=y
+-CONFIG_CMD_IOMEM=y
+-CONFIG_CMD_MEMINFO=y
+-CONFIG_CMD_ARM_MMUINFO=y
+-CONFIG_CMD_MMC_EXTCSD=y
+-# CONFIG_CMD_BOOTU is not set
+-CONFIG_CMD_BOOTZ=y
+-CONFIG_CMD_GO=y
+-CONFIG_CMD_LOADB=y
+-CONFIG_CMD_RESET=y
+-CONFIG_CMD_UIMAGE=y
+-CONFIG_CMD_PARTITION=y
+-CONFIG_CMD_SFDISK=y
+-CONFIG_CMD_EXPORT=y
+-CONFIG_CMD_LOADENV=y
+-CONFIG_CMD_PRINTENV=y
+-CONFIG_CMD_MAGICVAR=y
+-CONFIG_CMD_MAGICVAR_HELP=y
+-CONFIG_CMD_SAVEENV=y
+-CONFIG_CMD_FILETYPE=y
+-CONFIG_CMD_LN=y
+-CONFIG_CMD_MD5SUM=y
+-CONFIG_CMD_UNCOMPRESS=y
+-CONFIG_CMD_LET=y
+-CONFIG_CMD_MSLEEP=y
+-CONFIG_CMD_READF=y
+-CONFIG_CMD_SLEEP=y
+-CONFIG_CMD_DHCP=y
+-CONFIG_CMD_MIITOOL=y
+-CONFIG_CMD_PING=y
+-CONFIG_CMD_TFTP=y
+-CONFIG_CMD_ECHO_E=y
+-CONFIG_CMD_EDIT=y
+-CONFIG_CMD_MENU=y
+-CONFIG_CMD_MENUTREE=y
+-CONFIG_CMD_READLINE=y
+-CONFIG_CMD_TIMEOUT=y
+-CONFIG_CMD_CRC=y
+-CONFIG_CMD_CRC_CMP=y
+-CONFIG_CMD_MM=y
+-CONFIG_CMD_DETECT=y
+-CONFIG_CMD_FLASH=y
+-CONFIG_CMD_GPIO=y
+-CONFIG_CMD_I2C=y
+-CONFIG_CMD_LED=y
+-CONFIG_CMD_LED_MODE=y
+-CONFIG_CMD_LED_TRIGGER=y
+-CONFIG_CMD_USBGADGET=y
+-CONFIG_CMD_WD=y
+-CONFIG_CMD_BAREBOX_UPDATE=y
+-CONFIG_CMD_OF_NODE=y
+-CONFIG_CMD_OF_PROPERTY=y
+-CONFIG_CMD_OF_DISPLAY_TIMINGS=y
+-CONFIG_CMD_OF_FIXUP_STATUS=y
+-CONFIG_CMD_OFTREE=y
+-CONFIG_CMD_TIME=y
+-CONFIG_CMD_STATE=y
+-CONFIG_CMD_BOOTCHOOSER=y
+-CONFIG_CMD_UART_CONSOLE=y
+-CONFIG_CMD_ETHADDR_MATCH=y
+-CONFIG_NET=y
+-CONFIG_NET_NFS=y
+-CONFIG_NET_NETCONSOLE=y
+-CONFIG_NET_RESOLV=y
+-CONFIG_OF_BAREBOX_DRIVERS=y
+-CONFIG_OF_BAREBOX_ENV_IN_FS=y
+-CONFIG_DRIVER_SERIAL_NS16550=y
+-CONFIG_DRIVER_SERIAL_NS16550_OMAP_EXTENSIONS=y
+-CONFIG_DRIVER_NET_CPSW=y
+-CONFIG_MICREL_PHY=y
+-CONFIG_SMSC_PHY=y
+-CONFIG_NET_USB=y
+-CONFIG_NET_USB_ASIX=y
+-CONFIG_NET_USB_SMSC95XX=y
+-# CONFIG_SPI is not set
+-CONFIG_MTD=y
+-CONFIG_USB_HOST=y
+-CONFIG_USB_STORAGE=y
+-CONFIG_USB_GADGET=y
+-CONFIG_USB_GADGET_DFU=y
+-CONFIG_USB_GADGET_SERIAL=y
+-CONFIG_USB_GADGET_FASTBOOT=y
+-CONFIG_USB_MUSB=y
+-CONFIG_USB_MUSB_AM335X=y
+-CONFIG_USB_MUSB_HOST=y
+-CONFIG_USB_MUSB_GADGET=y
+-CONFIG_MCI=y
+-CONFIG_MCI_STARTUP=y
+-CONFIG_MCI_OMAP_HSMMC=y
+-CONFIG_STATE_DRV=y
+-CONFIG_XSECTION=y
+-CONFIG_BOOTMATRIX=y
+-CONFIG_LED=y
+-CONFIG_LED_GPIO=y
+-CONFIG_LED_GPIO_OF=y
+-CONFIG_LED_TRIGGERS=y
+-CONFIG_LED_PCA955X=y
+-CONFIG_WATCHDOG=y
+-CONFIG_WATCHDOG_OMAP=y
+-CONFIG_GPIO_GENERIC_PLATFORM=y
+-CONFIG_GPIO_PCA953X=y
+-CONFIG_PINCTRL_SINGLE=y
+-CONFIG_FS_EXT4=y
+-CONFIG_FS_TFTP=y
+-CONFIG_FS_NFS=y
+-CONFIG_FS_FAT=y
+-CONFIG_FS_FAT_WRITE=y
+-CONFIG_FS_FAT_LFN=y
+-CONFIG_ZLIB=y
+diff --git a/arch/arm/configs/am335x_pac_mlo_defconfig b/arch/arm/configs/am335x_pac_mlo_defconfig
+deleted file mode 100644
+index ac3c714..0000000
+--- a/arch/arm/configs/am335x_pac_mlo_defconfig
++++ /dev/null
+@@ -1,36 +0,0 @@
+-CONFIG_ARCH_OMAP=y
+-# CONFIG_OMAP_GPMC is not set
+-CONFIG_OMAP_BUILD_IFT=y
+-CONFIG_OMAP_MULTI_BOARDS=y
+-CONFIG_MACH_WAGO_PFC_AM335X=y
+-CONFIG_MACH_WAGO_PFC_AM335X_768_330x=y
+-CONFIG_THUMB2_BAREBOX=y
+-CONFIG_MMU=y
+-CONFIG_BAREBOX_MAX_PBLX_SIZE=0x1b400
+-CONFIG_MALLOC_SIZE=0x0
+-CONFIG_MALLOC_TLSF=y
+-CONFIG_RELOCATABLE=y
+-CONFIG_PROMPT="MLO>"
+-CONFIG_SHELL_NONE=y
+-# CONFIG_ERRNO_MESSAGES is not set
+-# CONFIG_TIMESTAMP is not set
+-CONFIG_BOOTM=y
+-CONFIG_BOOTM_AIMAGE=y
+-CONFIG_DEBUG_INFO=y
+-CONFIG_DRIVER_SERIAL_NS16550=y
+-CONFIG_DRIVER_SERIAL_NS16550_OMAP_EXTENSIONS=y
+-# CONFIG_SPI is not set
+-CONFIG_USB_GADGET=y
+-# CONFIG_USB_GADGET_AUTOSTART is not set
+-CONFIG_USB_GADGET_FASTBOOT=y
+-CONFIG_USB_MUSB=y
+-CONFIG_USB_MUSB_AM335X=y
+-CONFIG_USB_MUSB_GADGET=y
+-CONFIG_MCI=y
+-CONFIG_MCI_STARTUP=y
+-# CONFIG_MCI_WRITE is not set
+-CONFIG_MCI_OMAP_HSMMC=y
+-CONFIG_XSECTION=y
+-CONFIG_PINCTRL_SINGLE=y
+-CONFIG_FS_FAT=y
+-CONFIG_FS_FAT_LFN=y
+diff --git a/arch/arm/configs/am335x_pfc_adv_defconfig b/arch/arm/configs/am335x_pfc_adv_defconfig
+new file mode 100644
+index 0000000..5784721
+--- /dev/null
++++ b/arch/arm/configs/am335x_pfc_adv_defconfig
+@@ -0,0 +1,144 @@
++CONFIG_ARCH_OMAP=y
++# CONFIG_OMAP_GPMC is not set
++CONFIG_BAREBOX_UPDATE_AM33XX_EMMC=y
++CONFIG_OMAP_MULTI_BOARDS=y
++CONFIG_MACH_WAGO_PFC_AM335X=y
++CONFIG_MACH_WAGO_PFC_AM335X_768_330x=y
++CONFIG_THUMB2_BAREBOX=y
++CONFIG_ARM_BOARD_APPEND_ATAG=y
++CONFIG_ARM_OPTIMZED_STRING_FUNCTIONS=y
++CONFIG_ARM_UNWIND=y
++CONFIG_MMU=y
++CONFIG_MALLOC_SIZE=0x0
++CONFIG_MALLOC_TLSF=y
++CONFIG_KALLSYMS=y
++CONFIG_RELOCATABLE=y
++CONFIG_PROMPT="barebox> "
++CONFIG_HUSH_FANCY_PROMPT=y
++CONFIG_AUTO_COMPLETE=y
++CONFIG_MENU=y
++# CONFIG_TIMESTAMP is not set
++CONFIG_BOOTM_SHOW_TYPE=y
++CONFIG_BOOTM_VERBOSE=y
++CONFIG_BOOTM_INITRD=y
++CONFIG_BOOTM_OFTREE=y
++CONFIG_BOOTM_AIMAGE=y
++CONFIG_BLSPEC=y
++CONFIG_CONSOLE_ACTIVATE_NONE=y
++CONFIG_CONSOLE_ALLOW_COLOR=y
++CONFIG_CONSOLE_RATP=y
++CONFIG_DEFAULT_ENVIRONMENT_GENERIC_NEW=y
++CONFIG_DEFAULT_ENVIRONMENT_PATH="defaultenv/defaultenv-pfc-base/ arch/arm/boards/wago-pfc-am335x/defaultenv-pfc-adv-am335x/"
++CONFIG_STATE=y
++CONFIG_BOOTCHOOSER=y
++CONFIG_RESET_SOURCE=y
++CONFIG_DEBUG_INFO=y
++CONFIG_LONGHELP=y
++CONFIG_CMD_IOMEM=y
++CONFIG_CMD_MEMINFO=y
++CONFIG_CMD_ARM_MMUINFO=y
++CONFIG_CMD_MMC_EXTCSD=y
++# CONFIG_CMD_BOOTU is not set
++CONFIG_CMD_BOOTZ=y
++CONFIG_CMD_GO=y
++CONFIG_CMD_LOADB=y
++CONFIG_CMD_RESET=y
++CONFIG_CMD_UIMAGE=y
++CONFIG_CMD_PARTITION=y
++CONFIG_CMD_SFDISK=y
++CONFIG_CMD_EXPORT=y
++CONFIG_CMD_LOADENV=y
++CONFIG_CMD_PRINTENV=y
++CONFIG_CMD_MAGICVAR=y
++CONFIG_CMD_MAGICVAR_HELP=y
++CONFIG_CMD_SAVEENV=y
++CONFIG_CMD_FILETYPE=y
++CONFIG_CMD_LN=y
++CONFIG_CMD_MD5SUM=y
++CONFIG_CMD_UNCOMPRESS=y
++CONFIG_CMD_LET=y
++CONFIG_CMD_MSLEEP=y
++CONFIG_CMD_READF=y
++CONFIG_CMD_SLEEP=y
++CONFIG_CMD_DHCP=y
++CONFIG_CMD_MIITOOL=y
++CONFIG_CMD_PING=y
++CONFIG_CMD_TFTP=y
++CONFIG_CMD_ECHO_E=y
++CONFIG_CMD_EDIT=y
++CONFIG_CMD_MENU=y
++CONFIG_CMD_MENUTREE=y
++CONFIG_CMD_READLINE=y
++CONFIG_CMD_TIMEOUT=y
++CONFIG_CMD_CRC=y
++CONFIG_CMD_CRC_CMP=y
++CONFIG_CMD_MM=y
++CONFIG_CMD_DETECT=y
++CONFIG_CMD_FLASH=y
++CONFIG_CMD_GPIO=y
++CONFIG_CMD_I2C=y
++CONFIG_CMD_LED=y
++CONFIG_CMD_LED_MODE=y
++CONFIG_CMD_LED_TRIGGER=y
++CONFIG_CMD_USBGADGET=y
++CONFIG_CMD_WD=y
++CONFIG_CMD_BAREBOX_UPDATE=y
++CONFIG_CMD_OF_NODE=y
++CONFIG_CMD_OF_PROPERTY=y
++CONFIG_CMD_OF_DISPLAY_TIMINGS=y
++CONFIG_CMD_OF_FIXUP_STATUS=y
++CONFIG_CMD_OFTREE=y
++CONFIG_CMD_TIME=y
++CONFIG_CMD_STATE=y
++CONFIG_CMD_BOOTCHOOSER=y
++CONFIG_CMD_UART_CONSOLE=y
++CONFIG_CMD_ETHADDR_MATCH=y
++CONFIG_NET=y
++CONFIG_NET_NFS=y
++CONFIG_NET_NETCONSOLE=y
++CONFIG_NET_RESOLV=y
++CONFIG_OF_BAREBOX_DRIVERS=y
++CONFIG_OF_BAREBOX_ENV_IN_FS=y
++CONFIG_DRIVER_SERIAL_NS16550=y
++CONFIG_DRIVER_SERIAL_NS16550_OMAP_EXTENSIONS=y
++CONFIG_DRIVER_NET_CPSW=y
++CONFIG_MICREL_PHY=y
++CONFIG_SMSC_PHY=y
++CONFIG_NET_USB=y
++CONFIG_NET_USB_ASIX=y
++CONFIG_NET_USB_SMSC95XX=y
++# CONFIG_SPI is not set
++CONFIG_MTD=y
++CONFIG_USB_HOST=y
++CONFIG_USB_STORAGE=y
++CONFIG_USB_GADGET=y
++CONFIG_USB_GADGET_DFU=y
++CONFIG_USB_GADGET_SERIAL=y
++CONFIG_USB_GADGET_FASTBOOT=y
++CONFIG_USB_MUSB=y
++CONFIG_USB_MUSB_AM335X=y
++CONFIG_USB_MUSB_HOST=y
++CONFIG_USB_MUSB_GADGET=y
++CONFIG_MCI=y
++CONFIG_MCI_STARTUP=y
++CONFIG_MCI_OMAP_HSMMC=y
++CONFIG_STATE_DRV=y
++CONFIG_XSECTION=y
++CONFIG_BOOTMATRIX=y
++CONFIG_LED=y
++CONFIG_LED_GPIO=y
++CONFIG_LED_GPIO_OF=y
++CONFIG_LED_TRIGGERS=y
++CONFIG_LED_PCA955X=y
++CONFIG_WATCHDOG=y
++CONFIG_WATCHDOG_OMAP=y
++CONFIG_GPIO_GENERIC_PLATFORM=y
++CONFIG_GPIO_PCA953X=y
++CONFIG_PINCTRL_SINGLE=y
++CONFIG_FS_EXT4=y
++CONFIG_FS_TFTP=y
++CONFIG_FS_NFS=y
++CONFIG_FS_FAT=y
++CONFIG_FS_FAT_WRITE=y
++CONFIG_FS_FAT_LFN=y
++CONFIG_ZLIB=y
+diff --git a/arch/arm/configs/am335x_pfc_adv_mlo_defconfig b/arch/arm/configs/am335x_pfc_adv_mlo_defconfig
+new file mode 100644
+index 0000000..ac3c714
+--- /dev/null
++++ b/arch/arm/configs/am335x_pfc_adv_mlo_defconfig
+@@ -0,0 +1,36 @@
++CONFIG_ARCH_OMAP=y
++# CONFIG_OMAP_GPMC is not set
++CONFIG_OMAP_BUILD_IFT=y
++CONFIG_OMAP_MULTI_BOARDS=y
++CONFIG_MACH_WAGO_PFC_AM335X=y
++CONFIG_MACH_WAGO_PFC_AM335X_768_330x=y
++CONFIG_THUMB2_BAREBOX=y
++CONFIG_MMU=y
++CONFIG_BAREBOX_MAX_PBLX_SIZE=0x1b400
++CONFIG_MALLOC_SIZE=0x0
++CONFIG_MALLOC_TLSF=y
++CONFIG_RELOCATABLE=y
++CONFIG_PROMPT="MLO>"
++CONFIG_SHELL_NONE=y
++# CONFIG_ERRNO_MESSAGES is not set
++# CONFIG_TIMESTAMP is not set
++CONFIG_BOOTM=y
++CONFIG_BOOTM_AIMAGE=y
++CONFIG_DEBUG_INFO=y
++CONFIG_DRIVER_SERIAL_NS16550=y
++CONFIG_DRIVER_SERIAL_NS16550_OMAP_EXTENSIONS=y
++# CONFIG_SPI is not set
++CONFIG_USB_GADGET=y
++# CONFIG_USB_GADGET_AUTOSTART is not set
++CONFIG_USB_GADGET_FASTBOOT=y
++CONFIG_USB_MUSB=y
++CONFIG_USB_MUSB_AM335X=y
++CONFIG_USB_MUSB_GADGET=y
++CONFIG_MCI=y
++CONFIG_MCI_STARTUP=y
++# CONFIG_MCI_WRITE is not set
++CONFIG_MCI_OMAP_HSMMC=y
++CONFIG_XSECTION=y
++CONFIG_PINCTRL_SINGLE=y
++CONFIG_FS_FAT=y
++CONFIG_FS_FAT_LFN=y
+diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
+index cf61d2c..7e187e8 100644
+--- a/arch/arm/dts/Makefile
++++ b/arch/arm/dts/Makefile
+@@ -128,8 +128,8 @@ pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += \
+ pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM35XX) += am35xx-pfc-750_820x.dtb.o
+ pbl-dtb-$(CONFIG_MACH_WAGO_VTPCTP_MX6) += imx6q-vtpctp-762-4xxx.dtb.o
+ pbl-dtb-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += \
+-	am335x-pac-768_330x.dtb.o \
+-	am335x-pac-768_330x-mlo.dtb.o
++	am335x-pfc-768_330x.dtb.o \
++	am335x-pfc-768_330x-mlo.dtb.o
+ pbl-dtb-$(CONFIG_MACH_WAGO_PFC_CYCLONE5) += \
+ 	cyclone5-pfc-750_8230.dtb.o
+ clean-files := *.dtb *.dtb.S .*.dtc .*.pre .*.dts *.dtb.lzo
+diff --git a/arch/arm/dts/am335x-pac-768_330x-mlo.dts b/arch/arm/dts/am335x-pac-768_330x-mlo.dts
+deleted file mode 100644
+index 23d1ad3..0000000
+--- a/arch/arm/dts/am335x-pac-768_330x-mlo.dts
++++ /dev/null
+@@ -1,67 +0,0 @@
+-/*
+- * Copyright (C) 2017 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
+- * Author: Heinrich Toews <heinrich.toews@wago.com>
+- *
+- * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
+- * Author: Oleg Karfich <oleg.karfich@wago.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation; either version 2 of
+- * the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-/dts-v1/;
+-
+-#include "am335x-pfc.dtsi"
+-#include "am335x-pfc-emmc.dtsi"
+-#include "am335x-pfc-strip.dtsi"
+-#include "am33xx-strip.dtsi"
+-#include "am33xx-clocks-strip.dtsi"
+-
+-/ {
+-	model = "PAC-768-330x MLO";
+-	compatible = "wago,am335x-pac-768_330x", "wago,am335x-pfc", "ti,am33xx";
+-	board-variant = "pac100";
+-
+-	memory {
+-		device_type = "memory";
+-		reg = <0x80000000 0x20000000>; /* 512 MB */
+-	};
+-};
+-
+-&mmc1_cd_pins {
+-	pinctrl-single,pins = <
+-		0x04C (PIN_INPUT_PULLDOWN | MUX_MODE7)  /* gpmc_a3.gpio1_19 */
+-	>;
+-};
+-
+-&mmc1 {
+-	cd-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
+-};
+-
+-&mmc2 {
+-	status = "okay";
+-};
+-
+-&usb {
+-	status = "okay";
+-};
+-
+-&usb_ctrl_mod {
+-	status = "okay";
+-};
+-
+-&usb0 {
+-	dr_mode = "otg";
+-	status = "okay";
+-};
+-
+-&usb0_phy {
+-	status = "okay";
+-};
+diff --git a/arch/arm/dts/am335x-pac-768_330x.dts b/arch/arm/dts/am335x-pac-768_330x.dts
+deleted file mode 100644
+index f9b6ce0..0000000
+--- a/arch/arm/dts/am335x-pac-768_330x.dts
++++ /dev/null
+@@ -1,147 +0,0 @@
+-/*
+- * Copyright (C) 2017 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
+- * Author: Heinrich Toews <heinrich.toews@wago.com>
+- *
+- * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
+- * Author: Oleg Karfich <oleg.karfich@wago.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License as
+- * published by the Free Software Foundation; either version 2 of
+- * the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
+-
+-/dts-v1/;
+-
+-#include "am335x-pfc.dtsi"
+-#include "am335x-pfc-emmc.dtsi"
+-#include "am335x-pfc-leds.dtsi"
+-#include "am335x-pfc-rmii12.dtsi"
+-
+-/ {
+-	model = "PAC-768-330x";
+-	compatible = "wago,am335x-pac-768_330x", "wago,am335x-pfc", "ti,am33xx";
+-	board-variant = "pac100";
+-	switch-reset-gpio = <&pca953x 4 GPIO_ACTIVE_LOW>;
+-
+-	memory {
+-		device_type = "memory";
+-		reg = <0x80000000 0x20000000>; /* 512 MB */
+-	};
+-};
+-
+-&i2c0 {
+-	pca953x: pca953x@70 {
+-		compatible = "nxp,pca9538";
+-		reg = <0x70>;
+-		gpio-controller;
+-		#gpio-cells = <2>;
+-	};
+-};
+-
+-&mmc1_cd_pins {
+-	pinctrl-single,pins = <
+-		0x04C (PIN_INPUT_PULLDOWN | MUX_MODE7)  /* gpmc_a3.gpio1_19 */
+-	>;
+-};
+-
+-&mmc1 {
+-	cd-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
+-};
+-
+-&mmc2 {
+-	status = "okay";
+-};
+-
+-&pca9552_60 {
+-	status = "okay";
+-};
+-
+-&led_0 {
+-	label = "ds-red";
+-};
+-
+-&led_1 {
+-	label = "ds-green";
+-};
+-
+-&led_2 {
+-	label = "ec-red";
+-};
+-
+-&led_3 {
+-	label = "ec-blue";
+-};
+-
+-&led_4 {
+-	label = "ms-red";
+-};
+-
+-&led_5 {
+-	label = "ms-green";
+-};
+-
+-&led_6 {
+-	label = "ns-red";
+-};
+-
+-&led_7 {
+-	label = "ns-green";
+-};
+-
+-&led_8 {
+-	label = "run-red";
+-};
+-
+-&led_9 {
+-	label = "run-green";
+-};
+-
+-&led_10 {
+-	label = "app-red";
+-};
+-
+-&led_11 {
+-	label = "app-green";
+-};
+-
+-&mac {
+-	status = "okay";
+-};
+-
+-&usb {
+-	status = "okay";
+-};
+-
+-&usb_ctrl_mod {
+-	status = "okay";
+-};
+-
+-&usb0 {
+-	dr_mode = "peripheral";
+-	status = "okay";
+-};
+-
+-&usb0_phy {
+-	status = "okay";
+-};
+-
+-&rst {
+-	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
+-};
+-
+-&partitions {
+-	blp_uii: ethaddr2@1CF {
+-		label = "blp_uii";
+-		reg = <0x1CF 0x28>;
+-	};
+-};
+-
+-&xsection {
+-	blp_uii = <&blp_uii>;
+-};
+diff --git a/arch/arm/dts/am335x-pfc-768_330x-mlo.dts b/arch/arm/dts/am335x-pfc-768_330x-mlo.dts
+new file mode 100644
+index 0000000..012f64f
+--- /dev/null
++++ b/arch/arm/dts/am335x-pfc-768_330x-mlo.dts
+@@ -0,0 +1,67 @@
++/*
++ * Copyright (C) 2017 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Heinrich Toews <heinrich.toews@wago.com>
++ *
++ * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Oleg Karfich <oleg.karfich@wago.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include "am335x-pfc.dtsi"
++#include "am335x-pfc-emmc.dtsi"
++#include "am335x-pfc-strip.dtsi"
++#include "am33xx-strip.dtsi"
++#include "am33xx-clocks-strip.dtsi"
++
++/ {
++	model = "PFC-768-330x MLO";
++	compatible = "wago,am335x-pfc-768_330x", "wago,am335x-pfc", "ti,am33xx";
++	board-variant = "pfc200adv";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++};
++
++&mmc1_cd_pins {
++	pinctrl-single,pins = <
++		0x04C (PIN_INPUT_PULLDOWN | MUX_MODE7)  /* gpmc_a3.gpio1_19 */
++	>;
++};
++
++&mmc1 {
++	cd-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
++};
++
++&mmc2 {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "otg";
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
+diff --git a/arch/arm/dts/am335x-pfc-768_330x.dts b/arch/arm/dts/am335x-pfc-768_330x.dts
+new file mode 100644
+index 0000000..1dd1bc9
+--- /dev/null
++++ b/arch/arm/dts/am335x-pfc-768_330x.dts
+@@ -0,0 +1,147 @@
++/*
++ * Copyright (C) 2017 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Heinrich Toews <heinrich.toews@wago.com>
++ *
++ * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG <http://global.wago.com>
++ * Author: Oleg Karfich <oleg.karfich@wago.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++/dts-v1/;
++
++#include "am335x-pfc.dtsi"
++#include "am335x-pfc-emmc.dtsi"
++#include "am335x-pfc-leds.dtsi"
++#include "am335x-pfc-rmii12.dtsi"
++
++/ {
++	model = "PFC-768-330x";
++	compatible = "wago,am335x-pfc-768_330x", "wago,am335x-pfc", "ti,am33xx";
++	board-variant = "pfc200adv";
++	switch-reset-gpio = <&pca953x 4 GPIO_ACTIVE_LOW>;
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++};
++
++&i2c0 {
++	pca953x: pca953x@70 {
++		compatible = "nxp,pca9538";
++		reg = <0x70>;
++		gpio-controller;
++		#gpio-cells = <2>;
++	};
++};
++
++&mmc1_cd_pins {
++	pinctrl-single,pins = <
++		0x04C (PIN_INPUT_PULLDOWN | MUX_MODE7)  /* gpmc_a3.gpio1_19 */
++	>;
++};
++
++&mmc1 {
++	cd-gpios = <&gpio1 19 GPIO_ACTIVE_HIGH>;
++};
++
++&mmc2 {
++	status = "okay";
++};
++
++&pca9552_60 {
++	status = "okay";
++};
++
++&led_0 {
++	label = "ds-red";
++};
++
++&led_1 {
++	label = "ds-green";
++};
++
++&led_2 {
++	label = "ec-red";
++};
++
++&led_3 {
++	label = "ec-blue";
++};
++
++&led_4 {
++	label = "ms-red";
++};
++
++&led_5 {
++	label = "ms-green";
++};
++
++&led_6 {
++	label = "ns-red";
++};
++
++&led_7 {
++	label = "ns-green";
++};
++
++&led_8 {
++	label = "run-red";
++};
++
++&led_9 {
++	label = "run-green";
++};
++
++&led_10 {
++	label = "app-red";
++};
++
++&led_11 {
++	label = "app-green";
++};
++
++&mac {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "peripheral";
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&rst {
++	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
++};
++
++&partitions {
++	blp_uii: ethaddr2@1CF {
++		label = "blp_uii";
++		reg = <0x1CF 0x28>;
++	};
++};
++
++&xsection {
++	blp_uii = <&blp_uii>;
++};
+diff --git a/images/Makefile.am33xx b/images/Makefile.am33xx
+index f78defe..3c86291 100644
+--- a/images/Makefile.am33xx
++++ b/images/Makefile.am33xx
+@@ -167,13 +167,13 @@ pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += start_am33xx_src_2850_311x_sram
+ FILE_barebox-am33xx-src-2850-311x-mlo.img = start_am33xx_src_2850_311x_sram_256mb.pblx.mlo
+ am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X_2850_311x) += barebox-am33xx-src-2850-311x-mlo.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += start_am33xx_pac_768_330x_sdram
+-FILE_barebox-am33xx-pac-768-330x.img = start_am33xx_pac_768_330x_sdram.pblx
+-am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += barebox-am33xx-pac-768-330x.img
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += start_am33xx_pfc_768_330x_sdram
++FILE_barebox-am33xx-pfc-768-330x.img = start_am33xx_pfc_768_330x_sdram.pblx
++am33xx-barebox-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += barebox-am33xx-pfc-768-330x.img
+ 
+-pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += start_am33xx_pac_768_330x_sram_512mb
+-FILE_barebox-am33xx-pac-768-330x-mlo.img = start_am33xx_pac_768_330x_sram_512mb.pblx.mlo
+-am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += barebox-am33xx-pac-768-330x-mlo.img
++pblx-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += start_am33xx_pfc_768_330x_sram_512mb
++FILE_barebox-am33xx-pfc-768-330x-mlo.img = start_am33xx_pfc_768_330x_sram_512mb.pblx.mlo
++am33xx-mlo-$(CONFIG_MACH_WAGO_PFC_AM335X_768_330x) += barebox-am33xx-pfc-768-330x-mlo.img
+ 
+ ifdef CONFIG_OMAP_BUILD_IFT
+ image-y += $(am33xx-mlo-y)
+-- 
+2.7.4
+

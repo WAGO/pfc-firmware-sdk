@@ -1,7 +1,7 @@
 From 44da2df4a4fba16220baaf0ac632d8b4ed9e6634 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 13 Nov 2018 09:42:58 +0100
-Subject: [PATCH 149/149] rename system slots
+Subject: [PATCH] rename system slots
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

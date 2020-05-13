@@ -1,7 +1,7 @@
 From fb9b90b329bdd26985b44ae2c23556ac1bc07974 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 6 Jun 2018 09:12:40 +0200
-Subject: [PATCH 023/144] arm: dts: am335x: pfc: add bootmatrix node
+Subject: [PATCH] arm: dts: am335x: pfc: add bootmatrix node
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

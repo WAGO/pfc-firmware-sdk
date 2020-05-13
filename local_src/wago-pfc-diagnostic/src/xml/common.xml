@@ -17,6 +17,7 @@
       </string>
     </event>
     <event id="x00C0" name="system_start" persistent="yes">
+      <led name="SYS" state="STATIC_GRN" />
       <string>
         <en>System Booted</en>
       </string>
@@ -32,7 +33,7 @@
       </comment>
       <led name="NS" state="STATIC_OFF" />
       <string>
-        <en>Ethernet/IP driver is not loaded</en>
+        <en>not active</en>
       </string>
     </event>
     <event id="x0005" name="DoubleIP_br0">
@@ -92,6 +93,42 @@
       </comment>
       <string>
         <en>RTC interruption detected, please check and adjust date and time</en>
+      </string>
+    </event>
+    <event id="x000D" name="fieldbus_not_active_bf">
+      <comment>
+        If their is no extended error code active we use this ID 
+      </comment>
+      <led name="BF" state="STATIC_OFF" />
+      <string>
+        <en>Fieldbus not active</en>
+      </string>
+    </event>    
+    <event id="x000E" name="fieldbus_not_active_dia">
+      <comment>
+        If their is no extended error code active we use this ID 
+      </comment>
+      <led name="DIA" state="STATIC_OFF" />
+      <string>
+        <en>Fieldbus not active</en>
+      </string>
+    </event>    
+		<event id="x000F" name="fieldbus_not_active_can">
+      <comment>
+        If their is no extended error code active we use this ID 
+      </comment>
+      <led name="CAN" state="STATIC_OFF" />
+      <string>
+        <en>Fieldbus not active</en>
+      </string>
+    </event>
+				<event id="x0010" name="not_active_ec">
+      <comment>
+        If their is no extended error code active we use this ID 
+      </comment>
+      <led name="EC" state="STATIC_OFF" />
+      <string>
+        <en>not active</en>
       </string>
     </event>
   </eventclass>

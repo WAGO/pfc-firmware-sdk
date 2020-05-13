@@ -10,8 +10,11 @@ class MockIPersistenceJsonConfigConverter : public IPersistenceJsonConfigConvert
  public:
 
   MOCK_CONST_METHOD4(ToJson, Status(const BridgeConfig&, const IPConfigs&, bool, ::std::string&) );
-  MOCK_CONST_METHOD3(ToConfigs, Status(const ::std::string&, BridgeConfig&,
-                                       IPConfigs&) );
+  MOCK_CONST_METHOD3(ToConfigs, Status(const ::std::string&, BridgeConfig&, IPConfigs&) );
+
+  MOCK_CONST_METHOD5(ToJson, Status(const BridgeConfig&, const IPConfigs&, const DipSwitchIpConfig&,
+                                    bool, ::std::string&) );
+  MOCK_CONST_METHOD4(ToConfigs, Status(const ::std::string&, BridgeConfig&, IPConfigs&, DipSwitchIpConfig&) );
 
 };
 

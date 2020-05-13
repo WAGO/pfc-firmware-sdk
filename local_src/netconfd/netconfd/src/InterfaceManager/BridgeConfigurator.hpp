@@ -45,12 +45,12 @@ class BridgeConfigurator : public IBridgeConfigurator {
                                            BridgeConfig const& config_os) const;
   Status AddMissingBridgesAndTheirInterfaces(Bridges const& actual_bridges,
                                            BridgeConfig const& config_os) const;
+  Status SetAllBridgesUp(BridgeConfig const &config_os) const;
   Status SetInterfaceDown(Interface const& interface) const;
   Status SetInterfaceUpAndAddToBridge(Interface const& interface, Bridge const& bridge) const;
   Status SetInterfaceDownAndDeleteFromBridge(Interface const& interface,
                                              Bridge const& bridge) const;
   Status AddBridge(Bridge const& bridge) const;
-  Status SetBridgeUpAndConfigure(Bridge const& bridge) const;
   Status SetBridgeDownAndDelete(Bridge const& bridge) const;
   Status SetDefaultInterfaceUp() const;
 

@@ -24,6 +24,9 @@
 #define  OP_XSECTION_QUIET       (1 << 3)
 #define  OP_XSECTION_DUMP        (1 << 4)
 
+#define BOOT_MODE_ID_EXT 0x102
+#define SD_DISABLE_BIT 1
+
 typedef unsigned char u8;
 
 struct pac_eeprom_xload_section_hdr {

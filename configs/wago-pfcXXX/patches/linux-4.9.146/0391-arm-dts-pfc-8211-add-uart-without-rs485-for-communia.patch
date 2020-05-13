@@ -1,0 +1,40 @@
+From 71fa720e4b873339d02f0dedec70b624d1453411 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Tue, 10 Mar 2020 17:00:00 +0100
+Subject: [PATCH] arm: dts: pfc 8211: add uart without rs485 for communiation
+ with the sfp modules
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8211.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8211.dts b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
+index cfc7afcffa28..35d4b2afd0b4 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8211.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
+@@ -10,6 +10,7 @@
+ #include "am335x-pfc-750_821x.dtsi"
+ #include "am335x-pfc-750_82xx-dcan.dtsi"
+ #include "am335x-pfc-750_821x-mv88e6321.dtsi"
++#include "am335x-pfc-750_8xxx-uart1.dtsi"
+ #include "wago-devconf.dtsi"
+ 
+ /{
+@@ -73,6 +74,13 @@
+ 	status = "okay";
+ };
+ 
++&uart1 {
++	/delete-property/ rs485en-gpio;
++	/delete-property/ rs485-rts-active-high;
++	/delete-property/ rs485-rts-delay;
++	status = "okay";
++};
++
+ &uart5 {
+ 	status = "okay";
+ };
+-- 
+2.17.1
+

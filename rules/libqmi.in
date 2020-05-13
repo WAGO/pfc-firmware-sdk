@@ -1,0 +1,8 @@
+## SECTION=networking
+
+config LIBQMI
+	tristate
+	select GLIB
+	prompt "libqmi"
+	help
+	  Support library to use the Qualcomm MSM Interface (QMI) protocol

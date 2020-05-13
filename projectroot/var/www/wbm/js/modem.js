@@ -189,7 +189,7 @@ ModemContent.prototype.Refresh = function(cb)
 
 ModemContent.prototype.RefreshSimStateArea = function()
 {
-  // states: UNKNOWN, SIM_PIN, SIM_PUK, READY, NOT_INSERTED, ERROR
+  // states: UNKNOWN, SIM_PIN, SIM_PUK, READY, NOT_INSERTED, ERROR, NOT_READY
 
   var modemContent  = this;
   var areaHtml      = '';
@@ -214,6 +214,9 @@ ModemContent.prototype.RefreshSimStateArea = function()
     case 'SIM_PUK': areaHtml = modemContent.SimAuthAreaPukHtml(simConfig.SimAttempts); break;
     case 'READY':   areaHtml = modemContent.SimAuthAreaReadyHtml(); break;
     case 'NOT_INSERTED': areaHtml = modemContent.SimAuthAreaErrorHtml('SIM card not inserted.'); break;
+    case 'NOT_READY': areaHtml = modemContent.SimAuthAreaErrorHtml('SIM card not ready.'); break;
+    case 'ERROR': areaHtml = modemContent.SimAuthAreaErrorHtml('SIM card not valid.'); break;
+    case 'UNKNOWN': areaHtml = modemContent.SimAuthAreaErrorHtml('SIM card status unknown.'); break;
     default:        areaHtml = modemContent.SimAuthAreaErrorHtml(); break;
   }
 
@@ -448,7 +451,9 @@ ModemContent.prototype.NetworkRegistrationOutputText = function(networkRegistrat
     case 'ROAMING': outputText = 'Registered';      break;
     case 'STOPPED':
     case 'STARTED':
+    case 'NOSERVICE':
     case 'DENIED':  outputText = 'Not registered';  break;
+    case 'UNKNOWN':
     default:        outputText = 'Unknown';         break;
   }
 

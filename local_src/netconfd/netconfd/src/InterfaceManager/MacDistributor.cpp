@@ -17,7 +17,7 @@
 
 namespace netconfd {
 
-MacDistributor::MacDistributor(IDevicePropertiesProvider& properties_provider)
+MacDistributor::MacDistributor(IDeviceProperties& properties_provider)
     : properties_provider_ { properties_provider } {
 
   auto interfaces = properties_provider.GetOSInterfaces();

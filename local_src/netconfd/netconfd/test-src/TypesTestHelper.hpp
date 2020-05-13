@@ -6,7 +6,6 @@
 
 namespace netconfd {
 
-bool operator==(const netconfd::InterfaceConfig& a, const netconfd::InterfaceConfig& b);
 std::ostream& operator<<(std::ostream& os, const InterfaceConfig& pc) ;
 
 std::ostream& operator<<(std::ostream& os, const IPConfig& pc) ;

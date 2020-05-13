@@ -17,9 +17,14 @@ PACKAGES-$(PTXCONF_WRETAIN) += wretain
 # Paths and names
 #
 WRETAIN_MAJOR_VERSION := 0
-WRETAIN_MINOR_VERSION := 5
+WRETAIN_MINOR_VERSION := 8
 WRETAIN_PATCH_VERSION := 0
-WRETAIN_BUILD_ID      := -157200361628
+
+ifdef PTXCONF_WRETAIN_DEV
+WRETAIN_BUILD_ID      := -$(call remove_quotes,$(PTXCONF_WRETAIN_DEV_BRANCH))
+else
+WRETAIN_BUILD_ID      := -157596999952
+endif
 
 WRETAIN		          := wretain
 WRETAIN_SO_VERSION	  := $(WRETAIN_MAJOR_VERSION).$(WRETAIN_MINOR_VERSION).$(WRETAIN_PATCH_VERSION)
@@ -32,11 +37,11 @@ WRETAIN_URL		      := file://wago_intern/wretain
 endif
 WRETAIN_SUFFIX        := $(suffix $(WRETAIN_URL))
 WRETAIN_MD5            = $(shell [ -f $(WRETAIN_MD5_FILE) ] && cat $(WRETAIN_MD5_FILE))
-WRETAIN_MD5_FILE      := wago_intern/$(WRETAIN)$(WRETAIN_SUFFIX).md5
+WRETAIN_MD5_FILE      := wago_intern/artifactory_sources/$(WRETAIN)$(WRETAIN_SUFFIX).md5
 WRETAIN_ARTIFACT       = $(call jfrog_get_filename,$(WRETAIN_URL))
 WRETAIN_ARCHIVE       := $(WRETAIN)-$(WRETAIN_VERSION)$(WRETAIN_SUFFIX)
 
-WRETAIN_GIT_URL	      := ssh://git@svli01001.wago.local:1022/wago-intern/wretain.git
+WRETAIN_GIT_URL	      := ssh://svtfs01007:22/tfs/ProductDevelopment/Linux-BSP/_git/wretain
 
 WRETAIN_DIR		      := $(BUILDDIR)/$(WRETAIN)
 WRETAIN_LICENSE	      := unknown
@@ -74,7 +79,7 @@ $(STATEDIR)/wretain.get:
 
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	${PTXDIST_WORKSPACE}/scripts/wago/artifactory.sh fetch \
-    '$(WRETAIN_URL)' wago_intern/$(WRETAIN_ARCHIVE) '$(WRETAIN_MD5_FILE)'
+    '$(WRETAIN_URL)' wago_intern/artifactory_sources/$(WRETAIN_ARCHIVE) '$(WRETAIN_MD5_FILE)'
 endif
 
 	@$(call touch)
@@ -84,15 +89,19 @@ endif
 # Extract
 # ----------------------------------------------------------------------------
 
+ifndef PTXCONF_WRETAIN_DEV
+
 $(STATEDIR)/wretain.extract:
 	@$(call targetinfo)
- 
+
 	@mkdir -p $(WRETAIN_DIR)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-	@tar xvzf wago_intern/$(WRETAIN_ARCHIVE) -C $(WRETAIN_DIR) --strip-components=1
+	@tar xvzf wago_intern/artifactory_sources/$(WRETAIN_ARCHIVE) -C $(WRETAIN_DIR) --strip-components=1
 	@$(call patchin, WRETAIN)
 endif
 	@$(call touch)
+
+endif
 
 # ----------------------------------------------------------------------------
 # Prepare

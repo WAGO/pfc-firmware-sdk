@@ -348,130 +348,6 @@ static const _ExtendedGDBusMethodInfo _netconfd_interface_config_method_info_set
   FALSE
 };
 
-static const _ExtendedGDBusArgInfo _netconfd_interface_config_method_info_getbackupparamcount_OUT_ARG_interfaces =
-{
-  {
-    -1,
-    (gchar *) "interfaces",
-    (gchar *) "s",
-    NULL
-  },
-  FALSE
-};
-
-static const _ExtendedGDBusArgInfo * const _netconfd_interface_config_method_info_getbackupparamcount_OUT_ARG_pointers[] =
-{
-  &_netconfd_interface_config_method_info_getbackupparamcount_OUT_ARG_interfaces,
-  NULL
-};
-
-static const _ExtendedGDBusMethodInfo _netconfd_interface_config_method_info_getbackupparamcount =
-{
-  {
-    -1,
-    (gchar *) "getbackupparamcount",
-    NULL,
-    (GDBusArgInfo **) &_netconfd_interface_config_method_info_getbackupparamcount_OUT_ARG_pointers,
-    NULL
-  },
-  "handle-getbackupparamcount",
-  FALSE
-};
-
-static const _ExtendedGDBusArgInfo _netconfd_interface_config_method_info_backup_IN_ARG_config =
-{
-  {
-    -1,
-    (gchar *) "config",
-    (gchar *) "s",
-    NULL
-  },
-  FALSE
-};
-
-static const _ExtendedGDBusArgInfo * const _netconfd_interface_config_method_info_backup_IN_ARG_pointers[] =
-{
-  &_netconfd_interface_config_method_info_backup_IN_ARG_config,
-  NULL
-};
-
-static const _ExtendedGDBusArgInfo _netconfd_interface_config_method_info_backup_OUT_ARG_result =
-{
-  {
-    -1,
-    (gchar *) "result",
-    (gchar *) "i",
-    NULL
-  },
-  FALSE
-};
-
-static const _ExtendedGDBusArgInfo * const _netconfd_interface_config_method_info_backup_OUT_ARG_pointers[] =
-{
-  &_netconfd_interface_config_method_info_backup_OUT_ARG_result,
-  NULL
-};
-
-static const _ExtendedGDBusMethodInfo _netconfd_interface_config_method_info_backup =
-{
-  {
-    -1,
-    (gchar *) "backup",
-    (GDBusArgInfo **) &_netconfd_interface_config_method_info_backup_IN_ARG_pointers,
-    (GDBusArgInfo **) &_netconfd_interface_config_method_info_backup_OUT_ARG_pointers,
-    NULL
-  },
-  "handle-backup",
-  FALSE
-};
-
-static const _ExtendedGDBusArgInfo _netconfd_interface_config_method_info_restore_IN_ARG_config =
-{
-  {
-    -1,
-    (gchar *) "config",
-    (gchar *) "s",
-    NULL
-  },
-  FALSE
-};
-
-static const _ExtendedGDBusArgInfo * const _netconfd_interface_config_method_info_restore_IN_ARG_pointers[] =
-{
-  &_netconfd_interface_config_method_info_restore_IN_ARG_config,
-  NULL
-};
-
-static const _ExtendedGDBusArgInfo _netconfd_interface_config_method_info_restore_OUT_ARG_result =
-{
-  {
-    -1,
-    (gchar *) "result",
-    (gchar *) "i",
-    NULL
-  },
-  FALSE
-};
-
-static const _ExtendedGDBusArgInfo * const _netconfd_interface_config_method_info_restore_OUT_ARG_pointers[] =
-{
-  &_netconfd_interface_config_method_info_restore_OUT_ARG_result,
-  NULL
-};
-
-static const _ExtendedGDBusMethodInfo _netconfd_interface_config_method_info_restore =
-{
-  {
-    -1,
-    (gchar *) "restore",
-    (GDBusArgInfo **) &_netconfd_interface_config_method_info_restore_IN_ARG_pointers,
-    (GDBusArgInfo **) &_netconfd_interface_config_method_info_restore_OUT_ARG_pointers,
-    NULL
-  },
-  "handle-restore",
-  FALSE
-};
-
 static const _ExtendedGDBusMethodInfo * const _netconfd_interface_config_method_info_pointers[] =
 {
   &_netconfd_interface_config_method_info_set,
@@ -479,9 +355,6 @@ static const _ExtendedGDBusMethodInfo * const _netconfd_interface_config_method_
   &_netconfd_interface_config_method_info_getdeviceinterfaces,
   &_netconfd_interface_config_method_info_getinterfaceconfig,
   &_netconfd_interface_config_method_info_setinterfaceconfig,
-  &_netconfd_interface_config_method_info_getbackupparamcount,
-  &_netconfd_interface_config_method_info_backup,
-  &_netconfd_interface_config_method_info_restore,
   NULL
 };
 
@@ -539,12 +412,9 @@ netconfd_interface_config_override_properties (GObjectClass *klass, guint proper
 /**
  * netconfdInterface_configIface:
  * @parent_iface: The parent interface.
- * @handle_backup: Handler for the #netconfdInterface_config::handle-backup signal.
  * @handle_get: Handler for the #netconfdInterface_config::handle-get signal.
- * @handle_getbackupparamcount: Handler for the #netconfdInterface_config::handle-getbackupparamcount signal.
  * @handle_getdeviceinterfaces: Handler for the #netconfdInterface_config::handle-getdeviceinterfaces signal.
  * @handle_getinterfaceconfig: Handler for the #netconfdInterface_config::handle-getinterfaceconfig signal.
- * @handle_restore: Handler for the #netconfdInterface_config::handle-restore signal.
  * @handle_set: Handler for the #netconfdInterface_config::handle-set signal.
  * @handle_setinterfaceconfig: Handler for the #netconfdInterface_config::handle-setinterfaceconfig signal.
  *
@@ -663,74 +533,6 @@ netconfd_interface_config_default_init (netconfdInterface_configIface *iface)
     G_TYPE_FROM_INTERFACE (iface),
     G_SIGNAL_RUN_LAST,
     G_STRUCT_OFFSET (netconfdInterface_configIface, handle_setinterfaceconfig),
-    g_signal_accumulator_true_handled,
-    NULL,
-    g_cclosure_marshal_generic,
-    G_TYPE_BOOLEAN,
-    2,
-    G_TYPE_DBUS_METHOD_INVOCATION, G_TYPE_STRING);
-
-  /**
-   * netconfdInterface_config::handle-getbackupparamcount:
-   * @object: A #netconfdInterface_config.
-   * @invocation: A #GDBusMethodInvocation.
-   *
-   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getbackupparamcount">getbackupparamcount()</link> D-Bus method.
-   *
-   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_interface_config_complete_getbackupparamcount() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
-   *
-   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
-   */
-  g_signal_new ("handle-getbackupparamcount",
-    G_TYPE_FROM_INTERFACE (iface),
-    G_SIGNAL_RUN_LAST,
-    G_STRUCT_OFFSET (netconfdInterface_configIface, handle_getbackupparamcount),
-    g_signal_accumulator_true_handled,
-    NULL,
-    g_cclosure_marshal_generic,
-    G_TYPE_BOOLEAN,
-    1,
-    G_TYPE_DBUS_METHOD_INVOCATION);
-
-  /**
-   * netconfdInterface_config::handle-backup:
-   * @object: A #netconfdInterface_config.
-   * @invocation: A #GDBusMethodInvocation.
-   * @arg_config: Argument passed by remote caller.
-   *
-   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.backup">backup()</link> D-Bus method.
-   *
-   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_interface_config_complete_backup() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
-   *
-   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
-   */
-  g_signal_new ("handle-backup",
-    G_TYPE_FROM_INTERFACE (iface),
-    G_SIGNAL_RUN_LAST,
-    G_STRUCT_OFFSET (netconfdInterface_configIface, handle_backup),
-    g_signal_accumulator_true_handled,
-    NULL,
-    g_cclosure_marshal_generic,
-    G_TYPE_BOOLEAN,
-    2,
-    G_TYPE_DBUS_METHOD_INVOCATION, G_TYPE_STRING);
-
-  /**
-   * netconfdInterface_config::handle-restore:
-   * @object: A #netconfdInterface_config.
-   * @invocation: A #GDBusMethodInvocation.
-   * @arg_config: Argument passed by remote caller.
-   *
-   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.restore">restore()</link> D-Bus method.
-   *
-   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_interface_config_complete_restore() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
-   *
-   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
-   */
-  g_signal_new ("handle-restore",
-    G_TYPE_FROM_INTERFACE (iface),
-    G_SIGNAL_RUN_LAST,
-    G_STRUCT_OFFSET (netconfdInterface_configIface, handle_restore),
     g_signal_accumulator_true_handled,
     NULL,
     g_cclosure_marshal_generic,
@@ -1243,312 +1045,6 @@ _out:
 }
 
 /**
- * netconfd_interface_config_call_getbackupparamcount:
- * @proxy: A #netconfdInterface_configProxy.
- * @cancellable: (nullable): A #GCancellable or %NULL.
- * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
- * @user_data: User data to pass to @callback.
- *
- * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getbackupparamcount">getbackupparamcount()</link> D-Bus method on @proxy.
- * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
- * You can then call netconfd_interface_config_call_getbackupparamcount_finish() to get the result of the operation.
- *
- * See netconfd_interface_config_call_getbackupparamcount_sync() for the synchronous, blocking version of this method.
- */
-void
-netconfd_interface_config_call_getbackupparamcount (
-    netconfdInterface_config *proxy,
-    GCancellable *cancellable,
-    GAsyncReadyCallback callback,
-    gpointer user_data)
-{
-  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
-    "getbackupparamcount",
-    g_variant_new ("()"),
-    G_DBUS_CALL_FLAGS_NONE,
-    -1,
-    cancellable,
-    callback,
-    user_data);
-}
-
-/**
- * netconfd_interface_config_call_getbackupparamcount_finish:
- * @proxy: A #netconfdInterface_configProxy.
- * @out_interfaces: (out): Return location for return parameter or %NULL to ignore.
- * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_interface_config_call_getbackupparamcount().
- * @error: Return location for error or %NULL.
- *
- * Finishes an operation started with netconfd_interface_config_call_getbackupparamcount().
- *
- * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
- */
-gboolean
-netconfd_interface_config_call_getbackupparamcount_finish (
-    netconfdInterface_config *proxy,
-    gchar **out_interfaces,
-    GAsyncResult *res,
-    GError **error)
-{
-  GVariant *_ret;
-  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
-  if (_ret == NULL)
-    goto _out;
-  g_variant_get (_ret,
-                 "(s)",
-                 out_interfaces);
-  g_variant_unref (_ret);
-_out:
-  return _ret != NULL;
-}
-
-/**
- * netconfd_interface_config_call_getbackupparamcount_sync:
- * @proxy: A #netconfdInterface_configProxy.
- * @out_interfaces: (out): Return location for return parameter or %NULL to ignore.
- * @cancellable: (nullable): A #GCancellable or %NULL.
- * @error: Return location for error or %NULL.
- *
- * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getbackupparamcount">getbackupparamcount()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
- *
- * See netconfd_interface_config_call_getbackupparamcount() for the asynchronous version of this method.
- *
- * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
- */
-gboolean
-netconfd_interface_config_call_getbackupparamcount_sync (
-    netconfdInterface_config *proxy,
-    gchar **out_interfaces,
-    GCancellable *cancellable,
-    GError **error)
-{
-  GVariant *_ret;
-  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
-    "getbackupparamcount",
-    g_variant_new ("()"),
-    G_DBUS_CALL_FLAGS_NONE,
-    -1,
-    cancellable,
-    error);
-  if (_ret == NULL)
-    goto _out;
-  g_variant_get (_ret,
-                 "(s)",
-                 out_interfaces);
-  g_variant_unref (_ret);
-_out:
-  return _ret != NULL;
-}
-
-/**
- * netconfd_interface_config_call_backup:
- * @proxy: A #netconfdInterface_configProxy.
- * @arg_config: Argument to pass with the method invocation.
- * @cancellable: (nullable): A #GCancellable or %NULL.
- * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
- * @user_data: User data to pass to @callback.
- *
- * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.backup">backup()</link> D-Bus method on @proxy.
- * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
- * You can then call netconfd_interface_config_call_backup_finish() to get the result of the operation.
- *
- * See netconfd_interface_config_call_backup_sync() for the synchronous, blocking version of this method.
- */
-void
-netconfd_interface_config_call_backup (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    GCancellable *cancellable,
-    GAsyncReadyCallback callback,
-    gpointer user_data)
-{
-  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
-    "backup",
-    g_variant_new ("(s)",
-                   arg_config),
-    G_DBUS_CALL_FLAGS_NONE,
-    -1,
-    cancellable,
-    callback,
-    user_data);
-}
-
-/**
- * netconfd_interface_config_call_backup_finish:
- * @proxy: A #netconfdInterface_configProxy.
- * @out_result: (out): Return location for return parameter or %NULL to ignore.
- * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_interface_config_call_backup().
- * @error: Return location for error or %NULL.
- *
- * Finishes an operation started with netconfd_interface_config_call_backup().
- *
- * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
- */
-gboolean
-netconfd_interface_config_call_backup_finish (
-    netconfdInterface_config *proxy,
-    gint *out_result,
-    GAsyncResult *res,
-    GError **error)
-{
-  GVariant *_ret;
-  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
-  if (_ret == NULL)
-    goto _out;
-  g_variant_get (_ret,
-                 "(i)",
-                 out_result);
-  g_variant_unref (_ret);
-_out:
-  return _ret != NULL;
-}
-
-/**
- * netconfd_interface_config_call_backup_sync:
- * @proxy: A #netconfdInterface_configProxy.
- * @arg_config: Argument to pass with the method invocation.
- * @out_result: (out): Return location for return parameter or %NULL to ignore.
- * @cancellable: (nullable): A #GCancellable or %NULL.
- * @error: Return location for error or %NULL.
- *
- * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.backup">backup()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
- *
- * See netconfd_interface_config_call_backup() for the asynchronous version of this method.
- *
- * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
- */
-gboolean
-netconfd_interface_config_call_backup_sync (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    gint *out_result,
-    GCancellable *cancellable,
-    GError **error)
-{
-  GVariant *_ret;
-  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
-    "backup",
-    g_variant_new ("(s)",
-                   arg_config),
-    G_DBUS_CALL_FLAGS_NONE,
-    -1,
-    cancellable,
-    error);
-  if (_ret == NULL)
-    goto _out;
-  g_variant_get (_ret,
-                 "(i)",
-                 out_result);
-  g_variant_unref (_ret);
-_out:
-  return _ret != NULL;
-}
-
-/**
- * netconfd_interface_config_call_restore:
- * @proxy: A #netconfdInterface_configProxy.
- * @arg_config: Argument to pass with the method invocation.
- * @cancellable: (nullable): A #GCancellable or %NULL.
- * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
- * @user_data: User data to pass to @callback.
- *
- * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.restore">restore()</link> D-Bus method on @proxy.
- * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
- * You can then call netconfd_interface_config_call_restore_finish() to get the result of the operation.
- *
- * See netconfd_interface_config_call_restore_sync() for the synchronous, blocking version of this method.
- */
-void
-netconfd_interface_config_call_restore (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    GCancellable *cancellable,
-    GAsyncReadyCallback callback,
-    gpointer user_data)
-{
-  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
-    "restore",
-    g_variant_new ("(s)",
-                   arg_config),
-    G_DBUS_CALL_FLAGS_NONE,
-    -1,
-    cancellable,
-    callback,
-    user_data);
-}
-
-/**
- * netconfd_interface_config_call_restore_finish:
- * @proxy: A #netconfdInterface_configProxy.
- * @out_result: (out): Return location for return parameter or %NULL to ignore.
- * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_interface_config_call_restore().
- * @error: Return location for error or %NULL.
- *
- * Finishes an operation started with netconfd_interface_config_call_restore().
- *
- * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
- */
-gboolean
-netconfd_interface_config_call_restore_finish (
-    netconfdInterface_config *proxy,
-    gint *out_result,
-    GAsyncResult *res,
-    GError **error)
-{
-  GVariant *_ret;
-  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
-  if (_ret == NULL)
-    goto _out;
-  g_variant_get (_ret,
-                 "(i)",
-                 out_result);
-  g_variant_unref (_ret);
-_out:
-  return _ret != NULL;
-}
-
-/**
- * netconfd_interface_config_call_restore_sync:
- * @proxy: A #netconfdInterface_configProxy.
- * @arg_config: Argument to pass with the method invocation.
- * @out_result: (out): Return location for return parameter or %NULL to ignore.
- * @cancellable: (nullable): A #GCancellable or %NULL.
- * @error: Return location for error or %NULL.
- *
- * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.restore">restore()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
- *
- * See netconfd_interface_config_call_restore() for the asynchronous version of this method.
- *
- * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
- */
-gboolean
-netconfd_interface_config_call_restore_sync (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    gint *out_result,
-    GCancellable *cancellable,
-    GError **error)
-{
-  GVariant *_ret;
-  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
-    "restore",
-    g_variant_new ("(s)",
-                   arg_config),
-    G_DBUS_CALL_FLAGS_NONE,
-    -1,
-    cancellable,
-    error);
-  if (_ret == NULL)
-    goto _out;
-  g_variant_get (_ret,
-                 "(i)",
-                 out_result);
-  g_variant_unref (_ret);
-_out:
-  return _ret != NULL;
-}
-
-/**
  * netconfd_interface_config_complete_set:
  * @object: A #netconfdInterface_config.
  * @invocation: (transfer full): A #GDBusMethodInvocation.
@@ -1644,69 +1140,6 @@ netconfd_interface_config_complete_getinterfaceconfig (
  */
 void
 netconfd_interface_config_complete_setinterfaceconfig (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    gint result)
-{
-  g_dbus_method_invocation_return_value (invocation,
-    g_variant_new ("(i)",
-                   result));
-}
-
-/**
- * netconfd_interface_config_complete_getbackupparamcount:
- * @object: A #netconfdInterface_config.
- * @invocation: (transfer full): A #GDBusMethodInvocation.
- * @interfaces: Parameter to return.
- *
- * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getbackupparamcount">getbackupparamcount()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
- *
- * This method will free @invocation, you cannot use it afterwards.
- */
-void
-netconfd_interface_config_complete_getbackupparamcount (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    const gchar *interfaces)
-{
-  g_dbus_method_invocation_return_value (invocation,
-    g_variant_new ("(s)",
-                   interfaces));
-}
-
-/**
- * netconfd_interface_config_complete_backup:
- * @object: A #netconfdInterface_config.
- * @invocation: (transfer full): A #GDBusMethodInvocation.
- * @result: Parameter to return.
- *
- * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.backup">backup()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
- *
- * This method will free @invocation, you cannot use it afterwards.
- */
-void
-netconfd_interface_config_complete_backup (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    gint result)
-{
-  g_dbus_method_invocation_return_value (invocation,
-    g_variant_new ("(i)",
-                   result));
-}
-
-/**
- * netconfd_interface_config_complete_restore:
- * @object: A #netconfdInterface_config.
- * @invocation: (transfer full): A #GDBusMethodInvocation.
- * @result: Parameter to return.
- *
- * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.restore">restore()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
- *
- * This method will free @invocation, you cannot use it afterwards.
- */
-void
-netconfd_interface_config_complete_restore (
     netconfdInterface_config *object,
     GDBusMethodInvocation *invocation,
     gint result)
@@ -2531,12 +1964,136 @@ static const _ExtendedGDBusMethodInfo _netconfd_ip_config_method_info_getall =
   FALSE
 };
 
+static const _ExtendedGDBusArgInfo _netconfd_ip_config_method_info_getallcurrent_OUT_ARG_config =
+{
+  {
+    -1,
+    (gchar *) "config",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_ip_config_method_info_getallcurrent_OUT_ARG_pointers[] =
+{
+  &_netconfd_ip_config_method_info_getallcurrent_OUT_ARG_config,
+  NULL
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_ip_config_method_info_getallcurrent =
+{
+  {
+    -1,
+    (gchar *) "getallcurrent",
+    NULL,
+    (GDBusArgInfo **) &_netconfd_ip_config_method_info_getallcurrent_OUT_ARG_pointers,
+    NULL
+  },
+  "handle-getallcurrent",
+  FALSE
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_ip_config_method_info_tempfixip =
+{
+  {
+    -1,
+    (gchar *) "tempfixip",
+    NULL,
+    NULL,
+    NULL
+  },
+  "handle-tempfixip",
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_ip_config_method_info_getdipswitchconfig_OUT_ARG_config =
+{
+  {
+    -1,
+    (gchar *) "config",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_ip_config_method_info_getdipswitchconfig_OUT_ARG_pointers[] =
+{
+  &_netconfd_ip_config_method_info_getdipswitchconfig_OUT_ARG_config,
+  NULL
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_ip_config_method_info_getdipswitchconfig =
+{
+  {
+    -1,
+    (gchar *) "getdipswitchconfig",
+    NULL,
+    (GDBusArgInfo **) &_netconfd_ip_config_method_info_getdipswitchconfig_OUT_ARG_pointers,
+    NULL
+  },
+  "handle-getdipswitchconfig",
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_ip_config_method_info_setdipswitchconfig_IN_ARG_config =
+{
+  {
+    -1,
+    (gchar *) "config",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_ip_config_method_info_setdipswitchconfig_IN_ARG_pointers[] =
+{
+  &_netconfd_ip_config_method_info_setdipswitchconfig_IN_ARG_config,
+  NULL
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_ip_config_method_info_setdipswitchconfig_OUT_ARG_result =
+{
+  {
+    -1,
+    (gchar *) "result",
+    (gchar *) "i",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_ip_config_method_info_setdipswitchconfig_OUT_ARG_pointers[] =
+{
+  &_netconfd_ip_config_method_info_setdipswitchconfig_OUT_ARG_result,
+  NULL
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_ip_config_method_info_setdipswitchconfig =
+{
+  {
+    -1,
+    (gchar *) "setdipswitchconfig",
+    (GDBusArgInfo **) &_netconfd_ip_config_method_info_setdipswitchconfig_IN_ARG_pointers,
+    (GDBusArgInfo **) &_netconfd_ip_config_method_info_setdipswitchconfig_OUT_ARG_pointers,
+    NULL
+  },
+  "handle-setdipswitchconfig",
+  FALSE
+};
+
 static const _ExtendedGDBusMethodInfo * const _netconfd_ip_config_method_info_pointers[] =
 {
   &_netconfd_ip_config_method_info_setall,
   &_netconfd_ip_config_method_info_set,
   &_netconfd_ip_config_method_info_get,
   &_netconfd_ip_config_method_info_getall,
+  &_netconfd_ip_config_method_info_getallcurrent,
+  &_netconfd_ip_config_method_info_tempfixip,
+  &_netconfd_ip_config_method_info_getdipswitchconfig,
+  &_netconfd_ip_config_method_info_setdipswitchconfig,
   NULL
 };
 
@@ -2596,8 +2153,12 @@ netconfd_ip_config_override_properties (GObjectClass *klass, guint property_id_b
  * @parent_iface: The parent interface.
  * @handle_get: Handler for the #netconfdIp_config::handle-get signal.
  * @handle_getall: Handler for the #netconfdIp_config::handle-getall signal.
+ * @handle_getallcurrent: Handler for the #netconfdIp_config::handle-getallcurrent signal.
+ * @handle_getdipswitchconfig: Handler for the #netconfdIp_config::handle-getdipswitchconfig signal.
  * @handle_set: Handler for the #netconfdIp_config::handle-set signal.
  * @handle_setall: Handler for the #netconfdIp_config::handle-setall signal.
+ * @handle_setdipswitchconfig: Handler for the #netconfdIp_config::handle-setdipswitchconfig signal.
+ * @handle_tempfixip: Handler for the #netconfdIp_config::handle-tempfixip signal.
  *
  * Virtual table for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-ip_config.top_of_page">de.wago.netconfd1.ip_config</link>.
  */
@@ -2699,6 +2260,95 @@ netconfd_ip_config_default_init (netconfdIp_configIface *iface)
     G_TYPE_BOOLEAN,
     1,
     G_TYPE_DBUS_METHOD_INVOCATION);
+
+  /**
+   * netconfdIp_config::handle-getallcurrent:
+   * @object: A #netconfdIp_config.
+   * @invocation: A #GDBusMethodInvocation.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getallcurrent">getallcurrent()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_ip_config_complete_getallcurrent() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-getallcurrent",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdIp_configIface, handle_getallcurrent),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    1,
+    G_TYPE_DBUS_METHOD_INVOCATION);
+
+  /**
+   * netconfdIp_config::handle-tempfixip:
+   * @object: A #netconfdIp_config.
+   * @invocation: A #GDBusMethodInvocation.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.tempfixip">tempfixip()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_ip_config_complete_tempfixip() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-tempfixip",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdIp_configIface, handle_tempfixip),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    1,
+    G_TYPE_DBUS_METHOD_INVOCATION);
+
+  /**
+   * netconfdIp_config::handle-getdipswitchconfig:
+   * @object: A #netconfdIp_config.
+   * @invocation: A #GDBusMethodInvocation.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getdipswitchconfig">getdipswitchconfig()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_ip_config_complete_getdipswitchconfig() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-getdipswitchconfig",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdIp_configIface, handle_getdipswitchconfig),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    1,
+    G_TYPE_DBUS_METHOD_INVOCATION);
+
+  /**
+   * netconfdIp_config::handle-setdipswitchconfig:
+   * @object: A #netconfdIp_config.
+   * @invocation: A #GDBusMethodInvocation.
+   * @arg_config: Argument passed by remote caller.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.setdipswitchconfig">setdipswitchconfig()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_ip_config_complete_setdipswitchconfig() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-setdipswitchconfig",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdIp_configIface, handle_setdipswitchconfig),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    2,
+    G_TYPE_DBUS_METHOD_INVOCATION, G_TYPE_STRING);
 
 }
 
@@ -3113,6 +2763,398 @@ _out:
 }
 
 /**
+ * netconfd_ip_config_call_getallcurrent:
+ * @proxy: A #netconfdIp_configProxy.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getallcurrent">getallcurrent()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_ip_config_call_getallcurrent_finish() to get the result of the operation.
+ *
+ * See netconfd_ip_config_call_getallcurrent_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_ip_config_call_getallcurrent (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "getallcurrent",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_ip_config_call_getallcurrent_finish:
+ * @proxy: A #netconfdIp_configProxy.
+ * @out_config: (out): Return location for return parameter or %NULL to ignore.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_ip_config_call_getallcurrent().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_ip_config_call_getallcurrent().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_getallcurrent_finish (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(s)",
+                 out_config);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_ip_config_call_getallcurrent_sync:
+ * @proxy: A #netconfdIp_configProxy.
+ * @out_config: (out): Return location for return parameter or %NULL to ignore.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getallcurrent">getallcurrent()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_ip_config_call_getallcurrent() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_getallcurrent_sync (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "getallcurrent",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(s)",
+                 out_config);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_ip_config_call_tempfixip:
+ * @proxy: A #netconfdIp_configProxy.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.tempfixip">tempfixip()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_ip_config_call_tempfixip_finish() to get the result of the operation.
+ *
+ * See netconfd_ip_config_call_tempfixip_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_ip_config_call_tempfixip (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "tempfixip",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_ip_config_call_tempfixip_finish:
+ * @proxy: A #netconfdIp_configProxy.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_ip_config_call_tempfixip().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_ip_config_call_tempfixip().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_tempfixip_finish (
+    netconfdIp_config *proxy,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "()");
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_ip_config_call_tempfixip_sync:
+ * @proxy: A #netconfdIp_configProxy.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.tempfixip">tempfixip()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_ip_config_call_tempfixip() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_tempfixip_sync (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "tempfixip",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "()");
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_ip_config_call_getdipswitchconfig:
+ * @proxy: A #netconfdIp_configProxy.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getdipswitchconfig">getdipswitchconfig()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_ip_config_call_getdipswitchconfig_finish() to get the result of the operation.
+ *
+ * See netconfd_ip_config_call_getdipswitchconfig_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_ip_config_call_getdipswitchconfig (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "getdipswitchconfig",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_ip_config_call_getdipswitchconfig_finish:
+ * @proxy: A #netconfdIp_configProxy.
+ * @out_config: (out): Return location for return parameter or %NULL to ignore.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_ip_config_call_getdipswitchconfig().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_ip_config_call_getdipswitchconfig().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_getdipswitchconfig_finish (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(s)",
+                 out_config);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_ip_config_call_getdipswitchconfig_sync:
+ * @proxy: A #netconfdIp_configProxy.
+ * @out_config: (out): Return location for return parameter or %NULL to ignore.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getdipswitchconfig">getdipswitchconfig()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_ip_config_call_getdipswitchconfig() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_getdipswitchconfig_sync (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "getdipswitchconfig",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(s)",
+                 out_config);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_ip_config_call_setdipswitchconfig:
+ * @proxy: A #netconfdIp_configProxy.
+ * @arg_config: Argument to pass with the method invocation.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.setdipswitchconfig">setdipswitchconfig()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_ip_config_call_setdipswitchconfig_finish() to get the result of the operation.
+ *
+ * See netconfd_ip_config_call_setdipswitchconfig_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_ip_config_call_setdipswitchconfig (
+    netconfdIp_config *proxy,
+    const gchar *arg_config,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "setdipswitchconfig",
+    g_variant_new ("(s)",
+                   arg_config),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_ip_config_call_setdipswitchconfig_finish:
+ * @proxy: A #netconfdIp_configProxy.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_ip_config_call_setdipswitchconfig().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_ip_config_call_setdipswitchconfig().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_setdipswitchconfig_finish (
+    netconfdIp_config *proxy,
+    gint *out_result,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(i)",
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_ip_config_call_setdipswitchconfig_sync:
+ * @proxy: A #netconfdIp_configProxy.
+ * @arg_config: Argument to pass with the method invocation.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.setdipswitchconfig">setdipswitchconfig()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_ip_config_call_setdipswitchconfig() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_ip_config_call_setdipswitchconfig_sync (
+    netconfdIp_config *proxy,
+    const gchar *arg_config,
+    gint *out_result,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "setdipswitchconfig",
+    g_variant_new ("(s)",
+                   arg_config),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(i)",
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
  * netconfd_ip_config_complete_setall:
  * @object: A #netconfdIp_config.
  * @invocation: (transfer full): A #GDBusMethodInvocation.
@@ -3194,6 +3236,87 @@ netconfd_ip_config_complete_getall (
   g_dbus_method_invocation_return_value (invocation,
     g_variant_new ("(s)",
                    config));
+}
+
+/**
+ * netconfd_ip_config_complete_getallcurrent:
+ * @object: A #netconfdIp_config.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ * @config: Parameter to return.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getallcurrent">getallcurrent()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_ip_config_complete_getallcurrent (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *config)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("(s)",
+                   config));
+}
+
+/**
+ * netconfd_ip_config_complete_tempfixip:
+ * @object: A #netconfdIp_config.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.tempfixip">tempfixip()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_ip_config_complete_tempfixip (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("()"));
+}
+
+/**
+ * netconfd_ip_config_complete_getdipswitchconfig:
+ * @object: A #netconfdIp_config.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ * @config: Parameter to return.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.getdipswitchconfig">getdipswitchconfig()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_ip_config_complete_getdipswitchconfig (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *config)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("(s)",
+                   config));
+}
+
+/**
+ * netconfd_ip_config_complete_setdipswitchconfig:
+ * @object: A #netconfdIp_config.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ * @result: Parameter to return.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-ip_config.setdipswitchconfig">setdipswitchconfig()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_ip_config_complete_setdipswitchconfig (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation,
+    gint result)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("(i)",
+                   result));
 }
 
 /* ------------------------------------------------------------------------ */
@@ -3826,6 +3949,1308 @@ netconfd_ip_config_skeleton_new (void)
 }
 
 /* ------------------------------------------------------------------------
+ * Code for interface de.wago.netconfd1.backup
+ * ------------------------------------------------------------------------
+ */
+
+/**
+ * SECTION:netconfdBackup
+ * @title: netconfdBackup
+ * @short_description: Generated C code for the de.wago.netconfd1.backup D-Bus interface
+ *
+ * This section contains code for working with the <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link> D-Bus interface in C.
+ */
+
+/* ---- Introspection data for de.wago.netconfd1.backup ---- */
+
+static const _ExtendedGDBusArgInfo _netconfd_backup_method_info_getbackupparamcount_OUT_ARG_interfaces =
+{
+  {
+    -1,
+    (gchar *) "interfaces",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_backup_method_info_getbackupparamcount_OUT_ARG_pointers[] =
+{
+  &_netconfd_backup_method_info_getbackupparamcount_OUT_ARG_interfaces,
+  NULL
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_backup_method_info_getbackupparamcount =
+{
+  {
+    -1,
+    (gchar *) "getbackupparamcount",
+    NULL,
+    (GDBusArgInfo **) &_netconfd_backup_method_info_getbackupparamcount_OUT_ARG_pointers,
+    NULL
+  },
+  "handle-getbackupparamcount",
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_backup_method_info_backup_IN_ARG_config =
+{
+  {
+    -1,
+    (gchar *) "config",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_backup_method_info_backup_IN_ARG_targetversion =
+{
+  {
+    -1,
+    (gchar *) "targetversion",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_backup_method_info_backup_IN_ARG_pointers[] =
+{
+  &_netconfd_backup_method_info_backup_IN_ARG_config,
+  &_netconfd_backup_method_info_backup_IN_ARG_targetversion,
+  NULL
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_backup_method_info_backup_OUT_ARG_result =
+{
+  {
+    -1,
+    (gchar *) "result",
+    (gchar *) "i",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_backup_method_info_backup_OUT_ARG_pointers[] =
+{
+  &_netconfd_backup_method_info_backup_OUT_ARG_result,
+  NULL
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_backup_method_info_backup =
+{
+  {
+    -1,
+    (gchar *) "backup",
+    (GDBusArgInfo **) &_netconfd_backup_method_info_backup_IN_ARG_pointers,
+    (GDBusArgInfo **) &_netconfd_backup_method_info_backup_OUT_ARG_pointers,
+    NULL
+  },
+  "handle-backup",
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_backup_method_info_restore_IN_ARG_config =
+{
+  {
+    -1,
+    (gchar *) "config",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_backup_method_info_restore_IN_ARG_pointers[] =
+{
+  &_netconfd_backup_method_info_restore_IN_ARG_config,
+  NULL
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_backup_method_info_restore_OUT_ARG_result =
+{
+  {
+    -1,
+    (gchar *) "result",
+    (gchar *) "i",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_backup_method_info_restore_OUT_ARG_pointers[] =
+{
+  &_netconfd_backup_method_info_restore_OUT_ARG_result,
+  NULL
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_backup_method_info_restore =
+{
+  {
+    -1,
+    (gchar *) "restore",
+    (GDBusArgInfo **) &_netconfd_backup_method_info_restore_IN_ARG_pointers,
+    (GDBusArgInfo **) &_netconfd_backup_method_info_restore_OUT_ARG_pointers,
+    NULL
+  },
+  "handle-restore",
+  FALSE
+};
+
+static const _ExtendedGDBusMethodInfo * const _netconfd_backup_method_info_pointers[] =
+{
+  &_netconfd_backup_method_info_getbackupparamcount,
+  &_netconfd_backup_method_info_backup,
+  &_netconfd_backup_method_info_restore,
+  NULL
+};
+
+static const _ExtendedGDBusInterfaceInfo _netconfd_backup_interface_info =
+{
+  {
+    -1,
+    (gchar *) "de.wago.netconfd1.backup",
+    (GDBusMethodInfo **) &_netconfd_backup_method_info_pointers,
+    NULL,
+    NULL,
+    NULL
+  },
+  "backup",
+};
+
+
+/**
+ * netconfd_backup_interface_info:
+ *
+ * Gets a machine-readable description of the <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link> D-Bus interface.
+ *
+ * Returns: (transfer none): A #GDBusInterfaceInfo. Do not free.
+ */
+GDBusInterfaceInfo *
+netconfd_backup_interface_info (void)
+{
+  return (GDBusInterfaceInfo *) &_netconfd_backup_interface_info.parent_struct;
+}
+
+/**
+ * netconfd_backup_override_properties:
+ * @klass: The class structure for a #GObject derived class.
+ * @property_id_begin: The property id to assign to the first overridden property.
+ *
+ * Overrides all #GObject properties in the #netconfdBackup interface for a concrete class.
+ * The properties are overridden in the order they are defined.
+ *
+ * Returns: The last property id.
+ */
+guint
+netconfd_backup_override_properties (GObjectClass *klass, guint property_id_begin)
+{
+  return property_id_begin - 1;
+}
+
+
+
+/**
+ * netconfdBackup:
+ *
+ * Abstract interface type for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link>.
+ */
+
+/**
+ * netconfdBackupIface:
+ * @parent_iface: The parent interface.
+ * @handle_backup: Handler for the #netconfdBackup::handle-backup signal.
+ * @handle_getbackupparamcount: Handler for the #netconfdBackup::handle-getbackupparamcount signal.
+ * @handle_restore: Handler for the #netconfdBackup::handle-restore signal.
+ *
+ * Virtual table for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link>.
+ */
+
+typedef netconfdBackupIface netconfdBackupInterface;
+G_DEFINE_INTERFACE (netconfdBackup, netconfd_backup, G_TYPE_OBJECT)
+
+static void
+netconfd_backup_default_init (netconfdBackupIface *iface)
+{
+  /* GObject signals for incoming D-Bus method calls: */
+  /**
+   * netconfdBackup::handle-getbackupparamcount:
+   * @object: A #netconfdBackup.
+   * @invocation: A #GDBusMethodInvocation.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-backup.getbackupparamcount">getbackupparamcount()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_backup_complete_getbackupparamcount() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-getbackupparamcount",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdBackupIface, handle_getbackupparamcount),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    1,
+    G_TYPE_DBUS_METHOD_INVOCATION);
+
+  /**
+   * netconfdBackup::handle-backup:
+   * @object: A #netconfdBackup.
+   * @invocation: A #GDBusMethodInvocation.
+   * @arg_config: Argument passed by remote caller.
+   * @arg_targetversion: Argument passed by remote caller.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-backup.backup">backup()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_backup_complete_backup() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-backup",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdBackupIface, handle_backup),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    3,
+    G_TYPE_DBUS_METHOD_INVOCATION, G_TYPE_STRING, G_TYPE_STRING);
+
+  /**
+   * netconfdBackup::handle-restore:
+   * @object: A #netconfdBackup.
+   * @invocation: A #GDBusMethodInvocation.
+   * @arg_config: Argument passed by remote caller.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-backup.restore">restore()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_backup_complete_restore() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-restore",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdBackupIface, handle_restore),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    2,
+    G_TYPE_DBUS_METHOD_INVOCATION, G_TYPE_STRING);
+
+}
+
+/**
+ * netconfd_backup_call_getbackupparamcount:
+ * @proxy: A #netconfdBackupProxy.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-backup.getbackupparamcount">getbackupparamcount()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_backup_call_getbackupparamcount_finish() to get the result of the operation.
+ *
+ * See netconfd_backup_call_getbackupparamcount_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_backup_call_getbackupparamcount (
+    netconfdBackup *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "getbackupparamcount",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_backup_call_getbackupparamcount_finish:
+ * @proxy: A #netconfdBackupProxy.
+ * @out_interfaces: (out): Return location for return parameter or %NULL to ignore.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_backup_call_getbackupparamcount().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_backup_call_getbackupparamcount().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_backup_call_getbackupparamcount_finish (
+    netconfdBackup *proxy,
+    gchar **out_interfaces,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(s)",
+                 out_interfaces);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_backup_call_getbackupparamcount_sync:
+ * @proxy: A #netconfdBackupProxy.
+ * @out_interfaces: (out): Return location for return parameter or %NULL to ignore.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-backup.getbackupparamcount">getbackupparamcount()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_backup_call_getbackupparamcount() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_backup_call_getbackupparamcount_sync (
+    netconfdBackup *proxy,
+    gchar **out_interfaces,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "getbackupparamcount",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(s)",
+                 out_interfaces);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_backup_call_backup:
+ * @proxy: A #netconfdBackupProxy.
+ * @arg_config: Argument to pass with the method invocation.
+ * @arg_targetversion: Argument to pass with the method invocation.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-backup.backup">backup()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_backup_call_backup_finish() to get the result of the operation.
+ *
+ * See netconfd_backup_call_backup_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_backup_call_backup (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    const gchar *arg_targetversion,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "backup",
+    g_variant_new ("(ss)",
+                   arg_config,
+                   arg_targetversion),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_backup_call_backup_finish:
+ * @proxy: A #netconfdBackupProxy.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_backup_call_backup().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_backup_call_backup().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_backup_call_backup_finish (
+    netconfdBackup *proxy,
+    gint *out_result,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(i)",
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_backup_call_backup_sync:
+ * @proxy: A #netconfdBackupProxy.
+ * @arg_config: Argument to pass with the method invocation.
+ * @arg_targetversion: Argument to pass with the method invocation.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-backup.backup">backup()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_backup_call_backup() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_backup_call_backup_sync (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    const gchar *arg_targetversion,
+    gint *out_result,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "backup",
+    g_variant_new ("(ss)",
+                   arg_config,
+                   arg_targetversion),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(i)",
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_backup_call_restore:
+ * @proxy: A #netconfdBackupProxy.
+ * @arg_config: Argument to pass with the method invocation.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-backup.restore">restore()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_backup_call_restore_finish() to get the result of the operation.
+ *
+ * See netconfd_backup_call_restore_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_backup_call_restore (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "restore",
+    g_variant_new ("(s)",
+                   arg_config),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_backup_call_restore_finish:
+ * @proxy: A #netconfdBackupProxy.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_backup_call_restore().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_backup_call_restore().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_backup_call_restore_finish (
+    netconfdBackup *proxy,
+    gint *out_result,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(i)",
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_backup_call_restore_sync:
+ * @proxy: A #netconfdBackupProxy.
+ * @arg_config: Argument to pass with the method invocation.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-backup.restore">restore()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_backup_call_restore() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_backup_call_restore_sync (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    gint *out_result,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "restore",
+    g_variant_new ("(s)",
+                   arg_config),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(i)",
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_backup_complete_getbackupparamcount:
+ * @object: A #netconfdBackup.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ * @interfaces: Parameter to return.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-backup.getbackupparamcount">getbackupparamcount()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_backup_complete_getbackupparamcount (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *interfaces)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("(s)",
+                   interfaces));
+}
+
+/**
+ * netconfd_backup_complete_backup:
+ * @object: A #netconfdBackup.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ * @result: Parameter to return.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-backup.backup">backup()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_backup_complete_backup (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    gint result)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("(i)",
+                   result));
+}
+
+/**
+ * netconfd_backup_complete_restore:
+ * @object: A #netconfdBackup.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ * @result: Parameter to return.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-backup.restore">restore()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_backup_complete_restore (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    gint result)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("(i)",
+                   result));
+}
+
+/* ------------------------------------------------------------------------ */
+
+/**
+ * netconfdBackupProxy:
+ *
+ * The #netconfdBackupProxy structure contains only private data and should only be accessed using the provided API.
+ */
+
+/**
+ * netconfdBackupProxyClass:
+ * @parent_class: The parent class.
+ *
+ * Class structure for #netconfdBackupProxy.
+ */
+
+struct _netconfdBackupProxyPrivate
+{
+  GData *qdata;
+};
+
+static void netconfd_backup_proxy_iface_init (netconfdBackupIface *iface);
+
+#if GLIB_VERSION_MAX_ALLOWED >= GLIB_VERSION_2_38
+G_DEFINE_TYPE_WITH_CODE (netconfdBackupProxy, netconfd_backup_proxy, G_TYPE_DBUS_PROXY,
+                         G_ADD_PRIVATE (netconfdBackupProxy)
+                         G_IMPLEMENT_INTERFACE (NETCONFD_TYPE_BACKUP, netconfd_backup_proxy_iface_init))
+
+#else
+G_DEFINE_TYPE_WITH_CODE (netconfdBackupProxy, netconfd_backup_proxy, G_TYPE_DBUS_PROXY,
+                         G_IMPLEMENT_INTERFACE (NETCONFD_TYPE_BACKUP, netconfd_backup_proxy_iface_init))
+
+#endif
+static void
+netconfd_backup_proxy_finalize (GObject *object)
+{
+  netconfdBackupProxy *proxy = NETCONFD_BACKUP_PROXY (object);
+  g_datalist_clear (&proxy->priv->qdata);
+  G_OBJECT_CLASS (netconfd_backup_proxy_parent_class)->finalize (object);
+}
+
+static void
+netconfd_backup_proxy_get_property (GObject      *object,
+  guint         prop_id,
+  GValue       *value,
+  GParamSpec   *pspec G_GNUC_UNUSED)
+{
+}
+
+static void
+netconfd_backup_proxy_set_property (GObject      *object,
+  guint         prop_id,
+  const GValue *value,
+  GParamSpec   *pspec G_GNUC_UNUSED)
+{
+}
+
+static void
+netconfd_backup_proxy_g_signal (GDBusProxy *proxy,
+  const gchar *sender_name G_GNUC_UNUSED,
+  const gchar *signal_name,
+  GVariant *parameters)
+{
+  _ExtendedGDBusSignalInfo *info;
+  GVariantIter iter;
+  GVariant *child;
+  GValue *paramv;
+  gsize num_params;
+  gsize n;
+  guint signal_id;
+  info = (_ExtendedGDBusSignalInfo *) g_dbus_interface_info_lookup_signal ((GDBusInterfaceInfo *) &_netconfd_backup_interface_info.parent_struct, signal_name);
+  if (info == NULL)
+    return;
+  num_params = g_variant_n_children (parameters);
+  paramv = g_new0 (GValue, num_params + 1);
+  g_value_init (&paramv[0], NETCONFD_TYPE_BACKUP);
+  g_value_set_object (&paramv[0], proxy);
+  g_variant_iter_init (&iter, parameters);
+  n = 1;
+  while ((child = g_variant_iter_next_value (&iter)) != NULL)
+    {
+      _ExtendedGDBusArgInfo *arg_info = (_ExtendedGDBusArgInfo *) info->parent_struct.args[n - 1];
+      if (arg_info->use_gvariant)
+        {
+          g_value_init (&paramv[n], G_TYPE_VARIANT);
+          g_value_set_variant (&paramv[n], child);
+          n++;
+        }
+      else
+        g_dbus_gvariant_to_gvalue (child, &paramv[n++]);
+      g_variant_unref (child);
+    }
+  signal_id = g_signal_lookup (info->signal_name, NETCONFD_TYPE_BACKUP);
+  g_signal_emitv (paramv, signal_id, 0, NULL);
+  for (n = 0; n < num_params + 1; n++)
+    g_value_unset (&paramv[n]);
+  g_free (paramv);
+}
+
+static void
+netconfd_backup_proxy_g_properties_changed (GDBusProxy *_proxy,
+  GVariant *changed_properties,
+  const gchar *const *invalidated_properties)
+{
+  netconfdBackupProxy *proxy = NETCONFD_BACKUP_PROXY (_proxy);
+  guint n;
+  const gchar *key;
+  GVariantIter *iter;
+  _ExtendedGDBusPropertyInfo *info;
+  g_variant_get (changed_properties, "a{sv}", &iter);
+  while (g_variant_iter_next (iter, "{&sv}", &key, NULL))
+    {
+      info = (_ExtendedGDBusPropertyInfo *) g_dbus_interface_info_lookup_property ((GDBusInterfaceInfo *) &_netconfd_backup_interface_info.parent_struct, key);
+      g_datalist_remove_data (&proxy->priv->qdata, key);
+      if (info != NULL)
+        g_object_notify (G_OBJECT (proxy), info->hyphen_name);
+    }
+  g_variant_iter_free (iter);
+  for (n = 0; invalidated_properties[n] != NULL; n++)
+    {
+      info = (_ExtendedGDBusPropertyInfo *) g_dbus_interface_info_lookup_property ((GDBusInterfaceInfo *) &_netconfd_backup_interface_info.parent_struct, invalidated_properties[n]);
+      g_datalist_remove_data (&proxy->priv->qdata, invalidated_properties[n]);
+      if (info != NULL)
+        g_object_notify (G_OBJECT (proxy), info->hyphen_name);
+    }
+}
+
+static void
+netconfd_backup_proxy_init (netconfdBackupProxy *proxy)
+{
+#if GLIB_VERSION_MAX_ALLOWED >= GLIB_VERSION_2_38
+  proxy->priv = netconfd_backup_proxy_get_instance_private (proxy);
+#else
+  proxy->priv = G_TYPE_INSTANCE_GET_PRIVATE (proxy, NETCONFD_TYPE_BACKUP_PROXY, netconfdBackupProxyPrivate);
+#endif
+
+  g_dbus_proxy_set_interface_info (G_DBUS_PROXY (proxy), netconfd_backup_interface_info ());
+}
+
+static void
+netconfd_backup_proxy_class_init (netconfdBackupProxyClass *klass)
+{
+  GObjectClass *gobject_class;
+  GDBusProxyClass *proxy_class;
+
+  gobject_class = G_OBJECT_CLASS (klass);
+  gobject_class->finalize     = netconfd_backup_proxy_finalize;
+  gobject_class->get_property = netconfd_backup_proxy_get_property;
+  gobject_class->set_property = netconfd_backup_proxy_set_property;
+
+  proxy_class = G_DBUS_PROXY_CLASS (klass);
+  proxy_class->g_signal = netconfd_backup_proxy_g_signal;
+  proxy_class->g_properties_changed = netconfd_backup_proxy_g_properties_changed;
+
+#if GLIB_VERSION_MAX_ALLOWED < GLIB_VERSION_2_38
+  g_type_class_add_private (klass, sizeof (netconfdBackupProxyPrivate));
+#endif
+}
+
+static void
+netconfd_backup_proxy_iface_init (netconfdBackupIface *iface)
+{
+}
+
+/**
+ * netconfd_backup_proxy_new:
+ * @connection: A #GDBusConnection.
+ * @flags: Flags from the #GDBusProxyFlags enumeration.
+ * @name: (nullable): A bus name (well-known or unique) or %NULL if @connection is not a message bus connection.
+ * @object_path: An object path.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously creates a proxy for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link>. See g_dbus_proxy_new() for more details.
+ *
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_backup_proxy_new_finish() to get the result of the operation.
+ *
+ * See netconfd_backup_proxy_new_sync() for the synchronous, blocking version of this constructor.
+ */
+void
+netconfd_backup_proxy_new (
+    GDBusConnection     *connection,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GAsyncReadyCallback  callback,
+    gpointer             user_data)
+{
+  g_async_initable_new_async (NETCONFD_TYPE_BACKUP_PROXY, G_PRIORITY_DEFAULT, cancellable, callback, user_data, "g-flags", flags, "g-name", name, "g-connection", connection, "g-object-path", object_path, "g-interface-name", "de.wago.netconfd1.backup", NULL);
+}
+
+/**
+ * netconfd_backup_proxy_new_finish:
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_backup_proxy_new().
+ * @error: Return location for error or %NULL
+ *
+ * Finishes an operation started with netconfd_backup_proxy_new().
+ *
+ * Returns: (transfer full) (type netconfdBackupProxy): The constructed proxy object or %NULL if @error is set.
+ */
+netconfdBackup *
+netconfd_backup_proxy_new_finish (
+    GAsyncResult        *res,
+    GError             **error)
+{
+  GObject *ret;
+  GObject *source_object;
+  source_object = g_async_result_get_source_object (res);
+  ret = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object), res, error);
+  g_object_unref (source_object);
+  if (ret != NULL)
+    return NETCONFD_BACKUP (ret);
+  else
+    return NULL;
+}
+
+/**
+ * netconfd_backup_proxy_new_sync:
+ * @connection: A #GDBusConnection.
+ * @flags: Flags from the #GDBusProxyFlags enumeration.
+ * @name: (nullable): A bus name (well-known or unique) or %NULL if @connection is not a message bus connection.
+ * @object_path: An object path.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL
+ *
+ * Synchronously creates a proxy for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link>. See g_dbus_proxy_new_sync() for more details.
+ *
+ * The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_backup_proxy_new() for the asynchronous version of this constructor.
+ *
+ * Returns: (transfer full) (type netconfdBackupProxy): The constructed proxy object or %NULL if @error is set.
+ */
+netconfdBackup *
+netconfd_backup_proxy_new_sync (
+    GDBusConnection     *connection,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GError             **error)
+{
+  GInitable *ret;
+  ret = g_initable_new (NETCONFD_TYPE_BACKUP_PROXY, cancellable, error, "g-flags", flags, "g-name", name, "g-connection", connection, "g-object-path", object_path, "g-interface-name", "de.wago.netconfd1.backup", NULL);
+  if (ret != NULL)
+    return NETCONFD_BACKUP (ret);
+  else
+    return NULL;
+}
+
+
+/**
+ * netconfd_backup_proxy_new_for_bus:
+ * @bus_type: A #GBusType.
+ * @flags: Flags from the #GDBusProxyFlags enumeration.
+ * @name: A bus name (well-known or unique).
+ * @object_path: An object path.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: User data to pass to @callback.
+ *
+ * Like netconfd_backup_proxy_new() but takes a #GBusType instead of a #GDBusConnection.
+ *
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_backup_proxy_new_for_bus_finish() to get the result of the operation.
+ *
+ * See netconfd_backup_proxy_new_for_bus_sync() for the synchronous, blocking version of this constructor.
+ */
+void
+netconfd_backup_proxy_new_for_bus (
+    GBusType             bus_type,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GAsyncReadyCallback  callback,
+    gpointer             user_data)
+{
+  g_async_initable_new_async (NETCONFD_TYPE_BACKUP_PROXY, G_PRIORITY_DEFAULT, cancellable, callback, user_data, "g-flags", flags, "g-name", name, "g-bus-type", bus_type, "g-object-path", object_path, "g-interface-name", "de.wago.netconfd1.backup", NULL);
+}
+
+/**
+ * netconfd_backup_proxy_new_for_bus_finish:
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_backup_proxy_new_for_bus().
+ * @error: Return location for error or %NULL
+ *
+ * Finishes an operation started with netconfd_backup_proxy_new_for_bus().
+ *
+ * Returns: (transfer full) (type netconfdBackupProxy): The constructed proxy object or %NULL if @error is set.
+ */
+netconfdBackup *
+netconfd_backup_proxy_new_for_bus_finish (
+    GAsyncResult        *res,
+    GError             **error)
+{
+  GObject *ret;
+  GObject *source_object;
+  source_object = g_async_result_get_source_object (res);
+  ret = g_async_initable_new_finish (G_ASYNC_INITABLE (source_object), res, error);
+  g_object_unref (source_object);
+  if (ret != NULL)
+    return NETCONFD_BACKUP (ret);
+  else
+    return NULL;
+}
+
+/**
+ * netconfd_backup_proxy_new_for_bus_sync:
+ * @bus_type: A #GBusType.
+ * @flags: Flags from the #GDBusProxyFlags enumeration.
+ * @name: A bus name (well-known or unique).
+ * @object_path: An object path.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL
+ *
+ * Like netconfd_backup_proxy_new_sync() but takes a #GBusType instead of a #GDBusConnection.
+ *
+ * The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_backup_proxy_new_for_bus() for the asynchronous version of this constructor.
+ *
+ * Returns: (transfer full) (type netconfdBackupProxy): The constructed proxy object or %NULL if @error is set.
+ */
+netconfdBackup *
+netconfd_backup_proxy_new_for_bus_sync (
+    GBusType             bus_type,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GError             **error)
+{
+  GInitable *ret;
+  ret = g_initable_new (NETCONFD_TYPE_BACKUP_PROXY, cancellable, error, "g-flags", flags, "g-name", name, "g-bus-type", bus_type, "g-object-path", object_path, "g-interface-name", "de.wago.netconfd1.backup", NULL);
+  if (ret != NULL)
+    return NETCONFD_BACKUP (ret);
+  else
+    return NULL;
+}
+
+
+/* ------------------------------------------------------------------------ */
+
+/**
+ * netconfdBackupSkeleton:
+ *
+ * The #netconfdBackupSkeleton structure contains only private data and should only be accessed using the provided API.
+ */
+
+/**
+ * netconfdBackupSkeletonClass:
+ * @parent_class: The parent class.
+ *
+ * Class structure for #netconfdBackupSkeleton.
+ */
+
+struct _netconfdBackupSkeletonPrivate
+{
+  GValue *properties;
+  GList *changed_properties;
+  GSource *changed_properties_idle_source;
+  GMainContext *context;
+  GMutex lock;
+};
+
+static void
+_netconfd_backup_skeleton_handle_method_call (
+  GDBusConnection *connection G_GNUC_UNUSED,
+  const gchar *sender G_GNUC_UNUSED,
+  const gchar *object_path G_GNUC_UNUSED,
+  const gchar *interface_name,
+  const gchar *method_name,
+  GVariant *parameters,
+  GDBusMethodInvocation *invocation,
+  gpointer user_data)
+{
+  netconfdBackupSkeleton *skeleton = NETCONFD_BACKUP_SKELETON (user_data);
+  _ExtendedGDBusMethodInfo *info;
+  GVariantIter iter;
+  GVariant *child;
+  GValue *paramv;
+  gsize num_params;
+  guint num_extra;
+  gsize n;
+  guint signal_id;
+  GValue return_value = G_VALUE_INIT;
+  info = (_ExtendedGDBusMethodInfo *) g_dbus_method_invocation_get_method_info (invocation);
+  g_assert (info != NULL);
+  num_params = g_variant_n_children (parameters);
+  num_extra = info->pass_fdlist ? 3 : 2;  paramv = g_new0 (GValue, num_params + num_extra);
+  n = 0;
+  g_value_init (&paramv[n], NETCONFD_TYPE_BACKUP);
+  g_value_set_object (&paramv[n++], skeleton);
+  g_value_init (&paramv[n], G_TYPE_DBUS_METHOD_INVOCATION);
+  g_value_set_object (&paramv[n++], invocation);
+  if (info->pass_fdlist)
+    {
+#ifdef G_OS_UNIX
+      g_value_init (&paramv[n], G_TYPE_UNIX_FD_LIST);
+      g_value_set_object (&paramv[n++], g_dbus_message_get_unix_fd_list (g_dbus_method_invocation_get_message (invocation)));
+#else
+      g_assert_not_reached ();
+#endif
+    }
+  g_variant_iter_init (&iter, parameters);
+  while ((child = g_variant_iter_next_value (&iter)) != NULL)
+    {
+      _ExtendedGDBusArgInfo *arg_info = (_ExtendedGDBusArgInfo *) info->parent_struct.in_args[n - num_extra];
+      if (arg_info->use_gvariant)
+        {
+          g_value_init (&paramv[n], G_TYPE_VARIANT);
+          g_value_set_variant (&paramv[n], child);
+          n++;
+        }
+      else
+        g_dbus_gvariant_to_gvalue (child, &paramv[n++]);
+      g_variant_unref (child);
+    }
+  signal_id = g_signal_lookup (info->signal_name, NETCONFD_TYPE_BACKUP);
+  g_value_init (&return_value, G_TYPE_BOOLEAN);
+  g_signal_emitv (paramv, signal_id, 0, &return_value);
+  if (!g_value_get_boolean (&return_value))
+    g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD, "Method %s is not implemented on interface %s", method_name, interface_name);
+  g_value_unset (&return_value);
+  for (n = 0; n < num_params + num_extra; n++)
+    g_value_unset (&paramv[n]);
+  g_free (paramv);
+}
+
+static GVariant *
+_netconfd_backup_skeleton_handle_get_property (
+  GDBusConnection *connection G_GNUC_UNUSED,
+  const gchar *sender G_GNUC_UNUSED,
+  const gchar *object_path G_GNUC_UNUSED,
+  const gchar *interface_name G_GNUC_UNUSED,
+  const gchar *property_name,
+  GError **error,
+  gpointer user_data)
+{
+  netconfdBackupSkeleton *skeleton = NETCONFD_BACKUP_SKELETON (user_data);
+  GValue value = G_VALUE_INIT;
+  GParamSpec *pspec;
+  _ExtendedGDBusPropertyInfo *info;
+  GVariant *ret;
+  ret = NULL;
+  info = (_ExtendedGDBusPropertyInfo *) g_dbus_interface_info_lookup_property ((GDBusInterfaceInfo *) &_netconfd_backup_interface_info.parent_struct, property_name);
+  g_assert (info != NULL);
+  pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (skeleton), info->hyphen_name);
+  if (pspec == NULL)
+    {
+      g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "No property with name %s", property_name);
+    }
+  else
+    {
+      g_value_init (&value, pspec->value_type);
+      g_object_get_property (G_OBJECT (skeleton), info->hyphen_name, &value);
+      ret = g_dbus_gvalue_to_gvariant (&value, G_VARIANT_TYPE (info->parent_struct.signature));
+      g_value_unset (&value);
+    }
+  return ret;
+}
+
+static gboolean
+_netconfd_backup_skeleton_handle_set_property (
+  GDBusConnection *connection G_GNUC_UNUSED,
+  const gchar *sender G_GNUC_UNUSED,
+  const gchar *object_path G_GNUC_UNUSED,
+  const gchar *interface_name G_GNUC_UNUSED,
+  const gchar *property_name,
+  GVariant *variant,
+  GError **error,
+  gpointer user_data)
+{
+  netconfdBackupSkeleton *skeleton = NETCONFD_BACKUP_SKELETON (user_data);
+  GValue value = G_VALUE_INIT;
+  GParamSpec *pspec;
+  _ExtendedGDBusPropertyInfo *info;
+  gboolean ret;
+  ret = FALSE;
+  info = (_ExtendedGDBusPropertyInfo *) g_dbus_interface_info_lookup_property ((GDBusInterfaceInfo *) &_netconfd_backup_interface_info.parent_struct, property_name);
+  g_assert (info != NULL);
+  pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (skeleton), info->hyphen_name);
+  if (pspec == NULL)
+    {
+      g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS, "No property with name %s", property_name);
+    }
+  else
+    {
+      if (info->use_gvariant)
+        g_value_set_variant (&value, variant);
+      else
+        g_dbus_gvariant_to_gvalue (variant, &value);
+      g_object_set_property (G_OBJECT (skeleton), info->hyphen_name, &value);
+      g_value_unset (&value);
+      ret = TRUE;
+    }
+  return ret;
+}
+
+static const GDBusInterfaceVTable _netconfd_backup_skeleton_vtable =
+{
+  _netconfd_backup_skeleton_handle_method_call,
+  _netconfd_backup_skeleton_handle_get_property,
+  _netconfd_backup_skeleton_handle_set_property,
+  {NULL}
+};
+
+static GDBusInterfaceInfo *
+netconfd_backup_skeleton_dbus_interface_get_info (GDBusInterfaceSkeleton *skeleton G_GNUC_UNUSED)
+{
+  return netconfd_backup_interface_info ();
+}
+
+static GDBusInterfaceVTable *
+netconfd_backup_skeleton_dbus_interface_get_vtable (GDBusInterfaceSkeleton *skeleton G_GNUC_UNUSED)
+{
+  return (GDBusInterfaceVTable *) &_netconfd_backup_skeleton_vtable;
+}
+
+static GVariant *
+netconfd_backup_skeleton_dbus_interface_get_properties (GDBusInterfaceSkeleton *_skeleton)
+{
+  netconfdBackupSkeleton *skeleton = NETCONFD_BACKUP_SKELETON (_skeleton);
+
+  GVariantBuilder builder;
+  guint n;
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+  if (_netconfd_backup_interface_info.parent_struct.properties == NULL)
+    goto out;
+  for (n = 0; _netconfd_backup_interface_info.parent_struct.properties[n] != NULL; n++)
+    {
+      GDBusPropertyInfo *info = _netconfd_backup_interface_info.parent_struct.properties[n];
+      if (info->flags & G_DBUS_PROPERTY_INFO_FLAGS_READABLE)
+        {
+          GVariant *value;
+          value = _netconfd_backup_skeleton_handle_get_property (g_dbus_interface_skeleton_get_connection (G_DBUS_INTERFACE_SKELETON (skeleton)), NULL, g_dbus_interface_skeleton_get_object_path (G_DBUS_INTERFACE_SKELETON (skeleton)), "de.wago.netconfd1.backup", info->name, NULL, skeleton);
+          if (value != NULL)
+            {
+              g_variant_take_ref (value);
+              g_variant_builder_add (&builder, "{sv}", info->name, value);
+              g_variant_unref (value);
+            }
+        }
+    }
+out:
+  return g_variant_builder_end (&builder);
+}
+
+static void
+netconfd_backup_skeleton_dbus_interface_flush (GDBusInterfaceSkeleton *_skeleton)
+{
+}
+
+static void netconfd_backup_skeleton_iface_init (netconfdBackupIface *iface);
+#if GLIB_VERSION_MAX_ALLOWED >= GLIB_VERSION_2_38
+G_DEFINE_TYPE_WITH_CODE (netconfdBackupSkeleton, netconfd_backup_skeleton, G_TYPE_DBUS_INTERFACE_SKELETON,
+                         G_ADD_PRIVATE (netconfdBackupSkeleton)
+                         G_IMPLEMENT_INTERFACE (NETCONFD_TYPE_BACKUP, netconfd_backup_skeleton_iface_init))
+
+#else
+G_DEFINE_TYPE_WITH_CODE (netconfdBackupSkeleton, netconfd_backup_skeleton, G_TYPE_DBUS_INTERFACE_SKELETON,
+                         G_IMPLEMENT_INTERFACE (NETCONFD_TYPE_BACKUP, netconfd_backup_skeleton_iface_init))
+
+#endif
+static void
+netconfd_backup_skeleton_finalize (GObject *object)
+{
+  netconfdBackupSkeleton *skeleton = NETCONFD_BACKUP_SKELETON (object);
+  g_list_free_full (skeleton->priv->changed_properties, (GDestroyNotify) _changed_property_free);
+  if (skeleton->priv->changed_properties_idle_source != NULL)
+    g_source_destroy (skeleton->priv->changed_properties_idle_source);
+  g_main_context_unref (skeleton->priv->context);
+  g_mutex_clear (&skeleton->priv->lock);
+  G_OBJECT_CLASS (netconfd_backup_skeleton_parent_class)->finalize (object);
+}
+
+static void
+netconfd_backup_skeleton_init (netconfdBackupSkeleton *skeleton)
+{
+#if GLIB_VERSION_MAX_ALLOWED >= GLIB_VERSION_2_38
+  skeleton->priv = netconfd_backup_skeleton_get_instance_private (skeleton);
+#else
+  skeleton->priv = G_TYPE_INSTANCE_GET_PRIVATE (skeleton, NETCONFD_TYPE_BACKUP_SKELETON, netconfdBackupSkeletonPrivate);
+#endif
+
+  g_mutex_init (&skeleton->priv->lock);
+  skeleton->priv->context = g_main_context_ref_thread_default ();
+}
+
+static void
+netconfd_backup_skeleton_class_init (netconfdBackupSkeletonClass *klass)
+{
+  GObjectClass *gobject_class;
+  GDBusInterfaceSkeletonClass *skeleton_class;
+
+  gobject_class = G_OBJECT_CLASS (klass);
+  gobject_class->finalize = netconfd_backup_skeleton_finalize;
+
+  skeleton_class = G_DBUS_INTERFACE_SKELETON_CLASS (klass);
+  skeleton_class->get_info = netconfd_backup_skeleton_dbus_interface_get_info;
+  skeleton_class->get_properties = netconfd_backup_skeleton_dbus_interface_get_properties;
+  skeleton_class->flush = netconfd_backup_skeleton_dbus_interface_flush;
+  skeleton_class->get_vtable = netconfd_backup_skeleton_dbus_interface_get_vtable;
+
+#if GLIB_VERSION_MAX_ALLOWED < GLIB_VERSION_2_38
+  g_type_class_add_private (klass, sizeof (netconfdBackupSkeletonPrivate));
+#endif
+}
+
+static void
+netconfd_backup_skeleton_iface_init (netconfdBackupIface *iface)
+{
+}
+
+/**
+ * netconfd_backup_skeleton_new:
+ *
+ * Creates a skeleton object for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link>.
+ *
+ * Returns: (transfer full) (type netconfdBackupSkeleton): The skeleton object.
+ */
+netconfdBackup *
+netconfd_backup_skeleton_new (void)
+{
+  return NETCONFD_BACKUP (g_object_new (NETCONFD_TYPE_BACKUP_SKELETON, NULL));
+}
+
+/* ------------------------------------------------------------------------
  * Code for Object, ObjectProxy and ObjectSkeleton
  * ------------------------------------------------------------------------
  */
@@ -3875,6 +5300,15 @@ netconfd_object_default_init (netconfdObjectIface *iface)
    */
   g_object_interface_install_property (iface, g_param_spec_object ("ip-config", "ip-config", "ip-config", NETCONFD_TYPE_IP_CONFIG, G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
 
+  /**
+   * netconfdObject:backup:
+   *
+   * The #netconfdBackup instance corresponding to the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link>, if any.
+   *
+   * Connect to the #GObject::notify signal to get informed of property changes.
+   */
+  g_object_interface_install_property (iface, g_param_spec_object ("backup", "backup", "backup", NETCONFD_TYPE_BACKUP, G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
+
 }
 
 /**
@@ -3909,6 +5343,23 @@ netconfdIp_config *netconfd_object_get_ip_config (netconfdObject *object)
   if (ret == NULL)
     return NULL;
   return NETCONFD_IP_CONFIG (ret);
+}
+
+/**
+ * netconfd_object_get_backup:
+ * @object: A #netconfdObject.
+ *
+ * Gets the #netconfdBackup instance for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link> on @object, if any.
+ *
+ * Returns: (transfer full): A #netconfdBackup that must be freed with g_object_unref() or %NULL if @object does not implement the interface.
+ */
+netconfdBackup *netconfd_object_get_backup (netconfdObject *object)
+{
+  GDBusInterface *ret;
+  ret = g_dbus_object_get_interface (G_DBUS_OBJECT (object), "de.wago.netconfd1.backup");
+  if (ret == NULL)
+    return NULL;
+  return NETCONFD_BACKUP (ret);
 }
 
 
@@ -3950,6 +5401,26 @@ netconfdIp_config *netconfd_object_peek_ip_config (netconfdObject *object)
     return NULL;
   g_object_unref (ret);
   return NETCONFD_IP_CONFIG (ret);
+}
+
+/**
+ * netconfd_object_peek_backup: (skip)
+ * @object: A #netconfdObject.
+ *
+ * Like netconfd_object_get_backup() but doesn't increase the reference count on the returned object.
+ *
+ * <warning>It is not safe to use the returned object if you are on another thread than the one where the #GDBusObjectManagerClient or #GDBusObjectManagerServer for @object is running.</warning>
+ *
+ * Returns: (transfer none): A #netconfdBackup or %NULL if @object does not implement the interface. Do not free the returned object, it is owned by @object.
+ */
+netconfdBackup *netconfd_object_peek_backup (netconfdObject *object)
+{
+  GDBusInterface *ret;
+  ret = g_dbus_object_get_interface (G_DBUS_OBJECT (object), "de.wago.netconfd1.backup");
+  if (ret == NULL)
+    return NULL;
+  g_object_unref (ret);
+  return NETCONFD_BACKUP (ret);
 }
 
 
@@ -4029,6 +5500,11 @@ netconfd_object_proxy_get_property (GObject      *gobject,
       g_value_take_object (value, interface);
       break;
 
+    case 3:
+      interface = g_dbus_object_get_interface (G_DBUS_OBJECT (object), "de.wago.netconfd1.backup");
+      g_value_take_object (value, interface);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, prop_id, pspec);
       break;
@@ -4045,6 +5521,7 @@ netconfd_object_proxy_class_init (netconfdObjectProxyClass *klass)
 
   g_object_class_override_property (gobject_class, 1, "interface-config");
   g_object_class_override_property (gobject_class, 2, "ip-config");
+  g_object_class_override_property (gobject_class, 3, "backup");
 }
 
 /**
@@ -4137,6 +5614,19 @@ netconfd_object_skeleton_set_property (GObject      *gobject,
         }
       break;
 
+    case 3:
+      interface = g_value_get_object (value);
+      if (interface != NULL)
+        {
+          g_warn_if_fail (NETCONFD_IS_BACKUP (interface));
+          g_dbus_object_skeleton_add_interface (G_DBUS_OBJECT_SKELETON (object), interface);
+        }
+      else
+        {
+          g_dbus_object_skeleton_remove_interface_by_name (G_DBUS_OBJECT_SKELETON (object), "de.wago.netconfd1.backup");
+        }
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, prop_id, pspec);
       break;
@@ -4164,6 +5654,11 @@ netconfd_object_skeleton_get_property (GObject      *gobject,
       g_value_take_object (value, interface);
       break;
 
+    case 3:
+      interface = g_dbus_object_get_interface (G_DBUS_OBJECT (object), "de.wago.netconfd1.backup");
+      g_value_take_object (value, interface);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, prop_id, pspec);
       break;
@@ -4180,6 +5675,7 @@ netconfd_object_skeleton_class_init (netconfdObjectSkeletonClass *klass)
 
   g_object_class_override_property (gobject_class, 1, "interface-config");
   g_object_class_override_property (gobject_class, 2, "ip-config");
+  g_object_class_override_property (gobject_class, 3, "backup");
 }
 
 /**
@@ -4219,6 +5715,18 @@ void netconfd_object_skeleton_set_interface_config (netconfdObjectSkeleton *obje
 void netconfd_object_skeleton_set_ip_config (netconfdObjectSkeleton *object, netconfdIp_config *interface_)
 {
   g_object_set (G_OBJECT (object), "ip-config", interface_, NULL);
+}
+
+/**
+ * netconfd_object_skeleton_set_backup:
+ * @object: A #netconfdObjectSkeleton.
+ * @interface_: (nullable): A #netconfdBackup or %NULL to clear the interface.
+ *
+ * Sets the #netconfdBackup instance for the D-Bus interface <link linkend="gdbus-interface-de-wago-netconfd1-backup.top_of_page">de.wago.netconfd1.backup</link> on @object.
+ */
+void netconfd_object_skeleton_set_backup (netconfdObjectSkeleton *object, netconfdBackup *interface_)
+{
+  g_object_set (G_OBJECT (object), "backup", interface_, NULL);
 }
 
 
@@ -4285,6 +5793,7 @@ netconfd_object_manager_client_get_proxy_type (GDBusObjectManagerClient *manager
       lookup_hash = g_hash_table_new (g_str_hash, g_str_equal);
       g_hash_table_insert (lookup_hash, (gpointer) "de.wago.netconfd1.interface_config", GSIZE_TO_POINTER (NETCONFD_TYPE_INTERFACE_CONFIG_PROXY));
       g_hash_table_insert (lookup_hash, (gpointer) "de.wago.netconfd1.ip_config", GSIZE_TO_POINTER (NETCONFD_TYPE_IP_CONFIG_PROXY));
+      g_hash_table_insert (lookup_hash, (gpointer) "de.wago.netconfd1.backup", GSIZE_TO_POINTER (NETCONFD_TYPE_BACKUP_PROXY));
       g_once_init_leave (&once_init_value, 1);
     }
   ret = (GType) GPOINTER_TO_SIZE (g_hash_table_lookup (lookup_hash, interface_name));

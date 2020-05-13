@@ -11,7 +11,7 @@
 ///
 ///  \file     config_dnsmasq.c
 ///
-///  \version  $Revision: 44515 $
+///  \version  $Revision: 44718 $
 ///
 ///  \brief    Configuration tool to configure DNS and DHCP service on PFC200. 
 ///
@@ -1662,7 +1662,7 @@ static void ct_dnsmasq_assert_conf_not_compromised(char *dnsmasq_conf)
 }
 
 // Add DHCPD config values of one port to the GString for dnsmasq.conf.
-static void add_dhcpd_port_config(dnsmasq_handle_t *xmlhandle, char *port, GString *config)
+static void add_dhcpd_port_config(dnsmasq_handle_t *xmlhandle, char *port, GString *config, ip_config_t *ip_config_data)
 {
     if(0 == strcmp(ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-state", NULL), "enabled"))
     {
@@ -1670,9 +1670,17 @@ static void add_dhcpd_port_config(dnsmasq_handle_t *xmlhandle, char *port, GStri
         char **range = g_strsplit(ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-range", NULL), "_", 0);
         char *lease = ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-lease-time", NULL);
         g_string_append_printf(config, "dhcp-range=%s,%s,%sm\n", range[0], range[1], lease);
-        g_string_append_printf(config, "interface=br0,eth%s\n",
-			ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "port-name", NULL));
         g_strfreev(range);
+
+        if(ip_config_data->dsa_state == 0) {
+            g_string_append_printf(config, "interface=br0\n");
+        } else {
+            if(0 == strcmp("X1", port)) {
+                g_string_append_printf(config, "interface=br0\n");
+            } else if(0 == strcmp("X2", port)) {
+                g_string_append_printf(config, "interface=br1\n");
+            }
+        }
 
         char **hosts = g_strsplit(ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-fix-host", ""), ",", 0);
         int idx;
@@ -1683,11 +1691,18 @@ static void add_dhcpd_port_config(dnsmasq_handle_t *xmlhandle, char *port, GStri
             g_strfreev(mac_ip);
         }
         g_strfreev(hosts);
+    } else {
+        if(0 == strcmp("X1", port)) {
+            g_string_append_printf(config, "no-dhcp-interface=br0\n");
+        }
+        else if(0 == strcmp("X2", port)) {
+            g_string_append_printf(config, "no-dhcp-interface=br1\n");
+        }
     }
 }
  
 // Write dnsmasq.conf
-static void ct_dnsmasq_generate_conf(dnsmasq_handle_t *xmlhandle, char *dnsmasq_conf_tmp, char **legal_ports)
+static void ct_dnsmasq_generate_conf(dnsmasq_handle_t *xmlhandle, char *dnsmasq_conf_tmp, char **legal_ports, ip_config_t *ip_config_data)
 {
     int rc;
     plainfile_t *pfp = fh_open(dnsmasq_conf_tmp, "w");
@@ -1696,8 +1711,14 @@ static void ct_dnsmasq_generate_conf(dnsmasq_handle_t *xmlhandle, char *dnsmasq_
     g_string_append(config, cfg_dnsmasq_start);
 
     char *dnsstate = ct_dnsmasq_get_value(xmlhandle, DNS, NULL, "dns-state", NULL);
-    if(0 == strcmp(dnsstate, "disabled"))
+    if(0 == strcmp(dnsstate, "enabled"))
     {
+        if(ip_config_data->dsa_state == 0) {
+            g_string_append_printf(config, "interface=br0\n");
+        } else {
+            g_string_append_printf(config, "interface=br0\ninterface=br1\n");
+        }
+    } else {
         g_string_append(config, "port=0\n");
     }
     char *dnsmode = ct_dnsmasq_get_value(xmlhandle, DNS, NULL, "dns-mode", NULL);
@@ -1712,7 +1733,7 @@ static void ct_dnsmasq_generate_conf(dnsmasq_handle_t *xmlhandle, char *dnsmasq_
     char *port;
     for(port = *legal_ports; port != NULL; legal_ports++, port = *legal_ports)
     {
-        add_dhcpd_port_config(xmlhandle, port, config);
+        add_dhcpd_port_config(xmlhandle, port, config, ip_config_data);
     }
 
     g_string_append(config, cfg_dnsmasq_end);
@@ -1810,9 +1831,12 @@ static char *usage_text =
     "                             Additionally prints current leases.\n"
     "  -x/--no-dnsmasq-restart    After setting a value do not run /etc/init.d/dnsmasq restart.\n"
     "  -r/dbg-root <path>         Prepend path to config file paths for debugging.\n"
-    "  -C/--xml-config>           Alternative network-services.xml configuration file.\n"
+    "  -C/--services-config>      Alternative network-services.xml configuration file.\n"
     "                             Default xml network configuration file is\n"
     "                             " NETWORK_SERVICES_XML "\n"
+    "  -o/--dnsmasq-config>       Alternative dnsmasq configuration file.\n"
+    "                             Default dnsmasq configuration file is\n"
+    "                             " DNSMASQ_CONF "\n"
     "Examples\n"
     "  config_dnsmasq -d -p X2 -s dhcpd-state=enabled dhcpd-range=192.168.2.100_192.168.2.200\n"
     "    Enables DHCP server on port X2 and sets an address range.\n"
@@ -1827,6 +1851,7 @@ static struct option long_options[] =
 {
     { "services-config", required_argument, NULL, 'C' },
     { "interfaces-config", required_argument, NULL, 'i' },
+    { "dnsmasq-config", required_argument, NULL, 'o' },
     { "help", no_argument, NULL, 'h' },
     { "port", required_argument, NULL, 'p' },
     { "dns", no_argument, NULL, 'n' },
@@ -2031,7 +2056,7 @@ static int eval_options(int argc, char **argv, prgconf_t *prgconf)
     GString *lease_file = g_string_new(DNSMASQ_LEASE_FILE);
     int option_index = 0;
 
-    while(-1 != (c = getopt_long(argc, argv, "C:i:p:hndgsr:cjx", long_options, &option_index)))
+    while(-1 != (c = getopt_long(argc, argv, "C:i:o:p:hndgsr:cjx", long_options, &option_index)))
     {
         char *err_servtype = "Double service type command line option.";
         char *err_func = "Double function select command line option.";
@@ -2046,6 +2071,13 @@ static int eval_options(int argc, char **argv, prgconf_t *prgconf)
         case 'C':
             cmd_assert(0 == strcmp(NETWORK_SERVICES_XML, services_xml->str), err_moption);
             (void) g_string_assign(services_xml, optarg);
+            break;
+        case 'o':
+            cmd_assert(0 == strcmp(DNSMASQ_CONF, dnsmasq_conf->str), err_moption);
+            (void) g_string_assign(dnsmasq_conf, optarg);
+            cmd_assert(0 == strcmp(DNSMASQ_CONF_TMP, dnsmasq_conf_tmp->str), err_moption);
+            (void) g_string_assign(dnsmasq_conf_tmp, optarg);
+            (void) g_string_append(dnsmasq_conf_tmp, ".tmp");
             break;
         case 'i':
             cmd_assert(0 == strcmp(NETWORK_INTERFACES_XML, interfaces_xml->str), err_moption);
@@ -2248,7 +2280,7 @@ int main(int argc, char **argv)
         ct_dnsmasq_check_ip_dependencies(&ip_config_data, dnsmasq_session, legal_port_names);
         ct_dnsmasq_save_xml_file(dnsmasq_session, NULL);
         ct_dnsmasq_edit_etc_hosts(dnsmasq_session, &ip_config_data, prgconf.etchosts);
-        ct_dnsmasq_generate_conf(dnsmasq_session, prgconf.dnsmasq_conf_tmp, legal_port_names);
+        ct_dnsmasq_generate_conf(dnsmasq_session, prgconf.dnsmasq_conf_tmp, legal_port_names, &ip_config_data);
         rename_file(prgconf.dnsmasq_conf, prgconf.dnsmasq_conf_tmp);
     }
     ct_dnsmasq_finish_session(dnsmasq_session);

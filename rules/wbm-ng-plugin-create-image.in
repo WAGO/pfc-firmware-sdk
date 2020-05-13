@@ -1,0 +1,38 @@
+## SECTION=wago_specific_wbm_plugins
+
+#
+#   This file contains the main config tools target needed by ptxdist to
+#   process ${__THIS_FILENAME__}.make as well as the common configuration
+#   entries for the config tools meta package: the feature entries, the config
+#   file entries and the config tool entries.  
+#
+#   The feature targets are visible in the ptxdist menu. They are used to
+#   enable or disable menu entries in all frontends (i.e. eth1 settings may be
+#   disabled if the feature "Ethernet Switch" is active).  
+#
+
+
+# This is the target corresponding to ${__THIS_FILENAME__}.make
+
+config WBM_NG_PLUGIN_CREATE_IMAGE
+	bool
+	default n
+	prompt "Create bootable Image Plugin"
+
+	depends on WBM_NG
+
+	# This plugin requires the wbm-networking plugin to be installed
+	# as it provided the required wbm menu entry point
+	select WBM_NG_PLUGIN_NETWORKING
+
+	help
+	 "Plugin to the Modular WBM that contains the 'Create bootable Image' Page"
+
+config WBM_NG_PLUGIN_CREATE_IMAGE_URL_TEMPLATE
+      string
+      depends on WBM_NG_PLUGIN_CREATE_IMAGE
+      prompt "URL template"
+      default "%ARTIFACTORY_BASE_URL%/wbm-generic-prod/wago/wbm-create-image/wbm-create-image-%VERSION%.tgz"
+      help
+        Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+        See Confluence for further details.

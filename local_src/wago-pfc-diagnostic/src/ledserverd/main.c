@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 /// \file main.c
 ///
-/// \version $Revision: 19901 $
+/// \version $Revision: 47428 $
 ///
 /// \brief Main-Function of the LED-Error-Servers
 ///
@@ -38,6 +38,7 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <glib.h>
+#include "led_info_json.h"
 
 #include <mcheck.h>
 
@@ -94,9 +95,6 @@ typedef struct {
     int        type;
     tUDataType value;
 }tIdAdditionalParam;
-
-
-
 
 //------------------------------------------------------------------------------
 // Global variables
@@ -518,9 +516,11 @@ void SetDefaultState(tLedNr ledNr,tLedInfo * ledInfo)
   SetLedState(ledNr, ledInfo->state,ledInfo);
 
   ledserver_LEDCTRL_GetLed(ledNr,&dummy,(void*)&getData,sizeof(getData),(void**)&ledData);
-
-  ledData->flags |= LED_FLAG_DEFAULT_VAL;
-  _CleanIdInfo(&ledData->idInfo);
+  if(ledData != NULL)
+  {
+    ledData->flags |= LED_FLAG_DEFAULT_VAL;
+    _CleanIdInfo(&ledData->idInfo);
+  }
 }
 
 void SetIdInfo(tLedInfo * ledInfo,tIdInfo * idInfo)
@@ -910,6 +910,67 @@ int FreeLedDataHandler(tLedNr ledNr, void* data,void*user_data)
   return 0;
 }
 
+static void _SetupLedAliasFromInfoList(const char * alias,tLedNames * newName)
+{
+  tLedAlias * newAlias = malloc(sizeof(tLedAlias));
+  newAlias->alias=strdup(alias);
+  newAlias->pNext = newName->alias;
+  newName->alias = newAlias;
+}
+
+static void _SetupLedFromInfoList(tLEDInfo * info,tLedBehavior * ledBehavior)
+{
+  tLedNr ledNr;
+
+  if(LED_RETURN_OK == ledserver_LEDCTRL_GetLedNumber(info->name,&ledNr))
+  {
+    tLedNames     * newName = malloc(sizeof(tLedNames));
+
+    newName->ledNr = ledNr;
+    newName->ledName = strdup((const char*)info->name);
+    newName->alias =  NULL;
+    g_list_foreach(info->alias,(GFunc)_SetupLedAliasFromInfoList,newName);
+    newName->pNext = ledBehavior->names;
+    ledBehavior->names = newName;
+  }
+}
+
+static gint _LedFinder(gconstpointer pLedInfo, gconstpointer pLedName)
+{
+  tLEDInfo * ledInfo = (tLEDInfo*)pLedInfo;
+  char * ledName = (char*)pLedName;
+  return strcmp(ledInfo->name,ledName);
+}
+
+static void _SetupLedDefaultsFromInfoList(tLEDInfo * info)
+{
+  tLedNr ledNr;
+
+  if(LED_RETURN_OK == ledserver_LEDCTRL_GetLedNumber(info->name,&ledNr))
+  {
+    if(ledEvents != NULL)
+    {
+      tLedEventList * pAct=ledEvents;
+      tLedInfo ledInfo;
+      while(pAct != NULL)
+      {
+        if(    (pAct->info.idInfo.id & 0x3fffffff)
+            == (info->startid        & 0x3fffffff))
+        {
+          break;
+        }
+        pAct = pAct->pNext;
+      }
+      if(pAct != NULL)
+      {
+        GetLedInfo(ledNr, &ledInfo);
+        SetLedDefaultState(ledNr,&ledInfo,&(pAct->info));
+        SetDefaultState(ledNr,&ledInfo);
+      }
+    }
+  }
+}
+
 //-- Function: main ------------------------------------------------------------
 ///
 /// The Main Function
@@ -920,6 +981,7 @@ int main(void)
 {
   com_tConnection      con;
   tLedBehavior    ledBehavior;
+  GList          *ledInfoList;
   tLedFiles       ledFiles[2] = {
                                  {
                                   .path   = DIAGNOSTIC_XML_DOCUMENT,
@@ -975,10 +1037,28 @@ int main(void)
   ledserver_LEDCTRL_SetResetUserDataHandler(LED_STATE_CAN,FreeLedDataHandler);
   ledBehavior.defaults = NULL;
   ledBehavior.names = NULL;
-  ParseLedDoc(LEDCONFIG_XML_DOCUMENT, &ledBehavior);
-  SetDefaults(ledBehavior.defaults);
+
+  ledInfoList = getInfoLedListFromFile(LED_INFO_FILE);
+  g_list_foreach(ledInfoList,(GFunc)_SetupLedFromInfoList,&ledBehavior);
+
   CreateLedEventList(&ledBehavior,ledFiles,&ledEvents);
   DBG2("ledEvents: %.8X",(uint32_t)(intptr_t)ledEvents);
+
+  //g_list_foreach(ledInfoList,(GFunc)_SetupLedDefaultsFromInfoList,&ledBehavior);
+  {
+    tLedNames * pAct = ledBehavior.names;
+    while(pAct!=NULL)
+    {
+      GList * llink = g_list_find_custom(ledInfoList,pAct->ledName,_LedFinder);
+      if(llink != NULL)
+      {
+        _SetupLedDefaultsFromInfoList(llink->data);
+      }
+      pAct=pAct->pNext;
+    }
+  }
+
+
   if(ledEvents != NULL)
   {
     tLedEventList * pAct=ledEvents;
@@ -1002,7 +1082,6 @@ int main(void)
       int * ledNr = malloc(sizeof(int));
       char path[4096];
       tLedReturnCode result;
-     // int ledRemapped;
 
       result =  ledserver_LEDCTRL_GetLedNumber(pAct->ledName,ledNr);
       if(LED_RETURN_ERROR_NO_NAME_AVAILABLE == result)
@@ -1032,7 +1111,7 @@ int main(void)
     }
   }
   com_MSG_RegisterObject(&con, LED_DBUS_PATH_ALL, (com_tHandlerFunction) GetAllLedHandler, (void*) ledBehavior.names);
-  FreeLedDefaults(ledBehavior.defaults);
+  cleanUpInfoLedList(ledInfoList);
   mainloop(&ledBehavior,ledFiles);
   closelog();
 

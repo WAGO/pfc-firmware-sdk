@@ -1,6 +1,6 @@
 WCTS_PLATFORMCONFIG             := __UNKNOWN_PLATFORM__
 
-ifeq ($(PTXCONF_PLATFORM), wago-pac100)
+ifeq ($(PTXCONF_PLATFORM), wago-pfc-adv)
 WCTS_PLATFORMCONFIG             := Lin32PTXdistPac100
 endif
 

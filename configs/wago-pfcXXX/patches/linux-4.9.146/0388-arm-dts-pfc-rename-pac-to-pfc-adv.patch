@@ -1,0 +1,3510 @@
+From 6880f2d125f6da96144d4d7a2ffb6aca6baddc17 Mon Sep 17 00:00:00 2001
+From: Oliver Rohe <Oliver.Rohe@wago.com>
+Date: Fri, 24 Jan 2020 15:47:08 +0100
+Subject: [PATCH] arm: dts: pfc: rename pac to pfc-adv
+
+---
+ arch/arm/boot/dts/Makefile                        |   4 +-
+ arch/arm/boot/dts/am335x-pac-768_3301.dts         | 146 ------
+ arch/arm/boot/dts/am335x-pac-768_3301_psm.dts     | 112 -----
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi        | 474 --------------------
+ arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi    | 454 -------------------
+ arch/arm/boot/dts/am335x-pfc-768_3301.dts         | 145 ++++++
+ arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts     | 112 +++++
+ arch/arm/boot/dts/am335x-pfc-768_330x.dtsi        | 474 ++++++++++++++++++++
+ arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi    | 454 +++++++++++++++++++
+ arch/arm/configs/am335x_pac_generic_defconfig     | 516 ----------------------
+ arch/arm/configs/am335x_pfc_adv_generic_defconfig | 516 ++++++++++++++++++++++
+ 11 files changed, 1703 insertions(+), 1704 deletions(-)
+ delete mode 100644 arch/arm/boot/dts/am335x-pac-768_3301.dts
+ delete mode 100644 arch/arm/boot/dts/am335x-pac-768_3301_psm.dts
+ delete mode 100644 arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+ delete mode 100644 arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
+ create mode 100644 arch/arm/boot/dts/am335x-pfc-768_3301.dts
+ create mode 100644 arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
+ create mode 100644 arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
+ create mode 100644 arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi
+ delete mode 100644 arch/arm/configs/am335x_pac_generic_defconfig
+ create mode 100644 arch/arm/configs/am335x_pfc_adv_generic_defconfig
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 76bfdda..310e5ba 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -582,8 +582,8 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-pfc100-setupfw.dtb \
+ 	am335x-pfc200v2-setupfw.dtb \
+ 	am335x-pfc200v3-setupfw.dtb \
+-	am335x-pac-768_3301.dtb \
+-	am335x-pac-768_3301_psm.dtb
++	am335x-pfc-768_3301.dtb \
++	am335x-pfc-768_3301_psm.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-duovero-parlor.dtb \
+ 	omap4-kc1.dtb \
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301.dts b/arch/arm/boot/dts/am335x-pac-768_3301.dts
+deleted file mode 100644
+index 60cd598..0000000
+--- a/arch/arm/boot/dts/am335x-pac-768_3301.dts
++++ /dev/null
+@@ -1,146 +0,0 @@
+-/*
+- * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-
+-#include "am335x-pac-768_330x.dtsi"
+-
+-/{
+-	model = "WAGO PAC100 768-3301";
+-	compatible = "wago,am335x-pac-768_330x-3005", "wago,am335x-pfc", "ti,am33xx";
+-};
+-
+-&encsw {
+-	status ="okay";
+-};
+-
+-&encsw {
+-	status ="okay";
+-};
+-
+-&aes {
+-	status = "okay";
+-};
+-
+-&cppi41dma {
+-	status = "okay";
+-};
+-
+-&elm {
+-	status = "okay";
+-};
+-
+-&oms {
+-	status = "okay";
+-};
+-
+-&oms_reset_all {
+-	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
+-};
+-
+-&oms_stop {
+-	gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
+-};
+-
+-&sham {
+-	status = "okay";
+-};
+-
+-&uart0 {
+-	status = "okay";
+-};
+-
+-&usb {
+-	status = "okay";
+-};
+-
+-&usb_ctrl_mod {
+-	status = "okay";
+-};
+-
+-&usb0_phy {
+-	status = "okay";
+-};
+-
+-&usb0 {
+-	dr_mode = "peripheral";
+-	status = "okay";
+-};
+-
+-&spi1 {
+-	status = "okay";
+-
+-	flash: epc16@1 {
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		compatible = "s25fl016k", "jedec,spi-nor";
+-		reg = <1>;
+-		spi-max-frequency = <20000000>;
+-
+-		partition@0 {
+-			label = "firmware";
+-			reg = <0x0 0x200000>;
+-		};
+-	};
+-};
+-
+-&watchdog {
+-	status = "okay";
+-};
+-
+-&i2c0 {
+-	status = "okay";
+-};
+-
+-&swcfg_mv88e6321 {
+-	status = "okay";
+-};
+-
+-&mac {
+-	status = "okay";
+-};
+-
+-&mmc1 {
+-	status = "okay";
+-};
+-
+-&mmc2 {
+-	status = "okay";
+-};
+-
+-&gpmc {
+-	status = "okay";
+-};
+-
+-&rmd {
+-	status = "okay";
+-
+-	pinctrl-names = "default", "sleep", "active";
+-	pinctrl-1 = <&spi1_sleep_pins>;
+-	pinctrl-2 = <&spi1_pins>;
+-
+-	nrst-gpios = <&gpio2 17 GPIO_ACTIVE_HIGH>;
+-	nce-gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
+-	nconfig-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+-};
+-
+-&uio_rmd_irq0 {
+-	status = "okay";
+-};
+-
+-&spi0 {
+-	status = "okay";
+-
+-	spi-sram@0 {
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		compatible = "anvo-systems,anv32aa1w";
+-		reg = <0>;
+-		spi-max-frequency = <48000000>;
+-	};
+-};
+-
+diff --git a/arch/arm/boot/dts/am335x-pac-768_3301_psm.dts b/arch/arm/boot/dts/am335x-pac-768_3301_psm.dts
+deleted file mode 100644
+index 85603fd..0000000
+--- a/arch/arm/boot/dts/am335x-pac-768_3301_psm.dts
++++ /dev/null
+@@ -1,112 +0,0 @@
+-/*
+- * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-/dts-v1/;
+-
+-#include "am335x-pac-768_330x_psm.dtsi"
+-
+-/{
+-	model = "WAGO PAC100 768-3301";
+-	compatible = "wago,am335x-pac-768_330x-1005", "wago,am335x-pfc", "ti,am33xx";
+-};
+-
+-&encsw {
+-	status ="okay";
+-};
+-
+-&encsw {
+-	status ="okay";
+-};
+-
+-&aes {
+-	status = "okay";
+-};
+-
+-&cppi41dma {
+-	status = "okay";
+-};
+-
+-&elm {
+-	status = "okay";
+-};
+-
+-&oms {
+-	status = "okay";
+-};
+-
+-&oms_reset_all {
+-	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
+-};
+-
+-&sham {
+-	status = "okay";
+-};
+-
+-&spi0 {
+-	status = "okay";
+-};
+-
+-&uart0 {
+-	status = "okay";
+-};
+-
+-&usb {
+-	status = "okay";
+-};
+-
+-&usb_ctrl_mod {
+-	status = "okay";
+-};
+-
+-&usb0_phy {
+-	status = "okay";
+-};
+-
+-&usb0 {
+-	dr_mode = "peripheral";
+-	status = "okay";
+-};
+-
+-&spi1 {
+-	status = "okay";
+-};
+-
+-&watchdog {
+-	status = "okay";
+-};
+-
+-&i2c0 {
+-	status = "okay";
+-};
+-
+-&swcfg_mv88e6321 {
+-	status = "okay";
+-};
+-
+-&mac {
+-	status = "okay";
+-};
+-
+-&mmc1 {
+-	status = "okay";
+-};
+-
+-&mmc2 {
+-	status = "okay";
+-};
+-
+-&gpmc {
+-	status = "okay";
+-};
+-
+-&rmd {
+-	status = "okay";
+-};
+-
+-&uio_rmd_irq0 {
+-	status = "okay";
+-};
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+deleted file mode 100644
+index f5361f5..0000000
+--- a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
++++ /dev/null
+@@ -1,474 +0,0 @@
+-/*
+- * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include "am335x-pfc.dtsi"
+-#include "am335x-pfc-750_8xxx-leds.dtsi"
+-#include "am335x-pfc-750_821x-mv88e6321.dtsi"
+-#include "wago-devconf.dtsi"
+-
+-/ {
+-	memory {
+-		device_type = "memory";
+-		reg = <0x80000000 0x20000000>; /* 512 MB */
+-	};
+-
+-	uio_rmd_mem@1000000 {
+-		compatible = "uio_pdrv_genirq";
+-		reg = <0x01000000 0x01000000>;
+-	};
+-
+-	/* remove this node if interrupt is used in rmd driver and inform the
+-	 * rlb team to use the rmd_irq1 node for error handling.
+-	 */
+-	uio_rmd_irq0: uio_rmd_irq0 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <7>;
+-		interrupt-parent = <&intc>;
+-	};
+-
+-	uio_rmd_irq1: uio_rmd_irq1 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+-	rmd: rmd {
+-		status = "disabled";
+-		compatible = "wago,rmd";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&rmd_pins>, <&spi1_sleep_pins>;
+-
+-		rmd,fifo-size = <0x1000>;
+-		reg = <0x01000000 0x01000000>;
+-
+-		/*
+-		 * Crossbar Mapped Channels
+-		 *
+-		 * 29: pi_x_dma_event_intr1
+-		 * 30: pi_x_dma_event_intr2
+-		 *
+-		 * Map 30 and 29 to open channels 12 and 13
+-		 *
+-		 */
+-		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
+-		dma-names = "rx", "tx";
+-
+-		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+-	encsw: dip-switch {
+-		status = "disabled";
+-		compatible = "encsw";
+-		encsw-gpios = <
+-			&io_expander_71 0 GPIO_ACTIVE_LOW
+-			&io_expander_71 1 GPIO_ACTIVE_LOW
+-			&io_expander_71 2 GPIO_ACTIVE_LOW
+-			&io_expander_71 3 GPIO_ACTIVE_LOW
+-			&io_expander_71 4 GPIO_ACTIVE_LOW
+-			&io_expander_71 5 GPIO_ACTIVE_LOW
+-			&io_expander_71 6 GPIO_ACTIVE_LOW
+-			&io_expander_71 7 GPIO_ACTIVE_LOW
+-			>;
+-	};
+-};
+-
+-&cpu_0 {
+-	operating-points = <
+-		1000000  1325000
+-		 800000  1260000
+-		 720000  1200000
+-		 600000  1100000
+-		 300000  950000
+-	>;
+-};
+-
+-&am33xx_pinmux {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <
+-		&gpio0_pins
+-		&gpio1_pins
+-		&gpio2_pins
+-	>;
+-
+-	watchdog_pins: pinmux_watchdog_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_EMU1_GPIO3_8(PIN_OUTPUT_PULLDOWN)
+-		>;
+-	};
+-
+-	spi1_pins: pinmux_spi1_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_UART0_CTSN_SPI1_D0(PIN_INPUT)
+-			AM33XX_UART0_RTSN_SPI1_D1(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_MCASP0_ACLKX_SPI1_SCLK(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_ECAP0_IN_PWM0_OUT_SPI1_CS1(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	spi1_sleep_pins: pinmux_spi1_sleep_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_UART0_CTSN_GPIO1_8(PIN_INPUT_PULLDOWN)
+-			AM33XX_UART0_RTSN_GPIO1_9(PIN_INPUT_PULLDOWN)
+-			AM33XX_MCASP0_ACLKX_GPIO3_14(PIN_INPUT_PULLDOWN)
+-			AM33XX_ECAP0_IN_PWM0_OUT_GPIO0_7(PIN_INPUT_PULLDOWN)
+-		>;
+-	};
+-
+-	mmc1_cd_pins: pinmux_sdcard_cd_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_A3_GPIO1_19(PIN_INPUT_PULLUP)
+-		>;
+-	};
+-
+-	emmc_pins: pinmux_emmc_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_CSN1_MMC1_CLK(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CSN2_MMC1_CMD(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_TX_CLK_MMC1_DAT0(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_RX_CLK_MMC1_DAT1(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_RXD3_MMC1_DAT2(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_RXD2_MMC1_DAT3(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-		>;
+-	};
+-
+-	rmii2_pins: pinmux_rmii2_pins {
+-		pinctrl-single,pins = <
+-			/* RMII 2 */
+-			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
+-			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
+-			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
+-			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
+-		>;
+-	};
+-
+-	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
+-		pinctrl-single,pins = <
+-			/* RMII 2 */
+-			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
+-			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
+-			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
+-			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
+-		>;
+-	};
+-
+-	rmii1_sleep_pins: pinmux_rmii1_sleep_pins {
+-		pinctrl-single,pins = <
+-			/* all pins are hard-wired to GROUND */
+-			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
+-			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
+-			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
+-			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
+-			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
+-			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
+-			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
+-			AM33XX_MII1_RX_ER_GPIO3_2(PIN_INPUT)
+-		>;
+-	};
+-
+-	gpio2_pins: pinmux_gpio2_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_LCD_HSYNC_GPIO2_23(PIN_INPUT) /* BAS Stop */
+-		>;
+-	};
+-
+-	gpio1_pins: pinmux_gpio1_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_A2_GPIO1_18(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_A8_GPIO1_24(PIN_INPUT) /* DIAG-UF1 */
+-			AM33XX_GPMC_A1_GPIO1_17(PIN_INPUT) /* DIAG-US1 */
+-			AM33XX_GPMC_A9_GPIO1_25(PIN_INPUT) /* nINT-DIP */
+-		>;
+-	};
+-
+-	gpio0_pins: pinmux_gpio0_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_XDMA_EVENT_INTR0_GPIO0_19(PIN_INPUT) /* nRST-LEDServer */
+-			AM33XX_GPMC_WPN_GPIO0_31(PIN_INPUT) /* nINT-MCU-CC */
+-		>;
+-	};
+-
+-	gpmc_data_pins: pinmux_gpmc_data_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	gpmc_addr_pins: pinmux_gpmc_addr_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
+-			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
+-			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
+-		>;
+-	};
+-
+-	fpga_pins: pinmux_fpga_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP) /* nCONFIG */
+-			AM33XX_LCD_DATA10_GPIO2_16(PIN_INPUT) /* CONFIG-DONE */
+-			AM33XX_LCD_PCLK_GPIO2_24(PIN_INPUT) /* nSTATUS */
+-			AM33XX_LCD_DATA11_GPIO2_17(PIN_OUTPUT) /* nRST */
+-			AM33XX_GPMC_WAIT0_GPIO0_30(PIN_OUTPUT) /* nCE */
+-			AM33XX_MII1_TXD2_GPIO0_17(PIN_INPUT) /* INIT-DONE */
+-		>;
+-	};
+-
+-	rmd_pins: pinmux_rmd_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_A7_GPIO1_23(PIN_INPUT) /* DBG0 */
+-			AM33XX_GPMC_A6_GPIO1_22(PIN_INPUT) /* DBG3 */
+-
+-			AM33XX_LCD_DATA7_GPIO2_13(PIN_INPUT) /* SYNC1 */
+-			AM33XX_LCD_DATA8_GPIO2_14(PIN_INPUT) /* SYNC2 */
+-			AM33XX_LCD_DATA9_GPIO2_15(PIN_INPUT) /* SYNC3 */
+-
+-			AM33XX_LCD_DATA6_GPIO2_12(PIN_INPUT) /* DMA2-RMD */
+-			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT) /* IRQ1-RMD */
+-			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT) /* DMA1-RMD */
+-			AM33XX_SPI0_CS1_XDMA_EVENT_INTR2(PIN_INPUT) /* DMA0-RMD */
+-		>;
+-	};
+-};
+-
+-&wsysinit {
+-	board,variant = "pac100";
+-	tty,rs232-485 = "nop";
+-	tty,service   = "ttyGS0";
+-};
+-
+-&spi1 {
+-};
+-
+-&watchdog {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&watchdog_pins>;
+-
+-	gpio-en = <&io_expander_70 0 GPIO_ACTIVE_LOW>;
+-	gpios = <&gpio3 8 GPIO_ACTIVE_LOW>;
+-};
+-
+-&mv88e6321_switch {
+-	ports {
+-		port@3 {
+-			label = "ethX1";
+-		};
+-
+-		port@4 {
+-			label = "ethX2";
+-		};
+-	};
+-};
+-
+-&i2c0 {
+-	clock-frequency = <100000>;
+-
+-	/* IO Port Expander outputs only */
+-	io_expander_70: pca9538@70 {
+-		compatible = "nxp,pca9538";
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-		#gpio-cells = <2>;
+-		gpio-controller;
+-		reg = <0x70>;
+-	};
+-
+-	/* IO Port Expander for DIP-switch, inputs only */
+-	io_expander_71: pca9538@71 {
+-		compatible = "nxp,pca9538";
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-		reg = <0x71>;
+-		#gpio-cells = <2>;
+-		gpio-controller;
+-        };
+-
+-	/*
+-	 * PTN5150H
+-	 * CC logic for USB Type-C applications
+-	 * yet no driver configured!
+-	 *
+-	 * Initially functions in device only mode.
+-	 * But it's possible to enable both directions.
+-	 *
+-	 * Pins: nRST-CC (&io_expander_70 6)  and nINT-CC
+-	 */
+-	cc_logic_usb_c: cclogic@3c {
+-		reg = <0x3c>;
+-	};
+-};
+-
+-/delete-node/ &led_bar61;
+-
+-&lb60_0 {
+-	label = "ds-red";
+-};
+-
+-&lb60_1 {
+-	label = "ds-green";
+-};
+-
+-&lb60_2 {
+-	label = "ec-red";
+-};
+-
+-&lb60_3 {
+-	label = "ec-blue";
+-};
+-
+-&lb60_4 {
+-	label = "h11-red";
+-};
+-
+-&lb60_5 {
+-	label = "h11-green";
+-};
+-
+-&lb60_6 {
+-	label = "h12-red";
+-};
+-
+-&lb60_7 {
+-	label = "h12-green";
+-};
+-
+-&lb60_8 {
+-	label = "run-red";
+-};
+-
+-&lb60_9 {
+-	label = "run-green";
+-};
+-
+-&lb60_10 {
+-	label = "app-red";
+-};
+-
+-&lb60_11 {
+-	label = "app-green";
+-};
+-
+-&rtc_i2c {
+-	trim-data = <0 1 31>;
+-};
+-
+-&tps {
+-	interrupt-parent = <&gpio3>;
+-	interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
+-};
+-
+-&mac {
+-	pinctrl-0 = <
+-		&rmii2_pins
+-		&rmii1_sleep_pins
+-	>;
+-
+-	pinctrl-1 = <
+-		&rmii2_sleep_pins
+-	>;
+-};
+-
+-&mmc1 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <
+-		&mmc1_pins
+-		&mmc1_cd_pins
+-	>;
+-
+-	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
+-};
+-
+-&mmc2 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&emmc_pins>;
+-	vmmc-supply = <&dcdc4_reg>;
+-	bus-width = <4>;
+-	ti,non-removable;
+-};
+-
+-&gpio1 {
+-	boot_select {
+-		gpio-hog;
+-		gpios = <18 GPIO_ACTIVE_LOW>;
+-		output-high;
+-		line-name = "boot_select";
+-	};
+-};
+-
+-&gpmc {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
+-
+-	ranges = <0 0 0x01000000 0x01000000>;
+-
+-	fpga: fpga@0,0 {
+-		reg = <0 0 0x01000000>;
+-		bank-width = <2>; /* 16 Bit */
+-
+-		gpmc,sync-clk-ps = <0>;
+-		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <80>;
+-		gpmc,cs-wr-off-ns = <70>;
+-
+-		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-
+-		gpmc,we-on-ns = <20>;
+-		gpmc,we-off-ns = <70>;
+-		gpmc,oe-on-ns = <10>;
+-		gpmc,oe-off-ns = <80>;
+-		gpmc,oe-extra-delay;
+-
+-		gpmc,access-ns = <80>;
+-		gpmc,rd-cycle-ns = <100>;
+-		gpmc,wr-cycle-ns = <90>;
+-		gpmc,page-burst-access-ns = <0>;
+-
+-		gpmc,bus-turnaround-ns  = <0>;
+-		gpmc,wr-access-ns = <70>;
+-		gpmc,wr-data-mux-bus-ns = <20>;
+-
+-		gpmc,wait-pin = <1>;
+-		gpmc,wait-on-read;
+-		gpmc,wait-on-write;
+-		gpmc,mux-add-data = <2>; /* address-data multiplexing */
+-	};
+-};
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
+deleted file mode 100644
+index b001f23..0000000
+--- a/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
++++ /dev/null
+@@ -1,454 +0,0 @@
+-/*
+- * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include "am335x-pfc.dtsi"
+-#include "am335x-pfc-750_8xxx-leds.dtsi"
+-#include "am335x-pfc-750_821x-mv88e6321.dtsi"
+-#include "wago-devconf.dtsi"
+-
+-/ {
+-	memory {
+-		device_type = "memory";
+-		reg = <0x80000000 0x20000000>; /* 512 MB */
+-	};
+-
+-	uio_rmd_mem@1000000 {
+-		compatible = "uio_pdrv_genirq";
+-		reg = <0x01000000 0x01000000>;
+-	};
+-
+-	/* remove this node if interrupt is used in rmd driver and inform the
+-	 * rlb team to use the rmd_irq1 node for error handling.
+-	 */
+-	uio_rmd_irq0: uio_rmd_irq0 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <7>;
+-		interrupt-parent = <&intc>;
+-	};
+-
+-	uio_rmd_irq1: uio_rmd_irq1 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+-	rmd: rmd {
+-		status = "disabled";
+-		compatible = "wago,rmd";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&rmd_pins>;
+-
+-		rmd,fifo-size = <0x1000>;
+-		reg = <0x01000000 0x01000000>;
+-
+-		/*
+-		 * Crossbar Mapped Channels
+-		 *
+-		 * 28: pi_x_dma_event_intr0
+-		 * 29: pi_x_dma_event_intr1
+-		 *
+-		 * Map 28 and 29 to Open Channels 20 and 21
+-		 *
+-		 */
+-		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
+-		dma-names = "rx", "tx";
+-
+-		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+-	encsw: dip-switch {
+-		status = "disabled";
+-		compatible = "encsw";
+-		encsw-gpios = <
+-			&io_expander_71 0 GPIO_ACTIVE_LOW
+-			&io_expander_71 1 GPIO_ACTIVE_LOW
+-			&io_expander_71 2 GPIO_ACTIVE_LOW
+-			&io_expander_71 3 GPIO_ACTIVE_LOW
+-			&io_expander_71 4 GPIO_ACTIVE_LOW
+-			&io_expander_71 5 GPIO_ACTIVE_LOW
+-			&io_expander_71 6 GPIO_ACTIVE_LOW
+-			&io_expander_71 7 GPIO_ACTIVE_LOW
+-			>;
+-	};
+-};
+-
+-&cpu_0 {
+-	operating-points = <
+-		1000000  1325000
+-		 800000  1260000
+-		 720000  1200000
+-		 600000  1100000
+-		 300000  950000
+-	>;
+-};
+-
+-&am33xx_pinmux {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <
+-		&gpio1_pins
+-	>;
+-
+-	watchdog_pins: pinmux_watchdog_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_EMU1_GPIO3_8(PIN_OUTPUT_PULLDOWN)
+-		>;
+-	};
+-
+-	spi1_pins: pinmux_spi1_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_UART0_CTSN_SPI1_D0(PIN_INPUT)
+-			AM33XX_UART0_RTSN_SPI1_D1(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_MCASP0_ACLKX_SPI1_SCLK(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_ECAP0_IN_PWM0_OUT_SPI1_CS1(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	mmc1_cd_pins: pinmux_sdcard_cd_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_A3_GPIO1_19(PIN_INPUT_PULLUP)
+-		>;
+-	};
+-
+-	emmc_pins: pinmux_emmc_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_CSN1_MMC1_CLK(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CSN2_MMC1_CMD(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_TX_CLK_MMC1_DAT0(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_RX_CLK_MMC1_DAT1(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_RXD3_MMC1_DAT2(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_MII1_RXD2_MMC1_DAT3(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
+-		>;
+-	};
+-
+-	rmii2_pins: pinmux_rmii2_pins {
+-		pinctrl-single,pins = <
+-			/* RMII 2 */
+-			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
+-			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
+-			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
+-			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
+-		>;
+-	};
+-
+-	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
+-		pinctrl-single,pins = <
+-			/* RMII 2 */
+-			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
+-			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
+-			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
+-			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
+-		>;
+-	};
+-
+-	rmii1_pins: pinmux_rmii1_pins {
+-		pinctrl-single,pins = <
+-			/* RMII1 could used on Marvell based devices only; default off*/
+-			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
+-			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
+-			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
+-			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
+-			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
+-			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
+-			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
+-		>;
+-	};
+-
+-	rmii1_sleep_pins: pinmux_rmii1_sleep_pins {
+-		pinctrl-single,pins = <
+-			/* RMII1 could used on Marvell based devices only; default off*/
+-			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
+-			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
+-			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
+-			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
+-			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
+-			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
+-			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
+-		>;
+-	};
+-
+-	gpio1_pins: pinmux_gpio1_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_A2_GPIO1_18(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	gpmc_data_pins: pinmux_gpmc_data_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	gpmc_addr_pins: pinmux_gpmc_addr_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_LCD_HSYNC_GPMC_A9(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
+-			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
+-			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
+-		>;
+-	};
+-
+-	fpga_pins: pinmux_fpga_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP)
+-			AM33XX_LCD_DATA10_GPIO2_16(PIN_INPUT)
+-			AM33XX_LCD_PCLK_GPIO2_24(PIN_INPUT)
+-			AM33XX_LCD_DATA11_GPIO2_17(PIN_OUTPUT)
+-		>;
+-	};
+-
+-	rmd_pins: pinmux_rmd_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_LCD_DATA7_GPIO2_13(PIN_INPUT)
+-			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT)
+-			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT)
+-			AM33XX_SPI0_CS1_XDMA_EVENT_INTR2(PIN_INPUT)
+-		>;
+-	};
+-};
+-
+-&wsysinit {
+-	board,variant = "pac100";
+-	tty,rs232-485 = "nop";
+-	tty,service   = "ttyGS0";
+-};
+-
+-&spi1 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&spi1_pins>;
+-	ti,pindir-d0-out-d1-in;
+-
+-	fpga_ps: fpga_ps@0 {
+-		compatible = "altr,passive-serial";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&fpga_pins>;
+-
+-		reg = <0>;
+-		spi-max-frequency = <48000000>;
+-
+-		reset-gpios = <&gpio2 17 GPIO_ACTIVE_LOW>;
+-
+-		gpio-nconfig = <&gpio0 16 GPIO_ACTIVE_LOW>;
+-		gpio-nstatus = <&gpio2 24 GPIO_ACTIVE_LOW>;
+-		gpio-confdone = <&gpio2 16 GPIO_ACTIVE_LOW>;
+-	};
+-};
+-
+-&watchdog {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&watchdog_pins>;
+-
+-	gpio-en = <&io_expander_70 0 GPIO_ACTIVE_LOW>;
+-	gpios = <&gpio3 8 GPIO_ACTIVE_LOW>;
+-};
+-
+-&mv88e6321_switch {
+-	ports {
+-		port@3 {
+-			label = "ethX1";
+-		};
+-
+-		port@4 {
+-			label = "ethX2";
+-		};
+-	};
+-};
+-
+-&i2c0 {
+-	/* IO Port Expander outputs only */
+-	io_expander_70: pca9538@70 {
+-		compatible = "nxp,pca9538";
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-		#gpio-cells = <2>;
+-		gpio-controller;
+-		reg = <0x70>;
+-	};
+-
+-	/* IO Port Expander for DIP-switch, inputs only */
+-	io_expander_71: pca9538@71 {
+-		compatible = "nxp,pca9538";
+-		#address-cells = <1>;
+-		#size-cells = <0>;
+-		reg = <0x71>;
+-		#gpio-cells = <2>;
+-		gpio-controller;
+-        };
+-};
+-
+-/delete-node/ &led_bar61;
+-
+-&lb60_0 {
+-	label = "ds-red";
+-};
+-
+-&lb60_1 {
+-	label = "ds-green";
+-};
+-
+-&lb60_2 {
+-	label = "ec-red";
+-};
+-
+-&lb60_3 {
+-	label = "ec-blue";
+-};
+-
+-&lb60_4 {
+-	label = "h11-red";
+-};
+-
+-&lb60_5 {
+-	label = "h11-green";
+-};
+-
+-&lb60_6 {
+-	label = "h12-red";
+-};
+-
+-&lb60_7 {
+-	label = "h12-green";
+-};
+-
+-&lb60_8 {
+-	label = "run-red";
+-};
+-
+-&lb60_9 {
+-	label = "run-green";
+-};
+-
+-&lb60_10 {
+-	label = "app-red";
+-};
+-
+-&lb60_11 {
+-	label = "app-green";
+-};
+-
+-&rtc_i2c {
+-	trim-data = <0 1 31>;
+-};
+-
+-&tps {
+-	interrupt-parent = <&gpio3>;
+-	interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
+-};
+-
+-&mac {
+-	pinctrl-0 = <
+-		&rmii2_pins
+-		&rmii1_pins
+-	>;
+-
+-	pinctrl-1 = <
+-		&rmii2_sleep_pins
+-		&rmii1_sleep_pins
+-	>;
+-};
+-
+-&mmc1 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <
+-		&mmc1_pins
+-		&mmc1_cd_pins
+-	>;
+-
+-	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
+-};
+-
+-&mmc2 {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&emmc_pins>;
+-	vmmc-supply = <&dcdc4_reg>;
+-	bus-width = <4>;
+-	ti,non-removable;
+-};
+-
+-&gpio1 {
+-	boot_select {
+-		gpio-hog;
+-		gpios = <18 GPIO_ACTIVE_LOW>;
+-		output-high;
+-		line-name = "boot_select";
+-	};
+-};
+-
+-&gpmc {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
+-
+-	ranges = <0 0 0x01000000 0x01000000>;
+-
+-	fpga: fpga@0,0 {
+-		reg = <0 0 0x01000000>;
+-		bank-width = <2>; /* 16 Bit */
+-
+-		gpmc,sync-clk-ps = <0>;
+-		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <80>;
+-		gpmc,cs-wr-off-ns = <70>;
+-
+-		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-
+-		gpmc,we-on-ns = <20>;
+-		gpmc,we-off-ns = <70>;
+-		gpmc,oe-on-ns = <10>;
+-		gpmc,oe-off-ns = <80>;
+-		gpmc,oe-extra-delay;
+-
+-		gpmc,access-ns = <80>;
+-		gpmc,rd-cycle-ns = <100>;
+-		gpmc,wr-cycle-ns = <90>;
+-		gpmc,page-burst-access-ns = <0>;
+-
+-		gpmc,bus-turnaround-ns  = <0>;
+-		gpmc,wr-access-ns = <70>;
+-		gpmc,wr-data-mux-bus-ns = <20>;
+-
+-		gpmc,wait-pin = <1>;
+-		gpmc,wait-on-read;
+-		gpmc,wait-on-write;
+-		gpmc,mux-add-data = <2>; /* address-data multiplexing */
+-	};
+-};
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_3301.dts b/arch/arm/boot/dts/am335x-pfc-768_3301.dts
+new file mode 100644
+index 0000000..9226c53
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pfc-768_3301.dts
+@@ -0,0 +1,145 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am335x-pfc-768_330x.dtsi"
++
++/{
++	model = "WAGO PFC200 768-3301";
++	compatible = "wago,am335x-pfc-768_330x-3005", "wago,am335x-pfc", "ti,am33xx";
++};
++
++&encsw {
++	status ="okay";
++};
++
++&encsw {
++	status ="okay";
++};
++
++&aes {
++	status = "okay";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
++&elm {
++	status = "okay";
++};
++
++&oms {
++	status = "okay";
++};
++
++&oms_reset_all {
++	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
++};
++
++&oms_stop {
++	gpios = <&gpio2 23 GPIO_ACTIVE_LOW>;
++};
++
++&sham {
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "peripheral";
++	status = "okay";
++};
++
++&spi1 {
++	status = "okay";
++
++	flash: epc16@1 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "s25fl016k", "jedec,spi-nor";
++		reg = <1>;
++		spi-max-frequency = <20000000>;
++
++		partition@0 {
++			label = "firmware";
++			reg = <0x0 0x200000>;
++		};
++	};
++};
++
++&watchdog {
++	status = "okay";
++};
++
++&i2c0 {
++	status = "okay";
++};
++
++&swcfg_mv88e6321 {
++	status = "okay";
++};
++
++&mac {
++	status = "okay";
++};
++
++&mmc1 {
++	status = "okay";
++};
++
++&mmc2 {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++};
++
++&rmd {
++	status = "okay";
++
++	pinctrl-names = "default", "sleep", "active";
++	pinctrl-1 = <&spi1_sleep_pins>;
++	pinctrl-2 = <&spi1_pins>;
++
++	nrst-gpios = <&gpio2 17 GPIO_ACTIVE_HIGH>;
++	nce-gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
++	nconfig-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
++};
++
++&uio_rmd_irq0 {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++
++	spi-sram@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "anvo-systems,anv32aa1w";
++		reg = <0>;
++		spi-max-frequency = <48000000>;
++	};
++};
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts b/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
+new file mode 100644
+index 0000000..99e0cc1
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
+@@ -0,0 +1,112 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am335x-pfc-768_330x_psm.dtsi"
++
++/{
++	model = "WAGO PFC200 768-3301";
++	compatible = "wago,am335x-pfc-768_330x-1005", "wago,am335x-pfc", "ti,am33xx";
++};
++
++&encsw {
++	status ="okay";
++};
++
++&encsw {
++	status ="okay";
++};
++
++&aes {
++	status = "okay";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
++&elm {
++	status = "okay";
++};
++
++&oms {
++	status = "okay";
++};
++
++&oms_reset_all {
++	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
++};
++
++&sham {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb0 {
++	dr_mode = "peripheral";
++	status = "okay";
++};
++
++&spi1 {
++	status = "okay";
++};
++
++&watchdog {
++	status = "okay";
++};
++
++&i2c0 {
++	status = "okay";
++};
++
++&swcfg_mv88e6321 {
++	status = "okay";
++};
++
++&mac {
++	status = "okay";
++};
++
++&mmc1 {
++	status = "okay";
++};
++
++&mmc2 {
++	status = "okay";
++};
++
++&gpmc {
++	status = "okay";
++};
++
++&rmd {
++	status = "okay";
++};
++
++&uio_rmd_irq0 {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi b/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
+new file mode 100644
+index 0000000..f9cdfdb
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
+@@ -0,0 +1,474 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "am335x-pfc.dtsi"
++#include "am335x-pfc-750_8xxx-leds.dtsi"
++#include "am335x-pfc-750_821x-mv88e6321.dtsi"
++#include "wago-devconf.dtsi"
++
++/ {
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	uio_rmd_mem@1000000 {
++		compatible = "uio_pdrv_genirq";
++		reg = <0x01000000 0x01000000>;
++	};
++
++	/* remove this node if interrupt is used in rmd driver and inform the
++	 * rlb team to use the rmd_irq1 node for error handling.
++	 */
++	uio_rmd_irq0: uio_rmd_irq0 {
++		status = "disabled";
++		compatible = "uio_pdrv_genirq";
++		interrupts = <7>;
++		interrupt-parent = <&intc>;
++	};
++
++	uio_rmd_irq1: uio_rmd_irq1 {
++		status = "disabled";
++		compatible = "uio_pdrv_genirq";
++		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
++
++	rmd: rmd {
++		status = "disabled";
++		compatible = "wago,rmd";
++		pinctrl-names = "default";
++		pinctrl-0 = <&rmd_pins>, <&spi1_sleep_pins>;
++
++		rmd,fifo-size = <0x1000>;
++		reg = <0x01000000 0x01000000>;
++
++		/*
++		 * Crossbar Mapped Channels
++		 *
++		 * 29: pi_x_dma_event_intr1
++		 * 30: pi_x_dma_event_intr2
++		 *
++		 * Map 30 and 29 to open channels 12 and 13
++		 *
++		 */
++		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
++		dma-names = "rx", "tx";
++
++		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
++
++	encsw: dip-switch {
++		status = "disabled";
++		compatible = "encsw";
++		encsw-gpios = <
++			&io_expander_71 0 GPIO_ACTIVE_LOW
++			&io_expander_71 1 GPIO_ACTIVE_LOW
++			&io_expander_71 2 GPIO_ACTIVE_LOW
++			&io_expander_71 3 GPIO_ACTIVE_LOW
++			&io_expander_71 4 GPIO_ACTIVE_LOW
++			&io_expander_71 5 GPIO_ACTIVE_LOW
++			&io_expander_71 6 GPIO_ACTIVE_LOW
++			&io_expander_71 7 GPIO_ACTIVE_LOW
++			>;
++	};
++};
++
++&cpu_0 {
++	operating-points = <
++		1000000  1325000
++		 800000  1260000
++		 720000  1200000
++		 600000  1100000
++		 300000  950000
++	>;
++};
++
++&am33xx_pinmux {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&gpio0_pins
++		&gpio1_pins
++		&gpio2_pins
++	>;
++
++	watchdog_pins: pinmux_watchdog_pins {
++		pinctrl-single,pins = <
++			AM33XX_EMU1_GPIO3_8(PIN_OUTPUT_PULLDOWN)
++		>;
++	};
++
++	spi1_pins: pinmux_spi1_pins {
++		pinctrl-single,pins = <
++			AM33XX_UART0_CTSN_SPI1_D0(PIN_INPUT)
++			AM33XX_UART0_RTSN_SPI1_D1(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_MCASP0_ACLKX_SPI1_SCLK(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_ECAP0_IN_PWM0_OUT_SPI1_CS1(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
++		>;
++	};
++
++	spi1_sleep_pins: pinmux_spi1_sleep_pins {
++		pinctrl-single,pins = <
++			AM33XX_UART0_CTSN_GPIO1_8(PIN_INPUT_PULLDOWN)
++			AM33XX_UART0_RTSN_GPIO1_9(PIN_INPUT_PULLDOWN)
++			AM33XX_MCASP0_ACLKX_GPIO3_14(PIN_INPUT_PULLDOWN)
++			AM33XX_ECAP0_IN_PWM0_OUT_GPIO0_7(PIN_INPUT_PULLDOWN)
++		>;
++	};
++
++	mmc1_cd_pins: pinmux_sdcard_cd_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A3_GPIO1_19(PIN_INPUT_PULLUP)
++		>;
++	};
++
++	emmc_pins: pinmux_emmc_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_CSN1_MMC1_CLK(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN2_MMC1_CMD(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_TX_CLK_MMC1_DAT0(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RX_CLK_MMC1_DAT1(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RXD3_MMC1_DAT2(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RXD2_MMC1_DAT3(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++		>;
++	};
++
++	rmii2_pins: pinmux_rmii2_pins {
++		pinctrl-single,pins = <
++			/* RMII 2 */
++			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
++			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
++			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
++			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++		>;
++	};
++
++	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
++		pinctrl-single,pins = <
++			/* RMII 2 */
++			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
++			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
++			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
++			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++		>;
++	};
++
++	rmii1_sleep_pins: pinmux_rmii1_sleep_pins {
++		pinctrl-single,pins = <
++			/* all pins are hard-wired to GROUND */
++			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
++			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
++			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
++			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
++			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
++			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
++			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
++			AM33XX_MII1_RX_ER_GPIO3_2(PIN_INPUT)
++		>;
++	};
++
++	gpio2_pins: pinmux_gpio2_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_HSYNC_GPIO2_23(PIN_INPUT) /* BAS Stop */
++		>;
++	};
++
++	gpio1_pins: pinmux_gpio1_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A2_GPIO1_18(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
++			AM33XX_GPMC_A8_GPIO1_24(PIN_INPUT) /* DIAG-UF1 */
++			AM33XX_GPMC_A1_GPIO1_17(PIN_INPUT) /* DIAG-US1 */
++			AM33XX_GPMC_A9_GPIO1_25(PIN_INPUT) /* nINT-DIP */
++		>;
++	};
++
++	gpio0_pins: pinmux_gpio0_pins {
++		pinctrl-single,pins = <
++			AM33XX_XDMA_EVENT_INTR0_GPIO0_19(PIN_INPUT) /* nRST-LEDServer */
++			AM33XX_GPMC_WPN_GPIO0_31(PIN_INPUT) /* nINT-MCU-CC */
++		>;
++	};
++
++	gpmc_data_pins: pinmux_gpmc_data_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_addr_pins: pinmux_gpmc_addr_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
++			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
++			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
++			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
++			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
++		>;
++	};
++
++	fpga_pins: pinmux_fpga_pins {
++		pinctrl-single,pins = <
++			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP) /* nCONFIG */
++			AM33XX_LCD_DATA10_GPIO2_16(PIN_INPUT) /* CONFIG-DONE */
++			AM33XX_LCD_PCLK_GPIO2_24(PIN_INPUT) /* nSTATUS */
++			AM33XX_LCD_DATA11_GPIO2_17(PIN_OUTPUT) /* nRST */
++			AM33XX_GPMC_WAIT0_GPIO0_30(PIN_OUTPUT) /* nCE */
++			AM33XX_MII1_TXD2_GPIO0_17(PIN_INPUT) /* INIT-DONE */
++		>;
++	};
++
++	rmd_pins: pinmux_rmd_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A7_GPIO1_23(PIN_INPUT) /* DBG0 */
++			AM33XX_GPMC_A6_GPIO1_22(PIN_INPUT) /* DBG3 */
++
++			AM33XX_LCD_DATA7_GPIO2_13(PIN_INPUT) /* SYNC1 */
++			AM33XX_LCD_DATA8_GPIO2_14(PIN_INPUT) /* SYNC2 */
++			AM33XX_LCD_DATA9_GPIO2_15(PIN_INPUT) /* SYNC3 */
++
++			AM33XX_LCD_DATA6_GPIO2_12(PIN_INPUT) /* DMA2-RMD */
++			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT) /* IRQ1-RMD */
++			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT) /* DMA1-RMD */
++			AM33XX_SPI0_CS1_XDMA_EVENT_INTR2(PIN_INPUT) /* DMA0-RMD */
++		>;
++	};
++};
++
++&wsysinit {
++	board,variant = "pfc200adv";
++	tty,rs232-485 = "nop";
++	tty,service   = "ttyGS0";
++};
++
++&spi1 {
++};
++
++&watchdog {
++	pinctrl-names = "default";
++	pinctrl-0 = <&watchdog_pins>;
++
++	gpio-en = <&io_expander_70 0 GPIO_ACTIVE_LOW>;
++	gpios = <&gpio3 8 GPIO_ACTIVE_LOW>;
++};
++
++&mv88e6321_switch {
++	ports {
++		port@3 {
++			label = "ethX1";
++		};
++
++		port@4 {
++			label = "ethX2";
++		};
++	};
++};
++
++&i2c0 {
++	clock-frequency = <100000>;
++
++	/* IO Port Expander outputs only */
++	io_expander_70: pca9538@70 {
++		compatible = "nxp,pca9538";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		#gpio-cells = <2>;
++		gpio-controller;
++		reg = <0x70>;
++	};
++
++	/* IO Port Expander for DIP-switch, inputs only */
++	io_expander_71: pca9538@71 {
++		compatible = "nxp,pca9538";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0x71>;
++		#gpio-cells = <2>;
++		gpio-controller;
++	};
++
++	/*
++	 * PTN5150H
++	 * CC logic for USB Type-C applications
++	 * yet no driver configured!
++	 *
++	 * Initially functions in device only mode.
++	 * But it's possible to enable both directions.
++	 *
++	 * Pins: nRST-CC (&io_expander_70 6)  and nINT-CC
++	 */
++	cc_logic_usb_c: cclogic@3c {
++		reg = <0x3c>;
++	};
++};
++
++/delete-node/ &led_bar61;
++
++&lb60_0 {
++	label = "ds-red";
++};
++
++&lb60_1 {
++	label = "ds-green";
++};
++
++&lb60_2 {
++	label = "ec-red";
++};
++
++&lb60_3 {
++	label = "ec-blue";
++};
++
++&lb60_4 {
++	label = "h11-red";
++};
++
++&lb60_5 {
++	label = "h11-green";
++};
++
++&lb60_6 {
++	label = "h12-red";
++};
++
++&lb60_7 {
++	label = "h12-green";
++};
++
++&lb60_8 {
++	label = "run-red";
++};
++
++&lb60_9 {
++	label = "run-green";
++};
++
++&lb60_10 {
++	label = "app-red";
++};
++
++&lb60_11 {
++	label = "app-green";
++};
++
++&rtc_i2c {
++	trim-data = <0 1 31>;
++};
++
++&tps {
++	interrupt-parent = <&gpio3>;
++	interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
++};
++
++&mac {
++	pinctrl-0 = <
++		&rmii2_pins
++		&rmii1_sleep_pins
++	>;
++
++	pinctrl-1 = <
++		&rmii2_sleep_pins
++	>;
++};
++
++&mmc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&mmc1_pins
++		&mmc1_cd_pins
++	>;
++
++	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
++};
++
++&mmc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	vmmc-supply = <&dcdc4_reg>;
++	bus-width = <4>;
++	ti,non-removable;
++};
++
++&gpio1 {
++	boot_select {
++		gpio-hog;
++		gpios = <18 GPIO_ACTIVE_LOW>;
++		output-high;
++		line-name = "boot_select";
++	};
++};
++
++&gpmc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
++
++	ranges = <0 0 0x01000000 0x01000000>;
++
++	fpga: fpga@0,0 {
++		reg = <0 0 0x01000000>;
++		bank-width = <2>; /* 16 Bit */
++
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <80>;
++		gpmc,cs-wr-off-ns = <70>;
++
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <10>;
++		gpmc,adv-wr-off-ns = <10>;
++
++		gpmc,we-on-ns = <20>;
++		gpmc,we-off-ns = <70>;
++		gpmc,oe-on-ns = <10>;
++		gpmc,oe-off-ns = <80>;
++		gpmc,oe-extra-delay;
++
++		gpmc,access-ns = <80>;
++		gpmc,rd-cycle-ns = <100>;
++		gpmc,wr-cycle-ns = <90>;
++		gpmc,page-burst-access-ns = <0>;
++
++		gpmc,bus-turnaround-ns  = <0>;
++		gpmc,wr-access-ns = <70>;
++		gpmc,wr-data-mux-bus-ns = <20>;
++
++		gpmc,wait-pin = <1>;
++		gpmc,wait-on-read;
++		gpmc,wait-on-write;
++		gpmc,mux-add-data = <2>; /* address-data multiplexing */
++	};
++};
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi b/arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi
+new file mode 100644
+index 0000000..82274cf
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi
+@@ -0,0 +1,454 @@
++/*
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include "am335x-pfc.dtsi"
++#include "am335x-pfc-750_8xxx-leds.dtsi"
++#include "am335x-pfc-750_821x-mv88e6321.dtsi"
++#include "wago-devconf.dtsi"
++
++/ {
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x20000000>; /* 512 MB */
++	};
++
++	uio_rmd_mem@1000000 {
++		compatible = "uio_pdrv_genirq";
++		reg = <0x01000000 0x01000000>;
++	};
++
++	/* remove this node if interrupt is used in rmd driver and inform the
++	 * rlb team to use the rmd_irq1 node for error handling.
++	 */
++	uio_rmd_irq0: uio_rmd_irq0 {
++		status = "disabled";
++		compatible = "uio_pdrv_genirq";
++		interrupts = <7>;
++		interrupt-parent = <&intc>;
++	};
++
++	uio_rmd_irq1: uio_rmd_irq1 {
++		status = "disabled";
++		compatible = "uio_pdrv_genirq";
++		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
++
++	rmd: rmd {
++		status = "disabled";
++		compatible = "wago,rmd";
++		pinctrl-names = "default";
++		pinctrl-0 = <&rmd_pins>;
++
++		rmd,fifo-size = <0x1000>;
++		reg = <0x01000000 0x01000000>;
++
++		/*
++		 * Crossbar Mapped Channels
++		 *
++		 * 28: pi_x_dma_event_intr0
++		 * 29: pi_x_dma_event_intr1
++		 *
++		 * Map 28 and 29 to Open Channels 20 and 21
++		 *
++		 */
++		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
++		dma-names = "rx", "tx";
++
++		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
++
++	encsw: dip-switch {
++		status = "disabled";
++		compatible = "encsw";
++		encsw-gpios = <
++			&io_expander_71 0 GPIO_ACTIVE_LOW
++			&io_expander_71 1 GPIO_ACTIVE_LOW
++			&io_expander_71 2 GPIO_ACTIVE_LOW
++			&io_expander_71 3 GPIO_ACTIVE_LOW
++			&io_expander_71 4 GPIO_ACTIVE_LOW
++			&io_expander_71 5 GPIO_ACTIVE_LOW
++			&io_expander_71 6 GPIO_ACTIVE_LOW
++			&io_expander_71 7 GPIO_ACTIVE_LOW
++			>;
++	};
++};
++
++&cpu_0 {
++	operating-points = <
++		1000000  1325000
++		 800000  1260000
++		 720000  1200000
++		 600000  1100000
++		 300000  950000
++	>;
++};
++
++&am33xx_pinmux {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&gpio1_pins
++	>;
++
++	watchdog_pins: pinmux_watchdog_pins {
++		pinctrl-single,pins = <
++			AM33XX_EMU1_GPIO3_8(PIN_OUTPUT_PULLDOWN)
++		>;
++	};
++
++	spi1_pins: pinmux_spi1_pins {
++		pinctrl-single,pins = <
++			AM33XX_UART0_CTSN_SPI1_D0(PIN_INPUT)
++			AM33XX_UART0_RTSN_SPI1_D1(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_MCASP0_ACLKX_SPI1_SCLK(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_ECAP0_IN_PWM0_OUT_SPI1_CS1(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
++		>;
++	};
++
++	mmc1_cd_pins: pinmux_sdcard_cd_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A3_GPIO1_19(PIN_INPUT_PULLUP)
++		>;
++	};
++
++	emmc_pins: pinmux_emmc_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_CSN1_MMC1_CLK(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN2_MMC1_CMD(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_TX_CLK_MMC1_DAT0(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RX_CLK_MMC1_DAT1(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RXD3_MMC1_DAT2(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_MII1_RXD2_MMC1_DAT3(PIN_INPUT_PULLUP | SLEWCTRL_FAST)
++		>;
++	};
++
++	rmii2_pins: pinmux_rmii2_pins {
++		pinctrl-single,pins = <
++			/* RMII 2 */
++			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
++			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
++			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
++			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++		>;
++	};
++
++	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
++		pinctrl-single,pins = <
++			/* RMII 2 */
++			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
++			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
++			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
++			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++		>;
++	};
++
++	rmii1_pins: pinmux_rmii1_pins {
++		pinctrl-single,pins = <
++			/* RMII1 could used on Marvell based devices only; default off*/
++			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
++			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
++			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
++			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
++			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
++			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
++			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
++		>;
++	};
++
++	rmii1_sleep_pins: pinmux_rmii1_sleep_pins {
++		pinctrl-single,pins = <
++			/* RMII1 could used on Marvell based devices only; default off*/
++			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
++			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
++			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
++			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
++			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
++			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
++			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
++		>;
++	};
++
++	gpio1_pins: pinmux_gpio1_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A2_GPIO1_18(PIN_OUTPUT_PULLUP | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_data_pins: pinmux_gpmc_data_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_addr_pins: pinmux_gpmc_addr_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_LCD_HSYNC_GPMC_A9(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
++			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
++			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
++			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
++			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
++		>;
++	};
++
++	fpga_pins: pinmux_fpga_pins {
++		pinctrl-single,pins = <
++			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP)
++			AM33XX_LCD_DATA10_GPIO2_16(PIN_INPUT)
++			AM33XX_LCD_PCLK_GPIO2_24(PIN_INPUT)
++			AM33XX_LCD_DATA11_GPIO2_17(PIN_OUTPUT)
++		>;
++	};
++
++	rmd_pins: pinmux_rmd_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_DATA7_GPIO2_13(PIN_INPUT)
++			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT)
++			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT)
++			AM33XX_SPI0_CS1_XDMA_EVENT_INTR2(PIN_INPUT)
++		>;
++	};
++};
++
++&wsysinit {
++	board,variant = "pfc200adv";
++	tty,rs232-485 = "nop";
++	tty,service   = "ttyGS0";
++};
++
++&spi1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi1_pins>;
++	ti,pindir-d0-out-d1-in;
++
++	fpga_ps: fpga_ps@0 {
++		compatible = "altr,passive-serial";
++		pinctrl-names = "default";
++		pinctrl-0 = <&fpga_pins>;
++
++		reg = <0>;
++		spi-max-frequency = <48000000>;
++
++		reset-gpios = <&gpio2 17 GPIO_ACTIVE_LOW>;
++
++		gpio-nconfig = <&gpio0 16 GPIO_ACTIVE_LOW>;
++		gpio-nstatus = <&gpio2 24 GPIO_ACTIVE_LOW>;
++		gpio-confdone = <&gpio2 16 GPIO_ACTIVE_LOW>;
++	};
++};
++
++&watchdog {
++	pinctrl-names = "default";
++	pinctrl-0 = <&watchdog_pins>;
++
++	gpio-en = <&io_expander_70 0 GPIO_ACTIVE_LOW>;
++	gpios = <&gpio3 8 GPIO_ACTIVE_LOW>;
++};
++
++&mv88e6321_switch {
++	ports {
++		port@3 {
++			label = "ethX1";
++		};
++
++		port@4 {
++			label = "ethX2";
++		};
++	};
++};
++
++&i2c0 {
++	/* IO Port Expander outputs only */
++	io_expander_70: pca9538@70 {
++		compatible = "nxp,pca9538";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		#gpio-cells = <2>;
++		gpio-controller;
++		reg = <0x70>;
++	};
++
++	/* IO Port Expander for DIP-switch, inputs only */
++	io_expander_71: pca9538@71 {
++		compatible = "nxp,pca9538";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0x71>;
++		#gpio-cells = <2>;
++		gpio-controller;
++	};
++};
++
++/delete-node/ &led_bar61;
++
++&lb60_0 {
++	label = "ds-red";
++};
++
++&lb60_1 {
++	label = "ds-green";
++};
++
++&lb60_2 {
++	label = "ec-red";
++};
++
++&lb60_3 {
++	label = "ec-blue";
++};
++
++&lb60_4 {
++	label = "h11-red";
++};
++
++&lb60_5 {
++	label = "h11-green";
++};
++
++&lb60_6 {
++	label = "h12-red";
++};
++
++&lb60_7 {
++	label = "h12-green";
++};
++
++&lb60_8 {
++	label = "run-red";
++};
++
++&lb60_9 {
++	label = "run-green";
++};
++
++&lb60_10 {
++	label = "app-red";
++};
++
++&lb60_11 {
++	label = "app-green";
++};
++
++&rtc_i2c {
++	trim-data = <0 1 31>;
++};
++
++&tps {
++	interrupt-parent = <&gpio3>;
++	interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
++};
++
++&mac {
++	pinctrl-0 = <
++		&rmii2_pins
++		&rmii1_pins
++	>;
++
++	pinctrl-1 = <
++		&rmii2_sleep_pins
++		&rmii1_sleep_pins
++	>;
++};
++
++&mmc1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&mmc1_pins
++		&mmc1_cd_pins
++	>;
++
++	cd-gpios = <&gpio1 19 GPIO_ACTIVE_LOW>;
++};
++
++&mmc2 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&emmc_pins>;
++	vmmc-supply = <&dcdc4_reg>;
++	bus-width = <4>;
++	ti,non-removable;
++};
++
++&gpio1 {
++	boot_select {
++		gpio-hog;
++		gpios = <18 GPIO_ACTIVE_LOW>;
++		output-high;
++		line-name = "boot_select";
++	};
++};
++
++&gpmc {
++	pinctrl-names = "default";
++	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
++
++	ranges = <0 0 0x01000000 0x01000000>;
++
++	fpga: fpga@0,0 {
++		reg = <0 0 0x01000000>;
++		bank-width = <2>; /* 16 Bit */
++
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <80>;
++		gpmc,cs-wr-off-ns = <70>;
++
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <10>;
++		gpmc,adv-wr-off-ns = <10>;
++
++		gpmc,we-on-ns = <20>;
++		gpmc,we-off-ns = <70>;
++		gpmc,oe-on-ns = <10>;
++		gpmc,oe-off-ns = <80>;
++		gpmc,oe-extra-delay;
++
++		gpmc,access-ns = <80>;
++		gpmc,rd-cycle-ns = <100>;
++		gpmc,wr-cycle-ns = <90>;
++		gpmc,page-burst-access-ns = <0>;
++
++		gpmc,bus-turnaround-ns  = <0>;
++		gpmc,wr-access-ns = <70>;
++		gpmc,wr-data-mux-bus-ns = <20>;
++
++		gpmc,wait-pin = <1>;
++		gpmc,wait-on-read;
++		gpmc,wait-on-write;
++		gpmc,mux-add-data = <2>; /* address-data multiplexing */
++	};
++};
+diff --git a/arch/arm/configs/am335x_pac_generic_defconfig b/arch/arm/configs/am335x_pac_generic_defconfig
+deleted file mode 100644
+index 9f1b2108..0000000
+--- a/arch/arm/configs/am335x_pac_generic_defconfig
++++ /dev/null
+@@ -1,516 +0,0 @@
+-CONFIG_KERNEL_LZO=y
+-CONFIG_SYSVIPC=y
+-CONFIG_POSIX_MQUEUE=y
+-CONFIG_IRQ_PRIORITY_TABLE=y
+-CONFIG_IRQ_DOMAIN_DEBUG=y
+-CONFIG_HIGH_RES_TIMERS=y
+-CONFIG_BSD_PROCESS_ACCT=y
+-CONFIG_BSD_PROCESS_ACCT_V3=y
+-CONFIG_TASKSTATS=y
+-CONFIG_TASK_DELAY_ACCT=y
+-CONFIG_TASK_XACCT=y
+-CONFIG_TASK_IO_ACCOUNTING=y
+-CONFIG_IKCONFIG=y
+-CONFIG_IKCONFIG_PROC=y
+-CONFIG_CGROUPS=y
+-CONFIG_MEMCG=y
+-CONFIG_MEMCG_SWAP=y
+-CONFIG_BLK_CGROUP=y
+-CONFIG_CGROUP_SCHED=y
+-CONFIG_CFS_BANDWIDTH=y
+-CONFIG_CGROUP_PIDS=y
+-CONFIG_CGROUP_FREEZER=y
+-CONFIG_CPUSETS=y
+-CONFIG_CGROUP_DEVICE=y
+-CONFIG_CGROUP_CPUACCT=y
+-CONFIG_CGROUP_PERF=y
+-CONFIG_NAMESPACES=y
+-CONFIG_USER_NS=y
+-CONFIG_BLK_DEV_INITRD=y
+-CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+-CONFIG_EXPERT=y
+-CONFIG_KALLSYMS_ALL=y
+-# CONFIG_COMPAT_BRK is not set
+-CONFIG_PROFILING=y
+-CONFIG_KPROBES=y
+-CONFIG_MODULES=y
+-CONFIG_MODULE_FORCE_LOAD=y
+-CONFIG_MODULE_UNLOAD=y
+-CONFIG_MODULE_FORCE_UNLOAD=y
+-CONFIG_MODVERSIONS=y
+-CONFIG_MODULE_SRCVERSION_ALL=y
+-CONFIG_BLK_DEV_BSGLIB=y
+-CONFIG_BLK_DEV_INTEGRITY=y
+-CONFIG_BLK_DEV_THROTTLING=y
+-CONFIG_PARTITION_ADVANCED=y
+-CONFIG_MAC_PARTITION=y
+-CONFIG_CFQ_GROUP_IOSCHED=y
+-CONFIG_OMAP_RESET_CLOCKS=y
+-CONFIG_OMAP_MUX_DEBUG=y
+-CONFIG_ARCH_OMAP3=y
+-CONFIG_ARCH_OMAP4=y
+-CONFIG_SOC_AM33XX=y
+-CONFIG_WAGO_SYSTEM_BASED_STARTUP=y
+-# CONFIG_SOC_OMAP3430 is not set
+-# CONFIG_SOC_TI81XX is not set
+-# CONFIG_MACH_OMAP3517EVM is not set
+-# CONFIG_MACH_OMAP3_PANDORA is not set
+-# CONFIG_GPMC_FPGA_INIT is not set
+-CONFIG_ARM_THUMBEE=y
+-CONFIG_SWP_EMULATE=y
+-CONFIG_PREEMPT_RT_FULL=y
+-# CONFIG_COMPACTION is not set
+-CONFIG_UACCESS_WITH_MEMCPY=y
+-CONFIG_SECCOMP=y
+-# CONFIG_ATAGS is not set
+-CONFIG_ZBOOT_ROM_TEXT=0x0
+-CONFIG_ZBOOT_ROM_BSS=0x0
+-CONFIG_KEXEC=y
+-CONFIG_CPU_FREQ=y
+-CONFIG_CPU_FREQ_STAT=y
+-CONFIG_CPU_FREQ_STAT_DETAILS=y
+-CONFIG_CPU_FREQ_GOV_USERSPACE=y
+-CONFIG_CPUFREQ_DT=y
+-CONFIG_CPU_IDLE=y
+-CONFIG_BINFMT_MISC=y
+-# CONFIG_SUSPEND is not set
+-CONFIG_PM_DEBUG=y
+-CONFIG_NET=y
+-CONFIG_PACKET=y
+-CONFIG_PACKET_DIAG=m
+-CONFIG_UNIX=y
+-CONFIG_UNIX_DIAG=m
+-CONFIG_XFRM_USER=y
+-CONFIG_NET_KEY=y
+-CONFIG_NET_KEY_MIGRATE=y
+-CONFIG_PN_SOCKETS=y
+-CONFIG_INET=y
+-CONFIG_IP_MULTICAST=y
+-CONFIG_IP_ADVANCED_ROUTER=y
+-CONFIG_IP_MULTIPLE_TABLES=y
+-CONFIG_IP_PNP=y
+-CONFIG_IP_PNP_DHCP=y
+-CONFIG_IP_PNP_BOOTP=y
+-CONFIG_IP_PNP_RARP=y
+-CONFIG_NET_IPIP=m
+-CONFIG_NET_IPGRE_DEMUX=m
+-CONFIG_NET_IPGRE=m
+-CONFIG_IP_MROUTE=y
+-CONFIG_IP_MROUTE_MULTIPLE_TABLES=y
+-CONFIG_IP_PIMSM_V1=y
+-CONFIG_IP_PIMSM_V2=y
+-CONFIG_SYN_COOKIES=y
+-CONFIG_INET_AH=y
+-CONFIG_INET_ESP=y
+-CONFIG_INET_IPCOMP=y
+-CONFIG_INET_UDP_DIAG=m
+-CONFIG_TCP_CONG_ADVANCED=y
+-CONFIG_TCP_CONG_HSTCP=m
+-CONFIG_TCP_CONG_HYBLA=m
+-CONFIG_TCP_CONG_SCALABLE=m
+-CONFIG_TCP_CONG_LP=m
+-CONFIG_TCP_CONG_VENO=m
+-CONFIG_TCP_CONG_YEAH=m
+-CONFIG_TCP_CONG_ILLINOIS=m
+-CONFIG_IPV6_ROUTER_PREF=y
+-CONFIG_IPV6_ROUTE_INFO=y
+-CONFIG_IPV6_OPTIMISTIC_DAD=y
+-CONFIG_INET6_AH=m
+-CONFIG_INET6_ESP=m
+-CONFIG_INET6_IPCOMP=m
+-CONFIG_IPV6_MIP6=m
+-CONFIG_INET6_XFRM_MODE_TRANSPORT=m
+-CONFIG_INET6_XFRM_MODE_TUNNEL=m
+-CONFIG_INET6_XFRM_MODE_BEET=m
+-CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION=m
+-CONFIG_IPV6_SIT=m
+-CONFIG_IPV6_GRE=m
+-CONFIG_IPV6_MULTIPLE_TABLES=y
+-CONFIG_IPV6_SUBTREES=y
+-CONFIG_IPV6_MROUTE=y
+-CONFIG_IPV6_MROUTE_MULTIPLE_TABLES=y
+-CONFIG_IPV6_PIMSM_V2=y
+-CONFIG_NETFILTER=y
+-CONFIG_BRIDGE_NETFILTER=y
+-CONFIG_NF_CONNTRACK=y
+-CONFIG_NF_CONNTRACK_FTP=y
+-CONFIG_NF_CONNTRACK_SNMP=y
+-CONFIG_NF_CONNTRACK_TFTP=y
+-CONFIG_NF_CT_NETLINK=y
+-CONFIG_NETFILTER_XT_TARGET_CONNMARK=m
+-CONFIG_NETFILTER_XT_TARGET_TCPMSS=y
+-CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=m
+-CONFIG_NETFILTER_XT_MATCH_CONNLIMIT=y
+-CONFIG_NETFILTER_XT_MATCH_CONNMARK=m
+-CONFIG_NETFILTER_XT_MATCH_CONNTRACK=y
+-CONFIG_NETFILTER_XT_MATCH_ESP=y
+-CONFIG_NETFILTER_XT_MATCH_IPRANGE=y
+-CONFIG_NETFILTER_XT_MATCH_IPVS=m
+-CONFIG_NETFILTER_XT_MATCH_LIMIT=y
+-CONFIG_NETFILTER_XT_MATCH_MAC=y
+-CONFIG_NETFILTER_XT_MATCH_MARK=y
+-CONFIG_NETFILTER_XT_MATCH_POLICY=y
+-CONFIG_NETFILTER_XT_MATCH_PHYSDEV=y
+-CONFIG_IP_VS=m
+-CONFIG_IP_VS_PROTO_TCP=y
+-CONFIG_IP_VS_PROTO_UDP=y
+-CONFIG_IP_VS_RR=m
+-CONFIG_IP_VS_WRR=m
+-CONFIG_IP_VS_NFCT=y
+-CONFIG_NF_CONNTRACK_IPV4=y
+-CONFIG_IP_NF_IPTABLES=y
+-CONFIG_IP_NF_MATCH_AH=y
+-CONFIG_IP_NF_MATCH_ECN=m
+-CONFIG_IP_NF_MATCH_RPFILTER=m
+-CONFIG_IP_NF_MATCH_TTL=m
+-CONFIG_IP_NF_FILTER=y
+-CONFIG_IP_NF_TARGET_REJECT=y
+-CONFIG_IP_NF_NAT=y
+-CONFIG_IP_NF_TARGET_MASQUERADE=y
+-CONFIG_IP_NF_TARGET_REDIRECT=m
+-CONFIG_IP_NF_MANGLE=y
+-CONFIG_IP_NF_TARGET_ECN=m
+-CONFIG_IP_NF_TARGET_TTL=m
+-CONFIG_IP_NF_RAW=y
+-CONFIG_IP_NF_SECURITY=m
+-CONFIG_IP_NF_ARPTABLES=m
+-CONFIG_IP_NF_ARPFILTER=m
+-CONFIG_IP_NF_ARP_MANGLE=m
+-CONFIG_IP6_NF_IPTABLES=m
+-CONFIG_IP6_NF_MATCH_AH=m
+-CONFIG_IP6_NF_MATCH_EUI64=m
+-CONFIG_IP6_NF_MATCH_FRAG=m
+-CONFIG_IP6_NF_MATCH_OPTS=m
+-CONFIG_IP6_NF_MATCH_HL=m
+-CONFIG_IP6_NF_MATCH_IPV6HEADER=m
+-CONFIG_IP6_NF_MATCH_MH=m
+-CONFIG_IP6_NF_MATCH_RPFILTER=m
+-CONFIG_IP6_NF_MATCH_RT=m
+-CONFIG_IP6_NF_TARGET_HL=m
+-CONFIG_IP6_NF_FILTER=m
+-CONFIG_IP6_NF_TARGET_REJECT=m
+-CONFIG_IP6_NF_MANGLE=m
+-CONFIG_IP6_NF_RAW=m
+-CONFIG_IP6_NF_SECURITY=m
+-CONFIG_BRIDGE_NF_EBTABLES=y
+-CONFIG_BRIDGE_EBT_BROUTE=y
+-CONFIG_BRIDGE_EBT_T_FILTER=y
+-CONFIG_BRIDGE_EBT_T_NAT=y
+-CONFIG_BRIDGE_EBT_IP=y
+-CONFIG_BRIDGE_EBT_LIMIT=y
+-CONFIG_BRIDGE_EBT_LOG=y
+-CONFIG_L2TP=m
+-CONFIG_L2TP_DEBUGFS=m
+-CONFIG_BRIDGE=y
+-CONFIG_BRIDGE_VLAN_FILTERING=y
+-CONFIG_VLAN_8021Q=m
+-CONFIG_VLAN_8021Q_GVRP=y
+-CONFIG_NET_SCHED=y
+-CONFIG_NET_SCH_HTB=y
+-CONFIG_NET_SCH_HFSC=y
+-CONFIG_NET_SCH_PRIO=y
+-CONFIG_NET_SCH_TBF=y
+-CONFIG_NET_SCH_CODEL=y
+-CONFIG_NET_SCH_FQ_CODEL=y
+-CONFIG_NET_CLS_BASIC=y
+-CONFIG_NET_CLS_TCINDEX=y
+-CONFIG_NET_CLS_ROUTE4=y
+-CONFIG_NET_CLS_FW=y
+-CONFIG_NET_CLS_U32=y
+-CONFIG_CLS_U32_PERF=y
+-CONFIG_CLS_U32_MARK=y
+-CONFIG_NET_CLS_RSVP=y
+-CONFIG_NET_CLS_FLOW=y
+-CONFIG_NET_CLS_CGROUP=m
+-CONFIG_NET_EMATCH=y
+-CONFIG_NET_EMATCH_CMP=y
+-CONFIG_NET_EMATCH_NBYTE=y
+-CONFIG_NET_EMATCH_U32=y
+-CONFIG_NET_EMATCH_META=y
+-CONFIG_NET_EMATCH_TEXT=y
+-CONFIG_NET_CLS_ACT=y
+-CONFIG_NET_ACT_POLICE=y
+-CONFIG_NET_ACT_GACT=y
+-CONFIG_GACT_PROB=y
+-CONFIG_NET_ACT_MIRRED=y
+-CONFIG_NET_ACT_IPT=y
+-CONFIG_NET_ACT_NAT=y
+-CONFIG_NET_ACT_PEDIT=y
+-CONFIG_NET_ACT_SKBEDIT=y
+-CONFIG_NET_ACT_CSUM=y
+-CONFIG_NET_CLS_IND=y
+-CONFIG_NETLINK_DIAG=y
+-CONFIG_NET_L3_MASTER_DEV=y
+-CONFIG_CGROUP_NET_PRIO=y
+-CONFIG_BPF_JIT=y
+-CONFIG_CAN=y
+-CONFIG_CAN_GW=m
+-CONFIG_CAN_VCAN=y
+-CONFIG_CAN_TI_HECC=y
+-CONFIG_CAN_C_CAN=y
+-CONFIG_CAN_C_CAN_PLATFORM=y
+-CONFIG_CAN_EMS_USB=m
+-CONFIG_CAN_ESD_USB2=m
+-CONFIG_CAN_PEAK_USB=m
+-CONFIG_CAN_DEBUG_DEVICES=y
+-# CONFIG_WIRELESS is not set
+-CONFIG_RFKILL_REGULATOR=m
+-CONFIG_DEVTMPFS=y
+-CONFIG_DEVTMPFS_MOUNT=y
+-CONFIG_OMAP_OCP2SCP=y
+-CONFIG_CONNECTOR=y
+-CONFIG_MTD=y
+-CONFIG_MTD_CMDLINE_PARTS=y
+-CONFIG_MTD_BLOCK=y
+-CONFIG_MTD_CFI=y
+-CONFIG_MTD_CFI_INTELEXT=y
+-CONFIG_MTD_M25P80=y
+-CONFIG_MTD_ANV32AA1W=y
+-CONFIG_MTD_NAND=y
+-CONFIG_MTD_NAND_ECC_BCH=y
+-CONFIG_MTD_NAND_OMAP2=y
+-CONFIG_MTD_NAND_OMAP_BCH=y
+-CONFIG_MTD_SPI_NOR=y
+-CONFIG_MTD_UBI=y
+-CONFIG_MTD_UBI_FASTMAP=y
+-CONFIG_BLK_DEV_LOOP=y
+-CONFIG_TI_SN74LV165A=y
+-CONFIG_ENCSW=y
+-CONFIG_EEPROM_AT24=y
+-CONFIG_SCSI=y
+-# CONFIG_SCSI_PROC_FS is not set
+-CONFIG_BLK_DEV_SD=y
+-CONFIG_SCSI_SCAN_ASYNC=y
+-# CONFIG_SCSI_LOWLEVEL is not set
+-CONFIG_MD=y
+-CONFIG_BLK_DEV_DM=m
+-CONFIG_DM_THIN_PROVISIONING=m
+-CONFIG_NETDEVICES=y
+-CONFIG_DUMMY=m
+-CONFIG_MACVLAN=m
+-CONFIG_IPVLAN=m
+-CONFIG_VXLAN=m
+-CONFIG_TUN=y
+-CONFIG_VETH=m
+-CONFIG_NET_DSA_KSZ8863=y
+-CONFIG_NET_DSA_MV88E6XXX=y
+-# CONFIG_NET_CADENCE is not set
+-# CONFIG_NET_VENDOR_BROADCOM is not set
+-# CONFIG_NET_VENDOR_CIRRUS is not set
+-# CONFIG_NET_VENDOR_FARADAY is not set
+-# CONFIG_NET_VENDOR_INTEL is not set
+-# CONFIG_NET_VENDOR_MARVELL is not set
+-# CONFIG_NET_VENDOR_MICROCHIP is not set
+-# CONFIG_NET_VENDOR_NATSEMI is not set
+-# CONFIG_NET_VENDOR_SEEQ is not set
+-# CONFIG_NET_VENDOR_SMSC is not set
+-# CONFIG_NET_VENDOR_STMICRO is not set
+-CONFIG_TI_DAVINCI_EMAC=y
+-CONFIG_TI_CPSW=y
+-CONFIG_TI_CPTS=y
+-# CONFIG_NET_VENDOR_WIZNET is not set
+-CONFIG_SWCONFIG=y
+-CONFIG_MDIO_BITBANG=y
+-CONFIG_MDIO_GPIO=y
+-CONFIG_INTEL_XWAY_PHY=y
+-CONFIG_MARVELL_PHY=y
+-CONFIG_MICREL_PHY=y
+-CONFIG_SWCFG_KSZ8863=y
+-CONFIG_SWCFG_MV88E6321=y
+-CONFIG_PPP=y
+-CONFIG_PPP_DEFLATE=y
+-CONFIG_PPP_FILTER=y
+-CONFIG_PPP_MPPE=y
+-CONFIG_PPP_MULTILINK=y
+-CONFIG_PPP_ASYNC=y
+-CONFIG_PPP_SYNC_TTY=y
+-CONFIG_USB_USBNET=y
+-# CONFIG_USB_NET_AX8817X is not set
+-# CONFIG_USB_NET_AX88179_178A is not set
+-# CONFIG_USB_NET_CDCETHER is not set
+-# CONFIG_USB_NET_CDC_NCM is not set
+-# CONFIG_USB_NET_NET1080 is not set
+-# CONFIG_USB_NET_CDC_SUBSET is not set
+-# CONFIG_USB_NET_ZAURUS is not set
+-CONFIG_USB_NET_QMI_WWAN=y
+-# CONFIG_WLAN is not set
+-# CONFIG_INPUT_MOUSEDEV is not set
+-CONFIG_INPUT_EVDEV=y
+-# CONFIG_KEYBOARD_ATKBD is not set
+-CONFIG_KEYBOARD_GPIO=y
+-# CONFIG_INPUT_MOUSE is not set
+-# CONFIG_SERIO is not set
+-# CONFIG_VT is not set
+-# CONFIG_LEGACY_PTYS is not set
+-CONFIG_SERIAL_OMAP=y
+-CONFIG_SERIAL_OMAP_RTU=y
+-CONFIG_SERIAL_OMAP_CONSOLE=y
+-CONFIG_HW_RANDOM=y
+-CONFIG_RMD=y
+-# CONFIG_I2C_COMPAT is not set
+-CONFIG_I2C_CHARDEV=y
+-CONFIG_I2C_MUX=y
+-CONFIG_I2C_MUX_PCA9541=y
+-CONFIG_I2C_MUX_PCA954x=y
+-CONFIG_SPI=y
+-CONFIG_SPI_PASSIVE_SERIAL=y
+-CONFIG_SPI_OMAP24XX=y
+-CONFIG_SPI_SC18IS602=m
+-CONFIG_SPI_XCOMM=m
+-CONFIG_SPI_SPIDEV=y
+-CONFIG_PINCTRL_SINGLE=y
+-CONFIG_GPIO_SYSFS=y
+-CONFIG_GPIO_PCA953X=y
+-CONFIG_GPIO_PCA953X_IRQ=y
+-CONFIG_GPIO_PCF857X=y
+-CONFIG_GPIO_TWL4030=y
+-CONFIG_W1=y
+-CONFIG_W1_MASTER_GPIO=y
+-CONFIG_HDQ_MASTER_OMAP=m
+-CONFIG_W1_SLAVE_THERM=y
+-CONFIG_W1_SLAVE_SMEM=y
+-CONFIG_W1_SLAVE_DS2408=m
+-CONFIG_W1_SLAVE_DS2423=m
+-CONFIG_W1_SLAVE_DS2431=m
+-CONFIG_W1_SLAVE_DS2433=m
+-CONFIG_W1_SLAVE_DS2433_CRC=y
+-CONFIG_W1_SLAVE_DS2760=m
+-CONFIG_W1_SLAVE_DS2780=m
+-CONFIG_W1_SLAVE_DS2781=m
+-CONFIG_W1_SLAVE_DS28E04=m
+-CONFIG_W1_SLAVE_BQ27000=m
+-# CONFIG_HWMON is not set
+-CONFIG_WATCHDOG=y
+-CONFIG_GPIO_WATCHDOG=y
+-CONFIG_OMAP_WATCHDOG=y
+-CONFIG_MFD_TI_AM335X_TSCADC=y
+-CONFIG_MFD_TPS65218=y
+-CONFIG_MFD_TPS65910=y
+-CONFIG_REGULATOR_PBIAS=y
+-CONFIG_REGULATOR_TPS65218=y
+-CONFIG_REGULATOR_TPS65910=y
+-# CONFIG_HID_GENERIC is not set
+-# CONFIG_USB_HID is not set
+-CONFIG_USB=y
+-CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+-CONFIG_USB_OTG=y
+-CONFIG_USB_EHCI_HCD=y
+-CONFIG_USB_OHCI_HCD=y
+-CONFIG_USB_STORAGE=y
+-CONFIG_USB_MUSB_HDRC=y
+-CONFIG_USB_MUSB_OMAP2PLUS=y
+-CONFIG_USB_MUSB_AM35X=y
+-CONFIG_USB_MUSB_DSPS=y
+-CONFIG_MUSB_PIO_ONLY=y
+-CONFIG_USB_SERIAL=y
+-CONFIG_USB_SERIAL_QUALCOMM=y
+-CONFIG_USB_SERIAL_OPTION=y
+-CONFIG_NOP_USB_XCEIV=y
+-CONFIG_AM335X_PHY_USB=y
+-CONFIG_USB_GPIO_VBUS=m
+-CONFIG_USB_ULPI=y
+-CONFIG_USB_GADGET=y
+-CONFIG_USB_CONFIGFS=m
+-CONFIG_USB_CONFIGFS_ACM=y
+-CONFIG_USB_CONFIGFS_NCM=y
+-CONFIG_USB_CONFIGFS_ECM=y
+-CONFIG_USB_CONFIGFS_RNDIS=y
+-CONFIG_USB_CONFIGFS_MASS_STORAGE=y
+-CONFIG_MMC=y
+-CONFIG_SDIO_UART=m
+-CONFIG_MMC_OMAP_HS=y
+-CONFIG_NEW_LEDS=y
+-CONFIG_LEDS_CLASS=y
+-CONFIG_LEDS_GPIO=y
+-CONFIG_LEDS_PCA955X=y
+-CONFIG_LEDS_TRIGGERS=y
+-CONFIG_LEDS_TRIGGER_TIMER=y
+-CONFIG_LEDS_TRIGGER_ONESHOT=y
+-CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+-CONFIG_LEDS_TRIGGER_GPIO=y
+-CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
+-CONFIG_LEDS_TRIGGER_TRANSIENT=y
+-CONFIG_RTC_CLASS=y
+-CONFIG_RTC_DRV_RS5C372=y
+-CONFIG_RTC_DRV_RS5C372_IRQ_SUPPORT=y
+-CONFIG_RTC_DRV_ISL1208=y
+-CONFIG_DMADEVICES=y
+-CONFIG_DMA_OMAP=y
+-CONFIG_TI_CPPI41=y
+-CONFIG_TI_EDMA=y
+-CONFIG_ASYNC_TX_DMA=y
+-CONFIG_DMATEST=m
+-CONFIG_UIO=y
+-CONFIG_UIO_PDRV_GENIRQ=y
+-CONFIG_STAGING=y
+-CONFIG_HWSPINLOCK_OMAP=m
+-# CONFIG_IOMMU_SUPPORT is not set
+-CONFIG_IIO=y
+-CONFIG_IIO_BUFFER_CB=y
+-CONFIG_TI_AM335X_ADC=y
+-CONFIG_PWM=y
+-CONFIG_PWM_TIECAP=y
+-CONFIG_PWM_TIEHRPWM=y
+-CONFIG_OMAP_USB2=y
+-CONFIG_EXT4_FS=y
+-CONFIG_EXT4_FS_POSIX_ACL=y
+-CONFIG_EXT4_FS_SECURITY=y
+-CONFIG_FANOTIFY=y
+-CONFIG_QUOTA=y
+-# CONFIG_PRINT_QUOTA_WARNING is not set
+-CONFIG_QFMT_V2=y
+-CONFIG_AUTOFS4_FS=m
+-CONFIG_FUSE_FS=y
+-CONFIG_CUSE=m
+-CONFIG_OVERLAY_FS=y
+-CONFIG_MSDOS_FS=y
+-CONFIG_VFAT_FS=y
+-CONFIG_NTFS_FS=y
+-CONFIG_NTFS_RW=y
+-CONFIG_TMPFS=y
+-CONFIG_TMPFS_POSIX_ACL=y
+-CONFIG_CONFIGFS_FS=y
+-CONFIG_UBIFS_FS=y
+-CONFIG_SQUASHFS=y
+-CONFIG_NFS_FS=y
+-CONFIG_NFS_V3_ACL=y
+-CONFIG_NFS_V4=y
+-CONFIG_NFS_SWAP=y
+-CONFIG_ROOT_NFS=y
+-CONFIG_NLS_CODEPAGE_437=y
+-CONFIG_NLS_ISO8859_1=y
+-CONFIG_NLS_UTF8=y
+-CONFIG_PRINTK_TIME=y
+-CONFIG_DYNAMIC_DEBUG=y
+-CONFIG_DEBUG_INFO=y
+-CONFIG_MAGIC_SYSRQ=y
+-CONFIG_SCHEDSTATS=y
+-CONFIG_TIMER_STATS=y
+-CONFIG_FUNCTION_TRACER=y
+-CONFIG_DEBUG_LL=y
+-CONFIG_DEBUG_AM33XXUART1=y
+-CONFIG_EARLY_PRINTK=y
+-CONFIG_SECURITY=y
+-CONFIG_SECURITYFS=y
+-CONFIG_CRYPTO_USER=y
+-CONFIG_CRYPTO_CCM=y
+-CONFIG_CRYPTO_GCM=y
+-CONFIG_CRYPTO_XCBC=y
+-CONFIG_CRYPTO_MICHAEL_MIC=y
+-CONFIG_CRYPTO_BLOWFISH=y
+-CONFIG_CRYPTO_CAMELLIA=y
+-CONFIG_CRYPTO_CAST5=y
+-CONFIG_CRYPTO_CAST6=y
+-CONFIG_CRYPTO_SERPENT=y
+-CONFIG_CRYPTO_TWOFISH=y
+-CONFIG_CRYPTO_ANSI_CPRNG=y
+-CONFIG_CRYPTO_USER_API_HASH=y
+-CONFIG_CRYPTO_USER_API_SKCIPHER=y
+-CONFIG_CRYPTO_DEV_OMAP_SHAM=y
+-CONFIG_CRYPTO_DEV_OMAP_AES=y
+-CONFIG_ASYMMETRIC_KEY_TYPE=y
+-CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE=y
+-CONFIG_X509_CERTIFICATE_PARSER=y
+-CONFIG_CRC_ITU_T=y
+-CONFIG_CRC7=y
+-CONFIG_LIBCRC32C=y
+diff --git a/arch/arm/configs/am335x_pfc_adv_generic_defconfig b/arch/arm/configs/am335x_pfc_adv_generic_defconfig
+new file mode 100644
+index 0000000..9f1b2108
+--- /dev/null
++++ b/arch/arm/configs/am335x_pfc_adv_generic_defconfig
+@@ -0,0 +1,516 @@
++CONFIG_KERNEL_LZO=y
++CONFIG_SYSVIPC=y
++CONFIG_POSIX_MQUEUE=y
++CONFIG_IRQ_PRIORITY_TABLE=y
++CONFIG_IRQ_DOMAIN_DEBUG=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_BSD_PROCESS_ACCT=y
++CONFIG_BSD_PROCESS_ACCT_V3=y
++CONFIG_TASKSTATS=y
++CONFIG_TASK_DELAY_ACCT=y
++CONFIG_TASK_XACCT=y
++CONFIG_TASK_IO_ACCOUNTING=y
++CONFIG_IKCONFIG=y
++CONFIG_IKCONFIG_PROC=y
++CONFIG_CGROUPS=y
++CONFIG_MEMCG=y
++CONFIG_MEMCG_SWAP=y
++CONFIG_BLK_CGROUP=y
++CONFIG_CGROUP_SCHED=y
++CONFIG_CFS_BANDWIDTH=y
++CONFIG_CGROUP_PIDS=y
++CONFIG_CGROUP_FREEZER=y
++CONFIG_CPUSETS=y
++CONFIG_CGROUP_DEVICE=y
++CONFIG_CGROUP_CPUACCT=y
++CONFIG_CGROUP_PERF=y
++CONFIG_NAMESPACES=y
++CONFIG_USER_NS=y
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_EXPERT=y
++CONFIG_KALLSYMS_ALL=y
++# CONFIG_COMPAT_BRK is not set
++CONFIG_PROFILING=y
++CONFIG_KPROBES=y
++CONFIG_MODULES=y
++CONFIG_MODULE_FORCE_LOAD=y
++CONFIG_MODULE_UNLOAD=y
++CONFIG_MODULE_FORCE_UNLOAD=y
++CONFIG_MODVERSIONS=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++CONFIG_BLK_DEV_BSGLIB=y
++CONFIG_BLK_DEV_INTEGRITY=y
++CONFIG_BLK_DEV_THROTTLING=y
++CONFIG_PARTITION_ADVANCED=y
++CONFIG_MAC_PARTITION=y
++CONFIG_CFQ_GROUP_IOSCHED=y
++CONFIG_OMAP_RESET_CLOCKS=y
++CONFIG_OMAP_MUX_DEBUG=y
++CONFIG_ARCH_OMAP3=y
++CONFIG_ARCH_OMAP4=y
++CONFIG_SOC_AM33XX=y
++CONFIG_WAGO_SYSTEM_BASED_STARTUP=y
++# CONFIG_SOC_OMAP3430 is not set
++# CONFIG_SOC_TI81XX is not set
++# CONFIG_MACH_OMAP3517EVM is not set
++# CONFIG_MACH_OMAP3_PANDORA is not set
++# CONFIG_GPMC_FPGA_INIT is not set
++CONFIG_ARM_THUMBEE=y
++CONFIG_SWP_EMULATE=y
++CONFIG_PREEMPT_RT_FULL=y
++# CONFIG_COMPACTION is not set
++CONFIG_UACCESS_WITH_MEMCPY=y
++CONFIG_SECCOMP=y
++# CONFIG_ATAGS is not set
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_KEXEC=y
++CONFIG_CPU_FREQ=y
++CONFIG_CPU_FREQ_STAT=y
++CONFIG_CPU_FREQ_STAT_DETAILS=y
++CONFIG_CPU_FREQ_GOV_USERSPACE=y
++CONFIG_CPUFREQ_DT=y
++CONFIG_CPU_IDLE=y
++CONFIG_BINFMT_MISC=y
++# CONFIG_SUSPEND is not set
++CONFIG_PM_DEBUG=y
++CONFIG_NET=y
++CONFIG_PACKET=y
++CONFIG_PACKET_DIAG=m
++CONFIG_UNIX=y
++CONFIG_UNIX_DIAG=m
++CONFIG_XFRM_USER=y
++CONFIG_NET_KEY=y
++CONFIG_NET_KEY_MIGRATE=y
++CONFIG_PN_SOCKETS=y
++CONFIG_INET=y
++CONFIG_IP_MULTICAST=y
++CONFIG_IP_ADVANCED_ROUTER=y
++CONFIG_IP_MULTIPLE_TABLES=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++CONFIG_NET_IPIP=m
++CONFIG_NET_IPGRE_DEMUX=m
++CONFIG_NET_IPGRE=m
++CONFIG_IP_MROUTE=y
++CONFIG_IP_MROUTE_MULTIPLE_TABLES=y
++CONFIG_IP_PIMSM_V1=y
++CONFIG_IP_PIMSM_V2=y
++CONFIG_SYN_COOKIES=y
++CONFIG_INET_AH=y
++CONFIG_INET_ESP=y
++CONFIG_INET_IPCOMP=y
++CONFIG_INET_UDP_DIAG=m
++CONFIG_TCP_CONG_ADVANCED=y
++CONFIG_TCP_CONG_HSTCP=m
++CONFIG_TCP_CONG_HYBLA=m
++CONFIG_TCP_CONG_SCALABLE=m
++CONFIG_TCP_CONG_LP=m
++CONFIG_TCP_CONG_VENO=m
++CONFIG_TCP_CONG_YEAH=m
++CONFIG_TCP_CONG_ILLINOIS=m
++CONFIG_IPV6_ROUTER_PREF=y
++CONFIG_IPV6_ROUTE_INFO=y
++CONFIG_IPV6_OPTIMISTIC_DAD=y
++CONFIG_INET6_AH=m
++CONFIG_INET6_ESP=m
++CONFIG_INET6_IPCOMP=m
++CONFIG_IPV6_MIP6=m
++CONFIG_INET6_XFRM_MODE_TRANSPORT=m
++CONFIG_INET6_XFRM_MODE_TUNNEL=m
++CONFIG_INET6_XFRM_MODE_BEET=m
++CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION=m
++CONFIG_IPV6_SIT=m
++CONFIG_IPV6_GRE=m
++CONFIG_IPV6_MULTIPLE_TABLES=y
++CONFIG_IPV6_SUBTREES=y
++CONFIG_IPV6_MROUTE=y
++CONFIG_IPV6_MROUTE_MULTIPLE_TABLES=y
++CONFIG_IPV6_PIMSM_V2=y
++CONFIG_NETFILTER=y
++CONFIG_BRIDGE_NETFILTER=y
++CONFIG_NF_CONNTRACK=y
++CONFIG_NF_CONNTRACK_FTP=y
++CONFIG_NF_CONNTRACK_SNMP=y
++CONFIG_NF_CONNTRACK_TFTP=y
++CONFIG_NF_CT_NETLINK=y
++CONFIG_NETFILTER_XT_TARGET_CONNMARK=m
++CONFIG_NETFILTER_XT_TARGET_TCPMSS=y
++CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=m
++CONFIG_NETFILTER_XT_MATCH_CONNLIMIT=y
++CONFIG_NETFILTER_XT_MATCH_CONNMARK=m
++CONFIG_NETFILTER_XT_MATCH_CONNTRACK=y
++CONFIG_NETFILTER_XT_MATCH_ESP=y
++CONFIG_NETFILTER_XT_MATCH_IPRANGE=y
++CONFIG_NETFILTER_XT_MATCH_IPVS=m
++CONFIG_NETFILTER_XT_MATCH_LIMIT=y
++CONFIG_NETFILTER_XT_MATCH_MAC=y
++CONFIG_NETFILTER_XT_MATCH_MARK=y
++CONFIG_NETFILTER_XT_MATCH_POLICY=y
++CONFIG_NETFILTER_XT_MATCH_PHYSDEV=y
++CONFIG_IP_VS=m
++CONFIG_IP_VS_PROTO_TCP=y
++CONFIG_IP_VS_PROTO_UDP=y
++CONFIG_IP_VS_RR=m
++CONFIG_IP_VS_WRR=m
++CONFIG_IP_VS_NFCT=y
++CONFIG_NF_CONNTRACK_IPV4=y
++CONFIG_IP_NF_IPTABLES=y
++CONFIG_IP_NF_MATCH_AH=y
++CONFIG_IP_NF_MATCH_ECN=m
++CONFIG_IP_NF_MATCH_RPFILTER=m
++CONFIG_IP_NF_MATCH_TTL=m
++CONFIG_IP_NF_FILTER=y
++CONFIG_IP_NF_TARGET_REJECT=y
++CONFIG_IP_NF_NAT=y
++CONFIG_IP_NF_TARGET_MASQUERADE=y
++CONFIG_IP_NF_TARGET_REDIRECT=m
++CONFIG_IP_NF_MANGLE=y
++CONFIG_IP_NF_TARGET_ECN=m
++CONFIG_IP_NF_TARGET_TTL=m
++CONFIG_IP_NF_RAW=y
++CONFIG_IP_NF_SECURITY=m
++CONFIG_IP_NF_ARPTABLES=m
++CONFIG_IP_NF_ARPFILTER=m
++CONFIG_IP_NF_ARP_MANGLE=m
++CONFIG_IP6_NF_IPTABLES=m
++CONFIG_IP6_NF_MATCH_AH=m
++CONFIG_IP6_NF_MATCH_EUI64=m
++CONFIG_IP6_NF_MATCH_FRAG=m
++CONFIG_IP6_NF_MATCH_OPTS=m
++CONFIG_IP6_NF_MATCH_HL=m
++CONFIG_IP6_NF_MATCH_IPV6HEADER=m
++CONFIG_IP6_NF_MATCH_MH=m
++CONFIG_IP6_NF_MATCH_RPFILTER=m
++CONFIG_IP6_NF_MATCH_RT=m
++CONFIG_IP6_NF_TARGET_HL=m
++CONFIG_IP6_NF_FILTER=m
++CONFIG_IP6_NF_TARGET_REJECT=m
++CONFIG_IP6_NF_MANGLE=m
++CONFIG_IP6_NF_RAW=m
++CONFIG_IP6_NF_SECURITY=m
++CONFIG_BRIDGE_NF_EBTABLES=y
++CONFIG_BRIDGE_EBT_BROUTE=y
++CONFIG_BRIDGE_EBT_T_FILTER=y
++CONFIG_BRIDGE_EBT_T_NAT=y
++CONFIG_BRIDGE_EBT_IP=y
++CONFIG_BRIDGE_EBT_LIMIT=y
++CONFIG_BRIDGE_EBT_LOG=y
++CONFIG_L2TP=m
++CONFIG_L2TP_DEBUGFS=m
++CONFIG_BRIDGE=y
++CONFIG_BRIDGE_VLAN_FILTERING=y
++CONFIG_VLAN_8021Q=m
++CONFIG_VLAN_8021Q_GVRP=y
++CONFIG_NET_SCHED=y
++CONFIG_NET_SCH_HTB=y
++CONFIG_NET_SCH_HFSC=y
++CONFIG_NET_SCH_PRIO=y
++CONFIG_NET_SCH_TBF=y
++CONFIG_NET_SCH_CODEL=y
++CONFIG_NET_SCH_FQ_CODEL=y
++CONFIG_NET_CLS_BASIC=y
++CONFIG_NET_CLS_TCINDEX=y
++CONFIG_NET_CLS_ROUTE4=y
++CONFIG_NET_CLS_FW=y
++CONFIG_NET_CLS_U32=y
++CONFIG_CLS_U32_PERF=y
++CONFIG_CLS_U32_MARK=y
++CONFIG_NET_CLS_RSVP=y
++CONFIG_NET_CLS_FLOW=y
++CONFIG_NET_CLS_CGROUP=m
++CONFIG_NET_EMATCH=y
++CONFIG_NET_EMATCH_CMP=y
++CONFIG_NET_EMATCH_NBYTE=y
++CONFIG_NET_EMATCH_U32=y
++CONFIG_NET_EMATCH_META=y
++CONFIG_NET_EMATCH_TEXT=y
++CONFIG_NET_CLS_ACT=y
++CONFIG_NET_ACT_POLICE=y
++CONFIG_NET_ACT_GACT=y
++CONFIG_GACT_PROB=y
++CONFIG_NET_ACT_MIRRED=y
++CONFIG_NET_ACT_IPT=y
++CONFIG_NET_ACT_NAT=y
++CONFIG_NET_ACT_PEDIT=y
++CONFIG_NET_ACT_SKBEDIT=y
++CONFIG_NET_ACT_CSUM=y
++CONFIG_NET_CLS_IND=y
++CONFIG_NETLINK_DIAG=y
++CONFIG_NET_L3_MASTER_DEV=y
++CONFIG_CGROUP_NET_PRIO=y
++CONFIG_BPF_JIT=y
++CONFIG_CAN=y
++CONFIG_CAN_GW=m
++CONFIG_CAN_VCAN=y
++CONFIG_CAN_TI_HECC=y
++CONFIG_CAN_C_CAN=y
++CONFIG_CAN_C_CAN_PLATFORM=y
++CONFIG_CAN_EMS_USB=m
++CONFIG_CAN_ESD_USB2=m
++CONFIG_CAN_PEAK_USB=m
++CONFIG_CAN_DEBUG_DEVICES=y
++# CONFIG_WIRELESS is not set
++CONFIG_RFKILL_REGULATOR=m
++CONFIG_DEVTMPFS=y
++CONFIG_DEVTMPFS_MOUNT=y
++CONFIG_OMAP_OCP2SCP=y
++CONFIG_CONNECTOR=y
++CONFIG_MTD=y
++CONFIG_MTD_CMDLINE_PARTS=y
++CONFIG_MTD_BLOCK=y
++CONFIG_MTD_CFI=y
++CONFIG_MTD_CFI_INTELEXT=y
++CONFIG_MTD_M25P80=y
++CONFIG_MTD_ANV32AA1W=y
++CONFIG_MTD_NAND=y
++CONFIG_MTD_NAND_ECC_BCH=y
++CONFIG_MTD_NAND_OMAP2=y
++CONFIG_MTD_NAND_OMAP_BCH=y
++CONFIG_MTD_SPI_NOR=y
++CONFIG_MTD_UBI=y
++CONFIG_MTD_UBI_FASTMAP=y
++CONFIG_BLK_DEV_LOOP=y
++CONFIG_TI_SN74LV165A=y
++CONFIG_ENCSW=y
++CONFIG_EEPROM_AT24=y
++CONFIG_SCSI=y
++# CONFIG_SCSI_PROC_FS is not set
++CONFIG_BLK_DEV_SD=y
++CONFIG_SCSI_SCAN_ASYNC=y
++# CONFIG_SCSI_LOWLEVEL is not set
++CONFIG_MD=y
++CONFIG_BLK_DEV_DM=m
++CONFIG_DM_THIN_PROVISIONING=m
++CONFIG_NETDEVICES=y
++CONFIG_DUMMY=m
++CONFIG_MACVLAN=m
++CONFIG_IPVLAN=m
++CONFIG_VXLAN=m
++CONFIG_TUN=y
++CONFIG_VETH=m
++CONFIG_NET_DSA_KSZ8863=y
++CONFIG_NET_DSA_MV88E6XXX=y
++# CONFIG_NET_CADENCE is not set
++# CONFIG_NET_VENDOR_BROADCOM is not set
++# CONFIG_NET_VENDOR_CIRRUS is not set
++# CONFIG_NET_VENDOR_FARADAY is not set
++# CONFIG_NET_VENDOR_INTEL is not set
++# CONFIG_NET_VENDOR_MARVELL is not set
++# CONFIG_NET_VENDOR_MICROCHIP is not set
++# CONFIG_NET_VENDOR_NATSEMI is not set
++# CONFIG_NET_VENDOR_SEEQ is not set
++# CONFIG_NET_VENDOR_SMSC is not set
++# CONFIG_NET_VENDOR_STMICRO is not set
++CONFIG_TI_DAVINCI_EMAC=y
++CONFIG_TI_CPSW=y
++CONFIG_TI_CPTS=y
++# CONFIG_NET_VENDOR_WIZNET is not set
++CONFIG_SWCONFIG=y
++CONFIG_MDIO_BITBANG=y
++CONFIG_MDIO_GPIO=y
++CONFIG_INTEL_XWAY_PHY=y
++CONFIG_MARVELL_PHY=y
++CONFIG_MICREL_PHY=y
++CONFIG_SWCFG_KSZ8863=y
++CONFIG_SWCFG_MV88E6321=y
++CONFIG_PPP=y
++CONFIG_PPP_DEFLATE=y
++CONFIG_PPP_FILTER=y
++CONFIG_PPP_MPPE=y
++CONFIG_PPP_MULTILINK=y
++CONFIG_PPP_ASYNC=y
++CONFIG_PPP_SYNC_TTY=y
++CONFIG_USB_USBNET=y
++# CONFIG_USB_NET_AX8817X is not set
++# CONFIG_USB_NET_AX88179_178A is not set
++# CONFIG_USB_NET_CDCETHER is not set
++# CONFIG_USB_NET_CDC_NCM is not set
++# CONFIG_USB_NET_NET1080 is not set
++# CONFIG_USB_NET_CDC_SUBSET is not set
++# CONFIG_USB_NET_ZAURUS is not set
++CONFIG_USB_NET_QMI_WWAN=y
++# CONFIG_WLAN is not set
++# CONFIG_INPUT_MOUSEDEV is not set
++CONFIG_INPUT_EVDEV=y
++# CONFIG_KEYBOARD_ATKBD is not set
++CONFIG_KEYBOARD_GPIO=y
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_SERIO is not set
++# CONFIG_VT is not set
++# CONFIG_LEGACY_PTYS is not set
++CONFIG_SERIAL_OMAP=y
++CONFIG_SERIAL_OMAP_RTU=y
++CONFIG_SERIAL_OMAP_CONSOLE=y
++CONFIG_HW_RANDOM=y
++CONFIG_RMD=y
++# CONFIG_I2C_COMPAT is not set
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_MUX=y
++CONFIG_I2C_MUX_PCA9541=y
++CONFIG_I2C_MUX_PCA954x=y
++CONFIG_SPI=y
++CONFIG_SPI_PASSIVE_SERIAL=y
++CONFIG_SPI_OMAP24XX=y
++CONFIG_SPI_SC18IS602=m
++CONFIG_SPI_XCOMM=m
++CONFIG_SPI_SPIDEV=y
++CONFIG_PINCTRL_SINGLE=y
++CONFIG_GPIO_SYSFS=y
++CONFIG_GPIO_PCA953X=y
++CONFIG_GPIO_PCA953X_IRQ=y
++CONFIG_GPIO_PCF857X=y
++CONFIG_GPIO_TWL4030=y
++CONFIG_W1=y
++CONFIG_W1_MASTER_GPIO=y
++CONFIG_HDQ_MASTER_OMAP=m
++CONFIG_W1_SLAVE_THERM=y
++CONFIG_W1_SLAVE_SMEM=y
++CONFIG_W1_SLAVE_DS2408=m
++CONFIG_W1_SLAVE_DS2423=m
++CONFIG_W1_SLAVE_DS2431=m
++CONFIG_W1_SLAVE_DS2433=m
++CONFIG_W1_SLAVE_DS2433_CRC=y
++CONFIG_W1_SLAVE_DS2760=m
++CONFIG_W1_SLAVE_DS2780=m
++CONFIG_W1_SLAVE_DS2781=m
++CONFIG_W1_SLAVE_DS28E04=m
++CONFIG_W1_SLAVE_BQ27000=m
++# CONFIG_HWMON is not set
++CONFIG_WATCHDOG=y
++CONFIG_GPIO_WATCHDOG=y
++CONFIG_OMAP_WATCHDOG=y
++CONFIG_MFD_TI_AM335X_TSCADC=y
++CONFIG_MFD_TPS65218=y
++CONFIG_MFD_TPS65910=y
++CONFIG_REGULATOR_PBIAS=y
++CONFIG_REGULATOR_TPS65218=y
++CONFIG_REGULATOR_TPS65910=y
++# CONFIG_HID_GENERIC is not set
++# CONFIG_USB_HID is not set
++CONFIG_USB=y
++CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
++CONFIG_USB_OTG=y
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_OHCI_HCD=y
++CONFIG_USB_STORAGE=y
++CONFIG_USB_MUSB_HDRC=y
++CONFIG_USB_MUSB_OMAP2PLUS=y
++CONFIG_USB_MUSB_AM35X=y
++CONFIG_USB_MUSB_DSPS=y
++CONFIG_MUSB_PIO_ONLY=y
++CONFIG_USB_SERIAL=y
++CONFIG_USB_SERIAL_QUALCOMM=y
++CONFIG_USB_SERIAL_OPTION=y
++CONFIG_NOP_USB_XCEIV=y
++CONFIG_AM335X_PHY_USB=y
++CONFIG_USB_GPIO_VBUS=m
++CONFIG_USB_ULPI=y
++CONFIG_USB_GADGET=y
++CONFIG_USB_CONFIGFS=m
++CONFIG_USB_CONFIGFS_ACM=y
++CONFIG_USB_CONFIGFS_NCM=y
++CONFIG_USB_CONFIGFS_ECM=y
++CONFIG_USB_CONFIGFS_RNDIS=y
++CONFIG_USB_CONFIGFS_MASS_STORAGE=y
++CONFIG_MMC=y
++CONFIG_SDIO_UART=m
++CONFIG_MMC_OMAP_HS=y
++CONFIG_NEW_LEDS=y
++CONFIG_LEDS_CLASS=y
++CONFIG_LEDS_GPIO=y
++CONFIG_LEDS_PCA955X=y
++CONFIG_LEDS_TRIGGERS=y
++CONFIG_LEDS_TRIGGER_TIMER=y
++CONFIG_LEDS_TRIGGER_ONESHOT=y
++CONFIG_LEDS_TRIGGER_HEARTBEAT=y
++CONFIG_LEDS_TRIGGER_GPIO=y
++CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
++CONFIG_LEDS_TRIGGER_TRANSIENT=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_DRV_RS5C372=y
++CONFIG_RTC_DRV_RS5C372_IRQ_SUPPORT=y
++CONFIG_RTC_DRV_ISL1208=y
++CONFIG_DMADEVICES=y
++CONFIG_DMA_OMAP=y
++CONFIG_TI_CPPI41=y
++CONFIG_TI_EDMA=y
++CONFIG_ASYNC_TX_DMA=y
++CONFIG_DMATEST=m
++CONFIG_UIO=y
++CONFIG_UIO_PDRV_GENIRQ=y
++CONFIG_STAGING=y
++CONFIG_HWSPINLOCK_OMAP=m
++# CONFIG_IOMMU_SUPPORT is not set
++CONFIG_IIO=y
++CONFIG_IIO_BUFFER_CB=y
++CONFIG_TI_AM335X_ADC=y
++CONFIG_PWM=y
++CONFIG_PWM_TIECAP=y
++CONFIG_PWM_TIEHRPWM=y
++CONFIG_OMAP_USB2=y
++CONFIG_EXT4_FS=y
++CONFIG_EXT4_FS_POSIX_ACL=y
++CONFIG_EXT4_FS_SECURITY=y
++CONFIG_FANOTIFY=y
++CONFIG_QUOTA=y
++# CONFIG_PRINT_QUOTA_WARNING is not set
++CONFIG_QFMT_V2=y
++CONFIG_AUTOFS4_FS=m
++CONFIG_FUSE_FS=y
++CONFIG_CUSE=m
++CONFIG_OVERLAY_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_NTFS_FS=y
++CONFIG_NTFS_RW=y
++CONFIG_TMPFS=y
++CONFIG_TMPFS_POSIX_ACL=y
++CONFIG_CONFIGFS_FS=y
++CONFIG_UBIFS_FS=y
++CONFIG_SQUASHFS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3_ACL=y
++CONFIG_NFS_V4=y
++CONFIG_NFS_SWAP=y
++CONFIG_ROOT_NFS=y
++CONFIG_NLS_CODEPAGE_437=y
++CONFIG_NLS_ISO8859_1=y
++CONFIG_NLS_UTF8=y
++CONFIG_PRINTK_TIME=y
++CONFIG_DYNAMIC_DEBUG=y
++CONFIG_DEBUG_INFO=y
++CONFIG_MAGIC_SYSRQ=y
++CONFIG_SCHEDSTATS=y
++CONFIG_TIMER_STATS=y
++CONFIG_FUNCTION_TRACER=y
++CONFIG_DEBUG_LL=y
++CONFIG_DEBUG_AM33XXUART1=y
++CONFIG_EARLY_PRINTK=y
++CONFIG_SECURITY=y
++CONFIG_SECURITYFS=y
++CONFIG_CRYPTO_USER=y
++CONFIG_CRYPTO_CCM=y
++CONFIG_CRYPTO_GCM=y
++CONFIG_CRYPTO_XCBC=y
++CONFIG_CRYPTO_MICHAEL_MIC=y
++CONFIG_CRYPTO_BLOWFISH=y
++CONFIG_CRYPTO_CAMELLIA=y
++CONFIG_CRYPTO_CAST5=y
++CONFIG_CRYPTO_CAST6=y
++CONFIG_CRYPTO_SERPENT=y
++CONFIG_CRYPTO_TWOFISH=y
++CONFIG_CRYPTO_ANSI_CPRNG=y
++CONFIG_CRYPTO_USER_API_HASH=y
++CONFIG_CRYPTO_USER_API_SKCIPHER=y
++CONFIG_CRYPTO_DEV_OMAP_SHAM=y
++CONFIG_CRYPTO_DEV_OMAP_AES=y
++CONFIG_ASYMMETRIC_KEY_TYPE=y
++CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE=y
++CONFIG_X509_CERTIFICATE_PARSER=y
++CONFIG_CRC_ITU_T=y
++CONFIG_CRC7=y
++CONFIG_LIBCRC32C=y
+-- 
+2.7.4
+

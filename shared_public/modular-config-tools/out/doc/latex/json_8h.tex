@@ -1,0 +1,59 @@
+\hypertarget{json_8h}{}\section{inc/ctutil/json.h File Reference}
+\label{json_8h}\index{inc/ctutil/json.\+h@{inc/ctutil/json.\+h}}
+
+
+J\+S\+ON format tools. T\+O\+DO\+: Maybe replace by common library already present?  
+
+
+{\ttfamily \#include \char`\"{}wc/std\+\_\+includes.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ctutil/error\+\_\+codes.\+h\char`\"{}}\newline
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{json_8h_aa13cbb1f04e9d4acd6a555ec7a4fe0d9}{}\label{json_8h_aa13cbb1f04e9d4acd6a555ec7a4fe0d9} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} void {\bfseries ctutil\+\_\+\+Escape\+Json\+String\+Value} (char $\ast$const sz\+Destination, size\+\_\+t const free\+Buffer\+Size, char const $\ast$const sz\+Source, size\+\_\+t $\ast$const p\+Written\+Characters)
+\item 
+\hypertarget{json_8h_a1a3cd72ce6bcbd2cc1cf0af986bd3ec5}{}\label{json_8h_a1a3cd72ce6bcbd2cc1cf0af986bd3ec5} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Open} (char $\ast$const sz\+Object\+String, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a75c0c0554875bf2fd5ae1358d36b1259}{}\label{json_8h_a75c0c0554875bf2fd5ae1358d36b1259} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Close} (char $\ast$const sz\+Object\+String, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_ae8f779d0e2d0707dd553cf9fde45f406}{}\label{json_8h_ae8f779d0e2d0707dd553cf9fde45f406} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Member\+Separator} (char $\ast$const sz\+Object\+String, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a9901bb9a279cfe6fbb182f3a8f7d102f}{}\label{json_8h_a9901bb9a279cfe6fbb182f3a8f7d102f} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Name\+Value\+Separator} (char $\ast$const sz\+Object\+String, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a6ce179fdd83c12fca1e3ba01287d5749}{}\label{json_8h_a6ce179fdd83c12fca1e3ba01287d5749} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Name} (char $\ast$const sz\+Object\+String, char const $\ast$const sz\+Name, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a9fb1adff7cbca22eecb1a6ee9e494b35}{}\label{json_8h_a9fb1adff7cbca22eecb1a6ee9e494b35} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+String\+Value} (char $\ast$const sz\+Object\+String, char const $\ast$const sz\+Name, char const $\ast$const sz\+Value, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_af447a82dfa185ead5eaa2b49d20ea927}{}\label{json_8h_af447a82dfa185ead5eaa2b49d20ea927} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Bool\+Value} (char $\ast$const sz\+Object\+String, char const $\ast$const sz\+Name, bool const value, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a2edf895c4f67114e6a37d90fa909a28c}{}\label{json_8h_a2edf895c4f67114e6a37d90fa909a28c} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Size\+Value} (char $\ast$const sz\+Object\+String, char const $\ast$const sz\+Name, size\+\_\+t const value, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a586c78bb16605948cf171d1d3ca410c0}{}\label{json_8h_a586c78bb16605948cf171d1d3ca410c0} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+U\+Int64\+Value} (char $\ast$const sz\+Object\+String, char const $\ast$const sz\+Name, uint64\+\_\+t const value, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a7d4f3327c95ca81660e33573ba014cde}{}\label{json_8h_a7d4f3327c95ca81660e33573ba014cde} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Array\+Start} (char $\ast$const sz\+Object\+String, char const $\ast$const sz\+Name, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_a36c5e5ae93f258d74a8be79348cca2c2}{}\label{json_8h_a36c5e5ae93f258d74a8be79348cca2c2} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Array\+End} (char $\ast$const sz\+Object\+String, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\item 
+\hypertarget{json_8h_ae82314f9092716fcf69e2a997af0c4c5}{}\label{json_8h_ae82314f9092716fcf69e2a997af0c4c5} 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} {\bfseries ctutil\+\_\+\+Json\+Object\+String\+Write\+Array\+String\+Value} (char $\ast$const sz\+Object\+String, char const $\ast$const sz\+Value, size\+\_\+t const free\+Buffer\+Size, size\+\_\+t $\ast$const p\+Added\+Characters)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+J\+S\+ON format tools. T\+O\+DO\+: Maybe replace by common library already present? 
+
+\begin{DoxyAuthor}{Author}
+P\+En\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
+\end{DoxyAuthor}

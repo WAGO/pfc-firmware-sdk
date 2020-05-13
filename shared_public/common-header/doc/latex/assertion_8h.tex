@@ -22,6 +22,8 @@ Assertion macros for unified assertion usage.
 \item 
 \#define \hyperlink{assertion_8h_a067aefc94b4d4c04bb267d62b13c195d}{W\+C\+\_\+\+A\+S\+S\+E\+RT}(e)~(e) ? (void)0 \+: \hyperlink{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{W\+C\+\_\+\+F\+A\+IL}(\hyperlink{assertion_8h_a5c1c3414d0a083be452afc789e8e0667}{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+IX} \#e)
 \item 
+\#define \hyperlink{assertion_8h_a09e825637b0334bb260fb05b8244dc1d}{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+R\+E\+T\+U\+RN}(e,  result)~\hyperlink{assertion_8h_a067aefc94b4d4c04bb267d62b13c195d}{W\+C\+\_\+\+A\+S\+S\+E\+RT}(\#e); if(!(e)) return (result)
+\item 
 \#define \hyperlink{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{W\+C\+\_\+\+F\+A\+IL}(reason)~\hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}(reason, \hyperlink{assertion_8h_a2fd6fb80f68c01f7a797b0d15875c294}{W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+I\+LE}, \hyperlink{assertion_8h_aa32d00ceb50265d26bdf4cbe0115e532}{W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+U\+NC}, \hyperlink{assertion_8h_abe76335d82eb3efb20c09876e8eccdbf}{W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+L\+I\+NE})
 \end{DoxyCompactItemize}
 \subsection*{Functions}
@@ -48,7 +50,7 @@ P\+En\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG
 \subsubsection{\texorpdfstring{W\+C\+\_\+\+A\+S\+S\+E\+RT}{WC\_ASSERT}}
 {\footnotesize\ttfamily \#define W\+C\+\_\+\+A\+S\+S\+E\+RT(\begin{DoxyParamCaption}\item[{}]{e }\end{DoxyParamCaption})~(e) ? (void)0 \+: \hyperlink{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{W\+C\+\_\+\+F\+A\+IL}(\hyperlink{assertion_8h_a5c1c3414d0a083be452afc789e8e0667}{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+P\+R\+E\+F\+IX} \#e)}
 
-Helper macro, proves expression satisfies true. In case expression evaluates to false a run-\/time error is issued.
+Helper macro, proves expression satisfies true. In case expression evaluates to false a run-\/time error is issued (N\+D\+E\+B\+UG not set).
 
 \begin{DoxyNote}{Note}
 To use this macro you have to provide an implementation for the C function \hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}. 
@@ -64,13 +66,27 @@ To use this macro you have to provide an implementation for the C function \hype
 
 Fail reason prefix.
 
-This prefix is used in front of every fail reason triggered by an assertion. \hypertarget{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{}\label{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea} 
+This prefix is used in front of every fail reason triggered by an assertion. \hypertarget{assertion_8h_a09e825637b0334bb260fb05b8244dc1d}{}\label{assertion_8h_a09e825637b0334bb260fb05b8244dc1d} 
+\index{assertion.\+h@{assertion.\+h}!W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+R\+E\+T\+U\+RN@{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+R\+E\+T\+U\+RN}}
+\index{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+R\+E\+T\+U\+RN@{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+R\+E\+T\+U\+RN}!assertion.\+h@{assertion.\+h}}
+\subsubsection{\texorpdfstring{W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+R\+E\+T\+U\+RN}{WC\_ASSERT\_RETURN}}
+{\footnotesize\ttfamily \#define W\+C\+\_\+\+A\+S\+S\+E\+R\+T\+\_\+\+R\+E\+T\+U\+RN(\begin{DoxyParamCaption}\item[{}]{e,  }\item[{}]{result }\end{DoxyParamCaption})~\hyperlink{assertion_8h_a067aefc94b4d4c04bb267d62b13c195d}{W\+C\+\_\+\+A\+S\+S\+E\+RT}(\#e); if(!(e)) return (result)}
+
+Helper macro, proves expression satisfies true. In case expression evaluates to false a run-\/time error is issued (N\+D\+E\+B\+UG not set) and the given result is returned. This macro is intended for pre-\/execution checks, e. g. to check function/method parameters.
+
+\begin{DoxyNote}{Note}
+To use this macro you have to provide an implementation for the C function \hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}. 
+\end{DoxyNote}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail} 
+\end{DoxySeeAlso}
+\hypertarget{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea}{}\label{assertion_8h_adeb3bef79f20b3503105ca7620ea2cea} 
 \index{assertion.\+h@{assertion.\+h}!W\+C\+\_\+\+F\+A\+IL@{W\+C\+\_\+\+F\+A\+IL}}
 \index{W\+C\+\_\+\+F\+A\+IL@{W\+C\+\_\+\+F\+A\+IL}!assertion.\+h@{assertion.\+h}}
 \subsubsection{\texorpdfstring{W\+C\+\_\+\+F\+A\+IL}{WC\_FAIL}}
 {\footnotesize\ttfamily \#define W\+C\+\_\+\+F\+A\+IL(\begin{DoxyParamCaption}\item[{}]{reason }\end{DoxyParamCaption})~\hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}(reason, \hyperlink{assertion_8h_a2fd6fb80f68c01f7a797b0d15875c294}{W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+I\+LE}, \hyperlink{assertion_8h_aa32d00ceb50265d26bdf4cbe0115e532}{W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+F\+U\+NC}, \hyperlink{assertion_8h_abe76335d82eb3efb20c09876e8eccdbf}{W\+C\+\_\+\+F\+A\+I\+L\+\_\+\+S\+O\+U\+R\+C\+E\+\_\+\+L\+I\+NE})}
 
-Helper macro, fails every time. A run-\/time error is issued and reason string may be shown.
+Helper macro, fails every time. A run-\/time error is issued (N\+D\+E\+B\+UG not set) and reason string may be shown.
 
 \begin{DoxyNote}{Note}
 To use this macro you have to provide an implementation for the C function \hyperlink{assertion_8h_a46e57d975964decf71f49a7092e16183}{wc\+\_\+\+Fail}. 

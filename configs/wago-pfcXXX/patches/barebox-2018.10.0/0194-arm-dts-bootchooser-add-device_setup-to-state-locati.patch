@@ -1,0 +1,28 @@
+From 9232c806b207206bf6d95aa28eb5ba71e5d03e4f Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 29 Nov 2019 08:29:20 +0100
+Subject: [PATCH] arm: dts: bootchooser: add device_setup to state location
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/bootchooser.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/dts/bootchooser.dtsi b/arch/arm/dts/bootchooser.dtsi
+index 0520b80..1456648 100644
+--- a/arch/arm/dts/bootchooser.dtsi
++++ b/arch/arm/dts/bootchooser.dtsi
+@@ -56,5 +56,10 @@
+ 			reg = <0x10 0x4>;
+ 			type = "uint32";
+ 		};
++
++		device_setup@14 {
++			reg = <0x14 0x4>;
++			type = "uint32";
++		};
+ 	};
+ };
+-- 
+2.7.4
+

@@ -9,7 +9,7 @@
 //--------------------------------------------------------------------------------------------------
 /// \file       mdmd_log.h
 ///
-/// \version    $Revision: 37962 $
+/// \version    $Revision: 46753 $
 ///
 /// \par        <b>Software Package</b>:
 ///             Modem Management Daemon (mdmd)
@@ -72,9 +72,8 @@ enum {
 //  Globals
 //--------------------------------------------------------------------------------------------------
 extern unsigned long  _mdmdLogLevel;
-int mdmd_GetLogLevel( void );
+
 bool mdmd_SetLogLevel( int logLevel );
-unsigned int mdmd_GetSyslogLogLevel(unsigned int mdmd_logLevel);
 
 //--------------------------------------------------------------------------------------------------
 //  function implementation
@@ -82,16 +81,23 @@ unsigned int mdmd_GetSyslogLogLevel(unsigned int mdmd_logLevel);
 #define mdmd_Log(__lvl, __fmt, ...)  \
         do\
         {\
-            if(_mdmdLogLevel < __lvl) break;\
-            const unsigned int syslogLevel = mdmd_GetSyslogLogLevel(__lvl);\
-            if(syslogLevel != SYS_LOG_OFF) syslog((int)syslogLevel, __fmt , ##__VA_ARGS__);\
+            if(_mdmdLogLevel >= __lvl) {\
+              switch (__lvl) {\
+               case MD_LOG_OFF:  /* no log */ break;\
+               case MD_LOG_ERR:  syslog(LOG_ERR, __fmt , ##__VA_ARGS__); break;\
+               case MD_LOG_WRN:  syslog(LOG_WARNING, __fmt , ##__VA_ARGS__); break;\
+               case MD_LOG_INF:  syslog(LOG_INFO, __fmt , ##__VA_ARGS__); break;\
+               case MD_LOG_DBG:  /* no break, fall through to default */ \
+               case MD_LOG_DBG2: /* no break, fall through to default */ \
+               default:          syslog(LOG_DEBUG, __fmt , ##__VA_ARGS__); break;\
+             }\
+           }\
         } while(0)
 
 #define mdmd_LogAlways(__fmt, ...)  \
         do\
         {\
-          const unsigned int syslogLevel = LOG_INFO;\
-          syslog((int)syslogLevel, __fmt , ##__VA_ARGS__);\
+          syslog(LOG_INFO, __fmt , ##__VA_ARGS__);\
         } while(0)
 
 

@@ -1,0 +1,110 @@
+From 55cdc467b1c718287cdef62f4e43ad009fa7cdfb Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 11 Nov 2019 16:52:58 +0100
+Subject: [PATCH] arm: boards: pfc-am335x: export device state and set usb
+ serial number and manufaturer
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c            | 52 ++++++++++++++++++++--
+ .../mach-omap/include/mach/am3xxx-pfc-generic.h    |  1 +
+ 2 files changed, 49 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index 3c03f90..2375fbd 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -87,6 +87,43 @@ static struct omap_barebox_boot_parts pfc_barebox_boot_parts = {
+ 	.num_boot_emmcslots = ARRAY_SIZE(boot_emmcslots),
+ };
+ 
++static int pfc_set_device_state(struct omap_board_info *board)
++{
++	u8 mac[6];
++	int ret;
++
++	ret = xsection_get_ethaddr1(mac);
++	if (ret < 0)
++		goto out;
++
++	if (mac[0] != 0x00 || mac[1] != 0x30 || mac[2] != 0xde)
++		board->production_mode = true;
++
++	if (test_bit(HAS_USB, board->boot_devices)) {
++		struct device_d *usbgadget;
++
++		usbgadget = get_device_by_name("usbgadget");
++		if (!usbgadget)
++			goto out;
++
++		/* use processors internal ethaddr as unique
++		 * serial number for usb connections
++		 */
++		am33xx_get_internal_mac_id(mac, 0);
++		ret = dev_set_param(usbgadget, "serial_number",
++					basprintf("%02x%02x%02x%02x%02x%02x",
++					mac[0], mac[1], mac[2], mac[3], mac[4],
++					mac[5]));
++		if (ret)
++			goto out;
++
++		ret = dev_set_param(usbgadget, "manufacturer",
++					"WAGO Kontakttechnik GmbH & Co. KG");
++	}
++out:
++	return ret;
++}
++
+ static int pfc_set_ethaddr(void)
+ {
+ 	u8 mac[6];
+@@ -225,12 +262,18 @@ static int pfc_devices_init(void)
+ 		}
+ 	}
+ 
++	ret = pfc_set_device_state(board);
++	if (ret)
++		goto out;
++
++	omap_set_board_info(board);
++
+ 	/* dont free in case of mlo boot. We need the board information in the
+ 	 * xload-pfc module
+ 	 */
+ 	if (IS_ENABLED(CONFIG_SHELL_NONE)) {
+-		omap_set_board_info(board);
+-		return am33xx_of_register_bootdevice();
++		ret = am33xx_of_register_bootdevice();
++		goto out_ret;
+ 	}
+ 
+ 	/* Rewrite the compatible string in the internal barebox device-tree
+@@ -245,10 +288,11 @@ static int pfc_devices_init(void)
+ 				"with devconf from eeprom \n");
+ 	}
+ 
++out:
+ 	free(board->board_variant);
+ 	free(board);
+-
+-	return 0;
++out_ret:
++	return ret;
+ }
+ device_initcall(pfc_devices_init);
+ 
+diff --git a/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h b/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h
+index 3276b71..cc672b5 100644
+--- a/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h
++++ b/arch/arm/mach-omap/include/mach/am3xxx-pfc-generic.h
+@@ -18,6 +18,7 @@ enum omap_board_boot_device {
+ 
+ struct omap_board_info {
+ 	char *board_variant;
++	bool production_mode;
+ 	DECLARE_BITMAP(boot_devices, NUM_BOOT_DEVICES);
+ };
+ 
+-- 
+2.7.4
+

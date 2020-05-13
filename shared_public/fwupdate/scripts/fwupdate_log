@@ -48,7 +48,7 @@ JSONOUT=0
 #
 # Return: Exit code, 0 on success, unequal to 0 otherwise
 #-----------------------------------------------------------------------------#
-main()
+fwupdate_log_main()
 {
     local RESULT=0
 
@@ -270,5 +270,5 @@ get_log()
 }
 
 # Start main function
-main "$@"
+fwupdate_log_main "$@"
 exit $?

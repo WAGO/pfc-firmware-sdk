@@ -5,46 +5,25 @@
 # subject matter are governed by the license agreement. The recipient of this
 # software implicitly accepts the terms of the license.
 
-TOOLCHAIN_PREFIX=/opt/OSELAS.Toolchain-2012.12.1-WAGO.3/arm-cortexa8-linux-gnueabihf/gcc-4.7.3-glibc-2.16.0-binutils-2.22-kernel-3.6-sanitized
-CROSS_COMPILE=$(TOOLCHAIN_PREFIX)/bin/arm-cortexa8-linux-gnueabihf-
-CC=$(CROSS_COMPILE)gcc
-CFLAGS=-I. 
-DEPS=
+CC=$(CROSS)gcc
 SRC_DIR=src
-BIN_DIR=bin
-# PFC ip address for 'make install' target. For development purposes only.
-TARGET_IP=172.29.233.172
-INSTALL_DIR=/usr/sbin/
+CFLAGS += -O2 -Wall -Werror
+INSTALL_DIR=$(DESTDIR)/usr/sbin/
 
-EEPROM_XSECTION_FILES=$(SRC_DIR)/eeprom-xsection.o
+APP  := eeprom-xsection
+OBJS := eeprom-xsection.o sysfs_gpiolib.o
 
-ifdef _HW_PLATFORM_XSECTION
+all: $(APP)
 
-ifeq ($(_HW_PLATFORM_XSECTION), wago-pfcXXX)
-EEPROM_XSECTION_FILES=$(SRC_DIR)/eeprom-xsection-pfcXXX.o
-endif
+%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-endif
+$(APP): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
 
-all: eeprom-xsection
-%.o: %.c $(DEPS) dirs
-	@$(CC) -c -o $@ $< $(CFLAGS)
+install: $(APP)
+	install -d $(INSTALL_DIR)
+	install -m 755 $^ $(INSTALL_DIR)
 
-dirs:
-	@mkdir -p $(BIN_DIR)
-
-eeprom-xsection: $(EEPROM_XSECTION_FILES) $(SRC_DIR)/sysfs_gpiolib.o
-	@echo -n "Building $@ ($^) ... "
-	@$(CC) -o $(BIN_DIR)/eeprom-xsection $^ $(CFLAGS)
-	@echo "done."
-
-clean: 
-	@echo -n "Clean Up ... "
-	@rm -f $(BIN_DIR)/* $(SRC_DIR)/*.o
-	@echo "done."
-
-install:
-	@echo "Install eeprom-xsection to $(TARGET_IP):$(INSTALL_DIR) ..."
-	@scp $(BIN_DIR)/eeprom-xsection root@$(TARGET_IP):$(INSTALL_DIR)
-	@echo "done"
-
+clean:
+	rm -f $(APP) $(OBJS) .depend

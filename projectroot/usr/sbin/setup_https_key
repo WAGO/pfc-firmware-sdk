@@ -44,6 +44,7 @@ set -e
 
 /usr/sbin/random_seed
 
+umask 0266
 openssl req -x509 -nodes -new -config "$CERT_CONF" > "${LIGHTTPD_CERT}.tmp" &&
 mv "${LIGHTTPD_CERT}.tmp" "${LIGHTTPD_CERT}"
 

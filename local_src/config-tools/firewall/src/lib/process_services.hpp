@@ -13,11 +13,7 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-
-
-#ifndef WAGO_PROCESS_SERVICES_HPP
-#define WAGO_PROCESS_SERVICES_HPP
-
+#pragma once
 
 #include "xmlhlp.hpp"
 #include <string>
@@ -40,7 +36,3 @@ void process_services(const std::string& cmd,
 
 
 } // namespace wago
-
-
-#endif // WAGO_PROCESS_SERVICES_HPP
-

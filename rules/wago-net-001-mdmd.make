@@ -18,7 +18,7 @@ PACKAGES-$(PTXCONF_MDMD) += mdmd
 #
 # Paths and names
 #
-MDMD_VERSION 				:= 0.5.3
+MDMD_VERSION 				:= 0.7.6
 MDMD_MD5				:=
 MDMD					:= mdmd
 MDMD_URL     				:= file://$(PTXDIST_WORKSPACE)/local_src/$(MDMD)
@@ -80,10 +80,14 @@ $(STATEDIR)/mdmd.prepare:
 # Install
 # ----------------------------------------------------------------------------
 
-#$(STATEDIR)/mdmd.install:
-#	@$(call targetinfo)
-#	@$(call world/install, MDMD)
-#	@$(call touch)
+$(STATEDIR)/mdmd.install:
+	@$(call targetinfo)
+	@$(call world/install, MDMD)
+
+	@mkdir -p $(PKGDIR)/$(MDMD)/etc/specific/features/
+	@echo "hardware-available=false" >$(PKGDIR)/$(MDMD)/etc/specific/features/wireless-mobile-UC20
+
+	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Target-Install
@@ -103,6 +107,8 @@ $(STATEDIR)/mdmd.targetinstall:
 	@$(call install_copy, mdmd, 0, 0, 0644, -, /etc/dbus-1/system.d/mdmd.conf)
 	@$(call install_copy, mdmd, 0, 0, 0640, -, /etc/specific/mdmd_init.conf)
 	@$(call install_copy, mdmd, 0, 0, 0644, -, /lib/udev/rules.d/76-tty-modem.rules)
+	@$(call install_copy, mdmd, 0, 0, 0750, /etc/specific/features/)
+	@$(call install_copy, mdmd, 0, 0, 0644, -, /etc/specific/features/wireless-mobile-UC20)
 
 	@$(call install_finish, mdmd)
 

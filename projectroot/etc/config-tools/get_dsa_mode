@@ -1,0 +1,41 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------
+# Script-name: get_dsa_mode
+#
+# Calls C program to get eth switch configuration.
+#
+# Author: HJH, WAGO Kontakttechnik GmbH & Co. KG.
+#         StB, WAGO Kontakttechnik GmbH & Co. KG.
+#         MOe, WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------
+
+# set error on use of undefined shell variables
+set -u
+
+# main program
+
+CTDIR=/etc/config-tools
+
+# show help-text if requested
+if [ $# -gt 0 ]; then
+    if [ "$1" = "-h" -o "$1" = "--help" ]; then
+        echo
+        echo "* Read network switch configuration *"
+        echo
+        echo "Usage: get_dsa_mode -h | --help         print this usage"
+        echo "       get_dsa_mode                     get separated (1) resp. switched (0) interface mode"
+        exit 0
+    fi
+fi
+
+$CTDIR/network_config --dsa-mode --get
+status=$?
+
+exit $status
+

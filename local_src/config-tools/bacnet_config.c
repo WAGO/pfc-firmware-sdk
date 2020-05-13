@@ -11,7 +11,7 @@
 ///
 ///  \brief    BACnet config-tool to get and set BACnet specific parameters.
 ///
-///  \author   Nico Baade : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   N. Baade : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -23,6 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <stdbool.h>
 
 #include <bacnet_config_api.h>      // interface to BACnet configuration
 
@@ -61,17 +62,21 @@
 #define BIT_VALUE       4
 #define BIT_INFO        5
 #define BIT_UPLOAD      6
+#define BIT_RESTART     7
 
 #define UPLOAD_MAX_STR_LEN  7
 #define UPLOAD_INFO         "info"
 #define UPLOAD_COPY         "copy"
 #define UPLOAD_DELETE       "delete"
 
+#define SYSTEM_CALL_RUNTIME_RESTART "/etc/init.d/runtime stop; /usr/bin/sleep 1; /etc/init.d/runtime start"
+
 struct option g_longopts[] = {
    { "get",         REQUIRED_ARGUMENT,  NULL,   'g' },
    { "help",        NO_ARGUMENT,        NULL,   'h' },
    { "info",        NO_ARGUMENT,        NULL,   'i' },
    { "json",        NO_ARGUMENT,        NULL,   'j' },
+   { "restart",     NO_ARGUMENT,        NULL,   'r' },
    { "set",         REQUIRED_ARGUMENT,  NULL,   's' },
    { "value",       REQUIRED_ARGUMENT,  NULL,   'v' },
    { "upload",      REQUIRED_ARGUMENT,  NULL,   'u' },
@@ -82,7 +87,6 @@ struct option g_longopts[] = {
 //------------------------------------------------------------------------------
 // function implementation
 //------------------------------------------------------------------------------
-
 static void printfParamValue(BAC_CONFIG_PARAMETER_VALUE *pParamValue)
 {
   if(pParamValue != NULL)
@@ -93,7 +97,7 @@ static void printfParamValue(BAC_CONFIG_PARAMETER_VALUE *pParamValue)
         printf("%i",*((int*) pParamValue->pValue));
         break;
       case BAC_CONFIG_DATA_TYPE_BOOL:
-        if(*((int*) pParamValue->pValue) == 1)
+        if(*((bool*) pParamValue->pValue) == 1)
         {
           printf("true");
         }
@@ -111,6 +115,7 @@ static void printfParamValue(BAC_CONFIG_PARAMETER_VALUE *pParamValue)
   }
 }
 
+//------------------------------------------------------------------------------
 static int GetRequest(char* pParameter)
 {
   int status = ERROR;
@@ -141,7 +146,7 @@ static int GetRequest(char* pParameter)
   return status;
 }
 
-
+//------------------------------------------------------------------------------
 static int JsonRequest(void)
 {
   int status = ERROR;
@@ -168,7 +173,18 @@ static int JsonRequest(void)
   return status;
 }
 
+//------------------------------------------------------------------------------
+static int RestartRequest(void)
+{
+  int status = ERROR;
+  if(-1 != system(SYSTEM_CALL_RUNTIME_RESTART))
+  {
+    status = SUCCESS;
+  }
+  return status;
+}
 
+//------------------------------------------------------------------------------
 static int SetRequest(char* pParameter, char* pValue)
 {
   int status = ERROR;
@@ -209,8 +225,9 @@ static int SetRequest(char* pParameter, char* pValue)
   return status;
 }
 
-
+//------------------------------------------------------------------------------
 // get storage option (sd-card or internal-flash)
+//------------------------------------------------------------------------------
 static int GetStorageOption()
 {
   int status = ERROR;
@@ -227,8 +244,8 @@ static int GetStorageOption()
   return status;
 }
 
-
-static int Upload(char *pFunc)
+//------------------------------------------------------------------------------
+static int UploadByFilename(char *pFunc, char *pFilename)
 {
   int status = SUCCESS;
   if(pFunc != NULL)
@@ -240,7 +257,16 @@ static int Upload(char *pFunc)
     }
     else if(strcmp(pFunc, UPLOAD_COPY) == 0)
     {
-      bac_CONFIG_uploadFileCopy();
+      if(pFilename != NULL)
+      {
+        printf("bac_CONFIG_uploadFileCopyByName(%s)\n", pFilename);
+        bac_CONFIG_uploadFileCopyByName(pFilename);
+      }
+      else
+      {
+        printf("bac_CONFIG_uploadFileCopy()\n");
+        bac_CONFIG_uploadFileCopy();
+      }
     }
     else if(strcmp(pFunc, UPLOAD_DELETE) == 0)
     {
@@ -255,8 +281,15 @@ static int Upload(char *pFunc)
   return status;
 }
 
+//------------------------------------------------------------------------------
+static int Upload(char *pFunc)
+{
+  return UploadByFilename(pFunc, NULL);
+}
 
+//------------------------------------------------------------------------------
 // show help text
+//------------------------------------------------------------------------------
 static void ShowHelpText(void)
 {
   const BAC_CONFIG_PARAMETER_LIST * pParamList = bac_CONFIG_getParameterList();
@@ -267,6 +300,7 @@ static void ShowHelpText(void)
   printf("         --info   || -i              - show storage options(all=1, internal only=0) \n");
   printf("         --get    || -g <parameter>  - read parameter value \n");
   printf("         --json   || -j              - read all parameter values in json format \n");
+  printf("         --restart|| -r              - restart runtime\n");
   printf("         --set    || -s <parameter>  - write parameter value (option -v must be set also)\n");
   printf("         --value  || -v <value>      - value to set \n");
   printf("         --upload || -u <function>   - upload function (info, copy and delete)\n");
@@ -320,9 +354,11 @@ static void ShowHelpText(void)
   printf("\n");
 }
 
+//------------------------------------------------------------------------------
 // argc =   1           2           3             4
 // argv =   [0]         [1]         [2]           [3]
 //          <program>   <command>   <parameter>   <value>
+//------------------------------------------------------------------------------
 int main(int    argc,
          char** argv)
 {
@@ -333,7 +369,7 @@ int main(int    argc,
   char* pValue = NULL;
 
   int oc; // option character
-  while ((oc = getopt_long(argc, argv, ":g:hijs:v:u:", g_longopts, NULL)) != -1)
+  while ((oc = getopt_long(argc, argv, ":g:hijrs:v:u:", g_longopts, NULL)) != -1)
   {
     switch (oc)
     {
@@ -350,6 +386,9 @@ int main(int    argc,
         break;
       case 'j':
         flag |= 1 << BIT_JSON;
+        break;
+      case 'r':
+        flag |= 1 << BIT_RESTART;
         break;
       case 's':
         flag |= 1 << BIT_SET;
@@ -405,6 +444,12 @@ int main(int    argc,
       status = JsonRequest();
     }
 
+    // reset
+    else if(flag & (1 << BIT_RESTART))
+    {
+      status = RestartRequest();
+    }
+
     // set
     else if( (flag & (1 << BIT_SET)) &&
              (flag & (1 << BIT_VALUE)) &&
@@ -415,6 +460,13 @@ int main(int    argc,
     }
 
     // upload
+    else if( (flag & (1 << BIT_UPLOAD)) &&
+             (flag & (1 << BIT_VALUE)) &&
+             (pFunc != NULL) &&
+             (pValue != NULL) )
+    {
+      status = UploadByFilename(pFunc, pValue);
+    }
     else if( (flag & (1 << BIT_UPLOAD)) &&
              (pFunc != NULL) )
     {

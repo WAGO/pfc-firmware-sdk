@@ -1,8 +1,8 @@
 From cbed35040191a445c1f9812ff858a0e7ddd9a00e Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 29 Jan 2019 09:58:57 +0100
-Subject: [PATCH 161/161] defaultenv: defaultenv-pfc-base: disable kernel
- watchdog in production mode
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: disable kernel watchdog in
+ production mode
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

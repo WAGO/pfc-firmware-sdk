@@ -1,8 +1,7 @@
 From 1578ceafff300c350dd6a39cffdd910f3b4e9068 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 8 Aug 2018 14:34:07 +0200
-Subject: [PATCH 053/144] arm: configs: am35xx_pfc200: activate led_mode
- command
+Subject: [PATCH] arm: configs: am35xx_pfc200: activate led_mode command
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

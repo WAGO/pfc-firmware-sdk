@@ -1,0 +1,36 @@
+From b881c78cae09c604b4f08e9d74c5069aa2028e8e Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 4 Feb 2020 16:11:49 +0100
+Subject: [PATCH] defaultenv: pfc: fix boot detection
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index e970f68..1b8524c 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -29,6 +29,8 @@ else
+ 	exit 1
+ fi
+ 
++global.boot.default="bootchooser"
++
+ if [ "${global.pfc.disable_sd_boot}" = 0 ]; then
+ 	if [ -e "${global.pfc.sd}" ] && [ -e "${sd_blspec}" ]; then
+ 		global.boot.default="file://${sd_blspec} bootchooser"
+@@ -41,9 +43,6 @@ if [ "${global.pfc.disable_sd_boot}" = 0 ]; then
+ 		global.bootm.boot_atag=true
+ 		global.boot.default="sd-legacy bootchooser"
+ 	fi
+-
+-else
+-	global.boot.default="bootchooser"
+ fi
+ 
+ pfc-check-for-debug-uart
+-- 
+2.7.4
+

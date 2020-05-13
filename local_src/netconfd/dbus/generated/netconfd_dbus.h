@@ -29,16 +29,7 @@ struct _netconfdInterface_configIface
 {
   GTypeInterface parent_iface;
 
-  gboolean (*handle_backup) (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    const gchar *arg_config);
-
   gboolean (*handle_get) (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation);
-
-  gboolean (*handle_getbackupparamcount) (
     netconfdInterface_config *object,
     GDBusMethodInvocation *invocation);
 
@@ -49,11 +40,6 @@ struct _netconfdInterface_configIface
   gboolean (*handle_getinterfaceconfig) (
     netconfdInterface_config *object,
     GDBusMethodInvocation *invocation);
-
-  gboolean (*handle_restore) (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    const gchar *arg_config);
 
   gboolean (*handle_set) (
     netconfdInterface_config *object,
@@ -95,21 +81,6 @@ void netconfd_interface_config_complete_getinterfaceconfig (
     const gchar *config);
 
 void netconfd_interface_config_complete_setinterfaceconfig (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    gint result);
-
-void netconfd_interface_config_complete_getbackupparamcount (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    const gchar *interfaces);
-
-void netconfd_interface_config_complete_backup (
-    netconfdInterface_config *object,
-    GDBusMethodInvocation *invocation,
-    gint result);
-
-void netconfd_interface_config_complete_restore (
     netconfdInterface_config *object,
     GDBusMethodInvocation *invocation,
     gint result);
@@ -205,64 +176,6 @@ gboolean netconfd_interface_config_call_setinterfaceconfig_finish (
     GError **error);
 
 gboolean netconfd_interface_config_call_setinterfaceconfig_sync (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    gint *out_result,
-    GCancellable *cancellable,
-    GError **error);
-
-void netconfd_interface_config_call_getbackupparamcount (
-    netconfdInterface_config *proxy,
-    GCancellable *cancellable,
-    GAsyncReadyCallback callback,
-    gpointer user_data);
-
-gboolean netconfd_interface_config_call_getbackupparamcount_finish (
-    netconfdInterface_config *proxy,
-    gchar **out_interfaces,
-    GAsyncResult *res,
-    GError **error);
-
-gboolean netconfd_interface_config_call_getbackupparamcount_sync (
-    netconfdInterface_config *proxy,
-    gchar **out_interfaces,
-    GCancellable *cancellable,
-    GError **error);
-
-void netconfd_interface_config_call_backup (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    GCancellable *cancellable,
-    GAsyncReadyCallback callback,
-    gpointer user_data);
-
-gboolean netconfd_interface_config_call_backup_finish (
-    netconfdInterface_config *proxy,
-    gint *out_result,
-    GAsyncResult *res,
-    GError **error);
-
-gboolean netconfd_interface_config_call_backup_sync (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    gint *out_result,
-    GCancellable *cancellable,
-    GError **error);
-
-void netconfd_interface_config_call_restore (
-    netconfdInterface_config *proxy,
-    const gchar *arg_config,
-    GCancellable *cancellable,
-    GAsyncReadyCallback callback,
-    gpointer user_data);
-
-gboolean netconfd_interface_config_call_restore_finish (
-    netconfdInterface_config *proxy,
-    gint *out_result,
-    GAsyncResult *res,
-    GError **error);
-
-gboolean netconfd_interface_config_call_restore_sync (
     netconfdInterface_config *proxy,
     const gchar *arg_config,
     gint *out_result,
@@ -400,6 +313,14 @@ struct _netconfdIp_configIface
     netconfdIp_config *object,
     GDBusMethodInvocation *invocation);
 
+  gboolean (*handle_getallcurrent) (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation);
+
+  gboolean (*handle_getdipswitchconfig) (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation);
+
   gboolean (*handle_set) (
     netconfdIp_config *object,
     GDBusMethodInvocation *invocation,
@@ -409,6 +330,15 @@ struct _netconfdIp_configIface
     netconfdIp_config *object,
     GDBusMethodInvocation *invocation,
     const gchar *arg_config);
+
+  gboolean (*handle_setdipswitchconfig) (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *arg_config);
+
+  gboolean (*handle_tempfixip) (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation);
 
 };
 
@@ -438,6 +368,25 @@ void netconfd_ip_config_complete_getall (
     netconfdIp_config *object,
     GDBusMethodInvocation *invocation,
     const gchar *config);
+
+void netconfd_ip_config_complete_getallcurrent (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *config);
+
+void netconfd_ip_config_complete_tempfixip (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation);
+
+void netconfd_ip_config_complete_getdipswitchconfig (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *config);
+
+void netconfd_ip_config_complete_setdipswitchconfig (
+    netconfdIp_config *object,
+    GDBusMethodInvocation *invocation,
+    gint result);
 
 
 
@@ -517,6 +466,78 @@ gboolean netconfd_ip_config_call_getall_finish (
 gboolean netconfd_ip_config_call_getall_sync (
     netconfdIp_config *proxy,
     gchar **out_config,
+    GCancellable *cancellable,
+    GError **error);
+
+void netconfd_ip_config_call_getallcurrent (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_ip_config_call_getallcurrent_finish (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_ip_config_call_getallcurrent_sync (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GCancellable *cancellable,
+    GError **error);
+
+void netconfd_ip_config_call_tempfixip (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_ip_config_call_tempfixip_finish (
+    netconfdIp_config *proxy,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_ip_config_call_tempfixip_sync (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GError **error);
+
+void netconfd_ip_config_call_getdipswitchconfig (
+    netconfdIp_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_ip_config_call_getdipswitchconfig_finish (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_ip_config_call_getdipswitchconfig_sync (
+    netconfdIp_config *proxy,
+    gchar **out_config,
+    GCancellable *cancellable,
+    GError **error);
+
+void netconfd_ip_config_call_setdipswitchconfig (
+    netconfdIp_config *proxy,
+    const gchar *arg_config,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_ip_config_call_setdipswitchconfig_finish (
+    netconfdIp_config *proxy,
+    gint *out_result,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_ip_config_call_setdipswitchconfig_sync (
+    netconfdIp_config *proxy,
+    const gchar *arg_config,
+    gint *out_result,
     GCancellable *cancellable,
     GError **error);
 
@@ -626,6 +647,230 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (netconfdIp_configSkeleton, g_object_unref)
 netconfdIp_config *netconfd_ip_config_skeleton_new (void);
 
 
+/* ------------------------------------------------------------------------ */
+/* Declarations for de.wago.netconfd1.backup */
+
+#define NETCONFD_TYPE_BACKUP (netconfd_backup_get_type ())
+#define NETCONFD_BACKUP(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), NETCONFD_TYPE_BACKUP, netconfdBackup))
+#define NETCONFD_IS_BACKUP(o) (G_TYPE_CHECK_INSTANCE_TYPE ((o), NETCONFD_TYPE_BACKUP))
+#define NETCONFD_BACKUP_GET_IFACE(o) (G_TYPE_INSTANCE_GET_INTERFACE ((o), NETCONFD_TYPE_BACKUP, netconfdBackupIface))
+
+struct _netconfdBackup;
+typedef struct _netconfdBackup netconfdBackup;
+typedef struct _netconfdBackupIface netconfdBackupIface;
+
+struct _netconfdBackupIface
+{
+  GTypeInterface parent_iface;
+
+  gboolean (*handle_backup) (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *arg_config,
+    const gchar *arg_targetversion);
+
+  gboolean (*handle_getbackupparamcount) (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation);
+
+  gboolean (*handle_restore) (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *arg_config);
+
+};
+
+GType netconfd_backup_get_type (void) G_GNUC_CONST;
+
+GDBusInterfaceInfo *netconfd_backup_interface_info (void);
+guint netconfd_backup_override_properties (GObjectClass *klass, guint property_id_begin);
+
+
+/* D-Bus method call completion functions: */
+void netconfd_backup_complete_getbackupparamcount (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *interfaces);
+
+void netconfd_backup_complete_backup (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    gint result);
+
+void netconfd_backup_complete_restore (
+    netconfdBackup *object,
+    GDBusMethodInvocation *invocation,
+    gint result);
+
+
+
+/* D-Bus method calls: */
+void netconfd_backup_call_getbackupparamcount (
+    netconfdBackup *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_backup_call_getbackupparamcount_finish (
+    netconfdBackup *proxy,
+    gchar **out_interfaces,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_backup_call_getbackupparamcount_sync (
+    netconfdBackup *proxy,
+    gchar **out_interfaces,
+    GCancellable *cancellable,
+    GError **error);
+
+void netconfd_backup_call_backup (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    const gchar *arg_targetversion,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_backup_call_backup_finish (
+    netconfdBackup *proxy,
+    gint *out_result,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_backup_call_backup_sync (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    const gchar *arg_targetversion,
+    gint *out_result,
+    GCancellable *cancellable,
+    GError **error);
+
+void netconfd_backup_call_restore (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_backup_call_restore_finish (
+    netconfdBackup *proxy,
+    gint *out_result,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_backup_call_restore_sync (
+    netconfdBackup *proxy,
+    const gchar *arg_config,
+    gint *out_result,
+    GCancellable *cancellable,
+    GError **error);
+
+
+
+/* ---- */
+
+#define NETCONFD_TYPE_BACKUP_PROXY (netconfd_backup_proxy_get_type ())
+#define NETCONFD_BACKUP_PROXY(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), NETCONFD_TYPE_BACKUP_PROXY, netconfdBackupProxy))
+#define NETCONFD_BACKUP_PROXY_CLASS(k) (G_TYPE_CHECK_CLASS_CAST ((k), NETCONFD_TYPE_BACKUP_PROXY, netconfdBackupProxyClass))
+#define NETCONFD_BACKUP_PROXY_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), NETCONFD_TYPE_BACKUP_PROXY, netconfdBackupProxyClass))
+#define NETCONFD_IS_BACKUP_PROXY(o) (G_TYPE_CHECK_INSTANCE_TYPE ((o), NETCONFD_TYPE_BACKUP_PROXY))
+#define NETCONFD_IS_BACKUP_PROXY_CLASS(k) (G_TYPE_CHECK_CLASS_TYPE ((k), NETCONFD_TYPE_BACKUP_PROXY))
+
+typedef struct _netconfdBackupProxy netconfdBackupProxy;
+typedef struct _netconfdBackupProxyClass netconfdBackupProxyClass;
+typedef struct _netconfdBackupProxyPrivate netconfdBackupProxyPrivate;
+
+struct _netconfdBackupProxy
+{
+  /*< private >*/
+  GDBusProxy parent_instance;
+  netconfdBackupProxyPrivate *priv;
+};
+
+struct _netconfdBackupProxyClass
+{
+  GDBusProxyClass parent_class;
+};
+
+GType netconfd_backup_proxy_get_type (void) G_GNUC_CONST;
+
+#if GLIB_CHECK_VERSION(2, 44, 0)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (netconfdBackupProxy, g_object_unref)
+#endif
+
+void netconfd_backup_proxy_new (
+    GDBusConnection     *connection,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GAsyncReadyCallback  callback,
+    gpointer             user_data);
+netconfdBackup *netconfd_backup_proxy_new_finish (
+    GAsyncResult        *res,
+    GError             **error);
+netconfdBackup *netconfd_backup_proxy_new_sync (
+    GDBusConnection     *connection,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GError             **error);
+
+void netconfd_backup_proxy_new_for_bus (
+    GBusType             bus_type,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GAsyncReadyCallback  callback,
+    gpointer             user_data);
+netconfdBackup *netconfd_backup_proxy_new_for_bus_finish (
+    GAsyncResult        *res,
+    GError             **error);
+netconfdBackup *netconfd_backup_proxy_new_for_bus_sync (
+    GBusType             bus_type,
+    GDBusProxyFlags      flags,
+    const gchar         *name,
+    const gchar         *object_path,
+    GCancellable        *cancellable,
+    GError             **error);
+
+
+/* ---- */
+
+#define NETCONFD_TYPE_BACKUP_SKELETON (netconfd_backup_skeleton_get_type ())
+#define NETCONFD_BACKUP_SKELETON(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), NETCONFD_TYPE_BACKUP_SKELETON, netconfdBackupSkeleton))
+#define NETCONFD_BACKUP_SKELETON_CLASS(k) (G_TYPE_CHECK_CLASS_CAST ((k), NETCONFD_TYPE_BACKUP_SKELETON, netconfdBackupSkeletonClass))
+#define NETCONFD_BACKUP_SKELETON_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), NETCONFD_TYPE_BACKUP_SKELETON, netconfdBackupSkeletonClass))
+#define NETCONFD_IS_BACKUP_SKELETON(o) (G_TYPE_CHECK_INSTANCE_TYPE ((o), NETCONFD_TYPE_BACKUP_SKELETON))
+#define NETCONFD_IS_BACKUP_SKELETON_CLASS(k) (G_TYPE_CHECK_CLASS_TYPE ((k), NETCONFD_TYPE_BACKUP_SKELETON))
+
+typedef struct _netconfdBackupSkeleton netconfdBackupSkeleton;
+typedef struct _netconfdBackupSkeletonClass netconfdBackupSkeletonClass;
+typedef struct _netconfdBackupSkeletonPrivate netconfdBackupSkeletonPrivate;
+
+struct _netconfdBackupSkeleton
+{
+  /*< private >*/
+  GDBusInterfaceSkeleton parent_instance;
+  netconfdBackupSkeletonPrivate *priv;
+};
+
+struct _netconfdBackupSkeletonClass
+{
+  GDBusInterfaceSkeletonClass parent_class;
+};
+
+GType netconfd_backup_skeleton_get_type (void) G_GNUC_CONST;
+
+#if GLIB_CHECK_VERSION(2, 44, 0)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (netconfdBackupSkeleton, g_object_unref)
+#endif
+
+netconfdBackup *netconfd_backup_skeleton_new (void);
+
+
 /* ---- */
 
 #define NETCONFD_TYPE_OBJECT (netconfd_object_get_type ())
@@ -646,8 +891,10 @@ GType netconfd_object_get_type (void) G_GNUC_CONST;
 
 netconfdInterface_config *netconfd_object_get_interface_config (netconfdObject *object);
 netconfdIp_config *netconfd_object_get_ip_config (netconfdObject *object);
+netconfdBackup *netconfd_object_get_backup (netconfdObject *object);
 netconfdInterface_config *netconfd_object_peek_interface_config (netconfdObject *object);
 netconfdIp_config *netconfd_object_peek_ip_config (netconfdObject *object);
+netconfdBackup *netconfd_object_peek_backup (netconfdObject *object);
 
 #define NETCONFD_TYPE_OBJECT_PROXY (netconfd_object_proxy_get_type ())
 #define NETCONFD_OBJECT_PROXY(o) (G_TYPE_CHECK_INSTANCE_CAST ((o), NETCONFD_TYPE_OBJECT_PROXY, netconfdObjectProxy))
@@ -712,6 +959,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (netconfdObjectSkeleton, g_object_unref)
 netconfdObjectSkeleton *netconfd_object_skeleton_new (const gchar *object_path);
 void netconfd_object_skeleton_set_interface_config (netconfdObjectSkeleton *object, netconfdInterface_config *interface_);
 void netconfd_object_skeleton_set_ip_config (netconfdObjectSkeleton *object, netconfdIp_config *interface_);
+void netconfd_object_skeleton_set_backup (netconfdObjectSkeleton *object, netconfdBackup *interface_);
 
 /* ---- */
 

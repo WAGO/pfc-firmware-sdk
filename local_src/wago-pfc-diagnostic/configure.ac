@@ -34,10 +34,11 @@ AC_SUBST(LT_AGE)
 # Checks for programs.
 #
 AC_PROG_CC
+AC_PROG_CXX
 #AC_PROG_LIBTOOL
 LT_INIT(disable-static)
 
-AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2])
+AM_INIT_AUTOMAKE([foreign no-exeext dist-bzip2 subdir-objects])
 
 ##
 # libsomething

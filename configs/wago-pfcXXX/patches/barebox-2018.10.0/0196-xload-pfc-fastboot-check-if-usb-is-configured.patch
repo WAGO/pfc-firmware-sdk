@@ -1,0 +1,27 @@
+From 71b7342f0a50fb2cc3854fdf19c1be6b220ff7d7 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 20 Jan 2020 09:46:58 +0100
+Subject: [PATCH] xload-pfc: fastboot: check if usb is configured
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/mach-omap/xload-pfc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap/xload-pfc.c b/arch/arm/mach-omap/xload-pfc.c
+index b1234e1..8489134 100644
+--- a/arch/arm/mach-omap/xload-pfc.c
++++ b/arch/arm/mach-omap/xload-pfc.c
+@@ -302,7 +302,8 @@ static __noreturn int pfc_xload(void)
+ 		}
+ 	}
+ 
+-	if (!barebox && board->production_mode &&
++	if (IS_ENABLED(CONFIG_USB_GADGET_FASTBOOT) &&
++				!barebox && board->production_mode &&
+ 				test_bit(HAS_USB, board->boot_devices)) {
+ 		ret = pfc_xload_activate_fastboot();
+ 		if (ret)
+-- 
+2.7.4
+

@@ -8,38 +8,42 @@
 
 RUNDIR="/var/run/netconfd"
 PIDFILE="netconfd.pid"
-STARTCMD="/usr/bin/netconfd --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=info"
+PATHPIDFILE=$RUNDIR/$PIDFILE
+NETCONFD="/usr/bin/netconfd"
+STARTCMD="$NETCONFD --daemon --rundir=$RUNDIR --pidfile=$PIDFILE"
 
 set -e
 
-function wait_for_dbus () {
-	dbus-wait -t 30 de.wago.netconfd
-	if [ $? != 0 ]; then
-	  logger -t netconfd.init.d "ERROR: netconfd: DBUS interface de.wago.netconfd not reachable!"
-	  exit -1
-	fi
+function stop_netconfd {
+    start-stop-daemon --stop --pidfile $PATHPIDFILE --retry=TERM/20/KILL/10 --oknodo --exec $NETCONFD
+    /usr/bin/rm -f $PATHPIDFILE
+}
+
+function wait_for_netconfd_ready {
+   dbus-wait -t 30 de.wago.netconfd
+   if [ $? != 0 ]; then
+     logger -t netconfd.init.d "ERROR: netconfd: DBUS interface de.wago.netconfd not reachable!"
+     exit -1
+   fi
 }
 
 case $1 in
 start)
     $STARTCMD
-    wait_for_dbus
+    wait_for_netconfd_ready
     echo "done"
     ;;
 
 stop)
     echo "Stopping network configuration daemon"
-    if [ -f "$RUNDIR/$PIDFILE" ]; then
-        kill $(<$RUNDIR/$PIDFILE)
-        rm -f $RUNDIR/$PIDFILE
-    fi
+    stop_netconfd
     ;;
 
 restart)
     echo "Restart network configuration daemon"
-    [ -f "$RUNDIR/$PIDFILE" ] && kill $(<$RUNDIR/$PIDFILE)
+    stop_netconfd
     $STARTCMD
-    wait_for_dbus
+    wait_for_netconfd_ready
     echo "done"
     ;;
 

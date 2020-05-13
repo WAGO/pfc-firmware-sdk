@@ -169,7 +169,7 @@ xmldoc read_file(const std::string& fname)
     xmldoc doc(xmlReadFile(fname.c_str(), NULL, XML_PARSE_NOERROR));
 
     if (doc.is_empty())
-        throw std::runtime_error("Failed to open/parse a given xml file.");
+        throw std::runtime_error("Failed to open/parse a given xml file: " + fname);
 
     return doc;
 }
@@ -349,7 +349,6 @@ void remove_attribute(xmlnode& node, const std::string& name)
         throw std::logic_error("Could not remove attribute.");
 }
 
-
 xmlctx create_xpath_ctx(const xmldoc& doc,
                         const std::string& prefix,
                         const std::string& ns_uri)
@@ -445,11 +444,10 @@ std::string get_string(const xmlctx& ctx,
     return get_string(eval_xpath(ctx, xpath), force);
 }
 
-// TODO: Is it OK to return vector directly? Move vs. copy!?
 void get_attribute_value_list(const xmlctx& ctx,
-                              const std::string& parent,
-                              const std::string& attribute,
-                              std::vector<std::string>& string_list)
+                              const ::std::string& parent,
+                              const ::std::string& attribute,
+                              ::std::vector<::std::string>& string_list)
 {
     int count = 0;
     xmlpathobj const xpo = eval_xpath(ctx, parent + "//@" + attribute);
@@ -475,7 +473,6 @@ void get_attribute_value_list(const xmlctx& ctx,
         }
     }
 }
-
 
 } // namespace wago
 

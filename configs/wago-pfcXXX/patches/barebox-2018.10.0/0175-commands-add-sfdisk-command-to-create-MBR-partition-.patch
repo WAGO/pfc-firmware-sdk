@@ -1,0 +1,422 @@
+From e558e20dfd394826e8d7480d59310f9db2ce160d Mon Sep 17 00:00:00 2001
+From: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+Date: Thu, 21 Nov 2019 15:42:02 +0100
+Subject: [PATCH] commands: add sfdisk command to create MBR partition tables
+
+Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
+---
+ commands/Kconfig  |   8 ++
+ commands/Makefile |   1 +
+ commands/sfdisk.c | 372 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 381 insertions(+)
+ create mode 100644 commands/sfdisk.c
+
+diff --git a/commands/Kconfig b/commands/Kconfig
+index 1705b55..3ed319a 100644
+--- a/commands/Kconfig
++++ b/commands/Kconfig
+@@ -607,6 +607,14 @@ config CMD_UMOUNT
+ 
+ 	  Unmount a filesystem mounted on a specific MOINTPOINT
+ 
++config CMD_SFDISK
++	bool
++	prompt "sfdisk"
++	help
++	  Usage: sfdisk <script> <device>
++
++	  Format <device> as defined in <script>
++
+ # end Partition commands
+ endmenu
+ 
+diff --git a/commands/Makefile b/commands/Makefile
+index 8e9fcb3..8053526 100644
+--- a/commands/Makefile
++++ b/commands/Makefile
+@@ -126,3 +126,4 @@ obj-$(CONFIG_CMD_IP_ROUTE_GET)  += ip-route-get.o
+ obj-$(CONFIG_CMD_UART_CONSOLE)	+= uart_console.o
+ obj-$(CONFIG_CMD_ETHADDR_MATCH) += ethaddr_match.o
+ obj-$(CONFIG_CMD_LED_MODE) 	+= led_mode.o
++obj-$(CONFIG_CMD_SFDISK)	+= sfdisk.o
+diff --git a/commands/sfdisk.c b/commands/sfdisk.c
+new file mode 100644
+index 0000000..55df47f
+--- /dev/null
++++ b/commands/sfdisk.c
+@@ -0,0 +1,372 @@
++/*
++ * sfdisk minimalistic implementation
++ *
++ * Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG
++ *
++ * SPDX-License-Identifier: GPL-2.0
++ */
++
++#include <common.h>
++#include <command.h>
++#include <stdlib.h>
++#include <libfile.h>
++#include <fs.h>
++
++#define PART_OFFS 446
++#define PART_LEN 16
++#define SECT_SIZE 512
++#define MBR_SIZE SECT_SIZE
++
++#define PRIMARY_PARTITIONS 4
++#define MAX_PARTITIONS 32
++
++/* Align all EBR and partitions on a 2k sector line,
++ * which is 1 MByte aligned.
++ * Except the first partition, which is 8k aligned = 4 MByte
++ */
++#define BOUNDARY 0x800
++#define FIRST_BOUNDARY 0x2000
++#define SECT_ALIGN(x) (((x)+(BOUNDARY-1)) & ~(BOUNDARY-1))
++
++#define TYPE_EXT   0x05
++#define TYPE_LINUX 0x83
++#define TYPE_SWAP  0x82
++
++struct part {
++	unsigned char act;
++	unsigned char type;
++	unsigned long start;
++	unsigned long size;
++};
++
++struct mbr {
++	unsigned long position;
++	int active;
++	struct part part[4];
++};
++
++/* This Cylinder/Heads/Sector stuff is most probably superfluous */
++#define HEADS_PER_CYL 4
++#define SECTORS_PER_TRACK 16
++
++/* https://en.wikipedia.org/wiki/Logical_block_addressing#CHS_conversion */
++static void lba2chs(unsigned int lba, unsigned char *p)
++{
++	int c, h, s;
++
++	c =  lba / (HEADS_PER_CYL * SECTORS_PER_TRACK);
++	h = (lba / SECTORS_PER_TRACK) % HEADS_PER_CYL;
++	s = (lba % SECTORS_PER_TRACK) + 1;
++
++	p[0] = h;
++	p[1] = s | ((c >> 2) & 0xc0);
++	p[2] = c & 0xff;
++}
++
++static void host2le(unsigned int n, unsigned char *p)
++{
++	for (int i = 0; i < 4; i++)
++		p[i] = (n >> (8*i)) & 0xff;
++}
++
++static void serialize_partition(struct mbr *mbr, unsigned char *data, int n)
++{
++	struct part *part_n = mbr->part + n;
++	unsigned char *part = data + PART_OFFS + n * PART_LEN;
++	unsigned long chs_start = part_n->start + mbr->position;
++
++	part[0] = part_n->act;
++	lba2chs(chs_start, part + 1);
++
++	part[4] = part_n->type;
++	lba2chs(chs_start + part_n->size - 1, part + 5);
++
++	host2le(part_n->start, part + 8);
++	host2le(part_n->size, part + 12);
++}
++
++static int write_mbr(struct cdev *cdev, struct mbr *mbr)
++{
++	int i;
++	unsigned char data[MBR_SIZE];
++
++	memset(data, 0, sizeof(data));
++	data[MBR_SIZE-1] = 0xaa;
++	data[MBR_SIZE-2] = 0x55;
++
++	srand(get_time_ns());
++	get_random_bytes(data + (PART_OFFS - 6), 6);
++
++	for (i = 0; i < 4; i++) {
++		if (mbr->part[i].size > 0)
++			serialize_partition(mbr, data, i);
++	}
++	return cdev_write(cdev, data, sizeof(data), mbr->position*SECT_SIZE, 0);
++}
++
++static int write_partitions(const char *device, struct mbr *mbr, int n_mbr)
++{
++	int i, ret = COMMAND_SUCCESS;
++	struct cdev *cdev;
++
++	cdev = cdev_open(device, O_RDWR);
++	if (!cdev) {
++		perror(device);
++		return COMMAND_ERROR;
++	}
++	for (i = 0; i < n_mbr; i++) {
++		if (!mbr[i].active)
++			continue;
++		if (write_mbr(cdev, mbr + i) == -1) {
++			perror("Write MBR");
++			ret = COMMAND_ERROR;
++			break;
++		}
++	}
++	cdev_close(cdev);
++	return ret;
++}
++
++unsigned long no_sectors;
++static void get_device_sectors(const char *device)
++{
++	struct cdev *cdev = cdev_open(device, O_RDWR);
++
++	if (cdev) {
++		no_sectors = cdev->size / SECT_SIZE;
++		cdev_close(cdev);
++	}
++}
++
++static int init_part(struct part *part, int act, int type,
++			unsigned long start, unsigned long size)
++{
++	part->start = SECT_ALIGN(start);
++
++	if (!size)
++		size = no_sectors - part->start;
++
++	part->size  = SECT_ALIGN(size);
++
++	part->act = act ? 0x80 : 0x00;
++	part->type = type;
++
++	return part->start + part->size;
++}
++
++static int add_extended(struct mbr *mbr, struct part *prev, int type,
++			unsigned long start, unsigned long size)
++{
++	unsigned long part_start = BOUNDARY;
++
++	if (!prev)
++		part_start = FIRST_BOUNDARY;
++
++	if (!size)
++		size = no_sectors - start;
++
++	mbr->position = start - part_start;
++	mbr->active = 1;
++	init_part(mbr->part, 0, type, part_start, size);
++
++	if (prev) {
++		prev->type = TYPE_EXT;
++		prev->start = mbr->position;
++		prev->size = mbr->part[0].start + mbr->part[0].size;
++	}
++
++	return mbr->position + mbr->part[0].start + mbr->part[0].size;
++}
++
++static unsigned long char2num(const char *val)
++{
++	char *end;
++	unsigned long v;
++
++	if (!val || !*val)
++		return 0;
++
++	v = simple_strtoul(val, &end, 10);
++	if (!v || !end || !*end)
++		return v;
++
++	switch (*end) {
++	case 'm':
++	case 'M':
++		v *= 1024; /* FALL */
++	case 'k':
++	case 'K':
++		v = v * (1024 / SECT_SIZE);
++	}
++	return v;
++}
++
++/* Parse partition configuration line in sfdisk format */
++#define DELIM ",;\n "
++static unsigned char parse_part_line(char *line, unsigned long *start,
++					unsigned long *size, int *act)
++{
++	char id = TYPE_LINUX, *val;
++
++	*act = 0;
++	*start = char2num(strsep(&line, DELIM));
++	*size = char2num(strsep(&line, DELIM));
++	val = strsep(&line, DELIM);
++
++	if (!val || !*val)
++		return id;
++
++	switch (*val) {
++	case 'X':
++	case 'E':
++		id = TYPE_EXT;
++		break;
++	case 'S':
++		id = TYPE_SWAP;
++		break;
++	case 'L':
++		id = TYPE_LINUX;
++		break;
++	default:
++		id = simple_strtoul(val, NULL, 16);
++	}
++	val = strsep(&line, DELIM);
++	if (!val)
++		return id;
++	*act = *val == '*' || *val == '_' ? 1 : 0;
++	return id;
++}
++
++static int do_sfdisk(int argc, char *argv[])
++{
++	/* Next sector for primary partition */
++	unsigned long pnext = FIRST_BOUNDARY;
++	/* Next relative sector for logic partition */
++	unsigned long lnext = 0;
++	/* Current primary and extended MBR index */
++	int prim = 0, ext = 0;
++	/* Previous EBR of the logic partition chain */
++	struct part *prev = NULL;
++	struct mbr mbr[MAX_PARTITIONS] = { { .active = 1 }, };
++	char *line, *device, *next;
++	void *buf;
++	size_t buflen;
++	int ret;
++
++	if (argc < 3)
++		return COMMAND_ERROR_USAGE;
++
++	ret = read_file_2(argv[1], &buflen, &buf, FILESIZE_MAX);
++	if (!buf || ret)
++		return COMMAND_ERROR_USAGE;
++
++	next = buf;
++	while (buflen > 0 && next[buflen-1] == '\n')
++		next[--buflen] = 0;
++
++	device = argv[2];
++	get_device_sectors(device);
++
++	for (line = buf; line; line = next) {
++		int act;
++		unsigned long start, size;
++		unsigned char type;
++
++		next = strchr(line, '\n');
++		if (next)
++			*next++ = 0;
++
++		type = parse_part_line(line, &start, &size, &act);
++		if (!ext) {
++			if (start)
++				pnext = start;
++			init_part(mbr->part + prim, act, type, pnext, size);
++			pnext = mbr->part[prim].start + mbr->part[prim].size;
++			if (type == TYPE_EXT) {
++				ext = PRIMARY_PARTITIONS;
++				lnext = mbr->part[prim].start + FIRST_BOUNDARY;
++				no_sectors = pnext;
++			}
++			if (prim++ >= PRIMARY_PARTITIONS) {
++				pr_err("Too much primary partitions\n");
++				free(buf);
++				return COMMAND_ERROR;
++			}
++		} else {
++			if (start)
++				lnext = start;
++			lnext = add_extended(mbr + ext, prev, type, lnext,
++						size) + BOUNDARY;
++			prev = mbr[ext].part + 1;
++			if (ext++ >= MAX_PARTITIONS) {
++				pr_err("Too much extended partitions\n");
++				free(buf);
++				return COMMAND_ERROR;
++			}
++		}
++	}
++	if (ext > 4) {
++		for (prim = 0; prim < PRIMARY_PARTITIONS; prim++) {
++			if (mbr->part[prim].type != TYPE_EXT)
++				continue;
++			pnext = mbr->part[prim].start;
++
++			while (ext-- > PRIMARY_PARTITIONS)
++				mbr[ext].part[1].start -= pnext;
++
++			if (!mbr->part[prim].size)
++				mbr->part[prim].size = lnext - pnext - BOUNDARY;
++			break;
++		}
++		if (prim >= PRIMARY_PARTITIONS) {
++			pr_err("No primary partition with type 'Extended'.\n");
++			free(buf);
++			return COMMAND_ERROR;
++		}
++
++	}
++	free(buf);
++
++	return write_partitions(device, mbr, MAX_PARTITIONS);
++}
++
++BAREBOX_CMD_HELP_START(sfdisk)
++BAREBOX_CMD_HELP_TEXT("Creates partitions on <device> described by")
++BAREBOX_CMD_HELP_TEXT("the sfdisk formatted <script file>.")
++BAREBOX_CMD_HELP_TEXT("The default for <device> is '/dev/mmc1'.")
++BAREBOX_CMD_HELP_TEXT("")
++BAREBOX_CMD_HELP_TEXT("Example script file entrys:")
++BAREBOX_CMD_HELP_TEXT("")
++BAREBOX_CMD_HELP_TEXT("with sector defines:")
++BAREBOX_CMD_HELP_TEXT("")
++BAREBOX_CMD_HELP_TEXT("8192,32768,b,*")
++BAREBOX_CMD_HELP_TEXT("40960,7593984,E")
++BAREBOX_CMD_HELP_TEXT("49152,14336")
++BAREBOX_CMD_HELP_TEXT("65536,14336")
++BAREBOX_CMD_HELP_TEXT("81920,620544")
++BAREBOX_CMD_HELP_TEXT("704512,3143680")
++BAREBOX_CMD_HELP_TEXT("3850240,3143680")
++BAREBOX_CMD_HELP_TEXT("6995968,620544,L")
++BAREBOX_CMD_HELP_TEXT("7618560,16384")
++BAREBOX_CMD_HELP_TEXT("")
++BAREBOX_CMD_HELP_TEXT("with dynamic sized values:")
++BAREBOX_CMD_HELP_TEXT("")
++BAREBOX_CMD_HELP_TEXT(",16M,b,*")
++BAREBOX_CMD_HELP_TEXT(",,E")
++BAREBOX_CMD_HELP_TEXT(",7M,L")
++BAREBOX_CMD_HELP_TEXT(",7M,L")
++BAREBOX_CMD_HELP_TEXT(",303M,L")
++BAREBOX_CMD_HELP_TEXT(",1535M,L")
++BAREBOX_CMD_HELP_TEXT(",1535M,L")
++BAREBOX_CMD_HELP_TEXT(",303M,L")
++BAREBOX_CMD_HELP_TEXT(",,L")
++BAREBOX_CMD_HELP_END
++
++BAREBOX_CMD_START(sfdisk)
++	.cmd = do_sfdisk,
++	BAREBOX_CMD_DESC("Create MBR formatted partition table")
++	BAREBOX_CMD_OPTS("<script file> <device>")
++	BAREBOX_CMD_GROUP(CMD_GRP_PART)
++	BAREBOX_CMD_HELP(cmd_sfdisk_help)
++BAREBOX_CMD_END
++
+-- 
+2.7.4
+

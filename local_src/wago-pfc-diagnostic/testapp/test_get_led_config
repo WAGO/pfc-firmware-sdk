@@ -1,0 +1,40 @@
+#!/bin/bash
+
+LINK_GRN="/sys/class/leds/sys-green"
+LINK_RED="/sys/class/leds/sys-red"  
+LINK_BLUE="/sys/class/leds/run-red"   
+
+setupLed()
+{
+  rm /dev/leds/*
+  ls /dev/leds
+  for LED in $(xmlstarlet el -v /tmp/led.xml 2> /dev/null | grep -o "@name='[^']*'") 
+  do 
+    LED=${LED#*\'}
+    LED=${LED%\'}
+    LED_NAME=$(echo $LED | awk '{print tolower($0)}')
+    ln -fs $LINK_GRN /dev/leds/$LED_NAME-green
+    ln -fs $LINK_RED /dev/leds/$LED_NAME-red
+    ln -fs $LINK_BLUE /dev/leds/$LED_NAME-blue
+  done
+}
+
+rm /tmp/ledoutput
+for XML in $(ls /etc/specific/led.*.xml)
+do 
+  /etc/init.d/ledserver stop
+  ln -sf $XML  /tmp/led.xml
+  setupLed
+  echo $XML
+  /etc/init.d/ledserver start
+  sleep 5
+  echo "$XML" >> /tmp/ledoutput
+  /etc/config-tools/get_led_config all-states >> /tmp/ledoutput
+  if [ $? -ne 0 ]
+  then
+    echo ERROR
+    break
+  fi
+  echo >> /tmp/ledoutput
+done
+

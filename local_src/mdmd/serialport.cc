@@ -74,7 +74,6 @@ SerialPort::open(int fd)
     stbuf.c_iflag &= static_cast<unsigned int>(~(IGNCR | ICRNL | IUCLC | INPCK | IXON | IXANY ));
     stbuf.c_oflag &= static_cast<unsigned int>(~(OPOST | OLCUC | OCRNL | ONLCR | ONLRET));
     stbuf.c_lflag &= static_cast<unsigned int>(~(ICANON | XCASE | ECHO | ECHOE | ECHONL));
-    stbuf.c_lflag &= static_cast<unsigned int>(~(ECHO | ECHOE));
     stbuf.c_cc[VMIN] = 1;
     stbuf.c_cc[VTIME] = 0;
     stbuf.c_cc[VEOF] = 1;
@@ -85,23 +84,78 @@ SerialPort::open(int fd)
     /* Set up port speed and serial attributes; also ignore modem control
      * lines since most drivers don't implement RTS/CTS anyway.
      */
-    stbuf.c_cflag &= ~(CBAUD | CSIZE | CSTOPB | PARENB | CRTSCTS);
-    stbuf.c_cflag |= (CS8 | CREAD | 0 | 0 | 0 | CLOCAL);
 
-    errno = 0;
-    if (cfsetispeed (&stbuf, B115200) != 0)
+    const speed_t speed = B9600;
+    if (cfgetispeed(&stbuf) != speed)
     {
-        mdmd_Log(MD_LOG_ERR, "%s(%s): failed to set serial port input speed; errno %d\n",
-            __func__,_tty_fname.c_str(), errno );
-        throw SerialPortException();
+      mdmd_Log(MD_LOG_INF, "%s(%s): set input speed 0x%08x (B9600)\n",
+               __func__,_tty_fname.c_str(), speed);
+      errno = 0;
+      if (cfsetispeed (&stbuf, speed) != 0)
+      {
+          mdmd_Log(MD_LOG_ERR, "%s(%s): failed to set serial port input speed; errno %d\n",
+              __func__,_tty_fname.c_str(), errno );
+          throw SerialPortException();
+      }
+    }
+    if (cfgetospeed(&stbuf) != speed)
+    {
+      mdmd_Log(MD_LOG_INF, "%s(%s): set output speed 0x%08x (B9600)\n",
+               __func__,_tty_fname.c_str(), speed);
+      errno = 0;
+      if (cfsetospeed (&stbuf, speed) != 0)
+      {
+          mdmd_Log(MD_LOG_ERR, "%s(%s): failed to set serial port output speed; errno %d\n",
+              __func__,_tty_fname.c_str(), errno );
+          throw SerialPortException();
+      }
+    }
+    tcflag_t flag_to_unset;
+    tcflag_t flag_to_set;
+
+    flag_to_set = CREAD;
+    if ((stbuf.c_cflag & flag_to_set) == 0)
+    {
+      mdmd_Log(MD_LOG_INF, "%s(%s): set control flag CREAD\n", __func__,_tty_fname.c_str() );
+      stbuf.c_cflag |= flag_to_set;
+    }
+    flag_to_set = CLOCAL;
+    if ((stbuf.c_cflag & flag_to_set) == 0)
+    {
+      mdmd_Log(MD_LOG_INF, "%s(%s): set control flag CLOCAL\n", __func__,_tty_fname.c_str() );
+      stbuf.c_cflag |= flag_to_set;
     }
 
-    errno = 0;
-    if (cfsetospeed (&stbuf, B115200) != 0)
+    flag_to_unset = CSIZE;
+    if ((stbuf.c_cflag & flag_to_unset) != 0)
     {
-        mdmd_Log(MD_LOG_ERR, "%s(%s): failed to set serial port output speed; errno %d\n",
-            __func__,_tty_fname.c_str(), errno );
-        throw SerialPortException();
+      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag CSIZE\n", __func__,_tty_fname.c_str() );
+      stbuf.c_cflag &= ~flag_to_unset;
+    }
+    flag_to_set = CS8;
+    if ((stbuf.c_cflag & flag_to_set) == 0)
+    {
+      mdmd_Log(MD_LOG_INF, "%s(%s): set control flag CS8\n", __func__,_tty_fname.c_str() );
+      stbuf.c_cflag |= flag_to_set;
+    }
+
+    flag_to_unset = CSTOPB;
+    if ((stbuf.c_cflag & flag_to_unset) != 0)
+    {
+      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag CSTOPB\n", __func__,_tty_fname.c_str() );
+      stbuf.c_cflag &= ~flag_to_unset;
+    }
+    flag_to_unset = PARENB;
+    if ((stbuf.c_cflag & flag_to_unset) != 0)
+    {
+      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag PARENB\n", __func__,_tty_fname.c_str() );
+      stbuf.c_cflag &= ~flag_to_unset;
+    }
+    flag_to_unset = CRTSCTS;
+    if ((stbuf.c_cflag & flag_to_unset) != 0)
+    {
+      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag CRTSCTS\n", __func__,_tty_fname.c_str() );
+      stbuf.c_cflag &= ~flag_to_unset;
     }
 
     if (tcsetattr (_fd, TCSANOW, &stbuf) < 0)
@@ -112,7 +166,7 @@ SerialPort::open(int fd)
     }
 
     /* tcsetattr() returns 0 if any of the requested attributes could be set,
-     * so we should double-check that all were set and log a warning if not.
+     * so we should double-check that all expected values were set and log a warning if not.
      */
     memset (&other, 0, sizeof (struct termios));
     errno = 0;
@@ -125,9 +179,55 @@ SerialPort::open(int fd)
 
     if (memcmp (&stbuf, &other, sizeof (other)) != 0)
     {
-        mdmd_Log(MD_LOG_WRN, "%s(%s): WARNING port attributes not fully set\n",
-            __func__,_tty_fname.c_str());
-        //throw SerialPortException();
+        if (stbuf.c_iflag != other.c_iflag)
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): input mode flags 0x%08x not fully set: 0x%08x\n",
+                     __func__,_tty_fname.c_str(), stbuf.c_iflag, other.c_iflag);
+        }
+        if (stbuf.c_oflag != other.c_oflag)
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): output mode flags 0x%08x not fully set: 0x%08x\n",
+                     __func__,_tty_fname.c_str(), stbuf.c_oflag, other.c_oflag);
+        }
+        if (stbuf.c_cflag != other.c_cflag)
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): control mode flags 0x%08x not fully set: 0x%08x\n",
+                     __func__,_tty_fname.c_str(), stbuf.c_cflag, other.c_cflag);
+        }
+        if (stbuf.c_lflag != other.c_lflag)
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): local mode flags 0x%08x not fully set: 0x%08x\n",
+                     __func__,_tty_fname.c_str(), stbuf.c_lflag, other.c_lflag);
+        }
+        const speed_t ispeed = cfgetospeed(&other);
+        if (ispeed != speed)
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): input speed 0x%08x not fully set: 0x%08x\n",
+                     __func__,_tty_fname.c_str(), speed, ispeed);
+        }
+        const speed_t ospeed = cfgetospeed(&other);
+        if (ospeed != speed)
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): output speed 0x%08x not fully set: 0x%08x\n",
+                     __func__,_tty_fname.c_str(), speed, ospeed);
+        }
+        if (stbuf.c_cc[VMIN] != other.c_cc[VMIN])
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): control character VMIN 0x%02x not fully set: 0x%02x\n",
+                     __func__,_tty_fname.c_str(), stbuf.c_cc[VMIN], other.c_cc[VMIN]);
+        }
+        if (stbuf.c_cc[VTIME] != other.c_cc[VTIME])
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): control character VTIME 0x%02x not fully set: 0x%02x\n",
+                     __func__,_tty_fname.c_str(), stbuf.c_cc[VTIME], other.c_cc[VTIME]);
+        }
+        if (stbuf.c_cc[VEOF] != other.c_cc[VEOF])
+        {
+            mdmd_Log(MD_LOG_WRN, "%s(%s): control character VEOF 0x%02x not fully set: 0x%02x\n",
+                     __func__,_tty_fname.c_str(), stbuf.c_cc[VEOF], other.c_cc[VEOF]);
+        }
+        //ignore other control characters that was not set
+        //ignore line discipline (c_line) that was not set
     }
 
     tcflush(_fd, TCIOFLUSH);
@@ -183,12 +283,15 @@ SerialPort::io_watch_callback(GIOChannel *source, GIOCondition cond, gpointer da
 {
     SerialPort *o = (SerialPort *) data;
 
-    try {
-    o->io_watch(source, cond);
-    } catch (SerialPortException &e) {
-    mdmd_Log(MD_LOG_WRN, "%s: modem port io error\n", __func__);
-    o->io_error();
-    return false;
+    try
+    {
+      o->io_watch(source, cond);
+    }
+    catch (...)
+    {
+      mdmd_Log(MD_LOG_WRN, "%s: modem port io error\n", __func__);
+      o->io_error();
+      return false;
     }
 
     return true;

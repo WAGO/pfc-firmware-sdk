@@ -91,6 +91,8 @@ Macros</h2></td></tr>
 <tr class="separator:a28e6c03e3e4d545781b8451788163581"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a067aefc94b4d4c04bb267d62b13c195d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="assertion_8h.html#a067aefc94b4d4c04bb267d62b13c195d">WC_ASSERT</a>(e)&#160;&#160;&#160;(e) ? (void)0 : <a class="el" href="assertion_8h.html#adeb3bef79f20b3503105ca7620ea2cea">WC_FAIL</a>(<a class="el" href="assertion_8h.html#a5c1c3414d0a083be452afc789e8e0667">WC_ASSERT_PREFIX</a> #e)</td></tr>
 <tr class="separator:a067aefc94b4d4c04bb267d62b13c195d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09e825637b0334bb260fb05b8244dc1d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="assertion_8h.html#a09e825637b0334bb260fb05b8244dc1d">WC_ASSERT_RETURN</a>(e,  result)&#160;&#160;&#160;<a class="el" href="assertion_8h.html#a067aefc94b4d4c04bb267d62b13c195d">WC_ASSERT</a>(#e); if(!(e)) return (result)</td></tr>
+<tr class="separator:a09e825637b0334bb260fb05b8244dc1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adeb3bef79f20b3503105ca7620ea2cea"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="assertion_8h.html#adeb3bef79f20b3503105ca7620ea2cea">WC_FAIL</a>(reason)&#160;&#160;&#160;<a class="el" href="assertion_8h.html#a46e57d975964decf71f49a7092e16183">wc_Fail</a>(reason, <a class="el" href="assertion_8h.html#a2fd6fb80f68c01f7a797b0d15875c294">WC_FAIL_SOURCE_FILE</a>, <a class="el" href="assertion_8h.html#aa32d00ceb50265d26bdf4cbe0115e532">WC_FAIL_SOURCE_FUNC</a>, <a class="el" href="assertion_8h.html#abe76335d82eb3efb20c09876e8eccdbf">WC_FAIL_SOURCE_LINE</a>)</td></tr>
 <tr class="separator:adeb3bef79f20b3503105ca7620ea2cea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -120,7 +122,7 @@ PEn: WAGO Kontakttechnik GmbH &amp; Co. KG </dd></dl>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Helper macro, proves expression satisfies true. In case expression evaluates to false a run-time error is issued.</p>
+<p>Helper macro, proves expression satisfies true. In case expression evaluates to false a run-time error is issued (NDEBUG not set).</p>
 <dl class="section note"><dt>Note</dt><dd>To use this macro you have to provide an implementation for the C function <a class="el" href="assertion_8h.html#a46e57d975964decf71f49a7092e16183">wc_Fail</a>. </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="assertion_8h.html#a46e57d975964decf71f49a7092e16183">wc_Fail</a> </dd></dl>
 
@@ -142,6 +144,37 @@ PEn: WAGO Kontakttechnik GmbH &amp; Co. KG </dd></dl>
 
 </div>
 </div>
+<a id="a09e825637b0334bb260fb05b8244dc1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09e825637b0334bb260fb05b8244dc1d">&sect;&nbsp;</a></span>WC_ASSERT_RETURN</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define WC_ASSERT_RETURN</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">e, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">result&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="assertion_8h.html#a067aefc94b4d4c04bb267d62b13c195d">WC_ASSERT</a>(#e); if(!(e)) return (result)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Helper macro, proves expression satisfies true. In case expression evaluates to false a run-time error is issued (NDEBUG not set) and the given result is returned. This macro is intended for pre-execution checks, e. g. to check function/method parameters.</p>
+<dl class="section note"><dt>Note</dt><dd>To use this macro you have to provide an implementation for the C function <a class="el" href="assertion_8h.html#a46e57d975964decf71f49a7092e16183">wc_Fail</a>. </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="assertion_8h.html#a46e57d975964decf71f49a7092e16183">wc_Fail</a> </dd></dl>
+
+</div>
+</div>
 <a id="adeb3bef79f20b3503105ca7620ea2cea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adeb3bef79f20b3503105ca7620ea2cea">&sect;&nbsp;</a></span>WC_FAIL</h2>
 
@@ -157,7 +190,7 @@ PEn: WAGO Kontakttechnik GmbH &amp; Co. KG </dd></dl>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Helper macro, fails every time. A run-time error is issued and reason string may be shown.</p>
+<p>Helper macro, fails every time. A run-time error is issued (NDEBUG not set) and reason string may be shown.</p>
 <dl class="section note"><dt>Note</dt><dd>To use this macro you have to provide an implementation for the C function <a class="el" href="assertion_8h.html#a46e57d975964decf71f49a7092e16183">wc_Fail</a>. </dd></dl>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="assertion_8h.html#a46e57d975964decf71f49a7092e16183">wc_Fail</a> </dd></dl>
 
@@ -282,7 +315,7 @@ PEn: WAGO Kontakttechnik GmbH &amp; Co. KG </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jan 16 2020 13:15:55 for common-header by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue May 5 2020 11:49:43 for common-header by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.12
 </small></address>

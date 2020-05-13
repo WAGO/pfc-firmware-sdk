@@ -1,8 +1,7 @@
 From d7a7f7761f8658b5a09087d25f1520076bf39ebe Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 18 Oct 2018 17:05:25 +0200
-Subject: [PATCH 125/144] arm: dts: am3xxx: remove gpio-hogging for switch
- reset
+Subject: [PATCH] arm: dts: am3xxx: remove gpio-hogging for switch reset
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

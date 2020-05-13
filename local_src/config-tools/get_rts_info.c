@@ -26,6 +26,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -61,6 +62,7 @@
 
 #define CTRL_TASK_MILLIFACTOR                                               1000
 
+#define CDS2_BOOT_PROJECT_FILE                       "/home/codesys/DEFAULT.PRG"
 #define CDS2_CHECKSUM_FILE                           "/home/codesys/DEFAULT.CHK"
 
 //------------------------------------------------------------------------------
@@ -254,28 +256,36 @@ int ShowProjectInfo(char* psnParameterName,
     else if((strcmp(psnParameterName, "checksum") == 0) && (stMsgProjectInfo.DTDATE > 0))
     {
       char const szChecksumError[] = "Checksum not available:";
-      FILE *pChecksumFile = fopen(CDS2_CHECKSUM_FILE, "r");
-      if(pChecksumFile == NULL)
+      if(access(CDS2_BOOT_PROJECT_FILE, F_OK) < 0)
       {
-        status = FILE_OPEN_ERROR;
-        fprintf(stderr, "%s %s\n", szChecksumError, strerror(errno));
-        SetLastError(strerror(errno));
+        // Return replacement value when no boot project is present (=> no checksum available)
+        snprintf(pOutputString, MAX_LENGTH_OUTPUT_STRING_GET_RTS_INFO, "%s%s", szChecksumError, " no boot project");
       }
       else
       {
-        uint32_t checksum = 0;
-        size_t readElements = fread(&checksum, 4U, 1U, pChecksumFile);
-        fclose(pChecksumFile);
-        if(readElements != 1U)
+        FILE *pChecksumFile = fopen(CDS2_CHECKSUM_FILE, "r");
+        if(pChecksumFile == NULL)
         {
-          status = FILE_READ_ERROR;
-          char const szChecksumReadError[] = "Failed to read checksum";
-          fprintf(stderr, "%s %s\n", szChecksumError, szChecksumReadError);
-          SetLastError(szChecksumReadError);
+          status = FILE_OPEN_ERROR;
+          fprintf(stderr, "%s %s\n", szChecksumError, strerror(errno));
+          SetLastError(strerror(errno));
         }
         else
         {
-          snprintf(pOutputString, MAX_LENGTH_OUTPUT_STRING_GET_RTS_INFO, "%u", checksum);
+          uint32_t checksum = 0;
+          size_t readElements = fread(&checksum, 4U, 1U, pChecksumFile);
+          fclose(pChecksumFile);
+          if(readElements != 1U)
+          {
+            status = FILE_READ_ERROR;
+            char const szChecksumReadError[] = "Failed to read checksum";
+            fprintf(stderr, "%s %s\n", szChecksumError, szChecksumReadError);
+            SetLastError(szChecksumReadError);
+          }
+          else
+          {
+            snprintf(pOutputString, MAX_LENGTH_OUTPUT_STRING_GET_RTS_INFO, "%u", checksum);
+          }
         }
       }
     }

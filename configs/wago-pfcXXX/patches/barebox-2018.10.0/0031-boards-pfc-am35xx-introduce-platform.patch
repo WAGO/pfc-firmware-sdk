@@ -1,7 +1,7 @@
 From dafb6d808683e512f33b6a67ac4053aef772e3db Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 18 Jun 2018 13:50:30 +0200
-Subject: [PATCH 031/144] boards: pfc-am35xx: introduce platform
+Subject: [PATCH] boards: pfc-am35xx: introduce platform
 
 This commit introduces the wago pfc-am35xx based platform
 which covers 820x products that implement the AM3505 SoC.

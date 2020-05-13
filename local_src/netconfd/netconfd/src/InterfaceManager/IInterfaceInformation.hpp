@@ -17,12 +17,9 @@ class IInterfaceInformation {
   IInterfaceInformation(const IInterfaceInformation&&) = delete;
   IInterfaceInformation& operator=(const IInterfaceInformation&&) = delete;
 
-  virtual Interfaces GetInterfaces() const = 0;
   virtual Interfaces GetBridgeAssignedInterfaces() const = 0;
   virtual Bridge GetBridgeOfInterface(const Interface& itf) const = 0;
 
-  virtual bool HasAnyInterfacesUp(const Bridge& bridge) const = 0;
-  virtual bool IsBridge(const Interface& itf) const = 0;
   virtual bool IsInterfaceUp(const Interface& itf) const = 0;
 
 

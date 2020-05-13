@@ -1,7 +1,7 @@
 From 0383effc70291401b8a80c118b7a8c29856f627c Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 18 Oct 2018 10:02:11 +0000
-Subject: [PATCH 131/144] fs: tftp: fix blocksize option in tftp request
+Subject: [PATCH] fs: tftp: fix blocksize option in tftp request
 
 A hardcoded blocksize of 1432 is being delivered in every
 tftp request although a private data variable is dedicated

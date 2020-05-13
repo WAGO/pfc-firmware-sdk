@@ -2,27 +2,30 @@
 
 #pragma once
 
+#include "IBridgeManager.hpp"
+
+#include <memory>
+
 #include "BridgeConfigurator.hpp"
 #include "BridgeConfigTransformator.hpp"
-#include "IDevicePropertiesProvider.hpp"
 #include "IBridgeController.hpp"
+#include "INetDevManager.hpp"
 #include "JsonConfigConverter.hpp"
 #include "IEventManager.hpp"
 #include "MacDistributor.hpp"
 #include "IFileEditor.hpp"
 #include "SwitchConfigLegacy.hpp"
 #include "FileMonitor.hpp"
-#include <memory>
 
+#include "IDeviceProperties.hpp"
 #include "BridgeConfigValidator.hpp"
-#include "IBridgeManager.hpp"
 #include "IInterfaceInformation.hpp"
 
 namespace netconfd {
 
 class BridgeManager : public IBridgeManager, public IInterfaceInformation{
  public:
-  BridgeManager(IBridgeController& bridge_controller, IDevicePropertiesProvider& properies_provider);
+  BridgeManager(IBridgeController& bridge_controller, IDeviceProperties& properies_provider, INetDevManager& netdev_manager);
   virtual ~BridgeManager() = default;
 
   BridgeManager(const BridgeManager&) = delete;
@@ -32,20 +35,18 @@ class BridgeManager : public IBridgeManager, public IInterfaceInformation{
 
   Bridges GetBridges() const override;
   BridgeConfig GetBridgeConfig() const override;
-  Interfaces GetInterfaces() const override;
   Interfaces GetBridgeAssignedInterfaces() const override;
   Bridge GetBridgeOfInterface(const Interface& itf) const override;
-  bool HasAnyInterfacesUp(const Bridge& bridge) const override;
-  Status Configure(const BridgeConfig& product_config) const override;
+  Status ApplyBridgeConfiguration(BridgeConfig& product_config) const override;
   Status IsValid(BridgeConfig const& product_config) const override;
   Status SetBridgeUp(const Bridge& bridge) const override;
   Status SetBridgeDown(const Bridge& bridge) const override;
-  bool IsBridge(const Interface& itf) const override;
   bool IsInterfaceUp(const Interface& itf) const override;
 
  private:
   IBridgeController& bridge_controller_;
-  IDevicePropertiesProvider& properies_provider_;
+  IDeviceProperties& properies_provider_;
+  INetDevManager& netdev_manager_;
   MacDistributor mac_distributor_;
   BridgeConfigValidator interface_validator_;
   BridgeConfigurator bridge_configurator_;

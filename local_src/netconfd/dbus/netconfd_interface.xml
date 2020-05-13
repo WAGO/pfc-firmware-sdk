@@ -102,60 +102,6 @@
         </doc:description>
       </doc:doc>
     </method>
-    <method name="getbackupparamcount">
-      <arg name="interfaces" direction="out" type="s">
-        <doc:doc>
-          <doc:summary>Get number of backup parameters.</doc:summary>
-        </doc:doc>
-      </arg>
-      <doc:doc>
-        <doc:description>
-          <doc:para>
-            Get number of parameters that are concerned during
-            netconfd backup.
-          </doc:para>
-        </doc:description>
-      </doc:doc>
-    </method>
-    <method name="backup">
-      <arg name="config" direction="in" type="s">
-        <doc:doc>
-          <doc:summary>Backup netconfd configuration</doc:summary>
-        </doc:doc>
-      </arg>
-      <arg name="result" direction="out" type="i">
-        <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
-        </doc:doc>
-      </arg>
-      <doc:doc>
-        <doc:description>
-          <doc:para>
-            Save netconfd configuration to given backup file.
-          </doc:para>
-        </doc:description>
-      </doc:doc>
-    </method>
-    <method name="restore">
-      <arg name="config" direction="in" type="s">
-        <doc:doc>
-          <doc:summary>Restore netconfd configuration</doc:summary>
-        </doc:doc>
-      </arg>
-      <arg name="result" direction="out" type="i">
-        <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
-        </doc:doc>
-      </arg>
-      <doc:doc>
-        <doc:description>
-          <doc:para>
-            Restore netconfd configuration from given backup
-            file.
-          </doc:para>
-        </doc:description>
-      </doc:doc>
-    </method>
   </interface>
   <interface name="de.wago.netconfd1.ip_config">
     <method name="setall">
@@ -217,7 +163,7 @@
             Get the current ip configuration of a single interface as JSON string.
             Example:
             { "br0": {
-            "source": "static", 
+            "source": "static",
             "ipaddr": "192.168.1.17",
             "netmask": "255.255.255.0",
             "bcast": "192.168.1.255"} }
@@ -237,10 +183,142 @@
             Get the current ip configuration as JSON string.
             Example:
             { "br0": {
-            "source": "static", 
+            "source": "static",
             "ipaddr": "192.168.1.17",
             "netmask": "255.255.255.0",
             "bcast": "192.168.1.255"} }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="getallcurrent">
+      <arg name="config" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The ip configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the current ip configuration as JSON string.
+            Example:
+            { "br0": {
+            "source": "static",
+            "ipaddr": "192.168.1.17",
+            "netmask": "255.255.255.0",
+            "bcast": "192.168.1.255"} }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>   
+    <method name="tempfixip">
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Temporarily fix the IP configuration of the first bridge 'br0'
+            to '192.168.1.17'.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="getdipswitchconfig">
+      <arg name="config" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The ip configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the current dip switch configuration as JSON string.
+            Example:
+            {"ipaddr": "192.168.1.0",
+             "netmask": "255.255.255.0",
+             "mode": "static",
+             "value" : 2 }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="setdipswitchconfig">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>The ip configuration</doc:summary>
+        </doc:doc>
+      </arg>
+       <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>The result of the operation 0 on success, -1 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Set first 3 octets and netmask of the ip address that is set by the dip switch.
+            Example:
+            {"ipaddr": "192.168.1.0",
+             "netmask": "255.255.255.0"}
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+  </interface>
+  <interface name="de.wago.netconfd1.backup">
+      <method name="getbackupparamcount">
+      <arg name="interfaces" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Get number of backup parameters.</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get number of parameters that are concerned during
+            netconfd backup.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+      <method name="backup">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Backup netconfd configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="targetversion" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Target firmware version. Empty string means same as running firmware</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Save netconfd configuration to given backup file.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="restore">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Restore netconfd configuration</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="i">
+        <doc:doc>
+          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Restore netconfd configuration from given backup
+            file.
           </doc:para>
         </doc:description>
       </doc:doc>

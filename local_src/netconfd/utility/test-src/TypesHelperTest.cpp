@@ -195,22 +195,22 @@ TEST(TypesHelper, ComplementNetmask)
   auto noaddressatall = IPConfig::CreateDefault("X1337");
   ComplementNetmask(noaddressatall);
 
-  EXPECT_EQ("0.0.0.0", noaddressatall.netmask_);
+  EXPECT_EQ(ZeroIP, noaddressatall.netmask_);
 
   auto invalid_ip = IPConfig::CreateDefault("X1337");
   invalid_ip.address_ = "6546";
   ComplementNetmask(invalid_ip);
 
-  EXPECT_EQ("0.0.0.0", invalid_ip.netmask_);
+  EXPECT_EQ(ZeroIP, invalid_ip.netmask_);
 
 }
 
 TEST(TypesHelper, ComplementNetmasks)
 {
   IPConfigs configs_wo_netmasks {
-    { "br0", IPSource::STATIC, "192.168.1.2", "0.0.0.0", "" },
-    { "br1337", IPSource::STATIC, "172.5.1.2", "0.0.0.0", "" },
-    { "br42", IPSource::STATIC, "10.1.1.2", "0.0.0.0", "" }
+    { "br0", IPSource::STATIC, "192.168.1.2", ZeroIP, "" },
+    { "br1337", IPSource::STATIC, "172.5.1.2", ZeroIP, "" },
+    { "br42", IPSource::STATIC, "10.1.1.2", ZeroIP, "" }
   };
 
   IPConfigs configs_complemented {
@@ -223,6 +223,3 @@ TEST(TypesHelper, ComplementNetmasks)
 
   EXPECT_TRUE(IsEqual(configs_complemented, configs_wo_netmasks));
 }
-
-//---- End of source file ------------------------------------------------------
-

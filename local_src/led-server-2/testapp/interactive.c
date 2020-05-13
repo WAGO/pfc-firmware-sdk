@@ -10,7 +10,7 @@
 ///
 ///  \file     interactive.c
 ///
-///  \version  $Rev: 19901 $
+///  \version  $Rev: 46819 $
 ///
 ///  \brief    <Insert description here>
 ///
@@ -149,6 +149,22 @@ static int _blinkSync()
 
 }
 
+#ifdef PFC200_ADV
+#define STATE_LED "ec"
+#else
+#define STATE_LED "io"
+#endif
+
+static int _pfc_seq()
+{
+  tLed750 tl750 = { 2, 3 };
+  printf("Zeige den Fehler[%d] mit Argument[%d] auf der PFC200 '" STATE_LED "' LED\n",
+         tl750.errorCode, tl750.errorArg);
+  ledserver_LEDCTRL_SetLedByName(STATE_LED, LED_STATE_750_ERR, &tl750, NULL);
+  sleep(8);
+  puts("Entspricht das Blinkmuster den Erwartungen?");
+  return YesNo();
+}
 
 static int _blinkSwitch()
 {
@@ -203,6 +219,7 @@ tTestCase interactiveTests[] =
  { .name="allLedsOn", .help="alle LEDs gleichzeitig einschalten, ale farben" ,  .function=_allLedsOn},
  { .name="blinkSync", .help="alle LEDs sollen synchron blinken" ,  .function=_blinkSync},
  { .name="blinkSwitch", .help="eine LED zwischen static und blink hin und her schalten" ,  .function=_blinkSwitch},
+ { .name="pfc_seq",   .help="Einen PFC Fehler über die " STATE_LED " LED ausgeben. (Code 2, Argument 3)" ,  .function=_pfc_seq},
  { .name="exit",        .help="menü verlassen" ,                      .function=TestExit},
 };
 

@@ -31,11 +31,8 @@
 #include <vector>
 
 
-
-
 namespace wago
 {
-
 
 #ifndef DEBUGPC
     static const std::string bkp_tmpl = "/etc/firewall";
@@ -273,7 +270,7 @@ static void store_files(files& fs)
 //        throw invalid_config_error(result);
 }
 
-static void ebtables(xmldoc& doc, std::vector<sline>& source)
+static void restore_ebtables(xmldoc& doc, std::vector<sline>& source)
 {
     regex::regex keyrex("^ebtables-([a-zA-Z0-9-].+)");
 
@@ -318,7 +315,7 @@ static void ebtables(xmldoc& doc, std::vector<sline>& source)
 
         if (0 != cmd.size())
         {
-            process_ebtables(doc, cmd, values);
+          ebtables::process(doc, cmd, values);
             line.processed = true;
         }
         else
@@ -326,7 +323,7 @@ static void ebtables(xmldoc& doc, std::vector<sline>& source)
     }
 }
 
-static void iptables(xmldoc& doc, std::vector<sline>& source)
+static void restore_iptables(xmldoc& doc, std::vector<sline>& source)
 {
     regex::regex keyrex("^iptables-([a-zA-Z0-9-].+)");
 
@@ -377,7 +374,7 @@ static void iptables(xmldoc& doc, std::vector<sline>& source)
 
         if (0 != cmd.size())
         {
-            process_iptables(doc, cmd, values);
+            iptables::process(doc, cmd, values);
             line.processed = true;
         }
         else
@@ -385,7 +382,7 @@ static void iptables(xmldoc& doc, std::vector<sline>& source)
     }
 }
 
-static void service(const std::string& name, xmldoc& doc, std::vector<sline>& source)
+static void restore_service(const std::string& name, xmldoc& doc, std::vector<sline>& source)
 {
     regex::regex keyrex("^service-" + name + "-([a-zA-Z0-9-].+)");
 
@@ -422,7 +419,7 @@ static void service(const std::string& name, xmldoc& doc, std::vector<sline>& so
 
         if (0 != cmd.size())
         {
-            process_service(doc, cmd, values);
+            service::process(doc, cmd, values);
             line.processed = true;
         }
         else
@@ -430,10 +427,10 @@ static void service(const std::string& name, xmldoc& doc, std::vector<sline>& so
     }
 }
 
-static void services(std::vector<file>& services, std::vector<sline>& source)
+static void restore_services(std::vector<file>& services, std::vector<sline>& source)
 {
     for (file& s : services)
-        service(s.name, s.conf, source);
+        restore_service(s.name, s.conf, source);
 }
 
 void perform_restore(void)
@@ -446,9 +443,9 @@ void perform_restore(void)
 
     prepare_files(fs, source);
 
-    ebtables(fs.ebtables.conf, source);
-    iptables(fs.iptables.conf, source);
-    services(fs.services, source);
+    restore_ebtables(fs.ebtables.conf, source);
+    restore_iptables(fs.iptables.conf, source);
+    restore_services(fs.services, source);
 
     bool complete = true;
 

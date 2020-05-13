@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #

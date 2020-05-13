@@ -1,7 +1,7 @@
 From 77980c8b13ed6f49e94f2e26771a89287e47720c Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 11 Jul 2018 11:59:56 +0200
-Subject: [PATCH 048/144] arm: configs: enable led pca955x
+Subject: [PATCH] arm: configs: enable led pca955x
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

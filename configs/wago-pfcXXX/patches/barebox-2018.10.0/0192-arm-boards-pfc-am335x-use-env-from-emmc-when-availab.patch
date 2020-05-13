@@ -1,0 +1,50 @@
+From 55953b4e3d2fa1b670b65b6ade6340da5fb8cee5 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 22 Nov 2019 12:35:17 +0100
+Subject: [PATCH] arm: boards: pfc-am335x: use env from emmc when available
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index 2375fbd..f442386 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -42,6 +42,7 @@
+ #include <linux/bitmap.h>
+ #include <gpio.h>
+ #include <of_gpio.h>
++#include <mci.h>
+ 
+ #define ETH_DEVICE_0 0
+ #define ETH_DEVICE_1 1
+@@ -192,6 +193,7 @@ static int pfc_devices_init(void)
+ 	int ret;
+ 	const char *s;
+ 	struct omap_board_info *board;
++	struct mci *mci;
+ 
+ 	if (!of_machine_is_compatible("wago,am335x-pfc"))
+ 		return 0;
+@@ -243,7 +245,15 @@ static int pfc_devices_init(void)
+ 						ARRAY_SIZE(boot_nandslots));
+ 	}
+ 
+-	of_device_enable_path("/chosen/environment-sd");
++	mci = mci_get_device_by_name("mmc0");
++	if (mci && mci->host->card_present) {
++		if (mci->host->card_present(mci->host))
++			of_device_enable_path("/chosen/environment-sd");
++
++	} else if (test_bit(HAS_EMMC, board->boot_devices)) {
++		of_device_enable_path("/chosen/environment-emmc");
++	}
++
+ 	omap_set_barebox_boot_parts(&pfc_barebox_boot_parts);
+ 	defaultenv_append_directory(defaultenv_pfc_am335x);
+ 
+-- 
+2.7.4
+

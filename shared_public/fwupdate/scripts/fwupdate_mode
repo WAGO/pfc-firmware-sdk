@@ -56,7 +56,7 @@ declare -a STORAGEVALUES
 #
 # Return: Exit code, 0 on success, unequal to 0 otherwise
 #-----------------------------------------------------------------------------#
-main()
+fwupdate_mode_main()
 {
     local RESULT=0
 
@@ -373,7 +373,7 @@ activate()
     fi
 
     # Initialize fwupdate process
-    fwupdate_report_info "Activate $WAGO_CT_SYSTEM_MODULE"
+    fwupdate_report_info "Activate $WAGO_CT_SYSTEM_MODULE in system$($WAGO_CT_DIR/get_systeminfo active-system-number)"
     if [ "$QUIET" -eq "0" ]; then
         /etc/init.d/fwupdate_service start
         RESULT=$?
@@ -609,5 +609,5 @@ cancel()
 }
 
 # Start main function
-main "$@"
+fwupdate_mode_main "$@"
 exit $?

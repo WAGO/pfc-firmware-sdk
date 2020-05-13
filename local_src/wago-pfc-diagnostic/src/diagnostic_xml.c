@@ -82,8 +82,11 @@ void FreeLedNames(tLedNames * pNames)
 
 void FreeDiagXml(tDiagXml * del)
 {
-  xmlFreeDoc(del->doc);
-  free(del);
+  if(del != NULL)
+  {
+    xmlFreeDoc(del->doc);
+    free(del);
+  }
 }
 
 const char * GetStrOfLan(const char * lanPtr,tDiagXml * doc)

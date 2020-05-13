@@ -41,6 +41,20 @@ fi
 #--------------------------------------------------------------------
 # Just start the C programm. It will do all checks and actions.
 #--------------------------------------------------------------------
-sudo $DHCPD_CONFIG_C -d -s $* > /dev/null
+
+adaptParameters() {
+	parameters=""
+	for parameter in "$@"; do
+		if [[ $parameter == "--port="* || $parameter == "-p="* ]]; then
+			parameter="${parameter/br0/X1}"
+			parameter="${parameter/br1/X2}"
+		fi
+		parameters="${parameters} $parameter"
+	done
+	
+	echo $parameters
+}
+
+sudo $DHCPD_CONFIG_C -d -s $(adaptParameters $*) > /dev/null
 sync
 exit $?

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -84,7 +84,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		$(LIBTIMEZONEINFO_PATH)  \
 		$(LIBTIMEZONEINFO_ENV)   \
       $(LIBTIMEZONEINFO_BUILD_PARAMS) \
-		make $(PARALLELMFLAGS) 
+		make $(PARALLELMFLAGS)
 endif
 	@$(call touch)
 
@@ -108,11 +108,11 @@ $(STATEDIR)/libtimezoneinfo.targetinstall:
 	@$(call install_fixup, libtimezoneinfo,AUTHOR,"Lars Schmidt <lars.schmidt@wago.com>")
 	@$(call install_fixup, libtimezoneinfo,DESCRIPTION,missing)
 
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(LIBTIMEZONEINFO_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	rm -rf $(LIBTIMEZONEINFO_PLATFORMCONFIGPACKAGEDIR)/tmp/*
 	cd $(LIBTIMEZONEINFO_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(LIBTIMEZONEINFO_PLATFORMCONFIGPACKAGEDIR)/$(LIBTIMEZONEINFO_PACKAGE_NAME).ipk  
+	ar -xov $(LIBTIMEZONEINFO_PLATFORMCONFIGPACKAGEDIR)/$(LIBTIMEZONEINFO_PACKAGE_NAME).ipk
 	@$(call install_archive, libtimezoneinfo, 0, 0, $(LIBTIMEZONEINFO_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE

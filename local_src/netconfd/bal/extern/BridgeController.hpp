@@ -26,8 +26,8 @@ class BridgeController : public IBridgeController{
   explicit BridgeController();
   ~BridgeController() override;
 
-  BridgeController(const BridgeController&) = delete;
-  BridgeController& operator=(const BridgeController&) = delete;
+  BridgeController(const BridgeController&) = default;
+  BridgeController& operator=(const BridgeController&) = default;
   BridgeController(const BridgeController&&) = delete;
   BridgeController& operator=(const BridgeController&&) = delete;
 

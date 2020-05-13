@@ -1,8 +1,8 @@
 From 7e9c4a34da566d227914e13813bb1a108f00db75 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 17 Oct 2018 07:54:19 +0200
-Subject: [PATCH 120/144] defaultenv: defaultenv-pfc200: add specific setupfw
- boot script
+Subject: [PATCH] defaultenv: defaultenv-pfc200: add specific setupfw boot
+ script
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

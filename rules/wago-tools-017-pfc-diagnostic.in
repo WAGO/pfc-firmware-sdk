@@ -8,6 +8,7 @@ menuconfig WAGO_PFC_DIAGNOSTIC
 	select WAGO_DBUS
 	select LIBXML2
 	select HOST_WAGO_PFC_DIAGNOSTIC
+	select NLOHMANN_JSON
 	help
 	  this is the PFC diagnostic-ID system please use it only if you also use led-server-2
 

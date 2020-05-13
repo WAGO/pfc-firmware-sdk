@@ -14,11 +14,11 @@ class InterfaceConfigJsonTest : public ::testing::Test
 {
  public:
 
-  string single_port_config = R"({"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full" })";
-  string single_port_config_extra_member = R"({"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full","tomuchinfo":"notneeded" })";
-  string single_port_config_wrong = R"({"device":"X1","aasdfasd":"asdup","autonegotiation":true,"speed":100,"duplex":"full" })";
-  string single_port_config_missing_state = R"({"device":"X1","autonegotiation":true,"speed":100,"duplex":"full" })";
-  string multi_port_full = R"([{"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full"},{"device":"X2","state":"down","autonegotiation":true,"speed":100,"duplex":"half"}])";
+  string single_port_config = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full" })";
+  string single_port_config_extra_member = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full","tomuchinfo":"notneeded" })";
+  string single_port_config_wrong = R"({"device":"X1","aasdfasd":"asdup","autonegotiation":"on","speed":100,"duplex":"full" })";
+  string single_port_config_missing_state = R"({"device":"X1","autonegotiation":"on","speed":100,"duplex":"full" })";
+  string multi_port_full = R"([{"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full"},{"device":"X2","state":"down","autonegotiation":"on","speed":100,"duplex":"half"}])";
   string multi_port_minmal = R"([{"device":"X1","duplex":"full"},{"device":"X2","state":"down"}])";
 
   JsonConfigConverter converter;
@@ -104,7 +104,7 @@ TEST_F(InterfaceConfigJsonTest, parseJsonMissingContents){
 }
 
 TEST_F(InterfaceConfigJsonTest, ConverToJson){
-  auto full_config = R"({"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full" })"_json;
+  auto full_config = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full" })"_json;
   auto port_config = InterfaceConfig{
     "X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL
   };
@@ -118,7 +118,7 @@ TEST_F(InterfaceConfigJsonTest, ConverToJson){
 }
 
 TEST_F(InterfaceConfigJsonTest, ConvertMultiplePortsToJson){
-  auto full_config = R"([{"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full" }, {"device":"X2","state":"down","autonegotiation":false,"speed":42,"duplex":"half" }])"_json;
+  auto full_config = R"([{"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full" }, {"device":"X2","state":"down","autonegotiation":"off","speed":42,"duplex":"half" }])"_json;
 
   auto pc = InterfaceConfigs{{"X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL}, {"X2", InterfaceState::DOWN, Autonegotiation::OFF, 42, Duplex::HALF}};
 

@@ -52,6 +52,14 @@ void log_EVENT_LogId(log_tEventId id,
     }
 }
 
+void log_EVENT_LogIdParam(log_tEventId id,
+                          bool set,
+                          int  first_arg_type, ...)
+{
+    (void)first_arg_type; //todo: extend test for diagnostic variables
+    log_EVENT_LogId(id, set);
+}
+
 const char* test_get_log_EVENT_ProgramName()
 {
   return programName;

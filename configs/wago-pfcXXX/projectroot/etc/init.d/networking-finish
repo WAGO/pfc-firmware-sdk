@@ -8,16 +8,42 @@
 
 # This script is started to wait for link up and then bring up the bridge interfaces.
 # Reason is to enable sending of gratuitous ARPs.
-# The script is run in background if started during system initialisationi with 
+# The script is run in background if started during system initialisationi with
 # argument bridgeup.
 # Then it is called again witch argument start to wait to finish bringing up the interfaces.
-# 
+#
 PIDFILE="/var/run/networking-finish.pid"
+order=$(/etc/config-tools/get_typelabel_value ORDER)
 
-function gratuitous_arp_enable
+function get_next_macs()
 {
-    # Expects interface name as argument.
-    echo 1 > /proc/sys/net/ipv4/conf/$1/arp_notify
+    local startMac="$1"
+    local macCount="$2"
+    local isValidMac="FALSE"
+
+    # Check MAC address has valid format.
+    [[ "$startMac" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]] && isValidMac="TRUE"
+
+    if [[ $isValidMac == "TRUE" ]]; then
+        # Remove colons
+        mac_plain=${startMac//:/}
+        macs=($mac_plain)
+
+        local i=1
+        while [ $i -le "$macCount" ] ; do
+            macs=( "${macs[@]}" $(printf "%012X" $(( 0x$mac_plain + i )) ) )
+            ((i++))
+        done
+    else
+        echo "NETWORK_INIT - Invalid MAC address \"startMac\". Failed generating subsequent addresses."
+    fi
+}
+
+function is_4port_eth()
+{
+    [[ ${order:0:8} == "750-8215" || \
+       ${order:0:8} == "750-8211" || \
+       ${order:0:8} == "750-8210" ]]
 }
 
 function is_linkup
@@ -93,36 +119,47 @@ function wait_for_link_up
 
 function interfaces_up
 {
-    gratuitous_arp_enable br0
-    gratuitous_arp_enable br1
     wait_for_link_up
-    ifup br0
-    ifup br1
-    local order=$(/etc/config-tools/get_typelabel_value ORDER)
-    if [[ ${order:0:8} == "750-8215" ]]; then
-    	ifup br2
-	fi
+    #ifup br0
+    #ifup br1
+    #local order=$(/etc/config-tools/get_typelabel_value ORDER)
+    #if [[ ${order:0:8} == "750-8215" ]]; then
+    # ifup br2
+    #fi
+}
+
+
+function write_atu
+{
+    local macaddr=$(/etc/config-tools/get_typelabel_value MAC | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
+    if is_4port_eth; then
+      # Get next MAC addresses and store them to macs.
+        # macs[0] contains the original MAC address ($macaddr).
+        declare -a macs
+        get_next_macs "$macaddr" 4
+        # Add the main MAC to the ATU, CPU port is 6.
+        /sbin/pfcXXX_mv88e6321_write_atu.sh $macaddr 6
+        # Add the other MACs to the ATU as well.
+        /sbin/pfcXXX_mv88e6321_write_atu.sh ${macs[1]} 6
+        /sbin/pfcXXX_mv88e6321_write_atu.sh ${macs[2]} 6
+        /sbin/pfcXXX_mv88e6321_write_atu.sh ${macs[3]} 6
+        /sbin/pfcXXX_mv88e6321_write_atu.sh ${macs[4]} 6
+    fi
 }
 
 # main program. Enable gratuitous ARP, wait for link to become up and start the bridge
 # interfaces.
-# Switch on gratuitous ARP for bridged interfaces.
 case "$1" in
 bridgeup)
     if ! is_self_running; then
         echo $$ > $PIDFILE
-        interfaces_up
+        #interfaces_up
         rm $PIDFILE
     fi
     ;;
 start|wait)
     echo "Finish up networking ..."
-    PID=$(read_pidfile)
-    if [ $PID -gt 0 ]; then
-        while [ -e /proc/$PID ]; do
-            usleep 100000
-        done
-    fi
+    write_atu
     ;;
 stop)
     ;;
@@ -132,4 +169,3 @@ stop)
     ;;
 esac
 exit 0
-

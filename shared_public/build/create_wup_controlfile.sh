@@ -75,6 +75,12 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8208\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8208/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8208/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8210\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8210/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8210/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+		echo "    <Article OrderNo=\"0750-8211\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8211/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8211/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8212\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8212/0000-0100\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8212/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
@@ -115,8 +121,8 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0762-6204/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         ;;
         
-    wago-pac100)
-        echo "    <Article OrderNo=\"0768-3301\"                      GroupRef=\"PAC-Common\"/>" >> "$FILE"
+    wago-pfc-adv)
+        echo "    <Article OrderNo=\"0768-3301\"                      GroupRef=\"PFC_ADV-Common\"/>" >> "$FILE"
         ;;
 
     *)
@@ -131,13 +137,11 @@ case "$PLATFORM" in
         echo "    <Group RefID=\"PFC-Common\">" >> "$FILE"
         echo "      <Upgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"
-        echo "          <!-- Currently we only allow Upgrade inside FW${FIRMWARE_INDEX} (${FIRMWARE_BASE}.x) -->" >> "$FILE"
-        echo "          <VersionRange SoftwareRevision=\"${FIRMWARE_BASE}.0-${FIRMWARE_BASE}.99\"/>" >> "$FILE"
+        echo "          <VersionRange SoftwareRevision=\"3.0.0-${FIRMWARE_BASE}.99\"/>" >> "$FILE"
         echo "        </VersionList>" >> "$FILE"
         echo "      </Upgrade>" >> "$FILE"
         echo "      <Downgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"
-        echo "          <!-- Currently we only allow Downgrade from any version beginning with FW12 (3.0.x) -->" >> "$FILE"
         echo "          <VersionRange SoftwareRevision=\"3.0.0-99.99.99\"/>" >> "$FILE"
         echo "        </VersionList>" >> "$FILE"
         echo "      </Downgrade>" >> "$FILE"
@@ -148,30 +152,26 @@ case "$PLATFORM" in
         echo "    <Group RefID=\"TP-Common\">" >> "$FILE"
         echo "      <Upgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"
-        echo "          <!-- Currently we only allow Upgrade inside FW${FIRMWARE_INDEX} (${FIRMWARE_BASE}.x) -->" >> "$FILE"
-        echo "          <VersionRange SoftwareRevision=\"${FIRMWARE_BASE}.0-${FIRMWARE_BASE}.99\"/>" >> "$FILE"
+        echo "          <VersionRange SoftwareRevision=\"3.0.0-${FIRMWARE_BASE}.99\"/>" >> "$FILE"
         echo "        </VersionList>" >> "$FILE"
         echo "      </Upgrade>" >> "$FILE"
         echo "      <Downgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"
-        echo "          <!-- Currently we only allow Downgrade from any version beginning with FW12 (3.0.x) -->" >> "$FILE"
         echo "          <VersionRange SoftwareRevision=\"3.0.0-99.99.99\"/>" >> "$FILE"
         echo "        </VersionList>" >> "$FILE"
         echo "      </Downgrade>" >> "$FILE"
         echo "    </Group>" >> "$FILE"
         ;;
         
-    wago-pac100)
-        echo "    <Group RefID=\"PAC-Common\">" >> "$FILE"
+    wago-pfc-adv)
+        echo "    <Group RefID=\"PFC_ADV-Common\">" >> "$FILE"
         echo "      <Upgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"
-        echo "          <!-- Currently we only allow Upgrade inside FW${FIRMWARE_INDEX} (${FIRMWARE_BASE}.x) -->" >> "$FILE"
-        echo "          <VersionRange SoftwareRevision=\"${FIRMWARE_BASE}.0-${FIRMWARE_BASE}.99\"/>" >> "$FILE"
+        echo "          <VersionRange SoftwareRevision=\"3.0.0-${FIRMWARE_BASE}.99\"/>" >> "$FILE"
         echo "        </VersionList>" >> "$FILE"
         echo "      </Upgrade>" >> "$FILE"
         echo "      <Downgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"
-        echo "          <!-- Currently we only allow Downgrade from any version beginning with FW12 (3.0.x) -->" >> "$FILE"
         echo "          <VersionRange SoftwareRevision=\"3.0.0-99.99.99\"/>" >> "$FILE"
         echo "        </VersionList>" >> "$FILE"
         echo "      </Downgrade>" >> "$FILE"

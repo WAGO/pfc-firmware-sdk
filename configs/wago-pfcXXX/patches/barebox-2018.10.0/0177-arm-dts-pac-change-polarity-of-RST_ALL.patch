@@ -1,0 +1,25 @@
+From a31b77e2158bbff902c7ca3c20cda1d4b473a44a Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 22 Nov 2019 12:01:15 +0100
+Subject: [PATCH] arm: dts: pac: change polarity of RST_ALL
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am335x-pac-768_330x.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/dts/am335x-pac-768_330x.dts b/arch/arm/dts/am335x-pac-768_330x.dts
+index dac869e..984f7ac 100644
+--- a/arch/arm/dts/am335x-pac-768_330x.dts
++++ b/arch/arm/dts/am335x-pac-768_330x.dts
+@@ -130,3 +130,7 @@
+ &usb0_phy {
+ 	status = "okay";
+ };
++
++&rst {
++	gpios = <&gpio3 15 GPIO_ACTIVE_LOW>;
++};
+-- 
+2.7.4
+

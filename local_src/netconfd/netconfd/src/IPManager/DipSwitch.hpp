@@ -15,9 +15,12 @@ class DipSwitch : public IDipSwitch {
 
   std::uint8_t GetValue() const override { return value_;}
   bool HasReachedMaxValue() const override { return value_ == std::numeric_limits<uint8_t>::max();}
+  DipSwitchMode GetMode() const override;
+
  private:
 
   std::uint8_t value_;
+  bool hw_available_;
 };
 
 } /* namespace netconfd */

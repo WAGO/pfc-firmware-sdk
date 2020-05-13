@@ -1,8 +1,7 @@
 From dbd67a4f47bbef49682de2a88dfc9fb6b0fdf874 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 17 Oct 2018 11:46:27 +0000
-Subject: [PATCH 132/144] fs: tftp: add a global var to hold the blocksize
- option
+Subject: [PATCH] fs: tftp: add a global var to hold the blocksize option
 
 It generally makes sense to make the blocksize option adjustable
 in order to be more flexible to the servers capability.

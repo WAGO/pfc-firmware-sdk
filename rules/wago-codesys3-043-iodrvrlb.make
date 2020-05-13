@@ -66,6 +66,7 @@ endif
 $(STATEDIR)/cds3-iodrvrlb.compile:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+#	@$(call xslt_compile, $(CDS3_IODRVRLB_DIR)/src/xml/iodrvrlb_diag.xml)
 	$(call world/compile, CDS3_IODRVRLB)
 endif
 	@$(call touch)
@@ -83,7 +84,7 @@ else
 #   normal mode, call "make install"
 	@$(call world/install, CDS3_IODRVRLB)
 	@mkdir -p $(CDS3_IODRVRLB_PKGDIR)/etc/specific/
-	@cp $(CDS3_IODRVRLB_SRC_DIR)/src/rlb/rlb.conf $(CDS3_IODRVRLB_PKGDIR)/etc/specific/
+	@cp $(CDS3_IODRVRLB_SRC_DIR)/IoDrvRlb.conf $(CDS3_IODRVRLB_PKGDIR)/etc/specific/
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 #   save install directory to tgz for BSP mode
 	@mkdir -p $(CDS3_IODRVRLB_PLATFORMCONFIGPACKAGEDIR)
@@ -108,7 +109,7 @@ $(STATEDIR)/cds3-iodrvrlb.targetinstall:
 
 	@$(call install_lib, cds3-iodrvrlb, 0, 0, 0644, libIoDrvRlb)
 	@$(call install_link, cds3-iodrvrlb, ../$(CDS3_IODRVRLB_BIN), /usr/lib/cds3-custom-components/$(CDS3_IODRVRLB_SO_NAME))
-	@$(call install_copy, cds3-iodrvrlb, 0, 0, 0644, -, /etc/specific/rlb.conf) 
+	@$(call install_copy, cds3-iodrvrlb, 0, 0, 0644, -, /etc/specific/IoDrvRlb.conf) 
 	@$(call install_finish, cds3-iodrvrlb)
 
 	@$(call touch)
@@ -118,10 +119,11 @@ $(STATEDIR)/cds3-iodrvrlb.targetinstall:
 # ----------------------------------------------------------------------------
 
 $(STATEDIR)/cds3-iodrvrlb.clean:
+	@$(call xslt_clean, $(CDS3_IODRVRLB_DIR)/src/xml/iodrvrlb_diag.xml)
 	rm -rf $(STATEDIR)/cds3-iodrvrlb.*
 	rm -rf $(PKGDIR)/cds3-iodrvrlb_*
 	rm -rf $(CDS3_IODRVRLB_DIR)
-	@rm -rf $(PTXDIST_PLATFORMDIR)/root/etc/specific/rlb.conf
+	@rm -rf $(PTXDIST_PLATFORMDIR)/root/etc/specific/IoDrvRlb.conf
 
 
 

@@ -1,3 +1,4 @@
+
 ## SECTION=separated_config_tools
 
 config FIREWALL_CONFIG
@@ -6,6 +7,7 @@ config FIREWALL_CONFIG
 	select CONFIG_TOOLS
 	select HOST_CT_BUILD
 	select GOOGLETEST
+	select BOOST
 	prompt "Firewall configuration tool"
 	help
 	  Firewall configuration tool.

@@ -1,21 +1,30 @@
 #!/bin/sh
 
 set -e
+
+WAGO_ST_DIR="/usr/sbin"
+. "$WAGO_ST_DIR/fwupdate_basic_defines"
+if [ -f "${WAGO_FW_UPDATE_FIRST_BOOT_MARKER}" ]; then
+    echo ''
+    echo 'Do not generate new SSH host keys during first boot after firmware update.'
+    exit 0
+fi
+
 cd /etc/dropbear
 
 /usr/sbin/random_seed
 
 while read type size md5; do
   key="dropbear_${type}_host_key"
-  key_md5="$(md5sum < "$key" 2>/dev/null)"
-  if [ ! -f "$key" ] || [ "$md5" = "${key_md5%% *}" ]; then
+  key_md5="$(md5sum "${key}" 2>/dev/null || true)"
+  if [ -f "${key}" ] && [ "$md5" = "${key_md5%% *}" ]; then
     dropbearkey -t "$type" -s "$size" -f "${key}.tmp" &&
       mv "${key}.tmp" "${key}"
   fi
 done << EOF
 ecdsa 521 eac949a3ca2e6e70e5992caffbde7197
 dss 1024 fa1916278bbbd44e145739677cf77b18
-rsa 2048 47933d6da5f16c79d9cd1cf8a6994f8c
+rsa 4096 47933d6da5f16c79d9cd1cf8a6994f8c
 EOF
 
 exec sync

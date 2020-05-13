@@ -1,7 +1,7 @@
 From e7ea7dcf3ba9007a90c2d3f240e0a893019bfc4b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 27 Aug 2018 16:09:19 +0200
-Subject: [PATCH 067/144] i2c-omap: read scheme reg only if it is available
+Subject: [PATCH] i2c-omap: read scheme reg only if it is available
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

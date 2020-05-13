@@ -96,9 +96,13 @@ SERVICE_TTY_PFCXXX_DEV_NAME="$(cat /sys/class/wago/system/tty_service)"
 SERVICE_TTY_PFCXXX_LINK_NAME="/dev/service"
 
 # get configured modem uart from sys-fs
-# the device does alwas exist in all PFCs and displays
+# the device does always exist in all PFCs and displays
 GSM_MODEM_TTY_PFCXXX_DEV_NAME="ttyMdm0"
 GSM_MODEM_TTY_PFCXXX_LINK_NAME="/dev/ttyRUNTIME66"
+
+# profibus dp uio device names
+PROFIBUS_DP_UIO_XINT_NAME="UIO_DPC31_XINT"
+PROFIBUS_DP_UIO_SYNC_NAME="UIO_DPC31_SYNC"
 
 # led name mapping
 LED_SRC_PATH="/sys/class/leds/"
@@ -142,17 +146,33 @@ case $1 in
 
         if [ -c "/dev/${SERIAL_TTY_PFCXXX_DEV_NAME}" ]; then
                 ln -s /dev/${SERIAL_TTY_PFCXXX_DEV_NAME} "${SERIAL_TTY_PFCXXX_LINK_NAME}"
+                echo "hardware-available=true" >"/etc/specific/features/rs232_485-interface"
         else
                 echo "INFO: tty_rs232_485 is not available"
+                echo "hardware-available=false" >"/etc/specific/features/rs232_485-interface"
         fi
 
         if [ -c "/dev/${SERVICE_TTY_PFCXXX_DEV_NAME}" ]; then
                 ln -s /dev/${SERVICE_TTY_PFCXXX_DEV_NAME} "${SERVICE_TTY_PFCXXX_LINK_NAME}"
+                echo "hardware-available=true" >"/etc/specific/features/serial-service-interface"
         else
                 echo "ERROR: could not set ${SERVICE_TTY_PFCXXX_LINK_NAME}, getty will fail"
+                echo "hardware-available=false" >"/etc/specific/features/serial-service-interface"
         fi
 
         ln -s /dev/${GSM_MODEM_TTY_PFCXXX_DEV_NAME} "${GSM_MODEM_TTY_PFCXXX_LINK_NAME}"
+
+        if $(lsuio | grep -q "$PROFIBUS_DP_UIO_XINT_NAME"); then
+                if $(lsuio | grep -q "$PROFIBUS_DP_UIO_SYNC_NAME"); then
+                        echo "hardware-available=true" >"/etc/specific/features/profibus-dp-slave"
+                else
+                        echo "INFO: PROFIBUS DP device \"$PROFIBUS_DP_UIO_SYNC_NAME\" not available"
+                        echo "hardware-available=false" >"/etc/specific/features/profibus-dp-slave"
+                fi
+        else
+                echo "INFO: PROFIBUS DP device \"$PROFIBUS_DP_UIO_XINT_NAME\" not available"
+                echo "hardware-available=false" >"/etc/specific/features/profibus-dp-slave"
+        fi
 
         for path in "${device_paths[@]}"; do
                 ln -s ${path} /dev/

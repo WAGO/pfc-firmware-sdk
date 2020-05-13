@@ -6,7 +6,7 @@
 ///
 ///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#include "../src/NetworkConfigBrain.hpp"
+#include "NetworkConfigBrain.hpp"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

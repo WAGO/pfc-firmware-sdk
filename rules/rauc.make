@@ -87,12 +87,12 @@ ifeq ($(PTXCONF_PLATFORM), $(filter $(PTXCONF_PLATFORM),wago-pfcXXX wago-pfcXXX-
 	@$(call install_link, rauc, system.conf.pfcv3, /etc/rauc/system.conf.pfc200v3)
 endif
 
-ifeq ($(PTXCONF_PLATFORM), wago-pac100)
+ifeq ($(PTXCONF_PLATFORM), wago-pfc-adv)
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv3)
 	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv3, \
 		@RAUC_BUNDLE_COMPATIBLE@, \
 		$(PTXCONF_RAUC_COMPATIBLE))
-	@$(call install_link, rauc, system.conf.pfcv3, /etc/rauc/system.conf.pac100)
+	@$(call install_link, rauc, system.conf.pfcv3, /etc/rauc/system.conf.pfc200adv)
 endif
 
 ifeq ($(PTXCONF_PLATFORM), vtp-ctp)

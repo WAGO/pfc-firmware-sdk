@@ -370,6 +370,16 @@ config DROPBEAR_DH_GROUP1_SHA1
     This option is for compatibility with old server implementations. There are many old implementations
     out there that may still need to use this key exchange.
 
+config DROPBEAR_KEXGUESS2
+	bool
+	prompt "kexguess2@matt.ucc.asn.au"
+	default y
+	help
+	  Client will send an initial key exchange guess to save a round trip.
+	  Dropbear implements an extension kexguess2@matt.ucc.asn.au to allow the first
+	  packet guess to succeed in wider circumstances than the standard behaviour.
+	  When communicating with other implementations the standard behaviour is used.
+
 comment "Authentication types, at least one required --- RFC Draft requires pubkey auth"
 
 config DROPBEAR_PASSWD
@@ -393,8 +403,6 @@ config DROPBEAR_DROPBEAR
 	prompt "Install dropbear SSH server"
 	default y
 	select DROPBEAR_DROPBEAR_KEY
-	select DROPBEAR_RSA
-	select DROPBEAR_DSS
 	select BUSYBOX_START_STOP_DAEMON if BUSYBOX
 	help
 	  Installs the dropbar server in /usr/sbin/dropbear on the target

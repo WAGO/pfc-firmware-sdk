@@ -1,0 +1,116 @@
+# -*-makefile-*-
+#
+# Copyright (C) 2020 by Patrick Enns (patrick.enns@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+#
+# See CREDITS for details about who has contributed to this project.
+#
+# For further information about the PTXdist project and license conditions
+# see the README file.
+#
+
+#
+# We provide this package
+#
+PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_PROFIBUS) += wbm-ng-plugin-profibus
+
+#
+# Paths and names
+#
+WBM_NG_PLUGIN_PROFIBUS_VERSION        := 1.0.1
+WBM_NG_PLUGIN_PROFIBUS                := wbm-profibus-$(WBM_NG_PLUGIN_PROFIBUS_VERSION)
+WBM_NG_PLUGIN_PROFIBUS_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_PROFIBUS)
+WBM_NG_PLUGIN_PROFIBUS_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_PROFIBUS_URL))
+WBM_NG_PLUGIN_PROFIBUS_SOURCE         := $(SRCDIR)/$(WBM_NG_PLUGIN_PROFIBUS)$(WBM_NG_PLUGIN_PROFIBUS_SUFFIX)
+WBM_NG_PLUGIN_PROFIBUS_MD5             = $(shell [ -f $(WBM_NG_PLUGIN_PROFIBUS_MD5_FILE) ] && cat $(WBM_NG_PLUGIN_PROFIBUS_MD5_FILE))
+WBM_NG_PLUGIN_PROFIBUS_MD5_FILE       := $(WBM_NG_PLUGIN_PROFIBUS_SOURCE).md5
+WBM_NG_PLUGIN_PROFIBUS_ARTIFACT        = $(call jfrog_get_filename,$(WBM_NG_PLUGIN_PROFIBUS_URL))
+WBM_NG_PLUGIN_PROFIBUS_BUILDROOT_DIR  := $(BUILDDIR)/wbm-ng-plugin-profibus
+WBM_NG_PLUGIN_PROFIBUS_DIR            := $(WBM_NG_PLUGIN_PROFIBUS_BUILDROOT_DIR)
+WBM_NG_PLUGIN_PROFIBUS_LICENSE        := unknown
+WBM_NG_PLUGIN_PROFIBUS_MAKE_ENV       :=
+ifeq ($(PTXCONF_WBM),y)
+WBM_NG_PLUGIN_PROFIBUS_TARGET_DIR     := /var/www/wbm-ng/plugins/wbm-profibus
+else
+WBM_NG_PLUGIN_PROFIBUS_TARGET_DIR     := /var/www/wbm/plugins/wbm-profibus
+endif
+
+# ----------------------------------------------------------------------------
+# Get
+# ----------------------------------------------------------------------------
+
+$(WBM_NG_PLUGIN_PROFIBUS_SOURCE):
+	@$(call targetinfo)
+	${PTXDIST_WORKSPACE}/scripts/wago/artifactory.sh fetch \
+        '$(WBM_NG_PLUGIN_PROFIBUS_URL)' '$@' '$(WBM_NG_PLUGIN_PROFIBUS_MD5_FILE)'
+
+# ----------------------------------------------------------------------------
+# Extract
+# ----------------------------------------------------------------------------
+
+# use ptxdist default
+
+# ----------------------------------------------------------------------------
+# Prepare
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/wbm-ng-plugin-profibus.prepare:
+	@$(call targetinfo)
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Compile
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/wbm-ng-plugin-profibus.compile:
+	@$(call targetinfo)
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Install
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/wbm-ng-plugin-profibus.install:
+	@$(call targetinfo)
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Target-Install
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/wbm-ng-plugin-profibus.targetinstall:
+	@$(call targetinfo)
+
+	@$(call install_init, wbm-ng-plugin-profibus)
+	@$(call install_fixup, wbm-ng-plugin-profibus, PRIORITY, optional)
+	@$(call install_fixup, wbm-ng-plugin-profibus, SECTION, base)
+	@$(call install_fixup, wbm-ng-plugin-profibus, AUTHOR, "Patrick Enns, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-profibus, DESCRIPTION, missing)
+
+	# create target directory itself
+	@$(call install_copy, wbm-ng-plugin-profibus, 0, 0, 0755, $(WBM_NG_PLUGIN_PROFIBUS_TARGET_DIR))
+
+	# loop over all files and subdirectories (deep)
+	@cd $(WBM_NG_PLUGIN_PROFIBUS_DIR) && \
+	for object in $$( find ./* -print ); do \
+		if test -f $$object; then \
+			$(call install_copy, wbm-ng-plugin-profibus, 0, 0, 0644, $(WBM_NG_PLUGIN_PROFIBUS_DIR)/$$object, $(WBM_NG_PLUGIN_PROFIBUS_TARGET_DIR)/$$object); \
+		elif test -d $$object; then \
+			$(call install_copy, wbm-ng-plugin-profibus, 0, 0, 0755, $(WBM_NG_PLUGIN_PROFIBUS_TARGET_DIR)/$$object); \
+		fi; \
+	done;
+
+
+	@$(call install_finish, wbm-ng-plugin-profibus)
+	@$(call touch)
+
+# ----------------------------------------------------------------------------
+# Clean
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/wbm-ng-plugin-profibus.clean:
+	@$(call targetinfo)
+	@rm -rf $(PTXCONF_SYSROOT_TARGET)$(WBM_NG_PLUGIN_PROFIBUS_TARGET_DIR)
+	@$(call clean_pkg, WBM_NG_PLUGIN_PROFIBUS)
+	@rm -rf $(WBM_NG_PLUGIN_PROFIBUS_BUILDROOT_DIR)
+
+# vim: syntax=make

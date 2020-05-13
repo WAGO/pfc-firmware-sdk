@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Copyright 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
 //
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -37,6 +37,7 @@
 #include "wc/assertion.h"
 #include "wc/std_includes.h"
 #include "ctutil/log.h"
+#include "ctutil/common_functions.h"
 #include "ctparts/common_main_defaults.h"
 #include "params.h"
 #include <getopt.h>
@@ -129,28 +130,11 @@ WC_STATIC_ASSERT((sizeof(arstCommandlineOptions) / sizeof(struct option)) == (si
 // function implementation
 //------------------------------------------------------------------------------
 
-// TODO: Check for possible default implementation in libconfigtoolutils
-static void freeConst(void const * const pMemoryToFree)
-{
-  // The following pointer arithmetics removes the 'const' attribute from pointer avoiding any warnings
-  char const * const pConstMemory = pMemoryToFree;
-  char * pMemory = 0x0;
-  pMemory = pMemory + (pConstMemory - pMemory);
-  free(pMemory);
-}
-
-
 /// Function to print program information text (for example implementation see HelloWorld example config tool).
 void ctparts_PrintInfoText(ctparts_commonMainContext_t * const WC_UNUSED_PARAM(pstContext),
                            char const * const szCallString)
 {
-  WC_ASSERT(szCallString[0] != '\0');
-  printf("Programm call: %s\n", szCallString);
-  printf("\n");
-  printf(infoText);
-  printf("\n");
-
-  return;
+  ctutil_PrintInfoTextDefault(szCallString, infoText);
 }
 
 
@@ -198,44 +182,10 @@ void ctparts_ReleaseSpecificOptions(ctparts_commonMainContext_t * const WC_UNUSE
 }
 
 
-static void PrintCommandOptions(void)
+static void PrintHelp(char const * const szCallString)
 {
-  printf("Application options:\n");
-  size_t i = 0U;
-  while(arstCommandlineOptions[i].name != NULL)
-  {
-    char const * szParam = "";
-    if(arstCommandlineOptions[i].has_arg == required_argument)
-    {
-      szParam = "<param>";
-    }
-    if(arstCommandlineOptions[i].has_arg == optional_argument)
-    {
-      szParam = "[param]";
-    }
-    printf("  --%-25s %-7s   -%c   %s\n", arstCommandlineOptions[i].name,
-                                          szParam,
-                                          arstCommandlineOptions[i].val,
-                                          arszCommandlineOptionTexts[i]);
-    i++;
-  }
-
-  return;
-}
-
-
-static void PrintHelp(char const * const szName)
-{
-  printf("Programm call: %s\n", szName);
-  printf("\n");
-  printf(helpText);
-  printf("\n");
-  PrintCommandOptions();
-  printf("\n");
-  printf(additionalText);
-  printf("\n");
-  printf(exampleText);
-  return;
+  ctutil_PrintHelpDefault(szCallString, helpText, additionalText, exampleText,
+                          arstCommandlineOptions, arszCommandlineOptionTexts);
 }
 
 
@@ -246,33 +196,6 @@ statusCode_t ctparts_EvaluateEarlyOptions(ctparts_commonMainContext_t * const WC
                                           ctutil_Options_t * const pstOptions)
 {
   return ctutil_EvaluateEarlyOptions(argc, argv, pstOptions);
-}
-
-
-// TODO: Check for use in libconfigtoolutils
-static statusCode_t CopyStringParam(char const * * const pszStringParam,
-                                    char const * const szOptionArg)
-{
-  statusCode_t status = CTUTIL_SUCCESS;
-
-  if((*pszStringParam) != NULL)
-  {
-    freeConst(*pszStringParam);
-  }
-  size_t const argLen = strlen(szOptionArg);
-  char * szOptionArgCopy = malloc(argLen + 1);
-  if(szOptionArgCopy == NULL)
-  {
-    status = CTUTIL_FAILED;
-  }
-  else
-  {
-    strncpy(szOptionArgCopy, szOptionArg, argLen);
-    szOptionArgCopy[argLen] = '\0';
-    (*pszStringParam) = szOptionArgCopy;
-  }
-
-  return status;
 }
 
 
@@ -330,7 +253,7 @@ statusCode_t ctparts_EvaluateOptions(ctparts_commonMainContext_t * const WC_UNUS
         else
         {
           WC_ASSERT(pstOptions->pstSpecificOptions != NULL);
-          status = CopyStringParam(&(pstOptions->pstSpecificOptions->szCustomText), optarg);
+          status = ctutil_CopyStringParam(&(pstOptions->pstSpecificOptions->szCustomText), optarg);
         }
         pstOptions->stCommonOptions.infoPrint = false;
         break;

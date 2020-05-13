@@ -58,6 +58,19 @@ int SYSFS_Access::sysfs_read(const char *file, char *buf, size_t nbyte) const
   return result;
 }
 
+bool SYSFS_Access::sysfs_exist(const char *file) const
+{
+  bool result;
+  if (access(file, F_OK) == 0)
+  {
+    result = true;
+  }
+  else
+  {
+    result = false;
+  }
+  return result;
+}
 
 /*********** class GPIO_Control ***********/
 #define SYSFS_GPIO_PATH     "/sys/class/gpio"
@@ -73,6 +86,21 @@ int GPIO_Control::gpio_export() const
 	  free(gpiostr);
 	}
 	return result;
+}
+
+bool GPIO_Control::gpio_exported() const
+{
+  bool result;
+  char *filepath = nullptr;
+  if (asprintf(&filepath, SYSFS_GPIO_PATH"/gpio%d/value", _gpio) == -1) {
+    result = false;
+  }
+  else
+  {
+    result = sysfs_exist(filepath);
+    free(filepath);
+  }
+  return result;
 }
 
 int GPIO_Control::gpio_unexport() const
@@ -121,7 +149,14 @@ int GPIO_Control::gpio_write_value(int value) const
     result = -1;
   }
   else {
-    result = sysfs_write(filepath, (value != 0) ? "1" : "0");
+    if (value == 0)
+    {
+      result = sysfs_write(filepath, "0");
+    }
+    else
+    {
+      result = sysfs_write(filepath, "1");
+    }
     free(filepath);
   }
   return result;
@@ -173,6 +208,21 @@ int MUSB_Control::musb_unbind() const
   else {
     result = sysfs_write(SYSFS_MUSB_DRIVER_PATH"/unbind", portstr);
     free(portstr);
+  }
+  return result;
+}
+
+bool MUSB_Control::musb_bound() const
+{
+  bool result;
+  char *filepath = nullptr;
+  if (asprintf(&filepath, "%s/musb-hdrc.%d.auto", SYSFS_MUSB_DRIVER_PATH, _port) == -1) {
+    result = false;
+  }
+  else
+  {
+    result = sysfs_exist(filepath);
+    free(filepath);
   }
   return result;
 }

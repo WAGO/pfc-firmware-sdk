@@ -1,0 +1,37 @@
+From 368d4327d1b4536e9f78c30289da1ae156b7dfe0 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 11 Nov 2019 16:50:59 +0100
+Subject: [PATCH] arm: defconfig: pac-mlo: enable usb fastboot
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/configs/am335x_pac_mlo_defconfig | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/configs/am335x_pac_mlo_defconfig b/arch/arm/configs/am335x_pac_mlo_defconfig
+index 078e0bd..ac3c714 100644
+--- a/arch/arm/configs/am335x_pac_mlo_defconfig
++++ b/arch/arm/configs/am335x_pac_mlo_defconfig
+@@ -14,11 +14,18 @@ CONFIG_PROMPT="MLO>"
+ CONFIG_SHELL_NONE=y
+ # CONFIG_ERRNO_MESSAGES is not set
+ # CONFIG_TIMESTAMP is not set
++CONFIG_BOOTM=y
++CONFIG_BOOTM_AIMAGE=y
+ CONFIG_DEBUG_INFO=y
+-CONFIG_OFDEVICE=y
+ CONFIG_DRIVER_SERIAL_NS16550=y
+ CONFIG_DRIVER_SERIAL_NS16550_OMAP_EXTENSIONS=y
+ # CONFIG_SPI is not set
++CONFIG_USB_GADGET=y
++# CONFIG_USB_GADGET_AUTOSTART is not set
++CONFIG_USB_GADGET_FASTBOOT=y
++CONFIG_USB_MUSB=y
++CONFIG_USB_MUSB_AM335X=y
++CONFIG_USB_MUSB_GADGET=y
+ CONFIG_MCI=y
+ CONFIG_MCI_STARTUP=y
+ # CONFIG_MCI_WRITE is not set
+-- 
+2.7.4
+

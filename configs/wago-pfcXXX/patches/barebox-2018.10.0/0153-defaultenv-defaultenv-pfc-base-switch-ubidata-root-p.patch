@@ -1,7 +1,7 @@
 From 9b042fd6831c65f125882f7395e875e03aa0397c Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 19 Dec 2018 16:13:53 +0100
-Subject: [PATCH 153/153] defaultenv: defaultenv-pfc-base: switch ubidata root
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: switch ubidata root
  partitions to rootfs.1/.2
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>

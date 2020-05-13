@@ -1346,6 +1346,18 @@
         <en>User LED 7 is in ErrorMode Code: $1, Argument: $2</en>
       </string>
     </event>
+    <event id="x0780" name="ec_blink_seq_750" persistent="none">
+      <comment>
+        EC LED will blink a fancy and colorful error code and argument
+      </comment>
+      <led name="EC" state="BLINK_SEQ_750" >
+        <blinkcode>$1</blinkcode>
+        <blinkarg>$2</blinkarg>
+      </led>
+      <string>
+        <en>EC LED is in ErrorMode Code: $1, Argument: $2</en>
+      </string>
+    </event>
     <event id="x00BF" name="user1_blink_seq_reset" persistent="none">
       <comment>
         If LED 1 is Blining Errorcode, it will be resettet completely

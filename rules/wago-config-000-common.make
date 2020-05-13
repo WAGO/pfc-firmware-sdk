@@ -232,9 +232,6 @@ ifdef PTXCONF_CT_GET_ACTUAL_ETH_CONFIG
 	CT_MAKE_ARGS+=get_actual_eth_config
 endif
 
-ifdef PTXCONF_CT_GET_DSA_MODE
-	CT_MAKE_ARGS+=get_dsa_mode
-endif
 ifdef PTXCONF_CT_GET_SWITCH_SETTINGS
 	CT_MAKE_ARGS+=get_switch_settings
 endif
@@ -530,6 +527,7 @@ endif
 
 ifdef PTXCONF_CT_RESTART_WEBSERVER
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/restart_webserver, /etc/config-tools/restart_webserver);
+	@$(call install_replace, config-tools, /etc/config-tools/restart_webserver, @LIGHTTPD_BBINIT_LINK@, $(PTXCONF_LIGHTTPD_BBINIT_LINK))
 endif
 
 ifdef PTXCONF_CT_RS232_OWNER
@@ -538,7 +536,6 @@ endif
 
 ifdef PTXCONF_CT_SETTINGS_BACKUP
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_backup, /etc/config-tools/settings_backup);
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_factory, /etc/config-tools/settings_factory);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_factory, /etc/config-tools/settings_factory);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/rc.once.d/save-factory-defaults, /etc/rc.once.d/save-factory-defaults);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/backup-restore);
@@ -829,10 +826,18 @@ ifdef PTXCONF_CT_LIBCTNETWORK
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/snmp/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/ssh/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/ssl/);
-ifneq ($(PTXCONF_PLATFORM), wago-pac100)
+	
+
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
+	# Does not install /etc/config-tools/events/telnet if Telnet protocol is not available (default for PFC_ADV)
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/telnet/);
+endif
+
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
+  # Does not install /etc/config-tools/events/tftp if TPTF service is not available (default for PFC_ADV)
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/tftp/);
 endif
+
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/iocheckport/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/networking/);
 
@@ -862,18 +867,15 @@ ifdef PTXCONF_CT_CONFIG_ETHERNET
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_ethernet, /etc/config-tools/config_ethernet);
 endif
 
-ifndef PTXCONF_NETCONFD
 ifdef PTXCONF_CT_CONFIG_INTERFACES
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_interfaces, /etc/config-tools/config_interfaces);
+endif
+ifdef PTXCONF_CT_GET_DSA_MODE
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_dsa_mode, /etc/config-tools/get_dsa_mode);
 endif
 ifdef PTXCONF_CT_SET_DSA_MODE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/set_dsa_mode, /etc/config-tools/set_dsa_mode);
 endif
-
-ifdef PTXCONF_CT_GET_DSA_MODE
-	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/get_dsa_mode, /etc/config-tools/get_dsa_mode);
-endif
-endif #PTXCONF_NETCONFD
 ifdef PTXCONF_CT_GET_SWITCH_SETTINGS
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/get_switch_settings, /etc/config-tools/get_switch_settings);
 	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/switch_settings.conf)
@@ -889,9 +891,7 @@ ifdef PTXCONF_CT_SET_SERIAL_MODE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/set_serial_mode, /etc/config-tools/set_serial_mode);
 endif
 ifdef PTXCONF_CT_WWAN_INTERFACE
-ifndef PTXCONF_NETCONFD
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_wwan, /etc/config-tools/config_wwan);
-endif #PTXCONF_NETCONFD
 	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/wwan.conf);
 endif
 

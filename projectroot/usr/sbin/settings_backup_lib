@@ -229,13 +229,13 @@ ProcessErrRestoreOperation ()
   local lastError=""
   if [[ "$errorCode" != "$SUCCESS" ]]; then
      if [[ -f "$LAST_ERROR_FILENAME" ]]; then
-     	 read lastError < "$LAST_ERROR_FILENAME"
+       read lastError < "$LAST_ERROR_FILENAME"
      fi
      if [ -n "$lastError" ]; then
-     		ReportError $errorCode "$errorText  \"$errorParam\" \"$lastError\""
+        ReportError $errorCode "$errorText  \"$errorParam\" \"$lastError\""
      else
-     	  ReportError $errorCode "$errorText  \"$errorParam\""
-     fi	  
+        ReportError $errorCode "$errorText  \"$errorParam\""
+     fi   
      restore_error_count=$((restore_error_count+1))
   fi
   return 0
@@ -262,13 +262,13 @@ ProcessErrBackupOperation ()
   
   if [[ "$errorCode" != "$SUCCESS" ]]; then 
      if [[ -f "$LAST_ERROR_FILENAME" ]]; then
-     		read lastError < "$LAST_ERROR_FILENAME"
+        read lastError < "$LAST_ERROR_FILENAME"
      fi
      if [ -n "$lastError" ]; then
-     		ReportError $errorCode "$errorText  \"$errorParam\" \"$lastError\""
+        ReportError $errorCode "$errorText  \"$errorParam\" \"$lastError\""
      else
-     	  ReportError $errorCode "$errorText  \"$errorParam\""
-     fi	 
+        ReportError $errorCode "$errorText  \"$errorParam\""
+     fi  
      backup_error_count=$((backup_error_count+1))
   fi
   return 0

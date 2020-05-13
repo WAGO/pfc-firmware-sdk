@@ -1,4 +1,4 @@
-# Network configuration is handled by netconfd.
+# Network configuration is handled by netconfd and stored in file /etc/specific/netconfd.json. 
 # ifup/ifdown are only used for loopback device, currently.
 
 auto lo

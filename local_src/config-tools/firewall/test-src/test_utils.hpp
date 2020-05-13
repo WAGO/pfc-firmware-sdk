@@ -13,50 +13,38 @@
 ///
 ///  \author   WF : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#ifndef TEST_SRC_TEST_UTILS_HPP_
-#define TEST_SRC_TEST_UTILS_HPP_
+#pragma once
 
-//------------------------------------------------------------------------------
-// include files
-//------------------------------------------------------------------------------
 #include <string>
+#include <vector>
 
-//------------------------------------------------------------------------------
-// defines; structure, enumeration and type definitions
-//------------------------------------------------------------------------------
+namespace wago {
 
-//------------------------------------------------------------------------------
-// function prototypes
-//------------------------------------------------------------------------------
+class TestUtils {
 
-namespace wago
-{
+ public:
+  TestUtils() = default;
+  ~TestUtils() = default;
 
-std::string create_temp_dir(std::string const & prefix);
+  static std::string create_temp_dir(std::string const &prefix);
 
-void create_dir(std::string const & name);
+  static void create_dir(std::string const &name);
 
-void remove_dir(std::string const & dirname);
+  static void remove_dir(std::string const &dirname);
 
-bool file_exists(std::string const & name);
+  static bool file_exists(std::string const &name);
 
-void copy_file(std::string const & source, std::string const & target);
+  static void copy_file(std::string const &source, std::string const &target);
+
+  static void read_from_file(const ::std::string &file_path, ::std::string &data);
+
+  static void write_to_file(const ::std::string &file_path, const ::std::string &data);
+
+  static size_t get_line_count(const ::std::string &file_path);
+
+  static bool content_is_equal(const ::std::string &file_path1, const ::std::string &file_path2);
+
+  static bool contains(::std::vector<::std::string> vector, ::std::string value);
+};
 
 }
-
-//------------------------------------------------------------------------------
-// macros
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// variables' and constants' definitions
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// function implementation
-//------------------------------------------------------------------------------
-
-
-#endif /* TEST_SRC_TEST_UTILS_HPP_ */
-//---- End of source file ------------------------------------------------------
-

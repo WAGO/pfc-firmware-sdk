@@ -51,7 +51,7 @@ NEW_TIMEOUT=0
 #
 # Return: Exit code, 0 on success, unequal to 0 otherwise
 #-----------------------------------------------------------------------------#
-main()
+fwupdate_control_main()
 {
     local RESULT=0
 
@@ -436,5 +436,5 @@ settimeout()
 }
 
 # Start main function
-main "$@"
+fwupdate_control_main "$@"
 exit $?

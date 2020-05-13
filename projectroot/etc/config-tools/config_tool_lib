@@ -1,10 +1,4 @@
 #!/bin/bash
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
-
 #-----------------------------------------------------------------------------#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -459,8 +453,8 @@ report_start()
 #-----------------------------------------------------------------------------#
 report_end()
 {
+    local IS_ARRAY="${1:-"false"}"
     local RESULT=0
-    IS_ARRAY="${1:-"false"}"
 
     # Close JSON part if any content present
     if [ -n "$JSON_REPORT" ]; then 
@@ -482,10 +476,13 @@ report_end()
 
 # Function to add report content (structured output on stdout)
 # as key/value pair.
+# This function requires availability of variables "TEXTOUT" and "JSONOUT",
+# which have to be provided (0: no output, integer value != 0: output requested).
 #
 # Param 1: Key for content to add
 # Param 2: Content value to add
-# Param 3: Value format character (s)tring, (i)nt; optional, default is string
+# Param 3: Value format character (s)tring, (i)nt, (b)ool; optional, default is string
+# Param 4: Skip key name for text output; optional
 #
 # Return: 0 on success, unequal to 0 otherwise,
 #         INVALID_PARAMETER on invalid parameter combination (e.g. format)
@@ -498,6 +495,7 @@ report()
     local REPORT_KEY="$1"
     local REPORT_VALUE="$2"
     local REPORT_VALUE_FORMAT="${3:-}"
+    local SKIP_KEY_NAME=${4:-false}
 
     # Set default if no parameter given for format
     if [ -z "$REPORT_VALUE_FORMAT" ]; then
@@ -505,7 +503,10 @@ report()
     fi
 
     # Check for plausible parameters
-    if [[ "$REPORT_VALUE_FORMAT" == "i" && ! $REPORT_VALUE =~ ^[-+]?[0-9]+$ ]]; then
+    if [[ "$REPORT_VALUE_FORMAT" == "i" && ! "$REPORT_VALUE" =~ ^[-+]?[0-9]+$ ]]; then
+        return $INVALID_PARAMETER
+    fi
+    if [[ "$REPORT_VALUE_FORMAT" == "b" && "$REPORT_VALUE" != "true" && "$REPORT_VALUE" != "false" ]]; then
         return $INVALID_PARAMETER
     fi
 
@@ -514,7 +515,10 @@ report()
         if [ -n "$TEXT_REPORT" ]; then
             TEXT_REPORT="${TEXT_REPORT}\n"
         fi
-        TEXT_REPORT="${TEXT_REPORT}${REPORT_KEY}=${REPORT_VALUE}"
+        if ! $SKIP_KEY_NAME; then
+            TEXT_REPORT="${TEXT_REPORT}${REPORT_KEY}="
+        fi
+        TEXT_REPORT="${TEXT_REPORT}${REPORT_VALUE}"
     fi
 
     # Add JSON output if requested
@@ -531,6 +535,12 @@ report()
             local JSON_ESCAPED_VALUE
             JSON_ESCAPED_VALUE="$(escape_json "$REPORT_VALUE")"
             JSON_REPORT="${JSON_REPORT} ${JSON_ESCAPED_VALUE}"
+        elif [ "$REPORT_VALUE_FORMAT" == "b" ]; then
+            if ${REPORT_VALUE}; then
+                JSON_REPORT="${JSON_REPORT} true"
+            else
+                JSON_REPORT="${JSON_REPORT} false"
+            fi
         else
             JSON_REPORT="${JSON_REPORT} ${REPORT_VALUE}"
         fi
@@ -541,6 +551,8 @@ report()
 
 # Function to add report content (structured output on stdout)
 # either as JSON array or as text.
+# This function requires availability of variables "TEXTOUT" and "JSONOUT",
+# which have to be provided (0: no output, integer value != 0: output requested).
 #
 # Param 1: Content value to add
 # Param 2: Value format character (s)tring, (i)nt; optional, default is string

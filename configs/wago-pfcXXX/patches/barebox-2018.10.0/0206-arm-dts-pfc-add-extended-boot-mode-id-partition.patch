@@ -1,0 +1,68 @@
+From 5a0f8fa61fe4e2da919c97d9836355de704515f5 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 11 Feb 2020 14:23:55 +0100
+Subject: [PATCH] arm: dts: pfc: add extended boot-mode-id partition
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am335x-pfc.dtsi           | 1 +
+ arch/arm/dts/am35xx-pfc-750_820x.dts   | 1 +
+ arch/arm/dts/eepromparts.dtsi          | 5 +++++
+ arch/arm/dts/imx6q-vtpctp-762-4xxx.dts | 1 +
+ 4 files changed, 8 insertions(+)
+
+diff --git a/arch/arm/dts/am335x-pfc.dtsi b/arch/arm/dts/am335x-pfc.dtsi
+index 7515c10..7c5b73f 100644
+--- a/arch/arm/dts/am335x-pfc.dtsi
++++ b/arch/arm/dts/am335x-pfc.dtsi
+@@ -59,6 +59,7 @@
+ 		status = "okay";
+ 
+ 		boot_mode_id = <&boot_mode_id>;
++		boot_mode_id_ext = <&boot_mode_id_ext>;
+ 		devconf = <&devconf>;
+ 		ethaddr1 = <&ethaddr1>;
+ 		ethaddr2 = <&ethaddr2>;
+diff --git a/arch/arm/dts/am35xx-pfc-750_820x.dts b/arch/arm/dts/am35xx-pfc-750_820x.dts
+index 30e9d80..55f843e 100644
+--- a/arch/arm/dts/am35xx-pfc-750_820x.dts
++++ b/arch/arm/dts/am35xx-pfc-750_820x.dts
+@@ -62,6 +62,7 @@
+ 		status = "okay";
+ 
+ 		boot_mode_id = <&boot_mode_id>;
++		boot_mode_id_ext = <&boot_mode_id_ext>;
+ 		devconf = <&devconf>;
+ 		ethaddr1 = <&ethaddr1>;
+ 		ethaddr2 = <&ethaddr2>;
+diff --git a/arch/arm/dts/eepromparts.dtsi b/arch/arm/dts/eepromparts.dtsi
+index 304627c..b5bf2cb 100644
+--- a/arch/arm/dts/eepromparts.dtsi
++++ b/arch/arm/dts/eepromparts.dtsi
+@@ -23,6 +23,11 @@
+ 			label = "boot_mode_id";
+ 		};
+ 
++		boot_mode_id_ext: boot-mode-id_ext@0102 {
++			reg = <0x0102 0x1>;
++			label = "boot_mode_id_ext";
++		};
++
+ 		blidx: blidx@1F7 {
+ 			reg = <0x1F7 0x1>;
+ 			label = "blidx";
+diff --git a/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts b/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
+index 0c8eabf..593f55e 100644
+--- a/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
++++ b/arch/arm/dts/imx6q-vtpctp-762-4xxx.dts
+@@ -54,6 +54,7 @@
+ 		status = "okay";
+ 
+ 		boot_mode_id = <&boot_mode_id>;
++		boot_mode_id_ext = <&boot_mode_id_ext>;
+ 		devconf = <&devconf>;
+ 		ethaddr1 = <&ethaddr1>;
+ 		ethaddr2 = <&ethaddr2>;
+-- 
+2.7.4
+

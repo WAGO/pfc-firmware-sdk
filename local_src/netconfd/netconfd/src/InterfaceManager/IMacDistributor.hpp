@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../../../extern/Status.hpp"
+#include "Status.hpp"
 #include "Types.hpp"
 
 namespace netconfd {

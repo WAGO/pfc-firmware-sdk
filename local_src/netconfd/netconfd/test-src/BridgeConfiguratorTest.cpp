@@ -74,8 +74,9 @@ TEST_F(ABridgeConfigurator, AddsOneBridgeAndOneCorrespondingInterface) {
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(_,_)).WillOnce(
       Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX1")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
+
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -118,15 +119,8 @@ TEST_F(ABridgeConfigurator, AddsOneBridgeAndFourCorrespondingInterface) {
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br0"),Eq("ethX12"))).WillOnce(
       Return(Status(StatusCode::OK)));
-
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX1")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX2")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX11")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX12")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -157,15 +151,10 @@ TEST_F(ABridgeConfigurator, AddsTwoBridgesWithTwoCorrespondingInterfaces) {
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br1"),Eq("ethX12"))).WillOnce(
       Return(Status(StatusCode::OK)));
-
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX1")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX2")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX11")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX12")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br1"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -188,9 +177,8 @@ TEST_F(ABridgeConfigurator, ModifyOneBridgeByAddingOneInterface) {
 
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br0"),Eq("ethX2"))).WillOnce(
       Return(Status(StatusCode::OK)));
-
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX2")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -214,8 +202,8 @@ TEST_F(ABridgeConfigurator, ModifyOneBridgeByRemovingOneInterface) {
 
   EXPECT_CALL(mock_bridge_controller_, AddInterface(_,_)).Times(0);
 
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceDown("ethX1")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -239,10 +227,8 @@ TEST_F(ABridgeConfigurator, ModifyOneBridgeByChangingOneInterface) {
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br0"),Eq("ethX11"))).WillOnce(
       Return(Status(StatusCode::OK)));
 
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceDown("ethX1")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX11")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -274,13 +260,10 @@ TEST_F(ABridgeConfigurator, AddSecondBridgeAndThreeInterfaces) {
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br1"),Eq("XUnmapped"))).WillOnce(
       Return(Status(StatusCode::OK)));
-
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX11")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX12")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("XUnmapped")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br1"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -307,14 +290,10 @@ TEST_F(ABridgeConfigurator, RemoveOneBridgeAndCorrespondingInterfaces) {
   EXPECT_CALL(mock_bridge_controller_, DeleteBridge(Eq("br1"))).WillOnce(
       Return(Status(StatusCode::OK)));
 
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceDown("ethX11")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceDown("ethX12")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceDown("XUnmapped")).WillOnce(
-      Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, SetInterfaceDown("br1")).WillOnce(
       Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -343,11 +322,10 @@ TEST_F(ABridgeConfigurator, MoveOneInterfaceToAnotherBridge) {
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br1"),Eq("ethX2"))).WillOnce(
       Return(Status(StatusCode::OK)));
-
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceDown("ethX2")).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX2")).WillOnce(
-      Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br1"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -369,11 +347,10 @@ TEST_F(ABridgeConfigurator, FirstSetsAnInterfaceUpBeforeAddingToBridge) {
   EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br0"))).WillOnce(
       Return(Status(StatusCode::OK)));
 
-  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp("ethX1")).InSequence(s1).WillOnce(
-      Return(Status(StatusCode::OK)));
-
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br0"),Eq("ethX1"))).InSequence(s1)
       .WillOnce(Return(Status(StatusCode::OK)));
+  EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
+        Return(Status(StatusCode::OK)));
 
   bridge_configurator_->Configure(target_config);
 }

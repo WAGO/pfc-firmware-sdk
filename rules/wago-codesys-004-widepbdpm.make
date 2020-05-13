@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -47,7 +47,7 @@ $(STATEDIR)/libwidepbdpm.extract:
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 # WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	rsync -a --exclude=".*" --exclude=objs/ --exclude=objs_test/ --exclude=lib --exclude=lib_test  $(LIBWIDEPBDPM_SRC) $(BUILDDIR)
-endif    
+endif
 
 	@$(call touch)
 
@@ -59,7 +59,7 @@ endif
 $(STATEDIR)/libwidepbdpm.prepare:
 	@$(call targetinfo)
 	@$(call touch)
-	
+
 LIBWIDEPBDPM_ENV:= $(CROSS_ENV)
 # ----------------------------------------------------------------------------
 # Compile
@@ -74,7 +74,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		SYSROOT=$(PTXCONF_SYSROOT_TARGET)\
 		CROSS_COMPILE=$(COMPILER_PREFIX)\
 		$(MAKE) -f Makefile $(PARALLELMFLAGS)
-        
+
 endif
 
 	@$(call touch)
@@ -98,7 +98,7 @@ $(STATEDIR)/libwidepbdpm.targetinstall:
 	@$(call install_init, libwidepbdpm)
 	@$(call install_fixup, libwidepbdpm, PRIORITY, optional)
 	@$(call install_fixup, libwidepbdpm, SECTION, base)
-	@$(call install_fixup, libwidepbdpm, AUTHOR, "Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, libwidepbdpm, AUTHOR, "<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, libwidepbdpm, DESCRIPTION, The libwidepbdpm library implements the codesys-specific part of the pbdpm.)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES

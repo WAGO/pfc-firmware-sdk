@@ -11,7 +11,7 @@
 ///
 ///  \file     get_eth_config.c
 ///
-///  \version  $Revision: 11425 $1
+///  \version  $Revision: 44697 $1
 ///
 ///  \brief    
 ///
@@ -257,7 +257,7 @@ static void ShowHelpText(const char *progName)
 
   printf("\n* Get the interface-parameters configured by file interfaces *\n\n");
   printf("Usage: %s <interface> <parameter> [-c custom xml network config]\n\n", progName);
-  printf("Interface: TODO\n");
+  printf("Interface: X1 | X2\n");
   printf("Parameter: ");
 
   // read the possible strings for parameter from array and show them like this: "param1 | param2 | param3"

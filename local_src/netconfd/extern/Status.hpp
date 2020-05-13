@@ -1,13 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 //------------------------------------------------------------------------------
-///  \file
-///
-///  \brief    <short description of the file contents>
-///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-#ifndef BAL_EXTERN_STATUS_HPP_
-#define BAL_EXTERN_STATUS_HPP_
+#pragma once
 
 #include <string>
 
@@ -96,6 +89,12 @@ class Status {
     return *this;
   }
 
+  Status& Merge(const Status& other) {
+    error_code_ = other.error_code_;
+    message_.append(other.message_);
+    return *this;
+  }
+
   operator bool() { return this->Ok(); }
 
  private:
@@ -103,7 +102,4 @@ class Status {
   ::std::string message_;
 };
 
-}  // namespace netconfd
-
-#endif /* BAL_EXTERN_STATUS_HPP_ */
-//---- End of source file ------------------------------------------------------
+}

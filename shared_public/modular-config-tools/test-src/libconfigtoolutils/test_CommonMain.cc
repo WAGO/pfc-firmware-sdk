@@ -5,7 +5,7 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2019 WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     test_CommonMain.cc
@@ -20,6 +20,7 @@
 //------------------------------------------------------------------------------
 #include "wc/structuring.h"
 #include "ctutil/common_main.h"
+#include "ctparts/common_main_defaults.h"
 #include "ctparts/ctmain.h"
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -159,6 +160,24 @@ static void ReleaseSpecificResources(ctparts_commonMainContext_t * const pstCont
 {
   pstContext->pMock->ReleaseSpecificResources(ppstResources);
   return;
+}
+
+
+statusCode_t ctparts_EvaluateEarlyOptions(ctparts_commonMainContext_t * const WC_UNUSED_PARAM(pstContext),
+                                          int const WC_UNUSED_PARAM(argc),
+                                          char * const WC_UNUSED_PARAM(argv)[],
+                                          ctutil_Options_t * const WC_UNUSED_PARAM(pstOptions))
+{
+  return CTUTIL_SUCCESS;
+}
+
+
+statusCode_t ctparts_EvaluateOptions(ctparts_commonMainContext_t * const WC_UNUSED_PARAM(pstContext),
+                                     int const WC_UNUSED_PARAM(argc),
+                                     char * const WC_UNUSED_PARAM(argv)[],
+                                     ctutil_Options_t * const WC_UNUSED_PARAM(pstOptions))
+{
+  return CTUTIL_SUCCESS;
 }
 
 

@@ -83,6 +83,11 @@ AC_MSG_RESULT([$hal])
 AM_CONDITIONAL(HAL_PCA955X, test "x$hal" = "xpca955x")
 AM_CONDITIONAL(HAL_GPIO, test "x$hal" = "xgpio")
 
+AC_ARG_WITH(platform,
+  AS_HELP_STRING([--with-platform=platform]),
+  [case "$withval" in "wago-pfc-adv") CPPFLAGS="${CPPFLAGS} -DPFC200_ADV";; esac]
+)
+
 AC_MSG_CHECKING([gpio variant])
 AC_ARG_WITH(gpiovariant,
   AS_HELP_STRING([--with-gpiovariant=variant],

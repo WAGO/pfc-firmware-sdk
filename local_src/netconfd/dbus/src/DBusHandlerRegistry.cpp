@@ -11,103 +11,62 @@
 namespace netconfd {
 namespace dbus {
 
+
+template <typename SkeletonType, typename CallbackFunc>
+void GSignalConnect(SkeletonType* obj, const char * signalName, CallbackFunc &&f, void* data){
+  auto handler_id = g_signal_connect(obj, signalName, G_CALLBACK(f), data);
+  if (handler_id <= 0) {
+    throw ::std::runtime_error("DBusHandlerRegistry: Failed to connect signal");
+  }
+}
+
 DBusHandlerRegistry::DBusHandlerRegistry() {
-
-  interface_object_ = netconfd_object_skeleton_new(
-      "/de/wago/netconfd/interface_config");
+  // interface_config
+  interface_object_ = netconfd_object_skeleton_new("/de/wago/netconfd/interface_config");
   interface_config_ = netconfd_interface_config_skeleton_new();
-  netconfd_object_skeleton_set_interface_config(interface_object_,
-                                                interface_config_);
+  netconfd_object_skeleton_set_interface_config(interface_object_, interface_config_);
 
-  //interface_config
-  auto handler_id = g_signal_connect(interface_config_, "handle-set",
-                                     G_CALLBACK(SetBridgeConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect SetBridgeConfig handler");
-  }
+  GSignalConnect(interface_config_, "handle-set", SetBridgeConfig, this);
 
-  handler_id = g_signal_connect(interface_config_, "handle-get",
-                                G_CALLBACK(GetBridgeConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect GetBridgeConfig handler");
-  }
+  GSignalConnect(interface_config_, "handle-get", GetBridgeConfig, this);
 
-  handler_id = g_signal_connect(interface_config_, "handle-getdeviceinterfaces",
-                                G_CALLBACK(GetDeviceInterfaces), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect GetDeviceInterfaces handler");
-  }
+  GSignalConnect(interface_config_, "handle-getdeviceinterfaces", GetDeviceInterfaces, this);
 
-  handler_id = g_signal_connect(interface_config_, "handle-setinterfaceconfig",
-                                G_CALLBACK(SetInterfaceConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect SetInterfaceConfig handler");
-  }
+  GSignalConnect(interface_config_, "handle-setinterfaceconfig", SetInterfaceConfig, this);
 
-  handler_id = g_signal_connect(interface_config_, "handle-getinterfaceconfig",
-                                G_CALLBACK(GetInterfaceConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect GetInterfaceConfig handler");
-  }
+  GSignalConnect(interface_config_, "handle-getinterfaceconfig", GetInterfaceConfig, this);
 
-  handler_id = g_signal_connect(interface_config_, "handle-getbackupparamcount",
-                                G_CALLBACK(GetBackupParamCount), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect GetBackupParamCount handler");
-  }
-
-  handler_id = g_signal_connect(interface_config_, "handle-backup",
-                                G_CALLBACK(Backup), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect Backup handler");
-  }
-
-  handler_id = g_signal_connect(interface_config_, "handle-restore",
-                                G_CALLBACK(Restore), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect Restore handler");
-  }
-
-  //ip_config
+  // ip_config
   ip_object_ = netconfd_object_skeleton_new("/de/wago/netconfd/ip_config");
   ip_config_ = netconfd_ip_config_skeleton_new();
   netconfd_object_skeleton_set_ip_config(ip_object_, ip_config_);
 
-  handler_id = g_signal_connect(ip_config_, "handle-setall",
-                                G_CALLBACK(SetAllIPConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect SetAllIPConfig handler");
-  }
+  GSignalConnect(ip_config_, "handle-setall", SetAllIPConfig, this);
 
-  handler_id = g_signal_connect(ip_config_, "handle-set",
-                                G_CALLBACK(SetIPConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect SetIPConfig handler");
-  }
+  GSignalConnect(ip_config_, "handle-set", SetIPConfig, this);
 
-  handler_id = g_signal_connect(ip_config_, "handle-getall",
-                                G_CALLBACK(GetAllIPConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect GetIPAllConfig handler");
-  }
+  GSignalConnect(ip_config_, "handle-getall", GetAllIPConfig, this);
 
-  handler_id = g_signal_connect(ip_config_, "handle-get",
-                                G_CALLBACK(GetIPConfig), this);
-  if (handler_id <= 0) {
-    throw ::std::runtime_error(
-        "DBusHandlerRegistry: Failed to connect GetIPConfig handler");
-  }
+  GSignalConnect(ip_config_, "handle-getallcurrent", GetAllCurrentIPConfig, this);
+
+  GSignalConnect(ip_config_, "handle-get", GetIPConfig, this);
+
+  GSignalConnect(ip_config_, "handle-tempfixip", TemporaryFixIP, this);
+
+  GSignalConnect(ip_config_, "handle-getdipswitchconfig", GetDipSwitchConfig, this);
+
+  GSignalConnect(ip_config_, "handle-setdipswitchconfig", SetDipSwitchConfig, this);
+
+  // backup & restore
+  backup_object_ = netconfd_object_skeleton_new("/de/wago/netconfd/backup");
+  backup_ = netconfd_backup_skeleton_new();
+  netconfd_object_skeleton_set_backup(backup_object_, backup_);
+
+  GSignalConnect(backup_, "handle-backup", Backup, this);
+
+  GSignalConnect(backup_, "handle-restore", Restore, this);
+
+  GSignalConnect(backup_, "handle-getbackupparamcount", GetBackupParamCount, this);
 
 }
 
@@ -117,243 +76,247 @@ DBusHandlerRegistry::~DBusHandlerRegistry() {
 
   g_object_unref(ip_object_);
   g_object_unref(ip_config_);
+
+  g_object_unref(backup_object_);
+  g_object_unref(backup_);
 }
 
-GDBusObjectSkeleton* DBusHandlerRegistry::GetInterfaceObject() const {
-
+GDBusObjectSkeleton *DBusHandlerRegistry::GetInterfaceObject() const {
   return G_DBUS_OBJECT_SKELETON(interface_object_);
 }
 
-GDBusObjectSkeleton* DBusHandlerRegistry::GetIPObject() const {
-
+GDBusObjectSkeleton *DBusHandlerRegistry::GetIPObject() const {
   return G_DBUS_OBJECT_SKELETON(ip_object_);
 }
 
-gboolean DBusHandlerRegistry::SetBridgeConfig(netconfdInterface_config *object,
-                                              GDBusMethodInvocation *invocation,
-                                              const gchar *arg_config,
-                                              gpointer user_data) {
+GDBusObjectSkeleton* DBusHandlerRegistry::GetBackupObject() const
+{
+  return G_DBUS_OBJECT_SKELETON(backup_object_);
+}
 
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::SetBridgeConfig(netconfdInterface_config *object, GDBusMethodInvocation *invocation,
+                                              const gchar *arg_config, gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->set_bridge_config_handler_) {
-    auto set_result = this_->set_bridge_config_handler_(arg_config);
-    netconfd_interface_config_complete_set(object, invocation, set_result);
+    auto result = this_->set_bridge_config_handler_(arg_config);
+    netconfd_interface_config_complete_set(object, invocation, result);
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.interface_config.Error.Set",
-        "No Handler for Set request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.interface_config.Error.Set",
+                                               "No Handler for Set request");
   }
   return true;
 }
 
-gboolean DBusHandlerRegistry::GetBridgeConfig(netconfdInterface_config* object,
-                                              GDBusMethodInvocation* invocation,
+gboolean DBusHandlerRegistry::GetBridgeConfig(netconfdInterface_config *object, GDBusMethodInvocation *invocation,
                                               gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->get_bridge_config_handler_) {
-    auto set_result = this_->get_bridge_config_handler_();
-    netconfd_interface_config_complete_get(object, invocation,
-                                           set_result.c_str());
+    auto result = this_->get_bridge_config_handler_();
+    netconfd_interface_config_complete_get(object, invocation, result.c_str());
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.interface_config.Error.Get",
-        "No Handler for Get request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.interface_config.Error.Get",
+                                               "No Handler for Get request");
   }
   return true;
-
 }
 
-gboolean DBusHandlerRegistry::GetDeviceInterfaces(
-    netconfdInterface_config *object, GDBusMethodInvocation *invocation,
-    gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::GetDeviceInterfaces(netconfdInterface_config *object, GDBusMethodInvocation *invocation,
+                                                  gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->get_device_interfaces_handler_) {
-    auto set_result = this_->get_device_interfaces_handler_();
-    netconfd_interface_config_complete_getdeviceinterfaces(object, invocation,
-                                                           set_result.c_str());
+    auto result = this_->get_device_interfaces_handler_();
+    netconfd_interface_config_complete_getdeviceinterfaces(object, invocation, result.c_str());
   } else {
     g_dbus_method_invocation_return_dbus_error(
-        invocation,
-        "de.wago.netconfd1.interface_config.Error.GetDeviceInterfaces",
-        "No Handler for Get request");
+        invocation, "de.wago.netconfd1.interface_config.Error.GetDeviceInterfaces", "No Handler for Get request");
   }
   return true;
-
 }
 
-gboolean DBusHandlerRegistry::SetInterfaceConfig(
-    netconfdInterface_config *object, GDBusMethodInvocation *invocation,
-    const gchar *arg_config, gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::SetInterfaceConfig(netconfdInterface_config *object, GDBusMethodInvocation *invocation,
+                                                 const gchar *arg_config, gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->set_interface_config_handler_) {
-    auto set_result = this_->set_interface_config_handler_(arg_config);
-    netconfd_interface_config_complete_setinterfaceconfig(object, invocation,
-                                                           set_result);
+    auto result = this_->set_interface_config_handler_(arg_config);
+    netconfd_interface_config_complete_setinterfaceconfig(object, invocation, result);
   } else {
     g_dbus_method_invocation_return_dbus_error(
-        invocation,
-        "de.wago.netconfd1.interface_config.Error.SetInterfaceConfig",
-        "No Handler for Get request");
+        invocation, "de.wago.netconfd1.interface_config.Error.SetInterfaceConfig", "No Handler for Get request");
   }
   return true;
-
 }
 
-gboolean DBusHandlerRegistry::GetInterfaceConfig(
-    netconfdInterface_config *object, GDBusMethodInvocation *invocation,
-    gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::GetInterfaceConfig(netconfdInterface_config *object, GDBusMethodInvocation *invocation,
+                                                 gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->get_interface_config_handler_) {
-    auto set_result = this_->get_interface_config_handler_();
-    netconfd_interface_config_complete_getinterfaceconfig(object, invocation,
-                                                          set_result.c_str());
+    auto result = this_->get_interface_config_handler_();
+    netconfd_interface_config_complete_getinterfaceconfig(object, invocation, result.c_str());
   } else {
     g_dbus_method_invocation_return_dbus_error(
-        invocation,
-        "de.wago.netconfd1.interface_config.Error.GetInterfaceConfig",
-        "No Handler for Get request");
+        invocation, "de.wago.netconfd1.interface_config.Error.GetInterfaceConfig", "No Handler for Get request");
   }
   return true;
-
 }
 
-
-gboolean DBusHandlerRegistry::GetBackupParamCount(
-    netconfdInterface_config *object, GDBusMethodInvocation *invocation,
-    gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::GetBackupParamCount(netconfdBackup *object, GDBusMethodInvocation *invocation,
+                                                  gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->get_backup_param_count_handler_) {
-    auto set_result = this_->get_backup_param_count_handler_();
-    netconfd_interface_config_complete_getbackupparamcount(object, invocation,
-                                                           set_result.c_str());
+    auto result = this_->get_backup_param_count_handler_();
+    netconfd_backup_complete_getbackupparamcount(object, invocation, result.c_str());
   } else {
     g_dbus_method_invocation_return_dbus_error(
-        invocation,
-        "de.wago.netconfd1.interface_config.Error.GetBackupParamCount",
-        "No Handler for Get request");
+        invocation, "de.wago.netconfd1.interface_config.Error.GetBackupParamCount", "No Handler for Get request");
   }
   return true;
-
 }
 
-gboolean DBusHandlerRegistry::Backup(netconfdInterface_config *object,
+gboolean DBusHandlerRegistry::Backup(netconfdBackup *object,
                                      GDBusMethodInvocation *invocation,
-                                     const gchar *arg_config,
-                                     gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+                                     const gchar *arg_content, const gchar *arg_targetversion , gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->backup_handler_) {
-    auto set_result = this_->backup_handler_(arg_config);
-    netconfd_interface_config_complete_backup(object, invocation, set_result);
+    auto result = this_->backup_handler_(arg_content, arg_targetversion);
+    netconfd_backup_complete_backup(object, invocation, result);
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.interface_config.Error.Backup",
-        "No Handler for Backup request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.backup.Error.Backup",
+                                               "No Handler for Backup request");
   }
   return true;
 }
 
-gboolean DBusHandlerRegistry::Restore(netconfdInterface_config *object,
-                                      GDBusMethodInvocation *invocation,
-                                      const gchar *arg_config,
-                                      gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::Restore(netconfdBackup *object, GDBusMethodInvocation *invocation,
+                                      const gchar *arg_config, gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->restore_handler_) {
-    auto set_result = this_->restore_handler_(arg_config);
-    netconfd_interface_config_complete_restore(object, invocation, set_result);
+    auto result = this_->restore_handler_(arg_config);
+    netconfd_backup_complete_restore(object, invocation, result);
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.interface_config.Error.Restore",
-        "No Handler for Restore request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.interface_config.Error.Restore",
+                                               "No Handler for Restore request");
   }
   return true;
 }
 
-gboolean DBusHandlerRegistry::SetAllIPConfig(netconfdIp_config *object,
-                                             GDBusMethodInvocation *invocation,
-                                             const gchar *arg_config,
-                                             gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::SetAllIPConfig(netconfdIp_config *object, GDBusMethodInvocation *invocation,
+                                             const gchar *arg_config, gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->set_all_ip_config_handler_) {
-    auto set_result = this_->set_all_ip_config_handler_(arg_config);
-    netconfd_ip_config_complete_setall(object, invocation, set_result);
+    auto result = this_->set_all_ip_config_handler_(arg_config);
+    netconfd_ip_config_complete_setall(object, invocation, result);
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.ip_config.Error.SetAll",
-        "No Handler for SetAll request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.SetAll",
+                                               "No Handler for SetAll request");
   }
   return true;
 }
 
-gboolean DBusHandlerRegistry::SetIPConfig(netconfdIp_config *object,
-                                          GDBusMethodInvocation *invocation,
-                                          const gchar *arg_config,
-                                          gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+gboolean DBusHandlerRegistry::SetIPConfig(netconfdIp_config *object, GDBusMethodInvocation *invocation,
+                                          const gchar *arg_config, gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->set_ip_config_handler_) {
-    auto set_result = this_->set_ip_config_handler_(arg_config);
-    netconfd_ip_config_complete_set(object, invocation, set_result);
+    auto result = this_->set_ip_config_handler_(arg_config);
+    netconfd_ip_config_complete_set(object, invocation, result);
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.ip_config.Error.Set",
-        "No Handler for Set request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.Set",
+                                               "No Handler for Set request");
   }
   return true;
 }
 
-gboolean DBusHandlerRegistry::GetAllIPConfig(netconfdIp_config* object,
-                                             GDBusMethodInvocation* invocation,
+gboolean DBusHandlerRegistry::GetAllIPConfig(netconfdIp_config *object, GDBusMethodInvocation *invocation,
                                              gpointer user_data) {
-
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
   if (this_->get_all_ip_config_handler_) {
-    auto set_result = this_->get_all_ip_config_handler_();
-    netconfd_ip_config_complete_getall(object, invocation, set_result.c_str());
+    auto result = this_->get_all_ip_config_handler_();
+    netconfd_ip_config_complete_getall(object, invocation, result.c_str());
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.ip_config.Error.GetAll",
-        "No Handler for GetAll request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.GetAll",
+                                               "No Handler for GetAll request");
   }
   return true;
-
 }
 
-gboolean DBusHandlerRegistry::GetIPConfig(netconfdIp_config* object,
-                                          GDBusMethodInvocation* invocation,
-                                          const gchar *arg_config,
-                                          gpointer user_data) {
+gboolean DBusHandlerRegistry::GetAllCurrentIPConfig(netconfdIp_config *object, GDBusMethodInvocation *invocation,
+                                             gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
 
-  auto this_ = reinterpret_cast<DBusHandlerRegistry*>(user_data);
-
-  if (this_->get_ip_config_handler_) {
-    auto set_result = this_->get_ip_config_handler_(arg_config);
-    netconfd_ip_config_complete_get(object, invocation, set_result.c_str());
+  if (this_->get_all_current_ip_config_handler_) {
+    auto result = this_->get_all_current_ip_config_handler_();
+    netconfd_ip_config_complete_getallcurrent(object, invocation, result.c_str());
   } else {
-    g_dbus_method_invocation_return_dbus_error(
-        invocation, "de.wago.netconfd1.ip_config.Error.Get",
-        "No Handler for GetIPConfig request");
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.GetAllCurrent",
+                                               "No Handler for GetAll request");
   }
   return true;
+}
 
+gboolean DBusHandlerRegistry::GetIPConfig(netconfdIp_config *object, GDBusMethodInvocation *invocation,
+                                          const gchar *arg_config, gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
+
+  if (this_->get_ip_config_handler_) {
+    auto result = this_->get_ip_config_handler_(arg_config);
+    netconfd_ip_config_complete_get(object, invocation, result.c_str());
+  } else {
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.Get",
+                                               "No Handler for GetIPConfig request");
+  }
+  return true;
+}
+
+gboolean DBusHandlerRegistry::TemporaryFixIP(netconfdIp_config *object, GDBusMethodInvocation *invocation,
+                                             gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
+
+  if (this_->tempfixip_handler_) {
+    this_->tempfixip_handler_();
+    netconfd_ip_config_complete_tempfixip(object, invocation);
+  } else {
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.TempTixIP",
+                                               "No Handler for TempTixIP");
+  }
+  return true;
+}
+
+gboolean DBusHandlerRegistry::GetDipSwitchConfig(netconfdIp_config *object, GDBusMethodInvocation *invocation,
+                                                   gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
+
+  if (this_->get_dip_switch_config_handler_) {
+    auto result = this_->get_dip_switch_config_handler_();
+    netconfd_ip_config_complete_getdipswitchconfig(object, invocation, result.c_str());
+  } else {
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.Get",
+                                               "No Handler for GetDipSwitchConfig request");
+  }
+  return true;
+}
+
+gboolean DBusHandlerRegistry::SetDipSwitchConfig(netconfdIp_config *object, GDBusMethodInvocation *invocation,
+                                                   const gchar *arg_config, gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
+
+  if (this_->set_dip_switch_config_handler_) {
+    auto result = this_->set_dip_switch_config_handler_(arg_config);
+    netconfd_ip_config_complete_setdipswitchconfig(object, invocation, result);
+  } else {
+    g_dbus_method_invocation_return_dbus_error(invocation, "de.wago.netconfd1.ip_config.Error.Get",
+                                               "No Handler for SetDipSwitchConfig request");
+  }
+  return true;
 }
 
 } /* namespace dbus */

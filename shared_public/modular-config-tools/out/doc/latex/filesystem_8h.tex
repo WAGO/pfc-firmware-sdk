@@ -1,0 +1,331 @@
+\hypertarget{filesystem_8h}{}\section{inc/ctutil/filesystem.h File Reference}
+\label{filesystem_8h}\index{inc/ctutil/filesystem.\+h@{inc/ctutil/filesystem.\+h}}
+
+
+Filesystem tools.  
+
+
+{\ttfamily \#include \char`\"{}wc/std\+\_\+includes.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ctutil/resource\+\_\+handling.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ctutil/param\+\_\+handling.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$sys/stat.\+h$>$}\newline
+{\ttfamily \#include $<$sys/statvfs.\+h$>$}\newline
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_a6198519ec8ef642e483adc553e4be483}{ctutil\+\_\+\+Get\+Parent\+Folder\+String} (char const $\ast$const sz\+Path, size\+\_\+t const path\+Length, char $\ast$$\ast$const psz\+Target, size\+\_\+t const target\+Buffer\+Size, bool allow\+Allocation)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} bool \hyperlink{filesystem_8h_a0e1f8daf6420fc1160c3ea8a13ab4089}{ctutil\+\_\+\+Is\+Folder\+Accessible} (char const $\ast$const sz\+Path)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_abc7b6c21b276e938a295169ae38c9b93}{ctutil\+\_\+\+Create\+Folder} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Path, bool create\+Parents\+Also)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_af93a3364bfee10423d2f3959849f7e77}{ctutil\+\_\+\+Clear\+Folder} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Path)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_ab79196a927e19a09188f5a8d4c9fe550}{ctutil\+\_\+\+Remove\+Folder} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Path)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_a682faf4eaa7d9add2b210290e2b64a53}{ctutil\+\_\+\+Get\+Mount\+Point\+For\+Device} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Device\+File\+Path, char $\ast$$\ast$const psz\+Mount\+Point, size\+\_\+t const mount\+Point\+Buffer\+Size)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_a5cc2c04ca74c4a027fb62e88d1ceae33}{ctutil\+\_\+\+Check\+For\+Mount\+Point} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Path)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} bool \hyperlink{filesystem_8h_ac6a557a5413972d17ec4b4baeb79c9a9}{ctutil\+\_\+\+Is\+File\+Type\+Match} (struct stat $\ast$pst\+Stats, char const file\+Type)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} bool \hyperlink{filesystem_8h_a7abd4fe4c7717382c9197a6524c42ff0}{ctutil\+\_\+\+Is\+File\+Available} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+File\+Path, char const $\ast$const sz\+File\+Types)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_ae5eb64f3c95ea6e29997536af1b72166}{ctutil\+\_\+\+Mount} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Special\+File, char const $\ast$const sz\+Dir, char const $\ast$const sz\+File\+System\+Type, unsigned long int const flags, void const $\ast$const p\+Data)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_a8267e8140034a4cfe6595c1e27c7277d}{ctutil\+\_\+\+Umount} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Special\+File, int const flags)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_aff50f7b40ed1ce8947e897e4298ae4af}{ctutil\+\_\+\+Get\+File\+System\+Statistics} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Path, struct statvfs $\ast$const pst\+File\+System\+Stats)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_a85b1c9a84ff1e895fe115cea7f5d5844}{ctutil\+\_\+\+Get\+Free\+Bytes} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Folder\+Path, uint64\+\_\+t $\ast$const free\+Bytes)
+\item 
+\hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} \hyperlink{filesystem_8h_ab95b2a3e3e2d7e84fcf604d383578cb8}{ctutil\+\_\+\+Get\+Available\+Bytes} (\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const pst\+Common\+Options, char const $\ast$const sz\+Folder\+Path, uint64\+\_\+t $\ast$const available\+Bytes)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Filesystem tools. 
+
+\begin{DoxyAuthor}{Author}
+P\+En\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG 
+\end{DoxyAuthor}
+
+
+\subsection{Function Documentation}
+\hypertarget{filesystem_8h_a5cc2c04ca74c4a027fb62e88d1ceae33}{}\label{filesystem_8h_a5cc2c04ca74c4a027fb62e88d1ceae33} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Check\+For\+Mount\+Point@{ctutil\+\_\+\+Check\+For\+Mount\+Point}}
+\index{ctutil\+\_\+\+Check\+For\+Mount\+Point@{ctutil\+\_\+\+Check\+For\+Mount\+Point}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Check\+For\+Mount\+Point()}{ctutil\_CheckForMountPoint()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Check\+For\+Mount\+Point (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Path }\end{DoxyParamCaption})}
+
+Check if given file path is a mount point.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Path} & File path to check for mount point.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true in case of file path is a mount point, false otherwise. 
+\end{DoxyReturn}
+\hypertarget{filesystem_8h_af93a3364bfee10423d2f3959849f7e77}{}\label{filesystem_8h_af93a3364bfee10423d2f3959849f7e77} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Clear\+Folder@{ctutil\+\_\+\+Clear\+Folder}}
+\index{ctutil\+\_\+\+Clear\+Folder@{ctutil\+\_\+\+Clear\+Folder}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Clear\+Folder()}{ctutil\_ClearFolder()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Clear\+Folder (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Path }\end{DoxyParamCaption})}
+
+Clear content of a given folder.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Path} & Folder path to clear.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case folder was cleared, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_abc7b6c21b276e938a295169ae38c9b93}{}\label{filesystem_8h_abc7b6c21b276e938a295169ae38c9b93} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Create\+Folder@{ctutil\+\_\+\+Create\+Folder}}
+\index{ctutil\+\_\+\+Create\+Folder@{ctutil\+\_\+\+Create\+Folder}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Create\+Folder()}{ctutil\_CreateFolder()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Create\+Folder (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Path,  }\item[{bool}]{create\+Parents\+Also }\end{DoxyParamCaption})}
+
+Create a given folder.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Path} & Folder path to create. \\
+\hline
+{\em create\+Parents\+Also} & If true parent folders will be also created if needed.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case folder was created, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_ab95b2a3e3e2d7e84fcf604d383578cb8}{}\label{filesystem_8h_ab95b2a3e3e2d7e84fcf604d383578cb8} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Get\+Available\+Bytes@{ctutil\+\_\+\+Get\+Available\+Bytes}}
+\index{ctutil\+\_\+\+Get\+Available\+Bytes@{ctutil\+\_\+\+Get\+Available\+Bytes}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Get\+Available\+Bytes()}{ctutil\_GetAvailableBytes()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Get\+Available\+Bytes (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Folder\+Path,  }\item[{uint64\+\_\+t $\ast$const}]{available\+Bytes }\end{DoxyParamCaption})}
+
+Get the available capacity for a given folder.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Folder\+Path} & Folder path to determine available bytes for. \\
+\hline
+{\em available\+Bytes} & Output parameter to store available bytes determined for given folder.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of successfully determined available bytes.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_aff50f7b40ed1ce8947e897e4298ae4af}{}\label{filesystem_8h_aff50f7b40ed1ce8947e897e4298ae4af} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Get\+File\+System\+Statistics@{ctutil\+\_\+\+Get\+File\+System\+Statistics}}
+\index{ctutil\+\_\+\+Get\+File\+System\+Statistics@{ctutil\+\_\+\+Get\+File\+System\+Statistics}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Get\+File\+System\+Statistics()}{ctutil\_GetFileSystemStatistics()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Get\+File\+System\+Statistics (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Path,  }\item[{struct statvfs $\ast$const}]{pst\+File\+System\+Stats }\end{DoxyParamCaption})}
+
+Get file system statistics for a given file.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Path} & File path to determine statistics for. \\
+\hline
+{\em pst\+File\+System\+Stats} & Output structure to store statistics.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of successfully determined statistics.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_a85b1c9a84ff1e895fe115cea7f5d5844}{}\label{filesystem_8h_a85b1c9a84ff1e895fe115cea7f5d5844} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Get\+Free\+Bytes@{ctutil\+\_\+\+Get\+Free\+Bytes}}
+\index{ctutil\+\_\+\+Get\+Free\+Bytes@{ctutil\+\_\+\+Get\+Free\+Bytes}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Get\+Free\+Bytes()}{ctutil\_GetFreeBytes()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Get\+Free\+Bytes (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Folder\+Path,  }\item[{uint64\+\_\+t $\ast$const}]{free\+Bytes }\end{DoxyParamCaption})}
+
+Get the free capacity for a given folder.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Folder\+Path} & Folder path to determine free bytes for. \\
+\hline
+{\em free\+Bytes} & Output parameter to store free bytes determined for given folder.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of successfully determined free bytes.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_a682faf4eaa7d9add2b210290e2b64a53}{}\label{filesystem_8h_a682faf4eaa7d9add2b210290e2b64a53} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Get\+Mount\+Point\+For\+Device@{ctutil\+\_\+\+Get\+Mount\+Point\+For\+Device}}
+\index{ctutil\+\_\+\+Get\+Mount\+Point\+For\+Device@{ctutil\+\_\+\+Get\+Mount\+Point\+For\+Device}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Get\+Mount\+Point\+For\+Device()}{ctutil\_GetMountPointForDevice()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Get\+Mount\+Point\+For\+Device (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Device\+File\+Path,  }\item[{char $\ast$$\ast$const}]{psz\+Mount\+Point,  }\item[{size\+\_\+t const}]{mount\+Point\+Buffer\+Size }\end{DoxyParamCaption})}
+
+Get the mount point for a given device.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Device\+File\+Path} & Device to determine mount point for. \\
+\hline
+{\em psz\+Mount\+Point} & Output parameter to store mount point for given path. Pointer may point to N\+U\+LL or a given buffer. In case of N\+U\+LL or a too small buffer a new buffer is allocated, which have to be freed by the caller. \\
+\hline
+{\em mount\+Point\+Buffer\+Size} & Size of optionally given mount point buffer. Zero (0) if no buffer given.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyPrecond}{Precondition}
+mount\+Point\+Buffer\+Size is zero (0) and psz\+Mount\+Point points to N\+U\+LL OR mount\+Point\+Buffer\+Size is $>$0 and psz\+Mount\+Point points to a valid buffer of at least mount\+Point\+Buffer\+Size size.
+\end{DoxyPrecond}
+\begin{DoxyPostcond}{Postcondition}
+Returned status code is \hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} and psz\+Mount\+Point points to N\+U\+LL, which means the given device is not mounted. Returned status code is \hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} and psz\+Mount\+Point points to previously given buffer, which means mount point was determined and stored into given buffer. Returned status code is \hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} and psz\+Mount\+Point points N\+OT previously given buffer, which means mount point was determined and stored into an allocated buffer, which have to be freed by the caller. Returned status code is N\+OT \hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS}, then psz\+Mount\+Point points to N\+U\+LL.
+\end{DoxyPostcond}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case of successfully determined mount point or a not mounted device.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_a6198519ec8ef642e483adc553e4be483}{}\label{filesystem_8h_a6198519ec8ef642e483adc553e4be483} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Get\+Parent\+Folder\+String@{ctutil\+\_\+\+Get\+Parent\+Folder\+String}}
+\index{ctutil\+\_\+\+Get\+Parent\+Folder\+String@{ctutil\+\_\+\+Get\+Parent\+Folder\+String}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Get\+Parent\+Folder\+String()}{ctutil\_GetParentFolderString()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Get\+Parent\+Folder\+String (\begin{DoxyParamCaption}\item[{char const $\ast$const}]{sz\+Path,  }\item[{size\+\_\+t const}]{path\+Length,  }\item[{char $\ast$$\ast$const}]{psz\+Target,  }\item[{size\+\_\+t const}]{target\+Buffer\+Size,  }\item[{bool}]{allow\+Allocation }\end{DoxyParamCaption})}
+
+Get string for parent folder path.
+
+
+\begin{DoxyParams}{Parameters}
+{\em sz\+Path} & Path to get parent folder for. \\
+\hline
+{\em path\+Length} & Length for sz\+Path string. \\
+\hline
+{\em psz\+Target} & Pointer to buffer for resulting parent folder string. May be N\+U\+LL, target\+Buffer\+Size has to be 0 in this case. \\
+\hline
+{\em target\+Buffer\+Size} & Usable size of psz\+Target. \\
+\hline
+{\em allow\+Allocation} & When true buffer for resulting parent folder string is allocated if psz\+Target is to short for result.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case string for parent folder got, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_a7abd4fe4c7717382c9197a6524c42ff0}{}\label{filesystem_8h_a7abd4fe4c7717382c9197a6524c42ff0} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Is\+File\+Available@{ctutil\+\_\+\+Is\+File\+Available}}
+\index{ctutil\+\_\+\+Is\+File\+Available@{ctutil\+\_\+\+Is\+File\+Available}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Is\+File\+Available()}{ctutil\_IsFileAvailable()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} bool ctutil\+\_\+\+Is\+File\+Available (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+File\+Path,  }\item[{char const $\ast$const}]{sz\+File\+Types }\end{DoxyParamCaption})}
+
+Check file availability.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+File\+Path} & File path to determine availability for. \\
+\hline
+{\em sz\+File\+Types} & Null terminated character array to check for special file type. b = block, c = character, d = directory/folder, f = fifo, l = link, s = socket, -\/ = regular file Parameter may be N\+U\+LL\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true in case of file is available as requested file type, false otherwise. 
+\end{DoxyReturn}
+\hypertarget{filesystem_8h_ac6a557a5413972d17ec4b4baeb79c9a9}{}\label{filesystem_8h_ac6a557a5413972d17ec4b4baeb79c9a9} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Is\+File\+Type\+Match@{ctutil\+\_\+\+Is\+File\+Type\+Match}}
+\index{ctutil\+\_\+\+Is\+File\+Type\+Match@{ctutil\+\_\+\+Is\+File\+Type\+Match}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Is\+File\+Type\+Match()}{ctutil\_IsFileTypeMatch()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} bool ctutil\+\_\+\+Is\+File\+Type\+Match (\begin{DoxyParamCaption}\item[{struct stat $\ast$}]{pst\+Stats,  }\item[{char const}]{file\+Type }\end{DoxyParamCaption})}
+
+Check file stats to match given file types.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Stats} & File stats to check file type for. \\
+\hline
+{\em file\+Type} & File type character to check for. b = block, c = character, d = directory/folder, f = fifo, l = link, s = socket, -\/ = regular file Parameter may be N\+U\+LL\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true in case of file match a requested file type, false otherwise. 
+\end{DoxyReturn}
+\hypertarget{filesystem_8h_a0e1f8daf6420fc1160c3ea8a13ab4089}{}\label{filesystem_8h_a0e1f8daf6420fc1160c3ea8a13ab4089} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Is\+Folder\+Accessible@{ctutil\+\_\+\+Is\+Folder\+Accessible}}
+\index{ctutil\+\_\+\+Is\+Folder\+Accessible@{ctutil\+\_\+\+Is\+Folder\+Accessible}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Is\+Folder\+Accessible()}{ctutil\_IsFolderAccessible()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} bool ctutil\+\_\+\+Is\+Folder\+Accessible (\begin{DoxyParamCaption}\item[{char const $\ast$const}]{sz\+Path }\end{DoxyParamCaption})}
+
+Check if a given folder is accessible.
+
+
+\begin{DoxyParams}{Parameters}
+{\em sz\+Path} & Folder path to determine accessibility for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true in case of folder is accessible, false otherwise. 
+\end{DoxyReturn}
+\hypertarget{filesystem_8h_ae5eb64f3c95ea6e29997536af1b72166}{}\label{filesystem_8h_ae5eb64f3c95ea6e29997536af1b72166} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Mount@{ctutil\+\_\+\+Mount}}
+\index{ctutil\+\_\+\+Mount@{ctutil\+\_\+\+Mount}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Mount()}{ctutil\_Mount()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Mount (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Special\+File,  }\item[{char const $\ast$const}]{sz\+Dir,  }\item[{char const $\ast$const}]{sz\+File\+System\+Type,  }\item[{unsigned long int const}]{flags,  }\item[{void const $\ast$const}]{p\+Data }\end{DoxyParamCaption})}
+
+Mount function corresponding to mount() in $<$sys/mount.\+h$>$ with additional common option structure pointer and standardized status code. \hypertarget{filesystem_8h_ab79196a927e19a09188f5a8d4c9fe550}{}\label{filesystem_8h_ab79196a927e19a09188f5a8d4c9fe550} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Remove\+Folder@{ctutil\+\_\+\+Remove\+Folder}}
+\index{ctutil\+\_\+\+Remove\+Folder@{ctutil\+\_\+\+Remove\+Folder}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Remove\+Folder()}{ctutil\_RemoveFolder()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Remove\+Folder (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Path }\end{DoxyParamCaption})}
+
+Remove a given folder and its content.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pst\+Common\+Options} & Common option structure pointer. \\
+\hline
+{\em sz\+Path} & Folder path to remove.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} in case folder was removed, an error code otherwise.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{C\+T\+U\+T\+I\+L\+\_\+\+S\+U\+C\+C\+E\+SS} 
+\end{DoxySeeAlso}
+\hypertarget{filesystem_8h_a8267e8140034a4cfe6595c1e27c7277d}{}\label{filesystem_8h_a8267e8140034a4cfe6595c1e27c7277d} 
+\index{filesystem.\+h@{filesystem.\+h}!ctutil\+\_\+\+Umount@{ctutil\+\_\+\+Umount}}
+\index{ctutil\+\_\+\+Umount@{ctutil\+\_\+\+Umount}!filesystem.\+h@{filesystem.\+h}}
+\subsubsection{\texorpdfstring{ctutil\+\_\+\+Umount()}{ctutil\_Umount()}}
+{\footnotesize\ttfamily \hyperlink{api_8h_ab94d4878cdd69ea47d3da9f271fc7d66}{C\+T\+U\+T\+I\+L\+\_\+\+A\+PI} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{status\+Code\+\_\+t} ctutil\+\_\+\+Umount (\begin{DoxyParamCaption}\item[{\hyperlink{param__handling_8h_a7bb6d4cb6913a808aafc5d9c2fc0aa36}{ctutil\+\_\+\+Options\+Common\+\_\+t} const $\ast$const}]{pst\+Common\+Options,  }\item[{char const $\ast$const}]{sz\+Special\+File,  }\item[{int const}]{flags }\end{DoxyParamCaption})}
+
+Umount function corresponding to umount2() in $<$sys/mount.\+h$>$ with additional common option structure pointer and standardized status code. 

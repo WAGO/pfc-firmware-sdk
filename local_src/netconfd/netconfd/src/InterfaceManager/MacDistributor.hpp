@@ -2,16 +2,16 @@
 
 #pragma once
 
+#include "IDeviceProperties.hpp"
 #include "Status.hpp"
 #include "Types.hpp"
-#include "IDevicePropertiesProvider.hpp"
 #include "IMacDistributor.hpp"
 
 namespace netconfd {
 
 class MacDistributor : public IMacDistributor{
  public:
-  MacDistributor(IDevicePropertiesProvider& properties_provider);
+  MacDistributor(IDeviceProperties& properties_provider);
   virtual ~MacDistributor() = default;
 
   MacDistributor(const MacDistributor&) = delete;
@@ -24,7 +24,7 @@ class MacDistributor : public IMacDistributor{
  private:
   Status SetMac(::std::string const& mac, ::std::string const& interface);
 
-  IDevicePropertiesProvider& properties_provider_;
+  IDeviceProperties& properties_provider_;
 };
 
 } /* namespace netconfd */

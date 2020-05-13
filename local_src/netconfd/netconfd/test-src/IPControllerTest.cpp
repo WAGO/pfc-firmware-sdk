@@ -92,7 +92,7 @@ TEST_F(AnIPController_Target, SetsAndGetsAnIPConfigurationWithoutSpecifyingABroa
 
 TEST_F(AnIPController_Target, SetsAndGetsAnZeroIPConfiguration) {
 
-  IPConfig config(bridge_, IPSource::STATIC,"0.0.0.0", "0.0.0.0", "0.0.0.0");
+  IPConfig config(bridge_, IPSource::STATIC,ZeroIP, ZeroIP, ZeroIP);
   Status status = ip_controller_->SetIPConfig(config);
 
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -106,7 +106,7 @@ TEST_F(AnIPController_Target, SetsAndGetsAnZeroIPConfiguration) {
 
 TEST_F(AnIPController_Target, SetsAndGetsAnZeroIPConfigurationWithoutSpecifyingABroadcast) {
 
-  IPConfig config(bridge_, IPSource::STATIC,"0.0.0.0", "0.0.0.0");
+  IPConfig config(bridge_, IPSource::STATIC,ZeroIP, ZeroIP);
   Status status = ip_controller_->SetIPConfig(config);
 
   ASSERT_EQ(StatusCode::OK, status.Get());
@@ -116,7 +116,7 @@ TEST_F(AnIPController_Target, SetsAndGetsAnZeroIPConfigurationWithoutSpecifyingA
   ASSERT_EQ(StatusCode::OK, status.Get());
 
   IPConfig complete_config = config;
-  complete_config.broadcast_ = "0.0.0.0";
+  complete_config.broadcast_ = ZeroIP;
   ExpectEQIPConfigsIgnoreSource(complete_config, current_config);
 }
 
@@ -152,7 +152,7 @@ TEST_F(AnIPController_Target, TriesToSetAnInvalidBroadcast) {
   EXPECT_EQ(StatusCode::INVALID_PARAMETER, status.Get());
 }
 
-TEST_F(AnIPController_Target, TriesToSetAnEmptyIPAddress) {
+TEST_F(AnIPController_Target, TriesToSetAnZeroIPAddress) {
 
   IPConfig config(bridge_, IPSource::STATIC,"", "255.255.255.0", "192.168.42.255");
   Status status = ip_controller_->SetIPConfig(config);
@@ -162,7 +162,7 @@ TEST_F(AnIPController_Target, TriesToSetAnEmptyIPAddress) {
 
 TEST_F(AnIPController_Target, GetsAnIpConfigFromAnUnconfiguredInterface) {
 
-  IPConfig expected_config(bridge_, IPSource::NONE,"0.0.0.0", "0.0.0.0", "0.0.0.0");
+  IPConfig expected_config(bridge_, IPSource::NONE,ZeroIP, ZeroIP, ZeroIP);
 
   IPConfig config;
 

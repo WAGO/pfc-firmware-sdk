@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <firewall xmlns="http://www.wago.com/security/firewall" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wago.com/security/firewall service.xsd">
-  <ipv4>
-    <service name="iec61850_mms">
-      <interfaces>
-        <interface state="on" if="X1"/>
-        <interface state="off" if="X2"/>
-        <interface state="off" if="WAN"/>
-        <interface state="off" if="VPN"/>
-      </interfaces>
-      <rules>
-        <rule state="on" proto="tcp" dst_port="102"/>
-      </rules>
-    </service>
-  </ipv4>
+    <ipv4>
+        <service name="iec61850_mms">
+            <interfaces>
+                <interface state="on"  if="br0"/>
+                <interface state="on"  if="br1"/>
+                <interface state="on"  if="br2"/>
+                <interface state="on"  if="br3"/>
+                <interface state="off" if="WAN"/>
+                <interface state="off" if="VPN"/>
+            </interfaces>
+            <rules>
+                <rule state="on" proto="tcp" dst_port="102"/>
+            </rules>
+        </service>
+    </ipv4>
 </firewall>

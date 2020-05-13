@@ -16,15 +16,13 @@ PACKAGES-$(PTXCONF_NETCONFD) += netconfd
 #
 # Paths and names
 #
-NETCONFD_VERSION	:= 0.0.7
+NETCONFD_VERSION	:= 1.0.0
 NETCONFD_MD5		:=
 NETCONFD		:= netconfd
 NETCONFD_URL		:= file://local_src/netconfd
 NETCONFD_LICENSE	:= unknown
 
-
-
-NETCONFD_BUILDCONFIG  := Debug
+NETCONFD_BUILDCONFIG  := Release
 
 NETCONFD_SRC_DIR := $(PTXDIST_WORKSPACE)/local_src/netconfd
 NETCONFD_BUILDROOT_DIR  := $(BUILDDIR)/$(NETCONFD)-$(NETCONFD_VERSION)
@@ -104,35 +102,17 @@ $(STATEDIR)/netconfd.targetinstall: $(STATEDIR)/config-tools.targetinstall
 	@$(call install_fixup, netconfd,DESCRIPTION,missing)
 
 	@$(call install_copy, netconfd, 0, 0, 0755, $(NETCONFD_BUILD_DIR)/netconfd.elf, /usr/bin/netconfd)
-	@$(call install_copy, netconfd, 0, 0, 0755, $(NETCONFD_BUILD_DIR)/bridgeconfig_dsa.elf, /usr/bin/bc2dsa)
+
+	# Client API library
+	@$(call install_tree, netconfd, 0, 0, - , /usr/include/netconf)
+	@$(call install_copy, netconfd, 0, 0, 0644, - , /usr/lib/libnetconf.a)
+	@$(call install_copy, netconfd, 0, 0, 0644, - , /usr/lib/pkgconfig/libnetconf.pc)
 
 	# install legacy wrapper and override old config tools
-	@$(call install_copy, netconfd, 0, 0, 0755,$(NETCONFD_DIR)/root/etc/config-tools/network_config, /etc/config-tools/network_config)
-	@$(call install_link, netconfd, network_config, /etc/config-tools/get_dsa_mode)
-	@$(call install_link, netconfd, network_config, /etc/config-tools/set_dsa_mode_c)
-
 	@$(call install_copy, netconfd, 0, 0, 0755, $(NETCONFD_DIR)/root/etc/config-tools/backup-restore/backup_netconfd, /etc/config-tools/backup-restore/backup_netconfd)
 	
 	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/init.d/netconfd, /etc/init.d/netconfd)
 	@$(call install_link, netconfd, ../init.d/netconfd, /etc/rc.d/S13_netconfd)
-
-	# stuff from wago-confg-000-common.make, to be removed in the end!
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/config-tools/set_dsa_mode, /etc/config-tools/set_dsa_mode)
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/config-tools/config_interfaces, /etc/config-tools/config_interfaces)
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/config-tools/config_wwan, /etc/config-tools/config_wwan)
-
-	# stuff from initmethod-bbinit.make, to be removed in the end!
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/init.d/networking, /etc/init.d/networking)
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/init.d/networking-finish, /etc/init.d/networking-finish)
-
-	# stuff from wago-custom-000-install.make, to be removed in the end!
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/usr/sbin/settings_backup_lib, /usr/sbin/settings_backup_lib)
-
-	# stuff from busybox.make, to be removed in the end!
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/udhcpc.script, /etc/udhcpc.script)
-
-	# stuff from bootpc.make, to be removed in the end!
-	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/sbin/bootpc-startup.default, /sbin/bootpc-startup)
 
 	@$(call install_finish, netconfd)
 	@$(call touch)

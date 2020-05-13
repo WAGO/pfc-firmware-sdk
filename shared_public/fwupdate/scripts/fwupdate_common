@@ -6,7 +6,7 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   fwupdate_common
@@ -97,7 +97,7 @@ fwupdate_cancel()
     local RESULT=0
     fwupdate_remove_timeout_watcher
     
-    fwupdate_report_info "Got cancel request ($ERROR_CODE) for $WAGO_CT_SYSTEM_MODULE"
+    fwupdate_report_info "Got cancel request ($ERROR_CODE) in state: $(fwupdate_get_state), sub-state: $(fwupdate_get_sub_state)"
     local OLD_STATE="$WAGO_FW_UPDATE_INITIAL_STATE"
     OLD_STATE="$(fwupdate_mark_canceled $ERROR_CODE "$INFO_TEXT")"
     RESULT=$?
@@ -659,6 +659,13 @@ fwupdate_start_normal_operation()
             fwupdate_report_warning "Failed to enable finalize_root"
         fi
         
+        # Start codesys webserver
+        if ls /etc/rc.d/S??_codesys_webserver &> /dev/null; then
+            if [[ -z $($PIDOF codesys_webserver_watchdog) ]]; then
+                /etc/init.d/codesys_webserver start
+            fi
+        fi
+
         # Just start runtime or reboot for normal operation
         fwupdate_report_info "Return to normal operation"
         if ! $WAGO_FW_UPDATE_REBOOT_FOR_NORMAL_OPERATION &&
@@ -991,6 +998,7 @@ fwupdate_checkpoint_sub_state()
                [[ "$NEW_SUB_STATE" != "$WAGO_FW_UPDATE_REVERT_FINISH_SUB_STATE" ]]; then
                 fwupdate_push_stacked_sub_state "$NEW_SUB_STATE"
                 RESULT=$?
+                fwupdate_release_lock
                 return $RESULT # Skip state switching because of active cancel request
             fi
         fi
@@ -1504,6 +1512,29 @@ fwupdate_checksys_active()
     [ ! -z "$($PIDOF watchdog)" ]
     ACTIVE=$?
     return $ACTIVE
+}
+
+# Function to create the fwupdate tmp folder with correct attributes.
+#
+# Return: 0 if tmp folder was created or already exists, unequal to 0 if not
+#-----------------------------------------------------------------------------#
+fwupdate_create_tmp_folder()
+{
+    if [[ ! -d "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR" ]]; then
+        # Create working directory for fwupdate
+        mkdir -p "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR" &&
+        chgrp "$WAGO_FW_UPDATE_GROUP" "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR" &&
+        chmod 770 "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
+    fi
+}
+
+# Function to check if the fwupdate tmp folder exists and has correct attributes.
+#
+# Return: 0 if tmp folder satisfies fwupdate requirements, unequal to 0 if not
+#-----------------------------------------------------------------------------#
+fwupdate_check_tmp_folder()
+{
+    find "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR" -type d -user "root" -group "$WAGO_FW_UPDATE_GROUP" -perm 0770 | grep -q '.*'
 }
 
 fi #if [[ ${FWUPDATE_COMMON_:-} != "fwupdate_common" ]]; then

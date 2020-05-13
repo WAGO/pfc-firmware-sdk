@@ -44,8 +44,8 @@ function GetSshState
 {
   sshState="disabled"
   
-  #ls $DROPBEAR_LINK_NAME > /dev/null 2> /dev/null
-  pidof $DROPBEAR_DEAMON > /dev/null 2> /dev/null
+  ls $DROPBEAR_LINK_NAME > /dev/null 2> /dev/null
+  #pidof $DROPBEAR_DEAMON > /dev/null 2> /dev/null
   if [ "$SUCCESS" = $? ]; then
     sshState="enabled"
   fi

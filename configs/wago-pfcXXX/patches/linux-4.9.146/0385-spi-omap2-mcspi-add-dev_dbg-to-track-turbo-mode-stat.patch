@@ -1,0 +1,38 @@
+From 615a4a4260bc66a44ac824e890da87d2db4220ee Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 5 Dec 2019 12:24:36 +0100
+Subject: [PATCH] spi: omap2-mcspi: add dev_dbg to track turbo mode status
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ drivers/spi/spi-omap2-mcspi.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index b23b014..c0b8093 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -759,6 +759,9 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 	void __iomem		*rx_reg;
+ 	void __iomem		*chstat_reg;
+ 	int			word_len;
++	struct omap2_mcspi_device_config *cd;
++
++	cd = spi->controller_data;
+ 
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	count = xfer->len;
+@@ -783,6 +786,10 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 	if (c < (word_len>>3))
+ 		return 0;
+ 
++	dev_dbg(&spi->dev, "xx: %s-%d %d %s:%s\n", xfer->tx_buf ? "tx" : "rx",
++		word_len, count, cd->turbo_mode ? "turbo" : "-",
++		(l & OMAP2_MCSPI_CHCONF_TURBO) ? "1" : "-");
++
+ 	if (word_len <= 8) {
+ 		u8		*rx;
+ 		const u8	*tx;
+-- 
+2.7.4
+

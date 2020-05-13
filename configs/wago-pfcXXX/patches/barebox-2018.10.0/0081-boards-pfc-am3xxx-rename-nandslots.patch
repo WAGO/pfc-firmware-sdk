@@ -1,7 +1,7 @@
 From 20770a2b8e10182c785bb8ed3f23d243ee77c9b1 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 12 Sep 2018 10:20:21 +0200
-Subject: [PATCH 081/144] boards: pfc-am3xxx: rename nandslots
+Subject: [PATCH] boards: pfc-am3xxx: rename nandslots
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

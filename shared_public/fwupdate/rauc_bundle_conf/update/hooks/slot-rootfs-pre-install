@@ -69,6 +69,8 @@ function save_settings
 #-----------------------------------------------------------------------------#
 function hook_routine
 {
+    local RESULT=0
+
     fwupdate_report_info "Start root file system pre-installation hook"
 
     local skip_settings_flag=false
@@ -76,6 +78,23 @@ function hook_routine
     if $skip_settings_flag; then
         fwupdate_report_info "Settings backup skipped (flag is set)."
         return 0
+    fi
+
+    # FW15 on TPs does not save TP specific settings, so fix this bevor saving
+    platform="$(< /sys/class/wago/system/board_variant)"
+    RESULT=$?
+    
+    if [[ "$platform" = "TP600" ]]; then
+        firmware_revision="$(/etc/config-tools/get_coupler_details firmware-revision)"
+        RESULT=$(( $? == 0 ? $RESULT : $? ))
+        if [[ "$firmware_revision" =~ ^03\.03\..*$ ]]; then
+            cp ${RAUC_MOUNT_PREFIX}/bundle/settings_backup_lib_fix_tp_fw15 /usr/sbin/settings_backup_lib
+            RESULT=$(( $? == 0 ? $RESULT : $? ))
+        fi
+    fi
+    
+    if [[ $RESULT -ne 0 ]]; then
+        fwupdate_report_warning "Error while fixing settings_backup_lib in FW15 on TP"
     fi
 
     # Save settings

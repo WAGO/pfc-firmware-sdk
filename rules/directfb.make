@@ -18,8 +18,8 @@ PACKAGES-$(PTXCONF_DIRECTFB) += directfb
 # Paths and names
 #
 
-DIRECTFB_VERSION	:= 1.5.2
-DIRECTFB_MD5	:= 7dea7b6335e4e4d22e7bae07ef62319b
+DIRECTFB_VERSION	:= 1.6.3
+DIRECTFB_MD5	:= 641e8e999c017770da647f9b5b890906
 DIRECTFB		:= DirectFB-$(DIRECTFB_VERSION)
 DIRECTFB_SUFFIX		:= tar.gz
 DIRECTFB_SOURCE		:= $(SRCDIR)/$(DIRECTFB).$(DIRECTFB_SUFFIX)
@@ -85,7 +85,6 @@ DIRECTFB_AUTOCONF := \
 	--disable-voodoo \
 	--enable-sdl \
 	--disable-vnc \
-	--disable-sysfs \
 	--disable-zlib \
 	--with-gfxdrivers=$(subst $(space),$(comma),$(DIRECTFB_GFX-y)) \
 	--with-inputdrivers=$(subst $(space),$(comma),$(DIRECTFB_INPUT-y))
@@ -203,12 +202,12 @@ endif
 
 	@$(call install_copy, directfb, 0, 0, 0755, -, /usr/bin/dfbinfo)
 
-	@$(call install_lib, directfb, 0, 0, 0644, libdirectfb-1.5)
-	@$(call install_lib, directfb, 0, 0, 0644, libfusion-1.5)
-	@$(call install_lib, directfb, 0, 0, 0644, libdirect-1.5)
+	@$(call install_lib, directfb, 0, 0, 0644, libdirectfb-1.6)
+	@$(call install_lib, directfb, 0, 0, 0644, libfusion-1.6)
+	@$(call install_lib, directfb, 0, 0, 0644, libdirect-1.6)
 
 ifdef PTXCONF_DIRECTFB_WM_UNIQUE
-	@$(call install_lib, directfb, 0, 0, 0644, libuniquewm-1.5)
+	@$(call install_lib, directfb, 0, 0, 0644, libuniquewm-1.6)
 endif
 
 	@cd $(DIRECTFB_PKGDIR) && for plugin in `find ./$(DIRECTFB_MODULE_DIRECTORY) -name "*.so"`; do \

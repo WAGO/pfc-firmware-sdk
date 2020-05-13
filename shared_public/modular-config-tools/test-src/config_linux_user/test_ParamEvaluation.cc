@@ -5,7 +5,7 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2019 WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     test_ParamEvaluation.cc
@@ -20,6 +20,7 @@
 //------------------------------------------------------------------------------
 #include "ctparts/common_main_defaults.h"
 #include "params.h"
+#include "testutil/common_parameter_checks.h"
 #include <gtest/gtest.h>
 #include <string.h>
 
@@ -44,7 +45,6 @@ class OptionEvaluationTest_config_linux_user : public ::testing::Test
       statusCode_t status = CTUTIL_SUCCESS;
       status = ctparts_SetOptionDefaults(NULL, &(this->stOptions));
       ASSERT_EQ(CTUTIL_SUCCESS, status);
-      testing::internal::CaptureStdout();
     }
     virtual void TearDown()
     {
@@ -80,7 +80,6 @@ TEST(OptionEvaluationBasicTest_config_linux_user, SetOptionDefaultsAndRelease)
 
 TEST_F(OptionEvaluationTest_config_linux_user, CheckSetup)
 {
-  EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
   // Nothing else to do here, everything is done in SetUp/TearDown
 }
 
@@ -98,11 +97,13 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateEarlyOptions)
   };
   int const argCount = sizeof(arszArgs) / sizeof(char *);
 
+  // Other default behavior expected than in new config tools by TestCommonEarlyOptionsDefault
   statusCode_t status = CTUTIL_SUCCESS;
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
+  EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
   EXPECT_EQ(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("encoded(Options)MustBeDecoded", szArg02);
-  EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
 }
 
 
@@ -115,12 +116,14 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsEmpty)
   };
   int const argCount = sizeof(arszArgs) / sizeof(char *);
 
+  // Other default behavior expected than in new config tools by TestCommonOptionsEmpty
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_NE(CTUTIL_SUCCESS, status);
 }
 
 
@@ -128,20 +131,18 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsQuiet)
 {
   char szArg00[] = "test";
   char szArg01[] = "--quiet";
+  char szArg02[] = "user=universe";
+  char szArg03[] = "hash=1234";
   char * const arszArgs[]
   {
     szArg00,
     szArg01,
+    szArg02,
+    szArg03,
   };
   int const argCount = sizeof(arszArgs) / sizeof(char *);
 
-  statusCode_t status = CTUTIL_SUCCESS;
-  status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
-  EXPECT_TRUE(this->stOptions.stCommonOptions.quiet);
-  status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
-  EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  testutil::TestCommonOptionsQuiet(argCount, arszArgs, &(this->stOptions));
 }
 
 
@@ -149,20 +150,18 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsQuietShort)
 {
   char szArg00[] = "test";
   char szArg01[] = "-q";
+  char szArg02[] = "user=universe";
+  char szArg03[] = "hash=1234";
   char * const arszArgs[]
   {
     szArg00,
     szArg01,
+    szArg02,
+    szArg03,
   };
   int const argCount = sizeof(arszArgs) / sizeof(char *);
 
-  statusCode_t status = CTUTIL_SUCCESS;
-  status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
-  EXPECT_TRUE(this->stOptions.stCommonOptions.quiet);
-  status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
-  EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  testutil::TestCommonOptionsQuiet(argCount, arszArgs, &(this->stOptions));
 }
 
 
@@ -177,12 +176,7 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsHelp)
   };
   int const argCount = sizeof(arszArgs) / sizeof(char *);
 
-  statusCode_t status = CTUTIL_SUCCESS;
-  status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
-  status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
-  EXPECT_STRNE("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  testutil::TestCommonOptionsHelp(argCount, arszArgs, &(this->stOptions));
 }
 
 
@@ -197,12 +191,7 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsHelpShort)
   };
   int const argCount = sizeof(arszArgs) / sizeof(char *);
 
-  statusCode_t status = CTUTIL_SUCCESS;
-  status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
-  status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
-  EXPECT_STRNE("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  testutil::TestCommonOptionsHelp(argCount, arszArgs, &(this->stOptions));
 }
 
 
@@ -220,9 +209,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, FailEvaluateOptionsUserOnly)
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_NE(CTUTIL_SUCCESS, status);
 }
 
 
@@ -246,9 +236,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsNewPassword)
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_EQ(CTUTIL_SUCCESS, status);
 }
 
 
@@ -268,9 +259,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, FailEvaluateOptionsNewPasswordWit
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_NE(CTUTIL_SUCCESS, status);
 }
 
 
@@ -290,9 +282,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, FailEvaluateOptionsNewPasswordMis
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_NE(CTUTIL_SUCCESS, status);
 }
 
 
@@ -314,9 +307,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, FailEvaluateOptionsNewPasswordWro
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_NE(CTUTIL_SUCCESS, status);
 }
 
 
@@ -338,9 +332,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, FailEvaluateOptionsNewPasswordAnd
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_NE(CTUTIL_SUCCESS, status);
 }
 
 
@@ -360,9 +355,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsNewPasswordHash)
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_EQ(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_EQ(CTUTIL_SUCCESS, status);
 }
 
 
@@ -383,10 +379,11 @@ TEST_F(OptionEvaluationTest_config_linux_user, EvaluateOptionsNewPasswordHashUri
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
+  EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
   EXPECT_EQ(CTUTIL_SUCCESS, status);
   EXPECT_STREQ(decodedHash, szArg02);
-  EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
 }
 
 
@@ -404,9 +401,10 @@ TEST_F(OptionEvaluationTest_config_linux_user, FailEvaluateOptionsNewPasswordHas
   statusCode_t status = CTUTIL_SUCCESS;
   status = ctparts_EvaluateEarlyOptions(NULL, argCount, arszArgs, &(this->stOptions));
   EXPECT_EQ(CTUTIL_SUCCESS, status);
+  testing::internal::CaptureStdout();
   status = ctparts_EvaluateOptions(NULL, argCount, arszArgs, &(this->stOptions));
-  EXPECT_NE(CTUTIL_SUCCESS, status);
   EXPECT_STREQ("", testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_NE(CTUTIL_SUCCESS, status);
 }
 
 

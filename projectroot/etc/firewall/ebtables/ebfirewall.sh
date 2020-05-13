@@ -102,6 +102,7 @@ set_firewall()
         result2=$?
         if [[ $result1 -eq 0 ]] && [[ $result2 -eq 0 ]]; then
             $FW_XST tr "$FW_EB_WLIST_XSL" "$FW_EB_WLIST_XML" >"$FW_EB_RULES_TEMP"
+            remove_duplicate_lines "$FW_EB_RULES_TEMP"
             cmp "$FW_EB_RULES_TEMP" "$FW_EB_RULES" >/dev/null 2>&1
             if [[ $? -ne 0 ]]; then
                 mv $FW_EB_RULES_TEMP "$FW_EB_RULES"

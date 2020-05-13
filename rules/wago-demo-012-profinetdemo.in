@@ -1,8 +1,0 @@
-## SECTION=wago_specific_demo
-    
-config PROFINETDEMO
-  bool
-  select LIBPROFINET
-  prompt "PROFINET iDevice application demonstration program"
-  help
-    Build the PROFINET iDevice application demonstration program.

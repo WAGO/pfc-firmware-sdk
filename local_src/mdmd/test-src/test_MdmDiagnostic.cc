@@ -40,6 +40,9 @@ TEST_F(MdmDiagnosticTest, Initialization)
   bool         log_event_set;
   // Expect initial events that switches all SIGNAL-LEDs off in descending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_6_OFF);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
@@ -75,10 +78,10 @@ TEST_F(MdmDiagnosticTest, SetSignalLevelWithoutNet)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -100,10 +103,10 @@ TEST_F(MdmDiagnosticTest, SetAccessClassWithoutSignal)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -125,10 +128,10 @@ TEST_F(MdmDiagnosticTest, RegistrationAfterSignal)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -143,6 +146,11 @@ TEST_F(MdmDiagnosticTest, RegistrationAfterSignal)
   //Expect event that set NET-LED according to this access class
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
+  EXPECT_TRUE(log_event_set);
+
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
   EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs on in ascending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
@@ -169,10 +177,10 @@ TEST_F(MdmDiagnosticTest, SetSignalAfterRegistration)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -187,6 +195,10 @@ TEST_F(MdmDiagnosticTest, SetSignalAfterRegistration)
   //Expect event that set NET-LED according to this access class
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
+  EXPECT_TRUE(log_event_set);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
   EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs on in ascending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
@@ -213,10 +225,10 @@ TEST_F(MdmDiagnosticTest, RegistrationLoss)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -231,6 +243,10 @@ TEST_F(MdmDiagnosticTest, RegistrationLoss)
   //Expect event that set NET-LED according to this access class
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
+  EXPECT_TRUE(log_event_set);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
   EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs on in ascending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
@@ -250,6 +266,10 @@ TEST_F(MdmDiagnosticTest, RegistrationLoss)
   // Set access class NONE
   mdmDiag.set_access_class(MdmAccessClass::NONE);
   EXPECT_EQ(mdmDiag.get_access_class(), MdmAccessClass::NONE);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs off in descending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_4_OFF);
@@ -282,10 +302,10 @@ TEST_F(MdmDiagnosticTest, ChangeSignalAfterRegistration)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -301,6 +321,10 @@ TEST_F(MdmDiagnosticTest, ChangeSignalAfterRegistration)
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_3G);
   EXPECT_TRUE(log_event_set);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs on in ascending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
@@ -312,6 +336,10 @@ TEST_F(MdmDiagnosticTest, ChangeSignalAfterRegistration)
   // Set signal strength 2 -> 6
   mdmDiag.set_signal_quality_level(MdmSignalQualityLevel::EXCELLENT);
   EXPECT_EQ(mdmDiag.get_signal_quality_level(), MdmSignalQualityLevel::EXCELLENT);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
   //Expect events that switches further SIGNAL-LEDs on in ascending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_3_ON);
@@ -329,6 +357,10 @@ TEST_F(MdmDiagnosticTest, ChangeSignalAfterRegistration)
   // Set signal strength 6 -> 4
   mdmDiag.set_signal_quality_level(MdmSignalQualityLevel::STABLE);
   EXPECT_EQ(mdmDiag.get_signal_quality_level(), MdmSignalQualityLevel::STABLE);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
   //Expect events that switches SIGNAL-LEDs off again in descending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_6_OFF);
@@ -349,10 +381,10 @@ TEST_F(MdmDiagnosticTest, SameSignalAgain)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -367,6 +399,10 @@ TEST_F(MdmDiagnosticTest, SameSignalAgain)
   //Expect event that set NET-LED according to this access class
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_3G);
+  EXPECT_TRUE(log_event_set);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
   EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs on in ascending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
@@ -392,10 +428,10 @@ TEST_F(MdmDiagnosticTest, SignalLoss)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -411,6 +447,10 @@ TEST_F(MdmDiagnosticTest, SignalLoss)
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
   EXPECT_TRUE(log_event_set);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs on in ascending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
@@ -425,6 +465,10 @@ TEST_F(MdmDiagnosticTest, SignalLoss)
   // Set signal strength 3 -> 0 (signal loss)
   mdmDiag.set_signal_quality_level(MdmSignalQualityLevel::NONE);
   EXPECT_EQ(mdmDiag.get_signal_quality_level(), MdmSignalQualityLevel::NONE);
+  //Expect event for new SIGNAL LEVEL
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
   //Expect events that switches all SIGNAL-LEDs off in descending order
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_3_OFF);
@@ -455,10 +499,10 @@ TEST_F(MdmDiagnosticTest, ChangeAccessClass2GTo3G)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -472,6 +516,9 @@ TEST_F(MdmDiagnosticTest, ChangeAccessClass2GTo3G)
   //Expect event for access class and signal level
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
@@ -499,10 +546,10 @@ TEST_F(MdmDiagnosticTest, ChangeAccessClass3GTo2G)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -516,6 +563,9 @@ TEST_F(MdmDiagnosticTest, ChangeAccessClass3GTo2G)
   //Expect event for access class and signal level
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_3G);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
@@ -553,10 +603,10 @@ TEST_F(MdmDiagnosticTest, SameAccessClassAgain)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -570,6 +620,9 @@ TEST_F(MdmDiagnosticTest, SameAccessClassAgain)
   //Expect event for access class and signal level
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
@@ -589,10 +642,10 @@ TEST_F(MdmDiagnosticTest, SetPortError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -617,10 +670,10 @@ TEST_F(MdmDiagnosticTest, SetInitError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -645,10 +698,10 @@ TEST_F(MdmDiagnosticTest, SetResetError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -673,10 +726,10 @@ TEST_F(MdmDiagnosticTest, SetNoSimError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -701,20 +754,132 @@ TEST_F(MdmDiagnosticTest, SetSimError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
 
-  // Set error SIM_FAILURE
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
-  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_FAILURE);
+  // Set error SIM_INVALID
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_INVALID);
   // Expect event for this error
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
-  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIMAUTH);
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_INVALID);
+  EXPECT_TRUE(log_event_set);
+
+  // Expect no further event
+  EXPECT_FALSE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+}
+
+/* ANF_04:
+   Relevante Fehlerzustände müssen über die NET-LED signalisiert werden.
+   Fall F) Aktivierung der SIM-Karte erfordert PIN.
+*/
+TEST_F(MdmDiagnosticTest, SetSimPinNeeded)
+{
+  MdmDiagnostic mdmDiag;
+
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  log_tEventId log_event_id;
+  bool         log_event_set;
+  for(int i=0; i<8; i++)
+  {
+    EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  }
+
+  // Set error SIM_PIN_NEEDED
+  mdmDiag.set_error_state(MdmErrorState::SIM_PIN_NEEDED);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_PIN_NEEDED);
+  // Expect event for this error
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_PIN_NEEDED);
+  EXPECT_TRUE(log_event_set);
+
+  // Expect no further event
+  EXPECT_FALSE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+}
+
+/* ANF_04:
+   Relevante Fehlerzustände müssen über die NET-LED signalisiert werden.
+   Fall G) Aktivierung der SIM-Karte erfordert PUK.
+*/
+TEST_F(MdmDiagnosticTest, SetSimPukNeeded)
+{
+  MdmDiagnostic mdmDiag;
+
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  log_tEventId log_event_id;
+  bool         log_event_set;
+  for(int i=0; i<8; i++)
+  {
+    EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  }
+
+  // Set error SIM_PUK_NEEDED
+  mdmDiag.set_error_state(MdmErrorState::SIM_PUK_NEEDED);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_PUK_NEEDED);
+  // Expect event for this error
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_PUK_NEEDED);
+  EXPECT_TRUE(log_event_set);
+
+  // Expect no further event
+  EXPECT_FALSE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+}
+
+/* ANF_04:
+   Relevante Fehlerzustände müssen über die NET-LED signalisiert werden.
+   Fall H) SIM-Karte nicht bereit.
+*/
+TEST_F(MdmDiagnosticTest, SetSimNotReady)
+{
+  MdmDiagnostic mdmDiag;
+
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  log_tEventId log_event_id;
+  bool         log_event_set;
+  for(int i=0; i<8; i++)
+  {
+    EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  }
+
+  // Set error SIM_NOT_READY
+  mdmDiag.set_error_state(MdmErrorState::SIM_NOT_READY);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_NOT_READY);
+  // Expect event for this error
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_NOT_READY);
+  EXPECT_TRUE(log_event_set);
+
+  // Expect no further event
+  EXPECT_FALSE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+}
+
+/* ANF_04J:
+   Relevante Fehlerzustände müssen über die NET-LED signalisiert werden.
+   Fall J) Kein Mobilfunkservice, nur Notrufe
+*/
+TEST_F(MdmDiagnosticTest, SetNoService)
+{
+  MdmDiagnostic mdmDiag;
+
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  log_tEventId log_event_id;
+  bool         log_event_set;
+  for(int i=0; i<8; i++)
+  {
+    EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  }
+
+  // Set error SIM_NOT_READY
+  mdmDiag.set_error_state(MdmErrorState::NET_NO_SERVICE);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::NET_NO_SERVICE);
+  // Expect event for this error
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NO_SERVICE);
   EXPECT_TRUE(log_event_set);
 
   // Expect no further event
@@ -730,20 +895,20 @@ TEST_F(MdmDiagnosticTest, UnsetError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
 
   // Set error SIM_FAILURE
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
-  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_FAILURE);
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_INVALID);
   // Expect event for this error
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
-  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIMAUTH);
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_INVALID);
   EXPECT_TRUE(log_event_set);
 
   // Set error NONE
@@ -766,10 +931,10 @@ TEST_F(MdmDiagnosticTest, SetSimErrorAfterRegistration)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -785,15 +950,18 @@ TEST_F(MdmDiagnosticTest, SetSimErrorAfterRegistration)
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
   EXPECT_TRUE(log_event_set);
 
   // Set error SIM_FAILURE
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
-  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_FAILURE);
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_INVALID);
   // Expect event for this error
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
-  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIMAUTH);
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_INVALID);
   EXPECT_TRUE(log_event_set);
   // Expect no event, SIGNAL LEDs must be unchanged while NET LED blinks error code
   EXPECT_FALSE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
@@ -808,10 +976,10 @@ TEST_F(MdmDiagnosticTest, UnsetSimErrorAfterRegistration)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -827,15 +995,18 @@ TEST_F(MdmDiagnosticTest, UnsetSimErrorAfterRegistration)
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
   EXPECT_TRUE(log_event_set);
 
   // Set error SIM_FAILURE
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
-  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_FAILURE);
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_INVALID);
   // Expect event for this error
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
-  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIMAUTH);
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_INVALID);
   EXPECT_TRUE(log_event_set);
 
   // Set error NONE
@@ -859,10 +1030,10 @@ TEST_F(MdmDiagnosticTest, ChangeAccessClassWhileError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -878,15 +1049,18 @@ TEST_F(MdmDiagnosticTest, ChangeAccessClassWhileError)
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
   EXPECT_TRUE(log_event_set);
 
   // Set error SIM_FAILURE
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
-  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_FAILURE);
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_INVALID);
   // Expect event for this error
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
-  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIMAUTH);
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_INVALID);
   EXPECT_TRUE(log_event_set);
 
   // Set access class 3G
@@ -915,10 +1089,10 @@ TEST_F(MdmDiagnosticTest, ChangeError)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -934,15 +1108,18 @@ TEST_F(MdmDiagnosticTest, ChangeError)
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
   EXPECT_TRUE(log_event_set);
 
   // Set error SIM_FAILURE
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
-  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_FAILURE);
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_INVALID);
   // Expect event for this error
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
-  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIMAUTH);
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_INVALID);
   EXPECT_TRUE(log_event_set);
 
   // Set new error RESET_FAILED
@@ -965,10 +1142,10 @@ TEST_F(MdmDiagnosticTest, SetSimFailureTwice)
 {
   MdmDiagnostic mdmDiag;
 
-  // Push initialization events => 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
+  // Push initialization events => 1 for SIGNAL LEVEL + 6 for SIGNAL LEDs + 1 for NET LED (see Test Initialization)
   log_tEventId log_event_id;
   bool         log_event_set;
-  for(int i=0; i<7; i++)
+  for(int i=0; i<8; i++)
   {
     EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   }
@@ -984,19 +1161,22 @@ TEST_F(MdmDiagnosticTest, SetSimFailureTwice)
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_NET_2G);
   EXPECT_TRUE(log_event_set);
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
+  EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_CHANGE);
+  EXPECT_TRUE(log_event_set);
+  EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
   EXPECT_EQ(log_event_id, DIAG_3GMM_OPER_SIGNAL_1_ON);
   EXPECT_TRUE(log_event_set);
 
   // Set error SIM_FAILURE
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
-  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_FAILURE);
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
+  EXPECT_EQ(mdmDiag.get_error_state(), MdmErrorState::SIM_INVALID);
   // Expect event for this error
   EXPECT_TRUE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
-  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIMAUTH);
+  EXPECT_EQ(log_event_id, DIAG_3GMM_ERR_SIM_INVALID);
   EXPECT_TRUE(log_event_set);
 
   // Set same error again
-  mdmDiag.set_error_state(MdmErrorState::SIM_FAILURE);
+  mdmDiag.set_error_state(MdmErrorState::SIM_INVALID);
   // Expect no event when error is not changed
   EXPECT_FALSE(test_log_EVENT_LogId_get_first(&log_event_id, &log_event_set));
 }

@@ -30,6 +30,13 @@ JsonBuilder& JsonBuilder::Append<BridgeConfig>(const string& key, const BridgeCo
   return *this;
 }
 
+template<>
+JsonBuilder& JsonBuilder::Append<DipSwitchIpConfig>(const string& key, const DipSwitchIpConfig& config) {
+  JsonConfigConverter converter;
+  json_[key] = converter.DipSwitchIpConfigToNJson(config);
+  return *this;
+}
+
 string JsonBuilder::ToString() {
   return json_.dump();
 }

@@ -1,0 +1,73 @@
+From 75649d49371cb4816b61cecc260eac30c0dd178c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 11 Feb 2020 16:00:03 +0100
+Subject: [PATCH] arm: dts: pfc200adv: rename leds
+
+Rename module status (ms) and node status (ns) leds according to the
+manual description (chapter 9) of PFC200ADV.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pac-768_330x.dtsi     | 8 ++++----
+ arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi | 8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+index ab87586..f5361f5 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x.dtsi
+@@ -354,19 +354,19 @@
+ };
+ 
+ &lb60_4 {
+-	label = "ms-red";
++	label = "h11-red";
+ };
+ 
+ &lb60_5 {
+-	label = "ms-green";
++	label = "h11-green";
+ };
+ 
+ &lb60_6 {
+-	label = "ns-red";
++	label = "h12-red";
+ };
+ 
+ &lb60_7 {
+-	label = "ns-green";
++	label = "h12-green";
+ };
+ 
+ &lb60_8 {
+diff --git a/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi b/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
+index 356694d..b001f23 100644
+--- a/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
++++ b/arch/arm/boot/dts/am335x-pac-768_330x_psm.dtsi
+@@ -333,19 +333,19 @@
+ };
+ 
+ &lb60_4 {
+-	label = "ms-red";
++	label = "h11-red";
+ };
+ 
+ &lb60_5 {
+-	label = "ms-green";
++	label = "h11-green";
+ };
+ 
+ &lb60_6 {
+-	label = "ns-red";
++	label = "h12-red";
+ };
+ 
+ &lb60_7 {
+-	label = "ns-green";
++	label = "h12-green";
+ };
+ 
+ &lb60_8 {
+-- 
+2.7.4
+

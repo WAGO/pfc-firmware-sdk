@@ -82,6 +82,24 @@ TEST(Assert, FailC_DeathTest)
 }
 
 
+TEST(AssertReturn, SucceedC)
+{
+  int result = 0;
+  result = TriggerSuccessReturnC(15);
+  EXPECT_EQ(-1, result);
+}
+
+
+TEST(AssertReturn, FailC_DeathTest)
+{
+#ifndef NDEBUG
+  int result = 0;
+  ASSERT_NO_FATAL_FAILURE(result = TriggerFailReturnC(15));
+  EXPECT_EQ(15, result);
+#endif
+}
+
+
 TEST(Assert, SucceedCPP)
 {
   TriggerSuccessCPP();
@@ -92,6 +110,24 @@ TEST(Assert, FailCPP_DeathTest)
 {
 #ifndef NDEBUG
   ASSERT_NO_FATAL_FAILURE(TriggerFailCPP());
+#endif
+}
+
+
+TEST(AssertReturn, SucceedCPP)
+{
+  int result = 0;
+  result = TriggerSuccessReturnCPP(15);
+  EXPECT_EQ(-1, result);
+}
+
+
+TEST(AssertReturn, FailCPP_DeathTest)
+{
+#ifndef NDEBUG
+  int result = 0;
+  ASSERT_NO_FATAL_FAILURE(result = TriggerFailReturnCPP(15));
+  EXPECT_EQ(15, result);
 #endif
 }
 

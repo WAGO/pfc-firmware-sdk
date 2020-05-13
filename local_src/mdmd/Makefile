@@ -93,14 +93,15 @@ mdmd.elf_SOURCES += \
  $(SRC_DIR)/timeout.cc \
  $(SRC_DIR)/sysfs_lib.cc \
  $(SRC_DIR)/mdm_statemachine.cc \
- $(SRC_DIR)/persistent_storage.cc \
  $(SRC_DIR)/dbus_server.cc \
  $(SRC_DIR)/mdm_dbusserver.cc \
  $(SRC_DIR)/dbus_client.cc \
  $(SRC_DIR)/mdm_cuse_text_data.cc \
  $(SRC_DIR)/mdm_cuse_worker.cc \
  $(SRC_DIR)/mdmd_log.cc \
- $(SRC_DIR)/mdm_diagnostic.cpp
+ $(SRC_DIR)/mdm_diagnostic.cpp \
+ $(SRC_DIR)/gkeyfile_storage.cpp \
+ $(SRC_DIR)/mdm_parameter_storage.cpp
 mdmd.elf_CPPFLAGS += -D_FILE_OFFSET_BITS=64
 mdmd.elf_CPPFLAGS += -D_MDMD_VERSION='"$(MDMD_VERSION)"'
 mdmd.elf_CPPFLAGS += $(INCLUDES_OF_EXTERNAL_PACKAGES)
@@ -158,11 +159,10 @@ alltests.elf_CXXFLAGS += $(call option_std,gnu++14)
 alltests.elf_LDFLAGS += $(call option_lib,$(alltests.elf_LIBS),alltests.elf)
 alltests.elf_LDFLAGS += $(call pkg_config_ldflags,$(alltests.elf_PKG_CONFIGS))
 alltests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/test-src,$(SOURCE_FILE_EXTENSIONS))
-alltests.elf_SOURCES += $(PROJECT_ROOT)/persistent_storage.cc
 alltests.elf_SOURCES += $(PROJECT_ROOT)/mdm_cuse_text_data.cc
 alltests.elf_SOURCES += $(PROJECT_ROOT)/mdmd_log.cc
-alltests.elf_SOURCES += $(PROJECT_ROOT)/GKeyFileStorage.cpp
-alltests.elf_SOURCES += $(PROJECT_ROOT)/MdmParameterStorage.cpp
+alltests.elf_SOURCES += $(PROJECT_ROOT)/gkeyfile_storage.cpp
+alltests.elf_SOURCES += $(PROJECT_ROOT)/mdm_parameter_storage.cpp
 alltests.elf_SOURCES += $(PROJECT_ROOT)/mdm_diagnostic.cpp
 alltests.elf_CLANG_TIDY_CHECKS += $(GTEST_CLANG_TIDY_CHECKS)
 

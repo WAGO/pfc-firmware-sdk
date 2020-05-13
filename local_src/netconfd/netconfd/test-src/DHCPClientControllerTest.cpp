@@ -8,7 +8,6 @@
 //------------------------------------------------------------------------------
 
 #include "CommandExecutor.hpp"
-#include "DevicePropertiesProvider.hpp"
 #include "FileEditor.hpp"
 #include "BridgeController.hpp"
 
@@ -16,6 +15,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <boost/filesystem.hpp>
+#include <DeviceProperties.hpp>
 
 using namespace testing;
 
@@ -25,7 +25,7 @@ class ADHCPClientController_Target : public Test {
  public:
   CommandExecutor command_executor_;
   BridgeController bridge_controller_;
-  DevicePropertiesProvider properties_provider_;
+  DeviceProperties properties_provider_;
   FileEditor file_editor_;
 
   DHCPClientController dhcp_client_controller_;
@@ -33,7 +33,7 @@ class ADHCPClientController_Target : public Test {
   const ::std::string br_test = "br_test";
 
   ADHCPClientController_Target()
-      : properties_provider_{bridge_controller_},dhcp_client_controller_(command_executor_, properties_provider_, file_editor_) {
+      : properties_provider_{bridge_controller_},dhcp_client_controller_(properties_provider_, file_editor_) {
 
   }
 

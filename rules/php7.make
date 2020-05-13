@@ -18,8 +18,8 @@ PACKAGES-$(PTXCONF_PHP7) += php7
 #
 # Paths and names
 #
-PHP7_VERSION	:= 7.3.5
-PHP7_MD5	:= e363a5dd4ac09c1e9c87dace28029dde
+PHP7_VERSION	:= 7.3.15
+PHP7_MD5	:= 54c922fa1dfadc1d6480cd47a6ec72b8
 PHP7		:= php-$(PHP7_VERSION)
 PHP7_SUFFIX	:= tar.xz
 PHP7_SOURCE	:= $(SRCDIR)/$(PHP7).$(PHP7_SUFFIX)

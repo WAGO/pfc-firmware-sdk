@@ -247,9 +247,7 @@ ifdef PTXCONF_BUSYBOX_UDHCPD
 endif
 
 ifdef PTXCONF_BUSYBOX_UDHCPC
-ifndef PTXCONF_NETCONFD
 	@$(call install_alternative, busybox, 0, 0, 0754, /etc/udhcpc.script)
-endif # PTXCONF_NETCONFD
 	@$(call install_link, busybox, ../../../etc/udhcpc.script, /usr/share/udhcpc/default.script)
 endif
 

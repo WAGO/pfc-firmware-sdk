@@ -136,7 +136,7 @@ void mdm_cuse_write(fuse_req_t req, const char *buf, size_t size,
     {
       syslog(LOG_WARNING, "%s: open %s failed: %s",
              __func__, pipe_name, strerror(errno));
-      size = -1;
+      size = 0;
     }
     else
     {

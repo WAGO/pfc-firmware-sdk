@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+
+# detect switch features and create file for detect_feature config tool
+
+feature_dir=/etc/specific/features
+rm -f $feature_dir/switch-*
+
+declare -A feature_file_map
+feature_file_map["bcast_protect"]="switch-broadcast-protection"
+feature_file_map["rate_limit"]="switch-rate-limiting"
+feature_file_map["port_mirror"]="switch-port-mirroring"
+feature_file_map["fast_aging"]="switch-fast-aging"
+
+SWCFG_INFO="$(/sbin/swconfig dev switch0 show)"
+
+for f in "${!feature_file_map[@]}"
+do
+	if [[ "$SWCFG_INFO" == *"$f"* ]]; then
+		touch $feature_dir/${feature_file_map[$f]}
+	fi
+done

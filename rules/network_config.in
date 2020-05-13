@@ -1,0 +1,10 @@
+## SECTION=wago_specific_config
+
+config NETWORK_CONFIG
+	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select NETCONFD
+	select BOOST
+	select BOOST_SYSTEM
+	select BOOST_PROGRAM_OPTIONS

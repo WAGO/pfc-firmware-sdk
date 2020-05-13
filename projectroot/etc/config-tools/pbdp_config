@@ -1,16 +1,21 @@
 #!/bin/bash
+#-----------------------------------------------------------------------------#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
-
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2012-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
-# Script-name: pbdb_config
+#-----------------------------------------------------------------------------#
+# Script:   pbdb_config
 #
-# Get config value of pbdpslvappl.conf file
+# Brief:    Get config value of dps.conf file.
 #
-# Author: WAGO Kontakttechnik GmbH
+# Author:   SM:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -23,117 +28,204 @@ fi
 
 PBDP_CONFIG_FILE="/etc/specific/dps.conf"
 
-# show help-text if requested
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-  echo
+
+# Main tool/script function.
+#
+# Param 1..n: Script parameters
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+main()
+{
+  local status=$SUCCESS
+
+  # show help-text if requested
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "help" ]; then
+    print_help
+    exit $?
+  fi
+  
+  if [ "$1" = "reset-ssa" ]; then
+    reset_ssa
+    status=$?
+  else
+    read_write_config "$@"
+    status=$?
+  fi
+
+  return $status
+}
+
+
+# Function to print tool/script help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+print_help()
+{
   echo "* Get and set configuration values of dps.conf file *"
   echo
-  echo "Usage: pbdb_config < access parameter-area parameter-name > [ new-parameter-value ]"
-  echo 
-  echo "access: \"get\" | \"set\""
-  echo 
-  exit $SUCCESS
-fi
+  echo "Usage:"
+  echo "  pbdb_config [<script options>] <command> [<parameter-area> <parameter-name> [<new-parameter-value>]]"
+  echo
+  echo "Script commands:"
+  echo "  help                  See script option \"--help\""
+  echo "  get                   Get parameter <parameter-name> from <parameter-area>"
+  echo "  set                   Set parameter <parameter-name> in <parameter-area> to <new-parameter-value>"
+  echo "  reset-ssa             Reset SSA values"
+  echo
+  echo "Script options:"
+  echo "  --help           -h   Prints this help text"
 
-status=$SUCCESS
+  return 0
+}
 
-# read input parameter
-access=$1
-area=$2
-paramName=$3
-newParamValue=$4
-#echo "access:${access} area:${area} paramName:${paramName} newParamValue:${newParamValue}" > /etc/config-tools/output
 
-# check for missing input parameter
-if [ -z "$access" ] || [ -z "$area" ] || [ -z "$paramName" ]; then
-  status=$MISSING_PARAMETER
-  SetLastError "Missing input parameter"
-  exit $status
-fi
+# Function to read or write configuration value.
+#
+# Param 1: Access specifier (get|set)
+# Param 2: Parameter area to access
+# Param 3: Parameter name to access
+# Param 4: New parameter value to set (only for set access specifier)
+#
+# Return: 0 on success, specific error value otherwise
+#-----------------------------------------------------------------------------#
+read_write_config()
+{
+  local status=$SUCCESS
 
-#check whether config-file exists 
-if [ ! -f $PBDP_CONFIG_FILE ]; then
-  status=$CONFIG_FILE_MISSING
-  SetLastError "Config File is missing"
-  exit $status
-fi
+  # read input parameter
+  local access=${1:-}
+  local area=${2:-}
+  local paramName=${3:-}
+  local newParamValue=${4:-}
+  #echo "access:${access} area:${area} paramName:${paramName} newParamValue:${newParamValue}" > /etc/config-tools/output
 
-# get line count of file for "end of file" check
-maxLineCount=`cat $PBDP_CONFIG_FILE | wc -l`
-#echo "maxLineCount:"$maxLineCount
+  # check for missing input parameter
+  if [ -z "$access" ] || [ -z "$area" ] || [ -z "$paramName" ]; then
+    status=$MISSING_PARAMETER
+    SetLastError "Missing input parameter"
+    return $status
+  fi
 
-# init status with "can't find parameter"
-status=$CONFIG_DATA_ERROR
+  #check whether config-file exists 
+  if [ ! -f $PBDP_CONFIG_FILE ]; then
+    status=$CONFIG_FILE_MISSING
+    SetLastError "Config File is missing"
+    return $status
+  fi
 
-sectionEnd=0
-foundLine=0
-paramValue=""
+  # get line count of file for "end of file" check
+  maxLineCount=`cat $PBDP_CONFIG_FILE | wc -l`
+  #echo "maxLineCount:"$maxLineCount > /etc/config-tools/output
 
-# get the line number of the line with start of area (cut the number from grep output line)
-numberedLine=`grep -n "^ *\[${area}\] *$" $PBDP_CONFIG_FILE`
-#echo "$numberedLine"
+  # init status with "can't find parameter"
+  status=$CONFIG_DATA_ERROR
 
-# if we can't find area at all, there is no need to search for parameter - don't start following loop
-if [ -z $numberedLine ]; then
-  sectionEnd=1
-else
-  lineNo=`echo ${numberedLine%:*}`
-fi
+  sectionEnd=0
+  foundLine=0
+  paramValue=""
 
-# loop over the following lines until we find the requestet param or start of next area or end of file
+  # get the line number of the line with start of area (cut the number from grep output line)
+  numberedLine=`grep -n "^ *\[${area}\] *$" $PBDP_CONFIG_FILE`
+  #echo "$numberedLine" > /etc/config-tools/output
 
-while [ "$sectionEnd" = 0 ] && [ "$foundLine" = 0 ]; do
-
-  lineNo=$[$lineNo + 1]
-  
-  # end of file? -> break loop without success 
-  if (( $lineNo > $maxLineCount )); then
-    #echo end of file
+  # if we can't find area at all, there is no need to search for parameter - don't start following loop
+  if [ -z $numberedLine ]; then
     sectionEnd=1
   else
-  
-    # read actual line
-    line=`sed -n ''${lineNo}'p' $PBDP_CONFIG_FILE`
-    #echo $line
+    lineNo=`echo ${numberedLine%:*}`
+  fi
 
-    # check if line already contains start of next area (-> would mean, param was not existing in requested area)
-    echo $line | grep "^ *\[" > /dev/null 2> /dev/null
-    if [ $? = $SUCCESS ]; then
+  # loop over the following lines until we find the requestet param or start of next area or end of file
+  while [ "$sectionEnd" = 0 ] && [ "$foundLine" = 0 ]; do
+
+    lineNo=$[$lineNo + 1]
+
+    # end of file? -> break loop without success 
+    if (( $lineNo > $maxLineCount )); then
+      #echo end of file > /etc/config-tools/output
       sectionEnd=1
-      #echo "section end"
-    
     else
-  
-      # check if this line contains our requested parameter
-      echo $line | grep "^ *${paramName}=" > /dev/null 2> /dev/null
-      if [ $? = $SUCCESS ]; then
-     
-        foundLine=1
-      
-        # user wants to get value - filter param value, write it to stdout and stop loop
-        if [ "get" = "$access" ]; then
-          status=$SUCCESS
-          paramValue=`echo ${line#${paramName}=}`
-          printf "%s" $paramValue
-      
-        # user wants to set value - write new parameter to line 
-        elif [ "set" = "$access" ]; then
-          status=$SUCCESS
-          sed -i ''$lineNo'c '$paramName'='$newParamValue'' $PBDP_CONFIG_FILE > /dev/null 2> /dev/null
-          if [[ "$?" == "$SUCCESS" ]]; then
-            sync
-          else
-            status=$WRITE_FILE_ERROR
-          fi
 
-        # unknown access
-        else
-          status=$INVALID_PARAMETER
+      # read actual line
+      line=`sed -n ''${lineNo}'p' $PBDP_CONFIG_FILE`
+      #echo $line > /etc/config-tools/output
+
+      # check if line already contains start of next area (-> would mean, param was not existing in requested area)
+      echo $line | grep "^ *\[" > /dev/null 2> /dev/null
+      if [ $? = $SUCCESS ]; then
+        sectionEnd=1
+        #echo "section end" > /etc/config-tools/output
+
+      else
+
+        # check if this line contains our requested parameter
+        echo $line | grep "^ *${paramName}=" > /dev/null 2> /dev/null
+        if [ $? = $SUCCESS ]; then
+
+          foundLine=1
+
+          # user wants to get value - filter param value, write it to stdout and stop loop
+          if [ "get" = "$access" ]; then
+            status=$SUCCESS
+            paramValue=`echo ${line#${paramName}=}`
+            printf "%s" $paramValue
+
+          # user wants to set value - write new parameter to line 
+          elif [ "set" = "$access" ]; then
+            status=$SUCCESS
+            sed -i ''$lineNo'c '$paramName'='$newParamValue'' $PBDP_CONFIG_FILE > /dev/null 2> /dev/null
+            if [[ "$?" == "$SUCCESS" ]]; then
+              sync
+            else
+              status=$WRITE_FILE_ERROR
+            fi
+
+          # unknown access
+          else
+            status=$INVALID_PARAMETER
+          fi
         fi
       fi
     fi
-  fi
-  
-done
 
-exit $status
+  done
+
+  return $status
+}
+
+
+# Function to reset SSA values to factory default.
+#
+# Return: 0 on success, specific error value otherwise
+#-----------------------------------------------------------------------------#
+reset_ssa()
+{
+  local status=$SUCCESS
+
+  local ssa_release=""
+  local slave_address=""
+
+  ssa_release="$(read_write_config "get" "ssa.factory" "ssa_released")"
+  status=$(( $? == 0 ? $status : $? ))
+  slave_address="$(read_write_config "get" "ssa.factory" "slave_address")"
+  status=$(( $? == 0 ? $status : $? ))
+
+  if [ $status -eq 0 ]; then
+    read_write_config "set" "ssa.user" "ssa_released" "$ssa_release"
+    status=$?
+  fi
+
+  if [ $status -eq 0 ]; then
+    read_write_config "set" "ssa.user" "slave_address" "$slave_address"
+    status=$?
+  fi
+
+  return $status
+}
+
+
+# Start main function
+main "$@"
+exit $?

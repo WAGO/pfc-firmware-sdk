@@ -14,6 +14,7 @@ config LIBBACNETSTACK
 	select DBUS
 	select LIBCTCALLHELPER
 	select DAL
+	select LIBWAGODRM
 	prompt "BACnet Stack"
 	help
 	  Build the BACnet stack as a static library. This software component is the BACnet communication stack.

@@ -50,8 +50,8 @@ FIRMWARE_SVNREVISION := $(shell cat $(TARGETROOT)/etc/SVNREVISION | head -n1 | c
 # Map platform/project names to more user friendly target names
 ifeq ($(PLATFORM),wago-pfcXXX)
 FIRMWARE_PLATFORM ?= PFC-Linux
-else ifeq ($(PLATFORM),wago-pac100)
-FIRMWARE_PLATFORM ?= PAC-Linux
+else ifeq ($(PLATFORM),wago-pfc-adv)
+FIRMWARE_PLATFORM ?= PFC_ADV-Linux
 else ifeq ($(PLATFORM),wago-pfcXXX-hardened)
 FIRMWARE_PLATFORM ?= PFC-Linux
 else ifeq ($(PLATFORM),vtp-ctp)
@@ -104,12 +104,16 @@ DOWNGRADE_IMAGES += $(OUT_DIR)/sd-downgrade-firmware-03-pfc200_$(IMAGE_ID).img
 DOWNGRADE_IMAGES += $(OUT_DIR)/sd-downgrade-firmware-04-pfc200_$(IMAGE_ID).img
 
 # Production images
+ifneq ($(PLATFORM),wago-pfc-adv)
 PRODUCTION_IMAGES += $(OUT_DIR)/nand-wago-production-pfc100_$(IMAGE_ID).ubi
 PRODUCTION_IMAGES += $(OUT_DIR)/nand-wago-production-pfc200_$(IMAGE_ID).img
 PRODUCTION_IMAGES += $(OUT_DIR)/nand-wago-production-pfc200v2_$(IMAGE_ID).ubi
 PRODUCTION_IMAGES += $(OUT_DIR)/emmc-wago-production-pfc200v3_$(IMAGE_ID).img
 PRODUCTION_IMAGES += $(OUT_DIR)/emmc-commission-pfc200v3_$(IMAGE_ID).img
 PRODUCTION_IMAGES += $(OUT_DIR)/firmware_$(IMAGE_ID).hex
+else
+PRODUCTION_IMAGES += $(OUT_DIR)/production_$(IMAGE_ID).zip
+endif
 
 ifeq ($(BUILDTYPE),release)
 PRODUCTION_IMAGES += $(OUT_DIR)/vmlinux_$(IMAGE_ID)
@@ -207,6 +211,10 @@ $(OUT_DIR)/firmware_$(IMAGE_ID).hex: $(IMAGE_DIR)/firmware.tar | $(OUT_DIR)
 
 $(OUT_DIR)/vmlinux_$(IMAGE_ID): $(PLATFORMDIR)/build-target/linux-$(KERNEL_VERSION)/vmlinux | $(OUT_DIR)
 	@echo "Create versioned kernel image by copy: $<"
+	cp $< $@
+
+$(OUT_DIR)/production_$(IMAGE_ID).zip: $(IMAGE_DIR)/production.zip | $(OUT_DIR)
+	@echo "Create versioned production image by copy: $<"
 	cp $< $@
 
 $(IMAGES_ARCHIVE): $(OUT_DIR)/ptxdist.images.stage | $(OUT_DIR)

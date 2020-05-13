@@ -1,7 +1,7 @@
 From 82d64a8edfef5740af4491baf8dd012b2d9c4c3d Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 12 Oct 2018 15:58:07 +0200
-Subject: [PATCH 114/144] defaultenv: init: add sourcing of post_autoboot
+Subject: [PATCH] defaultenv: init: add sourcing of post_autoboot
 
 Some scripts should be execute after autoboot was done.
 This patch add script sourcing of all scripts in

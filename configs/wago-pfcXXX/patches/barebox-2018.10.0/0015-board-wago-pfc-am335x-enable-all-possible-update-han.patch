@@ -1,8 +1,7 @@
 From 87ccdbf54157f28809a3a29507a829c038874917 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 29 May 2018 08:51:31 +0200
-Subject: [PATCH 015/144] board: wago-pfc-am335x: enable all possible
- update-handlers
+Subject: [PATCH] board: wago-pfc-am335x: enable all possible update-handlers
 
 ---
  arch/arm/boards/wago-pfc-am335x/board.c | 16 +++++++---------

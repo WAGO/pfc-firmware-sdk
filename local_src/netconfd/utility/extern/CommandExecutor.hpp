@@ -26,6 +26,7 @@ class CommandExecutor : public ICommandExecutor {
 
   Status Execute(const ::std::string& command) const override;
   Status Execute(const ::std::string& command, ::std::string & result) const override;
+  Status ForkExecute(const ::std::string& command, const uint32_t timeout_ms) const override;
 
 };
 

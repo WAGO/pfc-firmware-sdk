@@ -16,17 +16,16 @@ using ::std::inserter;
 using ::std::back_inserter;
 using ::std::transform;
 
-auto generate_default_port_config = [] (const ::std::string& linux_interface_name) noexcept { // NOLINT(cert-err58-cpp): There will nothing be thrown here
+auto generate_default_port_config = [] (const auto& netdev) noexcept { // NOLINT(cert-err58-cpp): There will nothing be thrown here
     // Create the PortConfig object without the 'eth' prefix.
-    return InterfaceConfig {linux_interface_name.substr(3), InterfaceState::UP, Autonegotiation::ON};
+    return InterfaceConfig {netdev->GetLabel(), InterfaceState::UP, Autonegotiation::ON};
   };
 
-InterfaceConfigManager::InterfaceConfigManager(IInterfaceInformation& itf_info,
+InterfaceConfigManager::InterfaceConfigManager(INetDevManager& netdev_manager,
                                                IPersistence<InterfaceConfigs>& persistence_provider,
                                                IJsonConfigConverter& json_config_converter,
                                                IEthernetInterfaceFactory& eth_factory)
-    : itf_info_ { itf_info },
-      persistence_provider_ { persistence_provider },
+    : persistence_provider_ { persistence_provider },
       json_config_converter_ { json_config_converter },
       ethernet_interface_factory_ { eth_factory } {
 
@@ -36,47 +35,45 @@ InterfaceConfigManager::InterfaceConfigManager(IInterfaceInformation& itf_info,
     LogWarning("InterfaceConfigManager: Failed to read persistence data, use default data set");
   }
 
-  auto interfaces = itf_info_.GetInterfaces();
-  decltype(interfaces) considered_interfaces;
-  copy_if(interfaces.begin(), interfaces.end(), back_inserter(considered_interfaces),
-          [](auto itf_name) {return itf_name.rfind("ethX", 0) == 0;});
+  auto netdevs = netdev_manager.GetPortNetDevs();
 
-  InitializeEthernetInterfaceMap(considered_interfaces);
+  InitializeEthernetInterfaceMap(netdevs);
 
-  InitializePortConfigs(considered_interfaces, peristet_configs);
+  InitializePortConfigs(netdevs, peristet_configs);
 
   persistence_provider_.Write(current_config_);
 }
 
-void InterfaceConfigManager::InitializeEthernetInterfaceMap(const Interfaces& considered_interfaces) {
-  auto create_ethernet_interface = [&](auto interface_name) {
-    auto intf_short_name = interface_name.substr(3);  // remove eth prefix
-      return ::std::make_pair(intf_short_name, ethernet_interface_factory_.getEthernetInterface(interface_name));
+void InterfaceConfigManager::InitializeEthernetInterfaceMap(const NetDevs& netdevs) {
+  auto create_ethernet_interface = [&](auto netdev) {
+      return ::std::make_pair(netdev->GetLabel(), ethernet_interface_factory_.getEthernetInterface(netdev->GetName()));
     };
-  transform(considered_interfaces.begin(), considered_interfaces.end(),
+
+  transform(netdevs.begin(), netdevs.end(),
             inserter(ethernet_interfaces_, ethernet_interfaces_.end()), create_ethernet_interface);
 }
 
-void InterfaceConfigManager::InitializePortConfigs(const Interfaces& considered_interfaces,
+void InterfaceConfigManager::InitializePortConfigs(const NetDevs& netdevs,
                                                    const InterfaceConfigs& persistet_configs) {
 
   auto persistet_entry_is_found_in_considered_interfaces =
-      [&considered_interfaces](auto& entry) noexcept {
-        return find_if(considered_interfaces.begin(),
-            considered_interfaces.end() ,
-            [&entry](const auto& linux_itf_name) {return linux_itf_name.substr(3) == entry.device_name_;}) != considered_interfaces.end();
+      [&netdevs](auto& entry) noexcept {
+        return find_if(netdevs.begin(),
+                       netdevs.end() ,
+            [&entry](const auto& netdev) {return netdev->GetLabel() == entry.device_name_;}) != netdevs.end();
       };
   copy_if(persistet_configs.begin(), persistet_configs.end(), back_inserter(current_config_),
           persistet_entry_is_found_in_considered_interfaces);
 
   auto is_missing_in_current_config =
-      [&curr_config = current_config_](const auto& linux_itf_name) noexcept {
+      [&curr_config = current_config_](const auto& netdev) noexcept {
         return find_if(curr_config.begin(),
             curr_config.end() ,
-            [&linux_itf_name](const auto& entry) {return linux_itf_name.substr(3) == entry.device_name_;}) == curr_config.end();
+            [&netdev](const auto& entry) {return netdev->GetLabel() == entry.device_name_;}) == curr_config.end();
       };
-  Interfaces missing_interfaces;
-  copy_if(considered_interfaces.begin(), considered_interfaces.end(), back_inserter(missing_interfaces),
+
+  NetDevs missing_interfaces;
+  copy_if(netdevs.begin(), netdevs.end(), back_inserter(missing_interfaces),
           is_missing_in_current_config);
 
   if (not missing_interfaces.empty()) {

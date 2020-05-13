@@ -1,0 +1,149 @@
+From 5b4078b64307c6c53751cfd7d695bc9fa7213d99 Mon Sep 17 00:00:00 2001
+From: David Lechner <david@lechnology.com>
+Date: Tue, 28 Feb 2017 15:58:34 -0600
+Subject: [PATCH] usb: gadget: add RNDIS configfs option for Windows
+ rndiscmp.inf compatibility
+
+This adds a new configfs attribute named `use_ms_rndiscmp`. It is a
+boolean value that is used to select the class/subclass/protocol used
+by the RNDIS function interface association descriptor. By default,
+this is 0x02 (Comm), 0x06 (Ethernet), 0xff (None). When the
+use_ms_rndiscmp attribute is set to true, the values 0xef (Misc),
+0x04 (RNDIS), 0x01 (Ethernet) will be used instead. This class/subclass/
+protocol combination is recognized by the rndiscmp.inf file in Windows
+Vista and newer and will cause Windows to load the correct RNDIS driver
+without the need for a custom (signed) .inf file.
+
+Signed-off-by: David Lechner <david@lechnology.com>
+---
+ .../ABI/testing/configfs-usb-gadget-rndis          |  3 ++
+ drivers/usb/gadget/function/f_rndis.c              | 48 ++++++++++++++++++++++
+ drivers/usb/gadget/function/u_rndis.h              |  1 +
+ include/uapi/linux/usb/misc.h                      | 14 +++++++
+ 4 files changed, 66 insertions(+)
+ create mode 100644 include/uapi/linux/usb/misc.h
+
+diff --git a/Documentation/ABI/testing/configfs-usb-gadget-rndis b/Documentation/ABI/testing/configfs-usb-gadget-rndis
+index e32879b..bb4b5a85 100644
+--- a/Documentation/ABI/testing/configfs-usb-gadget-rndis
++++ b/Documentation/ABI/testing/configfs-usb-gadget-rndis
+@@ -12,3 +12,6 @@ Description:
+ 				Ethernet over USB link
+ 		dev_addr	- MAC address of device's end of this
+ 				Ethernet over USB link
++		use_ms_rndiscmp	- Use the MS Windows rndiscmp.inf compatible
++				class 0xEF, subclass 0x04, protocol 0x01
++				instead of the default 0x02/0x06/0x00.
+diff --git a/drivers/usb/gadget/function/f_rndis.c b/drivers/usb/gadget/function/f_rndis.c
+index ba00cdb..c94490a 100644
+--- a/drivers/usb/gadget/function/f_rndis.c
++++ b/drivers/usb/gadget/function/f_rndis.c
+@@ -20,6 +20,7 @@
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include <linux/etherdevice.h>
++#include <linux/usb/misc.h>
+ 
+ #include <linux/atomic.h>
+ 
+@@ -692,6 +693,18 @@ rndis_bind(struct usb_configuration *c, struct usb_function *f)
+ 	}
+ 
+ 	/*
++	 * Starting with Vista, Windows will match this Class/SubClass/Protocol
++	 * with rndiscmp.inf and load the proper driver without the need for a
++	 * custom .inf.
++	 * Ref: https://msdn.microsoft.com/library/ff538820(v=vs.85).aspx
++	 */
++	if (rndis_opts->use_ms_rndiscmp) {
++		rndis_iad_descriptor.bFunctionClass = USB_CLASS_MISC;
++		rndis_iad_descriptor.bFunctionSubClass = USB_MISC_SUBCLASS_RNDIS;
++		rndis_iad_descriptor.bFunctionProtocol = USB_MISC_RNDIS_PROTO_ENET;
++	}
++
++	/*
+ 	 * in drivers/usb/gadget/configfs.c:configfs_composite_bind()
+ 	 * configurations are bound in sequence with list_for_each_entry,
+ 	 * in each configuration its functions are bound in sequence
+@@ -866,11 +879,46 @@ USB_ETHERNET_CONFIGFS_ITEM_ATTR_QMULT(rndis);
+ /* f_rndis_opts_ifname */
+ USB_ETHERNET_CONFIGFS_ITEM_ATTR_IFNAME(rndis);
+ 
++static ssize_t
++rndis_opts_use_ms_rndiscmp_show(struct config_item *item, char *page)
++{
++	struct f_rndis_opts *opts = to_f_rndis_opts(item);
++	int ret;
++
++	mutex_lock(&opts->lock);
++	ret = sprintf(page, "%d\n", opts->use_ms_rndiscmp);
++	mutex_unlock(&opts->lock);
++
++	return ret;
++}
++
++static ssize_t
++rndis_opts_use_ms_rndiscmp_store(struct config_item *item, const char *page,
++				 size_t len)
++{
++	struct f_rndis_opts *opts = to_f_rndis_opts(item);
++	int ret;
++	bool use;
++
++	mutex_lock(&opts->lock);
++	ret = strtobool(page, &use);
++	if (!ret) {
++		opts->use_ms_rndiscmp = use;
++		ret = len;
++	}
++	mutex_unlock(&opts->lock);
++
++	return ret;
++}
++
++CONFIGFS_ATTR(rndis_opts_, use_ms_rndiscmp);
++
+ static struct configfs_attribute *rndis_attrs[] = {
+ 	&rndis_opts_attr_dev_addr,
+ 	&rndis_opts_attr_host_addr,
+ 	&rndis_opts_attr_qmult,
+ 	&rndis_opts_attr_ifname,
++	&rndis_opts_attr_use_ms_rndiscmp,
+ 	NULL,
+ };
+ 
+diff --git a/drivers/usb/gadget/function/u_rndis.h b/drivers/usb/gadget/function/u_rndis.h
+index 4e2ad04..268c7ac 100644
+--- a/drivers/usb/gadget/function/u_rndis.h
++++ b/drivers/usb/gadget/function/u_rndis.h
+@@ -25,6 +25,7 @@ struct f_rndis_opts {
+ 	struct net_device		*net;
+ 	bool				bound;
+ 	bool				borrowed_net;
++	bool				use_ms_rndiscmp;
+ 
+ 	struct config_group		*rndis_interf_group;
+ 	struct usb_os_desc		rndis_os_desc;
+diff --git a/include/uapi/linux/usb/misc.h b/include/uapi/linux/usb/misc.h
+new file mode 100644
+index 00000000..a6661f6
+--- /dev/null
++++ b/include/uapi/linux/usb/misc.h
+@@ -0,0 +1,14 @@
++/*
++ * USB Miscellaneous Device Class definitions
++ *
++ * Ref: http://www.usb.org/developers/defined_class/#BaseClassEFh
++ */
++
++#ifndef __UAPI_LINUX_USB_MISC_H
++#define __UAPI_LINUX_USB_MISC_H
++
++#define USB_MISC_SUBCLASS_RNDIS			0x04
++
++#define USB_MISC_RNDIS_PROTO_ENET		0x01
++
++#endif /* __UAPI_LINUX_USB_MISC_H */
+-- 
+2.7.4
+

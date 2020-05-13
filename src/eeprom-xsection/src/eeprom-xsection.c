@@ -20,6 +20,7 @@
  *  v0.4: added special mode for boot_once flag: by calling eeprom-xsection -W -o first
  *        the flag is set or reset in such a way that we use from 1st root partition
  *        after next reboot.
+ *  v0.5: Added support for HW03 EMMC.
  *  V0.6: M. Laschinsky: deactivated eeprom boot-options -> obsolete (use rauc instead)
  *
 */
@@ -51,35 +52,53 @@ static struct pac_eeprom_xload_section pac_xsection;
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
+static int get_boot_id(u8 *boot_id);
+static struct boot_table_entry *pac_boot_table_lookup(u8 boot_id);
+static int get_sd_boot_disabled();
+
+static int get_boot_id(u8 *boot_id)
+{
+	u8 tmp_boot_id = 0;
+	char boot_mode[5];
+
+	FILE *boot_id_fd = fopen("/sys/class/wago/system/boot_id", "r");
+	if (NULL == boot_id_fd)
+	{
+		return -1;
+	}
+	// We expect a value of kind 0xff => 4 chars
+	if(4 != fread(boot_mode, sizeof(boot_mode[0]), 4, boot_id_fd))
+	{
+		fclose(boot_id_fd);
+		return -1;
+	}
+	boot_mode[ARRAY_SIZE(boot_mode) - 1] = '\0';
+	// Check if boot id is valid
+	tmp_boot_id = strtol(boot_mode, NULL, 0);
+	if (NULL == pac_boot_table_lookup(tmp_boot_id))
+	{
+		fclose(boot_id_fd);
+		return -1;
+	}
+	*boot_id = tmp_boot_id;
+	fclose(boot_id_fd);
+	return 0;
+}
+
 //
 // Get the current root partition. Use kernel /sys/class... interface
 // because the value in EEPROM might have been changed by user.
 // Returns 1 or 2 as valid partition numbers or 0 on error.
-char get_current_root(void)
+u8 get_current_root(void)
 {
-  char boot_mode[5];
-  char current_root_nr = 0; // invalid value
-  
-  FILE *boot_id = fopen("/sys/class/wago/system/pac_boot_id", "r");
-  if(boot_id)
-  {
-    // We expect a value of kind 0xff => 4 chars
-    if(4 == fread(boot_mode, sizeof(boot_mode[0]), 4, boot_id))
-    {
-      boot_mode[ARRAY_SIZE(boot_mode) - 1] = '\0';
-      current_root_nr = strtol(boot_mode, NULL, 0);
+	u8 current_root_nr = 0; // invalid value
+	if (0 == get_boot_id(&current_root_nr))
+	{
+		current_root_nr &= PAC_BOOT_RECOVER;
+		current_root_nr = current_root_nr ? 2 : 1;
 
-      if(current_root_nr)
-      {
-        current_root_nr &= PAC_BOOT_RECOVER;
-        current_root_nr = current_root_nr ? 2 : 1; 
-      }
-    }
-
-    fclose(boot_id);
-  }
-
-  return current_root_nr;
+	}
+	return current_root_nr;
 }
 
 void eeprom_wp(int protect)
@@ -120,6 +139,9 @@ static struct boot_table_entry *pac_boot_table_lookup(u8 boot_id)
 }
 
 #define STR_YES_NO(x) (x) ? "yes" : "no"
+#define STR_ROOTFS1(x) (x) ? "ubi0:ubi_rootfs1" : "/dev/mmcblk1p2"
+#define STR_ROOTFS2(x) (x) ? "ubi0:ubi_rootfs2" : "/dev/mmcblk1p3"
+#define STR_ROOTFS_MEM(x) (x) ? "NAND" : "EMMC"
 
 // Read all flags in EEPROM and get the current root partition from user.
 // The RECOVER flag in EEPROM can be changed by user so that we have to
@@ -131,13 +153,17 @@ void dump_boot_mode(u8 boot_mode_id){
   u8 nand_root_part_recovery   = boot_mode_id & PAC_BOOT_RECOVER;
   u8 kernel_use_com_port       = boot_mode_id & PAC_BOOT_UART;
   u8 enable_all_mtd_devices    = boot_mode_id & PAC_BOOT_DEVELOP;
+  u8 booting_from_nand = 0;
+  u8 booting_from_emmc = 0;
+  u8 boot_id = 0;
 
-  u8 booting_from_nand         = boot_mode_id & PAC_DEVICE_NAND; 
+  if (0 == get_boot_id(&boot_id))
+  {
+	  int device_id = boot_id & PAC_DEVICE_ID_MASK;
+	  booting_from_nand = (device_id == PAC_DEVICE_NAND);
+	  booting_from_emmc = (device_id == PAC_DEVICE_EMMC);
+  }
 
-  // Deduce partition nrs from flag values
-  // (nand_root_part flag set => use "recover" partition i.e. part2)
-  u8 nand_root_part_next_boot;
- 
   const char *partLabelCurrent;
   const char *partLabelDefault;
   const char *partLabelNext;
@@ -145,17 +171,17 @@ void dump_boot_mode(u8 boot_mode_id){
   // First determine the name of the default root partition
   if(nand_root_part_recovery) 
   {
-    partLabelDefault="ubi_rootfs2";
+    partLabelDefault = STR_ROOTFS2(booting_from_nand);
   }
   else
   {
-    partLabelDefault="ubi_rootfs1";
+    partLabelDefault = STR_ROOTFS1(booting_from_nand);
   }
 
   u8 nand_root_part_current = 0;
 
   // get_current_root() makes no sense when booting from SD card
-  if(booting_from_nand) {
+  if(booting_from_nand || booting_from_emmc) {
 
     // Determine which partition we did boot from.
     // This value is taken from the kernel
@@ -171,18 +197,19 @@ void dump_boot_mode(u8 boot_mode_id){
   {
     if(1 == nand_root_part_current)
     {
-      partLabelCurrent = "ubi_rootfs1";
-      partLabelNext    = "ubi_rootfs2"; // first assume use_other_root_once == 1
+      partLabelCurrent = STR_ROOTFS1(booting_from_nand);
+      // first assume use_other_root_once == 1
+      partLabelNext    = STR_ROOTFS2(booting_from_nand);
     }
     else // part_current == 2
     {
-      partLabelCurrent = "ubi_rootfs2";
-      partLabelNext    = "ubi_rootfs1"; // first assume use_other_root_once == 1
+      partLabelCurrent = STR_ROOTFS2(booting_from_nand);
+      // first assume use_other_root_once == 1
+      partLabelNext    = STR_ROOTFS1(booting_from_nand);
     }
 
     if(0 == nand_use_other_root_once)
     {
-      
       // If use_other_root is not set, the next boot partition is determined by
       // the value stored in the EEPROM (PAC_BOOT_RECOVER) 
       partLabelNext = partLabelDefault;
@@ -194,20 +221,22 @@ void dump_boot_mode(u8 boot_mode_id){
     partLabelNext    = "unknown";
   }
 
-  
-
-  printf("Boot mode:                     0x%02x\n\n", boot_mode_id); 
-
+  printf("Boot mode:                     0x%02x\n", boot_mode_id);
+  printf("Boot id:                       0x%02x\n\n", boot_id);
 
   //TODO: sync ubifs labels with bootloader
-  printf("NAND: Default root partition is %s\n", partLabelDefault);
+  printf("%s: Default root partition is %s\n",
+	 STR_ROOTFS_MEM(booting_from_nand), partLabelDefault);
 
-  if(booting_from_nand) {
-    printf("NAND: Current root partition is %s\n", partLabelCurrent); 
+  if(booting_from_nand || booting_from_emmc) {
+    printf("%s: Current root partition is %s\n",
+	   STR_ROOTFS_MEM(booting_from_nand), partLabelCurrent);
   } 
-  printf("NAND: Next time will boot from  %s\n", partLabelNext);
+  printf("%s: Next time will boot from  %s\n",
+	 STR_ROOTFS_MEM(booting_from_nand), partLabelNext);
   printf("\n");
   printf("Linux: use serial console:     %s\n", STR_YES_NO(kernel_use_com_port));
+  printf("Linux: SD Card boot disabled:  %s\n", STR_YES_NO(get_sd_boot_disabled() == SD_DISABLE_BIT));
 
   printf("\n     ~~Expert options~~\n");
   printf("Linux: enable all mtd devices: %s\n", STR_YES_NO(enable_all_mtd_devices));
@@ -246,7 +275,7 @@ void dump_section(unsigned char xsection_id)
 	pac_debug("This is %s [%d].\n", __func__, __LINE__);
 }
 
-int eeprom(enum pac_eeprom_op op, unsigned int offset, char *buf, int size)
+int eeprom(enum pac_eeprom_op op, unsigned int offset, u8 *buf, int size)
 {
 	int fd = 0;
 	int ret = 0;
@@ -287,9 +316,26 @@ int eeprom(enum pac_eeprom_op op, unsigned int offset, char *buf, int size)
 	return ret;
 }
 
+static int get_sd_boot_disabled()
+{
+	u8 val;
+	int r = eeprom(PAC_READ, BOOT_MODE_ID_EXT, &val, sizeof val);
+	return r < 0 ? r : val & 1;
+}
+
+static int set_sd_boot_disabled(bool set)
+{
+	u8 val;
+	int r = eeprom(PAC_READ, BOOT_MODE_ID_EXT, &val, sizeof val);
+	if (r < 0)
+		return r;
+	val = (val & ~SD_DISABLE_BIT) | set ? SD_DISABLE_BIT : 0;
+
+	return eeprom(PAC_WRITE, BOOT_MODE_ID_EXT, &val, sizeof val);
+}
 int eeprom_xsection(enum pac_eeprom_op op, unsigned char xsection_id)
 {
-	char *buf = NULL;
+	u8 *buf = NULL;
 	int size = 0, offset = 0;
 
 	if (xsection_id & OP_XSECTION_NONE)
@@ -304,7 +350,7 @@ int eeprom_xsection(enum pac_eeprom_op op, unsigned char xsection_id)
 
 	if (xsection_id & OP_XSECTION_HDR) {
 		pac_debug("This is %s [%d].\n", __func__, __LINE__);
-		buf = (char *) &pac_xsection.hdr;
+		buf = (u8*)&pac_xsection.hdr;
 		offset = 0;
 		size += sizeof(struct pac_eeprom_xload_section_hdr);
 	} 
@@ -328,6 +374,7 @@ void print_usage(char *progname)
     "                             if \'first\': boot from first NAND root partition (at least) once\n\n" \
 		" (obsolete) -c [1/0]:        if 1: use [c]ustom cmdline (EEPROM/SD card) (on/off) \n"	   \
 		"            -s [1/0]:        set linux use [s]erial console usage status (on/off) \n"	   \
+		"            -D [1/0]:        disable boot from SD card\n"
     "\n [Expert options]:\n" \
     "            -d [1/0]:        set [d]eveloper mode (enable all mtd devices in linux) (on/off) \n"	   \
 		" (obsolete) -t [cmdline]:    specify a cus[t]om command line (max. 255 Bytes)\n"	\
@@ -403,30 +450,22 @@ int main(int argc, char **argv)
 		}
 	} 
   else { /* mode = PAC_WRITE */
-    int fd, ret = 0, bytes = 0;
 
     /* get header first */
     eeprom_xsection(PAC_READ, OP_XSECTION_HDR);
 
     u8 new_bootmode = 0;
-    int nand_part_nr;
-    struct boot_table_entry *entry;
 
-    u8 current_root_nr = -1;
-
-    // Needed for '-o'
-    u8 boot_once_val = 255;
-    u8 nand_use_other_root_once;  
-    u8 nand_root_part_recovery;  
-
-
-    while ((opt = getopt(argc, argv, "B:Fo:c:s:d:t:f:q")) != -1 && new_bootmode == 0) {
+    while ((opt = getopt(argc, argv, "B:Fo:c:s:d:t:f:qD:")) != -1 && new_bootmode == 0) {
       switch (opt) {
         case 's':
           xsection_set_bit_value( &pac_xsection, &xsection_id, PAC_BOOT_UART, atoi(optarg), "\'-s\'"); 
           break;
         case 'd':
           xsection_set_bit_value( &pac_xsection, &xsection_id, PAC_BOOT_DEVELOP, atoi(optarg), "\'-d\'"); 
+          break;
+        case 'D':
+	  set_sd_boot_disabled(atoi(optarg));
           break;
         case 'q': /* quite mode */
           xsection_id |= OP_XSECTION_QUIET;

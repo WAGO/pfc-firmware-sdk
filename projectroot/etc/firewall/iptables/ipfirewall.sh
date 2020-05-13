@@ -120,6 +120,7 @@ set_nat()
         result2=$?
         if [[ $result1 -eq 0 ]] && [[ $result2 -eq 0 ]] ; then
             $FW_XST tr "$FW_IP_NAT_XSL" "$FW_IP_CONF_XML" > "$FW_IP_RULES_NAT_TEMP"
+            remove_duplicate_lines "$FW_IP_RULES_NAT_TEMP"
             cmp "-s" "$FW_IP_RULES_NAT_TEMP" "$FW_IP_RULES_NAT" 2>&1 > /dev/null
             if [[ $? -ne 0 ]]; then
                 mv "$FW_IP_RULES_NAT_TEMP" "$FW_IP_RULES_NAT"
@@ -161,6 +162,7 @@ set_firewall()
         result2=$?
         if [[ $result1 -eq 0 ]] && [[ $result2 -eq 0 ]] ; then
             $FW_XST tr "$FW_IP_CONF_XSL" "$FW_IP_CONF_XML" > "$FW_IP_RULES_TEMP"
+            remove_duplicate_lines "$FW_IP_RULES_TEMP"
             cmp "-s" "$FW_IP_RULES_TEMP" "$FW_IP_RULES" 2>&1 > /dev/null
             if [[ $? -ne 0 ]]; then
                 mv "$FW_IP_RULES_TEMP" "$FW_IP_RULES"

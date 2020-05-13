@@ -29,6 +29,7 @@ class ICommandExecutor {
 
   virtual Status Execute(const ::std::string& command) const = 0;
   virtual Status Execute(const ::std::string& command, ::std::string & result) const = 0;
+  virtual Status ForkExecute(const ::std::string& command, const uint32_t timeout_ms) const = 0;
 
 };
 

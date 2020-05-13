@@ -35,9 +35,6 @@
 #define BRIGHTNES_VALUE_OFF "0"
 #define BASENAME_SIZE 16
 
-const char  brightnessValueOn[] = BRIGHTNES_VALUE_ON;
-const char  brightnessValueOff[] = BRIGHTNES_VALUE_OFF;
-
 typedef struct stLedGpio{
     int     fd_grn;         //filedescriptor to GPIO of green led
     int     fd_red;         //filedescriptor to GPIO of red led
@@ -230,6 +227,16 @@ int InitLed( void )
   return ret;
 }
 
+static void LED_on_off(int fd, int on)
+{
+  if (fd < 0)
+    return;
+  if (on)
+    write(fd, BRIGHTNES_VALUE_ON, sizeof BRIGHTNES_VALUE_ON -1);
+  else
+    write(fd, BRIGHTNES_VALUE_OFF, sizeof BRIGHTNES_VALUE_OFF -1);
+}
+
 /*LED Einschalten*/
 int8_t SetLed(uint8_t led_nr,
                 uint8_t color)
@@ -243,61 +250,9 @@ int8_t SetLed(uint8_t led_nr,
   //check if led has already the wanted color
   if(leds[led_nr].state != color)
   {
-    //set Green LED
-    if(leds[led_nr].fd_grn >= 0)
-    {
-      char * buf;
-      size_t size;
-      if(color & LED_GREEN)
-      {
-        buf = (char*)brightnessValueOn;
-        size = sizeof(brightnessValueOn);
-      }
-      else
-      {
-        buf = (char*)brightnessValueOff;
-        size = sizeof(brightnessValueOff);
-      }
-      //lseek(leds[led_nr].fd_grn, SEEK_SET, 0);
-      write(leds[led_nr].fd_grn, buf, size);
-    }
-    //set Red LED
-    if(leds[led_nr].fd_red >= 0)
-    {
-      char * buf;
-      size_t size;
-      if(color & LED_RED)
-      {
-        buf = (char*)brightnessValueOn;
-        size = sizeof(brightnessValueOn);
-      }
-      else
-      {
-        buf = (char*)brightnessValueOff;
-        size = sizeof(brightnessValueOff);
-      }
-      //lseek(leds[led_nr].fd_red, SEEK_SET, 0);
-      write(leds[led_nr].fd_red, buf, size);
-    }
-
-    //set Blue LED
-    if(leds[led_nr].fd_blue >= 0)
-    {
-      char * buf;
-      size_t size;
-      if(color & LED_BLUE)
-      {
-        buf = (char*)brightnessValueOn;
-        size = sizeof(brightnessValueOn);
-      }
-      else
-      {
-        buf = (char*)brightnessValueOff;
-        size = sizeof(brightnessValueOff);
-      }
-      //lseek(leds[led_nr].fd_blue, SEEK_SET, 0);
-      write(leds[led_nr].fd_blue, buf, size);
-    }
+    LED_on_off(leds[led_nr].fd_grn, color & LED_GREEN);
+    LED_on_off(leds[led_nr].fd_red, color & LED_RED);
+    LED_on_off(leds[led_nr].fd_blue, color & LED_BLUE);
 
     //set status flags
     leds[led_nr].changed = true;

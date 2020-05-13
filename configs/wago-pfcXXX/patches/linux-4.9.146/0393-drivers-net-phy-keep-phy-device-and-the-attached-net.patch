@@ -1,0 +1,53 @@
+From 2fe5cfe2417cb9272414c008b3c46da7f7a4be38 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Wed, 25 Mar 2020 15:29:10 +0100
+Subject: [PATCH] drivers: net: phy: keep phy-device and the attached netdev in
+ a consistent state
+
+When the netdev is attached to the phy_device, the phy_device must not be
+turned on if the netdev is DOWN.
+phy_resume() clears the power-off flag in the copper control register and
+turns the phy ON. Whereas the net_device (i.e ethXX) - visible in
+userspace - default state is DOWN.
+This means the phy can establish a link even if the net_device is DOWN.
+In order to prevent this, the net_device state is checked before
+resuming the phy_devcie on attaching.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/phy/phy.c        | 2 +-
+ drivers/net/phy/phy_device.c | 4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/phy/phy.c b/drivers/net/phy/phy.c
+index 222f180d6c58..70fd1d24af36 100644
+--- a/drivers/net/phy/phy.c
++++ b/drivers/net/phy/phy.c
+@@ -915,7 +915,7 @@ EXPORT_SYMBOL(phy_stop);
+  */
+ void phy_start(struct phy_device *phydev)
+ {
+-	bool do_resume = false;
++	bool do_resume = phydev->suspended;
+ 	int err = 0;
+ 
+ 	mutex_lock(&phydev->lock);
+diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
+index fb6d6a97da80..fb9e1c88586a 100644
+--- a/drivers/net/phy/phy_device.c
++++ b/drivers/net/phy/phy_device.c
+@@ -931,8 +931,10 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
+ 	err = phy_init_hw(phydev);
+ 	if (err)
+ 		phy_detach(phydev);
+-	else
++	else if (dev->flags & IFF_UP)
+ 		phy_resume(phydev);
++	else
++		phy_suspend(phydev);
+ 
+ 	return err;
+ 
+-- 
+2.17.1
+

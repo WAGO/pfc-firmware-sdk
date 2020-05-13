@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -z "$SCRIPT_DIR" ]; then
+  DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  PTXDIST_WORKSPACE="${PTXDIST_WORKSPACE:-${DIR}/../../../ptxproj}"
+  
+  PTXDIST_PLATFORMCONFIG="${PTXDIST_PLATFORMCONFIG:-$PTXDIST_WORKSPACE/selected_platformconfig}"
+  PTXCONF_PLATFORM="$(source $PTXDIST_PLATFORMCONFIG && echo "$PTXCONF_PLATFORM")"
+  PTXDIST_PLATFORMDIR="${PTXDIST_PLATFORMDIR:-$PTXDIST_WORKSPACE/platform-$PTXCONF_PLATFORM}"
+  
+  PTXCONF_SYSROOT_HOST="$(source $PTXDIST_PLATFORMCONFIG && echo "$PTXCONF_SYSROOT_HOST")"
+  SYSROOT_HOST="${SYSROOT_HOST:-$PTXCONF_SYSROOT_HOST}"
+    
+  SCRIPT_DIR="$SYSROOT_HOST/lib/ct-build"
+fi
+
+exec "$SCRIPT_DIR/bin/ptxdist-make" "$@"

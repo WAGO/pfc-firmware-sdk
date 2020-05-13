@@ -1,8 +1,7 @@
 From 2f2a75ff50954a6e9cc2e08946b173e234ddb1d9 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Sep 2018 15:13:46 +0200
-Subject: [PATCH 101/144] mach-omap: am3xxx-pfc-generic: adapt to code
- convention
+Subject: [PATCH] mach-omap: am3xxx-pfc-generic: adapt to code convention
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

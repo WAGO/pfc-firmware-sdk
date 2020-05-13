@@ -28,7 +28,7 @@ readonly FW_XST="/usr/bin/xmlstarlet"
 # names along with definitions which interface is secure or not. For details
 # see FW_PARAMS_XSD.
 readonly FW_PATTERNS_XSD="$FW_DIR/patterns.xsd"
-readonly FW_PARAMS_XML="$FW_DIR/params_gen.xml"
+FW_PARAMS_XML="$FW_DIR/params_gen.xml"
 readonly FW_PARAMS_XSD="$FW_DIR/params.xsd"
 readonly FW_TRANSFORM_XSLT="$FW_DIR/transform.xsl"
 readonly FW_NETIF="/etc/specific/network-interfaces.xml"
@@ -58,3 +58,10 @@ eblog()
     fi
 }
 
+remove_duplicate_lines()
+{
+    local file_name="$1"
+    
+    local tmp_rule=$(cat "$file_name")
+    echo "$tmp_rule" | awk '{ if (!x[$0]) print $0; if( $0 != "COMMIT" ) x[$0]++ }'  > "$file_name"
+}

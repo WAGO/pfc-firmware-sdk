@@ -1,0 +1,121 @@
+From 0980b3dd5ea62f1b7ecb2ebaf54701eb68b908a9 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 31 Jan 2020 11:12:46 +0100
+Subject: [PATCH] defaultenv-pfc-base: validate "disable-sd-boot" flag
+
+If the "disable-sd-boot" flag is set, forbid booting the firmware from
+sd cards.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ .../bin/pfc-config-default-boot                    | 22 ++++++++++++----------
+ .../defaultenv-pfc-base/bin/pfc-detect-boot-mode   | 16 ++++++++--------
+ defaultenv/defaultenv-pfc-base/config              |  5 +++++
+ 3 files changed, 25 insertions(+), 18 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index bc49926..e970f68 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -29,16 +29,18 @@ else
+ 	exit 1
+ fi
+ 
+-if [ -e "${global.pfc.sd}" ] && [ -e "${sd_blspec}" ]; then
+-	global.boot.default="file://${sd_blspec} bootchooser"
+-
+-elif [ -e "${global.pfc.sd}" ] && [ -e "${sd_legacy_uImage}" ]; then
+-	# disable watchdog in case of an legacy boot, because we dont know if the
+-	# watchdog is disabled per default in legacy kernel.
+-	global.boot.watchdog_timeout=0
+-
+-	global.bootm.boot_atag=true
+-	global.boot.default="sd-legacy bootchooser"
++if [ "${global.pfc.disable_sd_boot}" = 0 ]; then
++	if [ -e "${global.pfc.sd}" ] && [ -e "${sd_blspec}" ]; then
++		global.boot.default="file://${sd_blspec} bootchooser"
++
++	elif [ -e "${global.pfc.sd}" ] && [ -e "${sd_legacy_uImage}" ]; then
++		# disable watchdog in case of an legacy boot, because we dont know if the
++		# watchdog is disabled per default in legacy kernel.
++		global.boot.watchdog_timeout=0
++
++		global.bootm.boot_atag=true
++		global.boot.default="sd-legacy bootchooser"
++	fi
+ 
+ else
+ 	global.boot.default="bootchooser"
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode b/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
+index bfc24a4..6bc1e16 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-detect-boot-mode
+@@ -2,16 +2,20 @@
+ 
+ source env/data/print-msg-formats
+ 
+-let setup_fw_mask="(1 << 5)"
+-let setup_fw_enable="0x${global.pfc.boot_mode_id} & 0x${setup_fw_mask}"
+-let setup_fw_disable="0x${global.pfc.boot_mode_id} & ~0x${setup_fw_mask}"
++let disable_sd_boot_mask="(1 << 5)"
++let disable_sd_boot="0x${global.pfc.boot_mode_id} & ${disable_sd_boot_mask}"
+ 
+ pfc-validate-ethaddr
+ 
++if [ "${disable_sd_boot}" = "${disable_sd_boot_mask}" ]; then
++	global.pfc.disable_sd_boot=1
++	echo -e ${warning} "booting from sd disabled"
++fi
++
+ if [ "${global.pfc.ethaddr_is_valid}" = false ]; then
+         global.pfc.boot_mode="production"
+ 
+-elif [ -e "${global.pfc.sd}" ]; then
++elif [ -e "${global.pfc.sd}" ] && [ "${global.pfc.disable_sd_boot}" = 0 ]; then
+ 
+ 	# if a downgrade.bin.<platform-suffix> file is found on the first
+ 	# sd/mmc boot partition, we execute it.
+@@ -25,10 +29,6 @@ elif [ -e "${global.pfc.sd}" ]; then
+ 	elif [ -e "${global.pfc.custom_sh}" ]; then
+         	global.pfc.boot_mode="custom"
+ 	fi
+-
+-elif [ "${setup_fw_enable}" = "${setup_fw_mask}" ]; then
+-        global.pfc.boot_mode="setupfw"
+-	xsection.boot_mode_id="${setup_fw_disable}"
+ fi
+ 
+ echo -e ${info} "detected boot_mode: ${global.pfc.boot_mode}"
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index 9a16c14..30dca74 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -48,6 +48,7 @@ global pfc.watchdog_timeout_linux_boot
+ global pfc.linux_uart_device
+ global pfc.eeprom_dev
+ global pfc.usbgadget_options
++global pfc.disable_sd_boot
+ 
+ global bootchooser.rootfs.1.boot
+ global bootchooser.rootfs.2.boot
+@@ -151,6 +152,9 @@ magicvar -a global.pfc.usbgadget_options "options to activate when usbgadget is
+ 					  used. By default fastboot-, fastboot
+ 					  bbu- and CDC ACM-Functions are
+ 					  activated"
++magicvar -a global.pfc.disable_sd_boot "is set during boot phase and disables sd
++					firmware boot, Mode is derived from
++					boot-mode-id."
+ 
+ 
+ ################################
+@@ -199,6 +203,7 @@ magicvar -a global.pfc.usbgadget_options "options to activate when usbgadget is
+ [ -z "${global.pfc.debug_mode_active}" ] && global.pfc.debug_mode_active=false
+ [ -z "${global.pfc.linux_uart_device}" ] && global.pfc.linux_uart_device="ttyO"
+ [ -z "${global.pfc.usbgadget_options}" ] && global.pfc.usbgadget_options="-A -b -a"
++[ -z "${global.pfc.disable_sd_boot}" ] && global.pfc.disable_sd_boot=0
+ 
+ [ -z "${global.bootchooser.targets}" ] && global.bootchooser.targets="rootfs.1 rootfs.2"
+ [ -z "${global.bootchooser.state_prefix}" ] && global.bootchooser.state_prefix="bootstate"
+-- 
+2.7.4
+

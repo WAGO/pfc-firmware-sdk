@@ -11,6 +11,13 @@ BINARY=/usr/sbin/inetd
 test -f $BINARY || { echo "$BINARY not found" >&2 ; exit 1; }
 
 start_proc() {
+	# create secure folder for io check
+	# cache file (iocheckCache.xml)
+	old_umask="$(umask)"
+	umask 0027
+	mkdir -p '/var/run/iocheck/'
+	umask "${old_umask}"
+
 	echo -n "starting inetd..."
 	$BINARY
 	[[ -d /etc/config-tools/events/tftp/ ]] && run-parts -a start /etc/config-tools/events/tftp/ >/dev/null 2>&1
@@ -31,6 +38,9 @@ stop_proc() {
 	done
 	
 	echo "done"
+
+	# clean up
+	rm -rf '/var/run/iocheck/*'
 }
 
 

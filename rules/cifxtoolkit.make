@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -81,7 +81,7 @@ $(STATEDIR)/cifxtoolkit.targetinstall:
 	@$(call install_init, cifxtoolkit)
 	@$(call install_fixup, cifxtoolkit,PRIORITY,optional)
 	@$(call install_fixup, cifxtoolkit,SECTION,base)
-	@$(call install_fixup, cifxtoolkit,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, cifxtoolkit,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, cifxtoolkit,DESCRIPTION,missing)
 
 	@$(call install_copy, cifxtoolkit, 0, 0, 0755, $(CIFX_LIBS)/libcifXToolkit.so.$(CIFXTOOLKIT_VERSION), /usr/lib/libcifXToolkit.so.$(CIFXTOOLKIT_VERSION))

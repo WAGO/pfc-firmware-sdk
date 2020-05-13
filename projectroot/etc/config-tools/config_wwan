@@ -13,6 +13,8 @@
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------
 
+NETWORK_CONFIG=/etc/config-tools/network_config
+
 # load general definitions and functions
 if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
   echo "config_tool_lib missing"
@@ -22,6 +24,7 @@ fi
 . /etc/config-tools/config_tool_lib
 
 WWAN_CONFIGFILE_NAME=/etc/specific/wwan.conf
+
 
 #--------------------------------------------------------------------
 # help text (requested with specified parameter)
@@ -43,6 +46,58 @@ if [ "$1" = "-h" -o "$1" = "--help" ]; then
     exit 0
 fi
 
+set_ip_config () {
+  local json_config="$1"
+  out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
+  return $?
+}
+
+get_ip_config () {
+  local interface="$1"
+  out=$($NETWORK_CONFIG --ip-config --get --device="$interface" --format=json)
+  echo $out
+  return $?
+}
+
+# Returns IP and netmask in cidr notation.
+get_ip_netmask () {
+  local interface="$1"
+  local out=$(get_ip_config "$interface")
+
+  for token in $out; do
+    json=$token
+  done
+  json=${json//\"/}
+
+  # HINT: awk (in contrast to gawk) does not support capture groups. Therefore, we use 'match' and 'substr' to extract IP address and netmask from json.
+  echo "$json" | awk '
+  function netmaskToPrefix(netmask)
+  {
+    c = 0;
+    split(netmask, v, ".");
+    for (j=0; j < 4; j++)
+      for(i=0; i<8; ++i)
+        if(and(2**i, v[j] ))
+          c++;
+    return c;
+  }
+  {
+    match($0, "ipaddr.*,netmask");
+    addr = substr( $0, RSTART+7, RLENGTH-7-8 );
+
+    if(addr == "0.0.0.0")
+    {
+      print "0.0.0.0/32"
+    }
+    else
+    {
+      match($0, "netmask:.*,bcast" );
+      netmask = substr( $0, RSTART+8, RLENGTH-8-6 );
+      print( addr "/" netmaskToPrefix(netmask) );
+    }
+  } '
+}
+
 #--------------------------------------------------------------------
 # main programm
 #--------------------------------------------------------------------
@@ -56,7 +111,7 @@ if [ -z "$1" ]; then
   exit $status
 fi
 
-#check whether config-file exists 
+#check whether config-file exists
 if [ ! -f $WWAN_CONFIGFILE_NAME ]; then
   SetLastError "Config file is missing."
   status=$CONFIG_FILE_MISSING
@@ -65,11 +120,21 @@ fi
 
 . $WWAN_CONFIGFILE_NAME
 if [ "$1" = "-e" -o "$1" = "--enable" ]; then
-  ifup $WWAN_DEVICE_NAME > /dev/null 2> /dev/null
+  # 1. TODO: set interface up
+  sudo ip link set dev $WWAN_DEVICE_NAME up > /dev/null 2> /dev/null
+  # 2. start udhcpc for wwan interface
+  set_ip_config '{"'$WWAN_DEVICE_NAME'":{"source":"dhcp", "ipaddr":"0.0.0.0", "netmask":"0.0.0.0"}}'
+
+  #ifup $WWAN_DEVICE_NAME > /dev/null 2> /dev/null
   status=$?
 
 elif [ "$1" = "-d" -o "$1" = "--disable" ]; then
-  ifdown $WWAN_DEVICE_NAME > /dev/null 2> /dev/null
+  # 1. stop udhcpc for wwan interface
+  set_ip_config '{"'$WWAN_DEVICE_NAME'":{"source":"none"}}'
+  # 2. TODO: set interface down
+  sudo ip link set dev $WWAN_DEVICE_NAME down > /dev/null 2> /dev/null
+
+  #ifdown $WWAN_DEVICE_NAME > /dev/null 2> /dev/null
   status=$?
 
 elif [ "$1" = "-s" -o "$1" = "--status" ]; then
@@ -85,28 +150,19 @@ elif [ "$1" = "-s" -o "$1" = "--status" ]; then
   fi
 
 elif [ "$1" = "-t" -o "$1" = "--start" ]; then
-  /sbin/udhcpc -i $WWAN_DEVICE_NAME -h `/bin/hostname` -V `/etc/config-tools/get_typelabel_value ORDER` -S -p /var/run/udhcpc_$WWAN_DEVICE_NAME.pid > /dev/null 2> /dev/null &
+  set_ip_config '{"'$WWAN_DEVICE_NAME'":{"source":"dhcp", "ipaddr":"0.0.0.0", "netmask":"0.0.0.0"}}'
   status=$?
 
 elif [ "$1" = "-p" -o "$1" = "--stop" ]; then
-  if [ -e /var/run/udhcpc_$WWAN_DEVICE_NAME.pid ]; then
-    kill -SIGKILL $(cat /var/run/udhcpc_$WWAN_DEVICE_NAME.pid)
-#else: udhcpc not started
-  fi
-  WWAN_STATUS="$(sudo ip addr show $WWAN_DEVICE_NAME | grep $WWAN_DEVICE_NAME)"
-  if [ -n "$WWAN_STATUS" ]; then
-    sudo ip addr flush dev $WWAN_DEVICE_NAME
-#else: interface not configured
-  fi
+  set_ip_config '{"'$WWAN_DEVICE_NAME'":{"source":"none"}}'
 
 elif [ "$1" = "-r" -o "$1" = "--renew" ]; then
-  if [ -e /var/run/udhcpc_$WWAN_DEVICE_NAME.pid ]; then
-    kill -SIGUSR1 $(cat /var/run/udhcpc_$WWAN_DEVICE_NAME.pid)
-#else: udhcpc not started
-  fi
+  set_ip_config '{"'$WWAN_DEVICE_NAME'":{"source":"none"}}'
+  set_ip_config '{"'$WWAN_DEVICE_NAME'":{"source":"dhcp", "ipaddr":"0.0.0.0", "netmask":"0.0.0.0"}}'
 
 elif [ "$1" = "-i" -o "$1" = "--inet" ]; then
-  WWAN_IPV4="$(sudo ip addr show $WWAN_DEVICE_NAME | grep 'inet ')"
+  WWAN_IPV4=$(get_ip_netmask $WWAN_DEVICE_NAME)
+
   if [ -z "$WWAN_IPV4" ]; then
     # address has been not yet assigned or interface is disabled
     echo "0.0.0.0/32"

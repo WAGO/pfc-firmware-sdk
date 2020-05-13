@@ -6,7 +6,7 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   fwupdate_status
@@ -17,6 +17,7 @@
 # Author:   TBi: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
+#NOTE!!! Do not include fwupdate_common - not thread-safe!
 
 # Load firmware update definitions and functions.
 readonly WAGO_ST_DIR="/usr/sbin"
@@ -51,7 +52,7 @@ JSONOUT=0
 #
 # Return: Exit code, 0 on success, unequal to 0 otherwise
 #-----------------------------------------------------------------------------#
-main()
+fwupdate_status_main()
 {
     local RESULT=0
 
@@ -255,5 +256,5 @@ check_mounts()
 }
 
 # Start main function
-main "$@"
+fwupdate_status_main "$@"
 exit $?

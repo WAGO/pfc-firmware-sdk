@@ -2,14 +2,14 @@
 
 #pragma once
 
+#include "IDeviceProperties.hpp"
 #include "IEventManager.hpp"
-#include "IDevicePropertiesProvider.hpp"
-
+#include <set>
 namespace netconfd {
 
 class EventManager : public IEventManager {
  public:
-  EventManager(IDevicePropertiesProvider& device_properties_provider);
+  EventManager(IDeviceProperties& device_properties_provider);
   virtual ~EventManager() = default;
 
   EventManager(const EventManager&) = delete;
@@ -17,10 +17,19 @@ class EventManager : public IEventManager {
   EventManager(const EventManager&&) = delete;
   EventManager& operator=(const EventManager&&) = delete;
 
-  void NotifyNetworkChanges() override;
+  void NotifyNetworkChanges(const EventType event_type, const EventLayer event_layer, Interface interface = "") override;
 
-  void NotifyIpChange(const Interface & interface) override;
+  void ProcessEvents() override;
 
+ private:
+
+  bool trigger_event_folder_;
+  ::std::set<::std::string> ip_interface_update_pending_;
+
+  friend void NotifyNetworkChangesFriend(EventManager&);
+  void CommitNetworkChangesDone();
+  void SpawnProcess();
+  void UpdateIpChangeFiles();
 };
 
 } /* namespace netconfd */

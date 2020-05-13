@@ -1,3 +1,57 @@
+Firmware Release 03.04.10 (99)
+System:
+[NEW] New Web Based Management integrated. WBM has a contemporary look and feel such
+      as an improved handling.
+[NEW] WBM-NG: network configuration adopted to support 4 ports
+[NEW] WBM-NG: configuration is based on bridges, instead of interfaces
+[NEW] WBM-NG: Improved DIP switch logic
+[NEW] SSH host keys are taken over during firmware update
+[NEW] Custom OpenVPN data is regarded during backup
+[NEW] Added curl command line tool
+[NEW] Updated tcpdump (4.9.2 -> 4.9.3)
+[NEW] Updated dropbear (2018.76 -> 2019.78)
+[NEW] Updated libcurl/curl (7.65.0 -> 7.67.0)
+[NEW] Updated net-snmp (5.7.3 -> 5.8)
+[NEW] Updated sudo (1.8.28 -> 1.8.31)
+[NEW] Updated PHP (7.3.5 -> 7.3.15)
+[NEW] Updated mdmd (0.5.3 -> 0.7.6)
+      Several and improvements for configuration of internal 3G modem and ad-ditional
+      failure diagnostics (see new version of 750-8207 manual)
+[NEW] Added EXT4 filesystem as SD card formatting option.
+[NEW] Enlargement of the CANopen master configuration memory now enables more complex
+      CANopen project planning.
+[FIXED] Internal MAC address translation.
+[FIXED] Conflicted IP configurations.
+[FIXED] Missing routing table update.
+[FIXED] Changing third DIP switch octetts is not possible.
+[FIXED] Modem cannot be addressed after several resets.
+[FIXED] Modem swichtover to GSM not possible.
+[FIXED] Possible loss of internal 3G modem parameter on power cycle.
+[FIXED] IP remains on bridge after link loss on interfaces
+[FIXED] Fixed CVE-2019-5134, 5135, -5155, -5156. 5157, -5166, -5167,
+        -5168, -5169, -5170, -5171, -5172, -5173, -5174, -5175, -5176,
+        -5177, 5178, -5179, -5180, -5181, -5182, -5185, -5186
+
+Fieldbus Interface & Protocols:
+ - OPC UA
+   [NEW] WAGO OPC UA Server available. New Server can be installed via ipk.
+         File is available through website and support: support@wago.com
+ - BACnet
+   [NEW] Add BACnet Support for PFC200 G2 (750-8212, 750-8212/025-00X, 750-8213)
+         and Control Panel Devices (762-430X/8000-002, 762-530X/8000-002)
+ - CAN
+   [FIXED] Added method CAN_RX_ALL in Codesys2 CANLayer2 library. This method
+           allows processing of CAN telegrams in order of their receiption.
+           New ver-sion of WagoCANLayer2_03.lib is required.
+ - MQTT
+   [FIXED] Fixed timestamp creation for Sparkplug NDATA messages: Use data
+           crea-tion time instead of transmission time
+   [FIXED] Increased handshake timeout for WAGO protocol
+   [FIXED] Try to reconnect automatically if MQTT broker denies connection
+   [KNOWN] Limit for maximum number of Trend Log (Multiple) Objects is set to 300
+
+################################################################################
+
 Firmware Release 03.03.11 (99)
 System:
 [FIXED] Improved robustness by heavy ethernet traffic.

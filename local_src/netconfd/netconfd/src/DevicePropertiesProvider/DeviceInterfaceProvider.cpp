@@ -55,7 +55,6 @@ void DeviceInterfaceProvider::GenerateInterfaceNameMapping() {
       interface_name_mapping_.insert(::std::move(pair));
     }
   }
-
 }
 
 bool DeviceInterfaceProvider::HasInterface(const ::std::string& interface_name) const {
@@ -68,6 +67,35 @@ bool DeviceInterfaceProvider::HasInterface(const ::std::string& interface_name) 
   }
   return false;
 }
+
+
+void DeviceInterfaceProvider::ConvertProductToOSInterfaces(Interfaces& interfaces) const{
+
+  for (uint32_t i = 0; i < interfaces.size(); i++) {  // NOLINT(modernize-loop-convert) need index here
+    auto it = interface_name_mapping_.find(interfaces[i]);
+    if (it != interface_name_mapping_.cend()) {
+      const Interface os_itf_name = it->second;
+      interfaces[i] = os_itf_name;
+    }
+  }
+}
+
+void DeviceInterfaceProvider::ConvertOSToProductInterfaces(Interfaces& interfaces) const{
+
+  for (uint32_t i = 0; i < interfaces.size(); i++) {  // NOLINT(modernize-loop-convert) need index here
+
+    ::std::string interface = interfaces[i];
+    auto it = std::find_if(
+        interface_name_mapping_.begin(), interface_name_mapping_.end(),
+        [interface](const auto& itf) {return itf.second == interface;});
+
+    if (it != interface_name_mapping_.end()) {
+      Interface product_itf_name = it->first;
+      interfaces[i] = product_itf_name;
+    }
+  }
+}
+
 
 } /* namespace netconfd */
 

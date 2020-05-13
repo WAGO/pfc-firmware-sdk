@@ -133,31 +133,57 @@ function TcpIpConfigEth
           ;;
 
       2)  # ip-address was selected -> show inputbox to get new address
-          WdialogWrapper "--inputbox" retUnused "$TITLE" "Change IP Address ${portLabel}${deviceId}" "Enter new IP Address:" 15 $ipAddress 2> temp
-          newIpAddress=`cat temp`
-          rm temp
-
-          # if new ip-address was given - change it, get actual value again and show possible error
-          if [ -n "$newIpAddress" ] && [ "$newIpAddress" != "$ipAddress" ]; then
-            ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
-            ./config_interfaces interface=$port config-type=$configType state=$state ip-address=$newIpAddress > /dev/null 2> /dev/null
-            ipAddress=`./get_eth_config $port ip-address`
-            ShowLastError
-          fi
+          WdialogWrapper "--inputbox" retUnused "$TITLE" "Change IP Address ${portLabel}${deviceId}" "Enter new IP Address:" 15 $ipAddress 2> temp                             
+          newIpAddress=`cat temp`                                                                                                                                              
+          rm temp                                                                                                                                                              
+                                                                                                                                                                               
+          newSubnetMask=                                                                                                                                                       
+          if [[ "$newIpAddress" != "" ]]; then                                                                                                                                 
+              WdialogWrapper "--inputbox" retUnused  "$TITLE" "Change Subnet Mask ${portLabel}${deviceId}" "Enter new Subnet Mask:" 15 $subnetMask 2> temp                     
+              newSubnetMask=`cat temp`                                                                                                                                         
+              rm temp                                                                                                                                                          
+          fi                                                                                                                                                                   
+                                                                                                                                                                               
+          if [[ "$newSubnetMask" != "" ]]; then                                                                                                                                
+              ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"                                                                                          
+              ./config_interfaces interface=$port config-type=$newConfigType state=enabled ip-address=$newIpAddress subnet-mask=$newSubnetMask > /dev/null 2> /dev/null        
+              ShowLastError                                                                                                                                                    
+                                                                                                                                                                               
+              ipAddress=`./get_eth_config $port ip-address`                                                                                                                    
+              subnetMask=`./get_eth_config $port subnet-mask`                                                                                                                  
+          fi                                                                                                                                                                   
+          if [ "$configType" = "static" ]; then                                                                                                                                
+            showedConfigType="Static IP"                                                                                                                                       
+          else                                                                                                                                                                 
+            showedConfigType=$configType                                                                                                                                       
+          fi             
           ;;
 
       3)  # subnet-mask was selected -> show inputbox to get new subnet-mask
-          WdialogWrapper "--inputbox" retUnused  "$TITLE" "Change Subnet Mask ${portLabel}${deviceId}" "Enter new Subnet Mask:" 15 $subnetMask 2> temp
-          newSubnetMask=`cat temp`
-          rm temp
-
-          # if new subnet-mask was given - change it, get actual value again and show possible error
-          if [ -n "$newSubnetMask" ] && [ "$newSubnetMask" != "$subnetMask" ]; then
-            ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
-            ./config_interfaces interface=$port config-type=$configType state=$state subnet-mask=$newSubnetMask > /dev/null 2> /dev/null
-            subnetMask=`./get_eth_config $port subnet-mask`
-            ShowLastError
-          fi
+          WdialogWrapper "--inputbox" retUnused "$TITLE" "Change IP Address ${portLabel}${deviceId}" "Enter new IP Address:" 15 $ipAddress 2> temp                             
+          newIpAddress=`cat temp`                                                                                                                                              
+          rm temp                                                                                                                                                              
+                                                                                                                                                                               
+          newSubnetMask=                                                                                                                                                       
+          if [[ "$newIpAddress" != "" ]]; then                                                                                                                                 
+              WdialogWrapper "--inputbox" retUnused  "$TITLE" "Change Subnet Mask ${portLabel}${deviceId}" "Enter new Subnet Mask:" 15 $subnetMask 2> temp                     
+              newSubnetMask=`cat temp`                                                                                                                                         
+              rm temp                                                                                                                                                          
+          fi                                                                                                                                                                   
+                                                                                                                                                                               
+          if [[ "$newSubnetMask" != "" ]]; then                                                                                                                                
+              ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"                                                                                          
+              ./config_interfaces interface=$port config-type=$newConfigType state=enabled ip-address=$newIpAddress subnet-mask=$newSubnetMask > /dev/null 2> /dev/null        
+              ShowLastError                                                                                                                                                    
+                                                                                                                                                                               
+              ipAddress=`./get_eth_config $port ip-address`                                                                                                                    
+              subnetMask=`./get_eth_config $port subnet-mask`                                                                                                                  
+          fi                                                                                                                                                                   
+          if [ "$configType" = "static" ]; then                                                                                                                                
+            showedConfigType="Static IP"                                                                                                                                       
+          else                                                                                                                                                                 
+            showedConfigType=$configType                                                                                                                                       
+          fi          
           ;;
 
       *)  errorText="Error in wdialog"

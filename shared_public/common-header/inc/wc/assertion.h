@@ -132,7 +132,7 @@ extern "C"
 
 /// \def WC_ASSERT(e)
 /// Helper macro, proves expression satisfies true.
-/// In case expression evaluates to false a run-time error is issued.
+/// In case expression evaluates to false a run-time error is issued (NDEBUG not set).
 ///
 /// \note To use this macro you have to provide an implementation for the C function \link wc_Fail \endlink.
 /// \see wc_Fail
@@ -149,9 +149,25 @@ extern "C"
 #endif // NDEBUG
 
 
+/// \def WC_ASSERT_RETURN(e, result)
+/// Helper macro, proves expression satisfies true.
+/// In case expression evaluates to false a run-time error is issued (NDEBUG not set)
+/// and the given result is returned.
+/// This macro is intended for pre-execution checks, e. g. to check function/method parameters.
+///
+/// \note To use this macro you have to provide an implementation for the C function \link wc_Fail \endlink.
+/// \see wc_Fail
+//lint -estring(960, WC_ASSERT_RETURN) to disable Rule 19.4 it is necessary to disable all 960 messages,
+//                                     disallowed definition for macro
+//lint -estring(961, WC_ASSERT_RETURN) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                     function-like macro defined
+#define WC_ASSERT_RETURN(e, result) \
+  WC_ASSERT(#e); if(!(e)) return (result) //lint -e 506 Constant value Boolean
+
+
 /// \def WC_FAIL(reason)
 /// Helper macro, fails every time.
-/// A run-time error is issued and reason string may be shown.
+/// A run-time error is issued (NDEBUG not set) and reason string may be shown.
 ///
 /// \note To use this macro you have to provide an implementation for the C function \link wc_Fail \endlink.
 /// \see wc_Fail

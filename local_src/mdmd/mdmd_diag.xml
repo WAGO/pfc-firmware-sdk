@@ -3,7 +3,7 @@
 <diagnostic>
   <eventclass  class_range="x0010" name="3GMM">
 
-    <event id="x0001" name="ERR_NOSIM" persistent="yes">
+    <event id="x0001" name="ERR_NOSIM" persistent="no">
       <comment> SIM card not inserted or not readable</comment>
       <led name="NET" state="BLINK_SEQ_750">
         <blinkcode>1</blinkcode>   <blinkarg>1</blinkarg>  
@@ -14,18 +14,18 @@
       </string>
     </event>
     
-    <event id="x0002" name="ERR_SIMAUTH" persistent="yes">
-      <comment> SIM card not valid or locked</comment>
+    <event id="x0002" name="ERR_SIM_INVALID" persistent="no">
+      <comment> SIM card not valid</comment>
       <led name="NET" state="BLINK_SEQ_750">
         <blinkcode>1</blinkcode>   <blinkarg>2</blinkarg>  
       </led>  
       <string>
-      	<en>Modem SIM card not valid or locked</en>
-      	<de>Modem SIM-Karte nicht gültig oder gesperrt</de>
+      	<en>Modem SIM card not valid</en>
+      	<de>Modem SIM-Karte ungültig</de>
       </string>
     </event>
 
-    <event id="x0003" name="ERR_PORT_NOT_READY" persistent="yes">
+    <event id="x0003" name="ERR_PORT_NOT_READY" persistent="no">
       <comment> Interface not available</comment>
       <led name="NET" state="BLINK_SEQ_750">
         <blinkcode>2</blinkcode>   <blinkarg>1</blinkarg>  
@@ -66,6 +66,39 @@
       </string>
     </event>      
 
+    <event id="x0007" name="ERR_SIM_PIN_NEEDED" persistent="no">
+      <comment> SIM activation requires PIN</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>1</blinkcode>   <blinkarg>3</blinkarg>  
+      </led>  
+      <string>
+        <en>Modem SIM card requires PIN</en>
+        <de>Modem SIM-Karte erfordert PIN</de>
+      </string>
+    </event>
+
+    <event id="x0008" name="ERR_SIM_PUK_NEEDED" persistent="no">
+      <comment> SIM activation requires PUK</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>1</blinkcode>   <blinkarg>4</blinkarg>  
+      </led>  
+      <string>
+        <en>Modem SIM card requires PUK</en>
+        <de>Modem SIM-Karte erfordert PUK</de>
+      </string>
+    </event>
+
+    <event id="x0009" name="ERR_SIM_NOT_READY" persistent="no">
+      <comment> SIM card is not ready</comment>
+      <led name="NET" state="BLINK_SEQ_750">
+        <blinkcode>1</blinkcode>   <blinkarg>5</blinkarg>  
+      </led>  
+      <string>
+        <en>Modem SIM card not ready</en>
+        <de>Modem SIM-Karte nicht bereit</de>
+      </string>
+    </event>
+
     <event id="x0010" name="OPER_NO_NET" persistent="no">
       <comment> Radio access network not registered</comment>
       <led name="NET"  state="STATIC_RED"></led>
@@ -93,111 +126,133 @@
       </string>
     </event>
 
-    <event id="x0013" name="OPER_SIGNAL_1_OFF" persistent="no">
+    <event id="x0013" name="OPER_SIGNAL_1_OFF" persistent="none">
       <comment> Signal strength 0</comment>
       <led name="S1"  state="STATIC_OFF"></led>
       <string>
-      	<en>Signal strength 0</en>
-      	<de>Signalstärke 0</de>
+        <en>Signal strength 0</en>
+        <de>Signalstärke 0</de>
       </string>
     </event>
 
-    <event id="x0014" name="OPER_SIGNAL_1_ON" persistent="no">
+    <event id="x0014" name="OPER_SIGNAL_1_ON" persistent="none">
       <comment> Signal strength 1 or above</comment>
       <led name="S1"  state="STATIC_YLW"></led>
       <string>
-      	<en>Signal strength 1 or above</en>
-      	<de>Signalstärke 1 oder höher</de>
+        <en>Signal strength 1 or above</en>
+        <de>Signalstärke 1 oder höher</de>
       </string>
     </event>
 
-    <event id="x0015" name="OPER_SIGNAL_2_OFF" persistent="no">
+    <event id="x0015" name="OPER_SIGNAL_2_OFF" persistent="none">
       <comment> Signal strength below 2</comment>
       <led name="S1"  state="STATIC_YLW"></led>
       <string>
-      	<en>Signal strength below 2</en>
-      	<de>Signalstärke unter 2</de>
+        <en>Signal strength below 2</en>
+        <de>Signalstärke unter 2</de>
       </string>
     </event>
 
-    <event id="x0016" name="OPER_SIGNAL_2_ON" persistent="no">
+    <event id="x0016" name="OPER_SIGNAL_2_ON" persistent="none">
       <comment> Signal strength 2 or above</comment>
       <led name="S1"  state="STATIC_GRN"></led>
       <string>
-      	<en>Signal strength 2 or above</en>
-      	<de>Signalstärke 2 oder höher</de>
+        <en>Signal strength 2 or above</en>
+        <de>Signalstärke 2 oder höher</de>
       </string>
     </event>
 
-    <event id="x0017" name="OPER_SIGNAL_3_OFF" persistent="no">
+    <event id="x0017" name="OPER_SIGNAL_3_OFF" persistent="none">
       <comment> Signal strength below 3</comment>
       <led name="S2"  state="STATIC_OFF"></led>
       <string>
-      	<en>Signal strength below 3</en>
-      	<de>Signalstärke unter 3</de>
+        <en>Signal strength below 3</en>
+        <de>Signalstärke unter 3</de>
       </string>
     </event>
 
-    <event id="x0018" name="OPER_SIGNAL_3_ON" persistent="no">
+    <event id="x0018" name="OPER_SIGNAL_3_ON" persistent="none">
       <comment> Signal strength 3 or above</comment>
       <led name="S2"  state="STATIC_GRN"></led>
       <string>
-      	<en>Signal strength 3 or above</en>
-      	<de>Signalstärke 3 oder höher</de>
+        <en>Signal strength 3 or above</en>
+        <de>Signalstärke 3 oder höher</de>
       </string>
     </event>
 
-    <event id="x0019" name="OPER_SIGNAL_4_OFF" persistent="no">
+    <event id="x0019" name="OPER_SIGNAL_4_OFF" persistent="none">
       <comment> Signal strength below 4</comment>
       <led name="S3"  state="STATIC_OFF"></led>
       <string>
-      	<en>Signal strength below 4</en>
-      	<de>Signalstärke unter 4</de>
+        <en>Signal strength below 4</en>
+        <de>Signalstärke unter 4</de>
       </string>
     </event>
 
-    <event id="x001A" name="OPER_SIGNAL_4_ON" persistent="no">
+    <event id="x001A" name="OPER_SIGNAL_4_ON" persistent="none">
       <comment> Signal strength 4 or above</comment>
       <led name="S3"  state="STATIC_GRN"></led>
       <string>
-      	<en>Signal strength 4 or above</en>
-      	<de>Signalstärke 4 oder höher</de>
+        <en>Signal strength 4 or above</en>
+        <de>Signalstärke 4 oder höher</de>
       </string>
     </event>
 
-    <event id="x001B" name="OPER_SIGNAL_5_OFF" persistent="no">
+    <event id="x001B" name="OPER_SIGNAL_5_OFF" persistent="none">
       <comment> Signal strength below 5</comment>
       <led name="S4"  state="STATIC_OFF"></led>
       <string>
-      	<en>Signal strength below 5</en>
-      	<de>Signalstärke unter 5</de>
+        <en>Signal strength below 5</en>
+        <de>Signalstärke unter 5</de>
       </string>
     </event>
 
-    <event id="x001C" name="OPER_SIGNAL_5_ON" persistent="no">
+    <event id="x001C" name="OPER_SIGNAL_5_ON" persistent="none">
       <comment> Signal strength 5 or above</comment>
       <led name="S4"  state="STATIC_GRN"></led>
       <string>
-      	<en>Signal strength 5 or above</en>
-      	<de>Signalstärke 5 oder höher</de>
+        <en>Signal strength 5 or above</en>
+        <de>Signalstärke 5 oder höher</de>
       </string>
     </event>
 
-    <event id="x001D" name="OPER_SIGNAL_6_OFF" persistent="no">
+    <event id="x001D" name="OPER_SIGNAL_6_OFF" persistent="none">
       <comment> Signal strength below 6</comment>
       <led name="S5"  state="STATIC_OFF"></led>
       <string>
-      	<en>Signal strength below 6</en>
-      	<de>Signalstärke unter 6</de>
+        <en>Signal strength below 6</en>
+        <de>Signalstärke unter 6</de>
       </string>
     </event>
 
-    <event id="x001E" name="OPER_SIGNAL_6_ON" persistent="no">
+    <event id="x001E" name="OPER_SIGNAL_6_ON" persistent="none">
       <comment> Signal strength 6 or above</comment>
       <led name="S5"  state="STATIC_GRN"></led>
       <string>
-      	<en>Signal strength 6 or above</en>
-      	<de>Signalstärke 6 oder höher</de>
+        <en>Signal strength 6 or above</en>
+        <de>Signalstärke 6 oder höher</de>
+      </string>
+    </event>
+
+    <event id="x001F" name="OPER_SIGNAL_CHANGE" persistent="no">
+      <comment>
+        This event shows the current signal quality. 
+        It will be emitted once on change of mobile network registration state and 
+        each time when mobile network is registered and signal quality changes.
+        Parameter $1 is here an Integer value for the signal quality step.
+      </comment>
+      <string>
+        <en>Signal quality $1</en>
+        <de>Signalqualität $1</de>
+      </string>
+    </event>
+
+    <event id="x0020" name="OPER_NO_SERVICE" persistent="no">
+      <comment> No mobile service resp emergency calls only</comment>
+      <led name="NET"  state="STATIC_RED"></led>
+      <string>
+        <en>No mobile service, emergency calls only</en>
+        <de>Kein Mobilfunkservice, nur Notrufe</de>
       </string>
     </event>
 

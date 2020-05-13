@@ -28,30 +28,30 @@ tmp_dev=$(find ${DR_MODE_FILE_LOCATION} -iname ${DR_MODE_FILE})
 
 # now interate the different dr_mode files
 # and look for peripheral mode
-for found_dr_mode in ${tmp_dev[*]}
-do
-        if [ ! -z "${tmp_dev}" ]; then
-                if [ "$(cat ${found_dr_mode})" == "peripheral" ]; then
-                        found=1
-                        break
-                fi
-        fi
-done
+if [[ -n "$tmp_dev" ]]; then
+	for found_dr_mode in $tmp_dev
+	do
+		if [[ "$( < ${found_dr_mode} tr -d '\0')" == "peripheral" ]]; then
+			found=1
+			break
+		fi
+	done
+fi
 
 if [ ${found} -eq 0 ]; then
 	echo "No peripheral usb found"
-        exit 1
+	exit 1
 else
-        echo "Peripheral usb found --> Modprobe USB gadget"
+	echo "Peripheral usb found --> Modprobe USB gadget"
 fi
 
 case $1 in
 
-  start)
-	modprobe ${MODULE_GADGET_NAME}
-  ;;
-  stop)
-	modprobe -r ${MODULE_GADGET_NAME}
-  ;;
+	start)
+		modprobe ${MODULE_GADGET_NAME}
+		;;
+	stop)
+		modprobe -r ${MODULE_GADGET_NAME}
+		;;
 
 esac

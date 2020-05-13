@@ -10,13 +10,13 @@
 #include "IEthernetInterfaceFactory.hpp"
 #include "IEthernetInterface.hpp"
 #include "IPersistence.hpp"
+#include "INetDevManager.hpp"
 
 namespace netconfd {
 
 class InterfaceConfigManager {
  public:
-  InterfaceConfigManager(
-      IInterfaceInformation& itf_info,
+  InterfaceConfigManager(INetDevManager& netdev_manager,
       IPersistence<InterfaceConfigs>& persistence_provider,
       IJsonConfigConverter& json_config_converter,
       IEthernetInterfaceFactory& eth_factory);
@@ -29,11 +29,10 @@ class InterfaceConfigManager {
   Status IsPortConfigValid(const InterfaceConfigs& port_configs);
   Status ApplyPortConfig(InterfaceConfig const& cfg);
   Status ApplyAllConfigs(InterfaceConfigs& port_configs);
-  void InitializeEthernetInterfaceMap(const Interfaces& considered_interfaces);
-  void InitializePortConfigs(const Interfaces& considered_interfaces, const InterfaceConfigs& persistet_configs);
+  void InitializeEthernetInterfaceMap(const NetDevs& netdevs);
+  void InitializePortConfigs(const NetDevs& netdevs, const InterfaceConfigs& persistet_configs);
   void UpdateCurrentConfig(const InterfaceConfigs& port_configs);
 
-  IInterfaceInformation& itf_info_;
   IPersistence<InterfaceConfigs>& persistence_provider_;
   IJsonConfigConverter& json_config_converter_;
   IEthernetInterfaceFactory& ethernet_interface_factory_;

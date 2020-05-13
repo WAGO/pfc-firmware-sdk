@@ -15,6 +15,22 @@ PACKAGES-$(PTXCONF_WAGO_CUSTOM_INSTALL) += wago-custom-install
 
 # dummy to make ipkg happy
 WAGO_CUSTOM_INSTALL_VERSION	:= 1.0.0
+WAGO_CUSTOM_INSTALL	:= wago-custom-install
+
+# ----------------------------------------------------------------------------
+# Install
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/wago-custom-install.install:
+	@$(call targetinfo)
+	@$(call world/install, WAGO_CUSTOM_INSTALL)
+
+	@mkdir -p $(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/
+	@echo "hardware-available=false" >$(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/rs232_485-interface
+	@echo "hardware-available=false" >$(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/serial-service-interface
+	@echo "hardware-available=false" >$(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/profibus-dp-slave
+
+	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Target-Install
@@ -46,7 +62,7 @@ $(STATEDIR)/wago-custom-install.targetinstall:
 
 ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_INSTALL_HOME_USER_GUEST
 ifdef PTXCONF_ROOTFS_PASSWD_USER
-	@$(call install_copy, wago-custom-install, ${PTXCONF_ROOTFS_PASSWD_USER_UID}, ${PTXCONF_ROOTFS_PASSWD_USER_GID}, 0744, /home/user)
+	@$(call install_copy, wago-custom-install, ${PTXCONF_ROOTFS_PASSWD_USER_UID}, ${PTXCONF_ROOTFS_PASSWD_USER_GID}, 0755, /home/user)
 endif # PTXCONF_ROOTFS_PASSWD_USER
 
 ifdef PTXCONF_ROOTFS_PASSWD_GUEST
@@ -150,6 +166,14 @@ ifneq ($(PTXCONF_WAGO_CUSTOM_FINALIZE_ROOT_BBINIT_LINK),)
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_FINALIZE_ROOT_BBINIT_LINK))
 endif
 endif
+ifdef PTXCONF_WAGO_CUSTOM_DEVICE_SETUP_STARTSCRIPT
+	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
+		/etc/init.d/device-setup, n)
+ifneq ($(PTXCONF_WAGO_CUSTOM_DEVICE_SETUP_BBINIT_LINK),)
+	@$(call install_link, wago-custom-install, ../init.d/device-setup, \
+		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_DEVICE_SETUP_BBINIT_LINK))
+endif
+endif
 ifdef PTXCONF_WAGO_CUSTOM_CONFIG_SERIAL_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/etc/init.d/config_serial, n)
@@ -177,7 +201,7 @@ ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/usb_gadget_network, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_BBINIT_LINK))
 endif
-ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE),)
+ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE),"")
 	@$(call install_alternative, wago-custom-install, 0, 0, 0644, \
 		$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE), n)
 endif
@@ -270,18 +294,6 @@ ifneq ($(PTXCONF_WAGO_CUSTOM_RAUC_BBINIT_LINK), "")
 endif
 endif
 
-
-ifndef PTXCONF_NETCONFD
-ifdef PTXCONF_WAGO_CUSTOM_WATCH_IP_CHANGE_STARTSCRIPT
-	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
-		/etc/init.d/watch_ip_change, n)
-ifneq ($(WAGO_CUSTOM_BOOT_WATCH_IP_CHANGE_BBINIT_LINK), "")
-	@$(call install_link, wago-custom-install, ../init.d/watch_ip_change, \
-	/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_WATCH_IP_CHANGE_BBINIT_LINK))
-endif
-endif
-endif
-
 ifdef PTXCONF_USE_SCREEN_WINDOW
 # This script is executed by /etc/profile when /bin/bash does not run in a screen terminal and
 # was started as a login shell.
@@ -346,7 +358,7 @@ ifdef PTXCONF_WAGO_CUSTOM_INSTALL_LIGHTTPD_PASSWD_COPY
 
 # /etc/config-tools/default-settings/lighttpd-htpasswd.user.default is a link to /etc/lighttpd/lighttpd-htpasswd.user
 # thus we can use install_alternative
-	@$(call install_alternative, wago-custom-install, 12, 102, 0600, \
+	@$(call install_alternative, wago-custom-install, 0, 102, 0640, \
 		/etc/config-tools/default-settings/lighttpd-htpasswd.user.default, n)
 endif
 
@@ -360,10 +372,8 @@ endif
 # ------------------------------------------
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_BACKUP_SETTINGS
 # backup and restore settings
-ifndef PTXCONF_NETCONFD
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/usr/sbin/settings_backup_lib)
-endif
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
 		/usr/sbin/settings_backup_store)
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
@@ -600,6 +610,10 @@ ifneq ($(PTXCONF_WAGO_CUSTOM_INSTALL_LINKIN_DEVS_NAMES),)
 
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, $(_TMP_FILE), /etc/specific/.devs_to_link, n)
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, /etc/init.d/link_devices, n)
+	@$(call install_copy, wago-custom-install, 0, 0, 0750, /etc/specific/features/)
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/rs232_485-interface)
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/serial-service-interface)
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/profibus-dp-slave)
 
 ifneq ($(PTXCONF_WAGO_CUSTOM_LINK_DEVICES_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/link_devices, \
@@ -681,6 +695,21 @@ endif
 
 endif #WAGO_ADJUST_DEFAULT_SETTINGS
 
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
+	@touch $(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/tftp
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/tftp)
+endif
+
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
+	@touch $(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/telnet
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/telnet)
+endif
+
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_BOOTP_ON
+	@touch $(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/bootp
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/bootp)
+endif
+
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/usr/sbin/setup_ssh_keys, \
 		/usr/sbin/setup_ssh_keys, n)
@@ -690,6 +719,9 @@ endif #WAGO_ADJUST_DEFAULT_SETTINGS
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/usr/sbin/random_seed, \
 		/usr/sbin/random_seed, n)
+
+
+
 
 	@$(call install_finish, wago-custom-install)
 

@@ -6,7 +6,7 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   fwupdate_background_service
@@ -54,7 +54,7 @@ FUNCTION="no"
 #
 # Return: Exit code, 0 on success, unequal to 0 otherwise
 #-----------------------------------------------------------------------------#
-main()
+fwupdate_background_service_main()
 {
     local RESULT=0
 
@@ -204,10 +204,10 @@ prepare_update()
 
     fwupdate_cancelation_point
 
-    # Create link to tmpfs where update files are stored temporarily
-    mkdir -p "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
-    chgrp "$WAGO_FW_UPDATE_GROUP" "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
-    chmod g+rw "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
+    fwupdate_create_tmp_folder
+    if ! fwupdate_check_tmp_folder; then
+        fwupdate_abort 100 "fwupdate tmp folder doesn't match requirements!"
+    fi
 
     # Disable runtime autostart early when init contains reboot
     if $WAGO_CT_REBOOT_ON_INIT; then
@@ -562,6 +562,10 @@ finish_prepare_runtime()
         if [ $? -ne 0 ]; then
             RESULT=$INTERNAL_ERROR
         fi
+        #Set correct admin group id
+        chown -R $(whoami):admin $CDS_HOME_DIR_ROOT
+        chmod g+s $CDS_HOME_DIR_ROOT
+
     fi
 
     if [ $RESULT -ne 0 ]; then
@@ -641,5 +645,5 @@ revert()
 }
 
 # Start main function
-main "$@"
+fwupdate_background_service_main "$@"
 exit $?

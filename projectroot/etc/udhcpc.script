@@ -1,112 +1,87 @@
-#!/bin/sh
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
 # DHCP client script. Set parameters gained via DHCP_ACK.
 #
-# $Revision: 37359 $
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
-
-[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
-
-RESOLV_CONF="/etc/resolv.conf"
-DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
-EVENTDIR=/etc/config-tools/events/networking
-
-IP_CHANGE_NOTIFIED_FILE="/var/run/ipv4/ipconchg"
-
-# Function to access notified files.
-# The notified file will be accessed (read) by configuration change of  
-# given interface.
-# The files can be watched through inotify command.
-# Allowed interaces: br0, br1, wwan0.
-#
-# Prerequestions: The script /etc/rc.d/s97_watch_ip_change is called.
-#
-# Param 1: network interface
-#
-# Return: 0 on success, unequal to 0 otherwise
-#
 #-----------------------------------------------------------------------------#
-access_notified_files ()
-{ 
-   local interface="$1"
-   local result=0
-   
-   case "$interface" in
-   br0)
-      if [ -f "$IP_CHANGE_NOTIFIED_FILE-br0" ]; then
-         echo "" >  "$IP_CHANGE_NOTIFIED_FILE-br0" 
-         result=$?
-      fi
-      ;;        
-   br1)
-      if [ -f "$IP_CHANGE_NOTIFIED_FILE-br1" ]; then
-         echo "" > "$IP_CHANGE_NOTIFIED_FILE-br1" 
-         result=$?
-      fi
-      ;;
-   wwan0)
-      if [ -f "$IP_CHANGE_NOTIFIED_FILE-wwan0" ]; then
-         echo "" > "$IP_CHANGE_NOTIFIED_FILE-wwan0"
-         result=$?
-      fi
-      ;;
-   esac 
 
-   return $result  
+[[ -z "$1" ]] && echo "Error: should be called from udhcpc" && exit 1
+
+DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
+NETWORK_CONFIG=/etc/config-tools/network_config
+
+set_ip_config () {
+  local iface="$1"
+  local source="$2"
+  local address="$3"
+  local mask="$4"
+  local bcast="$5"
+
+  local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
+
+  out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
+
+  if [[ $? != 0 ]]; then
+    logger -t "udhcpc-script" "failed to set ip via dbus-send: $out"
+  fi
 }
 
-[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
-[ -n "$subnet" ] && NETMASK="netmask $subnet"
+[[ -n "$broadcast" ]] && BROADCAST="broadcast $broadcast"
+[[ -n "$subnet" ]] && NETMASK="netmask $subnet"
 
 case "$1" in
     deconfig)
-        /sbin/ifconfig $interface 0.0.0.0
-        /sbin/route del -net 224.0.0.0 netmask 224.0.0.0 $interface || true
-        rm -f "$DHCP_DATA_FILE_TEMPLATE$interface"
-        [ -d $EVENTDIR ] && run-parts -a config $EVENTDIR
+        #set_ip_config $interface temporary 0.0.0.0 0.0.0.0
+        /sbin/route del -net 224.0.0.0 netmask 224.0.0.0 "$interface" || true
         ;;
 
     renew|bound)
-        /sbin/ifconfig $interface $ip $BROADCAST $NETMASK
-        /sbin/route add -net 224.0.0.0 netmask 224.0.0.0 $interface || true
-        # read notified file to create a event for inotify command
-        access_notified_files "$interface"
+        /sbin/route add -net 224.0.0.0 netmask 224.0.0.0 "$interface" || true
 
         FILE="$DHCP_DATA_FILE_TEMPLATE$interface"
         > "$FILE"
-        if [ -n "$router" ] ; then
+        if [[ -n "$router" ]] ; then
             index=1
             for i in $router; do
                 echo "DEFAULT_GATEWAY_$index=$i" >> "$FILE"
-                index=$(($index + 1))
+                index=$((index + 1))
             done
         fi
-        
-        [ "$hostname" ] && echo "DHCPHOSTNAME=$hostname" >> "$FILE"
-        [ "$domain" ] && echo "DHCPDOMAIN=$domain" >> "$FILE"
 
-        # send gratuitous ARP.
-        arping -I $interface -c1 -s $ip $ip
+        [[ "$hostname" ]] && echo "DHCPHOSTNAME=$hostname" >> "$FILE"
+        [[ "$domain" ]] && echo "DHCPDOMAIN=$domain" >> "$FILE"
+
 
         # write ntp server to tmp file
-        if [ -n "$ntpsrv" ] ; then
+        if [[ -n "$ntpsrv" ]] ; then
             index=1
             for i in $ntpsrv; do
                 echo "NTP_SERVER_$index=$i" >> "$FILE"
                 index=$((index + 1))
             done
         fi
-        
+
         #write dns server to tmp file
-        if [ -n "$dns" ] ; then
+        if [[ -n "$dns" ]] ; then
             index=1
             for i in $dns; do
                 echo "DNS_SERVER_$index=$i" >> "$FILE"
                 index=$((index + 1))
             done
-	fi
-	
-        [ -d $EVENTDIR ] && run-parts -a config $EVENTDIR
+        fi
+
+        set_ip_config "$interface" temporary "$ip" "$subnet" "$broadcast"
+
+        # send gratuitous ARP.
+        arping -I "$interface" -c1 -s "$ip" "$ip"
+
         ;;
 esac
 exit 0
-

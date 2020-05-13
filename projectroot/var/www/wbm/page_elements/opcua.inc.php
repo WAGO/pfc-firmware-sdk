@@ -77,8 +77,6 @@ Note: If changes are made, the OPC UA server is restarted after pressing any of 
       <?php
         $arr = array(
           'opcua_application_uri_check' => 'Application URI Check',
-          'opcua_user_token_policy_id_check' => 'User Token Policy ID Check',
-          'opcua_nonce_length_check' => 'Nonce Length Check',
           'opcua_error_cert_time' => 'Error Certificate Time',
           'opcua_cert_issuer_time_invalid' => 'Certificate Issuer Time Invalid',
           'opcua_cert_revocation_unknown' => 'Certificate Revocation Unknown',

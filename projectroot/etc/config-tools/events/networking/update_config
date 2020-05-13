@@ -4,17 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: update_config
 #
-# Updates networking configuration of default gateways, hostname and dns
-# domainname.
+# Updates networking configuration of hostname and dns domainname.
 # Typically called when configuration data changed by config tools or by
-# DHCP/BOOTP. Writes multiple default gateways into the routing table and sets their
-# metric. Gateways with lowest metric come first. Default metric for DHCP/BOOTP
-# data is 10. Default metric for static configured interfaces is 20.
+# DHCP/BOOTP.
 #
 # $Revision$
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
@@ -52,13 +49,13 @@ function DomainToDNSMASQ()
 
     #get actual domain
     local act_domain=""
-    IFS== read -r dummy act_domain <<< "$(egrep \"^domain=\" $dnsmasq_conf)"
-
-    #check if act_domain differs from new_domain
-    local domain_search="/^\(#\)\?domain=.*"
+    IFS="=" read -r dummy act_domain <<< "$(grep -E '^domain=' $dnsmasq_conf)"
 
     if [ "$act_domain" != "$domain" ]; then
         if [ "$domain" ]; then
+            #check if act_domain differs from new_domain
+            local domain_search="/^\(#\)\?domain=.*"
+            
             #search for the first '#domain=' or 'domain=' at the beginning of the line
             #replace it with 'domain=$domain'
             sed -i -e "1,$domain_search/{$domain_search/s//domain=$domain/}" $dnsmasq_conf
@@ -77,8 +74,7 @@ function UpdateLocalDNSResolve()
    local hostname=$1
    local FQDN="$hostname.$2"
 
-   local x1ip=$(/etc/config-tools/get_eth_config X1 ip-address)
-   local x2ip=$(/etc/config-tools/get_eth_config X2 ip-address)
+   local ips=$(ip addr ls | grep inet.*global | awk '{ print $2}' | sed 's+/.*++g')
 
    local marker_text_1="#SYSTEM HOST ENTRY -- DO NOT REMOVE -- WILL BE CREATED BY CONFIG-TOOLS"
    local marker_text_2="#END SYSTEM HOST -- DO NOT REMOVE"
@@ -90,13 +86,10 @@ function UpdateLocalDNSResolve()
    #remove everything between marker1 and marker2
    sed -i -e "/$marker_text_1/,/$marker_text_2/{/$marker_text_1/b;/$marker_text_2/b;d}" /etc/hosts
 
-   if [ "$x2ip" ]; then
-       sed -i -e "/^$marker_text_1/a$x2ip\t$FQDN\t$hostname" /etc/hosts
-   fi
+   for ip in $ips; do
+     sed -i -e "/^$marker_text_1/a$ip\t$FQDN\t$hostname" /etc/hosts
+   done
 
-   if [ "$x1ip" ]; then
-       sed -i -e "/^$marker_text_1/a$x1ip\t$FQDN\t$hostname" /etc/hosts
-   fi
 }
 
 function UpdateHostConf()
@@ -124,7 +117,7 @@ function UpdateHostConf()
         [ "$DHCPDOMAIN" ] && validdomain=$DHCPDOMAIN
     fi
 
-    if [ "${validhost-}" != "$(</proc/sys/kernel/hostname)" -o "${validdomain-}" != "$(dnsdomainname)" ]; then
+    if [ "${validhost-}" != "$(</proc/sys/kernel/hostname)" ] || [ "${validdomain-}" != "$(dnsdomainname)" ]; then
         # write /etc/hosts, set /etc/hostname, and kernel hostname
         if [ "${validhost-}" ]; then
             if [ "${validdomain-}" ]; then
@@ -159,6 +152,21 @@ function UpdateHostConf()
     fi
 }
 
+function UpdateDnsmasqConfig()
+{
+    DNSMASQ_CONFIG="/etc/dnsmasq.conf"
+    DNSMASQ_CONFIG_TMP="/tmp/dnsmasq.conf"
+
+    /etc/config-tools/config_dnsmasq_c --gen-config --dnsmasq-config $DNSMASQ_CONFIG_TMP
+
+    if ! diff -q $DNSMASQ_CONFIG $DNSMASQ_CONFIG_TMP ; then
+        # During restart a new dnsmasq configuration is generated.
+        /etc/init.d/dnsmasq restart
+    fi
+
+    rm -f $DNSMASQ_CONFIG_TMP &> /dev/null
+}
+
 function DoUpdates()
 {
     UpdateHostConf
@@ -174,3 +182,6 @@ HOSTCONFFILE=/etc/specific/host.conf
 # interface with dhcp
 ( flock 9; DoUpdates; ) 9< /etc/hosts
 sync
+
+# dnsmasq update relies on /etc/hosts too. Therefore, run dnsmasq update after DoUpdates part. 
+UpdateDnsmasqConfig

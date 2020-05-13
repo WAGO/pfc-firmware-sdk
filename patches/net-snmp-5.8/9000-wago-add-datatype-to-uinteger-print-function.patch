@@ -1,0 +1,21 @@
+Index: net-snmp-5.7.3/snmplib/mib.c
+===================================================================
+
+Author: Hans-Florian Scholz, 26.02.2015
+
+--- net-snmp-5.7.3.orig/snmplib/mib.c
++++ net-snmp-5.7.3/snmplib/mib.c
+@@ -1473,6 +1473,13 @@
+         }
+     }
+ 
++    if (!netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_QUICK_PRINT)) {
++        if (!snmp_strcat(buf, buf_len, out_len, allow_realloc,
++                         (const u_char *) "UINTEGER: ")) {
++            return 0;
++        }
++    }
++
+     if (enum_string == NULL ||
+         netsnmp_ds_get_boolean(NETSNMP_DS_LIBRARY_ID, NETSNMP_DS_LIB_PRINT_NUMERIC_ENUM)) {
+         if (hint) {

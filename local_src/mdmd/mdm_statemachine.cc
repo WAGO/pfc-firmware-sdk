@@ -10,6 +10,7 @@
 
 #include "mdm_cuse_worker.h"
 #include "mdm_statemachine.h"
+#include "mdmd_log.h"
 #include <sstream>
 #include <string>
 #include <string.h>
@@ -40,100 +41,99 @@ static void h_strip_newline(char *pChar)
 }
 
 MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_t &al,
-                                  int gpioPowerControl, int musbDriverPort)
+                                  int gpioPowerControl, int musbDriverPort,
+                                  ParameterStorage& storage)
     : StateMachine(tl,s1,al),
       _gpioPowerKey(gpioPowerControl),
-      _musbDriverPort(musbDriverPort)
+      _musbDriverPort(musbDriverPort),
+      _parameter_storage(storage)
 {
     _dbus_server = new MdmDBusServer(this);
-    if (_dbus_server == 0)
-        throw std::exception();
 
     _port = 0;
     this->try_open_modem();
 
     _timeout = new MdmTimeout(this, MDM_DEFAULT_TIMEOUT_MILLISECONDS, 0);
-    if (_timeout == 0) throw std::exception();
 
-    init();
-    _storage.init_loglevel();
-
-    mdmd_Log(MD_LOG_DBG, "initial state: %s \"%s\"\n", s1.id().c_str(), s1.name().c_str());
-}
-
-#define _GPRS_REG_INIT_STATE   (-1)
-
-constexpr auto _GPRS_CONNECTIVITY_DISABLED = 0;
-//#define _GPRS_CONNECTIVITY_ENABLED   int(1)
-//#define _GPRS_CONNECTIVITY_DEFAULT   _GPRS_CONNECTIVITY_ENABLED
-void
-MdmStatemachine::init()
-{
-    _sim_state=MdmSimState::UNKNOWN;
-    _cfun_state=-1;
-    _pin_count=-1;
-    _puk_count=-1;
+    //init statemachine member variables
     _modem_manufacturer = "";
     _modem_model = "";
     _modem_revision = "";
     _modem_identity = "";
-    _iccid = "";
-    _pin = "";
-    _puk = "";
-    _gprs_reg_state = _GPRS_REG_INIT_STATE;
+    _rmnet_autoconnect_with_dtrset = false;
+    _gprs_reg_state = static_cast<int>(SERVICE_REG_STATE::UNKNOWN);
     _gprs_wwan_state_change = false;
     _gprs_pdp_addr_change = false;
-    _oper_reg_state = -1;
+    _oper_reg_state = static_cast<int>(SERVICE_REG_STATE::UNKNOWN);
     _oper_reg_lac = "";
     _oper_reg_cid = "";
-    _oper_scan_mode = -1;
-    _oper_scan_seq = -1;
-    _gprs_temporary_disable = false;
     _gprs_autoconnect_count = 0;
-    _last_cme_error = -1;
-    _last_cms_error = -1;
     _sms_list.clear();
-    _last_sms_msg_ref = 0;
     _port_wait_count = 0;
     _cfun_wait_count = 0;
     _pdp_addr = "";
+    _oper_map.clear();
+    _continue_getoperlist = false;
 
-    GprsAccessConfig default_gprs_access;
-    if (!_storage.get_gprs_access(default_gprs_access)) {
-      _storage.set_gprs_access(default_gprs_access);
-      _storage.save();
+    //init logging
+    ModemManagementConfig mdmdConfig = _parameter_storage.get_modem_management_config();
+    mdmd_SetLogLevel( mdmdConfig.get_log_level() );
+
+    mdmd_Log(MD_LOG_DBG, "initial state: %s \"%s\"\n", s1.id().c_str(), s1.name().c_str());
+
+    //init GPIO
+    if (!_gpioPowerKey.gpio_exported())
+    {
+      if (_gpioPowerKey.gpio_export() == -1)
+      {
+          mdmd_Log(MD_LOG_WRN, "GPIO export failed\n");
+      }
+    }
+    if (_gpioPowerKey.gpio_exported())
+    {
+      if (_gpioPowerKey.gpio_set_direction_out() == -1)
+      {
+          mdmd_Log(MD_LOG_WRN, "GPIO set direction failed\n");
+      }
     }
 
-    SmsEventReportingConfig default_sms_reporting_config;
-    if (!_storage.get_sms_reporting_config(default_sms_reporting_config)) {
-      _storage.set_sms_reporting_config(default_sms_reporting_config); 
-      _storage.save();
-    }
-
-    SmsStorageConfig default_sms_storage_config;
-    if (!_storage.get_sms_storage_config(default_sms_storage_config)) {
-      _storage.set_sms_storage_config(default_sms_storage_config); 
-      _storage.save();
-    }
-
+    //init WWAN interface, make sure that it is initially stopped
+    wwan_stop();
 }
+
+constexpr auto _GPRS_CONNECTIVITY_DISABLED = 0;
+//#define _GPRS_CONNECTIVITY_ENABLED   int(1)
+//#define _GPRS_CONNECTIVITY_DEFAULT   _GPRS_CONNECTIVITY_ENABLED
 
 MdmStatemachine::~MdmStatemachine()
 {
     delete _port;
-    delete _timeout;
-    delete _dbus_server;
+    if (_timeout != 0)
+    {
+        delete _timeout;
+    }
+    if (_dbus_server != 0)
+    {
+        delete _dbus_server;
+    }
     _sms_list.clear();
+
+    if (_gpioPowerKey.gpio_unexport() == -1)
+    {
+        mdmd_Log(MD_LOG_WRN, "GPIO unexport failed\n");
+    }
 }
 
 void
 MdmStatemachine::write( const std::string &text )
 {
-    if(_port)
+    if (_port != nullptr)
     {
-      try {
+      try
+      {
         _port->write(text);
-      } catch (SerialPortException &e) {
+      }
+      catch(...) {
         mdmd_Log(MD_LOG_ERR, "%s: modem port write error\n", get_state().c_str() );
       }
     }
@@ -142,13 +142,19 @@ MdmStatemachine::write( const std::string &text )
 void
 MdmStatemachine::deactivate_cmd_timeout()
 {
-    _timeout->deactivate();
+    if (_timeout != 0)
+    {
+        _timeout->deactivate();
+    }
 }
 
 void
 MdmStatemachine::kick_cmd_timeout(unsigned int milliseconds)
 {
-    _timeout->kick_timeout(milliseconds);
+    if (_timeout != 0)
+    {
+      _timeout->kick_timeout(milliseconds);
+    }
 }
 
 namespace {
@@ -159,7 +165,7 @@ bool is_modem_available(const std::string& deviceName) noexcept
     return stat(deviceName.c_str(), &statBuffer) == 0 ? true : false; 
 }
 
-std::string get_modem_command_device() 
+bool get_modem_command_device(std::string &command_device)
 {
   /*
    * Serial USB modem devices:
@@ -176,52 +182,51 @@ std::string get_modem_command_device()
    * after modem reset the DeviceIDs could be discontinuous (e.g. ttyModem0, ttyModem1, ttyModem3, ttyModem4)
    * but in any case the third device is for AT commands
    */
-  for(int deviceIndex = 0, devicesFound = 0; (deviceIndex < 1000); ++deviceIndex)
+  for(int i = 0, num_modem_devices = 0; ((i < 1000) && (num_modem_devices < 3)); ++i)
   {
-    std::string deviceName = "/dev/ttyModem";
-    deviceName.append(std::to_string(deviceIndex));
-
-    if(is_modem_available(deviceName))
+    std::string device("/dev/ttyModem");
+    device.append(std::to_string(i));
+    
+    if(is_modem_available(device))
     {
-      ++devicesFound;
-      if (devicesFound == 3)
+      ++num_modem_devices;
+      if (num_modem_devices == 3)
       {
-        return deviceName;
+          command_device = device;
+          return true;
       }
     }
   }
-
-  throw std::exception(); //TODO: replace with a class ModemException : public std::exception
+  return false;
 }
 
 } // namespace
 
-void MdmStatemachine::open_modem_port(const std::string& commandDevice) 
+void MdmStatemachine::open_modem_port(const std::string& command_device)
 {
-  _port = new MdmSMPort( this, commandDevice, &_port_read_buffer );
-  if (_port == nullptr)
-  {
-    throw std::exception(); //TODO: replace with a class ModemException : public std::exception
-  }
-  _port->open();
+    _port = new MdmSMPort( this, command_device, &_port_read_buffer );
+    if (_port != nullptr)
+    {
+        _port->open();
+    }
 }
 
 void MdmStatemachine::try_open_modem()
 {
-    try {
-      std::string commandDevice = get_modem_command_device();
-      open_modem_port(commandDevice);
+    try
+    {
+      std::string command_device;
+      if (get_modem_command_device(command_device))
+      {
+        open_modem_port(command_device);
+      }
     }
-    catch (SerialPortException &e) {
+    catch(...) {
+      if (_port != nullptr)
+      {
         delete _port;
         _port = nullptr;
-        //mdmd_Log(MD_LOG_ERR, "%s: Open modem port %s failed", get_state().c_str(), commandDevice.c_str() );
-    }
-    catch(std::exception& e) {
-      mdmd_Log(MD_LOG_ERR, "%s: Initialization of AT interface failed.", get_state().c_str() );
-    }
-    catch(...)  {
-      mdmd_Log(MD_LOG_ERR, "%s: Unpredicted exception in try_open_modem() occured.", get_state().c_str() );
+      }
     }
 }
 
@@ -246,16 +251,19 @@ MdmStatemachine::clear_modem_port()
     }
     _port_read_buffer.clear();
 
-    set_gprs_reg_state(0); //necessary for "if down" trigger
-    clear_current_oper();
-
+    reset_service_states();
     reset_statemachine();
-
-    init();
 
     kick_cmd_timeout(MDM_DEFAULT_TIMEOUT_MILLISECONDS);
 
     mdmd_Log(MD_LOG_INF, "%s: modem port cleared\n", get_state().c_str() );
+}
+
+bool
+MdmStatemachine::is_port_enabled() const
+{
+  ModemManagementConfig mdmdConfig = _parameter_storage.get_modem_management_config();
+  return (mdmdConfig.get_port_state() != 0) ? true : false;
 }
 
 void
@@ -265,68 +273,65 @@ MdmStatemachine::set_port_enabled(bool enabled)
   {
     clear_modem_port();
   }
-  _storage.set_port_enabled(enabled);
-  _storage.save();
-}
-
-int MdmStatemachine::set_modem_powerkey(int value) const
-{
-  int result;
-  if (_gpioPowerKey.gpio_export() == -1)
-  {
-    mdmd_Log(MD_LOG_WRN, "%s: modem power %s: GPIO export failed\n", get_state().c_str(), (value==0)?"on":"off");
-  }
-  if (_gpioPowerKey.gpio_set_direction_out() == -1)
-  {
-    mdmd_Log(MD_LOG_WRN, "%s: modem power %s: GPIO set direction failed\n", get_state().c_str(), (value==0)?"on":"off");
-  }
-  result = _gpioPowerKey.gpio_write_value(1);
-  if (_gpioPowerKey.gpio_unexport() == -1)
-  {
-    mdmd_Log(MD_LOG_WRN, "%s: modem power %s: GPIO unexport failed\n", get_state().c_str(), (value==0)?"on":"off");
-  }
-  return result;
+  ModemManagementConfig mdmdConfig = _parameter_storage.get_modem_management_config();
+  mdmdConfig.set_port_state(enabled);
+  _parameter_storage.set_modem_management_config(mdmdConfig);
 }
 
 void
-MdmStatemachine::modem_hard_reset()
+MdmStatemachine::modem_reset(ModemResetMode reset_mode)
 {
-  bool restart_ok = true;
-  mdmd_Log(MD_LOG_INF, "%s: modem restart...\n", get_state().c_str());
-
-  //step 1: clear modem port
   clear_modem_port();
-  //step 2: unbind USB device
-  if (_musbDriverPort.musb_unbind() == -1)
+  if (reset_mode == ModemResetMode::MUSB_RESET)
   {
-    mdmd_Log(MD_LOG_ERR, "%s: unbind modem driver failed\n", get_state().c_str());
-    restart_ok = false;
+    //unbind USB device
+    if (_musbDriverPort.musb_bound())
+    {
+      if (_musbDriverPort.musb_unbind() == -1)
+      {
+        mdmd_Log(MD_LOG_WRN, "%s: modem USB driver unbind failed\n", get_state().c_str());
+      }
+      else
+      {
+        mdmd_Log(MD_LOG_INF, "%s: modem USB driver unbound\n", get_state().c_str());
+        g_usleep(1000*1000); //wait a second after unbind
+      }
+    }
   }
-  //wait a second
-  g_usleep(1000*1000);
-  //step 3: modem power off
-  if (set_modem_powerkey(1) == -1)
+
+  bool modem_powered_off = (_gpioPowerKey.gpio_write_value(1) == 0);
+  if (!modem_powered_off)
   {
-    mdmd_Log(MD_LOG_ERR, "%s: modem power off failed\n", get_state().c_str());
-    restart_ok = false;
+    mdmd_Log(MD_LOG_WRN, "%s: modem power off failed\n", get_state().c_str());
   }
-  //step 4: bind USB device
-  if (_musbDriverPort.musb_bind() == -1)
+  else
   {
-    mdmd_Log(MD_LOG_ERR, "%s: bind modem driver failed\n", get_state().c_str());
-    restart_ok = false;
+    mdmd_Log(MD_LOG_INF, "%s: modem power off\n", get_state().c_str());
+    g_usleep(1000*1000); //wait a second after power off
   }
-  //wait a second
-  g_usleep(1000*1000);
-  //step 5: modem power on
-  if (set_modem_powerkey(0) == -1)
+
+  if (!_musbDriverPort.musb_bound())
   {
-    mdmd_Log(MD_LOG_ERR, "%s: modem power on failed\n", get_state().c_str());
-    restart_ok = false;
+    if (_musbDriverPort.musb_bind() == -1)
+    {
+      mdmd_Log(MD_LOG_ERR, "%s: modem USB driver bind failed!\n", get_state().c_str());
+    }
+    else
+    {
+      mdmd_Log(MD_LOG_INF, "%s: modem USB driver bound\n", get_state().c_str());
+      g_usleep(1000*1000); //wait a second after bind
+    }
   }
-  if (restart_ok)
+  if (modem_powered_off)
   {
-    mdmd_Log(MD_LOG_INF, "%s: modem restart successful\n", get_state().c_str());
+    if (_gpioPowerKey.gpio_write_value(0) != 0)
+    {
+      mdmd_Log(MD_LOG_ERR, "%s: modem power on failed!\n", get_state().c_str());
+    }
+    else
+    {
+      mdmd_Log(MD_LOG_INF, "%s: modem power on\n", get_state().c_str());
+    }
   }
 }
 
@@ -362,13 +367,14 @@ MdmStatemachine::execute_command(const std::string &cmd, std::string &cmd_output
   return status;
 }
 
-void
+bool
 MdmStatemachine::wwan_disable()
 {
   std::string cmd_output;
   std::string cmd_error;
   const int cmd_result = execute_command("/etc/config-tools/config_wwan --disable", cmd_output, cmd_error);
-  if (cmd_result != 0)
+  bool disabled = (cmd_result == 0);
+  if (!disabled)
   {
     mdmd_Log(MD_LOG_ERR, "%s: wwan disable failed: %d %s\n", get_state().c_str(),
              cmd_result, cmd_error.c_str());
@@ -377,27 +383,26 @@ MdmStatemachine::wwan_disable()
   {
     mdmd_Log(MD_LOG_INF, "%s: wwan disable success\n", get_state().c_str());
   }
+  return disabled;
 }
 
 bool
 MdmStatemachine::wwan_enable()
 {
-  bool result;
   std::string cmd_output;
   std::string cmd_error;
   const int cmd_result = execute_command("/etc/config-tools/config_wwan --enable", cmd_output, cmd_error);
-  if (cmd_result != 0)
+  bool enabled = (cmd_result == 0);
+  if (!enabled)
   {
     mdmd_Log(MD_LOG_ERR, "%s: wwan enable failed %d %s\n", get_state().c_str(),
              cmd_result, cmd_error.c_str());
-    result = false;
   }
   else
   {
     mdmd_Log(MD_LOG_INF, "%s: wwan enable success\n", get_state().c_str());
-    result = true;
   }
-  return result;
+  return enabled;
 }
 
 
@@ -449,18 +454,7 @@ MdmStatemachine::wwan_stop()
   if (cmd_result != 0)
   {
     //could not stop wwan interface, try to disable (Note: first version of config_wwan supports only enable/disable)
-    cmd_result = execute_command("/etc/config-tools/config_wwan --disable", cmd_output, cmd_error);
-    if (cmd_result != 0)
-    {
-      mdmd_Log(MD_LOG_ERR, "%s: wwan disable failed: %d %s\n", get_state().c_str(),
-               cmd_result, cmd_error.c_str());
-      result = false;
-    }
-    else
-    {
-      mdmd_Log(MD_LOG_INF, "%s: wwan disable success\n", get_state().c_str());
-      result = true;
-    }
+    result = wwan_disable();
   }
   else
   {
@@ -612,19 +606,6 @@ MdmStatemachine::set_gprs_reg_state(int state)
              gprs_disabled ? "disabled" : "enabled");
     switch (_gprs_reg_state)
     {
-      case _GPRS_REG_INIT_STATE:
-        if ((state==1) || (state==5))
-        {
-          if (!gprs_disabled)
-          {
-            _gprs_wwan_state_change = wwan_start();
-          }
-        }
-        else
-        {
-          _gprs_wwan_state_change = wwan_stop();
-        }
-        break;
       case 1:
       case 5:
         if ((state!=1) && (state!=5))
@@ -646,39 +627,48 @@ MdmStatemachine::set_gprs_reg_state(int state)
   }
 }
 
-bool
-MdmStatemachine::is_new_sim_iccid() const
+std::string
+MdmStatemachine::get_stored_sim_iccid() const
 {
-  if (0<_iccid.length())
-  {
-    std::string iccid;
-    std::string pin;
-    if(_storage.get_sim(iccid, pin))
-    {
-      return (0!=_iccid.compare(iccid));
-    }
-  }
-  return true; //assume new SIM when information is not available
+  SimAutoActivation simAutoActivation = _parameter_storage.get_sim_autoactivation();
+  return simAutoActivation.get_iccid();
 }
 
 std::string
 MdmStatemachine::get_stored_sim_pin() const
 {
-  std::string iccid;
-  std::string pin;
-  _storage.get_sim(iccid, pin);
-  return pin;
+  SimAutoActivation simAutoActivation = _parameter_storage.get_sim_autoactivation();
+  return simAutoActivation.get_pin();
 }
 
 void
-MdmStatemachine::set_current_oper(int id, int act)
+MdmStatemachine::store_sim_pin(const std::string &iccid, const std::string &pin)
+{
+  SimAutoActivation simAutoActivation = _parameter_storage.get_sim_autoactivation();
+  if ((0 != iccid.compare(simAutoActivation.get_iccid())) || (0 != pin.compare(simAutoActivation.get_pin())))
+  {
+    simAutoActivation.set_iccid(iccid);
+    simAutoActivation.set_pin(pin);
+    _parameter_storage.set_sim_autoactivation(simAutoActivation);
+  }
+}
+
+void
+MdmStatemachine::set_current_oper(int mode, int id, int act)
 {
   if ((id != _current_oper.get_id()) || (act != _current_oper.get_act()))
   {
     mdmd_Log(MD_LOG_INF, "%s: Mobile Network: operator=%d, act=%d\n", get_state().c_str(), id, act);
+    _current_oper.set_selection_mode(mode);
     _current_oper.set_id(id);
     _current_oper.set_act(act);
     _current_oper.set_current();
+
+    //workaround: set actual signal strength here again
+    //this is necessary since get_quality_step method returns no value as long as current_oper is invalid
+    //otherwise signal LEDs and diagnostics are not set before next signal strength change
+    set_current_oper_csq(_current_oper.get_ber(), _current_oper.get_rssi());
+
   }
   if ((is_oper_registered()) && (_current_oper.is_valid()))
   {
@@ -856,15 +846,14 @@ MdmTimeout::callback()
 }
 
 void
-MdmStatemachine::set_gprsaccess(const GprsAccessConfig &newConfig)
+MdmStatemachine::set_gprs_access_config(const GprsAccessConfig &config)
 {
-  const bool gprs_disabled_old = is_gprs_disabled();
-  const int state = _gprs_reg_state;
-  _storage.set_gprs_access(newConfig);
-  _storage.save();
+  const bool gprs_disabled_with_old_config = is_gprs_disabled();
+  _parameter_storage.set_gprs_access_config(config);
   const bool gprs_disabled_now = is_gprs_disabled();
-  if (gprs_disabled_old != gprs_disabled_now)
+  if (gprs_disabled_with_old_config != gprs_disabled_now)
   {
+    const int state = _gprs_reg_state;
     mdmd_Log(MD_LOG_INF, "%s: Data Service: state=%d(%s), %s\n", get_state().c_str(),
              state, ((state==1)||(state==5)) ? "registered" : "not registered",
              gprs_disabled_now ? "disabled" : "enabled");
@@ -874,52 +863,28 @@ MdmStatemachine::set_gprsaccess(const GprsAccessConfig &newConfig)
 bool
 MdmStatemachine::is_gprs_disabled() const
 {
-  GprsAccessConfig gprs_access;
-  _storage.get_gprs_access(gprs_access);
-  return ((_gprs_temporary_disable) || (gprs_access.get_state() == _GPRS_CONNECTIVITY_DISABLED));
-}
-
-bool
-MdmStatemachine::is_gprs_temporary_disabled() const
-{
-  return _gprs_temporary_disable;
-}
-
-void
-MdmStatemachine::set_gprs_temporary_disable()
-{
-  const bool gprs_disabled_old = is_gprs_disabled();
-  const int state = _gprs_reg_state;
-  _gprs_temporary_disable = true;
-  if (!gprs_disabled_old)
-  {
-    mdmd_Log(MD_LOG_INF, "%s: Data Service: state=%d(%s), temp. disabled\n", get_state().c_str(),
-             state, ((state==1)||(state==5)) ? "registered" : "not registered");
-  }
-}
-
-void
-MdmStatemachine::set_gprs_temporary_enable()
-{
-  const int state = _gprs_reg_state;
-  _gprs_temporary_disable = false;
-  if (!is_gprs_disabled())
-  {
-    mdmd_Log(MD_LOG_INF, "%s: Data Service: state=%d(%s), enabled\n", get_state().c_str(),
-             state, ((state==1)||(state==5)) ? "registered" : "not registered");
-  }
+  const GprsAccessConfig gprsAccessConfig = _parameter_storage.get_gprs_access_config();
+  return (gprsAccessConfig.get_state() == _GPRS_CONNECTIVITY_DISABLED);
 }
 
 bool
 MdmStatemachine::set_loglevel(const int loglevel)
 {
-  bool retVal;
-  if (loglevel != _storage.get_loglevel()) {
-    retVal = _storage.set_loglevel(loglevel);
-    _storage.save();
-  }
-  else {
-    retVal = true;
+  bool retVal = true;
+  ModemManagementConfig mdmdConfig = _parameter_storage.get_modem_management_config();
+  if (loglevel != mdmdConfig.get_log_level())
+  {
+    //change logging
+    if (mdmd_SetLogLevel( loglevel ))
+    {
+      //save new configuration
+      mdmdConfig.set_log_level(loglevel);
+      _parameter_storage.set_modem_management_config(mdmdConfig);
+    }
+    else
+    {
+      retVal = false;
+    }
   }
   return retVal;
 }
@@ -927,7 +892,8 @@ MdmStatemachine::set_loglevel(const int loglevel)
 int
 MdmStatemachine::get_loglevel() const
 {
-  return _storage.get_loglevel();
+  ModemManagementConfig mdmdConfig = _parameter_storage.get_modem_management_config();
+  return mdmdConfig.get_log_level();
 }
 
 void
@@ -945,7 +911,9 @@ bool MdmStatemachine::insert_operator_name(int id, const std::string& name)
 {
   std::pair<std::map<int,std::string>::iterator,bool> ret;
   ret = _operator_names.insert(std::pair<int,std::string>(id, name));
-  return ret.second;
+  //The pair::second element is set to true if a new element was inserted or false if an equivalent key already existed.
+  bool element_inserted = ret.second;
+  return element_inserted;
 }
 
 std::string MdmStatemachine::get_operator_name(int id) const
@@ -959,20 +927,11 @@ std::string MdmStatemachine::get_operator_name(int id) const
   return (it == _operator_names.end()) ? tmpstream.str() : it->second;
 }
 
-#define _GPRS_AUTOCONNECT_COUNT_MAX  18 /*18 status update periods, each with 10s = 180seconds*/
-bool MdmStatemachine::is_gprs_autoconnect_count_exceeded() const
-{
-  return (_gprs_autoconnect_count < _GPRS_AUTOCONNECT_COUNT_MAX) ? false : true;
-}
-
-void MdmStatemachine::set_gprs_autoconnect_count()
+void MdmStatemachine::update_gprs_autoconnect_count()
 {
   if ((is_gprs_registered() == false) && (is_oper_registered() == true) && (is_gprs_disabled() == false))
   {
-    if (is_gprs_autoconnect_count_exceeded() == false)
-    {
-      _gprs_autoconnect_count = _gprs_autoconnect_count + 1;
-    }
+    _gprs_autoconnect_count++;
   }
   else
   {
@@ -985,3 +944,28 @@ void MdmStatemachine::reset_gprs_autoconnect_count()
   _gprs_autoconnect_count = 0;
 }
 
+void MdmStatemachine::reset_service_states()
+{
+  //short message service
+  _sms_list.clear();
+
+  //packet data service
+  set_gprs_reg_state(static_cast<int>(SERVICE_REG_STATE::UNKNOWN));
+  _gprs_wwan_state_change = false;
+  _gprs_pdp_addr_change = false;
+  _rmnet_autoconnect_with_dtrset = false;
+  _gprs_autoconnect_count = 0;
+  _pdp_addr = "";
+
+  //network access
+  _oper_map.clear();
+  clear_current_oper();
+  std::string location_area_code;
+  std::string cell_id;
+  int access_technology = -1;
+  set_oper_reg_state(static_cast<int>(SERVICE_REG_STATE::UNKNOWN), location_area_code, cell_id, access_technology);
+
+  //common
+  _cfun_wait_count = 0;
+  _port_wait_count = 0;
+}

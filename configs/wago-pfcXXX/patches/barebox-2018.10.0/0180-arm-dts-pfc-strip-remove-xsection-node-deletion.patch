@@ -1,0 +1,33 @@
+From 6ea3fbc61661bbd25819d4ebadae51a7f93a8e6c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 28 Nov 2019 10:37:58 +0100
+Subject: [PATCH] arm: dts: pfc-strip: remove xsection node deletion
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/dts/am335x-pfc-strip.dtsi | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/arch/arm/dts/am335x-pfc-strip.dtsi b/arch/arm/dts/am335x-pfc-strip.dtsi
+index f9ddecb..862cfc3 100644
+--- a/arch/arm/dts/am335x-pfc-strip.dtsi
++++ b/arch/arm/dts/am335x-pfc-strip.dtsi
+@@ -27,7 +27,6 @@
+ 		/delete-property/ usb1;
+ 		/delete-property/ phy0;
+ 		/delete-property/ phy1;
+-		/delete-property/ xsection;
+ 		/delete-property/ bootmatrix;
+ 		/delete-property/ ethernet0;
+ 		/delete-property/ ethernet1;
+@@ -46,7 +45,6 @@
+ /delete-node/ &davinci_mdio_sleep;
+ /delete-node/ &bas_pins;
+ /delete-node/ &usb;
+-/delete-node/ &xsection;
+ /delete-node/ &bootmatrix;
+ /delete-node/ &davinci_mdio;
+ /delete-node/ &cpsw_emac0;
+-- 
+2.7.4
+

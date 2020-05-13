@@ -76,7 +76,7 @@ class GuardFunctor
 {
     public:
 	virtual ~GuardFunctor() {}
-	virtual bool operator () (const SM &sm) = 0;
+	virtual bool operator () (const SM &sm, Event &ev) = 0;
 };
 
 template <class SM>
@@ -141,7 +141,7 @@ class Transition
 	}
 
 	bool check_guard( const SM &sm ) {
-	    return (*_guard)( sm );
+	    return (*_guard)( sm, *_ev );
 	}
 };
 

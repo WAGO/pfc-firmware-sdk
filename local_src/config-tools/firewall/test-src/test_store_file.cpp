@@ -17,111 +17,80 @@
 //------------------------------------------------------------------------------
 // include files
 //------------------------------------------------------------------------------
+#include "file_accessor.hpp"
 #include <gtest/gtest.h>
 #include <string>
-#include <cstdio>
 
 #include "xmlhlp.hpp"
-#include "file_access.hpp"
 #include "error.hpp"
-#include "fake_file_access.hpp"
 #include "test_utils.hpp"
 
 using namespace wago;
-//------------------------------------------------------------------------------
-// defines; structure, enumeration and type definitions
-//------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-// function prototypes
-//------------------------------------------------------------------------------
+class StoreFileTest : public ::testing::Test {
+ public:
+  std::string tmp_dir_;
+  std::string params_;
+  std::string ipcmn_;
+  FileAccessor file_accessor_;
 
-//------------------------------------------------------------------------------
-// macros
-//------------------------------------------------------------------------------
+  StoreFileTest()
+      :
+      tmp_dir_(TestUtils::create_temp_dir("firewall_")),
+      params_("../../../test-res/params.xml"),
+      ipcmn_("../../../test-res/ipcmn.xml"),
+      file_accessor_ (tmp_dir_) {
 
-//------------------------------------------------------------------------------
-// variables' and constants' definitions
-//------------------------------------------------------------------------------
+  }
 
-//------------------------------------------------------------------------------
-// function implementation
-//------------------------------------------------------------------------------
+  void SetUp() override
+  {
+    TestUtils::create_dir(tmp_dir_ + "/etc/firewall/iptables");
+    TestUtils::copy_file(params_, tmp_dir_ + "/etc/firewall/params.xml");
+    TestUtils::copy_file(ipcmn_, tmp_dir_ + "/etc/firewall/iptables/ipcmn.xml");
+  }
 
-class StoreFileTest: public ::testing::Test
-{
-  public:
-    std::string tempDir_;
-    std::string params_;
-    std::string ipcmn_;
+  void TearDown() override
+  {
+    TestUtils::remove_dir(tmp_dir_);
 
-    StoreFileTest()
-    : tempDir_("")
-    , params_("../../../test-res/params.xml")
-    , ipcmn_("../../../test-res/ipcmn.xml")
-    {
-
-    }
-
-    void SetUp() override
-    {
-      tempDir_ = create_temp_dir("firewall_");
-      set_config_dir(tempDir_);
-
-      create_dir(tempDir_ + "/etc/firewall/iptables");
-      copy_file(params_, tempDir_ + "/etc/firewall/params.xml");
-      copy_file(ipcmn_, tempDir_ + "/etc/firewall/iptables/ipcmn.xml");
-    }
-
-    void TearDown() override
-    {
-      remove_dir(tempDir_);
-
-    }
+  }
 };
 
 // -----------------------------------------------------------------------------
 
+TEST_F(StoreFileTest, store_ipcmn_xml) {
+  const std::string ipcmn_file = tmp_dir_ + "/etc/firewall/iptables/ipcmn.xml";
 
-TEST_F(StoreFileTest, store_ipcmn_xml)
-{
-    const std::string ipcmn_file = tempDir_ + "/etc/firewall/iptables/ipcmn.xml";
+  ASSERT_TRUE(TestUtils::file_exists(ipcmn_file));
 
-    ASSERT_TRUE(file_exists(ipcmn_file));
+  xmldoc doc = file_accessor_.read_configuration("iptables", false);
+  if (!doc.is_empty()) {
+    file_accessor_.store_configuration("iptables", false, doc);
+  }
 
-    xmldoc doc = read_configuration("iptables", false);
-    if (!doc.is_empty())
-    {
-        store_configuration("iptables", false, doc);
-    }
-
-    // Check expected file content.
-    ASSERT_EQ(0,system(("diff ../../../test-res/ipcmn.xml " + ipcmn_file + " &> /dev/null").c_str()));
+  // Check expected file content.
+  ASSERT_TRUE(TestUtils::content_is_equal("../../../test-res/ipcmn.xml", ipcmn_file));
 }
 
+TEST_F(StoreFileTest, store_ipcmn_xml_tmp_already_exists) {
+  const std::string ipcmn_file = tmp_dir_ + "/etc/firewall/iptables/ipcmn.xml";
+  const std::string ipcmn_file_tmp = tmp_dir_ + "/etc/firewall/iptables/ipcmn.xml.tmp";
+  TestUtils::write_to_file(ipcmn_file_tmp, "foo");
 
-TEST_F(StoreFileTest, store_ipcmn_xml_tmp_already_exists)
-{
-    const std::string ipcmn_file = tempDir_ + "/etc/firewall/iptables/ipcmn.xml";
-    const std::string ipcmn_file_tmp = tempDir_ + "/etc/firewall/iptables/ipcmn.xml.tmp";
-    system(("echo foo > " + ipcmn_file_tmp).c_str());
+  ASSERT_TRUE(TestUtils::file_exists(ipcmn_file));
+  ASSERT_TRUE(TestUtils::file_exists(ipcmn_file_tmp));
 
-    ASSERT_TRUE(file_exists(ipcmn_file));
-    ASSERT_TRUE(file_exists(ipcmn_file_tmp));
+  xmldoc doc = file_accessor_.read_configuration("iptables", false);
+  if (!doc.is_empty()) {
+    file_accessor_.store_configuration("iptables", false, doc);
+  }
 
+  ASSERT_FALSE(TestUtils::file_exists(ipcmn_file_tmp));
 
-    xmldoc doc = read_configuration("iptables", false);
-    if (!doc.is_empty())
-    {
-        store_configuration("iptables", false, doc);
-    }
-
-    ASSERT_FALSE(file_exists(ipcmn_file_tmp));
-
-    // Check expected file content.
-    ASSERT_EQ(0,system(("diff ../../../test-res/ipcmn.xml " + ipcmn_file + " &> /dev/null").c_str()));
+  // Check expected file content.
+  ASSERT_TRUE(TestUtils::content_is_equal("../../../test-res/ipcmn.xml", ipcmn_file));
 }
-
 
 //---- End of source file ------------------------------------------------------
 

@@ -20,12 +20,50 @@
 #include "sms.h"
 #include "mdm_dbusserver.h"
 #include "mdm_config_types.h"
-#include "persistent_storage.h"
 #include "mdm_diagnostic.h"
-
+#include "mdm_parameter_storage.h"
 #include "sysfs_lib.h"
 
-enum class MdmSimState {UNKNOWN, SIM_PIN, SIM_PUK, READY, NOT_INSERTED, NOT_READY, SIM_ERROR};
+enum class ModemResetMode {DEFAULT, MUSB_RESET};
+
+enum class CFUN_STATE
+{
+    MINIMUM = 0,
+    FULL = 1,
+    TX_RX_DISABLE = 4,
+};
+
+enum class SERVICE_REG_STATE
+{
+    STOPPED = 0,
+    HOMENET = 1,
+    STARTED = 2,
+    DENIED = 3,
+    UNKNOWN = 4,
+    ROAMING = 5,
+    NOSERVICE = 6,
+};
+
+enum class SIM_STATE
+{
+    UNKNOWN = 0,
+    PIN_REQUIRED = 1,
+    PUK_REQUIRED = 2,
+    READY = 3,
+    NOT_INSERTED = 4,
+    ERROR = 5,
+    NOT_READY = 6,
+};
+
+enum class SIM_INIT_STATUS
+{
+    INITIAL = 0,
+    CPIN_READY = 1,
+    SMS_DONE = 3,
+    PHB_DONE = 5,
+    COMPLETED = 7,
+};
+
 
 class OperNameMap : public std::map<int, std::string>{};
 class OperMap : public std::map<int, Oper>{};
@@ -43,13 +81,14 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     int        _cfun_wait_count;
     MdmTimeout *_timeout;
 
-    MdmDBusServer *_dbus_server;
-    MethodInvocation _current_invocation;
-    PersistentStorage _storage;
-    MdmDiagnostic _diagnostic;
-
     GPIO_Control _gpioPowerKey;
     MUSB_Control _musbDriverPort;
+
+    MdmDBusServer *_dbus_server;
+    MethodInvocation _current_invocation;
+
+    MdmDiagnostic _diagnostic;
+    MdmParameterStorage _parameter_storage;
 
     std::string _modem_manufacturer;
     std::string _modem_model;
@@ -59,39 +98,26 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     int _oper_reg_state;
     std::string _oper_reg_lac;
     std::string _oper_reg_cid;
-    int _oper_scan_mode;
-    int _oper_scan_seq;
     int _gprs_reg_state;
     bool _gprs_wwan_state_change;
     bool _gprs_pdp_addr_change;
-    MdmSimState _sim_state;
-    int _cfun_state;
+    bool _rmnet_autoconnect_with_dtrset;
 
-    std::string _iccid;
-    std::string _pin;
-    std::string _puk;
-    int _pin_count;
-    int _puk_count;
+    bool _continue_getoperlist;
 
     Oper        _current_oper;
     OperMap     _oper_map;
 
     OperNameMap _operator_names;
 
-    bool _gprs_temporary_disable;
     unsigned int _gprs_autoconnect_count;
 
-    int _last_cme_error;
-    int _last_cms_error;
-
     SmsList _sms_list;
-    int _last_sms_msg_ref;
     std::string _pdp_addr;
 
-    void init();
-    int set_modem_powerkey(int value) const;
     int execute_command(const std::string &cmd, std::string &cmd_output, std::string &cmd_error);
     bool wwan_get_status(bool &is_enabled, bool &is_configured);
+    bool wwan_disable();
     bool wwan_stop();
     bool wwan_enable();
     bool wwan_start();
@@ -99,10 +125,10 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
 
     public:
     MdmStatemachine (transition_list_t &tl, State &s1, action_list_t &al,
-                     int gpioPowerControl, int musbDriverPort);
+                     int gpioPowerControl, int musbDriverPort,
+                     ParameterStorage& storage);
     ~MdmStatemachine();
 
-    void wwan_disable();
     void wwan_renew();
 
     void set_current_invocation( MethodInvocation invocation ) { _current_invocation = invocation; }
@@ -112,33 +138,24 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
 
     void deactivate_cmd_timeout();
     void kick_cmd_timeout(unsigned int milliseconds);
-    bool dbus_online() const { return _dbus_server->online(); }
-    bool is_modem_port_open() const { return (_port != 0); }
+    bool dbus_online() const { return ((_dbus_server != nullptr) ? _dbus_server->online() : false); }
+    bool is_modem_port_open() const { return (_port != nullptr); }
     void try_open_modem();
     int  get_port_wait_count() const { return _port_wait_count; }
     int  inc_port_wait_count() { _port_wait_count++; return _port_wait_count; }
     void set_port_wait_count(int value) { _port_wait_count = value; }
     void clear_modem_port();
-    bool is_port_enabled() const { return _storage.get_port_enabled(); };
+    bool is_port_enabled() const;
     void set_port_enabled(bool enabled);
-    void modem_hard_reset();
+    void modem_reset(ModemResetMode reset_mode);
     int  get_cfun_wait_count() const { return _cfun_wait_count; }
     int  inc_cfun_wait_count() { _cfun_wait_count++; return _cfun_wait_count; }
-    void set_cfun_wait_count(int value) { _cfun_wait_count = value; }
-
-    void set_sim_state(MdmSimState state) { _sim_state = state; }
-    MdmSimState get_sim_state() const { return _sim_state; }
 
     void set_oper_reg_state(int state, const std::string &lac, const std::string &cid, int act );
     int get_oper_reg_state() const { return _oper_reg_state; }
     bool is_oper_registered() const { return ((1 == _oper_reg_state) || (5 == _oper_reg_state)); }
     std::string get_oper_reg_lac() const { return _oper_reg_lac; }
     std::string get_oper_reg_cid() const { return _oper_reg_cid; }
-
-    void set_oper_scan_mode(int value) { _oper_scan_mode = value; }
-    int get_oper_scan_mode() const { return _oper_scan_mode; }
-    void set_oper_scan_seq(int value) { _oper_scan_seq = value; }
-    int get_oper_scan_seq() const { return _oper_scan_seq; }
 
     void set_gprs_reg_state(int state);
     int get_gprs_reg_state() const { return _gprs_reg_state; }
@@ -153,44 +170,28 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     void set_modem_identity( const std::string &value ) { _modem_identity = value; }
     std::string get_modem_identity() const { return _modem_identity; }
 
-    void set_iccid( const std::string &iccid ) { _iccid = iccid; }
-    bool is_new_sim_iccid() const;
+    std::string get_stored_sim_iccid() const;
     std::string get_stored_sim_pin() const;
-    void reset_stored_sim_pin() { _pin="";_storage.set_sim(_iccid,_pin);_storage.save();}
-    void store_sim_pin() { _storage.set_sim(_iccid,_pin);_storage.save();}
+    void store_sim_pin(const std::string &iccid, const std::string &pin);
 
-    void set_pin( const std::string &pin ) { _pin = pin; }
+    void set_network_access_config(const NetworkAccessConfig &config) { _parameter_storage.set_network_access_config(config); }
+    NetworkAccessConfig get_network_access_config() const { return _parameter_storage.get_network_access_config(); }
 
-    int get_pin_count() const { return _pin_count; }
-    void set_pin_count( int pin_count ) { _pin_count = pin_count; }
-    int get_puk_count() const { return _puk_count; }
-    void set_puk_count( int puk_count ) { _puk_count = puk_count; }
+    void set_gprs_access_config(const GprsAccessConfig &config);
+    GprsAccessConfig get_gprs_access_config() const { return _parameter_storage.get_gprs_access_config(); }
 
-    bool get_stored_oper(int &id, int &act) const {return _storage.get_oper(id, act);}
-    void set_stored_oper(int id, int act) { _storage.set_oper(id, act); _storage.save(); }
-    void remove_stored_oper() { _storage.remove_oper(); _storage.save(); }
-
-    bool get_stored_selection(int &mode) const {return _storage.get_selection(mode);}
-    void set_stored_selection(int mode) { _storage.set_selection(mode); _storage.save(); }
-
-    void set_gprsaccess(const GprsAccessConfig &newConfig);
-    bool get_gprsaccess(GprsAccessConfig& gprs_access) const { return _storage.get_gprs_access(gprs_access); }
-    void set_gprs_temporary_disable();
-    void set_gprs_temporary_enable();
-    bool is_gprs_temporary_disabled() const;
     bool is_gprs_disabled() const;
     void set_pdp_address( const std::string &pdp_addr );
     std::string get_pdp_address() const { return _pdp_addr; }
 
     void clear_current_oper();
-    void set_current_oper(int id, int act);
-    void set_current_oper(const Oper & oper) { _current_oper = oper; }
+    void set_current_oper(int mode, int id, int act);
     void set_current_oper_csq(int ber, int rssi);
-    const Oper & get_current_oper() const { return _current_oper; }
+    Oper get_current_oper() const { return _current_oper; }
 
     void add_opermap(int id, int act, int state);
-    void clear_opermap() { _oper_map.clear(); }
     GVariant* get_var_opermap() const;
+    void clear_opermap() { _oper_map.clear(); }
 
     void clear_smslist() { _sms_list.clear(); }
     void add_smslist(int index);
@@ -199,25 +200,18 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     void set_last_sms(int state, int length);
     GVariant* get_var_smslist() const;
     GVariant* get_var_smsread() const;
-    int get_last_sms_msg_ref() const { return _last_sms_msg_ref; }
-    void set_last_sms_msg_ref(int msg_ref) { _last_sms_msg_ref = msg_ref; }
 
-    void set_sms_report_config(const SmsEventReportingConfig& sms_config) { _storage.set_sms_reporting_config(sms_config);_storage.save(); }
-    bool get_sms_report_config(SmsEventReportingConfig& sms_config) { return _storage.get_sms_reporting_config(sms_config);}
-    void set_sms_storage_config(const SmsStorageConfig& sms_config) { _storage.set_sms_storage_config(sms_config);_storage.save(); }
-    bool get_sms_storage_config(SmsStorageConfig& sms_config) { return _storage.get_sms_storage_config(sms_config);}
+    void set_sms_report_config(const SmsEventReportingConfig& config) { _parameter_storage.set_sms_event_reporting_config(config); }
+    SmsEventReportingConfig get_sms_report_config() const { return _parameter_storage.get_sms_event_reporting_config(); }
+    void set_sms_storage_config(const SmsStorageConfig& config) { _parameter_storage.set_sms_storage_config(config); }
+    SmsStorageConfig get_sms_storage_config() const { return _parameter_storage.get_sms_storage_config(); }
+    MessageServiceConfig get_message_service_config() const { return _parameter_storage.get_message_service_config(); }
+
     
+    MdmErrorState get_error_state() const { return _diagnostic.get_error_state(); }
     void set_error_state(MdmErrorState newErrorState) { _diagnostic.set_error_state(newErrorState); }
 
     void event_report_last_read();
-
-    void set_last_cme_error( int err) { _last_cme_error = err; }
-    int get_last_cme_error() const { return _last_cme_error; }
-    void set_last_cms_error( int err) { _last_cms_error = err; }
-    int get_last_cms_error() const { return _last_cms_error; }
-
-    void set_cfun_state( int state) { _cfun_state = state; }
-    int get_cfun_state() const { return _cfun_state; }
 
     bool set_loglevel(const int loglevel);
     int  get_loglevel() const;
@@ -229,9 +223,17 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     bool gprs_pdp_addr_changed() const { return _gprs_pdp_addr_change; }
     bool gprs_wwan_state_changed() const { return _gprs_wwan_state_change; }
 
-    bool is_gprs_autoconnect_count_exceeded() const;
-    void set_gprs_autoconnect_count();
+    unsigned int get_gprs_autoconnect_count() const { return _gprs_autoconnect_count; }
+    void update_gprs_autoconnect_count();
     void reset_gprs_autoconnect_count();
+
+    void set_rmnet_autoconnect_with_dtrset(bool value) { _rmnet_autoconnect_with_dtrset = value; }
+    bool get_rmnet_autoconnect_with_dtrset() const { return _rmnet_autoconnect_with_dtrset; }
+
+    void set_continue_getoperlist(bool value) { _continue_getoperlist = value; }
+    bool get_continue_getoperlist() const { return _continue_getoperlist; }
+
+    void reset_service_states();
 };
 
 class MdmSMPort : public SerialPort

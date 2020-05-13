@@ -1,0 +1,40 @@
+## SECTION=networking
+menuconfig TCPDUMP
+	tristate
+	prompt "tcpdump                       "
+	select LIBPCAP
+	select LIBCAP_NG if TCPDUMP_ENABLE_LIBCAP_NG
+	select OPENSSL if TCPDUMP_ENABLE_CRYPTO
+	help
+	  Tcpdump  prints out the headers of packets on a network interface
+	  that match the boolean expression.  It can also be run with
+	  the -w flag, which causes it to save the packet data to a file
+	  for later analysis, and/or with the -r flag, which causes it to
+	  read from a saved packet file rather than to read  packets from
+	  a network interface.  In all cases, only packets that match
+	  expression will be processed by tcpdump.
+
+if TCPDUMP
+
+config TCPDUMP_ENABLE_LIBCAP_NG
+	bool
+	prompt "use libcap-ng as well"
+	help
+	  Use libpcap and libcap-ng
+
+config TCPDUMP_ENABLE_CRYPTO
+	bool
+	prompt "enable crypto support"
+	help
+	  Select this, if you don't need support for
+	  encryption (e.g. IPsec ESP packets)
+
+config TCPDUMP_SMB
+	bool
+	prompt "enable possibly-buggy SMB printer"
+	default y
+	help
+	  Notes from configure, when this entry is checked:
+	   The SMB printer may have exploitable buffer overflows!!!
+
+endif

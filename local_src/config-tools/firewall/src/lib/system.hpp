@@ -13,10 +13,7 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-
-
-#ifndef WAGO_SYSTEM_HPP
-#define WAGO_SYSTEM_HPP
+#pragma once
 
 
 #include <string>
@@ -37,7 +34,3 @@ std::string exe_cmd(const std::string& cmd, int &exit_code);
 
 
 } // namespace wago
-
-
-#endif // WAGO_SYSTEM_HPP
-

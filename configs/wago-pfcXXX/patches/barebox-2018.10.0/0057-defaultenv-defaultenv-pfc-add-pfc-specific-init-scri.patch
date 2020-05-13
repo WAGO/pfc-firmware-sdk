@@ -1,8 +1,7 @@
 From 8925b76bc3196d1bdf7a76b0d3ffd133fbb0e22b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 10 Aug 2018 13:02:23 +0200
-Subject: [PATCH 057/144] defaultenv: defaultenv-pfc: add pfc specific init
- script
+Subject: [PATCH] defaultenv: defaultenv-pfc: add pfc specific init script
 
 In case of an unbootable system (all bootsources are broken), we need to signal
 this with red leds. Therefore we check the return value of the boot command and

@@ -18,7 +18,7 @@ libnetconfddbus.a_INCLUDES += \
 -I$(libnetconfddbus_PROJECT_ROOT)/src/ \
 -isystem$(libnetconfddbus_PROJECT_ROOT)/generated/
 
-libnetconfddbus.a_DISABLEDWARNINGS += packed sign-conversion conversion format vla stack-protector  missing-declarations cast-qual unused-parameter 
+libnetconfddbus.a_DISABLEDWARNINGS += packed sign-conversion conversion format vla stack-protector  missing-declarations cast-qual unused-parameter suggest-attribute=const
 libnetconfddbus.a_CXXDISABLEDWARNINGS += $(libnetconfddbus.a_DISABLEDWARNINGS) useless-cast abi-tag
 libnetconfddbus.a_CDISABLEDWARNINGS += $(libnetconfddbus.a_DISABLEDWARNINGS) missing-prototypes bad-function-cast
 libnetconfddbus.a_PREREQUISITES +=

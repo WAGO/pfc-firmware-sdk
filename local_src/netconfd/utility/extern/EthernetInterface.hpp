@@ -36,7 +36,6 @@ class EthernetInterface : public IEthernetInterface {
   EthernetInterface(EthernetInterface&& other) noexcept;
 
   void UpdateConfig() override;
-  ::std::string const& GetName() const override;
   eth::EthernetMauType GetMauType() const override;
   const MacAddress GetMac() const override;
   bool GetAutonegSupport() const override;

@@ -197,7 +197,10 @@ firewall_get_service_state()
             active=1
         fi
         ;;
-
+    profinet)
+        # (STS: 03/2020) No decent way to determine if profinet is running.
+        active=1
+        ;;
     *)
         ;;
     esac

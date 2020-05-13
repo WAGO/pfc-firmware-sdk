@@ -87,6 +87,7 @@ TEST_F(ADeviceInterfaceProvider, GeneratesTheDeviceSpecificInterfaceNameMapping)
 
   EXPECT_EQ("ethX1", name_mapping.at("X1"));
   EXPECT_EQ("ethX2", name_mapping.at("X2"));
+
   EXPECT_EQ(2, name_mapping.size());
 }
 
@@ -144,6 +145,7 @@ TEST_F(ADeviceInterfaceProvider, GeneratesTheDeviceSpecificInterfaceNameMappingI
   EXPECT_EQ("ethX2", name_mapping.at("X2"));
   EXPECT_EQ("ethX110", name_mapping.at("X110"));
   EXPECT_EQ("ethXabc", name_mapping.at("Xabc"));
+
   EXPECT_EQ(4, name_mapping.size());
 }
 

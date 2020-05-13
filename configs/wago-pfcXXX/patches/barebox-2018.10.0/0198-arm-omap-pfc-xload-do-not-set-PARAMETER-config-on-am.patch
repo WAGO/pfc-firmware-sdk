@@ -1,0 +1,30 @@
+From e1c6bd2f26f061c9623be1b4ecddb9ed3f78b2a4 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 31 Jan 2020 10:51:20 +0100
+Subject: [PATCH] arm: omap: pfc-xload: do not set PARAMETER config on am35xx
+ devices
+
+Otherwise the mlo image gets to big and does not fit in to the internal
+sram region.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/mach-omap/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-omap/Kconfig b/arch/arm/mach-omap/Kconfig
+index 29267a0..9d52f64 100644
+--- a/arch/arm/mach-omap/Kconfig
++++ b/arch/arm/mach-omap/Kconfig
+@@ -226,7 +226,7 @@ if MACH_WAGO_PFC_AM335X || MACH_WAGO_PFC_AM35XX
+ 
+ config WAGO_PFC_XLOAD
+ 	bool
+-	select PARAMETER
++	select PARAMETER if !MACH_WAGO_PFC_AM35XX
+ 	prompt "Activate Wago PFC specific xload startup"
+ 	help
+ 	  Say Y to enable pfc specific xload startup code. This simultaneously
+-- 
+2.7.4
+

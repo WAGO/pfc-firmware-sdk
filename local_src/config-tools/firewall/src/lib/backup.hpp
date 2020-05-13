@@ -15,9 +15,7 @@
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
-
-#ifndef WAGO_BACKUP_HPP
-#define WAGO_BACKUP_HPP
+#pragma once
 
 
 namespace wago
@@ -36,7 +34,3 @@ void perform_restore(void);
 
 
 } // namespace wago
-
-
-#endif // WAGO_BACKUP_HPP
-

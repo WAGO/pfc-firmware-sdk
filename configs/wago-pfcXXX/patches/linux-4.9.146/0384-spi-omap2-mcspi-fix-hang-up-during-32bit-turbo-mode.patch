@@ -1,0 +1,46 @@
+From e6dd421931f8fc75a7fd4832752b186148d450fe Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Thu, 5 Dec 2019 12:09:49 +0100
+Subject: [PATCH] spi: omap2-mcspi: fix hang up during 32bit turbo mode
+
+For some reason while beeing in turbo mode we have to add a short delay
+while we are being in non-DMA 32bit RX path and having TURBO mode enabled.
+
+This short delay of one nsec fixes a hang up of the spi ip which will be
+seeing after re-enabling TURBO mode.
+
+Steps to reproduce:
+
+	dd if=/dev/mtd0 of=read bs=16 count=1
+	dd if=somedata of=/dev/mtd0 bs=32 count=1
+	--> dd: /dev/mtd0: Input/output error
+		! hang !
+	access will always fail after this.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ drivers/spi/spi-omap2-mcspi.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index fdadb38..b23b014 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -957,6 +957,14 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ 				    (l & OMAP2_MCSPI_CHCONF_TURBO)) {
+ 					omap2_mcspi_set_enable(spi, 0);
+ 					*rx++ = readl_relaxed(rx_reg);
++
++					/* For some reason while beeing in
++					 * turbo mode we need a short delay
++					 * here. Otherwise it will hang if we
++					 * try to disable and enable
++					 * turbo mode again */
++					ndelay(1);
++
+ 					dev_vdbg(&spi->dev, "read-%d %08x\n",
+ 						    word_len, *(rx - 1));
+ 					if (mcspi_wait_for_reg_bit(chstat_reg,
+-- 
+2.7.4
+

@@ -110,8 +110,6 @@ OpcuaContent.prototype.ShowConfigFromObject = function()
 
     var ids = [
       'opcua_application_uri_check',
-      'opcua_user_token_policy_id_check',
-      'opcua_nonce_length_check',
       'opcua_error_cert_time',
       'opcua_cert_issuer_time_invalid',
       'opcua_cert_revocation_unknown',
@@ -199,8 +197,6 @@ OpcuaContent.prototype.ProcessSecurityConfigChangeSubmit = function(formObj)
 
     var newValueList  = {configOpcua: JSON.stringify({
       applicationUriCheck:                $(formObj).find('[name=opcua_application_uri_check]:checked').length ? 'enable' : 'disable',
-      userTokenPolicyIdCheck:             $(formObj).find('[name=opcua_user_token_policy_id_check]:checked').length ? 'enable' : 'disable',
-      noneLengthCheck:                    $(formObj).find('[name=opcua_nonce_length_check]:checked').length ? 'enable' : 'disable',
       errorCertificateTime:               $(formObj).find('[name=opcua_error_cert_time]:checked').length ? 'enable' : 'disable',
       certificateIssuerTimeInvalid:       $(formObj).find('[name=opcua_cert_issuer_time_invalid]:checked').length ? 'enable' : 'disable',
       certificateRevocationUnknown:       $(formObj).find('[name=opcua_cert_revocation_unknown]:checked').length ? 'enable' : 'disable',

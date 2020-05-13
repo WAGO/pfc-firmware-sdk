@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss$(SILENCE)wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -110,7 +110,7 @@ $(STATEDIR)/libwidecpulimit.targetinstall:
 	$(SILENCE)$(call install_init, libwidecpulimit)
 	$(SILENCE)$(call install_fixup, libwidecpulimit,PRIORITY,optional)
 	$(SILENCE)$(call install_fixup, libwidecpulimit,SECTION,base)
-	$(SILENCE)$(call install_fixup, libwidecpulimit,AUTHOR,"Jan Sondhauss <jan.sondhauss$(SILENCE)wago.com>")
+	$(SILENCE)$(call install_fixup, libwidecpulimit,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	$(SILENCE)$(call install_fixup, libwidecpulimit,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES

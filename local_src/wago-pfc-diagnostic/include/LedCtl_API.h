@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 /// \file LED_ctl.h
 ///
-/// \version $Revision: 12387 $
+/// \version $Revision: 47428 $
 ///
 /// \brief <short description of the file contents>
 ///
@@ -18,6 +18,11 @@
 
 #ifndef _LED_CTL_H
 #define _LED_CTL_H
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif // __cplusplus
 
 //------------------------------------------------------------------------------
 // Include files
@@ -181,6 +186,8 @@
 #define LED_DBUS_NAME            "wago.ledserver"
 #define LED_DBUS_GET_STATE       "get"
 #define LED_DBUS_GET_STATE_ALL   "getAll"
+
+#define LED_INFO_FILE  (const char*)"/etc/specific/led_info.json"
 //------------------------------------------------------------------------------
 // Macros
 //------------------------------------------------------------------------------
@@ -217,7 +224,9 @@ typedef struct {
 // Global variables
 //------------------------------------------------------------------------------
 
-
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 
 #endif

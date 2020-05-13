@@ -37,7 +37,7 @@ class TimeoutEvent : public Event
   private:
     int _id;
   public:
-    bool match_timeout( int i ) override;
+    bool match_timeout( int i ) override { return _id == i; }
 
     TimeoutEvent(int id=0);
     ~TimeoutEvent();
@@ -51,7 +51,7 @@ class DBusEvent : public Event
     MethodInvocation _invocation;
   public:
     bool match_dbus(MethodInvocation dbus_invocation) override;
-    MethodInvocation invocation();
+    MethodInvocation invocation() { return _invocation; }
 
     DBusEvent( const std::string &method_name );
     DBusEvent();

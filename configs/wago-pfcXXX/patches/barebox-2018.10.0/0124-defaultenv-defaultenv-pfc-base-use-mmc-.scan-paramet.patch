@@ -1,8 +1,8 @@
 From 12e35f55a45e30c18d06f383af76e6daa950b860 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 17 Oct 2018 15:00:38 +0200
-Subject: [PATCH 124/144] defaultenv: defaultenv-pfc-base: use mmc*.scan
- parameter when starting setupfw
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: use mmc*.scan parameter when
+ starting setupfw
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

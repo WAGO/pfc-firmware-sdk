@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+
+set --nounset
+
+BACKUP_PREFIX='sshd'
+DSS_HOST_KEY='/etc/dropbear/dropbear_dss_host_key'
+ECDSA_HOST_KEY='/etc/dropbear/dropbear_ecdsa_host_key'
+RSA_HOST_KEY='/etc/dropbear/dropbear_rsa_host_key'
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    print_dbg "config_tool_lib missing"
+    exit 255
+fi
+
+. "/etc/config-tools/config_tool_lib"
+
+function PrintUsage
+{
+    local self; self="$(basename "$0")"
+    echo "${self} --save <backup-file>      backup dropbear host keys"
+    echo "${self} --restore <backup-file>   restore dropbear host keys"
+    echo "${self} --param-count             get number of GridCAL parameters to save"
+}
+
+# Write logging data using syslog.
+#
+# Input: Message to log.
+#
+function Log
+{
+    [[ $# > 0 ]] && logger -t "$(basename "$0")" "$1"
+}
+
+
+#### Backup & Restore ##########################################################
+
+# Get number of parameters that have to be saved during backup.
+#
+# output: 1.) number of parameters to save during backup.
+#         2.) returns config tool status, see /etc/config-tools/config_tool_defines.
+#
+function GetParameterCount
+{
+    echo 3
+    return $SUCCESS
+}
+
+function backup_host_key
+{
+    local backup_key; backup_key="$1"
+    local host_key; host_key="$2"
+
+    if [[ -f "${host_key}" ]]; then
+        base64 "${host_key}" | awk "\$0=\"${BACKUP_PREFIX}-${backup_key}=\"\$0"
+    fi
+}
+
+# Save configuration parameters to backup file.
+#
+# input:  backup file path
+# output: returns config tool status, see /etc/config-tools/config_tool_defines.
+#
+function Save
+{
+    local status; status=$SUCCESS
+    local backup_file; backup_file="$1"
+
+    backup_host_key 'dss-host-key' "${DSS_HOST_KEY}" >>"${backup_file}"
+    backup_host_key 'ecdsa-host-key' "${ECDSA_HOST_KEY}" >>"${backup_file}"
+    backup_host_key 'rsa-host-key' "${RSA_HOST_KEY}" >>"${backup_file}"
+
+    return ${status}
+}
+
+function restore_host_key
+{
+    local status; status=$SUCCESS
+    local backup_file; backup_file="$1"
+    local backup_key; backup_key="$2"
+    local host_key; host_key="$3"
+    local tmp_host_key; tmp_host_key="$(mktemp)"
+
+    while read l; do
+        base64 -d <<<"${l#*=}" >>"${tmp_host_key}"
+    done <<<"$(grep -e "^${BACKUP_PREFIX}-${backup_key}" "${backup_file}")"
+
+    [[ -s "${tmp_host_key}" ]] && \
+      mv "${tmp_host_key}" "${host_key}" || \
+      rm -f "${tmp_host_key}"
+
+    return ${status}
+}
+
+# Restore configuration parameters from backup file.
+#
+# input: backup file path
+# output: returns config tool status, see /etc/config-tools/config_tool_defines.
+#
+function Restore
+{
+    local status=$SUCCESS; status=$SUCCESS
+    local backup_file; backup_file="$1"
+    local old_umask; old_umask="$(umask)"
+
+    umask 0266
+
+    restore_host_key "${backup_file}" "dss-host-key" "${DSS_HOST_KEY}"
+    restore_host_key "${backup_file}" "ecdsa-host-key" "${ECDSA_HOST_KEY}"
+    restore_host_key "${backup_file}" "rsa-host-key" "${RSA_HOST_KEY}"
+
+    umask "${old_umask}"
+
+    return $status
+}
+
+
+#### MAIN ######################################################################
+
+status=$SUCCESS
+
+if [[ $# -ge 1 ]]; then
+    operation="$1"
+
+    if [[ $# -ge 2 ]]; then
+        file="$2"
+        if [[ "${operation}" == "--save" ]]; then
+            Save "${file}"
+            status=$?
+        elif [[ "${operation}" == "--restore" ]]; then
+            Restore "${file}"
+            status=$?
+        else
+            # Unknown operation
+            status=$INTERNAL_ERROR
+            Log "$0: Unknown operation \"${operation}\""
+        fi
+    else
+        if [[ "$operation" == "--param-count" ]]; then
+            GetParameterCount
+        elif [[ "$operation" == "-h" || "$operation" == "--help" ]]; then
+            PrintUsage
+        else
+            # Unknown operation
+            status=$INTERNAL_ERROR
+            Log "$0: Unknown or incomplete operation \"$operation\""
+        fi
+    fi
+fi
+
+exit $status

@@ -1,5 +1,6 @@
 root:x:0:
 daemon:x:1:
+shadow:x:42:opc,paramd
 www:x:102:
 messagebus:x:104:
 cdrom:x:105:
@@ -21,4 +22,6 @@ paramaccess:x:116:opc,root
 opc:x:117:
 iot:x:118:
 drm:x:119:iot
+wda:x:120:admin
+paramd:x:121:
 docker:x:1001:

@@ -16,7 +16,13 @@ PACKAGES-$(PTXCONF_WSTD) += wstd
 #
 # Paths and names
 #
-WSTD_VERSION	:= 0.6.1-157201112911
+ifdef PTXCONF_WSTD_DEV
+WSTD_BUILD_ID      := -$(call remove_quotes,$(PTXCONF_WSTD_DEV_BRANCH))
+else
+WSTD_BUILD_ID      := -157985495724
+endif
+
+WSTD_VERSION	:= 0.7.0$(WSTD_BUILD_ID)
 WSTD		    := wstd
 ifndef PTXCONF_WSTD_DEV
 WSTD_URL        := $(call jfrog_template_to_url, WSTD)
@@ -26,10 +32,10 @@ endif
 WSTD_SUFFIX     := $(suffix $(WSTD_URL))
 WSTD_ARCHIVE    := $(WSTD)-$(WSTD_VERSION)$(WSTD_SUFFIX)
 WSTD_MD5         = $(shell [ -f $(WSTD_MD5_FILE) ] && cat $(WSTD_MD5_FILE))
-WSTD_MD5_FILE   := wago_intern/$(WSTD_ARCHIVE).md5
+WSTD_MD5_FILE   := wago_intern/artifactory_sources/$(WSTD_ARCHIVE).md5
 WSTD_ARTIFACT    = $(call jfrog_get_filename,$(WSTD_URL))
 
-WSTD_GIT_URL	:= ssh://git@svli01001.wago.local:1022/wago-intern/wstd.git
+WSTD_GIT_URL	:= ssh://svtfs01007:22/tfs/ProductDevelopment/Linux-BSP/_git/wstd
 
 WSTD_DIR		:= $(BUILDDIR)/$(WSTD)
 WSTD_LICENSE	:= unknown
@@ -70,7 +76,7 @@ $(STATEDIR)/wstd.get:
 
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	${PTXDIST_WORKSPACE}/scripts/wago/artifactory.sh fetch \
-    '$(WSTD_URL)' wago_intern/$(WSTD_ARCHIVE) '$(WSTD_MD5_FILE)'
+    '$(WSTD_URL)' wago_intern/artifactory_sources/$(WSTD_ARCHIVE) '$(WSTD_MD5_FILE)'
 endif
 
 	@$(call touch)
@@ -81,16 +87,19 @@ endif
 # Extract
 # ----------------------------------------------------------------------------
 
+ifndef PTXCONF_WSTD_DEV
+
 $(STATEDIR)/wstd.extract:
 	@$(call targetinfo)
  
 	@mkdir -p $(WSTD_DIR)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-	@tar xvzf wago_intern/$(WSTD_ARCHIVE) -C $(WSTD_DIR) --strip-components=1
+	@tar xvzf wago_intern/artifactory_sources/$(WSTD_ARCHIVE) -C $(WSTD_DIR) --strip-components=1
 	@$(call patchin, WSTD)
 endif
 	@$(call touch)
 
+endif
 
 # ----------------------------------------------------------------------------
 # Prepare

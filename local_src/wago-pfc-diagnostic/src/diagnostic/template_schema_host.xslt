@@ -99,6 +99,11 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
       <xsl:when test="led/@name = 'NET'"><xsl:value-of select="led/@name" /></xsl:when>
       <xsl:when test="led/@name = 'USR'"><xsl:value-of select="led/@name" /></xsl:when>
       <xsl:when test="led/@name = 'BT'"><xsl:value-of select="led/@name" /></xsl:when>
+      <xsl:when test="led/@name = 'WDS'"><xsl:value-of select="led/@name" /></xsl:when>
+      <xsl:when test="led/@name = 'EC'"><xsl:value-of select="led/@name" /></xsl:when>
+      <xsl:when test="led/@name = 'H11'"><xsl:value-of select="led/@name" /></xsl:when>
+      <xsl:when test="led/@name = 'H12'"><xsl:value-of select="led/@name" /></xsl:when>
+      <xsl:when test="led/@name = 'DS'"><xsl:value-of select="led/@name" /></xsl:when>
       <xsl:otherwise>
         <xsl:message terminate="yes">class:0: "<xsl:value-of select="../@name" />" at element "<xsl:value-of select="@name" />": error: Invalid LED name: <xsl:value-of select="led/@name" /></xsl:message> 
       </xsl:otherwise>

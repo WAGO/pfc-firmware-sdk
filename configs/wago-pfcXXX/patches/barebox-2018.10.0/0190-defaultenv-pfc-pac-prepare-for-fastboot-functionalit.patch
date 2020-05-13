@@ -1,0 +1,156 @@
+From 5f169972d4d27518fe140187f1c30b481979987a Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 22 Nov 2019 12:31:46 +0100
+Subject: [PATCH] defaultenv: pfc/pac: prepare for fastboot functionality over
+ usb
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ .../bin/pfc-config-production-boot                 | 15 +++++++++++++++
+ defaultenv/defaultenv-pfc-base/bin/init            |  2 +-
+ .../bin/pfc-check-for-debug-uart                   |  8 ++------
+ defaultenv/defaultenv-pfc-base/config              | 22 ++++++++++++++++++++--
+ 4 files changed, 38 insertions(+), 9 deletions(-)
+ create mode 100644 arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot b/arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot
+new file mode 100644
+index 0000000..7641a93
+--- /dev/null
++++ b/arch/arm/boards/wago-pfc-am335x/defaultenv-pac-am335x/bin/pfc-config-production-boot
+@@ -0,0 +1,15 @@
++#!/bin/sh
++
++source env/data/print-msg-formats
++
++global.linux.bootargs.watchdog=""
++global.boot.watchdog_timeout=0
++global.autoboot=1
++
++uart_console -e ${global.pfc.barebox_uart}
++led_mode -m -c green
++usbgadget ${global.pfc.usbgadget_options}
++
++echo -e ${info} "waiting for commands over fastboot"
++
++exit 0
+diff --git a/defaultenv/defaultenv-pfc-base/bin/init b/defaultenv/defaultenv-pfc-base/bin/init
+index 1418ea1..7af3568 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/init
++++ b/defaultenv/defaultenv-pfc-base/bin/init
+@@ -48,7 +48,7 @@ if [ "${global.autoboot_abort_key}" = "ctrl-c" ]; then
+ 	abort_args="-c"
+ else
+ 	abort_string="any key"
+-	abort_args="-a"
++	abort_args="-a -e"
+ fi
+ 
+ if [ -e /env/menu ]; then
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart b/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
+index 645d992..0a8d509 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-check-for-debug-uart
+@@ -15,10 +15,6 @@ if [ "${debug_mode_enable}" = "${debug_mode_mask}" ]; then
+ 	# always wired to the mainboard (e.g. PAC-Devices).
+ 	uart_console -e ${global.pfc.barebox_uart}
+ 
+-	# on devices with usb interface enable the usb serial
+-	# gadget, too.
+-	if [ "$otg0.mode" = "otg" ]; then
+-		otg0.mode=peripheral
+-		usbgadget -a
+-	fi
++	# on devices with usb interface enable the usb gadget, too.
++	usbgadget ${global.pfc.usbgadget_options}
+ fi
+diff --git a/defaultenv/defaultenv-pfc-base/config b/defaultenv/defaultenv-pfc-base/config
+index 16d95d9..9a16c14 100644
+--- a/defaultenv/defaultenv-pfc-base/config
++++ b/defaultenv/defaultenv-pfc-base/config
+@@ -20,8 +20,11 @@ global pfc.sd_dev_boot
+ global pfc.sd_dev_rootfs
+ global pfc.emmc_name
+ global pfc.emmc
++global pfc.emmc_dev_boot
+ global pfc.emmc_dev_rootfs0
+ global pfc.emmc_dev_rootfs1
++global pfc.emmc_dev_home0
++global pfc.emmc_dev_home1
+ global pfc.emmc_boot
+ global pfc.emmc_rootfs0
+ global pfc.emmc_rootfs1
+@@ -43,6 +46,8 @@ global pfc.debug_mode_active
+ global pfc.watchdog_timeout_linux_load
+ global pfc.watchdog_timeout_linux_boot
+ global pfc.linux_uart_device
++global pfc.eeprom_dev
++global pfc.usbgadget_options
+ 
+ global bootchooser.rootfs.1.boot
+ global bootchooser.rootfs.2.boot
+@@ -81,8 +86,11 @@ magicvar -a global.pfc.sd_dev_rootfs	"path to the sd cards rootfs partition
+ 
+ magicvar -a global.pfc.emmc_name	"name of the emmc in /dev"
+ magicvar -a global.pfc.emmc		"path to the emmc device"
++magicvar -a global.pfc.emmc_dev_boot	"path to the emmc boot device"
+ magicvar -a global.pfc.emmc_dev_rootfs0	"path to the emmc rootfs0 device"
+ magicvar -a global.pfc.emmc_dev_rootfs1	"path to the emmc rootfs1 device"
++magicvar -a global.pfc.emmc_dev_home0	"path to the emmc home0 device"
++magicvar -a global.pfc.emmc_dev_home1	"path to the emmc home1 device"
+ magicvar -a global.pfc.emmc_boot	"path to emmcs boot partition"
+ magicvar -a global.pfc.emmc_rootfs0	"path to emmcs rootfs0 partition"
+ magicvar -a global.pfc.emmc_rootfs1	"path to emmcs rootfs1 partition"
+@@ -138,6 +146,11 @@ magicvar -a global.pfc.linux_uart_device "uart device string that is used when
+ magicvar -a global.linux.bootargs.productionmode "parameter for starting setupfw
+ 						  in production or wsc mode"
+ magicvar -a global.linux.bootargs.watchdog "board specific watchdog kernel parameter"
++magicvar -a global.pfc.eeprom_dev "path to eeprom device"
++magicvar -a global.pfc.usbgadget_options "options to activate when usbgadget is
++					  used. By default fastboot-, fastboot
++					  bbu- and CDC ACM-Functions are
++					  activated"
+ 
+ 
+ ################################
+@@ -154,8 +167,11 @@ magicvar -a global.linux.bootargs.watchdog "board specific watchdog kernel param
+ [ -z "${global.pfc.sd_dev_rootfs}" ] && global.pfc.sd_dev_rootfs="${global.pfc.sd}.1"
+ [ -z "${global.pfc.emmc_name}" ] && global.pfc.emmc_name="mmc1"
+ [ -z "${global.pfc.emmc}" ] && global.pfc.emmc="/dev/${global.pfc.emmc_name}"
++[ -z "${global.pfc.emmc_dev_boot}" ] && global.pfc.emmc_dev_boot="${global.pfc.emmc}.0"
+ [ -z "${global.pfc.emmc_dev_rootfs0}" ] && global.pfc.emmc_dev_rootfs0="${global.pfc.emmc}.4"
+ [ -z "${global.pfc.emmc_dev_rootfs1}" ] && global.pfc.emmc_dev_rootfs1="${global.pfc.emmc}.7"
++[ -z "${global.pfc.emmc_dev_home0}" ] && global.pfc.emmc_dev_home0="${global.pfc.emmc}.5"
++[ -z "${global.pfc.emmc_dev_home1}" ] && global.pfc.emmc_dev_home1="${global.pfc.emmc}.6"
+ [ -z "${global.pfc.emmc_boot}" ] && global.pfc.emmc_boot="/mnt/mmc1.0"
+ [ -z "${global.pfc.emmc_rootfs0}" ] && global.pfc.emmc_rootfs0="/mnt/emmc_rootfs0"
+ [ -z "${global.pfc.emmc_rootfs1}" ] && global.pfc.emmc_rootfs1="/mnt/emmc_rootfs1"
+@@ -167,10 +183,9 @@ magicvar -a global.linux.bootargs.watchdog "board specific watchdog kernel param
+ [ -z "${global.pfc.nand_rootfs0}" ] && global.pfc.nand_rootfs0="/mnt/ubi_rootfs0"
+ [ -z "${global.pfc.nand_rootfs1}" ] && global.pfc.nand_rootfs1="/mnt/ubi_rootfs1"
+ [ -z "${global.pfc.nand_boot}" ] && global.pfc.nand_boot="/mnt/ubi_boot"
+-
+-
+ [ -z "${global.pfc.nand_mlo_parts}" ] && global.pfc.nand_mlo_parts="${global.pfc.nand}.mlo0 ${global.pfc.nand}.mlo1 ${global.pfc.nand}.mlo2 ${global.pfc.nand}.mlo3"
+ [ -z "${global.pfc.nand_boot_parts}" ] && global.pfc.nand_boot_parts="${global.pfc.nand}.boot0 ${global.pfc.nand}.boot1 ${global.pfc.nand}.boot2 ${global.pfc.nand}.boot3"
++[ -z "${global.pfc.eeprom_dev}" ] && global.pfc.eeprom_dev="/dev/eeprom0"
+ 
+ [ -z "${global.pfc.downgrade_img}" ] && global.pfc.downgrade_img="${global.pfc.sd_boot}/downgrade.bin.$global.board.variant"
+ [ -z "${global.pfc.custom_sh}" ] && global.pfc.custom_sh="${global.pfc.sd_boot}/custom_setup.sh"
+@@ -183,6 +198,7 @@ magicvar -a global.linux.bootargs.watchdog "board specific watchdog kernel param
+ [ -z "${global.pfc.watchdog_timeout_linux_boot}" ] && global.pfc.watchdog_timeout_linux_boot=30
+ [ -z "${global.pfc.debug_mode_active}" ] && global.pfc.debug_mode_active=false
+ [ -z "${global.pfc.linux_uart_device}" ] && global.pfc.linux_uart_device="ttyO"
++[ -z "${global.pfc.usbgadget_options}" ] && global.pfc.usbgadget_options="-A -b -a"
+ 
+ [ -z "${global.bootchooser.targets}" ] && global.bootchooser.targets="rootfs.1 rootfs.2"
+ [ -z "${global.bootchooser.state_prefix}" ] && global.bootchooser.state_prefix="bootstate"
+@@ -192,3 +208,5 @@ magicvar -a global.linux.bootargs.watchdog "board specific watchdog kernel param
+ [ -z "${global.bootchooser.retry}" ] && global.bootchooser.retry=1
+ 
+ [ -z "${global.linux.bootargs.watchdog}" ] && global.linux.bootargs.watchdog="omap_wdt.early_enable omap_wdt.timer_margin=${global.pfc.watchdog_timeout_linux_boot}"
++[ -z "${global.usbgadget.fastboot_bbu}" ] && global.usbgadget.fastboot_bbu=1
++[ -z "${global.usbgadget.fastboot_function}" ] && global.usbgadget.fastboot_function="/kernel(kernel)c,/initrd(initrd)c,/devicetree(devicetree)c,${global.pfc.emmc_dev_boot}(boot)c,${global.pfc.emmc_dev_rootfs0}(rootfs1)c,${global.pfc.emmc_dev_rootfs1}(rootfs2)c,${global.pfc.sd_dev_boot}(boot_sd)c,${global.pfc.sd_dev_rootfs}(rootfs_sd)c,${global.pfc.eeprom_dev}(eeprom)c,${global.pfc.emmc_dev_home0}(home1)c,${global.pfc.emmc_dev_home1}(home2)c,/parttable(parttable)c"
+-- 
+2.7.4
+

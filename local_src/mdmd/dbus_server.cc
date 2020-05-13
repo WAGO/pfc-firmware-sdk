@@ -96,30 +96,28 @@ DBusServer::DBusServer( const std::string &bus_name, const std::string &object_n
     , _object_name(object_name)
     , _online(false)
 {
-    _owner_id = 0;
     _connection = 0;
     _introspection_data = g_dbus_node_info_new_for_xml (introspection_xml.c_str(), nullptr);
-
-    if (_introspection_data == 0)
-	throw std::exception();
-
     _owner_id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
-	    _bus_name.c_str(),
-	    G_BUS_NAME_OWNER_FLAGS_NONE,
-	    on_bus_acquired,
-	    on_name_acquired,
-	    on_name_lost,
-	    this,
-	    0 );
-
-    if (_owner_id == 0)
-	throw std::exception();
+                               _bus_name.c_str(),
+                               G_BUS_NAME_OWNER_FLAGS_NONE,
+                               on_bus_acquired,
+                               on_name_acquired,
+                               on_name_lost,
+                               this,
+                               0 );
 }
 
 DBusServer::~DBusServer()
 {
-    g_bus_unown_name(_owner_id);
-    g_dbus_node_info_unref(_introspection_data);
+    if (_owner_id != 0)
+    {
+        g_bus_unown_name(_owner_id);
+    }
+    if (_introspection_data != 0)
+    {
+        g_dbus_node_info_unref(_introspection_data);
+    }
 }
 
 
@@ -129,15 +127,19 @@ DBusServer::bus_acquired(GDBusConnection *connection, const std::string &name)
   (void)name; //unused parameter
     _connection = connection;
 
-    for (GDBusInterfaceInfo ** i=_introspection_data->interfaces; (i!=0) && (*i!=0); i++) {
-	_registration_id = g_dbus_connection_register_object (connection,
-		_object_name.c_str(),
-		*i,
-		&interface_vtable,
-		this,
-		nullptr,  /* user_data_free_func */
-		nullptr); /* GError** */
-	g_assert (_registration_id > 0);
+    if (_introspection_data != 0)
+    {
+        for (GDBusInterfaceInfo ** i=_introspection_data->interfaces; (i!=0) && (*i!=0); i++)
+        {
+            _registration_id = g_dbus_connection_register_object (connection,
+                                                                  _object_name.c_str(),
+                                                                  *i,
+                                                                  &interface_vtable,
+                                                                  this,
+                                                                  nullptr,  /* user_data_free_func */
+                                                                  nullptr); /* GError** */
+            g_assert (_registration_id > 0);
+        }
     }
 }
 

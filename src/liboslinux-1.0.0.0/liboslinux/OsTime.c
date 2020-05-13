@@ -1,19 +1,9 @@
 //------------------------------------------------------------------------------
 /// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
-///
-/// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
-/// manufacturing, reproduction, use, and sales rights pertaining to this
-/// subject matter are governed by the license agreement. The recipient of this
-/// software implicitly accepts the terms of the license.
+/// SPDX-License-Identifier: MPL-2.0
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-/// \file ${file_name}
-///
-/// \version <Revision>: $Rev$
-///
-/// \brief short description of the file contents
-///
-/// \author ${user} $Author$ : WAGO Kontakttechnik GmbH & Co. KG
+/// \author WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -346,5 +336,3 @@ void OsTime_ConvertToRealtime(tOsTime const *monotonic, tOsTime *realtime)
 	OsTime_Subtract(nowRealtime, nowMonotinic, diff);
 	OsTime_Add(monotonic, diff, realtime);
 }
-
-

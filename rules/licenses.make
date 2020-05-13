@@ -73,11 +73,15 @@ $(STATEDIR)/licenses.targetinstall:
 	@$(call install_fixup, licenses, AUTHOR,"Henrik Lampe, WAGO Kontakttechnik GmbH \& Co. KG")
 	@$(call install_fixup, licenses, DESCRIPTION, missing)
 
-
+# do not run in BSP mode
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@lic_path=$(PTXDIST_WORKSPACE)/projectroot.$(PTXCONF_PLATFORM)$(LICENSES_SRC_DIR)/oss
+	@$(PTXDIST_WORKSPACE)/wago_intern/tools/create-license-infos/convert_dynamically.sh $(lic_path) 
+endif
+	
   # copy license files and create a link
-		@$(call install_alternative_tree, licenses, 0, 0, $(LICENSES_SRC_DIR)); \
-		@$(call install_link, licenses, $(LICENSES_SRC_DIR), $(LICENSES_TARGET_DIR)); \
-
+	@$(call install_alternative_tree, licenses, 0, 0, $(LICENSES_SRC_DIR));
+	@$(call install_link, licenses, $(LICENSES_SRC_DIR), $(LICENSES_TARGET_DIR));
 
 	@$(call install_finish, licenses)
 	@$(call touch)

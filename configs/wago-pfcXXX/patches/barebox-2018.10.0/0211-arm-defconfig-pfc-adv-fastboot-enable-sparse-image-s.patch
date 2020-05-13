@@ -1,0 +1,26 @@
+From f81ec6e2c75df2f107d84d6e84d052e5f808538a Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 6 Mar 2020 10:13:19 +0100
+Subject: [PATCH] arm: defconfig: pfc-adv: fastboot: enable sparse image
+ support
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/configs/am335x_pfc_adv_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/configs/am335x_pfc_adv_defconfig b/arch/arm/configs/am335x_pfc_adv_defconfig
+index 5784721..e1a6b2d 100644
+--- a/arch/arm/configs/am335x_pfc_adv_defconfig
++++ b/arch/arm/configs/am335x_pfc_adv_defconfig
+@@ -115,6 +115,7 @@ CONFIG_USB_GADGET=y
+ CONFIG_USB_GADGET_DFU=y
+ CONFIG_USB_GADGET_SERIAL=y
+ CONFIG_USB_GADGET_FASTBOOT=y
++CONFIG_USB_GADGET_FASTBOOT_SPARSE=y
+ CONFIG_USB_MUSB=y
+ CONFIG_USB_MUSB_AM335X=y
+ CONFIG_USB_MUSB_HOST=y
+-- 
+2.7.4
+

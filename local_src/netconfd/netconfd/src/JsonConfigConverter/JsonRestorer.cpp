@@ -38,6 +38,14 @@ Status JsonRestorer::Restore<IPConfigs>(const ::std::string& key, IPConfigs& ip_
       ::std::bind(&JsonConfigConverter::NJsonToIPConfigs, converter, ::std::placeholders::_1, ::std::ref(ip_configs)));
 }
 
+template<>
+Status JsonRestorer::Restore<DipSwitchIpConfig>(const ::std::string& key, DipSwitchIpConfig& dip_switch_ip_config) {
+  JsonConfigConverter converter;
+  return Restore(
+      key,
+      ::std::bind(&JsonConfigConverter::NJsonToDipIPConfig, converter, ::std::placeholders::_1, ::std::ref(dip_switch_ip_config)));
+}
+
 Status JsonRestorer::Restore(const ::std::string& key, const ::std::function<Status(const ::nlohmann::json&)>& convert) {
   Status status;
   JsonConfigConverter converter;

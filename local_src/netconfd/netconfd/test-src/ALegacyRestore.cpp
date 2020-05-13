@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "RestoreLegacy.hpp"
+#include "MockIDevicePropertiesProvider.hpp"
 #include "FileEditorFake.hpp"
 #include <limits>
 #include <memory>
@@ -14,6 +15,7 @@ using ::std::size_t;
 class ALegacyRestore : public ::testing::Test {
  public:
   FileEditorFake mock_file_editor_;
+  MockIDevicePropertiesProvider mock_properties_provider_;
   uint32_t restored_version;
   string data;
   string path;
@@ -21,7 +23,7 @@ class ALegacyRestore : public ::testing::Test {
 
   void SetUp() {
     restored_version = ::std::numeric_limits<uint32_t>::max();
-    backup_restore_ = ::std::make_unique<RestoreLegacy>(mock_file_editor_);
+    backup_restore_ = ::std::make_unique<RestoreLegacy>(mock_file_editor_, mock_properties_provider_);
   }
 };
 
@@ -55,10 +57,7 @@ X1-dhcpd-state=disabled
 X1-dhcpd-range=192.168.1.18_192.168.1.254
 X1-dhcpd-lease-time=120
 X1-dhcpd-fix-host=
-ip-config-type-eth1=static
 ip-state-eth1=enabled
-ip-address-eth1=192.168.2.17
-subnet-mask-eth1=255.255.255.0
 eth1-state=enabled
 eth1-autoneg=enabled
 eth1-speed=10
@@ -73,22 +72,24 @@ R"( {
 "br1":[]
 },
 "ip-config" : {
-"br0": {"source": "static","ipaddr": "192.168.1.1","netmask": "255.255.255.0"}
+"br0": {"source": "static","ipaddr": "192.168.1.1","netmask": "255.255.255.0","bcast": "192.168.1.255"},
+"br1": {"source": "dhcp","ipaddr": "172.29.233.1","netmask": "255.255.0.0","bcast": "172.29.255.255"}
 },
 "interface-config": 
 [
-{"device":"X1","autonegotiation":true,"state":"up","speed":100,"duplex":"full"},
-{"device":"X2","autonegotiation":true,"state":"up","speed":10,"duplex":"half"}
+{"device":"X1","autonegotiation":"on","state":"up","speed":100,"duplex":"full"},
+{"device":"X2","autonegotiation":"on","state":"up","speed":10,"duplex":"half"}
 ]
 })";
 
 
 
-  ::std::string config;
-  Status status = backup_restore_->Restore(path, config, restored_version);
+  ::std::string network_data;
+  ::std::string dipswitch_data;
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_EQ(StringRemoveNewlineAndBlank(expected_config),
-            StringRemoveNewlineAndBlank(config));
+            StringRemoveNewlineAndBlank(network_data));
   ASSERT_EQ(StatusCode::OK, status.Get());
 }
 
@@ -126,18 +127,19 @@ R"( {
 "br0":["X1"],"br1":["X2"]
 },
 "ip-config" : {
-"br0": {"source": "static","ipaddr": "192.168.1.1","netmask": "255.255.255.0"},
-"br1": {"source": "dhcp","ipaddr": "172.29.233.1","netmask": "255.255.0.0"}
+"br0": {"source": "static","ipaddr": "192.168.1.1","netmask": "255.255.255.0","bcast": "192.168.1.255"},
+"br1": {"source": "dhcp","ipaddr": "172.29.233.1","netmask": "255.255.0.0","bcast": "172.29.255.255"}
 },
-"interface-config": [{"device":"X1","autonegotiation":true,"state":"up","speed":100,"duplex":"full"},{"device":"X2","autonegotiation":true,"state":"up","speed":10,"duplex":"half"}]
+"interface-config": [{"device":"X1","autonegotiation":"on","state":"up","speed":100,"duplex":"full"},{"device":"X2","autonegotiation":"on","state":"up","speed":10,"duplex":"half"}]
 })";
 
 
-  ::std::string config;
-  Status status = backup_restore_->Restore(path, config, restored_version);
+  ::std::string network_data;
+  ::std::string dipswitch_data;
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_EQ(StringRemoveNewlineAndBlank(expected_config),
-            StringRemoveNewlineAndBlank(config));
+            StringRemoveNewlineAndBlank(network_data));
   ASSERT_EQ(StatusCode::OK, status.Get());
 }
 
@@ -158,8 +160,9 @@ XXX=123
    )";
 
 
-  ::std::string config;
-  Status status = backup_restore_->Restore(path, config, restored_version);
+  ::std::string network_data;
+  ::std::string dipswitch_data;
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_EQ(StatusCode::BACKUP_FILE_ERROR, status);
 }
@@ -180,10 +183,11 @@ XXX=123
 
 
 
-  ::std::string config;
-  Status status = backup_restore_->Restore(path, config, restored_version);
+  ::std::string network_data;
+  ::std::string dipswitch_data;
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
-  EXPECT_TRUE(config.empty());
+  EXPECT_TRUE(network_data.empty());
   EXPECT_EQ(StatusCode::BACKUP_FILE_ERROR, status.Get());
 }
 

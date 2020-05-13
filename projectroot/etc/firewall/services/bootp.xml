@@ -3,8 +3,10 @@
   <ipv4>
     <service name="bootp">
       <interfaces>
-        <interface state="off" if="X1"/>
-        <interface state="off" if="X2"/>
+        <interface state="off" if="br0"/>
+        <interface state="off" if="br1"/>
+        <interface state="off" if="br2"/>
+        <interface state="off" if="br3"/>
         <interface state="off" if="WAN"/>
         <interface state="off" if="VPN"/>
       </interfaces>

@@ -1,0 +1,29 @@
+## SECTION=networking
+
+config MDMD_NG
+	bool
+	default n
+	prompt "mdmd-ng"
+	select HOST_CT_BUILD
+	select CONFIG_TOOLS
+	select GOOGLETEST
+	select LED_SERVER_META
+	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select GLIB
+	select GLIB_GDBUS
+	select DBUS_GLIB
+	select TYPELABEL
+	select LIBQMI
+	select BOOST
+	select BOOST_THREAD
+	select BOOST_DATE_TIME
+	select BOOST_FILESYSTEM
+	select BOOST_SYSTEM
+	select BOOST_LOG
+	select BOOST_PROGRAM_OPTIONS
+	select NLOHMANN_JSON
+	select LIBCOMMONHEADER
+	select NETCONFD
+
+	help
+	  WAGO Modem Manager Daemon Next Gen (4G) 

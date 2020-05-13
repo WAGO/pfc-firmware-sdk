@@ -64,6 +64,9 @@ case $1 in
 #            [ -f $QLOG ] && $QLOG
             /usr/bin/mdm_cuse &
             $0 bgctrl &
+            echo "hardware-available=true" >"/etc/specific/features/wireless-mobile-UC20"
+        else
+            echo "hardware-available=false" >"/etc/specific/features/wireless-mobile-UC20"
         fi
         ;;
 

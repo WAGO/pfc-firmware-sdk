@@ -3,7 +3,7 @@
 # This is the target corresponding to ${__THIS_FILENAME__}.make
 # ptxdist won't build modular-config-tools package if it is inactive
 
-config WAGO_FWUPDATE
+menuconfig WAGO_FWUPDATE
   bool
   default n
   prompt "Remote firmware update"
@@ -28,7 +28,17 @@ config WAGO_FWUPDATE
   help
    "WAGO remote firmware update service"
 
+if WAGO_FWUPDATE
 
 config WAGO_CUSTOM_RAUC_STARTSCRIPT
-	#prompt "RAUC service start script"
-	bool
+  #prompt "RAUC service start script"
+  bool
+
+config WAGO_FW_UPDATE_GROUP
+  string
+  prompt "FW Update group"
+  default "admin"
+  help
+    Which group to use for executing FW Update.
+
+endif

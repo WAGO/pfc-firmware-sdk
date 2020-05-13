@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -81,7 +81,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		$(LIBSERCOMM_PATH) \
 		$(LIBSERCOMM_ENV) \
 		$(LIBSERCOMM_BUILD_PARAMS) \
-		make $(PARALLELMFLAGS) 
+		make $(PARALLELMFLAGS)
 endif
 	@$(call touch)
 
@@ -102,14 +102,14 @@ $(STATEDIR)/libsercomm.targetinstall:
 	@$(call install_init, libsercomm)
 	@$(call install_fixup, libsercomm,PRIORITY,optional)
 	@$(call install_fixup, libsercomm,SECTION,base)
-	@$(call install_fixup, libsercomm,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, libsercomm,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, libsercomm,DESCRIPTION,missing)
 
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(LIBSERCOMM_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	rm -rf $(LIBSERCOMM_PLATFORMCONFIGPACKAGEDIR)/tmp/*
 	cd $(LIBSERCOMM_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(LIBSERCOMM_PLATFORMCONFIGPACKAGEDIR)/$(LIBSERCOMM_PACKAGE_NAME).ipk  
+	ar -xov $(LIBSERCOMM_PLATFORMCONFIGPACKAGEDIR)/$(LIBSERCOMM_PACKAGE_NAME).ipk
 	@$(call install_archive, libsercomm, 0, 0, $(LIBSERCOMM_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE

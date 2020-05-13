@@ -8,9 +8,10 @@
 #include <climits> //INT_MAX, INT_MIN
 #include <string>  //std::string
 #include "testutil/file_operations.hpp"
+
+#include "../gkeyfile_storage.h"
 #include "../mdm_config_types.h"
-#include "../MdmParameterStorage.h"
-#include "../GKeyFileStorage.h"
+#include "../mdm_parameter_storage.h"
 
 //------------------------------------------------------------------------------
 // variables' and constants' definitions
@@ -26,6 +27,8 @@ constexpr auto KEY_SIM_PIN =                 "sim_pin";
 constexpr auto KEY_NET_SELECTION_MODE =      "net_selection_mode";
 constexpr auto KEY_NET_MANUAL_OPER =         "net_manual_oper";
 constexpr auto KEY_NET_MANUAL_ACT =          "net_manual_act";
+constexpr auto KEY_NET_AUTOSELECT_SCANMODE = "net_autoselect_scanmode";
+constexpr auto KEY_NET_AUTOSELECT_SCANSEQ =  "net_autoselect_scanseq";
 constexpr auto KEY_GPRS_STATE =              "gprs_state";
 constexpr auto KEY_GPRS_APN =                "gprs_apn";
 constexpr auto KEY_GPRS_AUTH =               "gprs_auth_type";
@@ -43,7 +46,7 @@ constexpr auto KEY_SMS_CPMS_MEM3 =           "sms_cpms_mem3";
 //------------------------------------------------------------------------------
 // defines; structure, enumeration and type definitions
 //------------------------------------------------------------------------------
-class MdmPersistentStorageTest : public ::testing::Test
+class MdmParameterStorageTest : public ::testing::Test
 {
   public:
     std::string tempDir;
@@ -51,8 +54,8 @@ class MdmPersistentStorageTest : public ::testing::Test
     GKeyFileStorage *gKeyFileStorage;
 
   protected:
-    MdmPersistentStorageTest() : gKeyFileStorage(nullptr) {};
-    ~MdmPersistentStorageTest() override = default;
+    MdmParameterStorageTest() : gKeyFileStorage(nullptr) {};
+    ~MdmParameterStorageTest() override = default;
 
     void ExpectInFile(std::string key, std::string value)
     {
@@ -89,16 +92,16 @@ class MdmPersistentStorageTest : public ::testing::Test
     }
 };
 
-class MdmPersistentStorageWithPresetConfigTest : public MdmPersistentStorageTest
+class MdmParameterStorageWithPresetConfigTest : public MdmParameterStorageTest
 {
   protected:
-    MdmPersistentStorageWithPresetConfigTest() : MdmPersistentStorageTest() {};
-    ~MdmPersistentStorageWithPresetConfigTest() override{};
+    MdmParameterStorageWithPresetConfigTest() : MdmParameterStorageTest() {};
+    ~MdmParameterStorageWithPresetConfigTest() override{};
 
     void SetUp() override
     {
       // Basic setup
-      MdmPersistentStorageTest::SetUp();
+      MdmParameterStorageTest::SetUp();
 
       // Add config file content
       std::string file = "";
@@ -117,107 +120,115 @@ class MdmPersistentStorageWithPresetConfigTest : public MdmPersistentStorageTest
 //------------------------------------------------------------------------------
 // test implementation
 //------------------------------------------------------------------------------
-TEST_F(MdmPersistentStorageTest, CreateInstance_Target)
+TEST_F(MdmParameterStorageTest, CreateInstance_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     EXPECT_TRUE(true);
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, CreateInstance)
+TEST_F(MdmParameterStorageWithPresetConfigTest, CreateInstance)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
     EXPECT_TRUE(true);
 }
 
-TEST_F(MdmPersistentStorageTest, ModemManagementConfig_Target)
+TEST_F(MdmParameterStorageTest, ModemManagementConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    ModemManagementConfig defaultConfig = mdmParameterStorage.getModemManagementConfig();
+    ModemManagementConfig defaultConfig = mdmParameterStorage.get_modem_management_config();
     
     NotExpectInFile(KEY_LOG_LEVEL);
     NotExpectInFile(KEY_PORT_STATE);
 
-    ASSERT_NO_THROW(mdmParameterStorage.setModemManagementConfig(defaultConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_modem_management_config(defaultConfig));
     ExpectInFile(KEY_LOG_LEVEL,  std::to_string(defaultConfig.get_log_level()));
     ExpectInFile(KEY_PORT_STATE, std::to_string(defaultConfig.get_port_state()));
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, ModemManagementConfig)
+TEST_F(MdmParameterStorageWithPresetConfigTest, ModemManagementConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    ModemManagementConfig defaultConfig = mdmParameterStorage.getModemManagementConfig();
+    ModemManagementConfig defaultConfig = mdmParameterStorage.get_modem_management_config();
     
     ExpectInFile(KEY_LOG_LEVEL,  std::to_string(defaultConfig.get_log_level()));
     ExpectInFile(KEY_PORT_STATE, std::to_string(defaultConfig.get_port_state()));
 
     ModemManagementConfig newConfig(INT_MAX, INT_MIN);
-    ASSERT_NO_THROW(mdmParameterStorage.setModemManagementConfig(newConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_modem_management_config(newConfig));
     ExpectInFile(KEY_LOG_LEVEL,  std::to_string(newConfig.get_log_level()));
     ExpectInFile(KEY_PORT_STATE, std::to_string(newConfig.get_port_state()));
 }
 
-TEST_F(MdmPersistentStorageTest, UserIdentityConfig_Target)
+TEST_F(MdmParameterStorageTest, SimAuthentication_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    UserIdentityConfig defaultConfig = mdmParameterStorage.getUserIdentityConfig();
+    SimAutoActivation defaultConfig = mdmParameterStorage.get_sim_autoactivation();
     
     NotExpectInFile(KEY_SIM_ICCID);
     NotExpectInFile(KEY_SIM_PIN);
 
-    ASSERT_NO_THROW(mdmParameterStorage.setUserIdentityConfig(defaultConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_sim_autoactivation(defaultConfig));
     ExpectInFile(KEY_SIM_ICCID, defaultConfig.get_iccid());
     ExpectInFile(KEY_SIM_PIN,   defaultConfig.get_pin());
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, UserIdentityConfig)
+TEST_F(MdmParameterStorageWithPresetConfigTest, SimAutoActivation)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    UserIdentityConfig defaultConfig = mdmParameterStorage.getUserIdentityConfig();
+    SimAutoActivation defaultConfig = mdmParameterStorage.get_sim_autoactivation();
     
     ExpectInFile(KEY_SIM_ICCID, defaultConfig.get_iccid());
     ExpectInFile(KEY_SIM_PIN,   defaultConfig.get_pin());
 
-    UserIdentityConfig newConfig("TEST_ICCID", "TEST_PIN");
-    ASSERT_NO_THROW(mdmParameterStorage.setUserIdentityConfig(newConfig));
+    SimAutoActivation newConfig("TEST_ICCID", "TEST_PIN");
+    ASSERT_NO_THROW(mdmParameterStorage.set_sim_autoactivation(newConfig));
     ExpectInFile(KEY_SIM_ICCID, newConfig.get_iccid());
     ExpectInFile(KEY_SIM_PIN,   newConfig.get_pin());
 }
 
-TEST_F(MdmPersistentStorageTest, NetworkAccessConfig_Target)
+TEST_F(MdmParameterStorageTest, NetworkAccessConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    NetworkAccessConfig defaultConfig = mdmParameterStorage.getNetworkAccessConfig();
+    NetworkAccessConfig defaultConfig = mdmParameterStorage.get_network_access_config();
     
     NotExpectInFile(KEY_NET_SELECTION_MODE);
     NotExpectInFile(KEY_NET_MANUAL_OPER);
     NotExpectInFile(KEY_NET_MANUAL_ACT);
+    NotExpectInFile(KEY_NET_AUTOSELECT_SCANMODE);
+    NotExpectInFile(KEY_NET_AUTOSELECT_SCANSEQ);
 
-    ASSERT_NO_THROW(mdmParameterStorage.setNetworkAccessConfig(defaultConfig));
-    ExpectInFile(KEY_NET_SELECTION_MODE, std::to_string(defaultConfig.get_mode()));
-    ExpectInFile(KEY_NET_MANUAL_OPER,    std::to_string(defaultConfig.get_oper()));
-    ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(defaultConfig.get_act()));
+    ASSERT_NO_THROW(mdmParameterStorage.set_network_access_config(defaultConfig));
+    ExpectInFile(KEY_NET_SELECTION_MODE, std::to_string(defaultConfig.get_selection_mode()));
+    ExpectInFile(KEY_NET_MANUAL_OPER,    std::to_string(defaultConfig.get_manual_oper()));
+    ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(defaultConfig.get_manual_act()));
+    ExpectInFile(KEY_NET_AUTOSELECT_SCANMODE,      std::to_string(defaultConfig.get_autoselect_scanmode()));
+    ExpectInFile(KEY_NET_AUTOSELECT_SCANSEQ, std::to_string(defaultConfig.get_autoselect_scanseq()));
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, NetworkAccessConfig)
+TEST_F(MdmParameterStorageWithPresetConfigTest, NetworkAccessConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    NetworkAccessConfig defaultConfig = mdmParameterStorage.getNetworkAccessConfig();
+    NetworkAccessConfig defaultConfig = mdmParameterStorage.get_network_access_config();
     
-    ExpectInFile(KEY_NET_SELECTION_MODE, std::to_string(defaultConfig.get_mode()));
-    ExpectInFile(KEY_NET_MANUAL_OPER,    std::to_string(defaultConfig.get_oper()));
-    ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(defaultConfig.get_act()));
+    ExpectInFile(KEY_NET_SELECTION_MODE, std::to_string(defaultConfig.get_selection_mode()));
+    ExpectInFile(KEY_NET_MANUAL_OPER,    std::to_string(defaultConfig.get_manual_oper()));
+    ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(defaultConfig.get_manual_act()));
+    ExpectInFile(KEY_NET_AUTOSELECT_SCANMODE, std::to_string(defaultConfig.get_autoselect_scanmode()));
+    ExpectInFile(KEY_NET_AUTOSELECT_SCANSEQ, std::to_string(defaultConfig.get_autoselect_scanseq()));
 
-    NetworkAccessConfig newConfig(INT_MAX, INT_MIN, -1);
-    ASSERT_NO_THROW(mdmParameterStorage.setNetworkAccessConfig(newConfig));
-    ExpectInFile(KEY_NET_SELECTION_MODE, std::to_string(newConfig.get_mode()));
-    ExpectInFile(KEY_NET_MANUAL_OPER,    std::to_string(newConfig.get_oper()));
-    ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(newConfig.get_act()));
+    NetworkAccessConfig newConfig(INT_MAX, INT_MIN, -1, 750, 42);
+    ASSERT_NO_THROW(mdmParameterStorage.set_network_access_config(newConfig));
+    ExpectInFile(KEY_NET_SELECTION_MODE, std::to_string(newConfig.get_selection_mode()));
+    ExpectInFile(KEY_NET_MANUAL_OPER,    std::to_string(newConfig.get_manual_oper()));
+    ExpectInFile(KEY_NET_MANUAL_ACT,     std::to_string(newConfig.get_manual_act()));
+    ExpectInFile(KEY_NET_AUTOSELECT_SCANMODE, std::to_string(newConfig.get_autoselect_scanmode()));
+    ExpectInFile(KEY_NET_AUTOSELECT_SCANSEQ, std::to_string(newConfig.get_autoselect_scanseq()));
 }
 
-TEST_F(MdmPersistentStorageTest, GprsAccessConfig_Target)
+TEST_F(MdmParameterStorageTest, GprsAccessConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    GprsAccessConfig defaultConfig = mdmParameterStorage.getGprsAccessConfig();
+    GprsAccessConfig defaultConfig = mdmParameterStorage.get_gprs_access_config();
     
     NotExpectInFile(KEY_GPRS_STATE);
     NotExpectInFile(KEY_GPRS_APN);
@@ -225,7 +236,7 @@ TEST_F(MdmPersistentStorageTest, GprsAccessConfig_Target)
     NotExpectInFile(KEY_GPRS_USER);
     NotExpectInFile(KEY_GPRS_PASS);
 
-    ASSERT_NO_THROW(mdmParameterStorage.setGprsAccessConfig(defaultConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_gprs_access_config(defaultConfig));
     ExpectInFile(KEY_GPRS_STATE, std::to_string(defaultConfig.get_state()));
     ExpectInFile(KEY_GPRS_APN,                  defaultConfig.get_apn());
     ExpectInFile(KEY_GPRS_AUTH,  std::to_string(defaultConfig.get_auth()));
@@ -233,10 +244,10 @@ TEST_F(MdmPersistentStorageTest, GprsAccessConfig_Target)
     ExpectInFile(KEY_GPRS_PASS,                 defaultConfig.get_pass());
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, GprsAccessConfig)
+TEST_F(MdmParameterStorageWithPresetConfigTest, GprsAccessConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    GprsAccessConfig defaultConfig = mdmParameterStorage.getGprsAccessConfig();
+    GprsAccessConfig defaultConfig = mdmParameterStorage.get_gprs_access_config();
     
     ExpectInFile(KEY_GPRS_STATE, std::to_string(defaultConfig.get_state()));
     ExpectInFile(KEY_GPRS_APN,                  defaultConfig.get_apn());
@@ -245,7 +256,7 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, GprsAccessConfig)
     ExpectInFile(KEY_GPRS_PASS,                 defaultConfig.get_pass());
 
     GprsAccessConfig newConfig(INT_MAX, "TEST_APN", INT_MIN, "TEST_USER", "TEST_PASS");
-    ASSERT_NO_THROW(mdmParameterStorage.setGprsAccessConfig(newConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_gprs_access_config(newConfig));
     ExpectInFile(KEY_GPRS_STATE, std::to_string(newConfig.get_state()));
     ExpectInFile(KEY_GPRS_APN,                  newConfig.get_apn());
     ExpectInFile(KEY_GPRS_AUTH,  std::to_string(newConfig.get_auth()));
@@ -253,10 +264,10 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, GprsAccessConfig)
     ExpectInFile(KEY_GPRS_PASS,                 newConfig.get_pass());
 }
 
-TEST_F(MdmPersistentStorageTest, SmsEventReportingConfig_Target)
+TEST_F(MdmParameterStorageTest, SmsEventReportingConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    SmsEventReportingConfig defaultConfig = mdmParameterStorage.getSmsEventReportingConfig();
+    SmsEventReportingConfig defaultConfig = mdmParameterStorage.get_sms_event_reporting_config();
     
     NotExpectInFile(KEY_SMS_CNMI_MODE);
     NotExpectInFile(KEY_SMS_CNMI_MT);
@@ -264,7 +275,7 @@ TEST_F(MdmPersistentStorageTest, SmsEventReportingConfig_Target)
     NotExpectInFile(KEY_SMS_CNMI_DS);
     NotExpectInFile(KEY_SMS_CNMI_BFR);
 
-    ASSERT_NO_THROW(mdmParameterStorage.setSmsEventReportingConfig(defaultConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_sms_event_reporting_config(defaultConfig));
     ExpectInFile(KEY_SMS_CNMI_MODE, std::to_string(defaultConfig.get_mode()));
     ExpectInFile(KEY_SMS_CNMI_MT,   std::to_string(defaultConfig.get_mt()));
     ExpectInFile(KEY_SMS_CNMI_BM,   std::to_string(defaultConfig.get_bm()));
@@ -272,10 +283,10 @@ TEST_F(MdmPersistentStorageTest, SmsEventReportingConfig_Target)
     ExpectInFile(KEY_SMS_CNMI_BFR,  std::to_string(defaultConfig.get_bfr()));
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsEventReportingConfig)
+TEST_F(MdmParameterStorageWithPresetConfigTest, SmsEventReportingConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    SmsEventReportingConfig defaultConfig = mdmParameterStorage.getSmsEventReportingConfig();
+    SmsEventReportingConfig defaultConfig = mdmParameterStorage.get_sms_event_reporting_config();
     
     ExpectInFile(KEY_SMS_CNMI_MODE, std::to_string(defaultConfig.get_mode()));
     ExpectInFile(KEY_SMS_CNMI_MT,   std::to_string(defaultConfig.get_mt()));
@@ -284,7 +295,7 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsEventReportingConfig)
     ExpectInFile(KEY_SMS_CNMI_BFR,  std::to_string(defaultConfig.get_bfr()));
 
     SmsEventReportingConfig newConfig(INT_MAX, INT_MIN, -1, 42, 100);
-    ASSERT_NO_THROW(mdmParameterStorage.setSmsEventReportingConfig(newConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_sms_event_reporting_config(newConfig));
     ExpectInFile(KEY_SMS_CNMI_MODE, std::to_string(newConfig.get_mode()));
     ExpectInFile(KEY_SMS_CNMI_MT,   std::to_string(newConfig.get_mt()));
     ExpectInFile(KEY_SMS_CNMI_BM,   std::to_string(newConfig.get_bm()));
@@ -292,32 +303,32 @@ TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsEventReportingConfig)
     ExpectInFile(KEY_SMS_CNMI_BFR,  std::to_string(newConfig.get_bfr()));
 }
 
-TEST_F(MdmPersistentStorageTest, SmsStorageConfig_Target)
+TEST_F(MdmParameterStorageTest, SmsStorageConfig_Target)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    SmsStorageConfig defaultConfig = mdmParameterStorage.getSmsStorageConfig();
+    SmsStorageConfig defaultConfig = mdmParameterStorage.get_sms_storage_config();
     
     NotExpectInFile(KEY_SMS_CPMS_MEM1);
     NotExpectInFile(KEY_SMS_CPMS_MEM2);
     NotExpectInFile(KEY_SMS_CPMS_MEM3);
 
-    ASSERT_NO_THROW(mdmParameterStorage.setSmsStorageConfig(defaultConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_sms_storage_config(defaultConfig));
     ExpectInFile(KEY_SMS_CPMS_MEM1, defaultConfig.get_mem1());
     ExpectInFile(KEY_SMS_CPMS_MEM2, defaultConfig.get_mem2());
     ExpectInFile(KEY_SMS_CPMS_MEM3, defaultConfig.get_mem3());
 }
 
-TEST_F(MdmPersistentStorageWithPresetConfigTest, SmsStorageConfig)
+TEST_F(MdmParameterStorageWithPresetConfigTest, SmsStorageConfig)
 {
     MdmParameterStorage mdmParameterStorage(*gKeyFileStorage);
-    SmsStorageConfig defaultConfig = mdmParameterStorage.getSmsStorageConfig();
+    SmsStorageConfig defaultConfig = mdmParameterStorage.get_sms_storage_config();
     
     ExpectInFile(KEY_SMS_CPMS_MEM1, defaultConfig.get_mem1());
     ExpectInFile(KEY_SMS_CPMS_MEM2, defaultConfig.get_mem2());
     ExpectInFile(KEY_SMS_CPMS_MEM3, defaultConfig.get_mem3());
 
     SmsStorageConfig newConfig("TEST_MEM1", "TEST_MEM2", "TEST_MEM3");
-    ASSERT_NO_THROW(mdmParameterStorage.setSmsStorageConfig(newConfig));
+    ASSERT_NO_THROW(mdmParameterStorage.set_sms_storage_config(newConfig));
     ExpectInFile(KEY_SMS_CPMS_MEM1, newConfig.get_mem1());
     ExpectInFile(KEY_SMS_CPMS_MEM2, newConfig.get_mem2());
     ExpectInFile(KEY_SMS_CPMS_MEM3, newConfig.get_mem3());

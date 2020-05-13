@@ -10,11 +10,8 @@ namespace netconfd {
 class MockIInterfaceManagerInformation : public IInterfaceInformation {
  public:
 
-  MOCK_CONST_METHOD0(GetInterfaces, Interfaces() );
   MOCK_CONST_METHOD0(GetBridgeAssignedInterfaces, Interfaces() );
-  MOCK_CONST_METHOD1(HasAnyInterfacesUp, bool(const Bridge&) );
   MOCK_CONST_METHOD1(GetBridgeOfInterface, Bridge (const Interface&) );
-  MOCK_CONST_METHOD1(IsBridge, bool(const Interface&) );
   MOCK_CONST_METHOD1(IsInterfaceUp, bool(const Interface&) );
 };
 

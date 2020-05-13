@@ -1,0 +1,41 @@
+## SECTION=wago_specific_wbm_plugins
+
+#
+#   This file contains the main config tools target needed by ptxdist to
+#   process ${__THIS_FILENAME__}.make as well as the common configuration
+#   entries for the config tools meta package: the feature entries, the config
+#   file entries and the config tool entries.  
+#
+#   The feature targets are visible in the ptxdist menu. They are used to
+#   enable or disable menu entries in all frontends (i.e. eth1 settings may be
+#   disabled if the feature "Ethernet Switch" is active).  
+#
+
+
+# This is the target corresponding to ${__THIS_FILENAME__}.make
+
+config WBM_NG_PLUGIN_IPK_UPLOADS
+	bool
+	default n
+	prompt "Softare Uploads Plugin (.ipk upload)"
+
+	depends on WBM_NG
+
+	# This plugin requires the wbm-networking plugin to be installed
+	# as it provided the required wbm menu entry point
+	select WBM_NG_PLUGIN_NETWORKING
+
+	# Depends on a configtool to check for recent ipk Uploads
+	select CT_GET_WBM_UPLOADS
+
+	help
+	 "Plugin to the Modular WBM that contains the 'Software Uploads' Page"
+
+config WBM_NG_PLUGIN_IPK_UPLOADS_URL_TEMPLATE
+      string
+      depends on WBM_NG_PLUGIN_IPK_UPLOADS
+      prompt "URL template"
+      default "%ARTIFACTORY_BASE_URL%/wbm-generic-prod/wago/wbm-ipk-uploads/wbm-ipk-uploads-%VERSION%.tgz"
+      help
+        Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+        See Confluence for further details.

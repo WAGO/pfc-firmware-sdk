@@ -10,37 +10,25 @@
 ///
 ///  \file     sequence_750.c
 ///
-///  \version  $Rev: 12545 $
+///  \version  $Rev: 46817 $
 ///
 ///  \brief    <Insert description here>
 ///
 ///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
-//#include "sequence_750.h"
 #include "led_multi.h"
 #include "led_blink_sequential.h"
 
-#define BLINK_SEQEUNZ_750_PEAMBLE            10
-#define BLINK_SEQEUNZ_750_PEAMBLE_MSEC       50
-#define BLINK_SEQEUNZ_750_PEAMBLE_MSEC1      50
-#define BLINK_SEQEUNZ_750_PEAMBLE_MSEC2      100
-#define BLINK_SEQEUNZ_750_PEAMBLE_TBASE      100
-
-#define BLINK_SEQEUNZ_750_SEQ1_MSEC          500
-#define BLINK_SEQEUNZ_750_SEQ1_MSEC1         500
-#define BLINK_SEQEUNZ_750_SEQ1_MSEC2         1000
-#define BLINK_SEQEUNZ_750_SEQ1_TBASE         1000
-
-#define BLINK_SEQEUNZ_750_SEQ2_MSEC          500
-#define BLINK_SEQEUNZ_750_SEQ2_MSEC1         500
-#define BLINK_SEQEUNZ_750_SEQ2_MSEC2         1000
-#define BLINK_SEQEUNZ_750_SEQ2_TBASE         1000
-
-#define BLINK_SEQEUNZ_750_PAUSE_MSEC         1000
-#define BLINK_SEQEUNZ_750_PAUSE_PRE_TBASE    BLINK_SEQEUNZ_750_PEAMBLE_TBASE
-#define BLINK_SEQEUNZ_750_PAUSE_SEQ1_TBASE   BLINK_SEQEUNZ_750_SEQ1_TBASE
-#define BLINK_SEQEUNZ_750_PAUSE_SEQ2_TBASE   BLINK_SEQEUNZ_750_SEQ2_TBASE
+#ifdef PFC200_ADV
+#define BLINK_SEQ_LED_MAGENTA LED_COLOR_MAGENTA
+#define BLINK_SEQ_LED_RED LED_COLOR_RED
+#define BLINK_SEQ_LED_BLUE LED_COLOR_BLUE
+#else
+#define BLINK_SEQ_LED_MAGENTA LED_COLOR_RED
+#define BLINK_SEQ_LED_RED LED_COLOR_RED
+#define BLINK_SEQ_LED_BLUE LED_COLOR_RED
+#endif
 
 int LEDHANDLER_SetErr750(tLedNr ledNr, void * data, void * user_data)
 {
@@ -68,7 +56,7 @@ int LEDHANDLER_SetErr750(tLedNr ledNr, void * data, void * user_data)
   period = MULTI_NewPeriod(BLINK_SEQEUNZ_750_PEAMBLE,
                            LED_COLOR_OFF,
                            BLINK_SEQEUNZ_750_PEAMBLE_TBASE);;
-  element = MULTI_NewElement(LED_COLOR_RED, BLINK_SEQEUNZ_750_PEAMBLE_MSEC1);
+  element = MULTI_NewElement(BLINK_SEQ_LED_MAGENTA, BLINK_SEQEUNZ_750_PEAMBLE_MSEC1);
   MULTI_AddElementToPeriod(period,element);
   element = MULTI_NewElement(LED_COLOR_OFF, BLINK_SEQEUNZ_750_PEAMBLE_MSEC2);
   MULTI_AddElementToPeriod(period,element);
@@ -83,7 +71,7 @@ int LEDHANDLER_SetErr750(tLedNr ledNr, void * data, void * user_data)
 
   //ERRORCODE
   period = MULTI_NewPeriod(seq->errorCode, LED_COLOR_OFF, BLINK_SEQEUNZ_750_SEQ1_TBASE);
-  element = MULTI_NewElement(LED_COLOR_RED, BLINK_SEQEUNZ_750_SEQ1_MSEC1);
+  element = MULTI_NewElement(BLINK_SEQ_LED_RED, BLINK_SEQEUNZ_750_SEQ1_MSEC1);
   MULTI_AddElementToPeriod(period,element);
   element = MULTI_NewElement(LED_COLOR_OFF, BLINK_SEQEUNZ_750_SEQ1_MSEC2);
   MULTI_AddElementToPeriod(period,element);
@@ -98,7 +86,7 @@ int LEDHANDLER_SetErr750(tLedNr ledNr, void * data, void * user_data)
 
   //ERRORARG
   period = MULTI_NewPeriod(seq->errorArg, LED_COLOR_OFF, BLINK_SEQEUNZ_750_SEQ2_TBASE);
-  element = MULTI_NewElement(LED_COLOR_RED, BLINK_SEQEUNZ_750_SEQ2_MSEC1);
+  element = MULTI_NewElement(BLINK_SEQ_LED_BLUE, BLINK_SEQEUNZ_750_SEQ2_MSEC1);
   MULTI_AddElementToPeriod(period,element);
   element = MULTI_NewElement(LED_COLOR_OFF, BLINK_SEQEUNZ_750_SEQ2_MSEC2);
   MULTI_AddElementToPeriod(period,element);

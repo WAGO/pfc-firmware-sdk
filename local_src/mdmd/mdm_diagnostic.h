@@ -11,7 +11,7 @@
 //------------------------------------------------------------------------------
 // defines; structure, enumeration and type definitions
 //------------------------------------------------------------------------------
-enum class MdmErrorState { NONE = 0, SIM_REMOVED = 1, SIM_FAILURE = 2, PORT_NOT_READY = 3, INIT_FAILED = 4, RESET_FAILED = 5 };
+enum class MdmErrorState { NONE = 0, SIM_REMOVED = 1, SIM_INVALID = 2, PORT_NOT_READY = 3, INIT_FAILED = 4, RESET_FAILED = 5, SIM_PIN_NEEDED = 6, SIM_PUK_NEEDED = 7, SIM_NOT_READY = 8, NET_NO_SERVICE = 9 };
 enum class MdmAccessClass { NONE = 0, GSM = 2, UMTS = 3, LTE = 4 };
 enum class MdmSignalQualityLevel { NONE = 0, MARGINAL = 1, BAD = 2, SUFFICIENT = 3, STABLE = 4, GOOD = 5, EXCELLENT = 6 };
 
@@ -29,9 +29,9 @@ class MdmDiagnostic
     MdmDiagnostic();
     ~MdmDiagnostic() = default;
 
-    MdmErrorState get_error_state() const;
-    MdmAccessClass get_access_class() const;
-    MdmSignalQualityLevel get_signal_quality_level() const;
+    MdmErrorState get_error_state() const { return _errorState; }
+    MdmAccessClass get_access_class() const { return _accessClass; }
+    MdmSignalQualityLevel get_signal_quality_level() const { return _sigLevel; }
 
     void set_error_state(const MdmErrorState newErrorState);
     void set_access_class(const MdmAccessClass newAccessClass);

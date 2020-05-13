@@ -40,12 +40,12 @@ if [ "$#" -eq "0" ]; then
 else
 	case $1 in
 	save)
-		/etc/config-tools/settings_backup 
 		# check if default settings file is existing and if not - create it with actual settings
 		if [ ! -f "$DEFAULT_SETTINGS_DIR/$DEFAULT_SETTINGS_FILENAME" ]; then
 			echo "Create default settings file..."
 			mkdir -p ${DEFAULT_SETTINGS_DIR}
 			/etc/config-tools/settings_backup save ${DEFAULT_SETTINGS_DIR}/${DEFAULT_SETTINGS_FILENAME} &> /dev/null
+			chown root:root "${DEFAULT_SETTINGS_DIR}/${DEFAULT_SETTINGS_FILENAME}"
 			sync
 			md5sum "$DEFAULT_SETTINGS_DIR/$DEFAULT_SETTINGS_FILENAME" > "$DEFAULT_SETTINGS_DIR/$DEFAULT_SETTINGS_FILENAME.md5"
 			sync

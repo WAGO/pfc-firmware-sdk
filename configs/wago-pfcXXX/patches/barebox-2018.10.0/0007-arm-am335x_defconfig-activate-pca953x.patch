@@ -1,7 +1,7 @@
 From 13e8e77398d97c0d6db508cd35fbf31c4f373541 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 9 May 2018 12:42:20 +0200
-Subject: [PATCH 007/144] arm: am335x_defconfig: activate pca953x
+Subject: [PATCH] arm: am335x_defconfig: activate pca953x
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

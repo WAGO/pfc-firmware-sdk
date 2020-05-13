@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<firewall xmlns="http://www.wago.com/security/firewall" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wago.com/security/firewall ipcmn.xsd">
+  <ipv4>
+    <climits total="4000"/>
+    <echo policy="drop" broadcast_protection="on">
+      <request policy="accept" if="br0" limit="2/second"/>
+      <request policy="accept" if="br1" limit="2/second"/>
+      <request policy="accept" if="br2" limit="2/second"/>
+      <request policy="accept" if="br3" limit="2/second"/>
+      <request policy="drop" if="WAN" limit="2/second"/>
+      <request policy="accept" if="VPN" limit="2/second"/>
+    </echo>
+    <forward state="off">
+      <fw/>
+      <snat>
+        <masquerade if="FooItfMasq"/>
+      </snat>
+      <dnat>
+        <fw_port state="on" if="FooItfForw" proto="tcp" dst_port="12345" fw_ip="192.168.2.20" fw_port="54321"/>
+      </dnat>
+    </forward>
+    <input>
+      <open/>
+      <filter/>
+    </input>
+  </ipv4>
+</firewall>

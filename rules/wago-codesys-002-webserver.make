@@ -103,7 +103,7 @@ else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@$(call install_copy, plclinuxrt-webserver, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/webserver_conf.xml, /etc/webserver_conf.xml)
 	@$(call install_copy, plclinuxrt-webserver, 0, 0, 0755, $(PLCLINUXRT_WEBSERVER_DIR)/src/webserver, /usr/sbin/webserver)
-	@$(call install_copy, plclinuxrt-webserver, 0, 0, 0755, $(PTXDIST_WORKSPACE)/projectroot/etc/init.d/codesys_webserver, /etc/init.d/codesys_webserver, n)
+	@$(call install_alternative, plclinuxrt-webserver, 0, 0, 0755, /etc/init.d/codesys_webserver, n)
 	@$(call install_copy, plclinuxrt-webserver, 0, 0, 0754, $(PTXDIST_WORKSPACE)/projectroot/etc/init.d/generate_password, /etc/init.d/generate_password, n)
 # Disable by default
 # TODO: integrate into initmethod-bbinit menu

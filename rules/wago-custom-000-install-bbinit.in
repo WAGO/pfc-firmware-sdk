@@ -116,6 +116,12 @@ config WAGO_CUSTOM_FINALIZE_ROOT_BBINIT_LINK
 	prompt "finalize root partition"
 	default "S99_finalize_root"
 
+config WAGO_CUSTOM_DEVICE_SETUP_BBINIT_LINK
+	string
+	depends on WAGO_CUSTOM_DEVICE_SETUP_STARTSCRIPT
+	prompt "device setup on first boot"
+	default "S01_device-setup"
+
 config WAGO_CUSTOM_CONFIG_SERIAL_BBINIT_LINK
 	string
 	depends on WAGO_CUSTOM_CONFIG_SERIAL_STARTSCRIPT

@@ -23,6 +23,7 @@
 #include "wc/std_includes.h"
 #include "ctutil/resource_handling.h"
 #include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 //------------------------------------------------------------------------------
@@ -175,7 +176,15 @@ statusCode_t ctutil_CommitChangeableFile(ctutil_ChangeableFile_t const * const p
   if(ctutil_IsStatusOk(status))
   {
     int const modChangeResult = chmod(szModifiedPath, stOriginalFileStat.st_mode);
-    if(modChangeResult != 0)
+    if(modChangeResult == 0)
+    {
+      int const ownChangeResult = chown(szModifiedPath, stOriginalFileStat.st_uid, stOriginalFileStat.st_gid);
+      if(ownChangeResult != 0)
+      {
+        status = CTUTIL_SYSTEM_CALL_ERROR;
+      }
+    }
+    else
     {
       status = CTUTIL_SYSTEM_CALL_ERROR;
     }

@@ -1,0 +1,91 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+
+readonly PERFORM_DEVICE_SETUP=9696969
+
+function log
+{
+  if [[ -n $(pidof syslog-ng) ]]; then
+    /usr/bin/logger -s -t "$(basename $0)" "$1"
+  else
+    echo "$(date) $(basename $0): $1" >> /var/log/messages
+  fi
+}
+
+#1: dir path, 2: user name, 3: user group, 4: access mode
+function create_dir
+{
+  mkdir "$1" && chown "$2:$3" "$1" && chmod "$4" "$1"
+}
+
+#check if running on EMMC from system1 (exit if not)
+if ! $(cat /proc/cmdline | grep -q "root=/dev/mmcblk1p7"); then exit 0; fi
+
+DEVICE_STATE=$(/usr/sbin/barebox-state_failsafe.sh -n bootstate -g device_setup)
+if [[ $? -ne 0 ]]; then
+  log "ERROR: failed to read the bootstate from barebox-state!"
+  exit 1
+fi
+
+#check if factory partitioning shall be performed (exit if no)
+if [[ $DEVICE_STATE -ne $PERFORM_DEVICE_SETUP ]]; then exit 0; fi
+
+source "/etc/config-tools/board_specific_defines" &&
+  source "/usr/sbin/${BOARD_ID}_defines" &&
+  source "/usr/sbin/${BOARD_ID}_copy_data_emmc_extensions.sh"
+if [[ $? -ne 0 ]]; then
+  log "ERROR: failed to source scripts!"
+  exit 1
+fi
+
+#format all factory partitions
+log "INFO: start formating of factory partitions ..."
+do_mkfs "/dev/mmcblk1p5"  "log_backup" "ext4" > /dev/null &&
+  do_mkfs "/dev/mmcblk1p8"  "home1"    "ext4" > /dev/null &&
+  do_mkfs "/dev/mmcblk1p9"  "home2"    "ext4" > /dev/null &&
+  do_mkfs "/dev/mmcblk1p6"  "settings" "ext4" > /dev/null &&
+  do_mkfs "/dev/mmcblk1p10" "rootfs.2" "ext4" > /dev/null 
+if [[ $? -ne 0 ]]; then
+  log "ERROR: failed to format the factory partitions!"
+  exit 1
+fi
+
+#create initial files/dirs/links
+H="/tmp/home"
+mkdir "$H" && mount "/dev/mmcblk1p8" "$H" &>/dev/null
+result=$?
+if [[ $result -eq 0 ]]; then
+  create_dir "$H/user" "user" "user" "755" &&
+    create_dir "$H/codesys_root" "root" "admin" "775"
+  result=$?
+fi
+if [[ $result -eq 0 ]]; then
+  if $(which plclinux_rt); then
+    create_dir "$H/codesys2_skel" "root" "admin" "775" &&
+      ln -s /home/codesys_root "$H/codesys" &&
+      ln -s /home/codesys "$H/admin"
+    result=$?
+  else
+    create_dir "$H/admin" "admin" "admin" "744"
+    result=$?
+  fi
+fi
+umount -f "$H"
+rm -rf "$H"
+if [[ $result -ne 0 ]]; then
+  log "ERROR: Failed to create files/dirs/links!"
+  exit 1
+fi
+
+#clear device_setup vaiable
+/usr/sbin/barebox-state_failsafe.sh -n bootstate -s device_setup=0
+if [[ $? -ne 0 ]]; then
+  log "ERROR: Failed to write the bootstate from barebox-state!"
+  exit 1
+fi
+log "INFO: formating of factory partitions done."
+

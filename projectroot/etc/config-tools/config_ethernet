@@ -13,6 +13,8 @@
 # Author: WAGO Kontakttechnik GmbH
 #-----------------------------------------------------------------------------#
 
+NETWORK_CONFIG=/etc/config-tools/network_config
+
 # load general definitions and functions
 if [ ! -f "/etc/config-tools/config_tool_defines" ]; then
   echo "config_tool_defines missing"
@@ -22,17 +24,6 @@ fi
 . /etc/config-tools/config_tool_defines
 
 status=$SUCCESS
-
-set_interface_config () {
-  local json_config="$1"
-  out=$(dbus-send --system --print-reply --reply-timeout=15000 --type=method_call --dest=de.wago.netconfd /de/wago/netconfd/interface_config de.wago.netconfd1.interface_config.setinterfaceconfig string:"${json_config}")
-  for token in $out; do 
-      dbus_out=$token
-  done  
-  dbus_out=${dbus_out#\"}
-  dbus_out=${dbus_out%\"}  
-  echo "$dbus_out"
-}
 
 # show help-text if requested
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
@@ -117,8 +108,8 @@ if [[ $status == $SUCCESS ]]; then
         else
                 json_content="$json_content,\"$i\":${params[$i]}"
         fi
-    done    
-    set_interface_config "{${json_content}}"
+    done
+    $($NETWORK_CONFIG --interface-config --set "{${json_content}}" --format=json)
     status=$?
 fi
 

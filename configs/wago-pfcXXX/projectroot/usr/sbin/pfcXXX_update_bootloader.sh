@@ -171,7 +171,8 @@ function update_emmc
     mv "$loader_mount_point/mlo.update" "$loader_mount_point/mlo"
     sync
     umount "$loader_mount_point"
-
+    rmdir  "$loader_mount_point"
+    
     return 0
 }
 
@@ -259,6 +260,7 @@ function backup_bootloader
             fi
             sync
             umount "$mount_point"
+            rm -rf "/tmp/bootloader-update"
         fi
         if $ubi; then
             ubidetach -m 8

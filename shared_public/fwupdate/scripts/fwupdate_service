@@ -6,7 +6,7 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   /etc/init.d/fwupdate_service
@@ -69,10 +69,13 @@ fwupdate_service_start()
         fwupdate_report_error "Found panic state on start: $(cat "$WAGO_FW_UPDATE_PANIC_FILE")"
     fi
 
-    # Create working directory and check for already present settings file
-    mkdir -p "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
-    chgrp $WAGO_FW_UPDATE_GROUP "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
-    chmod g+rw "$WAGO_FW_UPDATE_DEFAULT_TMP_DIR"
+    fwupdate_create_tmp_folder
+    if ! fwupdate_check_tmp_folder; then
+        fwupdate_report_error "fwupdate tmp folder doesn't match requirements!"
+        return $INTERNAL_ERROR
+    fi
+
+    # Check for already present settings file
     if [ -e "$WAGO_FW_UPDATE_DATA" ]; then
         fwupdate_create_lock
         if [ "$?" -ne "0" ]; then
@@ -181,7 +184,7 @@ fwupdate_service_check_booted_system()
             fi
         fi
         if [[ $panic_flag -ne 0 ]]; then
-            fwupdate_panic "Unexpected system booted! active system: $active_sys | old system: $old_sys | new system: $new_sys | state: $current_state"
+            fwupdate_panic "Unexpected system booted! act-sys: $active_sys | old-sys: $old_sys | new-sys: $new_sys | state: $current_state | sub-state: $current_substate"
         fi
     else
         fwupdate_panic "Failed to get active system number!"
@@ -297,6 +300,9 @@ fwupdate_service_auto_actions()
 }
 
 # Function to be called on first boot after firmware installation.
+#
+# Firewall tests if WAGO_FW_UPDATE_FIRST_BOOT_MARKER is set, if so, it will
+# block everything with iptables -I INPUT -j DROP
 #
 # Param 1: Current state of FW-Update to act on
 # Param 2: Current sub state of FW-Update to act on

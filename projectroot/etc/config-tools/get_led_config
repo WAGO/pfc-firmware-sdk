@@ -30,7 +30,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo
   echo "Usage: get_led_config [ parameter ] < led-id >"
   echo 
-  echo "parameter: \"xml\" | \"name\" | \"color\" | \"blinkcode\" | \"diagtext\" | \"complete-state\" | \"all-states\" "
+  echo "parameter: \"xml\" | \"name\" | \"color\" | \"blinkcode\" | \"diagtext\" | \"complete-state\" | \"all-states\"  | \"all-states-ordered\" "
   echo 
   exit $SUCCESS
 fi
@@ -177,7 +177,6 @@ GetAllStates()
   return $status
 }
 
-
 MockCompleteStateString()
 {
   ledId=$1
@@ -227,29 +226,33 @@ fi
 
 case "$requestedParam" in
 
-  "xml")            GetXmlConfig;;
-  
-  "name")           GetLedName $ledId;;
-  
-  "state")          GetState $ledId;;
-  
-  "frequency1")     GetFrequency $ledId 1;;
-  
-  "frequency2")     GetFrequency $ledId 2;;
-  
-  "diagtext")       GetDiagText $ledId;;
-  
-  "complete-state") GetCompleteStateString $ledId
-                    status=$?
-                    ;;
-                    
-  "all-states" )    GetAllStates
-                    status=$?
-                    ;;
-  
-  *)                status=$INVALID_PARAMETER
-                    SetLastError "Unknown parameter"
-                    ;;
+  "xml")                 GetXmlConfig;;
+
+  "name")                GetLedName $ledId;;
+
+  "state")               GetState $ledId;;
+
+  "frequency1")          GetFrequency $ledId 1;;
+
+  "frequency2")          GetFrequency $ledId 2;;
+
+  "diagtext")            GetDiagText $ledId;;
+
+  "complete-state")      GetCompleteStateString $ledId
+                         status=$?
+                         ;;
+
+  "all-states" )         GetAllStates
+                         status=$?
+                         ;;
+
+  "all-states-ordered" ) GetAllStates
+                         status=$?
+                         ;;
+
+  *)                     status=$INVALID_PARAMETER
+                         SetLastError "Unknown parameter"
+                         ;;
 
 esac
 

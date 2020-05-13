@@ -34,51 +34,51 @@ static int asu_mapping_3g[32]={0,1,1,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,5,5,5,6
 class Oper
 {
     private:
+    int         _selection_mode;
     int         _id;
     int         _act;
     int         _state;
     int         _ber;
     int         _rssi;
-    bool        _is_type_3g;
 
     public:
     Oper()
-        : _id(0)
+        : _selection_mode(-1)
+        , _id(0)
         , _act(-1)
         , _state(OPER_STATE_UNKNOWN)
         , _ber(BER_UNDEF)
         , _rssi(RSSI_UNDEF)
-        , _is_type_3g(false)
     {}
 
     Oper(int state)
-        : _id(0)
+        : _selection_mode(-1)
+        , _id(0)
         , _act(-1)
         , _state(state)
         , _ber(BER_UNDEF)
         , _rssi(RSSI_UNDEF)
-        , _is_type_3g(false)
     {}
 
     Oper( const Oper &oper )
-        : _id(oper.get_id())
+        : _selection_mode(oper.get_selection_mode())
+        , _id(oper.get_id())
         , _act(oper.get_act())
         , _state(oper.get_state())
         , _ber(oper.get_ber())
         , _rssi(oper.get_rssi())
-        , _is_type_3g(oper.is_type_3g())
     {}
 
     ~Oper() {}
 
     Oper& operator=( const Oper& oper )
     {
+        _selection_mode = oper.get_selection_mode();
         _id    = oper.get_id();
         _act   = oper.get_act();
         _state = oper.get_state();
         _ber   = oper.get_ber();
         _rssi  = oper.get_rssi();
-        _is_type_3g = oper.is_type_3g();
         return *this;
     }
 
@@ -88,31 +88,63 @@ class Oper
 
     void clear()
     {
+        _selection_mode=-1;
         _id=0;
         _act=-1;
         _state=OPER_STATE_UNKNOWN;
         _ber=BER_UNDEF;
         _rssi=RSSI_UNDEF;
-        _is_type_3g=false;
     }
 
-    int                get_id() const     { return _id; }
-    int                get_act() const    { return _act; }
-    int                get_state() const  { return _state; }
-    int                get_ber() const    { return _ber; }
-    int                get_rssi() const   { return _rssi; }
-    bool               is_type_3g() const { return _is_type_3g; }
+    int  get_selection_mode() const { return _selection_mode; }
+    int  get_id() const             { return _id; }
+    int  get_act() const            { return _act; }
+    int  get_state() const          { return _state; }
+    int  get_ber() const            { return _ber; }
+    int  get_rssi() const           { return _rssi; }
+    bool is_type_3g() const
+    {
+      bool result;
+      switch(_act)
+      {
+        case 2: /*UMTS*/
+        case 4: /*HSDPA*/
+        case 5: /*HSUPA*/
+        case 6: /*HSPA*/
+          result = true;
+          break;
+      default:
+          result = false;
+          break;
+      }
+      return result;
+    }
 
 
     int get_quality_percent() const
     {
-      return (((_rssi > RSSI_MAX) || (_rssi < 0)) ? 0 : ((_rssi * 100) / RSSI_MAX));
+      int result = 0;
+      if (is_valid())
+      {
+        result = (((_rssi > RSSI_MAX) || (_rssi < 0)) ? 0 : ((_rssi * 100) / RSSI_MAX));
+      }
+      return result;
     }
 
     int get_quality_step() const
     {
-      int asu = ((_rssi > RSSI_MAX) || (_rssi < 0)) ? 0 : _rssi;
-      return (_is_type_3g ? asu_mapping_3g[asu] : asu_mapping_2g[asu]);
+      int result = 0;
+      if (is_valid())
+      {
+        int asu = ((_rssi > RSSI_MAX) || (_rssi < 0)) ? 0 : _rssi;
+        result = (is_type_3g() ? asu_mapping_3g[asu] : asu_mapping_2g[asu]);
+      }
+      return result;
+    }
+
+    void set_selection_mode( int selection_mode )
+    {
+      _selection_mode = selection_mode;
     }
 
     void set_id( int id )
@@ -123,18 +155,6 @@ class Oper
     void set_act( int act )
     {
       _act = act;
-      switch(act)
-      {
-        case 2: /*UMTS*/
-        case 4: /*HSDPA*/
-        case 5: /*HSUPA*/
-        case 6: /*HSPA*/
-          _is_type_3g = true;
-          break;
-      default:
-          _is_type_3g = false;
-          break;
-      }
     }
 
     void set_csq( int ber, int rssi )

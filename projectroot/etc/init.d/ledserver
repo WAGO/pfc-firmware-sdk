@@ -27,6 +27,9 @@ case $1 in
         elif [ "${ORDER:0:3}" == "762" ]
         then
             PRODUCT="TP600"
+        elif [ "${ORDER:0:3}" == "768" ]
+        then
+          PRODUCT="PFC200-ADV"
         elif [ "${ORDER:4:2}" == "82" ]
         then
             # default

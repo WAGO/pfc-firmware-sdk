@@ -1,0 +1,7 @@
+# We'll use defaults from the Google style, but with 4 columns indentation.
+BasedOnStyle: Google
+IndentWidth: 2
+ColumnLimit: 120
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: true
+AllowShortFunctionsOnASingleLine: None

@@ -19,7 +19,7 @@ libbridge.a_INCLUDES += \
 -I$(libbridge_PROJECT_ROOT)/src/
 
 
-libbridge.a_DISABLEDWARNINGS += packed sign-conversion conversion format vla stack-protector missing-prototypes missing-declarations
+libbridge.a_DISABLEDWARNINGS += packed sign-conversion conversion format vla stack-protector missing-prototypes missing-declarations suggest-attribute=pure suggest-attribute=const
 libbridge.a_CXXDISABLEDWARNINGS += $(libbridge.a_DISABLEDWARNINGS) useless-cast abi-tag
 libbridge.a_CDISABLEDWARNINGS += $(libbridge.a_DISABLEDWARNINGS)
 libbridge.a_DEFINES +=

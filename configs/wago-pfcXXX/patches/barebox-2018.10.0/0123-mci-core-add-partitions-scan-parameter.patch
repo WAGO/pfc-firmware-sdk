@@ -1,7 +1,7 @@
 From 19dae59af459f9150f007ba377f01abcb5a232b6 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 17 Oct 2018 14:59:25 +0200
-Subject: [PATCH 123/144] mci: core: add partitions scan parameter
+Subject: [PATCH] mci: core: add partitions scan parameter
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

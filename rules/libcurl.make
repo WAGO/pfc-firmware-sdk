@@ -3,8 +3,6 @@
 # Copyright (C) 2008 by Daniel Schnell
 #		2008, 2009, 2010 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_LIBCURL) += libcurl
 #
 # Paths and names
 #
-LIBCURL_VERSION	:= 7.65.0
-LIBCURL_MD5	:= bb28d0f13a9cf9df475b1710002a79eb
+LIBCURL_VERSION	:= 7.67.0
+LIBCURL_MD5	:= 7be288f6fd5b7b5e402ef3b36a461a24
 LIBCURL		:= curl-$(LIBCURL_VERSION)
 LIBCURL_SUFFIX	:= tar.bz2
 LIBCURL_URL	:= https://curl.haxx.se/download/$(LIBCURL).$(LIBCURL_SUFFIX)
@@ -29,9 +27,6 @@ LIBCURL_LICENSE	:= MIT
 # ----------------------------------------------------------------------------
 # Prepare
 # ----------------------------------------------------------------------------
-
-LIBCURL_PATH  := PATH=$(CROSS_PATH)
-LIBCURL_ENV   := $(CROSS_ENV)
 
 #
 # autoconf
@@ -45,8 +40,10 @@ LIBCURL_CONF_OPT	:= \
 	--disable-werror \
 	--disable-curldebug \
 	--enable-symbol-hiding \
+	--enable-hidden-symbols \
 	--$(call ptx/endis, PTXCONF_LIBCURL_C_ARES)-ares \
 	--enable-rt \
+	--disable-code-coverage \
 	$(GLOBAL_LARGE_FILE_OPTION) \
 	--$(call ptx/endis, PTXCONF_LIBCURL_HTTP)-http \
 	--$(call ptx/endis, PTXCONF_LIBCURL_FTP)-ftp \
@@ -78,13 +75,28 @@ LIBCURL_CONF_OPT	:= \
 	--enable-tls-srp \
 	--enable-unix-sockets \
 	--$(call ptx/endis, PTXCONF_LIBCURL_COOKIES)-cookies \
+	--$(call ptx/endis, PTXCONF_LIBCURL_HTTP)-http-auth \
+	--disable-doh \
+	--disable-mime \
+	--enable-dateparse \
+	--enable-netrc \
+	--enable-progress-meter \
+	--disable-dnsshuffle \
+	--disable-alt-svc \
 	--with-zlib=$(SYSROOT) \
+	--without-brotli \
 	--without-gssapi \
+	--with-default-ssl-backend=$(call ptx/ifdef, PTXCONF_LIBCURL_SSL,openssl,no) \
+	--without-winssl \
+	--without-schannel \
+	--without-darwinssl \
+	--without-secure-transport \
+	--without-amissl \
+	--with-ssl=$(call ptx/ifdef, PTXCONF_LIBCURL_SSL,$(SYSROOT)/usr,no) \
 	--with-random=/dev/urandom \
 	--without-gnutls \
-	--without-polarssl \
 	--without-mbedtls \
-	--without-cyassl \
+	--without-mesalink \
 	--without-nss \
 	--with-ca-bundle=$(PTXCONF_LIBCURL_SSL_CABUNDLE_PATH) \
 	--with-ca-path=$(PTXCONF_LIBCURL_SSL_CAPATH_PATH) \
@@ -92,23 +104,13 @@ LIBCURL_CONF_OPT	:= \
 	--without-libpsl \
 	--without-libmetalink \
 	--$(call ptx/wwo, PTXCONF_LIBCURL_LIBSSH2)-libssh2 \
+	--without-libssh \
 	--without-librtmp \
+	--without-winidn \
 	--without-libidn2 \
-	--without-nghttp2
-
-ifdef PTXCONF_CA_CERTIFICATES
-LIBCURL_CONF_OPT += --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt
-LIBCURL_CONF_OPT += --with-ca-path=/etc/ssl/certs
-else
-LIBCURL_CONF_OPT += --without-ca-bundle
-LIBCURL_CONF_OPT += --without-ca-path
-endif
-
-ifdef PTXCONF_LIBCURL_SSL
-LIBCURL_CONF_OPT += --with-ssl=$(SYSROOT)/usr
-else
-LIBCURL_CONF_OPT += --without-ssl
-endif
+	--without-nghttp2 \
+	--without-zsh-functions-dir \
+	--without-fish-functions-dir
 
 # ----------------------------------------------------------------------------
 # Target-Install

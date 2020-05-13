@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -59,7 +59,7 @@ $(STATEDIR)/libdbuskbuscommon.prepare:
 # Compile
 # ----------------------------------------------------------------------------
 
-LIBDBUSKBUSCOMMON_ENV:= $(CROSS_ENV) SYSROOT=$(PTXCONF_SYSROOT_TARGET) CROSS_COMPILE=$(COMPILER_PREFIX) CROSS_LIBTOOL=$(LIBTOOL_CROSS) 
+LIBDBUSKBUSCOMMON_ENV:= $(CROSS_ENV) SYSROOT=$(PTXCONF_SYSROOT_TARGET) CROSS_COMPILE=$(COMPILER_PREFIX) CROSS_LIBTOOL=$(LIBTOOL_CROSS)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	LIBDBUSKBUSCOMMON_ENV+=CFLAGS="$(CROSS_CFLAGS) -DNDEBUG"
@@ -77,7 +77,7 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 		$(LIBDBUSKBUSCOMMON_PATH) \
 		$(LIBDBUSKBUSCOMMON_ENV) \
 		$(LIBDBUSKBUSCOMMON_BUILD_PARAMS) \
-		make $(PARALLELMFLAGS) 
+		make $(PARALLELMFLAGS)
 endif
 	@$(call touch)
 
@@ -125,14 +125,14 @@ $(STATEDIR)/libdbuskbuscommon.targetinstall:
 	@$(call install_init, libdbuskbuscommon)
 	@$(call install_fixup, libdbuskbuscommon,PRIORITY,optional)
 	@$(call install_fixup, libdbuskbuscommon,SECTION,base)
-	@$(call install_fixup, libdbuskbuscommon,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, libdbuskbuscommon,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, libdbuskbuscommon,DESCRIPTION,missing)
 
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(LIBDBUSKBUSCOMMON_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	rm -rf $(LIBDBUSKBUSCOMMON_PLATFORMCONFIGPACKAGEDIR)/tmp/*
 	cd $(LIBDBUSKBUSCOMMON_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(LIBDBUSKBUSCOMMON_PLATFORMCONFIGPACKAGEDIR)/$(LIBDBUSKBUSCOMMON_PACKAGE_NAME).ipk  
+	ar -xov $(LIBDBUSKBUSCOMMON_PLATFORMCONFIGPACKAGEDIR)/$(LIBDBUSKBUSCOMMON_PACKAGE_NAME).ipk
 	@$(call install_archive, libdbuskbuscommon, 0, 0, $(LIBDBUSKBUSCOMMON_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE

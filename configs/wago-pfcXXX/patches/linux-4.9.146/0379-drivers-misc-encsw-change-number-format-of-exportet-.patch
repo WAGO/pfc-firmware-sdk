@@ -1,0 +1,31 @@
+From 7280dd6bf7baaa1bb64ac12705b95bd8f4531ea7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Sondhau=C3=9F=2C=20Jan?= <Jan.Sondhauss@wago.com>
+Date: Tue, 17 Dec 2019 11:31:39 +0000
+Subject: [PATCH] drivers: misc: encsw: change number format of exportet
+ dip-switch-value to hex
+
+The userspace has no means to detect the number format of the exported dip-switch
+value. The change to hexadecimal number format unifies the access to the dip-switch
+value over the pfc series.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/misc/encsw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/misc/encsw.c b/drivers/misc/encsw.c
+index 35ba10d..48198f3 100644
+--- a/drivers/misc/encsw.c
++++ b/drivers/misc/encsw.c
+@@ -35,7 +35,7 @@ static ssize_t encsw_sysfs_value_show(struct device *dev,
+ 		}
+ 	}
+ 
+-	return sprintf(buf, "%u", value);
++	return sprintf(buf, "%x", value);
+ }
+ 
+ DEVICE_ATTR(value, 0444, encsw_sysfs_value_show, NULL);
+-- 
+2.7.4
+

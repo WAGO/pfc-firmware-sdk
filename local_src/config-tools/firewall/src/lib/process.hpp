@@ -13,11 +13,7 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-
-
-#ifndef WAGO_PROCESS_HPP
-#define WAGO_PROCESS_HPP
-
+#pragma once
 
 #include "regex.hpp"
 #include "xmlhlp.hpp"
@@ -80,7 +76,3 @@ void remove(xmldoc& doc, const std::vector<std::string>& argv, const std::string
 
 
 } // namespace wago
-
-
-#endif // WAGO_PROCESS_HPP
-

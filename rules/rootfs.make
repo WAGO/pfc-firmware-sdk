@@ -158,7 +158,8 @@ ifdef PTXCONF_ROOTFS_PASSWD
 endif
 
 ifdef PTXCONF_ROOTFS_SHADOW
-	@$(call install_alternative, rootfs, 0, 0, 0640, /etc/shadow)
+
+	@$(call install_alternative, rootfs, 0, 42, 0640, /etc/shadow)
 	@$(call install_replace, rootfs, /etc/shadow, \
 		@USER_ADMIN@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_ADMIN_ENTRY)))

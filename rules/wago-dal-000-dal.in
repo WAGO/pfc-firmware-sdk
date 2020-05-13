@@ -124,6 +124,7 @@ config LIBBACNET
 	select LIBFFI
 	select LIBWAGODRM
 	select LIBBACNETCONFIG
+	select LIBWAGODRM
 	prompt "BACnet Library"
 	help
 		Build BACnet.

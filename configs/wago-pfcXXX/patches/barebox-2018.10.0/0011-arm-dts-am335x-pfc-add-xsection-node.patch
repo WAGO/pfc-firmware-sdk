@@ -1,7 +1,7 @@
 From e96155cd6feb4f62e3f1c63fc97e60451e4b17b3 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 25 May 2018 08:25:07 +0200
-Subject: [PATCH 011/144] arm: dts: am335x: pfc: add xsection node
+Subject: [PATCH] arm: dts: am335x: pfc: add xsection node
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1098,6 +1098,15 @@ fwupdate_set_value()
         if [[ $? -ne 0 ]]; then
             RESULT=$INTERNAL_ERROR
         else
+            local debug=false
+            if [[ "$debug" = "true" ]]; then
+                local backup="${WAGO_FW_UPDATE_DATA}_$(date +"%Y.%m.%d-%H:%M:%S(%3N)")"
+                cp "$WAGO_FW_UPDATE_DATA" "$backup"
+                echo "$(fwupdate_get_call_stack) (KEY:${KEY} VAL:${VALUE})" >> "$backup"
+                echo "---------------------------------" >> "$backup"
+            else
+                rm -f "${WAGO_FW_UPDATE_DATA}_"*
+            fi
             mv "${WAGO_FW_UPDATE_DATA}.tmp" "$WAGO_FW_UPDATE_DATA" && sync
         fi
     else
@@ -1217,6 +1226,9 @@ fwupdate_exclusive_lock()
     if [ $RESULT -ne 0 ]; then
         local LOG_INFO="$WAGO_CT_SYSTEM_MODULE on \"$WAGO_FW_UPDATE_DATA_LOCK\" within $TIMEOUT seconds"
         fwupdate_report_error "Failed to get exclusive lock for $LOG_INFO"
+    #else
+        #local call_stack="$(fwupdate_get_call_stack)"
+        #fwupdate_report_info "LOCK: Get     : ${call_stack}"
     fi
 
     return $RESULT
@@ -1272,6 +1284,9 @@ fwupdate_release_lock()
     if [ $RESULT -ne 0 ]; then
         local LOG_INFO="$WAGO_CT_SYSTEM_MODULE on \"$WAGO_FW_UPDATE_DATA_LOCK\""
         fwupdate_report_error "Failed to release lock for $LOG_INFO"
+    #else
+        #local call_stack="$(fwupdate_get_call_stack)"
+        #fwupdate_report_info "LOCK: Release : ${call_stack}"
     fi
 
     return $RESULT

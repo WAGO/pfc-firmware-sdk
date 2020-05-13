@@ -1,0 +1,51 @@
+From 5cf2f562236e7b8d233a8abbb9a4d4d85c08fb99 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Fri, 6 Mar 2020 08:03:43 +0100
+Subject: [PATCH] Revert "block: Adjust cache sizes"
+
+This reverts commit b6fef20c1215c6ef0004f6af4a9c4b77af51dc43.
+
+On 12/13/19 2:12 PM, Sascha Hauer wrote:
+> On Tue, Dec 10, 2019 at 03:44:52PM +0100, Hubert Feurstein wrote:
+>> With v2015.06.0 the indicated progress of the copy command is very
+>> smooth. Calling "cp -v /dev/zero /dev/mmc3.root" takes about 80
+>> seconds for 256MB. But with v2019.12.0 the progress is very bumpy and
+>> the copy takes about 280 seconds.
+>>
+>> I've tracked this down to this commit which destroys the performance:
+>> "block: Adjust cache sizes"
+>> (b6fef20c1215c6ef0004f6af4a9c4b77af51dc43)
+>
+> We could just revert this patch. I can't find any workload that gets
+> faster with b6fef20c1215. It's rather the other way round.
+
+Do this by reverting commit b6fef20c1215c6ef0004f6af4a9c4b77af51dc43.
+---
+ common/block.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/common/block.c b/common/block.c
+index 8d0de42..6730ca9 100644
+--- a/common/block.c
++++ b/common/block.c
+@@ -36,7 +36,7 @@ struct chunk {
+ 	struct list_head list;
+ };
+ 
+-#define BUFSIZE (PAGE_SIZE * 4)
++#define BUFSIZE (PAGE_SIZE * 16)
+ 
+ /*
+  * Write all dirty chunks back to the device
+@@ -372,7 +372,7 @@ int blockdevice_register(struct block_device *blk)
+ 	debug("%s: rdbufsize: %d blockbits: %d blkmask: 0x%08x\n", __func__, blk->rdbufsize, blk->blockbits,
+ 			blk->blkmask);
+ 
+-	for (i = 0; i < 32; i++) {
++	for (i = 0; i < 8; i++) {
+ 		struct chunk *chunk = xzalloc(sizeof(*chunk));
+ 		chunk->data = dma_alloc(BUFSIZE);
+ 		chunk->num = i;
+-- 
+2.7.4
+

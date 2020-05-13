@@ -90,11 +90,14 @@ if [ "$?" != "$SUCCESS" ]; then
 fi
 
 # check if filesystem type is valid
-if [ "$fsType" != "ext4" ] && [ "$fsType" != "fat" ];then
-  status=$INVALID_PARAMETER
-  SetLastError "Invalid value for filesystem type"
-  exit $status
-fi
+case "$fsType" in
+  ext4) part_type="83" ;;
+  fat)  part_type="b"  ;;
+  *)
+    status=$INVALID_PARAMETER
+    SetLastError "Invalid value for filesystem type. Must be 'fat' or 'ext4'"
+    exit $status
+esac
 
 # check syntax of device name and strip it from path and partition number if necessary
 pureDeviceName=`GetPureDevicename $device`
@@ -125,7 +128,7 @@ else
     UnmountDevice $deviceName
 
     # partition device new - one partition over the whole storage
-    echo ",,b,," | flock "$deviceName" sfdisk -f "$deviceName" > /dev/null 2> /dev/null
+    echo ",,${part_type},," | flock "$deviceName" sfdisk -f "$deviceName" > /dev/null 2>&1
     # wait for udev to unblock the device
     udevadm settle
 

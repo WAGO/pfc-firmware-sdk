@@ -9,11 +9,11 @@ menuconfig DATAAGENT
 	select INITMETHOD_BBINIT
 	select SYSLOGNG
 	select AZURE
-	select CT_MENU_WBM_MAIN
+	select CT_MENU_WBM_MAIN if DATAAGENT_WBM_LEGACY
 	select OMS
 	select MOSQUITTO
 	select CONFIG_TOOLS
-	select LIBDBUSKBUSCOMMON
+	select LIBDBUSKBUSCOMMON if DATAAGENT_KBUS
 	select WAGO_PFC_DIAGNOSTIC
 	select LIBSPARKPLUG
 	select HOST_CT_BUILD
@@ -25,5 +25,52 @@ menuconfig DATAAGENT
 	select WRETAIN
 
 	help
-	  The Data Agent application provides IoT Connectivity
+	  The DataAgent deamon application provides Cloud Connectivity
 	  
+
+if DATAAGENT
+
+choice
+  prompt "Local bus"
+  help
+    Select the local bus supported by target platform
+
+config DATAAGENT_KBUS
+  bool
+  prompt "KBUS"
+  help
+    Target has KBUS local bus interface
+
+config DATAAGENT_RLB
+  bool
+  prompt "RLB"
+  help
+    Target has RLB local bus interface
+
+config DATAAGENT_NO_LOCALBUS
+  bool
+  prompt "No local bus"
+  help
+    Target has no local bus interface
+
+endchoice
+
+menu "WBM"
+  #help
+  #  Select the web-based manangemt supported by target platform
+
+config DATAAGENT_WBM_LEGACY
+  bool
+  prompt "Legacy"
+  help
+    Target supports legacy Web-Based Management
+
+config DATAAGENT_WBM_NG
+  bool
+  prompt "Next-generation"
+  help
+    Target supports next-generation Web-Based Management
+
+endmenu
+
+endif

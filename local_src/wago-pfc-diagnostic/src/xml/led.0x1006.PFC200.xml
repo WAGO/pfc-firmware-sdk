@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF8" ?>
 <!-- LED configuration of pac200 product! -->
 <ledconfig>
-<led name="S5" number="0" state="STATIC_OFF" id="0010001D" />
+<led name="S4" number="0" state="STATIC_OFF" id="0010001B" />
 <led name="SYS" number="1" state="STATIC_GRN" id="000000C0" />
-<led name="S4" number="2" state="STATIC_OFF" id="0010001B" />
+<led name="S3" number="2" state="STATIC_OFF" id="00100019" />
 <led name="RUN" number="3" state="STATIC_OFF" id="00040004" />
-<led name="S3" number="4" state="STATIC_OFF" id="00100019" />
+<led name="S2" number="4" state="STATIC_OFF" id="00100017" />
 <led name="IO" number="5" state="STATIC_OFF" id="2FFFFFFF" />
-<led name="S2" number="6" state="STATIC_OFF" id="00100017" />
+<led name="S1" number="6" state="STATIC_OFF" id="00100013" />
 <led name="MS" number="7" state="STATIC_OFF" id="0000000B" />
-<led name="S1" number="8" state="STATIC_OFF" id="00100013" />
+<led name="WDS" number="8" state="STATIC_OFF" id="00100013" />
 <led name="NS" number="9" state="STATIC_OFF" id="00000004" />
-<led name="NET" number="10" state="STATIC_RED" id="00100010" />
+<led name="NET" number="10" state="STATIC_OFF" id="00100010" />
 <led name="USR" number="11" state="STATIC_OFF" id="00010000" >
 <alias>U1</alias>
 </led>

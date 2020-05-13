@@ -200,8 +200,9 @@ Status BridgeController::SetAgetime(const Bridge& bridge, int seconds) const {
   struct timeval timeval {seconds, 0};
 
   auto result = br_set_ageing_time(bridge.c_str(), &timeval);
-  if (result != 0)
-   return Status{StatusCode::ERROR, "Failed to set ageing time for bridge: " + bridge};
+  if (result != 0) {
+    return Status{StatusCode::ERROR, "Failed to set ageing time for bridge: " + bridge};
+  }
 
   return Status{};
 }

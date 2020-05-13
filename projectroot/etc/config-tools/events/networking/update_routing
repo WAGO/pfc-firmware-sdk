@@ -79,6 +79,7 @@ function AddRoute
 }
 
 
+
 function DeleteRoute
 {
     local dest_addr=$1
@@ -238,6 +239,14 @@ function SetGeneralForwarding
     echo "$ret"
 }
 
+function SetMulticastRoutes
+{
+    local bridges=$($BRCTL show | $GREP -E '^[[:alpha:]]' | $AWK '(NR>1)  {print $1}')
+    for bridge in $bridges; do
+        $ROUTE add -net 224.0.0.0 netmask 224.0.0.0 dev $bridge
+    Log "Set 224.0.0.0 on $bridge: result($?)"
+    done
+}
 
 function SetRoutes
 {
@@ -377,6 +386,9 @@ function DoUpdate
     ret=$(SetPortForwarding)
     [[ $ret != $SUCCESS ]] && status=$INTERNAL_ERROR
 
+		# Set multicast routes on all active bridges
+		SetMulticastRoutes
+		
     sync
 
     # Apply previously set changes if no errors occurred.
@@ -402,6 +414,8 @@ DHCP_DEFAULT_METRIC=10
 FIREWALL="/etc/config-tools/firewall"
 AWK="/usr/bin/awk"
 ROUTE="/sbin/route"
+GREP="/usr/bin/grep"
+BRCTL="/sbin/brctl"
 
 # Static route parameters
 declare -a static_dest

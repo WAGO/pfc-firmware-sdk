@@ -13,7 +13,7 @@
 #
 PACKAGES-$(PTXCONF_ROUTING_CONFIG) += routing-config
 
-ROUTING_CONFIG_VERSION	:= 1.0.0
+ROUTING_CONFIG_VERSION	:= 1.0.1
 
 # ----------------------------------------------------------------------------
 # Get
@@ -116,19 +116,6 @@ $(STATEDIR)/routing-config.targetinstall:
 	@$(call install_alternative, routing-config, 0, 0, 0644, /etc/specific/routing.conf);
 	@$(call install_copy, routing-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/backup-restore/backup_routing, /etc/config-tools/backup-restore/backup_routing);
 
-ifdef PTXCONF_INITMETHOD_BBINIT
-	@$(call install_alternative, routing-config, 0, 0, 0700, /etc/init.d/routing)
-
-ifneq ($(PTXCONF_ROUTING_CONFIG_RC_LINK),"")
-	@$(call install_link, routing-config, ../init.d/routing, /etc/rc.d/$(PTXCONF_ROUTING_CONFIG_RC_LINK))
-endif
-
-else
-	$(error "Please supply an init file for your init system!")
-endif
-
-
-	
 	@$(call install_finish,routing-config)
 
 	@$(call touch)

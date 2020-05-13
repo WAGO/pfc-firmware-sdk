@@ -10,7 +10,7 @@
 #define NETCONFD_DAEMONIZER_HPP_
 
 #include "string"
-#include "../extern/Status.hpp"
+#include "Status.hpp"
 
 namespace netconfd {
 

@@ -6,6 +6,7 @@
 #include "Types.hpp"
 
 #include "IIPController.hpp"
+#include "INetDevManager.hpp"
 
 namespace netconfd {
 
@@ -19,15 +20,15 @@ class IPValidator {
   IPValidator(const IPValidator&&) = delete;
   IPValidator& operator=(const IPValidator&&) = delete;
 
-  Status ValidateIPConfigs(const IPConfigs& ip_configs,
-                           const bool interference_has_to_be_checked) const;
+  Status ValidateIPConfigs(const IPConfigs& ip_configs, const bool interference_has_to_be_checked) const;
 
   bool IsInterfaceApplicableToSystem(const IPConfigs& ip_configs,
-                            const Interfaces& system_interface,
-                            const Interfaces& not_assignable_interface) const;
+                                     const NetDevs& netdevs,
+                                     const Interfaces& not_assignable_interface) const;
 
-  Status ValidateIPConfigIsApplicableToSystem(
-      const IPConfigs& ip_configs, const Interfaces& system_interface) const;
+  Status ValidateIPConfigIsApplicableToSystem(const IPConfigs& ip_configs, const ::std::vector<::std::shared_ptr<NetDev>>& netdevs) const;
+
+  bool IsSameSubnet(IPConfig lhs, IPConfig rhs) const;
 
  private:
   const IIPController& ip_controller_;

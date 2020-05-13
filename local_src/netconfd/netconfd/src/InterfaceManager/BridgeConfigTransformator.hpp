@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
+#include "IDeviceProperties.hpp"
 #include "IBridgeConfigTransformator.hpp"
-#include "IDevicePropertiesProvider.hpp"
 
 namespace netconfd {
 
 class BridgeConfigTransformator : public IBridgeConfigTransformator {
  public:
-  BridgeConfigTransformator(const IDevicePropertiesProvider& properties_provider);
+  BridgeConfigTransformator(const IDeviceProperties& properties_provider);
 
   BridgeConfig ConvertProductToOS(const BridgeConfig& config) const override;
 
@@ -23,7 +23,7 @@ class BridgeConfigTransformator : public IBridgeConfigTransformator {
   void ProductToOS(Interfaces& interfaces) const;
   void OSToProduct(Interfaces& interfaces) const;
 
-  const InterfaceNameMapping interface_name_mapping_;
+  const IDeviceProperties& device_properties_;
 
 };
 

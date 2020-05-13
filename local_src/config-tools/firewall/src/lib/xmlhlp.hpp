@@ -13,10 +13,7 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-
-
-#ifndef WAGO_XMLHLP_HPP
-#define WAGO_XMLHLP_HPP
+#pragma once
 
 
 #include <libxml/parser.h>
@@ -410,7 +407,3 @@ void get_attribute_value_list(const xmlctx& ctx,
                               std::vector<std::string>& string_list);
 
 } // namespace wago
-
-
-#endif // WAGO_XMLHLP_HPP
-

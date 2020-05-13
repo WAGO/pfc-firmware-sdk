@@ -45,15 +45,6 @@ static char const * const usage_text =
 static char const * const version_text =
     "%s version " STR(NETCONFD_VERSION) "\n";
 
-static void signal_handler(int signal) {
-  static const int any_child = -1;
-  if (signal == SIGCHLD) {
-    int status;
-    while (waitpid(any_child, &status, WNOHANG) > 0) {
-    };
-  }
-}
-
 int main(int argc, char *argv[]) {
 
   ::std::string run_dir = "/var/run/netconfd";
@@ -138,8 +129,6 @@ int main(int argc, char *argv[]) {
   if (status.NotOk()) {
     netconfd::LogWarning(status.GetMessage());
   }
-
-  ::std::signal(SIGCHLD, signal_handler);
 
   auto context = g_main_context_default();
   auto loop = g_main_loop_new(context, 0);

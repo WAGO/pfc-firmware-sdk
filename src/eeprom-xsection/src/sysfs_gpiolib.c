@@ -7,6 +7,7 @@
 // software implicitly accepts the terms of the license.
 //------------------------------------------------------------------------------
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -23,6 +24,7 @@
 static int sysfs_gpio_write(const char *file, const char *value)
 {
 	int fd;
+	ssize_t r;
 
 	gpio_debug("%s[%d]: '%s' --> '%s'\n",
 		   __func__, __LINE__, value, file);
@@ -32,16 +34,18 @@ static int sysfs_gpio_write(const char *file, const char *value)
 		gpio_debug("%s: could not open '%s'!\n", __func__, file);
 		return -1;
 	}
-	write(fd, (void *) value, strlen(value));
+	r = write(fd, value, strlen(value));
 	close(fd);
 
 	gpio_debug("%s[%d]: finished!\n", __func__, __LINE__);
+	return r;
 }
 
 static int sysfs_gpio_read(const char *file)
 {
 	int fd;
-	char buf[2];
+	char buf[2] = { 0, 0 };
+	ssize_t r;
 
 	gpio_debug("%s[%d]: read '%s'\n", __func__, __LINE__, file);
 
@@ -50,13 +54,11 @@ static int sysfs_gpio_read(const char *file)
 		gpio_debug("%s: could not open '%s'!\n", __func__, file);
 		return -1;
 	}
-	read(fd, (void *) buf, 1);
-	buf[1] = '\0';
+	r = read(fd, buf, 1);
 	close(fd);
-
 	gpio_debug("%s[%d]: finished!\n", __func__, __LINE__);
 
-	return atoi(buf);
+	return r == -1 ? -1 : atoi(buf);
 }
 
 
@@ -64,8 +66,7 @@ static int sysfs_gpio_read(const char *file)
 static char *gpio_to_string(int gpio)
 {
 	char *str;
-	asprintf(&str, "%d", gpio);
-	return 	str;
+	return asprintf(&str, "%d", gpio) == -1 ? NULL : str;
 }
 
 void sysfs_gpio_export(int gpio)

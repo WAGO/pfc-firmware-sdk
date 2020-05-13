@@ -5,6 +5,8 @@
 #include <boost/algorithm/string.hpp>
 #include <vector>
 #include <map>
+#include <boost/system/error_code.hpp>
+#include <boost/asio.hpp>
 
 #include "TypeUtils.hpp"
 #include "TypesHelper.hpp"
@@ -12,6 +14,7 @@
 #include "Types.hpp"
 #include "Logger.hpp"
 #include "Helper.hpp"
+#include "IDipSwitch.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -21,19 +24,21 @@ namespace netconfd {
 using namespace ::std::literals;
 using nlohmann::json;
 
+using boost_address = boost::asio::ip::address;
+using boost_error = boost::system::error_code;
+
 constexpr auto PORT_CFG_KEY_DEVICE = "device";
 constexpr auto PORT_CFG_KEY_STATE = "state";
 constexpr auto PORT_CFG_KEY_AUTONEG = "autonegotiation";
 constexpr auto PORT_CFG_KEY_SPEED = "speed";
 constexpr auto PORT_CFG_KEY_DUPLEX = "duplex";
 
-NLOHMANN_JSON_SERIALIZE_ENUM(Duplex, { {Duplex::HALF, "half"}, {Duplex::FULL, "full"}, {Duplex::UNKNOWN, nullptr} })
+NLOHMANN_JSON_SERIALIZE_ENUM(Duplex, { {Duplex::UNKNOWN, nullptr}, {Duplex::HALF, "half"}, {Duplex::FULL, "full"} })
 
-NLOHMANN_JSON_SERIALIZE_ENUM(Autonegotiation, { {Autonegotiation::OFF, false}, {Autonegotiation::ON, true},
-                             {Autonegotiation::UNKNOWN, nullptr} })
+NLOHMANN_JSON_SERIALIZE_ENUM(Autonegotiation, { {Autonegotiation::UNKNOWN, nullptr}, {Autonegotiation::ON, "on"},
+                             {Autonegotiation::OFF, "off"} })
 
-NLOHMANN_JSON_SERIALIZE_ENUM(InterfaceState, { {InterfaceState::DOWN, "down"}, {InterfaceState::UP, "up"},
-                             {InterfaceState::UNKNOWN, nullptr} })
+NLOHMANN_JSON_SERIALIZE_ENUM(InterfaceState, { {InterfaceState::UNKNOWN, nullptr},{InterfaceState::DOWN, "down"}, {InterfaceState::UP, "up"} })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(IPSource, { {IPSource::UNKNOWN, nullptr }, {IPSource::NONE, "none" }, {IPSource::STATIC,
                              "static" }, {IPSource::DHCP, "dhcp" }, {IPSource::BOOTP, "bootp" }, {IPSource::TEMPORARY,
@@ -44,32 +49,55 @@ JsonConfigConverter::JsonConfigConverter()
         PORT_CFG_KEY_DUPLEX } {
 }
 
-json JsonConfigConverter::IPConfigsToNJson(const IPConfigs& ip_configs) const {
+json JsonConfigConverter::DipSwitchIpConfigToNJson(const DipSwitchIpConfig &ip_config) const {
+  return json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ } };
+}
+
+json JsonConfigConverter::DipSwitchConfigToNJson(const DipSwitchConfig &config) const {
+  json json_config = json { { "ipaddr", config.ip_config_.address_ }, { "netmask", config.ip_config_.netmask_ }, {
+      "value", config.value_ } };
+  to_json(json_config["mode"], config.mode_);
+  return json_config;
+}
+
+json JsonConfigConverter::IpConfigToNJson(const IPConfig &ip_config) const {
+  json json_ip_config = json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ }, { "bcast", ip_config
+      .broadcast_ } };
+  to_json(json_ip_config["source"], ip_config.source_);
+  return json_ip_config;
+}
+
+json JsonConfigConverter::IPConfigsToNJson(const IPConfigs &ip_configs) const {
   json json_out( { });
-  for (auto ip_config : ip_configs) {
-    json inner = json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ }, { "bcast", ip_config
-        .broadcast_ } };
-    to_json(inner["source"], ip_config.source_);
-    json_out[ip_config.interface_] = inner;
+  for (const auto &ip_config : ip_configs) {
+    json_out[ip_config.interface_] = IpConfigToNJson(ip_config);
   }
   return json_out;
 }
 
-json JsonConfigConverter::BridgeConfigToNJson(const BridgeConfig& bridge_config) const {
+json JsonConfigConverter::BridgeConfigToNJson(const BridgeConfig &bridge_config) const {
   return json(bridge_config);
 }
 
-Status JsonConfigConverter::BridgeConfigToJson(const BridgeConfig& bridge_config, ::std::string& json_out) const {
+Status JsonConfigConverter::BridgeConfigToJson(const BridgeConfig &bridge_config, ::std::string &json_out) const {
   json bridge_config_json(bridge_config);
   json_out = bridge_config_json.dump();
   return Status { };
 }
 
-::std::string JsonConfigConverter::IPConfigsToJson(const IPConfigs& ip_configs) const {
+::std::string JsonConfigConverter::IPConfigsToJson(const IPConfigs &ip_configs) const {
   return IPConfigsToNJson(ip_configs).dump();
 }
 
-Status JsonConfigConverter::JsonToNJson(::std::string const& json_str, json& json_object) const {
+::std::string JsonConfigConverter::DipSwitchIPConfigToJson(const DipSwitchIpConfig &config) const {
+  return DipSwitchIpConfigToNJson(config).dump();
+}
+
+::std::string JsonConfigConverter::DipSwitchConfigToJson(const DipSwitchConfig &config) const {
+  return DipSwitchConfigToNJson(config).dump();
+}
+
+Status JsonConfigConverter::JsonToNJson(::std::string const &json_str, json &json_object) const {
 
   Status status;
 
@@ -77,12 +105,12 @@ Status JsonConfigConverter::JsonToNJson(::std::string const& json_str, json& jso
 
     class throwing_sax : public nlohmann::detail::json_sax_dom_parser<nlohmann::json> {
      public:
-      explicit throwing_sax(nlohmann::json& j)
+      explicit throwing_sax(nlohmann::json &j)
           : nlohmann::detail::json_sax_dom_parser<nlohmann::json>(j) {
       }
       ;
 
-      bool key(json::string_t& val) {
+      bool key(json::string_t &val) {
         if (ref_stack.back()->contains(val)) {
           throw std::invalid_argument("key " + val + " was already stored");
         }
@@ -92,7 +120,7 @@ Status JsonConfigConverter::JsonToNJson(::std::string const& json_str, json& jso
     throwing_sax sax_consumer(json_object);
     json::sax_parse(json_str, &sax_consumer);
 
-  } catch (std::exception const& e) {
+  } catch (std::exception const &e) {
     status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Json parse error " + std::string(e.what()));
   } catch (...) {
     status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Json parse error unexpected exception");
@@ -102,7 +130,7 @@ Status JsonConfigConverter::JsonToNJson(::std::string const& json_str, json& jso
 
 }
 
-::std::string JsonConfigConverter::InterfacesToJson(const Interfaces& interfaces) const {
+::std::string JsonConfigConverter::InterfacesToJson(const Interfaces &interfaces) const {
 
   ::std::string json_string = "["s;
   if (!interfaces.empty()) {
@@ -118,11 +146,11 @@ Status JsonConfigConverter::JsonToNJson(::std::string const& json_str, json& jso
   return json_string;
 }
 
-Status JsonConfigConverter::NJsonToBridgeConfig(const json& json_object, BridgeConfig& bridge_config) const {
+Status JsonConfigConverter::NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config) const {
   Status status;
 
-  for (const auto& bridge_cfg_json : json_object.items()) {
-    auto bridge_cfg_pair = std::make_pair<Bridge, Interfaces>(bridge_cfg_json.key(), bridge_cfg_json.value()); // NOLINT: Need to express types in make_pair to get it working.
+  for (const auto &bridge_cfg_json : json_object.items()) {
+    auto bridge_cfg_pair = std::make_pair<Bridge, Interfaces>(bridge_cfg_json.key(), bridge_cfg_json.value());  // NOLINT: Need to express types in make_pair to get it working.
 
     if (bridge_cfg_pair.first.empty()) {
       status.Append(StatusCode::JSON_CONVERT_ERROR, "Bridge Name is empty");
@@ -140,32 +168,79 @@ Status JsonConfigConverter::NJsonToBridgeConfig(const json& json_object, BridgeC
   return status;
 }
 
-Status JsonConfigConverter::NJsonToIPConfigs(const json& json_object, IPConfigs& ip_configs) const {
+Status JsonConfigConverter::NJsonToDipIPConfig(const nlohmann::json &json_object, DipSwitchIpConfig &ip_config) const {
+  Status status;
+
+  try {
+    auto iter = json_object.find("ipaddr");
+    if (iter != json_object.end()) {
+      iter.value().get_to(ip_config.address_);
+
+      boost_error error_code;
+      boost_address::from_string(ip_config.address_, error_code);
+      if (error_code) {
+        status.Append(StatusCode::JSON_CONVERT_ERROR, "Found invalid DIP switch IP address.");
+        ip_config.address_ = "";
+      }
+    }
+
+  } catch (std::exception const &e) {
+    ip_config.address_ = "";
+    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to DIP IP config error: " + std::string(e.what()));
+  } catch (...) {
+    ip_config.address_ = "";
+    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to DIP IP config error unexpected exception");
+  }
+
+  try {
+    auto iter = json_object.find("netmask");
+    if (iter != json_object.end()) {
+      iter.value().get_to(ip_config.netmask_);
+
+      boost_error error_code;
+      boost_address::from_string(ip_config.netmask_, error_code);
+      if (error_code) {
+        status.Append(StatusCode::JSON_CONVERT_ERROR, "Found invalid DIP switch netmask.");
+        ip_config.netmask_ = "";
+      }
+    }
+  } catch (std::exception const &e) {
+    ip_config.netmask_ = "";
+    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to DIP IP config error: " + std::string(e.what()));
+  } catch (...) {
+    ip_config.netmask_ = "";
+    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to DIP IP config error unexpected exception");
+  }
+
+  return status;
+}
+
+Status JsonConfigConverter::NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs) const {
 
   Status status;
 
   try {
-    auto get_to_if_exists = [](const ::std::string& key, const nlohmann::json& inner_json, auto& to) {
+    auto get_to_if_exists = [](const ::std::string &key, const nlohmann::json &inner_json, auto &to) {
       auto iter = inner_json.find(key);
       if (iter != inner_json.end()) {
         iter.value().get_to(to);
       }
     };
 
-    for (const auto& ip_config : json_object.items()) {
+    for (const auto &ip_config : json_object.items()) {
       IPConfig c;
       c.interface_ = ip_config.key();
       auto inner = ip_config.value();
 
+      get_to_if_exists("source", inner, c.source_);
       get_to_if_exists("ipaddr", inner, c.address_);
       get_to_if_exists("netmask", inner, c.netmask_);
       get_to_if_exists("bcast", inner, c.broadcast_);
-      get_to_if_exists("source", inner, c.source_);
 
       ip_configs.push_back(::std::move(c));
     }
 
-  } catch (std::exception const& e) {
+  } catch (std::exception const &e) {
     ip_configs.clear();
     status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to Ip config error: " + std::string(e.what()));
   } catch (...) {
@@ -176,28 +251,28 @@ Status JsonConfigConverter::NJsonToIPConfigs(const json& json_object, IPConfigs&
   return status;
 }
 
-Status JsonConfigConverter::NJsonToInterfaceConfigs(const nlohmann::json& jo,
-                                                    InterfaceConfigs& interface_configs) const {
-  if (jo.empty()) {
+Status JsonConfigConverter::NJsonToInterfaceConfigs(const nlohmann::json &json_object,
+                                                    InterfaceConfigs &interface_configs) const {
+  if (json_object.empty()) {
     return Status { StatusCode::JSON_CONVERT_ERROR, "Empty JSON object" };
   }
-  if (jo.is_array()) {
-    for (auto& jentry : jo) {
+  if (json_object.is_array()) {
+    for (auto &jentry : json_object) {
       if (!interface_config_keys_.matchesJsonObject(jentry)) {
         return Status { StatusCode::JSON_CONVERT_ERROR, "Invalid JSON object" };
       }
       interface_configs.push_back(PortConfigFromJson(jentry));
     }
   } else {
-    if (!interface_config_keys_.matchesJsonObject(jo)) {
+    if (!interface_config_keys_.matchesJsonObject(json_object)) {
       return Status { StatusCode::JSON_CONVERT_ERROR, "Invalid JSON object" };
     }
-    interface_configs.push_back(PortConfigFromJson(jo));
+    interface_configs.push_back(PortConfigFromJson(json_object));
   }
   return Status { StatusCode::OK };
 }
 
-Status JsonConfigConverter::JsonToBridgeConfig(const ::std::string& json_str, BridgeConfig& bridge_config) const {
+Status JsonConfigConverter::JsonToBridgeConfig(const ::std::string &json_str, BridgeConfig &bridge_config) const {
   Status status;
   try {
     json whole_bridge_json;
@@ -205,7 +280,7 @@ Status JsonConfigConverter::JsonToBridgeConfig(const ::std::string& json_str, Br
     if (status.Ok()) {
       status = NJsonToBridgeConfig(whole_bridge_json, bridge_config);
     }
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     bridge_config.clear();
     status.Append(StatusCode::JSON_CONVERT_ERROR, "Parse BridgeConfig failed! "s + e.what());
   }
@@ -213,20 +288,31 @@ Status JsonConfigConverter::JsonToBridgeConfig(const ::std::string& json_str, Br
   return status;
 }
 
-Status JsonConfigConverter::JsonToIPConfigs(const ::std::string& json_string, IPConfigs& ip_configs) const {
+Status JsonConfigConverter::JsonToIPConfigs(const ::std::string &json_string, IPConfigs &ip_configs) const {
   Status status;
   try {
     nlohmann::json j = json::parse(json_string);
     status = NJsonToIPConfigs(j, ip_configs);
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     ip_configs.clear();
     status.Append(StatusCode::JSON_CONVERT_ERROR, "Parse IpConfig failed! "s + e.what());
-
   }
   return status;
 }
 
-::std::string JsonConfigConverter::InterfaceConfigToJson(const InterfaceConfigs& port_configs) const {
+Status JsonConfigConverter::JsonToDipSwitchIPConfig(const ::std::string &json_string, DipSwitchIpConfig &config) const {
+  Status status;
+  try {
+    nlohmann::json j = json::parse(json_string);
+    status = NJsonToDipIPConfig(j, config);
+  } catch (std::exception &e) {
+    config.Clear();
+    status.Append(StatusCode::JSON_CONVERT_ERROR, "Parse DipSwitchIPConfig failed! "s + e.what());
+  }
+  return status;
+}
+
+::std::string JsonConfigConverter::InterfaceConfigToJson(const InterfaceConfigs &port_configs) const {
 
   if (port_configs.empty()) {
     throw std::runtime_error("Interface config empty. This should not happen.");
@@ -235,11 +321,11 @@ Status JsonConfigConverter::JsonToIPConfigs(const ::std::string& json_string, IP
   return InterfaceConfigsToNJson(port_configs).dump();
 }
 
-json JsonConfigConverter::InterfaceConfigsToNJson(const InterfaceConfigs& interface_configs) const {
+json JsonConfigConverter::InterfaceConfigsToNJson(const InterfaceConfigs &interface_configs) const {
 
   if (interface_configs.size() > 1) {
     nlohmann::json jarray { };
-    for (const auto& config : interface_configs) {
+    for (const auto &config : interface_configs) {
       jarray.push_back(PortConfigToNJson(config));
     }
     return jarray;
@@ -248,7 +334,7 @@ json JsonConfigConverter::InterfaceConfigsToNJson(const InterfaceConfigs& interf
   return interface_configs.size() == 1 ? PortConfigToNJson(interface_configs.at(0)) : nlohmann::json( { });
 }
 
-json JsonConfigConverter::PortConfigToNJson(const InterfaceConfig& interface_config) const {
+json JsonConfigConverter::PortConfigToNJson(const InterfaceConfig &interface_config) const {
   json j;
 
   j[PORT_CFG_KEY_DEVICE] = interface_config.device_name_;
@@ -271,12 +357,12 @@ json JsonConfigConverter::PortConfigToNJson(const InterfaceConfig& interface_con
   return j;
 }
 
-InterfaceConfig JsonConfigConverter::PortConfigFromJson(const json& config) const {
+InterfaceConfig JsonConfigConverter::PortConfigFromJson(const json &config) const {
 
   InterfaceConfig p { config.at(PORT_CFG_KEY_DEVICE).get<::std::string>() };
 
-  auto has_angeg = config.find(PORT_CFG_KEY_AUTONEG) != config.end();
-  if (has_angeg) {
+  auto autoneg_opt = config.find(PORT_CFG_KEY_AUTONEG) != config.end();
+  if (autoneg_opt) {
     p.autoneg_ = config.at(PORT_CFG_KEY_AUTONEG).get<Autonegotiation>();
   }
 
@@ -297,8 +383,8 @@ InterfaceConfig JsonConfigConverter::PortConfigFromJson(const json& config) cons
   return p;
 }
 
-Status JsonConfigConverter::InterfaceConfigFromJson(const ::std::string& json_string,
-                                                    InterfaceConfigs& interface_configs) const {
+Status JsonConfigConverter::InterfaceConfigFromJson(const ::std::string &json_string,
+                                                    InterfaceConfigs &interface_configs) const {
   Status status;
   try {
 
@@ -307,10 +393,9 @@ Status JsonConfigConverter::InterfaceConfigFromJson(const ::std::string& json_st
     if (status.NotOk()) {
       return status;
     }
-
     status = NJsonToInterfaceConfigs(jo, interface_configs);
 
-  } catch (std::exception& e) {
+  } catch (std::exception &e) {
     return {StatusCode::JSON_CONVERT_ERROR, e.what()};
   }
   return status;

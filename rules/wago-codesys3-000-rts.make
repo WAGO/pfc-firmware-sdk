@@ -345,8 +345,8 @@ endif
 
     # Codesys home
 ifdef PTXCONF_CDS3_HOME
-# Set setgid bit so that every file created in /home_codesys_root will have group 'admin'. 
-	@$(call install_copy. codesys3, 0, 0, 0755, /home) 
+# Set setgid bit so that every file created in /home/codesys_root will have group 'admin'. 
+	@$(call install_copy, codesys3, 0, 0, 0755, /home)
 	@$(call install_copy, codesys3, 0, $(PTXCONF_ROOTFS_PASSWD_ADMIN_GID), 2775, /home/codesys_root)
 	@$(call install_link, codesys3, /home/codesys_root, /home/codesys)
 	@$(call install_replace, codesys3, $(PTXCONF_CDS3_PLCCONFIGDIR)/$(PTXCONF_CDS3_PLCCONFIGFILE), @CDS3_HOME@, $(PTXCONF_CDS3_HOME_PATH));

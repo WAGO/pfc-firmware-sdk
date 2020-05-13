@@ -7,8 +7,10 @@
         <interfaces>
             <!-- In case any names ('name' and 'rname' tags) should be changed
                  please amend validate_if.sh script accordingly! -->
-            <interface name="X1"  rname="br0"   ethernet="yes"/>
-            <interface name="X2"  rname="br1"   ethernet="yes"/>
+            <interface name="br0"  rname="br0"  ethernet="yes"/>
+            <interface name="br1"  rname="br1"  ethernet="yes"/>
+            <interface name="br2"  rname="br2"  ethernet="yes"/>
+            <interface name="br3"  rname="br3"  ethernet="yes"/>
             <interface name="WAN" rname="wwan0" ethernet="yes" ipsec_srv="yes"/>
             <interface name="VPN" rname="wwan0" ethernet="no"  ipsec="yes"/>
             <interface name="VPN" rname="tun+"  ethernet="no" />

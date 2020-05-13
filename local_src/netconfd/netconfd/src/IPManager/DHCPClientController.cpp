@@ -6,23 +6,22 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <glib.h>
 
 #include "Logger.hpp"
+#include "Helper.hpp"
 
 using namespace std::string_literals;
 
 namespace netconfd {
 
-DHCPClientController::DHCPClientController(
-    const ICommandExecutor& command_executor,
-    const IDevicePropertiesProvider& properties_provider, const IFileEditor& file_editor)
-    : command_executor_ { command_executor },
-      properties_provider_ { properties_provider },
-      file_editor_ { file_editor } {
+DHCPClientController::DHCPClientController(const IDeviceProperties &properties_provider, const IFileEditor &file_editor)
+    :
+    properties_provider_ { properties_provider },
+    file_editor_ { file_editor } {
 }
 
-Status DHCPClientController::StartClient(const Bridge& bridge) const {
-
+Status DHCPClientController::StartClient(const Bridge &bridge) const {
   Status status;
 
   if (DHCPClientStatus::RUNNING == GetStatus(bridge)) {
@@ -34,37 +33,25 @@ Status DHCPClientController::StartClient(const Bridge& bridge) const {
   ::std::string hostname = properties_provider_.GetHostname();
   ::std::string pid_file_path = "/var/run/udhcpc_" + bridge + ".pid";
 
-  auto pid = fork();
-  if (pid == 0) {
-    /* child */
-    pid = fork();
-    if (pid > 0) {
-      /* parent of grand-child */
-      exit(0);
-    } else if (pid == 0) {
-      /* grand-child */
-      umask(0022);
-      auto exec_status = execl(DHCP_CLIENT_PATH.c_str(), DHCP_CLIENT_PATH.c_str(), "--interface",
-            bridge.c_str(), "--vendorclass", properties_provider_.GetOrderNumber().c_str(),
-            "--pidfile", pid_file_path.c_str(), "-x", "hostname:", hostname.c_str(),
-            "--syslog", nullptr);
+  auto argv_array = make_array(DHCP_CLIENT_PATH.c_str(), "--interface", bridge.c_str(),
+                               "--vendorclass", properties_provider_.GetOrderNumber().c_str(), "--pidfile",
+                               pid_file_path.c_str(), "-x", "hostname:", hostname.c_str(), "--syslog", nullptr);
 
-      if (exec_status > 0) {
-        LogError("Failed to execute dhcp client");
-        abort();
-      }
-    } else {
-      LogError("Failed to start DHCP client create child process error");
-      abort();
-    }
-  } else if (pid < 0) {
+  GPid pid;
+  GError *error;
+  auto spawned = g_spawn_async(nullptr, const_cast<gchar**>(argv_array.data()), nullptr, G_SPAWN_DEFAULT, nullptr, // NOLINT(cppcoreguidelines-pro-type-const-cast)
+                               nullptr, &pid, &error);
+
+  if (spawned == TRUE) {
+    LogDebug("DHCPClientController: spawned udhcp pid#" + ::std::to_string(pid));
+  } else {
     status.Prepend(StatusCode::ERROR, "Failed to start DHCP client create child process error");
   }
 
   return status;
 }
 
-Status DHCPClientController::StopClient(const Bridge& bridge) const {
+Status DHCPClientController::StopClient(const Bridge &bridge) const {
 
   Status status(StatusCode::OK);
 
@@ -76,7 +63,7 @@ Status DHCPClientController::StopClient(const Bridge& bridge) const {
 
   ::std::string pid_str;
   status = file_editor_.Read(pid_file_path, pid_str);
-  if(status.NotOk()){
+  if (status.NotOk()) {
     status.Prepend("Failed to stop DHCP client. ");
   }
 
@@ -88,7 +75,7 @@ Status DHCPClientController::StopClient(const Bridge& bridge) const {
 
       // At this point, we know that the pidfile exists.
       bool remove_pid_file_successfully = (std::remove(pid_file_path.c_str()) == 0);
-      if( not remove_pid_file_successfully) {
+      if (not remove_pid_file_successfully) {
         status.Append("Failed to remove pid file: " + pid_file_path);
       }
     } else {
@@ -99,7 +86,7 @@ Status DHCPClientController::StopClient(const Bridge& bridge) const {
   return status;
 }
 
-DHCPClientStatus DHCPClientController::GetStatus(const Bridge& bridge) const {
+DHCPClientStatus DHCPClientController::GetStatus(const Bridge &bridge) const {
 
   ::std::string pid_file_path = "/var/run/udhcpc_" + bridge + ".pid";
 
@@ -128,6 +115,5 @@ DHCPClientStatus DHCPClientController::GetStatus(const Bridge& bridge) const {
   return DHCPClientStatus::STOPPED;
 
 }
-
 
 } /* namespace netconfd */

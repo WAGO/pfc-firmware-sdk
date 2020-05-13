@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBRLB) += librlb
 #
 # Paths and names
 #
-LIBRLB_VERSION  := 4.1.3-1571396723521
+LIBRLB_VERSION  := 6.0.0-15864271201140
 LIBRLB_BOARD_ID := BOARD_WAGO_PAC100_0768_3301_P0002027
 LIBRLB          := librlb-$(LIBRLB_VERSION)
 LIBRLB_URL      := $(call jfrog_template_to_url, LIBRLB)
@@ -33,7 +33,10 @@ LIBRLB_SOURCE_BASEDIR := wago_intern/artifactory_sources
 LIBRLB_MD5_FILE       := ${LIBRLB_SOURCE_BASEDIR}/$(LIBRLB)$(LIBRLB_SUFFIX).md5
 LIBRLB_ARTIFACT        = $(call jfrog_get_filename,$(LIBRLB_URL))
 LIBRLB_LICENSE        := proprietary
-LIBRLB_FPGA_IMAGE     := $(call remove_quotes,$(PTXCONF_LIBRLB_FPGA_IMAGE))
+LIBRLB_FPGA_IMAGE     := $(call remove_quotes,$(PTXCONF_PLATFORMCONFIG_LIBRLB_FPGA_IMAGE))
+LIBRLB_PPCODE_IMAGE   := rlb_ppcode.bin
+#Workarround for rlb bug: Override neon fpu
+LIBRLB_CXXFLAGS_RELWITHDEBINFO := -DNDEBUG -g -O2 -mfpu=vfp -fno-tree-vectorize
 
 LIBRLB_CMAKE_OPTS =
 ifdef PTXCONF_LIBRLB_BUILD_TESTING
@@ -89,7 +92,9 @@ endif
 #
 LIBRLB_CONF_TOOL:= cmake
 LIBRLB_CONF_OPT	:= -DCMAKE_CXX_FLAGS:="-D$(LIBRLB_BOARD_ID)" \
-                   $(CROSS_CMAKE_USR) $(LIBRLB_CMAKE_OPTS) -DFPGA_IMAGE_NAME:STRING="$(LIBRLB_FPGA_IMAGE)"
+                   $(CROSS_CMAKE_USR) $(LIBRLB_CMAKE_OPTS) \
+		   -DFPGA_IMAGE_NAME:STRING="$(LIBRLB_FPGA_IMAGE)" \
+		   -DCMAKE_CXX_FLAGS_RELWITHDEBINFO:="$(LIBRLB_CXXFLAGS_RELWITHDEBINFO)"
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 
@@ -128,7 +133,7 @@ else
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 #   # save only FPGA image for BSP (according to requirement)
 	@cd $(LIBRLB_PKGDIR) && tar cvzf $(LIBRLB_PLATFORMCONFIGPACKAGEDIR)/$(LIBRLB_PACKAGE_NAME).tgz \
-        lib/firmware/$(LIBRLB_FPGA_IMAGE)
+        lib/firmware/$(LIBRLB_FPGA_IMAGE) lib/firmware/$(LIBRLB_PPCODE_IMAGE)
 endif
 
 endif
@@ -151,6 +156,7 @@ $(STATEDIR)/librlb.targetinstall:
 	@$(call install_fixup, librlb, DESCRIPTION, missing)
 
 	@$(call install_copy, librlb, 0, 0, 0644, -, /lib/firmware/$(LIBRLB_FPGA_IMAGE))
+	@$(call install_copy, librlb, 0, 0, 0644, -, /lib/firmware/$(LIBRLB_PPCODE_IMAGE))
 
 	@$(call install_finish, librlb)
 

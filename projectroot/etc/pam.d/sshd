@@ -3,4 +3,5 @@
 #
 
 auth     include  common-auth
+account  include  common-account
 

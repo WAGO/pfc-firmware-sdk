@@ -20,6 +20,9 @@
 # Hook routine called in context of RAUC setup after installation of ROOT-FS.
 # Hint: Process is exited with WAGO_FW_UPDATE_NOT_SUCCESSFUL in case of abort.
 #
+# Firewall tests if WAGO_FW_UPDATE_FIRST_BOOT_MARKER is set, if so, it will
+# block everything with iptables -I INPUT -j DROP
+#
 # Log prefix is needed because executable (hooks.sh) does not contain
 # "fwupdate" in name
 #

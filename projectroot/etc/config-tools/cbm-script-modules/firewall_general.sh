@@ -562,7 +562,13 @@ function FirewallGeneral
                 for interf in ${all_ports}
                 do
                     if [ "x${ix}" == "x${element}" ] ; then
-                        element_name=${interf}
+                        if [[ "${interf}" == X1 ]] ; then
+                            element_name=br0
+                        elif [[ "${interf}" == X2 ]] ; then
+                            element_name=br1
+                        else
+                            element_name=${interf}
+                        fi
                         element_label=${interface_labels[$ix-1]}
                     fi
                     let ix+=1

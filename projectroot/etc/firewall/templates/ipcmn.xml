@@ -5,9 +5,11 @@
     <ipv4>
         <climits total="4000"/>
         <echo policy="drop" broadcast_protection="on">
-            <request policy="accept" if="X1" limit="2/second"/>
-            <request policy="accept" if="X2" limit="2/second"/>
-            <request policy="drop" if="WAN" limit="2/second"/>
+            <request policy="accept" if="br0" limit="2/second"/>
+            <request policy="accept" if="br1" limit="2/second"/>
+            <request policy="accept" if="br2" limit="2/second"/>
+            <request policy="accept" if="br3" limit="2/second"/>
+            <request policy="drop"   if="WAN" limit="2/second"/>
             <request policy="accept" if="VPN" limit="2/second"/>
         </echo>
         <forward state="off">

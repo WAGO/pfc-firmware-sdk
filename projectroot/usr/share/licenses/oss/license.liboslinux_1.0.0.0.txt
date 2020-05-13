@@ -1,2 +1,2 @@
-Jan Sondhauss
-<Place your desired license here.>
+WAGO Kontakttechnik
+MPL-2.0

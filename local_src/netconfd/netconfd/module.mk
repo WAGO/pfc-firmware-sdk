@@ -29,6 +29,7 @@ libnetconfd.a_INCLUDES += \
 -I$(libnetconfd_PROJECT_ROOT)/src/Logger/ \
 -I$(libnetconfd_PROJECT_ROOT)/src/EventManager/ \
 -I$(libnetconfd_PROJECT_ROOT)/src/IPManager/ \
+-I$(libnetconfd_PROJECT_ROOT)/src/NetDevs/ \
 
 libnetconfd.a_DISABLEDWARNINGS += packed 
 libnetconfd.a_CXXDISABLEDWARNINGS += $(libnetconfd.a_DISABLEDWARNINGS) useless-cast abi-tag

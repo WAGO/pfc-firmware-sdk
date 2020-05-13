@@ -94,10 +94,9 @@ setupBackupFile()
 {
   local u="$(umask)"
   rm -f "$backupFile" &&
-  umask 130 &&
+  umask 137 &&
   : > "$backupFile" &&
   chgrp www "$backupFile" 2>/dev/null
-  chmod 644 "$backupFile" 2>/dev/null
   umask "$u"
 }
 
@@ -242,8 +241,6 @@ createBackupFile()
     # save snmp v1/v2c trap configs
     trapReceiverNo=1
     address=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-address $trapReceiverNo`
-    ProcessErrBackupOperation $? "v1-v2c-trap-receiver-address for trapReceiverNo:" $trapReceiverNo
-
     while [ -n "$address" ]; do
       communityName=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-community-name $trapReceiverNo`
       ProcessErrBackupOperation $? "v1-v2c-trap-receiver-community-name from :" $trapReceiverNo
@@ -262,7 +259,6 @@ createBackupFile()
     #save snmp v3 configs
     userNo=1
     authName=`/etc/config-tools/get_snmp_data v3-auth-name $userNo`
-    ProcessErrBackupOperation $? "v3-auth-name for userNo:" $userNo
     while [ -n "$authName" ]; do
       authType=`/etc/config-tools/get_snmp_data v3-auth-type $userNo`
       ProcessErrBackupOperation $? " v3-auth-name for userNo:" $userNo

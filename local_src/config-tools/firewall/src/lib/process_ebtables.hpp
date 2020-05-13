@@ -14,9 +14,7 @@
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
-
-#ifndef WAGO_PROCESS_EBTABLES_HPP
-#define WAGO_PROCESS_EBTABLES_HPP
+#pragma once
 
 
 #include "xmlhlp.hpp"
@@ -26,7 +24,7 @@
 
 namespace wago
 {
-
+namespace ebtables {
 
 //------------------------------------------------------------------------------
 /// Process ebtables's configuration change request.
@@ -34,11 +32,10 @@ namespace wago
 /// \param cmd requested command (see help of firewall config-tool for description)
 /// \param argv parameters of requested command
 //------------------------------------------------------------------------------
-void process_ebtables(xmldoc& doc, const std::string& cmd, const std::vector<std::string>& argv);
+void process(xmldoc& doc, const std::string& cmd, const std::vector<std::string>& argv);
 
+void set_if(xmldoc& doc, const std::vector<std::string>& argv);
+void rem_if(xmldoc& doc, const std::vector<std::string>& argv);
 
+}
 } // namespace wago
-
-
-#endif // WAGO_PROCESS_EBTABLES_HPP
-

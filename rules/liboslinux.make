@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by Jan Sondhauss <jan.sondhauss@wago.com>
+# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -84,7 +84,7 @@ $(STATEDIR)/liboslinux.targetinstall:
 	@$(call install_init, liboslinux)
 	@$(call install_fixup, liboslinux,PRIORITY,optional)
 	@$(call install_fixup, liboslinux,SECTION,base)
-	@$(call install_fixup, liboslinux,AUTHOR,"Jan Sondhauss <jan.sondhauss@wago.com>")
+	@$(call install_fixup, liboslinux,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
 	@$(call install_fixup, liboslinux,DESCRIPTION,missing)
 
 #

@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_FIREWALL_CONFIG) += firewall-config
 #
 # Paths and names
 #
-FIREWALL_CONFIG_VERSION        := 1.0.0
+FIREWALL_CONFIG_VERSION        := 1.1.0
 FIREWALL_CONFIG_MD5            :=
 FIREWALL_CONFIG                := firewall.elf
 FIREWALL_CONFIG_URL            := file://local_src/config-tools/$(FIREWALL_CONFIG)
@@ -150,14 +150,17 @@ $(STATEDIR)/firewall-config.targetinstall:
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/snmp/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/ssh/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/ssl/firewall)
-ifneq ($(PTXCONF_PLATFORM), wago-pac100)
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/telnet/firewall)
+endif
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/tftp/firewall)
 endif
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iocheckport/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/dnp3/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iec60870_5_104/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iec61850_mms/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/profinet/firewall)
 
 ifdef PTXCONF_INITMETHOD_BBINIT
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/init.d/firewall)

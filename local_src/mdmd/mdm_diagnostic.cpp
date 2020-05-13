@@ -12,12 +12,16 @@ extern "C"
 #include <array>
 #include <cassert>
 #include <diagnostic/mdmd_diag.h>
+#include <stdint.h>
 
 MdmDiagnostic::MdmDiagnostic() : _errorState(MdmErrorState::NONE)
                                 ,_accessClass(MdmAccessClass::NONE)
                                 ,_sigLevel(MdmSignalQualityLevel::NONE)
 {
   log_EVENT_Init("mdmd");
+  int32_t signalLevel = 0;
+  log_EVENT_LogIdParam(DIAG_3GMM_OPER_SIGNAL_CHANGE, true, LOG_TYPE_INT32, &signalLevel,
+                       LOG_TYPE_INVALID);
   log_EVENT_LogId(DIAG_3GMM_OPER_SIGNAL_6_OFF , true);
   log_EVENT_LogId(DIAG_3GMM_OPER_SIGNAL_5_OFF , true);
   log_EVENT_LogId(DIAG_3GMM_OPER_SIGNAL_4_OFF , true);
@@ -25,21 +29,6 @@ MdmDiagnostic::MdmDiagnostic() : _errorState(MdmErrorState::NONE)
   log_EVENT_LogId(DIAG_3GMM_OPER_SIGNAL_2_OFF , true);
   log_EVENT_LogId(DIAG_3GMM_OPER_SIGNAL_1_OFF , true);
   log_EVENT_LogId(DIAG_3GMM_OPER_NO_NET, true);
-}
-
-MdmErrorState MdmDiagnostic::get_error_state() const
-{
-    return _errorState;
-}
-
-MdmAccessClass MdmDiagnostic::get_access_class() const
-{
-    return _accessClass;
-}
-
-MdmSignalQualityLevel MdmDiagnostic::get_signal_quality_level() const
-{
-    return _sigLevel;
 }
 
 void MdmDiagnostic::update_net_led(const MdmAccessClass accessClass, const MdmSignalQualityLevel sigLevel) const
@@ -114,7 +103,13 @@ static void turn_signal_leds_off(std::size_t signalLevelOldIndex, std::size_t si
 void MdmDiagnostic::update_signal_quality_leds(const MdmSignalQualityLevel sigLevelOld, const MdmSignalQualityLevel sigLevelNew) const
 {
     const auto signalLevelOldIndex = static_cast<std::size_t>(sigLevelOld); 
-    const auto signalLevelNewIndex = static_cast<std::size_t>(sigLevelNew); 
+    const auto signalLevelNewIndex = static_cast<std::size_t>(sigLevelNew);
+
+    if(signalLevelOldIndex != signalLevelNewIndex) {
+      int32_t signalLevel = static_cast<int32_t>(sigLevelNew);
+      log_EVENT_LogIdParam(DIAG_3GMM_OPER_SIGNAL_CHANGE, true, LOG_TYPE_INT32, &signalLevel,
+                           LOG_TYPE_INVALID);
+    }
 
     if(signalLevelOldIndex < signalLevelNewIndex) {
         turn_signal_leds_on(signalLevelOldIndex, signalLevelNewIndex);
@@ -140,8 +135,17 @@ void MdmDiagnostic::set_error_state(const MdmErrorState newErrorState)
         case MdmErrorState::SIM_REMOVED:
           log_EVENT_LogId(DIAG_3GMM_ERR_NOSIM, true);
           break;
-        case MdmErrorState::SIM_FAILURE:
-          log_EVENT_LogId(DIAG_3GMM_ERR_SIMAUTH, true);
+        case MdmErrorState::SIM_INVALID:
+          log_EVENT_LogId(DIAG_3GMM_ERR_SIM_INVALID, true);
+          break;
+        case MdmErrorState::SIM_PIN_NEEDED:
+          log_EVENT_LogId(DIAG_3GMM_ERR_SIM_PIN_NEEDED, true);
+          break;
+        case MdmErrorState::SIM_PUK_NEEDED:
+          log_EVENT_LogId(DIAG_3GMM_ERR_SIM_PUK_NEEDED, true);
+          break;
+        case MdmErrorState::SIM_NOT_READY:
+          log_EVENT_LogId(DIAG_3GMM_ERR_SIM_NOT_READY, true);
           break;
         case MdmErrorState::PORT_NOT_READY:
           log_EVENT_LogId(DIAG_3GMM_ERR_PORT_NOT_READY, true);
@@ -151,6 +155,9 @@ void MdmDiagnostic::set_error_state(const MdmErrorState newErrorState)
           break;
         case MdmErrorState::RESET_FAILED:
           log_EVENT_LogId(DIAG_3GMM_ERR_RESET_FAIL, true);
+          break;
+        case MdmErrorState::NET_NO_SERVICE:
+          log_EVENT_LogId(DIAG_3GMM_OPER_NO_SERVICE, true);
           break;
       }
       _errorState = newErrorState;

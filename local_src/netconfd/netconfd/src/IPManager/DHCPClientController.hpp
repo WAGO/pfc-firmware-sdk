@@ -2,9 +2,8 @@
 
 #pragma once
 
+#include "IDeviceProperties.hpp"
 #include "IDHCPClientController.hpp"
-#include "ICommandExecutor.hpp"
-#include "IDevicePropertiesProvider.hpp"
 #include "IFileEditor.hpp"
 
 namespace netconfd {
@@ -12,8 +11,7 @@ namespace netconfd {
 class DHCPClientController : public IDHCPClientController{
  public:
 
-  DHCPClientController(const ICommandExecutor& command_executor,
-                       const IDevicePropertiesProvider& properties_provider,
+  DHCPClientController(const IDeviceProperties& properties_provider,
                        const IFileEditor& file_editor);
   virtual ~DHCPClientController() = default;
 
@@ -27,8 +25,7 @@ class DHCPClientController : public IDHCPClientController{
   DHCPClientStatus GetStatus(const Bridge& bridge) const override;
 
  private:
-  const ICommandExecutor& command_executor_;
-  const IDevicePropertiesProvider& properties_provider_;
+  const IDeviceProperties& properties_provider_;
   const IFileEditor& file_editor_;
 
   const ::std::string DHCP_CLIENT_PATH = "/sbin/udhcpc";

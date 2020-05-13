@@ -69,6 +69,16 @@ if [ "$operation" = "restore" ]; then
 				umask 0077
 				base64 -d <<< "$v" >> /etc/openvpn/openvpn.conf
 				;;
+			vpn-ovpn-conf-name)
+				n="/etc/openvpn/${v//\/}"
+				rm -f "$n"
+				;;
+			vpn-ovpn-conf-content)
+				if [ -n "$n" ]; then
+					umask 0077
+					base64 -d <<<"$v" >>"$n"
+				fi
+				;;
 			vpn-ipsec-conf)
 				umask 0027
 				base64 -d <<< "$v" >> /etc/ipsec.conf
@@ -135,6 +145,12 @@ elif [ "$operation" = "backup" ]; then
 	backup_known_file vpn-ipsec-conf    /etc/ipsec.conf
 	backup_known_file vpn-ipsec-secrets /etc/ipsec.secrets
 		
+	for i in /etc/openvpn/* ; do
+		# openvpn.conf was already handled separately
+		[ "${i}" = "/etc/openvpn/openvpn.conf" ] && continue
+		backup_arb_file 'vpn-ovpn-conf' "${i}"
+	done
+
 	for i in /etc/certificates/* ; do
 		backup_arb_file vpn-certificate "$i"
 	done

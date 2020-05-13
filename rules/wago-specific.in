@@ -97,15 +97,18 @@ menu "DAL - Device Abstraction Layer"
 source "generated/wago_specific_dal.in"
 endmenu
 
-menu "Demo                          "
-source "generated/wago_specific_demo.in"
-endmenu
 
 
 menu "Frontend config (web/console) " 
 source "generated/wago_specific_config.in"
 endmenu
 
+menu "Modular Web-based Management  "
+source "generated/wago_specific_wbm.in"
+menu "Plugins                       "
+source "generated/wago_specific_wbm_plugins.in"
+endmenu
+endmenu
 
 comment "------------------------------------"
 

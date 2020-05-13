@@ -4,7 +4,7 @@ This file shows the Hello\+World example implementation of predefined ctparts fu
 
 \begin{DoxyCodeInclude}
 \textcolor{comment}{//------------------------------------------------------------------------------}
-\textcolor{comment}{// Copyright 2017 WAGO Kontakttechnik GmbH & Co. KG}
+\textcolor{comment}{// Copyright 2017-2020 WAGO Kontakttechnik GmbH & Co. KG}
 \textcolor{comment}{//}
 \textcolor{comment}{//}
 \textcolor{comment}{// Permission is hereby granted, free of charge, to any person obtaining a copy}
@@ -36,6 +36,7 @@ This file shows the Hello\+World example implementation of predefined ctparts fu
 \textcolor{preprocessor}{#include "wc/assertion.h"}
 \textcolor{preprocessor}{#include "wc/std\_includes.h"}
 \textcolor{preprocessor}{#include "\hyperlink{log_8h}{ctutil/log.h}"}
+\textcolor{preprocessor}{#include "\hyperlink{common__functions_8h}{ctutil/common\_functions.h}"}
 \textcolor{preprocessor}{#include "\hyperlink{common__main__defaults_8h}{ctparts/common\_main\_defaults.h}"}
 \textcolor{preprocessor}{#include "\hyperlink{params_8h}{params.h}"}
 \textcolor{preprocessor}{#include <getopt.h>}
@@ -125,28 +126,11 @@ WC\_STATIC\_ASSERT((\textcolor{keyword}{sizeof}(arstCommandlineOptions) / \textc
 \textcolor{comment}{// function implementation}
 \textcolor{comment}{//------------------------------------------------------------------------------}
 
-\textcolor{comment}{// TODO: Check for possible default implementation in libconfigtoolutils}
-\textcolor{keyword}{static} \textcolor{keywordtype}{void} freeConst(\textcolor{keywordtype}{void} \textcolor{keyword}{const} * \textcolor{keyword}{const} pMemoryToFree)
-\{
-  \textcolor{comment}{// The following pointer arithmetics removes the 'const' attribute from pointer avoiding any warnings}
-  \textcolor{keywordtype}{char} \textcolor{keyword}{const} * \textcolor{keyword}{const} pConstMemory = pMemoryToFree;
-  \textcolor{keywordtype}{char} * pMemory = 0x0;
-  pMemory = pMemory + (pConstMemory - pMemory);
-  free(pMemory);
-\}
-
-
 \textcolor{keywordtype}{void} \hyperlink{params_8c_ad5ea1f702bc66efa5b70a43cfa2796cc}{ctparts\_PrintInfoText}(\hyperlink{common__main_8h_af625c952c88de771ba61345d2961d311}{ctparts\_commonMainContext\_t} * \textcolor{keyword}{
       const} WC\_UNUSED\_PARAM(pstContext),
                            \textcolor{keywordtype}{char} \textcolor{keyword}{const} * \textcolor{keyword}{const} szCallString)
 \{
-  WC\_ASSERT(szCallString[0] != \textcolor{charliteral}{'\(\backslash\)0'});
-  printf(\textcolor{stringliteral}{"Programm call: %s\(\backslash\)n"}, szCallString);
-  printf(\textcolor{stringliteral}{"\(\backslash\)n"});
-  printf(infoText);
-  printf(\textcolor{stringliteral}{"\(\backslash\)n"});
-
-  \textcolor{keywordflow}{return};
+  \hyperlink{common__functions_8h_a9ce219fcd00070853cc93aa117699801}{ctutil\_PrintInfoTextDefault}(szCallString, infoText);
 \}
 
 
@@ -195,44 +179,10 @@ WC\_STATIC\_ASSERT((\textcolor{keyword}{sizeof}(arstCommandlineOptions) / \textc
 \}
 
 
-\textcolor{keyword}{static} \textcolor{keywordtype}{void} PrintCommandOptions(\textcolor{keywordtype}{void})
+\textcolor{keyword}{static} \textcolor{keywordtype}{void} PrintHelp(\textcolor{keywordtype}{char} \textcolor{keyword}{const} * \textcolor{keyword}{const} szCallString)
 \{
-  printf(\textcolor{stringliteral}{"Application options:\(\backslash\)n"});
-  \textcolor{keywordtype}{size\_t} i = 0U;
-  \textcolor{keywordflow}{while}(arstCommandlineOptions[i].name != NULL)
-  \{
-    \textcolor{keywordtype}{char} \textcolor{keyword}{const} * szParam = \textcolor{stringliteral}{""};
-    \textcolor{keywordflow}{if}(arstCommandlineOptions[i].has\_arg == required\_argument)
-    \{
-      szParam = \textcolor{stringliteral}{"<param>"};
-    \}
-    \textcolor{keywordflow}{if}(arstCommandlineOptions[i].has\_arg == optional\_argument)
-    \{
-      szParam = \textcolor{stringliteral}{"[param]"};
-    \}
-    printf(\textcolor{stringliteral}{"  --%-25s %-7s   -%c   %s\(\backslash\)n"}, arstCommandlineOptions[i].name,
-                                          szParam,
-                                          arstCommandlineOptions[i].val,
-                                          arszCommandlineOptionTexts[i]);
-    i++;
-  \}
-
-  \textcolor{keywordflow}{return};
-\}
-
-
-\textcolor{keyword}{static} \textcolor{keywordtype}{void} PrintHelp(\textcolor{keywordtype}{char} \textcolor{keyword}{const} * \textcolor{keyword}{const} szName)
-\{
-  printf(\textcolor{stringliteral}{"Programm call: %s\(\backslash\)n"}, szName);
-  printf(\textcolor{stringliteral}{"\(\backslash\)n"});
-  printf(helpText);
-  printf(\textcolor{stringliteral}{"\(\backslash\)n"});
-  PrintCommandOptions();
-  printf(\textcolor{stringliteral}{"\(\backslash\)n"});
-  printf(additionalText);
-  printf(\textcolor{stringliteral}{"\(\backslash\)n"});
-  printf(exampleText);
-  \textcolor{keywordflow}{return};
+  \hyperlink{common__functions_8h_ab7a924dadb919d80e4f5a8f46291e0ba}{ctutil\_PrintHelpDefault}(szCallString, helpText, additionalText, exampleText,
+                          arstCommandlineOptions, arszCommandlineOptionTexts);
 \}
 
 
@@ -243,33 +193,6 @@ WC\_STATIC\_ASSERT((\textcolor{keyword}{sizeof}(arstCommandlineOptions) / \textc
                                           \hyperlink{structctutil__Options}{ctutil\_Options\_t} * \textcolor{keyword}{const} pstOptions)
 \{
   \textcolor{keywordflow}{return} \hyperlink{param__handling_8h_a28ea4d3eec9e29455201fb18600cee27}{ctutil\_EvaluateEarlyOptions}(argc, argv, pstOptions);
-\}
-
-
-\textcolor{comment}{// TODO: Check for use in libconfigtoolutils}
-\textcolor{keyword}{static} \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{statusCode\_t} CopyStringParam(\textcolor{keywordtype}{char} \textcolor{keyword}{const} * * \textcolor{keyword}{const} pszStringParam,
-                                    \textcolor{keywordtype}{char} \textcolor{keyword}{const} * \textcolor{keyword}{const} szOptionArg)
-\{
-  \hyperlink{error__codes_8h_a3c9f75958c634d940ca91c7973329bd3}{statusCode\_t} status = \hyperlink{error__codes_8h_a2baaa58326c2a4e01d9f626db9dcb891}{CTUTIL\_SUCCESS};
-
-  \textcolor{keywordflow}{if}((*pszStringParam) != NULL)
-  \{
-    freeConst(*pszStringParam);
-  \}
-  \textcolor{keywordtype}{size\_t} \textcolor{keyword}{const} argLen = strlen(szOptionArg);
-  \textcolor{keywordtype}{char} * szOptionArgCopy = malloc(argLen + 1);
-  \textcolor{keywordflow}{if}(szOptionArgCopy == NULL)
-  \{
-    status = \hyperlink{error__codes_8h_af7a0d6c60ada48ded9dd31ae6d15a023}{CTUTIL\_FAILED};
-  \}
-  \textcolor{keywordflow}{else}
-  \{
-    strncpy(szOptionArgCopy, szOptionArg, argLen);
-    szOptionArgCopy[argLen] = \textcolor{charliteral}{'\(\backslash\)0'};
-    (*pszStringParam) = szOptionArgCopy;
-  \}
-
-  \textcolor{keywordflow}{return} status;
 \}
 
 
@@ -329,8 +252,8 @@ WC\_STATIC\_ASSERT((\textcolor{keyword}{sizeof}(arstCommandlineOptions) / \textc
         \textcolor{keywordflow}{else}
         \{
           WC\_ASSERT(pstOptions->\hyperlink{structctutil__Options_aa4e145d1751d27276f75707d5e35248e}{pstSpecificOptions} != NULL);
-          status = CopyStringParam(&(pstOptions->\hyperlink{structctutil__Options_aa4e145d1751d27276f75707d5e35248e}{pstSpecificOptions}->
-      \hyperlink{structctutil__OptionsSpecific_a5bb026c3621ab3f392a4ac4d784065b2}{szCustomText}), optarg);
+          status = \hyperlink{common__functions_8h_a4c6697412d67795546c4a1cc9627a374}{ctutil\_CopyStringParam}(&(pstOptions->
+      \hyperlink{structctutil__Options_aa4e145d1751d27276f75707d5e35248e}{pstSpecificOptions}->\hyperlink{structctutil__OptionsSpecific_a5bb026c3621ab3f392a4ac4d784065b2}{szCustomText}), optarg);
         \}
         pstOptions->\hyperlink{structctutil__Options_a256e1430e0df48d0a10d801bd636387c}{stCommonOptions}.\hyperlink{structctutil__OptionsCommon_ae836d9cf56007a22a079270167b77c53}{infoPrint} = \textcolor{keyword}{false};
         \textcolor{keywordflow}{break};

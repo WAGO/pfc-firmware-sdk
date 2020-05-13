@@ -12,6 +12,7 @@ class SYSFS_Access
   public:
     int sysfs_write(const char *file, const char *value) const;
     int sysfs_read(const char *file, char *buf, size_t nbyte) const;
+    bool sysfs_exist(const char *file) const;
 };
 
 class GPIO_Control : public SYSFS_Access
@@ -25,6 +26,7 @@ class GPIO_Control : public SYSFS_Access
       _gpio(gpio) {}
 
     int gpio_export() const;
+    bool gpio_exported() const;
     int gpio_unexport() const;
     int gpio_set_direction_in() const;
     int gpio_set_direction_out() const;
@@ -43,6 +45,7 @@ class MUSB_Control : public SYSFS_Access
 
     int musb_bind() const;
     int musb_unbind() const;
+    bool musb_bound() const;
 };
 
 #endif /* SYSFS_BLIB_H */

@@ -13,20 +13,14 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-
-
-#ifndef WAGO_PROCESS_IPTABLES_HPP
-#define WAGO_PROCESS_IPTABLES_HPP
-
+#pragma once
 
 #include "xmlhlp.hpp"
 #include <string>
 #include <vector>
 
-
-namespace wago
-{
-
+namespace wago {
+namespace iptables {
 
 //------------------------------------------------------------------------------
 /// Process iptables's configuration change request.
@@ -34,11 +28,26 @@ namespace wago
 /// \param cmd requested command (see help of firewall config-tool for description)
 /// \param argv parameters of requested command
 //------------------------------------------------------------------------------
-void process_iptables(xmldoc& doc, const std::string& cmd, const std::vector<std::string>& argv);
+void process(xmldoc &doc, const std::string &cmd, const std::vector<std::string> &argv);
 
+void set_echo_if(xmldoc &doc, const std::vector<std::string> &argv);
+void rem_echo_if(xmldoc &doc, const std::vector<std::string> &argv);
 
-} // namespace wago
+void set_forward_link(xmldoc &doc, const std::vector<std::string> &argv);
+void rem_forward_link(xmldoc &doc, const std::vector<std::string> &argv);
 
+void set_masq(xmldoc &doc, const std::vector<std::string> &argv);
+void rem_masq(xmldoc &doc, const std::vector<std::string> &argv);
 
-#endif // WAGO_PROCESS_IPTABLES_HPP
+void add_pfw(xmldoc &doc, const std::vector<std::string> &argv);
+void upd_pfw(xmldoc &doc, const std::vector<std::string> &argv);
+void rem_pfw(xmldoc &doc, const std::vector<std::string> &argv);
 
+void set_open_if(xmldoc &doc, const std::vector<std::string> &argv);
+void rem_open_if(xmldoc &doc, const std::vector<std::string> &argv);
+
+void add_filter(xmldoc &doc, const std::vector<std::string> &argv);
+void upd_filter(xmldoc &doc, const std::vector<std::string> &argv);
+
+}  // namespace iptables
+}  // namespace wago
