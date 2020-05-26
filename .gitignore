@@ -1,2 +1,5 @@
 **/out/gcc_5_5_arm-linux-gnueabihf/
 **/bin/gcc_5_5_arm-linux-gnueabihf/
+selected_platformconfig
+selected_ptxconfig
+selected_toolchain
