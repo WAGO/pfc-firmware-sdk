@@ -11,13 +11,17 @@
 #include "error.hpp"
 
 namespace wago {
-namespace imp {
+namespace firewall {
 
-static bool is_mixed_pair(const ::std::string interface1, const ::std::string interface2) {
+namespace {
+
+bool is_mixed_pair(const ::std::string interface1, const ::std::string interface2) {
   return ((interface1 == "X1" && interface2 == "br1") || (interface1 == "X2" && interface2 == "br0")
       || (interface1 == "br1" && interface2 == "X1") || (interface1 == "br0" && interface2 == "X2")
       || (interface1 == "X1" && interface2 == "br0") || (interface1 == "X2" && interface2 == "br1")
       || (interface1 == "br0" && interface2 == "X1") || (interface1 == "br1" && interface2 == "X2"));
+}
+
 }
 
 ::std::string InterfaceMappingProvider::get_interface(const ::std::string &interface) const {
@@ -53,5 +57,5 @@ static bool is_mixed_pair(const ::std::string interface1, const ::std::string in
       get_interface(interface2));
 }
 
-}
-}
+} // namespace firewall
+} // namespace wago

@@ -131,7 +131,7 @@ int ct_netlink_get_ipaddr(const char *devStr,
 
     assert(NULL != strIp);
     assert(0 == strlen(strIp));
-    assert(strIpLen > strlen("255.255.255.255/32"));
+    assert(strIpLen >= sizeof("255.255.255.255/32"));
 
     int status = 0;
     struct rtnl_addr *filter = NULL;

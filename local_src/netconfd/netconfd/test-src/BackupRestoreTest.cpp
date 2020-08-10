@@ -14,7 +14,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 using ::std::string;
 using ::std::unique_ptr;
@@ -223,4 +223,4 @@ XXX=123
 
 
 
-} /* namespace netconfd */
+} /* namespace netconf */

@@ -6,13 +6,15 @@
 // subject matter are governed by the license agreement. The recipient of this
 // software implicitly accepts the terms of the license.
 //------------------------------------------------------------------------------
-#pragma once
+
+#ifndef WAGO_FIREWALL_INTERFACE_MAPPING_PROVIDER_HPP_
+#define WAGO_FIREWALL_INTERFACE_MAPPING_PROVIDER_HPP_
 
 #include <vector>
 #include <tuple>
 
 namespace wago {
-namespace imp {
+namespace firewall {
 
 class InterfaceMappingProvider {
  public:
@@ -29,5 +31,7 @@ class InterfaceMappingProvider {
       const ::std::string &interface2) const;
 };
 
-}
-}
+} // namespace firewall
+} // namespace wago
+
+#endif // WAGO_FIREWALL_INTERFACE_MAPPING_PROVIDER_HPP_

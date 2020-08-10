@@ -19,7 +19,7 @@
 // defines; structure, enumeration and type definitions
 //------------------------------------------------------------------------------
 
-namespace netconfd {
+namespace netconf {
 
 class BridgeController : public IBridgeController{
  public:
@@ -45,13 +45,11 @@ class BridgeController : public IBridgeController{
   Status SetInterfaceUp(const ::std::string& name) const override;
   Status SetInterfaceDown(const ::std::string& name) const override;
 
-  Status IsInterfaceUp(const ::std::string& name, bool& is_up) const override;
-
   Status SetAgetime(const Bridge& bridge, int seconds) const override;
 };
 
 
-}  // namespace netconfd
+}  // namespace netconf
 
 
 #endif /* BAL_SRC_BRIDGECONTROLLER_HPP_ */

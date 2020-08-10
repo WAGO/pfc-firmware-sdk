@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
+#include <MockIDeviceProperties.hpp>
 #include "RestoreLegacy.hpp"
-#include "MockIDevicePropertiesProvider.hpp"
 #include "FileEditorFake.hpp"
 #include <limits>
 #include <memory>
 
-namespace netconfd {
+namespace netconf {
 
 using ::std::string;
 using ::std::unique_ptr;
@@ -15,7 +15,7 @@ using ::std::size_t;
 class ALegacyRestore : public ::testing::Test {
  public:
   FileEditorFake mock_file_editor_;
-  MockIDevicePropertiesProvider mock_properties_provider_;
+  MockIDeviceProperties mock_properties_provider_;
   uint32_t restored_version;
   string data;
   string path;
@@ -191,5 +191,5 @@ XXX=123
   EXPECT_EQ(StatusCode::BACKUP_FILE_ERROR, status.Get());
 }
 
-}  // namespace netconfd
+}  // namespace netconf
 

@@ -31,30 +31,19 @@
 #include <vector>
 
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
+
+namespace {
 
 #ifndef DEBUGPC
-    static const std::string bkp_tmpl = "/etc/firewall";
-    static const std::string bkp_path = "/etc/firewall";
-//    static const std::string bkp_path = "/tmp/firewall.restore";
+    const std::string bkp_tmpl = "/etc/firewall";
+    const std::string bkp_path = "/etc/firewall";
+//    const std::string bkp_path = "/tmp/firewall.restore";
 #else
-    static const std::string bkp_tmpl = "test";
-    static const std::string bkp_path = "test";
+    const std::string bkp_tmpl = "test";
+    const std::string bkp_path = "test";
 #endif
-
-
-
-void perform_backup(void)
-{
-#ifndef DEBUGPC
-    int ret_status;
-    const std::string result(exe_cmd("sh /etc/firewall/fwbackup.sh", ret_status));
-#else
-    const std::string result(exe_cmd("cd test/; sh fwbackup.sh local"));
-#endif
-    std::cout << result;
-}
 
 class sline
 {
@@ -143,7 +132,7 @@ files::~files()
 {
 }
 
-static std::vector<sline> read_source(void)
+std::vector<sline> read_source(void)
 {
     regex::regex source_match("^\\s*firewall-[a-zA-Z0-9-].+\\s*=\\s*.+");
     regex::regex exclude_match("^\\s*firewall-config\\s*=\\s*.+");
@@ -162,7 +151,7 @@ static std::vector<sline> read_source(void)
     return source;
 }
 
-static void split_key_value(std::vector<sline>& source)
+void split_key_value(std::vector<sline>& source)
 {
     // Expectation: line is pre-checked and deemed firewall related.
     // If match will not be found an exception is thrown.
@@ -181,7 +170,7 @@ static void split_key_value(std::vector<sline>& source)
     }
 }
 
-static std::vector<std::string> split_string(const std::string& line, const char delim)
+std::vector<std::string> split_string(const std::string& line, const char delim)
 {
     std::vector<std::string> tokens;
 
@@ -200,7 +189,7 @@ static std::vector<std::string> split_string(const std::string& line, const char
     return tokens;
 }
 
-static void prepare_files(files& fs, std::vector<sline>& source)
+void prepare_files(files& fs, ::std::vector<sline>& source)
 {
     fs.ebtables.name = "ebtables";
     fs.ebtables.tmpl = bkp_tmpl + "/templates/ebwlist.xml";
@@ -245,7 +234,7 @@ static void prepare_files(files& fs, std::vector<sline>& source)
     }
 }
 
-static void store_files(files& fs)
+void store_files(files& fs)
 {
     int ret;
     fs.ebtables.store();
@@ -270,7 +259,7 @@ static void store_files(files& fs)
 //        throw invalid_config_error(result);
 }
 
-static void restore_ebtables(xmldoc& doc, std::vector<sline>& source)
+void restore_ebtables(xmldoc& doc, std::vector<sline>& source)
 {
     regex::regex keyrex("^ebtables-([a-zA-Z0-9-].+)");
 
@@ -323,7 +312,7 @@ static void restore_ebtables(xmldoc& doc, std::vector<sline>& source)
     }
 }
 
-static void restore_iptables(xmldoc& doc, std::vector<sline>& source)
+void restore_iptables(xmldoc& doc, std::vector<sline>& source)
 {
     regex::regex keyrex("^iptables-([a-zA-Z0-9-].+)");
 
@@ -382,7 +371,7 @@ static void restore_iptables(xmldoc& doc, std::vector<sline>& source)
     }
 }
 
-static void restore_service(const std::string& name, xmldoc& doc, std::vector<sline>& source)
+void restore_service(const std::string& name, xmldoc& doc, std::vector<sline>& source)
 {
     regex::regex keyrex("^service-" + name + "-([a-zA-Z0-9-].+)");
 
@@ -427,11 +416,27 @@ static void restore_service(const std::string& name, xmldoc& doc, std::vector<sl
     }
 }
 
-static void restore_services(std::vector<file>& services, std::vector<sline>& source)
+void restore_services(std::vector<file>& services, std::vector<sline>& source)
 {
     for (file& s : services)
         restore_service(s.name, s.conf, source);
 }
+
+    } // anonymous namespace
+
+
+void perform_backup(void)
+{
+#ifndef DEBUGPC
+    int ret_status;
+    const std::string result(exe_cmd("sh /etc/firewall/fwbackup.sh", ret_status));
+#else
+    const std::string result(exe_cmd("cd test/; sh fwbackup.sh local"));
+#endif
+    std::cout << result;
+}
+
+
 
 void perform_restore(void)
 {
@@ -474,6 +479,6 @@ void perform_restore(void)
     store_files(fs);
 }
 
-
+} // namespace firewall
 } // namespace wago
 

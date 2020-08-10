@@ -3919,37 +3919,55 @@
   <event id="x0027" name="MDMDNG_SIGNAL_3_HIGHER" persistent="none">
     <led name="S1" state="STATIC_GRN">
     </led>
-    <string><en/><de/></string>
+    <string>
+      	<en>Signal strength above 3</en>
+      	<de>Signalstärke über 3</de>
+      </string>
     
   </event>
   <event id="x0028" name="MDMDNG_SIGNAL_4_LOWER" persistent="none">
     <led name="S2" state="STATIC_OFF">
     </led>
-    <string><en/><de/></string>
+    <string>
+      	<en>Signal strength below 4</en>
+      	<de>Signalstärke unter 4</de>
+      </string>
     
   </event>
   <event id="x0029" name="MDMDNG_SIGNAL_4_HIGHER" persistent="none">
     <led name="S2" state="STATIC_GRN">
     </led>
-    <string><en/><de/></string>
+    <string>
+      	<en>Signal strength above 4</en>
+      	<de>Signalstärke über 4</de>
+      </string>
     
   </event>
   <event id="x002A" name="MDMDNG_SIGNAL_5_LOWER" persistent="none">
     <led name="S3" state="STATIC_OFF">
     </led>
-    <string><en/><de/></string>
+    <string>
+      	<en>Signal strength below 5</en>
+      	<de>Signalstärke unter 5</de>
+      </string>
     
   </event>
   <event id="x002B" name="MDMDNG_SIGNAL_5_HIGHER" persistent="none">
     <led name="S3" state="STATIC_GRN">
     </led>
-    <string><en/><de/></string>
+    <string>
+      	<en>Signal strength above 5</en>
+      	<de>Signalstärke über 5</de>
+      </string>
     
   </event>
   <event id="x002C" name="MDMDNG_SIGNAL_6_LOWER" persistent="none">
     <led name="S4" state="STATIC_OFF">
     </led>
-    <string><en/><de/></string>
+    <string>
+      	<en>Signal strength below 6</en>
+      	<de>Signalstärke unter 6</de>
+      </string>
     
   </event>
   <event id="x0030" name="MDMDNG_WDS_OFF">
@@ -3976,6 +3994,37 @@
     <string>
         <en>Wireless Data Service registered</en>
         <de>Wireless Data Service registriert</de>
+      </string>
+    
+  </event>
+  <event id="x0033" name="MDMDNG_WDS_DENIED">
+    <led name="WDS" state="STATIC_RED">
+    </led>
+    <string>
+        <en>Wireless Data Service denied</en>
+        <de>Mobiler Datendienst abgelehnt</de>
+      </string>
+    
+  </event>
+  <event id="x0034" name="MDMDNG_NET_SIM_PIN_PUK_REQUIRED">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>3</blinkarg>
+    </led>
+    <string>
+      	<en>Modem SIM card requires PIN/PUK</en>
+      	<de>Modem SIM-Karte erfordert PIN/PUK</de>
+      </string>
+    
+  </event>
+  <event id="x0035" name="MDMDNG_NET_SIM_BLOCKED">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>2</blinkarg>
+    </led>
+    <string>
+        <en>Modem SIM card is blocked</en>
+        <de>Modem SIM-Karte ist gesperrt</de>
       </string>
     
   </event>

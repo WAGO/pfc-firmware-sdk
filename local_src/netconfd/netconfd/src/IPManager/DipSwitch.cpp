@@ -6,7 +6,7 @@
 #include <boost/convert.hpp>
 #include <boost/convert/stream.hpp>
 
-namespace netconfd {
+namespace netconf {
 
 namespace fs = boost::filesystem;
 
@@ -32,18 +32,18 @@ DipSwitch::DipSwitch(const std::string& dip_switch_device_value_file)
 [[gnu::pure]]
 DipSwitchMode DipSwitch::GetMode() const {
   if(!hw_available_) {
-    return HW_NOT_AVAILABLE;
+    return DipSwitchMode::HW_NOT_AVAILABLE;
   }
 
   switch (value_)
   {
     case 0:
-      return OFF;
+      return DipSwitchMode::OFF;
     case 255:
-      return DHCP;
+      return DipSwitchMode::DHCP;
     default:
-      return STATIC;
+      return DipSwitchMode::STATIC;
   }
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

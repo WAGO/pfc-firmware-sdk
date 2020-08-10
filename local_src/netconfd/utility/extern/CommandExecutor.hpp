@@ -11,7 +11,7 @@
 
 #include "ICommandExecutor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class CommandExecutor : public ICommandExecutor {
 
@@ -30,7 +30,7 @@ class CommandExecutor : public ICommandExecutor {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 #endif
 //---- End of source file ------------------------------------------------------

@@ -11,8 +11,9 @@
 
 #include "string"
 #include "Status.hpp"
+#include "InterprocessCondition.h"
 
-namespace netconfd {
+namespace netconf {
 
 class Daemonizer {
  public:
@@ -20,7 +21,7 @@ class Daemonizer {
              ::std::string const& pid_file_name);
   virtual ~Daemonizer() = default;
 
-  Status Daemonize();
+  Status Daemonize(InterprocessCondition& condition);
   Status PreparePidDir() const;
   bool IsPidFileLocked() const;
   Status WritePidFile();
@@ -36,6 +37,6 @@ class Daemonizer {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */
 
 #endif /* NETCONFD_DAEMONIZER_HPP_ */

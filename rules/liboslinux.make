@@ -16,9 +16,9 @@ PACKAGES-$(PTXCONF_LIBOSLINUX) += liboslinux
 #
 # Paths and names
 #
-LIBOSLINUX_VERSION	:= 1.0.0.0
-LIBOSLINUX			:= liboslinux-$(LIBOSLINUX_VERSION)
-LIBOSLINUX_SRC		:= $(SRCDIR)/$(LIBOSLINUX)
+LIBOSLINUX_VERSION	:= 1.0.1.0
+LIBOSLINUX		:= liboslinux-$(LIBOSLINUX_VERSION)
+LIBOSLINUX_SRC		:= $(SRCDIR)/liboslinux
 LIBOSLINUX_DIR		:= $(BUILDDIR)/$(LIBOSLINUX)
 LIBOSLINUX_LICENSE	:= unknown
 
@@ -34,7 +34,7 @@ LIBOSLINUX_AUTOCONF := $(CROSS_AUTOCONF)
 $(STATEDIR)/liboslinux.extract: $(STATEDIR)/autogen-tools
 	@$(call targetinfo)
 	@mkdir -p $(LIBOSLINUX_DIR)
-	@rsync -a --exclude=.libs/ --exclude="*.o" --exclude="*.a" --exclude="*.so" --exclude="*.so" $(LIBOSLINUX_SRC) $(BUILDDIR)
+	@rsync -a --exclude=.libs/ --exclude="*.o" --exclude="*.a" --exclude="*.so" --exclude="*.so" $(LIBOSLINUX_SRC)/ $(LIBOSLINUX_DIR)
 	@cd $(LIBOSLINUX_DIR) && sh autogen.sh
 	@$(call touch)
 

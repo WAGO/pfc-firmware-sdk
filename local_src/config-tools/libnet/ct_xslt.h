@@ -7,8 +7,13 @@
 #ifndef __CT_XSLT_H__
 #define __CT_XSLT_H__
 
-#include <stdio.h>
+#include <libxml/tree.h>
+#include <sys/cdefs.h>
+
+__BEGIN_DECLS
 
 int ct_xslt_apply_transformation(xmlDocPtr doc, const char *stylesheetName, int resFd);
+
+__END_DECLS
 
 #endif

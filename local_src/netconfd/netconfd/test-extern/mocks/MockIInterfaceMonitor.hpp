@@ -5,7 +5,7 @@
 
 #include "IInterfaceMonitor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIInterfaceMonitor : public IInterfaceMonitor {
  public:
@@ -19,4 +19,4 @@ class MockIInterfaceMonitor : public IInterfaceMonitor {
 };
 
 
-}  // namespace netconfd
+}  // namespace netconf

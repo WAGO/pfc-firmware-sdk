@@ -13,7 +13,7 @@
 
 #include "Logger.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class NetlinkLinkCache::Impl {
  public:
@@ -96,4 +96,4 @@ void NetlinkLinkCache::UnregisterEventHandler(IInterfaceEvent& event_handler) {
   if (impl_->event_handler_ == &event_handler) impl_->event_handler_ = nullptr;
 }
 
-}  // namespace netconfd
+}  // namespace netconf

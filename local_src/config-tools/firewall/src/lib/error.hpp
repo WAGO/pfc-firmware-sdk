@@ -15,9 +15,8 @@
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
-
-#pragma once
-
+#ifndef WAGO_FIREWALL_ERROR_HPP_
+#define WAGO_FIREWALL_ERROR_HPP_
 
 //
 //  BEFORE YOU START
@@ -46,8 +45,8 @@ extern "C" {
 #include <string>
 
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 
 
 //
@@ -187,4 +186,7 @@ public:
 };
 
 
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_ERROR_HPP_

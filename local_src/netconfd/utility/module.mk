@@ -13,21 +13,24 @@ utility_tests.elf
 
 libutility_PROJECT_ROOT = $(PROJECT_ROOT)/utility
 
+# globally exclude files from coverage report
+GCOVR_EXCLUDE += $(libutility_PROJECT_ROOT)/test-src
+GCOVR_EXCLUDE += $(libutility_PROJECT_ROOT)/test-extern
+
 #######################################################################################################################
 # Settings for build target libutility.a
 
 libutility.a_INCLUDES += \
--I$(PROJECT_ROOT)/extern/ \
--I$(libutility_PROJECT_ROOT)/extern/ \
--I$(PROJECT_ROOT)/netconfd/src/Logger/ \
--I$(PROJECT_ROOT)/gsl/include/
+$(NETCONFD_SHARED_INCLUDES)            \
+-I$(libutility_PROJECT_ROOT)/extern   \
+-I$(PROJECT_ROOT)/netconfd/src/Logger 
 
 
 libutility.a_DISABLEDWARNINGS += packed 
 libutility.a_CXXDISABLEDWARNINGS += $(libutility.a_DISABLEDWARNINGS) useless-cast abi-tag
 libutility.a_CDISABLEDWARNINGS += $(libutility.a_DISABLEDWARNINGS)
 libutility.a_DEFINES +=
-libutility.a_LIBS += boost_system boost_filesystem
+libutility.a_LIBS += common boost_system boost_filesystem
 libutility.a_PKG_CONFIGS = libnl-route-3.0 libnl-3.0 libnl-genl-3.0 gio-unix-2.0 glib-2.0
 libutility.a_CPPFLAGS += $(call uniq, $(libutility.a_INCLUDES) $(libbridge.a_INCLUDES)) 
 libutility.a_CPPFLAGS += $(call uniq, $(libbridge.a_DEFINES))
@@ -83,3 +86,7 @@ utility_tests.elf_SOURCES += $(call fglob_r,$(libutility_PROJECT_ROOT)/test-src,
 utility_tests.elf_DISABLE_CLANG_TIDY = T
 utility_tests.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
 utility_tests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
+# filter only source files in this sub-module
+utility_tests.elf_GCOVR_FILTER += $(libutility_PROJECT_ROOT)
+# modules to include into this test's coverage report 
+utility_tests.elf_GCOVR_SEARCH_PATH += libutility.a

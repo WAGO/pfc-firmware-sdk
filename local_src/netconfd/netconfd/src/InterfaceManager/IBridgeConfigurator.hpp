@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IBridgeConfigurator {
  public:
@@ -24,4 +24,4 @@ class IBridgeConfigurator {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf

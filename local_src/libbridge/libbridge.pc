@@ -1,0 +1,18 @@
+#/# For a description of pkg-config, see
+#/# https://people.freedesktop.org/~dbn/pkg-config-guide.html
+
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libbridge
+Description: A convenience library for brctl written by Lennert Buytenhek
+Version: 1.5.0
+Requires: 
+Requires.private: 
+#/# If this library installs its headers into a non-standard folder, an additional entry to the
+#/# include search path is necessary.
+Cflags: -I${includedir}/libbridge
+Libs: -L${libdir} -lbridge
+Libs.private:

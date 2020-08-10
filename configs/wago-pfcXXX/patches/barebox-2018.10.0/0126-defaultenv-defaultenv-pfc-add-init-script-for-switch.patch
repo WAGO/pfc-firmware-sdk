@@ -1,7 +1,8 @@
 From 96137aab16c1c7eb3e1e569f6888426eeeb63672 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 18 Oct 2018 17:06:12 +0200
-Subject: [PATCH] defaultenv: defaultenv-pfc: add init script for switch reset
+Subject: [PATCH 126/144] defaultenv: defaultenv-pfc: add init script for
+ switch reset
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

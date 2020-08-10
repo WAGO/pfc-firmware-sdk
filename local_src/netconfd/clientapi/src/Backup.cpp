@@ -4,6 +4,7 @@
 #include "NetconfdDbusClient.hpp"
 
 namespace netconf {
+namespace api {
 
 Status Backup(::std::string backup_file_path, ::std::string targetversion) { //NOLINT(performance-unnecessary-value-param)
   NetconfdDbusClient client;
@@ -20,4 +21,5 @@ Status Restore(::std::string backup_file_path) { //NOLINT(performance-unnecessar
     return client.GetBackupParameterCount();
 }
 
+}  // namespace api
 }  // namespace netconf

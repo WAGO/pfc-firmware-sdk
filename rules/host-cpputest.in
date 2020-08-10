@@ -3,6 +3,7 @@ config HOST_CPPUTEST
 	bool
    default n
 	prompt "cpputest"
+	select HOST_CMAKE
 	help
      Simple framework for C/C++ unit tests. Host version can be used to run
      unit tests on the host machine early on, when the target hw is not yet

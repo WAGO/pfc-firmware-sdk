@@ -22,7 +22,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class AFileEditor : public Test {
  public:

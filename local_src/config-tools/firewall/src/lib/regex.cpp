@@ -17,13 +17,10 @@
 
 #include "regex.hpp"
 #include <stdexcept>
-#include <iostream>
 
-
-namespace wago
-{
-namespace regex 
-{
+namespace wago {
+namespace firewall {
+namespace regex {
 
 
 /*
@@ -240,7 +237,7 @@ std::vector<std::string> get_match(const regex& rexobj, const std::string& line)
     return res;
 }
 
-
 } // namespace regex
+} // namespace firewall
 } // namespace wago
 

@@ -1,9 +1,4 @@
-/*
- * DBusServer.h
- *
- *  Created on: 04.06.2019
- *      Author: u014487
- */
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef DBUS_SRC_SERVER_H_
 #define DBUS_SRC_SERVER_H_
@@ -19,7 +14,7 @@
 #include <unistd.h>
 #endif
 
-namespace netconfd {
+namespace netconf {
 
 namespace dbus {
 
@@ -49,6 +44,6 @@ class Server {
 };
 
 }  // namespace dbus
-} /* namespace netconfd */
+} /* namespace netconf */
 
 #endif /* DBUS_SRC_SERVER_H_ */

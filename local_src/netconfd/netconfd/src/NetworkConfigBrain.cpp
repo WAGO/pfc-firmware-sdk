@@ -4,38 +4,38 @@
 
 #include "Logger.hpp"
 #include "Helper.hpp"
-#include "TypesHelper.hpp"
 #include "IpAddressManipulator.hpp"
 #include "IInterfaceMonitor.hpp"
 #include "EthernetInterface.hpp"
-#include "IInterfaceInformation.hpp"
 #include "InterfaceConfigManager.hpp"
 #include "NetDevManager.hpp"
 #include "IpConfigHelper.hpp"
 #include <boost/format.hpp>
+#include <IBridgeInformation.hpp>
+#include "TypesHelper.hpp"
+#include "JsonConverter.hpp"
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 
 // NOLINTNEXTLINE(cert-err58-cpp) This won't fail
-const IPConfigs FIX_IP_CONFIG = IPConfigs( { { "br0", IPSource::TEMPORARY, "192.168.1.17", "255.255.255.0", ZeroIP } });
+const IPConfigs FIX_IP_CONFIG = IPConfigs( { { "br0", IPSource::TEMPORARY, "192.168.1.17", "255.255.255.0" } });
 
 using namespace ::std::literals;
 
-NetworkConfigBrain::NetworkConfigBrain(IBridgeManager &interface_manager, IInterfaceInformation &itf_info,
+NetworkConfigBrain::NetworkConfigBrain(IBridgeManager &interface_manager, IBridgeInformation &itf_info,
                                        IIPManager &ip_manager, IEventManager &event_manager,
                                        IDeviceProperties &device_properties_provider,
-                                       IJsonConfigConverter &json_config_converter,
                                        IPersistenceProvider &persistence_provider, IDipSwitch &ip_dip_switch,
                                        InterfaceConfigManager &interface_config_manager, INetDevManager &netdev_manager)
 
-    : bridge_manager_ { interface_manager },
-      itf_info_ { itf_info },
+    :
+    bridge_manager_ { interface_manager },
+      bridge_information_ { itf_info },
       interface_config_manager_ { interface_config_manager },
       ip_manager_ { ip_manager },
       event_manager_ { event_manager },
       device_properties_provider_ { device_properties_provider },
-      json_config_converter_ { json_config_converter },
       persistence_provider_ { persistence_provider },
       netdev_manager_ { netdev_manager },
       ip_dip_switch_ { ip_dip_switch } {
@@ -51,7 +51,7 @@ Status NetworkConfigBrain::Start() {
   IPConfigs ip_configs;
   DipSwitchIpConfig dip_switch_ip_config;
 
-  Interfaces interfaces = device_properties_provider_.GetProductInterfaces();
+  Interfaces interfaces = device_properties_provider_.GetProductPortNames();
   if (interfaces.empty()) {
     status.Prepend(StatusCode::ERROR, "Failed to determine available product interfaces.");
     return status;
@@ -62,25 +62,26 @@ Status NetworkConfigBrain::Start() {
   statusDIPSwitchIPConfig = persistence_provider_.Read(dip_switch_ip_config);
 
   if (statusBridgeConfig.Ok()) {
-    FilterEmptyBridges(bridge_config);
-    statusBridgeConfig = FilterRequiredBridgeConfigs(bridge_config);
+    RemoveUnsupportedInterfaces(bridge_config, interfaces);
+    RemoveEmptyBridges(bridge_config);
+  } else {
+    ResetBridgeConfigToDefault(interfaces, bridge_config);
+    LogDebug(status.GetMessage());
   }
 
-  if (statusBridgeConfig.Ok()) {
     if (statusIPConfig.NotOk()) {
       LogDebug("Reset IP configuration.");
       ResetIpConfigsToDefault(ip_configs);
     }
-  } else {
-    ResetBridgeConfigToDefault(interfaces, bridge_config);
-    LogDebug(status.GetMessage());
-    ResetIpConfigsToDefault(ip_configs);
-  }
 
   FilterRequiredIpConfigs(ip_configs, bridge_config);
   RemoveUnnecessaryIPParameter(ip_configs);
 
-  status = ip_manager_.ValidateIPConfigs(ip_configs, true);
+  if(ip_configs.empty()){
+    LogWarning("No IP config left on startup!");
+  }
+
+  status = ip_manager_.ValidateIPConfigs(ip_configs);
   if (status.NotOk()) {
     LogWarning("IP validation failed. Reset IP configuration.");
     ResetIpConfigsToDefault(ip_configs);
@@ -105,6 +106,8 @@ Status NetworkConfigBrain::Start() {
     }
   }
 
+  interface_config_manager_.InitializePorts();
+
   if (status.Ok()) {
     event_manager_.ProcessEvents();
   }
@@ -116,7 +119,7 @@ void NetworkConfigBrain::GetValidIpConfigsSubset(const IPConfigs &configs, IPCon
   subset.clear();
   for (const auto &config : configs) {
     subset.push_back(config);
-    Status status = ip_manager_.ValidateIPConfigs(subset, true);
+    Status status = ip_manager_.ValidateIPConfigs(subset);
     if (status.NotOk()) {
       // Remove element that leads to an invalid configuration.
       subset.pop_back();
@@ -129,19 +132,18 @@ void NetworkConfigBrain::ResetBridgeConfigToDefault(Interfaces product_interface
 }
 
 void NetworkConfigBrain::ResetIpConfigsToDefault(IPConfigs &configs) {
-  configs = { { "br0", IPSource::DHCP, ZeroIP, ZeroIP, ZeroIP } };
+  configs = { { "br0", IPSource::DHCP, ZeroIP, ZeroIP } };
 }
 
 void NetworkConfigBrain::ResetDIPSwitchIPConfigToDefault(DipSwitchIpConfig &config) {
   config = { "192.168.1.0", "255.255.255.0" };
 }
 
-void NetworkConfigBrain::FilterEmptyBridges(BridgeConfig &product_config) const {
-
-  auto it = product_config.cbegin();
-  while (it != product_config.cend()) {
+void NetworkConfigBrain::RemoveEmptyBridges(BridgeConfig &config) const {
+  auto it = config.cbegin();
+  while (it != config.cend()) {
     if (it->second.empty()) {
-      it = product_config.erase(it);
+      it = config.erase(it);
     } else {
       it++;
     }
@@ -165,31 +167,20 @@ void NetworkConfigBrain::FilterRequiredIpConfigs(IPConfigs &ip_configs, const Br
   }
 }
 
-Status NetworkConfigBrain::FilterRequiredBridgeConfigs(BridgeConfig &bridge_config) const {
+void NetworkConfigBrain::RemoveUnsupportedInterfaces(BridgeConfig &config, Interfaces &supported_interfaces) const {
+  for (auto &bridge_entry : config) {
+    Interfaces unsupported_interfaces;
 
-  Status status;
-
-  Interfaces supported_interfaces = device_properties_provider_.GetProductInterfaces();
-  if (supported_interfaces.empty()) {
-    status.Prepend(StatusCode::ERROR, " No device specific interfaces found.");
-  }
-
-  for (auto &bridge : bridge_config) {
-
-    Interfaces interfaces_to_remove;
-
-    for (auto &bridge_interface : bridge.second) {
-      if (IsNotIncluded(bridge_interface, supported_interfaces)) {
-        interfaces_to_remove.push_back(bridge_interface);
+    for (auto &interface : bridge_entry.second) {
+      if (IsNotIncluded(interface, supported_interfaces)) {
+        unsupported_interfaces.push_back(interface);
       }
     }
 
-    for (auto &interface : interfaces_to_remove) {
-      RemoveByValue(interface, bridge.second);
+    for (auto &interface : unsupported_interfaces) {
+      RemoveByValue(interface, bridge_entry.second);
     }
   }
-
-  return status;
 }
 
 IPConfigs NetworkConfigBrain::FilterRequiredIPConfigs(const IPConfigs &ip_configs,
@@ -219,21 +210,9 @@ Status NetworkConfigBrain::ApplyConfig(BridgeConfig &product_config, const IPCon
   return status;
 }
 
-Status NetworkConfigBrain::ApplyConfig(BridgeConfig &product_config, const IPConfigs &ip_configs,
-                                       const DipSwitchIpConfig &dip_switch_ip_config) const {
+void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) const {
 
-  Status status = bridge_manager_.ApplyBridgeConfiguration(product_config);
-
-  if (status.Ok()) {
-    status = ip_manager_.ApplyIpConfiguration(ip_configs, dip_switch_ip_config);
-  }
-
-  return status;
-}
-
-void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig& config) const{
-
-  auto convert_to_product_interfaces = [&](auto& bridge){
+  auto convert_to_product_interfaces = [&](auto &bridge) {
     Interfaces itfs = bridge.second;
     device_properties_provider_.ConvertOSToProductInterfaces(itfs);
     bridge.second = itfs;
@@ -246,10 +225,12 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig& config) co
 Status NetworkConfigBrain::SetBridgeConfig(::std::string const &product_config_json) {
 
   BridgeConfig product_config;
-  Status status = json_config_converter_.JsonToBridgeConfig(product_config_json, product_config);
+
+  JsonConverter jc;
+  Status status = jc.FromJsonString(product_config_json, product_config);
 
   ReplaceSystemToLabelInterfaces(product_config);
-  FilterEmptyBridges(product_config);
+  RemoveEmptyBridges(product_config);
 
   if (status.Ok()) {
     BridgeConfig current_config;
@@ -290,27 +271,30 @@ Status NetworkConfigBrain::SetBridgeConfig(::std::string const &product_config_j
 
   BridgeConfig product_config = bridge_manager_.GetBridgeConfig();
 
-  ::std::string json;
-  Status status = json_config_converter_.BridgeConfigToJson(product_config, json);
-
-  if (status.NotOk()) {
-    status.Prepend("Failed to get bridge config. ");
-    LogError(status.GetMessage());
+  JsonConverter jc;
+  return jc.ToJsonString(product_config);
   }
 
-  return json;
-}
+::std::string NetworkConfigBrain::GetInterfaceInformation() const {
 
-::std::string NetworkConfigBrain::GetDeviceInterfaces() const {
+  auto netdevs = netdev_manager_.GetNetDevs();
+  InterfaceInformations iis;
+  std::transform(netdevs.begin(), netdevs.end(), ::std::back_inserter(iis),
+                 [](const auto &netdev_ptr) {
+                   return InterfaceInformation { netdev_ptr->GetName(), netdev_ptr->GetLabel(), netdev_ptr->GetKind(),
+                       netdev_ptr->IsIpConfigReadonly() };
+                 });
 
-  Interfaces interfaces = device_properties_provider_.GetProductInterfaces();
-
-  return json_config_converter_.InterfacesToJson(interfaces);
+  JsonConverter jc;
+  return jc.ToJsonString(iis);
 }
 
 Status NetworkConfigBrain::SetInterfaceConfig(const ::std::string &config) {
   InterfaceConfigs port_configs;
-  auto status = json_config_converter_.InterfaceConfigFromJson(config, port_configs);
+
+  JsonConverter jc;
+  auto status = jc.FromJsonString(config, port_configs);
+
   if (status.Ok()) {
     status = interface_config_manager_.Configure(port_configs);
   }
@@ -329,27 +313,28 @@ Status NetworkConfigBrain::SetInterfaceConfig(const ::std::string &config) {
 
 ::std::string NetworkConfigBrain::GetInterfaceConfig() const {
   auto port_configs = interface_config_manager_.GetPortConfigs();
-  return json_config_converter_.InterfaceConfigToJson(port_configs);
+  JsonConverter js;
+  return js.ToJsonString(port_configs);
 }
 
 ::std::string NetworkConfigBrain::GetAllIPConfigs() const {
-  Bridges bridges = bridge_manager_.GetBridges();
-  IPConfigs configs = ip_manager_.GetIPConfigs(bridges);
-
-  return json_config_converter_.IPConfigsToJson(configs);
+  IPConfigs configs = ip_manager_.GetIPConfigs();
+  JsonConverter js;
+  return js.ToJsonString(configs);
 }
 
 ::std::string NetworkConfigBrain::GetAllCurrentIPConfigs() const {
-  Bridges bridges = bridge_manager_.GetBridges();
-  IPConfigs configs = ip_manager_.GetCurrentIPConfigs(bridges);
-
-  return json_config_converter_.IPConfigsToJson(configs);
+  IPConfigs configs = ip_manager_.GetCurrentIPConfigs();
+  JsonConverter js;
+  return js.ToJsonString(configs);
 }
 
 ::std::string NetworkConfigBrain::GetIPConfig(const ::std::string &config) const {
 
   IPConfigs ip_configs;
-  Status status = json_config_converter_.JsonToIPConfigs(config, ip_configs);
+  JsonConverter js;
+  Status status = js.FromJsonString(config, ip_configs);
+
   ::std::string json;
 
   if (status.Ok()) {
@@ -362,7 +347,7 @@ Status NetworkConfigBrain::SetInterfaceConfig(const ::std::string &config) {
     }
 
     configs = ip_manager_.GetIPConfigs(bridges);
-    json = json_config_converter_.IPConfigsToJson(configs);
+    json = js.ToJsonString(configs);
   }
 
   if (status.NotOk()) {
@@ -375,7 +360,9 @@ Status NetworkConfigBrain::SetInterfaceConfig(const ::std::string &config) {
 
 Status NetworkConfigBrain::SetAllIPConfigs(::std::string const &json_config) {
   IPConfigs ip_configs;
-  Status status = json_config_converter_.JsonToIPConfigs(json_config, ip_configs);
+
+  JsonConverter js;
+  Status status = js.FromJsonString(json_config, ip_configs);
 
   RemoveUnnecessaryIPParameter(ip_configs);
 
@@ -387,7 +374,7 @@ Status NetworkConfigBrain::SetAllIPConfigs(::std::string const &json_config) {
     event_manager_.ProcessEvents();
   }
 
-  if(status.NotOk()){
+  if (status.NotOk()) {
     LogError(status.GetMessage());
   }
 
@@ -421,28 +408,38 @@ Status NetworkConfigBrain::Backup(const ::std::string &file_path, const ::std::s
 
 Status NetworkConfigBrain::Restore(const std::string &file_path) {
 
-  BridgeConfig persisted_bridge_config;
-  IPConfigs persisted_ip_configs;
-  Status status = persistence_provider_.Read(persisted_bridge_config, persisted_ip_configs);
-
-  BridgeConfig product_config;
+  BridgeConfig bridge_config;
   IPConfigs ip_configs;
   InterfaceConfigs interface_configs;
   DipSwitchIpConfig dip_switch_ip_config;
+
+  BridgeConfig persisted_bridge_config;
+  IPConfigs persisted_ip_configs;
+  Status status = persistence_provider_.Read(persisted_bridge_config, persisted_ip_configs);
   if (status.Ok()) {
-    status = persistence_provider_.Restore(file_path, product_config, ip_configs, interface_configs,
+    // TODO (PND): Cleanup the backup data before restoring it, might contain data that is not applicable!!!
+    status = persistence_provider_.Restore(file_path, bridge_config, ip_configs, interface_configs,
                                            dip_switch_ip_config);
   }
 
   if (status.Ok()) {
     interface_config_manager_.Configure(interface_configs);
 
-    FilterEmptyBridges(product_config);
+    RemoveEmptyBridges(bridge_config);
     RemoveUnnecessaryIPParameter(ip_configs);
+    status = bridge_manager_.ApplyBridgeConfiguration(bridge_config);
+    if(status.NotOk())
+    {
+      LogError("Failed to restore bridge configuration from file:"s+file_path);
+    }
     /* Clean out ip configs that are not available,
      * the restore data might contain unnecessary ip data from former netconfd releases. */
-    CleanWithRespectToSystem(ip_configs, netdev_manager_.GetNetDevs(), itf_info_.GetBridgeAssignedInterfaces());
-    status = ApplyConfig(product_config, ip_configs, dip_switch_ip_config);
+    CleanWithRespectToSystem(ip_configs, netdev_manager_.GetNetDevs(), bridge_information_.GetBridgeAssignedInterfaces());
+    status = ip_manager_.ApplyIpConfiguration(ip_configs, dip_switch_ip_config);
+    if (status.NotOk()) {
+      LogError("Failed to restore ip configuration configuration from file:"s+file_path);
+    }
+
 
     // Try rollback if status is not ok
     if (status.NotOk()) {
@@ -476,7 +473,8 @@ void NetworkConfigBrain::TempFixIp() {
 
   auto dip_switch_config = DipSwitchConfig(dip_switch_ip_config, ip_dip_switch_.GetMode(), ip_dip_switch_.GetValue());
 
-  return json_config_converter_.DipSwitchConfigToJson(dip_switch_config);
+  JsonConverter js;
+  return js.ToJsonString(dip_switch_config);
 }
 
 Status NetworkConfigBrain::SetDipSwitchConfig(const ::std::string &config) {
@@ -485,7 +483,9 @@ Status NetworkConfigBrain::SetDipSwitchConfig(const ::std::string &config) {
   }
 
   DipSwitchIpConfig dip_switch_ip_config;
-  Status status = json_config_converter_.JsonToDipSwitchIPConfig(config, dip_switch_ip_config);
+
+  JsonConverter js;
+  Status status = js.FromJsonString(config, dip_switch_ip_config);
 
   if (status.Ok()) {
     status = ip_manager_.ApplyIpConfiguration(dip_switch_ip_config);
@@ -495,7 +495,12 @@ Status NetworkConfigBrain::SetDipSwitchConfig(const ::std::string &config) {
     event_manager_.ProcessEvents();
   }
 
+  if (status.NotOk()) {
+    status.Prepend("Set Dip Switch configurations. ");
+    LogError(status.GetMessage());
+  }
+
   return status;
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

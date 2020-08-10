@@ -1,13 +1,9 @@
-/*
- * DBusServer.cpp
- *
- *  Created on: 04.06.2019
- *      Author: u014487
- */
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <IDBusHandlerRegistry.h>
+#include "IDBusHandlerRegistry.h"
 #include "Server.h"
-namespace netconfd {
+
+namespace netconf {
 namespace dbus {
 
 Server::Server()
@@ -46,4 +42,4 @@ void Server::OnNameAcquired(GDBusConnection *connection, const gchar *name, gpoi
 
 
 } /* namespace dbus */
-} /* namespace netconfd */
+} /* namespace netconf */

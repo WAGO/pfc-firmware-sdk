@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-namespace netconfd {
+namespace netconf {
 
 Status FileEditor::Read(const ::std::string& file_path, ::std::string& data) const {
 
@@ -84,4 +84,4 @@ Status FileEditor::Append(const ::std::string& file_path,
   return status;
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

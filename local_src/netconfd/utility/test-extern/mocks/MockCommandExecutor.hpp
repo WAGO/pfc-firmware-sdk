@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "CommandExecutor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockCommandExecutor : public CommandExecutor {
  public:
@@ -13,6 +13,6 @@ class MockCommandExecutor : public CommandExecutor {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf
 
 #endif 

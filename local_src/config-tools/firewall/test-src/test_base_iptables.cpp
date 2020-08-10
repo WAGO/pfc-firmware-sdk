@@ -7,19 +7,16 @@
 // software implicitly accepts the terms of the license.
 //------------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-
 #include "test_base_iptables.hpp"
-
-#include "process.hpp"
-#include "process_iptables.hpp"
 #include "test_utils.hpp"
 
-using namespace wago;
+using namespace wago::firewall;
 
-static ::std::string test_res_dir = "../../../test-res";
-static ::std::string params_file = test_res_dir + "/params.xml";
-static ::std::string ipcmn_file = test_res_dir + "/ipcmn.xml";
+namespace {
+const ::std::string test_res_dir = "../../../test-res";
+const ::std::string params_file = test_res_dir + "/params.xml";
+const ::std::string ipcmn_file = test_res_dir + "/ipcmn.xml";
+}
 
 IptablesTestBase::IptablesTestBase()
     :

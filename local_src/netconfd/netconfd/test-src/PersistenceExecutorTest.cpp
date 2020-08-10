@@ -8,16 +8,13 @@
 //------------------------------------------------------------------------------
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-
 #include "TypesHelper.hpp"
+
 #include "BackupRestoreFake.hpp"
 #include "PersistenceExecutor.hpp"
 #include "StatusPrettyPrint.hpp"
 #include "FileEditorFake.hpp"
-#include "PersistenceJsonConfigConverter.hpp"
 
-#include "MockIJsonConfigConverter.hpp"
-#include "MockIPersistenceJsonConfigConverter.hpp"
 #include "MockIFileEditor.hpp"
 #include "MockIBackupRestore.hpp"
 #include "MockIJsonConvert.hpp"
@@ -26,14 +23,13 @@
 
 using namespace testing;
 
-namespace netconfd
+namespace netconf
 {
 
   class APersistenceExecutor: public Test
   {
     public:
 
-      PersistenceJsonConfigConverter json_converter_;
       NiceMock<MockIFileEditor> mock_file_editor_;
       MockIBackupRestore mock_backup_restore_;
       MockIJsonConvert<InterfaceConfigs> mock_port_configs_converter_;
@@ -60,13 +56,13 @@ namespace netconfd
         ON_CALL(mock_file_editor_, Read(path_interface_config_file_, _)).WillByDefault(
             DoAll(SetArgReferee<1>(interface_config_file_content_), Return(Status{ })));
 
-        persisted_ip_configs = {{"br0", IPSource::STATIC, "192.168.2.17", "255.255.255.0", "192.168.2.255"}, {
-            "br1", IPSource::DHCP, "172.29.233.17", "255.255.0.0", "172.29.255.255"}};
+        persisted_ip_configs = {{"br0", IPSource::STATIC, "192.168.2.17", "255.255.255.0"}, {
+            "br1", IPSource::DHCP, "172.29.233.17", "255.255.0.0"}};
         persisted_bridge_config = {{"br0", {"X1"}}, {"br1", {"X2"}}};
 
         interface_configs.clear();
         persistence_executor_ =
-            ::std::make_unique < PersistenceExecutor > (base_path_, json_converter_, json_converter_, mock_file_editor_, mock_backup_restore_, legacy_restore_fake_, dip_switch_fake_);
+            ::std::make_unique < PersistenceExecutor > (base_path_, mock_file_editor_, mock_backup_restore_, legacy_restore_fake_, dip_switch_fake_);
       }
 
       ::std::string persistence_file_content =
@@ -79,14 +75,12 @@ namespace netconfd
       "br0" : {
         "source" : "static",
         "ipaddr" : "192.168.2.17",
-        "netmask" : "255.255.255.0",
-        "bcast" : "192.168.2.255"
+        "netmask" : "255.255.255.0"
       },
     "br1" : {
         "source" : "dhcp",
         "ipaddr" : "172.29.233.17",
-        "netmask" : "255.255.0.0",
-        "bcast" : "172.29.255.255"
+        "netmask" : "255.255.0.0"
       }
     }
 }
@@ -108,14 +102,12 @@ namespace netconfd
         "br0" : {
           "source" : "static",
           "ipaddr" : "192.168.2.17",
-          "netmask" : "255.255.255.0",
-          "bcast" : "192.168.2.255"
+          "netmask" : "255.255.255.0"
         },
       "br1" : {
           "source" : "dhcp",
           "ipaddr" : "172.29.233.17",
-          "netmask" : "255.255.0.0",
-          "bcast" : "172.29.255.255"
+          "netmask" : "255.255.0.0"
         }
       },
       "interface-config":{"autonegotiation":"on","device":"X1","duplex":"full","speed":100,"state":"up"}
@@ -140,7 +132,7 @@ namespace netconfd
   TEST_F(APersistenceExecutor, PersistsIPConfigs)
   {
 
-    IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0", "192.168.1.255"}};
+    IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"}};
     ::std::string config_str = R"({"br0": ["X1"]})";
 
     Status status = persistence_executor_->Write(ip_configs);
@@ -337,4 +329,4 @@ namespace netconfd
     EXPECT_TRUE(ip_configs_read.empty());
   }
 
-} /* namespace netconfd */
+} /* namespace netconf */

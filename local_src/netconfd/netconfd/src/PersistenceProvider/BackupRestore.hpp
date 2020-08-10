@@ -9,7 +9,7 @@
 #include "Status.hpp"
 
 
-namespace netconfd {
+namespace netconf {
 
 class BackupRestore : public IBackupRestore {
  public:
@@ -39,4 +39,4 @@ class BackupRestore : public IBackupRestore {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

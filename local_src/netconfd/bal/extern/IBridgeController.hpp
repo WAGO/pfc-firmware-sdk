@@ -19,7 +19,7 @@
 #include "Types.hpp"
 
 
-namespace netconfd {
+namespace netconf {
 
 
 class IBridgeController {
@@ -46,8 +46,6 @@ class IBridgeController {
 
   virtual Status SetInterfaceUp(const ::std::string& name) const = 0;
   virtual Status SetInterfaceDown(const ::std::string& name) const = 0;
-
-  virtual Status IsInterfaceUp(const ::std::string& name, bool& is_up) const = 0;
 
   virtual Status SetAgetime(const Bridge& bridge, int seconds) const = 0;
 };

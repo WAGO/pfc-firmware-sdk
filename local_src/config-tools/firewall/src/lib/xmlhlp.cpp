@@ -21,20 +21,45 @@
 
 #include <libxml/xpathInternals.h>
 #include <cstring>
-#include <iostream>
 #include <stdexcept>
 #include <unistd.h>
 #include <chrono>
 
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 
+namespace {
 
-static xmlChar * xmlChar_cast(char const * szValue)
+xmlChar * xmlChar_cast(char const * szValue)
 {
     return reinterpret_cast<xmlChar*>(const_cast<char *>(szValue));
 }
+
+void remove_text_nodes_recursion(xmlNode* node)
+{
+    if (NULL == node)
+        return;
+
+    xmlNode* child = node->children;
+
+    while (NULL != child)
+    {
+        xmlNode* const curr = child;
+
+        child = child->next;
+
+        if (3 != curr->type)
+            remove_text_nodes_recursion(curr);
+        else if (NULL != curr->parent)
+        {
+            xmlUnlinkNode(curr);
+            xmlFreeNode(curr);
+        }
+    }
+}
+
+} // anonymous namespace
 
 xmldoc::xmldoc(xmldoc&& other)
     : doc(other.doc)
@@ -237,29 +262,6 @@ std::string store_string(const xmldoc& doc)
     return sdoc;
 }
 
-static void remove_text_nodes_recursion(xmlNode* node)
-{
-    if (NULL == node)
-        return;
-
-    xmlNode* child = node->children;
-
-    while (NULL != child)
-    {
-        xmlNode* const curr = child;
-
-        child = child->next;
-
-        if (3 != curr->type)
-            remove_text_nodes_recursion(curr);
-        else if (NULL != curr->parent)
-        {
-            xmlUnlinkNode(curr);
-            xmlFreeNode(curr);
-        }
-    }
-}
-
 void remove_text_nodes(const xmldoc& doc)
 {
     if (doc.is_empty())
@@ -444,11 +446,11 @@ std::string get_string(const xmlctx& ctx,
     return get_string(eval_xpath(ctx, xpath), force);
 }
 
-void get_attribute_value_list(const xmlctx& ctx,
+::std::vector<::std::string> get_attribute_value_list(const xmlctx& ctx,
                               const ::std::string& parent,
-                              const ::std::string& attribute,
-                              ::std::vector<::std::string>& string_list)
+                              const ::std::string& attribute)
 {
+    ::std::vector<::std::string> string_list;
     int count = 0;
     xmlpathobj const xpo = eval_xpath(ctx, parent + "//@" + attribute);
 
@@ -472,7 +474,10 @@ void get_attribute_value_list(const xmlctx& ctx,
             }
         }
     }
+
+    return string_list;
 }
 
+} // namespace firewall
 } // namespace wago
 

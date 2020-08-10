@@ -12,7 +12,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ADevicePropertiesProvider : public Test {
  public:
@@ -33,4 +33,4 @@ TEST_F(ADevicePropertiesProvider, TestName) {
 
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

@@ -1,0 +1,32 @@
+From 4d8fc6e858841721f118a3f23ff5297efebc1ab8 Mon Sep 17 00:00:00 2001
+From: Heinrich Toews <heinrich.toews@wago.com>
+Date: Tue, 9 Jun 2020 11:11:58 +0200
+Subject: [PATCH] ARM: dts: pfc 8217: change led name from u7 to usr
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-750_8217.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8217.dts b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
+index 141ac5091fc7..91ef6a8b8de0 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8217.dts
++++ b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
+@@ -97,6 +97,14 @@
+ 	label = "net-green";
+ };
+ 
++&lb60_10 {
++	label = "usr-red";
++};
++
++&lb60_11 {
++	label = "usr-green";
++};
++
+ &mac {
+ 	status = "okay";
+ };
+-- 
+2.17.1
+

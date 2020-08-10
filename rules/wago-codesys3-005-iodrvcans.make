@@ -1,5 +1,5 @@
 ## -*-makefile-*-
-# $Id: wago-codesys3-005-iodrvcans.make 32616 2018-09-11 14:20:43Z jens.breitenstein@wago.com $
+# $Id: wago-codesys3-005-iodrvcans.make 48568 2020-04-27 11:55:49Z charline.wueste@wago.com $
 #
 # Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
 #
@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CDS3_IODRVCANS) += cds3-iodrvcans
 
-CDS3_IODRVCANS_VERSION    := 0.0.1
+CDS3_IODRVCANS_VERSION    := 0.0.2
 CDS3_IODRVCANS            := IoDrvCanS
 CDS3_IODRVCANS_DIR        := $(BUILDDIR)/$(CDS3_IODRVCANS)
 CDS3_IODRVCANS_URL        := file://$(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_IODRVCANS)

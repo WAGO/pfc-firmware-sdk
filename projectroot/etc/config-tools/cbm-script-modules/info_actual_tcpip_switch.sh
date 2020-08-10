@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
 
 function ShowNetworkDetails
 #
@@ -21,54 +21,90 @@ function ShowNetworkDetails
     declare -a menu_params
     declare -a menu_params_port
 
+    local bridge
+    for bridge in $(GetBridges); do
+        local ipaddr
+        local netmask
+        local source
+        local macaddress
+        
+        local p
+        local parameters=$(GetCurrentIpConfig $bridge)
+        for p in $parameters; do
+            case "$p" in
+                ipaddr=*)
+                    ipaddr="${p#ipaddr=}"
+                    ValidateParameter ipaddr $ipaddr
+                    ;;
+                netmask=*)
+                    netmask="${p#netmask=}"
+                    ValidateParameter netmask $netmask
+                    ;;
+                source=*)
+                    source="${p#source=}"
+                    ValidateParameter source $source
+                    ;;
+            esac
+        done
+        macaddress=$(GetMacAddress $bridge)
 
-    # create a note, if bootp or dhcp is configured for an interface, but got no
-    # address by now
-
-    ports=$(/etc/config-tools/get_eth_config --print-ports)
-
-    for port in $ports; do
-
-        local ipAddress=`./get_actual_eth_config $port ip-address`
-        local configType=`./get_eth_config $port config-type`
-
-        local waitingText=""
-        if [ "$configType" = "bootp" ] && [ -z "$ipAddress" ]; then
-            waitingText=", waiting for IP addr. by BootP"
-        elif [ "$configType" = "dhcp" ] && [ -z "$ipAddress" ]; then
-            waitingText=", waiting for IP addr. by DHCP"
+        local note=""
+        if [ "$ipaddr" == "0.0.0.0" ]; then
+            if [ "$source" = "bootp" ] || [ "$source" = "dhcp" ]; then
+                note=", waiting for ip address"
+            fi
         fi
 
-        local portLabel
-        if [[ "$(./get_dsa_mode)" == "0" ]]; then
-            # create sth. like X1/X2
-            # 
-            # sed script: see http://stackoverflow.com/questions/4594319/shell-replace-cr-lf-by-comma
-            # The H appends the pattern space to the hold space (saving the current line in the hold space). 
-            # The ${...} surrounds actions that apply to the last line only. 
-            # Those actions are: x swap hold and pattern space; s/\n/,/g substitute embedded newlines with commas; 
-            # s/^,// delete the leading comma (there's a newline at the start of the hold space); and p print.
-            
-            portLabel=$(xmlstarlet sel -t -v "//ip_settings/port_name" ${NETWORK_INTERFACES_XML} | sed -ne 'H;${x;s+\n+/+g;s+^/++;p;}')
-        else
-            portLabel=$port
-        fi
+        bridge_parameters=(
+            "$bridge"
+            "Mac Address..................$macaddress"
+            "IP Address...................$ipaddr (${source}${note})"
+            "Subnet Mask..................$netmask"
+            "")
 
-        local ipAddressString=${ipAddress}
-        if [[ "${ipAddressString}" != "" ]]; then
-            ipAddressString="${ipAddressString} ($(./get_eth_config $port config-type))"
-        fi 
+        menu_params=("${menu_params[@]}" "${bridge_parameters[@]}")
+    done
 
-        menu_params_port=("$portLabel"
-                          "State........................`./get_actual_eth_config $port state`${waitingText}" 
-                          "Mac Address..................`./get_actual_eth_config $port mac-address`" 
-                          "IP Address...................${ipAddressString}"
-                          "Subnet Mask..................`./get_actual_eth_config $port subnet-mask`"
-                          "")
+		local interface
+		for interface in $(GetInterfaces); do
+        
+        local state
+        local autonegotiation
+        local speed
+        local duplex
+        
+        local p
+        local parameters=$(GetInterfaceConfigOfDevice "$interface" text)
+        for p in $parameters; do
+            case "$p" in
+                state=*)
+                    state="${p#state=}"
+                    ValidateParameter state $state
+                    ;;
+                autonegotiation=*)
+                    autonegotiation="${p#autonegotiation=}"
+                    ValidateParameter autonegotiation $autonegotiation
+                    ;;
+                speed=*)
+                    speed="${p#speed=}"
+                    ValidateParameter speed $speed
+                    ;;
+                duplex=*)
+                    duplex="${p#duplex=}"
+                    ValidateParameter duplex $duplex
+                    ;;
+            esac
+        done
 
-        menu_params=("${menu_params[@]}" "${menu_params_port[@]}")
+        port_parameters=(
+            "$interface"
+            "State........................$state"
+            "Autonegotiation..............$autonegotiation"
+            "Speed........................$speed"
+            "Duplex.......................$duplex"
+            "")
 
-
+        menu_params=("${menu_params[@]}" "${port_parameters[@]}")
     done
 
     ./wdialog "--msgbox" "${TITLE}" "Network Details" "${menu_params[@]}"

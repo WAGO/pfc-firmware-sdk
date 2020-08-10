@@ -1,0 +1,93 @@
+Index: googletest-1.8.0/googletest/include/gtest/internal/gtest-death-test-internal.h
+===================================================================
+--- googletest-1.8.0.orig/googletest/include/gtest/internal/gtest-death-test-internal.h
++++ googletest-1.8.0/googletest/include/gtest/internal/gtest-death-test-internal.h
+@@ -53,6 +53,8 @@ const char kInternalRunDeathTestFlag[] =
+ 
+ #if GTEST_HAS_DEATH_TEST
+ 
++extern void installFailureHandlers();
++
+ // DeathTest is a class that hides much of the complexity of the
+ // GTEST_DEATH_TEST_ macro.  It is abstract; its static Create method
+ // returns a concrete class that depends on the prevailing death test
+@@ -160,6 +163,7 @@ GTEST_API_ bool ExitedUnsuccessfully(int
+ # if GTEST_HAS_EXCEPTIONS
+ #  define GTEST_EXECUTE_DEATH_TEST_STATEMENT_(statement, death_test) \
+   try { \
++    ::testing::internal::installFailureHandlers(); \
+     GTEST_SUPPRESS_UNREACHABLE_CODE_WARNING_BELOW_(statement); \
+   } catch (const ::std::exception& gtest_exception) { \
+     fprintf(\
+Index: googletest-1.8.0/googletest/src/gtest-death-test.cc
+===================================================================
+--- googletest-1.8.0.orig/googletest/src/gtest-death-test.cc
++++ googletest-1.8.0/googletest/src/gtest-death-test.cc
+@@ -47,6 +47,7 @@ # include <limits.h>
+ 
+ # if GTEST_OS_LINUX
+ #  include <signal.h>
++extern "C" void __gcov_flush(void);
+ # endif  // GTEST_OS_LINUX
+ 
+ # include <stdarg.h>
+@@ -270,10 +270,12 @@ void DeathTestAbort(const std::string& m
+     fputc(kDeathTestInternalError, parent);
+     fprintf(parent, "%s", message.c_str());
+     fflush(parent);
++    __gcov_flush();
+     _exit(1);
+   } else {
+     fprintf(stderr, "%s", message.c_str());
+     fflush(stderr);
++    __gcov_flush();
+     posix::Abort();
+   }
+ }
+@@ -495,6 +497,7 @@ void DeathTestImpl::Abort(AbortReason re
+   // may assert. As there are no in-process buffers to flush here, we are
+   // relying on the OS to close the descriptor after the process terminates
+   // when the destructors are not run.
++  __gcov_flush();
+   _exit(1);  // Exits w/o any normal exit hooks (we were supposed to crash)
+ }
+ 
+@@ -1099,6 +1102,7 @@ static pid_t ExecDeathTestSpawnChild(cha
+ 
+   if (use_fork && (child_pid = fork()) == 0) {
+       ExecDeathTestChildMain(&args);
++      __gcov_flush();
+       _exit(0);
+   }
+ #  endif  // GTEST_OS_QNX
+@@ -1335,6 +1339,30 @@ InternalRunDeathTestFlag* ParseInternalR
+   return new InternalRunDeathTestFlag(fields[0], line, index, write_fd);
+ }
+ 
++# if GTEST_OS_LINUX
++void terminateHandler() {
++  __gcov_flush();
++  _exit(1);
++}
++
++void signalHandler(int) {
++  terminateHandler();
++}
++# endif // GTEST_OS_LINUX
++
++// Add handlers for segmentation faults and uncaught exceptions that flush Gcov buffers to disk.
++// https://www.danielseither.de/blog/2013/12/globally-handling-uncaught-exceptions-and-signals-in-c
++void installFailureHandlers() {
++# if GTEST_OS_LINUX
++  struct sigaction action = { 0 };
++  action.sa_handler = signalHandler;
++
++  sigaction(SIGABRT, &action, NULL);
++  sigaction(SIGTERM, &action, NULL);
++  sigaction(SIGFPE, &action, NULL);
++# endif // GTEST_OS_LINUX
++  }
++
+ }  // namespace internal
+ 
+ #endif  // GTEST_HAS_DEATH_TEST

@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+
+order=$(/etc/config-tools/get_typelabel_value ORDER)
+mac_addr_count=$(/etc/config-tools/get_typelabel_value MAC_ID_INC)
+board_variant=$(< /sys/class/wago/system/board_variant)
+switch_model=$(/sbin/swconfig list | awk 'NF>1{print $NF}')
+
+DIPSWITCHDIR=/dev/dip-switch
+
+
+function log
+{
+    /usr/bin/logger -s -t networking "$@"
+}
+
+function has_marvell_switch
+{
+    [[ $switch_model == "mv88e6321" ]]
+}
+
+function get_next_macs
+{
+    local startMac="$1"
+    local macCount="$2"
+    local isValidMac="FALSE"
+
+    # Check MAC address has valid format.
+    [[ "$startMac" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]] && isValidMac="TRUE"
+
+    if [[ $isValidMac == "TRUE" ]]; then
+        # Remove colons
+        local mac_plain=${startMac//:/}
+
+        local i=0
+        while [[ "$i" < "$macCount" ]] ; do
+
+            local mac_num=$(printf "%012X" $(( 0x$mac_plain + i )) )
+            local mac_str=${mac_num:0:2}:${mac_num:2:2}:${mac_num:4:2}:${mac_num:6:2}:${mac_num:8:2}:${mac_num:10:2}
+            macs=( "${macs[@]}" $mac_str )
+            ((i++))
+        done
+    else
+        echo "NETWORK_INIT - Invalid MAC address \"startMac\". Failed generating subsequent addresses."
+    fi
+}
+
+function marvell_update_eeprom
+{
+    log "update switch eeprom"
+    /sbin/pfcXXX_config_network_switch_eeprom.sh /proc/device-tree/ocp/ethernet@4a100000/mdio@4a101000/switch@0/eeprom
+}
+
+function marvell_configure_atu
+{
+    local macaddr
+    macaddr=$(/etc/config-tools/get_typelabel_value MAC | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
+
+    log "add own macs to atu"
+    # Get next MAC addresses and store them to macs.
+    # macs[0] contains the original MAC address ($macaddr).
+    # Add the other MACs to the ATU as well. CPU port is 6.
+    declare -a macs
+    get_next_macs "$macaddr" $mac_addr_count
+
+    for mac in "${macs[@]}"; do
+        swconfig dev switch0 set port_fdb_add "${mac},6,0"
+    done
+}
+
+function networking_finish
+{
+    log "networking finish"
+
+    # get configured mac address and use it for the dsa slave devices
+    # NOTE: config-tools dependency here!!
+    if has_marvell_switch; then
+        log "found marvell switch"
+        marvell_configure_atu
+        marvell_update_eeprom
+    fi
+
+}
+
+case "$1" in
+start)
+    networking_finish
+    ;;
+stop)
+    ;;
+reload)
+    networking_finish
+    ;;
+restart|force-reload)
+    networking_finish
+    ;;
+*)
+    N=$BASH_COMMAND
+    echo "usage: $N {start|restart|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

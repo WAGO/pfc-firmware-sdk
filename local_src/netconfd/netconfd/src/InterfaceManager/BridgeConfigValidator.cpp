@@ -8,7 +8,7 @@
 #include "Helper.hpp"
 #include "Logger.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 BridgeConfigValidator::BridgeConfigValidator(IBridgeController &bridge_controller)
     :
@@ -71,4 +71,4 @@ Status BridgeConfigValidator::Validate(BridgeConfig const &os_config) const {
   return status;
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

@@ -3,7 +3,7 @@
 
 #include "NetDev.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class INetDevConstruction {
  public:

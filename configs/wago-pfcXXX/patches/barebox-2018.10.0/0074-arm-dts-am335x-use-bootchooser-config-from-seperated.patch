@@ -1,7 +1,8 @@
 From 0d2d123295b43851b5f0efa8a10396275d6dea5f Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 29 Aug 2018 15:57:30 +0200
-Subject: [PATCH] arm: dts: am335x: use bootchooser config from seperated file
+Subject: [PATCH 074/144] arm: dts: am335x: use bootchooser config from
+ seperated file
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

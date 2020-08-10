@@ -3,33 +3,29 @@
 #include "PersistenceExecutor.hpp"
 
 #include <boost/format.hpp>
+#include "TypesHelper.hpp"
 #include <iostream>
 
 #include "NetworkInterfacesXML.hpp"
-#include "JsonConfigConverter.hpp"
+#include "JsonConverter.hpp"
 #include "JsonBuilder.hpp"
 #include "JsonRestorer.hpp"
 #include "Logger.hpp"
-#include "TypesHelper.hpp"
 #include "FirmwareVersion.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 constexpr auto bridge_backup_key = "bridge-config";
 constexpr auto ip_backup_key = "ip-config";
 constexpr auto dip_ip_backup_key = "dip-ip-config";
 constexpr auto interface_backup_key = "interface-config";
 
-PersistenceExecutor::PersistenceExecutor(const ::std::string &persistence_path,
-                                         IPersistenceJsonConfigConverter &json_config_converter,
-                                         IJsonConvert<InterfaceConfigs> &port_configs_converter,
-                                         IFileEditor &file_editor, IBackupRestore &backup_restore,
-                                         IBackupRestore &legacy_restore, IDipSwitch &dip_switch)
+PersistenceExecutor::PersistenceExecutor(const ::std::string &persistence_path, IFileEditor &file_editor,
+                                         IBackupRestore &backup_restore, IBackupRestore &legacy_restore,
+                                         IDipSwitch &dip_switch)
     :
     persistence_path_ { persistence_path + "/netconfd.json" },
     interface_config_file_path_ { persistence_path + "/netconfd_interface_config.json" },
-    json_config_converter_ { json_config_converter },
-    port_configs_converter_ { port_configs_converter },
     file_editor_ { file_editor },
     backup_restore_ { backup_restore },
     legacy_restore_ { legacy_restore },
@@ -42,17 +38,21 @@ PersistenceExecutor::PersistenceExecutor(const ::std::string &persistence_path,
 
 Status PersistenceExecutor::UpdateNetconfdJson() const {
   Status status;
-  ::std::string new_json;
+  ::std::string json_str;
   if (status.Ok()) {
     if (dip_switch_.GetMode() == DipSwitchMode::HW_NOT_AVAILABLE || current_dip_switch_config_.IsIncomplete()) {
-      status = json_config_converter_.ToJson(current_bridge_config_, current_ip_configs_, true, new_json);
+      JsonBuilder jb;
+      jb.Append("bridge-config", current_bridge_config_).Append("ip-config", current_ip_configs_);
+      json_str = jb.ToString(JsonFormat::PRETTY);
     } else {
-      status = json_config_converter_.ToJson(current_bridge_config_, current_ip_configs_, current_dip_switch_config_,
-                                             true, new_json);
+      JsonBuilder jb;
+      jb.Append("bridge-config", current_bridge_config_).Append("ip-config", current_ip_configs_).Append(
+          "dip-ip-config", current_dip_switch_config_);
+      json_str = jb.ToString(JsonFormat::PRETTY);
     }
   }
   if (status.Ok()) {
-    status = file_editor_.Write(persistence_path_, new_json);
+    status = file_editor_.Write(persistence_path_, json_str);
   }
   return status;
 }
@@ -91,11 +91,13 @@ Status PersistenceExecutor::ReadNetconfdJson() {
     current_ip_configs_.clear();
     current_dip_switch_config_.Clear();
 
-    if (dip_switch_.GetMode() == DipSwitchMode::HW_NOT_AVAILABLE) {
-      status = json_config_converter_.ToConfigs(json, current_bridge_config_, current_ip_configs_);
-    } else {
-      status = json_config_converter_.ToConfigs(json, current_bridge_config_, current_ip_configs_,
-                                                current_dip_switch_config_);
+    JsonRestorer jr(::std::move(json));
+    status = jr.Restore("bridge-config", current_bridge_config_);
+    if (status.Ok()) {
+      status = jr.Restore("ip-config", current_ip_configs_);
+    }
+    if (status.Ok() && dip_switch_.GetMode() != DipSwitchMode::HW_NOT_AVAILABLE) {
+      status = jr.Restore("dip-ip-config", current_dip_switch_config_);
     }
   }
   return status;
@@ -140,8 +142,6 @@ Status PersistenceExecutor::Write(const DipSwitchIpConfig &config) {
     status.Prepend("Write dip ip config to persistence failed: ");
   }
 
-  //UpdateInterfacesXml();
-
   return status;
 }
 
@@ -179,9 +179,10 @@ Status PersistenceExecutor::Write(const InterfaceConfigs &configs) {
 
   current_interface_configs_ = configs;
 
-  auto json_string = port_configs_converter_.ToJsonString(current_interface_configs_);
+  JsonConverter jc;
+  auto json_str = jc.ToJsonString(current_interface_configs_, JsonFormat::PRETTY);
 
-  Status status = file_editor_.Write(interface_config_file_path_, json_string);
+  Status status = file_editor_.Write(interface_config_file_path_, json_str);
 
   UpdateInterfacesXml();
 
@@ -193,7 +194,8 @@ Status PersistenceExecutor::ReadInterfaceConfigJson() {
   Status status = file_editor_.Read(interface_config_file_path_, json);
   if (status.Ok()) {
     current_interface_configs_.clear();
-    port_configs_converter_.FromJsonString(json, current_interface_configs_);
+    JsonConverter jc;
+    status = jc.FromJsonString(json, current_interface_configs_);
   }
   return status;
 }
@@ -233,7 +235,6 @@ void PersistenceExecutor::ModifyBr0AddressToDipSwitch(IPConfigs &ip_configs) {
   if (it != ip_configs.end()) {
     it->address_ = current_dip_switch_config_.address_;
     it->netmask_ = current_dip_switch_config_.netmask_;
-    it->broadcast_ = "";
   }
 }
 
@@ -256,8 +257,9 @@ Status PersistenceExecutor::Backup(const std::string &file_path, const std::stri
   }
 
   JsonBuilder jb_network_data;
-  jb_network_data.Append(bridge_backup_key, current_bridge_config_).Append(ip_backup_key, current_ip_configs).Append(
-      interface_backup_key, current_interface_configs_);
+  jb_network_data.Append(bridge_backup_key, current_bridge_config_, fw_target).Append(ip_backup_key, current_ip_configs,
+                                                                                      fw_target).Append(
+      interface_backup_key, current_interface_configs_, fw_target);
 
   ::std::string dipswitch_data;
   if (dip_switch_.GetMode() != DipSwitchMode::HW_NOT_AVAILABLE) {
@@ -314,24 +316,26 @@ Status PersistenceExecutor::Restore(const ::std::string &file_path, BridgeConfig
     status = dip_switch_restorer.Restore(dip_ip_backup_key, dip_switch_config);
   }
 
-  ::std::string json_pretty;
+  ::std::string json_str;
   if (status.Ok()) {
-    if (dip_switch_.GetMode() == DipSwitchMode::HW_NOT_AVAILABLE) {
-      status = json_config_converter_.ToJson(bridge_config, ip_configs, true, json_pretty);
-    } else {
-      status = json_config_converter_.ToJson(bridge_config, ip_configs, dip_switch_config, true, json_pretty);
+    JsonBuilder jb;
+    jb.Append("bridge-config", bridge_config).Append("ip-config", ip_configs);
+    if (dip_switch_.GetMode() != DipSwitchMode::HW_NOT_AVAILABLE) {
+      jb.Append("dip-ip-config", dip_switch_config);
     }
+    json_str = jb.ToString(JsonFormat::PRETTY);
   }
 
   if (status.Ok()) {
-    status = file_editor_.Write(persistence_path_, json_pretty);
+    status = file_editor_.Write(persistence_path_, json_str);
     current_bridge_config_ = bridge_config;
     current_ip_configs_ = ip_configs;
     current_dip_switch_config_ = dip_switch_config;
   }
 
   if (status.Ok()) {
-    auto json_string = port_configs_converter_.ToJsonString(interface_configs);
+    JsonConverter jc;
+    auto json_string = jc.ToJsonString(interface_configs, JsonFormat::PRETTY);
     current_interface_configs_ = interface_configs;
     status = file_editor_.Write(interface_config_file_path_, json_string);
   }
@@ -352,4 +356,4 @@ uint32_t PersistenceExecutor::GetBackupParameterCount() const {
   return backup_restore_.GetBackupParameterCount();
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

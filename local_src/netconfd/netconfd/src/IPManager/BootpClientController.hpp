@@ -4,7 +4,7 @@
 
 #include "IBootpClientController.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class BootpClientController : public IBootpClientController {
  public:
@@ -25,4 +25,4 @@ class BootpClientController : public IBootpClientController {
   const ::std::string BOOTP_SCRIPT_PATH = "/sbin/bootpc-startup";
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

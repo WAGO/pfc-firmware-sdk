@@ -7,6 +7,7 @@
 #include <memory>
 #include <set>
 
+#include "../InterfaceManager/IBridgeInformation.hpp"
 #include "BootpClientController.hpp"
 #include "DHCPClientController.hpp"
 #include "FileEditor.hpp"
@@ -15,7 +16,6 @@
 #include "IEventManager.hpp"
 #include "IIPLinks.hpp"
 #include "IIPMonitor.hpp"
-#include "IInterfaceInformation.hpp"
 #include "INetDevConstruction.hpp"
 #include "INetDevManager.hpp"
 #include "IPConfigurator.hpp"
@@ -23,14 +23,15 @@
 #include "IPLink.hpp"
 #include "IPValidator.hpp"
 #include "IPersistenceProvider.hpp"
+#include "IIPInformation.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 const DipSwitchIpConfig DIP_SWITCH_DEFAULT_IP_CONFIG = DipSwitchIpConfig("192.168.1.0", "255.255.255.0");
 
-class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks, public IIPEvent {
+class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks, public IIPEvent, public IIPInformation {
  public:
-  IPManager(const IDeviceProperties &properties_provider, const IInterfaceInformation &interface_information,
+  IPManager(const IDeviceProperties &properties_provider, const IBridgeInformation &interface_information,
             IEventManager &event_manager, IPersistenceProvider &persistence_provider, INetDevManager &netdev_manager,
             IDipSwitch &ip_dip_switch, ::std::shared_ptr<IIPMonitor> ip_monitor);
   virtual ~IPManager() = default;
@@ -41,20 +42,18 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
   IPManager &operator=(const IPManager &&) = delete;
 
   Status Configure(const IPConfigs &config);
-  bool IsApplicableToSystem(const IPConfigs &configs) const override;
-  Status ValidateIPConfigs(const IPConfigs &configs, const bool interference_has_to_be_checked) const override;
-  Status ValidateIPConfigIsApplicableToSystem(const IPConfigs &configs) const override;
+  Status ValidateIPConfigs(const IPConfigs &configs) const override;
 
   IPConfigs GetIPConfigs() const override;
   IPConfigs GetIPConfigs(const Bridges &bridges) const override;
-  IPConfigs GetCurrentIPConfigs(const Bridges &bridges) const override;
+  IPConfigs GetCurrentIPConfigs() const override;
 
-  void OnNetDevCreated(NetDevPtr /*netdev*/) override{};
+  void OnNetDevCreated(NetDevPtr netdev) override;
   void OnNetDevRemoved(NetDevPtr netdev) override;
   void OnAddressChange(IIPEvent::ChangeType change_type, ::std::uint32_t if_index, ::std::string address,
                        ::std::string netmask) override;
 
-  ::std::shared_ptr<IPLink> CreateOrGet(const IPConfig &ip_config) override;
+  ::std::shared_ptr<IPLink> CreateOrGet(const ::std::string &interface_name) override;
   ::std::shared_ptr<IPLink> Get(const ::std::string &interface) override;
 
   Status ApplyTempFixIpConfiguration(const IPConfigs &config) override;
@@ -66,15 +65,18 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
   bool HasToApplyDipSwitchConfig() const;
 
  private:
-  IPConfigs GetAllIpConfigs(const Interfaces &interfaces) const;
-  Status CompletePartialIPConfig(IPConfigs &configs) const;
+  Status ValidateIPConfigIsApplicableToSystem(const IPConfigs &configs) const;
+  Status CheckExistenceAndAccess(const IPConfigs &configs) const;
+
+  IPConfigs QueryAllCurrentIPConfigsThatAreNotIncludetInIPConfigs(const IPConfigs &ip_configs) const;
 
   Status Apply(const IPConfigs &config, const DipSwitchIpConfig &dip_switch_ip_config);
   Status Persist(const IPConfigs &config);
   bool HasToBePersisted(const IPConfig &ip_config) const;
 
+  IPLinks ip_links_;
   const IDeviceProperties &properties_provider_;
-  const IInterfaceInformation &interface_information_;
+  const IBridgeInformation &interface_information_;
   IEventManager &event_manager_;
   IPersistenceProvider &persistence_provider_;
   const IDipSwitch &ip_dip_switch_;
@@ -85,9 +87,7 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
   BootpClientController bootp_controller_;
   IPController ip_controller_;
   IPConfigurator ip_configurator_;
-  IPValidator ip_validator_;
 
-  ::std::list<::std::shared_ptr<IPLink>> ip_links_;
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

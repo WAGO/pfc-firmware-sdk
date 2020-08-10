@@ -20,7 +20,8 @@ NETCONFD_VERSION	:= 1.0.0
 NETCONFD_MD5		:=
 NETCONFD		:= netconfd
 NETCONFD_URL		:= file://local_src/netconfd
-NETCONFD_LICENSE	:= unknown
+NETCONFD_LICENSE	:= GPLv2
+NETCONFD_LICENSE_FILE	:= COPYING
 
 NETCONFD_BUILDCONFIG  := Release
 
@@ -92,7 +93,7 @@ $(STATEDIR)/netconfd.extract: | $(NETCONFD_SRC_DIR)
 # Target-Install
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/netconfd.targetinstall: $(STATEDIR)/config-tools.targetinstall
+$(STATEDIR)/netconfd.targetinstall:
 	@$(call targetinfo)
 
 	@$(call install_init, netconfd)
@@ -103,16 +104,14 @@ $(STATEDIR)/netconfd.targetinstall: $(STATEDIR)/config-tools.targetinstall
 
 	@$(call install_copy, netconfd, 0, 0, 0755, $(NETCONFD_BUILD_DIR)/netconfd.elf, /usr/bin/netconfd)
 
-	# Client API library
-	@$(call install_tree, netconfd, 0, 0, - , /usr/include/netconf)
-	@$(call install_copy, netconfd, 0, 0, 0644, - , /usr/lib/libnetconf.a)
-	@$(call install_copy, netconfd, 0, 0, 0644, - , /usr/lib/pkgconfig/libnetconf.pc)
-
 	# install legacy wrapper and override old config tools
 	@$(call install_copy, netconfd, 0, 0, 0755, $(NETCONFD_DIR)/root/etc/config-tools/backup-restore/backup_netconfd, /etc/config-tools/backup-restore/backup_netconfd)
-	
+
 	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/init.d/netconfd, /etc/init.d/netconfd)
 	@$(call install_link, netconfd, ../init.d/netconfd, /etc/rc.d/S13_netconfd)
+
+	# install license file
+	@$(call install_copy, netconfd, 0, 0, 0644, $(NETCONFD_SRC_DIR)/$(NETCONFD_LICENSE_FILE), /usr/share/licenses/oss/license.$(NETCONFD)_$(NETCONFD_VERSION).txt)
 
 	@$(call install_finish, netconfd)
 	@$(call touch)

@@ -7,194 +7,239 @@
 ///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 #include "MacDistributor.hpp"
-#include "MockIDevicePropertiesProvider.hpp"
-#include "CommandExecutor.hpp"
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <memory>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <net/if_arp.h>
 #include <unistd.h>
 
+#include "MockIMacController.hpp"
+
+namespace netconf {
+
+using namespace std;
 using namespace testing;
+using namespace std::string_literals;
 
-namespace netconfd {
+ACTION_P(PutToAssignmentList, list)
+  {string itf {arg1};
+  MacAddress mac {arg0};
+  list.get().push_back( {itf, mac});
+}
 
-class AMacDistributor_Target : public Test {
+class AMacDistributor : public Test {
  public:
 
-  MockIDevicePropertiesProvider mock_properties_provider_;
-  ::std::shared_ptr<MacDistributor> mac_distributor_;
+  MockIMacController mock_mac_controller_;
 
-  ::std::string const test_tap1_ = "tap1";
-  ::std::string const test_tap2_ = "tap2";
-  ::std::string const test_bridge1_ = "brtest1";
-  ::std::string const test_bridge2_ = "brtest2";
+  unique_ptr<MacDistributor> mac_distributor_;
+  NetDevs netdevs;
 
-  ::std::string const mac0_ = "00:30:42:11:11:A0";
-  ::std::string const mac1_ = "00:30:42:11:11:A1";
-  ::std::string const mac2_ = "00:30:42:11:11:A2";
+  MacAddress base_mac_ = MacAddress { { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 } };
+  using AssigmentPair = std::pair<::std::string, ::netconf::MacAddress>;
+  std::list<AssigmentPair> mac_assingment_list;
 
-  AMacDistributor_Target() {
-
-  }
+  NetDevPtr br0 = MakeNetDev(1, "br0", DeviceType::Bridge);
+  NetDevPtr br1 = MakeNetDev(1, "br1", DeviceType::Bridge);
+  NetDevPtr br2 = MakeNetDev(1, "br2", DeviceType::Bridge);
+  NetDevPtr br3 = MakeNetDev(1, "br3", DeviceType::Bridge);
+  NetDevPtr wwan0 = MakeNetDev(1, "wwan0", DeviceType::Wwan);
+  NetDevPtr ethX1 = MakeNetDev(2, "ethX1", DeviceType::Port);
+  NetDevPtr ethX2 = MakeNetDev(3, "ethX2", DeviceType::Port);
+  NetDevPtr ethX11 = MakeNetDev(4, "ethX11", DeviceType::Port);
+  NetDevPtr ethX12 = MakeNetDev(4, "ethX12", DeviceType::Port);
 
   void SetUp() override {
-    AddTunInterface(test_tap1_);
-    AddTunInterface(test_tap2_);
-    AddBridge(test_bridge1_);
-    AddBridge(test_bridge2_);
+    mac_assingment_list.clear();
+  }
+
+  void CreateDistributorWithMacInc(uint32_t mac_in_inc) {
+    mac_distributor_ = make_unique<MacDistributor>(base_mac_, mac_in_inc, mock_mac_controller_);
   }
 
   void TearDown() override {
-    DeleteTunInterface(test_tap1_);
-    DeleteTunInterface(test_tap2_);
-    DeleteBridge(test_bridge1_);
-    DeleteBridge(test_bridge2_);
   }
 
-  void AddTunInterface(::std::string name) {
-    FILE* file;
-    file = popen(("ip tuntap add mode tap dev " + name).c_str(), "r");
-    pclose(file);
-  }
-
-  void DeleteTunInterface(::std::string name) {
-    FILE* file;
-    file = popen(("ip tuntap del mode tap dev " + name).c_str(), "r");
-    pclose(file);
-  }
-
-  void AddBridge(::std::string name) {
-    FILE* file;
-    file = popen(("brctl addbr " + name).c_str(), "r");
-    pclose(file);
-  }
-
-  void DeleteBridge(::std::string name) {
-    FILE* file;
-    file = popen(("brctl delbr " + name).c_str(), "r");
-    pclose(file);
-  }
-
-  ::std::string GetMacOf(::std::string const& interface) {
-
-    struct ifreq ifr { };
-    ifr.ifr_hwaddr.sa_family = ARPHRD_ETHER;
-    strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ);
-
-    int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (socket_fd != -1) {
-      ioctl(socket_fd, SIOCGIFHWADDR, &ifr);
-      close(socket_fd);
+  void AssignPortsToBridge(NetDevPtr bridge, initializer_list<NetDevPtr> ports) {
+    for (auto port : ports) {
+      NetDev::SetRelation(port, bridge);
     }
-
-    std::array<char, 19> mac_buffer { };
-
-    snprintf(mac_buffer.data(), mac_buffer.size(), "%02X:%02X:%02X:%02X:%02X:%02X",
-             ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1],
-             ifr.ifr_hwaddr.sa_data[2], ifr.ifr_hwaddr.sa_data[3],
-             ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]);
-
-    return mac_buffer.data();
   }
 
 };
 
-TEST_F(AMacDistributor_Target, AssignsMacAdressesToInterfacesInCasePropertyProviderSupportsSeveralMac) {
+TEST_F(AMacDistributor, AssignsOnlyOneMac) {
+  CreateDistributorWithMacInc(1);
+  AssignPortsToBridge(br0, { ethX1, ethX2, ethX11, ethX12 });
 
-  Interfaces os_interfaces = { test_tap1_, test_tap2_ };
+  netdevs.assign( { br0, ethX1, ethX2, ethX11, ethX12 });
 
-  EXPECT_CALL(mock_properties_provider_, GetOSInterfaces()).WillRepeatedly(
-      Return(os_interfaces));
-  EXPECT_CALL(mock_properties_provider_, GetIncrementedMac(1)).WillOnce(Return(mac1_));
-  EXPECT_CALL(mock_properties_provider_, GetIncrementedMac(2)).WillOnce(Return(mac2_));
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_), _)).Times(netdevs.size());
 
-  mac_distributor_ = ::std::make_shared<MacDistributor>(mock_properties_provider_);
-
-  EXPECT_EQ(mac1_, GetMacOf(test_tap1_));
-  EXPECT_EQ(mac2_, GetMacOf(test_tap2_));
-}
-
-TEST_F(AMacDistributor_Target, AssignsMacAdressesToInterfacesInCasePropertyProviderSupportsOneMac) {
-
-  Interfaces os_interfaces = { test_tap1_, test_tap2_ };
-
-  EXPECT_CALL(mock_properties_provider_, GetOSInterfaces()).WillRepeatedly(
-      Return(os_interfaces));
-  EXPECT_CALL(mock_properties_provider_, GetIncrementedMac(_)).WillRepeatedly(Return(""));
-  EXPECT_CALL(mock_properties_provider_, GetMac()).WillRepeatedly(Return(mac1_));
-
-  mac_distributor_ = ::std::make_shared<MacDistributor>(mock_properties_provider_);
-
-  EXPECT_EQ(mac1_, GetMacOf(test_tap1_));
-  EXPECT_EQ(mac1_, GetMacOf(test_tap2_));
-}
-
-TEST_F(AMacDistributor_Target, TriesToAssignMacAdressesAlthoughTheProviderProvidesNoneInterface) {
-
-  Interfaces os_interfaces = { };
-  EXPECT_CALL(mock_properties_provider_, GetOSInterfaces()).WillRepeatedly(
-      Return(os_interfaces));
-  EXPECT_CALL(mock_properties_provider_, GetIncrementedMac(_)).Times(0);
-
-  mac_distributor_ = ::std::make_shared<MacDistributor>(mock_properties_provider_);
+  mac_distributor_->AssignMacs(netdevs);
 
 }
 
-TEST_F(AMacDistributor_Target, TriesToAssignMacAdressesAlthoughTheOsInterfaceDoesNotExist) {
+TEST_F(AMacDistributor, AssignsBridgesSameMacs) {
 
-  DeleteTunInterface(test_tap1_);
+  CreateDistributorWithMacInc(5);
 
-  Interfaces os_interfaces = { test_tap1_ };
-  EXPECT_CALL(mock_properties_provider_, GetOSInterfaces()).WillRepeatedly(
-      Return(os_interfaces));
-  EXPECT_CALL(mock_properties_provider_, GetIncrementedMac(1)).WillOnce(Return(mac1_));
+  AssignPortsToBridge(br0, { ethX1, ethX2 });
+  AssignPortsToBridge(br1, { ethX11, ethX12 });
+  netdevs.assign( { br0, br1, ethX1, ethX2, ethX11, ethX12 });
 
-  EXPECT_THROW(::std::make_shared<MacDistributor>(mock_properties_provider_), ::std::runtime_error);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_), Eq("br0"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_), Eq("br1"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(1)), Eq("ethX1"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(2)), Eq("ethX2"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(3)), Eq("ethX11"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(4)), Eq("ethX12"))).Times(1);
 
-}
-
-TEST_F(AMacDistributor_Target, AssignsMacAdressesToBridges) {
-
-  mac_distributor_ = ::std::make_shared<MacDistributor>(mock_properties_provider_);
-
-  EXPECT_CALL(mock_properties_provider_, GetMac()).WillRepeatedly(Return(mac0_));
-
-  mac_distributor_->SetMac(test_bridge1_);
-  mac_distributor_->SetMac(test_bridge2_);
-
-  EXPECT_EQ(mac0_, GetMacOf(test_bridge1_));
-  EXPECT_EQ(mac0_, GetMacOf(test_bridge2_));
-}
-
-TEST_F(AMacDistributor_Target, TriesToSetMacAdressesWhileThePropertiesProviderProvidesNoMac) {
-
-  mac_distributor_ = ::std::make_shared<MacDistributor>(mock_properties_provider_);
-
-  EXPECT_CALL(mock_properties_provider_, GetMac()).WillRepeatedly(Return(""));
-
-  Status status = mac_distributor_->SetMac(test_bridge1_);
-
-  EXPECT_EQ(StatusCode::ERROR, status.Get());
+  mac_distributor_->AssignMacs(netdevs);
 
 }
 
-TEST_F(AMacDistributor_Target, TriesToSetMacAdressesAlthoughTheBridgeDoesNotExist) {
+TEST_F(AMacDistributor, AssignsBridgesAndPortsDifferentMacs) {
 
-  DeleteBridge(test_bridge1_);
+  CreateDistributorWithMacInc(6);
 
-  mac_distributor_ = ::std::make_shared<MacDistributor>(mock_properties_provider_);
+  AssignPortsToBridge(br0, { ethX1, ethX2 });
+  AssignPortsToBridge(br1, { ethX11, ethX12 });
+  netdevs.assign( { br0, br1, ethX1, ethX2, ethX11, ethX12 });
 
-  EXPECT_CALL(mock_properties_provider_, GetMac()).WillRepeatedly(Return(mac0_));
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_), Eq("br0"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(1)), Eq("br1"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(2)), Eq("ethX1"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(3)), Eq("ethX2"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(4)), Eq("ethX11"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(5)), Eq("ethX12"))).Times(1);
 
-  Status status = mac_distributor_->SetMac(test_bridge1_);
+  mac_distributor_->AssignMacs(netdevs);
 
-  EXPECT_EQ(StatusCode::SYSTEM_CALL_ERROR, status.Get());
+}
+
+TEST_F(AMacDistributor, AssignsBridgesWithSinglePorts) {
+
+  CreateDistributorWithMacInc(6);
+
+  AssignPortsToBridge(br0, { ethX1 });
+  AssignPortsToBridge(br1, { ethX2 });
+  AssignPortsToBridge(br2, { ethX11 });
+  AssignPortsToBridge(br3, { ethX12 });
+  netdevs.assign( { br0, br1, br2, br3, ethX1, ethX2, ethX11, ethX12 });
+
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_), Eq("br0"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(1)), Eq("br1"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(2)), Eq("br2"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(3)), Eq("br3"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(0)), Eq("ethX1"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(1)), Eq("ethX2"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(2)), Eq("ethX11"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(3)), Eq("ethX12"))).Times(1);
+
+  mac_distributor_->AssignMacs(netdevs);
+
+}
+
+TEST_F(AMacDistributor, DoesNotAssignWwan) {
+
+  CreateDistributorWithMacInc(6);
+
+  AssignPortsToBridge(br0, { ethX1 });
+  AssignPortsToBridge(br1, { ethX2 });
+  AssignPortsToBridge(br2, { ethX11 });
+  AssignPortsToBridge(br3, { ethX12 });
+  netdevs.assign( { br0, br1, br2, br3, ethX1, ethX2, ethX11, ethX12, wwan0 });
+
+  EXPECT_CALL(mock_mac_controller_, SetMac(_, _)).Times(8);
+  EXPECT_CALL(mock_mac_controller_, SetMac(_, Eq("wwan0"))).Times(0);
+
+  mac_distributor_->AssignMacs(netdevs);
+
+}
+
+TEST_F(AMacDistributor, AssignsPortsWithoutBridges) {
+
+  CreateDistributorWithMacInc(6);
+
+  netdevs.assign( { ethX1, ethX2, ethX11, ethX12 });
+
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(0)), Eq("ethX1"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(1)), Eq("ethX2"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(2)), Eq("ethX11"))).Times(1);
+  EXPECT_CALL(mock_mac_controller_, SetMac(Eq(base_mac_.Increment(3)), Eq("ethX12"))).Times(1);
+
+  mac_distributor_->AssignMacs(netdevs);
 
 }
 
 
-} /* namespace netconfd */
+
+TEST_F(AMacDistributor, AssignsInitialMacsInInitialSwitchMode) {
+
+  CreateDistributorWithMacInc(6);
+  EXPECT_CALL(mock_mac_controller_, SetMac(_, _)).WillRepeatedly(PutToAssignmentList(std::ref(mac_assingment_list)));
+
+  // Assign without br1
+  AssignPortsToBridge(br0, { ethX1, ethX2, ethX11, ethX12 });
+  netdevs.assign( { br0, ethX1, ethX2, ethX11, ethX12 });
+
+  mac_distributor_->AssignMacs(netdevs);
+
+  EXPECT_EQ(base_mac_.Increment(0), br0->GetMac());
+
+  EXPECT_EQ(5, mac_assingment_list.size());
+  EXPECT_THAT(mac_assingment_list, ElementsAre(AssigmentPair { "br0"s, base_mac_.Increment(0) },
+                                               AssigmentPair { "ethX1"s, base_mac_.Increment(1) },
+                                               AssigmentPair { "ethX2"s, base_mac_.Increment(2) },
+                                               AssigmentPair { "ethX11"s, base_mac_.Increment(3) },
+                                               AssigmentPair { "ethX12"s, base_mac_.Increment(4) }
+                                               ));
+
+}
+
+TEST_F(AMacDistributor, AssignsAlwaysSameMacsToBridges) {
+
+  CreateDistributorWithMacInc(6);
+  EXPECT_CALL(mock_mac_controller_, SetMac(_, _)).WillRepeatedly(PutToAssignmentList(std::ref(mac_assingment_list)));
+
+  // Assign without br1
+  AssignPortsToBridge(br0, { ethX1, ethX2 });
+  AssignPortsToBridge(br2, { ethX11, ethX12 });
+  netdevs.assign( { br0, br2, ethX1, ethX2, ethX11, ethX12 });
+
+  mac_distributor_->AssignMacs(netdevs);
+
+  EXPECT_EQ(base_mac_.Increment(0), br0->GetMac());
+  EXPECT_EQ(base_mac_.Increment(2), br2->GetMac());
+  EXPECT_EQ(6, mac_assingment_list.size());
+  EXPECT_THAT(mac_assingment_list, ElementsAre(AssigmentPair { "br0"s, base_mac_.Increment(0) },
+                                               AssigmentPair { "br2"s, base_mac_.Increment(2) },
+                                               AssigmentPair { "ethX1"s, base_mac_.Increment(1) },
+                                               AssigmentPair { "ethX2"s, base_mac_.Increment(3) },
+                                               AssigmentPair { "ethX11"s, base_mac_.Increment(4) },
+                                               AssigmentPair { "ethX12"s, base_mac_.Increment(5) }
+                                               ));
+
+  mac_assingment_list.clear();
+  AssignPortsToBridge(br0, { ethX1 });
+  AssignPortsToBridge(br1, { ethX2 });
+  AssignPortsToBridge(br2, { ethX11, ethX12 });
+  netdevs.assign( { br0, br1, br2, ethX1, ethX2, ethX11, ethX12 });
+  mac_distributor_->AssignMacs(netdevs);
+
+  EXPECT_EQ(base_mac_.Increment(0), br0->GetMac());
+  EXPECT_EQ(base_mac_.Increment(1), br1->GetMac());
+  EXPECT_EQ(base_mac_.Increment(2), br2->GetMac());
+  EXPECT_EQ(7, mac_assingment_list.size());
+
+  EXPECT_THAT(mac_assingment_list, ElementsAre(AssigmentPair { "br0"s, base_mac_.Increment(0) },
+                                               AssigmentPair { "br1"s, base_mac_.Increment(1) },
+                                               AssigmentPair { "br2"s, base_mac_.Increment(2) },
+                                               AssigmentPair { "ethX1"s, base_mac_.Increment(0) },
+                                               AssigmentPair { "ethX2"s, base_mac_.Increment(1) },
+                                               AssigmentPair { "ethX11"s, base_mac_.Increment(3) },
+                                               AssigmentPair { "ethX12"s, base_mac_.Increment(4) }
+                                               ));
+}
+
+} /* namespace netconf */

@@ -17,7 +17,8 @@
 # Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
 # Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
 # Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MSc: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -101,9 +102,8 @@ IsNetworkSettingsV2()
 configParam=()
 
 if ! IsNetworkSettingsV2 ; then
-  #FIXME: read dsa mode properly
   configParam+=(
-    "dsa-mode;                  /usr/bin/xmlstarlet sel -t -m //dsa_mode -v . /etc/specific/network-interfaces.xml; /etc/config-tools/set_dsa_mode --value "
+    "dsa-mode;                $NETWORK_CONFIG --get --dsa-mode --quiet;                         $NETWORK_CONFIG --dsa-mode --quiet --set "
   )
 fi
 
@@ -202,10 +202,9 @@ configParam+=(
   )
 
 
-#FIXME: reimplement properly instead of parsing XML file
 GetPortsList ()
 {
-    /usr/bin/xmlstarlet sel -t -m //ip_settings/port_name -v . -o " " /etc/specific/network-interfaces.xml
+  echo "$(GetLegacyPorts)"
 }
 
 

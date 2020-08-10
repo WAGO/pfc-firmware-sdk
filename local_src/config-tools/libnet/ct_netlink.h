@@ -8,8 +8,11 @@
 #define __CT_NETLINK_H__
 
 #include <stdlib.h>
+#include <sys/cdefs.h>
 
-typedef struct netlinkSession netlinkSession_t; 
+__BEGIN_DECLS
+
+typedef struct netlinkSession netlinkSession_t;
 
 int ct_netlink_init(netlinkSession_t **pSessionHandle);
 void ct_netlink_cleanup(netlinkSession_t *sessionHandle);
@@ -18,7 +21,7 @@ int ct_netlink_get_link_flags(const char *devStr,
                               unsigned int *flags,
 							  netlinkSession_t *sessionHandle);
 
-int ct_netlink_get_ipaddr(const char *devStr, 
+int ct_netlink_get_ipaddr(const char *devStr,
                           char *strIp,
                           size_t strIpLen,
 						  netlinkSession_t *sessionHandle);
@@ -48,5 +51,7 @@ int ct_netlink_set_dsa_state(const char *value);
 int ct_netlink_get_dsa_state(char * const szValue,
                              size_t const valueLen);
 #endif
+
+__END_DECLS
 
 #endif

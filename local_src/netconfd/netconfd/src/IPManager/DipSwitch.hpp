@@ -6,7 +6,7 @@
 #include <limits>
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 
 class DipSwitch : public IDipSwitch {
  public:
@@ -23,4 +23,4 @@ class DipSwitch : public IDipSwitch {
   bool hw_available_;
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

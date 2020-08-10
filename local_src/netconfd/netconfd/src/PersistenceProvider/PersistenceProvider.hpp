@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "PersistenceJsonConfigConverter.hpp"
 #include "FileEditor.hpp"
 #include "BackupRestore.hpp"
 #include "DipSwitch.hpp"
@@ -10,7 +9,7 @@
 #include "PersistenceExecutor.hpp"
 #include "IPersistence.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class PersistenceProvider : public IPersistenceProvider, public IPersistence<InterfaceConfigs> {
  public:
@@ -50,7 +49,6 @@ class PersistenceProvider : public IPersistenceProvider, public IPersistence<Int
  private:
 
   IDeviceProperties& properties_provider_;
-  PersistenceJsonConfigConverter json_config_converter_;
   FileEditor file_editor_;
   BackupRestore backup_restore_;
   RestoreLegacy restore_legacy_;
@@ -58,4 +56,4 @@ class PersistenceProvider : public IPersistenceProvider, public IPersistence<Int
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

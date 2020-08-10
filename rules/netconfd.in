@@ -1,8 +1,8 @@
 ## SECTION=wago_specific_config
 
 config NETCONFD
-	tristate
-	select HOST_CT_BUILD
+  tristate
+  select HOST_CT_BUILD
   select GOOGLETEST
   select BOOST
   select BOOST_LOG
@@ -12,10 +12,12 @@ config NETCONFD
   select BOOST_SERIALIZATION
   select GLIB_GDBUS
   select DBUS_GLIB
-  select GLIB  
+  select GLIB
   select DBUS_WAIT
   select LIBNL3
   select NLOHMANN_JSON
-	prompt "netconfd"
-	help
-	  FIXME
+  select GSL
+  select LIBBRIDGE
+  prompt "netconfd"
+  help
+    FIXME

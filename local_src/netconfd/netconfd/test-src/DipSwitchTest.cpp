@@ -12,7 +12,7 @@
 
 #include <boost/filesystem.hpp>
 
-namespace netconfd {
+namespace netconf {
 
 using namespace boost::filesystem;
 using namespace std::string_literals;
@@ -103,4 +103,4 @@ TEST(TheDipSwitch, ReachesItsMaximum)
 
 
 
-}  // namespace netconfd
+}  // namespace netconf

@@ -25,7 +25,7 @@
 #include "error.hpp"
 #include "test_utils.hpp"
 
-using namespace wago;
+using namespace wago::firewall;
 
 class StoreFileTest : public ::testing::Test {
  public:
@@ -70,7 +70,7 @@ TEST_F(StoreFileTest, store_ipcmn_xml) {
   }
 
   // Check expected file content.
-  ASSERT_TRUE(TestUtils::content_is_equal("../../../test-res/ipcmn.xml", ipcmn_file));
+  ASSERT_TRUE(TestUtils::is_content_equal("../../../test-res/ipcmn.xml", ipcmn_file));
 }
 
 TEST_F(StoreFileTest, store_ipcmn_xml_tmp_already_exists) {
@@ -89,7 +89,7 @@ TEST_F(StoreFileTest, store_ipcmn_xml_tmp_already_exists) {
   ASSERT_FALSE(TestUtils::file_exists(ipcmn_file_tmp));
 
   // Check expected file content.
-  ASSERT_TRUE(TestUtils::content_is_equal("../../../test-res/ipcmn.xml", ipcmn_file));
+  ASSERT_TRUE(TestUtils::is_content_equal("../../../test-res/ipcmn.xml", ipcmn_file));
 }
 
 //---- End of source file ------------------------------------------------------

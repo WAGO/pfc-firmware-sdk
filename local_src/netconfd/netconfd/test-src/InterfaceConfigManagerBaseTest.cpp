@@ -7,7 +7,7 @@
 
 #include "InterfaceConfigManagerBaseTest.h"
 
-namespace netconfd {
+namespace netconf {
 
 
-} /* namespace netconfd */
+} /* namespace netconf */

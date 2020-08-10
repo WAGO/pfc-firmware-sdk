@@ -123,9 +123,12 @@ if [ -n "${backupFile}" ]; then
       paramName=`echo ${configParam[$configParamIndex]} | cut -d\; -f1`
       writeFunction=`echo "${configParam[$configParamIndex]}" | cut -d\; -f3`
       paramValue=`GetBackupValue $paramName "$backupFile"`
-      ProcessErrRestoreOperation $? " : " $paramName
-      $writeFunction$paramValue
-      ProcessErrRestoreOperation $? "Failed to restore parameter:" $paramName
+      paramStatus=$?
+      ProcessErrRestoreOperation "$paramStatus" " : " "$paramName"
+      if [[ "$paramStatus" -eq "$SUCCESS" ]]; then
+          $writeFunction$paramValue
+      fi
+      ProcessErrRestoreOperation $? "Failed to restore parameter:" "$paramName"
 
       configParamIndex=$[$configParamIndex + 1]
     done

@@ -2,61 +2,30 @@
 #pragma once
 
 #include "Status.hpp"
+#include "Types.hpp"
+#include "ConfigBase.hpp"
 
 #include <boost/optional.hpp>
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
+#include <initializer_list>
+
 
 namespace netconf {
+namespace api {
 
-enum class IPSource {
-  UNKNOWN,
-  NONE,    //< Used to delete an existing config
-  STATIC,  //< Statically applied ip config. The IP address will set when the ethnet link is up and removed on link down
-           //(LOWER_UP/LOWER_DOWN).
-  DHCP,    //< IP config over dhcp; starts the dhcp client
-  BOOTP,   //< IP config over bootp; starts the bootp client
-  EXTERNAL,  //< IP config is managed externally, netconfd does not interfere in any way
-  TEMPORARY  //< IP config is applied temporarly, the dhcp client uses this to set the ip-config. Temporary IP addresses
-             // will be removed on link down.
-};
-
-/**
- * @brief POCO class to hold the ip-config for one interface
- * @note The fields must be filled depending on the @see IPSource.
- *  The @see IPConfig::interface_ field must be set always.
- *  For the sources @see IPSource::NONE, @see IPSource::DHCP, @see IPSource::BOOTP and @see IPSource::EXTERNAL
- *  setting set the @see IPConfig::source_ field is sufficient.
- *  For the sources @see IPSource::STATIC and @see IPSource::TEMPORARY the @see IPConfig::address_ fields needs to be
- * set also.
- *
- */
-struct IPConfig {
-  bool operator==(const IPConfig& config) const {
-    return ((this->interface_ == config.interface_) && (this->source_ == config.source_) &&
-            (this->address_ == config.address_) && (this->netmask_ == config.netmask_) &&
-            (this->broadcast_ == config.broadcast_));
-  }
-
-  ::std::string interface_ = "";
-  IPSource source_ = IPSource::UNKNOWN;
-  ::std::string address_ = "";
-  ::std::string netmask_ = "";
-  ::std::string broadcast_ = "";
-};
 
 /**
  * @brief Container class to manage the @see IPConfig
  *
  */
-class IPConfigs {
+class IPConfigs: public detail::ConfigBase<netconf::IPConfig> {
  public:
-  IPConfigs();
-  IPConfigs(const IPConfigs&) noexcept;
-  IPConfigs(IPConfigs&&) noexcept;
-  explicit IPConfigs(const ::std::string& jsonstr);
-  ~IPConfigs();
+  IPConfigs() = default;
+  explicit IPConfigs(const netconf::IPConfigs& configs);
+  ~IPConfigs() = default;
 
   /**
    * @brief Add or replace an @see IPConfig
@@ -64,7 +33,7 @@ class IPConfigs {
    *
    * @param config The IPConfig
    */
-  void AddIPConfig(IPConfig config);
+  void AddIPConfig(netconf::IPConfig config);
 
   /**
    * @brief Remove the configuration of an interface.
@@ -80,26 +49,49 @@ class IPConfigs {
    * @param interface_name Name of the interface
    * @return boost::optional<IPConfig>
    */
-  boost::optional<IPConfig> GetIPConfig(const ::std::string& interface_name) const;
-
-  /**
-   * @brief Return the IPConfigs of an interface
-   *
-   * @return ::std::vector<IPConfig>
-   * */
-  ::std::vector<IPConfig> Get() const;
-
-  /**
-   * @brief Retruns the json representation of the ip configurations.
-   *
-   * @return ::std::string
-   */
-  ::std::string ToJson() const;
+  boost::optional<netconf::IPConfig> GetIPConfig(const ::std::string& interface_name) const;
 
  private:
-  class Impl;
-  ::std::unique_ptr<Impl> impl_;
+  ::std::string GetCompareValue(const netconf::IPConfig& config) const noexcept override;
+
 };
+
+/**
+ * Simple builder of IP configuration from JSON string.
+ *
+ * @note In case of error it will only return empty object.
+ *
+ * @param json_str JSON input string
+ * @return IPConfig object filled from JSON input, or empty in case of errors.
+ */
+
+IPConfigs MakeIPConfigs(const ::std::string& json_str) noexcept;
+/**
+ * Builder of IP configuration from JSON string.
+ *
+ * @param json_str JSON input string
+ * @param status [out] status of the creation operation.
+ * @return IPConfig object filled from JSON input, or empty in case of errors.
+ */
+IPConfigs MakeIPConfigs(const ::std::string &json_str, Status& status) noexcept;
+
+/**
+ * @brief Retruns the json representation of the ip configurations.
+ *
+ * @return json string
+ */
+::std::string ToJson(const IPConfigs& configs) noexcept;
+
+/**
+ * Convert a single IP configuration to its JSON representation.
+ * @param ip_config the IP config base object.
+ * @return json string
+ */
+::std::string ToJson(const netconf::IPConfig& ip_config) noexcept;
+
+::std::string ToString(netconf::IPSource source);
+
+::std::string CalculateBroadcast(const netconf::IPConfig& config) noexcept;
 
 /**
  * @brief Returns the @see IPConfigs from the netconfd network configuration daemon.
@@ -107,6 +99,15 @@ class IPConfigs {
  * @return IPConfigs The @see IPConfigs
  */
 IPConfigs GetIPConfigs();
+/**
+ * @brief Returns the @see IPConfigs of a specific device type.
+ * @param type filter by this type.
+ *
+ * @note filter can also be an oration of types, .e.g (DeviceType::Bridge|DeviceType::Wwan)
+ *
+ * @return The @see IPConfigs filtered by type.
+ */
+IPConfigs GetIPConfigs(DeviceType type);
 
 /**
  * @brief Returns the current @see IPConfigs from the netconfd network configuration daemon.
@@ -114,6 +115,17 @@ IPConfigs GetIPConfigs();
  * @return IPConfigs The @see IPConfigs
  */
 IPConfigs GetCurrentIPConfigs();
+
+/**
+ * @brief Returns the current @see IPConfigs filtered by device type
+ * @param type filter by this type.
+ *
+ * @note filter can also be an oration of types, .e.g (DeviceType::Bridge|DeviceType::Wwan)
+ *
+ * @return The curent @see IPConfigs filtered by type.
+ */
+IPConfigs GetCurrentIPConfigs(DeviceType type);
+
 
 /**
  * @brief Set the ip configuration for the netconfd network configuration daemon.
@@ -131,31 +143,11 @@ Status SetIPConfigs(const IPConfigs& config);
  */
 void DeleteIPConfig(::std::string interface_name);
 
-
 /**
  * @brief Set the Temp Fix Ip
  *
  */
 void SetTempFixIp();
 
-/**
- * @brief Get DIP switch configuration.
- *
- * @return DIP switch configuration containing:
- *         - IP address, e.g. 192.168.1.0 (the first three octets matter)
- *         - netmask
- *         - mode, (off, dhcp, static, hw-not-available)
- *         - value, the value of the last octet (0 - 255)
- */
-::std::string GetDipSwitchConfig();
-
-/**
- * @brief Set DIP switch configuration.
- *
- * @param config The DIP switch configuration containing IP address and netmask.
- * @return Status @see Status::Ok on success.
- */
-Status SetDipSwitchConfig(const ::std::string& config);
-
-
+}  // namespace api
 }  // namespace netconf

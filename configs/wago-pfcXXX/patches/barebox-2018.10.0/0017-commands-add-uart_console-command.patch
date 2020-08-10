@@ -1,7 +1,7 @@
 From 367d81d1b9c5574c4977c89dd39a59a235be80b7 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 11 Jun 2018 10:28:11 +0200
-Subject: [PATCH] commands: add uart_console command
+Subject: [PATCH 017/144] commands: add uart_console command
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -2,12 +2,11 @@
 
 #pragma once
 
-#include "IDeviceTypeLabelProvider.hpp"
 #include "CommandExecutor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
-class DeviceTypeLabelProvider : public IDeviceTypeLabelProvider {
+class DeviceTypeLabelProvider {
 
  public:
   DeviceTypeLabelProvider(CommandExecutor& executor);
@@ -18,9 +17,11 @@ class DeviceTypeLabelProvider : public IDeviceTypeLabelProvider {
   DeviceTypeLabelProvider(DeviceTypeLabelProvider&&) = delete;
   DeviceTypeLabelProvider& operator=(DeviceTypeLabelProvider&&) = delete;
 
-  ::std::string GetOrderNumber() const override;
-  ::std::string GetMac() const override;
-  ::std::string GetIncrementedMac(uint32_t inc) const override;
+  ::std::string GetOrderNumber() const;
+  ::std::string GetMac() const;
+  ::std::string GetIncrementedMac(uint32_t inc) const;
+  uint32_t GetMacCount() const;
+
 
  private:
   void GetMacFallback();
@@ -30,8 +31,8 @@ class DeviceTypeLabelProvider : public IDeviceTypeLabelProvider {
 
   ::std::string order_number_;
   ::std::string mac_;
-  uint32_t mac_increment_;
+  uint32_t mac_count_;
 
 };
 
-} /* namespace netconfd */
+}

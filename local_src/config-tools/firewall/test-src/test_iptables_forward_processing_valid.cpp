@@ -14,7 +14,6 @@
 #include "process.hpp"
 #include "process_iptables.hpp"
 #include "test_utils.hpp"
-#include <iostream>
 
 using namespace wago;
 
@@ -41,7 +40,7 @@ TEST_P(IptablesForwardProcessingTest, SetForwardState) {
   ::std::vector<::std::string> argv = { data.state_, data.interface1_, data.interface2_ };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_NO_THROW(iptables::set_forward_link(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::set_forward_link(doc, argv));
 
   auto current_data = get_iptables_processing_data(doc, data.second_interface1_, data.second_interface2_);
   ASSERT_EQ(data.state_, current_data.state_);
@@ -52,12 +51,12 @@ TEST_P(IptablesForwardProcessingTest, RemoveForwardState) {
 
   ::std::vector<::std::string> argv = { data.state_, data.interface1_, data.interface2_ };
   auto doc = file_accessor_.read_configuration("iptables", false);
-  iptables::set_forward_link(doc, argv);
+  iptables::impl::set_forward_link(doc, argv);
 
   argv = { data.interface1_, data.interface2_ };
 
   doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_NO_THROW(iptables::rem_forward_link(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::rem_forward_link(doc, argv));
 
   ASSERT_FALSE(interface_exists(doc, data.interface1_, data.interface2_));
 }

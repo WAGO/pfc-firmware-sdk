@@ -3,7 +3,7 @@
 #include "SystemPropertiesProvider.hpp"
 #include <sys/utsname.h>
 
-namespace netconfd {
+namespace netconf {
 
 Status SystemPropertiesProvider::GetHostname(::std::string& hostname) const {
   Status status(StatusCode::OK);
@@ -19,4 +19,4 @@ Status SystemPropertiesProvider::GetHostname(::std::string& hostname) const {
   return status;
 }
 
-} /* namespace netconfd */
+}

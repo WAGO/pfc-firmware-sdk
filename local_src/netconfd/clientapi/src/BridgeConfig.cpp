@@ -1,149 +1,132 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "BridgeConfig.hpp"
-#include <nlohmann/json.hpp>
-#include "JsonParse.hpp"
+
+#include "JsonConverter.hpp"
+#include "TypesHelper.hpp"
+#include <boost/algorithm/string.hpp>
 
 namespace netconf {
+namespace api {
 
-using nlohmann::json;
-
-static void RemoveInterface(json &j, const ::std::string &interface_name) {
-  for (auto &bridge : j) {
-    auto it = ::std::find(bridge.begin(), bridge.end(), interface_name);
-    if (it != bridge.end()) {
-      bridge.erase(it);
+static void RemoveInterface(netconf::BridgeConfig &config, const ::std::string &interface_name) {
+  for (auto &cfg_pair : config) {
+    auto it = ::std::find(cfg_pair.second.begin(), cfg_pair.second.end(), interface_name);
+    if (it != cfg_pair.second.end()) {
+      cfg_pair.second.erase(it);
       break;
     }
   }
 }
 
-class BridgeConfig::Impl {
- public:
-  Impl() = default;
-  explicit Impl(const ::std::string &jsonstr) {
-    json_ = JsonToNJson(jsonstr);
-  }
-  nlohmann::json json_;
-};
-
-BridgeConfig::BridgeConfig()
-    : impl_ { new Impl { } } {
-}
-
-BridgeConfig::BridgeConfig(const ::std::string &jsonstr)
-    : impl_ { new Impl { jsonstr } } {
-}
-
-BridgeConfig::BridgeConfig(const BridgeConfig &other) noexcept
-    : impl_ { new Impl { *other.impl_ } } {
-}
-
-BridgeConfig::BridgeConfig(BridgeConfig &&other) noexcept
-    : impl_ { std::move(other.impl_) } {
-  other.impl_ = std::make_unique<Impl>();
-}
-
-BridgeConfig& BridgeConfig::operator=(const BridgeConfig &other) {
-  impl_ = std::make_unique < Impl > (*(other.impl_));
-  return *this;
-}
-
-BridgeConfig& BridgeConfig::operator=(BridgeConfig &&other) noexcept
-{
-  impl_ = std::move(other.impl_);
-  other.impl_ = std::make_unique<Impl>();
-  return *this;
+BridgeConfig::BridgeConfig(const netconf::BridgeConfig &config)
+    :
+    configs_ { config } {
 }
 
 BridgeConfig::~BridgeConfig() = default;
 
 void BridgeConfig::AddBridge(const ::std::string &bridge_name) {
-  auto &j = impl_->json_;
-  // find an entry
-  if (not j.contains(bridge_name)) {
-    j[bridge_name] = json::array();
-  }
+  configs_.insert( { bridge_name, { } });
 }
 
 void BridgeConfig::DeleteBridge(const ::std::string &bridge_name) {
-  impl_->json_.erase(bridge_name);
+  configs_.erase(bridge_name);
 }
 
 void BridgeConfig::AssignInterfaceToBridge(const ::std::string &interface_name, const ::std::string &bridge_name) {
-  auto &j = impl_->json_;
-  RemoveInterface(j, interface_name);
+  RemoveInterface(configs_, interface_name);
+  AddBridge(bridge_name);
 
-  if (j.contains(bridge_name)) {
-    j[bridge_name].push_back(interface_name);
+  if (configs_.count(bridge_name) > 0) {
+    configs_[bridge_name].push_back(interface_name);
   }
 }
 
 void BridgeConfig::DeleteInterface(const ::std::string &interface_name) {
-  auto &j = impl_->json_;
-  RemoveInterface(j, interface_name);
+  RemoveInterface(configs_, interface_name);
 }
 
-::std::string BridgeConfig::GetBridgeInterfaces(const ::std::string &bridge_name) const {
-  ::std::string interfaces;
-
-  auto &j = impl_->json_;
-  for (auto &bridge : j.items()) {
-    if (bridge.key() == bridge_name) {
-      auto &itfs = bridge.value();
-      for (const auto &itf : itfs.items()) {
-        interfaces.append(itf.value());
-        interfaces.append(",");
-      }
-      interfaces.pop_back();
-    }
+Interfaces BridgeConfig::GetBridgeInterfaces(const ::std::string& bridge_name) const {
+  if (configs_.count(bridge_name) > 0) {
+    return configs_.at(bridge_name);
   }
-
-  return interfaces;
+  return Interfaces{};
 }
 
-::std::string BridgeConfig::GetBridgeOfInterface(const ::std::string &interface_name) const {
-  auto &j = impl_->json_;
-  for (auto &bridge : j.items()) {
-    auto &interface_array = bridge.value();
-    auto it = ::std::find(interface_array.begin(), interface_array.end(), interface_name);
-    if (it != interface_array.end()) {
-      return bridge.key();
-    }
+Bridge BridgeConfig::GetBridgeOfInterface(const Interface& interface_name) const {
+  auto has_interface = [&](auto& entry) {return interface_name == entry;};
+  auto entry_it = ::std::find_if(configs_.begin(), configs_.end(), [&](auto& entry){
+    return ::std::find_if(entry.second.begin(), entry.second.end(), has_interface) != entry.second.end();});
+  if(entry_it != configs_.end())
+  {
+    return entry_it->first;
   }
   return "";
 }
 
+::std::vector<Bridge> BridgeConfig::GetBridges() const {
+  ::std::vector<Bridge> bridges;
+  ::std::transform(configs_.cbegin(), configs_.cend(), ::std::back_inserter(bridges), [](const auto& entry ) {return entry.first;});
+  return bridges;
+}
+
+bool BridgeConfig::AreInSameBridge(const ::std::vector<::std::string> &interfaces) const {
+  ::std::vector<::std::string> bridges;
+  bridges.reserve(4);
+
+  for (auto &itf : interfaces) {
+    bridges.push_back(GetBridgeOfInterface(itf));
+  }
+
+  if (::std::any_of(bridges.begin(), bridges.end(), [](auto &s) {
+    return s.empty();
+  })) {
+    return false;
+  }
+  return std::adjacent_find(bridges.begin(), bridges.end(), ::std::not_equal_to<>()) == bridges.end();
+}
+
+netconf::BridgeConfig BridgeConfig::GetConfig() const noexcept{
+  return configs_;
+}
+
 bool BridgeConfig::BridgeIsEmpty(const ::std::string &bridge_name) const {
-  if (impl_->json_.count(bridge_name) > 0) {
-    return impl_->json_.at(bridge_name).empty();
+  return configs_.count(bridge_name) == 0 || configs_.at(bridge_name).empty();
+}
+
+::std::string ToJson(const BridgeConfig& config) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(config.GetConfig());
+}
+
+::std::string ToString(const BridgeConfig& config) noexcept {
+  ::std::stringstream ss;
+  for(auto& bridge_entry: config.GetConfig()){
+    ss << bridge_entry.first << "=";
+    ss << boost::algorithm::join(bridge_entry.second, ",") << " ";
   }
-  return true;
-}
-
-::std::string BridgeConfig::ToJson() const {
-  return impl_->json_.dump();
-}
-
-::std::string BridgeConfig::ToString() const {
-  ::std::string config;
-  for (const auto &bridge : impl_->json_.items()) {
-
-    config.append(bridge.key());
-    config.append("=");
-
-    auto itfs = bridge.value();
-    for (const auto &interface : itfs.items()) {
-      config.append(interface.value());
-      config.append(",");
-    }
-    config.pop_back();
-
-    config.append(" ");
+  auto brcfg_str = ss.str();
+  if(!brcfg_str.empty()){
+    brcfg_str.pop_back(); // Remove whithespace at the end
   }
-  config.pop_back();
-
-  return config;
+  return brcfg_str;
 }
 
+bool operator==(const BridgeConfig &rhs, const BridgeConfig &lhs) {
+  return IsEqual(rhs.configs_, lhs.configs_);
+}
+
+BridgeConfig MakeBridgeConfig(const std::string& json_str)
+{
+  JsonConverter jc;
+  netconf::BridgeConfig bc;
+  auto status = jc.FromJsonString(json_str, bc);
+  if(status.NotOk()) {
+    // TODO: throw something useful(please!!)
+  }
+  return BridgeConfig{bc};
+}
+
+} /* namespace api */
 } /* namespace netconf */

@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: port_dhcpd.sh
@@ -32,9 +32,8 @@ function MenuListChange
     unset newArray
 }
 
-function DhcpdConfig
-{
-    local port=$1
+function DhcpdConfig {
+    local bridge=$1
 
     # Set text variables for editing variable menu entries.
     # Used in function MenuItemEdit.
@@ -46,17 +45,17 @@ function DhcpdConfig
     ShowEvaluateDataWindow "DHCPD Configuration"
 
     # Get the values for the several parameters.
-    local state=`$GETCONFIG -p $port -g dhcpd-state`
-    local range=$($GETCONFIG -p $port -g dhcpd-range)
-    local lease_time=$($GETCONFIG -p $port -g dhcpd-lease-time)
-    local fixhosts=$($GETCONFIG -p $port -g dhcpd-fix-host)
+    local state=$($GETCONFIG -p $bridge -g dhcpd-state)
+    local range=$($GETCONFIG -p $bridge -g dhcpd-range)
+    local lease_time=$($GETCONFIG -p $bridge -g dhcpd-lease-time)
+    local fixhosts=$($GETCONFIG -p $bridge -g dhcpd-fix-host)
 
     if [ -z $state ]; then
         lasterror=$(cat $LAST_ERROR_FILENAME)
         WdialogWrapper "--menu" selection \
             "$TITLE" \
             "DHCPD Configuration on error" \
-            "0. Back to Port Selection Menu" \
+            "0. Back to Bridge Selection Menu" \
             "" \
             "ERROR: $lasterror"
         return 0
@@ -89,8 +88,8 @@ function DhcpdConfig
         # Show parameter selection-menu.
         WdialogWrapper "--menu" selection \
             "$TITLE" \
-            "DHCPD Configuration Port $port" \
-            "0. Back to Port Selection Menu" \
+            "DHCPD Configuration Bridge $bridge" \
+            "0. Back to Bridge Selection Menu" \
             "1. State..................$state" \
             "2. Range..................$range" \
             "3. Lease Time (min).......$lease_time" \
@@ -106,7 +105,7 @@ function DhcpdConfig
                 1)  # State was selected -> show selection-menu with the possible states.
                     WdialogWrapper "--menu" selection \
                         "$TITLE" \
-                        "Change DHCPD-State ($state) Port $port" \
+                        "Change DHCPD-State ($state) Bridge $port" \
                         "0. Back to DHCPD Port Selection Menu" \
                         "1. Enable" \
                         "2. Disable"
@@ -121,38 +120,38 @@ function DhcpdConfig
                     # If state changed, set it, get actual value, and show possible errors.
                     if [ -n "$newState" ] && [ "$state" != "$newState" ]; then
                         ShowProcessingDataWindow "$processMsg"
-                        $SETCONFIG -p $port dhcpd-state="$newState"
-                        state=$($GETCONFIG -p $port -g dhcpd-state)
+                        $SETCONFIG -p $bridge dhcpd-state="$newState"
+                        state=$($GETCONFIG -p $bridge -g dhcpd-state)
                         ShowLastError
                     fi
                     ;;
     
                 2)  # Range was selected -> show input-window to get new range.
-                    WdialogWrapper "--inputbox" retUnused "$TITLE" "Change DHCPD Range Port $port" \
+                    WdialogWrapper "--inputbox" retUnused "$TITLE" "Change DHCPD Range Bridge $bridge" \
                         "Enter Range:" 60 $range 2> temp
-                    local newRange=`cat temp`
+                    local newRange=$(cat temp)
                     rm temp
     
                     # If new range were given - change it, get the actual value again and show possible errors.
                     if [ -n "$newRange" ] && [ "$newRange" != "$range" ]; then
                         ShowProcessingDataWindow "$processMsg"
-                        $SETCONFIG -p $port dhcpd-range=$newRange  
-                        range=$($GETCONFIG -p $port -g dhcpd-range)
+                        $SETCONFIG -p $bridge dhcpd-range=$newRange  
+                        range=$($GETCONFIG -p $bridge -g dhcpd-range)
                         ShowLastError
                     fi
                     ;;
     
                 3)  # DHCPD lease time is selected -> show input-window to get new value.
-                    WdialogWrapper "--inputbox" retUnused "$TITLE" "Change DHCPD Lease Time Port $port" \
+                    WdialogWrapper "--inputbox" retUnused "$TITLE" "Change DHCPD Lease Time Bridge $bridge" \
                         "Enter a lease time in minutes greater or equal to 2." 8 $lease_time 2> temp
-                    local newLeaseTime=`cat temp`
+                    local newLeaseTime=$(cat temp)
                     rm temp
     
                     # If new lease time was given - change it, get the actual value again and show possible errors.
                     if [ -n "$newLeaseTime" ] && [ "$newLeaseTime" != "$lease_time" ]; then
                         ShowProcessingDataWindow "$processMsg"
-                        $SETCONFIG -p $port dhcpd-lease-time=$newLeaseTime
-                        lease_time=$($GETCONFIG -p $port -g dhcpd-lease-time)
+                        $SETCONFIG -p $bridge dhcpd-lease-time=$newLeaseTime
+                        lease_time=$($GETCONFIG -p $bridge -g dhcpd-lease-time)
                         ShowLastError
                     fi
                     ;;
@@ -160,7 +159,7 @@ function DhcpdConfig
                 4)  # Add static host was selected -> show input-window to get new value.
                     WdialogWrapper "--inputbox" retUnused "$TITLE" "Add Static Host Name" \
                         "Enter mac-addr_ip-addr or hostname_ip-addr" 66 "" 2> temp
-                    local newFixhosts=`cat temp`
+                    local newFixhosts=$(cat temp)
                     rm temp
                     if [ -z $fixhosts ]; then
                         fixhosts=$newFixhosts
@@ -171,8 +170,8 @@ function DhcpdConfig
                     # If new host was given - change it, get the actual value again and show possible errors.
                     if [ -n "$newFixhosts" ]; then
                         ShowProcessingDataWindow "$processMsg"
-                        $SETCONFIG -p $port dhcpd-fix-host=$fixhosts
-                        fixhosts=$($GETCONFIG -p $port -g dhcpd-fix-host)
+                        $SETCONFIG -p $bridge dhcpd-fix-host=$fixhosts
+                        fixhosts=$($GETCONFIG -p $bridge -g dhcpd-fix-host)
                         ShowLastError
                     fi
                     ;;
@@ -181,8 +180,8 @@ function DhcpdConfig
                     MenuItemEdit $(($selection - $baseItem))
                     ShowProcessingDataWindow "$processMsg"
                     fixhosts=$(ct_array_join varMenuValueList ",")
-                    $SETCONFIG -p $port dhcpd-fix-host=$fixhosts
-                    fixhosts=$($GETCONFIG -p $port -g dhcpd-fix-host)
+                    $SETCONFIG -p $bridge dhcpd-fix-host=$fixhosts
+                    fixhosts=$($GETCONFIG -p $bridge -g dhcpd-fix-host)
                     ShowLastError
                     ;;
             esac
@@ -195,24 +194,21 @@ function DhcpdConfig
     done
 } # end of DhcpdConfig
 
-function MainDhcpd
-{
-    local ports=$(xmlstarlet sel -t -v "//ip_settings[show_in_wbm='1']/port_name" ${NETWORK_INTERFACES_XML})
- 
-    declare -a ports_array
-    declare -a menu_params_array
+function MainDhcpd {
+    declare -a bridges
+    declare -a menu_parameters
     local nr=2
 
     # Build menu entries for port selection.
-    for port in $ports; do
-        ports_array=("${ports_array[@]}" "$port")
-        menu_params_array=("${menu_params_array[@]}" "$nr. $port")
+    for bridge in $(GetBridges); do
+        bridges=("${bridges[@]}" "$bridge")
+        menu_parameters=("${menu_parameters[@]}" "$nr. $bridge")
         nr=$[$nr + 1]
     done
  
     local quit=$FALSE
     local selection
-    declare -a menu_params_array
+    declare -a menu_parameters
   
     while [ "$quit" = "$FALSE" ]; do
         # Show menu.
@@ -221,7 +217,7 @@ function MainDhcpd
             "DHCPD Port Selection" \
             "0. Back to Ports and Services Menu" \
             "1. DHCPD firewalling" \
-            "${menu_params_array[@]}"
+            "${menu_parameters[@]}"
 
         case "$selection" in
         
@@ -230,20 +226,16 @@ function MainDhcpd
             ;;
 
             1)  
-                running=`/etc/config-tools/get_dhcpd_config --json | tr -d " '\"\t\n\r\v" | grep -e 'DhcpdState:enabled'`
+                running=$(/etc/config-tools/get_dhcpd_config --json | tr -d " '\"\t\n\r\v" | grep -e 'DhcpdState:enabled')
 
-                if [ "x" != "x${running}" ] ; then
-                    running="enabled"
-                else
-                    running="disabled"
-                fi
+                [[ "x" != "x${running}" ]] && running="enabled" || running="disabled"
 
                 FirewallServiceInterfaces dhcpd DHCPD ${running}
                 ;;
 
             *)
-                if [[ $selection -le $((${#menu_params_array[@]} + 1)) ]]; then
-                    DhcpdConfig "${ports_array[$(($selection - 2))]}"
+                if [[ $selection -le $((${#menu_parameters[@]} + 1)) ]]; then
+                    DhcpdConfig "${bridges[$(($selection - 2))]}"
                 else
                     errorText="Error in wdialog"
                     quit=$TRUE 

@@ -1,7 +1,7 @@
 From 9344f3ef912b805eafe7e0542a781e7129888b18 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Sep 2018 15:07:26 +0200
-Subject: [PATCH] arm: configs: am35xx_pfc: activate full console
+Subject: [PATCH 099/144] arm: configs: am35xx_pfc: activate full console
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

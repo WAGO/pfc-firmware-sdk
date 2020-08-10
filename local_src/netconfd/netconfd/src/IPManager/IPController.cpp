@@ -12,10 +12,11 @@
 #include <netinet/in.h>
 #include <cerrno>
 #include "Logger.hpp"
-#include "gsl.hpp"
+#include <gsl/gsl>
 #include <Socket.h>
+#include <errno.h>
 
-namespace netconfd {
+namespace netconf {
 
 static Status GetIPParamter(int fd, uint16_t flag, const Interface &interface, ::std::string &value_str) {
 
@@ -74,7 +75,8 @@ static Status SetIPParameter(int fd, uint16_t flag, const Interface &interface, 
   struct sockaddr_in *sock_value = reinterpret_cast<struct sockaddr_in*>(&if_req.ifr_addr);  //NOLINT: do not access members of unions is unavoidable at this point
   sock_value->sin_addr.s_addr = value;
   if (ioctl(fd, flag, &if_req) < 0) {
-    status.Prepend(StatusCode::SYSTEM_CALL_ERROR, "system call error.");
+
+    status.Prepend(StatusCode::SYSTEM_CALL_ERROR, "system call error: ioctl: " + ::std::string(strerror(errno)));
     return status;
   }
 
@@ -104,17 +106,9 @@ Status IPController::GetIPConfig(const Interface &interface, IPConfig &config) c
       return status;
     }
 
-    ::std::string broadcast_value;
-    status = GetIPParamter(sockfd, SIOCGIFBRDADDR, interface, broadcast_value);
-    if (status.NotOk()) {
-      status.Prepend("Get broadcast of interface " + interface + ": ");
-      return status;
-    }
-
     config.interface_ = interface;
     config.address_ = ip_value;
     config.netmask_ = netmask_value;
-    config.broadcast_ = broadcast_value;
 
   } catch (std::exception &e) {
     status.Prepend(StatusCode::ERROR, "Get ip parameter of interface " + interface + ": " + e.what());
@@ -133,7 +127,7 @@ Status IPController::SetIPConfig(const IPConfig &config) const {
 
     status = SetIPParameter(fd, SIOCSIFADDR, config.interface_, config.address_);
     if (status.NotOk()) {
-      status.Prepend("Set IP address of interface " + config.interface_ + ": ");
+      status.Prepend("Set IP address " + config.address_ + " of interface " + config.interface_ + ": ");
       return status;
     }
 
@@ -141,14 +135,6 @@ Status IPController::SetIPConfig(const IPConfig &config) const {
       status = SetIPParameter(fd, SIOCSIFNETMASK, config.interface_, config.netmask_);
       if (status.NotOk()) {
         status.Prepend("Set IP netmask of interface " + config.interface_ + ": ");
-        return status;
-      }
-    }
-
-    if (not config.broadcast_.empty() && ZeroIP != config.broadcast_) {
-      status = SetIPParameter(fd, SIOCSIFBRDADDR, config.interface_, config.broadcast_);
-      if (status.NotOk()) {
-        status.Prepend("Set IP broadcast address of interface " + config.interface_ + ": ");
         return status;
       }
     }
@@ -161,4 +147,4 @@ Status IPController::SetIPConfig(const IPConfig &config) const {
 }
 
 }
-/* namespace netconfd */
+/* namespace netconf */

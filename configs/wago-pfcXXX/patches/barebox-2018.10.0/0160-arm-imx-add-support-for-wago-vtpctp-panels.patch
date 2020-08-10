@@ -1,7 +1,7 @@
 From 0b03539b67a663a7613b9168ea9272b0a426bc6e Mon Sep 17 00:00:00 2001
 From: Ralf Gliese <ralf.gliese@wago.com>
 Date: Thu, 17 Jan 2019 10:53:08 +0000
-Subject: [PATCH] arm: imx: add support for wago vtpctp panels
+Subject: [PATCH 160/160] arm: imx: add support for wago vtpctp panels
 
 Signed-off-by: Ralf Gliese <ralf.gliese@wago.com>
 ---

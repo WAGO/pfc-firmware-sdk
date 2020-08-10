@@ -11,7 +11,7 @@
 ///
 ///  \file     ipdatacheck.c
 ///
-///  \version  $Revision: 25225 $
+///  \version  $Revision: 48550 $
 ///
 ///  \brief    Check functions of network parameters.
 ///
@@ -19,13 +19,12 @@
 ///     --subnet-check:     Checks an ip address against the subnet of
 ///                         given interface names
 ///
-///  \author   Hoffmann, Hans-Josef
+///  \author   WAGO
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 // Include files
 //------------------------------------------------------------------------------
-
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -39,7 +38,6 @@
 
 #include <glib.h>               // Gnome GLib interfaces
 
-#include "libnet/ct_xml.h"
 #include "libnet/ct_libnet.h"
 #include "liblog/ct_liblog.h"   // for error codes
 #include "config_tool_lib.h"
@@ -275,7 +273,7 @@ static int conv_netmask2dec(char *netmask, uint32_t *mask_dec)
                         //keep going
                         return_decimal_mask += 8;
                     }
-                    else if (found_first_zero == false) 
+                    else if (found_first_zero == false)
                     {
                         //check each bit
                         int bit = 7;
@@ -333,156 +331,6 @@ static int conv_netmask2dec(char *netmask, uint32_t *mask_dec)
 }
 
 
-// Read some configuration parameters of all network interfaces into memory data structures.
-static void netcfg_read_settings(ip_config_t *data, char *interfaces_xml_path, int debugmode)
-{
-    char buf[256];
-    int rc;
-    libnetSession_t *libnet_session = NULL; 
-    int status;
-
-    status = ct_libnet_start_session(interfaces_xml_path, &libnet_session);
-    erh_assert(SUCCESS == status, status, "No access to net interface config xml file %s.", interfaces_xml_path);
-    if(debugmode)
-    {
-        // Simplify testing, take a constant host name.
-        strcpy(buf, "debughostname");
-    }
-    else
-    {
-        if (gethostname(buf, sizeof(buf)) != 0)
-        {
-            erh_set_error(SYSTEM_CALL_ERROR, "gethostname failed.", "");
-        }
-    }
-    data->host_name = g_strdup(buf);
-
-    // Get DSA state.
-    buf[0] = '\0';
-    status = ct_libnet_get_dsa_state(buf, sizeof(buf), libnet_session);
-    data->dsa_state = buf[0] - '0';
-    erh_assert(SUCCESS == status && strlen(buf) == 1 && (data->dsa_state == 0 || data->dsa_state == 1), status,
-              "Error in net interface config xml file %s.", interfaces_xml_path);
-
-    // Get list of ports configured from network-interfaces.xml.
-    buf[0] = '\0';
-    status = ct_libnet_get_ports_list(buf, sizeof(buf), ",", libnet_session);
-    erh_assert(SUCCESS == status, status, "Error in net interface config xml file %s.", interfaces_xml_path);
-    char **ip_port_list = g_strsplit(buf, ",", 0);
-    int ip_port_count = g_strv_length(ip_port_list);
-    data->port_name_list = g_malloc0((MAX_PORTS + 1) * sizeof(char *));
-    if (data->no_of_ports >= MAX_PORTS)
-    {
-        snprintf(buf, sizeof(buf), "%d", MAX_PORTS);
-        erh_set_error(CONFIG_FILE_INCONSISTENT, "Found more than %s ports in network-interfaces.xml", buf);
-        data->no_of_ports++;
-    }
-
-    // Read port specific parameters, IP-Address, Netmask.
-    int i;
-    for (i = 0; i < ip_port_count; i++)
-    {
-        int portindex = data->no_of_ports;
-        data->port_name_list[data->no_of_ports] = ip_port_list[i];
-        data->no_of_ports++;
-
-        // Copy port name.
-        port_data_t *pd = g_malloc(sizeof(port_data_t));
-        data->port_data_list[portindex] = pd;
-        pd->port_name = g_strdup(data->port_name_list[portindex]);
-
-        // Get ethernet port state
-        buf[0] = '\0';
-        status = ct_libnet_get_port_state_from_config(pd->port_name, buf, sizeof(buf), libnet_session);
-        erh_assert(SUCCESS == status, status, "Error in net interface config xml file %s.", interfaces_xml_path);
-        pd->state = g_strdup(buf);
-
-        // Get port type (static | dhcp | bootp)
-        buf[0] = '\0';
-        status = ct_libnet_get_config_type(pd->port_name, buf, sizeof(buf), libnet_session);
-        erh_assert(SUCCESS == status, status, "Error in net interface config xml file %s.", interfaces_xml_path);
-        pd->type = g_strdup(buf);
-
-        // Get IP address from interface config
-        buf[0] = '\0';
-        rc = ct_libnet_get_ip_addr_from_hw(pd->port_name, buf, sizeof(buf), IP_FORMAT_MODE_NO_NETMASK, libnet_session);
-        if (rc == SUCCESS)
-        {
-            pd->ip_addr = g_strdup(buf);
-        }
-        else
-        {
-            pd->ip_addr = g_strdup("0.0.0.0");
-        }
-
-        // Get netmask from interface config
-        char netmask[SIZEOF_IPADDR];
-        netmask[0] = '\0';
-        rc = ct_libnet_get_netmask_from_hw(pd->port_name, netmask, sizeof(netmask), NETMASK_FORMAT_MODE_CLASSIC, libnet_session);
-        if (rc == SUCCESS)
-        {
-            pd->netmask = g_strdup(netmask);
-        }
-        else
-        {
-            pd->netmask = g_strdup("0.0.0.0");
-        }
-        conv_ip_ascii2bin(pd->ip_addr, &pd->ip_addr_bin);
-        conv_ip_ascii2bin(pd->netmask, &pd->netmask_bin);
-        pd->network_bin = pd->ip_addr_bin & pd->netmask_bin;
-    }
-
-    // Terminate session to libnet.
-    ct_libnet_finish_session(libnet_session);
-}
-
-// Debug print ip data structure
-static void netcfg_print_settings(ip_config_t *ipd)
-{
-    port_data_t *pd;
-    int i;
-
-    printf("Network config data:\n");
-    printf("  DSA state = %d\n", ipd->dsa_state);
-    printf("  Hostname = %s\n", ipd->host_name);
-    for (i = 0; i < ipd->no_of_ports; i++)
-    {
-        pd = ipd->port_data_list[i];
-        printf("\n  Portname   = %s\n", pd->port_name);
-        printf("    State      = %s\n", pd->state);
-        printf("    Type       = %s\n", pd->type);
-        printf("    IP address = %s\n", pd->ip_addr);
-        printf("    Netmask    = %s\n", pd->netmask);
-        printf("    IP address hex = 0x%08X\n", pd->ip_addr_bin);
-        printf("    Netmask hex    = 0x%08X\n", pd->netmask_bin);
-        printf("    Network hex    = 0x%08X\n", pd->network_bin);
-    }
-}
-
-// Return the list of port names as get from network interface config.
-static char **netcfg_get_port_names(ip_config_t *data, int *count)
-{
-    *count = data->no_of_ports;
-    return data->port_name_list;
-}
-
-// Find the index of port with the given name.
-static port_data_t *netcfg_get_port_data(ip_config_t *data, char *port)
-{
-    int idx;
-    port_data_t *retval = NULL;
-    for(idx = 0; idx < data->no_of_ports; idx++)
-    {
-        if(0 == strcmp(port, data->port_data_list[idx]->port_name))
-        {
-            retval = data->port_data_list[idx];
-            break;
-        }
-    }
-    erh_assert(retval != NULL, INVALID_PARAMETER, "Invalid port specification.", "");
-    return retval;
-}
-
 //------------------------------------------------------------------------------
 // SECTION Main function, command line option handling.
 //------------------------------------------------------------------------------
@@ -490,7 +338,6 @@ static port_data_t *netcfg_get_port_data(ip_config_t *data, char *port)
 // Main function command codes.
 typedef enum {
     NONE = 0,
-    CHECKSUBNETS,
     VERIFY_IP,
     VERIFY_UNSIGNED,
     VERIFY_HOSTNAME,
@@ -503,15 +350,13 @@ typedef enum {
 typedef struct {
     command_t command;          // Function to perform.
     char *dbg_root;             // Root directory for testing and debugging.
-    char *interfaces_xml_path;  // Path to network-interfaces.xml.
 } prgconf_t;
 
-static char *usage_text = 
+static char *usage_text =
     "* Support checks on network parameters *\n"
     "\n"
     "Usage:\n"
     "  ipdatacheck -h                                            Print this usage message.\n"
-    "  ipdatacheck -s/--subnet-check <gw-ip>                     Check if IP fits at least to one interface.\n"
     "  ipdatacheck -i/--verify-ip <ip-address>                   Check for valid ip address.\n"
     "  ipdatacheck -u/--verify-unsigned <v>                      Check for valid unsigned 32 bit number.\n"
     "  ipdatacheck -n/--verify-hostname <host>                   Check for valid hostname.\n"
@@ -522,9 +367,8 @@ static char *usage_text =
     "  Exit code 1 if a check does not match\n"
     "";
 
-static struct option long_options[] = 
+static struct option long_options[] =
 {
-    { "subnet-check", no_argument, NULL, 's' },
     { "verify-ip", no_argument, NULL, 'i' },
     { "verify-unsigned", no_argument, NULL, 'u' },
     { "verify-hostname", no_argument, NULL, 'n' },
@@ -541,15 +385,11 @@ static int eval_options(int argc, char **argv, prgconf_t *prgconf)
     int c;
     prgconf->dbg_root = NULL;
     int option_index = 0;
-    GString *interfaces_xml = g_string_new(NETWORK_INTERFACES_XML);
 
-    while((c = getopt_long(argc, argv, "siundmrh", long_options, &option_index)) != -1)
+    while((c = getopt_long(argc, argv, "iundmrh", long_options, &option_index)) != -1)
     {
         switch(c)
         {
-        case 's':
-            prgconf->command = CHECKSUBNETS;
-            break;
         case 'i':
             prgconf->command = VERIFY_IP;
             break;
@@ -578,25 +418,14 @@ static int eval_options(int argc, char **argv, prgconf_t *prgconf)
         }
     }
 
-    // Prepend config file paths with debug root path.
-    if(NULL != prgconf->dbg_root)
-    {
-        g_string_prepend(interfaces_xml, prgconf->dbg_root);
-    }
-
-    // Copy file paths to program config structure.
-    prgconf->interfaces_xml_path = g_strdup(interfaces_xml->str);
-    g_string_free(interfaces_xml, true);
     return optind;
 }
 
 // main: call option evaluation and execute selected function.
 int main(int argc, char **argv)
 {
-    static ip_config_t ip_config_data;
     static prgconf_t prgconf;
     int debugmode = false;
-    ip_config_t *ipd = &ip_config_data;
     int exitcode = 0;
 
     // Check for running as root and evaluate command line.
@@ -612,34 +441,10 @@ int main(int argc, char **argv)
     {
         debugmode = true;
     }
-    
-    memset(&ip_config_data, 0, sizeof(ip_config_data));
-    netcfg_read_settings(ipd, prgconf.interfaces_xml_path, debugmode);
 
     // Start selected program function. argc holds the count of the remaining arguments. argv[] the
     // arguments, starting at index 0.
-    if (prgconf.command == CHECKSUBNETS)
-    {
-        uint32_t gw;
-        int i;
-        int found = 0;
-        int ifcount;
-        char **ifnamelist;
-
-        erh_assert(argc >= 1, MISSING_PARAMETER, "Missing gateway address.", "");
-        erh_assert(conv_ip_ascii2bin(argv[0], &gw) == 0, INVALID_PARAMETER, "Invalid gateway ip address", "");
-        ifnamelist = netcfg_get_port_names(ipd, &ifcount);
-        for (i = 0; i < ifcount; i++)
-        {
-            port_data_t *pd = netcfg_get_port_data(ipd, ifnamelist[i]);
-            if ((gw & pd->netmask_bin) == pd->network_bin)
-            {
-                found = 1;
-            }
-        }
-        exitcode = found ^ 1;
-    }
-    else if (prgconf.command == VERIFY_IP)
+    if (prgconf.command == VERIFY_IP)
     {
         int rc;
 

@@ -5,7 +5,7 @@
 
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IBridgeConfigTransformator {
  public:
@@ -32,4 +32,4 @@ class IBridgeConfigTransformator {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

@@ -1,31 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-//------------------------------------------------------------------------------
-///  \file     EthernetInterface.hpp
-///
-///  \brief    Linux Ethernet interface abstraction. Mainly a wrapper around ethtool socket API.
-///
-///  \author   u014487 : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-#ifndef PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_ETHERNETINTERFACE_H_
-#define PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_ETHERNETINTERFACE_H_
-
-//------------------------------------------------------------------------------
-// include files
-//------------------------------------------------------------------------------
+#pragma once
 
 #include <Socket.h>
 #include <linux/if.h>
 #include <mutex>
-#include <gsl.hpp>
+#include <gsl/gsl>
 
 #include "NetworkInterfaceConstants.hpp"
 #include "IEthernetInterface.hpp"
 
-//------------------------------------------------------------------------------
-// defines; structure, enumeration and type definitions
-//------------------------------------------------------------------------------
 
-namespace netconfd {
+namespace netconf {
 
 
 
@@ -37,7 +22,7 @@ class EthernetInterface : public IEthernetInterface {
 
   void UpdateConfig() override;
   eth::EthernetMauType GetMauType() const override;
-  const MacAddress GetMac() const override;
+  MacAddress GetMac() const override;
   bool GetAutonegSupport() const override;
   bool GetAutonegEnabled() const override;
   ::std::uint32_t GetAutonegCapabilities() const override;
@@ -89,8 +74,4 @@ class EthernetInterface : public IEthernetInterface {
 
 };
 
-}  // namespace pfcspecific
-
-#endif /* PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_ETHERNETINTERFACE_H_ */
-//---- End of source file ------------------------------------------------------
-
+}

@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 
 class SystemPropertiesProvider {
  public:
@@ -20,4 +20,4 @@ class SystemPropertiesProvider {
   Status GetHostname(::std::string& hostname) const;
 };
 
-} /* namespace netconfd */
+}

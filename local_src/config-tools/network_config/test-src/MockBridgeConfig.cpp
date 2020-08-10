@@ -1,14 +1,10 @@
-/*
- * MockBridgeConfig.cpp
- *
- *  Created on: 17.02.2020
- *      Author: u014487
- */
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "MockBridgeConfig.hpp"
 #include <memory>
 
 namespace netconf {
+namespace api {
 
 ::std::unique_ptr<MockBridgeConfig, void(*)(MockBridgeConfig*)> activeMock{nullptr, [](MockBridgeConfig*){}};
 
@@ -33,4 +29,5 @@ MockBridgeConfig::~MockBridgeConfig() {
   activeMock.reset();
 }
 
+}
 }

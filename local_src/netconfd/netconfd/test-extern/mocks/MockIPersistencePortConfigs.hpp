@@ -12,7 +12,7 @@
 #include "IPersistence.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 
 class MockIPersistencePortConfigs : public IPersistence<InterfaceConfigs> {
@@ -22,7 +22,7 @@ class MockIPersistencePortConfigs : public IPersistence<InterfaceConfigs> {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 //---- End of header file ------------------------------------------------------
 

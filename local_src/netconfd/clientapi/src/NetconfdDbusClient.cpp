@@ -19,7 +19,7 @@ NetconfdDbusClient::NetconfdDbusClient(int dbus_timeout_millis) : timeout_millis
   conn_ = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
 
   if (not CheckServiceAvailability(::std::chrono::seconds{60})) {
-      throw ::std::runtime_error("netconfd interface not available.");
+      throw ::std::runtime_error("netconfd dbus interface not available.");
   }
 
 }

@@ -1,0 +1,13 @@
+## SECTION=wago_specific_config
+
+#
+#   This file contains the base config tools target needed by ptxdist to
+#   process ${__THIS_FILENAME__}.make.
+#
+
+config CONFIG_TOOL_BASE
+  bool
+  default n
+  prompt "Config tool base package"
+  help
+    Config tool base package to prepare device environment for config tools.

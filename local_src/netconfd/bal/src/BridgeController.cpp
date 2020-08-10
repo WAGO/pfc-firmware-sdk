@@ -28,6 +28,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptors.hpp>
 
+
+
 namespace bfs = boost::filesystem;
 namespace ba = boost::adaptors;
 //------------------------------------------------------------------------------
@@ -36,7 +38,7 @@ namespace ba = boost::adaptors;
 
 #define SYSFS_CLASS_NET "/sys/class/net/"
 
-namespace netconfd {
+namespace netconf {
 
 BridgeController::BridgeController() {
   if (br_init() < 0) {
@@ -174,26 +176,6 @@ Status BridgeController::SetInterfaceDown(const ::std::string& name) const {
     status.Prepend("Failed to set down interface " + name + ", ");
   }
   return status;
-}
-
-Status BridgeController::IsInterfaceUp(const ::std::string& name, bool& is_up) const {
-  ifreq ifr = { };
-  try {
-    strncpy(ifr.ifr_name, name.c_str(), ::std::min(name.size(), static_cast<size_t>(IFNAMSIZ))); // NOLINT: Accessing legacy API data structures
-
-    Socket sock { PF_INET, SOCK_DGRAM, IPPROTO_IP };
-
-    struct ethtool_value eth_value { };
-    eth_value.cmd = ETHTOOL_GLINK;
-    ifr.ifr_data = reinterpret_cast<__caddr_t >(&eth_value); // NOLINT: Accessing legacy API data structures
-    if (ioctl(sock, SIOCETHTOOL, &ifr) < 0) {
-      return Status(StatusCode::ERROR, "ioctl() ETHTOOL_GLINK failed");
-    }
-    is_up = static_cast<bool>(eth_value.data);
-    return Status(StatusCode::OK);
-  } catch (...) {
-    return Status(StatusCode::ERROR, "Failed to get state of interface " + name + ", system call open socket error");
-  }
 }
 
 Status BridgeController::SetAgetime(const Bridge& bridge, int seconds) const {

@@ -192,9 +192,16 @@ firewall_get_service_state()
         ;;
 
     opcua)
-        running=$(/etc/config-tools/config_opcua state)
-        if [[ "enabled" == "$running" ]] ; then
-            active=1
+        if [[ ! -f "/etc/config-tools/config-opcua" ]] ; then
+            running=$(/etc/config-tools/config_opcua state)
+            if [[ "enabled" == "$running" ]] ; then
+                active=1
+            fi
+        else
+            running=$(/etc/config-tools/config-opcua --get=\"state\")
+            if [ "{\"state\":\"enable\"}" == "$running" ] ; then
+                active=1
+            fi
         fi
         ;;
     profinet)

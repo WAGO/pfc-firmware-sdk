@@ -22,9 +22,7 @@
 #include <getopt.h>
 
 #include <bacnet_config_api.h>      // interface to BACnet configuration
-
 #include "config_tool_lib.h"        // status codes
-#include "liblog/ct_liblog.h"       // write to log file
 
 //------------------------------------------------------------------------------
 // defines; structure, enumeration and type definitions
@@ -141,7 +139,6 @@ int main(int    argc,
       libConfigStatus = bac_CONFIG_backupParameter(pBackupRestoreFile);
       if(libConfigStatus != BAC_CONFIG_STATUS_OK)
       {
-        ct_liblog_setLastError("Internal error while backup BACnet parameters.");
         status = ERROR;
       }
     }
@@ -153,7 +150,6 @@ int main(int    argc,
       libConfigStatus = bac_CONFIG_restoreParameter(pBackupRestoreFile);
       if(libConfigStatus != BAC_CONFIG_STATUS_OK)
       {
-        ct_liblog_setLastError("Internal error while restore BACnet parameters.");
         status = ERROR;
       }
     }
@@ -163,13 +159,6 @@ int main(int    argc,
     {
       status = ERROR;
     }
-  }
-
-  // data output
-  if(status != SUCCESS)
-  {
-    // save error
-    ct_liblog_reportError(status, "Error in bacnet_backup_restore.");
   }
 
   return status;

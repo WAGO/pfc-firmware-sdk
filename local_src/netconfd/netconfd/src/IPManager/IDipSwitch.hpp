@@ -3,17 +3,9 @@
 #pragma once
 
 #include <cstdint>
-#include <nlohmann/json.hpp>
 #include "Types.hpp"
 
-namespace netconfd {
-
-NLOHMANN_JSON_SERIALIZE_ENUM( DipSwitchMode, {
-    {OFF, "off"},
-    {STATIC, "static"},
-    {DHCP, "dhcp"},
-    {HW_NOT_AVAILABLE, "hw-not-available"}
-});
+namespace netconf {
 
 class IDipSwitch
 {
@@ -26,4 +18,4 @@ class IDipSwitch
   virtual DipSwitchMode GetMode() const = 0;
 };
 
-}  // namespace netconfd
+}  // namespace netconf

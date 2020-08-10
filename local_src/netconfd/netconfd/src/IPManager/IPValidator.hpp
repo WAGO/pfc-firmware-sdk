@@ -5,14 +5,11 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-#include "IIPController.hpp"
-#include "INetDevManager.hpp"
-
-namespace netconfd {
+namespace netconf {
 
 class IPValidator {
  public:
-  IPValidator(const IIPController& ip_controller);
+  IPValidator() = default;
   virtual ~IPValidator() = default;
 
   IPValidator(const IPValidator&) = delete;
@@ -20,19 +17,12 @@ class IPValidator {
   IPValidator(const IPValidator&&) = delete;
   IPValidator& operator=(const IPValidator&&) = delete;
 
-  Status ValidateIPConfigs(const IPConfigs& ip_configs, const bool interference_has_to_be_checked) const;
+  static Status ValidateIPConfigs(const IPConfigs &ip_configs);
+  static Status ValidateCombinabilityOfIPConfigs(const IPConfigs &lhs_ip_configs, const IPConfigs &rhs_ip_configs);
 
-  bool IsInterfaceApplicableToSystem(const IPConfigs& ip_configs,
-                                     const NetDevs& netdevs,
-                                     const Interfaces& not_assignable_interface) const;
+  static IPConfigs FilterValidStaticAndTemporaryIPConfigs(const IPConfigs &ip_configs);
+  static bool IsSameSubnet(IPConfig lhs, IPConfig rhs);
 
-  Status ValidateIPConfigIsApplicableToSystem(const IPConfigs& ip_configs, const ::std::vector<::std::shared_ptr<NetDev>>& netdevs) const;
+};
 
-  bool IsSameSubnet(IPConfig lhs, IPConfig rhs) const;
-
- private:
-  const IIPController& ip_controller_;
 }
-;
-
-} /* namespace netconfd */

@@ -10,11 +10,8 @@
 #include <gtest/gtest.h>
 
 #include "test_base_iptables.hpp"
-
 #include "process.hpp"
 #include "process_iptables.hpp"
-//#include "test_utils.hpp"
-//#include "file_access.hpp"
 
 using namespace wago;
 
@@ -45,9 +42,11 @@ class IptablesMasqueradingAndForwardingTest : public IptablesTestBase, public te
 
 };
 
+namespace {
 // Name has to be unique over all tests.
-static ::std::string generate_test_name(testing::TestParamInfo<IptablesMasqueradAndForwardData> data) {
+::std::string generate_test_name(testing::TestParamInfo<IptablesMasqueradAndForwardData> data) {
   return data.param.interface_ + data.param.second_interface_;
+}
 }
 
 // @formatter:off
@@ -66,7 +65,7 @@ TEST_P(IptablesMasqueradingAndForwardingTest, SetMasqueradingForInterface) {
   ::std::vector<::std::string> argv = { data.interface_ };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_NO_THROW(iptables::set_masq(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::set_masq(doc, argv));
 
   ASSERT_TRUE(interface_exists(doc, data.second_interface_));
 }
@@ -76,10 +75,10 @@ TEST_P(IptablesMasqueradingAndForwardingTest, RemMasqueradingForInterface) {
   ::std::vector<::std::string> argv = { data.interface_ };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  iptables::set_masq(doc, argv);
+  iptables::impl::set_masq(doc, argv);
 
   doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_NO_THROW(iptables::rem_masq(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::rem_masq(doc, argv));
 
   ASSERT_FALSE(interface_exists(doc, data.second_interface_));
 }
@@ -89,7 +88,7 @@ TEST_P(IptablesMasqueradingAndForwardingTest, SetPortForwardingForInterface) {
   ::std::vector<::std::string> argv = { "off", data.interface_, "tcp", "192.168.1.1", "1234", "192.168.2.2", "4321" };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_NO_THROW(iptables::add_pfw(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::add_pfw(doc, argv));
 
   ASSERT_TRUE(forwarding_interface_exists(doc, data.second_interface_));
 }
@@ -98,10 +97,10 @@ TEST_P(IptablesMasqueradingAndForwardingTest, UpdatePortForwardingForInterface) 
   auto data = GetParam();
   ::std::vector<::std::string> argv = { "off", data.interface_, "tcp", "192.168.1.1", "1234", "192.168.2.2", "4321" };
   auto doc = file_accessor_.read_configuration("iptables", false);
-  iptables::add_pfw(doc, argv);
+  iptables::impl::add_pfw(doc, argv);
 
   argv = { "1", "on", data.interface_, "tcp", "192.168.1.1", "1234", "192.168.2.2", "4321" };
-  ASSERT_NO_THROW(iptables::upd_pfw(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::upd_pfw(doc, argv));
 
   ASSERT_TRUE(forwarding_interface_exists(doc, data.second_interface_));
 }

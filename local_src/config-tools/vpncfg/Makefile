@@ -50,7 +50,7 @@ L_CFLAGS    += -std=c99
 L_CFLAGS    += $(OPTIMIZE)
 L_CFLAGS    += $(OPTIONS)
 L_CFLAGS    += $(WARNINGS)
-L_CFLAGS    += `pkg-config --cflags glib-2.0 gio-2.0 libxml-2.0`
+L_CFLAGS    += `pkg-config --cflags glib-2.0 gio-2.0 libxml-2.0 jsoncpp`
 L_CFLAGS    += $(CONFIG)
 L_CFLAGS    += $(INCLUDES)
 
@@ -58,11 +58,11 @@ L_CXXFLAGS  += -std=c++0x
 L_CXXFLAGS  += $(OPTIMIZE)
 L_CXXFLAGS  += $(OPTIONS)
 L_CXXFLAGS  += $(WARNINGS) -Weffc++
-L_CXXFLAGS  += `pkg-config --cflags glib-2.0 gio-2.0 libxml-2.0`
+L_CXXFLAGS  += `pkg-config --cflags glib-2.0 gio-2.0 libxml-2.0 jsoncpp`
 L_CXXFLAGS  += $(CONFIG)
 L_CXXFLAGS  += $(INCLUDES)
 
-#L_LDCONFIG  += `pkg-config --libs glib-2.0 gio-2.0 libxml-2.0`
+#L_LDCONFIG  += `pkg-config --libs glib-2.0 gio-2.0 libxml-2.0 jsoncpp`
 L_LDCONFIG  += $(LIBRARIES)
 
 ifneq ($(DEBUGPC), 0)
@@ -70,7 +70,7 @@ ifneq ($(DEBUGPC), 0)
     L_CPPFLAGS  += -DDEBUGPC
 endif
 
-L_LDCONFIG  += `pkg-config --libs glib-2.0 gio-2.0 libxml-2.0`
+L_LDCONFIG  += `pkg-config --libs glib-2.0 gio-2.0 libxml-2.0 jsoncpp`
 ifeq ($(DEBUGPC), 0)
     L_LDCONFIG  += -L../liblog -lctlog
 endif
@@ -92,7 +92,7 @@ clean:
 	$(RM) $(NAME)
 
 $(NAME): main.o services.o vpncfg.o
-	$(CXX) $(LDFLAGS) $(LDCONFIG) -o $(NAME) $^ ../libctcpp/libctcpp.a
+	$(CXX) $(LDFLAGS) -o $(NAME) $^ ../libctcpp/libctcpp.a $(LDCONFIG)
 
 main.o: main.cpp Makefile
 services.o: services.cpp services.hpp Makefile

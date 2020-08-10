@@ -1,7 +1,7 @@
 From 3411b97eddaba722a8734b3028f4e3cd4e0aeec4 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Sep 2018 15:06:12 +0200
-Subject: [PATCH] boards: wago-pfc-am35xx: mlo: publish board infos
+Subject: [PATCH 097/144] boards: wago-pfc-am35xx: mlo: publish board infos
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

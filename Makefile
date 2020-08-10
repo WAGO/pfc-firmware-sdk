@@ -23,11 +23,15 @@ $(ESC_DOLLAR) := $$
 BUILDTYPE ?= development
 IMAGE_DIR ?= $(PLATFORMDIR)/images
 OUT_DIR ?= $(IMAGE_DIR)
+PLATFORM ?= $(shell echo $(PTXCONF_PLATFORM))
 SD_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_SD)$(PTXCONF_IMAGE_SRC_SD)" | grep --only-matching y)
+ifeq ($(PLATFORM),wago-pfc-adv)
+PRODUCTION_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_PRODUCTION)")
+else
 PRODUCTION_ACTIVATED = $(shell echo "$(PTXCONF_HOST_WAGO_CM_PRODUCTION)")
+endif
 DOWNGRADE_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_SD_DOWNGRADE)")
 RAUC_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_RAUC)")
-PLATFORM ?= $(shell echo $(PTXCONF_PLATFORM))
 PROJECT ?= $(shell echo $(PTXCONF_PROJECT))
 KERNEL_VERSION ?= $(shell echo $(PTXCONF_KERNEL_VERSION))
 PLATFORMDIR ?= platform-$(PLATFORM)

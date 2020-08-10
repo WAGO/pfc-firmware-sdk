@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_PORTS) += wbm-ng-plugin-ports
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_PORTS_VERSION        := 1.7.4
+WBM_NG_PLUGIN_PORTS_VERSION        := 1.7.6
 WBM_NG_PLUGIN_PORTS                := wbm-ports-$(WBM_NG_PLUGIN_PORTS_VERSION)
 WBM_NG_PLUGIN_PORTS_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_PORTS)
 WBM_NG_PLUGIN_PORTS_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_PORTS_URL))

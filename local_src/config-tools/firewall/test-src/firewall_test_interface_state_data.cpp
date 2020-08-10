@@ -10,6 +10,7 @@
 #include "firewall_test_interface_state_data.hpp"
 
 namespace wago {
+namespace firewall {
 
 FirewallTestInterfaceStateData::FirewallTestInterfaceStateData()
     :
@@ -26,4 +27,5 @@ FirewallTestInterfaceStateData::FirewallTestInterfaceStateData(::std::string int
     second_interface_ { second_interface } {
 }
 
-} /* namespace wago */
+} // namespace firewall
+} // namespace wago

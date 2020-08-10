@@ -10,6 +10,9 @@
 #include <libxml/tree.h>
 #include <glib.h>
 #include <stdbool.h>
+#include <sys/cdefs.h>
+
+__BEGIN_DECLS
 
 typedef struct xpathSession xpathSession_t;
 
@@ -26,4 +29,7 @@ int ct_xml_xpath_set_multiple_values(xpathSession_t *session, const xmlChar *xpa
 int ct_xml_xpath_add_value(xpathSession_t *session, const xmlChar * xpathExpr, const xmlChar *newVal);
 int ct_xml_xpath_del_multiple_values(xpathSession_t *session, const xmlChar *xpathExpr);
 int ct_xml_xpath_get_multiple_values(xpathSession_t *session, const xmlChar *xpathExpr, GString *result, const char *delim);
+
+__END_DECLS
+
 #endif

@@ -11,13 +11,13 @@
 #include "Types.hpp"
 #include "NetDev.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 void CleanWithRespectToSystem(IPConfigs &ip_configs, const NetDevs &netdevs,
                               const Interfaces &not_assignable_interfaces);
 
 
-}  // namespace netconfd
+}  // namespace netconf
 
 //---- End of header file ------------------------------------------------------
 

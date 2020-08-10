@@ -14,13 +14,12 @@
 // function implementation
 //------------------------------------------------------------------------------
 
-namespace netconfd {
+namespace netconf {
 
 class BridgeConfigurator : public IBridgeConfigurator {
 
  public:
-  explicit BridgeConfigurator(IBridgeController& bridge_controller,
-                              IMacDistributor& mac_distributor);
+  explicit BridgeConfigurator(IBridgeController& bridge_controller);
   ~BridgeConfigurator() override = default;
 
   BridgeConfigurator(const BridgeConfigurator&) = delete;
@@ -55,8 +54,7 @@ class BridgeConfigurator : public IBridgeConfigurator {
   Status SetDefaultInterfaceUp() const;
 
   IBridgeController& bridge_controller_;
-  IMacDistributor& mac_distributor_;
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf

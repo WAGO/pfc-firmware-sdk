@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IPersistenceProvider {
  public:
@@ -38,4 +38,4 @@ class IPersistenceProvider {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

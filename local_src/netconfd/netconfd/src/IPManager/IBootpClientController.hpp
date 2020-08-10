@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 enum class BootpClientStatus {
   RUNNING,
@@ -22,9 +22,9 @@ class IBootpClientController {
   IBootpClientController(const IBootpClientController&&) = delete;
   IBootpClientController& operator=(const IBootpClientController&&) = delete;
 
-  virtual Status StartClient(const Bridge& bridge) const = 0;
-  virtual Status StopClient(const Bridge& bridge) const = 0;
-  virtual BootpClientStatus GetStatus(const Bridge& bridge) const = 0;
+  virtual netconf::Status StartClient(const netconf::Bridge& bridge) const = 0;
+  virtual netconf::Status StopClient(const netconf::Bridge& bridge) const = 0;
+  virtual BootpClientStatus GetStatus(const netconf::Bridge& bridge) const = 0;
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

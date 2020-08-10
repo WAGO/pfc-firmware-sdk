@@ -1,7 +1,7 @@
 From 50284955799b9a19fc9a764b4e225fe5faa4ae3c Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 15 Jan 2019 15:52:02 +0100
-Subject: [PATCH] commands: uart_console: simplify enabling of uarts
+Subject: [PATCH 155/160] commands: uart_console: simplify enabling of uarts
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

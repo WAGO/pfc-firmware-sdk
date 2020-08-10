@@ -5,14 +5,16 @@
 #include <string>
 #include <iostream>
 #include <exception>
+#include <BridgeConfig.hpp>
+#include <boost/algorithm/string.hpp>
 
-#include "BridgeConfig.hpp"
 #include "Utils.hpp"
 
 namespace po = boost::program_options;
 
 namespace network_config
 {
+  namespace napi = ::netconf::api;
 
   BridgeConfigHandler::BridgeConfigHandler(const po::variables_map &vm) :
           vm_{vm}
@@ -37,31 +39,33 @@ namespace network_config
 
   void BridgeConfigHandler::GetConfig()
   {
-    auto bridge_config = netconf::GetBridgeConfig();
+    auto bridge_config = napi::GetBridgeConfig();
     auto format = GetFormat(vm_);
 
     ::std::string device;
     if(Contains(vm_, "device"))
     {
       device = GetDevice(vm_);
-      ::std::cout << bridge_config.GetBridgeInterfaces(device);
+      auto bridge_interfaces = bridge_config.GetBridgeInterfaces(device);
+      ::std::cout << boost::algorithm::join(bridge_interfaces,",");
+
     }
     else if(format == "text")
     {
-      ::std::cout << bridge_config.ToString();
+      ::std::cout << napi::ToString(bridge_config);
     }
     else if(format == "json")
     {
-      ::std::cout << bridge_config.ToJson();
+      ::std::cout << napi::ToJson(bridge_config);
     }
   }
 
   void BridgeConfigHandler::SetConfig()
   {
-    auto bridge_config = netconf::BridgeConfig(GetValueOfSet(vm_));
-    auto status = netconf::SetBridgeConfig(bridge_config);
+    auto bridge_config = napi::MakeBridgeConfig(GetValueOfSet(vm_));
+    auto status = napi::SetBridgeConfig(bridge_config);
 
-    if(netconf::Status::OK != status)
+    if(netconf::api::Status::OK != status)
     {
       throw ::std::runtime_error("Failed to set bridge configuration.");
     }

@@ -2,3 +2,4 @@
 0002-fix-wrong-argument-in-uio_unmap-calls.patch
 0003-lsuio_update.patch
 0004_uio_mmap_with_addr_WAT26756.patch
+0005_gcc9_update.patch

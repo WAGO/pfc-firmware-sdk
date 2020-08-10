@@ -19,8 +19,6 @@
  *
  *   hans-florian.scholz@wago.com
  *
- *$Id: wago.c 24582 2017-09-15 05:48:15Z hans-florian.scholz@wago.com $
- *
  */
 
 #include "services.h"

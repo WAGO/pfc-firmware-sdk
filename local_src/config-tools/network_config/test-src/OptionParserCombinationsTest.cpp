@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "OptionParser.hpp"
 
 #include <array>
@@ -11,7 +13,7 @@ namespace network_config
   class OptionParserCombinationsTest : public testing::Test
   {
     public:
-      OptionParserCombinationsTest() : sut_ {}, vm_{sut_.GetVariableMap()} {
+      OptionParserCombinationsTest() : vm_{sut_.GetVariableMap()} {
 
       }
 

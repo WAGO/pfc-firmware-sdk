@@ -20,7 +20,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ADeviceInterfaceProvider : public Test {
  public:
@@ -51,7 +51,7 @@ TEST_F(ADeviceInterfaceProvider, GeneratesTheDeviceSpecificProductPortInterfaceL
   interface_provider_ = ::std::make_unique < DeviceInterfaceProvider
       > (mock_bridge_controller_);
 
-  Interfaces product_interfaces = interface_provider_->GetProductInterfaces();
+  Interfaces product_interfaces = interface_provider_->GetProductPortNames();
 
   EXPECT_TRUE(IsIncluded("X1", product_interfaces));
   EXPECT_TRUE(IsIncluded("X2", product_interfaces));
@@ -67,7 +67,7 @@ TEST_F(ADeviceInterfaceProvider, GeneratesTheDeviceSpecificOSPortInterfaceList) 
   interface_provider_ = ::std::make_unique < DeviceInterfaceProvider
       > (mock_bridge_controller_);
 
-  Interfaces os_interfaces = interface_provider_->GetOSInterfaces();
+  Interfaces os_interfaces = interface_provider_->GetOSInterfaceNames();
 
   EXPECT_TRUE(IsIncluded("ethX1", os_interfaces));
   EXPECT_TRUE(IsIncluded("ethX2", os_interfaces));
@@ -101,7 +101,7 @@ TEST_F(ADeviceInterfaceProvider, GeneratesTheDeviceSpecificProductPortInterfaceL
   interface_provider_ = ::std::make_unique < DeviceInterfaceProvider
       > (mock_bridge_controller_);
 
-  Interfaces product_interfaces = interface_provider_->GetProductInterfaces();
+  Interfaces product_interfaces = interface_provider_->GetProductPortNames();
 
   EXPECT_TRUE(IsIncluded("X1", product_interfaces));
   EXPECT_TRUE(IsIncluded("X2", product_interfaces));
@@ -120,7 +120,7 @@ TEST_F(ADeviceInterfaceProvider, GeneratesTheDeviceSpecificOSPortInterfaceListIg
   interface_provider_ = ::std::make_unique < DeviceInterfaceProvider
       > (mock_bridge_controller_);
 
-  Interfaces os_interfaces = interface_provider_->GetOSInterfaces();
+  Interfaces os_interfaces = interface_provider_->GetOSPortNames();
 
   EXPECT_TRUE(IsIncluded("ethX1", os_interfaces));
   EXPECT_TRUE(IsIncluded("ethX2", os_interfaces));
@@ -149,4 +149,4 @@ TEST_F(ADeviceInterfaceProvider, GeneratesTheDeviceSpecificInterfaceNameMappingI
   EXPECT_EQ(4, name_mapping.size());
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

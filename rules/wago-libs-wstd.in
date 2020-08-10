@@ -3,6 +3,7 @@
 config WSTD
 	bool
 	prompt "wstd"
+	select GSL
 	select HOST_CMAKE
 	select GOOGLETEST
 	help

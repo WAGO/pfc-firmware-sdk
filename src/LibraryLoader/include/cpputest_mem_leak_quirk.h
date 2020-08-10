@@ -30,7 +30,8 @@
 
 #ifdef __CPPUTEST
 
-extern void PlatformSpecificFree(void *memory);
+#include "CppUTest/PlatformSpecificFunctions_c.h"
+
 # define __UNMATCHED_FREE(x) PlatformSpecificFree(x)
 
 #else

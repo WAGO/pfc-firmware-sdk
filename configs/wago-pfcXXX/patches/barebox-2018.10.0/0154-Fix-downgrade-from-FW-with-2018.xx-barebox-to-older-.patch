@@ -21,7 +21,7 @@ Signed-off-by: Boerje Sewing <Boerje.Sewing@who-ing.de>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
-index c5e101a..0b1bb61 100644
+index c5e101a2b56..0b1bb617506 100644
 --- a/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
 +++ b/defaultenv/defaultenv-pfc-base/bin/pfc-exec-downgrade-boot
 @@ -27,9 +27,9 @@ mtd_parts="${mtd_linux1} ${mtd_linux2} ${mtd_data} ${mtd_xload} ${mtd_barebox} $
@@ -38,5 +38,5 @@ index c5e101a..0b1bb61 100644
  ###############################
  
 -- 
-2.7.4
+2.20.1
 

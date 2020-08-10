@@ -30,7 +30,7 @@ config WBM_NG_PLUGIN_CLOUDCONNECTIVITY_URL_TEMPLATE
       string
       depends on WBM_NG_PLUGIN_CLOUDCONNECTIVITY
       prompt "URL template"
-      default "%ARTIFACTORY_BASE_URL%/wbm-generic-prod/wago/wbm-cloud-connectivity/wbm-cloud-connectivity-%VERSION%.tgz"
+      default "%ARTIFACTORY_BASE_URL%/wbm-generic-dev-local/wago/wbm-cloud-connectivity/wbm-cloud-connectivity-%VERSION%.tgz"
       help
         Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
         See Confluence for further details.

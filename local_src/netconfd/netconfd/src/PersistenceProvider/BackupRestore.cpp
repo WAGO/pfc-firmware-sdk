@@ -13,7 +13,7 @@
 
 #include "Logger.hpp"
 
-namespace netconfd
+namespace netconf
 {
 
   using namespace std::literals::string_literals;
@@ -153,4 +153,4 @@ namespace netconfd
     return status;
   }
 
-} /* namespace netconfd */
+} /* namespace netconf */

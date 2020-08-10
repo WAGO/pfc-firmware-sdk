@@ -1,7 +1,7 @@
 From 8caf38c536589fc34f0c80b437d5f2675ee30b49 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 11 Jul 2018 14:49:04 +0200
-Subject: [PATCH] change naming of pfc-am35xx images
+Subject: [PATCH 041/144] change naming of pfc-am35xx images
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

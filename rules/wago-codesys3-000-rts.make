@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CODESYS3) += codesys3
 
-CODESYS3_VERSION    := 3.5.14.3.3
+CODESYS3_VERSION    := 3.5.14.3.4
 CODESYS3            := codesys-3
 CODESYS3_DIR        := $(BUILDDIR)/$(CODESYS3)
 CODESYS3_URL        := file://$(PTXDIST_WORKSPACE)/wago_intern/plc/codesys/$(CODESYS3)/
@@ -342,6 +342,8 @@ endif
 ifdef PTXCONF_CDS3_PRODUCT_PAC_2101
 	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.0x2101.dat, n)
 endif
+
+	@$(call install_alternative, codesys3, 0, 0, 0444, /usr/share/codesys3/3S.default.dat, n)
 
     # Codesys home
 ifdef PTXCONF_CDS3_HOME

@@ -14,7 +14,7 @@
 #include <boost/format.hpp>
 #include "Logger.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class NetlinkMonitor::Impl {
  public:
@@ -125,5 +125,5 @@ void NetlinkMonitor::AddCache(::std::shared_ptr<NetlinkCache> cache) {
 
 NetlinkMonitor::~NetlinkMonitor() = default;
 
-}  // namespace netconfd
+}  // namespace netconf
 //---- End of source file ------------------------------------------------------

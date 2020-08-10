@@ -97,8 +97,6 @@ $(STATEDIR)/modular-config-tools.targetinstall:
 	@$(call install_fixup, modular-config-tools,AUTHOR,"<PEn>")
 	@$(call install_fixup, modular-config-tools,DESCRIPTION,missing)
 
-	@$(call install_copy, modular-config-tools, 0, 0, 0755, /etc/config-tools);
-
 ifdef PTXCONF_CT_CONFIG_LINUX_USER
 	@$(call install_copy, modular-config-tools, 0, 0, 0750, $(MODULAR_CONFIG_TOOLS_BUILD_DIR)/config_linux_user.elf, /etc/config-tools/config_linux_user)
 endif

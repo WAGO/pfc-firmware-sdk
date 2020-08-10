@@ -1,7 +1,7 @@
 From dee7675af665b6e22d9c03e71717171e0e3d25e2 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 28 Sep 2016 14:09:38 +0000
-Subject: [PATCH] net: davinci_emac: fix buggy channel tear down
+Subject: [PATCH 138/144] net: davinci_emac: fix buggy channel tear down
 
 Druing a barebox_shutdown() already probed platform devices are being halted.
 While trying to halt the davinci emac a channel tear down operation is triggered

@@ -1,0 +1,673 @@
+From 3bffa8c839e0d4b7d1eadd2dff627d5f9ac42fa8 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 7 May 2020 11:00:16 +0200
+Subject: [PATCH] arm: dts: add support for rocket evaluation board
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/Makefile                    |   3 +-
+ arch/arm/boot/dts/am335x-rmcb.dts             | 625 ++++++++++++++++++
+ .../configs/am335x_pfc_adv_generic_defconfig  |   1 +
+ 3 files changed, 628 insertions(+), 1 deletion(-)
+ create mode 100644 arch/arm/boot/dts/am335x-rmcb.dts
+
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 310e5bac5593..32682aa5b61b 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -583,7 +583,8 @@ dtb-$(CONFIG_SOC_AM33XX) += \
+ 	am335x-pfc200v2-setupfw.dtb \
+ 	am335x-pfc200v3-setupfw.dtb \
+ 	am335x-pfc-768_3301.dtb \
+-	am335x-pfc-768_3301_psm.dtb
++	am335x-pfc-768_3301_psm.dtb \
++	am335x-rmcb.dtb
+ dtb-$(CONFIG_ARCH_OMAP4) += \
+ 	omap4-duovero-parlor.dtb \
+ 	omap4-kc1.dtb \
+diff --git a/arch/arm/boot/dts/am335x-rmcb.dts b/arch/arm/boot/dts/am335x-rmcb.dts
+new file mode 100644
+index 000000000000..321d0b191a91
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-rmcb.dts
+@@ -0,0 +1,625 @@
++/*
++ * Copyright (C) 2020 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++#include "am335x-pfc.dtsi"
++#include "am335x-pfc-750_8xxx-ksz8863.dtsi"
++#include "am335x-pfc-768_330x-rlb.dtsi"
++#include "wago-devconf.dtsi"
++
++/delete-node/ &vxe164_reg;
++/delete-node/ &vsd_reg;
++/delete-node/ &tps;
++/delete-node/ &gpio3_pins;
++
++/{
++	model = "WAGO RMCB";
++	compatible = "wago,am335x-rmcb-0028", "wago,am335x-pfc", "ti,am33xx";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x8000000>; /* 128 MB */
++	};
++
++	vrlb_reg: fixedregulator@0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v_rlb";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++	};
++
++	gpio-io_expander_22-leds {
++		status = "okay";
++		compatible = "gpio-leds";
++
++		ds-red@0 {
++			label = "ds-red";
++			gpios = <&io_expander_22 0 1>;
++			linux,default-trigger = "timer";
++		};
++
++		ds-green@1 {
++			label = "ds-green";
++			gpios = <&io_expander_22 1 1>;
++			linux,default-trigger = "timer";
++		};
++
++		ec-red@2 {
++			label = "ec-red";
++			gpios = <&io_expander_22 2 1>;
++			linux,default-trigger = "none";
++		};
++
++		ec-green@3 {
++			label = "ec-green";
++			gpios = <&io_expander_22 3 1>;
++			linux,default-trigger = "none";
++		};
++
++		h11-red@4 {
++			label = "h11-red";
++			gpios = <&io_expander_22 4 1>;
++			linux,default-trigger = "none";
++		};
++
++		h11-green@5 {
++			label = "h11-green";
++			gpios = <&io_expander_22 5 1>;
++			linux,default-trigger = "none";
++		};
++
++		h12-red@6 {
++			label = "h12-red";
++			gpios = <&io_expander_22 6 1>;
++			linux,default-trigger = "none";
++		};
++
++		h12-green@7 {
++			label = "h12-green";
++			gpios = <&io_expander_22 7 1>;
++			linux,default-trigger = "none";
++		};
++
++		run-red@8 {
++			label = "run-red";
++			gpios = <&io_expander_22 8 1>;
++			linux,default-trigger = "none";
++		};
++
++		run-green@9 {
++			label = "run-green";
++			gpios = <&io_expander_22 9 1>;
++			linux,default-trigger = "none";
++		};
++
++		app-red@10 {
++			label = "app-red";
++			gpios = <&io_expander_22 10 1>;
++			linux,default-trigger = "none";
++		};
++
++		app-green@11 {
++			label = "app-green";
++			gpios = <&io_expander_22 11 1>;
++			linux,default-trigger = "none";
++		};
++
++		led7-red@12 {
++			label = "led7-red";
++			gpios = <&io_expander_22 12 1>;
++			linux,default-trigger = "none";
++		};
++
++		led7-green@13 {
++			label = "led7-green";
++			gpios = <&io_expander_22 13 1>;
++			linux,default-trigger = "none";
++		};
++
++		led8-red@14 {
++			label = "led8-red";
++			gpios = <&io_expander_22 14 1>;
++			linux,default-trigger = "none";
++		};
++
++		led8-green@15 {
++			label = "led8-green";
++			gpios = <&io_expander_22 15 1>;
++			linux,default-trigger = "none";
++		};
++	};
++
++	dip-switch {
++		status = "okay";
++		compatible = "encsw";
++		encsw-gpios = < &io_expander_20 0 GPIO_ACTIVE_LOW
++				&io_expander_20 1 GPIO_ACTIVE_LOW
++				&io_expander_20 2 GPIO_ACTIVE_LOW
++				&io_expander_20 3 GPIO_ACTIVE_LOW
++				&io_expander_20 4 GPIO_ACTIVE_LOW
++				&io_expander_20 5 GPIO_ACTIVE_LOW
++				&io_expander_20 6 GPIO_ACTIVE_LOW
++				&io_expander_20 7 GPIO_ACTIVE_LOW >;
++	};
++};
++
++&uio_rmd_mem {
++	status = "okay";
++};
++
++&uio_rmd_irq0 {
++	status = "okay";
++};
++
++&rmd {
++	status = "okay";
++	pinctrl-0 = <&rmd_pins>;
++	dmas = <&edma_xbar 12 0 28>, <&edma_xbar 13 0 29>;
++	interrupts = <9 IRQ_TYPE_EDGE_RISING>;
++	interrupt-parent = <&gpio3>;
++};
++
++&cpu_0 {
++	cpu0-supply = <&vdd1_reg>;
++	operating-points = <
++		1000000  1325000
++		 800000  1260000
++		 720000  1200000
++		 600000  1100000
++		 300000  950000
++	>;
++};
++
++&wsysinit {
++	board,variant = "pfc200adv";
++	tty,rs232-485 = "nop";
++	tty,service   = "ttyO0";
++};
++
++/* Use polled gpio-keys driver until the interrupt driven gpio-keys driver is
++ * fixed. Due to the fact that the gpio expander (pca9535) does not support debounce
++ * functions like a "real" gpio-controller, the gpio-keys driver falls back to
++ * timer driven debouncing. That has the bug, that the timmer is throw ~3333 minutes
++ * later. If the timer fires, the driver works like a charm.
++ */
++&oms {
++	status = "okay";
++
++	/* is needed for irq support when we go back to gpio-keys driver */
++	pinctrl-names = "default";
++	pinctrl-0 = <&io_expander_21_irq_pin>;
++
++	compatible = "gpio-keys-polled";
++	poll-interval = <100>;
++};
++
++&oms_run {
++	gpios = <&io_expander_21 1 GPIO_ACTIVE_LOW>;
++};
++
++&oms_stop {
++	gpios = <&io_expander_21 0 GPIO_ACTIVE_LOW>;
++};
++
++&oms_reset {
++	gpios = <&io_expander_21 2 GPIO_ACTIVE_LOW>; /* Board-Label: Taster 1 */
++};
++
++&oms_reset_all {
++	gpios = <&io_expander_21 3 GPIO_ACTIVE_LOW>; /* Board-Label: Taster 2 */
++};
++
++&watchdog {
++	status = "okay";
++	pinctrl-0 = <&watchdog_pins>;
++
++	gpio-en = <&gpio3 4 GPIO_ACTIVE_LOW>;
++	gpios = <&gpio0 7 GPIO_ACTIVE_LOW>;
++};
++
++&i2c0 {
++	status = "okay";
++
++	tps: tps65910@2d {
++		reg = <0x2d>;
++	};
++
++	io_expander_20: pcf8575@20 {
++		compatible = "nxp,pcf8574";
++		reg = <0x20>;
++		gpio-controller;
++		#gpio-cells = <2>;
++	};
++
++	io_expander_21: pca9535@21 {
++		compatible = "nxp,pca9535";
++		reg = <0x21>;
++
++		gpio-controller;
++		#gpio-cells = <2>;
++		interrupt-parent = <&gpio3>;
++		interrupts = <15 IRQ_TYPE_LEVEL_LOW>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++	};
++
++	io_expander_22: pca9535@22 {
++		compatible = "nxp,pca9535";
++		reg = <0x22>;
++
++		gpio-controller;
++		#gpio-cells = <2>;
++	};
++};
++
++#include "tps65910.dtsi"
++
++&tps {
++	vcc1-supply = <&vrlb_reg>;
++	vcc2-supply = <&vrlb_reg>;
++	vcc3-supply = <&vrlb_reg>;
++	vcc4-supply = <&vrlb_reg>;
++	vcc5-supply = <&vrlb_reg>;
++	vcc6-supply = <&vrlb_reg>;
++	vcc7-supply = <&vrlb_reg>;
++	vccio-supply = <&vrlb_reg>;
++};
++
++&vrtc_reg {
++	regulator-always-on;
++};
++
++&vio_reg {
++	regulator-name = "v_ddr";
++	regulator-min-microvolt = <1500000>;
++	regulator-max-microvolt = <1500000>;
++	regulator-always-on;
++	regulator-boot-on;
++};
++
++&vdd1_reg {
++	/* VDD_MPU voltage limits 0.95V - 1.26V with +/-4% tolerance */
++	regulator-name = "vdd_mpu";
++	regulator-min-microvolt = <912500>;
++	regulator-max-microvolt = <1312500>;
++	regulator-boot-on;
++	regulator-always-on;
++};
++
++&vdd2_reg {
++	/* VDD_CORE voltage limits 0.95V - 1.1V with +/-4% tolerance */
++	regulator-name = "vdd_core";
++	regulator-min-microvolt = <1100000>;
++	regulator-max-microvolt = <1100000>;
++	regulator-boot-on;
++	regulator-always-on;
++};
++
++&vdd3_reg {
++	regulator-name = "v_otg";
++};
++
++&vdig2_reg {
++	regulator-name = "v_pll";
++	regulator-min-microvolt = <1800000>;
++	regulator-max-microvolt = <1800000>;
++	regulator-boot-on;
++	regulator-always-on;
++};
++
++&vaux2_reg {
++	regulator-name = "v_peth";
++	regulator-min-microvolt = <3300000>;
++	regulator-max-microvolt = <3300000>;
++	regulator-always-on;
++	regulator-boot-on;
++};
++
++&vaux33_reg {
++	regulator-name = "v_ceth";
++	regulator-min-microvolt = <3300000>;
++	regulator-max-microvolt = <3300000>;
++	regulator-always-on;
++	regulator-boot-on;
++};
++
++&vmmc_reg {
++	regulator-name = "v_io";
++	regulator-min-microvolt = <3300000>;
++	regulator-max-microvolt = <3300000>;
++	regulator-always-on;
++	regulator-boot-on;
++};
++
++&rtc_i2c {
++	status = "okay";
++	trim-data = <0 1 31>;
++};
++
++&bitbang_mdio0 {
++	status = "okay";
++};
++
++&mmc1 {
++	status = "okay";
++	vmmc-supply = <&vmmc_reg>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <
++		&mmc1_pins
++		&mmc1_cd_pins
++	>;
++	cd-gpios = <&gpio3 14 GPIO_ACTIVE_HIGH>;
++};
++
++&spi0 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins>;
++
++	fpga_ps: fpga_ps@0 {
++		compatible = "altr,passive-serial";
++		pinctrl-names = "default";
++		pinctrl-0 = <&fpga_pins>;
++
++		reg = <0>;
++		spi-max-frequency = <48000000>;
++
++		reset-gpios = <&io_expander_21 5 GPIO_ACTIVE_LOW>;
++		gpio-nconfig = <&gpio3 7 GPIO_ACTIVE_HIGH>;
++		gpio-nstatus = <&gpio2 18 GPIO_ACTIVE_HIGH>;
++		gpio-confdone = <&gpio2 19 GPIO_ACTIVE_HIGH>;
++	};
++};
++
++&mac {
++	status = "okay";
++	pinctrl-0 = <&rmii2_pins>, <&rmii1_pins>;
++	pinctrl-1 = <&rmii2_sleep_pins>, <&rmii1_sleep_pins>;
++	active_slave = <0>;
++};
++
++/*
++ * Use a fixed phy for emac0.
++ * that's rmii1
++ */
++&cpsw_emac0 {
++	status = "okay";
++	phy-mode = "rmii";
++
++	fixed-link {
++		speed = <100>;
++		full-duplex;
++	};
++};
++
++/*
++ * disable explicitly the unused emac1 interface
++ * when using cpsw in switched mode (!dual_emac).
++ * Otherwise the cpsw ip hangs after sending some frames.
++ */
++&cpsw_emac1 {
++	status = "disabled";
++};
++
++&gpmc {
++	status = "okay";
++
++	ranges = < 0 0 0x08000000 0x01000000	/* CS0: NAND */
++		   2 0 0x01000000 0x01000000 >;	/* CS2: FPGA, 16M */
++};
++
++&fpga {
++	status = "okay";
++
++	reg = <2 0 0x01000000>;
++	bank-width = <2>; /* 16 Bit */
++
++	gpmc,sync-clk-ps = <0>;
++	gpmc,cs-on-ns = <0>;
++	gpmc,cs-rd-off-ns = <90>;
++	gpmc,cs-wr-off-ns = <100>;
++
++	gpmc,adv-on-ns = <10>;
++	gpmc,adv-rd-off-ns = <100>;
++	gpmc,adv-wr-off-ns = <100>;
++
++	gpmc,we-on-ns = <10>;
++	gpmc,we-off-ns = <90>;
++	gpmc,oe-on-ns = <10>;
++	gpmc,oe-off-ns = <90>;
++	gpmc,oe-extra-delay;
++
++	gpmc,access-ns = <90>;
++	gpmc,rd-cycle-ns = <100>;
++	gpmc,wr-cycle-ns = <100>;
++	gpmc,page-burst-access-ns = <0>;
++
++	gpmc,bus-turnaround-ns  = <20>;
++	gpmc,wr-access-ns = <90>;
++	gpmc,wr-data-mux-bus-ns = <30>;
++	gpmc,cycle2cycle-diffcsen;
++	gpmc,cycle2cycle-samecsen; /* skipping this would lead to buggy 32bit accesss */
++	gpmc,cycle2cycle-delay-ns = <10>;
++
++	gpmc,wait-pin = <0>;
++	gpmc,wait-on-read;
++	gpmc,wait-on-write;
++	gpmc,mux-add-data = <2>; /* address-data multiplexing */
++};
++
++&gpio3 {
++	/delete-property/ pinctrl-names;
++	/delete-property/ pinctrl-0;
++};
++
++&ksz8863_switch {
++	status = "okay";
++	ksz,reset-gpio = <&io_expander_21 7 GPIO_ACTIVE_LOW>;
++	/delete-property/ ksz,disable-internal-ldo;
++
++	ports {
++		port@0 { reg = <1>; };
++		port@1 { reg = <2>; };
++	};
++};
++
++&swcfg_ksz8863 {
++	status = "okay";
++};
++
++&aes {
++	status = "okay";
++};
++
++&cppi41dma {
++	status = "okay";
++};
++
++&elm {
++	status = "okay";
++};
++
++&sham {
++	status = "okay";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&usb {
++	status = "okay";
++};
++
++&usb_ctrl_mod {
++	status = "okay";
++};
++
++&usb0_phy {
++	status = "okay";
++};
++
++&usb0 {
++	status = "okay";
++	dr_mode = "peripheral";
++};
++
++&am33xx_pinmux {
++	watchdog_pins: pinmux_watchdog_pins {
++		pinctrl-single,pins = <
++			AM33XX_MII1_RX_DV_GPIO3_4(PIN_OUTPUT_PULLDOWN)
++			AM33XX_ECAP0_IN_PWM0_OUT_GPIO0_7(PIN_OUTPUT_PULLDOWN)
++		>;
++	};
++
++	mmc1_cd_pins: pinmux_sdcard_cd_pins {
++		pinctrl-single,pins = <
++			AM33XX_MCASP0_ACLKX_GPIO3_14(PIN_INPUT_PULLUP)
++		>;
++	};
++
++	spi0_pins: pinmux_spi0_pins {
++		pinctrl-single,pins = <
++			AM33XX_SPI0_SCLK(PIN_INPUT)
++			AM33XX_SPI0_D0(PIN_INPUT)
++			AM33XX_SPI0_D1(PIN_INPUT)
++			AM33XX_SPI0_CS0(PIN_OUTPUT_PULLUP)
++			AM33XX_SPI0_CS1(PIN_OUTPUT_PULLUP)
++		>;
++	};
++
++	rmii2_pins: pinmux_rmii2_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A0_GPIO1_16(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A4_GPIO1_20(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A5_GPIO1_21(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A10_GPIO1_26(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A11_GPIO1_27(PIN_INPUT_PULLDOWN)
++			AM33XX_MII1_COL_GPIO3_0(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_CSN3_GPIO2_0(PIN_INPUT_PULLDOWN)
++		>;
++	};
++
++	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A0_GPIO1_16(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A4_GPIO1_20(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A5_GPIO1_21(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A10_GPIO1_26(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A11_GPIO1_27(PIN_INPUT_PULLDOWN)
++			AM33XX_MII1_COL_GPIO3_0(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_CSN3_GPIO2_0(PIN_INPUT_PULLDOWN)
++		>;
++	};
++
++	rmii1_pins: pinmux_rmii1_pins {
++		pinctrl-single,pins = <
++			AM33XX_RMII1_REF_CLK(PIN_INPUT)
++			AM33XX_MII1_TX_EN_RMII1_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_MII1_TXD0_RMII1_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_MII1_TXD1_RMII1_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
++			AM33XX_MII1_RXD0_RMII1_RXD0(PIN_INPUT)
++			AM33XX_MII1_RXD1_RMII1_RXD1(PIN_INPUT)
++			AM33XX_MII1_CRS_RMII1_CRS_DV(PIN_INPUT)
++		>;
++	};
++
++	rmii1_sleep_pins: pinmux_rmii1_sleep_pins {
++		pinctrl-single,pins = <
++			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
++			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
++			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
++			AM33XX_MII1_TXD1_GPIO0_21(PIN_INPUT)
++			AM33XX_MII1_RXD0_GPIO2_21(PIN_INPUT)
++			AM33XX_MII1_RXD1_GPIO2_20(PIN_INPUT)
++			AM33XX_MII1_CRS_GPIO3_1(PIN_INPUT)
++		>;
++	};
++
++	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
++			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
++			AM33XX_GPMC_CSN2(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
++			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_WAIT0(PIN_INPUT_PULLUP)
++			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
++		>;
++	};
++
++	gpmc_addr_pins: pinmux_gpmc_addr_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_LCD_HSYNC_GPMC_A9(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	fpga_pins: pinmux_fpga_pins {
++		pinctrl-single,pins = <
++			AM33XX_EMU0_GPIO3_7(PIN_OUTPUT_PULLUP)
++			AM33XX_MII1_RXD3_GPIO2_18(PIN_INPUT)
++			AM33XX_MII1_RXD2_GPIO2_19(PIN_INPUT)
++		>;
++	};
++
++	rmd_pins: pinmux_rmd_pins {
++		pinctrl-single,pins = <
++			AM33XX_MII1_TX_CLK_GPIO3_9(PIN_INPUT)
++			AM33XX_XDMA_EVENT_INTR0(PIN_INPUT)
++			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT)
++		>;
++	};
++
++	io_expander_21_irq_pin: pinmux_io_expander_21_irq {
++		pinctrl-single,pins = <
++			AM33XX_MCASP0_FSX_GPIO3_15(PIN_INPUT)
++		>;
++	};
++};
+diff --git a/arch/arm/configs/am335x_pfc_adv_generic_defconfig b/arch/arm/configs/am335x_pfc_adv_generic_defconfig
+index 9f1b21087c0b..5c621c43df8d 100644
+--- a/arch/arm/configs/am335x_pfc_adv_generic_defconfig
++++ b/arch/arm/configs/am335x_pfc_adv_generic_defconfig
+@@ -338,6 +338,7 @@ CONFIG_USB_NET_QMI_WWAN=y
+ CONFIG_INPUT_EVDEV=y
+ # CONFIG_KEYBOARD_ATKBD is not set
+ CONFIG_KEYBOARD_GPIO=y
++CONFIG_KEYBOARD_GPIO_POLLED=y
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_SERIO is not set
+ # CONFIG_VT is not set
+-- 
+2.17.1
+

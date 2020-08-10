@@ -23,6 +23,8 @@
 #include "wc/assertion.h"
 #include "shadow_functions.h"
 #include "resources.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -239,6 +241,24 @@ statusCode_t WriteShadow(ctutil_Resources_t const * const pstResources,
     if(fpShadowNew == NULL)
     {
       status = CTUTIL_FILE_OPEN_ERROR;
+    }
+  }
+
+  // copy file permissions and owner/group from current shadow file
+  struct stat shadow_stat;
+  if(ctutil_IsStatusOk(status))
+  {
+    if(fstat(fileno(fpShadowOld), &shadow_stat) == 0)
+    {
+      if(fchmod(fileno(fpShadowNew), shadow_stat.st_mode) != 0 ||
+         fchown(fileno(fpShadowNew), shadow_stat.st_uid, shadow_stat.st_gid) != 0)
+      {
+        status = CTUTIL_SYSTEM_CALL_ERROR;
+      }
+    }
+    else
+    {
+      status = CTUTIL_SYSTEM_CALL_ERROR;
     }
   }
 

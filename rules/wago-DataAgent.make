@@ -16,14 +16,14 @@ PACKAGES-$(PTXCONF_DATAAGENT) += dataagent
 #
 # Paths and names
 #
-DATAAGENT_VERSION	:= 1.4
-DATAAGENT		    := DataAgent
-DATAAGENT_URL		:= file://wago_intern/$(DATAAGENT)
-DATAAGENT_BUILDCONFIG    := Release
-DATAAGENT_SRC_DIR        := $(PTXDIST_WORKSPACE)/wago_intern/$(DATAAGENT)
-DATAAGENT_BUILDROOT_DIR  := $(BUILDDIR)/$(DATAAGENT)
-DATAAGENT_DIR		:= $(DATAAGENT_BUILDROOT_DIR)/src
-DATAAGENT_BUILD_DIR  := $(DATAAGENT_BUILDROOT_DIR)/bin/$(DATAAGENT_BUILDCONFIG)
+DATAAGENT_VERSION       := 1.7
+DATAAGENT               := DataAgent
+DATAAGENT_URL           := file://wago_intern/$(DATAAGENT)
+DATAAGENT_BUILDCONFIG   := Release
+DATAAGENT_SRC_DIR       := $(PTXDIST_WORKSPACE)/wago_intern/$(DATAAGENT)
+DATAAGENT_BUILDROOT_DIR := $(BUILDDIR)/$(DATAAGENT)
+DATAAGENT_DIR           := $(DATAAGENT_BUILDROOT_DIR)/src
+DATAAGENT_BUILD_DIR     := $(DATAAGENT_BUILDROOT_DIR)/bin/$(DATAAGENT_BUILDCONFIG)
 DATAAGENT_LICENSE	:= unknown
 DATAAGENT_CONF_TOOL	:= NO
 DATAAGENT_MAKE_ENV	:= $(CROSS_ENV) \
@@ -123,8 +123,6 @@ $(STATEDIR)/dataagent.targetinstall:
 	@$(call install_fixup, dataagent,AUTHOR,"M\&M Software GmbH")
 	@$(call install_fixup, dataagent,DESCRIPTION,missing)
 
-	@$(call install_copy, dataagent, 0, 0, 0755, /etc/config-tools);
-
 	@$(call install_copy, dataagent, 118, 118, 0640, -, /etc/dataagent/dataagent.config)
 	@$(call install_copy, dataagent, 0, 0, 0755, -, /usr/lib/wide/libagentbus.so)
 	@$(call install_copy, dataagent, 0, 0, 0755, -, /usr/bin/dataagent)
@@ -133,16 +131,11 @@ $(STATEDIR)/dataagent.targetinstall:
 
 	@$(call install_copy, dataagent, 0, 0, 0755, -, /etc/init.d/dataagent)
 
-	@$(call install_copy, dataagent, 0, 0, 0750, -, /etc/config-tools/get_dataagent_config)
-	@$(call install_copy, dataagent, 0, 0, 0750, -, /etc/config-tools/config_dataagent)
-	@$(call install_copy, dataagent, 0, 0, 0750, -, /etc/config-tools/dataagent_config_writer)
-	
 	@$(call install_copy, dataagent, 0, 0, 0750, -, /etc/config-tools/backup-restore/dataagent_backup_restore)
+	@$(call install_copy, dataagent, 0, 0, 0750, -, /etc/config-tools/config_cloudconnectivity)
 
 	@$(call install_finish, dataagent)
-
 	@$(call touch)
-
 
 # ----------------------------------------------------------------------------
 # Clean

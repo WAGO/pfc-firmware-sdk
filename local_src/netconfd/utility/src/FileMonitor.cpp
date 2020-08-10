@@ -24,7 +24,7 @@
 
 #include "Logger.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 template<typename GObjectType>
 using GObjectPtr = std::unique_ptr<GObjectType, decltype(&g_object_unref)>;

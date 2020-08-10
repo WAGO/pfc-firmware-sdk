@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IIPController {
  public:
@@ -23,4 +23,4 @@ class IIPController {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

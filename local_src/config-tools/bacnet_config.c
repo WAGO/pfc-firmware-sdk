@@ -26,9 +26,7 @@
 #include <stdbool.h>
 
 #include <bacnet_config_api.h>      // interface to BACnet configuration
-
 #include "config_tool_lib.h"        // status codes
-#include "liblog/ct_liblog.h"       // write to log file
 
 //------------------------------------------------------------------------------
 // defines; structure, enumeration and type definitions
@@ -479,30 +477,6 @@ int main(int    argc,
       status = ERROR;
     }
   }
-
-  // data output
-  if(status != SUCCESS)
-  {
-    if(status == INVALID_VALUE)
-    { // invalid value (out of range, etc.)
-      ct_liblog_setLastError("Invalid value");
-    }
-    else if(status == NO_ACCESS)
-    { // parameter is only readable
-      ct_liblog_setLastError("No write access");
-    }
-    else if(status == UPLOAD_ERROR)
-    { // parameter is only readable
-      ct_liblog_setLastError("Internal error while BACnet file upload");
-    }
-    else
-    { // other internal error
-      ct_liblog_setLastError("Internal error while configure BACnet parameters.");
-    }
-    // save error
-    ct_liblog_reportError(status, "Error in bacnet_config.");
-  }
-
   return status;
 }
 

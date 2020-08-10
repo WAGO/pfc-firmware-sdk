@@ -1,7 +1,8 @@
 From cff126b2e24bfa416a056997692a1165b578916e Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 8 Aug 2018 11:23:11 +0200
-Subject: [PATCH] drivers: misc: bootmatrix: set leds in specific states
+Subject: [PATCH 050/144] drivers: misc: bootmatrix: set leds in specific
+ states
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

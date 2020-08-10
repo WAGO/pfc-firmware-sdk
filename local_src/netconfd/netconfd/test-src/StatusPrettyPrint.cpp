@@ -7,7 +7,7 @@
 
 #include "StatusPrettyPrint.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 void PrintTo(const Status& bar, std::ostream* os);
 void PrintTo(const StatusCode& bar, std::ostream* os);
@@ -20,4 +20,4 @@ void PrintTo(const StatusCode& bar, std::ostream* os) {
   *os << static_cast<uint32_t>(bar);  // whatever needed to print bar to os
 }
 
-}  // namespace netconfd
+}  // namespace netconf

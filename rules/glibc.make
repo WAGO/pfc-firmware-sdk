@@ -90,11 +90,11 @@ ifdef PTXCONF_GLIBC_ANL
 endif
 
 ifdef PTXCONF_GLIBC_NSS_NIS
-	@$(call install_copy_toolchain_lib, glibc, libnss_nis.so)
+	-@$(call install_copy_toolchain_lib, glibc, libnss_nis.so)
 endif
 
 ifdef PTXCONF_GLIBC_NSS_NISPLUS
-	@$(call install_copy_toolchain_lib, glibc, libnss_nisplus.so)
+	-@$(call install_copy_toolchain_lib, glibc, libnss_nisplus.so)
 endif
 
 ifdef PTXCONF_GLIBC_NSS_COMPAT
@@ -106,7 +106,7 @@ ifdef PTXCONF_GLIBC_RESOLV
 endif
 
 ifdef PTXCONF_GLIBC_NSL
-	@$(call install_copy_toolchain_lib, glibc, libnsl.so)
+	-@$(call install_copy_toolchain_lib, glibc, libnsl.so)
 endif
 
 ifdef PTXCONF_GLIBC_GCONF_BASE

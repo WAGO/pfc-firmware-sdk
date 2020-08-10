@@ -7,7 +7,7 @@
 
 #include "NetDev.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class INetDevConstruction;
 
@@ -29,8 +29,9 @@ class INetDevManager {
   virtual NetDevs GetBridgeNetDevs() = 0;
   virtual NetDevs GetPortNetDevs() = 0;
   virtual NetDevs GetNetDevs()= 0;
+  virtual NetDevs GetNetDevs(DeviceType kind)= 0;
   virtual void ConfigureBridges(const BridgeConfig& config) = 0;
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

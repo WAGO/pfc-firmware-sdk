@@ -7,18 +7,16 @@
 #include "Types.hpp"
 #include "IIPController.hpp"
 #include "IDHCPClientController.hpp"
-#include "IInterfaceInformation.hpp"
 #include "IIPLinks.hpp"
 #include "IIPConfigure.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IPConfigurator : public IIPConfigure {
  public:
   IPConfigurator(IIPController& ip_controller,
                  const IDHCPClientController& dhcp_client_controller,
                  const IBootpClientController& bootp_client_controller,
-                 const IInterfaceInformation& itf_info,
                  IIPLinks& ip_links);
   virtual ~IPConfigurator() = default;
 
@@ -49,10 +47,9 @@ class IPConfigurator : public IIPConfigure {
   IIPController& ip_controller_;
   const IDHCPClientController& dhcp_client_controller_;
   const IBootpClientController& bootp_client_controller_;
-  const IInterfaceInformation& itf_info_;
   IIPLinks& ip_links_;
 
   const ::std::string TMP_FILE_PATH = "/tmp/dhcp-bootp-data-";
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

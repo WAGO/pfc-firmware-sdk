@@ -8,7 +8,7 @@
 #include "JsonRestorer.hpp"
 #include "Types.hpp"
 
-using namespace netconfd;
+using namespace netconf;
 
 TEST(JsonRestorer, restoreInterfaceConfig) {
   auto bfc =

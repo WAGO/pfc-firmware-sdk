@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "NetworkHelper.hpp"
 #include "IPLink.hpp"
 #include "IIPConfigure.hpp"
-#include "NetworkHelper.hpp"
 #include "NetworkInterfaceConstants.hpp"
 
-namespace netconfd {
+namespace netconf {
 
-IPLink::IPLink(IIPConfigure &configurator, IEventManager &event_manager, NetDevPtr netdev, const ::std::string &init_address, const ::std::string &init_netmask)
+IPLink::IPLink(IIPConfigure &configurator, IEventManager &event_manager, NetDevPtr netdev,
+               const ::std::string &init_address, const ::std::string &init_netmask)
     :
     ip_configure_ { configurator },
     event_manager_ { event_manager },
@@ -21,6 +22,7 @@ IPLink::IPLink(IIPConfigure &configurator, IEventManager &event_manager, NetDevP
       this->Disable();
     }
   };
+  shall_trigger_event_folder_ = !netdev_->IsIpConfigReadonly();
   netdev_->SetLinkChangeHandler(on_link_change);
   enabled_ = netdev_->GetLinkState() == eth::InterfaceLinkState::Up;
   ip_config_.interface_ = netdev_->GetName();
@@ -54,6 +56,15 @@ Status IPLink::Configure(const IPConfig &new_ip_config) {
     }
   }
   status = ip_configure_.Configure(new_ip_config);
+
+  if (IPConfig::SourceIsAnyOf(new_ip_config, IPSource::STATIC, IPSource::TEMPORARY) && status.Ok()) {
+    /* Manually set current IP, because during system boot no netlink events are send tu us.
+     * This will circumvent this issue
+     */
+    address_ = new_ip_config.address_;
+    netmask_ = new_ip_config.netmask_;
+  }
+
   return status;
 }
 
@@ -91,9 +102,11 @@ void IPLink::NotifyChanges(const IPConfig &new_ip_config) {
 Status IPLink::SetIPConfig(const IPConfig new_ip_config) {
   Status status = Configure(new_ip_config);
 
-  NotifyChanges(new_ip_config);
+  if(status.Ok()) {
+    NotifyChanges(new_ip_config);
 
-  AcceptNewConfig(new_ip_config);
+    AcceptNewConfig(new_ip_config);
+  }
 
   return status;
 }
@@ -115,7 +128,6 @@ IPConfig IPLink::GetCurrentIPConfig() const {
   IPConfig config = ip_config_;
   config.address_ = address_;
   config.netmask_ = netmask_;
-  config.broadcast_ = GetBroadcast(address_, netmask_);
   return config;
 }
 
@@ -131,8 +143,9 @@ void IPLink::OnAddressChange(IIPEvent::ChangeType change_type, const ::std::stri
     address_ = address;
     netmask_ = netmask;
   }
-
-  event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::IP_CHANGE_FILES, ip_config_.interface_);
+  if (shall_trigger_event_folder_) {
+    event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::IP_CHANGE_FILES, ip_config_.interface_);
+  }
 }
 
 void IPLink::Enable() {
@@ -145,10 +158,12 @@ void IPLink::Enable() {
     ip_configure_.Configure(ip_config_);
   }
 
-  event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
+  if (shall_trigger_event_folder_) {
+    event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
+  }
 }
 
-static bool ShouldFlush(const IPConfig& config) {
+static bool ShouldFlush(const IPConfig &config) {
   return !IPConfig::SourceIsAnyOf(config, IPSource::EXTERNAL, IPSource::STATIC);
 }
 
@@ -164,7 +179,9 @@ void IPLink::Disable() {
     ip_configure_.Configure(ip_config);
   }
 
-  event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
+  if (shall_trigger_event_folder_) {
+    event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
+  }
 }
 
 }

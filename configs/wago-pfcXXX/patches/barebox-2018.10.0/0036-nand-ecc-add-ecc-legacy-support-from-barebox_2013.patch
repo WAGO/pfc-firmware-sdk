@@ -1,7 +1,7 @@
 From 570416f325a7bb18d5f0102ccd28f52ae9e73433 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 18 Jun 2018 13:50:36 +0200
-Subject: [PATCH] nand: ecc: add ecc legacy support from barebox_2013
+Subject: [PATCH 036/144] nand: ecc: add ecc legacy support from barebox_2013
 
 We need this legacy support because we have devices out
 there which would need that special mode to boot.

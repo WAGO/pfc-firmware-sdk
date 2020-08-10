@@ -4,7 +4,7 @@
 struct nl_sock;
 struct nl_cache_mngr;
 
-namespace netconfd {
+namespace netconf {
 
 
 class NetlinkCache {
@@ -18,4 +18,4 @@ class NetlinkCache {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf

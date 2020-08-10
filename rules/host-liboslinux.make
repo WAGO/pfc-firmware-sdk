@@ -16,10 +16,10 @@ HOST_PACKAGES-$(PTXCONF_HOST_LIBOSLINUX) += host-liboslinux
 #
 # Paths and names
 #
-HOST_LIBOSLINUX_VERSION	:= 1.0.0.0
-HOST_LIBOSLINUX			:= liboslinux-$(HOST_LIBOSLINUX_VERSION)
-HOST_LIBOSLINUX_SOURCE	:= $(SRCDIR)/$(HOST_LIBOSLINUX)
-HOST_LIBOSLINUX_DIR		:= $(HOST_BUILDDIR)/$(HOST_LIBOSLINUX)
+HOST_LIBOSLINUX_VERSION	:= 1.0.1.0
+HOST_LIBOSLINUX		:= liboslinux-$(HOST_LIBOSLINUX_VERSION)
+HOST_LIBOSLINUX_SOURCE	:= $(SRCDIR)/liboslinux
+HOST_LIBOSLINUX_DIR	:= $(HOST_BUILDDIR)/$(HOST_LIBOSLINUX)
 HOST_LIBOSLINUX_MD5 :=
 
 HOST_LIBOSLINUX_PATH:= PATH=$(HOST_PATH)
@@ -38,7 +38,7 @@ $(STATEDIR)/host-liboslinux.get:
 $(STATEDIR)/host-liboslinux.extract: $(STATEDIR)/autogen-tools
 	@$(call targetinfo)
 	@mkdir -p $(HOST_LIBOSLINUX_DIR)
-	@rsync -a --exclude=.libs/ --exclude="*.o" --exclude="*.a" --exclude="*.so" $(HOST_LIBOSLINUX_SOURCE) $(HOST_BUILDDIR)
+	@rsync -a --exclude=.libs/ --exclude="*.o" --exclude="*.a" --exclude="*.so" $(HOST_LIBOSLINUX_SOURCE)/ $(HOST_LIBOSLINUX_DIR)
 	@cd $(HOST_LIBOSLINUX_DIR) && sh autogen.sh
 	@$(call touch)
 

@@ -107,6 +107,14 @@
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
 			</target>
+			<target name="ptdxdist clean" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>bash</buildCommand>
+				<buildArguments>-c</buildArguments>
+				<buildTarget>"cd ${workspace_loc}/pfc/ptxproj ; ptxdist clean ${ProjName}"</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
 		</buildTargets>
 	</storageModule>
 </cproject>

@@ -14,7 +14,16 @@
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------#
 
+DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
 NETWORK_CONFIG=/etc/config-tools/network_config
+
+wait_for_netconfd_ready () {
+   dbus-wait -t 120 de.wago.netconfd
+   if [ $? != 0 ]; then
+     logger -t bootpc-startup.default "ERROR: bootpc: netconfd: DBUS interface de.wago.netconfd not reachable!"
+     exit -1
+   fi
+}
 
 set_ip_config () {
   local iface="$1"
@@ -25,11 +34,16 @@ set_ip_config () {
 
   local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
 
-  $NETWORK_CONFIG --ip-config --set "${json_config}" --format json
+  wait_for_netconfd_ready
+
+  out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
+  
+  if [[ $? != 0 ]]; then
+    logger -t "bootpc-startup.default" "failed to set ip via network_config tool: $out"
+  fi
 }
 
 interface_name=$1
-DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
 FILE=$DHCP_DATA_FILE_TEMPLATE$interface_name
 
 /sbin/route add default "$interface_name"
@@ -67,7 +81,11 @@ if [[ -n "$GATEWAYS" ]] ; then
     done
 fi
 
-# Save dns servers
+# Write hostname and dns domainname
+[[ -n "$HOSTNAME" ]] && echo "DHCPHOSTNAME=$HOSTNAME" >> "$FILE"
+[[ -n "$DOMAIN" ]] && echo "DHCPDOMAIN=$DOMAIN" >> "$FILE"
+
+# Write dns server to tmp file
 if [[ -n "$DNSSRVS" ]] ; then
     index=1
     for i in $DNSSRVS; do
@@ -76,7 +94,7 @@ if [[ -n "$DNSSRVS" ]] ; then
     done
 fi
 
-# Save ntp servers
+# Write ntp server to tmp file
 if [[ -n "$NTPSRVS" ]] ; then
     index=1
     for i in $NTPSRVS; do
@@ -85,8 +103,8 @@ if [[ -n "$NTPSRVS" ]] ; then
     done
 fi
 
-# Save hostname and dns domainname
-[[ -n "$HOSTNAME" ]] && echo "DHCPHOSTNAME=$HOSTNAME" >> "$FILE"
-[[ -n "$DOMAIN" ]] && echo "DHCPDOMAIN=$DOMAIN" >> "$FILE"
 
 set_ip_config "$interface_name" temporary "$IPADDR" "$NETMASK" "$BROADCAST"
+
+# send gratuitous ARP.
+arping -I "$interface" -c1 -s "$ip" "$ip"

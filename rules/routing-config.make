@@ -107,8 +107,6 @@ $(STATEDIR)/routing-config.targetinstall:
 	@$(call install_fixup,routing-config,AUTHOR,"WAGO Kontakttechnik GmbH")
 	@$(call install_fixup,routing-config,DESCRIPTION,"This packet provides config-tools supporting configuration of static routing, IP-masquerading and port-forwarding.")
 
-	@$(call install_copy, routing-config, 0, 0, 0755, /etc/config-tools);
-
 # Files that should be copied to the target
 
 	@$(call install_copy, routing-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_routing, /etc/config-tools/config_routing);

@@ -18,6 +18,40 @@ firewall_mac_rule_state_on_count='xmlstarlet sel -N f=http://www.wago.com/securi
 firewall_mac_rule_mac='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ethernet/f:whitelist/f:host[${ix}]/@mac /etc/firewall/ebtables/ebwlist.xml'
 firewall_mac_rule_mask='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ethernet/f:whitelist/f:host[${ix}]/@mask /etc/firewall/ebtables/ebwlist.xml'
 
+function GetInterfacesListFromParams
+{
+    local interface_list_legacy=""
+    local interfaces_list_new=$(${firewall_params_interfaces})
+
+    for i in ${interfaces_list_new}; do
+        if [[ "$i" == "br0" ]]; then
+            interface_list_legacy="$interface_list_legacy X1"
+        elif [[ "$i" == "br1" ]]; then
+            interface_list_legacy="$interface_list_legacy X2"
+        elif [[ "$i" != "br2" && "$i" != "br3" ]]; then
+            interface_list_legacy="$interface_list_legacy $i"
+        fi
+    done
+    
+    # Sort to fit to expected order in other parts of this implementation.
+    interface_list_legacy=$(echo "$interface_list_legacy" | tr " " "\n" | sort | uniq )
+
+    echo "$interface_list_legacy"
+}
+
+function GetMacInterfaceState
+{
+    local interface="$1"
+
+    if [[ "$interface" == "X1" ]]; then
+        interface="br0"
+    elif [[ "$interface" == "X2" ]]; then
+        interface="br1"
+    fi
+    local state=$(`eval echo $firewall_mac_ifstate`)
+
+    echo "$state"
+}
 
 function FirewallWhitelistElementEditState
 {
@@ -319,7 +353,7 @@ function FirewallWhitelistProtection
 function FirewallInterfaceState
 {
     local interface=$1
-    local state=$(`eval echo $firewall_mac_ifstate`)
+    local state=$(GetMacInterfaceState $interface)
 
     WdialogWrapper "--menu" selection \
         "$TITLE" \
@@ -385,7 +419,7 @@ function FirewallMACFilter
 
     local macmode=`${firewall_mac_mode}`
     local macmodeed="disabled"
-    local interfaces_list=`${firewall_params_interfaces} | sort | uniq`
+    local interfaces_list="$(GetInterfacesListFromParams)"
     local interfaces_count=0
 
     if [ "`${firewall_mac_global_state}`" == "all-allow" ]; then
@@ -420,7 +454,7 @@ function FirewallMACFilter
             local active_ports=$(/etc/config-tools/get_eth_config --print-ports)
             for interface in ${all_ports}
             do
-                local state=$(`eval echo $firewall_mac_ifstate`)
+                local state=$(GetMacInterfaceState $interface)
                 local count=28
 
                 local interf_label=$interface
@@ -434,7 +468,7 @@ function FirewallMACFilter
                 fi
 
                 let count-=${#interf_label}
-                if [[ $count < 0 ]]; then
+                if [[ $count -lt 0 ]]; then
                     count=0
                 fi
 
@@ -449,7 +483,7 @@ function FirewallMACFilter
 
             for interface in ${interfaces_list}
             do
-                local state=$(`eval echo $firewall_mac_ifstate`)
+                local state=$(GetMacInterfaceState $interface)
                 local count=17
 
                 let count-=${#interface}
@@ -517,7 +551,7 @@ function FirewallMACFilter
                 else
                   FirewallMACMessage "No rule defined in whitelist! Unable to change filter state."
                 fi
-                local interfaces_list=`${firewall_params_interfaces} | sort | uniq`
+                local interfaces_list="$(GetInterfacesListFromParams)"
                 ;;
 
         esac

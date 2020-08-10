@@ -4,6 +4,7 @@ config CPPUTEST
 	bool
     default n
 	prompt "cpputest"	
+	select HOST_CMAKE
 	help
 		FIXME
 		Lightweight cpp based unit test framework.

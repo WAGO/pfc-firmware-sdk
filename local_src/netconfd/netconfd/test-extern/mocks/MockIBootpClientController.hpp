@@ -5,7 +5,7 @@
 
 #include "IBootpClientController.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIBootpController : public IBootpClientController {
  public:
@@ -17,5 +17,5 @@ class MockIBootpController : public IBootpClientController {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf
 #endif

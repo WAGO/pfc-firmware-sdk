@@ -6,7 +6,7 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_store
@@ -17,7 +17,8 @@
 # Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
 # Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
 # Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MSc: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load common backup/restore functions
@@ -166,7 +167,6 @@ createBackupFile()
     #-------------------------------------------------------------
     # save network settings
     if ! IsNetworkSettingsV2 ; then
-      
       interfaceNo=0
       ports=$(GetPortsList)
       
@@ -178,7 +178,7 @@ createBackupFile()
           ProcessErrBackupOperation $? "Failed to get eth config type from port:" $port
           ethState=$(/etc/config-tools/get_eth_config $port state)
           ProcessErrBackupOperation $? "Failed to get eth config state from port:"  $port
-          SaveBackupValue "ip-config-type-eth${interfaceNo}" "$ethIpConfigType" "$backupFile"
+          SaveBackupValue "ip-config-type-eth${interfaceNo}" "${ethIpConfigType:-static}" "$backupFile"
           SaveBackupValue "ip-state-eth${interfaceNo}"       "$ethState"        "$backupFile"
   
           # save network settings

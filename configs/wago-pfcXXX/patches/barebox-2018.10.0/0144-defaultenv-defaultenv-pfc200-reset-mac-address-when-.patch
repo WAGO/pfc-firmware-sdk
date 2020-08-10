@@ -1,8 +1,8 @@
 From 9749e7ff95de962d1df8f5f97f4f151fa6f4e756 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 7 Nov 2018 15:30:05 +0100
-Subject: [PATCH] defaultenv: defaultenv-pfc200: reset mac-address when booting
- fw-loader
+Subject: [PATCH 144/144] defaultenv: defaultenv-pfc200: reset mac-address when
+ booting fw-loader
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

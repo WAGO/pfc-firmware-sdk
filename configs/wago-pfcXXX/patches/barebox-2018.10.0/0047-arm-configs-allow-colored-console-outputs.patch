@@ -1,7 +1,7 @@
 From bbbc598c128352994f9c8a490a72b4647d164104 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 11 Jul 2018 12:00:38 +0200
-Subject: [PATCH] arm: configs: allow colored console outputs
+Subject: [PATCH 047/144] arm: configs: allow colored console outputs
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

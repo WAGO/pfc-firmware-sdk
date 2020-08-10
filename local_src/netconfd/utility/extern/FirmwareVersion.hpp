@@ -5,60 +5,74 @@
 #include <string>
 #include <tuple>
 
-namespace netconfd
-{
+namespace netconf {
 
-  class FirmwareVersion
-  {
-    public:
-      explicit FirmwareVersion(::std::string complete_version);
-      ~FirmwareVersion() = default;
+class FirmwareVersion {
+ public:
+  FirmwareVersion() = default;
+  constexpr FirmwareVersion(int major, int minor, int bugfix, int index)
+  :
+          major_ { major },
+          minor_ { minor },
+          bugfix_ {bugfix },
+          index_ { index },
+          is_valid_ { true }
+  {}
 
-      int GetFirmwareIndex() const;
-      int GetMajor() const;
-      int GetMinor() const;
-      int GetBugfix() const;
+  explicit FirmwareVersion(::std::string complete_version);
+  ~FirmwareVersion() = default;
+  FirmwareVersion(FirmwareVersion&& other) noexcept;
+  FirmwareVersion(const FirmwareVersion& other) = default;
+  FirmwareVersion& operator=(FirmwareVersion&& other) noexcept;
+  FirmwareVersion& operator=(const FirmwareVersion& other) = default;
 
-      bool IsValid(){
-        return is_valid_;
-      }
+  constexpr int GetFirmwareIndex() const {
+    return index_;
+  }
+  constexpr int GetMajor() const {
+    return major_;
+  }
+  constexpr int GetMinor() const {
+    return minor_;
+  }
+  constexpr int GetBugfix() const {
+    return bugfix_;
+  }
 
-      bool operator<(const FirmwareVersion &other) const
-      {
-        if(major_ < other.major_)
-          return true;
-        if((major_ == other.major_) and (minor_ < other.minor_))
-          return true;
-        if((major_ == other.major_) and (minor_ == other.minor_) and (bugfix_ < other.bugfix_))
-          return true;
-        return false;
-      }
+  constexpr bool IsValid() const {
+    return is_valid_;
+  }
 
-      bool operator==(const FirmwareVersion &other) const
-      {
-        return ((major_ == other.major_) and (minor_ == other.minor_) and (bugfix_ == other.bugfix_)
-                and (index_ == other.index_));
-      }
+  constexpr bool operator<(const FirmwareVersion &other) const {
+    if (major_ < other.major_)
+      return true;
+    if ((major_ == other.major_) and (minor_ < other.minor_))
+      return true;
+    if ((major_ == other.major_) and (minor_ == other.minor_) and (bugfix_ < other.bugfix_))
+      return true;
+    return false;
+  }
 
-      bool operator>(const FirmwareVersion &other) const
-      {
-        return (not (*this == other) && not (*this < other));
-      }
+  constexpr bool operator==(const FirmwareVersion &other) const {
+    return ((major_ == other.major_) and (minor_ == other.minor_) and (bugfix_ == other.bugfix_)
+        and (index_ == other.index_));
+  }
 
-      bool operator!=(const FirmwareVersion &other) const
-      {
-        return not (*this == other);
-      }
+  bool operator>(const FirmwareVersion &other) const {
+    return (not (*this == other) && not (*this < other));
+  }
 
-    private:
-      ::std::string complete_version_;
-      int major_;
-      int minor_;
-      int bugfix_;
-      int index_;
+  bool operator!=(const FirmwareVersion &other) const {
+    return not (*this == other);
+  }
 
-      bool is_valid_ = false;
-  };
+ private:
+  int major_ = 0;
+  int minor_ = 0;
+  int bugfix_ = 0;
+  int index_ = 0;
+  bool is_valid_ = false;
+};
 
-} /* namespace netconfd */
+} /* namespace netconf */
 

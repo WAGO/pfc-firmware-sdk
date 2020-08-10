@@ -19,8 +19,6 @@
  *
  *   dieter@13thfloor.at
  *
- *$Id: serial_dispatcher.c 24582 2017-09-15 05:48:15Z hans-florian.scholz@wago.com $
- *
  */
 
 
@@ -47,7 +45,8 @@
 #define POLL_FD_SERIAL    0
 #define POLL_FD_TCP       1
 
-
+#define LOGBUFFER_SIZE 1024
+#define PRINTBUFFER_SIZE 8192
 
 
 
@@ -142,14 +141,22 @@ void SigHandler(int sig, siginfo_t *info, void *data)
 
 void logBuffer(char * buf, int n, char IO)
 {
-  char logstr[1024];
+  char logstr[LOGBUFFER_SIZE];
+  int remaining = LOGBUFFER_SIZE;
+  int offset = 0;
   int i;
-  logstr[0]=0;
+  logstr[0] = '\0';
   syslog(LOG_DEBUG, "Got %d bytes: RS232 %c TCP", n , IO);
 
   for(i = 0; i < n; i++ )
   {
-    sprintf(logstr, "%s %.2x", logstr, buf[i]);
+    int len = snprintf(&logstr[offset], remaining, "%.2x", (buf[i] & 0xff));
+    if (len >= remaining)
+    {
+      break;
+    }
+    offset += len;
+    remaining -= len;
   }
   syslog(LOG_DEBUG, "%s", logstr);
 
@@ -157,19 +164,31 @@ void logBuffer(char * buf, int n, char IO)
 
 void printBuffer(char * buf, size_t n,char * name, char dir)
 {
-  char logstr[8192]="\0";
+  char logstr[PRINTBUFFER_SIZE];
   size_t i,j;
-  sprintf(logstr, "%.4d %s %c ", n,name, dir);
+  int offset = snprintf(logstr, PRINTBUFFER_SIZE, "%.4zu %s %c ", n, name, dir);
+  int remaining = PRINTBUFFER_SIZE - offset;
   j = 0;
   for(i = 0; i < n; i++)
   {
     if(++j > 10)
     {
-      sprintf(logstr,"%s\n       ", logstr);
+      int len = snprintf(&logstr[offset], remaining, "\n       ");
+      if (len >= remaining)
+      {
+        break;
+      }
+      offset += len;
+      remaining -= len;
       j=1;
     }
-    sprintf(logstr, "%s %.2X", logstr, buf[i]);
-
+    int len = snprintf(&logstr[offset], remaining, " %.2X", (buf[i] & 0xff));
+    if (len >= remaining)
+    {
+      break;
+    }
+    offset += len;
+    remaining -= len;
   }
   puts(logstr);
 }
@@ -847,4 +866,3 @@ int main(int argc, char *argv[])
   CloseSerial(serfd, &oldtio);
   exit(0);
 }
-

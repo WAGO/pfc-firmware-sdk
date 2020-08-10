@@ -1,0 +1,41 @@
+Fix for issues https://github.com/Azure/azure-iot-sdk-c/issues/785 and https://github.com/Azure/azure-iot-sdk-c/issues/446
+diff -Naur azure-iot-sdk-c/iothub_client/src/iothubtransport_mqtt_common.c azure-iot-sdk-c_patched/iothub_client/src/iothubtransport_mqtt_common.c
+--- azure-iot-sdk-c/iothub_client/src/iothubtransport_mqtt_common.c	2018-10-02 08:29:13.055894788 +0200
++++ azure-iot-sdk-c_patched/iothub_client/src/iothubtransport_mqtt_common.c	2020-07-02 09:17:22.071783000 +0200
+@@ -231,6 +231,7 @@
+     char* http_proxy_username;
+     char* http_proxy_password;
+     bool isProductInfoSet;
++    int disconnect_recv_flag;
+ } MQTTTRANSPORT_HANDLE_DATA, *PMQTTTRANSPORT_HANDLE_DATA;
+ 
+ typedef struct MQTT_DEVICE_TWIN_ITEM_TAG
+@@ -1712,8 +1713,8 @@
+     // Ensure the disconnect message is sent
+     if (transport_data->mqttClientStatus == MQTT_CLIENT_STATUS_CONNECTED)
+     {
+-        int disconn_recv = 0;
+-        (void)mqtt_client_disconnect(transport_data->mqttClient, mqtt_disconnect_cb, &disconn_recv);
++        transport_data->disconnect_recv_flag = 0;
++        (void)mqtt_client_disconnect(transport_data->mqttClient, mqtt_disconnect_cb, &transport_data->disconnect_recv_flag);
+         size_t disconnect_ctr = 0;
+         do
+         {
+@@ -1720,7 +1721,7 @@
+             mqtt_client_dowork(transport_data->mqttClient);
+             disconnect_ctr++;
+             ThreadAPI_Sleep(50);
+-        } while ((disconnect_ctr < MAX_DISCONNECT_VALUE) && (disconn_recv == 0));
++        } while ((disconnect_ctr < MAX_DISCONNECT_VALUE) && (transport_data->disconnect_recv_flag == 0));
+     }
+     xio_destroy(transport_data->xioTransport);
+     transport_data->xioTransport = NULL;
+@@ -2193,6 +2194,8 @@
+             else if ((current_time - transport_data->mqtt_connect_time) / 1000 > transport_data->connect_timeout_in_sec)
+             {
+                 LogError("mqtt_client timed out waiting for CONNACK");
++                transport_data->disconnect_recv_flag = 0;
++                mqtt_client_disconnect(transport_data->mqttClient, mqtt_disconnect_cb, &transport_data->disconnect_recv_flag);
+                 DisconnectFromClient(transport_data);
+                 result = __FAILURE__;
+             }

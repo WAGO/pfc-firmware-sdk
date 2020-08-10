@@ -13,13 +13,15 @@
 ///
 ///  \author   WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#pragma once
+
+#ifndef WAGO_FIREWALL_FILE_ACCESSOR_HPP_
+#define WAGO_FIREWALL_FILE_ACCESSOR_HPP_
 
 #include "xmlhlp.hpp"
 #include <iostream>
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 
 class FileAccessor {
 
@@ -95,4 +97,7 @@ class FileAccessor {
 
 };
 
-}
+} // namespace firewall
+} // namespace wago
+
+#endif // WAGO_FIREWALL_FILE_ACCESSOR_HPP_

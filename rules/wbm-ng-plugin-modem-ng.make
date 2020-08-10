@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_MODEM_NG) += wbm-ng-plugin-modem-ng
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_MODEM_NG_VERSION        := 1.0.4
+WBM_NG_PLUGIN_MODEM_NG_VERSION        := 1.0.9
 WBM_NG_PLUGIN_MODEM_NG                := wbm-modem-ng-$(WBM_NG_PLUGIN_MODEM_NG_VERSION)
 WBM_NG_PLUGIN_MODEM_NG_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_MODEM_NG)
 WBM_NG_PLUGIN_MODEM_NG_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_MODEM_NG_URL))
@@ -28,7 +28,11 @@ WBM_NG_PLUGIN_MODEM_NG_BUILDROOT_DIR  := $(BUILDDIR)/wbm-ng-plugin-modem-ng
 WBM_NG_PLUGIN_MODEM_NG_DIR            := $(WBM_NG_PLUGIN_MODEM_NG_BUILDROOT_DIR)
 WBM_NG_PLUGIN_MODEM_NG_LICENSE        := unknown
 WBM_NG_PLUGIN_MODEM_NG_MAKE_ENV       :=
+ifeq ($(PTXCONF_WBM),y)
 WBM_NG_PLUGIN_MODEM_NG_TARGET_DIR     := /var/www/wbm-ng/plugins/wbm-modem-ng
+else
+WBM_NG_PLUGIN_MODEM_NG_TARGET_DIR     := /var/www/wbm/plugins/wbm-modem-ng
+endif
 
 
 # ----------------------------------------------------------------------------

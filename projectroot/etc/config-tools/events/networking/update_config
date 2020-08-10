@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: update_config
@@ -13,12 +13,12 @@
 # Typically called when configuration data changed by config tools or by
 # DHCP/BOOTP.
 #
-# $Revision$
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------#
 
 set -u      # error exit on undefined shell variables
 
+dnsmasq_config_changed=false
 
 function DomainToResolvConf()
 {
@@ -55,7 +55,7 @@ function DomainToDNSMASQ()
         if [ "$domain" ]; then
             #check if act_domain differs from new_domain
             local domain_search="/^\(#\)\?domain=.*"
-            
+
             #search for the first '#domain=' or 'domain=' at the beginning of the line
             #replace it with 'domain=$domain'
             sed -i -e "1,$domain_search/{$domain_search/s//domain=$domain/}" $dnsmasq_conf
@@ -64,8 +64,8 @@ function DomainToDNSMASQ()
             #otherwise dmasq will fail during startup
             sed -i -e "/^domain=/c#domain=" $dnsmasq_conf
         fi
-        #now we have to restart dnsmasq there is no other way to re-read the configuration.
-        /etc/init.d/dnsmasq restart
+        # We have to restart dnsmasq to re-read the configuration.
+        dnsmasq_config_changed=true
     fi
 }
 
@@ -89,7 +89,6 @@ function UpdateLocalDNSResolve()
    for ip in $ips; do
      sed -i -e "/^$marker_text_1/a$ip\t$FQDN\t$hostname" /etc/hosts
    done
-
 }
 
 function UpdateHostConf()
@@ -107,8 +106,8 @@ function UpdateHostConf()
     [ "$HOSTNAME" ] && validhost=$HOSTNAME
     [ "$DNSDOMAIN" ] && validdomain=$DNSDOMAIN
 
-    # now load dynamic dhcp names of newest file
-    if [ "$(find /tmp -name "dhcp-bootp-data-"* -type f -printf . | wc -c)" -gt 0 ]; then
+    # now load dynamic dhcp names of newest file				
+    if [ "$(find /tmp -maxdepth 1 -name 'dhcp-bootp-data-*' -type f -printf . | wc -c)" -gt 0 ]; then
         cfgfile=$(ls -rt "$DHCP_DATA_FILE_TEMPLATE"* | tail -1)
         DHCPHOSTNAME=
         DHCPDOMAIN=
@@ -154,22 +153,25 @@ function UpdateHostConf()
 
 function UpdateDnsmasqConfig()
 {
-    DNSMASQ_CONFIG="/etc/dnsmasq.conf"
-    DNSMASQ_CONFIG_TMP="/tmp/dnsmasq.conf"
+    local DNSMASQ_CONFIG="/etc/dnsmasq.conf"
+    local DNSMASQ_CONFIG_TMP="/tmp/dnsmasq.conf"
+    local NET_PARAMS=""
 
-    /etc/config-tools/config_dnsmasq_c --gen-config --dnsmasq-config $DNSMASQ_CONFIG_TMP
-
-    if ! diff -q $DNSMASQ_CONFIG $DNSMASQ_CONFIG_TMP ; then
-        # During restart a new dnsmasq configuration is generated.
-        /etc/init.d/dnsmasq restart
+    if [[ -n ${NETCONF_BRIDGE_CONFIG+x} && -n ${NETCONF_IP_CONFIG+x} && -n ${NETCONF_INTERFACE_CONFIG+x} ]]; then
+        NET_PARAMS="--bridge-config $NETCONF_BRIDGE_CONFIG --ip-config $NETCONF_IP_CONFIG --interface-config $NETCONF_INTERFACE_CONFIG"
     fi
 
-    rm -f $DNSMASQ_CONFIG_TMP &> /dev/null
-}
+    /etc/config-tools/config_dnsmasq_c --gen-config --no-dnsmasq-restart --dnsmasq-config $DNSMASQ_CONFIG_TMP $NET_PARAMS
 
-function DoUpdates()
-{
-    UpdateHostConf
+    if ! diff -q $DNSMASQ_CONFIG $DNSMASQ_CONFIG_TMP ; then
+        mv $DNSMASQ_CONFIG_TMP $DNSMASQ_CONFIG
+        sync
+	      dnsmasq_config_changed=true
+    fi
+
+    if [[ -e $DNSMASQ_CONFIG_TMP ]]; then
+        rm -f $DNSMASQ_CONFIG_TMP &> /dev/null
+    fi
 }
 
 # main: set global variables
@@ -178,10 +180,18 @@ DHCP_DATA_FILE_PREFIX=dhcp-bootp-data-
 DHCP_DATA_FILE_TEMPLATE=/tmp/$DHCP_DATA_FILE_PREFIX
 HOSTCONFFILE=/etc/specific/host.conf
 
-# Use advisory lock to avoid race with config_dnsmasq_c and this script on more then one 
+# Use advisory lock to avoid race with config_dnsmasq_c and this script on more then one
 # interface with dhcp
-( flock 9; DoUpdates; ) 9< /etc/hosts
+( flock 9; UpdateHostConf; ) 9< /etc/hosts
 sync
 
-# dnsmasq update relies on /etc/hosts too. Therefore, run dnsmasq update after DoUpdates part. 
-UpdateDnsmasqConfig
+# dnsmasq update relies on /etc/hosts too. Therefore, run dnsmasq update after UpdateHostConf part.
+shift 
+UpdateDnsmasqConfig "$@"
+
+if [[ "$dnsmasq_config_changed" == true ]]; then
+    # We have to restart dnsmasq to re-read the configuration.
+    # Use the "update" option to avoid regenerating the file /etc/dnsmasq.conf .
+    # The generation was already done during UpdateDnsmasqConfig execution.
+    /etc/init.d/dnsmasq update
+fi

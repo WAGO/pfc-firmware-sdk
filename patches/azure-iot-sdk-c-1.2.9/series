@@ -1,3 +1,4 @@
 # This patch disbales the compiler flag -Werror set in CMakeLists.txt of Azure SDK
 0001-azure-iot-sdk-c-1.2.9.patch
-0002-fix_issue_785.patch
+0002-fix_issues_785_446.patch
+0003-fix_issue_446.patch

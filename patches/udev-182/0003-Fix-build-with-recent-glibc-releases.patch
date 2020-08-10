@@ -1,0 +1,23 @@
+From: =?UTF-8?q?Guillermo=20Rodr=C3=ADguez?= <guille.rodriguez@gmail.com>
+Date: Thu, 30 Jan 2020 14:40:43 +0100
+Subject: [PATCH] Fix build with recent glibc releases
+
+<sys/sysmacros.h> is no longer included as part of <sys/types.h> there.
+
+Ref.: https://wiki.gentoo.org/wiki/Glibc_2.26_porting_notes/sysmacros.h
+---
+ src/libudev.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/libudev.h b/src/libudev.h
+index 10e098d4f7ca..40a658c1ecec 100644
+--- a/src/libudev.h
++++ b/src/libudev.h
+@@ -14,6 +14,7 @@
+ 
+ #include <stdarg.h>
+ #include <sys/types.h>
++#include <sys/sysmacros.h>
+ #include <sys/stat.h>
+ 
+ #ifdef __cplusplus

@@ -1,8 +1,8 @@
 From afd58bc7ff1409c3ffa9cbd219e83e787e4b92c1 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 16 Jan 2019 10:09:06 +0100
-Subject: [PATCH] defaultenv: defaultenv-pfc-base: generalize linux uart and
- watchdog handling
+Subject: [PATCH 157/160] defaultenv: defaultenv-pfc-base: generalize linux
+ uart and watchdog handling
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

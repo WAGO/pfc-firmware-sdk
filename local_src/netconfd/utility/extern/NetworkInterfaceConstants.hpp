@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 namespace eth {
 
 

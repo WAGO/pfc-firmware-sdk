@@ -4,7 +4,7 @@
 #include "Types.hpp"
 #include <ostream>
 
-namespace netconfd {
+namespace netconf {
 
 std::ostream& operator<<(std::ostream& os, const InterfaceConfig& pc) ;
 
@@ -12,6 +12,6 @@ std::ostream& operator<<(std::ostream& os, const IPConfig& pc) ;
 
 
 
-}  // namespace netconfd
+}  // namespace netconf
 
 

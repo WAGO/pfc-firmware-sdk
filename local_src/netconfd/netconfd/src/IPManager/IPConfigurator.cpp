@@ -8,21 +8,19 @@
 #include <iostream>
 #include <fstream>
 #include <boost/filesystem.hpp>
-#include "Logger.hpp"
 #include "TypesHelper.hpp"
+#include "Logger.hpp"
 #include "IPLink.hpp"
 
 using namespace std::literals;
 
-namespace netconfd {
+namespace netconf {
 
 IPConfigurator::IPConfigurator(IIPController &ip_controller, const IDHCPClientController &dhcp_client_controller,
-                               const IBootpClientController &bootp_client_controller,
-                               const IInterfaceInformation &itf_info, IIPLinks &ip_links)
+                               const IBootpClientController &bootp_client_controller, IIPLinks &ip_links)
     : ip_controller_ { ip_controller },
       dhcp_client_controller_ { dhcp_client_controller },
       bootp_client_controller_ { bootp_client_controller },
-      itf_info_ { itf_info },
       ip_links_ { ip_links } {
 }
 
@@ -147,7 +145,7 @@ Status IPConfigurator::EnableGratuitousArp(const IPConfig &ip_config) const {
                                  "Failed to enable gratuitous arp" };
 }
 
-Status IPConfigurator::Configure(const netconfd::IPConfig &ip_config) const {
+Status IPConfigurator::Configure(const netconf::IPConfig &ip_config) const {
   Status set_status = EnableGratuitousArp(ip_config);
   switch (ip_config.source_) {
     case IPSource::STATIC:
@@ -172,9 +170,11 @@ Status IPConfigurator::Configure(const netconfd::IPConfig &ip_config) const {
       set_status = Status { StatusCode::INVALID_CONFIG, "Invalid IPSource" };
       break;
   }
+
   if (set_status.NotOk()) {
-    set_status.Append(StatusCode::ERROR, set_status.GetMessage());
+    set_status = Status{StatusCode::ERROR, set_status.GetMessage()};
   }
+
   return set_status;
 }
 
@@ -193,4 +193,4 @@ Status IPConfigurator::Configure(const IPConfigs &ip_configs) const {
   return overall_status;
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

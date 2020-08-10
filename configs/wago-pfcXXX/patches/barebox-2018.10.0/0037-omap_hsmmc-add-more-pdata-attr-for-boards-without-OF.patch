@@ -1,7 +1,8 @@
 From 1c90cf46710fadddcf2947165690b9d0d9ea7e19 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 10 Jul 2018 11:44:29 +0200
-Subject: [PATCH] omap_hsmmc: add more pdata attr for boards without OF support
+Subject: [PATCH 037/144] omap_hsmmc: add more pdata attr for boards without OF
+ support
 
 Some first stage boot code (e.g. for am3505) must reside
 in a 64k sram and is not able to make use of OFTREE.

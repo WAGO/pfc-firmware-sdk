@@ -1,7 +1,7 @@
 From 0a723ad752d0bb8a1dabef0ffbc66da45a9d509c Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 10 Jul 2018 11:35:09 +0200
-Subject: [PATCH] board-mlo: am35xx: add pdata for mmc1
+Subject: [PATCH 038/144] board-mlo: am35xx: add pdata for mmc1
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

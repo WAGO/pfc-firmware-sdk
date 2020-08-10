@@ -18,9 +18,15 @@
 # set error on use of undefined shell variables
 set -u
 
-# main program
-
+# Load general definitions and functions.
 CTDIR=/etc/config-tools
+if [ ! -f "$CTDIR/config_tool_defines" ]; then
+    echo "config_tool_defines missing"
+    exit 64
+fi
+. $CTDIR/config_tool_defines
+
+# main program
 
 # show help-text if requested
 if [ $# -gt 0 ]; then
@@ -34,7 +40,7 @@ if [ $# -gt 0 ]; then
     fi
 fi
 
-$CTDIR/network_config --dsa-mode --get
+$NETWORK_CONFIG --dsa-mode --get
 status=$?
 
 exit $status

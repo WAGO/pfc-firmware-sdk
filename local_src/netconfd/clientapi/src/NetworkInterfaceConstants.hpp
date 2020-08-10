@@ -1,18 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-//------------------------------------------------------------------------------
-///  \file     NetworkInterfaceConstants.hpp
-///
-///  \brief    <short description of the file contents>
-///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-#ifndef UTILITY_EXTERN_NETWORKINTERFACECONSTANTS_HPP_
-#define UTILITY_EXTERN_NETWORKINTERFACECONSTANTS_HPP_
+#pragma once
 
 #include <cstdint>
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 namespace eth {
 
 
@@ -84,6 +76,4 @@ enum class Duplex {
 }
 }
 
-#endif /* UTILITY_EXTERN_NETWORKINTERFACECONSTANTS_HPP_ */
-//---- End of source file ------------------------------------------------------
 

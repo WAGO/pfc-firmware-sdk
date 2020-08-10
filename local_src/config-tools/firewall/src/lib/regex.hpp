@@ -13,18 +13,17 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#pragma once
-
+#ifndef WAGO_FIREWALL_REGEX_HPP_
+#define WAGO_FIREWALL_REGEX_HPP_
 
 #include <glib.h>
 #include <string>
 #include <vector>
 
 
-namespace wago
-{
-namespace regex 
-{
+namespace wago {
+namespace firewall {
+namespace regex {
 
 
 /// Various regular expression strings.
@@ -192,4 +191,7 @@ std::vector<std::string> get_match(const regex& rexobj, const std::string& line)
 
 
 } // namespace regex
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_REGEX_HPP_

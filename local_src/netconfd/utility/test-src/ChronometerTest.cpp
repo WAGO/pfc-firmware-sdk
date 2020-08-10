@@ -15,7 +15,7 @@
 
 #include "Chronometer.hpp"
 
-using namespace netconfd;
+using namespace netconf;
 using namespace testing;
 
 TEST(Chronometer, PrintTimeInterval) {

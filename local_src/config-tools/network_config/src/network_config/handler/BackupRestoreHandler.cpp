@@ -6,7 +6,7 @@
 #include <iostream>
 #include <exception>
 
-#include "Backup.hpp"
+#include <Backup.hpp>
 #include "OptionStrings.hpp"
 
 namespace po = boost::program_options;
@@ -26,8 +26,8 @@ BackupRestoreHandler::BackupRestoreHandler(const po::variables_map &vm)
       if (vm_.count(optstr2.backup_targetversion.name) > 0) {
         targetversion = vm_[optstr2.backup_targetversion.name].as<::std::string>();
       }
-      auto status = netconf::Backup(backup_file_path, targetversion);
-      if (netconf::Status::OK != status) {
+      auto status = netconf::api::Backup(backup_file_path, targetversion);
+      if (netconf::api::Status::OK != status) {
         throw ::std::runtime_error("Failed to run backup.");
       }
     };
@@ -35,14 +35,14 @@ BackupRestoreHandler::BackupRestoreHandler(const po::variables_map &vm)
     execute_ = [this]() {
       const auto &optstr2 = GetOptions();
       auto restore_file_path = vm_[optstr2.restore.name].as<::std::string>();
-      auto status = netconf::Restore(restore_file_path);
-      if (netconf::Status::OK != status) {
+      auto status = netconf::api::Restore(restore_file_path);
+      if (netconf::api::Status::OK != status) {
         throw ::std::runtime_error("Failed to run restore.");
       }
     };
   } else if (vm_.count(optstr.get_backup_parameter_count.name) > 0) {
     execute_ = []() {
-      auto count = netconf::GetBackupParameterCount();
+      auto count = netconf::api::GetBackupParameterCount();
       ::std::cout << count;
     };
   }

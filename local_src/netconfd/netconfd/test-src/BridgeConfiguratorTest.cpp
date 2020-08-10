@@ -17,25 +17,22 @@
 #include <memory>
 
 #include "MockIBridgeController.hpp"
-#include "MockIMacDistributor.hpp"
 
 #include "Helper.hpp"
 
 using namespace testing;
 using ::testing::Sequence;
 
-namespace netconfd {
+namespace netconf {
 
 class ABridgeConfigurator : public Test {
  public:
   StrictMock<MockIBridgeController> mock_bridge_controller_;
-  StrictMock<MockIMacDistributor> mock_mac_distributor_;
   ::std::shared_ptr<BridgeConfigurator> bridge_configurator_;
 
   ABridgeConfigurator() {
 
-    bridge_configurator_ = ::std::make_shared<BridgeConfigurator>(mock_bridge_controller_,
-                                                                  mock_mac_distributor_);
+    bridge_configurator_ = ::std::make_shared<BridgeConfigurator>(mock_bridge_controller_);
   }
 
   void SetUp() override {
@@ -70,8 +67,6 @@ TEST_F(ABridgeConfigurator, AddsOneBridgeAndOneCorrespondingInterface) {
       Return(actual_bridges));
 
   EXPECT_CALL(mock_bridge_controller_, AddBridge(_)).WillOnce(Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br0"))).WillOnce(
-      Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(_,_)).WillOnce(
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(Eq("br0"))).WillOnce(
@@ -80,23 +75,6 @@ TEST_F(ABridgeConfigurator, AddsOneBridgeAndOneCorrespondingInterface) {
 
   Status status = bridge_configurator_->Configure(target_config);
   ASSERT_EQ(StatusCode::OK, status.Get());
-}
-
-TEST_F(ABridgeConfigurator, TriesToAddsOneBridgeWhileSetMacFailed) {
-
-  BridgeConfig target_config { { "br0", { } } };
-  ;
-  Bridges actual_bridges;
-
-  EXPECT_CALL(mock_bridge_controller_, GetBridges()).WillRepeatedly(
-      Return(actual_bridges));
-
-  EXPECT_CALL(mock_bridge_controller_, AddBridge(_)).WillOnce(Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br0"))).WillOnce(
-      Return(Status(StatusCode::ERROR)));
-
-  Status status = bridge_configurator_->Configure(target_config);
-  EXPECT_EQ(StatusCode::ERROR, status.Get());
 }
 
 TEST_F(ABridgeConfigurator, AddsOneBridgeAndFourCorrespondingInterface) {
@@ -108,8 +86,6 @@ TEST_F(ABridgeConfigurator, AddsOneBridgeAndFourCorrespondingInterface) {
       Return(actual_bridges));
 
   EXPECT_CALL(mock_bridge_controller_, AddBridge(Eq("br0"))).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br0"))).WillOnce(
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br0"),Eq("ethX1"))).WillOnce(
       Return(Status(StatusCode::OK)));
@@ -138,10 +114,6 @@ TEST_F(ABridgeConfigurator, AddsTwoBridgesWithTwoCorrespondingInterfaces) {
   EXPECT_CALL(mock_bridge_controller_, AddBridge(Eq("br0"))).WillOnce(
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddBridge(Eq("br1"))).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br0"))).WillOnce(
-      Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br1"))).WillOnce(
       Return(Status(StatusCode::OK)));
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br0"),Eq("ethX1"))).WillOnce(
       Return(Status(StatusCode::OK)));
@@ -249,8 +221,6 @@ TEST_F(ABridgeConfigurator, AddSecondBridgeAndThreeInterfaces) {
 
   EXPECT_CALL(mock_bridge_controller_, AddBridge(Eq("br1"))).WillOnce(
       Return(Status(StatusCode::OK)));
-  EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br1"))).WillOnce(
-      Return(Status(StatusCode::OK)));
 
   EXPECT_CALL(mock_bridge_controller_, DeleteInterface(_,_)).Times(0);
 
@@ -344,8 +314,6 @@ TEST_F(ABridgeConfigurator, FirstSetsAnInterfaceUpBeforeAddingToBridge) {
       Return(actual_br0_interfaces));
 
   EXPECT_CALL(mock_bridge_controller_, AddBridge(Eq("br0"))).InSequence(s1);
-  EXPECT_CALL(mock_mac_distributor_, SetMac(Eq("br0"))).WillOnce(
-      Return(Status(StatusCode::OK)));
 
   EXPECT_CALL(mock_bridge_controller_, AddInterface(Eq("br0"),Eq("ethX1"))).InSequence(s1)
       .WillOnce(Return(Status(StatusCode::OK)));

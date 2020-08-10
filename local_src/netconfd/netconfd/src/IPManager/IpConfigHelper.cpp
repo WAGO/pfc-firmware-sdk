@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+#include "TypesHelper.hpp"
 #include "IpConfigHelper.hpp"
 #include "Logger.hpp"
 #include "NetDevManager.hpp"
 #include "Helper.hpp"
-#include "TypesHelper.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 void CleanWithRespectToSystem(IPConfigs &ip_configs, const NetDevs &netdevs,
                               const Interfaces &not_assignable_interfaces) {
@@ -25,4 +25,4 @@ void CleanWithRespectToSystem(IPConfigs &ip_configs, const NetDevs &netdevs,
   ip_configs.erase(first_deleted_it, ip_configs.end());
 }
 
-}  // namespace netconfd
+}  // namespace netconf

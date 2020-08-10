@@ -1,0 +1,108 @@
+From c24468b30e1355a8d620bca65db4f0c1e283a441 Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Thu, 2 Jul 2020 15:31:48 +0200
+Subject: [PATCH] net: phy: mv88e6321-cfg: add swconfig function to add macs to
+ the port fdb
+
+For save operation of the marvell switch in a given network its
+crucial to add the host's mac addresses to the cpu-port-fdb.
+This way the switch will never forward ethernet frames that are
+addressed to the host to external ports.
+
+The previous solution to add macs to the fdb via direct register access
+from userspace turned out to be unreliable.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/phy/mv88e6321-cfg.c | 40 ++++++++++++++++++++++++++++-----
+ 1 file changed, 35 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index 4a65912ebe2d..f7fb505a60d9 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -20,6 +20,7 @@
+ #include <asm/uaccess.h>
+ #include <linux/phy.h>
+ #include <linux/switch.h>
++#include <net/switchdev.h>
+ #include <linux/mv88e6321.h>
+ #include <linux/of_fdt.h>
+ #include <linux/of_gpio.h>
+@@ -113,7 +114,33 @@ static int mv88e6321_sw_get_mdio_read(struct switch_dev *dev,
+ 	return 0;
+ }
+ 
+-// clang-format off
++static int mv88e6321_cfg_port_fdb_add(struct switch_dev *dev,
++				      const struct switch_attr *attr,
++				      struct switch_val *val)
++{
++	struct mv88e6321_cfg *cfg = get_mv88e6321_cfg(dev);
++	struct dsa_switch *ds = cfg->chip->ds;
++	struct switchdev_obj_port_fdb fdb = { 0 };
++	u8 *addr = fdb.addr;
++	int port;
++
++	if (sscanf(val->value.s, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx,%d,%hu",
++		   &addr[0], &addr[1], &addr[2], &addr[3], &addr[4], &addr[5],
++		   &port, &fdb.vid) != 8) {
++		return -EINVAL;
++	}
++
++	if (port < 0 || port > DSA_MAX_PORTS)
++		return -EINVAL;
++
++	pr_debug("mv88e6321_cfg_port_fdb_add: mac %pM, port %d, vid %hu\n",
++		 fdb.addr, port, fdb.vid);
++
++	ds->ops->port_fdb_add(ds, port, &fdb, NULL);
++
++	return 0;
++}
++
+ static struct switch_attr mv88e6321_global_attrs[] = {
+ 	{
+ 		.type = SWITCH_TYPE_INT,
+@@ -136,6 +163,13 @@ static struct switch_attr mv88e6321_global_attrs[] = {
+ 		.set = mv88e6321_sw_set_mdio_write,
+ 		.get = mv88e6321_sw_get_mdio_read,
+ 	},
++	{
++		.type = SWITCH_TYPE_STRING,
++		.name = "port_fdb_add",
++		.description = "add mac to fdb <MAC,port,vid>",
++		.set = mv88e6321_cfg_port_fdb_add,
++		.get = NULL,
++	},
+ };
+ 
+ struct switch_dev_ops mv88e6321_switch_dev_ops = {
+@@ -153,8 +187,6 @@ struct switch_dev_ops mv88e6321_switch_dev_ops = {
+ 	},
+ };
+ 
+-// clang-format on
+-
+ static int mv88e6321_cfg_get_chip(struct mv88e6321_cfg *cfg)
+ {
+ 	struct mdio_device *mdio_dev;
+@@ -307,7 +339,6 @@ static int mv88e6321_cfg_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-// clang-format off
+ #ifdef CONFIG_OF
+ static const struct of_device_id mv88e6321_dt_ids[] = {
+ 	{ .compatible = "swcfg,mv88e6321", },
+@@ -328,7 +359,6 @@ static struct platform_driver mv88e6321_driver = {
+ 	},
+ };
+ 
+-// clang-format on
+ module_platform_driver(mv88e6321_driver);
+ 
+ MODULE_AUTHOR("heinrich.toews@wago.com>");
+-- 
+2.17.1
+

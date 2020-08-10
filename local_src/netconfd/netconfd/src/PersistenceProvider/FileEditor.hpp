@@ -7,7 +7,7 @@
 #include "Status.hpp"
 #include "IFileEditor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class FileEditor : public IFileEditor {
  public:
@@ -25,4 +25,4 @@ class FileEditor : public IFileEditor {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

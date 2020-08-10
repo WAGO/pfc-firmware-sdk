@@ -26,4 +26,4 @@ config MDMD_NG
 	select NETCONFD
 
 	help
-	  WAGO Modem Manager Daemon Next Gen (4G) 
+	  WAGO Modem Manager Daemon Next Gen (4G)

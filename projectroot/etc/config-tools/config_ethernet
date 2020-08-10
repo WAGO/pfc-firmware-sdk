@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: config_ethernet
@@ -13,12 +13,10 @@
 # Author: WAGO Kontakttechnik GmbH
 #-----------------------------------------------------------------------------#
 
-NETWORK_CONFIG=/etc/config-tools/network_config
-
 # load general definitions and functions
-if [ ! -f "/etc/config-tools/config_tool_defines" ]; then
+if [[ ! -f "/etc/config-tools/config_tool_defines" ]]; then
   echo "config_tool_defines missing"
-  exit 255
+  exit 64
 fi
 
 . /etc/config-tools/config_tool_defines
@@ -26,7 +24,7 @@ fi
 status=$SUCCESS
 
 # show help-text if requested
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
   echo
   echo "* Change the ethernet port settings *"
   echo
@@ -55,36 +53,31 @@ while [[ $# -ne 0 ]]; do
             params[device]="\"$port\""
             ;;
         state=*)
-
-            if [[ "${1#state=}" == "on" || "${1#state=}" == "enabled" ]]; then
-                state="up"
-            elif [[ "${1#state=}" == "off" || "${1#state=}" == "disabled" ]]; then
-                state="down"
-            else
-                state="${1#state=}"
+            value=${1#state=}
+            if [[ "$value" == "on" || "$value" == "enabled" ]]; then
+                value="up"
+            elif [[ "$value" == "off" || "$value" == "disabled" ]]; then
+                value="down"
             fi
-            params[state]="\"$state\""
+            params[state]="\"$value\""
             ;;
         autoneg=*)
-
-            if [[ "${1#autoneg=}" == "on" || "${1#autoneg=}" == "enabled" ]]; then
-                autoneg=true
-            elif [[ "${1#autoneg=}" == "off" || "${1#autoneg=}" == "disabled" ]]; then
-                autoneg=false
-            else
-                autoneg=${1#autoneg=}
+            value=${1#autoneg=}
+            if [[ "$value" == "on" || "$value" == "enabled" ]]; then
+                value="on"
+            elif [[ "$value" == "off" || "$value" == "disabled" ]]; then
+                value="off"
             fi
-            params[autonegotiation]="$autoneg"
+            params[autonegotiation]="\"$value\""
             ;;
         speed=*)
-            if [[ "${1#speed=}" == "10M" ]]; then
-                speed=10
-            elif [[ "${1#speed=}" == "100M" ]]; then
-                speed=100
-            else
-                speed="${1#speed=}"
+            value=${1#speed=}
+            if [[ "$value" == "10M" ]]; then
+                value=10
+            elif [[ "$value" == "100M" ]]; then
+                value=100
             fi
-            params[speed]=$speed
+            params[speed]=$value
             ;;
         duplex=*)
             params[duplex]="\"${1#duplex=}\""
@@ -103,10 +96,10 @@ if [[ $status == $SUCCESS ]]; then
     json_content=""
     for i in "${!params[@]}" ; do
         if [[ $add_separator == false ]]; then
-                json_content="\"$i\":${params[$i]}"
-                add_separator=true
+            json_content="\"$i\":${params[$i]}"
+            add_separator=true
         else
-                json_content="$json_content,\"$i\":${params[$i]}"
+            json_content="$json_content,\"$i\":${params[$i]}"
         fi
     done
     $($NETWORK_CONFIG --interface-config --set "{${json_content}}" --format=json)

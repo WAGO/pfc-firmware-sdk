@@ -1,4 +1,4 @@
-From 81346ff8bd968fb2025ac22fa48b17208a483d0b Mon Sep 17 00:00:00 2001
+From 366013860c3c04e4a37216857d93495048ff8bc3 Mon Sep 17 00:00:00 2001
 From: Jan Sondhauss <jan.sondhauss@wago.com>
 Date: Thu, 16 Apr 2020 12:04:56 +0200
 Subject: [PATCH] net: phy:_phy_device: set phydev state properly

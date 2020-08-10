@@ -29,7 +29,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     echo "                    [ \"dhcpd-fix-host\"=fix-hosts-value ]"
     echo
     echo "-x or --no-dnsmasq-restart prevents from running /etc/init.d/dnsmasq restart"
-    echo "port-name-value: a valid port name, e.g. X1"
+    echo "port-name-value: a valid port name, e.g. br0"
     echo "state-value: \"enabled\" | \"disabled\""
     echo "ranges-value: <ip-addr1>_<ip-addr2>"
     echo "lease-time-value: lease time in minutes. Minimal 2. Default is 120 minutes."
@@ -41,20 +41,9 @@ fi
 #--------------------------------------------------------------------
 # Just start the C programm. It will do all checks and actions.
 #--------------------------------------------------------------------
+sudo $DHCPD_CONFIG_C -d -s $* > /dev/null
+result=$?
 
-adaptParameters() {
-	parameters=""
-	for parameter in "$@"; do
-		if [[ $parameter == "--port="* || $parameter == "-p="* ]]; then
-			parameter="${parameter/br0/X1}"
-			parameter="${parameter/br1/X2}"
-		fi
-		parameters="${parameters} $parameter"
-	done
-	
-	echo $parameters
-}
-
-sudo $DHCPD_CONFIG_C -d -s $(adaptParameters $*) > /dev/null
 sync
-exit $?
+
+exit $result

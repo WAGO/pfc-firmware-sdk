@@ -19,7 +19,7 @@ namespace network_config
 
   void FixIpHandler::SetConfig()
   {
-  netconf::SetTempFixIp();
+  netconf::api::SetTempFixIp();
   }
 
 } /* namespace network_config */

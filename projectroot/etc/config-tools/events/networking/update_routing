@@ -446,7 +446,7 @@ state="invalid" # Fallback in case general routing state value is missing.
 # load general definitions and functions
 if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
     print_dbg "config_tool_lib missing"
-    exit 255
+    exit 64
 fi
 . "/etc/config-tools/config_tool_lib"
 

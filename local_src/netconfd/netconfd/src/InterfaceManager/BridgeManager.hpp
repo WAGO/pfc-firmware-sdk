@@ -10,20 +10,18 @@
 #include "BridgeConfigTransformator.hpp"
 #include "IBridgeController.hpp"
 #include "INetDevManager.hpp"
-#include "JsonConfigConverter.hpp"
 #include "IEventManager.hpp"
-#include "MacDistributor.hpp"
 #include "IFileEditor.hpp"
 #include "SwitchConfigLegacy.hpp"
 #include "FileMonitor.hpp"
 
 #include "IDeviceProperties.hpp"
 #include "BridgeConfigValidator.hpp"
-#include "IInterfaceInformation.hpp"
+#include "IBridgeInformation.hpp"
 
-namespace netconfd {
+namespace netconf {
 
-class BridgeManager : public IBridgeManager, public IInterfaceInformation{
+class BridgeManager : public IBridgeManager, public IBridgeInformation{
  public:
   BridgeManager(IBridgeController& bridge_controller, IDeviceProperties& properies_provider, INetDevManager& netdev_manager);
   virtual ~BridgeManager() = default;
@@ -36,18 +34,15 @@ class BridgeManager : public IBridgeManager, public IInterfaceInformation{
   Bridges GetBridges() const override;
   BridgeConfig GetBridgeConfig() const override;
   Interfaces GetBridgeAssignedInterfaces() const override;
-  Bridge GetBridgeOfInterface(const Interface& itf) const override;
   Status ApplyBridgeConfiguration(BridgeConfig& product_config) const override;
   Status IsValid(BridgeConfig const& product_config) const override;
   Status SetBridgeUp(const Bridge& bridge) const override;
   Status SetBridgeDown(const Bridge& bridge) const override;
-  bool IsInterfaceUp(const Interface& itf) const override;
 
  private:
   IBridgeController& bridge_controller_;
   IDeviceProperties& properies_provider_;
   INetDevManager& netdev_manager_;
-  MacDistributor mac_distributor_;
   BridgeConfigValidator interface_validator_;
   BridgeConfigurator bridge_configurator_;
   BridgeConfigTransformator bridge_config_transformator_;
@@ -62,4 +57,4 @@ class BridgeManager : public IBridgeManager, public IInterfaceInformation{
   Status ApplyBridgeConfig(BridgeConfig const& os_config) const;
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

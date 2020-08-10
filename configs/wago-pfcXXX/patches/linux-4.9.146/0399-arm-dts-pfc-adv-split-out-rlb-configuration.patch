@@ -1,0 +1,717 @@
+From 9da67ce824197cc12cd9e85f1fd3953578f13c7c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 7 May 2020 10:59:05 +0200
+Subject: [PATCH] arm: dts: pfc-adv: split out rlb configuration
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-768_3301.dts      |  12 +-
+ arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts  |  12 ++
+ arch/arm/boot/dts/am335x-pfc-768_330x-rlb.dtsi | 167 +++++++++++++++++++++++++
+ arch/arm/boot/dts/am335x-pfc-768_330x.dtsi     | 163 ++----------------------
+ arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi | 148 +++-------------------
+ 5 files changed, 210 insertions(+), 292 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am335x-pfc-768_330x-rlb.dtsi
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_3301.dts b/arch/arm/boot/dts/am335x-pfc-768_3301.dts
+index 9226c53..0951025 100644
+--- a/arch/arm/boot/dts/am335x-pfc-768_3301.dts
++++ b/arch/arm/boot/dts/am335x-pfc-768_3301.dts
+@@ -18,10 +18,6 @@
+ 	status ="okay";
+ };
+ 
+-&encsw {
+-	status ="okay";
+-};
+-
+ &aes {
+ 	status = "okay";
+ };
+@@ -116,6 +112,10 @@
+ 	status = "okay";
+ };
+ 
++&fpga {
++	status = "okay";
++};
++
+ &rmd {
+ 	status = "okay";
+ 
+@@ -128,6 +128,10 @@
+ 	nconfig-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+ };
+ 
++&uio_rmd_mem {
++	status = "okay";
++};
++
+ &uio_rmd_irq0 {
+ 	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts b/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
+index 08743ba..7e30946 100644
+--- a/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
++++ b/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
+@@ -71,6 +71,10 @@
+ 	status = "okay";
+ };
+ 
++&fpga_ps {
++	status = "okay";
++};
++
+ &watchdog {
+ 	status = "okay";
+ };
+@@ -99,10 +103,18 @@
+ 	status = "okay";
+ };
+ 
++&fpga {
++	status = "okay";
++};
++
+ &rmd {
+ 	status = "okay";
+ };
+ 
++&uio_rmd_mem {
++	status = "okay";
++};
++
+ &uio_rmd_irq0 {
+ 	status = "okay";
+ };
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_330x-rlb.dtsi b/arch/arm/boot/dts/am335x-pfc-768_330x-rlb.dtsi
+new file mode 100644
+index 0000000..1832a93
+--- /dev/null
++++ b/arch/arm/boot/dts/am335x-pfc-768_330x-rlb.dtsi
+@@ -0,0 +1,167 @@
++/*
++ * Copyright (C) 2020 WAGO Kontakttechnik GmbH & Co. KG - https://www.wago.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++/ {
++	uio_rmd_mem: uio_rmd_mem@1000000 {
++		status = "disabled";
++		compatible = "uio_pdrv_genirq";
++		reg = <0x01000000 0x01000000>;
++	};
++
++	uio_rmd_irq0: uio_rmd_irq0 {
++		status = "disabled";
++		compatible = "uio_pdrv_genirq";
++		interrupts = <7>;
++		interrupt-parent = <&intc>;
++	};
++
++	uio_rmd_irq1: uio_rmd_irq1 {
++		status = "disabled";
++		compatible = "uio_pdrv_genirq";
++		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
++
++	rmd: rmd {
++		status = "disabled";
++		compatible = "wago,rmd";
++		pinctrl-names = "default";
++		pinctrl-0 = <&rmd_pins>, <&spi1_sleep_pins>;
++
++		rmd,fifo-size = <0x1000>;
++		reg = <0x01000000 0x01000000>;
++
++		/*
++		 * Crossbar Mapped Channels
++		 *
++		 * 29: pi_x_dma_event_intr1
++		 * 30: pi_x_dma_event_intr2
++		 *
++		 * Map 30 and 29 to open channels 12 and 13
++		 *
++		 */
++		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
++		dma-names = "rx", "tx";
++
++		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
++		interrupt-parent = <&gpio2>;
++	};
++};
++
++&am33xx_pinmux {
++	gpmc_data_pins: pinmux_gpmc_data_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_addr_pins: pinmux_gpmc_addr_pins {
++		pinctrl-single,pins = <
++			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
++		>;
++	};
++
++	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
++			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
++			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
++			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
++			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
++			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
++			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
++		>;
++	};
++
++	fpga_pins: pinmux_fpga_pins {
++		pinctrl-single,pins = <
++			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP) /* nCONFIG */
++			AM33XX_LCD_DATA10_GPIO2_16(PIN_INPUT) /* CONFIG-DONE */
++			AM33XX_LCD_PCLK_GPIO2_24(PIN_INPUT) /* nSTATUS */
++			AM33XX_LCD_DATA11_GPIO2_17(PIN_OUTPUT) /* nRST */
++			AM33XX_GPMC_WAIT0_GPIO0_30(PIN_OUTPUT) /* nCE */
++			AM33XX_MII1_TXD2_GPIO0_17(PIN_INPUT) /* INIT-DONE */
++		>;
++	};
++
++	rmd_pins: pinmux_rmd_pins {
++		pinctrl-single,pins = <
++			AM33XX_GPMC_A7_GPIO1_23(PIN_INPUT) /* DBG0 */
++			AM33XX_GPMC_A6_GPIO1_22(PIN_INPUT) /* DBG3 */
++
++			AM33XX_LCD_DATA7_GPIO2_13(PIN_INPUT) /* SYNC1 */
++			AM33XX_LCD_DATA8_GPIO2_14(PIN_INPUT) /* SYNC2 */
++			AM33XX_LCD_DATA9_GPIO2_15(PIN_INPUT) /* SYNC3 */
++
++			AM33XX_LCD_DATA6_GPIO2_12(PIN_INPUT) /* DMA2-RMD */
++			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT) /* IRQ1-RMD */
++			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT) /* DMA1-RMD */
++			AM33XX_SPI0_CS1_XDMA_EVENT_INTR2(PIN_INPUT) /* DMA0-RMD */
++		>;
++	};
++};
++
++&gpmc {
++	status = "disabled";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
++
++	ranges = <0 0 0x01000000 0x01000000>;
++
++	fpga: fpga@0,0 {
++		status = "disabled";
++
++		reg = <0 0 0x01000000>;
++		bank-width = <2>; /* 16 Bit */
++
++		gpmc,sync-clk-ps = <0>;
++		gpmc,cs-on-ns = <0>;
++		gpmc,cs-rd-off-ns = <80>;
++		gpmc,cs-wr-off-ns = <70>;
++
++		gpmc,adv-on-ns = <0>;
++		gpmc,adv-rd-off-ns = <10>;
++		gpmc,adv-wr-off-ns = <10>;
++
++		gpmc,we-on-ns = <20>;
++		gpmc,we-off-ns = <70>;
++		gpmc,oe-on-ns = <10>;
++		gpmc,oe-off-ns = <80>;
++		gpmc,oe-extra-delay;
++
++		gpmc,access-ns = <80>;
++		gpmc,rd-cycle-ns = <100>;
++		gpmc,wr-cycle-ns = <90>;
++		gpmc,page-burst-access-ns = <0>;
++
++		gpmc,bus-turnaround-ns  = <0>;
++		gpmc,wr-access-ns = <70>;
++		gpmc,wr-data-mux-bus-ns = <20>;
++
++		gpmc,wait-pin = <1>;
++		gpmc,wait-on-read;
++		gpmc,wait-on-write;
++		gpmc,mux-add-data = <2>; /* address-data multiplexing */
++	};
++};
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi b/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
+index f9cdfdb..0708fb5 100644
+--- a/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
+@@ -9,6 +9,7 @@
+ #include "am335x-pfc.dtsi"
+ #include "am335x-pfc-750_8xxx-leds.dtsi"
+ #include "am335x-pfc-750_821x-mv88e6321.dtsi"
++#include "am335x-pfc-768_330x-rlb.dtsi"
+ #include "wago-devconf.dtsi"
+ 
+ / {
+@@ -17,53 +18,6 @@
+ 		reg = <0x80000000 0x20000000>; /* 512 MB */
+ 	};
+ 
+-	uio_rmd_mem@1000000 {
+-		compatible = "uio_pdrv_genirq";
+-		reg = <0x01000000 0x01000000>;
+-	};
+-
+-	/* remove this node if interrupt is used in rmd driver and inform the
+-	 * rlb team to use the rmd_irq1 node for error handling.
+-	 */
+-	uio_rmd_irq0: uio_rmd_irq0 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <7>;
+-		interrupt-parent = <&intc>;
+-	};
+-
+-	uio_rmd_irq1: uio_rmd_irq1 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+-	rmd: rmd {
+-		status = "disabled";
+-		compatible = "wago,rmd";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&rmd_pins>, <&spi1_sleep_pins>;
+-
+-		rmd,fifo-size = <0x1000>;
+-		reg = <0x01000000 0x01000000>;
+-
+-		/*
+-		 * Crossbar Mapped Channels
+-		 *
+-		 * 29: pi_x_dma_event_intr1
+-		 * 30: pi_x_dma_event_intr2
+-		 *
+-		 * Map 30 and 29 to open channels 12 and 13
+-		 *
+-		 */
+-		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
+-		dma-names = "rx", "tx";
+-
+-		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+ 	encsw: dip-switch {
+ 		status = "disabled";
+ 		compatible = "encsw";
+@@ -141,7 +95,6 @@
+ 
+ 	rmii2_pins: pinmux_rmii2_pins {
+ 		pinctrl-single,pins = <
+-			/* RMII 2 */
+ 			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+ 			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+ 			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+@@ -154,14 +107,13 @@
+ 
+ 	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
+ 		pinctrl-single,pins = <
+-			/* RMII 2 */
+-			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
+-			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
+-			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
+-			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++			AM33XX_GPMC_A0_GPIO1_16(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A4_GPIO1_20(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A5_GPIO1_21(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A10_GPIO1_26(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A11_GPIO1_27(PIN_INPUT_PULLDOWN)
++			AM33XX_MII1_COL_GPIO3_0(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_CSN3_GPIO2_0(PIN_INPUT_PULLDOWN)
+ 		>;
+ 	};
+ 
+@@ -201,45 +153,6 @@
+ 		>;
+ 	};
+ 
+-	gpmc_data_pins: pinmux_gpmc_data_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	gpmc_addr_pins: pinmux_gpmc_addr_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+-	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
+-			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
+-			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
+-		>;
+-	};
+-
+ 	fpga_pins: pinmux_fpga_pins {
+ 		pinctrl-single,pins = <
+ 			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP) /* nCONFIG */
+@@ -250,22 +163,6 @@
+ 			AM33XX_MII1_TXD2_GPIO0_17(PIN_INPUT) /* INIT-DONE */
+ 		>;
+ 	};
+-
+-	rmd_pins: pinmux_rmd_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_A7_GPIO1_23(PIN_INPUT) /* DBG0 */
+-			AM33XX_GPMC_A6_GPIO1_22(PIN_INPUT) /* DBG3 */
+-
+-			AM33XX_LCD_DATA7_GPIO2_13(PIN_INPUT) /* SYNC1 */
+-			AM33XX_LCD_DATA8_GPIO2_14(PIN_INPUT) /* SYNC2 */
+-			AM33XX_LCD_DATA9_GPIO2_15(PIN_INPUT) /* SYNC3 */
+-
+-			AM33XX_LCD_DATA6_GPIO2_12(PIN_INPUT) /* DMA2-RMD */
+-			AM33XX_LCD_AC_BIAS_EN_GPIO2_25(PIN_INPUT) /* IRQ1-RMD */
+-			AM33XX_XDMA_EVENT_INTR1(PIN_INPUT) /* DMA1-RMD */
+-			AM33XX_SPI0_CS1_XDMA_EVENT_INTR2(PIN_INPUT) /* DMA0-RMD */
+-		>;
+-	};
+ };
+ 
+ &wsysinit {
+@@ -274,9 +171,6 @@
+ 	tty,service   = "ttyGS0";
+ };
+ 
+-&spi1 {
+-};
+-
+ &watchdog {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&watchdog_pins>;
+@@ -431,44 +325,3 @@
+ 		line-name = "boot_select";
+ 	};
+ };
+-
+-&gpmc {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
+-
+-	ranges = <0 0 0x01000000 0x01000000>;
+-
+-	fpga: fpga@0,0 {
+-		reg = <0 0 0x01000000>;
+-		bank-width = <2>; /* 16 Bit */
+-
+-		gpmc,sync-clk-ps = <0>;
+-		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <80>;
+-		gpmc,cs-wr-off-ns = <70>;
+-
+-		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-
+-		gpmc,we-on-ns = <20>;
+-		gpmc,we-off-ns = <70>;
+-		gpmc,oe-on-ns = <10>;
+-		gpmc,oe-off-ns = <80>;
+-		gpmc,oe-extra-delay;
+-
+-		gpmc,access-ns = <80>;
+-		gpmc,rd-cycle-ns = <100>;
+-		gpmc,wr-cycle-ns = <90>;
+-		gpmc,page-burst-access-ns = <0>;
+-
+-		gpmc,bus-turnaround-ns  = <0>;
+-		gpmc,wr-access-ns = <70>;
+-		gpmc,wr-data-mux-bus-ns = <20>;
+-
+-		gpmc,wait-pin = <1>;
+-		gpmc,wait-on-read;
+-		gpmc,wait-on-write;
+-		gpmc,mux-add-data = <2>; /* address-data multiplexing */
+-	};
+-};
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi b/arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi
+index 82274cf..e77f617 100644
+--- a/arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc-768_330x_psm.dtsi
+@@ -9,6 +9,7 @@
+ #include "am335x-pfc.dtsi"
+ #include "am335x-pfc-750_8xxx-leds.dtsi"
+ #include "am335x-pfc-750_821x-mv88e6321.dtsi"
++#include "am335x-pfc-768_330x-rlb.dtsi"
+ #include "wago-devconf.dtsi"
+ 
+ / {
+@@ -17,53 +18,6 @@
+ 		reg = <0x80000000 0x20000000>; /* 512 MB */
+ 	};
+ 
+-	uio_rmd_mem@1000000 {
+-		compatible = "uio_pdrv_genirq";
+-		reg = <0x01000000 0x01000000>;
+-	};
+-
+-	/* remove this node if interrupt is used in rmd driver and inform the
+-	 * rlb team to use the rmd_irq1 node for error handling.
+-	 */
+-	uio_rmd_irq0: uio_rmd_irq0 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <7>;
+-		interrupt-parent = <&intc>;
+-	};
+-
+-	uio_rmd_irq1: uio_rmd_irq1 {
+-		status = "disabled";
+-		compatible = "uio_pdrv_genirq";
+-		interrupts = <25 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+-	rmd: rmd {
+-		status = "disabled";
+-		compatible = "wago,rmd";
+-		pinctrl-names = "default";
+-		pinctrl-0 = <&rmd_pins>;
+-
+-		rmd,fifo-size = <0x1000>;
+-		reg = <0x01000000 0x01000000>;
+-
+-		/*
+-		 * Crossbar Mapped Channels
+-		 *
+-		 * 28: pi_x_dma_event_intr0
+-		 * 29: pi_x_dma_event_intr1
+-		 *
+-		 * Map 28 and 29 to Open Channels 20 and 21
+-		 *
+-		 */
+-		dmas = <&edma_xbar 12 0 30>, <&edma_xbar 13 0 29>;
+-		dma-names = "rx", "tx";
+-
+-		interrupts = <13 IRQ_TYPE_EDGE_RISING>;
+-		interrupt-parent = <&gpio2>;
+-	};
+-
+ 	encsw: dip-switch {
+ 		status = "disabled";
+ 		compatible = "encsw";
+@@ -80,6 +34,10 @@
+ 	};
+ };
+ 
++&rmd {
++	pinctrl-0 = <&rmd_pins>;
++};
++
+ &cpu_0 {
+ 	operating-points = <
+ 		1000000  1325000
+@@ -130,7 +88,6 @@
+ 
+ 	rmii2_pins: pinmux_rmii2_pins {
+ 		pinctrl-single,pins = <
+-			/* RMII 2 */
+ 			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+ 			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+ 			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+@@ -143,20 +100,18 @@
+ 
+ 	rmii2_sleep_pins: pinmux_rmii2_sleep_pins {
+ 		pinctrl-single,pins = <
+-			/* RMII 2 */
+-			AM33XX_GPMC_A0_RMII2_TXEN(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A4_RMII2_TXD1(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A5_RMII2_TXD0(PIN_OUTPUT | SLEWCTRL_FAST)
+-			AM33XX_GPMC_A10_RMII2_RXD1(PIN_INPUT)
+-			AM33XX_GPMC_A11_RMII2_RXD0(PIN_INPUT)
+-			AM33XX_MII1_COL_RMII2_REFCLK(PIN_INPUT)
+-			AM33XX_GPMC_CSN3_RMII2_CRS_DV(PIN_INPUT)
++			AM33XX_GPMC_A0_GPIO1_16(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A4_GPIO1_20(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A5_GPIO1_21(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A10_GPIO1_26(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_A11_GPIO1_27(PIN_INPUT_PULLDOWN)
++			AM33XX_MII1_COL_GPIO3_0(PIN_INPUT_PULLDOWN)
++			AM33XX_GPMC_CSN3_GPIO2_0(PIN_INPUT_PULLDOWN)
+ 		>;
+ 	};
+ 
+ 	rmii1_pins: pinmux_rmii1_pins {
+ 		pinctrl-single,pins = <
+-			/* RMII1 could used on Marvell based devices only; default off*/
+ 			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
+ 			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
+ 			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
+@@ -169,7 +124,6 @@
+ 
+ 	rmii1_sleep_pins: pinmux_rmii1_sleep_pins {
+ 		pinctrl-single,pins = <
+-			/* RMII1 could used on Marvell based devices only; default off*/
+ 			AM33XX_RMII1_REF_CLK_GPIO0_29(PIN_INPUT)
+ 			AM33XX_MII1_TX_EN_GPIO3_3(PIN_INPUT)
+ 			AM33XX_MII1_TXD0_GPIO0_28(PIN_INPUT)
+@@ -186,27 +140,6 @@
+ 		>;
+ 	};
+ 
+-	gpmc_data_pins: pinmux_gpmc_data_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_AD0(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD1(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD2(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD3(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD4(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD5(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD6(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD7(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD8(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD9(PIN_INPUT_PULLDOWN  | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD10(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD11(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD12(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD13(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD14(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_AD15(PIN_INPUT_PULLDOWN | SLEWCTRL_SLOW)
+-		>;
+-	};
+-
+ 	gpmc_addr_pins: pinmux_gpmc_addr_pins {
+ 		pinctrl-single,pins = <
+ 			AM33XX_LCD_VSYNC_GPMC_A8(PIN_OUTPUT_PULLDOWN | SLEWCTRL_SLOW)
+@@ -214,18 +147,6 @@
+ 		>;
+ 	};
+ 
+-	gpmc_ctrl_pins: pinmux_gpmc_ctrl_pins {
+-		pinctrl-single,pins = <
+-			AM33XX_GPMC_OEN_REN(PIN_OUTPUT_PULLUP  | SLEWCTRL_FAST)
+-			AM33XX_GPMC_WEN(PIN_OUTPUT_PULLUP      | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CSN0(PIN_OUTPUT_PULLUP     | SLEWCTRL_SLOW)
+-			AM33XX_GPMC_BEN0_CLE(PIN_OUTPUT_PULLUP | SLEWCTRL_FAST)
+-			AM33XX_GPMC_BEN1(PIN_OUTPUT_PULLUP     | SLEWCTRL_FAST)
+-			AM33XX_GPMC_CLK_GPMC_WAIT1(PIN_INPUT_PULLUP)
+-			AM33XX_GPMC_ADVN_ALE(PIN_OUTPUT)
+-		>;
+-	};
+-
+ 	fpga_pins: pinmux_fpga_pins {
+ 		pinctrl-single,pins = <
+ 			AM33XX_MII1_TXD3_GPIO0_16(PIN_OUTPUT_PULLUP)
+@@ -252,11 +173,13 @@
+ };
+ 
+ &spi1 {
++	status = "disabled";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&spi1_pins>;
+ 	ti,pindir-d0-out-d1-in;
+ 
+ 	fpga_ps: fpga_ps@0 {
++		status = "disabled";
+ 		compatible = "altr,passive-serial";
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&fpga_pins>;
+@@ -404,51 +327,10 @@
+ };
+ 
+ &gpio1 {
+-	boot_select {
++	boot_select: boot_select {
+ 		gpio-hog;
+ 		gpios = <18 GPIO_ACTIVE_LOW>;
+ 		output-high;
+ 		line-name = "boot_select";
+ 	};
+ };
+-
+-&gpmc {
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&gpmc_data_pins>, <&gpmc_addr_pins>, <&gpmc_ctrl_pins>;
+-
+-	ranges = <0 0 0x01000000 0x01000000>;
+-
+-	fpga: fpga@0,0 {
+-		reg = <0 0 0x01000000>;
+-		bank-width = <2>; /* 16 Bit */
+-
+-		gpmc,sync-clk-ps = <0>;
+-		gpmc,cs-on-ns = <0>;
+-		gpmc,cs-rd-off-ns = <80>;
+-		gpmc,cs-wr-off-ns = <70>;
+-
+-		gpmc,adv-on-ns = <0>;
+-		gpmc,adv-rd-off-ns = <10>;
+-		gpmc,adv-wr-off-ns = <10>;
+-
+-		gpmc,we-on-ns = <20>;
+-		gpmc,we-off-ns = <70>;
+-		gpmc,oe-on-ns = <10>;
+-		gpmc,oe-off-ns = <80>;
+-		gpmc,oe-extra-delay;
+-
+-		gpmc,access-ns = <80>;
+-		gpmc,rd-cycle-ns = <100>;
+-		gpmc,wr-cycle-ns = <90>;
+-		gpmc,page-burst-access-ns = <0>;
+-
+-		gpmc,bus-turnaround-ns  = <0>;
+-		gpmc,wr-access-ns = <70>;
+-		gpmc,wr-data-mux-bus-ns = <20>;
+-
+-		gpmc,wait-pin = <1>;
+-		gpmc,wait-on-read;
+-		gpmc,wait-on-write;
+-		gpmc,mux-add-data = <2>; /* address-data multiplexing */
+-	};
+-};
+-- 
+2.7.4
+

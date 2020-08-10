@@ -4,7 +4,7 @@
 #include <cstdint>
 #include "IInterfaceEvent.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IInterfaceMonitor {
  public:

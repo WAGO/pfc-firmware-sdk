@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stropts.h>
 #include <unistd.h>
 #include <linux/input.h>
 #include <poll.h>

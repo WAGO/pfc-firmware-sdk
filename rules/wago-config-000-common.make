@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_CONFIG_TOOLS) += config-tools
 #
 # Paths and names
 #
-CONFIG_TOOLS_VERSION 	      := 1.1.7
+CONFIG_TOOLS_VERSION 	      := 1.2.0
 CONFIG_TOOLS		            := config-tools
 CONFIG_TOOLS_URL            := file://$(PTXDIST_WORKSPACE)/local_src/$(CONFIG_TOOLS)
 CONFIG_TOOLS_DIR	          := $(BUILDDIR)/$(CONFIG_TOOLS)
@@ -32,9 +32,6 @@ $(STATEDIR)/config-tools.extract:
 	rsync -a --exclude=.libs/ --exclude=objs/ --exclude="*.o" --exclude="*.a" --exclude="*.so" --exclude="*.so" \
     $(PTXDIST_WORKSPACE)/local_src/$(CONFIG_TOOLS) $(BUILDDIR)
 	@$(call touch)
-
-# Copy ct_error_handling.h before compile. It's needed by some tools. 
-	@cp $(CONFIG_TOOLS_DIR)/ct_error_handling.h      $(PTXCONF_SYSROOT_TARGET)/usr/include/ct_error_handling.h
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -220,10 +217,6 @@ ifdef PTXCONF_CT_CONFIG_MDMD
 	CT_MAKE_ARGS+=config_mdmd
 endif
 
-ifdef PTXCONF_CT_CONFIG_DNSMASQ
-	CT_MAKE_ARGS+=config_dnsmasq
-endif
-
 ifdef PTXCONF_CT_GET_ETH_CONFIG
 	CT_MAKE_ARGS+=get_eth_config
 endif
@@ -324,7 +317,6 @@ $(STATEDIR)/config-tools.targetinstall:
 	@$(call install_fixup,config-tools,AUTHOR,"Wago Kontakttechnik")
 	@$(call install_fixup,config-tools,DESCRIPTION,missing)
 
-	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/post_netconfig.d)
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/codesys_after_download_hook, /etc/config-tools/codesys_after_download_hook);
 
@@ -511,6 +503,7 @@ endif
 ifdef PTXCONF_CT_FIRMWARE_RESTORE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/firmware_restore, /etc/config-tools/firmware_restore);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/firmware_restore_admin, /etc/config-tools/firmware_restore_admin);
+	@$(call install_copy, config-tools, 0, 0, 0755, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/firmware_restore_status, /etc/config-tools/firmware_restore_status);
 endif
 
 ifdef PTXCONF_CT_GET_PLC_CONFIG
@@ -840,19 +833,10 @@ endif
 
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/iocheckport/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/networking/);
+	@$(call install_copy, config-tools, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/networking/README, /etc/config-tools/events/networking/README);
 
 
 	@$(call install_copy, config-tools, 0, 0, 0755, $(CONFIG_TOOLS_DIR)/libnet/libctnetwork.so, /usr/lib/libctnetwork.so);
-endif
-
-ifdef PTXCONF_CT_CONFIG_DNSMASQ
-	# Does not install /etc/dnsmasq.conf because dnsmasq packet has already installed or will install our config file.
-	@$(call install_copy,         config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/config_dnsmasq, /etc/config-tools/config_dnsmasq_c)
-	@$(call install_copy,        config-tools, 0, 0, 0750, /etc/dnsmasq.d)
-	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/dnsmasq.d/dnsmasq_default.conf)
-	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/post_netconfig.d/30_dnsmasq)
-	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/network-services.xml)
-	@$(call install_alternative, config-tools, 0, 0, 0700, /etc/config-tools/events/dns/addLocalhostToResolvConf)
 endif
 
 ifdef PTXCONF_CT_GET_ETH_CONFIG
@@ -900,6 +884,14 @@ ifdef PTXCONF_CT_VPNCFG
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_backup_vpn, /etc/config-tools/settings_backup_vpn);
 endif
 
+
+ifdef PTXCONF_CT_GET_INTERNAL_BOOT
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_boot_mode, /etc/config-tools/get_boot_mode);
+endif
+
+ifdef PTXCONF_CT_CONF_INTERNAL_BOOT
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_boot_mode, /etc/config-tools/config_boot_mode);
+endif
 
 	@$(call install_finish,config-tools)
 

@@ -2,7 +2,7 @@
 
 #include <DeviceProperties.hpp>
 
-namespace netconfd {
+namespace netconf {
 
 DeviceProperties::DeviceProperties(
     IBridgeController& bridge_controller)
@@ -12,15 +12,19 @@ DeviceProperties::DeviceProperties(
 
 }
 
-Interfaces DeviceProperties::GetProductInterfaces() const {
-  return interface_provider_.GetProductInterfaces();
+Interfaces DeviceProperties::GetProductPortNames() const {
+  return interface_provider_.GetProductPortNames();
 }
 
-Interfaces DeviceProperties::GetOSInterfaces() const {
-  return interface_provider_.GetOSInterfaces();
+Interfaces DeviceProperties::GetOSPortNames() const {
+  return interface_provider_.GetOSPortNames();
 }
 
-InterfaceNameMapping DeviceProperties::GetInterfacesNameMapping() const {
+Interfaces DeviceProperties::GetOSInterfaceNames() const {
+  return interface_provider_.GetOSInterfaceNames();
+}
+
+InterfaceNameMapping DeviceProperties::GetInterfaceNameMapping() const {
   return interface_provider_.GetInterfacesNameMapping();
 }
 
@@ -36,8 +40,8 @@ bool DeviceProperties::HasInterface(const ::std::string& ifName) const {
   return interface_provider_.HasInterface(ifName);
 }
 
-::std::string DeviceProperties::GetMac() const {
-  return type_label_provider_.GetMac();
+MacAddress DeviceProperties::GetMac() const {
+  return MacAddress::FromString(type_label_provider_.GetMac());
 }
 ::std::string DeviceProperties::GetIncrementedMac(uint32_t inc) const {
   return type_label_provider_.GetIncrementedMac(inc);
@@ -53,4 +57,9 @@ bool DeviceProperties::HasInterface(const ::std::string& ifName) const {
   return hostname;
 }
 
-} /* namespace netconfd */
+uint32_t DeviceProperties::GetMacCount() const {
+  return type_label_provider_.GetMacCount();
+}
+
+}
+

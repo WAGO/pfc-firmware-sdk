@@ -29,7 +29,7 @@
 
 extern "C" char *if_indextoname(unsigned int __ifindex, char *__ifname);
 
-namespace netconfd {
+namespace netconf {
 
 using eth::DeviceState;
 using eth::Duplex;
@@ -188,8 +188,8 @@ EthernetMauType EthernetInterface::GetMauType() const {
   return mautype;
 }
 
-const MacAddress EthernetInterface::GetMac() const {
-  return MacAddress(mac_);
+MacAddress EthernetInterface::GetMac() const {
+  return MacAddress(::gsl::make_span(mac_));
 }
 
 bool EthernetInterface::GetAutonegSupport() const {

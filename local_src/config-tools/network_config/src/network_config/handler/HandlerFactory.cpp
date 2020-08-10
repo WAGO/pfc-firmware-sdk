@@ -20,46 +20,38 @@ namespace network_config
 
   ::std::unique_ptr<IHandler> HandlerFactory::CreateHandler(const OptionParser& parser)
   {
-    const auto &optstr = GetOptions();
-    const auto& vm = parser.GetVariableMap();
+    const auto &opts = GetOptions();
+    const auto& map = parser.GetVariableMap();
 
-    if(vm.count(optstr.brigde_config.name) > 0)
-    {
-      return ::std::make_unique < BridgeConfigHandler > (vm);
+    if (parser.IsSet(opts.bridge_config.name)) {
+      return ::std::make_unique < BridgeConfigHandler > (map);
     }
-    else if(vm.count(optstr.ip_config.name) > 0)
-    {
+    else if (parser.IsSet(opts.ip_config.name)) {
       return ::std::make_unique < IPConfigHandler > (parser);
     }
-    else if(vm.count(optstr.mac_address.name) > 0)
-    {
-      return ::std::make_unique < MacAddressHandler > (vm);
+    else if (parser.IsSet(opts.mac_address.name)) {
+      return ::std::make_unique < MacAddressHandler > (map);
     }
-    else if(vm.count(optstr.interface_config.name) > 0)
-    {
-      return ::std::make_unique < InterfaceConfigHandler > (vm);
+    else if (parser.IsSet(opts.interface_config.name)) {
+      return ::std::make_unique < InterfaceConfigHandler > (map);
     }
-    else if(vm.count(optstr.device_info.name) > 0)
-    {
-      return ::std::make_unique < DeviceInfoHandler > (vm);
+    else if (parser.IsSet(opts.device_info.name)) {
+      return ::std::make_unique < DeviceInfoHandler > (map);
     }
-    else if(vm.count(optstr.backup.name)  > 0 || vm.count(optstr.restore.name)  > 0 || vm.count(optstr.get_backup_parameter_count.name)  > 0 )
-    {
-      return ::std::make_unique < BackupRestoreHandler > (vm);
+    else if (parser.IsSet(opts.backup.name)
+        || parser.IsSet(opts.restore.name)
+        || parser.IsSet(opts.get_backup_parameter_count.name)) {
+      return ::std::make_unique < BackupRestoreHandler > (map);
     }
-    else if(vm.count(optstr.dsa_mode.name) > 0)
-    {
-      return ::std::make_unique < DSAModeHandler > (vm);
+    else if (parser.IsSet(opts.dsa_mode.name)) {
+      return ::std::make_unique < DSAModeHandler > (map);
     }
-    else if(vm.count(optstr.fix_ip.name) > 0)
-    {
+    else if (parser.IsSet(opts.fix_ip.name)) {
       return ::std::make_unique < FixIpHandler > ();
     }
-    else if(vm.count(optstr.dip_switch_config.name) > 0)
-    {
-      return ::std::make_unique<DipSwitchHandler>(vm);
+    else if (parser.IsSet(opts.dip_switch_config.name)) {
+      return ::std::make_unique<DipSwitchHandler>(map);
     }
-
 
     return nullptr;
   }

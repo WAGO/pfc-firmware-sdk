@@ -193,6 +193,67 @@ TEST_F(MainFunctionalityTest_detect_feature, DetectSpecificFeature)
 }
 
 
+TEST_F(MainFunctionalityTest_detect_feature, DetectSpecificFeatureValueOnly)
+{
+  std::string const deviceFeatureTestPath = "/testpath";
+  std::string const featureNameToCheck = "feature-to-check";
+  std::string const expectedTextResult = "true";
+
+  char szArg00[] = "test";
+  char szArg01[] = "plainOptionShouldBeIgnored";
+  char * const arszArgs[]
+  {
+    szArg00,
+    szArg01,
+  };
+  int const argCount = sizeof(arszArgs) / sizeof(char *);
+  this->stOptions.stCommonOptions.quiet = true;
+  this->stOptions.stCommonOptions.textOutput = true;
+  this->stOptions.pstSpecificOptions->onlyValue = true;
+  this->stOptions.pstSpecificOptions->szFeature = featureNameToCheck.c_str();
+  this->stResources.pstSpecificResources->szDeviceFeaturePath = deviceFeatureTestPath.c_str();
+  this->stResources.pstSpecificResources->pfResolveRealPath = &ResolveRealPathDummy;
+  this->stResources.pstSpecificResources->pfIsFileAvailable = &IsFileAvailableTrue;
+  this->stResources.pstSpecificResources->pfIsDependencyComplete = &IsDependencyCompleteTrue;
+
+  testing::internal::CaptureStdout();
+  exitCode_t const result = ctparts_ctMain(argCount, arszArgs, &(this->stOptions), &(this->stResources));
+  EXPECT_STREQ(expectedTextResult.c_str(), testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_EQ(CTUTIL_EXIT_SUCCESS, result);
+}
+
+
+TEST_F(MainFunctionalityTest_detect_feature, DetectSpecificFeatureJson)
+{
+  std::string const deviceFeatureTestPath = "/testpath";
+  std::string const featureNameToCheck = "feature-to-check";
+  std::string const expectedJsonResult = ("{\"" + featureNameToCheck + "\":true}");
+
+  char szArg00[] = "test";
+  char szArg01[] = "plainOptionShouldBeIgnored";
+  char * const arszArgs[]
+  {
+    szArg00,
+    szArg01,
+  };
+  int const argCount = sizeof(arszArgs) / sizeof(char *);
+  this->stOptions.stCommonOptions.quiet = true;
+  this->stOptions.stCommonOptions.jsonOutput = true;
+  this->stOptions.pstSpecificOptions->szFeature = featureNameToCheck.c_str();
+  this->stResources.pstSpecificResources->szDeviceFeaturePath = deviceFeatureTestPath.c_str();
+  this->stResources.pstSpecificResources->pfResolveRealPath = &ResolveRealPathDummy;
+  this->stResources.pstSpecificResources->pfIsFileAvailable = &IsFileAvailableTrue;
+  this->stResources.pstSpecificResources->pfIsDependencyComplete = &IsDependencyCompleteTrue;
+
+  testing::internal::CaptureStdout();
+  exitCode_t const result = ctparts_ctMain(argCount, arszArgs, &(this->stOptions), &(this->stResources));
+  std::string capturedOutput = testing::internal::GetCapturedStdout();
+  capturedOutput.erase(remove_if(capturedOutput.begin(), capturedOutput.end(), isspace), capturedOutput.end());
+  EXPECT_STREQ(expectedJsonResult.c_str(), capturedOutput.c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_EQ(CTUTIL_EXIT_SUCCESS, result);
+}
+
+
 TEST_F(MainFunctionalityTest_detect_feature, DetectSpecificFeatureFailNoFile)
 {
   std::string const deviceFeatureTestPath = "/testpath";
@@ -411,6 +472,46 @@ TEST_F(MainFunctionalityTest_detect_feature, FetchFeatureList)
   testing::internal::CaptureStdout();
   exitCode_t const result = ctparts_ctMain(argCount, arszArgs, &(this->stOptions), &(this->stResources));
   EXPECT_STREQ(expectedTextResult.c_str(), testing::internal::GetCapturedStdout().c_str()); // Expected no ASSERT before GetCapturedStdout!
+  EXPECT_EQ(CTUTIL_EXIT_SUCCESS, result);
+}
+
+
+TEST_F(MainFunctionalityTest_detect_feature, FetchFeatureListJson)
+{
+  std::string const deviceFeatureTestPath = "/testpath";
+  std::string const feature_1 = "test-feature-1";
+  std::string const feature_2 = "test-feature-2";
+  std::string const expectedJsonResult    = "{\"features\":[\"" + feature_1 + "\",\"" + feature_2 + "\"]}";
+  memset(arTestDirectoryContent, 0, sizeof(arTestDirectoryContent));
+  strcpy(arTestDirectoryContent[0].d_name, ".");
+  strcpy(arTestDirectoryContent[1].d_name, "..");
+  strcpy(arTestDirectoryContent[2].d_name, feature_1.c_str());
+  strcpy(arTestDirectoryContent[3].d_name, feature_2.c_str());
+
+  char szArg00[] = "test";
+  char szArg01[] = "plainOptionShouldBeIgnored";
+  char * const arszArgs[]
+  {
+    szArg00,
+    szArg01,
+  };
+  int const argCount = sizeof(arszArgs) / sizeof(char *);
+  this->stOptions.stCommonOptions.quiet = true;
+  this->stOptions.stCommonOptions.jsonOutput = true;
+  this->stOptions.pstSpecificOptions->listMode = true;
+  this->stResources.pstSpecificResources->szDeviceFeaturePath = deviceFeatureTestPath.c_str();
+  this->stResources.pstSpecificResources->pfResolveRealPath = &ResolveRealPathDummy;
+  this->stResources.pstSpecificResources->pfIsFileAvailable = &IsFileAvailableTrue;
+  this->stResources.pstSpecificResources->pfIsDependencyComplete = &IsDependencyCompleteTrue;
+  this->stResources.pstSpecificResources->pfOpenDir = &OpenDirTest;
+  this->stResources.pstSpecificResources->pfReadDir = &ReadDirTest;
+  this->stResources.pstSpecificResources->pfCloseDir = &CloseDirTest;
+
+  testing::internal::CaptureStdout();
+  exitCode_t const result = ctparts_ctMain(argCount, arszArgs, &(this->stOptions), &(this->stResources));
+  std::string capturedOutput = testing::internal::GetCapturedStdout();
+  capturedOutput.erase(remove_if(capturedOutput.begin(), capturedOutput.end(), isspace), capturedOutput.end());
+  EXPECT_STREQ(expectedJsonResult.c_str(), capturedOutput.c_str()); // Expected no ASSERT before GetCapturedStdout!
   EXPECT_EQ(CTUTIL_EXIT_SUCCESS, result);
 }
 

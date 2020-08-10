@@ -20,8 +20,8 @@
 #include <iostream>
 
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 
 
 const std::string error_msg_unknown = "Unknown execution error.";
@@ -120,5 +120,6 @@ invalid_config_error::invalid_config_error(const std::string& _what,
 
 invalid_config_error::~invalid_config_error() { }
 
+} // namespace firewall
 } // namespace wago
 

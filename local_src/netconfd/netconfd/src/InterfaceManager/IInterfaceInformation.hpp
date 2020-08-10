@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IInterfaceInformation {
  public:
@@ -17,12 +17,8 @@ class IInterfaceInformation {
   IInterfaceInformation(const IInterfaceInformation&&) = delete;
   IInterfaceInformation& operator=(const IInterfaceInformation&&) = delete;
 
-  virtual Interfaces GetBridgeAssignedInterfaces() const = 0;
-  virtual Bridge GetBridgeOfInterface(const Interface& itf) const = 0;
-
-  virtual bool IsInterfaceUp(const Interface& itf) const = 0;
-
+  virtual InterfaceConfigs const& GetPortConfigs() = 0;
 
 };
 
-} /* namespace netconfd */
+}

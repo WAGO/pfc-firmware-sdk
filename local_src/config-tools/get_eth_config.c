@@ -11,7 +11,7 @@
 ///
 ///  \file     get_eth_config.c
 ///
-///  \version  $Revision: 44697 $1
+///  \version  $Revision: 48824 $1
 ///
 ///  \brief    
 ///

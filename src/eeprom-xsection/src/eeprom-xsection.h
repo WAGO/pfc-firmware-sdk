@@ -23,6 +23,7 @@
 #define  OP_XSECTION_CMDLINE     (1 << 2)
 #define  OP_XSECTION_QUIET       (1 << 3)
 #define  OP_XSECTION_DUMP        (1 << 4)
+#define  OP_XSECTION_PRBOOT      (1 << 5)
 
 #define BOOT_MODE_ID_EXT 0x102
 #define SD_DISABLE_BIT 1

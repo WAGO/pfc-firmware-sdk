@@ -12,7 +12,7 @@ DAEMONIZE="/sbin/start-stop-daemon"
 ORDER="$(/etc/config-tools/get_typelabel_value ORDER)"
 
 # no qt5/x11 graphic without sourcing profile variables
-if [ "${ORDER:0:3}" == "762" ]; then
+if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "758-8" ]; then
 . /etc/profile 2>&1 > /dev/null
 fi
 
@@ -120,11 +120,16 @@ start_codesys2()
 
 set_licence()
 {
-  DEVICEID=$(printf "0x%X" $(/etc/config-tools/get_typelabel_value DEVICEID))
-  LINK=/etc/specific/3S.$DEVICEID.dat
-  if [ "$LINK" != "$(readlink /usr/share/codesys3/3S.dat)" ]
+  local DAT_PATH=/usr/share/codesys3
+  local DEVICEID=$(printf "0x%X" $(/etc/config-tools/get_typelabel_value DEVICEID))
+  local LINK=$DAT_PATH/3S.$DEVICEID.dat
+  if [ ! -e $LINK ]
   then
-    ln -sf /usr/share/codesys3/3S.$DEVICEID.dat /usr/share/codesys3/3S.dat
+    LINK=$DAT_PATH/3S.default.dat
+  fi
+  if [ "$LINK" != "$(readlink $DAT_PATH/3S.dat)" ]
+  then
+    ln -sf $LINK $DAT_PATH/3S.dat
   fi
 }
 
@@ -135,7 +140,7 @@ start_eruntime()
   else
     local PROGRAM="/usr/bin/codesys3"
     local WRAPPER="/usr/bin/rtswrapper"
-    if [ "${ORDER:0:3}" == "762" ]; then
+    if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "758-8" ]; then
       # only TP600
       if [ $(tp_is_multicore) == "no" ]; then
         PROGRAM="/usr/bin/taskset 1 /usr/bin/codesys3"
@@ -162,7 +167,7 @@ start_runtime()
      start_codesys2 $2
      ;;
     3)
-     if [ "${ORDER:0:3}" == "762" ]; then
+     if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "758-8" ]; then
        # only TP600
        TP_START_MODE=$(tp_start_mode)
        if [ "$TP_START_MODE" == "1" ]; then
@@ -244,7 +249,7 @@ stop_runtime()
 CONFIG=/etc/specific/rtsversion
 RUNTIME_CONFIG=/etc/specific/runtimes.conf
 
-if [ "${ORDER:0:3}" == "762" ]; then
+if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "758-8" ]; then
   # only TP600
   USED_RUNTIME_VERSION=3
   RUNTIME_ORDER="3 0"

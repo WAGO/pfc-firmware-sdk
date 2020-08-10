@@ -1,0 +1,12 @@
+## SECTION=system_libraries
+
+config GSL
+	bool
+	prompt "GSL: Guidelines Support Library"
+	select HOST_CMAKE
+	select GOOGLETEST
+	help
+	  The Guidelines Support Library (GSL) contains functions and types that are
+	  suggested for use by the C++ Core Guidelines maintained by
+	  the Standard C++ Foundation.
+	  This repo contains Microsoft's implementation of GSL.

@@ -13,6 +13,7 @@ config LIBPROFINET
 	select PROGEXECD
 	select LIBPCAP
 	select READLINE
+	select GSL
 	prompt "libprofinet"
 	help
 	  Builds and installs the PROFINET Library

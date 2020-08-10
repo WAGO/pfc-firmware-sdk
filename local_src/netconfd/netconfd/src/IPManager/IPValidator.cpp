@@ -8,7 +8,7 @@
 
 #include "NetDevManager.hpp"
 
-namespace netconfd {
+namespace netconf {
 using namespace std::literals;
 
 using boost_address = boost::asio::ip::address;
@@ -18,9 +18,25 @@ using boost_error = boost::system::error_code;
 
 using Addresses = ::std::vector<uint32_t>;
 
-IPValidator::IPValidator(const IIPController &ip_controller)
-    :
-    ip_controller_ { ip_controller } {
+static uint32_t ToBinaryAddress(const Address &address) {
+  boost_error error_code;
+  boost_address binary_address = boost_address::from_string(address, error_code);
+  return binary_address.to_v4().to_uint();
+}
+
+static bool IPConfigParametersMustBeChecked(const IPConfig &ip_config) {
+
+  bool must_be_checked = true;
+  if ((ip_config.source_ == IPSource::NONE) || (ip_config.source_ == IPSource::EXTERNAL)) {
+    must_be_checked = false;
+  } else if (ip_config.address_ == ZeroIP && ip_config.netmask_ == ZeroIP) {
+    must_be_checked = false;
+  } else if ((ip_config.source_ == IPSource::DHCP || ip_config.source_ == IPSource::BOOTP)) {
+    must_be_checked = false;
+  }
+
+  return must_be_checked;
+
 }
 
 static uint32_t CheckAddressFormat(const Address &address, const Interface &interface, Status &status) {
@@ -43,8 +59,6 @@ static uint32_t CheckAddressFormat(const Address &address, const Interface &inte
 
   }
 
-  //TODO (s.b.) check if address is broadcast (eg 192.168.1.255/24 192.168.1.0/24)
-
   return boost_ipaddress.to_v4().to_uint();
 }
 
@@ -56,7 +70,6 @@ static uint32_t CheckNetmaskFormat(const Netmask &netmask, const Interface &inte
     status.Append(StatusCode::INVALID_PARAMETER,
                   "Interface " + interface + " netmask " + netmask + " is invalid (" + error_code.message() + "). ");
   } else {
-
     uint32_t mask = binary_netmask.to_v4().to_uint();
     if (mask == 0) {
       status.Append(StatusCode::INVALID_PARAMETER,
@@ -71,134 +84,114 @@ static uint32_t CheckNetmaskFormat(const Netmask &netmask, const Interface &inte
 
 }
 
-static uint32_t CheckBroadcastFormat(const Broadcast &broadcast, const Interface &interface, Status &status) {
+static void CheckIPAddressExistMoreOften(const IPConfigs &ip_configs, Status &status) {
 
-  if (not broadcast.empty()) {
-    boost_error error_code;
-    boost_address binary_broadcast = boost_address::from_string(broadcast, error_code);
-    if (error_code) {
+  Addresses checked_adresses;
+  for (auto &ip_config : ip_configs) {
+
+    uint32_t address = ToBinaryAddress(ip_config.address_);
+    if (IsIncluded(address, checked_adresses)) {
+      status.Append(StatusCode::INVALID_PARAMETER,
+                    "IP address " + ip_config.address_ + " is included in several ip configs. ");
+      break;
+    }
+    checked_adresses.emplace_back(address);
+  }
+
+}
+
+static void CheckIPConflictInOverlappingNetwork(const IPConfig &lhs, const IPConfig &rhs, Status &status) {
+
+  uint32_t lhs_netmask = ToBinaryAddress(lhs.netmask_);
+  uint32_t rhs_netmask = ToBinaryAddress(rhs.netmask_);
+  uint32_t lhs_address = ToBinaryAddress(lhs.address_);
+  uint32_t rhs_address = ToBinaryAddress(rhs.address_);
+
+  uint32_t overlapping_netmask = lhs_netmask & rhs_netmask;
+
+  if ((overlapping_netmask & lhs_address) == (overlapping_netmask & rhs_address)) {
+    status.Append(
+        StatusCode::INVALID_PARAMETER,
+        "Interface " + lhs.interface_ + " address " + lhs.address_ + " netmask " + lhs.netmask_
+            + " overlaps an existing network. ");
+  }
+
+}
+
+static void CheckIpConfigCombinability(const IPConfig &ip_config, const IPConfigs &other_ip_configs, Status &status) {
+
+  uint32_t address = ToBinaryAddress(ip_config.address_);
+  for (auto other_ip_config : other_ip_configs) {
+
+    uint32_t other_address = ToBinaryAddress(other_ip_config.address_);
+    if (address == other_address) {
       status.Append(
           StatusCode::INVALID_PARAMETER,
-          "Interface " + interface + " broadcast " + broadcast + " is invalid (" + error_code.message() + "). ");
+          "Interface " + ip_config.interface_ + " address " + ip_config.address_
+              + " is already assigned to an interface. ");
     }
 
-    return binary_broadcast.to_v4().to_uint();
-  }
-
-  return 0;
-
-}
-
-static void CheckInterfaceIsIncludedSeveralTimes(const Interface &interface, Interfaces &interfaces, Status &status) {
-
-  if (IsIncluded(interface, interfaces)) {
-    status.Append(StatusCode::INVALID_PARAMETER, "Interface " + interface + " is included several times. ");
-  } else {
-    interfaces.push_back(interface);
-  }
-
-}
-
-static void CheckIPAddressExistMoreOften(uint32_t binary_address, Addresses &binary_addresses, Status &status) {
-
-  if (IsIncluded(binary_address, binary_addresses)) {
-    boost::asio::ip::address_v4 address(binary_address);
-    status.Append(StatusCode::INVALID_PARAMETER,
-                  "IP address " + address.to_string() + " is included in several ip configs. ");
-  } else {
-    binary_addresses.push_back(binary_address);
-  }
-}
-
-static void CheckNetworkIncludedSeveralTimes(uint32_t binary_address, uint32_t binary_netmask,
-                                             Addresses &binary_networks, Status &status) {
-
-  uint32_t binary_network = binary_address & binary_netmask;
-  if (IsIncluded(binary_network, binary_networks)) {
-    boost::asio::ip::address_v4 network(binary_network);
-    status.Append(StatusCode::INVALID_PARAMETER,
-                  "Network " + network.to_string() + " is included in several ip configs. ");
-  } else {
-    binary_networks.push_back(binary_network);
-  }
-
-}
-
-static void CheckBroadcast(const Interface &interface, uint32_t binary_broadcast, uint32_t binary_address,
-                           uint32_t binary_netmask, Status &status) {
-
-  if (binary_broadcast != 0) {
-
-    uint32_t binary_network = binary_address & binary_netmask;
-    uint32_t calculated_binary_broadcast = binary_network | (~binary_netmask);
-
-    if (status.Ok()) {
-
-      if (calculated_binary_broadcast != binary_broadcast) {
-        boost::asio::ip::address_v4 broadcast(binary_broadcast);
-        status.Append(StatusCode::INVALID_PARAMETER,
-                      "Interface " + interface + " Broadcast " + broadcast.to_string() + " is invalid. ");
-      }
+    CheckIPConflictInOverlappingNetwork(ip_config, other_ip_config, status);
+    if (status.NotOk()) {
+      break;
     }
   }
 
 }
 
-static uint32_t ToBinaryAddress(const Address &address) {
+static void CheckOverlappingNetwork(const IPConfigs &ip_configs, Status &status) {
 
-  boost_error error_code;
-  boost_address binary_address = boost_address::from_string(address, error_code);
-  return binary_address.to_v4().to_uint();
+  IPConfigs checked_ip_configs;
+  for (auto &ip_config : ip_configs) {
+    CheckIpConfigCombinability(ip_config, checked_ip_configs, status);
+    if (status.NotOk()) {
+      break;
+    }
+    checked_ip_configs.emplace_back(ip_config);
+  }
 }
 
-static bool IPConfigParametersMustBeChecked(const IPConfig &ip_config) {
+static void CheckIPAddressFormat(const IPConfigs &ip_configs, Status &status) {
 
-  bool must_be_checked = true;
-  if ((ip_config.source_ == IPSource::NONE) || (ip_config.source_ == IPSource::EXTERNAL)) {
-    must_be_checked = false;
-  } else if (ip_config.address_ == ZeroIP && ip_config.netmask_ == ZeroIP) {
-    must_be_checked = false;
-  } else if ((ip_config.source_ == IPSource::DHCP || ip_config.source_ == IPSource::BOOTP)) {
-    must_be_checked = false;
+  for (auto &ip_config : ip_configs) {
+    CheckAddressFormat(ip_config.address_, ip_config.interface_, status);
+    CheckNetmaskFormat(ip_config.netmask_, ip_config.interface_, status);
+
+    if (status.NotOk()) {
+      break;
+    }
+  }
+}
+
+static void CheckInterfaceIsIncludedSeveralTimes(const IPConfigs &ip_configs, Status &status) {
+
+  Interfaces checked_interfaces;
+  for (auto &ip_config : ip_configs) {
+
+    if (IsIncluded(ip_config.interface_, checked_interfaces)) {
+      status.Append(StatusCode::INVALID_PARAMETER,
+                    "Interface " + ip_config.interface_ + " is included several times. ");
+      break;
+    }
+    checked_interfaces.emplace_back(ip_config.interface_);
   }
 
-  return must_be_checked;
-
 }
 
-static bool IPConfigsInterferenceMustBeChecked(const IPConfig &ip_config) {
-  return (ip_config.source_ == IPSource::STATIC) || (ip_config.source_ == IPSource::TEMPORARY);
-}
-
-Status IPValidator::ValidateIPConfigs(const IPConfigs &ip_configs, const bool interference_has_to_be_checked) const {
+Status IPValidator::ValidateIPConfigs(const IPConfigs &ip_configs) {
 
   Status status;
+  CheckInterfaceIsIncludedSeveralTimes(ip_configs, status);
 
-  Addresses binary_networks;
-  Addresses binary_addresses;
-  Interfaces ip_config_interfaces;
-  for (const auto &ip_config : ip_configs) {
-
-    const Interface &interface = ip_config.interface_;
-
-    CheckInterfaceIsIncludedSeveralTimes(interface, ip_config_interfaces, status);
-
-    if (IPConfigParametersMustBeChecked(ip_config)) {
-
-      uint32_t binary_address = CheckAddressFormat(ip_config.address_, interface, status);
-
-      uint32_t binary_netmask = CheckNetmaskFormat(ip_config.netmask_, interface, status);
-
-      uint32_t binary_broadcast = CheckBroadcastFormat(ip_config.broadcast_, interface, status);
-      CheckBroadcast(interface, binary_broadcast, binary_address, binary_netmask, status);
-
-      if (interference_has_to_be_checked && IPConfigsInterferenceMustBeChecked(ip_config)) {
-        CheckIPAddressExistMoreOften(binary_address, binary_addresses, status);
-
-        CheckNetworkIncludedSeveralTimes(binary_address, binary_netmask, binary_networks, status);
-      }
-    }
-
+  IPConfigs configs = FilterValidStaticAndTemporaryIPConfigs(ip_configs);
+  if (status.Ok()) {
+    CheckIPAddressFormat(configs, status);
+  }
+  if (status.Ok()) {
+    CheckIPAddressExistMoreOften(configs, status);
+  }
+  if (status.Ok()) {
+    CheckOverlappingNetwork(configs, status);
   }
 
   if (status.NotOk()) {
@@ -208,81 +201,22 @@ Status IPValidator::ValidateIPConfigs(const IPConfigs &ip_configs, const bool in
   return status;
 }
 
-bool IPValidator::IsInterfaceApplicableToSystem(const IPConfigs &ip_configs, const NetDevs &netdevs,
-                                                const Interfaces &not_assignable_interface) const {
-  for (const auto &ip_config : ip_configs) {
-    const Interface &interface = ip_config.interface_;
-
-    if (NetDevManager::DoesNotExistByName(interface, netdevs) || IsIncluded(interface, not_assignable_interface)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-Status IPValidator::ValidateIPConfigIsApplicableToSystem(const IPConfigs &ip_configs, const NetDevs &netdevs) const {
+Status IPValidator::ValidateCombinabilityOfIPConfigs(const IPConfigs &lhs_ip_configs,
+                                                     const IPConfigs &rhs_ip_configs) {
 
   Status status;
-  Addresses binary_existing_networks;
-  Addresses binary_existing_addresses;
-
-  Interfaces ip_config_interfaces;
-  ::std::transform(ip_configs.begin(), ip_configs.end(), ::std::back_inserter(ip_config_interfaces),
-                   [](IPConfig c) -> Interface {
-                     return c.interface_;
-                   });
-
-  for (const auto &netdev : netdevs) {
-
-    if (IsNotIncluded(netdev->GetName(), ip_config_interfaces)) {
-
-      IPConfig ip_config;
-      ip_controller_.GetIPConfig(netdev->GetName(), ip_config);
-
-      uint32_t netmask = ToBinaryAddress(ip_config.netmask_);
-      uint32_t address = ToBinaryAddress(ip_config.address_);
-      uint32_t network = netmask & address;
-
-      binary_existing_addresses.push_back(address);
-      binary_existing_networks.push_back(network);
+  for (const auto &lhs_config : lhs_ip_configs) {
+    CheckIpConfigCombinability(lhs_config, rhs_ip_configs, status);
+    if (status.NotOk()) {
+      status.Prepend("IP validation error: ");
+      break;
     }
-
-  }
-
-  for (const auto &ip_config : ip_configs) {
-
-    if (IPConfigParametersMustBeChecked(ip_config)) {
-
-      uint32_t netmask = ToBinaryAddress(ip_config.netmask_);
-      uint32_t address = ToBinaryAddress(ip_config.address_);
-      uint32_t network = netmask & address;
-
-      if (IsIncluded(address, binary_existing_addresses)) {
-        status.Append(
-            StatusCode::INVALID_PARAMETER,
-            "Interface " + ip_config.interface_ + " address " + ip_config.address_
-                + " is already assigned to an interface. ");
-      }
-
-      if (IsIncluded(network, binary_existing_networks)) {
-        boost::asio::ip::address_v4 boost_network(network);
-        status.Append(
-            StatusCode::INVALID_PARAMETER,
-            "Interface " + ip_config.interface_ + " network " + boost_network.to_string() + " already exists. ");
-      }
-    }
-  }
-
-  if (status.NotOk()) {
-    status.Prepend("IP validation error: ");
   }
 
   return status;
-
 }
 
-bool IPValidator::IsSameSubnet(IPConfig lhs, IPConfig rhs) const {
+bool IPValidator::IsSameSubnet(IPConfig lhs, IPConfig rhs) {
   auto lhs_addr = ToBinaryAddress(lhs.address_);
   auto lhs_mask = ToBinaryAddress(lhs.netmask_);
   auto rhs_addr = ToBinaryAddress(rhs.address_);
@@ -291,4 +225,15 @@ bool IPValidator::IsSameSubnet(IPConfig lhs, IPConfig rhs) const {
   return (lhs_addr & lhs_mask) == (rhs_addr & rhs_mask);
 }
 
-} /* namespace netconfd */
+IPConfigs IPValidator::FilterValidStaticAndTemporaryIPConfigs(const IPConfigs &ip_configs) {
+
+  IPConfigs configs;
+  for (auto &ip_config : ip_configs) {
+    if (IPConfigParametersMustBeChecked(ip_config)) {
+      configs.emplace_back(ip_config);
+    }
+  }
+  return configs;
+}
+
+}

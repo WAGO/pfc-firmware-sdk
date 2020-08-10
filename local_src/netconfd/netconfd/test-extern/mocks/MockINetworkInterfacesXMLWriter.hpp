@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "INetworkInterfacesXMLWriter.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockINetworkInterfacesXMLWriter : public INetworkInterfacesXMLWriter {
  public:
@@ -13,5 +13,5 @@ class MockINetworkInterfacesXMLWriter : public INetworkInterfacesXMLWriter {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf
 #endif 

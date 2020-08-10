@@ -6,6 +6,7 @@
 #include "Status.hpp"
 
 namespace netconf {
+namespace api {
 
 /**
  * @brief Instructs the netconfd network config daemon to write its configuration
@@ -37,4 +38,5 @@ Status Restore(::std::string backup_file_path);
 ::std::string GetBackupParameterCount();
 
 
-}
+} // namespace api
+} // namespace netconf

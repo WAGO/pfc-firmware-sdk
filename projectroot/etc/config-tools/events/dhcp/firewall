@@ -10,7 +10,7 @@
 # Firewall: dhcpd demon events handler
 #
 
-enabled=`/etc/config-tools/firewall firewall --is-enabled`
+enabled=$(/etc/config-tools/firewall firewall --is-enabled)
 [ "enabled" != "$enabled" ] && exit 0
 
 
@@ -18,7 +18,13 @@ start()
 {
     # This check should be changed into a call of a tool directly
     # interpreting JSON. Otherwise it may be flawed if format changes.
-    running=`/etc/config-tools/get_dhcpd_config --json | tr -d " '\"\t\n\r\v" | grep -i -e 'dhcpdState:enabled'`
+    local NET_PARAMS=""
+
+    if [[ -n ${NETCONF_BRIDGE_CONFIG+x} && -n ${NETCONF_IP_CONFIG+x} && -n ${NETCONF_INTERFACE_CONFIG+x} ]]; then
+        NET_PARAMS="--bridge-config $NETCONF_BRIDGE_CONFIG --ip-config $NETCONF_IP_CONFIG --interface-config $NETCONF_INTERFACE_CONFIG"
+    fi
+    
+    running=$(/etc/config-tools/get_dhcpd_config --json "$NET_PARAMS" | tr -d " '\"\t\n\r\v" | grep -i -e 'dhcpdState:enabled')
 
     if [ "x" != "x${running}" ] ; then
         action="up"

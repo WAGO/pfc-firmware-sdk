@@ -1,7 +1,8 @@
 From 6e55243382276d10c1933a2a11ac36235044d676 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 24 May 2018 13:46:24 +0200
-Subject: [PATCH] board: wago-pfc-am335x: rewrite compatible string for blspec
+Subject: [PATCH 014/144] board: wago-pfc-am335x: rewrite compatible string for
+ blspec
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

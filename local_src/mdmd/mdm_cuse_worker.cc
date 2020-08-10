@@ -18,7 +18,6 @@
 #include <mutex>
 
 #include <typelabel_API.h>
-#include <stropts.h>
 #include <poll.h>
 
 #include "dbus_client.h"

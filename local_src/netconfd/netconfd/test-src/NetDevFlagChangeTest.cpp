@@ -7,7 +7,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class NetDevFlagChangeTest : public Test {
  public:
@@ -15,7 +15,7 @@ class NetDevFlagChangeTest : public Test {
 
 TEST_F(NetDevFlagChangeTest, ChangesWithoutCallback) {
 
-  auto netdev = MakeNetDev(0, "abridge", NetDev::Kind::Bridge);
+  auto netdev = MakeNetDev(0, "abridge", DeviceType::Bridge);
 
   std::uint32_t newflags = IFF_LOWER_UP;
 
@@ -31,7 +31,7 @@ TEST_F(NetDevFlagChangeTest, CallbackCalledWhenLowerUpChanges) {
     state = newState;
   };
 
-  auto netdev = MakeNetDev(0, "abridge", NetDev::Kind::Bridge);
+  auto netdev = MakeNetDev(0, "abridge", DeviceType::Bridge);
   netdev->SetLinkChangeHandler(callback);
   std::uint32_t newflags = IFF_LOWER_UP;
 
@@ -42,4 +42,4 @@ TEST_F(NetDevFlagChangeTest, CallbackCalledWhenLowerUpChanges) {
   EXPECT_EQ(1u, calls);
 }
 
-}  // namespace netconfd
+}  // namespace netconf

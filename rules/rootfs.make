@@ -173,13 +173,11 @@ ifdef PTXCONF_ROOTFS_SHADOW
 		@USER_GUEST@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_GUEST_ENTRY)))
 ifdef PTXCONF_CONFIG_TOOLS
-	@$(call install_copy, rootfs, 0, 0, 0755, /etc/config-tools);
-
 # ugly: the actual /etc/shadow is picked via install_alternative which does not accept destination paths.
 #	@$(call install_copy, rootfs, 0, 0, 0640,  $(PTXDIST_WORKSPACE)/projectroot/etc/shadow, /etc/config-tools/default-settings/shadow.default)
 # ugly 2: /etc/shadow has alternatives and as such install_alternative must be used. Because the name and the location
 # of the file must be changed, instead of copying the file directly a link was created (ugh) and that is what is copied.
-	@$(call install_alternative, rootfs, 0, 0, 0640, /etc/config-tools/default-settings/shadow.default)
+	@$(call install_alternative, rootfs, 0, 42, 0640, /etc/config-tools/default-settings/shadow.default)
 	@$(call install_replace, rootfs, /etc/config-tools/default-settings/shadow.default, \
 		@USER_ADMIN@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_ADMIN_ENTRY)))

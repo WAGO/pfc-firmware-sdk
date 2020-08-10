@@ -1,0 +1,35 @@
+From ab3546c39aaa74bcbe4743bdbf54a685a1f5307f Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 7 May 2020 10:59:35 +0200
+Subject: [PATCH] arm: dts: pfc: add labels to oms switches
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc.dtsi b/arch/arm/boot/dts/am335x-pfc.dtsi
+index 605e45c..5cdd5de 100644
+--- a/arch/arm/boot/dts/am335x-pfc.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc.dtsi
+@@ -61,7 +61,7 @@
+ 		autorepeat;
+ 		status = "disabled";
+ 
+-		run {
++		oms_run: run {
+ 			label = "RUN";
+ 			gpios = <&gpio3 18 GPIO_ACTIVE_LOW>;
+ 			linux,code = <1>;
+@@ -77,7 +77,7 @@
+ 			debounce-interval = <1>;
+ 		};
+ 
+-		reset {
++		oms_reset: reset {
+ 			label = "RESET";
+ 			gpios = <&gpio3 16 GPIO_ACTIVE_LOW>;
+ 			linux,code = <3>;
+-- 
+2.7.4
+

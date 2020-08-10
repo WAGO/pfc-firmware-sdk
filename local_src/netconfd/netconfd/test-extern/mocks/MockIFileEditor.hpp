@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "IFileEditor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIFileEditor : public IFileEditor {
  public:
@@ -16,5 +16,5 @@ class MockIFileEditor : public IFileEditor {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf
 #endif 

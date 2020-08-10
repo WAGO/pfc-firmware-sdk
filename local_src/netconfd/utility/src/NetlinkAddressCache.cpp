@@ -8,14 +8,14 @@
 #include <netlink/types.h>
 
 #include <boost/format.hpp>
+#include "NetworkHelper.hpp"
 #include <exception>
 #include <system_error>
 
 #include "Logger.hpp"
-#include "NetworkHelper.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 static IIPEvent::ChangeType ConvertNetlinkAction(int netlink_act) {
   switch (netlink_act) {
@@ -93,7 +93,7 @@ class NetlinkAddressCache::Impl {
 
   ::std::string GetNetmask(rtnl_addr* rtnl_addr) {
     int prefix_len = rtnl_addr_get_prefixlen(rtnl_addr);
-    return netconfd::GetNetmask(static_cast<uint32_t>(prefix_len));
+    return netconf::GetNetmask(static_cast<uint32_t>(prefix_len));
   }
 
   ::std::string GetNetmask(::std::uint32_t if_index) {
@@ -118,12 +118,12 @@ class NetlinkAddressCache::Impl {
 
   ::std::string GetIPAddress(::std::uint32_t if_index) {
     auto rtnl_addr = GetRtnlAddress(static_cast<int>(if_index));
-    return rtnl_addr == nullptr ? static_cast<const char*>(ZeroIP) : GetIPAddress(rtnl_addr);
+    return rtnl_addr == nullptr ? std::string{ZeroIP} : GetIPAddress(rtnl_addr);
   }
 
   IIPEvent* event_handler_;
   struct nl_cache* nl_cache_;
-};  // namespace netconfd
+};  // namespace netconf
 
 NetlinkAddressCache::NetlinkAddressCache(struct nl_sock* nl_sock, struct nl_cache_mngr* nl_cache_mgr) {
   impl_ = ::std::make_unique<NetlinkAddressCache::Impl>(nl_sock, nl_cache_mgr);
@@ -157,4 +157,4 @@ void NetlinkAddressCache::UnregisterEventHandler(IIPEvent& event_handler) {
   return impl_->GetNetmask(if_index);
 }
 
-}  // namespace netconfd
+}  // namespace netconf

@@ -2,252 +2,175 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
-function TcpIpConfigEth
-#
-# Processing of the menus Main -> TCP/IP -> TCP/IP Configuration for the active ports
-#                         Main -> TCP/IP -> TCP/IP Configuration eth1
-#
-# Show and change the several parameters for the interfaces.
-#
-#
-{
-  local port=$1
+readonly DATA_EXCHANGE_FILE=/tmp/cbm_data_exchange
 
-  ShowEvaluateDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
+function GetSourceLabel {
+  local source="$1"
 
-  # get the values of the several eth-parameters
-  local state=`./get_eth_config $port state`
-  local configType=`./get_eth_config $port config-type`
-  local ipAddress=`./get_eth_config $port ip-address`
-  local subnetMask=`./get_eth_config $port subnet-mask`
-  declare -a menuEntries
-
-  if [ "$configType" = "static" ]; then
-    showedConfigType="Static IP"
+  if [[ "$source" = "static" ]]; then
+    echo "Static IP"
   else
-    showedConfigType=$configType
+    echo $source
+  fi
+}
+
+function GetUserInput {
+  local value=$(< $DATA_EXCHANGE_FILE)
+  rm -f $DATA_EXCHANGE_FILE
+  echo $value
+}
+
+function SourceMenu {
+  local bridge=$1
+  local source=$2
+  local ipaddr=$3
+  local netmask=$4
+  local sourceLabel=$(GetSourceLabel $source)
+
+  WdialogWrapper "--menu" selection \
+            "$TITLE" \
+            "TCP/IP Configuration ${portLabel}${deviceId} - Type of IP Addr. Config ($sourceLabel)" \
+            "0. Back to TCP/IP Configuration Menu" \
+            "1. Static IP" \
+            "2. DHCP" \
+            "3. BootP"
+
+  # assign the selected number to the according config-types
+  local newSource
+  case "$selection" in
+    1) newSource=static;;
+    2) newSource=dhcp;;
+    3) newSource=bootp;;
+    *) newSource="";
+  esac
+
+  if [ -e "$newSource" ] || [ "$newSource" == "$source" ]; then
+    return 0
   fi
 
-  # loop until the user wants to get back to TCP/IP-menu
+  if [[ "$newSource" == "static" ]]; then
+    IpAddressMenu $bridge $newSource $ipaddr $netmask
+  else
+    ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
+    SetIpConfig $bridge $newSource &> /dev/null
+    ShowLastError
+  fi
+}
+
+function IpAddressMenu {
+  local bridge=$1
+  local source=$2
+  local ipaddr=$3
+  local netmask=$4
+  
+  WdialogWrapper "--inputbox" retUnused "$TITLE" "Change IP Address ${portLabel}${deviceId}" "Enter new IP Address:" 15 $ipaddr 2> $DATA_EXCHANGE_FILE
+  local newIpAddress=$(GetUserInput)
+  local newNetmask=""
+  if [ -n "$newIpAddress" ]; then
+      WdialogWrapper "--inputbox" retUnused "$TITLE" "Change Subnet Mask ${portLabel}${deviceId}" "Enter new Subnet Mask:" 15 $netmask 2> $DATA_EXCHANGE_FILE
+      newNetmask=$(GetUserInput)
+  fi
+
+  if [ -n "$newNetmask" ]; then
+      ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
+      SetIpConfig $bridge $source $newIpAddress $newNetmask &> /dev/null
+      ShowLastError
+  fi
+}
+
+function NetmaskMenu {
+  IpAddressMenu $1 $2 $3 $4
+}
+
+function IpConfigurationMenu {
+  ShowEvaluateDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
+  declare -a menuEntries
+
   local quit=$FALSE
-  local selection
+  local selection=0
+  local bridge="$1"
   while [ "$quit" = "$FALSE" ]; do
-    
-    # show menu
+    local p
+    local parameters=$(GetCurrentIpConfig $bridge)
+    for p in $parameters; do
+      case "$p" in
+        ipaddr=*)
+            ipaddr="${p#ipaddr=}"
+            ValidateParameter ipaddr $ipaddr
+            ;;
+        netmask=*)
+            netmask="${p#netmask=}"
+            ValidateParameter netmask $netmask
+            ;;
+        source=*)
+            source="${p#source=}"
+            ValidateParameter source $source
+            ;;
+      esac
+    done
+    sourceLabel=$(GetSourceLabel $source)
 
-    menuEntries=( "TCP/IP Configuration of ${port}" \
+    menuEntries=( "TCP/IP Configuration of ${bridge}" \
                   "0. Back to TCP/IP Menu" \
-                  "1. Type of IP Address Configuration....$showedConfigType" \
-                  "2. IP Address..........................$ipAddress" \
-                  "3. Subnet Mask.........................$subnetMask")
+                  "1. Type of IP Address Configuration....$sourceLabel" \
+                  "2. IP Address..........................$ipaddr" \
+                  "3. Subnet Mask.........................$netmask")
 
-    WdialogWrapper "--menu" selection \
-              "$TITLE" \
-              "${menuEntries[@]}"
+    WdialogWrapper "--menu" selection "$TITLE" "${menuEntries[@]}"
 
-    # analyse user selection and do to the according processing
     case "$selection" in
-    
-      0)  # Quit was selected -> end loop and get back to superior menu
-          quit=$TRUE;;
-
-
-      1)  # type of ip-address-configuration was selected -> show menu to select new config-type and change it
-          # if port is disabled, first show a message that config-type will not be permanently stored
-          # (because in ports-file, a selected config-type announces that the port is enabled at the same time)
-          if [ "$state" = "disabled" ]; then
-            ./wdialog "--msgbox" "$TITLE" "TCP/IP Configuration ${portLabel}${deviceId} - Change type of IP Addr. Config" \
-                      "Note:" \
-                      "The type of IP address configuration will only be" \
-                      "permanently stored as long as the port is enabled."
-          fi
-
-
-          # show selection-menu
-          WdialogWrapper "--menu" selection \
-                    "$TITLE" \
-                    "TCP/IP Configuration ${portLabel}${deviceId} - Type of IP Addr. Config ($showedConfigType)" \
-                    "0. Back to TCP/IP Configuration Menu" \
-                    "1. Static IP" \
-                    "2. DHCP" \
-                    "3. BootP" 
-
-          # assign the selected number to the according config-types
-          case "$selection" in
-            1) local newConfigType=static;;
-            2) local newConfigType=dhcp;;
-            3) local newConfigType=bootp;;
-            *) local newConfigType="";
-          esac
-
-          # if a new value for config-type was selected
-          if [ -n "$newConfigType" ] && [ "$newConfigType" != "$configType" ]; then
-
-            # if port is enabled, change config-type directly (else just memorize it)
-            if [ "$state" = "enabled" ]; then
-
-                if [[ "$newConfigType" == "static" ]]; then
-                    # static config type needs special treatment: the user has to be able to double-check ip and netmask settings
-                    
-                    WdialogWrapper "--inputbox" retUnused "$TITLE" "Change IP Address ${portLabel}${deviceId}" "Enter new IP Address:" 15 $ipAddress 2> temp
-                    newIpAddress=`cat temp`
-                    rm temp
-
-                    newSubnetMask=
-                    if [[ "$newIpAddress" != "" ]]; then
-                        WdialogWrapper "--inputbox" retUnused  "$TITLE" "Change Subnet Mask ${portLabel}${deviceId}" "Enter new Subnet Mask:" 15 $subnetMask 2> temp
-                        newSubnetMask=`cat temp`
-                        rm temp
-                    fi
-
-                    if [[ "$newSubnetMask" != "" ]]; then
-                        ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
-                        ./config_interfaces interface=$port config-type=$newConfigType state=enabled ip-address=$newIpAddress subnet-mask=$newSubnetMask > /dev/null 2> /dev/null
-                        ShowLastError
-            
-                        ipAddress=`./get_eth_config $port ip-address`
-                        subnetMask=`./get_eth_config $port subnet-mask`
-
-                    fi
-                else # configType dhcp/bootp
-                    ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"
-                    ./config_interfaces interface=$port config-type=$newConfigType state=enabled > /dev/null 2> /dev/null
-                    ShowLastError
-                fi
-
-                configType=`./get_eth_config $port config-type`
-                ShowLastError
-            else # portState disabled
-              configType=$newConfigType
-            fi
-
-            if [ "$configType" = "static" ]; then
-              showedConfigType="Static IP"
-            else
-              showedConfigType=$configType
-            fi
-
-          fi
-          ;;
-
-      2)  # ip-address was selected -> show inputbox to get new address
-          WdialogWrapper "--inputbox" retUnused "$TITLE" "Change IP Address ${portLabel}${deviceId}" "Enter new IP Address:" 15 $ipAddress 2> temp                             
-          newIpAddress=`cat temp`                                                                                                                                              
-          rm temp                                                                                                                                                              
-                                                                                                                                                                               
-          newSubnetMask=                                                                                                                                                       
-          if [[ "$newIpAddress" != "" ]]; then                                                                                                                                 
-              WdialogWrapper "--inputbox" retUnused  "$TITLE" "Change Subnet Mask ${portLabel}${deviceId}" "Enter new Subnet Mask:" 15 $subnetMask 2> temp                     
-              newSubnetMask=`cat temp`                                                                                                                                         
-              rm temp                                                                                                                                                          
-          fi                                                                                                                                                                   
-                                                                                                                                                                               
-          if [[ "$newSubnetMask" != "" ]]; then                                                                                                                                
-              ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"                                                                                          
-              ./config_interfaces interface=$port config-type=$newConfigType state=enabled ip-address=$newIpAddress subnet-mask=$newSubnetMask > /dev/null 2> /dev/null        
-              ShowLastError                                                                                                                                                    
-                                                                                                                                                                               
-              ipAddress=`./get_eth_config $port ip-address`                                                                                                                    
-              subnetMask=`./get_eth_config $port subnet-mask`                                                                                                                  
-          fi                                                                                                                                                                   
-          if [ "$configType" = "static" ]; then                                                                                                                                
-            showedConfigType="Static IP"                                                                                                                                       
-          else                                                                                                                                                                 
-            showedConfigType=$configType                                                                                                                                       
-          fi             
-          ;;
-
-      3)  # subnet-mask was selected -> show inputbox to get new subnet-mask
-          WdialogWrapper "--inputbox" retUnused "$TITLE" "Change IP Address ${portLabel}${deviceId}" "Enter new IP Address:" 15 $ipAddress 2> temp                             
-          newIpAddress=`cat temp`                                                                                                                                              
-          rm temp                                                                                                                                                              
-                                                                                                                                                                               
-          newSubnetMask=                                                                                                                                                       
-          if [[ "$newIpAddress" != "" ]]; then                                                                                                                                 
-              WdialogWrapper "--inputbox" retUnused  "$TITLE" "Change Subnet Mask ${portLabel}${deviceId}" "Enter new Subnet Mask:" 15 $subnetMask 2> temp                     
-              newSubnetMask=`cat temp`                                                                                                                                         
-              rm temp                                                                                                                                                          
-          fi                                                                                                                                                                   
-                                                                                                                                                                               
-          if [[ "$newSubnetMask" != "" ]]; then                                                                                                                                
-              ShowProcessingDataWindow "TCP/IP Configuration ${portLabel}${deviceId}"                                                                                          
-              ./config_interfaces interface=$port config-type=$newConfigType state=enabled ip-address=$newIpAddress subnet-mask=$newSubnetMask > /dev/null 2> /dev/null        
-              ShowLastError                                                                                                                                                    
-                                                                                                                                                                               
-              ipAddress=`./get_eth_config $port ip-address`                                                                                                                    
-              subnetMask=`./get_eth_config $port subnet-mask`                                                                                                                  
-          fi                                                                                                                                                                   
-          if [ "$configType" = "static" ]; then                                                                                                                                
-            showedConfigType="Static IP"                                                                                                                                       
-          else                                                                                                                                                                 
-            showedConfigType=$configType                                                                                                                                       
-          fi          
-          ;;
-
-      *)  errorText="Error in wdialog"
-          quit=TRUE;;
-
+      0) quit=$TRUE;;
+      1) SourceMenu $bridge $source $ipaddr $netmask;;
+      2) IpAddressMenu $bridge $source $ipaddr $netmask;;
+      3) NetmaskMenu $bridge $source $ipaddr $netmask;;
+      *) errorText="Error in wdialog"
+         quit=TRUE;;
     esac
   done
 }
 
-function MainTcpIpConfigPorts
-{
-
-
-  local ports=$(xmlstarlet sel -t -v "//ip_settings[show_in_wbm='1']/port_name" ${NETWORK_INTERFACES_XML})
-
-  declare -a ports_array
-  declare -a menu_params_array
-
+function IpConfigurationMainMenu {
+  declare -a bridges
+  declare -a menu_items
   local nr=1
 
-  for port in $ports; do
-    ports_array=("${ports_array[@]}" "$port")
-    menu_params_array=("${menu_params_array[@]}" "$nr. $port")
-    nr=$[$nr + 1]
+  for bridge in $(GetBridges); do
+    bridges=("${bridges[@]}" "$bridge")
+    menu_items=("${menu_items[@]}" "${nr}. $bridge")
+    nr=$((nr+1))
   done
 
   local quit=$FALSE
-  local selection
-  declare -a menu_params_array
-  
+  local selection=0
+  declare -a menu_items
+
   while [ "$quit" = "$FALSE" ]; do
-    
-    # show menu
-    # omit menu if only one port available
-    if [ ${#ports_array[*]} -gt 1 ]; then
+
+    if [ ${#bridges[*]} -gt 1 ]; then
       WdialogWrapper "--menu" selection \
                 "$TITLE" \
                 "TCP/IP Configuration" \
                 "0. Back to TCP/IP Menu" \
-                "${menu_params_array[@]}"
+                "${menu_items[@]}"
     else
       selection=1
       quit=$TRUE
     fi
 
-      case "$selection" in
-        
-          0)  # Quit was selected -> end loop and get back to superior menu
-              quit=$TRUE;;
-          *)
-            if [[ $selection -le ${#menu_params_array[@]} ]]; then
-              TcpIpConfigEth "${ports_array[$(($selection - 1))]}"
-            else
-              errorText="Error in wdialog"
-              quit=$TRUE 
-            fi
-            ;;
-      esac
+    case "$selection" in
+      0) quit=$TRUE;;
+      *)
+        if [[ $selection -le ${#menu_items[@]} ]]; then
+          IpConfigurationMenu "${bridges[$(($selection - 1))]}"
+        else
+          errorText="Error in wdialog"
+          quit=$TRUE
+        fi
+        ;;
+    esac
   done
 }
 
-MainTcpIpConfigPorts
-
-
-
-
-
+IpConfigurationMainMenu

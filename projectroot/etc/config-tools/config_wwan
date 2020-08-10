@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------
 # Script-name: config_wwan
@@ -13,12 +13,10 @@
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------
 
-NETWORK_CONFIG=/etc/config-tools/network_config
-
 # load general definitions and functions
 if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
   echo "config_tool_lib missing"
-  exit 255
+  exit 64
 fi
 
 . /etc/config-tools/config_tool_lib
@@ -54,7 +52,7 @@ set_ip_config () {
 
 get_ip_config () {
   local interface="$1"
-  out=$($NETWORK_CONFIG --ip-config --get --device="$interface" --format=json)
+  out=$($NETWORK_CONFIG --ip-config --get-current --device="$interface" --format=json)
   echo $out
   return $?
 }
@@ -82,8 +80,8 @@ get_ip_netmask () {
     return c;
   }
   {
-    match($0, "ipaddr.*,netmask");
-    addr = substr( $0, RSTART+7, RLENGTH-7-8 );
+    match($0, "ipaddr:[^(,})]*[,}]");
+    addr = substr( $0, RSTART+7, RLENGTH-7-1 );
 
     if(addr == "0.0.0.0")
     {
@@ -91,8 +89,8 @@ get_ip_netmask () {
     }
     else
     {
-      match($0, "netmask:.*,bcast" );
-      netmask = substr( $0, RSTART+8, RLENGTH-8-6 );
+      match($0, "netmask:[^(,})]*[,}]");        
+      netmask = substr( $0, RSTART+8, RLENGTH-8-1 ); 
       print( addr "/" netmaskToPrefix(netmask) );
     }
   } '

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <services_config>
   <dhcpd>
-    <port_name>X1</port_name>
+    <port_name>br0</port_name>
     <state>disabled</state>
     <range>192.168.1.18_192.168.1.254</range>
     <lease_time>120</lease_time>
@@ -9,7 +9,7 @@
     <netmask>255.255.255.0</netmask>
   </dhcpd>
   <dhcpd>
-    <port_name>X2</port_name>
+    <port_name>br1</port_name>
     <state>disabled</state>
     <range>192.168.2.18_192.168.2.254</range>
     <lease_time>120</lease_time>

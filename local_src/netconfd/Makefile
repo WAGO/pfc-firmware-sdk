@@ -41,10 +41,10 @@ $(wildcard $(PROJECT_ROOT)/suppress.lnt)
 
 MODULES += \
 bal/module.mk \
-libbridge/module.mk \
 netconfd/module.mk \
 dbus/module.mk \
 utility/module.mk \
+common/module.mk \
 clientapi/module.mk
 
 MK_FILES += $(MODULES)
@@ -59,11 +59,20 @@ BUILDTARGETS += $(MAIN_BUILDTARGETS) $(TEST_BUILDTARGETS)
 
 OPTION_HIDE_SYMBOLS ?= -fvisibility=hidden
 
-netconfd.elf_INCLUDES = \
--I$(PROJECT_ROOT)/src/ \
--I$(PROJECT_ROOT)/extern/ \
+NETCONFD_SHARED_INCLUDES :=     \
+-I$(PROJECT_ROOT)/extern/       \
+-I$(PROJECT_ROOT)/common/extern \
+ 
+
+netconfd.elf_INCLUDES =           \
+  $(NETCONFD_SHARED_INCLUDES)     \
+-I$(PROJECT_ROOT)/src/            \
+-I$(PROJECT_ROOT)/extern/         \
+-I$(PROJECT_ROOT)/common/extern   \
 -I$(PROJECT_ROOT)/netconfd/extern/
 
+netonfd_common_sources = $(call fglob_r,$(PROJECT_ROOT)/common/src,$(SOURCE_FILE_EXTENSIONS))
+netonfd_common_includes = $(PROJECT_ROOT)/common/extern $(PROJECT_ROOT)common/src
 
 #######################################################################################################################
 # Settings for build target netconfd
@@ -73,8 +82,8 @@ netconfd.elf_VERSION = $(NETCONFD_VERSION)
 netconfd.elf_DISABLEDWARNINGS += packed
 netconfd.elf_CDISABLEDWARNINGS += $(netconfd.so_DISABLEDWARNINGS)  
 netconfd.elf_CXXDISABLEDWARNINGS += $(netconfd.so_DISABLEDWARNINGS) abi-tag useless-cast
-netconfd.elf_STATICALLYLINKED += netconfd bal utility bridge netconfddbus
-netconfd.elf_LIBS += netconfd bal boost_log utility bridge boost_thread boost_system boost_filesystem boost_serialization netconfddbus
+netconfd.elf_STATICALLYLINKED += netconfd bal utility netconfddbus
+netconfd.elf_LIBS += netconfd bal boost_log utility boost_thread boost_system boost_filesystem boost_serialization netconfddbus rt
 netconfd.elf_PKG_CONFIGS += $(call uniq,$(libbal.a_PKG_CONFIGS) $(libbridge.a_PKG_CONFIGS) $(libnetconfddbus.a_PKG_CONFIGS) $(libutility.a_PKG_CONFIGS))
 netconfd.elf_PKG_CONFIG_LIBS += $(call uniq,$(libbal.a_PKG_CONFIG_LIBS) $(libbridge.a_PKG_CONFIG_LIBS))
 netconfd.elf_PREREQUISITES += $(call lib_buildtarget_raw, $(netconfd.elf_LIBS) $(netconfd.elf_PKG_CONFIG_LIBS),$(netconfd.elf_STATICALLYLINKED))

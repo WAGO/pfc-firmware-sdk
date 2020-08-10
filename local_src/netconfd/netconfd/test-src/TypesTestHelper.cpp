@@ -8,7 +8,7 @@
 #include "TypesTestHelper.hpp"
 #include <tuple>
 
-namespace netconfd {
+namespace netconf {
 
 std::ostream& operator<<(std::ostream& os, const InterfaceConfig& pc) {
   os << "{Device: " << pc.device_name_ << ", ";
@@ -42,8 +42,7 @@ std::ostream& operator<<(std::ostream& os, const IPConfig& pc){
   os << "{Source: " << IpSourceToString(pc.source_) << ", ";
   os << "IP: " << pc.address_ << ", ";
   os << "Mask: " << pc.netmask_ << ", ";
-  os << "Bcast: " << pc.broadcast_ << "}";
   return os;
 }
 
-}  // namespace netconfd
+}  // namespace netconf

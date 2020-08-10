@@ -1,17 +1,20 @@
 #!/bin/bash
+#-----------------------------------------------------------------------------#
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
-
-#-----------------------------------------------------------------------------
-# Script-name: firmware_restore_admin
+# This file is part of PTXdist package config-tools.
 #
-# Start firmware restore process as a background task.
-# Read state of firmware restore process.
+# Copyright (c) 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   firmware_restore_admin
 #
-# Author: WAGO Kontakttechnik GmbH & Co. KG.
+# Brief:    Start firmware restore process as a background task.
+#           Read state of firmware restore process.
+#
+# Author:   Moe: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------
 
 # load general definitions and functions
@@ -68,7 +71,7 @@ function StartDaemon
 
         /usr/sbin/daemonize -p $DAEMON_PID_FILE $FIRMWARE_RESTORE "$@"
         
-        local timeout=10000000 # 10 sec in usec
+        local timeout=20000000 # 10 sec in usec
         local delta=200000
         while [[ $timeout -gt 0 && ! -e $RESTORE_PROCESS_STATUS_TMP_FILE ]]; do
             usleep $delta

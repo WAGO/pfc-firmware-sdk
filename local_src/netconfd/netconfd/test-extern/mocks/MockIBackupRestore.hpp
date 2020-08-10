@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "IBackupRestore.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIBackupRestore : public IBackupRestore {
  public:
@@ -16,5 +16,5 @@ class MockIBackupRestore : public IBackupRestore {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf
 #endif 

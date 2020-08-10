@@ -1,0 +1,243 @@
+## SECTION=networking
+
+menuconfig PPP
+	tristate
+	prompt "ppp                           "
+	select ROOTFS_VAR_RUN
+	select LIBC_DL
+	select LIBC_UTIL
+	select LIBC_RESOLV	if PPP_PLUGINS
+	select LIBC_CRYPT	if PPP_NEEDS_CRYPT
+	select LIBPCAP		if PPP_FILTER
+	select OPENSSL		if PPP_SRP
+	help
+	  Point-to-Point Protocol (PPP) - daemon
+
+	  Just like SLIP, PPP is a protocol to send
+	  datagrams across a serial connection, but
+	  addresses a couple of deficiencies of the
+	  former. It lets the communicating sides
+	  negotiate options such as the IP address
+	  and the maximum datagram size at startup
+	  time, and provides for client authorization.
+
+if PPP
+
+comment "build features"
+
+config PPP_SUID
+	bool
+	prompt "make pppd binary SUID"
+	help
+	  Makes the pppd binary SUID for ruMakes the pppd binary SUID
+	  for Makes the pppd binary SUID for running as a server.
+
+config PPP_IPX
+	bool
+	prompt "support IPX protocol"
+	help
+	  For networking with Novell. Presently only if your kernel has
+	  been configured to include IPX support.
+
+config PPP_FILTER
+	bool
+	prompt "support filter"
+	help
+	  If you run your pppd on demand its a good idea to hangup when
+	  there is no traffic on the line. This entry provides the filter
+	  to specify what counts as traffic and what is to be ignored.
+
+config PPP_SRP
+	bool "EAP SRP-SHA1 authentication"
+	depends on BROKEN
+	help
+	  Enable EAP SRP-SHA1 authentication
+
+config PPP_MULTILINK
+	bool
+	prompt "support multilink"
+	select PPP_TDB
+	help
+	  Multilink provides the capability to combine two or more PPP links
+	  between a pair of machines into a single 'bundle', which appears as
+	  a single virtual PPP link which has the combined bandwidth of the
+	  individual links.
+
+config PPP_SHADOW
+	bool
+	prompt "ppp server: support for shadow passwords"
+	help
+	  Used when your pppd runs as a dialin server. Not required if it
+	  is intended to run as client only.
+
+config PPP_MS_CHAP
+	bool
+	prompt "MS-CHAP (Microsoft MS-CHAP authentication protocol)"
+	select PPP_NEEDS_CRYPT
+	help
+	  support Micro$oft's MS-CHAP authentication protocol
+
+config PPP_MPPE
+	bool
+	prompt "MPPE (Microsoft Point-to-Point Encryption)"
+	select PPP_MS_CHAP
+	help
+	  support Microsoft Point-to-Point Encryption
+	  for more information see:
+	  RFC 3078 (the protocol)
+	  RFC 3079 (deriving initial session keys)
+
+config PPP_MS_CBCP
+	bool "CBCP (Microsoft proprietary Callback Control Protocol)"
+	help
+	  Enable Micro$oft proprietary Callback Control Protocol
+
+
+config PPP_NEEDS_CRYPT
+	bool
+	# crypt() calls have slipped into pppd; se we enforce 'y' here until this is fixed upstream
+	default y
+
+config PPP_TDB
+	bool
+
+
+menuconfig PPP_PLUGINS
+	bool
+	prompt "support plugins"
+	select PPP_NEEDS_CRYPT
+	help
+	  If you want to use pppd to handle ADSL you must enable this entry
+	  (refer 'ppp over ethernet').
+
+if PPP_PLUGINS
+
+config PPP_OATM
+	bool
+	prompt "ppp over atm"
+	help
+	  Asynchronous Transfer Mode (ATM) designates a type of
+	  telecommunication networks using asynchronous time-division
+	  multiplexing.
+
+config PPP_RADIUS
+	bool
+	prompt "radius"
+	help
+	  Remote Authentication Dial In User Service (RADIUS) is often
+	  used for authentication, authorization in remote login scenarios.
+
+config PPP_RADATTR
+	bool
+	prompt "radattr"
+	help
+	  The radattr plugin for pppd causes all radius attributes
+	  returned by the RADIUS server at authentication time to be
+	  stored in the file /var/run/radattr.pppN where pppN is the
+	  name of the PPP interface.
+
+config PPP_RADREALMS
+	bool
+	prompt "radrealms"
+	help
+	  A pppd plugin which is stacked on top of radius.so. This plugin
+	  allows selection of alternate set of servers based on the user's
+	  realm.
+
+config PPP_OE
+	bool
+	default y
+	prompt "ppp over ethernet"
+	help
+
+	  Enable this if you are using a DSL modem connected via
+	  ethernet to your host (so called 'PPP over Ethernet' = PPPoE).
+
+config PPP_MINCONN
+	bool
+	prompt "minconn"
+	help
+	  pppd plugin to implement a 'minconnect' option
+	  (Set minimum connect time before idle timeout applies)
+
+config PPP_PASSPROMPT
+	bool
+	prompt "passprompt"
+	help
+	  pppd plugin to invoke an external PAP password prompter
+
+config PPP_PASSWORDFD
+	bool
+	prompt "passwordfd"
+	help
+	  This plugin let's you pass the password to the pppd via
+	  a file descriptor. That's easy and secure - no fiddling
+	  with pap- and chap-secrets files.
+
+config PPP_WINBIND
+	bool
+	prompt "winbind"
+	help
+	  WINBIND plugin for pppd. Performs PAP, CHAP, MS-CHAP, MS-CHAPv2
+	  authentication using WINBIND to contact a NT-style PDC.
+
+endif
+
+
+comment "install options"
+
+config PPP_INST_CHAT
+	bool
+	prompt "install chat"
+	help
+	  The chat program defines a conversational exchange between the
+	  computer and the modem.
+
+config PPP_INST_PPPDUMP
+	bool
+	prompt "install pppdump"
+	help
+	  The pppdump utility converts the files written using the record
+	  option of pppd into a human-readable format.
+
+config PPP_INST_PPPSTATS
+	bool
+	prompt "install pppstats"
+	help
+	  The pppstats utility reports PPP-related statistics at regular
+	  intervals for a specified PPP interface.
+
+config PPP_INST_PONOFF
+	bool "install pon/poff"
+	help
+	  pon and poff are helper commands to start and close a ppp
+	  connection.
+
+config PPP_STARTSCRIPT
+	bool
+	select BUSYBOX_KILL if BUSYBOX
+	select BUSYBOX_TEST if BUSYBOX
+	select BUSYBOX_SLEEP if BUSYBOX
+	default y
+	prompt "install /etc/init.d/pppd"
+	help
+	  Install this script to be able to run this service at system startup
+
+config PPP_INST_DEFAULT_CONFIG_FILES
+	bool
+	default y
+	prompt "install /etc/ppp/* configuration files (options,ip-up, etc.)"
+	help
+	  Install the default ppp configuration files in /etc/ppp.
+
+config PPPD_INTF
+	string
+	prompt "interface"
+	default "eth1"
+	depends on PPP_STARTSCRIPT
+	help
+	  This entry can be used to parametrize the startup script. 'eth1' can
+	  be useful for a PPP over Ethernet connection, 'ttyS0' for a simple
+	  modem connection.
+
+endif

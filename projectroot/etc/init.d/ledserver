@@ -24,7 +24,7 @@ case $1 in
         if [ "${ORDER:4:2}" == "81" ]
         then
             PRODUCT="PFC100"
-        elif [ "${ORDER:0:3}" == "762" ]
+        elif [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "758-8" ]
         then
             PRODUCT="TP600"
         elif [ "${ORDER:0:3}" == "768" ]

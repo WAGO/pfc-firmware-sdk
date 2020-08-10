@@ -4,10 +4,9 @@
 #include <string>
 #include <memory>
 
-namespace netconfd {
+namespace netconf {
 
 class IPLink;
-class IPConfig;
 
 class IIPLinks {
  public:
@@ -19,7 +18,7 @@ class IIPLinks {
   IIPLinks(const IIPLinks&&) = delete;
   IIPLinks& operator=(const IIPLinks&&) = delete;
 
-  virtual ::std::shared_ptr<IPLink> CreateOrGet(const IPConfig& ip_config) = 0;
+  virtual ::std::shared_ptr<IPLink> CreateOrGet(const ::std::string& interface) = 0;
   virtual ::std::shared_ptr<IPLink> Get(const ::std::string &interface) = 0;
 };
 

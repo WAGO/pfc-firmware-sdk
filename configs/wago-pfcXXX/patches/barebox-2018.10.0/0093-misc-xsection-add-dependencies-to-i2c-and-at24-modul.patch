@@ -1,7 +1,8 @@
 From be46c546a6b1af0259f2c994c0811af145ce5c53 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Sep 2018 14:52:38 +0200
-Subject: [PATCH] misc: xsection: add dependencies to i2c and at24 modules
+Subject: [PATCH 093/144] misc: xsection: add dependencies to i2c and at24
+ modules
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -49,7 +49,7 @@ class IptablesProcessingTest : public IptablesTestBase, public testing::WithPara
   bool interface_exists(const xmldoc &doc, const ::std::string &interface_name) {
 
     xmlctx ctx(get_ctx(doc));
-    auto node = get_node(ctx, createXPathToGet(interface_name), false);
+    auto node = get_node(ctx, create_xpath_to_get(interface_name), false);
 
     return !node.is_empty();
   }
@@ -62,13 +62,13 @@ class IptablesProcessingTest : public IptablesTestBase, public testing::WithPara
     data.interface_ = interface_name;
     data.second_interface_ = "";
 
-    data.policy_ = get_string(ctx, "string(" + createXPathToGet(interface_name) + "/@policy)", false);
+    data.policy_ = get_string(ctx, "string(" + create_xpath_to_get(interface_name) + "/@policy)", false);
 
-    auto limit = get_string(ctx, "string(" + createXPathToGet(interface_name) + "/@limit)", false);
+    auto limit = get_string(ctx, "string(" + create_xpath_to_get(interface_name) + "/@limit)", false);
 
     data.limit_ = limit.substr(0, limit.find_first_of("/second"));
 
-    data.burst_ = get_string(ctx, "string(" + createXPathToGet(interface_name) + "/@burst)", false);
+    data.burst_ = get_string(ctx, "string(" + create_xpath_to_get(interface_name) + "/@burst)", false);
 
     if (data.burst_ == "") {
       data.burst_ = "-";
@@ -77,20 +77,21 @@ class IptablesProcessingTest : public IptablesTestBase, public testing::WithPara
     return data;
   }
 
-  ::std::string createXPathToGet(::std::string interface_name) {
+  ::std::string create_xpath_to_get(::std::string interface_name) {
     return "/f:firewall/f:ipv4/f:echo/f:request[@if='" + interface_name + "']";
   }
 };
 
+namespace {
 // Name has to be unique over all tests.
-static ::std::string generate_test_name(testing::TestParamInfo<IptablesProcessingData> data) {
+::std::string generate_test_name(testing::TestParamInfo<IptablesProcessingData> data) {
 
   auto limit = (data.param.limit_ == "-") ? "0" : data.param.limit_;
   auto burst = (data.param.burst_ == "-") ? "0" : data.param.burst_;
 
   return data.param.interface_ + data.param.policy_ + limit + burst + data.param.second_interface_;
 }
-
+}
 // @formatter:off
 INSTANTIATE_TEST_CASE_P(InstantiationName, IptablesProcessingTest, testing::Values(
     IptablesProcessingData { "X1","drop","2","-","br0" },
@@ -109,7 +110,7 @@ TEST_P(IptablesProcessingTest, SetIcmpEchoProtectionForInterface) {
   ::std::vector<::std::string> argv = { data.policy_, data.interface_, limit, data.burst_ };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_NO_THROW(iptables::set_echo_if(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::set_echo_if(doc, argv));
 
   IptablesProcessingData current_data = get_iptables_processing_data(doc, data.second_interface_);
   ASSERT_EQ(data.policy_, current_data.policy_);
@@ -125,7 +126,7 @@ TEST_P(IptablesProcessingTest, RemoveIcmpEchoProtectionForInterface) {
   ::std::vector<::std::string> argv = { data.interface_ };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_NO_THROW(iptables::rem_echo_if(doc, argv));
+  ASSERT_NO_THROW(iptables::impl::rem_echo_if(doc, argv));
 
   IptablesProcessingData current_data = get_iptables_processing_data(doc, data.interface_);
   ASSERT_FALSE(interface_exists(doc, data.interface_));

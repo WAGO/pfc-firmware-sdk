@@ -1,14 +1,9 @@
-/*
- * BrideInterface.cpp
- *
- *  Created on: 04.06.2019
- *      Author: u014487
- */
+// SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <DBusHandlerRegistry.h>
+#include "DBusHandlerRegistry.h"
 #include <cassert>
 
-namespace netconfd {
+namespace netconf {
 namespace dbus {
 
 
@@ -320,4 +315,4 @@ gboolean DBusHandlerRegistry::SetDipSwitchConfig(netconfdIp_config *object, GDBu
 }
 
 } /* namespace dbus */
-} /* namespace netconfd */
+} /* namespace netconf */

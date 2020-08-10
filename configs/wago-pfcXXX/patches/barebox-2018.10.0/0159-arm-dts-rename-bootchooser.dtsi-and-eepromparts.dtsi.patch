@@ -1,7 +1,8 @@
 From a0f8f3ee62c68c82fbfa55bb58655e4bda5c1bd7 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 17 Jan 2019 11:41:32 +0100
-Subject: [PATCH] arm: dts: rename bootchooser.dtsi and eepromparts.dtsi
+Subject: [PATCH 159/160] arm: dts: rename bootchooser.dtsi and
+ eepromparts.dtsi
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

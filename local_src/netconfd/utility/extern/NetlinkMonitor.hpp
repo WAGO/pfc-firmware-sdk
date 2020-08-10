@@ -5,7 +5,7 @@
 #include "INetlinkMonitor.hpp"
 #include <memory>
 
-namespace netconfd
+namespace netconf
 {
 
   class NetlinkMonitor :public INetlinkMonitor

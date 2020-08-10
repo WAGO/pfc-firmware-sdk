@@ -19,7 +19,11 @@
 #include "Logger.hpp"
 #include "CommandExecutor.hpp"
 
-namespace netconfd {
+#include <chrono>
+
+namespace netconf {
+
+using namespace ::std::chrono_literals;
 
 Daemonizer::Daemonizer(::std::string const& run_directory,
                        ::std::string const& pid_file_name)
@@ -52,7 +56,7 @@ int static lockRegion(int fd, int16_t type, int16_t whence, int start,
   return fcntl(fd, F_SETLK, &lock);
 }
 
-Status Daemonizer::Daemonize() {
+Status Daemonizer::Daemonize(InterprocessCondition& condition) {
 
   Status status;
   pid_t pid;
@@ -60,6 +64,9 @@ Status Daemonizer::Daemonize() {
   pid = fork();
   // Exit parent process.
   if (pid > 0) {
+    // Wait for the start condition before exit
+    condition.Wait(10s);
+    LogInfo("Daemonizer: start process exits");
     exit(EXIT_SUCCESS);
   } else if(pid < 0) {
     status.Append(StatusCode::ERROR, "Failed to fork.");
@@ -80,7 +87,7 @@ Status Daemonizer::Daemonize() {
   }
 
   if (status.Ok()) {
-    // Exit child process.
+    // Exit first child process.
     if (pid != 0) {
       exit(EXIT_SUCCESS);
     }
@@ -255,4 +262,4 @@ void Daemonizer::SetUnlinkPidOnExit() {
   on_exit(ExitDaemonCallback, buffer.data());
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

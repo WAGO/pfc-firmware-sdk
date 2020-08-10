@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 PARENT=$(GetParentMenuName ${BASH_SOURCE})
 ITEM_NAME=$(GetSelfMenuName ${BASH_SOURCE})
@@ -26,17 +26,34 @@ function MainEthernetInterface
   local selection
 
   while [ "$quit" = "$FALSE" ]; do
-    
+
     # get the values of the several ethernet-parameters
-    local state=$(./get_eth_config $portLabel state) 
-    local autoneg=
-    local speed=
-    local duplex=
+    local parameters=$(GetInterfaceConfigOfDevice $portLabel text)
+    for p in $parameters; do
+      case "$p" in
+        state=*)
+          state="${p#state=}"
+          ValidateParameter state $state
+          ;;
+        autonegotiation=*)
+          autonegotiation="${p#autonegotiation=}"
+          ValidateParameter autonegotiation $autonegotiation
+          ;;
+        speed=*)
+          speed="${p#speed=}"
+          ValidateParameter speed $speed
+          ;;
+        duplex=*)
+          duplex="${p#duplex=}"
+          ValidateParameter duplex $duplex
+          ;;
+      esac
+    done
 
     # show menu
 
-    if [[ "$state" == "$DISABLED" ]]; then
-      
+    if [[ "$state" == "down" ]]; then
+
       WdialogWrapper "--menu" selection \
         "$TITLE" \
         "Port Configuration $portLabel" \
@@ -44,27 +61,21 @@ function MainEthernetInterface
         "1. Port..................$state"
 
     else # state = enabled
-      autoneg=`./get_eth_config $portLabel autoneg`
-
-      if [ "$autoneg" = "$ENABLED" ]; then
+      if [ "$autonegotiation" = "on" ]; then
         WdialogWrapper "--menu" selection \
           "$TITLE" \
           "Port Configuration $portLabel" \
           "0. Back to ${ITEM_NAME} Menu" \
           "1. Port....................$state" \
-          "2. Autonegotiation.........$autoneg"
+          "2. Autonegotiation.........$autonegotiation"
 
       else #autoneg=off
-    
-        speed=`./get_eth_config $portLabel speed`
-        duplex=`./get_eth_config $portLabel duplex`
-    
         WdialogWrapper "--menu" selection \
           "$TITLE" \
           "Port Configuration $portLabel" \
           "0. Back to ${ITEM_NAME} Menu" \
           "1. Port....................$state" \
-          "2. Autonegotiation.........$autoneg" \
+          "2. Autonegotiation.........$autonegotiation" \
           "3. Speed/Duplex............$speed/$duplex"
 
       fi # autoneg on/off
@@ -78,7 +89,7 @@ function MainEthernetInterface
 
       # 1 / state was selected
       if [[ "$selection" == "1" ]];then
-        
+
         local stateSelection=0
         WdialogWrapper "--menu" autonegSelection \
                   "$TITLE" \
@@ -89,14 +100,14 @@ function MainEthernetInterface
 
         # assign the selected number to the according state
         case "$autonegSelection" in
-          1)  local newState="enabled";;
-          2)  local newState="disabled";;
+          1)  local newState="up";;
+          2)  local newState="down";;
           *)  local newState="";;
         esac
 
         if [ -n "$newState" ] && [ "$newState" != "$state" ]; then
-            ./config_ethernet interface="eth0" port=$portLabel state=$newState
-             ShowLastError
+          SetInterfaceState $portLabel $newState
+          ShowLastError
         fi
 
       fi
@@ -124,10 +135,9 @@ function MainEthernetInterface
 
           #  autoneg should be switched on - call the processing script, get actual value again and show possible errors
           if [ "$newAutoneg" = "on" ]; then
-
-            ./config_ethernet interface="eth0" port=$portLabel autoneg=$newAutoneg
+            SetInterfaceAutoneg $portLabel $newAutoneg
             ShowLastError
- 
+
           # autoneg should be switched off - we must get specified new speed- and duplex-values from user first
           else
             selection=3
@@ -147,7 +157,7 @@ function MainEthernetInterface
                   "1. 10/half" \
                   "2. 10/full" \
                   "3. 100/half" \
-                  "4. 100/full" 
+                  "4. 100/full"
 
         # assign the selected number to the according state
         case "$selection" in
@@ -169,8 +179,7 @@ function MainEthernetInterface
         # if a new values were selected - change them, get actual values again and show possible errors
         if [ -n "$newSpeed" ] && [ -n "$newDuplex" ]; then
           if [ "$newSpeed" != "$speed" ] || [ "$newDuplex" != "$duplex" ]; then
-           
-            ./config_ethernet interface="eth0" port=$portLabel autoneg=off speed="${newSpeed}M" duplex="$newDuplex"
+            SetInterfaceConfig $portLabel "up" "off" $newSpeed $newDuplex
             ShowLastError
           fi
         fi
@@ -192,8 +201,8 @@ function MainEthernet
   # loop until the user wants to get back to main menu
   local quit=$FALSE
   local selection
- 
-   local ports=$(xmlstarlet sel -t -v "//ethernet_settings/port_name" ${NETWORK_INTERFACES_XML})
+
+  local ports=$(GetInterfaces)
 
   declare -a ports_array
   declare -a menu_params_array
@@ -207,7 +216,7 @@ function MainEthernet
   done
 
   while [ "$quit" = "$FALSE" ]; do
-    
+
     # show menu, analyse user-selection and call the according function
 
     WdialogWrapper "--menu" selection \
@@ -215,9 +224,9 @@ function MainEthernet
               "${ITEM_NAME}" \
               "0. Back to ${PARENT} Menu" \
               "${menu_params_array[@]}"
-    
+
     case "$selection" in
-    
+
       0)  quit=$TRUE;;
       *)  if [[ $selection -le ${#menu_params_array[@]} ]]; then
             MainEthernetInterface "${ports_array[$(($selection - 1))]}"

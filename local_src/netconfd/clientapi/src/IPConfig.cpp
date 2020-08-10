@@ -1,141 +1,122 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "IPConfig.hpp"
-#include "JsonParse.hpp"
-#include <nlohmann/json.hpp>
 
+#include <boost/asio/ip/address.hpp>
+#include <boost/asio/ip/network_v4.hpp>
 #include "ConfigBase.hpp"
 #include "NetconfdDbusClient.hpp"
+#include "JsonConverter.hpp"
+#include "DipSwitchConfig.hpp"
+#include "InterfaceInformation.hpp"
+#include "InterfaceInformationApi.hpp"
 
 namespace netconf {
+namespace api {
 
-using nlohmann::json;
-
-NLOHMANN_JSON_SERIALIZE_ENUM(IPSource, { {IPSource::UNKNOWN, nullptr}, {IPSource::NONE, "none"}, {IPSource::STATIC,
-        "static"}, {IPSource::DHCP, "dhcp"}, {IPSource::BOOTP, "bootp"}, {IPSource::TEMPORARY,
-        "temporary"}, {IPSource::EXTERNAL, "external"}});
-
-static json IPConfigsToNJson(const ::std::vector<IPConfig> &ip_configs) {
-  json json_out( { });
-  for (auto ip_config : ip_configs) {
-    json inner = json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ }, { "bcast", ip_config
-        .broadcast_ } };
-    to_json(inner["source"], ip_config.source_);
-    json_out[ip_config.interface_] = inner;
-  }
-  return json_out;
-}
-
-static void NJsonToIPConfigs(const json &json_object, ::std::vector<IPConfig> &ip_configs) {
-  auto get_to_if_exists = [](const ::std::string &key, const nlohmann::json &inner_json, auto &to) {
-    auto iter = inner_json.find(key);
-    if (iter != inner_json.end()) {
-      iter.value().get_to(to);
-    }
-  };
-
-  for (const auto &ip_config : json_object.items()) {
-    IPConfig c;
-    c.interface_ = ip_config.key();
-    auto inner = ip_config.value();
-
-    get_to_if_exists("ipaddr", inner, c.address_);
-    get_to_if_exists("netmask", inner, c.netmask_);
-    get_to_if_exists("bcast", inner, c.broadcast_);
-    get_to_if_exists("source", inner, c.source_);
-
-    ip_configs.push_back(::std::move(c));
+::std::string ToString(IPSource source) {
+  switch (source) {
+    case IPSource::DHCP:
+      return "dhcp";
+    case IPSource::BOOTP:
+      return "bootp";
+    case IPSource::STATIC:
+      return "static";
+    default:
+      return "none";
   }
 }
 
-class IPConfigs::Impl : public ConfigBase<IPConfig> {
- public:
-  Impl() = default;
-};
+IPConfigs::IPConfigs(const netconf::IPConfigs &configs) : detail::ConfigBase<netconf::IPConfig>(configs) {
 
-IPConfigs::IPConfigs(IPConfigs &&other) noexcept
-    : impl_ { ::std::move(other.impl_) } {
-  other.impl_ = ::std::make_unique<Impl>();
 }
-
-IPConfigs::IPConfigs(const IPConfigs &other) noexcept
-    : impl_ { new Impl() } {
-  impl_->configs_ = other.impl_->configs_;
-}
-
-IPConfigs::IPConfigs()
-    : impl_ { new Impl() } {
-}
-
-IPConfigs::IPConfigs(const ::std::string &jsonstr)
-    : impl_ { new Impl() } {
-  auto j = JsonToNJson(jsonstr);
-  NJsonToIPConfigs(j, impl_->configs_);
-}
-
-IPConfigs::~IPConfigs() = default;
 
 void IPConfigs::AddIPConfig(IPConfig config) {
-  impl_->AddConfig(config);
+  AddConfig(config);
 }
 
 void IPConfigs::RemoveIPConfig(const ::std::string &interface_name) {
-  impl_->RemoveConfig(interface_name);
+  RemoveConfig(interface_name);
 }
 
 boost::optional<IPConfig> IPConfigs::GetIPConfig(const ::std::string &interface_name) const {
-  return impl_->GetConfig(interface_name);
+  return GetConfig(interface_name);
 }
 
-::std::vector<IPConfig> IPConfigs::Get() const {
-  return impl_->configs_;
+::std::string IPConfigs::GetCompareValue(const IPConfig & config) const noexcept {
+  return config.interface_;
 }
 
-::std::string IPConfigs::ToJson() const {
-  auto j = IPConfigsToNJson(impl_->configs_);
-  return j.dump();
+
+::std::string ToJson(const IPConfigs& configs) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(configs.GetConfig());
 }
 
-IPConfigs GetIPConfigs() {
-  NetconfdDbusClient client;
-  return IPConfigs { client.GetIpConfigs() };
+static IPConfigs FilterCopyByType(const IPConfigs &ip_configs, DeviceType type) {
+  auto interface_infos = GetInterfaceInformation(type);
+
+  auto inner_configs = ip_configs.GetConfig();
+
+  auto interface_name_not_in_infos = [&](const auto &ip_cfg) -> bool {
+    return ::std::find_if(interface_infos.begin(), interface_infos.end(), [&](const auto &info) {
+      return info.GetInterfaceName() == ip_cfg.interface_;
+    }) == interface_infos.end();
+  };
+
+  inner_configs.erase(std::remove_if(inner_configs.begin(), inner_configs.end(), interface_name_not_in_infos),
+                      inner_configs.end());
+
+  return IPConfigs { inner_configs };
 }
 
-IPConfigs GetCurrentIPConfigs() {
-  NetconfdDbusClient client;
-  return IPConfigs { client.GetCurrentIpConfigs() };
+
+IPConfigs GetIPConfigs(DeviceType type) {
+  auto ip_configs = GetIPConfigs();
+  return FilterCopyByType(ip_configs, type);
 }
 
-Status SetIPConfigs(const IPConfigs &config) {
-  NetconfdDbusClient client;
-  ::std::string json_config = config.ToJson();
-  if (client.SetIpConfigs(json_config)) {
-    return Status::OK;
-  }
-  return Status::ERROR;
+IPConfigs GetCurrentIPConfigs(DeviceType type) {
+  auto ip_configs = GetCurrentIPConfigs();
+  return FilterCopyByType(ip_configs, type);
 }
 
 void DeleteIPConfig(::std::string interface_name) {
   IPConfigs ip_configs;
-  IPConfig ip_config { ::std::move(interface_name), IPSource::NONE, "", "", "" };
+  IPConfig ip_config { ::std::move(interface_name), IPSource::NONE, "", "" };
   ip_configs.AddIPConfig(ip_config);
   SetIPConfigs(ip_configs);
 }
-
-void SetTempFixIp() {
-  NetconfdDbusClient client;
-  client.SetTemporaryFixedIpAddress();
+::std::string CalculateBroadcast(const IPConfig &config) noexcept
+{
+  namespace bip = ::boost::asio::ip;
+  try {
+    auto netv4 = bip::make_network_v4(bip::make_address_v4(config.address_), bip::make_address_v4(config.netmask_));
+    return netv4.network().to_string();
+  } catch (...) {
+    return std::string { };
+  }
 }
 
-::std::string GetDipSwitchConfig() {
-  NetconfdDbusClient client;
-  return client.GetDipSwitchConfig();
+IPConfigs MakeIPConfigs(const ::std::string &json_str, Status& status) noexcept{
+  JsonConverter jc;
+  netconf::IPConfigs configs;
+  auto conversion_status = jc.FromJsonString(json_str, configs);
+  status = conversion_status.Ok() ? Status::OK : Status::JSON_CONVERT_ERROR;
+  return IPConfigs { configs };
 }
 
-Status SetDipSwitchConfig(const ::std::string &config) {
-  NetconfdDbusClient client;
-  auto success = client.SetDipSwitchConfig(config);
-  return success ? Status::OK : Status::ERROR;
+IPConfigs MakeIPConfigs(const ::std::string &json_str) noexcept {
+  Status unused_;
+  return MakeIPConfigs(json_str, unused_);
 }
 
-} /* namespace netconf */
+::std::string ToJson(const netconf::IPConfig &ip_config) noexcept{
+  JsonConverter jc;
+  return jc.ToJsonString(ip_config);
+}
+
+
+
+}  // api
+}  // netconf

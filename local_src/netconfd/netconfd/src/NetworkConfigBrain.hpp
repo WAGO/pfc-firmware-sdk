@@ -5,7 +5,6 @@
 #include "IDeviceProperties.hpp"
 #include "IPersistenceProvider.hpp"
 #include "IEventManager.hpp"
-#include "IJsonConfigConverter.hpp"
 #include "IDipSwitch.hpp"
 #include "InterfaceConfigManager.hpp"
 #include "MappedChangeDetector.hpp"
@@ -13,20 +12,19 @@
 #include "IBridgeManager.hpp"
 #include "IIPManager.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IInterfaceMonitor;
 class IInterfaceInformation;
 class ITaskQueue;
 class INetDevManager;
 
-class NetworkConfigBrain : public IControllable {
+class NetworkConfigBrain : public IControllable{
  public:
   NetworkConfigBrain(IBridgeManager& interface_manager,
-                     IInterfaceInformation& itf_info, IIPManager& ip_manager,
+                     IBridgeInformation& itf_info, IIPManager& ip_manager,
                      IEventManager& event_manager,
                      IDeviceProperties& device_properties_provider,
-                     IJsonConfigConverter& json_config_converter,
                      IPersistenceProvider& persistence_provider, IDipSwitch& ip_dip_switch,
                      InterfaceConfigManager& interface_config_manager,
                      INetDevManager& netdev_manager);
@@ -42,7 +40,7 @@ class NetworkConfigBrain : public IControllable {
 
   Status SetBridgeConfig(::std::string const& product_config);
   ::std::string GetBridgeConfig() const;
-  ::std::string GetDeviceInterfaces() const;
+  ::std::string GetInterfaceInformation() const;
   Status SetInterfaceConfig(::std::string const& config);
   ::std::string GetInterfaceConfig() const;
 
@@ -65,12 +63,10 @@ class NetworkConfigBrain : public IControllable {
   void ModifyIpConfigByDipSwitch(IPConfigs& ip_configs);
   void ModifyIpConfigByDipSwitch(IPConfigs& ip_configs, const DipSwitchIpConfig& dip_switch_ip_config);
   Status ApplyConfig(BridgeConfig& product_config, const IPConfigs& ip_configs) const;
-  Status ApplyConfig(BridgeConfig &product_config, const IPConfigs &ip_configs,
-                     const DipSwitchIpConfig &dip_switch_ip_config) const;
   Status ApplyFallbackConfig();
   Status StopDynamicIPClientsOfBridgesToBeRemoved(const BridgeConfig &product_config) const;
-  void FilterEmptyBridges(BridgeConfig& product_config) const;
-  Status FilterRequiredBridgeConfigs(BridgeConfig& bridge_config) const;
+  void RemoveEmptyBridges(BridgeConfig& config) const;
+  void RemoveUnsupportedInterfaces(BridgeConfig& config, Interfaces &supported_interfaces) const;
   void FilterRequiredIpConfigs(IPConfigs &ip_configs, const BridgeConfig &bridge_config) const;
   IPConfigs FilterRequiredIPConfigs(const IPConfigs &ip_configs, const BridgeConfig &product_config) const;
   bool HasToBePersisted(const IPConfig& ip_config) const;
@@ -88,15 +84,15 @@ class NetworkConfigBrain : public IControllable {
   Status PersistIpConfiguration(const IPConfigs& config);
 
   IBridgeManager& bridge_manager_;
-  IInterfaceInformation& itf_info_;
+  IBridgeInformation& bridge_information_;
   InterfaceConfigManager& interface_config_manager_;
   IIPManager& ip_manager_;
   IEventManager& event_manager_;
   IDeviceProperties& device_properties_provider_;
-  IJsonConfigConverter& json_config_converter_;
   IPersistenceProvider& persistence_provider_;
   INetDevManager& netdev_manager_;
   IDipSwitch & ip_dip_switch_;
+
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

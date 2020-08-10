@@ -48,11 +48,11 @@ $(STATEDIR)/liblibloader.extract:
 	
 
 #-----------------------------------------------------------------------------
-# TODO: Fix absolute path to cpputest. Should be CPPUTEST_HOME=$(HOST_CPPUTEST_DIR), 
-# but for reasons unknown $(HOST_CPPUTEST_DIR) is empty (although its not empty for the dal rules file).
-# HOST_CPPUTEST_DIR is set by the rules file host_cpputest.make.
+# TODO: Fix path to cpputest. Should be CPPUTEST_HOME=$(HOST_CPPUTEST_HOME), 
+# but for reasons unknown $(HOST_CPPUTEST_HOME) is empty (although its not empty for the dal rules file).
+# HOST_CPPUTEST_HOME is set by the rules file host_cpputest.make.
 #-----------------------------------------------------------------------------		
-LIBLOADER_TEST_ENV:= $(HOST_ENV) CPPUTEST_HOME=$(HOST_BUILDDIR)/cpputest-3.1 SYSROOT=$(PTXCONF_SYSROOT_HOST) PATH=$(HOST_PATH)
+LIBLOADER_TEST_ENV:= $(HOST_ENV) CPPUTEST_HOME=$(PTXCONF_SYSROOT_HOST)/usr/local SYSROOT=$(PTXCONF_SYSROOT_HOST) PATH=$(HOST_PATH)
 
 LIBTOOL_CROSS:=$(PTXCONF_SYSROOT_CROSS)/bin/
 LIBLIBLOADER_ENV:= $(CROSS_ENV) SYSROOT=$(PTXCONF_SYSROOT_TARGET) CROSS_COMPILE=$(COMPILER_PREFIX) CROSS_LIBTOOL=$(LIBTOOL_CROSS)

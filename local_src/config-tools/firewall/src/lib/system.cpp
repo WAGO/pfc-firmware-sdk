@@ -22,9 +22,8 @@
 #include <cstdlib>
 
 
-namespace wago
-{
-
+namespace wago {
+namespace firewall {
 
 // Process RAII class.
 class process
@@ -108,5 +107,6 @@ std::string exe_cmd(const std::string& cmd, int &exit_code)
 }
 
 
+} // namespace firewall
 } // namespace wago
 

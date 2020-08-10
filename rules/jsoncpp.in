@@ -1,0 +1,8 @@
+## SECTION=system_libraries
+
+config JSONCPP
+	tristate
+	prompt "JsonCpp"
+	select HOST_CMAKE
+	help
+	  A C++ library for interacting with JSON.

@@ -6,7 +6,7 @@
 #include "IBackupRestore.hpp"
 #include "IFileEditor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class RestoreLegacy : public IBackupRestore {
  public:
@@ -28,4 +28,4 @@ class RestoreLegacy : public IBackupRestore {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

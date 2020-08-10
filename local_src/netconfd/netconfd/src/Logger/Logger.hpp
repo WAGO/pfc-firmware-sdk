@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------------
 #include <memory>
 
-namespace netconfd {
+namespace netconf {
 
 enum class LogSink {
   TERMINAL,
@@ -39,4 +39,4 @@ void LogDebug(::std::string const& message);
 
 LogLevel LogLevelFromString(::std::string const& level);
 
-}  // namespace netconfd
+}  // namespace netconf

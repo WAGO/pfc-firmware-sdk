@@ -1,9 +1,4 @@
-/*
- * Interface.h
- *
- *  Created on: 04.06.2019
- *      Author: u014487
- */
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #ifndef DBUS_SRC_INTERFACE_H_
 #define DBUS_SRC_INTERFACE_H_
@@ -13,7 +8,7 @@
 
 typedef struct _GDBusObjectSkeleton GDBusObjectSkeleton;
 
-namespace netconfd {
+namespace netconf {
 namespace dbus {
 
 class IDBusHandlerRegistry {
@@ -33,6 +28,6 @@ class IDBusHandlerRegistry {
 };
 
 } /* namespace dbus */
-} /* namespace netconfd */
+} /* namespace netconf */
 
 #endif /* DBUS_SRC_INTERFACE_H_ */

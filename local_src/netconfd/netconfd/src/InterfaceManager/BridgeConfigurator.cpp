@@ -8,12 +8,10 @@
 #include "Logger.hpp"
 #include "Helper.hpp"
 
-namespace netconfd {
+namespace netconf {
 
-BridgeConfigurator::BridgeConfigurator(IBridgeController &bridge_controller, IMacDistributor &mac_distributor)
-    :
-    bridge_controller_ { bridge_controller },
-    mac_distributor_ { mac_distributor } {
+BridgeConfigurator::BridgeConfigurator(IBridgeController &bridge_controller)
+    : bridge_controller_ { bridge_controller } {
 
 }
 
@@ -31,10 +29,6 @@ Status BridgeConfigurator::SetBridgeDownAndDelete(const Bridge &bridge) const {
 Status BridgeConfigurator::AddBridge(const Bridge &bridge) const {
   Status status = bridge_controller_.AddBridge(bridge);
 
-  if (status.Ok()) {
-    status = mac_distributor_.SetMac(bridge);
-  }
-
   return status;
 }
 
@@ -47,7 +41,6 @@ Status BridgeConfigurator::RemoveAllActualBridgesThatAreNotNeeded(BridgeConfig c
 
   for (const auto &actual_bridge : actual_bridges) {
     if (config_os.find(actual_bridge) == config_os.end()) {
-      Interfaces actual_interfaces = bridge_controller_.GetBridgeInterfaces(actual_bridge);
 
       status = SetBridgeDownAndDelete(actual_bridge);
       if (status.NotOk()) {

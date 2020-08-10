@@ -106,8 +106,6 @@ $(STATEDIR)/file-transfer.targetinstall:
 	@$(call install_fixup,file-transfer,AUTHOR,"WAGO Kontakttechnik GmbH")
 	@$(call install_fixup,file-transfer,DESCRIPTION,"This config-tool supports preparation and cleanup of file transfers.")
 
-	@$(call install_copy, file-transfer, 0, 0, 0755, /etc/config-tools);
-
 # Files that should be copied to the target
 
 	@$(call install_copy, file-transfer, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/file_transfer, /etc/config-tools/file_transfer);

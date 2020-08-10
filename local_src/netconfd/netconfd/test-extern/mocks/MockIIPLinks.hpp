@@ -4,12 +4,12 @@
 
 #include "IIPLinks.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIIPLinks : public IIPLinks {
  public:
 
-  MOCK_METHOD1(CreateOrGet, ::std::shared_ptr<IPLink>(const IPConfig& ip_config) );
+  MOCK_METHOD1(CreateOrGet, ::std::shared_ptr<IPLink>(const ::std::string& ip_config) );
   MOCK_METHOD1(Get, ::std::shared_ptr<IPLink>(const ::std::string &interface) );
 
 };

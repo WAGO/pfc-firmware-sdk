@@ -13,22 +13,25 @@ bal_tests.elf
 
 libbal_PROJECT_ROOT = $(PROJECT_ROOT)/bal
 
+# globally exclude files from coverage report
+GCOVR_EXCLUDE += $(libbal_PROJECT_ROOT)/test-src
+GCOVR_EXCLUDE += $(libbal_PROJECT_ROOT)/test-extern
+
 #######################################################################################################################
 # Settings for build target libbal.a
 
-libbal.a_INCLUDES += \
--I$(PROJECT_ROOT)/extern/ \
--I$(PROJECT_ROOT)/libbridge/extern \
+libbal.a_INCLUDES +=\
+  $(NETCONFD_SHARED_INCLUDES) \
 -I$(PROJECT_ROOT)/utility/extern \
 -I$(PROJECT_ROOT)/netconfd/extern \
--isystem$(PROJECT_ROOT)/gsl/include/ \
--I$(libbal_PROJECT_ROOT)/extern/
+-I$(libbal_PROJECT_ROOT)/extern
 
 
 libbal.a_DISABLEDWARNINGS += packed 
 libbal.a_CXXDISABLEDWARNINGS += $(libbal.a_DISABLEDWARNINGS) useless-cast abi-tag
 libbal.a_CDISABLEDWARNINGS += $(libbal.a_DISABLEDWARNINGS)
 libbal.a_DEFINES +=
+libbal.a_PKG_CONFIGS += libbridge
 libbal.a_LIBS += utility bridge
 libbal.a_CPPFLAGS += $(call uniq, $(libbal.a_INCLUDES) $(libbridge.a_INCLUDES)) 
 libbal.a_CPPFLAGS += $(call uniq, $(libbridge.a_DEFINES))
@@ -60,8 +63,8 @@ $(libbal.a_INCLUDES) \
 -I$(PROJECT_ROOT)/netconfd/test-extern/mocks/ \
 -I$(PROJECT_ROOT)/utility/extern
 
-bal_tests.elf_STATICALLYLINKED += bal utility bridge gmock_main gmock gtest 
-bal_tests.elf_LIBS += bal utility bridge gmock_main gmock gtest boost_filesystem
+bal_tests.elf_STATICALLYLINKED += bal utility gmock_main gmock gtest 
+bal_tests.elf_LIBS += bal utility gmock_main gmock gtest boost_filesystem
 bal_tests.elf_PKG_CONFIGS += $(libbal.a_PKG_CONFIGS)
 bal_tests.elf_PKG_CONFIG_LIBS += $(libbal.a_PKG_CONFIG_LIBS)
 bal_tests.elf_DISABLEDWARNINGS += packed 
@@ -81,6 +84,7 @@ bal_tests.elf_SOURCES += $(call fglob_r,$(libbal_PROJECT_ROOT)/test-src,$(SOURCE
 bal_tests.elf_DISABLE_CLANG_TIDY = T
 bal_tests.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
 bal_tests.a_CLANG_TIDY_CHECKS += -google-runtime-references
-
-
-
+# filter only source files in this sub-module
+bal_tests.elf_GCOVR_FILTER += $(libbal_PROJECT_ROOT)
+# modules to include into this test's coverage report 
+bal_tests.elf_GCOVR_SEARCH_PATH += libbal.a

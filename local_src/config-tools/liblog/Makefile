@@ -6,17 +6,17 @@
 # Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
 #
 #######################################################################################################################
-LIBXML_CFLAGS=$$(pkg-config --cflags libxml-2.0)
-LIBXML_LDLIBS=$$(pkg-config --libs libxml-2.0)
+LIBXML_CFLAGS= $(shell $(PKG_CONFIG) --cflags libxml-2.0)
+LIBXML_LDLIBS= $(shell $(PKG_CONFIG) --libs libxml-2.0)
 
-LIBNL_CFLAGS=$$(pkg-config --cflags libnl-3.0)
-LIBNL_LDLIBS=$$(pkg-config --libs libnl-3.0 libnl-route-3.0)
+LIBNL_CFLAGS= $(shell $(PKG_CONFIG) --cflags libnl-3.0)
+LIBNL_LDLIBS= $(shell $(PKG_CONFIG) --libs libnl-3.0 libnl-route-3.0)
 
-LIBXSLT_CFLAGS=$$(pkg-config --cflags libxslt)
-LIBXSLT_LDLIBS=$$(pkg-config --libs libxslt)
+LIBXSLT_CFLAGS= $(shell $(PKG_CONFIG) --cflags libxslt)
+LIBXSLT_LDLIBS= $(shell $(PKG_CONFIG) --libs libxslt)
 
-GLIB_CFLAGS=$$(pkg-config --cflags glib-2.0)
-GLIB_LDLIBS=$$(pkg-config --libs glib-2.0)
+GLIB_CFLAGS= $(shell $(PKG_CONFIG) --cflags glib-2.0)
+GLIB_LDLIBS= $(shell $(PKG_CONFIG) --libs glib-2.0)
 
 DEBUG= -O0 -ggdb2
 
@@ -28,7 +28,7 @@ override CFLAGS+= -Wall -Wextra -Werror -Wshadow -fPIC $(LIBXML_CFLAGS) $(LIBNL_
 override LDLIBS+= $(LIBXML_LDLIBS) $(LIBNL_LDLIBS) $(LIBXSLT_LDLIBS) $(GLIB_LDLIBS)
 
 all: libctlog.so
-	
+
 libctlog.so: $(OBJ)
 	$(CC) $(LDFLAGS) -Wl,--as-needed -o $@ $^  $(LDLIBS$(LDLIBS-$(@))) -shared
 

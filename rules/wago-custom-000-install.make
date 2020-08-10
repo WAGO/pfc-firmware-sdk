@@ -189,6 +189,9 @@ ifdef PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STARTSCRIPT
 	@$(call install_replace, wago-custom-install, \
 		/etc/init.d/config_usb_gadget, @USB_GADGET_STORAGE_FILE@, \
 		$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE))
+	@$(call install_alternative, wago-custom-install, 0, 0, 0644, \
+		/lib/udev/rules.d/90-usb-gadget.rules)
+
 ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/config_usb_gadget, \
 		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_BBINIT_LINK))
@@ -196,11 +199,7 @@ endif
 endif
 ifdef PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_STARTSCRIPT
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, \
-		/etc/init.d/usb_gadget_network, n)
-ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_BBINIT_LINK),)
-	@$(call install_link, wago-custom-install, ../init.d/usb_gadget_network, \
-		/etc/rc.d/$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_BBINIT_LINK))
-endif
+		/usr/sbin/usb_gadget_network, n)
 ifneq ($(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE),"")
 	@$(call install_alternative, wago-custom-install, 0, 0, 0644, \
 		$(PTXCONF_WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE), n)
@@ -669,16 +668,11 @@ ifdef PTXCONF_WAGO_CUSTOM_INSTALL_RTSVERSION
 endif
 
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD
-
-ifneq ($(PTXCONF_WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD_IMG),)
 	@$(call install_alternative, wago-custom-install, 0, 0, 0755, /etc/init.d/rmd-fw-download, n)
-	@$(call install_replace, wago-custom-install, /etc/init.d/rmd-fw-download, @RMD_FW_DOWNLOAD_IMG@, \
-							$(PTXCONF_WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD_IMG))
 
 ifneq ($(PTXCONF_WAGO_CUSTOM_RMD_FW_DOWNLOAD_BBINIT_LINK),)
 	@$(call install_link, wago-custom-install, ../init.d/rmd-fw-download, /etc/rc.d/$(PTXCONF_WAGO_CUSTOM_RMD_FW_DOWNLOAD_BBINIT_LINK))
 
-endif
 endif
 endif
 

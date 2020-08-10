@@ -12,7 +12,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ABootpController_Target : public Test {
  public:
@@ -35,4 +35,4 @@ TEST_F(ABootpController_Target, TestName) {
   bootp_client_controller_.GetStatus("br0");
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

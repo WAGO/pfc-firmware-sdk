@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 class IIPEvent{
 
  public:

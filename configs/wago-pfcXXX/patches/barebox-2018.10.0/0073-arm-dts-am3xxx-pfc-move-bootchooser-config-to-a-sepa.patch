@@ -1,8 +1,8 @@
 From 1b5976f9f6ec2fa518bc0b859d52d05295bcbde4 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 29 Aug 2018 15:56:40 +0200
-Subject: [PATCH] arm: dts: am3xxx: pfc: move bootchooser config to a separated
- file
+Subject: [PATCH 073/144] arm: dts: am3xxx: pfc: move bootchooser config to a
+ separated file
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

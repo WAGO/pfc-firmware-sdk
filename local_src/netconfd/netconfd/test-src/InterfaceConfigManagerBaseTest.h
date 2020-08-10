@@ -13,7 +13,7 @@
 #include <list>
 
 static ::std::uint32_t if_index_counter = 0;
-namespace netconfd {
+namespace netconf {
 
 class InterfaceConfigManagerBaseTest {
  public:
@@ -41,7 +41,7 @@ class InterfaceConfigManagerBaseTest {
     void UpdateConfig() {};
     ::std::string const& GetName() const { return name_;}
     eth::EthernetMauType GetMauType() const { return eth::EthernetMauType::TYPE_NONE;}
-    const MacAddress GetMac() const { return gsl::make_span(mac);}
+    MacAddress GetMac() const { return MacAddress{mac};}
     bool GetAutonegSupport() const { return true;}
     bool GetAutonegEnabled() const {return autoneg_ == eth::Autoneg::On;}
     ::std::uint32_t GetAutonegCapabilities() const {return 0;}
@@ -112,6 +112,6 @@ class InterfaceConfigManagerBaseTest {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */
 
 #endif /* NETCONFD_TEST_SRC_INTERFACECONFIGMANAGERBASETEST_H_ */

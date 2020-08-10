@@ -646,7 +646,22 @@ fwupdate_start_normal_operation()
 {
     local RESULT=0
 
-    if fwupdate_runtime_available; then
+    #check if system start done, wait with timeout if not
+    local wait_system_done_countdown=180 # Timeout without reboot part of integration-test timeout (4min - shutdown - kernelboot)
+    local wait_interval=5
+    fwupdate_report_info "Wait for system start is done..."
+    while [[ ! -e "$WAGO_SYSTEM_START_DONE_FILE" ]]; do
+       if [[ $wait_system_done_countdown -gt 0 ]]; then
+           wait_system_done_countdown=$((wait_system_done_countdown - wait_interval))
+           sleep $wait_interval
+       else
+           fwupdate_report_error "Timeout while waiting for system start is done"
+           RESULT=$INTERNAL_ERROR
+           break
+       fi
+    done
+    
+    if fwupdate_runtime_available && [[ $RESULT -eq 0 ]]; then
         # Prepare runtime autostart if not already done
         chmod a+x "$CDS_INITSCRIPT" &>/dev/null && sync
         if [ ! -x "$CDS_INITSCRIPT" ]; then

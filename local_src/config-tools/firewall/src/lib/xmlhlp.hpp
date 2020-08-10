@@ -13,8 +13,8 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#pragma once
-
+#ifndef WAGO_FIREWALL_XMLHLP_HPP_
+#define WAGO_FIREWALL_XMLHLP_HPP_
 
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
@@ -51,8 +51,8 @@
 //
 
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 
 
 // RAII class.
@@ -397,13 +397,16 @@ std::string get_string(const xmlctx& ctx,
 ///   ancestor xpath expression. All nodes below this ancestor will be searched for given attribute.
 /// \param attribute
 ///   attribute name to search for.
-/// \param string_list
-///   String list of attribute values to return.
+/// \return string_list
+///   String list of attribute values.
 ///
 //------------------------------------------------------------------------------
-void get_attribute_value_list(const xmlctx& ctx,
-                              const std::string& ancestor,
-                              const std::string& attribute,
-                              std::vector<std::string>& string_list);
+std::vector<std::string> get_attribute_value_list(const xmlctx& ctx,
+                                                  const std::string& ancestor,
+                                                  const std::string& attribute);
 
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_XMLHLP_HPP_
+

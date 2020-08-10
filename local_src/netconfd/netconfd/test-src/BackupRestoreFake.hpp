@@ -12,7 +12,7 @@
 #include "IBackupRestore.hpp"
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 
 class BackupRestoreFake : public IBackupRestore {
  public:
@@ -45,7 +45,7 @@ class BackupRestoreFake : public IBackupRestore {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 #endif /* NETCONFD_TEST_SRC_BACKUPRESTOREFAKE_HPP_ */
 //---- End of source file ------------------------------------------------------

@@ -1,17 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-//------------------------------------------------------------------------------
-///  \file     MockBridgeConfig.hpp
-///
-///  \brief    <short description of the file contents>
-///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
+
 #pragma once
 
 #include <BridgeConfig.hpp>
 #include <gmock/gmock.h>
 
 namespace netconf {
+namespace api {
 
 struct IMockBridgeConfig {
   IMockBridgeConfig() = default;
@@ -26,11 +21,12 @@ struct MockBridgeConfig : public IMockBridgeConfig {
   virtual ~MockBridgeConfig();
 
   MOCK_METHOD0(GetBridgeConfig,BridgeConfig() )
-  ;MOCK_METHOD1(SetBridgeConfig,Status(const BridgeConfig &config) )
+  ;MOCK_METHOD1(SetBridgeConfig, Status(const BridgeConfig &config) )
   ;
 
 };
 
+}  // namespace api
 }  // namespace netconf
 
 

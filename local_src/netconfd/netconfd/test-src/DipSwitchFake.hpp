@@ -3,7 +3,7 @@
 
 #include "IDipSwitch.hpp"
 
-namespace netconfd
+namespace netconf
 {
 
   class DipSwitchFake: public IDipSwitch
@@ -12,7 +12,7 @@ namespace netconfd
       DipSwitchFake() = default;
       virtual ~DipSwitchFake() = default;
 
-      netconfd::DipSwitchMode GetMode() const override
+      netconf::DipSwitchMode GetMode() const override
       {
         return DipSwitchMode::HW_NOT_AVAILABLE;
       }
@@ -26,4 +26,4 @@ namespace netconfd
       }
   };
 
-} /* namespace netconfd */
+} /* namespace netconf */

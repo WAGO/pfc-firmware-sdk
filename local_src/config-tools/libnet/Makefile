@@ -6,27 +6,31 @@
 # Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
 #
 #######################################################################################################################
-LIBXML_CFLAGS=$$(pkg-config --cflags libxml-2.0)
-LIBXML_LDLIBS=$$(pkg-config --libs libxml-2.0)
+LIBXML_CFLAGS=$$($(PKG_CONFIG) --cflags libxml-2.0)
+LIBXML_LDLIBS=$$($(PKG_CONFIG) --libs libxml-2.0)
 
-LIBNL_CFLAGS=$$(pkg-config --cflags libnl-3.0)
-LIBNL_LDLIBS=$$(pkg-config --libs libnl-3.0 libnl-route-3.0 libnl-genl-3.0)
+LIBNL_CFLAGS=$$($(PKG_CONFIG) --cflags libnl-3.0)
+LIBNL_LDLIBS=$$($(PKG_CONFIG) --libs libnl-3.0 libnl-route-3.0 libnl-genl-3.0)
 
-LIBXSLT_CFLAGS=$$(pkg-config --cflags libxslt)
-LIBXSLT_LDLIBS=$$(pkg-config --libs libxslt)
+LIBXSLT_CFLAGS=$$($(PKG_CONFIG) --cflags libxslt)
+LIBXSLT_LDLIBS=$$($(PKG_CONFIG) --libs libxslt)
 
-GLIB_CFLAGS=$$(pkg-config --cflags glib-2.0)
-GLIB_LDLIBS=$$(pkg-config --libs glib-2.0)
+GLIB_CFLAGS=$$($(PKG_CONFIG) --cflags glib-2.0)
+GLIB_LDLIBS=$$($(PKG_CONFIG) --libs glib-2.0)
 
-DEBUG= -O0 -ggdb2 
+NETCONF_LDFLAGS:= $$($(PKG_CONFIG) --libs libnetconf)
+NETCONF_CFLAGS:= $$($(PKG_CONFIG) --cflags libnetconf)
 
-OBJ= ct_xml.o ct_netlink.o ct_xml_xpath.o ct_libnet.o ct_xslt.o ct_ethtool.o 
+DEBUG= -O0 -ggdb2
+
+OBJ= ct_xml.o ct_netlink.o ct_xml_xpath.o ct_libnet.o ct_xslt.o ct_ethtool.o
 
 GPROF=
 
 # Add no sign compare option to handle linux kernel 4.9 ethtool.h warning.
-override CFLAGS+= -Wall -Wextra -Wno-sign-compare -Werror -Wshadow -fPIC $(LIBXML_CFLAGS) $(LIBNL_CFLAGS) $(LIBXSLT_CFLAGS) $(GLIB_CFLAGS) 
-override LDLIBS+= $(LIBXML_LDLIBS) $(LIBNL_LDLIBS) $(LIBXSLT_LDLIBS) $(GLIB_LDLIBS) 
+override CFLAGS+= -Wall -Wextra -Wno-sign-compare -Werror -Wshadow -fPIC $(LIBXML_CFLAGS) $(LIBNL_CFLAGS) $(LIBXSLT_CFLAGS) $(GLIB_CFLAGS) $(NETCONF_CFLAGS)
+override LDLIBS+= $(LIBXML_LDLIBS) $(LIBNL_LDLIBS) $(LIBXSLT_LDLIBS) $(GLIB_LDLIBS) $(NETCONF_LDFLAGS) -lstdc++
+override CXXFLAGS += $(CFLAGS) -std=c++14
 
 ifeq ($(WITH_SWCONFIG),yes)
 override LDLIBS += -lswconfig

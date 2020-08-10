@@ -10,7 +10,7 @@
 #include <memory>
 #include "IEthernetInterface.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IEthernetInterfaceFactory {
  public:
@@ -19,7 +19,7 @@ class IEthernetInterfaceFactory {
   virtual ::std::unique_ptr<IEthernetInterface> getEthernetInterface(std::string name) = 0;
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 //---- End of header file ------------------------------------------------------
 

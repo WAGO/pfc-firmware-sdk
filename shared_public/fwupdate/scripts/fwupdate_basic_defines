@@ -125,4 +125,7 @@ readonly WAGO_CHECK_SYSTEM_WDT="/usr/sbin/watchdog"
 # Check system watchdog control
 readonly WAGO_CHECK_SYSTEM_WDT_CONTROL="/etc/init.d/watchdog"
 
+# System start done flag file
+readonly WAGO_SYSTEM_START_DONE_FILE="/var/run/systemstart.done"
+
 fi #if [[ ${FWUPDATE_BASIC_DEFINES_:-} != "fwupdate_basic_defines" ]]

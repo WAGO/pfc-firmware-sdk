@@ -78,7 +78,7 @@ config WAGO_CUSTOM_LOG_SYSTEMSTART_LINK
 	string
 	depends on WAGO_CUSTOM_LOG_SYSTEMSTART_INIT_STARTSCRIPT
 	prompt "log system boot via LOG id"
-	default "S05_logsystemstart"
+	default "S99_logsystemstart"
 
 config SCREENSAVER_SCREEND_BBINIT_LINK
 	string
@@ -133,12 +133,6 @@ config WAGO_CUSTOM_CONFIG_USB_GADGET_BBINIT_LINK
 	depends on WAGO_CUSTOM_CONFIG_USB_GADGET_STARTSCRIPT
 	prompt "configure usb gadget modules"
 	default "S02a_config_usb_gadget"
-
-config WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_BBINIT_LINK
-	string
-	depends on WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_STARTSCRIPT
-	prompt "configure usb gadget network"
-	default "S03_usb_gadget_network"
 
 config WAGO_CUSTOM_CBM_MULTI_PRODUCT_CONFIG_BBINIT_LINK
 	string

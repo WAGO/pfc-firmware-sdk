@@ -12,12 +12,12 @@
 #include "interface_mapping_provider.hpp"
 #include "test_utils.hpp"
 
-using namespace wago;
+using namespace wago::firewall;
 
 TEST(InterfaceMappingProviderTest, GetInterfacesTheFirewallRuleHasToBeAppliedFor) {
 
   ::std::string interface;
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
 
   interface = mapping.get_interface("br0");
   ASSERT_EQ(interface, "br0");

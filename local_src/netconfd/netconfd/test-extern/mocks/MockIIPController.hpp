@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "IIPController.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIIPController : public IIPController {
  public:
@@ -15,5 +15,5 @@ class MockIIPController : public IIPController {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf
 #endif 

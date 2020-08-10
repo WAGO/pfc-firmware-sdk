@@ -2,24 +2,21 @@
 
 #pragma once
 
+#include "../../../common/extern/IJsonConvert.hpp"
 #include "Types.hpp"
 #include "DipSwitch.hpp"
 #include "IPersistenceProvider.hpp"
-#include "IPersistenceJsonConfigConverter.hpp"
 #include "IFileEditor.hpp"
 #include "IBackupRestore.hpp"
 #include "IPersistence.hpp"
-#include "IJsonConvert.hpp"
 
-namespace netconfd
+namespace netconf
 {
 
   class PersistenceExecutor: public IPersistenceProvider, public IPersistence<InterfaceConfigs>
   {
     public:
       PersistenceExecutor(const ::std::string &persistence_path,
-                          IPersistenceJsonConfigConverter &json_config_converter,
-                          IJsonConvert<InterfaceConfigs> &port_configs_converter,
                           IFileEditor &file_editor,
                           IBackupRestore &backup_restore,
                           IBackupRestore &legacy_restore,
@@ -59,8 +56,6 @@ namespace netconfd
       const ::std::uint32_t persistence_version_ = 1;
       ::std::string persistence_path_;
       ::std::string interface_config_file_path_;
-      IPersistenceJsonConfigConverter &json_config_converter_;
-      IJsonConvert<InterfaceConfigs> &port_configs_converter_;
       IFileEditor &file_editor_;
       IBackupRestore &backup_restore_;
       IBackupRestore &legacy_restore_;
@@ -72,7 +67,6 @@ namespace netconfd
 
       IDipSwitch &dip_switch_;
 
-      void UpdateNeconfdJson() const;
       Status UpdateNetconfdJson() const;
       void UpdateInterfacesXml() const;
       Status ReadNetconfdJson();
@@ -81,4 +75,4 @@ namespace netconfd
       void ModifyBr0AddressToDipSwitch(IPConfigs &current_ip_configs);
   };
 
-} /* namespace netconfd */
+} /* namespace netconf */

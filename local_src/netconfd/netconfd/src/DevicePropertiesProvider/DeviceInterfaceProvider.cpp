@@ -12,7 +12,7 @@
 #include <iostream>
 #include <algorithm>
 
-namespace netconfd {
+namespace netconf {
 
 DeviceInterfaceProvider::DeviceInterfaceProvider(IBridgeController& bridge_controller)
     : bridge_controller_ { bridge_controller } {
@@ -21,12 +21,16 @@ DeviceInterfaceProvider::DeviceInterfaceProvider(IBridgeController& bridge_contr
 
 }
 
-Interfaces DeviceInterfaceProvider::GetProductInterfaces() const {
-  return product_interfaces_;
+Interfaces DeviceInterfaceProvider::GetProductPortNames() const {
+  return product_port_interfaces_;
 }
 
-Interfaces DeviceInterfaceProvider::GetOSInterfaces() const {
-  return eth_os_interfaces_;
+Interfaces DeviceInterfaceProvider::GetOSPortNames() const {
+  return os_port_interfaces_;
+}
+
+Interfaces DeviceInterfaceProvider::GetOSInterfaceNames() const {
+  return os_interfaces_;
 }
 
 InterfaceNameMapping DeviceInterfaceProvider::GetInterfacesNameMapping() const {
@@ -38,9 +42,9 @@ void DeviceInterfaceProvider::GenerateInterfaceNameMapping() {
   const ::std::string interface_matcher = "ethX";
   const ::std::string os_interface_prefix = "eth";
 
-  Interfaces all_os_interfaces = bridge_controller_.GetInterfaces();
+  os_interfaces_ = bridge_controller_.GetInterfaces();
 
-  for (auto& os_interface : all_os_interfaces) {
+  for (auto& os_interface : os_interfaces_) {
 
     size_t pos = os_interface.find(interface_matcher);
 
@@ -49,8 +53,8 @@ void DeviceInterfaceProvider::GenerateInterfaceNameMapping() {
       std::string product_interface = os_interface;
       product_interface.erase(0, os_interface_prefix.size());
 
-      eth_os_interfaces_.push_back(os_interface);
-      product_interfaces_.push_back(product_interface);
+      os_port_interfaces_.push_back(os_interface);
+      product_port_interfaces_.push_back(product_interface);
       InterfaceNamesPair pair(product_interface, os_interface);
       interface_name_mapping_.insert(::std::move(pair));
     }
@@ -97,5 +101,5 @@ void DeviceInterfaceProvider::ConvertOSToProductInterfaces(Interfaces& interface
 }
 
 
-} /* namespace netconfd */
+} /* namespace netconf */
 

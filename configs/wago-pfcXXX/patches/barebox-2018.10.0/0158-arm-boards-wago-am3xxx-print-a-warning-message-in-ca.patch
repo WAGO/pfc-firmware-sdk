@@ -1,8 +1,8 @@
 From 182be05b66c5ea72ff8b1baf0a531acd0d8c1242 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 17 Jan 2019 11:40:07 +0100
-Subject: [PATCH] arm: boards: wago-am3xxx: print a warning message in case of
- board.variant
+Subject: [PATCH 158/160] arm: boards: wago-am3xxx: print a warning message in
+ case of board.variant
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

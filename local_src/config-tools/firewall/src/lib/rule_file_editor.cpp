@@ -7,29 +7,29 @@
 // software implicitly accepts the terms of the license.
 //------------------------------------------------------------------------------
 
+#include "rule_file_editor.hpp"
 #include "error.hpp"
 
-#include <iostream>
 #include <fstream>
 #include <sys/stat.h>
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <firewall/src/lib/rule_file_editor.hpp>
 
 namespace wago {
-namespace rulefileeditor {
+namespace firewall {
 
-static void write(const ::std::string &file_path, const ::std::vector<::std::string> &lines) {
+namespace {
+void write(const ::std::string &file_path, const ::std::vector<::std::string> &lines) {
 
   ::std::string file_path_tmp = file_path + ".tmp";
 
-  umask(0022);
 
   ::std::ofstream stream(file_path_tmp);
 
   if (stream.good()) {
+    auto umask_previous = umask(0022);
 
     stream << boost::algorithm::join(lines, "\n") << "\n";
     stream.flush();
@@ -39,12 +39,14 @@ static void write(const ::std::string &file_path, const ::std::vector<::std::str
     ::std::rename(file_path_tmp.c_str(), file_path.c_str());
     sync();
 
+    umask(umask_previous);
+
   } else {
     throw file_write_error(file_path);
   }
 }
 
-static void read(const ::std::string &file_path, ::std::vector<::std::string> &lines) {
+void read(const ::std::string &file_path, ::std::vector<::std::string> &lines) {
   ::std::ifstream stream(file_path);
   if (stream.good()) {
     auto data = ::std::string((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
@@ -60,13 +62,16 @@ static void read(const ::std::string &file_path, ::std::vector<::std::string> &l
 
 }
 
-void static remove_empty_lines(::std::vector<::std::string> &lines) {
+void remove_empty_lines(::std::vector<::std::string> &lines) {
 
   auto end = ::std::remove_if(lines.begin(), lines.end(), [](auto &l) {
     return l.empty();
   });
   lines.erase(end, lines.end());
 }
+
+} // anonymous namespace
+
 
 void RuleFileEditor::remove_duplicate_lines(const ::std::string &rule_file) const {
 
@@ -94,5 +99,5 @@ void RuleFileEditor::remove_duplicate_lines(const ::std::string &rule_file) cons
 
 }
 
-}
-}
+} // namespace firewall
+} // namespace wago

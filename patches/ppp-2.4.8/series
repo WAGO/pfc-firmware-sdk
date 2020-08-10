@@ -1,0 +1,2 @@
+0001-Fix_bounds_check_in_EAP_code.patch
+0002-Ignore_received_EAP_messages_when_not_doing_EAP.patch

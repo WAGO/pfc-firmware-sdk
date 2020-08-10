@@ -32,6 +32,7 @@ extern "C"
 }
 
 #include "CppUTest/TestHarness.h"
+#include "CppUTest/TestHarness_c.h"
 #include "CppUTestExt/MockSupport.h"
 
 extern "C"

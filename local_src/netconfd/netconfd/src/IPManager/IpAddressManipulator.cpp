@@ -3,7 +3,7 @@
 #include <boost/asio.hpp>
 #include <IpAddressManipulator.hpp>
 
-namespace netconfd {
+namespace netconf {
 
 using ::boost::asio::ip::make_address_v4;
 using ::boost::system::error_code;
@@ -22,4 +22,4 @@ IPConfig IpAddressManipulator::ChangeLastAddressOctet(IPConfig const& current, u
   return new_cfg;
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

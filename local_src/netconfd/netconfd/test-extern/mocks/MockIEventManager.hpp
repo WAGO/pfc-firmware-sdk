@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include "IEventManager.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIEventManager : public IEventManager {
  public:

@@ -10,7 +10,7 @@
 #include "Logger.hpp"
 #include "CommandExecutor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 
 using boost::property_tree::ptree;
@@ -38,9 +38,9 @@ DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor)
     mac_ = type_label_values.get<::std::string>("MAC");
 
     if (type_label_values.count("MAC_ID_INC") == 0) {
-      mac_increment_ = 1;
+      mac_count_ = 1;
     } else {
-      mac_increment_ = type_label_values.get<uint32_t>("MAC_ID_INC");
+      mac_count_ = type_label_values.get<uint32_t>("MAC_ID_INC");
     }
 
   } catch (std::exception& e) {
@@ -92,7 +92,7 @@ static uint64_t MacToInt(::std::string const& mac) {
 ::std::string DeviceTypeLabelProvider::GetIncrementedMac(uint32_t inc) const {
 
   ::std::string incremented_mac;
-  if (inc < mac_increment_) {
+  if (inc < mac_count_) {
 
     try {
 
@@ -109,21 +109,21 @@ static uint64_t MacToInt(::std::string const& mac) {
   return mac_;
 }
 
+uint32_t DeviceTypeLabelProvider::GetMacCount() const {
+  return mac_count_;
+}
+
 void DeviceTypeLabelProvider::GetMacFallback() {
 
   EthernetInterface eth0If { "eth0" };
 
-  auto mac_bytes = eth0If.GetMac();
-  std::array<char, 16> mac_str = {};
-
-  snprintf(mac_str.data(), mac_str.size(), "%02x:%02x:%02x:%02x:%02x:%02x", mac_bytes[0], mac_bytes[1], mac_bytes[2],
-           mac_bytes[3], mac_bytes[4], mac_bytes[5]);
-
-  mac_.assign(mac_str.begin(), mac_str.end());
+  mac_.assign(eth0If.GetMac().ToString());
 }
 
 void DeviceTypeLabelProvider::GetOrderFallback() {
   order_number_ = "wago-pfc";
 }
 
-} /* namespace netconfd */
+
+
+}

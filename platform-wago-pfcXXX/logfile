@@ -1,9 +1,0 @@
-# -*- mode:outline; outline-regexp:"{{{" -*-
-# vim: set fdm=marker fdl=1:
-
-{{{ 2020-05-12T11:59:16+0200 /usr/local/lib/ptxdist-2017.11.1/bin/ptxdist --auto-version menuconfig
-
-}}} 2020-05-12T12:00:09+0200 /usr/local/lib/ptxdist-2017.11.1/bin/ptxdist --auto-version menuconfig; (exit value: 0)
-
-
-

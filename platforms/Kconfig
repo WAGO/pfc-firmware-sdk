@@ -1,0 +1,40 @@
+#
+# platforms/Kconfig: main menu structure for platform configuration
+#
+
+mainmenu "PTXdist $PLATFORMCONFIG_VERSION"
+
+source "generated/platform_version.in"
+
+menu "architecture                  "
+source "generated/architecture_options.in"
+endmenu
+source "generated/base_kernel.in"
+source "generated/devicetree.in"
+source "platforms/console.in"
+
+menu "extra kernel                  "
+source "generated/kernel.in"
+endmenu
+
+menu "bootloaders                   "
+source "generated/bootloader.in"
+endmenu
+
+menu "bootloader spec entries       "
+source "generated/blspec.in"
+endmenu
+
+menu "image creation options        "
+source "generated/image.in"
+endmenu
+
+menu "new image creation options    "
+source "generated/image2.in"
+endmenu
+
+menu "Wago Platform Specific        "
+source "generated/wago_platform_specific.in"
+endmenu
+
+source "generated/hosttools_platform.in"

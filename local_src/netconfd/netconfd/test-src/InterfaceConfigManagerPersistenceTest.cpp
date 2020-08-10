@@ -9,10 +9,9 @@
 #include "InterfaceConfigManagerBaseTest.h"
 
 #include "MockINetDevManager.hpp"
-#include "MockIJsonConfigConverter.hpp"
 #include "MockIEthernetInterface.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 using namespace ::std;
 using namespace ::testing;
@@ -33,7 +32,6 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
 
   MockINetDevManager netdev_manager_;
   MockIPersistencePortConfigs persist_portconfig_mock;
-  MockIJsonConfigConverter json_converter_mock;
   MockIEthernetInterface ethernet_interface_mock;
   unique_ptr<InterfaceConfigManager> sut;
 
@@ -68,7 +66,7 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
     persisted_missing_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
 
     expected_port_config_missing.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
-    expected_port_config_missing.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, -1, Duplex::UNKNOWN);
+    expected_port_config_missing.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
 
     persisted_oversized_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
     persisted_oversized_port_config.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF);
@@ -87,16 +85,17 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
     new_port_configs_full.emplace_back("X2", InterfaceState::DOWN, Autonegotiation::ON, 10, Duplex::FULL);
 
     netdevs_.insert(netdevs_.begin(), {
-        ::std::make_shared<NetDev>(0,"ethX1", "X1", NetDev::Kind::Ethernet),
-         ::std::make_shared<NetDev>(0,"ethX2", "X2", NetDev::Kind::Ethernet),
+        ::std::make_shared<NetDev>(0,"ethX1", "X1", DeviceType::Ethernet),
+         ::std::make_shared<NetDev>(0,"ethX2", "X2", DeviceType::Ethernet),
     });
 
     fake_fac_ = make_unique<FakeEthernetInterfaceFactory>(*this);
   }
 
   void InstantiateSut() {
-    sut = make_unique<InterfaceConfigManager>(netdev_manager_, persist_portconfig_mock, json_converter_mock,
+    sut = make_unique<InterfaceConfigManager>(netdev_manager_, persist_portconfig_mock,
                                               *fake_fac_);
+    sut->InitializePorts();
     EXPECT_EQ(netdevs_.size(), created_ethernet_interfaces.size());
   }
 
@@ -225,10 +224,10 @@ TEST_F(InterfaceConfigManagerPersistenceTest, StartMissingPortConfigsInPersisten
   EXPECT_EQ(eth::DeviceState::Up, itf_X2->state_);
 
   EXPECT_EQ(100, itf_X1->speed_);
-  EXPECT_EQ(-1, itf_X2->speed_);
+  EXPECT_EQ(100, itf_X2->speed_);
 
   EXPECT_EQ(eth::Duplex::Full, itf_X1->duplex_);
-  EXPECT_EQ(eth::Duplex::Half, itf_X2->duplex_);
+  EXPECT_EQ(eth::Duplex::Full, itf_X2->duplex_);
 }
 
 ACTION_P(CopyToVector, vector){
@@ -258,5 +257,4 @@ TEST_F(InterfaceConfigManagerPersistenceTest, PersistPartialNewConfig) {
 
 }
 
-}  // namespace netconfd
-
+}  // namespace netconf

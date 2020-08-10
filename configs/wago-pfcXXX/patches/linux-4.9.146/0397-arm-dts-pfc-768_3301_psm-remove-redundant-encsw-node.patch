@@ -1,0 +1,28 @@
+From afd937d16a84ca6069d7c66ec76b4b703ff8ffd9 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 18 Mar 2020 10:45:04 +0100
+Subject: [PATCH] arm: dts: pfc-768_3301_psm: remove redundant encsw node
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts b/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
+index 99e0cc1..08743ba 100644
+--- a/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
++++ b/arch/arm/boot/dts/am335x-pfc-768_3301_psm.dts
+@@ -18,10 +18,6 @@
+ 	status ="okay";
+ };
+ 
+-&encsw {
+-	status ="okay";
+-};
+-
+ &aes {
+ 	status = "okay";
+ };
+-- 
+2.7.4
+

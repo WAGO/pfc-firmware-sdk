@@ -5,7 +5,7 @@
 
 #include "FirmwareVersion.hpp"
 
-namespace netconfd
+namespace netconf
 {
 
   TEST(FirmwareVersion, TwoDigitFirmwareIndex)
@@ -103,12 +103,30 @@ namespace netconfd
     FirmwareVersion version_030402{"03.04.02"};
     FirmwareVersion version_0304{"03.04"};
     FirmwareVersion version_03{"03"};
-    FirmwareVersion version_{""};
+    FirmwareVersion version_empty{""};
+    FirmwareVersion version_{};
 
     EXPECT_FALSE(version_030402.IsValid());
     EXPECT_FALSE(version_0304.IsValid());
     EXPECT_FALSE(version_03.IsValid());
+    EXPECT_FALSE(version_empty.IsValid());
     EXPECT_FALSE(version_.IsValid());
+  }
+
+  TEST(FirmwareVersion, CopyAndMove)
+  {
+
+    FirmwareVersion version_030402{"03.04.02"};
+    FirmwareVersion version_copy_constructed{version_030402};
+    FirmwareVersion version_copy_assigned{"01.01.01(01)"};
+    version_copy_assigned = version_030402;
+
+    EXPECT_EQ(version_030402, version_copy_constructed);
+    EXPECT_EQ(version_030402, version_copy_assigned);
+
+    FirmwareVersion version_move_constructed{version_030402};
+    EXPECT_EQ(FirmwareVersion{"03.04.02"}, version_move_constructed);
+
   }
 
 }

@@ -1,0 +1,33 @@
+From d591946736f61b9a757c0039d7087d50bd13742c Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 29 Apr 2020 12:55:04 +0200
+Subject: [PATCH] arm: board: pfc-am335x: declare devices_init function as
+ late_initcall
+
+The board code uses the xsection interface to determine e.g. mac-adress
+from eeprom. In case of defered probe-functions e.g. eeprom-at24 the
+interface could not be initialized. Fix this by declareing the boards
+devices_init funtcion as late_initcall to guarantee that all
+device_initcalls are probed and ready.
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boards/wago-pfc-am335x/board.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/boards/wago-pfc-am335x/board.c b/arch/arm/boards/wago-pfc-am335x/board.c
+index 33efd19..30e98a6 100644
+--- a/arch/arm/boards/wago-pfc-am335x/board.c
++++ b/arch/arm/boards/wago-pfc-am335x/board.c
+@@ -316,7 +316,7 @@ out:
+ out_ret:
+ 	return ret;
+ }
+-device_initcall(pfc_devices_init);
++late_initcall(pfc_devices_init);
+ 
+ #define I2C_EEPROM_BOOT_MODE_ID_DEV_BIT (1 << 0)
+ static int pfc_check_and_set_debug_uart(void)
+-- 
+2.7.4
+

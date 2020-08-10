@@ -6,7 +6,7 @@
 #include "IDHCPClientController.hpp"
 #include "IFileEditor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class DHCPClientController : public IDHCPClientController{
  public:
@@ -31,4 +31,4 @@ class DHCPClientController : public IDHCPClientController{
   const ::std::string DHCP_CLIENT_PATH = "/sbin/udhcpc";
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

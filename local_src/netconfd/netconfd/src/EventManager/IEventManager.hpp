@@ -4,7 +4,7 @@
 
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 enum class EventType {
   SYSTEM,
@@ -25,10 +25,9 @@ class IEventManager {
   IEventManager(const IEventManager&&) = delete;
   IEventManager& operator=(const IEventManager&&) = delete;
 
-  virtual void NotifyNetworkChanges(const EventType event_type, const EventLayer event_layer, Interface interface = "") = 0;
+  virtual void NotifyNetworkChanges(const EventType event_type, const EventLayer event_layer, Interface interface = Interface{}) = 0;
   virtual void ProcessEvents() = 0;
 
- private:
 };
 
-}  // namespace netconfd
+}

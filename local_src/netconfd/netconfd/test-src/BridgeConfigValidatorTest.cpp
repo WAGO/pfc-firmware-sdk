@@ -14,7 +14,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class AnInterfaceValidator : public Test {
  public:
@@ -161,4 +161,4 @@ TEST_F(AnInterfaceValidator, checksMaximumBridgeNameLengthGreaterThan15Character
   EXPECT_EQ(StatusCode::ERROR, status.Get());
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

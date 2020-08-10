@@ -14,9 +14,7 @@
 #include "error.hpp"
 #include "test_utils.hpp"
 
-#include <iostream>
-
-using namespace wago;
+using namespace wago::firewall;
 
 struct TestData {
   ::std::string input_;
@@ -26,7 +24,7 @@ struct TestData {
 class RuleFileEditorTest : public ::testing::Test, public testing::WithParamInterface<TestData> {
  public:
   std::string tempDir_;
-  rulefileeditor::RuleFileEditor rule_file_editor_;
+  RuleFileEditor rule_file_editor_;
 
   RuleFileEditorTest()
       :
@@ -58,7 +56,7 @@ INSTANTIATE_TEST_CASE_P(InstantiationName, RuleFileEditorTest,
 
 TEST_F(RuleFileEditorTest, RuleFileDoesNotExist) {
 
-  ASSERT_THROW(rule_file_editor_.remove_duplicate_lines("foo"), file_open_error);
+  ASSERT_THROW(rule_file_editor_.remove_duplicate_lines("foo"), wago::firewall::file_open_error);
 }
 
 TEST_P(RuleFileEditorTest, RemoveDuplicateLines) {

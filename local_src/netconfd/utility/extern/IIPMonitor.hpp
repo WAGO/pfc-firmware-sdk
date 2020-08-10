@@ -5,7 +5,7 @@
 #include <string>
 #include "IIPEvent.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IIPMonitor {
  public:

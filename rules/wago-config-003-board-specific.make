@@ -87,7 +87,7 @@ $(STATEDIR)/ct-board-specific-extensions.install:
 EXTENSION_SCRIPT_SUFFIXES := defines commons copy_data.sh copy_data_emmc_extensions.sh sd_check_size.sh save_partition.sh \
                              restore_partition.sh switch_boot_partition.sh get_inactive_system_partition.sh config_rs232.sh \
                              config_default_gateway.sh config_ethernet.sh get_boot_project_location.sh \
-                             gen_net_if_eth_settings.sh mv88e6321_write_atu.sh config_network_switch_eeprom.sh
+                             gen_net_if_eth_settings.sh config_network_switch_eeprom.sh
 
 $(STATEDIR)/ct-board-specific-extensions.targetinstall:
 	@$(call targetinfo)
@@ -97,8 +97,6 @@ $(STATEDIR)/ct-board-specific-extensions.targetinstall:
 	@$(call install_fixup, ct-board-specific-extensions,SECTION,base)
 	@$(call install_fixup, ct-board-specific-extensions,AUTHOR,"<Andrej.Gantvorg@wago.com>")
 	@$(call install_fixup, ct-board-specific-extensions,DESCRIPTION,missing)
-
-	@$(call install_copy, ct-board-specific-extensions, 0, 0, 0755, /etc/config-tools);
 
 	@$(call install_alternative, ct-board-specific-extensions, 0, 0, 0644, /etc/config-tools/board_specific_defines)
 	@$(call install_replace, ct-board-specific-extensions, /etc/config-tools/board_specific_defines, @CT_EXTENSION_PREFIX@, $(PTXCONF_CT_EXTENSION_PREFIX))

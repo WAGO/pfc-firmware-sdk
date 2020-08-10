@@ -10,7 +10,7 @@
 
 #include "Status.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IControllable {
  public:
@@ -20,7 +20,7 @@ class IControllable {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 //---- End of header file ------------------------------------------------------
 

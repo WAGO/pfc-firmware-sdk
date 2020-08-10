@@ -7,12 +7,13 @@
 // software implicitly accepts the terms of the license.
 //------------------------------------------------------------------------------
 
-#pragma once
+#ifndef WAGO_FIREWALL_RULE_FILE_EDITOR_HPP_
+#define WAGO_FIREWALL_RULE_FILE_EDITOR_HPP_
 
 #include <string>
 
 namespace wago {
-namespace rulefileeditor {
+namespace firewall {
 
 class RuleFileEditor {
  public:
@@ -26,5 +27,7 @@ class RuleFileEditor {
   void remove_duplicate_lines(const ::std::string& rule_file) const;
 };
 
-}
-}
+} // namespace firewall
+} // namespace wago
+
+#endif // WAGO_FIREWALL_RULE_FILE_EDITOR_HPP_

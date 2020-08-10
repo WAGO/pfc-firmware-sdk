@@ -6,7 +6,7 @@
 #include "IBridgeController.hpp"
 
 
-namespace netconfd {
+namespace netconf {
 
 class BridgeConfigValidator : public IBridgeConfigValidator {
  public:
@@ -25,4 +25,4 @@ class BridgeConfigValidator : public IBridgeConfigValidator {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

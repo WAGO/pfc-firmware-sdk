@@ -9,6 +9,7 @@
 #include "Socket.h"
 
 namespace netconf {
+namespace api {
 
 class EthernetInterface {
  public:
@@ -22,7 +23,7 @@ class EthernetInterface {
  private:
   void InitializeData();
 
-  uint8_t mac_[mac_addr_length];
+  MacAddress mac_;
 
   ::std::string name_;
   ::std::uint32_t if_index_;
@@ -31,5 +32,6 @@ class EthernetInterface {
   Socket socket_;
 };
 
+}  // namespace api
 }  // namespace pfcspecific
 

@@ -19,7 +19,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ADHCPClientController_Target : public Test {
  public:
@@ -78,4 +78,4 @@ TEST_F(ADHCPClientController_Target, StartsStopsAndGetsStateOfADHCPClient) {
 
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

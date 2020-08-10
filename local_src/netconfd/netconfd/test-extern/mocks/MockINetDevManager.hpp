@@ -6,7 +6,7 @@
 #include "INetDevManager.hpp"
 #include "INetDevConstruction.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockINetDevManager : public INetDevManager {
  public:
@@ -19,8 +19,9 @@ class MockINetDevManager : public INetDevManager {
   MOCK_METHOD0(GetBridgeNetDevs, NetDevs () );
   MOCK_METHOD0(GetPortNetDevs, NetDevs () );
   MOCK_METHOD0(GetNetDevs, NetDevs () );
+  MOCK_METHOD1(GetNetDevs, NetDevs (DeviceType) );
   MOCK_METHOD1(ConfigureBridges,void(const BridgeConfig&));
 };
 
 
-}  // namespace netconfd
+}  // namespace netconf

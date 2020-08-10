@@ -6,7 +6,7 @@
 #include "IpAddressManipulator.hpp"
 
 
-namespace netconfd {
+namespace netconf {
 
 class AnIpAddressManipulator : public ::testing::Test
 {
@@ -24,16 +24,6 @@ class AnIpAddressManipulator : public ::testing::Test
     test_config.netmask_ = netmask;
   }
 };
-
-
-TEST_F(AnIpAddressManipulator, DoesNotChangeEmptyStringAddress)
-{
-
-  auto new_config = IpAddressManipulator::ChangeLastAddressOctet(test_config, 123);
-
-  EXPECT_STREQ("", new_config.address_.c_str());
-
-}
 
 TEST_F(AnIpAddressManipulator, DoesNotChangeZeroAddress)
 {
@@ -87,7 +77,7 @@ TEST_F(AnIpAddressManipulator, ChangesHostPartOfBiggerSubnet)
 
 }
 
-}  // namespace netconfd
+}  // namespace netconf
 
 
 //---- End of source file ------------------------------------------------------

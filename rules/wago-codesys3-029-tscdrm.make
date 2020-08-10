@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CDS3_TSCDRM) += cds3-tscdrm
 
-CDS3_TSCDRM_VERSION	 := 1.0.0
+CDS3_TSCDRM_VERSION	 := 1.1.0
 CDS3_TSCDRM              := TscDrm
 CDS3_TSCDRM_DIR          := $(BUILDDIR)/$(CDS3_TSCDRM)
 CDS3_TSCDRM_URL          := file://$(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_TSCDRM)

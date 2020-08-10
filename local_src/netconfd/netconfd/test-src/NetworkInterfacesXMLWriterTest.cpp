@@ -15,7 +15,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ANetworkInterfacesXML : public Test {
  public:
@@ -290,8 +290,8 @@ TEST_F(ANetworkInterfacesXML, PersistASeperatedBridgeConfig) {
   EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
 
   BridgeConfig bridge_config { { "br0", { "X1" } }, { "br1", { "X2" } } };
-  IPConfigs ip_configs = { { "br0", IPSource::STATIC, "192.168.10.10", "255.255.255.240", "192.168.10.15" }, { "br1",
-      IPSource::STATIC, "192.168.20.20", "255.255.0.0", "192.168.255.255" } };
+  IPConfigs ip_configs = { { "br0", IPSource::STATIC, "192.168.10.10", "255.255.255.240" }, { "br1",
+      IPSource::STATIC, "192.168.20.20", "255.255.0.0" } };
   InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
       "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
 
@@ -307,8 +307,8 @@ TEST_F(ANetworkInterfacesXML, PersistASwitchedBridgeConfig) {
   EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
 
   BridgeConfig bridge_config { { "br0", { "X1", "X2" } }, { "br1", { } } };
-  IPConfigs ip_configs = { { "br0", IPSource::STATIC, "192.168.10.10", "255.255.255.0", "192.168.10.255" }, { "br1",
-      IPSource::STATIC, "192.168.20.20", "255.255.0.0", "192.168.255.255" } };
+  IPConfigs ip_configs = { { "br0", IPSource::STATIC, "192.168.10.10", "255.255.255.0" }, { "br1",
+      IPSource::STATIC, "192.168.20.20", "255.255.0.0" } };
   InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
       "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
   WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
@@ -323,7 +323,7 @@ TEST_F(ANetworkInterfacesXML, PersistsAStartupConfig) {
   EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
 
   BridgeConfig bridge_config { { "br0", { "X1", "X2" } }};
-  IPConfigs ip_configs = { { "br0", IPSource::DHCP, ZeroIP, ZeroIP, ZeroIP } };
+  IPConfigs ip_configs = { { "br0", IPSource::DHCP, ZeroIP, ZeroIP } };
   InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
       "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
   auto write_result = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
@@ -345,4 +345,4 @@ TEST_F(ANetworkInterfacesXML, PersistsAnZeroIPAndBridgeConfig) {
   EXPECT_EQ(Status{}, write_result);
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

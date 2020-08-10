@@ -1,7 +1,7 @@
 From 545bb8d63617241f7405656af0a4b6f1854c36b9 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Mon, 5 Nov 2018 13:12:10 +0000
-Subject: [PATCH] omap: xload: check for a return code of umount
+Subject: [PATCH 135/144] omap: xload: check for a return code of umount
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

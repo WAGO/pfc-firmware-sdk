@@ -13,12 +13,15 @@
 ///
 ///  \author   WF : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#pragma once
+
+#ifndef WAGO_FIREWALL_TEST_UTILS_HPP_
+#define WAGO_FIREWALL_TEST_UTILS_HPP_
 
 #include <string>
 #include <vector>
 
 namespace wago {
+namespace firewall {
 
 class TestUtils {
 
@@ -42,9 +45,12 @@ class TestUtils {
 
   static size_t get_line_count(const ::std::string &file_path);
 
-  static bool content_is_equal(const ::std::string &file_path1, const ::std::string &file_path2);
+  static bool is_content_equal(const ::std::string &file_path1, const ::std::string &file_path2);
 
   static bool contains(::std::vector<::std::string> vector, ::std::string value);
 };
 
-}
+} // firewall namespace
+} // wago namespace
+
+#endif // WAGO_FIREWALL_TEST_UTILS_HPP_

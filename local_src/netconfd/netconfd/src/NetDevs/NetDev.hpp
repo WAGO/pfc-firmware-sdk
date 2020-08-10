@@ -6,12 +6,13 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <sstream>
 #include <utility>
 #include <vector>
 #include "NetworkInterfaceConstants.hpp"
 #include "IBridgeController.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class NetDev;
 
@@ -23,36 +24,31 @@ NetDevPtr MakeNetDev(Args &&... args) {
   return ::std::make_shared<NetDev>(::std::forward<Args>(args)...);
 }
 
+
 class NetDev {
 
  public:
 
-  enum class Kind {
-    Ethernet,
-    Bridge,
-    Virtual,
-    Wwan,
-    Loopback,
-    Other
-  };
-
   NetDev()
       :
       if_index_ { 0 },
+      ip_config_ro_{true},
       onlinkchange_ { nullptr } {
   }
 
-  NetDev(uint if_index, ::std::string name, Kind kind)
+  NetDev(uint if_index, ::std::string name, DeviceType kind)
       :
       NetDev(if_index, name, name, kind) {
   }
 
-  NetDev(uint if_index, ::std::string name, ::std::string label, Kind kind)
+  NetDev(uint if_index, ::std::string name, ::std::string label, DeviceType kind, bool ip_config_ro = false)
       :
       if_index_ { if_index },
       name_ { ::std::move(name) },
       label_ { ::std::move(label) },
+      mac_{""},
       kind_ { kind },
+      ip_config_ro_{ip_config_ro},
       onlinkchange_ { nullptr } {
   }
 
@@ -68,10 +64,22 @@ class NetDev {
     return if_index_;
   }
 
-  Kind GetKind() const {
+  DeviceType GetKind() const {
     return kind_;
   }
 
+  MacAddress GetMac() const {
+    return mac_;
+  }
+
+  void SetMac(MacAddress mac) {
+    mac_ = mac;
+  }
+
+  bool IsIpConfigReadonly() const {
+    return ip_config_ro_;
+  }
+  
   void SetIfFlags(::std::uint32_t flags);
 
   static void RemoveChildren(NetDevPtr parent) {
@@ -143,7 +151,9 @@ class NetDev {
   const uint if_index_;
   ::std::string name_;
   ::std::string label_;
-  Kind kind_;
+  MacAddress mac_;
+  DeviceType kind_;
+  bool ip_config_ro_;
   ::std::weak_ptr<NetDev> parent_;
   ::std::list<NetDevPtr> children_;
 
@@ -152,4 +162,19 @@ class NetDev {
 
   ::std::function<void(NetDev&, eth::InterfaceLinkState)> onlinkchange_;
 };
+
+struct TypeMatches {
+  explicit TypeMatches(DeviceType kind)
+      : kind_ { kind } {
+  }
+
+  bool operator()(const NetDevPtr &netdev) const {
+    return kind_ && netdev->GetKind();
+  }
+
+  DeviceType kind_;
+};
+
 }
+
+

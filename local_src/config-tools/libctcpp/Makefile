@@ -48,7 +48,7 @@ LIBRARIES   =
 L_CFLAGS    += -std=c99
 L_CFLAGS    += $(OPTIMIZE)
 L_CFLAGS    += $(WARNINGS)
-L_CFLAGS    += `pkg-config --cflags glib-2.0 gio-2.0 libxml-2.0`
+L_CFLAGS    +=  $(shell $(PKG_CONFIG) --cflags glib-2.0 gio-2.0 libxml-2.0)
 L_CFLAGS    += $(CONFIG)
 #L_CFLAGS    += -fPIC
 
@@ -57,7 +57,7 @@ L_CXXFLAGS  += $(OPTIMIZE)
 L_CXXFLAGS  += $(WARNINGS)
 # -Weffc++ removed because of json library.
 L_CXXFLAGS  += $(WARNINGS) -Weffc++
-L_CXXFLAGS  += `pkg-config --cflags glib-2.0 gio-2.0 libxml-2.0`
+L_CXXFLAGS  +=  $(shell $(PKG_CONFIG) --cflags glib-2.0 gio-2.0 libxml-2.0)
 L_CXXFLAGS  += $(CONFIG)
 #L_CXXFLAGS  += -fPIC
 
@@ -66,7 +66,7 @@ ifneq ($(DEBUGPC), 0)
     L_CPPFLAGS  += -DDEBUGPC
 endif
 
-L_LDCONFIG  += `pkg-config --libs glib-2.0 gio-2.0 libxml-2.0`
+L_LDCONFIG  +=  $(shell $(PKG_CONFIG) --libs glib-2.0 gio-2.0 libxml-2.0)
 ifeq ($(DEBUGPC), 0)
     L_LDCONFIG  += -L../liblog -lctlog
 endif
@@ -87,14 +87,12 @@ clean:
 	$(RM) *.o
 	$(RM) $(NAME)
 
-$(NAME): error.o filesys.o jsoncpp.o logs.o regex.o system.o x509.o xmlhlp.o
+$(NAME): error.o filesys.o logs.o regex.o system.o x509.o xmlhlp.o
 	$(AR) rsc $(NAME) $^
 #	$(CXX) $(LDFLAGS) $(LDCONFIG) -o $(NAME) $^ -shared
 
 error.o: error.cpp error.hpp Makefile
 filesys.o: filesys.cpp filesys.hpp Makefile
-jsoncpp.o: jsoncpp.cpp json/json.h json/json-forwards.h Makefile
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -Wno-shadow -Wno-effc++  -c -o jsoncpp.o jsoncpp.cpp
 logs.o: logs.cpp logs.hpp Makefile
 regex.o: regex.cpp regex.hpp Makefile
 system.o: system.cpp system.hpp Makefile
@@ -106,4 +104,3 @@ asm: asmcpp
 
 asmcpp: error.cpp filesys.cpp logs.cpp regex.cpp system.cpp x509.cpp xmlhlp.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -g0 -S $^
-

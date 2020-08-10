@@ -5,7 +5,7 @@
 #include <string>
 #include "Status.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IBackupRestore {
  public:
@@ -22,4 +22,4 @@ class IBackupRestore {
   virtual Status Restore(const ::std::string& file_path, ::std::string& backup_network_data, ::std::string& backup_dipswitch_data, uint32_t& version) const = 0;
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

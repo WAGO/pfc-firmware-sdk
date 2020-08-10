@@ -1,0 +1,8 @@
+## SECTION=initmethod_bbinit
+
+config PPPD_BBINIT_LINK
+	string
+	depends on PPP_STARTSCRIPT
+	prompt "pppd"
+	default "S09pppd"
+

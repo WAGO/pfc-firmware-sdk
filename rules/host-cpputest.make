@@ -16,56 +16,41 @@ HOST_PACKAGES-$(PTXCONF_HOST_CPPUTEST) += host-cpputest
 #
 # Paths and names
 #
-HOST_CPPUTEST_VERSION	:= 3.1
+HOST_CPPUTEST_VERSION	:= 3.7.2
+HOST_CPPUTEST_MD5       := f4f7d62cb78e360ee3c979ee834f88b4
 HOST_CPPUTEST		:= cpputest-$(HOST_CPPUTEST_VERSION)
-HOST_CPPUTEST_SUFFIX	:= 
-HOST_CPPUTEST_URL	:= file://$(SRCDIR)/$(HOST_CPPUTEST)
-#HOST_CPPUTEST_SOURCE	:= $(SRCDIR)/cpputest-$(HOST_CPPUTEST_VERSION)
+HOST_CPPUTEST_SUFFIX	:= tar.gz
+# Note that prefix 'v' is missing in URL of version 3.7.2: URL must b fixed on update
+HOST_CPPUTEST_URL	:= https://github.com/cpputest/cpputest/releases/download/$(HOST_CPPUTEST_VERSION)/cpputest-$(HOST_CPPUTEST_VERSION).$(HOST_CPPUTEST_SUFFIX) 
+HOST_CPPUTEST_SOURCE	:= $(SRCDIR)/cpputest-$(HOST_CPPUTEST_VERSION).$(HOST_CPPUTEST_SUFFIX)
 HOST_CPPUTEST_DIR	:= $(HOST_BUILDDIR)/$(HOST_CPPUTEST)
+HOST_CPPUTEST_HOME	:= $(PTXDIST_SYSROOT_HOST)/usr/local
 
-# ----------------------------------------------------------------------------
-# Extract
-# ----------------------------------------------------------------------------
-
-$(STATEDIR)/host-cpputest.extract:
-	@$(call targetinfo)
-	@$(call clean, $(HOST_CPPUTEST_DIR))
-	mkdir -p $(HOST_CPPUTEST_DIR)
-	rsync -a --exclude=".*" --exclude=objs/ --exclude="*.d" --exclude="*.o" \
-  $(SRCDIR)/$(HOST_CPPUTEST)/* $(HOST_CPPUTEST_DIR)
-	@$(call touch)
-
-
-# ----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Prepare
 # ----------------------------------------------------------------------------
 
-#HOST_CPPUTEST_CONF_ENV	:= $(HOST_ENV)
-
 #
-# autoconf
+# cmake
 #
-HOST_CPPUTEST_CONF_TOOL	:= autoconf
-#HOST_CPPUTEST_CONF_OPT	:= $(HOST_AUTOCONF)
+HOST_CPPUTEST_CONF_TOOL	:= cmake
+HOST_CPPUTEST_CONF_OPT += -DC++11=ON
+HOST_CPPUTEST_CONF_OPT += -DCPPUTEST_FLAGS=OFF
 
-$(STATEDIR)/host-cpputest.prepare:
-	@$(call targetinfo)
-#	@$(call clean, $(HOST_CPPUTEST_DIR)/config.cache)
-#	cd $(HOST_CPPUTEST_DIR) && \
-#		$(HOST_CPPUTEST_PATH) $(HOST_CPPUTEST_ENV) \
-#		./configure $(HOST_CPPUTEST_CONF_OPT)
-	@$(call touch)
+
+#$(STATEDIR)/host-cpputest.prepare:
+#	@$(call targetinfo)
+#	@$(call world/prepare, HOST_CPPUTEST)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Compile
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/host-cpputest.compile:
-	@$(call targetinfo)
-	@$(call world/compile, HOST_CPPUTEST)
-   # now make the extensions
-	cd $(HOST_CPPUTEST_DIR) && $(HOST_CPPUTEST_PATH) $(MAKE) -f Makefile_CppUTestExt $(PARALLELMFLAGS)
-	@$(call touch)
+#$(STATEDIR)/host-cpputest.compile:
+#	@$(call targetinfo)
+#	@$(call world/compile, HOST_CPPUTEST)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Install
@@ -73,6 +58,9 @@ $(STATEDIR)/host-cpputest.compile:
 
 $(STATEDIR)/host-cpputest.install:
 	@$(call targetinfo)
+	@$(call world/install, HOST_CPPUTEST)
+	@mkdir -p $(HOST_CPPUTEST_HOME)
+	@cp -ar $(HOST_BUILDDIR)/$(HOST_CPPUTEST)/build $(HOST_CPPUTEST_HOME)
 	# The project's build dir under build-host has to be referenced via
    # CPPUTEST_HOME variable.
 	@$(call touch)

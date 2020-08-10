@@ -1,0 +1,19 @@
+## SECTION=wago_specific_demo
+    
+config PROFINETDEMO
+  bool
+  select LIBPROFINET
+  prompt "PROFINET iDevice application demonstration program"
+  help
+    Build the PROFINET iDevice application demonstration program.
+
+if PROFINETDEMO
+
+config PROFINETDEMO_LAZY
+  bool
+  prompt "Do not install PROFINET iDevice application demonstration program to rootfs"
+  help 
+    Say Y if you do not want to instal the PROFINET iDevice application demonstration program into the Firmware Image.
+
+
+endif

@@ -86,7 +86,7 @@ config WAGO_CUSTOM_CONFIG_USB_GADGET_STARTSCRIPT
 config WAGO_CUSTOM_CONFIG_USB_GADGET_NETWORK_STARTSCRIPT
        bool
        default n
-       prompt "install /etc/init.d/usb_gadget_network"
+       prompt "install /usr/sbin/usb_gadget_network"
 
 config WAGO_CUSTOM_CONFIG_USB_GADGET_STORAGE_FILE
        string
@@ -330,16 +330,6 @@ config WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD
     prompt "install /etc/init.d/rmd-fw-download"
     help
  	 Install script to load the rmd firmware
-
-if WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD
-
-config WAGO_CUSTOM_INSTALL_RMD_FW_DOWNLOAD_IMG
-    string
-    prompt "rmd image name"
-    default "/lib/firmware/rmd-01-01-f.rbf"
-    help
-	Name of the rmd image that is loaded from /lib/firmware to the fpga
-endif
 
 config WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
     bool

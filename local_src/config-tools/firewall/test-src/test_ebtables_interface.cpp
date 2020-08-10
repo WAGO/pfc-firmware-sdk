@@ -24,7 +24,7 @@ class EbtablesInterfaceTest : public EbtablesTestBase,
   bool interface_exists(const xmldoc &doc, const ::std::string &interface_name) {
 
     xmlctx ctx(get_ctx(doc));
-    auto node = get_node(ctx, createXPathToGet(interface_name), false);
+    auto node = get_node(ctx, create_xpath_to_get(interface_name), false);
 
     return !node.is_empty();
   }
@@ -37,22 +37,25 @@ class EbtablesInterfaceTest : public EbtablesTestBase,
     data.interface_ = interface_name;
     data.second_interface_ = "";
 
-    data.state_ = get_string(ctx, "string(" + createXPathToGet(interface_name) + "/@state)", false);
+    data.state_ = get_string(ctx, "string(" + create_xpath_to_get(interface_name) + "/@state)", false);
 
     return data;
   }
 
-  ::std::string createXPathToGet(::std::string interface_name) {
+  ::std::string create_xpath_to_get(::std::string interface_name) {
     return "/f:firewall/f:ethernet/f:interfaces/f:interface[@if='" + interface_name + "']";
   }
 };
 
+namespace {
+
 // Name has to be unique over all tests.
-static ::std::string generate_test_name(testing::TestParamInfo<FirewallTestInterfaceStateData> data) {
+::std::string generate_test_name(testing::TestParamInfo<FirewallTestInterfaceStateData> data) {
 
   return data.param.interface_ + data.param.state_ + data.param.second_interface_;
 }
 
+}
 // @formatter:off
 INSTANTIATE_TEST_CASE_P(InstantiationName, EbtablesInterfaceTest, testing::Values(
     FirewallTestInterfaceStateData { "X1","filtered","br0" },
@@ -71,7 +74,7 @@ TEST_P(EbtablesInterfaceTest, SetInterface) {
   ::std::vector<::std::string> argv = { data.state_, data.interface_ };
 
   auto doc = file_accessor_.read_configuration("ebtables", false);
-  ASSERT_NO_THROW(ebtables::set_if(doc, argv));
+  ASSERT_NO_THROW(ebtables::impl::set_if(doc, argv));
 
   auto current_data = get_ebtables_processing_data(doc, data.second_interface_);
   ASSERT_EQ(data.state_, current_data.state_);
@@ -83,7 +86,7 @@ TEST_P(EbtablesInterfaceTest, RemInterface) {
   ::std::vector<::std::string> argv = { data.interface_ };
 
   auto doc = file_accessor_.read_configuration("ebtables", false);
-  ASSERT_NO_THROW(ebtables::rem_if(doc, argv));
+  ASSERT_NO_THROW(ebtables::impl::rem_if(doc, argv));
 
   auto current_data = get_ebtables_processing_data(doc, data.second_interface_);
   ASSERT_FALSE(interface_exists(doc, data.second_interface_));

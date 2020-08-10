@@ -4,11 +4,11 @@
 #   This file contains the main config tools target needed by ptxdist to
 #   process ${__THIS_FILENAME__}.make as well as the common configuration
 #   entries for the config tools meta package: the feature entries, the config
-#   file entries and the config tool entries.  
+#   file entries and the config tool entries.
 #
 #   The feature targets are visible in the ptxdist menu. They are used to
 #   enable or disable menu entries in all frontends (i.e. eth1 settings may be
-#   disabled if the feature "Ethernet Switch" is active).  
+#   disabled if the feature "Ethernet Switch" is active).
 #
 
 
@@ -21,6 +21,7 @@ menuconfig MODULAR_CONFIG_TOOLS
   prompt "Command-line tool suite of modular config tools"
   select GOOGLETEST
   select HOST_CT_BUILD
+  select CONFIG_TOOL_BASE
   select LIBCOMMONHEADER
   select GLIB
 

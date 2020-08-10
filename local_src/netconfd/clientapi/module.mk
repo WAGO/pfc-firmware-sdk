@@ -6,6 +6,7 @@ libnetconf_PROJECT_ROOT = $(PROJECT_ROOT)/clientapi
 libnetconf_header_install_dir = $(DESTDIR)/usr/include/netconf
 
 libnetconf_install_headers = $(call fglob_r,$(libnetconf_PROJECT_ROOT)/extern, h hpp)
+libnetconf_install_headers += $(call fglob_r,$(PROJECT_ROOT)/extern, h hpp)
 libnetconf_header_install_targets = $(addprefix $(libnetconf_header_install_dir)/, $(notdir $(libnetconf_install_headers)))
 
 #######################################################################################################################
@@ -26,19 +27,25 @@ $(DESTDIR)/usr/lib/libnetconf.a \
 $(DESTDIR)/usr/lib/pkgconfig/libnetconf.pc
 
 
+# globally exclude files from coverage report
+GCOVR_EXCLUDE += $(libnetconf_PROJECT_ROOT)/test-src
+GCOVR_EXCLUDE += $(libnetconf_PROJECT_ROOT)/test-extern
+
 #######################################################################################################################
 # Settings for build target libnetconf.a
 
-libnetconf.a_INCLUDES += \
--I$(PROJECT_ROOT)/extern/ \
--I$(libnetconf_PROJECT_ROOT)/extern/
+libnetconf.a_INCLUDES +=             \
+$(NETCONFD_SHARED_INCLUDES)          \
+-I$(libnetconf_PROJECT_ROOT)/extern/ \
+-I$(PROJECT_ROOT)/utility/extern 
 
 
 libnetconf.a_DISABLEDWARNINGS +=
 libnetconf.a_CXXDISABLEDWARNINGS += $(libnetconf.a_DISABLEDWARNINGS) abi-tag
 libnetconf.a_CDISABLEDWARNINGS += $(libnetconf.a_DISABLEDWARNINGS)
 libnetconf.a_DEFINES +=
-libnetconf.a_LIBS += boost_system boost_filesystem
+libnetconf.a_LIBS += boost_system boost_filesystem utility common
+libnetconf.a_STATICALLYLINKED += utility common
 libnetconf.a_PKG_CONFIGS = dbus-1
 libnetconf.a_CPPFLAGS += $(call uniq, $(libnetconf.a_INCLUDES) $(libbridge.a_INCLUDES))
 libnetconf.a_CPPFLAGS += $(call uniq, $(libbridge.a_DEFINES))
@@ -54,6 +61,7 @@ libnetconf.a_CXXFLAGS += $(call option_std,c++14)
 libnetconf.a_CXXFLAGS += $(call option_disable_warning,$(libnetconf.a_CXXDISABLEDWARNINGS))
 libnetconf.a_CXXFLAGS += $(libnetconf.a_CCXXFLAGS)
 libnetconf.a_SOURCES += $(call fglob_r,$(libnetconf_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
+libnetconf.a_SOURCES += $(netonfd_common_sources)
 libnetconf.a_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
 libnetconf.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
 libnetconf.a_CLANG_TIDY_CHECKS += -google-runtime-references
@@ -92,10 +100,18 @@ libnetconf_tests.elf_SOURCES += $(call fglob_r,$(libnetconf_PROJECT_ROOT)/test-s
 libnetconf_tests.elf_DISABLE_CLANG_TIDY = T
 libnetconf_tests.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
 libnetconf_tests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
+# filter only source files in this sub-module
+libnetconf_tests.elf_GCOVR_FILTER += $(libnetconf_PROJECT_ROOT)
+# modules to include into this test's coverage report 
+libnetconf_tests.elf_GCOVR_SEARCH_PATH += libnetconf.a
+
 #######################################################################################################################
 # Custom install rules
 
-$(libnetconf_header_install_dir)/% : $(libnetconf_PROJECT_ROOT)/extern/%
+
+$(libnetconf_header_install_dir)/% : $(libnetconf_PROJECT_ROOT)/extern/% 
+	mkdir -p $(dir $@) && cp $(realpath $<) $@
+$(libnetconf_header_install_dir)/% : $(PROJECT_ROOT)/extern/% 
 	mkdir -p $(dir $@) && cp $(realpath $<) $@
 
 # Package config file

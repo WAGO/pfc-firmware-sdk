@@ -8,6 +8,9 @@
 #define __CT_SWCONFIG_H__
 
 #include <glib.h>
+#include <sys/cdefs.h>
+
+__BEGIN_DECLS
 
 typedef struct swconfigSession swconfigSession_t;
 
@@ -18,5 +21,7 @@ const char *ct_swconfig_get_switch_alias(swconfigSession_t *sessionHandle);
 
 int ct_swconfig_set_attr(const char *attrName, const char *attrValue, int portNr, swconfigSession_t *sessionHandle);
 int ct_swconfig_get_attr(const char *attrName, char *attrValue, size_t attrValueLen, swconfigSession_t *sessionHandle);
+
+__END_DECLS
 
 #endif

@@ -10,6 +10,7 @@ config WRETAIN
 	bool
 	prompt "wretain"
 	select BOOST
+	select GSL
 	select WSTD
 	select HOST_CMAKE
 	select GOOGLETEST

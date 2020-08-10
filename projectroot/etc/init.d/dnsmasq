@@ -1,71 +1,84 @@
 #!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# /etc/init.d/dnsmasq
-#
-# $Id: dnsmasq 42745 2019-09-13 10:23:09Z christian.hohnstaedt@wago.com $
-#
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+
 PIDFILE=/var/run/dnsmasq.pid
 DNSMASQ=/usr/sbin/dnsmasq
 CONFIG_TOOL=/etc/config-tools/config_dnsmasq_c
 
 function start_dnsmasq {
-	touch "/etc/dnsmasq.d/dnsmasq_gadget.conf"
-	if [ ! -e $PIDFILE ]; then
-                echo "dnsmasq starting"
-                if [ -x $CONFIG_TOOL ]; then
-                        $CONFIG_TOOL --gen-config
-                fi
-                $DNSMASQ
-	else
-		echo "already running"
-	fi
+    local generate=${1:-true}
+    mkdir -p "/var/run/dnsmasq"
+    touch "/var/run/dnsmasq/dnsmasq_gadget.conf"
+    if [ ! -e $PIDFILE ]; then
+        echo "dnsmasq starting"
+        if [[ -x $CONFIG_TOOL && "$generate" == true ]]; then
+            $CONFIG_TOOL --gen-config
+        fi
+        $DNSMASQ
+    else
+        echo "already running"
+    fi
 }
 
 function stop_dnsmasq {
-        if [ -e $PIDFILE ]; then
-                echo "stopping dnsmasq"
-		kill -s SIGTERM `cat $PIDFILE`
-		rm -f $PIDFILE
-        fi
+    if [ -e $PIDFILE ]; then
+        echo "stopping dnsmasq"
+        kill -TERM $(cat $PIDFILE)
+        rm -f $PIDFILE
+    fi
 }
 
 function event_start {
-        [[ -d /etc/config-tools/events/dhcp/ ]] && run-parts -a start /etc/config-tools/events/dhcp/ >/dev/null 2>&1
-        [[ -d /etc/config-tools/events/dns/ ]] && run-parts -a start /etc/config-tools/events/dns/ >/dev/null 2>&1
+    [[ -d /etc/config-tools/events/dhcp/ ]] && run-parts -a start /etc/config-tools/events/dhcp/ >/dev/null 2>&1
+    [[ -d /etc/config-tools/events/dns/ ]] && run-parts -a start /etc/config-tools/events/dns/ >/dev/null 2>&1
 }
 
 function event_stop {
-        [[ -d /etc/config-tools/events/dhcp/ ]] && run-parts -a stop /etc/config-tools/events/dhcp/ >/dev/null 2>&1
-        [[ -d /etc/config-tools/events/dns/ ]] && run-parts -a stop /etc/config-tools/events/dns/ >/dev/null 2>&1
+    [[ -d /etc/config-tools/events/dhcp/ ]] && run-parts -a stop /etc/config-tools/events/dhcp/ >/dev/null 2>&1
+    [[ -d /etc/config-tools/events/dns/ ]] && run-parts -a stop /etc/config-tools/events/dns/ >/dev/null 2>&1
 }
 
 case $1 in
 
-	start)
-		start_dnsmasq
+    start)
+        start_dnsmasq true
         event_start
-		;;
+        ;;
 
-	stop)
+    stop)
         event_stop
-		stop_dnsmasq
-		;;
+        stop_dnsmasq
+        ;;
 
-	restart)
-		stop_dnsmasq
-		start_dnsmasq
+    restart)
+        # Reload all configuration files; Do re-generate /etc/dnsmasq.conf.
+        stop_dnsmasq
+        start_dnsmasq true
         event_start
-		;;
+        ;;
 
-	reload)
-		test -e $PIDFILE || echo "not running"
-		kill -s SIGHUP `cat $PIDFILE`
+    reload)
+        # /etc/dnsmasq.conf is not reloaded during this reload, see dnsmasq manual page.
+        test -e $PIDFILE || echo "not running"
+        kill -s SIGHUP `cat $PIDFILE`
         event_start
-		;;
+        ;;
+        
+    update)
+        # Restart without generating /etc/dnsmasq.conf.
+        stop_dnsmasq
+        start_dnsmasq false
+        event_start
+        ;;
 
-	*)
-		echo "Usage: ${0} {start|stop|restart|reload}"
-		exit 1
-		;;
+    *)
+        echo "Usage: ${0} {start|stop|restart|reload}"
+        exit 1
+        ;;
 
 esac

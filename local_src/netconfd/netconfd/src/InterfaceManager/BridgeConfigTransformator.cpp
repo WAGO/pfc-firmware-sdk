@@ -3,7 +3,7 @@
 #include <BridgeConfigTransformator.hpp>
 #include <algorithm>
 
-namespace netconfd {
+namespace netconf {
 
 BridgeConfigTransformator::BridgeConfigTransformator(
     const IDeviceProperties& properties_provider):
@@ -52,4 +52,4 @@ Interfaces BridgeConfigTransformator::ConvertOSToProduct(
   return product_interfaces;
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

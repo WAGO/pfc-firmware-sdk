@@ -17,11 +17,8 @@ namespace network_config
   MacAddressHandler::MacAddressHandler(const po::variables_map &vm) :
           vm_{vm}
   {
-    (void)vm_;
-    execute_ = [this]()
-    { this->GetMacAddress();};
   }
-  ;
+
 
   static void AddSystemInterfacePrefixWhenLabelStartsWithX(::std::string &name)
   {
@@ -45,20 +42,12 @@ namespace network_config
 
     AddSystemInterfacePrefixWhenLabelStartsWithX(value);
 
-    auto mac_address = netconf::GetMacAddress(value);
-    for(size_t i = 0; i < netconf::mac_addr_length; i++)
-    {
-      printf("%02X", mac_address.addr_[i]);
-      if(i < 5)
-      {
-        printf(":");
-      }
-    }
+    ::std::cout << netconf::api::GetMacAddress(value).ToString() << ::std::flush;
   }
 
   void MacAddressHandler::Execute()
   {
-    execute_();
+    this->GetMacAddress();
   }
 
 } /* namespace network_config */

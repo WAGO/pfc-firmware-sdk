@@ -31,7 +31,7 @@
 ////------------------------------------------------------------------------------
 //// function implementation
 ////------------------------------------------------------------------------------
-//namespace netconfd {
+//namespace netconf {
 //
 //
 //class ALogger : public ::testing::Test {
@@ -104,6 +104,6 @@
 //
 //}
 //
-//}  // namespace netconfd
+//}  // namespace netconf
 ////---- End of source file ------------------------------------------------------
 //

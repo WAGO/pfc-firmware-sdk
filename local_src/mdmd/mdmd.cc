@@ -522,24 +522,25 @@ bool extract_dbus_setoper(GVariant *gvar, NetworkAccessConfig& network_access_co
     g_variant_get(gvar, "(iii)", &setoper_mode, &setoper_id, &setoper_act);
 
     int selection_mode;               //0=AUTOMATIC, 1=MANUAL
-    int autoselect_scanseq;           //0=AUTO, 1=GSM, 2=UMTS
+    int autoselect_scanseq;           //0=AUTO, 1=GSM_PRIOR, 2=UMTS_PRIOR
     int autoselect_scanmode;          //0=AUTO, 1=GSM_ONLY, 2=UMTS_ONLY
     int manual_selection_act = 0;     //0=NONE, 1=GSM, 2=UMTS
     int manual_selection_oper = 0;    //0=NONE, other values see 3GPP TS 27.007
 
+    /* WAT26409:
+     * Selection modes PREFER_GSM and PREFER_UMTS are deprecated.
+     * Specific scan sequence does not work with Quectel UC20.
+    */
+    if ((setoper_mode == static_cast<int>(OPER_SEL_MODE::PREFER_GSM)) ||
+        (setoper_mode == static_cast<int>(OPER_SEL_MODE::PREFER_UMTS)))
+    {
+        //ignore deprecated option and set selection mode AUTOMATIC instead
+        setoper_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
+    }
+
     //mapping of setoper mode to internal network access configuration
     switch(setoper_mode)
     {
-      case static_cast<int>(OPER_SEL_MODE::PREFER_UMTS):
-        selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
-        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::AUTO);
-        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::UMTS_PRIOR);
-        break;
-      case static_cast<int>(OPER_SEL_MODE::PREFER_GSM):
-        selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
-        autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::AUTO);
-        autoselect_scanseq = static_cast<int>(NW_SCAN_SEQ::GSM_PRIOR);
-        break;
       case static_cast<int>(OPER_SEL_MODE::ONLY_UMTS):
         selection_mode = static_cast<int>(OPER_SEL_MODE::AUTOMATIC);
         autoselect_scanmode = static_cast<int>(NW_SCAN_MODE::UMTS_ONLY);
@@ -655,27 +656,13 @@ void af_dbus_getoperstate(MdmStatemachine &sm, Event &ev)
     {
         setoper_id   = current_oper.get_id();
         setoper_act  = current_oper.get_act();
-        if (oper_config.get_autoselect_scanseq() == static_cast<int>(NW_SCAN_SEQ::GSM_PRIOR))
+        if (oper_config.get_autoselect_scanmode() == static_cast<int>(NW_SCAN_MODE::GSM_ONLY))
         {
-            if (oper_config.get_autoselect_scanmode() == static_cast<int>(NW_SCAN_MODE::GSM_ONLY))
-            {
-                setoper_mode = static_cast<int>(OPER_SEL_MODE::ONLY_GSM);
-            }
-            else
-            {
-                setoper_mode = static_cast<int>(OPER_SEL_MODE::PREFER_GSM);
-            }
+            setoper_mode = static_cast<int>(OPER_SEL_MODE::ONLY_GSM);
         }
-        else if (oper_config.get_autoselect_scanseq() == static_cast<int>(NW_SCAN_SEQ::UMTS_PRIOR))
+        else if (oper_config.get_autoselect_scanmode() == static_cast<int>(NW_SCAN_MODE::UMTS_ONLY))
         {
-          if (oper_config.get_autoselect_scanmode() == static_cast<int>(NW_SCAN_MODE::UMTS_ONLY))
-          {
-              setoper_mode = static_cast<int>(OPER_SEL_MODE::ONLY_UMTS);
-          }
-          else
-          {
-              setoper_mode = static_cast<int>(OPER_SEL_MODE::PREFER_UMTS);
-          }
+            setoper_mode = static_cast<int>(OPER_SEL_MODE::ONLY_UMTS);
         }
         else
         {
@@ -1397,7 +1384,11 @@ bool tf_set_nwscan_config(MdmStatemachine &sm, State &src, State &dst, Event &ev
     NetworkAccessConfig network_access_config = sm.get_network_access_config();
     auto at_cmd{"at"s};
     at_cmd.append(R"(+qcfg="nwscanmode",)" + std::to_string(network_access_config.get_autoselect_scanmode()) + ",1;");
-    at_cmd.append(R"(+qcfg="nwscanseq",)" + std::to_string(network_access_config.get_autoselect_scanseq()) + ",1");
+    /* WAT26409:
+     * Specific scan sequence does not work with Quectel UC20.
+     * Ignore value from config file.
+    */
+    at_cmd.append(R"(+qcfg="nwscanseq",)" + std::to_string(static_cast<int>(NW_SCAN_SEQ::AUTO)) + ",1");
     sm.write(at_cmd);
     sm.kick_cmd_timeout(timer_at_cmd_short);
 
@@ -2942,32 +2933,17 @@ bool tf_getoperlist_request(MdmStatemachine &sm, State &src, State &dst, Event &
     bool do_transition;
     (void)src; (void)dst; //unused parameter
     auto* dev = dynamic_cast<DBusEvent *>(&ev);
+    /* Disable autoconnect function in modem (fix WAT21951)
+    *  The problem is that at+cops=? sometimes returns CME ERROR 3 (Operation not allowed) when autoconnect is active.
+    *  But the command "at+qndisop=suspendauto=1" to disable autoconnect is not supported on UC20G devices anymore.
+    *  Note: This change requires a modem reset
+    */
+    sm.write(sm.get_rmnet_autoconnect_with_dtrset() ? "at+qcfg=\"rmnet/autoconnect\",0,0,1"
+                                                   : "at+qcfg=\"rmnet/autoconnect\",0,0");
+    sm.kick_cmd_timeout(timer_at_cmd_short);
+    sm.set_current_invocation(dev->invocation());
 
-    //check preconditions
-    //1) automatic sim activation is required after modem soft reset
-    std::string stored_iccid = sm.get_stored_sim_iccid();
-    std::string stored_pin = sm.get_stored_sim_pin();
-    if ((stored_iccid.length() == 0) || (stored_pin.length() == 0))
-    {
-        dev->invocation().return_error("de.wago.mdmdError", "NOT ALLOWED");
-        do_transition = false;
-    }
-    else
-    {
-        /* Disable autoconnect function in modem (fix WAT21951)
-        *  The problem is that at+cops=? sometimes returns CME ERROR 3 (Operation not allowed) when autoconnect is active.
-        *  But the command "at+qndisop=suspendauto=1" to disable autoconnect is not supported on UC20G devices anymore.
-        */
-        sm.write(sm.get_rmnet_autoconnect_with_dtrset() ? "at+qcfg=\"rmnet/autoconnect\",0,0,1"
-                                                       : "at+qcfg=\"rmnet/autoconnect\",0,0");
-        sm.kick_cmd_timeout(timer_at_cmd_short);
-        sm.set_current_invocation(dev->invocation());
-
-        /*Note: New autoconnect configuration takes effect after modem reset*/
-        do_transition = true;
-    }
-
-    return do_transition;
+    return true;
 }
 
 bool tf_getoperlist_from_modem(MdmStatemachine &sm, State &src, State &dst, Event &ev)
@@ -3208,11 +3184,13 @@ int main(int argc, char **argv)
     State o06_10("o06_10", "detect network access, get sim state");
     State o06_11("o06_11", "detect network access, sim ready");
     State o06_12("o06_12", "detect network access, sim pin required");
-    State o06_13("o06_13", "detect network access, wait sim state");
-    State o06_14("o06_14", "detect network access, activate SIM with stored PIN");
-    State o06_15("o06_15", "detect network access, check SIM initialization completed");
-    State o06_16("o06_16", "detect network access, wait SIM initialization completed");
-    State o06_17("o06_17", "detect network access, SIM initialization completed");
+    State o06_13("o06_13", "detect network access, check iccid for automatic sim activation");
+    State o06_14("o06_14", "detect network access, got matching iccid");
+    State o06_15("o06_15", "detect network access, wait sim state");
+    State o06_16("o06_16", "detect network access, activate SIM with stored PIN");
+    State o06_17("o06_17", "detect network access, check SIM initialization completed");
+    State o06_18("o06_18", "detect network access, wait SIM initialization completed");
+    State o06_19("o06_19", "detect network access, SIM initialization completed");
     State o06_20("o06_20", "detect network access, list operators");
 
     State o10("o10",       "get SMS list");
@@ -3820,7 +3798,7 @@ int main(int argc, char **argv)
     { o06_06, new ModemEvent("ERROR"), o06_10, new TF(tf_get_simstate), new PG },
     { o06_06, new ModemEvent("^OK$"), o06_10, new TF(tf_get_simstate), new PG },
     { o06_06, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
-    /*o06_07: wait modem functionality*/
+    /*o06_07: detect network access, wait modem functionality*/
     { o06_07, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
     { o06_07, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), o06_10, new TF(tf_get_simstate), new GF(gf_is_cfun_full) },
     { o06_07, new ModemEvent("^\\+CFUN: (?<state>[0-9]+)"), o06_06, new NT, new PG },
@@ -3831,52 +3809,64 @@ int main(int argc, char **argv)
     { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_12, new NT, new GF(gf_cpin_sim_pin) },
     { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_10, new TF(tf_getoperlist_wrong_simstate), new GF(gf_cpin_sim_puk) },
     { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_10, new TF(tf_getoperlist_wrong_simstate), new GF(gf_cpin_not_inserted) },
-    { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_13, new NT, new GF(gf_cpin_not_ready) },
-    { o06_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), o06_14, new TF(tf_setsimpin_from_storage), new GF(gf_cme_sim_pin_required) },
-    { o06_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), o06_13, new TF(tf_getoperlist_waitsim), new GF(gf_cme_sim_busy) },
+    { o06_10, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_15, new NT, new GF(gf_cpin_not_ready) },
+    { o06_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), o06_16, new TF(tf_setsimpin_from_storage), new GF(gf_cme_sim_pin_required) },
+    { o06_10, new ModemEvent("^\\+CME ERROR: (?<err>[0-9]+)"), o06_15, new TF(tf_getoperlist_waitsim), new GF(gf_cme_sim_busy) },
     { o06_10, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
     { o06_10, new ModemEvent("^OK$"), i04_06, new TF(tf_getoperlist_simfail), new PG }, //unhandled event, to be fixed
     { o06_10, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
     /*o06_11: detect network access, sim ready*/
     { o06_11, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
-    { o06_11, new ModemEvent("ERROR"), o06_15, new TF(tf_get_sim_initialization_state), new PG }, //got state, continue anyway
-    { o06_11, new ModemEvent("^OK$"), o06_15, new TF(tf_get_sim_initialization_state), new PG },
+    { o06_11, new ModemEvent("ERROR"), o06_17, new TF(tf_get_sim_initialization_state), new PG }, //got state, continue anyway
+    { o06_11, new ModemEvent("^OK$"), o06_17, new TF(tf_get_sim_initialization_state), new PG },
     { o06_11, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
     /*o06_12: detect network access, sim pin required*/
     { o06_12, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
-    { o06_12, new ModemEvent("ERROR"), o06_14, new TF(tf_setsimpin_from_storage), new PG }, //got state, continue anyway
-    { o06_12, new ModemEvent("^OK$"), o06_14, new TF(tf_setsimpin_from_storage), new PG },
+    { o06_12, new ModemEvent("ERROR"), o06_13, new TF(tf_activatesim_get_iccid), new PG },
+    { o06_12, new ModemEvent("^OK$"), o06_13, new TF(tf_activatesim_get_iccid), new PG },
     { o06_12, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
-    /*o06_13: detect network access, wait sim state*/
+    /*o06_13: detect network access, check iccid for automatic sim activation*/
     { o06_13, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
-    { o06_13, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_10, new TF(tf_get_simstate), new PG },
-    { o06_13, new TimeoutEvent(), i04_06, new TF(tf_getoperlist_siminit_timeout), new PG },
-    /*o06_14: detect network access, activate SIM with stored PIN*/
+    { o06_13, new ModemEvent("^\\+QCCID: (?<iccid>.*)"), o06_14, new NT, new GF(gf_qccid_match_storage)},
+    { o06_13, new ModemEvent("^\\+QCCID: (?<iccid>.*)"), o06_13, new NT, new PG},
+    { o06_13, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG }, //ICCID not available
+    { o06_13, new ModemEvent("^OK$"), i04_06, new TF(tf_getoperlist_simfail), new PG }, //ICCID not matching
+    { o06_13, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_14: detect network access, got matching iccid*/
     { o06_14, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
-    { o06_14, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
-    { o06_14, new ModemEvent("^OK$"), o06_16, new TF(tf_waitsim_init_complete), new PG },
+    { o06_14, new ModemEvent("ERROR"), o06_16, new TF(tf_setsimpin_from_storage), new PG },
+    { o06_14, new ModemEvent("^OK$"), o06_16, new TF(tf_setsimpin_from_storage), new PG },
     { o06_14, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
-    /*o06_15: detect network access, check SIM initialization completed*/
+    /*o06_15: detect network access, wait sim state*/
     { o06_15, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
-    { o06_15, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
-    { o06_15, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), o06_17, new NT, new GF(gf_qinistat_complete) },
-    { o06_15, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), o06_15, new NT, new PG },
-    { o06_15, new ModemEvent("^OK$"), o06_16, new TF(tf_waitsim_init_complete), new PG }, //initialization not complete
-    { o06_15, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
-    /*o06_16: detect network access, wait SIM initialization completed*/
+    { o06_15, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_10, new TF(tf_get_simstate), new PG },
+    { o06_15, new TimeoutEvent(), i04_06, new TF(tf_getoperlist_siminit_timeout), new PG },
+    /*o06_16: detect network access, activate SIM with stored PIN*/
     { o06_16, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
-    { o06_16, new ModemEvent("^OK$"), o06_16, new NT, new PG }, //OK e.g. for QINISTAT, see o06_15
-    { o06_16, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_16, new NT, new GF(gf_cpin_ready) },
-    { o06_16, new ModemEvent("^\\+CPIN: (?<state>.*)"), i04_06, new TF(tf_getoperlist_simfail), new PG },
-    { o06_16, new ModemEvent("^\\+QUSIM: (?<simtype>[0-9]+)"), o06_16, new NT, new PG },
-    { o06_16, new ModemEvent("^\\+QIND: SMS DONE"), o06_16, new NT, new PG },
-    { o06_16, new ModemEvent("^\\+QIND: PB DONE"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
-    { o06_16, new TimeoutEvent(), i04_06, new TF(tf_getoperlist_siminit_timeout), new PG },
-    /*o06_17: detect network access, SIM initialization completed*/
+    { o06_16, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
+    { o06_16, new ModemEvent("^OK$"), o06_18, new TF(tf_waitsim_init_complete), new PG },
+    { o06_16, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_17: detect network access, check SIM initialization completed*/
     { o06_17, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
-    { o06_17, new ModemEvent("ERROR"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
-    { o06_17, new ModemEvent("^OK$"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
+    { o06_17, new ModemEvent("ERROR"), i04_06, new TF(tf_getoperlist_simfail), new PG },
+    { o06_17, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), o06_19, new NT, new GF(gf_qinistat_complete) },
+    { o06_17, new ModemEvent("^\\+QINISTAT: (?<state>.*)"), o06_17, new NT, new PG },
+    { o06_17, new ModemEvent("^OK$"), o06_18, new TF(tf_waitsim_init_complete), new PG }, //initialization not complete
     { o06_17, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
+    /*o06_18: detect network access, wait SIM initialization completed*/
+    { o06_18, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_18, new ModemEvent("^OK$"), o06_18, new NT, new PG }, //OK e.g. for QINISTAT, see o06_17
+    { o06_18, new ModemEvent("^\\+CPIN: (?<state>.*)"), o06_18, new NT, new GF(gf_cpin_ready) },
+    { o06_18, new ModemEvent("^\\+CPIN: (?<state>.*)"), i04_06, new TF(tf_getoperlist_simfail), new PG },
+    { o06_18, new ModemEvent("^\\+QUSIM: (?<simtype>[0-9]+)"), o06_18, new NT, new PG },
+    { o06_18, new ModemEvent("^\\+QIND: SMS DONE"), o06_18, new NT, new PG },
+    { o06_18, new ModemEvent("^\\+QIND: PB DONE"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
+    { o06_18, new TimeoutEvent(), i04_06, new TF(tf_getoperlist_siminit_timeout), new PG },
+    /*o06_19: detect network access, SIM initialization completed*/
+    { o06_19, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
+    { o06_19, new ModemEvent("ERROR"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
+    { o06_19, new ModemEvent("^OK$"), o06_20, new TF(tf_getoperlist_from_modem), new PG },
+    { o06_19, new TimeoutEvent(), s01, new TF(tf_modem_timeout_dbus_return), new PG },
     /*o06_20: detect network access, list operators*/
     { o06_20, new RegexEvent("ModemPort_IO_error"), s01, new TF(tf_io_error_dbus_return), new PG },
     { o06_20, new ModemEvent("^\\+COPS: (?<cops>\\([0-9],\".*\",\".*\",\"[0-9]+\",[0-9]\\),)"), o06_20, new TF(tf_getoperlist_nextentry), new PG },

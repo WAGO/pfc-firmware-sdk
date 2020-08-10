@@ -1,0 +1,167 @@
+#!/bin/bash
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   firmware_restore_status
+#
+# Brief:    WAGO Firmware Restore status tool.
+#
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# Load basic defines and general functionality.
+readonly WAGO_CT_DIR="/etc/config-tools"
+if [ ! -f "$WAGO_CT_DIR/config_tool_lib" ]; then
+    echo "Missing dependency config_tool_lib"
+    exit 64
+fi
+source "$WAGO_CT_DIR/config_tool_lib"
+
+# General defines
+readonly WAGO_CT_SYSTEM_MODULE="WAGO Firmware Restore"
+readonly WAGO_CT_NAME="firmware_restore_status"
+readonly WAGO_CT_TITLE="* Get status information of $WAGO_CT_SYSTEM_MODULE *"
+
+
+# Set default parameter values
+QUIET=0
+SHOWHELP=0
+URIENCODE=0
+TEXTOUT=0
+JSONOUT=0
+
+
+# Main tool/script function.
+#
+# Param 1..n: Script parameters
+#
+# Return: Exit code, 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+fwrestore_status_main()
+{
+    local result=0
+
+    # Evaluate parameters
+    fwrestore_status_evaluate_params "$@"
+    result=$?
+    if [[ $result -ne 0 ]]; then
+        report_error "Error on config tool parameter evaluation" "" "suppress"
+        if [[ $result -ne $MISSING_PARAMETER && $result -ne $INVALID_PARAMETER ]]; then
+            result="$INVALID_PARAMETER"
+        fi
+        return $result
+    fi
+
+    # Print help if requested and exit
+    if [[ $SHOWHELP -ne 0 ]]; then
+        if [[ $QUIET -eq 0 ]]; then
+            fwrestore_status_print_help
+        fi
+        return $result
+    fi
+
+    # Check restore status
+    fwrestore_status_print_status
+    result=$?
+
+    return $result
+}
+
+# Function to evaluate tool/script parameters.
+# This function uses globally defined script option variables.
+#
+# Param 1..n: Script parameters
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+fwrestore_status_evaluate_params()
+{
+    local result=0
+
+    # First evaluate early parameters
+    # (maybe influencing other parameters)
+    QUIET=$(get_parameter_option "-q" "--quiet" "$@")
+    result=$(( $? == 0 ? $result : $? ))
+    URIENCODE=$(get_parameter_option "-x" "--extract-from-uri-encoding" "$@")
+    result=$(( $? == 0 ? $result : $? ))
+
+    # Evaluate other parameters
+    SHOWHELP=$(get_parameter_option "-h" "--help" "$@")
+    result=$(( $? == 0 ? $result : $? ))
+        if [[ $SHOWHELP -eq 0 ]]; then
+        TEXTOUT=$(get_parameter_option "-t" "--text" "$@")
+        result=$(( $? == 0 ? $result : $? ))
+        JSONOUT=$(get_parameter_option "-j" "--json" "$@")
+        result=$(( $? == 0 ? $result : $? ))
+    fi
+
+    return $result
+}
+
+# Function to print tool/script help text.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+fwrestore_status_print_help()
+{
+    echo "$WAGO_CT_TITLE"
+    echo
+    echo "Usage:"
+    echo "  $WAGO_CT_NAME [<script options>]"
+    echo
+    echo "Script options:"
+    print_general_command_options
+    echo
+    echo "Additional information:"
+    echo "  This tool is used to get status information of $WAGO_CT_SYSTEM_MODULE."
+    echo
+    echo "Examples:"
+    echo "  $WAGO_CT_NAME --help"
+    echo "     --> Prints this general help text"
+    echo "  $WAGO_CT_NAME"
+    echo "     --> Get status of $WAGO_CT_SYSTEM_MODULE"
+    echo "  $WAGO_CT_NAME -q"
+    echo "     --> Get status of $WAGO_CT_SYSTEM_MODULE in quiet mode"
+    echo "  $WAGO_CT_NAME -q --json"
+    echo "     --> Get status of $WAGO_CT_SYSTEM_MODULE in quiet mode as JSON"
+    echo "  $WAGO_CT_NAME -t --quiet"
+    echo "     --> Get status of $WAGO_CT_SYSTEM_MODULE in quiet mode as \"Key=Value\" pairs"
+
+    return 0
+}
+
+# Function to print restore status.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+fwrestore_status_print_status()
+{
+    local result=$SUCCESS
+
+    local restore_status=""
+    restore_status="$("/etc/config-tools/firmware_restore_admin" "-s")"
+    result=$?
+
+    if [[ $result -eq $SUCCESS ]]; then
+        if [[ $TEXTOUT -eq 0 && $JSONOUT -eq 0 ]]; then
+            echo -n "$restore_status"
+        else
+            report_start
+            report "status" "$restore_status"
+            report_end
+        fi
+    fi
+
+    return $result
+}
+
+# Start main function
+fwrestore_status_main "$@"
+exit $?

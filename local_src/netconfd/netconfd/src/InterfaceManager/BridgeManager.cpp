@@ -10,7 +10,7 @@
 
 #include "EthernetInterface.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 using namespace std::literals;
 
@@ -19,9 +19,8 @@ BridgeManager::BridgeManager(IBridgeController &bridge_controller, IDeviceProper
     : bridge_controller_ { bridge_controller },
       properies_provider_(properies_provider),
       netdev_manager_ { netdev_manager },
-      mac_distributor_(properies_provider_),
       interface_validator_(bridge_controller_),
-      bridge_configurator_(bridge_controller_, mac_distributor_),
+      bridge_configurator_(bridge_controller_),
       bridge_config_transformator_(properies_provider_),
       switch_config_ { "/etc/switch_settings.conf" },
       switch_settings_file_monitor_ { "/etc/switch_settings.conf", [this](FileMonitor&) {
@@ -131,27 +130,6 @@ Interfaces BridgeManager::GetBridgeAssignedInterfaces() const {
   return bridge_configurator_.GetBridgeAssignedInterfaces();
 }
 
-Bridge BridgeManager::GetBridgeOfInterface(const Interface &itf) const {
-  auto config_os = bridge_configurator_.GetConfiguration();
-
-  for (auto &entry : config_os) {
-    auto itfit = ::std::find(entry.second.begin(), entry.second.end(), itf);
-    if (itfit != entry.second.end()) {
-      return entry.first;
-    }
-  }
-  return Bridge { };
-}
-
-bool BridgeManager::IsInterfaceUp(const Interface &itf) const {
-  bool isUp = false;
-  auto result = bridge_controller_.IsInterfaceUp(itf, isUp);
-  if (result.NotOk()) {
-    LogError(result.GetMessage());
-  }
-  return isUp;
-}
-
 void BridgeManager::UpdateAgetime() const {
   auto bridges = bridge_controller_.GetBridges();
   auto age_time = switch_config_.GetFastAgeing() ? 0 : 300;
@@ -161,4 +139,4 @@ void BridgeManager::UpdateAgetime() const {
   });
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

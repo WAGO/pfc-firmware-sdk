@@ -1,0 +1,36 @@
+From 2e16474f9e63bf9b9b5bbf354f22b6433a74de0a Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Wed, 27 May 2020 14:45:56 +0200
+Subject: [PATCH] net: dsa: mv88e6xxx: use the switch of-node to get the
+ led-ctrl-reg values
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/net/dsa/mv88e6xxx/chip.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index d5bd3d5951fd..022f0ff701c9 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -2847,7 +2847,7 @@ static u16 mv88e6xxx_of_get_led_ctrl(struct mv88e6xxx_chip *chip, int port,
+ 				     u16 def_value)
+ {
+ 	u16 led_ctrl[DSA_MAX_PORTS];
+-	struct device_node *np = chip->mdio_np;
++	struct device_node *np = chip->dev->of_node;
+ 
+ 	if (WARN_ON(mv88e6xxx_num_ports(chip) > DSA_MAX_PORTS))
+ 		return def_value;
+@@ -2855,6 +2855,8 @@ static u16 mv88e6xxx_of_get_led_ctrl(struct mv88e6xxx_chip *chip, int port,
+ 	if (!of_property_read_u16_array(np, "led-ctrl", led_ctrl,
+ 					mv88e6xxx_num_ports(chip)))
+ 		return led_ctrl[port];
++	else
++		pr_info_once("led-ctrl node not found, using default");
+ 
+ 	return def_value;
+ }
+-- 
+2.17.1
+

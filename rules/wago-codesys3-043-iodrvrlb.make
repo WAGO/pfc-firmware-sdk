@@ -37,7 +37,9 @@ CDS3_IODRVRLB_MAKE_ENV  := $(CROSS_ENV) \
 
 CDS3_IODRVRLB_MAKE_OPT  := CC=$(CROSS_CC)
 
-
+ifeq ($(PTXCONF_ROCKET_EVAL_BOARD_SUPPORT),y)
+CDS3_IODRVRLB_CXXFLAGS=-D__ROCKET_EVAL_BOARD
+endif
 
 # ----------------------------------------------------------------------------
 # Get

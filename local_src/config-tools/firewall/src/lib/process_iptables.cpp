@@ -22,12 +22,17 @@
 #include "interface_mapping_provider.hpp"
 #include <libxml/parser.h>
 
-#include <iostream>
 
 namespace wago {
+namespace firewall {
 namespace iptables {
 
-static void set_climits(xmldoc &doc, const std::vector<std::string> &argv) {
+namespace impl{
+
+namespace {
+
+
+void set_climits(xmldoc &doc, const std::vector<std::string> &argv) {
   if (5 != argv.size())
     throw invalid_param_error();
 
@@ -53,7 +58,7 @@ static void set_climits(xmldoc &doc, const std::vector<std::string> &argv) {
   updrem_attribute(climits, "udp", udp);
 }
 
-static void set_echo(xmldoc &doc, const std::vector<std::string> &argv) {
+void set_echo(xmldoc &doc, const std::vector<std::string> &argv) {
   if (4 != argv.size())
     throw invalid_param_error();
 
@@ -77,6 +82,30 @@ static void set_echo(xmldoc &doc, const std::vector<std::string> &argv) {
   update_attribute(echo, "broadcast_protection", bprot);
 }
 
+void set_forward(xmldoc &doc, const std::vector<std::string> &argv) {
+  if (1 != argv.size())
+    throw invalid_param_error();
+
+  const std::string &state(argv[0]);
+
+  if (!is_match_std(regex::rex_onoff, state))
+    throw invalid_param_error();
+
+  xmlctx ctx(get_ctx(doc));
+
+  xmlnode forward(get_node(ctx, "/f:firewall/f:ipv4/f:forward"));
+
+  update_attribute(forward, "state", state);
+}
+
+
+void rem_filter(xmldoc &doc, const std::vector<std::string> &argv) {
+  remove(doc, argv, "/f:firewall/f:ipv4/f:input/f:filter/f:rule");
+}
+
+} // anonymous namespace
+
+
 void set_echo_if(xmldoc &doc, const std::vector<std::string> &argv) {
   if (4 != argv.size())
     throw invalid_param_error();
@@ -86,7 +115,7 @@ void set_echo_if(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &limit(argv[2]);
   const std::string &burst(argv[3]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   ::std::string corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_policy, policy) || !is_match_std(regex::rex_ifname, corresponding_interface)
@@ -120,7 +149,7 @@ void rem_echo_if(xmldoc &doc, const std::vector<std::string> &argv) {
   }
 
   const std::string &ifname(argv[0]);
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   ::std::string corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_ifname, corresponding_interface)) {
@@ -135,22 +164,6 @@ void rem_echo_if(xmldoc &doc, const std::vector<std::string> &argv) {
   }
 }
 
-static void set_forward(xmldoc &doc, const std::vector<std::string> &argv) {
-  if (1 != argv.size())
-    throw invalid_param_error();
-
-  const std::string &state(argv[0]);
-
-  if (!is_match_std(regex::rex_onoff, state))
-    throw invalid_param_error();
-
-  xmlctx ctx(get_ctx(doc));
-
-  xmlnode forward(get_node(ctx, "/f:firewall/f:ipv4/f:forward"));
-
-  update_attribute(forward, "state", state);
-}
-
 void set_forward_link(xmldoc &doc, const std::vector<std::string> &argv) {
   if (3 != argv.size())
     throw invalid_param_error();
@@ -159,7 +172,7 @@ void set_forward_link(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &if1(argv[1]);
   const std::string &if2(argv[2]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interfaces = mapping.get_interface(if1, if2);
 
   if (!is_match_std(regex::rex_onoff, state) || !is_match_std(regex::rex_ifname, corresponding_interfaces.first)
@@ -199,7 +212,7 @@ void rem_forward_link(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &if1(argv[0]);
   const std::string &if2(argv[1]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interfaces = mapping.get_interface(if1, if2);
 
   if (!is_match_std(regex::rex_ifname, corresponding_interfaces.first)
@@ -230,7 +243,7 @@ void set_masq(xmldoc &doc, const std::vector<std::string> &argv) {
     throw invalid_param_error();
 
   const std::string &ifname(argv[0]);
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_ifname, corresponding_interface))
@@ -253,7 +266,7 @@ void rem_masq(xmldoc &doc, const std::vector<std::string> &argv) {
     throw invalid_param_error();
 
   const std::string &ifname(argv[0]);
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_ifname, corresponding_interface))
@@ -291,7 +304,7 @@ void add_pfw(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &fw_ip(argv[5]);
   const std::string &fw_port(argv[6]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_onoff, state) || !is_match_opt(regex::rex_ifname, corresponding_interface)
@@ -352,7 +365,7 @@ void upd_pfw(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &fw_ip(argv[6]);
   const std::string &fw_port(argv[7]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_number, index) || !is_match_std(regex::rex_onoff, state)
@@ -403,7 +416,7 @@ void set_open_if(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &state(argv[0]);
   const std::string &ifname(argv[1]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_onoff, state) || !is_match_std(regex::rex_ifname, corresponding_interface))
@@ -431,7 +444,7 @@ void rem_open_if(xmldoc &doc, const std::vector<std::string> &argv) {
 
   const std::string &ifname(argv[0]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_ifname, corresponding_interface))
@@ -461,7 +474,7 @@ void add_filter(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &dst_port(argv[8]);
   const std::string &policy(argv[9]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_onoff, state) || !is_match_opt(regex::rex_ifname, corresponding_interface)
@@ -517,7 +530,7 @@ void upd_filter(xmldoc &doc, const std::vector<std::string> &argv) {
   const std::string &dst_mask(argv[8]);
   const std::string &dst_port(argv[9]);
 
-  imp::InterfaceMappingProvider mapping;
+  InterfaceMappingProvider mapping;
   auto corresponding_interface = mapping.get_interface(ifname);
 
   if (!is_match_std(regex::rex_number, index) || !is_match_std(regex::rex_onoff, state)
@@ -550,49 +563,48 @@ void upd_filter(xmldoc &doc, const std::vector<std::string> &argv) {
   updrem_attribute(rule, "dst_port", dst_port);
 }
 
-static void rem_filter(xmldoc &doc, const std::vector<std::string> &argv) {
-  remove(doc, argv, "/f:firewall/f:ipv4/f:input/f:filter/f:rule");
-}
+} // namespace impl
 
 void process(xmldoc &doc, const std::string &cmd, const std::vector<std::string> &argv) {
   if ("--set-climits" == cmd)
-    set_climits(doc, argv);
+    impl::set_climits(doc, argv);
   else if ("--set-echo" == cmd)
-    set_echo(doc, argv);
+    impl::set_echo(doc, argv);
   else if ("--set-echo-if" == cmd)
-    set_echo_if(doc, argv);
+    impl::set_echo_if(doc, argv);
   else if ("--rem-echo-if" == cmd)
-    rem_echo_if(doc, argv);
+    impl::rem_echo_if(doc, argv);
   else if ("--set-forward" == cmd)
-    set_forward(doc, argv);
+    impl::set_forward(doc, argv);
   else if ("--set-forward-link" == cmd)
-    set_forward_link(doc, argv);
+    impl::set_forward_link(doc, argv);
   else if ("--rem-forward-link" == cmd)
-    rem_forward_link(doc, argv);
+    impl::rem_forward_link(doc, argv);
   else if ("--set-masq" == cmd)
-    set_masq(doc, argv);
+    impl::set_masq(doc, argv);
   else if ("--rem-masq" == cmd)
-    rem_masq(doc, argv);
+    impl::rem_masq(doc, argv);
   else if ("--add-pfw" == cmd)
-    add_pfw(doc, argv);
+    impl::add_pfw(doc, argv);
   else if ("--upd-pfw" == cmd)
-    upd_pfw(doc, argv);
+    impl::upd_pfw(doc, argv);
   else if ("--rem-pfw" == cmd)
-    rem_pfw(doc, argv);
+    impl::rem_pfw(doc, argv);
   else if ("--set-open-if" == cmd)
-    set_open_if(doc, argv);
+    impl::set_open_if(doc, argv);
   else if ("--rem-open-if" == cmd)
-    rem_open_if(doc, argv);
+    impl::rem_open_if(doc, argv);
   else if ("--add-filter" == cmd)
-    add_filter(doc, argv);
+    impl::add_filter(doc, argv);
   else if ("--upd-filter" == cmd)
-    upd_filter(doc, argv);
+    impl::upd_filter(doc, argv);
   else if ("--rem-filter" == cmd)
-    rem_filter(doc, argv);
+    impl::rem_filter(doc, argv);
   else
     throw invalid_param_error();
 }
 
 }  // namespace iptables
+}  // namespace firewall
 }  // namespace wago
 

@@ -1,8 +1,8 @@
 From b154685ebf13bf24ab0771e1032d1a6ab7acf741 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 8 Aug 2018 11:30:44 +0200
-Subject: [PATCH] defaultenv: defaultenv-pfc: set leds according to detected
- boot-mode
+Subject: [PATCH 051/144] defaultenv: defaultenv-pfc: set leds according to
+ detected boot-mode
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

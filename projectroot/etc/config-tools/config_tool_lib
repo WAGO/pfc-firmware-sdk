@@ -6,7 +6,7 @@
 #
 # This file is part of PTXdist package config-tools.
 #
-# Copyright (c) 2008-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2008-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   config_tool_lib
@@ -19,6 +19,8 @@
 # Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
 # Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
 # Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MSc: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 #bash "include guard"
@@ -1403,15 +1405,18 @@ function GetTargetName
   # legacy
   else
     order="$(/etc/config-tools/get_typelabel_value ORDER)"
-    prefix="${order:0:3}"
+    order3="${order:0:3}"
+    order5="${order:0:5}"
     order="${order:4:2}"
 
     if [ "${order}" == "81" ]; then
       product="PFC100"
     elif [ "${order}" == "82" ]; then
       product="PFC200"
-    elif [ "${prefix}" == "762" ]; then
+    elif [ "${order3}" == "762" ]; then
       product="TP600"
+    elif [ "${order5}" == "758-8" ]; then
+      product="EC758"
     fi
   fi
 
@@ -1441,6 +1446,32 @@ function CheckEncryptionPassphrase
   fi
 
   return $status
+}
+
+#-----------------------------------------------------------------------------#
+function GetBridgeConfig {
+  echo $($NETWORK_CONFIG --get --bridge-config --quiet)
+}
+
+#-----------------------------------------------------------------------------#
+function GetBridges {
+  for bridge in $(GetBridgeConfig); do
+    echo "${bridge%%=*} "
+  done
+}
+
+#-----------------------------------------------------------------------------#
+function GetLegacyPorts {
+  local ports=""
+  for bridge in $(GetBridges); do
+    if [ $bridge == "br0" ]; then
+        ports="$ports X1"
+    elif [ $bridge == "br1" ]; then
+        ports="$ports X2"
+    fi
+  done
+
+  echo $ports
 }
 
 #### Begin D3I Implementation #######

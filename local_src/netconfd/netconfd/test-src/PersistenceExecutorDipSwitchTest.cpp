@@ -8,16 +8,13 @@
 //------------------------------------------------------------------------------
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-
 #include "TypesHelper.hpp"
+
 #include "BackupRestoreFake.hpp"
 #include "PersistenceExecutor.hpp"
 #include "StatusPrettyPrint.hpp"
 #include "FileEditorFake.hpp"
-#include "PersistenceJsonConfigConverter.hpp"
 
-#include "MockIJsonConfigConverter.hpp"
-#include "MockIPersistenceJsonConfigConverter.hpp"
 #include "MockIFileEditor.hpp"
 #include "MockIBackupRestore.hpp"
 #include "MockIJsonConvert.hpp"
@@ -26,14 +23,13 @@
 
 using namespace testing;
 
-namespace netconfd
+namespace netconf
 {
 
   class ADipSwitchPersistenceExecutor: public Test
   {
     public:
 
-      PersistenceJsonConfigConverter json_converter_;
       NiceMock<MockIFileEditor> mock_file_editor_;
       MockIBackupRestore mock_backup_restore_;
       MockIJsonConvert<InterfaceConfigs> mock_port_configs_converter_;
@@ -59,8 +55,8 @@ namespace netconfd
         ON_CALL(mock_file_editor_, Read(path_interface_config_file_, _)).WillByDefault(
             DoAll(SetArgReferee<1>(interface_config_file_content_), Return(Status{ })));
 
-        persisted_ip_configs = {{"br0", IPSource::STATIC, "192.168.2.17", "255.255.255.0", "192.168.2.255"}, {
-            "br1", IPSource::DHCP, "172.29.233.17", "255.255.0.0", "172.29.255.255"}};
+        persisted_ip_configs = {{"br0", IPSource::STATIC, "192.168.2.17", "255.255.255.0"}, {
+            "br1", IPSource::DHCP, "172.29.233.17", "255.255.0.0"}};
         persisted_bridge_config = {{"br0", {"X1"}}, {"br1", {"X2"}}};
 
         interface_configs.clear();
@@ -78,7 +74,7 @@ namespace netconfd
 
         EXPECT_CALL(mock_dip_switch_, GetMode()).WillRepeatedly(Return(dip_mode));
 
-        persistence_executor_ = ::std::make_unique<PersistenceExecutor>(base_path_, json_converter_, json_converter_,
+        persistence_executor_ = ::std::make_unique<PersistenceExecutor>(base_path_,
                                                                         mock_file_editor_, mock_backup_restore_,
                                                                         legacy_restore_fake_, mock_dip_switch_);
         Status status = persistence_executor_->Write(dipConfigToWrite);
@@ -177,7 +173,7 @@ namespace netconfd
 
     EXPECT_CALL(mock_dip_switch_, GetMode()).WillRepeatedly(Return(DipSwitchMode::OFF));
 
-    persistence_executor_ = ::std::make_unique<PersistenceExecutor>(base_path_, json_converter_, json_converter_,
+    persistence_executor_ = ::std::make_unique<PersistenceExecutor>(base_path_,
                                                                     mock_file_editor_, mock_backup_restore_,
                                                                     legacy_restore_fake_, mock_dip_switch_);
 
@@ -195,7 +191,7 @@ namespace netconfd
 
     EXPECT_CALL(mock_dip_switch_, GetMode()).WillRepeatedly(Return(DipSwitchMode::OFF));
 
-    persistence_executor_ = ::std::make_unique<PersistenceExecutor>(base_path_, json_converter_, json_converter_,
+    persistence_executor_ = ::std::make_unique<PersistenceExecutor>(base_path_,
                                                                     mock_file_editor_, mock_backup_restore_,
                                                                     legacy_restore_fake_, mock_dip_switch_);
 
@@ -224,4 +220,4 @@ namespace netconfd
     WriteDipIPConfigIfNoDipIpIsPersisted(DipSwitchMode::STATIC, persistence_file_content_no_dip);
   }
 
-} /* namespace netconfd */
+} /* namespace netconf */

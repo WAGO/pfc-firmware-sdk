@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "IPersistenceProvider.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIPersistenceProvider : public IPersistenceProvider {
  public:
@@ -24,5 +24,5 @@ class MockIPersistenceProvider : public IPersistenceProvider {
 };
 
 }
-// namespace netconfd
+// namespace netconf
 #endif 

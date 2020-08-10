@@ -4,11 +4,11 @@
 #   This file contains the main config tools target needed by ptxdist to
 #   process ${__THIS_FILENAME__}.make as well as the common configuration
 #   entries for the config tools meta package: the feature entries, the config
-#   file entries and the config tool entries.  
+#   file entries and the config tool entries.
 #
 #   The feature targets are visible in the ptxdist menu. They are used to
 #   enable or disable menu entries in all frontends (i.e. eth1 settings may be
-#   disabled if the feature "Ethernet Switch" is active).  
+#   disabled if the feature "Ethernet Switch" is active).
 #
 #   The config tool and config file entries determine which configuration tools
 #   (small helper programs written in C or BASH which are used by the
@@ -23,7 +23,7 @@
 #   (TODO).
 #
 
-# 
+#
 # NOTE: ioswitch(?) also makes use of the configuration tools => beware of
 # removing any tools it might need.
 #
@@ -89,10 +89,10 @@ config CT_FEATURE_TYPELABEL_SUPPORT
 # Example what a choice out of several opportunities could look like
 #choice
 #  bool "Ethernet configuration"
-# 
+#
 #  config CT_FEATURE_ETH_SWITCH
-#  bool "switch"  
-# 
+#  bool "switch"
+#
 #  config CT_FEATURE_ETH_PHY
 #  bool "eth0,eth1"
 #
@@ -104,7 +104,7 @@ config CT_FEATURE_RUN_STOP_SWITCH
   prompt "Device has OMS library support (run-stop switch)"
   help
     Choose Y if liboms (=Operating Mode Switch) supports this device.
-    
+
 config CT_MULTI_PRODUCT_CONFIG
   bool
   default n
@@ -115,7 +115,7 @@ config CT_MULTI_PRODUCT_CONFIG
     be needed if specific menu entries have to be disabled on some product
     variants (i.e. hide serial port settings on a device w/o serial. The configs
     are created based on contents of the $PTXCONF_PLATFORMCONFIGDIR/products
-    directory. See wago-pfc-200 for an example implementation.  
+    directory. See wago-pfc-200 for an example implementation.
 
 config CT_FEATURE_WAGODBUS
   bool
@@ -150,6 +150,7 @@ menuconfig CONFIG_TOOLS
   select CPPUTEST if CONFIG_TOOLS_WITH_UNIT_TESTS
 
 # basic components
+  select CONFIG_TOOL_BASE
   select CT_CONFIG_TOOL_LIB_C
   select CT_CONFIG_TOOL_LIB_BASH
   select CT_CONFIG_TOOL_DEFINES
@@ -159,6 +160,7 @@ menuconfig CONFIG_TOOLS
   select EEPROM_XSECTION if CDS3_RTS_PRODUCT_VTPCTP
   select LICENSE_INFO
 
+
 # basic 3rd party libs
   select GLIB
   select LIBXML2
@@ -166,18 +168,20 @@ menuconfig CONFIG_TOOLS
   select UDEV
   select UDEV_LIBUDEV
   select OPENSSL
+  select BOOST
+  select JSONCPP
 
 # dependencies of single config-tools
   select CT_IPC_MSG_HEADER if PLCLINUXRT && (CT_GET_RTS_INFO || CT_GET_PLC_CONFIG)
   select TYPELABEL if CT_FEATURE_TYPELABEL_SUPPORT && (CT_GET_COUPLER_DETAILS || CT_GET_TYPELABEL_VALUE)
   select OMS if CT_GET_RUN_STOP_SWITCH_VALUE
-  select UMKIMAGE if CT_GET_UIMAGE_SIZE
-  select LIBNL3 if CT_LIBCTNETWORK 
+  select LIBNL3 if CT_LIBCTNETWORK
   select LIBMODBUSCONFIG if CT_MODBUS_CONFIG
   select LIBBACNETCONFIG if CT_BACNET_CONFIG
   select LIBBACNETCONFIG if CT_BACNET_BACKUP_RESTORE
-  
+
   select MDMD if CT_CONFIG_MDMD
+  select NETCONFD if CT_GET_ACTUAL_ETH_CONFIG
 
   help
    "Set of command line tools to change system configuration"
@@ -219,7 +223,7 @@ comment "Basic system information"
 config CT_GET_ACTUAL_ETH_CONFIG
   bool
   default n
-  prompt "get_actual_eth_config"	
+  prompt "get_actual_eth_config"
   depends on CONFIG_TOOLS
   select CT_LIBCTNETWORK
   help
@@ -383,7 +387,7 @@ config CT_EDIT_DNS_SERVER_DHCP
 config CT_WWAN_INTERFACE
   bool
   default n
-  prompt "Configure WWAN interface" 
+  prompt "Configure WWAN interface"
   depends on CONFIG_TOOLS
   select CT_NETWORK_CONFIG
   help
@@ -392,7 +396,7 @@ config CT_WWAN_INTERFACE
 config CT_HTTPS_CIPHER_SELECTION
   bool
   default n
-  prompt "Configure https cipher list"	
+  prompt "Configure https cipher list"
   depends on CONFIG_TOOLS
   help
    Config tool to set https standard or strong cipher list and read
@@ -433,7 +437,7 @@ config CT_FEATURE_DETECT
   depends on CONFIG_TOOLS
   prompt "feature detect"
   help
-    With this script it is possible to check it a specific feature is installed on the 
+    With this script it is possible to check it a specific feature is installed on the
     target. To use this script for feature detection a file with the feature name have to add
     to /etc/config-tools/feature folder by the feature installation.
 
@@ -477,7 +481,7 @@ config CT_GET_PLC_CONFIG
 #  bool
 #  default n
 #  depends on CONFIG_TOOLS && PLCLINUXRT
-#  prompt "config_plc" 
+#  prompt "config_plc"
 #  help
 #   Toggle plc-runtime selecion.
 
@@ -487,7 +491,7 @@ config CT_CONFIG_MODBUS
   depends on CONFIG_TOOLS && PLCLINUXRT && CT_DEPRECATED
   prompt "config_modbus [deprecated]"
   help
-   Change the modbus configuration (IPC-specific shell script). 
+   Change the modbus configuration (IPC-specific shell script).
    Was historically placed at the HMI page in the IPC-WBM
 
 config CT_CHANGE_RTS_CONFIG
@@ -496,7 +500,7 @@ config CT_CHANGE_RTS_CONFIG
   depends on CONFIG_TOOLS && PLCLINUXRT
   prompt "change_rts3s_config"
   help
-   Edit rts3s settings 
+   Edit rts3s settings
    Was historically placed at the HMI page in the IPC-WBM
 
 config CT_CONFIG_CODESYS3
@@ -576,7 +580,7 @@ config CT_CONFIG_ETHERNET
   select CT_NETWORK_CONFIG
   prompt "config_ethernet"
   help
-    Interface for setting ethernet parameters like link speed,duplex 
+    Interface for setting ethernet parameters like link speed,duplex
     etc.
 
 config CT_NETWORK_CONFIG
@@ -585,7 +589,7 @@ config CT_NETWORK_CONFIG
   select NETWORK_CONFIG
   prompt "network_config"
 	help
-	  Configure networks, ip addresses and physical ethernet parameters. 
+	  Configure networks, ip addresses and physical ethernet parameters.
 
 #################################################################
 comment "Administration-related information"
@@ -755,7 +759,7 @@ config CT_CRYPT
   depends on CONFIG_TOOLS
   prompt "crypt"
   help
-   Generate a password hash for /etc/passwd. 
+   Generate a password hash for /etc/passwd.
 
 config CT_GET_USER
   bool
@@ -882,7 +886,7 @@ config CT_CF_CARD_BACKUP
   prompt "cf_card_backup [deprecated]"
   help
    Is not used any longer: replaced by more granular backup options (IPC shell script).
-   
+
 
 config CT_FIRMWARE_BACKUP
   bool
@@ -890,7 +894,7 @@ config CT_FIRMWARE_BACKUP
   depends on CONFIG_TOOLS
   prompt "firmware_backup"
   help
-   Backup firmware data. 
+   Backup firmware data.
 
 config CT_FIRMWARE_RESTORE
   bool
@@ -898,7 +902,7 @@ config CT_FIRMWARE_RESTORE
   depends on CONFIG_TOOLS
   prompt "firmware_restore"
   help
-   Restore firmware data. 
+   Restore firmware data.
 
 config CT_GET_FIRMWARE_RESTORE_PACKAGES
   bool
@@ -906,7 +910,7 @@ config CT_GET_FIRMWARE_RESTORE_PACKAGES
   depends on CONFIG_TOOLS
   prompt "get_firmware_restore_packages"
   help
-   Get existing backup package files on devices. 
+   Get existing backup package files on devices.
 
 config CT_SETTINGS_BACKUP
   bool
@@ -915,7 +919,7 @@ config CT_SETTINGS_BACKUP
   select RC_ONCE
   prompt "settings_backup"
   help
-   Save all config settings to backup file/restore settings from backup. 
+   Save all config settings to backup file/restore settings from backup.
 
 config CT_TERMINATE_CODESYS
   bool
@@ -980,7 +984,7 @@ config CT_ACTIVATE_DOWNLOAD
   depends on CONFIG_TOOLS
   prompt "activate_download"
   help
-   Activate a previously downloaded file. 
+   Activate a previously downloaded file.
 
 config CT_GET_WBM_UPLOADS
   bool
@@ -988,23 +992,12 @@ config CT_GET_WBM_UPLOADS
   depends on CONFIG_TOOLS
   prompt "get_wbm_uploads"
   help
-   Get previously uploaded files. 
+   Get previously uploaded files.
 
 
 ###############################################################
 comment "Port related config-tools"
 depends on CONFIG_TOOLS
-
-config CT_CONFIG_DNSMASQ
-  bool
-  default n
-  select DNSMASQ
-  select CT_LIBCTNETWORK
-  prompt "config_dnsmasq"
-  depends on CONFIG_TOOLS
-  help
-   Adds the build of config_dnsmasq_c to the config tools. This is needed
-   for configuring DHCPD server and DNS service.
 
 config CT_CONFIG_PORT
   bool
@@ -1029,7 +1022,7 @@ config CT_CONFIG_SSL
   prompt "config_ssl"
   help
    Enable/disable http/https and ftp/ftps settings.
-   
+
 config CT_CONFIG_OPCUA
   bool
   default n
@@ -1045,7 +1038,7 @@ config CT_CONFIG_SSH
   prompt "config_ssh"
   help
    Change SSH settings.
-   
+
 config CT_CONFIG_TFTP
   bool
   default n
@@ -1057,8 +1050,8 @@ config CT_CONFIG_TFTP
 config CT_CONFIG_DHCPD
   bool
   default n
-  select CT_CONFIG_DNSMASQ
-  depends on CONFIG_TOOLS
+  select CONFIG_DNSMASQ
+#  depends on CONFIG_TOOLS
   prompt "config_dhcpd"
   help
    Change DHCP service settings. Only possible if dnsmasq is selected.
@@ -1066,8 +1059,8 @@ config CT_CONFIG_DHCPD
 config CT_CONFIG_DNS_SERVICE
   bool
   default n
-  select CT_CONFIG_DNSMASQ
-  depends on CONFIG_TOOLS
+  select CONFIG_DNSMASQ
+#  depends on CONFIG_TOOLS
   prompt "config_dns_service"
   help
    Change DNS service settings. Only possible if dnsmasq is selected.
@@ -1088,7 +1081,7 @@ config CT_GET_SSH_CONFIG
   prompt "get_ssh_config"
   help
    Get SSH settings.
-   
+
 config CT_GET_TFTP_CONFIG
   bool
   default n
@@ -1100,7 +1093,7 @@ config CT_GET_TFTP_CONFIG
 config CT_GET_DHCPD_CONFIG
   bool
   default n
-  select CT_CONFIG_DNSMASQ
+  depends on CONFIG_DNSMASQ
   depends on CONFIG_TOOLS
   prompt "get_dhcpd_config"
   help
@@ -1109,7 +1102,7 @@ config CT_GET_DHCPD_CONFIG
 config CT_GET_DNS_SERVICE_CONFIG
   bool
   default n
-  select CT_CONFIG_DNSMASQ
+  depends on CONFIG_DNSMASQ
   depends on CONFIG_TOOLS
   prompt "get_dns_service_config"
   help
@@ -1122,7 +1115,7 @@ config CT_GET_IOCHECKPORT_CONFIG
   prompt "get_iocheckport_config"
   help
    Config tool to read the state of the iocheck port.
- 
+
 config CT_IPDATACHECK
   bool
   default n
@@ -1181,7 +1174,7 @@ config CT_STRING_ENCODE
   depends on CONFIG_TOOLS
   prompt "string_encode"
   help
-   Prepare input for sed/bash/regex (escape special characters). 
+   Prepare input for sed/bash/regex (escape special characters).
 
 ###############################################################
 comment "Profibus related config-tools"
@@ -1194,7 +1187,7 @@ config CT_PBDP_CONFIG
   prompt "pbdp_config"
   help
    Change Profibus settings (currently only permission to change slave station address).
-   
+
 ###############################################################
 comment "BACnet related config-tools"
 depends on CONFIG_TOOLS
@@ -1206,7 +1199,7 @@ config CT_BACNET_CONFIG
   prompt "bacnet_config"
   help
    Change BACnet settings
-   
+
 config CT_BACNET_BACKUP_RESTORE
   bool
   default n
@@ -1214,7 +1207,7 @@ config CT_BACNET_BACKUP_RESTORE
   prompt "bacnet_backup_restore"
   help
    Backup and restore BACnet settings
-   
+
 config CT_BACNET_WBM_DIAGLIST
   bool
   default n
@@ -1252,7 +1245,7 @@ config CT_CONFIG_MDMD
 config CT_UPDATE_MODEM_FIRMWARE
   bool
   default n
-  select QFLASH 
+  select QFLASH
   depends on CONFIG_TOOLS
   prompt "update_modem_firmware"
   help
@@ -1283,11 +1276,31 @@ config CT_VPNCFG
   prompt "config_vpncfg"
   help
    OpenVPN/IPsec config tool.
+   
+###############################################################
+comment "Internal boot related config-tools"
+depends on CONFIG_TOOLS
+
+config CT_GET_INTERNAL_BOOT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "get_boot_mode"
+  help
+   Get internal boot mode state 
+   
+config CT_CONF_INTERNAL_BOOT
+  bool
+  default n
+  depends on CONFIG_TOOLS
+  prompt "config_boot_mode"
+  help
+   Configure internal boot mode   
 
 #################################################################
 #
 # Basic stuff.
-# External packages like CT_IPC_MSG_HEADER have to be selected by 
+# External packages like CT_IPC_MSG_HEADER have to be selected by
 # CONFIG_TOOLS main target.
 # Other are chosen if specific config-tools are selected.
 # May depend on additional conditions.
@@ -1336,13 +1349,13 @@ config CT_TIME_FORMAT
   bool
   default y
   help
-   "Text file /etc/config-tools/TIME_FORMAT. Time format (12/24H) is stored here." 
+   "Text file /etc/config-tools/TIME_FORMAT. Time format (12/24H) is stored here."
 
 config CT_RS232_OWNER
   bool
   default y
   help
-   "Text file /etc/config-tools/RS232_OWNER. COM port's current owner is stored here." 
+   "Text file /etc/config-tools/RS232_OWNER. COM port's current owner is stored here."
 
 
 

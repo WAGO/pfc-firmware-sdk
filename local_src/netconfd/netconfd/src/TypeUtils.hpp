@@ -5,7 +5,7 @@
 #include "Types.hpp"
 #include <boost/algorithm/string.hpp>
 
-namespace netconfd {
+namespace netconf {
 
 static inline ::std::string DuplexToString(Duplex d) {
   if (d == Duplex::FULL)
@@ -46,4 +46,4 @@ static inline bool AutonegotiationToBool(Autonegotiation a) {
 }
 
 
-}  // namespace netconfd
+}  // namespace netconf

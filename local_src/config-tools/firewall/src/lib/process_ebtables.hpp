@@ -14,16 +14,16 @@
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
-#pragma once
-
+#ifndef WAGO_FIREWALL_PROCESS_EBTABLES_HPP_
+#define WAGO_FIREWALL_PROCESS_EBTABLES_HPP_
 
 #include "xmlhlp.hpp"
 #include <string>
 #include <vector>
 
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 namespace ebtables {
 
 //------------------------------------------------------------------------------
@@ -34,8 +34,14 @@ namespace ebtables {
 //------------------------------------------------------------------------------
 void process(xmldoc& doc, const std::string& cmd, const std::vector<std::string>& argv);
 
+namespace impl {
+
 void set_if(xmldoc& doc, const std::vector<std::string>& argv);
 void rem_if(xmldoc& doc, const std::vector<std::string>& argv);
 
-}
+} // namespace impl
+} // namespace ebtables
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_PROCESS_EBTABLES_HPP_

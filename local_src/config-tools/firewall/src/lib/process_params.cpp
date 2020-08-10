@@ -19,12 +19,11 @@
 #include "process.hpp"
 #include "error.hpp"
 
-#include <iostream>
 #include <fstream>
 #include <sys/stat.h>
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 
 void update_network_interface_name_mapping(const FileAccessor& file_accessor)
 {
@@ -63,8 +62,7 @@ void update_network_interface_name_mapping(const FileAccessor& file_accessor)
     if(!ctx_ipcmn.is_empty())
     {
         // Get list of interfaces used in masquerading and port-forwarding rules.
-        std::vector<std::string> required_itf_list;
-        get_attribute_value_list(ctx_ipcmn, "/f:firewall/f:ipv4/f:forward", "if", required_itf_list);
+        auto required_itf_list = get_attribute_value_list(ctx_ipcmn, "/f:firewall/f:ipv4/f:forward", "if");
 
         xmlctx ctx_params(get_ctx(params));
 
@@ -94,7 +92,8 @@ void update_network_interface_name_mapping(const FileAccessor& file_accessor)
     }
 }
 
-}
+} // namespace firewall
+} // namespace wago
 
 //---- End of source file ------------------------------------------------------
 

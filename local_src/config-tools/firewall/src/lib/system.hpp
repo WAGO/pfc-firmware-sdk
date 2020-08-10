@@ -13,14 +13,14 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#pragma once
-
+#ifndef WAGO_FIREWALL_SYSTEM_HPP_
+#define WAGO_FIREWALL_SYSTEM_HPP_
 
 #include <string>
 
+namespace wago {
+namespace firewall {
 
-namespace wago
-{
 
   const int timeout = 5; // timeout 5 ms
  //------------------------------------------------------------------------------
@@ -33,4 +33,7 @@ namespace wago
 std::string exe_cmd(const std::string& cmd, int &exit_code);
 
 
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_SYSTEM_HPP_

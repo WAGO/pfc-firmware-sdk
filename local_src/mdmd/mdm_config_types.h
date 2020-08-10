@@ -15,8 +15,8 @@ enum class OPER_SEL_MODE
     MANUAL = 1,
     ONLY_GSM = 2,
     ONLY_UMTS = 3,
-    PREFER_GSM = 4,
-    PREFER_UMTS = 5,
+    PREFER_GSM = 4,  /*WAT26409: deprecated option, not removed for settings restore compatibility*/
+    PREFER_UMTS = 5, /*WAT26409: deprecated option, not removed for settings restore compatibility*/
 };
 
 enum class OPER_SEL_ACT

@@ -1,7 +1,7 @@
 From 443ce492c83944c321208ccba7653db76837623a Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 11 Jun 2018 14:26:06 +0200
-Subject: [PATCH] commands: add ethaddr_match command
+Subject: [PATCH 020/144] commands: add ethaddr_match command
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

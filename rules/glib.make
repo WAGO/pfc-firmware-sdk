@@ -17,8 +17,8 @@ PACKAGES-$(PTXCONF_GLIB) += glib
 #
 # Paths and names
 #
-GLIB_VERSION	:= 2.56.4
-GLIB_MD5	:= 17c3dca43d99a4882384f1a7b530b80b
+GLIB_VERSION	:= 2.57.1
+GLIB_MD5	:= e32b090f0c24a6be61479a6e7a3f2a77
 GLIB		:= glib-$(GLIB_VERSION)
 GLIB_SUFFIX	:= tar.xz
 GLIB_SOURCE	:= $(SRCDIR)/$(GLIB).$(GLIB_SUFFIX)
@@ -118,6 +118,17 @@ $(STATEDIR)/glib.targetinstall:
 ifdef PTXCONF_GLIB_GDBUS
 	@$(call install_copy, glib, 0, 0, 0755, -, /usr/bin/gdbus)
 endif
+	@cat $(GLIB_DIR)/AUTHORS > $(GLIB_DIR)/LICENSE
+	@echo -e "\n" >> $(GLIB_DIR)/LICENSE
+	@cat $(GLIB_DIR)/COPYING >> $(GLIB_DIR)/LICENSE
+	@echo -e "\nLicense of glib/pcre\n" >> $(GLIB_DIR)/LICENSE
+	@cat $(GLIB_DIR)/glib/pcre/COPYING >> $(GLIB_DIR)/LICENSE
+	@echo -e "\nLicense of gmodule\n" >> $(GLIB_DIR)/LICENSE
+	@cat $(GLIB_DIR)/gmodule/AUTHORS >> $(GLIB_DIR)/LICENSE
+	@echo -e "\n" >> $(GLIB_DIR)/LICENSE
+	@cat $(GLIB_DIR)/gmodule/COPYING >> $(GLIB_DIR)/LICENSE
+	@$(call install_copy, glib, 0, 0, 0644, $(GLIB_DIR)/LICENSE, /usr/share/licenses/oss/license.glib_$(GLIB_VERSION).txt)
+
 	@$(call install_finish, glib)
 
 	@$(call touch)

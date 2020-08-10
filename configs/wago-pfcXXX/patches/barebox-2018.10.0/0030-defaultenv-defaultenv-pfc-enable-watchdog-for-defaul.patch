@@ -1,7 +1,8 @@
 From bc90eca848154683ec5ff9592a940031454bbba6 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 9 Jul 2018 10:04:53 +0200
-Subject: [PATCH] defaultenv: defaultenv-pfc: enable watchdog for default boot
+Subject: [PATCH 030/144] defaultenv: defaultenv-pfc: enable watchdog for
+ default boot
 
 ---
  .../defaultenv-pfc-base/bin/pfc-config-default-boot       |  8 +++++++-

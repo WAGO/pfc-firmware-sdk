@@ -6,7 +6,7 @@
 #
 # This file is part of PTXdist package config-tools.
 #
-# Copyright (c) 2012-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2012-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   config_tool_defines
@@ -16,6 +16,8 @@
 #
 # Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
 # Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MSc: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 #bash "include guard"
@@ -48,12 +50,10 @@ readonly ENCRYPTED_FILE=16
 # i.e. pac200_copy_data.sh to signalize that inside the script SetLastError
 # has been set so that it is not overwritten by a higher-level script
 readonly LAST_ERROR_SET=127
-
 readonly LAST_ERROR_FILENAME="/tmp/last_error.txt"
 
-
-# TODO: get from according tool
-readonly NETWORK_INTERFACES_XML="/etc/specific/network-interfaces.xml"
+# path and name of multible used executable files
+readonly NETWORK_CONFIG="/etc/config-tools/network_config"
 
 if [[ -f /etc/config-tools/board_specific_defines ]]; then
   source /etc/config-tools/board_specific_defines 

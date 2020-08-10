@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+DIPSWITCHDIR=/dev/dip-switch
+
+function log
+{
+    /usr/bin/logger -s -t networking "$@"
+}
+
+# read dip switch value from sysfs
+function get_dip_netvalue
+{
+    local dipvalue=0
+    if [ -d $DIPSWITCHDIR ]; then
+        dipvalue=$(($(<$DIPSWITCHDIR/value)))
+    fi
+    echo $dipvalue
+}
+
+function do_ifupdown
+{
+    mode=$1
+
+    if [ "$mode" = UP ]; then
+        # kernel defaults X1 and X2 to be powered down.
+        # ifup of ethX1 or ethX2 powers on the network ports. If a port is disabled,
+        # /etc/network/interfaces is set so that no power on occurs.
+        ifup lo
+    else
+        ifdown -a
+    fi
+}
+
+function enable_interrupt_pacing
+{
+    log "enable interrupt pacing 1 ms"
+    ethtool -C eth0 rx-usecs 1000
+}
+
+function networking_start
+{
+    log "networking start"
+
+    enable_interrupt_pacing
+
+    if grep -q "nfsroot" /proc/cmdline; then
+        echo "booting from nfs, skip networking start"
+        exit 0
+    fi
+
+    echo "DIP_SWITCH_VALUE=$(get_dip_netvalue)" > /etc/specific/dipvalue-on-reset
+
+    log "enable weak endpoint mode"
+    # set weak endsystem mode as default. See rfc1122 and kernel Documentation/networking/ip-sysctl.txt.
+    echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+
+    # set arp accept to send replies on gratuitous arp's with our own ip address.
+    echo 1 > /proc/sys/net/ipv4/conf/all/arp_accept
+
+    do_ifupdown UP
+}
+
+case "$1" in
+start)
+    networking_start
+    ;;
+stop)
+    ;;
+reload)
+    networking_start
+    ;;
+restart|force-reload)
+    networking_start
+    ;;
+*)
+    N=$BASH_COMMAND
+    echo "usage: $N {start|restart|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

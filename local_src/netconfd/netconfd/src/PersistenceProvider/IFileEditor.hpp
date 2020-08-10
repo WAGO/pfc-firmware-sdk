@@ -4,7 +4,7 @@
 
 #include "Status.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IFileEditor {
  public:
@@ -24,4 +24,4 @@ class IFileEditor {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf

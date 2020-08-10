@@ -56,6 +56,9 @@ $(DESTDIR)/usr/lib/pkgconfig/wagosnmp.pc \
 $(DESTDIR)/usr/lib/libwagosnmp.so.$(libwagosnmp.so_VERSION) \
 $(DESTDIR)/usr/include/wagosnmp_API.h
 
+# globally exclude files from coverage report
+GCOVR_EXCLUDE += $(PROJECT_ROOT)/test-src/.*
+
 #######################################################################################################################
 # Settings shared between build targets
 
@@ -107,7 +110,8 @@ alltests.elf_CXXFLAGS += $(alltests.elf_CCXXFLAGS)
 alltests.elf_CXXFLAGS += $(call pkg_config_cxxflags,$(alltests.elf_PKG_CONFIGS))
 alltests.elf_LDFLAGS += $(call option_lib,$(alltests.elf_LIBS),alltests.elf)
 alltests.elf_LDFLAGS += $(call pkg_config_ldflags,$(alltests.elf_PKG_CONFIGS))
-
+# modules to include into this test's coverage report 
+alltests.elf_GCOVR_SEARCH_PATH += libwagosnmp.so
 
 #######################################################################################################################
 # Build infrastructure

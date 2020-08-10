@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-namespace netconfd {
+namespace netconf {
 
 class IIPConfigure {
  public:

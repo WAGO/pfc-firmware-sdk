@@ -5,11 +5,9 @@ menuconfig DATAAGENT
 	default n
 	prompt "Data Agent"
 
-	select LIBCONFIG
 	select INITMETHOD_BBINIT
 	select SYSLOGNG
 	select AZURE
-	select CT_MENU_WBM_MAIN if DATAAGENT_WBM_LEGACY
 	select OMS
 	select MOSQUITTO
 	select CONFIG_TOOLS
@@ -23,6 +21,7 @@ menuconfig DATAAGENT
 	select LICENSE_INFO
 	select ZLIB
 	select WRETAIN
+	select GLIB
 
 	help
 	  The DataAgent deamon application provides Cloud Connectivity

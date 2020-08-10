@@ -1,0 +1,24 @@
+## SECTION=wago_specific_tools
+
+menuconfig SFP_TOOL
+  bool
+  default n
+  select HOST_CT_BUILD
+  select GOOGLETEST
+  select BOOST
+  select BOOST_SYSTEM
+  select BOOST_FILESYSTEM
+  prompt "SFP tool"
+	help
+	  SFP tooling needed by e.g. 750-8211.
+	  It includes:
+	  - tool to flash coprocessor images
+	  - tool to read SFP-DDM values
+
+config SFP_TOOL_FLASH
+	bool
+	depends on SFP_TOOL
+	prompt "SFP flash tool"
+	help
+		Flashes a binary file into the co-processor of the SFP board.
+

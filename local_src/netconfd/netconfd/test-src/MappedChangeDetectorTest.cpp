@@ -9,7 +9,7 @@
 #include <string>
 #include "InterfaceManager/MappedChangeDetector.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 using std::string;
 
@@ -30,4 +30,4 @@ TEST(MappedChangeDetectorTest, SomeChanges)
 
 
 
-}  // namespace netconfd
+}  // namespace netconf

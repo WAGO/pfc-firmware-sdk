@@ -4,7 +4,7 @@
 
 #include <map>
 
-namespace netconfd {
+namespace netconf {
 
 template <typename Key, typename Value>
 class MappedChangeDetector {
@@ -41,4 +41,4 @@ class MappedChangeDetector {
   ::std::map<Key, Value> change_map_;
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

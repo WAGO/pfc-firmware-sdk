@@ -3,10 +3,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
-# Script-name: cbm 
+# Script-name: cbm
 #
 # Menu-controlled script to configure a coupler over console.
 #
@@ -19,12 +19,12 @@ TITLE="WAGO Console Based Management Tool"
 
 function exit_handler
 {
-  set +e; 
-  set +u; 
+  set +e;
+  set +u;
   local last_cmd=${BASH_COMMAND}
   if [[ "${last_cmd}" != "exit 0" ]]; then
-    echo Error executing \"${last_cmd}\" \(${BASH_SOURCE[1]}\:\:${FUNCNAME[1]}\(\)\) >> ./ERRORS; 
-    clear; 
+    echo Error executing \"${last_cmd}\" \(${BASH_SOURCE[1]}\:\:${FUNCNAME[1]}\(\)\) >> ./ERRORS;
+    clear;
     cat ./ERRORS;
     rm -f ./ERRORS
   fi
@@ -40,10 +40,10 @@ if [[ -n "${DEBUG}" ]]; then
   # With errexit set, the script is aborted as soon as any command returns
   # anything but 0. In this case, the trap handler is called that appends the
   # command, the file and the function where the error appeared to a file called
-  # ERRORS. 
+  # ERRORS.
   # Unfortuantely, the LINENO variable is set file-wide, so that after
   # leaving the sourced script we cannot determine the line where the error
-  # occured.  
+  # occured.
 
   trap 'exit_handler' EXIT
   #trap 'echo ${BASH_SOURCE[0]} ${FUNCNAME[0]} > ERRORS' EXIT
@@ -54,7 +54,7 @@ fi
 # load general definitions and functions
 if [ ! -f "config_tool_lib" ]; then
   echo "config_tool_lib missing"
-  exit 255
+  exit 64
 fi
 
 . config_tool_lib
@@ -131,9 +131,9 @@ function GetPartitionMediumOutputText
   outputText=""
 
   case "$partitionMedium" in
-    
-    "$CF_CARD")              outputText="CF Card";; 
-    "$SD_CARD")              outputText="SD Card";; 
+
+    "$CF_CARD")              outputText="CF Card";;
+    "$SD_CARD")              outputText="SD Card";;
     "$INTERNAL_FLASH")       outputText="Internal Flash";;
     "$INTERNAL_FLASH_NAND")  outputText="Internal Flash";;
     "$INTERNAL_FLASH_EMMC")  outputText="Internal Flash";;
@@ -146,9 +146,9 @@ function GetPartitionMediumOutputText
     "$USB_7")                outputText="USB7";;
     "$USB_8")                outputText="USB8";;
     *)                       outputText="Medium unknown";;
-    
+
   esac
-  
+
   echo "$outputText"
 }
 
@@ -176,7 +176,7 @@ function CheckXMLStarletVersion
 # queries.  The workaround is to use &quot; notation which in turn doesn't work
 # with newer xmlstarlet versions.
 #
-# 
+#
 # TODO: production version will have a new xmlstarlet version => this is only
 # for testing on SuSE and has to be removed later!
 #
@@ -231,7 +231,7 @@ function WdialogWrapper
   shift 2
 
   [[ -n "${DEBUG}" ]] && set +e
-  ./wdialog ${mode} "$@" 
+  ./wdialog ${mode} "$@"
   local result=$?
   [[ -n "${DEBUG}" ]] && set -e
 
@@ -245,14 +245,14 @@ function ShowGenericMenu
   local menu_ressource=${2:-"main.sh"} # Dummy
   local menu_ressource_quoted=${__XMLStarlet_QUOTE}${menu_ressource}${__XMLStarlet_QUOTE}
 
-  # currently, the only known option is 
+  # currently, the only known option is
   # "show_once": return to upper layer after the action the user chose has been carried out
   local option=${2:-""}
 
   local forced_parent=${3:-""}
 
   local menu_entry_back
-  
+
   local menu_lines_list
   # Each entry has the form 'bla.sh bla_state.sh' (if bla_state.sh exists)
   local menu_scripts_list
@@ -269,14 +269,14 @@ function ShowGenericMenu
   local state_scripts_array
 
   # Build ':'-separated lists of menu lines and sub-script/state script names.
-  
+
   # Main menu is handled differently in that only top-level lines are evaluated;
   # first menu line is "Quit" instead of "Back"
-  
+
   case $menu_name in
     "Main"|"Main Menu")
       menu_entry_back="Quit"
-      
+
       menu_lines_list=$(${XMLSTARLET} sel -t -m "/configtool_config/frontend/simple_level" -v "@text" -o ":" ${CONFIG_FILE})
       menu_scripts_list=$(${XMLSTARLET} sel -t -m "/configtool_config/frontend/simple_level" \
                                                -v "@ressource" -i "@dyn_state_ressource" -o '@' -v "@dyn_state_ressource" -b -o ":" ${CONFIG_FILE})
@@ -313,7 +313,7 @@ function ShowGenericMenu
   # reference them after the user makes his choice
 
   local ifsBackup=$IFS
-  
+
   entry_cnt=1
   IFS=":"
   for entry in ${menu_scripts_list}; do
@@ -342,14 +342,14 @@ function ShowGenericMenu
     entry_cnt=$((${entry_cnt}+1));
   done
   IFS=${ifsBackup}
- 
+
   # create static menu lines
 
   IFS=":"
 
   entry_cnt=1
   for entry in ${menu_lines_list}; do
-    
+
     if [[ "" == "${state_scripts_array[${entry_cnt}]}" ]]; then
       menu_lines_array[${entry_cnt}]="${entry_cnt}. ${entry}";
     else
@@ -362,12 +362,12 @@ function ShowGenericMenu
   IFS=${ifsBackup}
 
   while [ "${quit}" = "$FALSE" ]; do
-    
+
     # we have to rebuild the menu lines each time because of the dynamic lines,
     # i.e. Telnet....enabled
     local ifsBackup=$IFS
     IFS=":"
-  
+
     local state=""
     entry_cnt=1
     local state_script=""
@@ -376,7 +376,7 @@ function ShowGenericMenu
       # These mini-scripts are set in the XML config as dyn_state_ressource
       # attributes.  We have to look for these attributes, source them and append
       # the result to the line if available
-    
+
       state_script=${state_scripts_array[${entry_cnt}]}
       if [[ "${state_script}" != "" ]]; then
         state=$(source ${state_script})
@@ -384,7 +384,7 @@ function ShowGenericMenu
 
       menu_lines_array[${entry_cnt}]="${entry_cnt}. ${entry}${state}";
 
-      state="" 
+      state=""
       entry_cnt=$((${entry_cnt}+1));
     done
     IFS=${ifsBackup}
@@ -401,7 +401,7 @@ function ShowGenericMenu
       source ${menu_scripts_array[$selection]};
     else
       quit="$TRUE";
-      errorText="Error in wdialog" 
+      errorText="Error in wdialog"
     fi
 
     case "$option" in
@@ -421,7 +421,7 @@ function ct_array_join
 {
   local aname="$1[@]"
   local delim=$2
-  local result=""  
+  local result=""
   local item
 
   for item in ${!aname}; do
@@ -500,7 +500,7 @@ function MenuItemEdit
                         "$editField" $editFieldLength $selectedValue 2> temp
                     newSelectedValue=`cat temp`
                     rm temp
-            
+
                     # if new value was given - change it in array varMenuValueList.
                     if [ -n "$newSelectedValue" ] && [ "$newSelectedValue" != "$selectedValue" ]; then
                         MenuListChange "$selectedValue" "$newSelectedValue"
@@ -521,6 +521,97 @@ function MenuItemEdit
     fi
 } # end of MenuItemEdit
 
+function GetDsaMode
+{
+  local state=$($NETWORK_CONFIG --get --dsa-mode --quiet)
+  echo $state
+}
+
+function SetDsaMode
+{
+  local state="$1"
+  local ret=$($NETWORK_CONFIG --set "$state" --dsa-mode --quiet)
+  echo $ret
+}
+
+function GetIpConfig {
+  echo $($NETWORK_CONFIG --get --ip-config --device "$1" --quiet)
+}
+
+function SetIpConfig {
+  if [ -n "$3" ] && [ -n "$4" ]; then
+    $NETWORK_CONFIG --ip-config --set "{\"$1\":{\"source\":\"$2\",\"ipaddr\":\"$3\",\"netmask\":\"$4\"}}" --format json --quiet
+  else
+    $NETWORK_CONFIG --ip-config --set "{\"$1\":{\"source\":\"$2\"}}" --format json --quiet
+  fi
+}
+
+function GetCurrentIpConfig {
+  echo $($NETWORK_CONFIG --get-current --ip-config --device "$1" --quiet)
+}
+
+function GetCurrentSourceOf {
+  ip_config=$(GetCurrentIpConfig $1)
+  source=${ip_config##*source=}
+  source=${source%% ipaddr=*}
+  echo $source
+}
+
+function GetCurrentIpAddressOf {
+  ip_config=$(GetCurrentIpConfig $1)
+  ip=${ip_config##*ipaddr=}
+  ip=${ip%% netmask=*}
+  echo $ip
+}
+
+function GetCurrentNetmaskOf {
+  ip_config=$(GetCurrentIpConfig $1)
+  netmask=${ip_config##*netmask=}
+  netmask=${netmask%% bcast=*}
+  echo $netmask
+}
+
+function GetInterfaceConfig {
+  format="$1"
+  echo $($NETWORK_CONFIG --get --interface-config --format "$format" --quiet)
+}
+
+function SetInterfaceConfig {
+  $NETWORK_CONFIG --interface-config --set "{\"autonegotiation\":\"$3\",\"device\":\"$1\",\"duplex\":\"$5\",\"speed\":$4,\"state\":\"$2\"}" --format json --quiet
+}
+
+function SetInterfaceState {
+  $NETWORK_CONFIG --interface-config --set "{\"device\":\"$1\",\"state\":\"$2\"}" --format json --quiet
+}
+
+function SetInterfaceAutoneg {
+  $NETWORK_CONFIG --interface-config --set "{\"device\":\"$1\",\"autonegotiation\":\"$2\"}" --format json --quiet
+}
+
+function GetInterfaceConfigOfDevice {
+  device="$1"
+  format="$2"
+  echo $($NETWORK_CONFIG --get --interface-config --device "$device" --format "$format" --quiet)
+}
+
+function GetInterfaces {
+  echo $($NETWORK_CONFIG --get --device-info --field label --filter port --format text --quiet)
+}
+
+function GetMacAddress {
+  echo $($NETWORK_CONFIG --get --mac-address --device "$1" --quiet)
+}
+
+function ValidateParameter
+{
+  local key="$1"
+  local value="$2"
+
+  if [[ -z "$value" ]]; then
+    SetLastError "Missing $key parameter value"
+  fi
+}
+
 #-------------- main-programm ------------------------
 
 # abort if not run as root or admin
@@ -538,7 +629,7 @@ echo 4 2>/dev/null > /proc/sys/kernel/printk
 # sanity checks
 CheckXMLStarletVersion
 
-# Clear error message from previous instances 
+# Clear error message from previous instances
 rm -f $LAST_ERROR_FILENAME
 
 # Processing of main-menu
@@ -551,7 +642,6 @@ if [ -n "$errorText" ]; then
 fi
 
 #TODO: dedicated start script
-echo $CONSOLE_MSG_LVL 2>/dev/null > /proc/sys/kernel/printk 
+echo $CONSOLE_MSG_LVL 2>/dev/null > /proc/sys/kernel/printk
 
 exit 0
-

@@ -13,7 +13,7 @@
 
 struct inotify_event;
 
-namespace netconfd
+namespace netconf
 {
 
 class FileMonitor

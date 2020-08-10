@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "IDHCPClientController.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIDHCPClientController : public IDHCPClientController {
  public:
@@ -16,5 +16,5 @@ class MockIDHCPClientController : public IDHCPClientController {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf
 #endif 

@@ -15,29 +15,6 @@
 
 //TODO: make configurable
 #define LAST_ERROR_FILENAME "/tmp/last_error.txt"
-#define TRACE_FILENAME      "/etc/config-tools/trace_debug.txt"
-
-char *errorMsgs[] = {
-    [MISSING_PARAMETER] = "missing parameter", 
-    [INVALID_PARAMETER] = "invalid parameter",  
-    [FILE_OPEN_ERROR]   = "error opening file",
-    [FILE_READ_ERROR]   = "error reading file",
-    [FILE_WRITE_ERROR]  =  "error writing file",
-    [NOT_FOUND]         = "value not found",
-    [SYSTEM_CALL_ERROR] = "error during OS operation",
-    [CONFIG_FILE_INCONSISTENT] = "content of config file is inconsistent",
-    [TIMEOUT]           = "timeout",
-    [FILE_CLOSE_ERROR]  = "error closing file",
-};
-
-static void __fillTimestamp(char *timestamp, size_t timestampLen)
-{
-
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
-
-    (void) strftime(timestamp, timestampLen - 1, "%Y-%m-%d, %H:%M:%S", t);
-}
 
 int ct_liblog_setLastError(const char *errorStr)
 {
@@ -89,71 +66,7 @@ int ct_liblog_setLastError(const char *errorStr)
 
 int ct_liblog_reportError(enum eStatusCode errNum, const char *additionalStr)
 {
-    int status = SUCCESS;
-
-    const char *_additionalStr = (NULL == additionalStr) ? "" : additionalStr;
-
-    FILE *traceFileHandle = fopen(TRACE_FILENAME, "a");
-
-    if(NULL == traceFileHandle)
-    {
-        status = FILE_OPEN_ERROR;
-    }
-
-    if(SUCCESS == status)
-    {
-        if(-1 == flock(fileno(traceFileHandle), LOCK_EX))
-        {
-            status = SYSTEM_CALL_ERROR;
-        } 
-    }
-
-    if(SUCCESS == status)
-    {
-        char timestamp[64];
-        timestamp[0] = '\0';
-
-        __fillTimestamp(timestamp, sizeof(timestamp));
-
-        char *errorMsg = NULL;
- 
-        // historically our enum is signed, but all meaningful values are unsigned.
-        // => cast
-        if(errNum >= 0 && (unsigned int) errNum < sizeof(errorMsgs))
-        {
-            errorMsg = errorMsgs[errNum];
-        }
-
-        if(NULL == errorMsg)
-        {
-            (void) fprintf(traceFileHandle, "Error: <%s>  Unknown error(error=%d) %s\n", timestamp, errNum, _additionalStr);
-        }
-        else
-        {
-            (void) fprintf(traceFileHandle, "Error: <%s>  %s %s\n", timestamp, errorMsg, _additionalStr);
-        }
-        
-        if(-1 == fdatasync(fileno(traceFileHandle)))
-        {
-            status = SYSTEM_CALL_ERROR;
-        }
-    }
- 
-    if(NULL != traceFileHandle)
-    {
-        // Must release flock in any case to prevent deadlocks when
-        // logging from a long-living application!
-        if(-1 == flock(fileno(traceFileHandle), LOCK_UN))
-        {
-            status = SYSTEM_CALL_ERROR;
-        }
-        
-        if(-1 == fclose(traceFileHandle) &&
-           SUCCESS == status)
-        {
-            status = FILE_CLOSE_ERROR;
-        }
-    }
-
-    return status;
+    (void) errNum;
+    (void) additionalStr;
+    return SUCCESS;
 }

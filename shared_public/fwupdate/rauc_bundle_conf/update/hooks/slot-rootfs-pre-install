@@ -6,7 +6,7 @@
 #
 # This file is part of project fwupdate (PTXdist package rauc_bundle_conf).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   slot-rootfs-pre-install
@@ -81,14 +81,16 @@ function hook_routine
     fi
 
     # FW15 on TPs does not save TP specific settings, so fix this bevor saving
+    local platform=""
     platform="$(< /sys/class/wago/system/board_variant)"
     RESULT=$?
     
     if [[ "$platform" = "TP600" ]]; then
+        local firmware_revision=""
         firmware_revision="$(/etc/config-tools/get_coupler_details firmware-revision)"
         RESULT=$(( $? == 0 ? $RESULT : $? ))
         if [[ "$firmware_revision" =~ ^03\.03\..*$ ]]; then
-            cp ${RAUC_MOUNT_PREFIX}/bundle/settings_backup_lib_fix_tp_fw15 /usr/sbin/settings_backup_lib
+            cp "${RAUC_MOUNT_PREFIX}/bundle/settings_backup_lib_fix_tp_fw15" "/usr/sbin/settings_backup_lib"
             RESULT=$(( $? == 0 ? $RESULT : $? ))
         fi
     fi

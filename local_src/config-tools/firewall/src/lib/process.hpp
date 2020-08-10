@@ -13,7 +13,8 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#pragma once
+#ifndef WAGO_FIREWALL_PROCESS_HPP_
+#define WAGO_FIREWALL_PROCESS_HPP_
 
 #include "regex.hpp"
 #include "xmlhlp.hpp"
@@ -30,9 +31,8 @@
 //
 
 
-namespace wago
-{
-
+namespace wago {
+namespace firewall {
 
 //------------------------------------------------------------------------------
 /// Creates xpath contest for a given xml document.
@@ -74,5 +74,7 @@ void updrem_attribute(xmlnode& node,
 //------------------------------------------------------------------------------
 void remove(xmldoc& doc, const std::vector<std::string>& argv, const std::string& xpath);
 
-
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_PROCESS_HPP_

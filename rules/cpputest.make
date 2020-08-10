@@ -1,5 +1,4 @@
 # -*-makefile-*-
-# $Id: template-make 8509 2008-06-12 12:45:40Z mkl $
 #
 # Copyright (C) 2010 by WAGO
 #
@@ -17,20 +16,15 @@ PACKAGES-$(PTXCONF_CPPUTEST) += cpputest
 #
 # Paths and names
 #
-CPPUTEST_VERSION	:= 3.1
-CPPUTEST			:= cpputest-$(CPPUTEST_VERSION)
-CPPUTEST_URL		:= 
+CPPUTEST_VERSION	:= 3.7.2
+CPPUTEST_MD5		:= f4f7d62cb78e360ee3c979ee834f88b4
+CPPUTEST		:= cpputest-$(CPPUTEST_VERSION)
+CPPUTEST_SUFFIX    	:= tar.gz
+# Note that prefix 'v' is missing in URL of version 3.7.2: URL must b fixed on update 
+CPPUTEST_URL       	:= https://github.com/cpputest/cpputest/releases/download/$(CPPUTEST_VERSION)/cpputest-$(CPPUTEST_VERSION).$(CPPUTEST_SUFFIX)
+CPPUTEST_SOURCE    	:= $(SRCDIR)/cpputest-$(CPPUTEST_VERSION).$(CPPUTEST_SUFFIX)
 CPPUTEST_DIR		:= $(BUILDDIR)/$(CPPUTEST)
 CPPUTEST_HOME		:= $(CPPUTEST_DIR)
-
-# ----------------------------------------------------------------------------
-# Extract
-# ----------------------------------------------------------------------------
-$(STATEDIR)/cpputest.extract:
-	$(call targetinfo)
-	mkdir -p $(CPPUTEST_DIR)
-	rsync -a --exclude=".*" --exclude="*.o" --exclude="*.a" --exclude=objs/ --exclude=lib/ $(SRCDIR)/$(CPPUTEST) $(BUILDDIR)
-	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -40,38 +34,38 @@ CPPUTEST_PATH	:= PATH=$(CROSS_PATH)
 CPPUTEST_ENV 	:= $(CROSS_ENV)
 
 #
-# 
+# cmake 
 #
-CPPUTEST_AUTOCONF := $(CROSS_AUTOCONF_USR)
+CPPUTEST_CONF_TOOL := cmake
+CPPUTEST_CONF_OPT += -DC++11=ON
+CPPUTEST_CONF_OPT += -DCPPUTEST_FLAGS=OFF 
 
-$(STATEDIR)/cpputest.prepare:
-	@$(call targetinfo)	
-	@$(call touch)
+# ----------------------------------------------------------------------------
+# Prepare
+# ----------------------------------------------------------------------------
+
+# $(STATEDIR)/cpputest.prepare:
+#	@$(call targetinfo)	
+#	@$(call world/prepare, CPPUTEST)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Compile
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/cpputest.compile:
-	@$(call targetinfo)
-# Build CPPUTEST base
-	cd $(CPPUTEST_DIR) && $(CPPUTEST_PATH) $(MAKE) all_no_tests $(PARALLELMFLAGS) \
-	SILENCE="" CC=$(CROSS_CC) CXX=$(CROSS_CXX) CPPUTEST_ADDITIONAL_CPPFLAGS='$(CROSS_CPPFLAGS)' 
-
-# build the cpputest extensions
-	cd $(CPPUTEST_DIR) && $(CPPUTEST_PATH) $(MAKE) all_no_tests -f Makefile_CppUTestExt $(PARALLELMFLAGS) \
-	SILENCE="" CC=$(CROSS_CC) CXX=$(CROSS_CXX) CPPUTEST_ADDITIONAL_CPPFLAGS='$(CROSS_CPPFLAGS)' 
-	@$(call touch)
+#$(STATEDIR)/cpputest.compile:
+#	@$(call targetinfo)
+#	@$(call world/compile, CPPUTEST)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Install
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/cpputest.install:
-	@$(call targetinfo)
-	@mkdir -p $(SYSROOT)/usr/include/CppUTest/
-	@install -m 755 -D $(CPPUTEST_DIR)/include/CppUTest/* $(SYSROOT)/usr/include/CppUTest/
-	@$(call touch)
+#$(STATEDIR)/cpputest.install:
+#	@$(call targetinfo)
+#	@$(call world/install, CPPUTEST)
+#	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Target-Install

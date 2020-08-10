@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IIPManager {
  public:
@@ -22,13 +22,11 @@ class IIPManager {
   virtual Status ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) = 0;
   virtual Status ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) = 0;
 
-  virtual bool IsApplicableToSystem(const IPConfigs &configs) const = 0;
-  virtual Status ValidateIPConfigs(const IPConfigs &configs, const bool interference_has_to_be_checked) const = 0;
-  virtual Status ValidateIPConfigIsApplicableToSystem(const IPConfigs &configs) const = 0;
+  virtual Status ValidateIPConfigs(const IPConfigs &configs) const = 0;
   virtual IPConfigs GetIPConfigs() const = 0;
   virtual IPConfigs GetIPConfigs(const Bridges &bridges) const = 0;
-  virtual IPConfigs GetCurrentIPConfigs(const Bridges &bridges) const = 0;
+  virtual IPConfigs GetCurrentIPConfigs() const = 0;
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

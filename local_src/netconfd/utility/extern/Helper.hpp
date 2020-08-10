@@ -15,7 +15,7 @@
 #include <array>
 #include <utility>
 #include <type_traits>
-
+#include <sstream>
 
 template<typename T1, typename T2>
 bool IsIncluded(const T1& element, const T2& vector) {

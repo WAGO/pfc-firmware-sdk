@@ -4,6 +4,8 @@
 
 #include "IHandler.hpp"
 
+#include "DipSwitchConfig.hpp"
+
 #include <boost/program_options.hpp>
 #include <functional>
 #include <string>
@@ -25,6 +27,9 @@ class DipSwitchHandler : public IHandler {
  private:
   bool Is(const ::std::string &command);
   ::std::string Get(const ::std::string &command);
+  void GetDipSwitchConfig();
+  void SetDipSwitchConfig(const ::std::string &config);
+  void ParseConfig(netconf::api::DipSwitchConfig &dip_switch_config);
   const ::boost::program_options::variables_map &vm_;
 };
 

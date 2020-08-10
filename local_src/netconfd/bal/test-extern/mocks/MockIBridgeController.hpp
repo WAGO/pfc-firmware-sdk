@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include "IBridgeController.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIBridgeController : public IBridgeController {
  public:
@@ -32,6 +32,6 @@ class MockIBridgeController : public IBridgeController {
       Status(const Bridge& bridge, int seconds));
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 #endif 

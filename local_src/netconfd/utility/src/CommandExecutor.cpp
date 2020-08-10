@@ -18,7 +18,7 @@
 
 using namespace std::string_literals;
 
-namespace netconfd {
+namespace netconf {
 
 Status CommandExecutor::Execute(const ::std::string& command) const {
   ::std::string tmp;
@@ -73,6 +73,6 @@ Status CommandExecutor::ForkExecute(const ::std::string& command,
           + ::std::to_string(child.exit_code()) + "; " + error.message());
 }
 
-}  // namespace netconfd
+}  // namespace netconf
 //---- End of source file ------------------------------------------------------
 

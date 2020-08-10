@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 PARENT=$(GetParentMenuName ${BASH_SOURCE})
 
@@ -27,8 +27,7 @@ function MainDSA
 
   while [ "$quit" = "$FALSE" ]; do
     
-    # get the values of the several ethernet-parameters
-    local state=$(xmlstarlet sel -t -m "/interfaces" -v "dsa_mode" ${NETWORK_INTERFACES_XML})
+    local state=$(GetDsaMode)
 
     case $state in
       0)
@@ -73,8 +72,10 @@ function MainDSA
              [[ "$stateVal" == "0" && "$state" == "$SEPARATED_STATE_DESC" ]]; then
  
             ShowProcessingDataWindow "TCP/IP Setting Switch Configuration Mode"
-            /etc/config-tools/set_dsa_mode -v $stateVal
-            ShowLastError
+            local ret=$(SetDsaMode $stateVal)
+            if [[ $ret -ne 0 ]]; then
+              ShowLastError
+            fi
           fi
           ;;
 

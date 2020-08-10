@@ -7,7 +7,7 @@
 
 #include "IIPMonitor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class NetlinkAddressCache : public NetlinkCache, public IIPMonitor {
  public:
@@ -28,4 +28,4 @@ class NetlinkAddressCache : public NetlinkCache, public IIPMonitor {
   ::std::unique_ptr<Impl> impl_;
 };
 
-}  // namespace netconfd
+}  // namespace netconf

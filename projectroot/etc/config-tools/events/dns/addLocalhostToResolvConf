@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 ###############################################################
 # Adds the localhost as first nameserver if dnsmasq is running.
@@ -17,20 +17,25 @@
 
 function AddLocalhostIfDnsmasqIsRunning ()
 {
-   local LOCAL_NAMESERVER="nameserver 127.0.0.1"
-   local RESOLV_CONF=/etc/resolv.conf
-   local state=`/etc/config-tools/get_dns_service_config -g dns-state`
+    local LOCAL_NAMESERVER="nameserver 127.0.0.1"
+    local RESOLV_CONF=/etc/resolv.conf
+    local NET_PARAMS=""
 
-   if [ "$state" == "disabled" ]; then
-       #remove LOCAL_NAMESERVER
-       grep -q "^$LOCAL_NAMESERVER" $RESOLV_CONF && sed -i -e"/^$LOCAL_NAMESERVER/d" $RESOLV_CONF
-       logger -t DNSMASQ-LOCALHOST "Dnsmasq is disabled - \"$LOCAL_NAMESERVER\" will be removed"
-   else # state == enabled
-       #add LOCAL_NAMESERVER before the first nameserver
-       grep -q "^$LOCAL_NAMESERVER" $RESOLV_CONF || sed -i -e "0,/^nameserver/s//$LOCAL_NAMESERVER\nnameserver/" $RESOLV_CONF
-       logger -t DNSMASQ-LOCALHOST "Dnsmasq is enabled - \"$LOCAL_NAMESERVER\" will be added"
-   fi
+    if [[ -n ${NETCONF_BRIDGE_CONFIG+x} && -n ${NETCONF_IP_CONFIG+x} && -n ${NETCONF_INTERFACE_CONFIG+x} ]]; then
+        NET_PARAMS="--bridge-config $NETCONF_BRIDGE_CONFIG --ip-config $NETCONF_IP_CONFIG --interface-config $NETCONF_INTERFACE_CONFIG"
+    fi
+    
+    local state=$(/etc/config-tools/get_dns_service_config -g dns-state "$NET_PARAMS")
+
+    if [ "$state" == "disabled" ]; then
+        #remove LOCAL_NAMESERVER
+        grep -q "^$LOCAL_NAMESERVER" $RESOLV_CONF && sed -i -e"/^$LOCAL_NAMESERVER/d" $RESOLV_CONF
+        logger -t DNSMASQ-LOCALHOST "Dnsmasq is disabled - \"$LOCAL_NAMESERVER\" will be removed"
+    else # state == enabled
+        #add LOCAL_NAMESERVER before the first nameserver
+        grep -q "^$LOCAL_NAMESERVER" $RESOLV_CONF || sed -i -e "0,/^nameserver/s//$LOCAL_NAMESERVER\nnameserver/" $RESOLV_CONF
+        logger -t DNSMASQ-LOCALHOST "Dnsmasq is enabled - \"$LOCAL_NAMESERVER\" will be added"
+    fi
 }
 
 AddLocalhostIfDnsmasqIsRunning
-

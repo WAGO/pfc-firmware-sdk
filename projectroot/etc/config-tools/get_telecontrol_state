@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------
 # Script-name: get_telecontrol_state
@@ -41,7 +41,7 @@ telecontrol_targetids="11957 11960 11961 11968 11969 11970 38500 38502 38505 385
 
 if [ ! -f $config_tool_defines ]; then
   echo "config_tool_defines missing"
-  exit 255
+  exit 64
 fi
 
 . $config_tool_defines

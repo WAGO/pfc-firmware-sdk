@@ -13,7 +13,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ANetworkConfigBrain : public Test {
  public:
@@ -34,4 +34,4 @@ TEST_F(ANetworkConfigBrain, TestName) {
 
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

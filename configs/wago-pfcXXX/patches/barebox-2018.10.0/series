@@ -209,4 +209,15 @@
 0209-arm-dts-pfc-rename-pac100-to-pfc200adv.patch
 0210-Revert-block-Adjust-cache-sizes.patch
 0211-arm-defconfig-pfc-adv-fastboot-enable-sparse-image-s.patch
-0212-add-new-version-w03.03.00_10.patch
+0212-of-of_path-fix-return-in-case-of-EPROBE_DEFER.patch
+0213-eeprom-at24-consider-EPROBE_DEFER-return-values.patch
+0214-drivers-xsection-us-of_-functions-to-handle-EPROBE_D.patch
+0215-defaultenv-pfc-default-boot-dont-stop-booting-if-no-.patch
+0216-arm-board-pfc-am335x-declare-devices_init-function-a.patch
+0217-boards-wago-pfc-am335x-add-support-for-rocket-eval-b.patch
+0218-arm-configs-pfc-adv-activate-rmcb-board.patch
+0219-defaultenv-pfc-base-z-pfc-config-startup-custom_setu.patch
+0220-arm-configs-am35xx_pfc-allow-barebox.env-in-filesyst.patch
+0221-defaultenv-defaultenv-pfc-move-switch-reset-to-non-d.patch
+0222-init_post_autoboot-pfc-switch-reset-add-sleep-after-.patch
+0223-add-new-version-w03.04.00_11.patch

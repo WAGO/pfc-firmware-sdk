@@ -4,7 +4,7 @@
 #include "IDeviceProperties.hpp"
 #include "IBridgeConfigTransformator.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class BridgeConfigTransformator : public IBridgeConfigTransformator {
  public:
@@ -27,4 +27,4 @@ class BridgeConfigTransformator : public IBridgeConfigTransformator {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

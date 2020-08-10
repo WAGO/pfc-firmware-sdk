@@ -9,19 +9,20 @@
 
 #include "file_accessor.hpp"
 #include <gtest/gtest.h>
-#include <iostream>
 
 #include "process.hpp"
 #include "process_service.hpp"
 #include "test_utils.hpp"
 #include "firewall_test_interface_state_data.hpp"
 
-using namespace wago;
+using namespace wago::firewall;
 
-static ::std::string test_res_dir = "../../../test-res";
-static ::std::string params_file = test_res_dir + "/params.xml";
-static ::std::string ipcmn_file = test_res_dir + "/ipcmn.xml";
-static ::std::string dummy_service_file = test_res_dir + "/services/dummy_service.xml";
+namespace {
+const ::std::string test_res_dir = "../../../test-res";
+const ::std::string params_file = test_res_dir + "/params.xml";
+const ::std::string ipcmn_file = test_res_dir + "/ipcmn.xml";
+const ::std::string dummy_service_file = test_res_dir + "/services/dummy_service.xml";
+}
 
 class SeviceProcessingTest : public ::testing::Test, public testing::WithParamInterface<FirewallTestInterfaceStateData> {
 
@@ -68,8 +69,10 @@ class SeviceProcessingTest : public ::testing::Test, public testing::WithParamIn
   }
 };
 
-static ::std::string generate_test_name(testing::TestParamInfo<FirewallTestInterfaceStateData> data) {
+namespace {
+::std::string generate_test_name(testing::TestParamInfo<FirewallTestInterfaceStateData> data) {
   return data.param.interface_ + data.param.state_ + data.param.second_interface_;
+}
 }
 
 // @formatter:off
@@ -89,7 +92,7 @@ TEST_F(SeviceProcessingTest, AddNotExistingInterface) {
   ::std::vector<::std::string> argv = { "on", "dummy" };
 
   auto doc = file_accessor_.read_configuration("dummy_service", false);
-  ASSERT_NO_THROW(service::set_if(doc, argv));
+  ASSERT_NO_THROW(service::impl::set_if(doc, argv));
 
   auto state = get_interface_state(doc, "dummy");
   ASSERT_EQ("on", state);
@@ -101,7 +104,7 @@ TEST_P(SeviceProcessingTest, EnableRuleForAnInterface) {
   ::std::vector<::std::string> argv = { data.state_, data.interface_ };
 
   auto doc = file_accessor_.read_configuration("dummy_service", false);
-  ASSERT_NO_THROW(service::set_if(doc, argv));
+  ASSERT_NO_THROW(service::impl::set_if(doc, argv));
 
   auto state = get_interface_state(doc, data.second_interface_);
   ASSERT_EQ(data.state_, state);
@@ -113,7 +116,7 @@ TEST_P(SeviceProcessingTest, RemoveRuleForAnInterface) {
   ::std::vector<::std::string> argv = { data.interface_ };
 
   auto doc = file_accessor_.read_configuration("dummy_service", false);
-  ASSERT_NO_THROW(service::rem_if(doc, argv));
+  ASSERT_NO_THROW(service::impl::rem_if(doc, argv));
 
   ASSERT_FALSE(interface_exists(doc, data.interface_));
   ASSERT_FALSE(interface_exists(doc, data.second_interface_));

@@ -27,7 +27,6 @@ namespace network_config
     private:
       void GetMacAddress();
 
-      ::std::function<void()> execute_;
       const ::boost::program_options::variables_map& vm_;
   };
 

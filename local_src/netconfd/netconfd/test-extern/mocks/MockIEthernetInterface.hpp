@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-namespace netconfd {
+namespace netconf {
 
 #include <gmock/gmock.h>
 
@@ -24,7 +24,7 @@ class MockIEthernetInterface : public IEthernetInterface {
   MOCK_CONST_METHOD0(GetMauType,
       eth::EthernetMauType());
   MOCK_CONST_METHOD0(GetMac,
-      const MacAddress());
+      MacAddress());
   MOCK_CONST_METHOD0(GetAutonegSupport,
       bool());
   MOCK_CONST_METHOD0(GetAutonegEnabled,
@@ -55,6 +55,6 @@ class MockIEthernetInterface : public IEthernetInterface {
       void(eth::Duplex duplex));
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 //---- End of header file ------------------------------------------------------
 

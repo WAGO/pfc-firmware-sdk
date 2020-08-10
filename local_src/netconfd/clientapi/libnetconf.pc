@@ -5,7 +5,7 @@ includedir=${prefix}/include
 
 Name: WAGO network configuration client API
 Description: Client API for configuration of bridges and IP addresses
-Version: 1.0.0
-Requires:
-Libs: -L${libdir} -lnetconf -ldbus-1 -lstdc++
+Version: 1.1.0
+Requires: 
+Libs: -L${libdir} -lnetconf -ldbus-1 -lstdc++ -lboost_system
 Cflags: -I${includedir}/netconf

@@ -15,7 +15,6 @@
 //------------------------------------------------------------------------------
 
 #include "error.hpp"
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
@@ -23,6 +22,41 @@
 #include <firewall/src/lib/file_accessor.hpp>
 
 namespace wago {
+namespace firewall {
+
+namespace {
+void update_entries_for_backward_compatibility(const ::std::string &line, ::std::ostream &out) {
+
+  auto line_tmp = line;
+
+  if (line_tmp.find("if=\"br0\"") != ::std::string::npos) {
+    ::boost::algorithm::replace_all(line_tmp, "if=\"br0\"", "if=\"X1\"");
+  }
+
+  if (line_tmp.find("if=\"br1\"") != ::std::string::npos) {
+    ::boost::algorithm::replace_all(line_tmp, "if=\"br1\"", "if=\"X2\"");
+  }
+
+  // forwarding rules
+  if (line_tmp.find("if1=\"br0\"") != ::std::string::npos) {
+    ::boost::algorithm::replace_all(line_tmp, "if1=\"br0\"", "if1=\"X1\"");
+  }
+
+  if (line_tmp.find("if2=\"br1\"") != ::std::string::npos) {
+    ::boost::algorithm::replace_all(line_tmp, "if2=\"br1\"", "if2=\"X2\"");
+  }
+
+  if (line_tmp.find("if1=\"br1\"") != ::std::string::npos) {
+    ::boost::algorithm::replace_all(line_tmp, "if1=\"br1\"", "if1=\"X2\"");
+  }
+
+  if (line_tmp.find("if2=\"br0\"") != ::std::string::npos) {
+    ::boost::algorithm::replace_all(line_tmp, "if2=\"br0\"", "if2=\"X1\"");
+  }
+
+  out << line_tmp << '\n';
+}
+}
 
 FileAccessor::FileAccessor()
     :
@@ -47,33 +81,6 @@ std::string FileAccessor::get_config_fname(const std::string &name) const {
     return base_dir_ + "/etc/firewall/services/";
   } else {
     return base_dir_ + "/etc/firewall/services/" + name + ".xml";
-  }
-}
-
-static void update_entries_for_backward_compatibility(const ::std::string &line, ::std::ostream &out) {
-
-  if (line.find("if=\"br0\"") != ::std::string::npos) {
-    out << ::boost::algorithm::replace_first_copy(line, "if=\"br0\"", "if=\"X1\"") << '\n';
-  } else if (line.find("if=\"br1\"") != ::std::string::npos) {
-    out << ::boost::algorithm::replace_first_copy(line, "if=\"br1\"", "if=\"X2\"") << '\n';
-  } else if (line.find("if1=\"br0\"") != ::std::string::npos) {
-    ::std::string tmp = ::boost::algorithm::replace_first_copy(line, "if1=\"br0\"", "if1=\"X1\"");
-
-    if (line.find("if2=\"br1\"") != ::std::string::npos) {
-      tmp = ::boost::algorithm::replace_first_copy(tmp, "if2=\"br1\"", "if2=\"X2\"");
-    }
-
-    out << tmp << '\n';
-  } else if (line.find("if1=\"br1\"") != ::std::string::npos) {
-    ::std::string tmp = ::boost::algorithm::replace_first_copy(line, "if1=\"br1\"", "if1=\"X2\"");
-
-    if (line.find("if2=\"br0\"") != ::std::string::npos) {
-      tmp = ::boost::algorithm::replace_first_copy(tmp, "if2=\"br0\"", "if2=\"X1\"");
-    }
-
-    out << tmp << '\n';
-  } else {
-    out << line << '\n';
   }
 }
 
@@ -153,4 +160,5 @@ bool FileAccessor::check_file(const std::string &name) const {
   return (ret == 0 && buffer.st_size != 0);
 }
 
-}
+} // namespace firewall
+} // namespace wago

@@ -1,7 +1,7 @@
 From f9b618d13399499ef7ee56978d9fc4a0a1403003 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Sep 2018 15:01:16 +0200
-Subject: [PATCH] xload-pfc: use board info and clean up code
+Subject: [PATCH 094/144] xload-pfc: use board info and clean up code
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

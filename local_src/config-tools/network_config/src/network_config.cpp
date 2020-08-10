@@ -3,6 +3,8 @@
 #include "HandlerFactory.hpp"
 #include <cstdio>
 #include <exception>
+#include <cstdarg>
+#include <cstdio>
 
 #include "OptionParser.hpp"
 #include "BridgeConfig.hpp"
@@ -11,46 +13,51 @@ namespace po = boost::program_options;
 
 using network_config::OptionParser;
 
-enum error_codes
-{
+enum error_codes {
   OK,
   SYNTAX_ERROR,
   OPERATION_ERROR
 };
 
-int main(int argc,
-         const char *argv[])
-{
+template <typename... Params>
+static void Print(bool beQuiet, const ::std::string& format, Params... params) {
+  if (beQuiet) {
+    return;
+  }
 
+  printf(format.c_str(), params...);
+}
+
+int main(int argc, const char *argv[]) {
   OptionParser parser;
+  bool beQuiet = false;
   int status = OK;
 
-  try
-  {
+  try {
     parser.Parse(argc, argv);
+
+    beQuiet = parser.IsSet("quiet");
+    auto needHelp = parser.IsSet("help");
+
+    if (needHelp) {
+      parser.PrintHelp();
+      return status;
+    }
+
     auto handler = network_config::HandlerFactory::CreateHandler(parser);
 
-    if(handler)
-    {
+    if (handler) {
       handler->Execute();
     }
-  }
-  catch (po::error &e)
-  {
-    printf("Failed to execute operation: %s\n", e.what());
+  } catch (po::error &e) {
     status = SYNTAX_ERROR;
-  }
-  catch (::std::runtime_error &e)
-  {
-    // TODO(Team PND): Expectation: Config-Tools do not print out error messages.
-    printf("Failed to execute operation: %s\n", e.what());
+    Print(beQuiet, "Your call was syntactically incorrect: %s\nMaybe pay attention to the order of your options and parameters\n", e.what());
+  } catch (::std::runtime_error &e) {
     status = OPERATION_ERROR;
-  }
-  catch (...)
-  {
-    // TODO(Team PND): Expectation: Config-Tools do not print out error messages.
-    printf("Failed to execute operation");
+    Print(beQuiet, "%s\n", e.what());
+  } catch (...) {
     status = OPERATION_ERROR;
+    Print(beQuiet, "The operation failed because of an unknown error, sorry\n");
   }
 
   return status;

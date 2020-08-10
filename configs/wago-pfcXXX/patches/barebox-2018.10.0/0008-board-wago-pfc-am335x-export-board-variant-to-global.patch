@@ -1,8 +1,8 @@
 From e6c4067eb5a61c09754cb790731c56fd0f706e81 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 24 May 2018 14:38:19 +0200
-Subject: [PATCH] board: wago-pfc-am335x: export board variant to global device
- from oftree
+Subject: [PATCH 008/144] board: wago-pfc-am335x: export board variant to
+ global device from oftree
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

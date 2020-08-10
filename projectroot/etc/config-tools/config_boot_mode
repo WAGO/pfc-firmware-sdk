@@ -1,0 +1,62 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+# Script-name: config_boot_mode
+#
+# Configure internal boot mode 
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+CTDIR="/etc/config-tools"
+CONF_TOOL_FILENAME="/usr/sbin/eeprom-xsection"
+
+# load general definitions
+if [[ ! -f $CTDIR/config_tool_defines ]]; then
+  echo "config_tool_defines missing"
+  exit 64
+fi
+
+source "$CTDIR/config_tool_defines"
+
+# show help-text if requested
+if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
+  cat <<EOF
+  * Configure boot mode *
+
+  Usage:
+    config_boot_mode <option>
+
+  Options:
+    -h, --help                        Show this help text.
+    --force_internal_boot <state>     Force internal boot mode [enabled] or [disabled]
+    
+  Example:
+    config_boot_mode  --force_internal_boot enabled
+
+EOF
+  exit "$SUCCESS"
+fi
+
+# check if config tool exist
+if [[ ! -f $CONF_TOOL_FILENAME ]] ; then
+  exit "$INTERNAL_ERROR"
+fi
+
+if [[ "$1" = "--force_internal_boot" ]] ; then
+  if [[ "$2" = "enabled" ]] ; then
+    key="1";
+  elif [[ "$2" = "disabled" ]] ; then
+    key="0"
+  else
+    exit "$INVALID_PARAMETER"
+  fi
+else
+  exit "$INVALID_PARAMETER"
+fi
+
+"$CONF_TOOL_FILENAME" "-W" "-D" "$key"

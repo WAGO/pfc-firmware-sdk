@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 
 void ChronometerStart();
 void ChronometerPrintTimeMs(const ::std::string& discripton);

@@ -17,6 +17,14 @@
 DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
 NETWORK_CONFIG=/etc/config-tools/network_config
 
+wait_for_netconfd_ready () {
+   dbus-wait -t 120 de.wago.netconfd
+   if [ $? != 0 ]; then
+     logger -t udhcpc.script "ERROR: udhcpc: netconfd: DBUS interface de.wago.netconfd not reachable!"
+     exit -1
+   fi
+}
+
 set_ip_config () {
   local iface="$1"
   local source="$2"
@@ -26,10 +34,12 @@ set_ip_config () {
 
   local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
 
+  wait_for_netconfd_ready
+
   out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
 
   if [[ $? != 0 ]]; then
-    logger -t "udhcpc-script" "failed to set ip via dbus-send: $out"
+    logger -t "udhcpc-script" "failed to set ip via network_config tool: $out"
   fi
 }
 
@@ -54,12 +64,21 @@ case "$1" in
                 index=$((index + 1))
             done
         fi
+        
+		# Write hostname and dns domainname
+        [[ -n "$hostname" ]] && echo "DHCPHOSTNAME=$hostname" >> "$FILE"
+        [[ -n "$domain" ]] && echo "DHCPDOMAIN=$domain" >> "$FILE"
 
-        [[ "$hostname" ]] && echo "DHCPHOSTNAME=$hostname" >> "$FILE"
-        [[ "$domain" ]] && echo "DHCPDOMAIN=$domain" >> "$FILE"
+        # Write dns server to tmp file
+        if [[ -n "$dns" ]] ; then
+            index=1
+            for i in $dns; do
+                echo "DNS_SERVER_$index=$i" >> "$FILE"
+                index=$((index + 1))
+            done
+        fi
 
-
-        # write ntp server to tmp file
+        # Write ntp server to tmp file
         if [[ -n "$ntpsrv" ]] ; then
             index=1
             for i in $ntpsrv; do
@@ -68,14 +87,6 @@ case "$1" in
             done
         fi
 
-        #write dns server to tmp file
-        if [[ -n "$dns" ]] ; then
-            index=1
-            for i in $dns; do
-                echo "DNS_SERVER_$index=$i" >> "$FILE"
-                index=$((index + 1))
-            done
-        fi
 
         set_ip_config "$interface" temporary "$ip" "$subnet" "$broadcast"
 

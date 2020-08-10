@@ -7,7 +7,7 @@
 #include <boost/format.hpp>
 #include <boost/asio.hpp>
 
-namespace netconfd {
+namespace netconf {
 
 using ::std::string;
 
@@ -194,7 +194,7 @@ Status RestoreLegacy::GetInterfaceConfigFromAPreviousFirmware(const ::std::strin
   interface_config += ",";
   status = AppendInterfaceConfig("X2", "eth1", backup_content, interface_config);
 
-  if (properties_provider_.GetProductInterfaces().size() == 4) {
+  if (properties_provider_.GetProductPortNames().size() == 4) {
     interface_config += ",";
     interface_config += str(
         boost::format(R"({"device":"%1%","autonegotiation":"%2%","state":"%3%","speed":%4%,"duplex":"%5%"})") % "X11"
@@ -258,4 +258,4 @@ Status RestoreLegacy::Backup(const ::std::string &file_path, const ::std::string
 
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

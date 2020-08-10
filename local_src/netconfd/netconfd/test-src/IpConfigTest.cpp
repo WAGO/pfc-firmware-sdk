@@ -4,7 +4,7 @@
 
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 TEST(IpConfigTest, SourceChanges)
 {
@@ -46,7 +46,7 @@ TEST(IpConfigTest, SourceDoesNotChange)
 
 }
 
-}  // namespace netconfd
+}  // namespace netconf
 
 
 

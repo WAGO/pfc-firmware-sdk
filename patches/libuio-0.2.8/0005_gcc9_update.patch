@@ -1,0 +1,11 @@
+--- libuio-0.2.8/helper.c	2018-05-04 13:08:41.000000000 +0200
++++ libuio-0.2.8/helper.c	2020-06-10 13:43:02.025509713 +0200
+@@ -126,7 +126,7 @@
+ {
+ 	struct uio_map_t *map = NULL;
+ 	struct dirent **namelist;
+-	char *tmp, name [PATH_MAX];
++	char *tmp, name [2*PATH_MAX];
+ 	int nr, i, t = 0;
+ 
+ 	*maxmap = 0;

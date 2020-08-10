@@ -9,9 +9,10 @@
 #pragma once
 
 #include <gmock/gmock.h>
+
 #include "IJsonConvert.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 
 
@@ -19,10 +20,23 @@ namespace netconfd {
 template <class T>
 class MockIJsonConvert : public IJsonConvert<T>
 {
-  MOCK_METHOD1_T(ToJsonString, ::std::string(const T&));
-  MOCK_METHOD2_T(FromJsonString, Status(const ::std::string&, T&));
+
+  MOCK_CONST_METHOD2_T(ToJsonStringImpl, ::std::string(const T&, JsonFormat));
+  MOCK_CONST_METHOD2_T(FromJsonStringImpl, Status(const ::std::string&, T&));
+
+  virtual ::std::string ToJsonString(const T& t, JsonFormat format) const noexcept override
+  {
+    return ToJsonStringImpl(t, format);
+  }
+
+  virtual Status FromJsonString(const ::std::string& s, T& t) const noexcept override
+  {
+    return FromJsonStringImpl(s, t);
+  }
+
+
+
 };
 
-}  // namespace netconfd
-//---- End of header file ------------------------------------------------------
+}  // namespace netconf
 

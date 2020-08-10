@@ -5,7 +5,7 @@
 #include "Types.hpp"
 #include "NetworkInterfaceConstants.hpp"
 
-namespace netconfd
+namespace netconf
 {
 
   class INetworkDevice
@@ -26,4 +26,4 @@ namespace netconfd
 
   };
 
-} /* namespace netconfd */
+} /* namespace netconf */

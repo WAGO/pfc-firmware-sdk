@@ -4,27 +4,24 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #
 # logsystemstart
 #
 
-DATUM=$(/bin/date +"%a %b %d %Y %H:%M:%S.000000")
-LOGDATE=$(/bin/date +"%b %d %Y %H:%M:%S")
-              
+SYSTEM_START_DONE_FILE="/var/run/systemstart.done"
 
 case $1 in
 
     start)
-       # send system start logmsg
-       echo "Send System-Boot Log ID"
-       echo -e "$LOGDATE logforward: init\t1\t$DATUM\t0x800000C0\tS\t" >> /var/log/earlymsg
-       ;;
+        /usr/bin/touch "$SYSTEM_START_DONE_FILE"
+        eventmsg -n init 0x800000C0
+        echo "System start done."
+        ;;
 
     stop)
-        echo "send log messege for system shutdown"
-        echo -e "$LOGDATE logforward: init\t1\t$(date +"%a %b %d %Y %H:%M:%S.000000")\t0x800000C0\tR\t" >> /var/log/earlymsg
+        echo ""
         ;;
 
 esac

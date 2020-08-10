@@ -9,10 +9,13 @@
 
 #include <glib.h>
 #include <stdbool.h>
+#include <sys/cdefs.h>
+
+__BEGIN_DECLS
 
 typedef struct xmlSession xmlSession_t;
 
-int ct_xml_generate_network_config(const char *outFilename, xmlSession_t *handle); 
+int ct_xml_generate_network_config(const char *outFilename, xmlSession_t *handle);
 int ct_xml_commit_changes(xmlSession_t *handle);
 int ct_xml_commit_xml_changes(xmlSession_t *handle);
 
@@ -31,5 +34,7 @@ int ct_xml_dup_value(const char *xpathExpr, char **result, xmlSession_t *session
 int ct_xml_get_multiple_values(const char *xpathExpr, GString *result, const char *delim, xmlSession_t *handle);
 int ct_xml_set_multiple_values(const char *xpathExpr, const char *value, xmlSession_t *handle);
 int ct_xml_del_multiple_values(const char *xpathExpr, xmlSession_t *sessionHandle);
+
+__END_DECLS
 
 #endif

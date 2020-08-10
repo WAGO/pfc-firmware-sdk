@@ -14,7 +14,7 @@
 
 #include "Status.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class ICommandExecutor {
 
@@ -33,7 +33,7 @@ class ICommandExecutor {
 
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 #endif
 //---- End of source file ------------------------------------------------------

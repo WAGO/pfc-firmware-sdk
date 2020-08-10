@@ -23,7 +23,7 @@
 <div class="config_form_box">
   <div class="config_data_list"
   <div class="label_value_pair">
-    <div class="label_field"><label for="attention">1.4</label></div>
+    <div class="label_field"><label for="attention">1.7</label></div>
   </div>
 </div>
 

@@ -10,7 +10,7 @@
 // defines; structure, enumeration and type definitions
 //------------------------------------------------------------------------------
 
-namespace netconfd {
+namespace netconf {
 
 class IInterfaceEvent{
 

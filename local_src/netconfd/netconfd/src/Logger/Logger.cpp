@@ -14,7 +14,7 @@
 #include <boost/log/expressions.hpp>
 #include <boost/log/attributes.hpp>
 
-namespace netconfd {
+namespace netconf {
 
 namespace logging = boost::log;
 namespace sinks = boost::log::sinks;
@@ -166,6 +166,6 @@ LogLevel LogLevelFromString(::std::string const& level) {
 }
 
 }
-// namespace netconfd
+// namespace netconf
 
 //---- End of source file ------------------------------------------------------

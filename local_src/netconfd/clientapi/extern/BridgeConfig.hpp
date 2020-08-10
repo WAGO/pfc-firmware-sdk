@@ -3,10 +3,12 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include "Status.hpp"
+#include "Types.hpp"
 
 namespace netconf {
-
+namespace api {
 /**
  * @brief Class representing the bridge configuration
  *
@@ -16,11 +18,7 @@ class BridgeConfig {
   /**
    * @brief Construct an empty Bridge Config object
    */
-  BridgeConfig();
-  BridgeConfig(const BridgeConfig&) noexcept;
-  BridgeConfig& operator=(const BridgeConfig&);
-  BridgeConfig(BridgeConfig&&) noexcept;
-  BridgeConfig& operator=(BridgeConfig&&) noexcept;
+  BridgeConfig() = default;
 
   /**
    * @brief Construct a new Bridge Config object from the json string
@@ -33,7 +31,7 @@ class BridgeConfig {
    *  },
    *
    */
-  explicit BridgeConfig(const ::std::string &jsonstr);
+  explicit BridgeConfig(const netconf::BridgeConfig&);
   ~BridgeConfig();
 
   /**
@@ -54,6 +52,8 @@ class BridgeConfig {
   /**
    * @brief Assigns an interface to a bridge.
    *
+   * The assigned interface will be removed from other bridges if already assigned.
+   *
    * @param interface_name Name of the interface
    * @param bridge_name Name of the bridge
    */
@@ -71,9 +71,16 @@ class BridgeConfig {
    * @brief Returns the bridge assigned interface names.
    *
    * @param bridge_name Name of the interface.
-   * @return ::std::string Name of the interfaces assigned to the bridge or empty when the bridge does not exist.
+   * @return vector of interface names in the specified bridge.
    */
-  ::std::string GetBridgeInterfaces(const ::std::string &bridge_name) const;
+  Interfaces GetBridgeInterfaces(const ::std::string &bridge_name) const;
+
+  /**
+   * @brief Returns the bridge names in the config.
+   *
+   * @return vector of bridge names.
+   */
+  ::std::vector<Bridge> GetBridges() const;
 
   /**
    * @brief Returns the bridge name the interface is assigned to.
@@ -81,7 +88,7 @@ class BridgeConfig {
    * @param interface_name Name of the interface.
    * @return ::std::string Name of the bridge the interface is assigned to or empty when the interface is not part of the bridge configuration.
    */
-  ::std::string GetBridgeOfInterface(const ::std::string &interface_name) const;
+  Bridge GetBridgeOfInterface(const Interface &interface_name) const;
 
   /**
    * @brief Check if the given bridge contains any interfaces.
@@ -91,17 +98,39 @@ class BridgeConfig {
   bool BridgeIsEmpty(const ::std::string &bridge_name) const;
 
   /**
-   * @brief Converts the bridge configuration to its json representation.
-   *
-   * @return ::std::string The json string
+   * Test if the given interfaces are in the same bridge.
+   * @param interfaces The interfaces to be checked
+   * @return true, if the interfaces are in the same bridge.
    */
-  ::std::string ToJson() const;
-  ::std::string ToString() const;
+  bool AreInSameBridge(const ::std::vector<::std::string> &interfaces) const;
+
+  netconf::BridgeConfig GetConfig() const noexcept;
+
+  friend bool operator==(const BridgeConfig& rhs, const BridgeConfig& lhs);
 
  private:
-  class Impl;
-  ::std::unique_ptr<Impl> impl_;
+  netconf::BridgeConfig configs_;
 };
+
+/**
+ * @brief Converts the bridge configuration to its JSON representation.
+ *
+ * @return ::std::string The json string
+ */
+::std::string ToJson(const BridgeConfig& config) noexcept;
+
+/**
+ * Convert the bridge configuration to a textual representation
+ * e.g. "br0=X1,X2 br1=X11,X12"
+ * @param config
+ * @return
+ */
+::std::string ToString(const BridgeConfig& config) noexcept;
+/**
+ *
+ * @return
+ */
+BridgeConfig MakeBridgeConfig(const ::std::string& json_str);
 
 /**
  * @brief Get the Bridge Config from the netconfd network config daemon *
@@ -118,4 +147,8 @@ BridgeConfig GetBridgeConfig();
  */
 Status SetBridgeConfig(const BridgeConfig &config);
 
+bool operator==(const BridgeConfig& rhs, const BridgeConfig& lhs);
+
+} /* namespace api */
 } /* namespace netconf */
+

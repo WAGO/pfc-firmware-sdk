@@ -13,15 +13,15 @@
 /// 
 /// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#pragma once
-
+#ifndef WAGO_FIREWALL_PROCESS_SERVICE_HPP_
+#define WAGO_FIREWALL_PROCESS_SERVICE_HPP_
 
 #include "xmlhlp.hpp"
 #include <string>
 #include <vector>
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 namespace service {
 //------------------------------------------------------------------------------
 /// Process a service's configuration change request.
@@ -31,9 +31,14 @@ namespace service {
 //------------------------------------------------------------------------------
 void process(xmldoc& doc, const std::string& cmd, const std::vector<std::string>& argv);
 
+namespace impl {
 
 void set_if(xmldoc &doc, const std::vector<std::string> &argv);
 void rem_if(xmldoc &doc, const std::vector<std::string> &argv);
 
+} // namespace impl
 } // namespace service
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_PROCESS_SERVICE_HPP_

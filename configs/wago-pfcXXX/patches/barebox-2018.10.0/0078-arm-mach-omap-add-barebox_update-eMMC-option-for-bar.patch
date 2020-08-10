@@ -1,7 +1,8 @@
 From c587d7734fc318bcfb9871896beaff745bca88b3 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 12 Sep 2018 09:34:58 +0200
-Subject: [PATCH] arm: mach-omap: add barebox_update eMMC option for barebox
+Subject: [PATCH 078/144] arm: mach-omap: add barebox_update eMMC option for
+ barebox
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

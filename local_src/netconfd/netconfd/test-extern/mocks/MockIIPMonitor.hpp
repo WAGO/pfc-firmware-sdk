@@ -5,7 +5,7 @@
 
 #include "IIPMonitor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIIPMonitor : public IIPMonitor {
  public:
@@ -21,4 +21,4 @@ class MockIIPMonitor : public IIPMonitor {
 };
 
 
-}  // namespace netconfd
+}  // namespace netconf

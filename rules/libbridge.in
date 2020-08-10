@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+
+config LIBBRIDGE
+	bool
+	depends on !BRIDGE_UTILS || ALLYES
+	select HOST_CT_BUILD	
+	
+	prompt "libbridge"
+	help
+	  Extraction of libbridge form the package BRIDGE_UTILS 
+	  BRIDGE_UTILS cannot be selected when BUSYBOX is selected.	  

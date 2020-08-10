@@ -1,7 +1,7 @@
 From f745f76609dac94566c4847d3fbea6493ee63e9b Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 12 Oct 2018 14:55:52 +0200
-Subject: [PATCH] arm: dts: am335x: add src specific oftrees
+Subject: [PATCH 108/144] arm: dts: am335x: add src specific oftrees
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

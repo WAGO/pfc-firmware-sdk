@@ -6,7 +6,7 @@
 #include <functional>
 #include "IDBusHandlerRegistry.h"
 
-namespace netconfd {
+namespace netconf {
 namespace dbus {
 
 class DBusHandlerRegistry : public IDBusHandlerRegistry {
@@ -198,4 +198,4 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
 };
 
 } /* namespace dbus */
-} /* namespace netconfd */
+} /* namespace netconf */

@@ -11,7 +11,7 @@
 #include "Status.hpp"
 #include <ostream>
 
-namespace netconfd {
+namespace netconf {
 
 void PrintTo(const Status& bar, std::ostream* os);
 void PrintTo(const StatusCode& bar, std::ostream* os);

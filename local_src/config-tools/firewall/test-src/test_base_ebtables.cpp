@@ -7,19 +7,16 @@
 // software implicitly accepts the terms of the license.
 //------------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
-
 #include "test_base_ebtables.hpp"
-
-#include "process.hpp"
-#include "process_ebtables.hpp"
 #include "test_utils.hpp"
 
-using namespace wago;
+using namespace wago::firewall;
 
-static ::std::string test_res_dir = "../../../test-res";
-static ::std::string params_file = test_res_dir + "/params.xml";
-static ::std::string ebwlist_file = test_res_dir + "/ebwlist.xml";
+namespace {
+ const ::std::string test_res_dir = "../../../test-res";
+ const ::std::string params_file = test_res_dir + "/params.xml";
+ const ::std::string ebwlist_file = test_res_dir + "/ebwlist.xml";
+}
 
 EbtablesTestBase::EbtablesTestBase()
     :
@@ -36,3 +33,4 @@ void EbtablesTestBase::SetUp() {
 void EbtablesTestBase::TearDown() {
   TestUtils::remove_dir(tmp_dir_);
 }
+

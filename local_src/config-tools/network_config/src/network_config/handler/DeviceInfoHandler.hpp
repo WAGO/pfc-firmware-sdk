@@ -7,6 +7,7 @@
 #include <functional>
 #include <string>
 #include <boost/program_options.hpp>
+#include "DataFieldAccess.hpp"
 
 namespace network_config
 {
@@ -25,8 +26,8 @@ namespace network_config
       void Execute() override;
 
     private:
-      ::std::function<void()> execute_;
       const ::boost::program_options::variables_map& vm_;
+      DataFieldAccess<::netconf::InterfaceInformation> dfa_;
   };
 
 } /* namespace network_config */

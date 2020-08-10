@@ -5,12 +5,13 @@
 #include "Types.hpp"
 #include <string>
 #include "IBridgeController.hpp"
+#include "IDeviceInterfaceProvider.hpp"
 
-namespace netconfd {
+namespace netconf {
 
-class DeviceInterfaceProvider {
+class DeviceInterfaceProvider : public IDeviceInterfaceProvider {
  public:
-  explicit DeviceInterfaceProvider(IBridgeController& bridge_controller);
+  explicit DeviceInterfaceProvider(IBridgeController &bridge_controller);
   virtual ~DeviceInterfaceProvider() = default;
 
   DeviceInterfaceProvider(const DeviceInterfaceProvider&) = delete;
@@ -18,24 +19,26 @@ class DeviceInterfaceProvider {
   DeviceInterfaceProvider(DeviceInterfaceProvider&&) = delete;
   DeviceInterfaceProvider& operator=(DeviceInterfaceProvider&&) = delete;
 
-  Interfaces GetProductInterfaces() const;
-  Interfaces GetOSInterfaces() const;
+  Interfaces GetProductPortNames() const;
+  Interfaces GetOSPortNames() const override;
+  Interfaces GetOSInterfaceNames() const override;
   InterfaceNameMapping GetInterfacesNameMapping() const;
 
-  void ConvertProductToOSInterfaces(Interfaces& interfaces) const;
-  void ConvertOSToProductInterfaces(Interfaces& interfaces) const;
+  void ConvertProductToOSInterfaces(Interfaces &interfaces) const;
+  void ConvertOSToProductInterfaces(Interfaces &interfaces) const;
 
-  bool HasInterface(const ::std::string& interface_name) const;
+  bool HasInterface(const ::std::string &interface_name) const;
 
  private:
   void GenerateInterfaceNameMapping();
 
-  IBridgeController& bridge_controller_;
+  IBridgeController &bridge_controller_;
 
-  Interfaces product_interfaces_;
-  Interfaces eth_os_interfaces_;
+  Interfaces product_port_interfaces_;
+  Interfaces os_port_interfaces_;
+  Interfaces os_interfaces_;
   InterfaceNameMapping interface_name_mapping_;
 
 };
 
-} /* namespace netconfd */
+}

@@ -1,0 +1,54 @@
+From c891581536035d47f776b6e31c66ca08c5f926a0 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Wed, 29 Apr 2020 12:22:56 +0200
+Subject: [PATCH] defaultenv: pfc: default-boot: dont stop booting if no
+ bootchooser device is found
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+index 1b8524c..3536e92 100644
+--- a/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
++++ b/defaultenv/defaultenv-pfc-base/bin/pfc-config-default-boot
+@@ -7,6 +7,7 @@ led_mode -s -c yellow -v on
+ global.autoboot_timeout=0
+ global.boot.watchdog_timeout=${global.pfc.watchdog_timeout_linux_load}
+ global.linux.bootargs.base="bootversion=${global.version} reset_state=${global.system.reset}"
++global.boot.default="bootchooser"
+ 
+ sd_blspec="${global.pfc.sd_rootfs}/boot/sd/loader/entries/${global.model}-${global.pfc.devconf}.conf"
+ sd_legacy_uImage="${global.pfc.sd_boot}/uImage"
+@@ -25,12 +26,11 @@ elif [ -e "${global.pfc.nand}" ]; then
+ 	global.bootchooser.rootfs.1.boot="file://${nand_blspec_rootfs0}"
+ 	global.bootchooser.rootfs.2.boot="file://${nand_blspec_rootfs1}"
+ else
+-	echo -e ${error} "$0: no valid boot device found for bootchooser"
+-	exit 1
++	# remove bootchooser from default boot source
++	global.boot.default=""
++	echo -e ${warning} "$0: no valid boot device found for bootchooser"
+ fi
+ 
+-global.boot.default="bootchooser"
+-
+ if [ "${global.pfc.disable_sd_boot}" = 0 ]; then
+ 	if [ -e "${global.pfc.sd}" ] && [ -e "${sd_blspec}" ]; then
+ 		global.boot.default="file://${sd_blspec} bootchooser"
+@@ -45,6 +45,11 @@ if [ "${global.pfc.disable_sd_boot}" = 0 ]; then
+ 	fi
+ fi
+ 
++if [ -z "${global.boot.default}" ]; then
++	echo -e ${error} "$0: no valid boot device available"
++	exit 1
++fi
++
+ pfc-check-for-debug-uart
+ pfc-set-linux-console
+ 
+-- 
+2.7.4
+

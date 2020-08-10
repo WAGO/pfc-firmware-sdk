@@ -1,14 +1,14 @@
-$(STATEDIR)/base.get: | $(STATEDIR)/consistency-check
-
-IN_FILES := $(wildcard $(PTXDIST_WORKSPACE)/rules/*.in $(PTXDIST_PLATFORMCONFIGDIR)/rules/*.in)
-
-$(STATEDIR)/consistency-check: $(PTXDIST_WORKSPACE)/selected_ptxconfig $(STATEDIR)/host-ct-make-xml-config.install $(IN_FILES)
-	@echo "*******************************************************"; \
-	echo "*                                                     *"; \
-	echo "* Checking ptxconfig consistency: not yet implemented *"; \
-	echo "*                                                     *"; \
-	echo "*******************************************************"; \
-    touch $@
+#$(STATEDIR)/base.get: | $(STATEDIR)/consistency-check
+#
+#IN_FILES := $(wildcard $(PTXDIST_WORKSPACE)/rules/*.in $(PTXDIST_PLATFORMCONFIGDIR)/rules/*.in)
+#
+#$(STATEDIR)/consistency-check: $(PTXDIST_WORKSPACE)/selected_ptxconfig $(STATEDIR)/host-ct-make-xml-config.install $(IN_FILES)
+#	@echo "*******************************************************"; \
+#	echo "*                                                     *"; \
+#	echo "* Checking ptxconfig consistency: not yet implemented *"; \
+#	echo "*                                                     *"; \
+#	echo "*******************************************************"; \
+#    touch $@
 
 #$(STATEDIR)/consistency-check: $(PTXDIST_WORKSPACE)/selected_ptxconfig $(STATEDIR)/host-ct-make-xml-config.install $(IN_FILES)
 #	@echo "**********************************"; \

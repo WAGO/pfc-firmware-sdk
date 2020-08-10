@@ -22,7 +22,7 @@
 #include "error.hpp"
 #include "test_utils.hpp"
 
-using namespace wago;
+using namespace wago::firewall;
 
 class ProcessParametersTest : public ::testing::Test {
  public:
@@ -68,7 +68,7 @@ TEST_F(ProcessParametersTest, update_xml_params) {
   ASSERT_TRUE(TestUtils::file_exists(params_gen_file));
 
   // Check expected file content.
-  ASSERT_TRUE(TestUtils::content_is_equal("../../../test-res/params_gen.xml", params_gen_file));
+  ASSERT_TRUE(TestUtils::is_content_equal("../../../test-res/params_gen.xml", params_gen_file));
 }
 
 TEST_F(ProcessParametersTest, params_xml_empty) {
@@ -103,7 +103,7 @@ TEST_F(ProcessParametersTest, ipcmn_xml_empty) {
   ASSERT_TRUE(TestUtils::file_exists(params_gen_file));
 
   // Check expected file content.
-  ASSERT_TRUE(TestUtils::content_is_equal("../../../test-res/params.xml", params_gen_file));
+  ASSERT_TRUE(TestUtils::is_content_equal("../../../test-res/params.xml", params_gen_file));
 }
 
 TEST_F(ProcessParametersTest, ipcmn_xml_no_nat_entries) {
@@ -124,7 +124,7 @@ TEST_F(ProcessParametersTest, ipcmn_xml_no_nat_entries) {
   ASSERT_TRUE(TestUtils::file_exists(params_gen_file));
 
   // Check expected file content.
-  ASSERT_TRUE(TestUtils::content_is_equal("../../../test-res/params.xml", params_gen_file));
+  ASSERT_TRUE(TestUtils::is_content_equal("../../../test-res/params.xml", params_gen_file));
 }
 
 //---- End of source file ------------------------------------------------------

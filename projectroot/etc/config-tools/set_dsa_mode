@@ -26,10 +26,9 @@ dsa_mode=""
 CTDIR=/etc/config-tools
 if [ ! -f "$CTDIR/config_tool_lib" ]; then
     echo "config_tool_lib missing"
-    exit 255
+    exit 64
 fi
 . $CTDIR/config_tool_lib
-status=$SUCCESS
 
 # show help-text if requested
 if [ $# -gt 0 ]; then
@@ -58,7 +57,7 @@ if [ -z "$dsa_mode" ]; then
     exit $MISSING_PARAMETER
 fi
 
-$CTDIR/network_config --dsa-mode --set $dsa_mode
+$NETWORK_CONFIG --dsa-mode --set $dsa_mode
 status=$?
 
 exit $status

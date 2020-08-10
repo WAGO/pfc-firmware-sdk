@@ -7,11 +7,13 @@
 // software implicitly accepts the terms of the license.
 //------------------------------------------------------------------------------
 
-#pragma once
+#ifndef WAGO_FIREWALL_TEST_BASE_IPTABLES_FORWARD_PROCESSING_HPP_
+#define WAGO_FIREWALL_TEST_BASE_IPTABLES_FORWARD_PROCESSING_HPP_
 
 #include <string>
 
 namespace wago {
+namespace firewall {
 
 class FirewallTestInterfaceStateData {
  public:
@@ -29,4 +31,7 @@ class FirewallTestInterfaceStateData {
 
 };
 
+} // namespace firewall
 } // namespace wago
+
+#endif // WAGO_FIREWALL_TEST_BASE_IPTABLES_FORWARD_PROCESSING_HPP_

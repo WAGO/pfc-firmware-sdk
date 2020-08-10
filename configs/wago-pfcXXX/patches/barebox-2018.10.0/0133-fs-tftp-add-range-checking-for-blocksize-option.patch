@@ -1,7 +1,7 @@
 From d1ee1e1e4907d2de913337a876d20bc5dbabfbc4 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Thu, 18 Oct 2018 11:22:29 +0000
-Subject: [PATCH] fs: tftp: add range checking for blocksize option
+Subject: [PATCH 133/144] fs: tftp: add range checking for blocksize option
 
 Tests showed that only blocksize values between 30 and 1468 octets
 are working. So add a verification of this value here.

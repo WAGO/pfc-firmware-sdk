@@ -1,0 +1,2 @@
+ACTION=="change", SUBSYSTEM=="extcon", RUN+="/etc/init.d/config_usb_gadget event"
+ACTION=="add|remove", SUBSYSTEM=="net", ENV{DEVTYPE}=="gadget", RUN+="/usr/sbin/usb_gadget_network"

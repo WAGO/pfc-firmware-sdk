@@ -3,7 +3,7 @@
 #include "SwitchConfigLegacy.hpp"
 #include "FileEditor.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 
 SwitchConfigLegacy::SwitchConfigLegacy(::std::string filename): filename_(std::move(filename))
@@ -18,4 +18,4 @@ bool SwitchConfigLegacy::GetFastAgeing() const {
   return data.find("FAST_AGING=1") != ::std::string::npos;
 }
 
-}  // namespace netconfd
+}  // namespace netconf

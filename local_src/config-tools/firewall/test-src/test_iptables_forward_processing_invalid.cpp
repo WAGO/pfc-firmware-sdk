@@ -16,8 +16,6 @@
 #include "test_utils.hpp"
 #include "error.hpp"
 
-#include <iostream>
-
 using namespace wago;
 
 class IptablesForwardProcessingTestInvalid : public IptablesForwardProcessingTestBase, public testing::WithParamInterface<
@@ -43,7 +41,7 @@ TEST_P(IptablesForwardProcessingTestInvalid, SetForwardState) {
   ::std::vector<::std::string> argv = { data.state_, data.interface1_, data.interface2_ };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_THROW(iptables::set_forward_link(doc, argv), invalid_param_error);
+  ASSERT_THROW(iptables::impl::set_forward_link(doc, argv), invalid_param_error);
 }
 
 TEST_P(IptablesForwardProcessingTestInvalid, RemoveForwardState) {
@@ -52,5 +50,5 @@ TEST_P(IptablesForwardProcessingTestInvalid, RemoveForwardState) {
   ::std::vector<::std::string> argv = { data.interface1_, data.interface2_ };
 
   auto doc = file_accessor_.read_configuration("iptables", false);
-  ASSERT_THROW(iptables::rem_forward_link(doc, argv), invalid_param_error);
+  ASSERT_THROW(iptables::impl::rem_forward_link(doc, argv), invalid_param_error);
 }

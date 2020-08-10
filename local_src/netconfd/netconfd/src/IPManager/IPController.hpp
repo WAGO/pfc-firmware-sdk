@@ -4,7 +4,7 @@
 
 #include "IIPController.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IPController : public IIPController {
  public:
@@ -21,4 +21,4 @@ class IPController : public IIPController {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

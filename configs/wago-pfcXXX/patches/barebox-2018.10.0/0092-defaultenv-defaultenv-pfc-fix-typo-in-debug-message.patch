@@ -1,7 +1,7 @@
 From 428f712f74ed4f95398ed488e48f348c733e5d08 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 24 Sep 2018 14:49:06 +0200
-Subject: [PATCH] defaultenv: defaultenv-pfc: fix typo in debug message
+Subject: [PATCH 092/144] defaultenv: defaultenv-pfc: fix typo in debug message
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

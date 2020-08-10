@@ -45,7 +45,7 @@ else
 			echo "Create default settings file..."
 			mkdir -p ${DEFAULT_SETTINGS_DIR}
 			/etc/config-tools/settings_backup save ${DEFAULT_SETTINGS_DIR}/${DEFAULT_SETTINGS_FILENAME} &> /dev/null
-			chown root:root "${DEFAULT_SETTINGS_DIR}/${DEFAULT_SETTINGS_FILENAME}"
+			chown root:shadow "${DEFAULT_SETTINGS_DIR}/${DEFAULT_SETTINGS_FILENAME}"
 			sync
 			md5sum "$DEFAULT_SETTINGS_DIR/$DEFAULT_SETTINGS_FILENAME" > "$DEFAULT_SETTINGS_DIR/$DEFAULT_SETTINGS_FILENAME.md5"
 			sync

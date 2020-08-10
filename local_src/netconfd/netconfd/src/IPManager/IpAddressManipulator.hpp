@@ -4,7 +4,7 @@
 
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IpAddressManipulator {
  public:
@@ -12,4 +12,4 @@ class IpAddressManipulator {
   static IPConfig ChangeLastAddressOctet(IPConfig const& current, uint32_t new_oktett);
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

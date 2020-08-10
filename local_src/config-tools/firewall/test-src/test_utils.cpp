@@ -21,6 +21,7 @@
 namespace fs = boost::filesystem;
 
 namespace wago {
+namespace firewall {
 
 std::string TestUtils::create_temp_dir(std::string const &prefix){
   std::string tempDirTemplate = std::string("/tmp/") + prefix + "XXXXXX";
@@ -96,7 +97,7 @@ size_t TestUtils::get_line_count(const ::std::string &file_path){
   return number_of_lines;
 }
 
-bool TestUtils::content_is_equal(const ::std::string &file_path1, const ::std::string &file_path2){
+bool TestUtils::is_content_equal(const ::std::string &file_path1, const ::std::string &file_path2){
   fs::path p1(file_path1);
   fs::path p2(file_path2);
 
@@ -118,4 +119,5 @@ bool TestUtils::contains(::std::vector<::std::string> vector, ::std::string valu
   return it != vector.end();
 }
 
-}
+} // namespace firewall
+} // namespace wago

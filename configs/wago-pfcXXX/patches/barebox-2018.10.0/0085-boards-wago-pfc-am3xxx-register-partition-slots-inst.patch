@@ -1,8 +1,8 @@
 From ecb26460f22d47eada049f1a1e840b78740cb884 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 12 Sep 2018 11:11:53 +0200
-Subject: [PATCH] boards: wago-pfc-am3xxx: register partition slots instead
- using offsets
+Subject: [PATCH 085/144] boards: wago-pfc-am3xxx: register partition slots
+ instead using offsets
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

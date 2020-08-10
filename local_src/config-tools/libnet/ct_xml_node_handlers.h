@@ -8,8 +8,12 @@
 #define __XML_NODE_HANDLERS_H__
 
 #include <libxml/tree.h>
+#include <sys/cdefs.h>
 
+__BEGIN_DECLS
 
 int ct_xml_apply_update_function(xmlNode * curNode, void *data);
+
+__END_DECLS
 
 #endif

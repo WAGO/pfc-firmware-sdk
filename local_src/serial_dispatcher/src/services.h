@@ -19,8 +19,6 @@
  *
  *   hans-florian.scholz@wago.com
  *
- *$Id: services.h 24582 2017-09-15 05:48:15Z hans-florian.scholz@wago.com $
- *
  */
 #ifndef SERVICES_H_
 #define SERVICES_H_

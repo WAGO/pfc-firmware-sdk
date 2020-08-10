@@ -20,8 +20,6 @@
 # Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
-NETWORK_CONFIG=/etc/config-tools/network_config
-
 # load general definitions and functions
 if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
   echo "config_tool_lib missing"
@@ -51,13 +49,16 @@ if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
   exit $status
 fi
 
+IFCONFIG=/sbin/ifconfig
+
 ipaddr=
 netmask=
 bridge=
 source=
-conf_type=
 broadcast=
+state=
 declare -A interface_map=( [X1]=br0 [X2]=br1 )
+declare -A state_map=( [enable]=up [disable]=down )
 
 while [[ $# -ne 0 ]]; do
     case "$1" in
@@ -70,7 +71,9 @@ while [[ $# -ne 0 ]]; do
             source=$(/etc/config-tools/get_eth_config $port 'config-type')
             ;;
         state=*)
-            #ignored here
+            if [ -n "${1#state=}" ]; then
+                state="${1#state=}"
+            fi
             ;;
         config-type=*)
             if [ -n "${1#config-type=}" ]; then
@@ -110,14 +113,19 @@ if [[ "$ipaddr" == "0.0.0.0" ]]; then
     netmask="0.0.0.0"
 fi
 
-json_string="{\"$bridge\":{\"source\":\"$source\",\"ipaddr\":\"$ipaddr\",\"netmask\":\"$netmask\"}}"
-
-status=$($NETWORK_CONFIG --ip-config --set $json_string --format=json)
-if [[ "$status" != "$SUCCESS" ]]; then
-  echo $status > /tmp/config_ethernet
-  exit $status
+if [[ ! -z "$state" ]]; then
+	$IFCONFIG $bridge ${state_map[$state]}
+	status=$?
 fi
 
-sync
+if [[ ! -z "$ipaddr" || "$source" == "dhcp" || ! -z "$netmask" ]]; then
+	json_string="{\"$bridge\":{\"source\":\"$source\",\"ipaddr\":\"$ipaddr\",\"netmask\":\"$netmask\"}}"
+	result=$($NETWORK_CONFIG --ip-config --set $json_string --format=json)
+	status=$?
+	if [[ "$status" != "$SUCCESS" ]]; then
+	  echo $result > /tmp/config_ethernet
+	fi
+fi
+
 
 exit $status

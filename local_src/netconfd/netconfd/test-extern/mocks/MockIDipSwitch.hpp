@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include "IDipSwitch.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockIDipSwitch : public IDipSwitch {
  public:
@@ -14,4 +14,4 @@ class MockIDipSwitch : public IDipSwitch {
 };
 
 }
-  // namespace netconfd
+  // namespace netconf

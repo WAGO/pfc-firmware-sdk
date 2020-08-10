@@ -5,49 +5,62 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 
-namespace netconfd
-{
+namespace netconf {
 
-  static ::std::vector<::std::string> Split(::std::string text,
-                                            const ::std::string& delimiters)
-  {
-    std::vector<std::string> v;
-    boost::algorithm::split(v, text, boost::is_any_of(delimiters));
-    return v;
-  }
+static ::std::vector<::std::string> Split(::std::string text, const ::std::string &delimiters) {
+  std::vector<std::string> v;
+  boost::algorithm::split(v, text, boost::is_any_of(delimiters));
+  return v;
+}
 
-  FirmwareVersion::FirmwareVersion(::std::string complete_version) :
-          complete_version_{std::move(complete_version)},
-          major_{ },
-          minor_{ },
-          bugfix_{ },
-          index_{ }
-  {
+FirmwareVersion::FirmwareVersion(::std::string complete_version)
+     {
 
-    try
-    {
+  try {
 
-      auto parts = Split(complete_version_, ".()");
+    auto parts = Split(complete_version, ".()");
 
-      if(parts.size() >= 4)
-      {
-        major_ = ::std::stoi(parts[0]);
-        minor_ = ::std::stoi(parts[1]);
-        bugfix_ = ::std::stoi(parts[2]);
-        index_ = ::std::stoi(parts[3]);
-        is_valid_ = true;
-      }
-
+    if (parts.size() >= 4) {
+      major_ = ::std::stoi(parts[0]);
+      minor_ = ::std::stoi(parts[1]);
+      bugfix_ = ::std::stoi(parts[2]);
+      index_ = ::std::stoi(parts[3]);
+      is_valid_ = true;
     }
-    catch (...)
-    {
-      /* nothing to do here */
-    }
-  }
 
-  int FirmwareVersion::GetFirmwareIndex() const
-  {
-    return index_;
+  } catch (...) {
+    /* nothing to do here */
   }
+}
 
-} /* namespace netconfd */
+FirmwareVersion::FirmwareVersion(FirmwareVersion &&other) noexcept
+    :
+    major_ { other.major_ },
+    minor_ { other.minor_ },
+    bugfix_ { other.bugfix_ },
+    index_ { other.index_ },
+    is_valid_ { other.is_valid_ } {
+
+  other.major_ = 0;
+  other.minor_ = 0;
+  other.bugfix_ = 0;
+  other.index_ = 0;
+  other.is_valid_ = false;
+}
+
+FirmwareVersion& FirmwareVersion::operator=(FirmwareVersion &&other) noexcept {
+  major_ = other.major_;
+  minor_ = other.minor_;
+  bugfix_ = other.bugfix_;
+  index_ = other.index_;
+  is_valid_ = other.is_valid_;
+
+  other.major_ = 0;
+  other.minor_ = 0;
+  other.bugfix_ = 0;
+  other.index_ = 0;
+  other.is_valid_ = false;
+  return *this;
+}
+
+} /* namespace netconf */

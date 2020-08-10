@@ -1,7 +1,7 @@
 From ef695e1e8e57c15f38610893a637460af9d81c77 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 30 Aug 2018 15:56:52 +0200
-Subject: [PATCH] arm: dts: am3xxx: nandparts: fix typo
+Subject: [PATCH 077/144] arm: dts: am3xxx: nandparts: fix typo
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

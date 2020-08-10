@@ -18,7 +18,7 @@ PACKAGES-$(PTXCONF_MDMD) += mdmd
 #
 # Paths and names
 #
-MDMD_VERSION 				:= 0.7.6
+MDMD_VERSION 				:= 0.7.8
 MDMD_MD5				:=
 MDMD					:= mdmd
 MDMD_URL     				:= file://$(PTXDIST_WORKSPACE)/local_src/$(MDMD)

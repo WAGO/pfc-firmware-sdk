@@ -149,12 +149,12 @@ if [ -e "$CONFIG_ROUTING" ]; then
         index=$((_number-1))
         args="$args index=$index"
     fi
-    
+
     if [[ -z "$_destination" && -z "$_dest_mask" ]]; then
         _destination="default"
         _dest_mask="0.0.0.0"
     fi
-    
+
     [[ "$_state" ]] && args="$args state=$_state"
     [[ "$_gw_ip" ]] && args="$args gw=$_gw_ip"
     [[ "$_metric" ]] && args="$args metric=$_metric"
@@ -165,7 +165,7 @@ if [ -e "$CONFIG_ROUTING" ]; then
 
     # Call config-routing config-tool
     $CONFIG_ROUTING $args
-    
+
     status=$?
 else
 
@@ -182,7 +182,7 @@ else
     DEFAULT_GW_VALUE_REMOVE_2=""
     DEFAULT_GW_STATE_REMOVE_2=""
     DEFAULT_GW_METRIC_REMOVE_2=""
-        
+
     if [[ "$status" == "$SUCCESS" ]]; then
         if [ "$_gw_ip" ]; then
             name=DEFAULT_GW_VALUE_$_number
@@ -231,7 +231,7 @@ else
             eval $name_remove=${!name}
             eval $name=$_dest_mask
         fi
-        
+
         > $STATIC_GW_FILE_TMP
         echo "DEST_GW_VALUE_1=$DEST_GW_VALUE_1" >> $STATIC_GW_FILE_TMP
         echo "DEST_GW_MASK_1=$DEST_GW_MASK_1" >> $STATIC_GW_FILE_TMP
@@ -256,7 +256,7 @@ else
         echo "DEFAULT_GW_VALUE_REMOVE_2=$DEFAULT_GW_VALUE_REMOVE_2" >> $STATIC_GW_FILE_TMP
         echo "DEFAULT_GW_STATE_REMOVE_2=$DEFAULT_GW_STATE_REMOVE_2" >> $STATIC_GW_FILE_TMP
         echo "DEFAULT_GW_METRIC_REMOVE_2=$DEFAULT_GW_METRIC_REMOVE_2" >> $STATIC_GW_FILE_TMP
-        
+
         sync
         mv $STATIC_GW_FILE_TMP $STATIC_GW_FILE
     fi

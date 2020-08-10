@@ -5,7 +5,7 @@
 #include <chrono>
 #include <iostream>
 
-namespace netconfd {
+namespace netconf {
 
 namespace Color {
 enum Code {
@@ -18,6 +18,8 @@ enum Code {
   BG_BLUE = 44,
   BG_DEFAULT = 49
 };
+
+
 
 class Modifier {
   Code code;

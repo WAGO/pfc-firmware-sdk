@@ -5,7 +5,7 @@
 #include "Types.hpp"
 #include "Status.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IBridgeConfigValidator {
  public:
@@ -21,5 +21,5 @@ class IBridgeConfigValidator {
 
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */
 

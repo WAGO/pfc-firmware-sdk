@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#
+# Firewall: opcua-server events handler
+#
+
+enabled=$(/etc/config-tools/firewall firewall --is-enabled)
+[ "enabled" != "$enabled" ] && exit 0
+
+
+start()
+{
+    running=$(/etc/config-tools/config-opcua --get=\"state\")
+    if [ "{\"state\":\"enable\"}" == "$running" ] ; then
+        action="up"
+
+    else
+        action="down"
+
+    fi
+
+    /etc/config-tools/firewall opcua --apply ${action} >/dev/null 2>&1
+}
+
+
+stop()
+{
+    /etc/config-tools/firewall opcua --apply down >/dev/null 2>&1
+}
+
+case "$1" in
+    start|config)
+        start;;
+    stop)
+        stop;;
+    *)
+        ;;
+esac

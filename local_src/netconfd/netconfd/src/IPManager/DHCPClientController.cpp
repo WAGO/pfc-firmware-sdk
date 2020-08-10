@@ -13,7 +13,7 @@
 
 using namespace std::string_literals;
 
-namespace netconfd {
+namespace netconf {
 
 DHCPClientController::DHCPClientController(const IDeviceProperties &properties_provider, const IFileEditor &file_editor)
     :
@@ -30,12 +30,13 @@ Status DHCPClientController::StartClient(const Bridge &bridge) const {
   }
   LogDebug("Start DHCP Client for bridge " + bridge);
 
-  ::std::string hostname = properties_provider_.GetHostname();
+  ::std::string hostname_option = "hostname:" + properties_provider_.GetHostname();
   ::std::string pid_file_path = "/var/run/udhcpc_" + bridge + ".pid";
+  auto vendorclass = properties_provider_.GetOrderNumber();
 
   auto argv_array = make_array(DHCP_CLIENT_PATH.c_str(), "--interface", bridge.c_str(),
-                               "--vendorclass", properties_provider_.GetOrderNumber().c_str(), "--pidfile",
-                               pid_file_path.c_str(), "-x", "hostname:", hostname.c_str(), "--syslog", nullptr);
+                               "--vendorclass", vendorclass.c_str(), "--pidfile",
+                               pid_file_path.c_str(), "-x", hostname_option.c_str(), "--syslog", nullptr);
 
   GPid pid;
   GError *error;
@@ -116,4 +117,4 @@ DHCPClientStatus DHCPClientController::GetStatus(const Bridge &bridge) const {
 
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

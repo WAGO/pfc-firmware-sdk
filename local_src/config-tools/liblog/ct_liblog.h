@@ -10,6 +10,9 @@
 #include <ct_error_handling.h>
 
 int ct_liblog_setLastError(const char *errorStr);
-int ct_liblog_reportError(enum eStatusCode errNum, const char *additionalStr);
+
+// \Note: This function is deprecated an will be removed soon.
+//        Do not use!
+int ct_liblog_reportError(enum eStatusCode errNum, const char *additionalStr) __attribute__((deprecated("will be removed soon")));
 
 #endif

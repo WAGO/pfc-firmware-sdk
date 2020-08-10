@@ -11,7 +11,7 @@
 
 #include "file_accessor.hpp"
 
-using namespace wago;
+using namespace wago::firewall;
 
 class EbtablesTestBase : public ::testing::Test {
 

@@ -1,0 +1,27 @@
+From 9c8e0ab75ea96ced131f39c86764518fa1389d0d Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 11 May 2020 10:52:57 +0200
+Subject: [PATCH] defaultenv-pfc-base: z-pfc-config-startup: custom_setup: set
+ red leds in error case
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup b/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup
+index db6b5a4..d597e55 100644
+--- a/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup
++++ b/defaultenv/defaultenv-pfc-base/init/z-pfc-config-startup
+@@ -31,6 +31,8 @@ elif [ "${global.pfc.boot_mode}" = "custom" ]; then
+ 	pfc-exec-custom-boot
+ 	if [ "$?" = 1 ]; then
+ 		echo -e ${error} "$0: failed to execute custom script"
++		led_mode -s -c yellow -v off
++		led_mode -s -c red -v on
+ 		exit 1
+ 	fi
+ 
+-- 
+2.7.4
+

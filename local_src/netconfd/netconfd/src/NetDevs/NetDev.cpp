@@ -6,8 +6,9 @@ extern "C" {
 }
 
 #include "NetDev.hpp"
+#include <algorithm>
 
-namespace netconfd {
+namespace netconf {
 
 void NetDev::SetIfFlags(::std::uint32_t flags) {
 
@@ -24,7 +25,6 @@ void NetDev::SetIfFlags(::std::uint32_t flags) {
     onlinkchange_(*this, link_state_);
   }
 
-
 }
 
-}  // namespace netconfd
+}  // namespace netconf

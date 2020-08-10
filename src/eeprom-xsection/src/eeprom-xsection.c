@@ -22,10 +22,11 @@
  *        after next reboot.
  *  v0.5: Added support for HW03 EMMC.
  *  V0.6: M. Laschinsky: deactivated eeprom boot-options -> obsolete (use rauc instead)
+ *  V0.7: added printing of current state of internal boot mode (enabled/disabled)
  *
 */
 
-#define EEPROM_XSECTION_VERSION        "0.6"
+#define EEPROM_XSECTION_VERSION        "0.7"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -35,7 +36,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-/* #define DEBUG */
+ /* #define DEBUG */
 
 
 #include "eeprom-xsection.h"
@@ -139,6 +140,7 @@ static struct boot_table_entry *pac_boot_table_lookup(u8 boot_id)
 }
 
 #define STR_YES_NO(x) (x) ? "yes" : "no"
+#define STR_ENABLED_DISABLED(x) (x) ? "enabled" : "disabled"
 #define STR_ROOTFS1(x) (x) ? "ubi0:ubi_rootfs1" : "/dev/mmcblk1p2"
 #define STR_ROOTFS2(x) (x) ? "ubi0:ubi_rootfs2" : "/dev/mmcblk1p3"
 #define STR_ROOTFS_MEM(x) (x) ? "NAND" : "EMMC"
@@ -226,21 +228,21 @@ void dump_boot_mode(u8 boot_mode_id){
 
   //TODO: sync ubifs labels with bootloader
   printf("%s: Default root partition is %s\n",
-	 STR_ROOTFS_MEM(booting_from_nand), partLabelDefault);
+  STR_ROOTFS_MEM(booting_from_nand), partLabelDefault);
 
   if(booting_from_nand || booting_from_emmc) {
     printf("%s: Current root partition is %s\n",
-	   STR_ROOTFS_MEM(booting_from_nand), partLabelCurrent);
-  } 
+    STR_ROOTFS_MEM(booting_from_nand), partLabelCurrent);
+  }
   printf("%s: Next time will boot from  %s\n",
-	 STR_ROOTFS_MEM(booting_from_nand), partLabelNext);
+  STR_ROOTFS_MEM(booting_from_nand), partLabelNext);
   printf("\n");
   printf("Linux: use serial console:     %s\n", STR_YES_NO(kernel_use_com_port));
   printf("Linux: SD Card boot disabled:  %s\n", STR_YES_NO(get_sd_boot_disabled() == SD_DISABLE_BIT));
-
   printf("\n     ~~Expert options~~\n");
   printf("Linux: enable all mtd devices: %s\n", STR_YES_NO(enable_all_mtd_devices));
   printf("Linux: overwrite command line: %s\n", STR_YES_NO(overwrite_auto_cmdline));
+
 }
 
 void dump_section(unsigned char xsection_id)
@@ -251,7 +253,8 @@ void dump_section(unsigned char xsection_id)
 	    xsection_id & OP_XSECTION_NONE)
 		return;
 
-	if (xsection_id & OP_XSECTION_HDR) {
+	if (xsection_id & OP_XSECTION_HDR ||
+      xsection_id & OP_XSECTION_PRBOOT) {
 		char *buf;
 		int size;
 		int i;
@@ -261,7 +264,12 @@ void dump_section(unsigned char xsection_id)
 		if (xsection_id & OP_XSECTION_DUMP) {
 			for (i = 0; i < size; i++)
 				printf("%x\n", *(buf + i));
-		} else {
+		}
+		else if (xsection_id & OP_XSECTION_PRBOOT) {
+		  // print state of "internal" boot mode (invert to SD Card boot mode)
+		  printf("%s\n", STR_ENABLED_DISABLED(get_sd_boot_disabled() == SD_DISABLE_BIT));
+		}
+		else {
       dump_boot_mode(pac_xsection.hdr.boot_mode_id);
 		}
 	}
@@ -333,6 +341,7 @@ static int set_sd_boot_disabled(bool set)
 
 	return eeprom(PAC_WRITE, BOOT_MODE_ID_EXT, &val, sizeof val);
 }
+
 int eeprom_xsection(enum pac_eeprom_op op, unsigned char xsection_id)
 {
 	u8 *buf = NULL;
@@ -348,7 +357,8 @@ int eeprom_xsection(enum pac_eeprom_op op, unsigned char xsection_id)
 		size += pac_xsection.hdr.cmdline_len ? (pac_xsection.hdr.cmdline_len + 1) : 256; /* with '\0' */
 	}
 
-	if (xsection_id & OP_XSECTION_HDR) {
+	if (xsection_id & OP_XSECTION_HDR ||
+	    xsection_id & OP_XSECTION_PRBOOT) {
 		pac_debug("This is %s [%d].\n", __func__, __LINE__);
 		buf = (u8*)&pac_xsection.hdr;
 		offset = 0;
@@ -368,6 +378,7 @@ void print_usage(char *progname)
 		"            -h:  print xsection [h]eader\n"	   \
 		"            -c:  print xsection [c]mdline\n"	   \
 		"            -d:  print in [d]ump mode\n"		   \
+		"            -b:  print state of internal [b]oot mode (invert boot from SD card mode)\n"
 		"Write Mode Options:\n"				   \
 		" (obsolete) -F:              [F]inalize boot partition (set current root as default)\n"	   \
 		" (obsolete) -o [1/0/first]:  if 1: boot from the currently inactive NAND root partition [o]nce\n"		   \
@@ -430,7 +441,7 @@ int main(int argc, char **argv)
 	memset(&pac_xsection, 0, sizeof(pac_xsection));
 
 	if (mode == PAC_READ) {
-		while ((opt = getopt(argc, argv, "hcd")) != -1) {
+		while ((opt = getopt(argc, argv, "hcdb")) != -1) {
 			switch (opt) {
 			default: /* '?' */
 			case 'h': /* short: only header */
@@ -445,7 +456,10 @@ int main(int argc, char **argv)
 				pac_debug("This is %s [%d].\n", __func__, __LINE__);
 				xsection_id |= OP_XSECTION_DUMP;
 				break;
-
+      case 'b': /* print state of internal boot mode */
+        pac_debug("This is %s [%d].\n", __func__, __LINE__);
+        xsection_id |= OP_XSECTION_PRBOOT;
+        break;
 			}
 		}
 	} 

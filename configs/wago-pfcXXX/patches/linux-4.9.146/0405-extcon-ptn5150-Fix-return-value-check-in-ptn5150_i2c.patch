@@ -1,0 +1,42 @@
+From e4da87c4780cedcb7b38b5809a2da25be84bad56 Mon Sep 17 00:00:00 2001
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Date: Fri, 25 Jan 2019 01:45:54 +0000
+Subject: [PATCH] extcon: ptn5150: Fix return value check in
+ ptn5150_i2c_probe()
+
+In case of error, the function devm_gpiod_get() returns ERR_PTR() and
+never returns NULL. The NULL test in the return value check should be
+replaced with IS_ERR().
+
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
+---
+ drivers/extcon/extcon-ptn5150.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/extcon/extcon-ptn5150.c b/drivers/extcon/extcon-ptn5150.c
+index 18a8f258767b..d1c997599390 100644
+--- a/drivers/extcon/extcon-ptn5150.c
++++ b/drivers/extcon/extcon-ptn5150.c
+@@ -240,14 +240,14 @@ static int ptn5150_i2c_probe(struct i2c_client *i2c,
+ 	info->dev = &i2c->dev;
+ 	info->i2c = i2c;
+ 	info->int_gpiod = devm_gpiod_get(&i2c->dev, "int", GPIOD_IN);
+-	if (!info->int_gpiod) {
++	if (IS_ERR(info->int_gpiod)) {
+ 		dev_err(dev, "failed to get INT GPIO\n");
+-		return -EINVAL;
++		return PTR_ERR(info->int_gpiod);
+ 	}
+ 	info->vbus_gpiod = devm_gpiod_get(&i2c->dev, "vbus", GPIOD_IN);
+-	if (!info->vbus_gpiod) {
++	if (IS_ERR(info->vbus_gpiod)) {
+ 		dev_err(dev, "failed to get VBUS GPIO\n");
+-		return -EINVAL;
++		return PTR_ERR(info->vbus_gpiod);
+ 	}
+ 	ret = gpiod_direction_output(info->vbus_gpiod, 0);
+ 	if (ret) {
+-- 
+2.17.1
+

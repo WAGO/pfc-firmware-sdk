@@ -1,0 +1,594 @@
+From cec8ec74b68246ce3c9e6a502fbb897c4d6eb9af Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Mon, 15 Jun 2020 11:51:09 +0200
+Subject: [PATCH] drivers: net: mv88e6xxx: remove shared global_chip variable
+
+global_chip was used to give the swconfig driver access to marvell driver.
+The access to the chip struct from the marvell driver, is now done
+via oftree.
+The swconfig driver for the marvell now holds the corresponding switch_dev
+in its private instance struct. This removes the need to add the mii_bus
+instance to the switch_dev structure.
+Further move any static variables from the swconfig driver for the
+mv88e6321 to the instance struct.
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ .../dts/am335x-pfc-750_821x-mv88e6321.dtsi    |   1 +
+ drivers/net/dsa/mv88e6xxx/chip.c              |   4 -
+ drivers/net/phy/mv88e6321-cfg.c               | 396 +++++++++---------
+ include/linux/switch.h                        |   1 -
+ 4 files changed, 192 insertions(+), 210 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
+index 7e3472674a75..5431481e991b 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
+@@ -16,6 +16,7 @@
+ 		swcfg,cpu_port = <5>;
+ 		swcfg,ports = <7>;
+ 		swcfg,vlans = <1>;
++		swcfg,switch = <&mv88e6321_switch>;
+ 
+ 		status = "disabled";
+ 	};
+diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+index 022f0ff701c9..8fa31340d2ef 100644
+--- a/drivers/net/dsa/mv88e6xxx/chip.c
++++ b/drivers/net/dsa/mv88e6xxx/chip.c
+@@ -41,8 +41,6 @@
+ #include "global1.h"
+ #include "global2.h"
+ 
+-struct mv88e6xxx_chip *global_chip = NULL;
+-
+ static void assert_reg_lock(struct mv88e6xxx_chip *chip)
+ {
+ 	if (unlikely(!mutex_is_locked(&chip->reg_lock))) {
+@@ -4429,8 +4427,6 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
+ 	if (err)
+ 		goto out_unregister_switch;
+ 
+-	global_chip = chip;
+-
+ 	return 0;
+ 
+ out_unregister_switch:
+diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
+index c9196d0128cc..4a65912ebe2d 100644
+--- a/drivers/net/phy/mv88e6321-cfg.c
++++ b/drivers/net/phy/mv88e6321-cfg.c
+@@ -8,7 +8,7 @@
+  * Licensed under the GPL version 2
+  */
+ 
+-#define pr_fmt(fmt)     "mv88e6321: " fmt
++#define pr_fmt(fmt) "mv88e6321: " fmt
+ 
+ #include <linux/module.h>
+ #include <linux/string.h>
+@@ -30,319 +30,305 @@
+ 
+ #include "../dsa/mv88e6xxx/mv88e6xxx.h"
+ 
+-#define DRIVER_NAME		"mv88e6321"
++#define DRIVER_NAME "mv88e6321"
+ 
+-#define MV88E6321_GLOBAL_REG		0x1B
+-
+-extern struct mv88e6xxx_chip *global_chip;
+-
+-struct mv88e6321_info {
++struct mv88e6321_cfg {
++	struct switch_dev swdev;
+ 	struct device *dev;
+-	struct switch_dev *swdev;
+-	int reset_gpio;
+-	bool reset;
+-} *mvinfo;
+-
+-static int mv88e6321_soft_reset(void)
+-{
+-        return 0;
+-}
++	u32 sw_addr;
++	struct mv88e6xxx_chip *chip;
++	struct mii_bus *mii_bus;
++	u8 current_reg;
++	u8 current_phy_reg;
++};
+ 
+-static u8 cur_reg = 0;
+-static u8 cur_phy_reg = 0;
++#define get_mv88e6321_cfg(_dev)                                                \
++	container_of((_dev), struct mv88e6321_cfg, swdev)
+ 
+ static int mv88e6321_sw_set_mdio_phy(struct switch_dev *dev,
+ 				     const struct switch_attr *attr,
+ 				     struct switch_val *val)
+ {
+-        cur_phy_reg = val->value.i;
+-        return 0;
++	struct mv88e6321_cfg *cfg = get_mv88e6321_cfg(dev);
++
++	cfg->current_phy_reg = val->value.i;
++	return 0;
+ }
+ 
+ static int mv88e6321_sw_set_mdio_reg(struct switch_dev *dev,
+ 				     const struct switch_attr *attr,
+ 				     struct switch_val *val)
+ {
+-        cur_reg = val->value.i;
+-        return 0;
++	struct mv88e6321_cfg *cfg = get_mv88e6321_cfg(dev);
++
++	cfg->current_reg = val->value.i;
++	return 0;
+ }
+ 
+ static int mv88e6321_sw_get_mdio_phy(struct switch_dev *dev,
+ 				     const struct switch_attr *attr,
+ 				     struct switch_val *val)
+ {
+-        val->value.i = cur_phy_reg;
+-        return 0;
++	struct mv88e6321_cfg *cfg = get_mv88e6321_cfg(dev);
++
++	val->value.i = cfg->current_phy_reg;
++	return 0;
+ }
+ 
+ static int mv88e6321_sw_get_mdio_reg(struct switch_dev *dev,
+ 				     const struct switch_attr *attr,
+ 				     struct switch_val *val)
+ {
+-        val->value.i = cur_reg;
+-        return 0;
++	struct mv88e6321_cfg *cfg = get_mv88e6321_cfg(dev);
++
++	val->value.i = cfg->current_reg;
++	return 0;
+ }
+ 
+ static int mv88e6321_sw_set_mdio_write(struct switch_dev *dev,
+ 				       const struct switch_attr *attr,
+ 				       struct switch_val *val)
+ {
+-        u16 v = val->value.i;
++	struct mv88e6321_cfg *cfg = get_mv88e6321_cfg(dev);
++	u16 v = val->value.i;
++
+ 	pr_debug("mdiobus_write: phy 0x%02x, reg 0x%02x, val 0x%04x\n",
+-		 cur_phy_reg, cur_reg, v);
+-        return mdiobus_write(dev->mii_bus, cur_phy_reg, cur_reg, v);
++		 cfg->current_phy_reg, cfg->current_reg, v);
++
++	return mdiobus_write(cfg->mii_bus, cfg->current_phy_reg,
++			     cfg->current_reg, v);
+ }
+ 
+ static int mv88e6321_sw_get_mdio_read(struct switch_dev *dev,
+ 				      const struct switch_attr *attr,
+ 				      struct switch_val *val)
+ {
+-        val->value.i = mdiobus_read(dev->mii_bus, cur_phy_reg, cur_reg);
+-	pr_debug("mdiobus_read: phy 0x%02x, reg 0x%02x, val 0x%04x\n",
+-		 cur_phy_reg, cur_reg, val->value.i);
+-        return 0;
+-}
++	struct mv88e6321_cfg *cfg = get_mv88e6321_cfg(dev);
+ 
+-static inline int mv88e6321_sw_reset(struct switch_dev *dev)
+-{
+-        return mv88e6321_soft_reset();
++	val->value.i = mdiobus_read(cfg->mii_bus, cfg->current_phy_reg,
++				    cfg->current_reg);
++
++	pr_debug("mdiobus_read: phy 0x%02x, reg 0x%02x, val 0x%04x\n",
++		 cfg->current_phy_reg, cfg->current_reg, val->value.i);
++	return 0;
+ }
+ 
++// clang-format off
+ static struct switch_attr mv88e6321_global_attrs[] = {
+-        {
+-                .type = SWITCH_TYPE_INT,
+-                .name = "mdio_phy",
+-                .description = "Select phy register for mdio rw operation",
+-                .set = mv88e6321_sw_set_mdio_phy,
+-                .get = mv88e6321_sw_get_mdio_phy,
+-        }, {
+-                .type = SWITCH_TYPE_INT,
+-                .name = "mdio_reg",
+-                .description = "Select register for mdio rw operation",
+-                .set = mv88e6321_sw_set_mdio_reg,
+-                .get = mv88e6321_sw_get_mdio_reg,
+-        }, {
+-                .type = SWITCH_TYPE_INT,
+-                .name = "mdio_rw_mdio_generic",
+-                .description = "Read/Write with selected mdio registers",
+-                .set = mv88e6321_sw_set_mdio_write,
+-                .get = mv88e6321_sw_get_mdio_read,
+-        },
++	{
++		.type = SWITCH_TYPE_INT,
++		.name = "mdio_phy",
++		.description = "Select phy register for mdio rw operation",
++		.set = mv88e6321_sw_set_mdio_phy,
++		.get = mv88e6321_sw_get_mdio_phy,
++	},
++	{
++		.type = SWITCH_TYPE_INT,
++		.name = "mdio_reg",
++		.description = "Select register for mdio rw operation",
++		.set = mv88e6321_sw_set_mdio_reg,
++		.get = mv88e6321_sw_get_mdio_reg,
++	},
++	{
++		.type = SWITCH_TYPE_INT,
++		.name = "mdio_rw_mdio_generic",
++		.description = "Read/Write with selected mdio registers",
++		.set = mv88e6321_sw_set_mdio_write,
++		.get = mv88e6321_sw_get_mdio_read,
++	},
+ };
+ 
+ struct switch_dev_ops mv88e6321_switch_dev_ops = {
+ 	.attr_global = {
+ 		.attr = mv88e6321_global_attrs,
+-	        .n_attr = ARRAY_SIZE(mv88e6321_global_attrs),
++		.n_attr = ARRAY_SIZE(mv88e6321_global_attrs),
++	},
++	.attr_port = {
++		.attr = NULL,
++		.n_attr = 0,
++	},
++	.attr_vlan = {
++		.attr = NULL,
++		.n_attr = 0,
+ 	},
+-        .attr_port = {
+-                .attr = NULL,
+-                .n_attr = 0,
+-        },
+-        .attr_vlan = {
+-                .attr = NULL,
+-                .n_attr = 0,
+-        },
+-        .reset_switch = mv88e6321_sw_reset,
+ };
+ 
+-struct mv88e6321_info *of_get_mv_pdata(struct device *dev)
++// clang-format on
++
++static int mv88e6321_cfg_get_chip(struct mv88e6321_cfg *cfg)
+ {
+-	struct device_node *np = dev->of_node;
+-	struct pinctrl *pinctrl;
+-	int ret;
++	struct mdio_device *mdio_dev;
++	struct dsa_switch *ds;
+ 
+-	mvinfo = devm_kzalloc(dev, sizeof(*mvinfo), GFP_KERNEL);
+-	if (!mvinfo)
+-		return ERR_PTR(-ENOMEM);
++	mdio_dev = cfg->mii_bus->mdio_map[cfg->sw_addr];
++	if (!mdio_dev)
++		return -EPROBE_DEFER;
+ 
+-	mvinfo->reset = false;
++	ds = dev_get_drvdata(&mdio_dev->dev);
+ 
+-	if (np) {
++	if (!ds)
++		return -EPROBE_DEFER;
+ 
+-		pinctrl = devm_pinctrl_get_select_default(dev);
+-		if (IS_ERR(pinctrl))
+-			dev_warn(dev, "pins are not configured from the driver\n");
++	if (!ds->priv) {
++		dev_err(cfg->dev, "mv88e6321 chip structure is not available");
++		return -EINVAL;
++	}
+ 
+-		ret = of_get_named_gpio(np, "swcfg,gpio-reset", 0);
+-		if (ret == -EPROBE_DEFER)
+-			goto out_err;
++	cfg->chip = ds->priv;
+ 
+-		mvinfo->reset_gpio = ret;
++	return 0;
++}
++
++static int mv88e6321_cfg_of_get_data(struct mv88e6321_cfg *cfg)
++{
++	struct device *dev = cfg->dev;
++	struct device_node *np = dev->of_node;
++	struct device_node *mdio_node;
++	struct device_node *switch_node;
+ 
+-		if (mvinfo->reset_gpio < 0) {
+-			dev_err(dev, "No gpio reset pin given\n");
+-		} else {
+-			ret = devm_gpio_request_one(dev, mvinfo->reset_gpio,
+-						    GPIOF_OUT_INIT_HIGH |
+-						    GPIOF_EXPORT_DIR_FIXED,
+-						    "SWCFG: Switch Reset Pin");
+-			if (ret < 0) {
+-				dev_err(dev, "failed to claim gpio-reset pin\n");
+-				goto out_err;
+-			}
++	if (!np)
++		return -ENODATA;
+ 
+-			if (of_find_property(np, "swcfg,reset-switch", NULL))
+-				mvinfo->reset = true;
+-		}
++	cfg->swdev.name = np->name;
+ 
+-		dev_warn(dev, "Switch will %sbe resetted.\n",
+-			 mvinfo->reset ? "" : "NOT ");
++	if (of_property_read_string(np, "swcfg,alias", &cfg->swdev.alias)) {
++		dev_err(dev, "No switch alias given\n");
++		return -EINVAL;
+ 	}
+ 
+-	mvinfo->dev = dev;
++	if (of_property_read_u32(np, "swcfg,cpu_port", &cfg->swdev.cpu_port)) {
++		dev_err(dev, "No cpu port given\n");
++		return -EINVAL;
++	}
+ 
+-	return mvinfo;
++	if (of_property_read_u32(np, "swcfg,ports", &cfg->swdev.ports)) {
++		dev_err(dev, "No ports given\n");
++		return -EINVAL;
++	}
+ 
+-out_err:
++	if (of_property_read_u32(np, "swcfg,vlans", &cfg->swdev.vlans)) {
++		dev_err(dev, "No vlans given\n");
++		return -EINVAL;
++	}
+ 
+-	devm_kfree(dev, mvinfo);
+-	return ERR_PTR(ret);
+-}
++	switch_node = of_parse_phandle(np, "swcfg,switch", 0);
++	if (!switch_node) {
++		dev_err(dev, "no switch node given");
++		return -EINVAL;
++	}
+ 
+-static struct switch_dev *of_get_swdev(struct device *dev)
+-{
+-	struct switch_dev *swdev;
+-	struct device_node *np = dev->of_node;
+-	struct device_node *mdio_node;
+-	int ret;
+-
+-	swdev = devm_kzalloc(dev, sizeof(*swdev), GFP_KERNEL);
+-	if (!swdev)
+-		return ERR_PTR(-ENOMEM);
+-
+-	if (np) {
+-		swdev->name = np->name;
+-
+-		if (of_property_read_string(np, "swcfg,alias", &swdev->alias)) {
+-			dev_err(dev, "No switch alias given\n");
+-			ret = -EINVAL;
+-			goto out_err_free;
+-		}
+-
+-		if (of_property_read_u32(np, "swcfg,cpu_port", &swdev->cpu_port)) {
+-			dev_err(dev, "No cpu port given\n");
+-			ret = -EINVAL;
+-			goto out_err_free;
+-		}
+-
+-		if (of_property_read_u32(np, "swcfg,ports", &swdev->ports)) {
+-			dev_err(dev, "No ports given\n");
+-			ret = -EINVAL;
+-			goto out_err_free;
+-		}
+-
+-		if (of_property_read_u32(np, "swcfg,vlans", &swdev->vlans)) {
+-			dev_err(dev, "No vlans given\n");
+-			ret = -EINVAL;
+-			goto out_err_free;
+-		}
+-
+-		/* get mdio node */
+-		mdio_node = of_parse_phandle(np, "swcfg,mii-bus", 0);
+-		if (!mdio_node) {
+-			dev_err(dev, "can't find node 'swcfg,mii-bus'\n");
+-			ret = -ENODEV;
+-			goto out_err_free;
+-		}
+-
+-		swdev->mii_bus = of_mdio_find_bus(mdio_node);
+-		if (!swdev->mii_bus) {
+-			dev_err(dev, "can't find mii bus device\n");
+-			ret = -EPROBE_DEFER;
+-			goto out_err_free;
+-		}
+-
+-		dev_dbg(dev, "mii_bus: found and using '%s'\n", swdev->mii_bus->name);
+-
+-		swdev->of_node = np;
+-		swdev->ops = &mv88e6321_switch_dev_ops;
++	if (of_property_read_u32(switch_node, "reg", &cfg->sw_addr)) {
++		dev_err(dev, "no switch mdio address given");
++		return -EINVAL;
+ 	}
+ 
+-	return swdev;
++	mdio_node = of_parse_phandle(np, "swcfg,mii-bus", 0);
++	if (!mdio_node) {
++		dev_err(dev, "can't find node 'swcfg,mii-bus'\n");
++		return -ENODEV;
++	}
+ 
+-out_err_free:
++	cfg->mii_bus = of_mdio_find_bus(mdio_node);
++	if (!cfg->mii_bus) {
++		dev_err(dev, "can't find mii bus device\n");
++		return -EPROBE_DEFER;
++	}
+ 
+-	devm_kfree(dev, swdev);
+-	return ERR_PTR(ret);
+-}
++	cfg->swdev.of_node = np;
+ 
+-static void mv88e6321_hw_reset(struct mv88e6321_info *mvinfo)
+-{
+-	dev_dbg(mvinfo->dev, "Going to reset gpio%d\n", mvinfo->reset_gpio);
+-	gpio_set_value(mvinfo->reset_gpio, 0);
+-	mdelay(100);
+-	gpio_set_value(mvinfo->reset_gpio, 1);
+-	dev_info(mvinfo->dev, "switch resetted!\n");
++	return 0;
+ }
+ 
+-static int mv88e6321_probe(struct platform_device *pdev)
++static struct mv88e6321_cfg *mv88e6321_cfg_alloc(struct device *dev)
+ {
+-	struct switch_dev *swdev;
+-	struct mv88e6321_info *pdata;
+-	int ret;
++	struct mv88e6321_cfg *cfg;
+ 
+-	if (!global_chip)
+-		return -EPROBE_DEFER;
++	cfg = devm_kzalloc(dev, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
+ 
+-	pr_debug("%s/%d\n", __func__, __LINE__);
++	cfg->dev = dev;
++	cfg->swdev.ops = &mv88e6321_switch_dev_ops;
+ 
+-	if (pdev->dev.of_node) {
+-		swdev = of_get_swdev(&pdev->dev);
+-		if (IS_ERR(swdev))
+-			return PTR_ERR(swdev);
++	return cfg;
++}
+ 
+-		dev_info(&pdev->dev, "switch device '%s'\n", swdev->name);
++static void mv88e6321_cfg_free(struct mv88e6321_cfg *cfg)
++{
++	if (cfg)
++		devm_kfree(cfg->dev, cfg);
++}
+ 
+-		pdata = of_get_mv_pdata(&pdev->dev);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
++static int mv88e6321_cfg_probe(struct platform_device *pdev)
++{
++	int err;
++	struct mv88e6321_cfg *cfg;
++
++	cfg = mv88e6321_cfg_alloc(&pdev->dev);
++	if (!cfg) {
++		err = -ENOMEM;
++		goto err;
+ 	}
+ 
+-	if (pdata && pdata->reset)
+-		mv88e6321_hw_reset(pdata);
++	err = mv88e6321_cfg_of_get_data(cfg);
++	if (err)
++		goto err_free;
+ 
+-	pdata->swdev = swdev;
+-	pdev->dev.platform_data = pdata;
++	err = mv88e6321_cfg_get_chip(cfg);
++	if (err)
++		goto err_free;
+ 
+-        if ((ret = register_switch(swdev, NULL))) {
+-                pr_info("%s: switch registration failed\n", __func__);
+-                return ret;
+-        }
++	err = register_switch(&cfg->swdev, NULL);
++	if (err) {
++		dev_err(cfg->dev, "switch registration failed");
++		goto err_free;
++	}
+ 
+-	dev_info(&pdev->dev, "driver probed\n");
++	pdev->dev.platform_data = cfg;
+ 
++	dev_info(&pdev->dev, "driver probed\n");
+ 	return 0;
++
++err_free:
++	mv88e6321_cfg_free(cfg);
++err:
++	return err;
+ }
+ 
+-static int mv88e6321_remove(struct platform_device *pdev)
++static int mv88e6321_cfg_remove(struct platform_device *pdev)
+ {
+-	struct mv88e6321_info *pdata = pdev->dev.platform_data;
++	struct mv88e6321_cfg *cfg = pdev->dev.platform_data;
++
++	if (!cfg)
++		return 0;
+ 
+-	unregister_switch(pdata->swdev);
++	unregister_switch(&cfg->swdev);
++	mv88e6321_cfg_free(cfg);
+ 	return 0;
+ }
+ 
++// clang-format off
+ #ifdef CONFIG_OF
+ static const struct of_device_id mv88e6321_dt_ids[] = {
+ 	{ .compatible = "swcfg,mv88e6321", },
+-	{ },
++	{ /* sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, mv88e6321_dt_ids);
+ #endif
+ 
+ static struct platform_driver mv88e6321_driver = {
+-	.probe  = mv88e6321_probe,
+-	.remove = mv88e6321_remove,
++	.probe = mv88e6321_cfg_probe,
++	.remove = mv88e6321_cfg_remove,
+ 	.driver = {
+-		.name   = DRIVER_NAME,
+-		.owner  = THIS_MODULE,
++		.name = DRIVER_NAME,
++		.owner = THIS_MODULE,
+ #ifdef CONFIG_OF
+ 		.of_match_table = mv88e6321_dt_ids,
+ #endif
+ 	},
+ };
+ 
++// clang-format on
+ module_platform_driver(mv88e6321_driver);
+ 
+ MODULE_AUTHOR("heinrich.toews@wago.com>");
+diff --git a/include/linux/switch.h b/include/linux/switch.h
+index cc866785adbe..4e6238470d30 100644
+--- a/include/linux/switch.h
++++ b/include/linux/switch.h
+@@ -114,7 +114,6 @@ struct switch_dev {
+ 	/* NB: either alias or netdev must be set */
+ 	const char *alias;
+ 	struct net_device *netdev;
+-	struct mii_bus *mii_bus;
+ 
+ 	unsigned int ports;
+ 	unsigned int vlans;
+-- 
+2.17.1
+

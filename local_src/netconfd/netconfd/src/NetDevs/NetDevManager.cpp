@@ -8,82 +8,102 @@
 
 #include "Helper.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 using std::string;
 using std::make_shared;
 using namespace std::literals;
 
-struct KindMatches {
-  explicit KindMatches(NetDev::Kind kind)
-      :
-      kind_ { kind } {
+constexpr DeviceType DeviceTypesAllowingIP = DeviceType::Bridge | DeviceType::Wwan;
+
+DeviceType NetDevManager::DetermineNetDevKind(const ::std::string &name) {
+  if (boost::starts_with(name, "ethX")) {
+    return DeviceType::Port;
   }
-
-  bool operator()(const NetDevPtr &netdev) const {
-    return netdev->GetKind() == kind_;
-  }
-
-  NetDev::Kind kind_;
-};
-
-NetDev::Kind NetDevManager::DetermineNetDevKind(const ::std::string &name) {
   if (boost::starts_with(name, "eth")) {
-    return NetDev::Kind::Ethernet;
+    return DeviceType::Ethernet;
   }
   if (boost::starts_with(name, "br")) {
-    return NetDev::Kind::Bridge;
+    return DeviceType::Bridge;
   }
   if (boost::starts_with(name, "wwan")) {
-    return NetDev::Kind::Wwan;
+    return DeviceType::Wwan;
   }
   if (boost::starts_with(name, "vpn")) {
-    return NetDev::Kind::Virtual;
+    return DeviceType::Virtual;
   }
   if (boost::starts_with(name, "lo")) {
-    return NetDev::Kind::Loopback;
+    return DeviceType::Loopback;
   }
 
-  return NetDev::Kind::Other;
+  return DeviceType::Other;
 }
 
-NetDevManager::NetDevManager(::std::shared_ptr<IInterfaceMonitor> interface_monitor, IBridgeController &bridge_controller)
-    :
-    interface_monitor_ { interface_monitor },
-    netdev_construction_ { nullptr },
-    bridge_controller_ { bridge_controller } {
+void NetDevManager::InitializeNetDevs() {
 
-  for (auto &interface_name : bridge_controller.GetInterfaces()) {
+  for (auto name : bridge_controller_.GetInterfaces()) {
+    auto kind = DetermineNetDevKind(name);
 
-    auto kind = DetermineNetDevKind(interface_name);
-
-    auto interface_label = interface_name;
-    if (kind == NetDev::Kind::Ethernet) {
-      interface_label.erase(0, "eth"s.size());
+    if (kind == DeviceType::Ethernet) {
+      CreateNetdev(name, name, kind);
     }
-
-    if (kind == NetDev::Kind::Ethernet || kind == NetDev::Kind::Wwan || kind == NetDev::Kind::Bridge) {
-      CreateNetdev(interface_name, interface_label, kind);
+    if (kind == DeviceType::Port) {
+      auto label = name;
+      label.erase(0, "eth"s.size());
+      CreateNetdev(name, label, kind);
+    }
+    if (kind == DeviceType::Wwan) {
+      CreateNetdev(name, name, kind);
     }
   }
+
+}
+
+BridgeConfig NetDevManager::GetActualBridgeConfig() {
+  BridgeConfig config;
+  auto bridges = bridge_controller_.GetBridges();
+  for (auto bridge : bridges) {
+    auto system_ports = bridge_controller_.GetBridgeInterfaces(bridge);
+
+    ::std::vector<Interface> ports;
+    std::transform(system_ports.begin(), system_ports.end(), std::back_inserter(ports), [](Interface itf) {
+      itf.erase(0, "eth"s.size());
+      return itf;
+    });
+
+    config.emplace(bridge, ports);
+  }
+  return config;
+}
+
+NetDevManager::NetDevManager(::std::shared_ptr<IInterfaceMonitor> interface_monitor,
+                             IBridgeController &bridge_controller, IMacDistributor &mac_distributor)
+    : interface_monitor_ { interface_monitor },
+      netdev_construction_ { nullptr },
+      bridge_controller_ { bridge_controller },
+      mac_distributor_ { mac_distributor } {
+
+  InitializeNetDevs();
+
+  BridgeConfig bridge_config = GetActualBridgeConfig();
+  ConfigureBridges(bridge_config);
 
   interface_monitor_->RegisterEventHandler(*this);
 }
 
-::std::shared_ptr<NetDev> NetDevManager::FindIf(
-    const ::std::function<bool(::std::shared_ptr<const NetDev>)> &predicate) {
+NetDevPtr NetDevManager::FindIf(const NetDevs &netdevs, NetDevPredicate predicate) {
 
-  auto it = ::std::find_if(net_devs_.begin(), net_devs_.end(), predicate);
-  return it != net_devs_.end() ? *it : ::std::shared_ptr<NetDev> { nullptr };
+  auto it = ::std::find_if(netdevs.begin(), netdevs.end(), predicate);
+  return it != netdevs.end() ? *it : NetDevPtr { nullptr };
 }
 
-NetDevPtr NetDevManager::CreateNetdev(::std::string name, ::std::string label, NetDev::Kind kind) {
+NetDevPtr NetDevManager::CreateNetdev(::std::string name, ::std::string label, DeviceType kind) {
   auto netdev = GetByName(name);
 
   if (not netdev) {
     auto if_index = if_nametoindex(name.c_str());
 
-    netdev = make_shared<NetDev>(if_index, name, label, kind);
+    netdev = make_shared < NetDev > (if_index, name, label, kind, not (DeviceTypesAllowingIP && kind));
     netdev->SetIfFlags(interface_monitor_->GetIffFlags(if_index));
 
     net_devs_.push_back(netdev);
@@ -122,11 +142,26 @@ void NetDevManager::RemoveObsoleteInterfaceRelations(const BridgeConfig &config)
   }
 }
 
+NetDevs NetDevManager::GetNetdevs(const Interfaces &interfaces) const {
+
+  NetDevs netdevs;
+
+  auto find_and_add_to_netdevs = [&](auto &netdev) {
+    if (IsIncluded(netdev->GetLabel(), interfaces)) {
+      netdevs.push_back(netdev);
+    }
+  };
+
+  ::std::for_each(net_devs_.begin(), net_devs_.end(), find_and_add_to_netdevs);
+
+  return netdevs;
+}
+
 void NetDevManager::CreateBridgesAndRelateToInterfaces(const BridgeConfig &config) {
   for (auto &cfg : config) {
-    auto &bridge_name = ::std::get<0>(cfg);
-    auto &interfaces = ::std::get<1>(cfg);
-    auto bridge_netdev = CreateNetdev(bridge_name, bridge_name, NetDev::Kind::Bridge);
+    auto &bridge_name = ::std::get < 0 > (cfg);
+    auto &interfaces = ::std::get < 1 > (cfg);
+    auto bridge_netdev = CreateNetdev(bridge_name, bridge_name, DeviceType::Bridge);
 
     auto establish_relation = [&](auto &netdev) {
       if (IsIncluded(netdev->GetLabel(), interfaces)) {
@@ -143,38 +178,48 @@ void NetDevManager::ConfigureBridges(const BridgeConfig &config) {
   RemoveObsoleteBridgeNetdevs(config);
   RemoveObsoleteInterfaceRelations(config);
   CreateBridgesAndRelateToInterfaces(config);
+
+  mac_distributor_.AssignMacs(net_devs_);
 }
 
 NetDevPtr NetDevManager::GetByName(::std::string name) {
   auto pred = [&name](const auto &net_dev) {
     return net_dev->GetName() == name;
   };
-  return FindIf(pred);
+  return FindIf(net_devs_, pred);
 }
 
 NetDevPtr NetDevManager::GetByLabel(::std::string name) {
   auto pred = [&name](const auto &net_dev) {
     return net_dev->GetLabel() == name;
   };
-  return FindIf(pred);
+  return FindIf(net_devs_, pred);
 }
 
 NetDevPtr NetDevManager::GetByIfIndex(::std::uint32_t if_index) {
   auto pred = [=](const auto &net_dev) {
     return net_dev->GetIndex() == if_index;
   };
-  return FindIf(pred);
+  return FindIf(net_devs_, pred);
 }
 
 NetDevs NetDevManager::GetNetDevs() {
   return net_devs_;
 }
 
+NetDevs NetDevManager::GetNetDevs(DeviceType kind) {
+  NetDevs net_devs;
+
+  ::std::copy_if(net_devs_.begin(), net_devs_.end(), std::back_inserter(net_devs), TypeMatches(kind));
+
+  return net_devs;
+}
+
 NetDevs NetDevManager::GetEthernetNetDevs() {
   NetDevs ethernet_net_devs;
 
   ::std::copy_if(net_devs_.begin(), net_devs_.end(), std::back_inserter(ethernet_net_devs),
-                 KindMatches(NetDev::Kind::Ethernet));
+                 TypeMatches(DeviceType::Ethernet));
 
   return ethernet_net_devs;
 }
@@ -183,30 +228,26 @@ NetDevs NetDevManager::GetBridgeNetDevs() {
   NetDevs bridge_net_devs;
 
   ::std::copy_if(net_devs_.begin(), net_devs_.end(), std::back_inserter(bridge_net_devs),
-                 KindMatches(NetDev::Kind::Bridge));
+                 TypeMatches(DeviceType::Bridge));
 
   return bridge_net_devs;
 }
 
-//TODO(Team Pnd): not nice but how to solve? Own Kind? used by InterfaceConfigManager to describe the ports
 NetDevs NetDevManager::GetPortNetDevs() {
   NetDevs port_net_devs;
 
-  ::std::copy_if(net_devs_.begin(), net_devs_.end(), std::back_inserter(port_net_devs), [](NetDevPtr netdev) {
-    return boost::starts_with(netdev->GetLabel(), "X");
-  });
+  ::std::copy_if(net_devs_.begin(), net_devs_.end(), std::back_inserter(port_net_devs), TypeMatches(DeviceType::Port));
 
   return port_net_devs;
 }
 
-bool NetDevManager::Exists(const NetDevs &netdevs,
-                           const ::std::function<bool(const ::std::shared_ptr<const NetDev>&)> &predicate) {
+bool NetDevManager::Exists(const NetDevs &netdevs, NetDevPredicate predicate) {
   auto it = ::std::find_if(netdevs.begin(), netdevs.end(), predicate);
   return (it != netdevs.end());
 }
 
 bool NetDevManager::ExistsByName(::std::string name, const NetDevs &netdevs) {
-  auto names_are_equal = [name](const auto &net_dev) {
+  auto names_are_equal = [&](const auto &net_dev) {
     return net_dev->GetName() == name;
   };
   return NetDevManager::Exists(netdevs, names_are_equal);
@@ -251,4 +292,4 @@ void NetDevManager::OnNetDevRemoved(NetDevPtr netdev) const {
   }
 }
 
-}  // namespace netconfd
+}  // namespace netconf

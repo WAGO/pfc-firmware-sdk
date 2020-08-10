@@ -2,7 +2,7 @@
 
 #pragma once
 #include "Status.hpp"
-namespace netconfd {
+namespace netconf {
 
 template<class DataType>
 class IPersistence {
@@ -13,4 +13,4 @@ class IPersistence {
   virtual Status Read(DataType& d) = 0;
 };
 
-}  // namespace netconfd
+}  // namespace netconf

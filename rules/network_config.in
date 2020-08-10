@@ -4,6 +4,7 @@ config NETWORK_CONFIG
 	bool
 	select HOST_CT_BUILD
 	select GOOGLETEST
+	select CONFIG_TOOL_BASE
 	select NETCONFD
 	select BOOST
 	select BOOST_SYSTEM

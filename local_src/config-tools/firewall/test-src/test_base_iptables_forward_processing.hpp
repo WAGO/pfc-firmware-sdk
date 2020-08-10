@@ -52,7 +52,7 @@ class IptablesForwardProcessingTestBase : public IptablesTestBase {
   bool interface_exists(const xmldoc &doc, const ::std::string &ifname1, const ::std::string &ifname2);
   IptablesForwardProcessingData get_iptables_processing_data(const xmldoc &doc, const ::std::string &ifname1,
                                                              const ::std::string &ifname2);
-  ::std::string createXPathToGet(const ::std::string &ifname1, const ::std::string &ifname2);
+  ::std::string create_xpath_to_get(const ::std::string &ifname1, const ::std::string &ifname2);
 
   static ::std::string generate_test_name(testing::TestParamInfo<IptablesForwardProcessingData> data);
 

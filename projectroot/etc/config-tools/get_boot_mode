@@ -1,0 +1,67 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_boot_mode
+#
+# Getting internal boot mode information
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+CTDIR="/etc/config-tools"
+CONF_TOOL_FILENAME="/usr/sbin/eeprom-xsection"
+#  load general definitions and functions
+if [[ ! -f "$CTDIR/config_tool_defines" ]]; then
+  echo "config_tool_defines missing"
+  exit 64
+fi
+
+source "$CTDIR/config_tool_defines"
+
+# show help-text if requested
+if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
+  cat <<EOF
+  * Show boot mode information *
+
+  Usage:
+    get_boot_mode <option>
+
+  Options:
+    -h, --help                       Show this help text.
+    --force_internal_boot <OPTION>   Show state of internal boot mode: "enabled" or "disabled".
+    OPTION:  --json                  Prints output in JSON format (default is text format).
+
+  Example:
+    get_boot_mode --force_internal_boot -json  *Prints state of internal boot mode in JSON format.*
+
+EOF
+  exit "$SUCCESS"
+fi
+
+# check if config tool exists
+if [[ ! -f $CONF_TOOL_FILENAME ]] ; then
+  exit "$INTERNAL_ERROR"
+fi
+
+result="$("$CONF_TOOL_FILENAME" "-R" "-b")"
+status=$?
+
+if [[ $status == "$SUCCESS" ]] && 
+   [[ ($result == "enabled") || ($result == "disabled") ]]; then
+  if [[ "$1" == "--force_internal_boot" ]]; then
+    if [[ "$2" == "--json" ]] ; then
+      echo "{\"force_internal_boot\": \"$result\"}"
+    else
+      echo "$result"
+    fi
+  else
+    exit "$MISSING_PARAMETER"
+  fi  
+else
+  exit "$INTERNAL_ERROR"
+fi

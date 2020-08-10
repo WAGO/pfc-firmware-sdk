@@ -90,7 +90,6 @@ $(STATEDIR)/firewall-config.targetinstall:
 	@$(call install_fixup, firewall-config,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
 	@$(call install_fixup, firewall-config,DESCRIPTION,missing)
 
-	@$(call install_copy, firewall-config, 0, 0, 0755, /etc/config-tools);
 	@$(call install_copy, firewall-config, 0, 0, 0750, $(PTXDIST_SYSROOT_TARGET)/usr/bin/firewall.elf, /usr/bin/firewall);
 	@$(call install_link, firewall-config, /usr/bin/firewall, /etc/config-tools/firewall)
 

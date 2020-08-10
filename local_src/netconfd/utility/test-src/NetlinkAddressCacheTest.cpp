@@ -9,7 +9,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 class NetlinkAddressCacheTest_Target : public Test {
 public:
     NetlinkMonitor monitor_;
@@ -28,4 +28,4 @@ TEST_F(NetlinkAddressCacheTest_Target, GetIPAddress) {
     ASSERT_EQ("172.29.234.12", ip);
 }
 
-}  // namespace netconfd
+}  // namespace netconf

@@ -19,8 +19,8 @@
 #include "error.hpp"
 
 
-namespace wago
-{
+namespace wago {
+namespace firewall {
 
 xmlctx get_ctx(const xmldoc& doc)
 {
@@ -65,6 +65,6 @@ void remove(xmldoc& doc, const std::vector<std::string>& argv, const std::string
         remove_node(std::move(node));
 }
 
-
+} // namespace firewall
 } // namespace wago
 

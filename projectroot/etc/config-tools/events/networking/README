@@ -1,0 +1,11 @@
+/etc/config-tools/events/networking
+
+CAUTION: When this folder is called from the netconfd service the service itself 
+should not be called again from within this folder, as this would lead to call 
+loops. In this case it is important to make sure that none of the directly called 
+applications calls netconfd again, since this will also result in a loop.
+
+When netconfd is calling executables of this folder all configurations about 
+bridges, IPs and network interfaces are provided by netconfd as call parameters. 
+That way any back-queries to netconfd are unnecessary. An example usage can be 
+found in the executable update_config.

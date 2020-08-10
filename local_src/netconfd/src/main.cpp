@@ -12,7 +12,7 @@
 #include "Status.hpp"
 #include <gsl/gsl>
 #include "Daemonizer.hpp"
-
+#include "InterprocessCondition.h"
 #include "Logger.hpp"
 
 #define XSTR(s) #s
@@ -39,7 +39,7 @@ static char const * const usage_text =
         "         -d, --daemon            Daemonize this program\n"
         "         -r, --rundir=<dir>      Run directory, default = /var/run/netconfd\n"
         "         -p, --pidfile=<name>    Name of pidfile, default = netconfd.pid\n"
-        "         -l, --loglevel=<level>  Level of logging, default = warning\n"
+        "         -l, --loglevel=<level>  Level of logging, default = debug\n"
         "                                 loglevel: error, warning, info, debug\n";
 
 static char const * const version_text =
@@ -89,11 +89,11 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  netconfd::SetLogSink(netconfd::LogSink::SYSLOG);
-  netconfd::SetLogLevel(netconfd::LogLevelFromString(loglevel));
+  netconf::SetLogSink(netconf::LogSink::SYSLOG);
+  netconf::SetLogLevel(netconf::LogLevelFromString(loglevel));
 
-  netconfd::Status status;
-  netconfd::Daemonizer daemon(run_dir, pid_file_name);
+  netconf::Status status;
+  netconf::Daemonizer daemon(run_dir, pid_file_name);
 
   if (status.Ok()) {
     status = daemon.PreparePidDir();
@@ -109,11 +109,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  netconf::InterprocessCondition start_condition{"netconfd_interprocess"};
+
   if (daemonize) {
-    status = daemon.Daemonize();
+    status = daemon.Daemonize(start_condition);
 
     if (status.NotOk()) {
-      netconfd::LogError(status.GetMessage());
+      netconf::LogError(status.GetMessage());
       abort();
     }
   }
@@ -127,21 +129,21 @@ int main(int argc, char *argv[]) {
   }
 
   if (status.NotOk()) {
-    netconfd::LogWarning(status.GetMessage());
+    netconf::LogWarning(status.GetMessage());
   }
 
   auto context = g_main_context_default();
   auto loop = g_main_loop_new(context, 0);
 
   try {
-    netconfd::NetworkConfigurator network_configurator;
+    netconf::NetworkConfigurator network_configurator{start_condition};
     g_main_loop_run(loop);
   } catch (::std::exception& ex) {
     ::std::string exception_message(ex.what());
-    netconfd::LogError("NetConf initialization exception: " + exception_message);
+    netconf::LogError("NetConf initialization exception: " + exception_message);
     exit(EXIT_FAILURE);
   } catch (...) {
-    netconfd::LogError("NetConf unknown initialization exception");
+    netconf::LogError("NetConf unknown initialization exception");
     exit(EXIT_FAILURE);
   }
 

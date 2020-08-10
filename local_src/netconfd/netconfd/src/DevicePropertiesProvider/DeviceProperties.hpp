@@ -9,7 +9,7 @@
 #include "IDeviceProperties.hpp"
 #include "SystemPropertiesProvider.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class DeviceProperties : public IDeviceProperties {
  public:
@@ -21,14 +21,16 @@ class DeviceProperties : public IDeviceProperties {
   DeviceProperties(DeviceProperties&&) = delete;
   DeviceProperties& operator=(DeviceProperties&&) = delete;
 
-  Interfaces GetProductInterfaces() const override;
-  Interfaces GetOSInterfaces() const override;
-  InterfaceNameMapping GetInterfacesNameMapping() const override;
+  Interfaces GetProductPortNames() const override;
+  Interfaces GetOSPortNames() const override;
+  Interfaces GetOSInterfaceNames() const override;
+  InterfaceNameMapping GetInterfaceNameMapping() const override;
   void ConvertProductToOSInterfaces(Interfaces &interfaces) const override;
   void ConvertOSToProductInterfaces(Interfaces &interfaces) const override;
   bool HasInterface(const ::std::string &ifName) const override;
   ::std::string GetOrderNumber() const override;
-  ::std::string GetMac() const override;
+  MacAddress GetMac() const override;
+  uint32_t GetMacCount() const override;
   ::std::string GetIncrementedMac(uint32_t inc) const override;
   ::std::string GetHostname() const override;
 
@@ -41,4 +43,4 @@ class DeviceProperties : public IDeviceProperties {
   SystemPropertiesProvider system_properties_provider_;
 };
 
-} /* namespace netconfd */
+}

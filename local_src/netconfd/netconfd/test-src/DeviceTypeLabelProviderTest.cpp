@@ -13,7 +13,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ADeviceTypeLabelProvider : public Test {
  public:
@@ -195,4 +195,4 @@ TEST_F(ADeviceTypeLabelProvider, GetsAnIncementedMacInCaseOfOverflowInTheSecondB
   EXPECT_EQ("00:30:DE:12:00:00", value);
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

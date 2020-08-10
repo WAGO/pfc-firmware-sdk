@@ -9,7 +9,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class IpLinkTest : public Test {
  public:
@@ -19,7 +19,7 @@ class IpLinkTest : public Test {
 
   ::std::unique_ptr<IPLink> sut_;
   void SetUp() override {
-    netdev = std::make_shared<NetDev>(0, "br0", NetDev::Kind::Bridge);
+    netdev = std::make_shared<NetDev>(0, "br0", DeviceType::Bridge);
     netdev->SetIfFlags(1 << 16);
     sut_ = ::std::make_unique<IPLink>(mock_ip_configure_, mock_event_manager_, netdev, "", "");
   }
@@ -76,7 +76,7 @@ TEST_F(IpLinkTest, SetSameIpNoNotify) {
 TEST_F(IpLinkTest, ChangeOfSourcesNotifies) {
 
   EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Status { }));
-  auto config = IPConfig{ "br0", IPSource::STATIC, "192.168.42.42",  "255.255.255.0", ""};
+  auto config = IPConfig{ "br0", IPSource::STATIC, "192.168.42.42",  "255.255.255.0"};
   sut_->SetIPConfig( config );
 
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(3);
@@ -94,7 +94,7 @@ TEST_F(IpLinkTest, ChangeOfSourcesNotifies) {
 TEST_F(IpLinkTest, SameServiceSourceNoTrigger) {
   /* When source is still DHCP but the address changes the event folder is not triggered */
   EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Status { }));
-  auto config = IPConfig{ "br0", IPSource::DHCP, "192.168.42.42",  "255.255.255.0", ""};
+  auto config = IPConfig{ "br0", IPSource::DHCP, "192.168.42.42",  "255.255.255.0"};
   sut_->SetIPConfig( config );
 
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(0);
@@ -128,9 +128,9 @@ TEST_F(IpLinkTest, SetDifferentIpWithSourceTemporaryNotifies) {
 
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(3);
 
-  sut_->SetIPConfig( { "br0", IPSource::TEMPORARY, "192.168.3.3", "255.255.255.0", "" });
-  sut_->SetIPConfig( { "br0", IPSource::TEMPORARY, "192.168.4.3", "255.255.255.0", "" });
-  sut_->SetIPConfig( { "br0", IPSource::TEMPORARY, "192.168.4.3", "255.255.0.0", "" });
+  sut_->SetIPConfig( { "br0", IPSource::TEMPORARY, "192.168.3.3", "255.255.255.0"});
+  sut_->SetIPConfig( { "br0", IPSource::TEMPORARY, "192.168.4.3", "255.255.255.0"});
+  sut_->SetIPConfig( { "br0", IPSource::TEMPORARY, "192.168.4.3", "255.255.0.0"});
 
   Mock::VerifyAndClearExpectations(&mock_ip_configure_);
 

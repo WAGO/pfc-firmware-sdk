@@ -3,21 +3,21 @@
 #include "BridgeManager.hpp"
 #include "INetDevConstruction.hpp"
 #include "MockIBridgeController.hpp"
-#include "MockIDevicePropertiesProvider.hpp"
 #include "MockINetDevManager.hpp"
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <MockIDeviceProperties.hpp>
 #include <memory>
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class InterfaceManagerTest : public Test {
  public:
 
   MockIBridgeController mock_bridge_controller_;
-  MockIDevicePropertiesProvider mock_properties_provider_;
+  MockIDeviceProperties mock_properties_provider_;
   MockINetDevManager mock_netdev_manager_;
   Bridges any_bridges;
   Interfaces any_interfaces_of_br0;
@@ -40,16 +40,5 @@ class InterfaceManagerTest : public Test {
   ::std::unique_ptr<BridgeManager> interface_manager_;
 };
 
-TEST_F(InterfaceManagerTest, GetBridgeOfInterface) {
-  EXPECT_CALL(mock_bridge_controller_, GetBridges()).WillRepeatedly(Return(any_bridges));
-  EXPECT_CALL(mock_bridge_controller_, GetBridgeInterfaces(Eq("br0"))).WillRepeatedly(Return(any_interfaces_of_br0));
-  EXPECT_CALL(mock_bridge_controller_, GetBridgeInterfaces(Eq("br1"))).WillRepeatedly(Return(any_interfaces_of_br1));
-
-  auto bridge = interface_manager_->GetBridgeOfInterface("ethX1");
-  EXPECT_EQ("br0", bridge);
-
-  bridge = interface_manager_->GetBridgeOfInterface("ethX3");
-  EXPECT_EQ("br1", bridge);
-}
 
 } /* namespace netconfd */

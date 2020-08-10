@@ -8,10 +8,10 @@
 #include <EthernetInterfaceFactory.hpp>
 #include "EthernetInterface.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 ::std::unique_ptr<IEthernetInterface> EthernetInterfaceFactory::getEthernetInterface(std::string name) {
   return ::std::make_unique<EthernetInterface>(name);
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

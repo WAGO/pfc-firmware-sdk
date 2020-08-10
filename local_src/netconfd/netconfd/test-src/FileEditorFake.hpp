@@ -10,7 +10,7 @@
 #include "IFileEditor.hpp"
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 
 class FileEditorFake : public IFileEditor {
  public:
@@ -41,4 +41,4 @@ class FileEditorFake : public IFileEditor {
   mutable ::std::string content_;
 };
 
-}  // namespace netconfd
+}  // namespace netconf

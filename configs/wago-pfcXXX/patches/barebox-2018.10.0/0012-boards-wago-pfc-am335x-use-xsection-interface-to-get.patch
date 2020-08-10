@@ -1,8 +1,8 @@
 From 0d581ee9081258a0e7862caf1153511fc10b033a Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Thu, 24 May 2018 10:01:52 +0200
-Subject: [PATCH] boards: wago-pfc-am335x: use xsection interface to get the
- eeprom ethaddr
+Subject: [PATCH 012/144] boards: wago-pfc-am335x: use xsection interface to
+ get the eeprom ethaddr
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

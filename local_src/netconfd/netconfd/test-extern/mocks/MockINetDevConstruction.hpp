@@ -5,7 +5,7 @@
 
 #include "INetDevConstruction.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class MockINetDevConstruction : public INetDevConstruction {
  public:
@@ -16,4 +16,4 @@ class MockINetDevConstruction : public INetDevConstruction {
 };
 
 
-}  // namespace netconfd
+}  // namespace netconf

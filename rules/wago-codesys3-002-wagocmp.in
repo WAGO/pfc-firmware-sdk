@@ -123,8 +123,8 @@ config CDS3_IODRVPN
   select LIBPROFINET
   select CDS3_INCLUDES
   select DBUS
-  select NLOHMANN_JSON
   select DAL
+  select NETCONFD
   help
     Builds and installs the Profinet Controller/Driver Cds driver
 
@@ -577,7 +577,6 @@ config CDS3_IODRVRLB
     select CDS3_INCLUDES
     select CODESYS3
     select LIBUIO
-    select LIBRLB
     select LIBCOMMONHEADER
     help
         This component implements the process data communication between codesys3 and rocket local bus

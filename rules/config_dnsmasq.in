@@ -1,0 +1,16 @@
+## SECTION=wago_specific_config
+
+config CONFIG_DNSMASQ
+	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select DNSMASQ
+	select CT_LIBCTNETWORK
+	select NETCONFD
+	select GLIB
+	select CONFIG_TOOL_BASE
+	select CONFIG_TOOLS
+	prompt "config_dnsmasq"
+	help
+	  Adds the build of config_dnsmasq_c to the config tools. This is needed
+	  for configuring DHCPD server and DNS service. 

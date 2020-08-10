@@ -11,6 +11,9 @@ CC=$(CROSS_COMPILE)gcc
 GLIB_CFLAGS  = -I$(_SYSROOT)/usr/include/glib-2.0
 GLIB_CFLAGS += -I$(_SYSROOT)/usr/lib/glib-2.0/include
 
+NETCONF_LDFLAGS:= $$($(PKG_CONFIG) --libs libnetconf)
+NETCONF_CFLAGS:= $$($(PKG_CONFIG) --cflags libnetconf)
+
 ifeq ($(_HW_PLATFORM), vtp-ctp)
 GLIB_CFLAGS  += -I$(_SYSROOT)/usr/include
 endif
@@ -49,6 +52,10 @@ override LDLIBS += $$(pkg-config --libs wago_dbus)
 override LDLIBS += -lgobject-2.0
 override LDLIBS += -lgio-2.0
 endif
+
+override LDLIBS += $(NETCONF_LDFLAGS)
+override CFLAGS += $(NETCONF_CFLAGS)
+override CXXFLAGS += $(NETCONF_CFLAGS)
 
 override CFLAGS += -D$(EXTRAS) $(GLIB_CFLAGS) -D_GNU_SOURCE
 

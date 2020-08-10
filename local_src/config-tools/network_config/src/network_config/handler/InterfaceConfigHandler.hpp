@@ -29,7 +29,7 @@ namespace network_config
     private:
       void GetConfig();
       void SetConfig();
-      netconf::InterfaceConfigs CreateInterfaceConfigs();
+      netconf::api::InterfaceConfigs CreateInterfaceConfigs();
 
       ::std::function<void()> execute_;
       const ::boost::program_options::variables_map& vm_;

@@ -1,11 +1,4 @@
-/*
- * DSAModeHandlerTest.cpp
- *
- *  Created on: 17.02.2020
- *      Author: u014487
- */
-
-
+// SPDX-License-Identifier: GPL-2.0-or-later
 
 #include <gtest/gtest.h>
 
@@ -15,7 +8,7 @@
 
 using namespace testing;
 
-using namespace netconf;
+using namespace netconf::api;
 
 namespace po = boost::program_options;
 using povm = boost::program_options::variables_map;
@@ -40,7 +33,7 @@ TEST(DSAModeHandlerTest, GetAConfig)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  BridgeConfig returned_config{R"({"br0":["X1"],"br1":["X2"]})"};
+  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
   EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
 
   dut.Execute();
@@ -53,15 +46,15 @@ TEST(DSAModeHandlerTest, SetDSAModeNoChange)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  BridgeConfig returned_config{R"({"br0":["X1"],"br1":["X2"]})"};
-  BridgeConfig expected_config{R"({"br0":["X1"],"br1":["X2"]})"};
+  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
+  auto expected_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
   EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
   BridgeConfig set_parameter;
   EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(Status::OK)));
 
   dut.Execute();
 
-  EXPECT_EQ(set_parameter.ToString(),expected_config.ToString());
+  EXPECT_EQ(ToString(set_parameter),ToString(expected_config));
 }
 
 TEST(DSAModeHandlerTest, SetDSAModeWithChange)
@@ -70,15 +63,15 @@ TEST(DSAModeHandlerTest, SetDSAModeWithChange)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  BridgeConfig returned_config{R"({"br0":["X1"],"br1":["X2"]})"};
-  BridgeConfig expected_config{R"({"br0":["X1", "X2"]})"};
+  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
+  auto expected_config = MakeBridgeConfig(R"({"br0":["X1", "X2"]})");
   EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
   BridgeConfig set_parameter;
   EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(Status::OK)));
 
   dut.Execute();
 
-  EXPECT_EQ(set_parameter.ToString(),expected_config.ToString());
+  EXPECT_EQ(ToString(set_parameter),ToString(expected_config));
 }
 
 TEST(DSAModeHandlerTest, SetDSAModeOtherInterfaceRemains)
@@ -87,15 +80,15 @@ TEST(DSAModeHandlerTest, SetDSAModeOtherInterfaceRemains)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  BridgeConfig returned_config{R"({"br0":["X1"],"br1":["X2", "X11"]})"};
-  BridgeConfig expected_config{R"({"br0":["X1", "X2"],"br1":["X11"]})"};
+  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2", "X11"]})");
+  auto expected_config = MakeBridgeConfig(R"({"br0":["X1", "X2"],"br1":["X11"]})");
   EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
   BridgeConfig set_parameter;
   EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(Status::OK)));
 
   dut.Execute();
 
-  EXPECT_EQ(set_parameter.ToString(),expected_config.ToString());
+  EXPECT_EQ(ToString(set_parameter),ToString(expected_config));
 }
 
 

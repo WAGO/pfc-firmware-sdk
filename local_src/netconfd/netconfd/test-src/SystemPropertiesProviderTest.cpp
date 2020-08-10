@@ -12,7 +12,7 @@
 
 using namespace testing;
 
-namespace netconfd {
+namespace netconf {
 
 class ASystemPropertiesProvider : public Test {
  public:
@@ -39,4 +39,4 @@ TEST_F(ASystemPropertiesProvider, GetsTheHostname) {
   EXPECT_FALSE(hostname.empty());
 }
 
-} /* namespace netconfd */
+} /* namespace netconf */

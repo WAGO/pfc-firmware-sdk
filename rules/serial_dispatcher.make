@@ -26,7 +26,7 @@ SERIAL_DISPATCHER_URL		:= file://$(PTXDIST_WORKSPACE)/local_src/$(SERIAL_DISPATC
 SERIAL_DISPATCHER_SRC		:= $(PTXDIST_WORKSPACE)/local_src/$(SERIAL_DISPATCHER)
 SERIAL_DISPATCHER_DIR		:= $(BUILDDIR)/$(SERIAL_DISPATCHER)
 SERIAL_DISPATCHER_BUILD_OOT	:= NO
-SERIAL_DISPATCHER_LICENSE	:= unknown
+SERIAL_DISPATCHER_LICENSE	:= GPLv2
 SERIAL_DISPATCHER_DEVICE	:= $(call remove_quotes,$(PTXCONF_SERIAL_DISPATCHER_DEVICE))
 
 # ----------------------------------------------------------------------------
@@ -130,6 +130,7 @@ ifneq ($(call remove_quotes,$(PTXCONF_SERIAL_DISPATCHER_BBINIT_LINK)),)
 		/etc/rc.d/$(PTXCONF_SERIAL_DISPATCHER_BBINIT_LINK))
 endif
 
+	@$(call install_copy, serial_dispatcher, 0, 0, 0644, $(SERIAL_DISPATCHER_DIR)/LICENSE, /usr/share/licenses/oss/license.serial-dispatcher_$(SERIAL_DISPATCHER_VERSION).txt)
 #	#
 #	# FIXME: add all necessary things here
 #	#

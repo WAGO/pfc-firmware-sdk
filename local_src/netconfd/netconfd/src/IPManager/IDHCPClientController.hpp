@@ -5,7 +5,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 enum class DHCPClientStatus {
   RUNNING,
@@ -27,4 +27,4 @@ class IDHCPClientController {
   virtual DHCPClientStatus GetStatus(const Bridge& bridge) const = 0;
 };
 
-} /* namespace netconfd */
+} /* namespace netconf */

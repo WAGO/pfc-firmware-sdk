@@ -8,10 +8,12 @@
 #include "Status.hpp"
 #include "Types.hpp"
 
-namespace netconfd {
+namespace netconf {
 
 class IPLink;
 class IIPConfigure;
+
+using IPLinks = ::std::list<::std::shared_ptr<IPLink>>;
 
 class IPLink {
  public:
@@ -44,6 +46,7 @@ class IPLink {
   ::std::string address_;
   ::std::string netmask_;
   bool enabled_;
+  bool shall_trigger_event_folder_;
 
   bool IsDifferentFromCurrentIpAddress(const IPConfig &new_ip_config) const;
   Status Configure(const IPConfig &new_ip_config);
@@ -51,4 +54,4 @@ class IPLink {
   void NotifyChanges(const IPConfig &new_ip_config);
 };
 
-}  // namespace netconfd
+}  // namespace netconf

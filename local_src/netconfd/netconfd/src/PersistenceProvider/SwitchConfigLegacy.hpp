@@ -10,7 +10,7 @@
 
 #include <string>
 
-namespace netconfd {
+namespace netconf {
 
 class SwitchConfigLegacy {
  public:
@@ -23,7 +23,7 @@ class SwitchConfigLegacy {
   ::std::string filename_;
 };
 
-}  // namespace netconfd
+}  // namespace netconf
 
 //---- End of header file ------------------------------------------------------
 

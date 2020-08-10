@@ -4,14 +4,15 @@
 
 
 #include <memory>
+#include "InterprocessCondition.h"
 
-namespace netconfd {
+namespace netconf {
 
 class NetworkConfiguratorImpl;
 
 class NetworkConfigurator {
  public:
-  NetworkConfigurator();
+  NetworkConfigurator(InterprocessCondition& start_condition);
   virtual ~NetworkConfigurator();
 
   NetworkConfigurator(const NetworkConfigurator&) = delete;
@@ -23,4 +24,4 @@ class NetworkConfigurator {
   ::std::unique_ptr<NetworkConfiguratorImpl> network_configurator_;
 };
 
-}  // namespace netconfd
+}  // namespace netconf

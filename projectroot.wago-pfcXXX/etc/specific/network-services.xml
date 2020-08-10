@@ -1,25 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <services_config>
   <dhcpd>
-    <port_name>X1</port_name>
+    <port_name>br0</port_name>
     <state>disabled</state>
     <range>192.168.1.18_192.168.1.254</range>
     <lease_time>120</lease_time>
-    <ip_addr>192.168.2.17</ip_addr>
+    <ip_addr>192.168.1.1</ip_addr>
     <netmask>255.255.255.0</netmask>
   </dhcpd>
   <dhcpd>
-    <port_name>X2</port_name>
+    <port_name>br1</port_name>
     <state>disabled</state>
     <range>192.168.2.2_192.168.2.253</range>
     <lease_time>131</lease_time>
     <ip_addr>192.168.2.1</ip_addr>
     <netmask>255.255.255.0</netmask>
   </dhcpd>
+  <dhcpd>
+    <port_name>br2</port_name>
+    <state>disabled</state>
+    <range>192.168.3.2_192.168.3.253</range>
+    <lease_time>137</lease_time>
+    <ip_addr>192.168.3.1</ip_addr>
+    <netmask>255.255.255.0</netmask>
+  </dhcpd>
+  <dhcpd>
+    <port_name>br3</port_name>
+    <state>disabled</state>
+    <range>192.168.4.2_192.168.4.253</range>
+    <lease_time>139</lease_time>
+    <ip_addr>192.168.4.1</ip_addr>
+    <netmask>255.255.255.0</netmask>
+  </dhcpd>
   <dns>
     <state>disabled</state>
     <mode>proxy</mode>
-    </dns>
+  </dns>
   <iocheck>
     <state>enabled</state>
   </iocheck>
