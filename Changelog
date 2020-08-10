@@ -1,3 +1,55 @@
+Firmware Release 03.05.10 (99)
+System:
+[NEW] Each bridge contains its own MAC address for 2nd generation PFC200(750-821X)
+[NEW] PFC 4G: Configurable data service
+[NEW] PFC 4G: Activate SIM card with PIN/PUK
+[NEW] PFC 4G: Determine signal strength from the mobile network
+[NEW] WBM-NG: Extension by the area "Package Server”
+[NEW] WBM-NG: Password length increased to maximum 100 characters
+[NEW] WBM: Discontinuation of the legacy WBM
+[NEW] Config-tool no longer uses /etc/specific/network-interfaces.xml (do not use
+      this file anymore - it will be removed in future versions)
+[NEW] config-tool ipdatacheck option --subnet-check is removed
+[NEW] CBM: TCP/IP settings show bridge names instead of ethernet interface labels
+[NEW] CBM: Ethernet port physical settings now support 4-port PFCs (X1, X2, X11, X12)
+[NEW] Cloud Connectivity: Add support for two parallel cloud connections
+[NEW] Cloud Connectivity: Add statically configuration of protocol version
+[NEW] Cloud Connectivity: Add support for certificate based authentification for
+      Azure IoT Hub connections
+[NEW] Cloud Connectivity: Add option for application specific property for Az-ure
+      IoT Hub connections
+[FIXED] Cloud Connectivity: Improve robustness of Azure IoT hub connection when using
+        an unreliable network connection
+[FIXED] SEC: WBM-NG: Cookies can no longer be deleted or modified over an
+        insecure connection
+[FIXED] PFC 3G: The options PREFER_GSM and PREFER_UMTS for mobile networks are no
+        longer supported because they are not correctly con-sidered by the modem
+[FIXED] PFC 3G: Visibility of the signal strength restored
+[FIXED] PFC 3G: Provider list for manual selection is also displayed if a SIM card
+        without PIN is used
+[FIXED] Fixed restore of NTP server settings
+[FIXED] SEC: PPPD updated
+[KNOWN] Under Firefox, the old WBM allowed to accept passwords of any length but only
+        the first 32 characters were saved. In order to use these pass-words in
+        WBM-NG, only the first 32 characters of these passwords must be entered.
+
+Runtime System:
+[FIXED] PFC200: CODESYS2: No access after double download FW13
+
+Fieldbus Interface & Protocols:
+- OPC UA
+  [NEW] Structures are supported
+  [NEW] Security Policy Base128Rsa15 is supported
+  [NEW] Activation of the Commissioning Mode
+  [NEW] Change of factory settings
+      • The device starts with the highest security policy (Base256Sha256).
+      • Trust all clients is deactivated
+      • Unlimited anonymous access is deactivated
+- Modbus
+  [FIXED] ModbusSlave: Overwriting of registers / variables
+
+################################################################################
+
 Firmware Release 03.04.10 (99)
 System:
 [NEW] New Web Based Management integrated. WBM has a contemporary look and feel such
@@ -45,7 +97,7 @@ Fieldbus Interface & Protocols:
            New ver-sion of WagoCANLayer2_03.lib is required.
  - MQTT
    [FIXED] Fixed timestamp creation for Sparkplug NDATA messages: Use data
-           crea-tion time instead of transmission time
+           creation time instead of transmission time
    [FIXED] Increased handshake timeout for WAGO protocol
    [FIXED] Try to reconnect automatically if MQTT broker denies connection
    [KNOWN] Limit for maximum number of Trend Log (Multiple) Objects is set to 300
