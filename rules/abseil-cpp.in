@@ -1,0 +1,8 @@
+## SECTION=system_libraries
+
+config ABSEIL_CPP
+	tristate
+	select HOST_CMAKE
+	prompt "abseil-cpp"
+	help
+	  An open-source collection of C++ libraries to augment the C++ standard library

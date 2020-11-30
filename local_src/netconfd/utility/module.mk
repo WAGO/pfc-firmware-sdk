@@ -25,7 +25,7 @@ $(NETCONFD_SHARED_INCLUDES)            \
 -I$(libutility_PROJECT_ROOT)/extern   \
 -I$(PROJECT_ROOT)/netconfd/src/Logger 
 
-
+libutility.a_VERSION := $(NETCONFD_VERSION)
 libutility.a_DISABLEDWARNINGS += packed 
 libutility.a_CXXDISABLEDWARNINGS += $(libutility.a_DISABLEDWARNINGS) useless-cast abi-tag
 libutility.a_CDISABLEDWARNINGS += $(libutility.a_DISABLEDWARNINGS)
@@ -42,16 +42,13 @@ libutility.a_CFLAGS += $(call option_std,c99)
 libutility.a_CFLAGS += $(call option_disable_warning,$(libutility.a_CDISABLEDWARNINGS))
 libutility.a_CFLAGS += $(libutility.a_CCXXFLAGS)
 libutility.a_CXXFLAGS += $(call pkg_config_cxxflags,$(libutility.a_PKG_CONFIGS))
-libutility.a_CXXFLAGS += $(call option_std,c++14)
+libutility.a_CXXFLAGS += $(call option_std,c++17)
 libutility.a_CXXFLAGS += $(call option_disable_warning,$(libutility.a_CXXDISABLEDWARNINGS))
 libutility.a_CXXFLAGS += $(libutility.a_CCXXFLAGS)
 libutility.a_SOURCES += $(call fglob_r,$(libutility_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
 libutility.a_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
 libutility.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
 libutility.a_CLANG_TIDY_CHECKS += -google-runtime-references
-
-
-
 
 #######################################################################################################################
 # Settings for build target utility_tests.elf
@@ -78,7 +75,7 @@ utility_tests.elf_CPPFLAGS += $(call uniq, $(libutility.a_DEFINES))
 utility_tests.elf_CPPFLAGS += $(call pkg_config_cppflags,$(utility_tests.elf_PKG_CONFIGS))
 utility_tests.elf_CFLAGS += $(call option_std,gnu99)
 utility_tests.elf_CFLAGS += $(call option_disable_warning,$(utility_tests.elf_CDISABLEDWARNINGS))
-utility_tests.elf_CXXFLAGS += $(call option_std,gnu++14) 
+utility_tests.elf_CXXFLAGS += $(call option_std,gnu++17) 
 utility_tests.elf_CXXFLAGS += $(call option_disable_warning,$(utility_tests.elf_CXXDISABLEDWARNINGS))
 utility_tests.elf_LDFLAGS += $(call option_lib,$(utility_tests.elf_LIBS),utility_tests.elf)
 utility_tests.elf_LDFLAGS += $(call pkg_config_ldflags,$(utility_tests.elf_PKG_CONFIGS))

@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 

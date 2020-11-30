@@ -45,7 +45,7 @@ TEST_F(IPConfigHandlerTest, SetWithTwoBridges)
 {
   auto sut = CreateWithParams("--ip-config","-fjson", "--set", R"( {"br0": {"bcast": "192.168.1.255","ipaddr": "192.168.1.17","netmask": "255.255.255.0","source": "static"},"br1": {"bcast": "192.168.255.255","ipaddr": "192.168.2.17","netmask": "255.255.0.0","source": "static"}})");
 
-  EXPECT_CALL(ip_config_mock_, SetIPConfigs(_)).WillOnce(Return(netconf::api::Status::OK));
+  EXPECT_CALL(ip_config_mock_, SetIPConfigs(_)).WillOnce(Return(netconf::Error::Ok()));
   EXPECT_NO_THROW(sut.Execute());
 
 }

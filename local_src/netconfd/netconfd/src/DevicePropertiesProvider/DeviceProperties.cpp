@@ -52,9 +52,7 @@ MacAddress DeviceProperties::GetMac() const {
 }
 
 ::std::string DeviceProperties::GetHostname() const {
-  ::std::string hostname;
-  system_properties_provider_.GetHostname(hostname);
-  return hostname;
+  return system_properties_provider_.GetHostname();
 }
 
 uint32_t DeviceProperties::GetMacCount() const {

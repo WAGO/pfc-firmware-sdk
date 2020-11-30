@@ -4,7 +4,7 @@
 
 #include <boost/program_options.hpp>
 #include "OptionStrings.hpp"
-#include "Status.hpp"
+#include "Error.hpp"
 
 namespace network_config
 {

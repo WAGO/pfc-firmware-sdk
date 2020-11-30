@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
@@ -105,43 +106,48 @@ TEST_F(BridgeConfigTest, GetBridgeOfInterface) {
 
 TEST_F(BridgeConfigTest, InitializeWithConfiguration) {
   auto expected = R"({"br0":["X1"]})";
-  auto dut = MakeBridgeConfig(expected);
+  BridgeConfig config;
+  auto error = MakeBridgeConfig(expected,config);
 
   JsonConverter jc;
-  EXPECT_EQ(expected, jc.ToJsonString(dut.GetConfig()));
+  EXPECT_EQ(expected, jc.ToJsonString(config.GetConfig()));
 }
 
 TEST_F(BridgeConfigTest, BridgeConfigToString) {
-  auto dut_empty = MakeBridgeConfig(R"({})");
+  BridgeConfig config;
+  auto error = MakeBridgeConfig(R"({})", config);
   JsonConverter jc;
-  EXPECT_EQ("{}", jc.ToJsonString(dut_empty.GetConfig()));
+  EXPECT_EQ("{}", jc.ToJsonString(config.GetConfig()));
 }
 
 TEST_F(BridgeConfigTest, CheckIfBridgeIsEmpty) {
-  auto dut = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[]})");
-  EXPECT_FALSE(dut.BridgeIsEmpty("br0"));
-  EXPECT_TRUE(dut.BridgeIsEmpty("br1"));
+  BridgeConfig config;
+  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[]})", config);
+  EXPECT_FALSE(config.BridgeIsEmpty("br0"));
+  EXPECT_TRUE(config.BridgeIsEmpty("br1"));
 }
 
 TEST_F(BridgeConfigTest, CheckIfNonExistingBridgeIsEmpty) {
-
-  auto dut = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"]})");
-  EXPECT_FALSE(dut.BridgeIsEmpty("br0"));
-  EXPECT_TRUE(dut.BridgeIsEmpty("br1"));
+  BridgeConfig config;
+  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"]})", config);
+  EXPECT_FALSE(config.BridgeIsEmpty("br0"));
+  EXPECT_TRUE(config.BridgeIsEmpty("br1"));
 }
 
 TEST_F(BridgeConfigTest, CheckIfBridgeIsEmptyWhenBridgeIsNotAnArray) {
   // Just for sake of completeness, this won't happen in productivity code
-  BridgeConfig dut = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })");
-  EXPECT_FALSE(dut.BridgeIsEmpty("br0"));
-  EXPECT_TRUE(dut.BridgeIsEmpty("br1"));
+  BridgeConfig config;
+  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })", config);
+  EXPECT_FALSE(config.BridgeIsEmpty("br0"));
+  EXPECT_TRUE(config.BridgeIsEmpty("br1"));
 }
 
 TEST_F(BridgeConfigTest, GetInterfaceListOfBridge) {
-  auto dut = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })");
-  EXPECT_EQ(4, dut.GetBridgeInterfaces("br0").size());
-  EXPECT_EQ(0, dut.GetBridgeInterfaces("br1").size());
-  EXPECT_EQ(0, dut.GetBridgeInterfaces("br42").size());
+  BridgeConfig config;
+  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })", config);
+  EXPECT_EQ(4, config.GetBridgeInterfaces("br0").size());
+  EXPECT_EQ(0, config.GetBridgeInterfaces("br1").size());
+  EXPECT_EQ(0, config.GetBridgeInterfaces("br42").size());
 }
 
 TEST_F(BridgeConfigTest, AreInSameBridge) {
@@ -149,9 +155,12 @@ TEST_F(BridgeConfigTest, AreInSameBridge) {
   ::std::string config2 = R"({"br0":["X1", "X11","X12"], "br1":["X2"] })";
   ::std::string config3 = R"({"br0":[], "br1":[] })";
 
-  auto cfg1 = MakeBridgeConfig(config);
-  auto cfg2 = MakeBridgeConfig(config2);
-  auto cfg3 = MakeBridgeConfig(config3);
+  BridgeConfig cfg1;
+  auto error = MakeBridgeConfig(config, cfg1);
+  BridgeConfig cfg2;
+  error = MakeBridgeConfig(config2, cfg2);
+  BridgeConfig cfg3;
+  error = MakeBridgeConfig(config3, cfg3);
 
   EXPECT_TRUE(cfg1.AreInSameBridge({"X1", "X2"}));
   EXPECT_TRUE(cfg1.AreInSameBridge({"X1"}));
@@ -168,8 +177,9 @@ TEST_F(BridgeConfigTest, AreInSameBridge) {
 }
 
 TEST_F(BridgeConfigTest, GetBridges) {
-  auto dut = MakeBridgeConfig(R"({"br0":["X1", "X2"], "br1":["X11"], "br2":["X12"] })");
-  auto bridges = dut.GetBridges();
+  BridgeConfig config;
+  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2"], "br1":["X11"], "br2":["X12"] })", config);
+  auto bridges = config.GetBridges();
   EXPECT_EQ(3, bridges.size());
   EXPECT_THAT(bridges, ::testing::ElementsAre("br0", "br1", "br2"));
 }

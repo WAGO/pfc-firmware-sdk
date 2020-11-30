@@ -1,8 +1,8 @@
 From 334c1228e1c2224732e12cc777a4256306b929bc Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 12 Sep 2018 10:26:41 +0200
-Subject: [PATCH 082/144] arm: configs: am35xx_pfc: rename defconfig to be
- uniform with am335x pfc devices
+Subject: [PATCH] arm: configs: am35xx_pfc: rename defconfig to be uniform with
+ am335x pfc devices
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

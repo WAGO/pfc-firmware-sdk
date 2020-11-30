@@ -20,7 +20,7 @@ Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
  2 files changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/phy/phy.c b/drivers/net/phy/phy.c
-index 222f180d6c58..70fd1d24af36 100644
+index 222f180d..70fd1d2 100644
 --- a/drivers/net/phy/phy.c
 +++ b/drivers/net/phy/phy.c
 @@ -915,7 +915,7 @@ EXPORT_SYMBOL(phy_stop);
@@ -33,7 +33,7 @@ index 222f180d6c58..70fd1d24af36 100644
  
  	mutex_lock(&phydev->lock);
 diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index fb6d6a97da80..fb9e1c88586a 100644
+index fb6d6a9..fb9e1c8 100644
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
 @@ -931,8 +931,10 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
@@ -49,5 +49,5 @@ index fb6d6a97da80..fb9e1c88586a 100644
  	return err;
  
 -- 
-2.17.1
+2.7.4
 

@@ -63,7 +63,6 @@ endif
 #
 PLCSNMP_AGENT_CONF_TOOL	:= autoconf
 PLCSNMP_AGENT_CONF_OPT	:= $(CROSS_AUTOCONF_USR)
-PLCSNMP_AGENT_CONF_OPT        += --enable-debug
 
 
 $(STATEDIR)/plcsnmp_agent.prepare:
@@ -100,7 +99,7 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	# Backup headers for later use in configs/@platform@/packages
 	cd $(PKGDIR)/$(PLCSNMP_AGENT)/ && \
 	tar -czvf $(PLCSNMP_AGENT).tgz * && \
-	mv $(PLCSNMP_AGENT).tgz $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/ 
+	mv $(PLCSNMP_AGENT).tgz $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/
 endif
 endif
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
@@ -122,14 +121,14 @@ $(STATEDIR)/plcsnmp_agent.targetinstall:
 	@$(call install_fixup, plcsnmp_agent, SECTION, base)
 	@$(call install_fixup, plcsnmp_agent, AUTHOR, "<HFS>")
 	@$(call install_fixup, plcsnmp_agent, DESCRIPTION, missing)
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	rm -rf $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/tmp/*
 	cd $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/$(PLCSNMP_AGENT_PACKAGE_NAME).ipk  
+	ar -xov $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/$(PLCSNMP_AGENT_PACKAGE_NAME).ipk
 	@$(call install_archive, plcsnmp_agent, 0, 0, $(PLCSNMP_AGENT_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
-	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE	
+	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 
 #	#
 #	# example code:; copy all libraries, links and binaries

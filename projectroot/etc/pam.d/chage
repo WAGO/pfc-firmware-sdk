@@ -1,0 +1,10 @@
+#
+# /etc/pam.d/chage - "chage" configuration for Linux-PAM
+#
+
+# Allow root to execute "chage" without passwords
+auth     sufficient  pam_rootok.so
+
+auth     include     common-auth
+account  optional    pam_permit.so
+

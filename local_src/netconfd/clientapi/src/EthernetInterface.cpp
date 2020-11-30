@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "EthernetInterface.hpp"
 
@@ -30,8 +30,8 @@ EthernetInterface::EthernetInterface(::std::uint32_t ifindex)
 }
 
 EthernetInterface::EthernetInterface(EthernetInterface &&other) noexcept
-    : mac_{std::move(other.mac_)},
-        name_ { std::move(other.name_) },
+    : mac_ { std::move(other.mac_) },
+      name_ { std::move(other.name_) },
       if_index_ { other.if_index_ },
       ifreq_ { other.ifreq_ },
       socket_ { std::move(other.socket_) } {
@@ -41,9 +41,14 @@ EthernetInterface::EthernetInterface(EthernetInterface &&other) noexcept
 void EthernetInterface::InitializeData() {
 
   if (ioctl(socket_, SIOCGIFHWADDR, &ifreq_) < 0) {
-    throw ::std::system_error(errno, ::std::system_category(), "EthernetInterface: ioctl() SIOCGIFHWADDR failed");
+    throw ::std::system_error(errno, ::std::system_category(), name_ + " ioctl() SIOCGIFHWADDR failed");
   }
-  mac_ = MacAddress{ifreq_.ifr_hwaddr.sa_data};
+  mac_ = MacAddress { ifreq_.ifr_hwaddr.sa_data };
+
+  if (ioctl(socket_, SIOCGIFFLAGS, &ifreq_) < 0) {
+    throw ::std::system_error(errno, ::std::system_category(), name_ + " ioctl() SIOCGIFFLAGS failed");
+  }
+  if_flags_ = ifreq_.ifr_flags;
 }
 
 EthernetInterface::EthernetInterface(::std::string name)
@@ -66,5 +71,27 @@ const MacAddress EthernetInterface::GetMac() const {
   return mac_;
 }
 
+InterfaceState EthernetInterface::GetState(){
+  return if_flags_ & IFF_UP ? InterfaceState::UP : InterfaceState::DOWN;
+}
+
+void EthernetInterface::SetState(InterfaceState s) {
+
+  ifreq_.ifr_flags = if_flags_;  // NOLINT: must access union members in legacy data structures.
+  if (s == InterfaceState::DOWN) {
+    ifreq_.ifr_flags &= ~IFF_UP;
+  } else if (s == InterfaceState::UP) {
+    ifreq_.ifr_flags |= IFF_UP;
+  }
+  else{
+    throw ::std::invalid_argument{"Invalid InterfaceState"};
+  }
+
+  if (ioctl(socket_, SIOCSIFFLAGS, &ifreq_) < 0) {
+    throw ::std::system_error(errno, ::std::system_category(), "EthernetInterface: ioctl() SIOCGIFINDEX failed");
+  }
+}
+
 }  // namespace api
 }  // namespace pfcspecific
+

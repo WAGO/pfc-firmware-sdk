@@ -60,7 +60,7 @@ SUDO_AUTOCONF = \
 	--disable-shared-libutil \
 	--disable-sia \
 	$(GLOBAL_LARGE_FILE_OPTION) \
-	--disable-pam-session \
+	--$(call ptx/endis, PTXCONF_SUDO_PAM)-pam-session \
 	--without-AFS \
 	--without-DCE \
 	--without-logincap \
@@ -68,7 +68,7 @@ SUDO_AUTOCONF = \
 	--without-project \
 	--without-lecture \
 	--with-ignore-dot \
-	--without-pam
+	--$(call ptx/wwo, PTXCONF_SUDO_PAM)-pam
 
 ifdef PTXCONF_SUDO_USE_SENDMAIL
 SUDO_AUTOCONF += --with-sendmail

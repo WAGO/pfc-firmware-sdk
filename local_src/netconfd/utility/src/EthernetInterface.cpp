@@ -1,13 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-//------------------------------------------------------------------------------
-///  \file     EthernetInterface.cpp
-///
-///  \author   u014487 : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// include files
-//------------------------------------------------------------------------------
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "EthernetInterface.hpp"
 
@@ -23,9 +14,7 @@
 #include <ifaddrs.h>
 #include <linux/ethtool.h>
 #include <cstring>
-//------------------------------------------------------------------------------
-// function implementation
-//------------------------------------------------------------------------------
+
 
 extern "C" char *if_indextoname(unsigned int __ifindex, char *__ifname);
 
@@ -456,5 +445,3 @@ void EthernetInterface::SetState(DeviceState state) {
 }
 
 }  // namespace pfcspecific
-
-//---- End of source file ------------------------------------------------------

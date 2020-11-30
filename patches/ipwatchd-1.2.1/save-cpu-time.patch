@@ -1,15 +1,20 @@
 Index: ipwatchd-1.2.1/src/ipwatchd.c
 ===================================================================
---- ipwatchd-1.2.1.orig/src/ipwatchd.c	2011-07-24 14:39:03.000000000 +0000
-+++ ipwatchd-1.2.1/src/ipwatchd.c	2014-11-21 15:14:27.099233199 +0000
-@@ -194,8 +194,8 @@
+--- ipwatchd-1.2.1.orig/src/ipwatchd.c
++++ ipwatchd-1.2.1/src/ipwatchd.c
+@@ -194,8 +194,8 @@ int main (int argc, char *argv[])
  		return (IPWD_RV_ERROR);
  	}
  
 -	/* Initialize libpcap and listen on all interfaces */
 -	h_pcap = pcap_open_live ("any", BUFSIZ, 0, 0, errbuf);
-+	/* Initialize libpcap and listen on all interfaces, allow for 500 ms wait time */
-+	h_pcap = pcap_open_live ("any", BUFSIZ, 0, 500, errbuf);
++	/* Initialize libpcap and listen on all interfaces, allow for 1000 ms wait time */
++	h_pcap = pcap_open_live ("any", BUFSIZ, 0, 1000, errbuf);
  	if (h_pcap == NULL)
  	{
  		ipwd_message (IPWD_MSG_TYPE_ERROR, "Unable to create packet capture object - %s", errbuf);
+@@ -274,4 +274,3 @@ void ipwd_print_help (void)
+ 	fprintf (stdout, "\n");
+ 	fprintf (stdout, "Please send any bug reports to jariq@jariq.sk\n");
+ }
+-

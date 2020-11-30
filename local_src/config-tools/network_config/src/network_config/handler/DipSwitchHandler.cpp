@@ -7,11 +7,13 @@
 #include "DipSwitchConfig.hpp"
 
 #include "Utils.hpp"
+#include "NetconfError.hpp"
 
 namespace network_config
 {
 
   namespace po = boost::program_options;
+  namespace napi = ::netconf::api;
 
   DipSwitchHandler::DipSwitchHandler(const ::boost::program_options::variables_map &vm) :
           vm_{vm}
@@ -30,28 +32,32 @@ namespace network_config
 
   void DipSwitchHandler::SetDipSwitchConfig(const ::std::string &config)
   {
-    auto dip_switch_ip_config = netconf::api::MakeDipSwitchIpConfig(config);
-    auto dsc = netconf::api::DipSwitchConfig{dip_switch_ip_config};
-
-    auto status = netconf::api::SetDipSwitchConfig(dsc);
-    if(status != netconf::api::Status::OK)
+    netconf::DipSwitchIpConfig dip_switch_ip_config;
+    auto error = napi::MakeDipSwitchIpConfig(config, dip_switch_ip_config);
+    if(error.IsNotOk())
     {
-      throw ::std::runtime_error("Failed to set dip switch configuration.");
+      throw NetconfError{error};
+    }
+
+    auto dsc = netconf::DipSwitchConfig{dip_switch_ip_config};
+    error = napi::SetDipSwitchConfig(dsc);
+    if(error.IsNotOk())
+    {
+      throw NetconfError{error};
     }
   }
 
-  void DipSwitchHandler::ParseConfig(netconf::api::DipSwitchConfig &config)
+  void DipSwitchHandler::ParseConfig(netconf::DipSwitchConfig &config)
   {
-    auto dip_switch_config = config.GetDipSwitchConfig();
     auto format = GetFormat(vm_);
     ::std::stringstream output;
     if(format == "text")
     {
-      output << ToString(config);
+      output << napi::ToString(config);
     }
     else if(format == "json")
     {
-      output << ToJson(config);
+      output << napi::ToJson(config);
     }
 
     ::std::cout << output.str() << ::std::flush;
@@ -59,7 +65,12 @@ namespace network_config
 
   void DipSwitchHandler::GetDipSwitchConfig()
   {
-    auto config = netconf::api::GetDipSwitchConfig();
+    netconf::DipSwitchConfig config;
+    auto error = napi::GetDipSwitchConfig(config);
+    if(error.IsNotOk())
+    {
+      throw NetconfError{error};
+    }
     ParseConfig(config);
   }
 

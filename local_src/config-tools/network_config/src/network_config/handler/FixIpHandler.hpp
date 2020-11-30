@@ -14,7 +14,7 @@ namespace network_config
 
   class FixIpHandler : public IHandler {
     public:
-      explicit FixIpHandler();
+      FixIpHandler() = default;
       ~FixIpHandler() override = default;
 
       FixIpHandler(const FixIpHandler&) = delete;

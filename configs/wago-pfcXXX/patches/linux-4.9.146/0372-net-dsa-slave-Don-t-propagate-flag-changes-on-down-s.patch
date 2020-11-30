@@ -31,7 +31,7 @@ Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
  1 file changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/net/dsa/slave.c b/net/dsa/slave.c
-index 7e36a7e87763..14963efeedda 100644
+index 7e36a7e..14963ef 100644
 --- a/net/dsa/slave.c
 +++ b/net/dsa/slave.c
 @@ -180,10 +180,14 @@ static void dsa_slave_change_rx_flags(struct net_device *dev, int change)
@@ -54,5 +54,5 @@ index 7e36a7e87763..14963efeedda 100644
  
  static void dsa_slave_set_rx_mode(struct net_device *dev)
 -- 
-2.17.1
+2.7.4
 

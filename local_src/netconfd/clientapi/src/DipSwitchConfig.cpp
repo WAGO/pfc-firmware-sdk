@@ -1,8 +1,10 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "DipSwitchConfig.hpp"
 #include "JsonConverter.hpp"
 #include "NetconfdDbusClient.hpp"
+#include "Error.hpp"
+#include "Convert.hpp"
 #include <sstream>
 #include <string>
 
@@ -11,79 +13,59 @@ namespace api {
 
 using namespace std::literals;
 
-DipSwitchConfig MakeDipSwitchConfig(const ::std::string& json_str)
-{
+Error MakeDipSwitchConfig(const ::std::string &json_str, netconf::DipSwitchConfig &config) {
   JsonConverter jc;
-  netconf::DipSwitchConfig config;
-  auto status = jc.FromJsonString(json_str, config);
-  if(status.NotOk()){
-    // TODO throw something useful
-  }
-  return DipSwitchConfig{config};
+  return jc.FromJsonString(json_str, config);
 }
 
-DipSwitchIpConfig MakeDipSwitchIpConfig(const ::std::string& json_str)
-{
+Error MakeDipSwitchIpConfig(const ::std::string &json_str, netconf::DipSwitchIpConfig &config) {
   JsonConverter jc;
-  DipSwitchIpConfig config;
-  auto status = jc.FromJsonString(json_str, config);
-  if (status.NotOk()) {
-    // TODO: throw something useful
-  }
-  return config;
+  return jc.FromJsonString(json_str, config);
 }
 
-DipSwitchConfig GetDipSwitchConfig() {
+Error GetDipSwitchConfig(netconf::DipSwitchConfig &config) {
+
   NetconfdDbusClient client;
-  return MakeDipSwitchConfig(client.GetDipSwitchConfig());
+  auto result = client.GetDipSwitchConfig();
+
+  auto error = result.error_;
+  if (error.Ok()) {
+    JsonConverter jc;
+    error = jc.FromJsonString(result.value_json_, config);
+  }
+
+  return error;
+
 }
 
-DipSwitchConfig::DipSwitchConfig(const DipSwitchIpConfig &config, DipSwitchMode mode, int value)
-  : config_{config, mode, value}
-{
-
-}
-
-Status SetDipSwitchConfig(const DipSwitchConfig &config) {
+Error SetDipSwitchConfig(const netconf::DipSwitchConfig &config) {
   NetconfdDbusClient client;
-  auto success = client.SetDipSwitchConfig(ToJson(config));
-  return success ? Status::OK : Status::ERROR;
+  auto error_set = client.SetDipSwitchConfig(ToJson(config));
+  return error_set.error_;
 }
 
-DipSwitchConfig::DipSwitchConfig(netconf::DipSwitchConfig config):config_{config} {
-}
-
-int DipSwitchConfig::GetDipSwitchValue() const noexcept {
-  return config_.value_;
-}
-
-netconf::DipSwitchIpConfig DipSwitchConfig::GetDipSwitchIpConfig() const noexcept {
-  return config_.ip_config_;
-}
-
-::std::string ToJson(const DipSwitchConfig& config) noexcept {
+::std::string ToJson(const netconf::DipSwitchConfig &config) noexcept {
   JsonConverter jc;
-  return jc.ToJsonString(config.GetDipSwitchConfig());
+  return jc.ToJsonString(config);
 }
 
-::std::string ToString(const DipSwitchConfig& config, const char sep) noexcept {
+::std::string ToString(const netconf::DipSwitchConfig &config, const char sep) noexcept {
   // TODO implement this
-  auto ip_config = config.GetDipSwitchIpConfig();
-  auto dip_config = config.GetDipSwitchConfig();
+  auto &ip_config = config.ip_config_;
   ::std::stringstream output;
-    output << "ipaddr=" << ip_config.address_;
-    output << sep;
-    output << "netmask=" << ip_config.netmask_;
-    output << sep;
-    output << "value=" << dip_config.value_;
-    output << sep;
-    output << "mode=" << ToString(dip_config.mode_);
+  output << "ipaddr=" << ip_config.address_;
+  output << sep;
+  output << "netmask=" << ip_config.netmask_;
+  output << sep;
+  output << "value=" << config.value_;
+  output << sep;
+  output << "mode=" << ToString(config.mode_);
   return output.str();
 }
 
 ::std::string ToString(const DipSwitchMode mode) noexcept
 {
-  switch(mode){
+  switch (mode) {
     case DipSwitchMode::OFF:
       return "off"s;
     case DipSwitchMode::STATIC:
@@ -95,10 +77,6 @@ netconf::DipSwitchIpConfig DipSwitchConfig::GetDipSwitchIpConfig() const noexcep
   }
 }
 
-netconf::DipSwitchConfig DipSwitchConfig::GetDipSwitchConfig() const noexcept{
-  return config_;
-}
-
-} // namespace api
+}  // namespace api
 }  // namespace neconf
 

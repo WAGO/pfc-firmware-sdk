@@ -2455,7 +2455,7 @@ index 0000000..92db7b6
 +};
 diff --git a/arch/arm/boot/dts/am335x-pfc-750_8212.dts b/arch/arm/boot/dts/am335x-pfc-750_8212.dts
 new file mode 100644
-index 0000000..24a47e8
+index 0000000..24a47e86
 --- /dev/null
 +++ b/arch/arm/boot/dts/am335x-pfc-750_8212.dts
 @@ -0,0 +1,17 @@
@@ -5403,7 +5403,7 @@ index 0000000..c8b53c1
 +/include/ "pxc-nandparts.dtsi"
 diff --git a/arch/arm/boot/dts/am3505-pfc200-setupfw.dts b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
 new file mode 100644
-index 0000000..ac2c61c
+index 0000000..ac2c61c0
 --- /dev/null
 +++ b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
 @@ -0,0 +1,77 @@

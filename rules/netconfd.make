@@ -16,27 +16,25 @@ PACKAGES-$(PTXCONF_NETCONFD) += netconfd
 #
 # Paths and names
 #
-NETCONFD_VERSION	:= 1.0.0
-NETCONFD_MD5		:=
-NETCONFD		:= netconfd
-NETCONFD_URL		:= file://local_src/netconfd
-NETCONFD_LICENSE	:= GPLv2
-NETCONFD_LICENSE_FILE	:= COPYING
+NETCONFD_VERSION        := 1.0.0
+NETCONFD_MD5            :=
+NETCONFD                := netconfd
+NETCONFD_URL            := file://local_src/netconfd
+NETCONFD_LICENSE        := GPLv2,LGPLv3
 
-NETCONFD_BUILDCONFIG  := Release
-
-NETCONFD_SRC_DIR := $(PTXDIST_WORKSPACE)/local_src/netconfd
+NETCONFD_BUILDCONFIG    := Release
+NETCONFD_SRC_DIR        := $(PTXDIST_WORKSPACE)/local_src/netconfd
 NETCONFD_BUILDROOT_DIR  := $(BUILDDIR)/$(NETCONFD)-$(NETCONFD_VERSION)
 NETCONFD_DIR            := $(NETCONFD_BUILDROOT_DIR)/src
 NETCONFD_BUILD_DIR      := $(NETCONFD_BUILDROOT_DIR)/bin/$(NETCONFD_BUILDCONFIG)
-#NETCONFD_BIN := $(NETCONFD).elf.$(NETCONFD_VERSION)
-NETCONFD_CONF_TOOL := NO
+
+NETCONFD_CONF_TOOL      := NO
 NETCONFD_MAKE_ENV       := $(CROSS_ENV) \
                             BUILDCONFIG=$(NETCONFD_BUILDCONFIG) \
                             BIN_DIR=$(NETCONFD_BUILD_DIR) \
                             SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
 
-NETCONFD_PACKAGE_NAME := $(NETCONFD)_$(NETCONFD_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
+NETCONFD_PACKAGE_NAME   := $(NETCONFD)_$(NETCONFD_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
 
 
 # During BSP creation local_src is deleted and the source code directories are
@@ -104,14 +102,9 @@ $(STATEDIR)/netconfd.targetinstall:
 
 	@$(call install_copy, netconfd, 0, 0, 0755, $(NETCONFD_BUILD_DIR)/netconfd.elf, /usr/bin/netconfd)
 
-	# install legacy wrapper and override old config tools
-	@$(call install_copy, netconfd, 0, 0, 0755, $(NETCONFD_DIR)/root/etc/config-tools/backup-restore/backup_netconfd, /etc/config-tools/backup-restore/backup_netconfd)
-
 	@$(call install_copy, netconfd, 0, 0, 0750, $(NETCONFD_DIR)/root/etc/init.d/netconfd, /etc/init.d/netconfd)
 	@$(call install_link, netconfd, ../init.d/netconfd, /etc/rc.d/S13_netconfd)
-
-	# install license file
-	@$(call install_copy, netconfd, 0, 0, 0644, $(NETCONFD_SRC_DIR)/$(NETCONFD_LICENSE_FILE), /usr/share/licenses/oss/license.$(NETCONFD)_$(NETCONFD_VERSION).txt)
+	@$(call install_lib, netconfd, 0, 0, 0644, libnetconf)
 
 	@$(call install_finish, netconfd)
 	@$(call touch)

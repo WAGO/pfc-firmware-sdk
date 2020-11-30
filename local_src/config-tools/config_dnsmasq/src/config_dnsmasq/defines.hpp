@@ -24,47 +24,74 @@
 // States of the domain name check routine.
 typedef enum
 {
-    ERR = -1,
-    STOP,
-    START,
-    INLABEL,
-    HYPHEN                         // Input character was a hyphen
+  ERR = -1,
+  STOP,
+  START,
+  INLABEL,
+  HYPHEN                         // Input character was a hyphen
 } conv_state_t;
 
 // Main function command codes of config_dnsmasq.
-typedef enum {
-    NONE = 0,
-    GENERATE,
-    GET_CONFIG,
-    GET_JSON_CONFIG,
-    SET_CONFIG,
-    HELP
+typedef enum
+{
+  NONE = 0,
+  GENERATE,
+  GET_CONFIG,
+  GET_JSON_CONFIG,
+  SET_CONFIG,
+  RESTORE_CONFIG,
+  STORE_CONFIG,
+  HELP
 } command_t;
 
 // Type of service of config_dnsmasq.
-typedef enum {
-    UNDEF = 0,
-    DHCPD,
-    DNS
+typedef enum
+{
+  UNDEF = 0,
+  DHCPD,
+  DNS
 } service_t;
 
 // Program configuration data.
-typedef struct {
-    command_t command;          // Function to perform.
-    char *dbg_root;             // Root directory for testing and debugging.
-    char *interfaces_xml_path;  // Path to network-interfaces.xml.
-    char *services_xml_path;    // Path to network-services.xml.
-    char *etchosts;             // Path to /etc/hosts.
-    char *dnsmasq_conf;         // Path to /etc/dnsmasq.conf.
-    char *dnsmasq_conf_tmp;     // Path to temporary /etc/dnsmasq.conf.
-    char *restart_command;      // Path to /etc/init.d/dnsmasq.
-    char *lease_file;           // Path to /var/lib/misc/dnsmasq.leases.
-    char const *selected_port;  // Port selected for getting/setting DHCPD parameters.
-    service_t service_type;     // Configuration type DNS or DHCPD.
-    int nodmasqrestart;         // Do not call dnsmasq init script after config setting.
-    char const *bridge_config;
-    char const *ip_config;
-    char const *interface_config;
+typedef struct prgconf
+{
+    command_t command;                  // Function to perform.
+    ::std::string dbg_root;             // Root directory for testing and debugging.
+    ::std::string interfaces_xml_path;  // Path to network-interfaces.xml.
+    ::std::string services_xml_path;    // Path to network-services.xml.
+    ::std::string etchosts;             // Path to /etc/hosts.
+    ::std::string dnsmasq_conf;         // Path to /etc/dnsmasq.conf.
+    ::std::string dnsmasq_conf_tmp;     // Path to temporary /etc/dnsmasq.conf.
+    ::std::string restart_command;      // Path to /etc/init.d/dnsmasq.
+    ::std::string lease_file;           // Path to /var/lib/misc/dnsmasq.leases.
+    ::std::string selected_port;        // Port selected for getting/setting DHCPD parameters.
+    service_t service_type;             // Configuration type DNS or DHCPD.
+    bool dnsmasq_restart;               // Do not call dnsmasq init script after config setting.
+    ::std::string bridge_config;
+    ::std::string ip_config;
+    ::std::string interface_config;
+    ::std::string backup_file_path;     //Path to backup file.
+
+    prgconf() :
+            command{NONE},
+            dbg_root{""},
+            interfaces_xml_path{""},
+            services_xml_path{""},
+            etchosts{""},
+            dnsmasq_conf{""},
+            dnsmasq_conf_tmp{""},
+            restart_command{""},
+            lease_file{""},
+            selected_port{""},
+            service_type{UNDEF},
+            dnsmasq_restart{true},
+            bridge_config{""},
+            ip_config{""},
+            interface_config{""},
+            backup_file_path{""}
+    {
+    }
+    ;
 } prgconf_t;
 
 #endif /* SRC_CONFIG_DNSMASQ_DEFINES_HPP_ */

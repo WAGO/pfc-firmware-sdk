@@ -18,13 +18,13 @@
 
 #include "error_handling.hpp"
 
-#include <glib.h>
 #include <cassert>
 
-static char const *erh_prgname = "";
-static size_t erh_prgnamesize;
+::std::string erh_prgname;
 
-// Table to convert error codes to text.
+/**
+ * Table to convert error codes to text.
+ */
 static erh_code_to_message_t code_to_msg[] = {
     { MISSING_PARAMETER, "MISSING_PARAMETER" },
     { INVALID_PARAMETER, "INVALID_PARAMETER" },
@@ -41,18 +41,18 @@ static erh_code_to_message_t code_to_msg[] = {
     { SUCCESS, "UNDEFINED" }                   // End marker, don't remove.
 };
 
-// Set program name.
-void erh_init(char *prgname) {
-  erh_prgname = g_strdup(prgname);
-  erh_prgnamesize = strlen(erh_prgname);
+void erh_init(const ::std::string &prgname) {
+  erh_prgname = prgname;
+
+  erh_code_to_message_t *p = code_to_msg;
+  do {
+    //printf("code: %d; %s\n", p->code, p->text);
+    p++;
+  } while (p->code != SUCCESS);
 }
 
-// Error handling: Set error message for WBM and terminate program.
-// The message may be a printf format string with exactly one %s which is substituted by the par string.
-void erh_set_error(enum eStatusCode code, const char *msgfmt, const char *par) {
+void erh_set_error(enum eStatusCode code, const std::string &message, bool exit_on_error) {
   erh_code_to_message_t *p = code_to_msg;
-  static char message[256];
-  message[0] = '\0';
 
   do {
     if (p->code == code) {
@@ -61,19 +61,23 @@ void erh_set_error(enum eStatusCode code, const char *msgfmt, const char *par) {
     p++;
   } while (p->code != SUCCESS);
 
-  int slen = snprintf(message, sizeof(message), "%s: ", erh_prgname);
-  slen += snprintf(message + slen, /*(size_t)*/((int)sizeof(message) - slen), msgfmt, par);
-  assert(slen <= (int)sizeof(message));
+  auto m = (boost::format("%s: " + message) % erh_prgname).str();
 
-  ct_liblog_setLastError(message);
+  ct_liblog_setLastError(m.c_str());
 
-  fprintf(stderr, "%s: %s\n", p->text, message);
-  exit(code);
+  fprintf(stderr, "%s: %s; code: %d\n", p->text, m.c_str(), code);
+
+  if (exit_on_error) {
+    exit(code);
+  }
 }
 
-// Assert a condition. If it is false, set error and terminate program.
-void erh_assert(bool cond, enum eStatusCode code, const char *msgfmt, const char *par) {
-  if (!cond) {
-    erh_set_error(code, msgfmt, par);
+void erh_assert(bool condition, enum eStatusCode code, const std::string &message, bool exit_on_error) {
+  if (!condition) {
+    erh_set_error(code, message, exit_on_error);
   }
+}
+
+void erh_assert(bool condition, enum eStatusCode code, const boost::format &message, bool exit_on_error) {
+  erh_assert(condition, code, message.str(), exit_on_error);
 }

@@ -1,7 +1,7 @@
 From 12b3ae4c94fed03da6a5028dae4720a5a133f0cc Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 28 Aug 2018 12:05:08 +0200
-Subject: [PATCH 070/144] arm: configs: enable mci startup in mlo
+Subject: [PATCH] arm: configs: enable mci startup in mlo
 
 ---
  arch/arm/configs/am335x_pfc_mlo_defconfig | 1 +

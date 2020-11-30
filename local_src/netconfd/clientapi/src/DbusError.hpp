@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
 #include <dbus/dbus.h>
@@ -10,7 +10,11 @@ class DbusError {
   DbusError();
   ~DbusError();
 
-  DBusError* operator&() {
+  bool IsSet() const noexcept;
+  const char* GetName() const noexcept;
+  const char* GetMessage() const noexcept;
+
+  DBusError* operator&() noexcept{
     return &err;
   }
 

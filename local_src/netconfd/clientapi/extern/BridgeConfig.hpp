@@ -1,11 +1,12 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
 #include <memory>
 #include <string>
 #include <vector>
-#include "Status.hpp"
+#include "Error.hpp"
 #include "Types.hpp"
+
 
 namespace netconf {
 namespace api {
@@ -126,17 +127,16 @@ class BridgeConfig {
  * @return
  */
 ::std::string ToString(const BridgeConfig& config) noexcept;
-/**
- *
- * @return
- */
-BridgeConfig MakeBridgeConfig(const ::std::string& json_str);
+
+
+Error MakeBridgeConfig(const std::string& json_str, BridgeConfig& config);
 
 /**
  * @brief Get the Bridge Config from the netconfd network config daemon *
- * @return BridgeConfig The current bridge configuration
+ * @param config
+ * @return error
  */
-BridgeConfig GetBridgeConfig();
+Error GetBridgeConfig(BridgeConfig& config);
 
 /**
  * @brief Set the Bridge Config for the netconfd network config daemon.
@@ -145,7 +145,7 @@ BridgeConfig GetBridgeConfig();
  * @param config The configuration to set.
  * @return Status @see Status::OK on success.
  */
-Status SetBridgeConfig(const BridgeConfig &config);
+Error SetBridgeConfig(const BridgeConfig &config);
 
 bool operator==(const BridgeConfig& rhs, const BridgeConfig& lhs);
 

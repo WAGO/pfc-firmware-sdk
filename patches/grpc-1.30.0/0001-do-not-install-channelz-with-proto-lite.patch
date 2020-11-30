@@ -1,0 +1,13 @@
+Index: CMakeLists.txt
+===================================================================
+--- CMakeLists.txt.orig
++++ CMakeLists.txt
+@@ -3621,7 +3621,7 @@ endif()
+ 
+ if(gRPC_BUILD_CODEGEN)
+ 
+-if(gRPC_INSTALL)
++if(gRPC_INSTALL AND NOT gRPC_USE_PROTO_LITE)
+   install(TARGETS grpcpp_channelz EXPORT gRPCTargets
+     RUNTIME DESTINATION ${gRPC_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${gRPC_INSTALL_LIBDIR}

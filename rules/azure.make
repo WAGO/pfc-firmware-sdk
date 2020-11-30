@@ -144,9 +144,17 @@ $(STATEDIR)/azure.install:
 # Target-Install
 # ----------------------------------------------------------------------------
 
-#$(STATEDIR)/azure.targetinstall:
-#	@$(call targetinfo)
-#	@$(call touch)
+$(STATEDIR)/azure.targetinstall:
+	@$(call targetinfo)
+	@$(call install_init, azure)
+	@$(call install_fixup, azure, PRIORITY, optional)
+	@$(call install_fixup, azure, SECTION, base)
+	@$(call install_fixup, azure, AUTHOR, "Microsoft Corporation")
+	@$(call install_fixup, azure, DESCRIPTION, missing)
+  	
+	@$(call install_copy, azure, 0, 0, 0644, $(AZURE_DIR)/LICENSE, /usr/share/licenses/oss/license.azure_$(AZURE_VERSION).txt)
+	@$(call install_finish, azure)
+	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Clean

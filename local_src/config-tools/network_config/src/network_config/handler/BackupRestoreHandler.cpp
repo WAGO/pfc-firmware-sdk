@@ -2,54 +2,48 @@
 
 #include "BackupRestoreHandler.hpp"
 
-#include <string>
-#include <iostream>
-#include <exception>
-
 #include <Backup.hpp>
+#include <exception>
+#include <iostream>
+#include <string>
+
+#include "NetconfError.hpp"
 #include "OptionStrings.hpp"
+#include "Utils.hpp"
 
 namespace po = boost::program_options;
 
 namespace network_config {
 
-BackupRestoreHandler::BackupRestoreHandler(const po::variables_map &vm)
-    :
-    vm_ { vm } {
-  const auto &optstr = GetOptions();
-
-  if (vm_.count(optstr.backup.name) > 0) {
-    execute_ = [this]() {
-    const auto &optstr2= GetOptions();
-      auto backup_file_path = vm_[optstr2.backup.name].as<::std::string>();
-      ::std::string targetversion;
-      if (vm_.count(optstr2.backup_targetversion.name) > 0) {
-        targetversion = vm_[optstr2.backup_targetversion.name].as<::std::string>();
-      }
-      auto status = netconf::api::Backup(backup_file_path, targetversion);
-      if (netconf::api::Status::OK != status) {
-        throw ::std::runtime_error("Failed to run backup.");
-      }
-    };
-  } else if (vm_.count(optstr.restore.name) > 0) {
-    execute_ = [this]() {
-      const auto &optstr2 = GetOptions();
-      auto restore_file_path = vm_[optstr2.restore.name].as<::std::string>();
-      auto status = netconf::api::Restore(restore_file_path);
-      if (netconf::api::Status::OK != status) {
-        throw ::std::runtime_error("Failed to run restore.");
-      }
-    };
-  } else if (vm_.count(optstr.get_backup_parameter_count.name) > 0) {
-    execute_ = []() {
-      auto count = netconf::api::GetBackupParameterCount();
-      ::std::cout << count;
-    };
-  }
+BackupRestoreHandler::BackupRestoreHandler(const po::variables_map& vm) : vm_{vm} {
 }
 
 void BackupRestoreHandler::Execute() {
-  execute_();
+  const auto& optstr = GetOptions();
+  if (Contains(vm_, optstr.backup)) {
+    auto backup_file_path = GetValueOf(vm_, optstr.backup);
+    ::std::string targetversion;
+    if (Contains(vm_, optstr.backup_targetversion)) {
+      targetversion = GetValueOf(vm_, optstr.backup_targetversion);
+    }
+    auto error = netconf::api::Backup(backup_file_path, targetversion);
+    if (error.IsNotOk()) {
+      throw NetconfError(error);
+    }
+  } else if (Contains(vm_, optstr.restore)) {
+    auto restore_file_path = GetValueOf(vm_, optstr.restore);
+    auto error             = netconf::api::Restore(restore_file_path);
+    if (error.IsNotOk()) {
+      throw NetconfError(error);
+    }
+  } else if (Contains(vm_, optstr.get_backup_parameter_count)) {
+    ::std::string count;
+    auto error = netconf::api::GetBackupParameterCount(count);
+    if (error.IsNotOk()) {
+      throw NetconfError(error);
+    }
+    ::std::cout << count;
+  }
 }
 
 } /* namespace network_config */

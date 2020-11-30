@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * StatusPrettyPrint.cpp
  *
@@ -9,14 +10,14 @@
 
 namespace netconf {
 
-void PrintTo(const Status& bar, std::ostream* os);
-void PrintTo(const StatusCode& bar, std::ostream* os);
+void PrintTo(const Error& bar, std::ostream* os);
+void PrintTo(const ErrorCode& bar, std::ostream* os);
 
-void PrintTo(const Status& bar, std::ostream* os) {
-  *os << static_cast<uint32_t>(bar.Get()) << ": " << bar.GetMessage();  // whatever needed to print bar to os
+void PrintTo(const Error& bar, std::ostream* os) {
+  *os << static_cast<uint32_t>(bar.GetErrorCode()) << ": " << bar.ToString();  // whatever needed to print bar to os
 }
 
-void PrintTo(const StatusCode& bar, std::ostream* os) {
+void PrintTo(const ErrorCode& bar, std::ostream* os) {
   *os << static_cast<uint32_t>(bar);  // whatever needed to print bar to os
 }
 

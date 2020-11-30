@@ -11,7 +11,7 @@
 ///
 ///  \file     config_switch.c
 ///
-///  \version  $Revision: 42234 $1
+///  \version  $Revision: 50494 $1
 ///
 ///  \brief    
 ///
@@ -361,7 +361,6 @@ int main(int argc, char **argv)
         }
 
         ct_liblog_setLastError(lastErrMsg);
-        ct_liblog_reportError(status, "Error in config_switch.");
     }
  
     __ct_cleanup_opts(&opts);

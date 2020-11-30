@@ -1066,12 +1066,14 @@ ReportError()
 SetLastError()
 {
   local errorText="$*"
+  local errorFile="$(mktemp)"
 
   print_dbg "SetLastError: ${errorText}"
 
-  echo -n "$errorText" > "${LAST_ERROR_FILENAME}.tmp" &&
-    chgrp www "${LAST_ERROR_FILENAME}.tmp" &&
-    mv "${LAST_ERROR_FILENAME}.tmp" "${LAST_ERROR_FILENAME}"
+  echo -n "$errorText" > "${errorFile}" &&
+    chmod 0640 "${errorFile}" &&
+    chgrp www "${errorFile}" &&
+    mv "${errorFile}" "${LAST_ERROR_FILENAME}"
 }
 
 # search for a specified parameter in the parameter-list
@@ -1415,8 +1417,8 @@ function GetTargetName
       product="PFC200"
     elif [ "${order3}" == "762" ]; then
       product="TP600"
-    elif [ "${order5}" == "758-8" ]; then
-      product="EC758"
+    elif [ "${order5}" == "752-8" ]; then
+      product="EC752"
     fi
   fi
 
@@ -1451,6 +1453,20 @@ function CheckEncryptionPassphrase
 #-----------------------------------------------------------------------------#
 function GetBridgeConfig {
   echo $($NETWORK_CONFIG --get --bridge-config --quiet)
+}
+
+#-----------------------------------------------------------------------------#
+function GetInterfaceConfig {
+  echo $($NETWORK_CONFIG --get --interface-config --quiet)
+}
+
+#-----------------------------------------------------------------------------#
+function GetPorts {
+  for port in $(GetInterfaceConfig); do
+    if [[ $port == device* ]]; then
+      echo -n "${port##device=} "
+    fi
+  done
 }
 
 #-----------------------------------------------------------------------------#

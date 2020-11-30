@@ -10,7 +10,7 @@ Subject: [PATCH] dts: pfc200v3: add setupfw oftree
  create mode 100644 arch/arm/boot/dts/wago-pfc200v3-setupfw.dts
 
 diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index 9736c7a..40ddd0f 100644
+index 9736c7a0..40ddd0f 100644
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
 @@ -575,6 +575,7 @@ dtb-$(CONFIG_SOC_AM33XX) += \

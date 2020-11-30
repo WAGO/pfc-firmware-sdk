@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "Status.hpp"
+#include "Error.hpp"
 #include "Types.hpp"
 #include "FirmwareVersion.hpp"
 
@@ -35,8 +35,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(DeviceType, {{DeviceType::Ethernet, "ethernet" }, {
                              "loopback" }, {DeviceType::Port, "port" }, {DeviceType::Service, "service" },
                              {DeviceType::Other, "other" } });
 
-static Status MissingJsonKeyError(const std::string &keyname) {
-  return Status { StatusCode::JSON_CONVERT_ERROR, "Missing Json key: " + keyname };
+static Error MissingJsonKeyError(const std::string &keyname) {
+  return Error { ErrorCode::JSON_KEY_MISSING, keyname };
 }
 
 static auto get_to_if_exists = [](const ::std::string &key, const nlohmann::json &inner_json, auto &to) -> bool {
@@ -59,16 +59,16 @@ static auto parse_ip_config = [](const auto &json_iter) -> IPConfig {
   return c;
 };
 
-static auto get_to_or_error = [](const ::std::string &key, const nlohmann::json &inner_json, auto &to) -> Status {
+static auto get_to_or_error = [](const ::std::string &key, const nlohmann::json &inner_json, auto &to) -> Error {
   auto iter = inner_json.find(key);
   if (iter != inner_json.end()) {
     iter.value().get_to(to);
-    return Status { };
+    return Error::Ok();
   }
   return MissingJsonKeyError(key);
 };
 
-Status JsonToNJson(::std::string const &json_str, json &json_object);
+Error JsonToNJson(::std::string const &json_str, json &json_object);
 json DipSwitchIpConfigToNJson(const DipSwitchIpConfig &ip_config);
 json DipSwitchConfigToNJson(const DipSwitchConfig &config);
 json IpConfigToNJson(const IPConfig &ip_config);
@@ -82,15 +82,15 @@ json InterfaceInformationToNJson(const InterfaceInformation &obj);
 ::std::string DipSwitchConfigToJson(const DipSwitchConfig &config);
 ::std::string InterfacesToJson(const Interfaces &interfaces);
 
-Status JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &out_obj);
+Error JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &out_obj);
 
-Status NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config);
-Status NJsonToDipIPConfig(const json &json_object, DipSwitchIpConfig &ip_config);
-Status NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs);
-Status NJsonToInterfaceConfigs(const json &json_object, InterfaceConfigs &interface_configs);
-Status NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information);
+Error NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config);
+Error NJsonToDipIPConfig(const json &json_object, DipSwitchIpConfig &ip_config);
+Error NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs);
+Error NJsonToInterfaceConfigs(const json &json_object, InterfaceConfigs &interface_configs);
+Error NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information);
 
-Status GetAddressFromJson(const std::string &json_field, const json &from, std::string &to);
+Error GetAddressFromJson(const std::string &json_field, const json &from, std::string &to);
 InterfaceConfig InterfaceConfigFromJson(const json &config);
 
 }

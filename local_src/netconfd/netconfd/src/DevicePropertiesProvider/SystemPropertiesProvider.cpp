@@ -5,18 +5,13 @@
 
 namespace netconf {
 
-Status SystemPropertiesProvider::GetHostname(::std::string& hostname) const {
-  Status status(StatusCode::OK);
+::std::string SystemPropertiesProvider::GetHostname() const {
 
-  struct utsname data = {};
-  if(0 == uname(&data)) {
-    hostname = ::std::string(data.nodename); //NOLINT: do not implicitly decay an array into a pointer is unavoidable at this point
-
+  struct utsname data = { };
+  if (0 == uname(&data)) {
+    return ::std::string(data.nodename);  //NOLINT: do not implicitly decay an array into a pointer is unavoidable at this point
   }
-  else{
-    status.Append(StatusCode::ERROR, "Failed to get system name via uname");
-  }
-  return status;
+  return ::std::string { };
 }
 
 }

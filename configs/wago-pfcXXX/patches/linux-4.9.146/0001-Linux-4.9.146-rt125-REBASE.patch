@@ -1335,7 +1335,7 @@ index 5494c9e..e8ce157 100644
  	return ret;
  }
 diff --git a/arch/arm/mach-spear/platsmp.c b/arch/arm/mach-spear/platsmp.c
-index 8d1e2d5..7fa56cc 100644
+index 8d1e2d5..7fa56cc7 100644
 --- a/arch/arm/mach-spear/platsmp.c
 +++ b/arch/arm/mach-spear/platsmp.c
 @@ -32,7 +32,7 @@ static void write_pen_release(int val)
@@ -2466,7 +2466,7 @@ index f8fe11d..1e546e3 100644
  		ctr_crypt_final(desc, &walk);
  		err = blkcipher_walk_done(desc, &walk, 0);
 diff --git a/arch/x86/crypto/cast6_avx_glue.c b/arch/x86/crypto/cast6_avx_glue.c
-index 50e6847..8caf9ba 100644
+index 50e68476..8caf9ba 100644
 --- a/arch/x86/crypto/cast6_avx_glue.c
 +++ b/arch/x86/crypto/cast6_avx_glue.c
 @@ -205,19 +205,33 @@ struct crypt_priv {
@@ -26136,7 +26136,7 @@ index 50b4ca6..77518a3 100644
  unsigned int nr_free_highpages (void)
  {
 diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-index 86a6b33..1d486e8 100644
+index 86a6b33..1d486e8d 100644
 --- a/mm/memcontrol.c
 +++ b/mm/memcontrol.c
 @@ -67,6 +67,7 @@

@@ -14,14 +14,14 @@ mv88e6321 to the instance struct.
 
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 ---
- .../dts/am335x-pfc-750_821x-mv88e6321.dtsi    |   1 +
- drivers/net/dsa/mv88e6xxx/chip.c              |   4 -
- drivers/net/phy/mv88e6321-cfg.c               | 396 +++++++++---------
- include/linux/switch.h                        |   1 -
+ .../boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi    |   1 +
+ drivers/net/dsa/mv88e6xxx/chip.c                   |   4 -
+ drivers/net/phy/mv88e6321-cfg.c                    | 396 ++++++++++-----------
+ include/linux/switch.h                             |   1 -
  4 files changed, 192 insertions(+), 210 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
-index 7e3472674a75..5431481e991b 100644
+index 7e34726..5431481 100644
 --- a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
 +++ b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
 @@ -16,6 +16,7 @@
@@ -33,7 +33,7 @@ index 7e3472674a75..5431481e991b 100644
  		status = "disabled";
  	};
 diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
-index 022f0ff701c9..8fa31340d2ef 100644
+index 022f0ff..8fa3134 100644
 --- a/drivers/net/dsa/mv88e6xxx/chip.c
 +++ b/drivers/net/dsa/mv88e6xxx/chip.c
 @@ -41,8 +41,6 @@
@@ -55,7 +55,7 @@ index 022f0ff701c9..8fa31340d2ef 100644
  
  out_unregister_switch:
 diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
-index c9196d0128cc..4a65912ebe2d 100644
+index c9196d0..4a65912 100644
 --- a/drivers/net/phy/mv88e6321-cfg.c
 +++ b/drivers/net/phy/mv88e6321-cfg.c
 @@ -8,7 +8,7 @@
@@ -578,7 +578,7 @@ index c9196d0128cc..4a65912ebe2d 100644
  
  MODULE_AUTHOR("heinrich.toews@wago.com>");
 diff --git a/include/linux/switch.h b/include/linux/switch.h
-index cc866785adbe..4e6238470d30 100644
+index cc86678..4e62384 100644
 --- a/include/linux/switch.h
 +++ b/include/linux/switch.h
 @@ -114,7 +114,6 @@ struct switch_dev {
@@ -590,5 +590,5 @@ index cc866785adbe..4e6238470d30 100644
  	unsigned int ports;
  	unsigned int vlans;
 -- 
-2.17.1
+2.7.4
 

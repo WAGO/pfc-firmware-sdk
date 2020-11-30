@@ -1,7 +1,7 @@
 From acdede54cd6d0b8956399becf9b6e27077748ab5 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 10 Aug 2018 13:01:48 +0200
-Subject: [PATCH 056/144] defaultenv: defaultenv-pfc: swith off all previously
+Subject: [PATCH] defaultenv: defaultenv-pfc: swith off all previously
  activated leds in broken boot
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>

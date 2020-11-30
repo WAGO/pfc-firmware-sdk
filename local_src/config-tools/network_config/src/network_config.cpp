@@ -8,10 +8,15 @@
 
 #include "OptionParser.hpp"
 #include "BridgeConfig.hpp"
+#include "MessagePrinter.hpp"
+#include "NetconfError.hpp"
+#include "OutputFactory.hpp"
 
 namespace po = boost::program_options;
 
 using network_config::OptionParser;
+using network_config::MessagePrinter;
+using network_config::OutputFactory;
 
 enum error_codes {
   OK,
@@ -30,14 +35,15 @@ static void Print(bool beQuiet, const ::std::string& format, Params... params) {
 
 int main(int argc, const char *argv[]) {
   OptionParser parser;
-  bool beQuiet = false;
+  MessagePrinter error_printer;
   int status = OK;
 
   try {
     parser.Parse(argc, argv);
+    error_printer.SetDestination(OutputFactory::Create(parser.GetVariableMap()));
 
-    beQuiet = parser.IsSet("quiet");
     auto needHelp = parser.IsSet("help");
+
 
     if (needHelp) {
       parser.PrintHelp();
@@ -51,13 +57,13 @@ int main(int argc, const char *argv[]) {
     }
   } catch (po::error &e) {
     status = SYNTAX_ERROR;
-    Print(beQuiet, "Your call was syntactically incorrect: %s\nMaybe pay attention to the order of your options and parameters\n", e.what());
-  } catch (::std::runtime_error &e) {
+    error_printer.Print("Your call was syntactically incorrect:" + ::std::string{e.what()} + "\nMaybe pay attention to the order of your options and parameters");
+  } catch (::network_config::NetconfError &e) {
     status = OPERATION_ERROR;
-    Print(beQuiet, "%s\n", e.what());
-  } catch (...) {
+    error_printer.Print(e.Get());
+  } catch (std::exception& e) {
     status = OPERATION_ERROR;
-    Print(beQuiet, "The operation failed because of an unknown error, sorry\n");
+    error_printer.Print("The operation failed: " + ::std::string{e.what()});
   }
 
   return status;

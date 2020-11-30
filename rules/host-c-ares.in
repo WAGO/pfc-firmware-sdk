@@ -1,0 +1,5 @@
+## SECTION=hosttools_noprompt
+
+config HOST_C_ARES
+	select HOST_CMAKE
+	tristate

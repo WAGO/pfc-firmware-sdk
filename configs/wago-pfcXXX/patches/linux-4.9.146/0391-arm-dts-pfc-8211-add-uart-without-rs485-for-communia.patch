@@ -10,7 +10,7 @@ Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
  1 file changed, 8 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-pfc-750_8211.dts b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
-index cfc7afcffa28..35d4b2afd0b4 100644
+index cfc7afc..35d4b2a 100644
 --- a/arch/arm/boot/dts/am335x-pfc-750_8211.dts
 +++ b/arch/arm/boot/dts/am335x-pfc-750_8211.dts
 @@ -10,6 +10,7 @@
@@ -36,5 +36,5 @@ index cfc7afcffa28..35d4b2afd0b4 100644
  	status = "okay";
  };
 -- 
-2.17.1
+2.7.4
 

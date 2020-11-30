@@ -93,7 +93,7 @@ index 075627c..c581abe 100644
          swcfg_mv88e6321 {
                  compatible = "swcfg,mv88e6321";
 diff --git a/arch/arm/boot/dts/am335x-pfc-750_8212.dts b/arch/arm/boot/dts/am335x-pfc-750_8212.dts
-index 24a47e8..86d43eb 100644
+index 24a47e86..86d43eb 100644
 --- a/arch/arm/boot/dts/am335x-pfc-750_8212.dts
 +++ b/arch/arm/boot/dts/am335x-pfc-750_8212.dts
 @@ -9,7 +9,7 @@

@@ -138,15 +138,26 @@ void SetLogLevel(LogLevel level) {
 void LogWarning(::std::string const& message) {
   GetLogger().LogWarning(message);
 }
+
 void LogInfo(::std::string const& message) {
   GetLogger().LogInfo(message);
 }
+
 void LogError(::std::string const& message) {
   GetLogger().LogError(message);
 }
+
 void LogDebug(::std::string const& message) {
   GetLogger().LogDebug(message);
 }
+
+void LogStatus_(::std::string const& file, ::std::string const& line, ::std::string const& message, Error const& status) {
+  if (status.IsNotOk()) {
+    auto msg = file +":" + line + ": " + message + ": " + status.ToString();
+    LogDebug(msg);
+  }
+}
+
 
 LogLevel LogLevelFromString(::std::string const& level) {
 
@@ -164,6 +175,7 @@ LogLevel LogLevelFromString(::std::string const& level) {
   }
   return log_level;
 }
+
 
 }
 // namespace netconf

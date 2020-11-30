@@ -8,6 +8,7 @@ menuconfig LIBCURL
 	select OPENSSL		if LIBCURL_SSL
 	select LIBSSH2		if LIBCURL_LIBSSH2
 	select CA_CERTIFICATES	if LIBCURL_SSL_CA_CERTIFICATES && RUNTIME
+	select C_ARES		if LIBCURL_C_ARES
 	help
 	curl is a command line tool for transferring files with URL syntax, supporting
 	FTP, FTPS, HTTP, HTTPS, SCP, SFTP, TFTP, TELNET, DICT, LDAP, LDAPS and FILE.

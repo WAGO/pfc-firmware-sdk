@@ -10,7 +10,7 @@ Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
-index 2afebd05ede9..fa578cbe7ade 100644
+index 2afebd0..fa578cb 100644
 --- a/drivers/char/rmd.c
 +++ b/drivers/char/rmd.c
 @@ -942,7 +942,12 @@ static int of_rmd(struct device *dev, struct rmd *rmd)
@@ -28,5 +28,5 @@ index 2afebd05ede9..fa578cbe7ade 100644
  						IRQF_THREAD_TBL_LOOKUP |
  						IRQ_TYPE_EDGE_RISING,
 -- 
-2.17.1
+2.7.4
 

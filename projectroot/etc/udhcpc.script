@@ -17,14 +17,6 @@
 DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
 NETWORK_CONFIG=/etc/config-tools/network_config
 
-wait_for_netconfd_ready () {
-   dbus-wait -t 120 de.wago.netconfd
-   if [ $? != 0 ]; then
-     logger -t udhcpc.script "ERROR: udhcpc: netconfd: DBUS interface de.wago.netconfd not reachable!"
-     exit -1
-   fi
-}
-
 set_ip_config () {
   local iface="$1"
   local source="$2"
@@ -33,8 +25,6 @@ set_ip_config () {
   local bcast="$5"
 
   local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
-
-  wait_for_netconfd_ready
 
   out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
 

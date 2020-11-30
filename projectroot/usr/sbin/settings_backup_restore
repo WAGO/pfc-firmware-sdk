@@ -180,56 +180,16 @@ if [ -n "${backupFile}" ]; then
       dnsServerName=`GetBackupValue "dns-server-$dnsServerNo" "$backupFile"`
     done
     
-    # Note: the network configuration (switch mode vs. independent (DSA) ports)
-    #       has to be restored before all the other networking stuff is done
+    #-------------------------------------------------------------
+    # restore netconfd settings
+    /etc/config-tools/network_config --restore $backupFile
+    ProcessErrRestoreOperation $? "Failed to set network parameters by " "/etc/config-tools/network_config"
 
-    interfaceNo=0
-    ports=$(GetPortsList)
+    #-------------------------------------------------------------
+    # restore DHCP-Service settings.
+    /etc/config-tools/config_dnsmasq_c --restore-config "$backupFile"
+    ProcessErrRestoreOperation $? "Failed to set config_dnsmasq by " "/etc/config-tools/config_dnsmasq_c"
     
-    for port in $ports; do
-        #-------------------------------------------------------------
-        # restore eth ip configs which must be processed together
-        ethIpConfigType=`GetBackupValue "ip-config-type-eth${interfaceNo}" "$backupFile"`
-        ProcessErrRestoreOperation $? "Failed to get: " "ip-config-type-eth${interfaceNo}"
-        ethState=`GetBackupValue "ip-state-eth${interfaceNo}"              "$backupFile"`
-        ProcessErrRestoreOperation $? "Failed to get: " "ip-state-eth${interfaceNo}" 
-        /etc/config-tools/config_interfaces interface=$port state=$ethState config-type=$ethIpConfigType
-        ProcessErrRestoreOperation $? "Failed restore ip-state-eth:" $ethState
-
-        #-------------------------------------------------------------
-        # restore ip settings
-        #
-
-        ipAddress=$(GetBackupValue ip-address-eth${interfaceNo} "$backupFile")
-        /etc/config-tools/config_interfaces interface=$port ip-address=$ipAddress
-        ProcessErrRestoreOperation $? "Failed to set ip address:" $ipAddress
-        netmask=$(GetBackupValue subnet-mask-eth${interfaceNo} "$backupFile")
-        /etc/config-tools/config_interfaces interface=$port subnet-mask=$netmask
-        ProcessErrRestoreOperation $? "Failed to set port, subnet-mask:" $netmask
-
-        #-------------------------------------------------------------
-        # restore ethernet states
-        #
-
-        state=`GetBackupValue "eth${interfaceNo}-state" "$backupFile"`
-        
-        autoneg=`GetBackupValue "eth${interfaceNo}-autoneg" "$backupFile"`
-        speed=`GetBackupValue "eth${interfaceNo}-speed" "$backupFile"`
-        duplex=`GetBackupValue "eth${interfaceNo}-duplex" "$backupFile"`
-        interfaceNo=$[$interfaceNo + 1]
-        /etc/config-tools/config_ethernet interface="eth0" port=$port autoneg="${autoneg}" speed="${speed}M" duplex="$duplex"
-        ProcessErrRestoreOperation $? "Failed to set port, autoneg, speed, duplex"
-
-        #-------------------------------------------------------------
-        # restore DHCP-Service settings.
-        state=`GetBackupValue "$port-dhcpd-state" "$backupFile"`
-        range=`GetBackupValue "$port-dhcpd-range" "$backupFile"`
-        leasetime=`GetBackupValue "$port-dhcpd-lease-time" "$backupFile"`
-        fixhosts=`GetBackupValue "$port-dhcpd-fix-host" "$backupFile"`
-        /etc/config-tools/config_dhcpd --no-dnsmasq-restart -p $port dhcpd-state=$state dhcpd-range=$range dhcpd-lease-time=$leasetime dhcpd-fix-host=$fixhosts
-        ProcessErrRestoreOperation $? "Failed to set dhcpd"
-    done
-
     #-------------------------------------------------------------
     # restore DNS-Service settings.
     state=`GetBackupValue "dns-state" "$backupFile"`

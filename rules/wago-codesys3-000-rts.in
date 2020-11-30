@@ -11,7 +11,6 @@ config CODESYS3
 	select GOOGLETEST
 	select HOST_CT_BUILD
 	select OPENSSL
-	select PROGEXECD
 	select WAGO_DBUS if CDS3_RTS_PRODUCT_VTPCTP
 	help
 		Builds and installs the CODESYS v3 plc.

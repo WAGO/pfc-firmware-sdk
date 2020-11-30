@@ -1,8 +1,8 @@
 From 322d2bc25089a730b482ab8b6a3796b478aa7583 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 15 Jan 2019 15:55:33 +0100
-Subject: [PATCH 156/160] misc: xsection: add imx6 i2c dependency in case of
- vtpctp config
+Subject: [PATCH] misc: xsection: add imx6 i2c dependency in case of vtpctp
+ config
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

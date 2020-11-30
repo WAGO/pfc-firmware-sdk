@@ -15,11 +15,11 @@ the mdio bus.
 Co-authored-by: Oleg Karfich <oleg.karfich@wago.com>
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 ---
- .../defaultenv-pfc-base/init_post_autoboot/a-pfc-switch-reset   | 2 ++
+ defaultenv/defaultenv-pfc-base/init_post_autoboot/a-pfc-switch-reset | 2 ++
  1 file changed, 2 insertions(+)
 
 diff --git a/defaultenv/defaultenv-pfc-base/init_post_autoboot/a-pfc-switch-reset b/defaultenv/defaultenv-pfc-base/init_post_autoboot/a-pfc-switch-reset
-index f2d35d53751..46e08fb05d5 100644
+index f2d35d5..46e08fb 100644
 --- a/defaultenv/defaultenv-pfc-base/init_post_autoboot/a-pfc-switch-reset
 +++ b/defaultenv/defaultenv-pfc-base/init_post_autoboot/a-pfc-switch-reset
 @@ -20,3 +20,5 @@ fi
@@ -29,5 +29,5 @@ index f2d35d53751..46e08fb05d5 100644
 +# give the switch and phys some time to wakeup from reset
 +msleep 1000
 -- 
-2.17.1
+2.7.4
 

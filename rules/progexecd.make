@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_PROGEXECD) += progexecd
 #
 # Paths and names
 #
-PROGEXECD_VERSION       := 1.0.2
+PROGEXECD_VERSION       := 2.0.0
 PROGEXECD_MD5           :=
 PROGEXECD               := progexecd
 PROGEXECD_SUFFIX        := 

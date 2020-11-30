@@ -1,4 +1,4 @@
-## SECTION=libc
+	## SECTION=libc
 
 config GLIBC
 	tristate
@@ -130,25 +130,25 @@ config GLIBC_NSS_HESIOD
 	help
 	  Adds the hesiod libnss source for user lookups
 
-config GLIBC_NSS_NIS
-	bool
-	prompt "Install libnss_nis"
-	select GLIBC_NSL
-	select GLIBC_NSS_FILES
-	help
-	  Adds the NIS (NIS version 2), also called YP, libnss source
+#config GLIBC_NSS_NIS
+#	bool
+#	prompt "Install libnss_nis"
+#	select GLIBC_NSL
+#	select GLIBC_NSS_FILES
+#	help
+#	  Adds the NIS (NIS version 2), also called YP, libnss source
 
-config GLIBC_NSS_NISPLUS
-	bool
-	prompt "Install libnss_nisplus"
-	select GLIBC_NSL
-	help
-	  Adds the NIS+ (NIS version 3) libnss source
+#config GLIBC_NSS_NISPLUS
+#	bool
+#	prompt "Install libnss_nisplus"
+#	select GLIBC_NSL
+#	help
+#	  Adds the NIS+ (NIS version 3) libnss source
 
 config GLIBC_NSS_COMPAT
 	bool
 	prompt "Install libnss_compat"
-	select GLIBC_NSL
+	select LIBNSL
 	help
 	  Adds the NIS libnss source on compat mode
 
@@ -170,13 +170,13 @@ config GLIBC_RESOLV
 	  will need both libraries if your /etc/nsswitch.conf contains a line
 	  like "hosts: file dns"
 
-config GLIBC_NSL
-	bool
-	prompt "Install libnsl"
-	help
-	  Functions in this library provide routines that provide a
-	  transport-level interface to networking services like i.E.
-	  nis(+)
+#config GLIBC_NSL
+#	bool
+#	prompt "Install libnsl"
+#	help
+#	  Functions in this library provide routines that provide a
+#	  transport-level interface to networking services like i.E.
+#	  nis(+)
 
 
 config GLIBC_GETENT

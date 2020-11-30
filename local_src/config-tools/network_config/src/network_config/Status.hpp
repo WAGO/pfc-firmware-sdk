@@ -11,26 +11,26 @@ enum class StatusCode {
   OPTION_PARSE_ERROR
 };
 
-class Status {
+class Error {
  public:
-  Status() {
+  Error() {
     error_code_ = StatusCode::OK;
     message_ = "";
   }
-  explicit Status(StatusCode error) {
+  explicit Error(StatusCode error) {
     error_code_ = error;
     message_ = "";
   }
-  Status(StatusCode error, ::std::string message)
+  Error(StatusCode error, ::std::string message)
   : error_code_{error}, message_{::std::move(message)}{
   }
 
-  virtual ~Status() = default;
+  virtual ~Error() = default;
 
-  Status(const Status &) = default;
-  Status &operator=(const Status &) = default;
-  Status(Status &&) = default;
-  Status &operator=(Status &&) = default;
+  Error(const Error &) = default;
+  Error &operator=(const Error &) = default;
+  Error(Error &&) = default;
+  Error &operator=(Error &&) = default;
 
   explicit operator StatusCode() const { return error_code_; }
 
@@ -50,7 +50,7 @@ class Status {
     return message_;
   }
 
-  Status Prepend(const ::std::string& message) {
+  Error Prepend(const ::std::string& message) {
     if (error_code_ == StatusCode::OK) {
       error_code_ = StatusCode::ERROR;
     }
@@ -58,13 +58,13 @@ class Status {
     return *this;
   }
 
-  Status Prepend(StatusCode code, const ::std::string& message) {
+  Error Prepend(StatusCode code, const ::std::string& message) {
     error_code_ = code;
     message_.insert(0, message);
     return *this;
   }
 
-  Status Append(const ::std::string& message) {
+  Error Append(const ::std::string& message) {
     if (error_code_ == StatusCode::OK) {
       error_code_ = StatusCode::ERROR;
     }
@@ -72,13 +72,13 @@ class Status {
     return *this;
   }
 
-  Status Append(StatusCode code, const ::std::string& message) {
+  Error Append(StatusCode code, const ::std::string& message) {
     error_code_ = code;
     message_.append(message);
     return *this;
   }
 
-  Status& Merge(const Status& other) {
+  Error& Merge(const Error& other) {
     error_code_ = other.error_code_;
     message_.append(other.message_);
     return *this;

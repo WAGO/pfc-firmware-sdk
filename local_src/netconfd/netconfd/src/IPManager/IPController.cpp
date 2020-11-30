@@ -18,52 +18,13 @@
 
 namespace netconf {
 
-static Status GetIPParamter(int fd, uint16_t flag, const Interface &interface, ::std::string &value_str) {
 
-  Status status(StatusCode::OK);
 
-  ifreq ifr = { };
-  strncpy(ifr.ifr_name, interface.c_str(), IFNAMSIZ);  //NOLINT: do not implicitly decay an array into a pointer is unavoidable at this point
-  ifr.ifr_addr.sa_family = AF_INET;  //NOLINT: do not access members of unions is unavoidable at this point
-
-  if (ioctl(fd, flag, &ifr) < 0) {
-    if (EADDRNOTAVAIL == errno) {
-      value_str = ZeroIP;
-    } else {
-      status.Prepend(StatusCode::SYSTEM_CALL_ERROR, "system call error: errno " + ::std::to_string(errno));
-    }
-    return status;
-  }
-
-  sockaddr_in *sock_value = reinterpret_cast<struct sockaddr_in*>(&ifr.ifr_addr);  //NOLINT: reinterpret_cast is unavoidable at this point
-  uint32_t value = sock_value->sin_addr.s_addr;
-
-  char inet_buffer[INET_ADDRSTRLEN];
-  gsl::span<char> inet = { inet_buffer };
-  if (nullptr == inet_ntop(AF_INET, &value, inet.data(), inet.size())) {
-    status.Prepend(
-        StatusCode::INVALID_PARAMETER,
-        "convert error, could not convert ip parameter " + std::to_string(value)
-            + " from binary to presentation format.");
-    return status;
-  }
-
-  value_str = ::std::string(inet.data());
-
-  return status;
-
-}
-
-static Status SetIPParameter(int fd, uint16_t flag, const Interface &interface, const ::std::string &value_str) {
-
-  Status status(StatusCode::OK);
+static Error SetIPParameter(int fd, uint16_t flag, const Interface &interface, const ::std::string &value_str) {
 
   uint32_t value;
   if (1 != inet_pton(AF_INET, value_str.c_str(), &value)) {
-    status.Prepend(
-        StatusCode::INVALID_PARAMETER,
-        "convert error, could not convert ip parameter " + value_str + " from presentation to binary format.");
-    return status;
+    return Error{ErrorCode::IPV4_FORMAT, value_str};
   }
 
   ifreq if_req = { };
@@ -76,74 +37,41 @@ static Status SetIPParameter(int fd, uint16_t flag, const Interface &interface, 
   sock_value->sin_addr.s_addr = value;
   if (ioctl(fd, flag, &if_req) < 0) {
 
-    status.Prepend(StatusCode::SYSTEM_CALL_ERROR, "system call error: ioctl: " + ::std::string(strerror(errno)));
-    return status;
+    return MakeSystemCallError();
   }
 
-  return status;
+  return Error::Ok();
 }
 
-Status IPController::GetIPConfig(const Interface &interface, IPConfig &config) const {
+Error IPController::SetIPConfig(const IPConfig &config) const {
 
-  Status status(StatusCode::OK);
-
-  config.Clear();
-
-  try {
-    ::Socket sockfd { PF_INET, SOCK_DGRAM, IPPROTO_IP };
-
-    ::std::string ip_value;
-    status = GetIPParamter(sockfd, SIOCGIFADDR, interface, ip_value);
-    if (status.NotOk()) {
-      status.Prepend("Get IP address of interface " + interface + ": ");
-      return status;
-    }
-
-    ::std::string netmask_value;
-    status = GetIPParamter(sockfd, SIOCGIFNETMASK, interface, netmask_value);
-    if (status.NotOk()) {
-      status.Prepend("Get netmask of interface " + interface + ": ");
-      return status;
-    }
-
-    config.interface_ = interface;
-    config.address_ = ip_value;
-    config.netmask_ = netmask_value;
-
-  } catch (std::exception &e) {
-    status.Prepend(StatusCode::ERROR, "Get ip parameter of interface " + interface + ": " + e.what());
-    config.Clear();
-  }
-  return status;
-}
-
-Status IPController::SetIPConfig(const IPConfig &config) const {
-
-  Status status(StatusCode::OK);
+  Error error(ErrorCode::OK);
 
   try {
 
     ::Socket fd { PF_INET, SOCK_DGRAM, IPPROTO_IP };
 
-    status = SetIPParameter(fd, SIOCSIFADDR, config.interface_, config.address_);
-    if (status.NotOk()) {
-      status.Prepend("Set IP address " + config.address_ + " of interface " + config.interface_ + ": ");
-      return status;
+    error = SetIPParameter(fd, SIOCSIFADDR, config.interface_, config.address_);
+    if (error.IsNotOk()) {
+      auto user_error = Error{ErrorCode::SET_IP, config.address_, config.netmask_, config.interface_};
+      LogError(user_error.ToString() + ": " + error.ToString());
+      return user_error;
     }
 
     if (ZeroIP != config.address_) {
-      status = SetIPParameter(fd, SIOCSIFNETMASK, config.interface_, config.netmask_);
-      if (status.NotOk()) {
-        status.Prepend("Set IP netmask of interface " + config.interface_ + ": ");
-        return status;
+      error = SetIPParameter(fd, SIOCSIFNETMASK, config.interface_, config.netmask_);
+      if (error.IsNotOk()) {
+        auto user_error = Error{ErrorCode::SET_IP, config.address_, config.netmask_, config.interface_};
+        LogError(user_error.ToString() + ": " +error.ToString());
+        return user_error;
       }
     }
 
   } catch (std::exception &e) {
-    status.Prepend(StatusCode::ERROR, "Set ip parameter of interface " + config.interface_ + ": " + e.what());
+    return MakeSystemCallError();
   }
 
-  return status;
+  return error;
 }
 
 }

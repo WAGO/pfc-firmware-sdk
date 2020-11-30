@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Status.hpp"
+#include "Error.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -17,8 +17,8 @@ class IPValidator {
   IPValidator(const IPValidator&&) = delete;
   IPValidator& operator=(const IPValidator&&) = delete;
 
-  static Status ValidateIPConfigs(const IPConfigs &ip_configs);
-  static Status ValidateCombinabilityOfIPConfigs(const IPConfigs &lhs_ip_configs, const IPConfigs &rhs_ip_configs);
+  static Error ValidateIPConfigs(const IPConfigs &ip_configs);
+  static Error ValidateCombinabilityOfIPConfigs(const IPConfigs &lhs_ip_configs, const IPConfigs &rhs_ip_configs);
 
   static IPConfigs FilterValidStaticAndTemporaryIPConfigs(const IPConfigs &ip_configs);
   static bool IsSameSubnet(IPConfig lhs, IPConfig rhs);

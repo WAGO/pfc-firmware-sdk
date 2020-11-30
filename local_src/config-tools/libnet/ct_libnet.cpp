@@ -179,7 +179,7 @@ int port2dev_ethernet(const char *port,
     };
 
     auto vector_of_interface_information
-        = netconf::api::GetInterfaceInformation(netconf::DeviceType::Port);
+        = napi::GetInterfaceInformation(netconf::DeviceType::Port);
     auto it = ::std::find_if(
         vector_of_interface_information.begin(),
         vector_of_interface_information.end(),
@@ -208,7 +208,11 @@ int port2dev_ip(const char *port,
 {
   ::std::string bridge{};
   try{
-    auto bridge_config = ::netconf::api::GetBridgeConfig();
+    napi::BridgeConfig bridge_config;
+    auto error = ::netconf::api::GetBridgeConfig(bridge_config);
+    if (!error) {
+        return static_cast<int>( error.GetErrorCode());
+    }
     bridge = bridge_config.GetBridgeOfInterface(port);
   }
   catch (...){
@@ -291,7 +295,11 @@ bool is_cidr_netmask(const char *netmask)
 ::boost::optional<InterfaceConfig> get_interface_config(const ::std::string& interface_name)
 {
   try{
-    auto interface_configs = napi::GetInterfaceConfigs();
+    napi::InterfaceConfigs interface_configs;
+    auto error = napi::GetInterfaceConfigs(interface_configs);
+    if (!error) {
+      return ::boost::optional<InterfaceConfig>{};
+    }
     return interface_configs.GetInterfaceConfig(interface_name);
   }
   catch(...)
@@ -302,7 +310,8 @@ bool is_cidr_netmask(const char *netmask)
 
 ::std::string get_bridge_name(const ::std::string interface_name){
   try{
-    auto bridge_config = napi::GetBridgeConfig();
+    napi::BridgeConfig bridge_config;
+    napi::GetBridgeConfig(bridge_config);
     return bridge_config.GetBridgeOfInterface(interface_name);
   }
   catch (...) {
@@ -313,8 +322,9 @@ bool is_cidr_netmask(const char *netmask)
 ::boost::optional<IPConfig> get_ip_config(const ::std::string& interface_name)
 {
   auto bridge_name = get_bridge_name(interface_name);
-  auto ip_configs = napi::GetIPConfigs();
-  if(not bridge_name.empty()){
+  napi::IPConfigs ip_configs;
+  auto error = napi::GetIPConfigs(ip_configs);
+  if(not bridge_name.empty() && error.IsOk()){
     return ip_configs.GetIPConfig(bridge_name);
   }
   return boost::optional<IPConfig>();
@@ -1054,9 +1064,11 @@ int ct_libnet_get_ports_list(char *result,
                              const char *delim,
                              libnetSession_t *)
 {
-    auto bridge_config = napi::GetBridgeConfig();
+
+    napi::BridgeConfig bridge_config;
+    auto error = napi::GetBridgeConfig(bridge_config);
     auto ports = boost::algorithm::join(bridge_config.GetBridges(), delim);
-    if (resultLen < ports.size())
+    if (error.IsNotOk() || resultLen < ports.size())
         return INVALID_PARAMETER;
 
     strcpy(result, ports.c_str());
@@ -1086,14 +1098,15 @@ int ct_libnet_set_ip_addr_to_config(const char *port,
     {
         auto bridge_name = get_bridge_name(port);
         if(not bridge_name.empty()){
-            auto ip_configs = napi::GetIPConfigs();
+            napi::IPConfigs ip_configs;
+            auto error = napi::GetIPConfigs(ip_configs);
             auto ip_config = ip_configs.GetIPConfig(bridge_name);
-            if (ip_config && ip_config->source_ == IPSource::STATIC)
+            if (error.IsOk() && ip_config && ip_config->source_ == IPSource::STATIC)
             {
                 ip_config->address_ = ip;
                 ip_configs.AddIPConfig(*ip_config);
-                auto nstatus = napi::SetIPConfigs(ip_configs);
-                if (nstatus == napi::Status::OK)
+                error = napi::SetIPConfigs(ip_configs);
+                if (error.IsOk())
                 {
                     status = SUCCESS;
                 }
@@ -1118,15 +1131,16 @@ int ct_libnet_set_netmask_to_config(const char *port,
     int status = ERROR;
 
     auto bridge_name = get_bridge_name(port);
-    auto ip_configs = napi::GetIPConfigs();
-    if(not bridge_name.empty()){
+    napi::IPConfigs ip_configs;
+    auto error = napi::GetIPConfigs(ip_configs);
+    if(error.IsOk() && not bridge_name.empty()){
         auto ip_config = ip_configs.GetIPConfig(bridge_name);
         if (ip_config && ip_config->source_ == IPSource::STATIC)
         {
             ip_config->netmask_ = netmask;
             ip_configs.AddIPConfig(*ip_config);
-            auto nstatus = napi::SetIPConfigs(ip_configs);
-            if (nstatus == napi::Status::OK)
+            error = napi::SetIPConfigs(ip_configs);
+            if (error.IsOk())
             {
                 status = SUCCESS;
             }
@@ -1211,14 +1225,15 @@ int ct_libnet_set_port_state_to_config(const char *port,
        return INVALID_PARAMETER;
     }
 
-    auto interface_configs = napi::GetInterfaceConfigs();
+    napi::InterfaceConfigs interface_configs;
+    auto error = napi::GetInterfaceConfigs(interface_configs);
     auto config = interface_configs.GetInterfaceConfig(port);
-    if (config)
+    if (error.IsOk() && config)
     {
         config->state_ = strcmp(state, "enabled") == 0 ? InterfaceState::UP : InterfaceState::DOWN;
         interface_configs.AddInterfaceConfig(*config);
-        auto nstatus = napi::SetInterfaceConfigs(interface_configs);
-        if (nstatus != napi::Status::OK)
+        error = napi::SetInterfaceConfigs(interface_configs);
+        if (error.IsNotOk())
             status = ERROR;
     } else
     {
@@ -1254,14 +1269,15 @@ int ct_libnet_set_config_type(const char *port,
     if(SUCCESS == status)
     {
         auto bridge_name = get_bridge_name(port);
-        auto ip_configs = napi::GetIPConfigs();
-        if(not bridge_name.empty())
+        napi::IPConfigs ip_configs;
+        auto err = napi::GetIPConfigs(ip_configs);
+        if(err.IsOk() && not bridge_name.empty())
         {
             auto ip_config = IPConfig{};
             ip_config.source_ = ip_source;
             ip_configs.AddIPConfig(ip_config);
-            auto nstatus = napi::SetIPConfigs(ip_configs);
-            if (nstatus != napi::Status::OK)
+            err = napi::SetIPConfigs(ip_configs);
+            if (err.IsNotOk())
             {
                 status = ERROR;
             }
@@ -1427,14 +1443,15 @@ int ct_libnet_set_speed_to_config(const char *port,
 
     if(SUCCESS == status)
     {
-        auto interface_configs = napi::GetInterfaceConfigs();
+        napi::InterfaceConfigs interface_configs;
+        auto error = napi::GetInterfaceConfigs(interface_configs);
         auto config = interface_configs.GetInterfaceConfig(port);
-        if (config)
+        if (error.IsOk() && config)
         {
             config->speed_ = speed_value;
             interface_configs.AddInterfaceConfig(*config);
-            auto nstatus = napi::SetInterfaceConfigs(interface_configs);
-            if (nstatus != napi::Status::OK)
+            error = napi::SetInterfaceConfigs(interface_configs);
+            if (error.IsNotOk())
             {
                 status = ERROR;
             }
@@ -1469,14 +1486,15 @@ int ct_libnet_set_autoneg_to_config(const char *port,
         return  INVALID_PARAMETER;
     }
 
-    auto interface_configs = napi::GetInterfaceConfigs();
+    napi::InterfaceConfigs interface_configs;
+    auto err = napi::GetInterfaceConfigs(interface_configs);
     auto config = interface_configs.GetInterfaceConfig(port);
-    if (config)
+    if (err.IsOk() && config)
     {
         config->autoneg_ = aneg;
         interface_configs.AddInterfaceConfig(*config);
-        auto nstatus = napi::SetInterfaceConfigs(interface_configs);
-        if (nstatus != napi::Status::OK)
+        err = napi::SetInterfaceConfigs(interface_configs);
+        if (err.IsNotOk())
         {
             status = ERROR;
         }
@@ -1511,14 +1529,15 @@ int ct_libnet_set_duplex_to_config(const char *port,
         return INVALID_PARAMETER;
     }
 
-    auto interface_configs = napi::GetInterfaceConfigs();
+    napi::InterfaceConfigs interface_configs;
+    auto err = napi::GetInterfaceConfigs(interface_configs);
     auto config = interface_configs.GetInterfaceConfig(port);
-    if (config)
+    if (err.IsOk() && config)
     {
         config->duplex_ = dup;
         interface_configs.AddInterfaceConfig(*config);
-        auto nstatus = napi::SetInterfaceConfigs(interface_configs);
-        if (nstatus != napi::Status::OK)
+        err = napi::SetInterfaceConfigs(interface_configs);
+        if (err.IsNotOk())
         {
             status = ERROR;
         }
@@ -1675,7 +1694,12 @@ int ct_libnet_set_dsa_state(const char *value, libnetSession_t *sessionHandle)
         return INVALID_PARAMETER;
     }
 
-    auto bridge_config = napi::GetBridgeConfig();
+    napi::BridgeConfig bridge_config;
+    auto error = napi::GetBridgeConfig(bridge_config);
+    if (error.IsNotOk())
+    {
+        return INVALID_PARAMETER;
+    }
 
     // Only change switch hw if old and new dsa state differ.
     char oldValue[2] = {'\0'};
@@ -1705,14 +1729,16 @@ int ct_libnet_set_dsa_state(const char *value, libnetSession_t *sessionHandle)
 int ct_libnet_get_dsa_state(char *value, size_t valueLen, libnetSession_t *)
 {
     assert(NULL != value);
-    auto bridge_config = napi::GetBridgeConfig();
+    napi::BridgeConfig bridge_config;
+    napi::GetBridgeConfig(bridge_config);
     return get_dsa_state__(value, valueLen, bridge_config);
 }
 
 int ct_libnet_get_actual_dsa_state(char * const value, size_t const valueLen)
 {
     assert(NULL != value);
-    auto bridge_config = napi::GetBridgeConfig();
+    napi::BridgeConfig bridge_config;
+    napi::GetBridgeConfig(bridge_config);
     return get_dsa_state__(value, valueLen, bridge_config);
 }
 

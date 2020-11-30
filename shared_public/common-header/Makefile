@@ -18,7 +18,7 @@
 .SUFFIXES:
 
 .PHONY: default doc
-default: all doc
+default: all 
 
 #######################################################################################################################
 # Overridable project configuration
@@ -84,9 +84,8 @@ alltests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/test-src,$(SOURCE_FILE_EX
 # Custom rules
 
 doc:
-	rm -rf out/doc/
 	# explicitly use line buffering for doxygen to avoid stdout being interrupted by stderr mid-line
-	stdbuf --output=L doxygen doc/doxygen.config
+	rm -rf out/doc/ && stdbuf --output=L doxygen doc/doxygen.config
 
 
 #######################################################################################################################

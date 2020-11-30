@@ -7,10 +7,12 @@
 ///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 #include <DeviceInterfaceProvider.hpp>
+#include "Logger.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+
 
 namespace netconf {
 

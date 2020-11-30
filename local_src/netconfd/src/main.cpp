@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 #include <cstdio>
 #include <csignal>
 #include <sys/types.h>
@@ -9,8 +10,9 @@
 
 #include <getopt.h>
 #include "NetworkConfigurator.hpp"
-#include "Status.hpp"
 #include <gsl/gsl>
+
+#include "Error.hpp"
 #include "Daemonizer.hpp"
 #include "InterprocessCondition.h"
 #include "Logger.hpp"
@@ -92,14 +94,14 @@ int main(int argc, char *argv[]) {
   netconf::SetLogSink(netconf::LogSink::SYSLOG);
   netconf::SetLogLevel(netconf::LogLevelFromString(loglevel));
 
-  netconf::Status status;
+  netconf::Error status;
   netconf::Daemonizer daemon(run_dir, pid_file_name);
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = daemon.PreparePidDir();
   }
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     bool pidFileIsLocked = daemon.IsPidFileLocked();
     if (pidFileIsLocked) {
       fprintf( stderr, "Pid file is locked. "
@@ -114,22 +116,22 @@ int main(int argc, char *argv[]) {
   if (daemonize) {
     status = daemon.Daemonize(start_condition);
 
-    if (status.NotOk()) {
-      netconf::LogError(status.GetMessage());
+    if (status.IsNotOk()) {
+      netconf::LogError(status.ToString());
       abort();
     }
   }
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = daemon.WritePidFile();
   }
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     daemon.SetUnlinkPidOnExit();
   }
 
-  if (status.NotOk()) {
-    netconf::LogWarning(status.GetMessage());
+  if (status.IsNotOk()) {
+    netconf::LogWarning(status.ToString());
   }
 
   auto context = g_main_context_default();

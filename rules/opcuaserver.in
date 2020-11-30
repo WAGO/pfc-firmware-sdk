@@ -1,0 +1,21 @@
+## SECTION=wago_specific_opcua
+
+config OPCUASERVER
+  bool
+  prompt "OPC UA Server"
+  default n
+  select BOOST_FILESYSTEM
+  select BOOST_SYSTEM
+  select BOOST_THREAD
+  select CDS3_TSCVAREXPORT
+  select CONFIG_TOOLS
+  select GOOGLETEST
+  select HOST_CT_BUILD
+  select OPCUACSDK
+  select WAGO_CUSTOM_ROOTFS_REVISIONS
+  select WBM_NG_PLUGIN_OPCUA
+  select CDS3_INCLUDES
+  select CODESYS3
+  select LIBWAGODRM
+  help
+    OPC UA server.

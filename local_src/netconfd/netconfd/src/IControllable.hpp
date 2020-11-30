@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#include "Status.hpp"
+#include "Error.hpp"
 
 namespace netconf {
 
@@ -16,7 +16,7 @@ class IControllable {
  public:
   virtual ~IControllable() = default;
 
-  virtual Status Start() = 0;
+  virtual void Start() = 0;
 
 };
 

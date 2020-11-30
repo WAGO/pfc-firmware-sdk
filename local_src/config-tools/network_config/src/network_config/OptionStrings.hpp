@@ -61,6 +61,8 @@ struct Options {
     { "help", "Print usage information about this tool" };
   const Option quiet
     { "quiet", "Suppress any outout to the console" };
+  const Option error_msg_dst
+    { "error-msg-dst", "filename where error messages are put into", "<filename>" };
   // @formatter:on
 };
 

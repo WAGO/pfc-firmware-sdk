@@ -1,0 +1,48 @@
+From 7025a487142254275acad23a9c20d557429c588e Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Tue, 19 May 2020 14:16:32 +0200
+Subject: [PATCH] arm: dts: vtpctp: configure external rmii clk
+
+The vtpctp devices using a external rmii clk. Add a fixed clock to force
+setting the ENET_CLK_SEL Bit in the GPR1 register to the value PAD.
+
+See: https://community.nxp.com/thread/448174
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/imx6q-vtpctp.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6q-vtpctp.dtsi b/arch/arm/boot/dts/imx6q-vtpctp.dtsi
+index ef6935a..a779a08 100644
+--- a/arch/arm/boot/dts/imx6q-vtpctp.dtsi
++++ b/arch/arm/boot/dts/imx6q-vtpctp.dtsi
+@@ -316,6 +316,12 @@
+ 		#size-cells = <0>;
+ 		##status = "okay";
+ 	};
++
++	rmii_clk_ext: rmii_clk {
++		compatible = "fixed-clock";
++		#clock-cells = <0>;
++		clock-frequency = <50000000>;
++	};
+ };
+ 
+ &audmux {
+@@ -333,6 +339,12 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_enet>;
+ 	phy-mode = "rmii";
++
++	clocks = <&clks IMX6QDL_CLK_ENET>,
++		 <&clks IMX6QDL_CLK_ENET>,
++		 <&rmii_clk_ext>;
++	clock-names = "ipg", "ahb", "ptp";
++
+ 	status = "okay";
+ 	fixed-link {
+ 		speed = <100>;
+-- 
+2.7.4
+

@@ -1,9 +1,0 @@
-## SECTION=wago_specific
-
-config DBUS_WAIT
-	bool
-	select DBUS
-	select HOST_CT_BUILD
-	prompt "dbus-wait"
-	help
-	  Simple executable that waits until service with name passed as argument is available and exits with exit code 0. If anything fails, exits with code 1.

@@ -1,8 +1,8 @@
 From 2eab9d0bc54cde5249048552fb8d568f236791ec Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Tue, 13 Nov 2018 12:16:50 +0100
-Subject: [PATCH 147/147] defaultenv: pfc: decrease tftp blksize due to
- problems with vlan based networks
+Subject: [PATCH] defaultenv: pfc: decrease tftp blksize due to problems with
+ vlan based networks
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

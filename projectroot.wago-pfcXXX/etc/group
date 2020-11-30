@@ -21,7 +21,7 @@ rts:x:3540:admin
 paramaccess:x:116:opc,root
 opc:x:117:
 iot:x:118:
-drm:x:119:iot
+drm:x:119:iot,opc
 wda:x:120:admin
 paramd:x:121:
 docker:x:1001:

@@ -15,7 +15,7 @@ Signed-off-by: Oliver Rohe <oliver.rohe@wago.com>
  1 file changed, 51 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/rtc/rtc-rs5c372.c b/drivers/rtc/rtc-rs5c372.c
-index 4aea3c3..a7d7ded 100644
+index 4aea3c3..a7d7dedfe7 100644
 --- a/drivers/rtc/rtc-rs5c372.c
 +++ b/drivers/rtc/rtc-rs5c372.c
 @@ -53,7 +53,9 @@

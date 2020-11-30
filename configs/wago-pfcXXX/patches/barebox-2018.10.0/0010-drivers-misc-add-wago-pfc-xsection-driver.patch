@@ -1,7 +1,7 @@
 From 87ecc47cb94ac8816bcfe5dd8f8f04509de853bb Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 23 May 2018 12:33:34 +0200
-Subject: [PATCH 010/144] drivers :misc: add wago pfc xsection driver
+Subject: [PATCH] drivers :misc: add wago pfc xsection driver
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

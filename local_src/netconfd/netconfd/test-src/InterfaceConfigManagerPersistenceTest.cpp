@@ -111,7 +111,7 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
 
   TEST_F(InterfaceConfigManagerPersistenceTest, StartWithoutPersistenceData) {
     EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
-    EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(Return(Status { StatusCode::FILE_READ_ERROR }));
+    EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(Return(Error { ErrorCode::FILE_READ}));
 
     InstantiateSut();
 
@@ -140,7 +140,7 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
 TEST_F(InterfaceConfigManagerPersistenceTest, StartWithMatchingPersistenceData) {
   EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
   EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_matching_port_config), Return(Status { StatusCode::OK })));
+      DoAll(FillPortConfigs(persisted_matching_port_config), Return(Error { ErrorCode::OK })));
 
   InstantiateSut();
 
@@ -169,7 +169,7 @@ TEST_F(InterfaceConfigManagerPersistenceTest, StartWithMatchingPersistenceData) 
 TEST_F(InterfaceConfigManagerPersistenceTest, StartWithOversizedPersistenceData) {
   EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
   EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_oversized_port_config), Return(Status { StatusCode::OK })));
+      DoAll(FillPortConfigs(persisted_oversized_port_config), Return(Error { ErrorCode::OK })));
 
   InstantiateSut();
 
@@ -202,7 +202,7 @@ TEST_F(InterfaceConfigManagerPersistenceTest, StartWithOversizedPersistenceData)
 TEST_F(InterfaceConfigManagerPersistenceTest, StartMissingPortConfigsInPersistenceData) {
   EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
   EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_missing_port_config), Return(Status { StatusCode::OK })));
+      DoAll(FillPortConfigs(persisted_missing_port_config), Return(Error { ErrorCode::OK })));
 
   InstantiateSut();
 
@@ -237,21 +237,21 @@ std::copy(arg0.begin(), arg0.end(), std::back_inserter(vector.get()));
 TEST_F(InterfaceConfigManagerPersistenceTest, PersistPartialNewConfig) {
   EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
   EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_matching_port_config), Return(Status { StatusCode::OK })));
+      DoAll(FillPortConfigs(persisted_matching_port_config), Return(Error { ErrorCode::OK })));
 
   InstantiateSut();
 
   InterfaceConfigs written_configs;
-  EXPECT_CALL(persist_portconfig_mock, Write(_)).WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Status {
-      StatusCode::OK })));
+  EXPECT_CALL(persist_portconfig_mock, Write(_)).WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Error {
+      ErrorCode::OK })));
   sut->Configure(new_port_configs_partial);
 
   EXPECT_THAT(written_configs, ContainerEq(persisted_new_port_configs_partial));
 
   written_configs.clear();
 
-  EXPECT_CALL(persist_portconfig_mock, Write(_)).WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Status {
-      StatusCode::OK })));
+  EXPECT_CALL(persist_portconfig_mock, Write(_)).WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Error {
+      ErrorCode::OK })));
   sut->Configure(new_port_configs_full);
   EXPECT_THAT(written_configs, ContainerEq(new_port_configs_full));
 

@@ -916,7 +916,7 @@ config CT_SETTINGS_BACKUP
   bool
   default n
   depends on CONFIG_TOOLS
-  select RC_ONCE
+  select FACTORY_SETTINGS
   prompt "settings_backup"
   help
    Save all config settings to backup file/restore settings from backup.
@@ -1357,11 +1357,11 @@ config CT_RS232_OWNER
   help
    "Text file /etc/config-tools/RS232_OWNER. COM port's current owner is stored here."
 
-
-
-
-
-
-
+config CT_LEDSERVER
+  bool
+  default y
+  prompt "config_ledserver"
+  help
+   Change ledserver settings.
 
 endif

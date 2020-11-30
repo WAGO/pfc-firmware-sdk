@@ -3,17 +3,17 @@
   <dhcpd>
     <port_name>br0</port_name>
     <state>disabled</state>
-    <range>192.168.1.18_192.168.1.254</range>
+    <range>192.168.1.2_192.168.1.254</range>
     <lease_time>120</lease_time>
-    <ip_addr>192.168.1.17</ip_addr>
+    <ip_addr>192.168.1.1</ip_addr>
     <netmask>255.255.255.0</netmask>
   </dhcpd>
   <dhcpd>
     <port_name>br1</port_name>
     <state>disabled</state>
-    <range>192.168.2.18_192.168.2.254</range>
+    <range>192.168.2.2_192.168.2.254</range>
     <lease_time>120</lease_time>
-    <ip_addr>192.168.2.17</ip_addr>
+    <ip_addr>192.168.2.1</ip_addr>
     <netmask>255.255.255.0</netmask>
   </dhcpd>
   <dns>

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
 #include <sys/socket.h>
@@ -19,6 +19,8 @@ class EthernetInterface {
 
   const MacAddress GetMac() const;
   static ::std::string IndexToName(::std::uint32_t ifindex);
+  void SetState(InterfaceState s);
+  InterfaceState GetState();
 
  private:
   void InitializeData();
@@ -27,6 +29,7 @@ class EthernetInterface {
 
   ::std::string name_;
   ::std::uint32_t if_index_;
+  uint16_t if_flags_;
 
   ::ifreq ifreq_;
   Socket socket_;

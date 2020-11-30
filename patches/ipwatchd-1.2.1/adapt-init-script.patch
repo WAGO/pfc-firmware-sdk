@@ -1,8 +1,8 @@
 Index: ipwatchd-1.2.1/src/scripts/ipwatchd
 ===================================================================
---- ipwatchd-1.2.1.orig/src/scripts/ipwatchd	2011-07-24 14:39:03.000000000 +0000
-+++ ipwatchd-1.2.1/src/scripts/ipwatchd	2014-06-27 12:22:00.002321717 +0000
-@@ -1,56 +1,35 @@
+--- ipwatchd-1.2.1.orig/src/scripts/ipwatchd
++++ ipwatchd-1.2.1/src/scripts/ipwatchd
+@@ -1,117 +1,89 @@
  #! /bin/sh
 -
 -### BEGIN INIT INFO
@@ -51,8 +51,8 @@ Index: ipwatchd-1.2.1/src/scripts/ipwatchd
  #
  # Function that starts the daemon/service
  #
- do_start()
- {
+-do_start()
+-{
 -	# Return
 -	#   0 if daemon has been started
 -	#   1 if daemon was already running
@@ -62,19 +62,20 @@ Index: ipwatchd-1.2.1/src/scripts/ipwatchd
 -	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
 -		$DAEMON_ARGS \
 -		|| return 2
++do_start() {
 +        # Return
 +        #   0 if daemon has been started
 +        #   1 if daemon was already running
 +        #   2 if daemon could not be started
-+        start-stop-daemon --quiet --exec $DAEMON --test -K && return 1
++        start-stop-daemon --quiet --exec $DAEMON --pidfile $PIDFILE --test -K && return 1
 +        start-stop-daemon --quiet --exec $DAEMON -S -- $DAEMON_ARGS || return 2
  }
  
  #
-@@ -58,60 +37,79 @@
+ # Function that stops the daemon/service
  #
- do_stop()
- {
+-do_stop()
+-{
 -	# Return
 -	#   0 if daemon has been stopped
 -	#   1 if daemon was already stopped
@@ -85,42 +86,22 @@ Index: ipwatchd-1.2.1/src/scripts/ipwatchd
 -	[ "$RETVAL" = 2 ] && return 2
 -	rm -f $PIDFILE
 -	return "$RETVAL"
++do_stop() {
 +        # Return
 +        #   0 if daemon has been stopped
 +        #   1 if daemon was already stopped
 +        #   2 if daemon could not be stopped
 +        #   other if a failure occurred
-+        start-stop-daemon --quiet --pidfile $PIDFILE -K
++        start-stop-daemon -s 9 --quiet --pidfile $PIDFILE -K
++        if kill -0 $(cat $PIDFILE) 2> /dev/null; then sleep 1; fi;
 +        RETVAL="$?"
 +        [ "$RETVAL" = 2 ] && return 2
 +        rm -f $PIDFILE
 +        return "$RETVAL"
-+}
-+
-+# On PFC200 change /etc/ipwatchd.conf according to DSA configuration.
-+set_config()
-+{
-+	local dsamode
-+	if [ -x /etc/config-tools/get_dsa_mode ]; then
-+		# Ok. We have config tools present. If required, change config file accordingly.
-+		dsamode=$(/etc/config-tools/get_dsa_mode)
-+		grep -q "^# iface br1 active" $CONF_FILE
-+		if [ "$?" != "$dsamode" ]; then
-+			# change config file because dsa mode does not match
-+			if [ "$dsamode" = "0" ]; then
-+				awk ' /iface br1/ {print "# iface br1 active"; next} {print}' $CONF_FILE > $CONF_FILE.new
-+			else
-+				awk ' /iface br1/ {print "iface br1 active"; next} {print}' $CONF_FILE > $CONF_FILE.new
-+			fi
-+			sync
-+			mv $CONF_FILE.new $CONF_FILE
-+			sync
-+		fi
-+	fi
  }
  
  case "$1" in
-   start)
+-  start)
 -	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
 -	do_start
 -	case "$?" in
@@ -128,15 +109,7 @@ Index: ipwatchd-1.2.1/src/scripts/ipwatchd
 -		2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
 -	esac
 -	;;
-+	set_config
-+        do_start
-+        case "$?" in
-+                0) [ "$VERBOSE" != no ] && echo "Started $NAME, $DESC" ;;
-+                1) [ "$VERBOSE" != no ] && echo "$NAME already running" ;;
-+                2) [ "$VERBOSE" != no ] && echo "Start of $NAME failed" ;;
-+        esac
-+        ;;
-   stop)
+-  stop)
 -	[ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
 -	do_stop
 -	case "$?" in
@@ -147,14 +120,7 @@ Index: ipwatchd-1.2.1/src/scripts/ipwatchd
 -  status)
 -       status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
 -       ;;
-+        do_stop
-+        case "$?" in
-+                0) [ "$VERBOSE" != no ] && echo "Stopped $NAME" ;;
-+                1) [ "$VERBOSE" != no ] && echo "$NAME already stopped" ;;
-+                2) [ "$VERBOSE" != no ] && echo "$NAME could not be stopped" ;;
-+        esac
-+        ;;
-   restart|force-reload)
+-  restart|force-reload)
 -	log_daemon_msg "Restarting $DESC" "$NAME"
 -	do_stop
 -	case "$?" in
@@ -172,30 +138,47 @@ Index: ipwatchd-1.2.1/src/scripts/ipwatchd
 -		;;
 -	esac
 -	;;
+-  *)
+-	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+-	exit 3
+-	;;
++start)
++        do_start
++        case "$?" in
++        0) [ "$VERBOSE" != no ] && echo "Started $NAME, $DESC" ;;
++        1) [ "$VERBOSE" != no ] && echo "$NAME already running" ;;
++        2) [ "$VERBOSE" != no ] && echo "Start of $NAME failed" ;;
++        esac
++        ;;
++stop)
 +        do_stop
 +        case "$?" in
-+          0|1)
-+               do_start
++        0) [ "$VERBOSE" != no ] && echo "Stopped $NAME" ;;
++        1) [ "$VERBOSE" != no ] && echo "$NAME already stopped" ;;
++        2) [ "$VERBOSE" != no ] && echo "$NAME could not be stopped" ;;
++        esac
++        ;;
++restart | force-reload)
++        do_stop
++        case "$?" in
++        0 | 1)
++                do_start
 +                case "$?" in
-+                        0) echo "Restarted $NAME, $DESC" ;;
-+                        1) echo "Old process i$NAME is still running" ;;
-+                        *) echo "$NAME failed to start" ;;
++                0) echo "Restarted $NAME, $DESC" ;;
++                1) echo "Old process $NAME is still running" ;;
++                *) echo "$NAME failed to start" ;;
 +                esac
 +                ;;
-+          *)
++        *)
 +                # Failed to stop
 +                echo "$NAME failed to stop"
 +                ;;
 +        esac
 +        ;;
-   *)
--	echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
--	exit 3
--	;;
++*)
 +        echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
 +        exit 3
 +        ;;
  esac
- 
+-
 -:
-+

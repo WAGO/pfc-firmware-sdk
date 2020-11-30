@@ -334,16 +334,8 @@ start_update()
     # Update sub state
     fwupdate_checkpoint_sub_state "$WAGO_FW_UPDATE_STARTED_PREINSTALL_SUB_STATE" 250 true
 
-    # Call pre install update hook if present
-    if [[ -e "$WAGO_FW_UPDATE_PREINSTALL_HOOK" ]]; then
-        fwupdate_report_info "Found pre install update hook to call: \"$WAGO_FW_UPDATE_PREINSTALL_HOOK\""
-        chmod a+x "$WAGO_FW_UPDATE_PREINSTALL_HOOK"
-        "$WAGO_FW_UPDATE_PREINSTALL_HOOK"
-        local HOOK_RESULT=$?
-        if [[ $HOOK_RESULT -ne 0 ]]; then
-            fwupdate_report_warning "Pre install update hook failed on call: \"$WAGO_FW_UPDATE_PREINSTALL_HOOK\" (exit code $HOOK_RESULT)"
-        fi
-    fi
+    # No preinstall defined yet
+
 
     # Update sub state
     fwupdate_checkpoint_sub_state "$WAGO_FW_UPDATE_STARTED_RAUCINSTALL_SUB_STATE" 300 true

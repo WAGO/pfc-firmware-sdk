@@ -1,7 +1,7 @@
 From 25aaae987bc8a73b8cce0952f87e79c20c05350c Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Wed, 26 Sep 2018 13:36:12 +0000
-Subject: [PATCH 117/144] defconfig: pfc200: mlo: remove MMU_EARLY
+Subject: [PATCH] defconfig: pfc200: mlo: remove MMU_EARLY
 
 Barebox is not able to start a former version which has CONFIG_MMU disabled
 when CONFIG_MMU_EARLY is enabled. As we dont need this option we just

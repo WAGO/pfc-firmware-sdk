@@ -14,7 +14,7 @@ Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/extcon/extcon-ptn5150.c b/drivers/extcon/extcon-ptn5150.c
-index d1c997599390..1e1be240e551 100644
+index d1c9975..1e1be24 100644
 --- a/drivers/extcon/extcon-ptn5150.c
 +++ b/drivers/extcon/extcon-ptn5150.c
 @@ -13,7 +13,7 @@
@@ -27,5 +27,5 @@ index d1c997599390..1e1be240e551 100644
  
  /* PTN5150 registers */
 -- 
-2.17.1
+2.7.4
 

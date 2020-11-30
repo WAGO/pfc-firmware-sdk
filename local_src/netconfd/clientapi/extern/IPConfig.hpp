@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include "Status.hpp"
 #include "Types.hpp"
 #include "ConfigBase.hpp"
+#include "Error.hpp"
 
 #include <boost/optional.hpp>
 #include <memory>
@@ -62,18 +62,10 @@ class IPConfigs: public detail::ConfigBase<netconf::IPConfig> {
  * @note In case of error it will only return empty object.
  *
  * @param json_str JSON input string
- * @return IPConfig object filled from JSON input, or empty in case of errors.
+ * @param IPConfig object filled from JSON input, or empty in case of errors.
+ * @return error [out] error of the creation operation.
  */
-
-IPConfigs MakeIPConfigs(const ::std::string& json_str) noexcept;
-/**
- * Builder of IP configuration from JSON string.
- *
- * @param json_str JSON input string
- * @param status [out] status of the creation operation.
- * @return IPConfig object filled from JSON input, or empty in case of errors.
- */
-IPConfigs MakeIPConfigs(const ::std::string &json_str, Status& status) noexcept;
+Error MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept;
 
 /**
  * @brief Retruns the json representation of the ip configurations.
@@ -96,9 +88,11 @@ IPConfigs MakeIPConfigs(const ::std::string &json_str, Status& status) noexcept;
 /**
  * @brief Returns the @see IPConfigs from the netconfd network configuration daemon.
  *
- * @return IPConfigs The @see IPConfigs
+ * @param IPConfigs The @see IPConfigs
+ * @return Error
  */
-IPConfigs GetIPConfigs();
+Error GetIPConfigs(IPConfigs& config);
+
 /**
  * @brief Returns the @see IPConfigs of a specific device type.
  * @param type filter by this type.
@@ -107,14 +101,14 @@ IPConfigs GetIPConfigs();
  *
  * @return The @see IPConfigs filtered by type.
  */
-IPConfigs GetIPConfigs(DeviceType type);
+Error GetIPConfigs(DeviceType type, IPConfigs& configs);
 
 /**
  * @brief Returns the current @see IPConfigs from the netconfd network configuration daemon.
  *
  * @return IPConfigs The @see IPConfigs
  */
-IPConfigs GetCurrentIPConfigs();
+Error GetCurrentIPConfigs(IPConfigs& configs);
 
 /**
  * @brief Returns the current @see IPConfigs filtered by device type
@@ -124,7 +118,7 @@ IPConfigs GetCurrentIPConfigs();
  *
  * @return The curent @see IPConfigs filtered by type.
  */
-IPConfigs GetCurrentIPConfigs(DeviceType type);
+Error GetCurrentIPConfigs(DeviceType type, IPConfigs& configs);
 
 
 /**
@@ -134,7 +128,7 @@ IPConfigs GetCurrentIPConfigs(DeviceType type);
  * @param config The configuration to apply.
  * @return Status @see Status::Ok on success.
  */
-Status SetIPConfigs(const IPConfigs& config);
+Error SetIPConfigs(const IPConfigs& config);
 
 /**
  * @brief Delete the ip configuration for one interface.
@@ -147,7 +141,7 @@ void DeleteIPConfig(::std::string interface_name);
  * @brief Set the Temp Fix Ip
  *
  */
-void SetTempFixIp();
+Error SetTempFixIp();
 
 }  // namespace api
 }  // namespace netconf

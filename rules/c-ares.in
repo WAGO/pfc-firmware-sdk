@@ -1,0 +1,8 @@
+## SECTION=networking
+
+config C_ARES
+	tristate
+	select HOST_CMAKE
+	prompt "c-ares"
+	help
+	  c-ares is a C library for asynchronous DNS requests (including name resolves)

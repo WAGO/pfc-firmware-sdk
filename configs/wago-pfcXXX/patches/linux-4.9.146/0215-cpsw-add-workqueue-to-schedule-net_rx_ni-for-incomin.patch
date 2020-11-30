@@ -47,7 +47,7 @@ index d420d94..c59cefb 100644
  
  obj-$(CONFIG_TI_KEYSTONE_NETCP) += keystone_netcp.o
 diff --git a/drivers/net/ethernet/ti/cpsw.c b/drivers/net/ethernet/ti/cpsw.c
-index cb2504c..413ffc9 100644
+index cb2504c..413ffc92 100644
 --- a/drivers/net/ethernet/ti/cpsw.c
 +++ b/drivers/net/ethernet/ti/cpsw.c
 @@ -26,7 +26,6 @@

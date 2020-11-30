@@ -1,0 +1,21 @@
+## SECTION=wago_specific_opcua
+
+config CDS3_TSCVAREXPORT
+  bool
+  prompt "CoDeSys Component Variable Export"
+  default n
+  select BOOST
+  select CODESYS3
+  select CDS3_INCLUDES
+  select CDS3_RTS_TESTS
+  select GOOGLETEST
+  select GRPC
+  select HOST_CMAKE
+  select HOST_CT_BUILD
+  select MPARK_VARIANT
+  select PROTOBUF
+  select PROTOBUF_LITE
+  select GLIB
+  select TYPELABEL
+  help
+    "This Component use the VarAccess Interface of CoDeSys to offers all marked IEC Program variables."

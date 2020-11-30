@@ -11,7 +11,7 @@
 ///
 ///  \file     get_clock_data.c
 ///
-///  \version  $Revision: 41321 $1
+///  \version  $Revision: 52155 $1
 ///
 ///  \brief    
 ///
@@ -26,6 +26,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "config_tool_lib.h"
 
@@ -134,6 +138,9 @@ int GetActualTimezonePlainString(char* pAdditionalParam,
 int GetTimezoneSelection(char* pNrString,
                          char* pOutputString);
 
+static off_t GetFileSize(char const * pFileName);
+
+static void SetTZVariable(void);
 
 // array of all possible requested parameter (input-strings, strings to search for, processing-function to get them)
 static tstParameterJumptab astParameterJumptab[] =
@@ -918,6 +925,38 @@ int GetTimezoneSelection(char* pAdditionalParam,
 }
 
                                   
+static off_t GetFileSize(char const * pFileName)
+{
+  off_t result = 0;
+  struct stat attributes;
+  int rc;
+
+  rc = stat(pFileName, &attributes);
+  if (0 == rc)
+  {
+    result = attributes.st_size;
+  }
+
+  return result;
+}
+
+
+static void SetTZVariable(void)
+{
+  setenv("TZ","/etc/localtime", 1);
+
+  if (0 == GetFileSize("/etc/localtime"))
+  {
+    char * timezone = FileContent_Get("/etc/TZ");
+    if (NULL != timezone)
+    {
+      setenv("TZ", timezone, 1);
+      FileContent_Destruct(&timezone);
+    }
+  }
+
+  tzset();
+}
 
 
 int main(int    argc, 
@@ -926,8 +965,7 @@ int main(int    argc,
   int   status            = SUCCESS;
 
   // set TZ variable to ensure locale is usable by date and time functions
-  setenv("TZ","/etc/localtime", 1);
-  tzset();
+  SetTZVariable();
 
   // help-text requested?
   if((argc == 2) && ((strcmp(argv[1], "--help") == 0) || strcmp(argv[1], "-h") == 0))

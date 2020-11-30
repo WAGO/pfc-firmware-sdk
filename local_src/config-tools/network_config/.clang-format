@@ -5,3 +5,5 @@ ColumnLimit: 120
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: true
 AllowShortFunctionsOnASingleLine: None
+DerivePointerAlignment: true
+PointerAlignment: Left

@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_DATAAGENT) += dataagent
 #
 # Paths and names
 #
-DATAAGENT_VERSION       := 1.7
+DATAAGENT_VERSION       := 1.8
 DATAAGENT               := DataAgent
 DATAAGENT_URL           := file://wago_intern/$(DATAAGENT)
 DATAAGENT_BUILDCONFIG   := Release
@@ -124,7 +124,6 @@ $(STATEDIR)/dataagent.targetinstall:
 	@$(call install_fixup, dataagent,DESCRIPTION,missing)
 
 	@$(call install_copy, dataagent, 118, 118, 0640, -, /etc/dataagent/dataagent.config)
-	@$(call install_copy, dataagent, 0, 0, 0755, -, /usr/lib/wide/libagentbus.so)
 	@$(call install_copy, dataagent, 0, 0, 0755, -, /usr/bin/dataagent)
 	@$(call install_copy, dataagent, 0, 0, 0750, /etc/specific/features/)
 	@$(call install_copy, dataagent, 0, 0, 0644, -, /etc/specific/features/feature_dataagent)

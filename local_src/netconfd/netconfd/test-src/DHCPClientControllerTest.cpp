@@ -59,19 +59,18 @@ class ADHCPClientController_Target : public Test {
 
 TEST_F(ADHCPClientController_Target, StartsStopsAndGetsStateOfADHCPClient) {
 
-  Status status;
+  Error error;
 
   DHCPClientStatus state = dhcp_client_controller_.GetStatus(br_test);
   EXPECT_EQ(DHCPClientStatus::STOPPED, state);
 
-  status = dhcp_client_controller_.StartClient(br_test);
-  EXPECT_TRUE(status.Ok());
+  error = dhcp_client_controller_.StartClient(br_test);
+  EXPECT_TRUE(error.IsOk());
 
   state = dhcp_client_controller_.GetStatus(br_test);
   EXPECT_EQ(DHCPClientStatus::RUNNING, state);
 
-  status = dhcp_client_controller_.StopClient(br_test);
-  EXPECT_TRUE(status.Ok());
+  dhcp_client_controller_.StopClient(br_test);
 
   state = dhcp_client_controller_.GetStatus(br_test);
   EXPECT_EQ(DHCPClientStatus::STOPPED, state);

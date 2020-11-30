@@ -1,25 +1,21 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "FixIpHandler.hpp"
-#include "IPConfig.hpp"
 
 #include <string>
 
+#include "IPConfig.hpp"
+#include "NetconfError.hpp"
+
 namespace network_config
 {
-  FixIpHandler::FixIpHandler()
-  {
-      execute_ = [this]() { this->SetConfig();};
-  }
-
   void FixIpHandler::Execute()
   {
-    execute_();
+    auto error = netconf::api::SetTempFixIp();
+    if(error.IsNotOk()){
+      throw NetconfError(error);
+    }
   }
 
-  void FixIpHandler::SetConfig()
-  {
-  netconf::api::SetTempFixIp();
-  }
 
 } /* namespace network_config */

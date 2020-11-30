@@ -6,9 +6,10 @@
 
 #include <string>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/optional/optional.hpp>
 #include <initializer_list>
-
+#include <array>
 #include "OptionParser.hpp"
 #include "OptionStrings.hpp"
 
@@ -28,6 +29,10 @@ static inline ::std::string GetValueOf(const boost::program_options::variables_m
   value = uri_escape.Unescape(value);
   boost::algorithm::trim_if(value, boost::algorithm::is_any_of("'"));
   return value;
+}
+
+static inline ::std::string GetValueOf(const boost::program_options::variables_map &map, const Option &option) {
+  return GetValueOf(map, option.name);
 }
 
 
@@ -67,10 +72,26 @@ static inline ::std::string Get(const boost::program_options::variables_map &map
 }
 
 
+template<typename ... Options>
+::std::string JoinOptionNames(std::string separator, Options&& ... options){
+  ::std::array<::std::string, sizeof...(options)> options_a{{(options.name)...}};
+  return boost::algorithm::join(options_a, separator);
+}
+
 template<typename ... Args>
-static void MutuallyExclusiveAndOnlyOnce(const boost::program_options::variables_map &map, Args ... args) {
-  int option_count = 0;
-  (void) std::initializer_list<int> { (option_count += map.count(args.name),0)... };
+static void OptionalAndMutuallyExclusive(const boost::program_options::variables_map &map, Args&& ... args) {
+  int option_count = (map.count(args.name) + ...);
+
+  if (option_count > 1) {
+    throw boost::program_options::error(
+        ::std::string("Optional arguments are mutually exclusive: " + JoinOptionNames(",",args...)));
+  }
+}
+
+
+template<typename ... Args>
+static void MutuallyExclusiveAndOnlyOnce(const boost::program_options::variables_map &map, Args&& ... args) {
+  int option_count = (map.count(args.name) + ... );
 
   if (option_count != 1) {
     throw boost::program_options::error(
@@ -79,7 +100,7 @@ static void MutuallyExclusiveAndOnlyOnce(const boost::program_options::variables
 }
 
 template<typename ... Args>
-static void ExpectOptionPair(const boost::program_options::variables_map &map, Option option, Args ... suboptions) {
+static void ExpectOptionPair(const boost::program_options::variables_map &map, Option option, Args&& ... suboptions) {
   if (Contains(map, option)) {
     MutuallyExclusiveAndOnlyOnce(map, suboptions...);
   }

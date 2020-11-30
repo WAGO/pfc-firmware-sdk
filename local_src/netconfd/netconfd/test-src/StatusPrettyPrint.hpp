@@ -1,21 +1,12 @@
-/*
- * StatusPrettyPrint.hpp
- *
- *  Created on: 16.08.2019
- *      Author: u014487
- */
+// SPDX-License-Identifier: GPL-2.0-or-later
+#pragma once
 
-#ifndef NETCONFD_TEST_SRC_STATUSPRETTYPRINT_HPP_
-#define NETCONFD_TEST_SRC_STATUSPRETTYPRINT_HPP_
-
-#include "Status.hpp"
 #include <ostream>
+#include "Error.hpp"
 
 namespace netconf {
 
-void PrintTo(const Status& bar, std::ostream* os);
-void PrintTo(const StatusCode& bar, std::ostream* os);
+void PrintTo(const Error& bar, std::ostream* os);
+void PrintTo(const ErrorCode& bar, std::ostream* os);
 
 }
-
-#endif /* NETCONFD_TEST_SRC_STATUSPRETTYPRINT_HPP_ */

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Status.hpp"
+#include "Error.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -22,8 +22,8 @@ class IBootpClientController {
   IBootpClientController(const IBootpClientController&&) = delete;
   IBootpClientController& operator=(const IBootpClientController&&) = delete;
 
-  virtual netconf::Status StartClient(const netconf::Bridge& bridge) const = 0;
-  virtual netconf::Status StopClient(const netconf::Bridge& bridge) const = 0;
+  virtual netconf::Error StartClient(const netconf::Bridge& bridge) const = 0;
+  virtual void StopClient(const netconf::Bridge& bridge) const = 0;
   virtual BootpClientStatus GetStatus(const netconf::Bridge& bridge) const = 0;
 };
 

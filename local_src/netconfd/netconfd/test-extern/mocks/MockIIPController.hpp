@@ -1,5 +1,5 @@
-#ifndef NETCONFD_TEST_EXTERN_MOCKS_MOCKIIPCONTROLLER_HPP_
-#define NETCONFD_TEST_EXTERN_MOCKS_MOCKIIPCONTROLLER_HPP_
+// SPDX-License-Identifier: GPL-2.0-or-later
+#pragma once
 
 #include <gmock/gmock.h>
 #include "IIPController.hpp"
@@ -9,11 +9,9 @@ namespace netconf {
 class MockIIPController : public IIPController {
  public:
 
-  MOCK_CONST_METHOD2(GetIPConfig, Status(const Interface&, IPConfig&) );
-  MOCK_CONST_METHOD1(SetIPConfig, Status(const IPConfig&) );
+  MOCK_CONST_METHOD2(GetIPConfig, Error(const Interface&, IPConfig&) );
+  MOCK_CONST_METHOD1(SetIPConfig, Error(const IPConfig&) );
 
 };
 
-}
-  // namespace netconf
-#endif 
+} // namespace netconf

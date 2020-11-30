@@ -1,5 +1,5 @@
-#ifndef NETCONFD_TEST_EXTERN_MOCKS_MOCKIBRIDGEINFORMATION_HPP_
-#define NETCONFD_TEST_EXTERN_MOCKS_MOCKIBRIDGEINFORMATION_HPP_
+// SPDX-License-Identifier: GPL-2.0-or-later
+#pragma once
 
 #include <gmock/gmock.h>
 
@@ -15,5 +15,3 @@ class MockIInterfaceManagerInformation : public IBridgeInformation {
 };
 
 }
-  // namespace netconf
-#endif

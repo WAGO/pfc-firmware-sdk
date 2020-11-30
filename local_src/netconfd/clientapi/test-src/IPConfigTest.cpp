@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 #include <gtest/gtest.h>
 
 #include <string>
@@ -53,9 +54,10 @@ TEST_F(IPConfigTest, RemoveIpConfig) {
 }
 
 TEST_F(IPConfigTest, CreateFromJsonString) {
-  auto ip_configs = MakeIPConfigs(R"({ "itf" : { "source": "dhcp" }})");
+  IPConfigs config;
+  auto error = MakeIPConfigs(R"({ "itf" : { "source": "dhcp" }})", config);
 
-  auto actual = ip_configs.GetIPConfig("itf");
+  auto actual = config.GetIPConfig("itf");
   IPConfig expected{"itf", IPSource::DHCP, ZeroIP, ZeroIP};
 
   EXPECT_EQ(expected, actual);
@@ -65,10 +67,11 @@ TEST_F(IPConfigTest, ToJson) {
   auto json_str = R"({ "itf" : {  "ipaddr": "", "netmask": "", "bcast" :"", "source": "dhcp"  }})";
   auto expected = json::parse(json_str);
 
-  auto ip_configs = MakeIPConfigs(json_str);
+  IPConfigs config;
+  auto error = MakeIPConfigs(json_str, config);
 
   JsonConverter jc;
-  auto actual_str = jc.ToJsonString(ip_configs.GetConfig());
+  auto actual_str = jc.ToJsonString(config.GetConfig());
 
   auto actual = json::parse(actual_str);
 

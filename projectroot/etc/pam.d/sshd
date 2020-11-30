@@ -2,6 +2,13 @@
 # /etc/pam.d/sshd - "dropbear" configuration for Linux-PAM
 #
 
-auth     include  common-auth
-account  include  common-account
+auth     include   common-auth
+
+# dropbear can not handle enforced password
+# change requests! It will lock out the user
+# if we try to enforce this, thus we set a
+# positive result, i.e. ignore enforced password
+# change for dropbear.
+account  optional  pam_permit.so
+#account  include   common-account
 

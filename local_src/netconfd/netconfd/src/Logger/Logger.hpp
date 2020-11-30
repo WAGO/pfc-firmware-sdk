@@ -7,6 +7,7 @@
 // include files
 //------------------------------------------------------------------------------
 #include <memory>
+#include "Error.hpp"
 
 namespace netconf {
 
@@ -36,6 +37,13 @@ void LogWarning(::std::string const& message);
 void LogInfo(::std::string const& message);
 void LogError(::std::string const& message);
 void LogDebug(::std::string const& message);
+//void LogStatus(Error const& status);
+
+#define STR(x) #x
+#define LogStatus(msg, status) LogStatus_(__FILE__, STR(__LINE__), msg, status)
+
+void LogStatus_(::std::string const& file, ::std::string const& line, ::std::string const& message, Error const& status);
+
 
 LogLevel LogLevelFromString(::std::string const& level);
 

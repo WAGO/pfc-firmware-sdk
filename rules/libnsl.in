@@ -1,0 +1,11 @@
+## SECTION=libc
+
+config LIBNSL
+	bool
+	prompt "libnsl"
+	default y
+	help
+	  Functions in this library provide routines that provide a
+	  transport-level interface to networking services like i.E.
+	  nis(+)
+

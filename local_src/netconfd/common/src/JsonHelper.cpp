@@ -1,9 +1,4 @@
-/*
- * JsonConverterBase.cpp
- *
- *  Created on: 20.05.2020
- *      Author: u016903
- */
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "JsonConverter.hpp"
 #include <nlohmann/json.hpp>
@@ -12,12 +7,12 @@
 #include <boost/system/error_code.hpp>
 #include "NetworkHelper.hpp"
 #include "TypesHelper.hpp"
-#include "Status.hpp"
 #include "Types.hpp"
 #include "Helper.hpp"
 #include "JsonKeyList.hpp"
 #include "JsonHelper.hpp"
 #include "JsonHelper.hpp"
+#include "Error.hpp"
 
 namespace netconf {
 
@@ -79,9 +74,8 @@ json DipSwitchConfigToNJson(const DipSwitchConfig &config) {
   return DipSwitchConfigToNJson(config).dump();
 }
 
-Status JsonToNJson(::std::string const &json_str, json &json_object) {
+Error JsonToNJson(::std::string const &json_str, json &json_object) {
 
-  Status status;
 
   try {
 
@@ -104,12 +98,9 @@ Status JsonToNJson(::std::string const &json_str, json &json_object) {
     json::sax_parse(json_str, &sax_consumer);
 
   } catch (std::exception const &e) {
-    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Json parse error " + std::string(e.what()));
-  } catch (...) {
-    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Json parse error unexpected exception");
+    return Error{ErrorCode::JSON_CONVERT, e.what()};
   }
-
-  return status;
+  return Error::Ok();
 
 }
 
@@ -129,8 +120,7 @@ Status JsonToNJson(::std::string const &json_str, json &json_object) {
   return json_string;
 }
 
-Status GetAddressFromJson(const std::string &json_field, const json &from, std::string &to) {
-  Status status;
+Error GetAddressFromJson(const std::string &json_field, const json &from, std::string &to) {
 
   try {
     auto iter = from.find(json_field);
@@ -140,36 +130,35 @@ Status GetAddressFromJson(const std::string &json_field, const json &from, std::
       boost_error error_code;
       boost_address::from_string(to, error_code);
       if (error_code) {
-        status.Append(StatusCode::JSON_CONVERT_ERROR, "Found invalid IP address.");
-        to = "";
+        return Error{ErrorCode::IPV4_FORMAT, ::std::to_string(error_code.value())};
       }
     }
 
   } catch (std::exception const &e) {
-    to = "";
-    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to IP address error: " + std::string(e.what()));
+    to.clear();
+    return Error{ErrorCode::JSON_CONVERT, e.what()};
   } catch (...) {
-    to = "";
-    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to IP address error unexpected exception");
+    to.clear();
+    return Error{ErrorCode::JSON_CONVERT, "General JSON error"};
   }
 
-  return status;
+  return Error::Ok();
 
 }
 
-Status NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config) {
-  Status status;
+Error NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config) {
+  Error status;
 
   for (const auto &bridge_cfg_json : json_object.items()) {
     auto bridge_cfg_pair = std::make_pair<Bridge, Interfaces>(bridge_cfg_json.key(), bridge_cfg_json.value());  // NOLINT: Need to express types in make_pair to get it working.
 
     if (bridge_cfg_pair.first.empty()) {
-      status.Append(StatusCode::JSON_CONVERT_ERROR, "Bridge Name is empty");
+      status.Set(ErrorCode::NAME_EMPTY);
     } else if (bridge_config.count(bridge_cfg_pair.first) > 0) {
-      status.Append(StatusCode::JSON_CONVERT_ERROR, "Bridge Name duplicate!");
+      status.Set(ErrorCode::ENTRY_DUPLICATE, bridge_cfg_pair.first);
     }
 
-    if (status.NotOk()) {
+    if (status.IsNotOk()) {
       bridge_config.clear();
       break;
     }
@@ -179,53 +168,49 @@ Status NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config)
   return status;
 }
 
-Status NJsonToDipIPConfig(const nlohmann::json &json_object, DipSwitchIpConfig &ip_config) {
-  Status status;
+Error NJsonToDipIPConfig(const nlohmann::json &json_object, DipSwitchIpConfig &ip_config) {
+  Error status;
 
   status = GetAddressFromJson("ipaddr", json_object, ip_config.address_);
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = GetAddressFromJson("netmask", json_object, ip_config.netmask_);
   }
 
   return status;
 }
 
-Status JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &out_obj) {
+Error JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &out_obj) {
   json json_object;
   auto status = JsonToNJson(json_string, json_object);
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = get_to_or_error("mode", json_object, out_obj.mode_);
   }
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = get_to_or_error("value", json_object, out_obj.value_);
   }
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = get_to_or_error("ipaddr", json_object, out_obj.ip_config_.address_);
   }
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = get_to_or_error("netmask", json_object, out_obj.ip_config_.netmask_);
   }
 
   return status;
 }
 
-Status NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs) {
-
-  Status status;
+Error NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs) {
 
   try {
     auto items = json_object.items();
     ::std::transform(items.begin(), items.end(), ::std::back_inserter(ip_configs), parse_ip_config);
   } catch (std::exception const &e) {
-    ip_configs.clear();
-    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to Ip config error: " + std::string(e.what()));
+    return Error{ErrorCode::JSON_CONVERT, e.what()};
   } catch (...) {
-    ip_configs.clear();
-    status.Prepend(StatusCode::JSON_CONVERT_ERROR, "Convert json to Ip config error unexpected exception");
+    return Error{ErrorCode::JSON_CONVERT, "General JSON error"};
   }
 
-  return status;
+  return Error::Ok();
 }
 
 json InterfaceConfigToNJson(const InterfaceConfig &interface_config) {
@@ -261,7 +246,7 @@ static json InterfaceConfigToNJson_fw15(const InterfaceConfig &interface_config)
   }
 
   if (interface_config.autoneg_ != Autonegotiation::UNKNOWN) {
-    j[PORT_CFG_KEY_AUTONEG] = (interface_config.autoneg_ == Autonegotiation::ON) ? true : false;
+    j[PORT_CFG_KEY_AUTONEG] = (interface_config.autoneg_ == Autonegotiation::ON);
   }
 
   if (interface_config.speed_ > 0) {
@@ -318,24 +303,24 @@ InterfaceConfig InterfaceConfigFromJson(const json &config) {
   return p;
 }
 
-Status NJsonToInterfaceConfigs(const nlohmann::json &json_object, InterfaceConfigs &interface_configs) {
+Error NJsonToInterfaceConfigs(const nlohmann::json &json_object, InterfaceConfigs &interface_configs) {
   if (json_object.empty()) {
-    return Status { StatusCode::JSON_CONVERT_ERROR, "Empty JSON object" };
+    return Error { ErrorCode::JSON_INCOMPLETE};
   }
   if (json_object.is_array()) {
     for (auto &jentry : json_object) {
       if (!interface_config_keys_.matchesJsonObject(jentry)) {
-        return Status { StatusCode::JSON_CONVERT_ERROR, "Invalid JSON object" };
+        return Error { ErrorCode::JSON_INCOMPLETE};
       }
       interface_configs.push_back(InterfaceConfigFromJson(jentry));
     }
   } else {
     if (!interface_config_keys_.matchesJsonObject(json_object)) {
-      return Status { StatusCode::JSON_CONVERT_ERROR, "Invalid JSON object" };
+      return Error { ErrorCode::JSON_INCOMPLETE};
     }
     interface_configs.push_back(InterfaceConfigFromJson(json_object));
   }
-  return Status { StatusCode::OK };
+  return Error::Ok();
 }
 
 json InterfaceInformationToNJson(const InterfaceInformation &obj) {
@@ -343,30 +328,27 @@ json InterfaceInformationToNJson(const InterfaceInformation &obj) {
       "ip-ro", obj.IsIpConfigurationReadonly() } };
 }
 
-Status NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information) {
+Error NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information) {
   ::std::string name;
   ::std::string label;
   DeviceType type = DeviceType::Other;
   bool ip_config_ro = true;
-  Status status;
-  if (status.Ok()) {
-    status = get_to_or_error("name", json_object, name);
+  Error error = get_to_or_error("name", json_object, name);
+  if (error.IsOk()) {
+    error = get_to_or_error("label", json_object, label);
   }
-  if (status.Ok()) {
-    status = get_to_or_error("label", json_object, label);
+  if (error.IsOk()) {
+    error = get_to_or_error("type", json_object, type);
   }
-  if (status.Ok()) {
-    status = get_to_or_error("type", json_object, type);
-  }
-  if (status.Ok()) {
-    status = get_to_or_error("ip-ro", json_object, ip_config_ro);
+  if (error.IsOk()) {
+    error = get_to_or_error("ip-ro", json_object, ip_config_ro);
   }
 
-  if (status.Ok()) {
+  if (error.IsOk()) {
     interface_information = InterfaceInformation { name, label, type, ip_config_ro };
   }
 
-  return status;
+  return error;
 }
 
 }

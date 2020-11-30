@@ -175,5 +175,17 @@ namespace network_config
     EXPECT_THROW(sut_.Parse(args.size(), args.data()), po::error);
   }
 
+  TEST_F(OptionParserCombinationsTest, QuietAndErrMsgDstDontGoAlong)
+  {
+    auto args_nok = createArgPair("program", "--mac-address", "--device=br0", "--get", "--quiet", "--error-msg-dst", "file.txt");
+    EXPECT_THROW(sut_.Parse(args_nok.size(), args_nok.data()), po::error);
+
+    auto args_ok1 = createArgPair("program", "--mac-address", "--device=br0", "--get", "--quiet");
+    EXPECT_NO_THROW(sut_.Parse(args_ok1.size(), args_ok1.data()));
+
+    auto args_ok2 = createArgPair("program", "--mac-address", "--get", "--device=br0", "--error-msg-dst", "file.txt");
+    EXPECT_NO_THROW(sut_.Parse(args_ok2.size(), args_ok2.data()));
+  }
+
 
 }  // namespace network_config

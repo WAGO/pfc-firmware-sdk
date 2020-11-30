@@ -1,16 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-//------------------------------------------------------------------------------
-///  \file     Daemonizer.hpp
-///
-///  \brief    <short description of the file contents>
-///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
-#ifndef NETCONFD_DAEMONIZER_HPP_
-#define NETCONFD_DAEMONIZER_HPP_
+#pragma once
 
 #include "string"
-#include "Status.hpp"
+
+#include "Error.hpp"
 #include "InterprocessCondition.h"
 
 namespace netconf {
@@ -21,15 +14,15 @@ class Daemonizer {
              ::std::string const& pid_file_name);
   virtual ~Daemonizer() = default;
 
-  Status Daemonize(InterprocessCondition& condition);
-  Status PreparePidDir() const;
+  Error Daemonize(InterprocessCondition& condition);
+  Error PreparePidDir() const;
   bool IsPidFileLocked() const;
-  Status WritePidFile();
+  Error WritePidFile();
   void SetUnlinkPidOnExit();
 
  private:
-  Status OpenAndLockPidFile();
-  Status SetCloseOnExecFlag() const;
+  Error OpenAndLockPidFile();
+  Error SetCloseOnExecFlag() const;
 
   ::std::string const& run_directory_;
   ::std::string const& pid_file_name_;
@@ -37,6 +30,4 @@ class Daemonizer {
 
 };
 
-} /* namespace netconf */
-
-#endif /* NETCONFD_DAEMONIZER_HPP_ */
+} // namespace netconf

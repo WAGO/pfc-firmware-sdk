@@ -16,7 +16,7 @@ Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
  3 files changed, 20 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-pfc-768_3301.dts b/arch/arm/boot/dts/am335x-pfc-768_3301.dts
-index 09510251e80a..d38afb36e39e 100644
+index 0951025..d38afb3 100644
 --- a/arch/arm/boot/dts/am335x-pfc-768_3301.dts
 +++ b/arch/arm/boot/dts/am335x-pfc-768_3301.dts
 @@ -63,7 +63,7 @@
@@ -37,7 +37,7 @@ index 09510251e80a..d38afb36e39e 100644
 +	status = "okay";
 +};
 diff --git a/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi b/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
-index 0708fb57ffd7..7b95321ce348 100644
+index 0708fb5..7b95321 100644
 --- a/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
 +++ b/arch/arm/boot/dts/am335x-pfc-768_330x.dtsi
 @@ -149,7 +149,14 @@
@@ -70,7 +70,7 @@ index 0708fb57ffd7..7b95321ce348 100644
  };
  
 diff --git a/arch/arm/configs/am335x_pfc_adv_generic_defconfig b/arch/arm/configs/am335x_pfc_adv_generic_defconfig
-index 5c621c43df8d..f5f2d18a9b79 100644
+index 5c621c4..f5f2d18 100644
 --- a/arch/arm/configs/am335x_pfc_adv_generic_defconfig
 +++ b/arch/arm/configs/am335x_pfc_adv_generic_defconfig
 @@ -446,6 +446,8 @@ CONFIG_UIO_PDRV_GENIRQ=y
@@ -83,5 +83,5 @@ index 5c621c43df8d..f5f2d18a9b79 100644
  CONFIG_IIO_BUFFER_CB=y
  CONFIG_TI_AM335X_ADC=y
 -- 
-2.17.1
+2.7.4
 

@@ -1,0 +1,30 @@
+From: Ladislav Michl <ladis@linux-mips.org>
+Date: Tue, 26 Jun 2018 18:03:22 +0200
+Subject: [PATCH] Do not fail on unknown LC_IDENTIFICATION.category values
+
+Up to the glibc commit 900f59f084bf ("localedef: check
+LC_IDENTIFICATION.category values") any value for category
+keyword was accepted. This patch turns strict checking off
+again, allowing older locales to be processed, such as
+those comming with OSELAS.Toolchain-2016.06.1.
+
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+---
+ locale/programs/ld-identification.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/locale/programs/ld-identification.c b/locale/programs/ld-identification.c
+index df0257b6c075..aef618c86363 100644
+--- a/locale/programs/ld-identification.c
++++ b/locale/programs/ld-identification.c
+@@ -194,8 +194,8 @@ No definition for %s category found"), "LC_IDENTIFICATION");
+ 	      matched = true;
+ 
+ 	  if (matched != true)
+-	    record_error (0, 0, _("\
+-%s: unknown standard `%s' for category `%s'"),
++	    fprintf (stderr, "[warning] \
++%s: not whilelisted standard `%s' for category `%s'\n",
+ 			  "LC_IDENTIFICATION",
+ 			  identification->category[num],
+ 			  category_name[num]);

@@ -3,7 +3,6 @@
 config PLCLINUXRT
 	bool "CODESYS v2"
 	default n
-	select FREETYPE      if PLCLINUXRT_TARGETVISU
 	select EXPAT  	     if PLCLINUXRT_TARGETVISU
 	select CT_IPC_MSG_HEADER if CONFIG_TOOLS
 	select DAL
@@ -162,7 +161,6 @@ comment ""
 config PLCLINUXRT_TARGETVISU
 		bool "TargetVISU"
 		default y
-		select FREETYPE
 		select EXPAT
 		 help
 	 This enables Microwindows.

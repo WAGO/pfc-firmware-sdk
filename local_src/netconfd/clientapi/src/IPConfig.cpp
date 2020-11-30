@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "IPConfig.hpp"
 
@@ -8,7 +8,6 @@
 #include "NetconfdDbusClient.hpp"
 #include "JsonConverter.hpp"
 #include "DipSwitchConfig.hpp"
-#include "InterfaceInformation.hpp"
 #include "InterfaceInformationApi.hpp"
 
 namespace netconf {
@@ -71,14 +70,26 @@ static IPConfigs FilterCopyByType(const IPConfigs &ip_configs, DeviceType type) 
 }
 
 
-IPConfigs GetIPConfigs(DeviceType type) {
-  auto ip_configs = GetIPConfigs();
-  return FilterCopyByType(ip_configs, type);
+Error GetIPConfigs(DeviceType type, IPConfigs& configs) {
+  IPConfigs c;
+  auto error = GetIPConfigs(c);
+  if(error.IsNotOk())
+  {
+    return error;
+  }
+  configs = FilterCopyByType(c, type);
+  return error;
 }
 
-IPConfigs GetCurrentIPConfigs(DeviceType type) {
-  auto ip_configs = GetCurrentIPConfigs();
-  return FilterCopyByType(ip_configs, type);
+Error GetCurrentIPConfigs(DeviceType type, IPConfigs& configs) {
+  IPConfigs c;
+  auto error = GetCurrentIPConfigs(c);
+  if(error.IsNotOk())
+  {
+    return error;
+  }
+  configs = FilterCopyByType(c, type);
+  return error;
 }
 
 void DeleteIPConfig(::std::string interface_name) {
@@ -98,17 +109,13 @@ void DeleteIPConfig(::std::string interface_name) {
   }
 }
 
-IPConfigs MakeIPConfigs(const ::std::string &json_str, Status& status) noexcept{
+Error MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept{
   JsonConverter jc;
-  netconf::IPConfigs configs;
-  auto conversion_status = jc.FromJsonString(json_str, configs);
-  status = conversion_status.Ok() ? Status::OK : Status::JSON_CONVERT_ERROR;
-  return IPConfigs { configs };
-}
+  netconf::IPConfigs c;
+  Error error = jc.FromJsonString(json_str, c);
+  config = IPConfigs(c);
+  return error;
 
-IPConfigs MakeIPConfigs(const ::std::string &json_str) noexcept {
-  Status unused_;
-  return MakeIPConfigs(json_str, unused_);
 }
 
 ::std::string ToJson(const netconf::IPConfig &ip_config) noexcept{

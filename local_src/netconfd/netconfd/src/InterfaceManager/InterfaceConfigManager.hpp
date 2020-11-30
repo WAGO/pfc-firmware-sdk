@@ -22,13 +22,13 @@ class InterfaceConfigManager : public IInterfaceInformation{
   virtual ~InterfaceConfigManager() = default;
 
   virtual void InitializePorts();
-  virtual Status Configure(InterfaceConfigs& port_configs);
+  virtual Error Configure(InterfaceConfigs& port_configs);
   virtual InterfaceConfigs const& GetPortConfigs() override;
 
  private:
-  Status IsPortConfigValid(const InterfaceConfigs& port_configs);
-  Status ApplyPortConfig(InterfaceConfig const& cfg);
-  Status ApplyPortConfigs(InterfaceConfigs& port_configs);
+  Error IsPortConfigValid(const InterfaceConfigs& port_configs);
+  Error ApplyPortConfig(InterfaceConfig const& cfg);
+  Error ApplyPortConfigs(InterfaceConfigs& port_configs);
   void InitializeEthernetInterfaceMap(const NetDevs& netdevs);
   void InitializeCurrentConfigs(const NetDevs& netdevs, const InterfaceConfigs& persistet_configs);
   void UpdateCurrentInterfaceConfigs(const InterfaceConfigs &port_configs);

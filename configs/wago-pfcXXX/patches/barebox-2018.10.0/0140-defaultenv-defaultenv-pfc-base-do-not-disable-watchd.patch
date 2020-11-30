@@ -1,8 +1,8 @@
 From 0ee890d4f01ed4db060af98024ba9216ed6831f0 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 31 Oct 2018 17:05:14 +0100
-Subject: [PATCH 140/144] defaultenv: defaultenv-pfc-base: do not disable
- watchdog in broken mode
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: do not disable watchdog in
+ broken mode
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

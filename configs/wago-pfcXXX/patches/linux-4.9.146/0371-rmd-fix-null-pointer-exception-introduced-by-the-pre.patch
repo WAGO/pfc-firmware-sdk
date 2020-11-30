@@ -12,7 +12,7 @@ Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
  1 file changed, 5 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
-index 0f42e8e9c978..3f140fe69040 100644
+index 0f42e8e..3f140fe 100644
 --- a/drivers/char/rmd.c
 +++ b/drivers/char/rmd.c
 @@ -637,13 +637,14 @@ static int rmd_dma_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
@@ -43,5 +43,5 @@ index 0f42e8e9c978..3f140fe69040 100644
  	return ret;
  }
 -- 
-2.17.1
+2.7.4
 

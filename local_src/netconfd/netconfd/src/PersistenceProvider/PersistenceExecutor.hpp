@@ -28,24 +28,24 @@ namespace netconf
       PersistenceExecutor(const PersistenceExecutor&&) = delete;
       PersistenceExecutor& operator=(const PersistenceExecutor&&) = delete;
 
-      Status Write(const BridgeConfig &config) override;
-      Status Read(BridgeConfig &config) override;
+      Error Write(const BridgeConfig &config) override;
+      Error Read(BridgeConfig &config) override;
 
-      Status Write(const IPConfigs &configs) override;
-      Status Read(IPConfigs &configs) override;
+      Error Write(const IPConfigs &configs) override;
+      Error Read(IPConfigs &configs) override;
 
-      Status Write(const InterfaceConfigs &configs) override;
-      Status Read(InterfaceConfigs &configs) override;
+      Error Write(const InterfaceConfigs &configs) override;
+      Error Read(InterfaceConfigs &configs) override;
 
-      Status Write(const DipSwitchIpConfig &config) override;
-      Status Read(DipSwitchIpConfig &config) override;
+      Error Write(const DipSwitchIpConfig &config) override;
+      Error Read(DipSwitchIpConfig &config) override;
 
-      Status Read(BridgeConfig &config,
+      Error Read(BridgeConfig &config,
                   IPConfigs &configs) override;
 
-      Status Backup(const std::string &file_path,
+      Error Backup(const std::string &file_path,
                     const std::string &targetversion) override;
-      Status Restore(const ::std::string &file_path,
+      Error Restore(const ::std::string &file_path,
                      BridgeConfig &bridge_config,
                      IPConfigs &ip_configs,
                      InterfaceConfigs &interface_configs,
@@ -67,10 +67,10 @@ namespace netconf
 
       IDipSwitch &dip_switch_;
 
-      Status UpdateNetconfdJson() const;
+      Error UpdateNetconfdJson() const;
       void UpdateInterfacesXml() const;
-      Status ReadNetconfdJson();
-      Status ReadInterfaceConfigJson();
+      Error ReadNetconfdJson();
+      Error ReadInterfaceConfigJson();
 
       void ModifyBr0AddressToDipSwitch(IPConfigs &current_ip_configs);
   };

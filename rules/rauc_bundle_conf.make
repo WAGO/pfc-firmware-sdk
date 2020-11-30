@@ -24,7 +24,7 @@ PACKAGES-$(PTXCONF_RAUC_BUNDLE_CONF) += rauc_bundle_conf
 #
 # Paths and names
 #
-RAUC_BUNDLE_CONF_VERSION     := 0.2
+RAUC_BUNDLE_CONF_VERSION     := 1.2
 RAUC_BUNDLE_CONF_MD5         :=
 RAUC_BUNDLE_CONF             := rauc_bundle_conf-$(RAUC_BUNDLE_CONF_VERSION)
 RAUC_BUNDLE_CONF_URL         := file://shared_public/fwupdate/rauc_bundle_conf

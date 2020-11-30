@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_CLOCK) += wbm-ng-plugin-clock
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_CLOCK_VERSION        := 1.0.2
+WBM_NG_PLUGIN_CLOCK_VERSION        := 1.0.6
 WBM_NG_PLUGIN_CLOCK                := wbm-clock-$(WBM_NG_PLUGIN_CLOCK_VERSION)
 WBM_NG_PLUGIN_CLOCK_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_CLOCK)
 WBM_NG_PLUGIN_CLOCK_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_CLOCK_URL))

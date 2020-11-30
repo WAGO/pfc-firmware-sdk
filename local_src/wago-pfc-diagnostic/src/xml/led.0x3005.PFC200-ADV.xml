@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF8" ?>
 <!-- LED configuration of PFC200-ADV product! -->
 <ledconfig>
-<led name="DS"  number="0" state="STATIC_GRN" id="000000C0" >
+<led name="DS"  number="0" state="BLINK_GRN" id="000000D0" >
 <alias>SYS</alias>
 </led>
 <led name="EC"  number="1" state="STATIC_OFF" id="00170001" />

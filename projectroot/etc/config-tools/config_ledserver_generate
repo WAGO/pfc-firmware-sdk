@@ -1,0 +1,59 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_ledserver_generate
+#
+# Create fast led setup script.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+LED_CONFIG_FILE=/etc/specific/leds.conf
+
+LED_SRC_PATH="/sys/class/leds"
+LED_DEST_PATH="/dev/leds"
+
+source ${LED_CONFIG_FILE}
+ORDER="$(/etc/config-tools/get_typelabel_value ORDER)"
+STRIPPED_ORDER=${ORDER//\//_}
+FAST_SETUP_FILE=/etc/specific/ledsetup-${STRIPPED_ORDER}
+TEMP_SETUP_FILE=${FAST_SETUP_FILE}~
+
+rm -f /etc/specific/ledsetup-* 2> /dev/null 
+
+echo "#!/bin/bash" > $TEMP_SETUP_FILE
+
+echo "if [ ! -d \"${LED_DEST_PATH}\" ]; then mkdir \"${LED_DEST_PATH}\"; fi" >> $TEMP_SETUP_FILE
+echo "if [ -d \"${LED_DEST_PATH}\" ]; then ln -s ${LED_SRC_PATH}/* \"${LED_DEST_PATH}\"; fi" >> $TEMP_SETUP_FILE
+
+#modification of lednames for BACnet-PFC 
+if [ "$ORDER" = "750-8212/0000-0100" ]
+then
+  echo "mv ${LED_DEST_PATH}/u7-green ${LED_DEST_PATH}/bt-green" >> $TEMP_SETUP_FILE
+  echo "mv ${LED_DEST_PATH}/u7-red ${LED_DEST_PATH}/bt-red" >> $TEMP_SETUP_FILE
+fi
+
+#modification of LEDs for Touch Panels
+if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]
+then
+  if [ "$FRONTLED" != "active" ]
+  then
+    echo "ln -snf ${LED_SRC_PATH}/sys-green-back ${LED_DEST_PATH}/sys-green" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/sys-red-back ${LED_DEST_PATH}/sys-red" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/sys-blue-back ${LED_DEST_PATH}/sys-blue" >> $TEMP_SETUP_FILE
+  else
+    echo "ln -snf ${LED_SRC_PATH}/sys-green ${LED_DEST_PATH}/sys-green" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/sys-red ${LED_DEST_PATH}/sys-red" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/sys-blue ${LED_DEST_PATH}/sys-blue" >> $TEMP_SETUP_FILE
+  fi
+fi
+
+chmod +x $TEMP_SETUP_FILE
+sync
+mv ${TEMP_SETUP_FILE} ${FAST_SETUP_FILE}
+sync

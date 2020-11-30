@@ -7,7 +7,7 @@ menuconfig PPP
 	select LIBC_DL
 	select LIBC_UTIL
 	select LIBC_RESOLV	if PPP_PLUGINS
-	select LIBC_CRYPT	if PPP_NEEDS_CRYPT
+	select OPENSSL		if PPP_NEEDS_CRYPT
 	select LIBPCAP		if PPP_FILTER
 	select OPENSSL		if PPP_SRP
 	help

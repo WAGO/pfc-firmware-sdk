@@ -20,9 +20,9 @@ DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor)
     : executor_(executor) {
 
   ::std::string type_label_ini;
-  Status status = executor_.Execute("/etc/config-tools/get_typelabel_value -a", type_label_ini);
+  Error status = executor_.Execute("/etc/config-tools/get_typelabel_value -a", type_label_ini);
 
-  if (status.NotOk()) {
+  if (status.IsNotOk()) {
     LogError("Failed to extract typelabel values! Taking fallback values."s);
     GetMacFallback();
     GetOrderFallback();

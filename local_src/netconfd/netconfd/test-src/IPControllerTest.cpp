@@ -55,92 +55,43 @@ class AnIPController_Target : public Test {
 TEST_F(AnIPController_Target, SetsAnEmptyBroadcast) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.42", "255.255.255.0");
-  Status status = ip_controller_->SetIPConfig(config);
+  Error status = ip_controller_->SetIPConfig(config);
 
-  ASSERT_EQ(StatusCode::OK, status.Get());
+  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
 }
-
-TEST_F(AnIPController_Target, SetsAndGetsAnIPConfiguration) {
-
-  IPConfig config(bridge_, IPSource::STATIC,"192.168.42.42", "255.255.255.0");
-  Status status = ip_controller_->SetIPConfig(config);
-
-  ASSERT_EQ(StatusCode::OK, status.Get());
-
-  IPConfig current_config;
-  status = ip_controller_->GetIPConfig(bridge_, current_config);
-  ASSERT_EQ(StatusCode::OK, status.Get());
-  ExpectEQIPConfigsIgnoreSource(config, current_config);
-}
-
-
-TEST_F(AnIPController_Target, SetsAndGetsAnZeroIPConfiguration) {
-
-  IPConfig config(bridge_, IPSource::STATIC,ZeroIP, ZeroIP);
-  Status status = ip_controller_->SetIPConfig(config);
-
-  ASSERT_EQ(StatusCode::OK, status.Get());
-
-  IPConfig current_config;
-  status = ip_controller_->GetIPConfig(bridge_, current_config);
-  ASSERT_EQ(StatusCode::OK, status.Get());
-
-  ExpectEQIPConfigsIgnoreSource(current_config, current_config);
-}
-
 
 TEST_F(AnIPController_Target, TriesToSetAnEmptyNetmask) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.42", "");
-  Status status = ip_controller_->SetIPConfig(config);
+  Error status = ip_controller_->SetIPConfig(config);
 
-  EXPECT_EQ(StatusCode::INVALID_PARAMETER, status.Get());
+  EXPECT_EQ(ErrorCode::SET_IP, status.GetErrorCode());
 }
 
 TEST_F(AnIPController_Target, TriesToSetAnInvalidIPAddress) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.555", "255.255.255.0");
-  Status status = ip_controller_->SetIPConfig(config);
+  Error status = ip_controller_->SetIPConfig(config);
 
-  EXPECT_EQ(StatusCode::INVALID_PARAMETER, status.Get());
+  EXPECT_EQ(ErrorCode::SET_IP, status.GetErrorCode());
 }
 
 TEST_F(AnIPController_Target, TriesToSetAnInvalidNetmask) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.42", "255.255.255");
-  Status status = ip_controller_->SetIPConfig(config);
+  Error status = ip_controller_->SetIPConfig(config);
 
-  EXPECT_EQ(StatusCode::INVALID_PARAMETER, status.Get());
+  EXPECT_EQ(ErrorCode::SET_IP, status.GetErrorCode());
 }
 
 TEST_F(AnIPController_Target, TriesToSetAnZeroIPAddress) {
 
   IPConfig config(bridge_, IPSource::STATIC,"", "255.255.255.0");
-  Status status = ip_controller_->SetIPConfig(config);
+  Error status = ip_controller_->SetIPConfig(config);
 
-  EXPECT_EQ(StatusCode::INVALID_PARAMETER, status.Get());
+  EXPECT_EQ(ErrorCode::SET_IP, status.GetErrorCode());
 }
 
-TEST_F(AnIPController_Target, GetsAnIpConfigFromAnUnconfiguredInterface) {
-
-  IPConfig expected_config(bridge_, IPSource::NONE,ZeroIP, ZeroIP);
-
-  IPConfig config;
-
-  Status status = ip_controller_->GetIPConfig(bridge_, config);
-
-  ASSERT_EQ(StatusCode::OK, status.Get());
-  ExpectEQIPConfigsIgnoreSource(expected_config, config);
-}
-
-TEST_F(AnIPController_Target, GetsAnIpConfigFromAMissingInterface) {
-
-  IPConfig config;
-
-  Status status = ip_controller_->GetIPConfig("missing_bridge", config);
-
-  EXPECT_EQ(StatusCode::SYSTEM_CALL_ERROR, status.Get());
-}
 
 
 } /* namespace netconf */

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "BridgeConfigHandler.hpp"
+#include "NetconfError.hpp"
 
 #include <string>
 #include <iostream>
@@ -39,7 +40,12 @@ namespace network_config
 
   void BridgeConfigHandler::GetConfig()
   {
-    auto bridge_config = napi::GetBridgeConfig();
+    napi::BridgeConfig bridge_config;
+    auto error = napi::GetBridgeConfig(bridge_config);
+    if(error.IsNotOk()){
+      throw NetconfError{error};
+    }
+
     auto format = GetFormat(vm_);
 
     ::std::string device;
@@ -62,12 +68,15 @@ namespace network_config
 
   void BridgeConfigHandler::SetConfig()
   {
-    auto bridge_config = napi::MakeBridgeConfig(GetValueOfSet(vm_));
-    auto status = napi::SetBridgeConfig(bridge_config);
+    napi::BridgeConfig bridge_config;
+    auto error = napi::MakeBridgeConfig(GetValueOfSet(vm_), bridge_config);
+    if(error.IsOk()){
+      error = napi::SetBridgeConfig(bridge_config);
+    }
 
-    if(netconf::api::Status::OK != status)
+    if(error.IsNotOk())
     {
-      throw ::std::runtime_error("Failed to set bridge configuration.");
+      throw NetconfError{error};
     }
   }
 

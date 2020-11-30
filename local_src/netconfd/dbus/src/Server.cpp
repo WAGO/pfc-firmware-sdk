@@ -35,7 +35,6 @@ void Server::OnBusAcquired(GDBusConnection *connection, const gchar *name, gpoin
   self->connection = connection;
 }
 
-[[gnu::const]]
 void Server::OnNameAcquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 }

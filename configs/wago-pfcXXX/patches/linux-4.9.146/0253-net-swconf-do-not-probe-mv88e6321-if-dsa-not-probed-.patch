@@ -10,7 +10,7 @@ Signed-off-by: Andreas Schmidt <andreas.schmidt@wago.com>
  1 file changed, 3 insertions(+)
 
 diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
-index 91937de..511a2bf 100644
+index 91937de..511a2bf7 100644
 --- a/drivers/net/phy/mv88e6321-cfg.c
 +++ b/drivers/net/phy/mv88e6321-cfg.c
 @@ -1204,6 +1204,9 @@ static int mv88e6321_probe(struct platform_device *pdev)

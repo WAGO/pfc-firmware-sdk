@@ -20,7 +20,7 @@ INCLUDES += \
 -I$(PROJECT_ROOT)/src/
 
 CFLAGS += $(call option_std,c99)
-CXXFLAGS += $(call option_std,c++14)
+CXXFLAGS += $(call option_std,c++17)
 
 CLANG_TIDY_HEADER_FILTER :=
 
@@ -29,7 +29,7 @@ CLANG_TIDY_HEADER_FILTER :=
 
 -include $(SCRIPT_DIR)/platform_1.mk
 
-#######################################################################################################################
+######################################################################################################################
 # Custom toolchain configuration
 
 LINT_RULE_FILES = \
@@ -116,6 +116,9 @@ netconfd.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 
 include $(MODULES)
 
+-include $(PROJECT_ROOT)/license_install.mk
+MK_FILES += $(PROJECT_ROOT)/license_install.mk
+
 #######################################################################################################################
 # Build infrastructure
 
@@ -137,5 +140,5 @@ $(DESTDIR)/etc/% : $(PROJECT_ROOT)/etc/%
 
 $(SCRIPT_DIR)/%.mk :
 	$(error build scripts unavailable - set script dir (SCRIPT_DIR=$(SCRIPT_DIR)) or checkout ct-build)
-
+	
 	

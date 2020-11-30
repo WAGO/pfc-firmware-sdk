@@ -71,6 +71,8 @@ MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_
     _sms_list.clear();
     _port_wait_count = 0;
     _cfun_wait_count = 0;
+    _siminit_wait_flag = false;
+    _sim_sms_support_flag = false;
     _pdp_addr = "";
     _oper_map.clear();
     _continue_getoperlist = false;
@@ -968,4 +970,10 @@ void MdmStatemachine::reset_service_states()
   //common
   _cfun_wait_count = 0;
   _port_wait_count = 0;
+}
+
+void MdmStatemachine::reset_sim_states()
+{
+  _siminit_wait_flag = false;
+  _sim_sms_support_flag = false;
 }

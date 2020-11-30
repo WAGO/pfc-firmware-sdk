@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
 #include <string>
 
-#include "Status.hpp"
+#include "Error.hpp"
 
 namespace netconf {
 namespace api {
@@ -18,7 +18,7 @@ namespace api {
  * @param targetversion The target firmware version of the backup, empty if same as running firmware.
  * @return Status Result of the backup operation, @see Status::Ok on success, @see Status::ERROR otherwise.
  */
-Status Backup(::std::string backup_file_path, ::std::string targetversion = "");
+Error Backup(::std::string backup_file_path, ::std::string targetversion = "");
 
 /**
  * @brief Instructs the netconfd network config daemon to restore its configuration
@@ -28,14 +28,15 @@ Status Backup(::std::string backup_file_path, ::std::string targetversion = "");
  * @param backup_file_path Absolute path to the backup file.
  * @return Status Result of the restore operation, @see Status::Ok on success, @see Status::ERROR otherwise.
  */
-Status Restore(::std::string backup_file_path);
+Error Restore(::std::string backup_file_path);
 
 /**
  * @brief Get the Backup Parameter Count.
  *
- * @return ::std::string Count of parameters as string;
+ * @param ::std::string Count of parameters as string;
+ * @return error
  */
-::std::string GetBackupParameterCount();
+Error GetBackupParameterCount(::std::string& count);
 
 
 } // namespace api

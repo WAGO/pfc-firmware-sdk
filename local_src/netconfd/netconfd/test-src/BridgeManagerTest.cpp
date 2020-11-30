@@ -28,7 +28,7 @@ class InterfaceManagerTest : public Test {
     any_interfaces_of_br0 = Interfaces { "ethX1" };
     any_interfaces_of_br1 = Interfaces { "ethX2", "ethX3" };
 
-    EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(_)).WillOnce(Return(Status()));
+    EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(_)).WillOnce(Return(Error()));
     interface_manager_ = ::std::make_unique<BridgeManager>(mock_bridge_controller_, mock_properties_provider_,
                                                            mock_netdev_manager_);
   }

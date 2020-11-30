@@ -1,0 +1,35 @@
+From b5ca847ea78c07ae4279fb8c6bb730d0a160694d Mon Sep 17 00:00:00 2001
+From: Ralf Gliese <gliese@elrest.de>
+Date: Thu, 17 Jan 2019 13:26:22 +0100
+Subject: [PATCH] serial: imx: Dont use DMA in rs485 mode
+
+DMA is not working in rs485 mode so disable this codepath while using rs485.
+
+Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
+---
+ drivers/tty/serial/imx.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/tty/serial/imx.c b/drivers/tty/serial/imx.c
+index 5a50cd1..fa395a7 100644
+--- a/drivers/tty/serial/imx.c
++++ b/drivers/tty/serial/imx.c
+@@ -1269,9 +1269,12 @@ static int imx_startup(struct uart_port *port)
+ 
+ 	writel(temp & ~UCR4_DREN, sport->port.membase + UCR4);
+ 
+-	/* Can we enable the DMA support? */
+-	if (!uart_console(port) && !sport->dma_is_inited)
+-		imx_uart_dma_init(sport);
++	/* DMA not working with RS485 */
++	if (!(sport->port.rs485.flags & SER_RS485_ENABLED)) {
++		/* Can we enable the DMA support? */
++		if (!uart_console(port) && !sport->dma_is_inited)
++			imx_uart_dma_init(sport);
++	}
+ 
+ 	spin_lock_irqsave(&sport->port.lock, flags);
+ 	/* Reset fifo's and state machines */
+-- 
+2.7.4
+

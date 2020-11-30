@@ -116,6 +116,11 @@ if [ ! -f $WWAN_CONFIGFILE_NAME ]; then
   exit $status
 fi
 
+# check if wwan device exists
+if [[ ! -d "/sys/class/net/$WWAN_DEVICE_NAME" ]]; then
+  exit 1
+fi
+
 . $WWAN_CONFIGFILE_NAME
 if [ "$1" = "-e" -o "$1" = "--enable" ]; then
   # 1. TODO: set interface up

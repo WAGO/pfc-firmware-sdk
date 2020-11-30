@@ -20,7 +20,7 @@ Subject: [PATCH] dts: pfc200v3: add v3 specific oftrees
  create mode 100644 arch/arm/boot/dts/wago-pfc200v3.dtsi
 
 diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
-index b9d743d..9736c7a 100644
+index b9d743d..9736c7a0 100644
 --- a/arch/arm/boot/dts/Makefile
 +++ b/arch/arm/boot/dts/Makefile
 @@ -574,7 +574,12 @@ dtb-$(CONFIG_SOC_AM33XX) += \

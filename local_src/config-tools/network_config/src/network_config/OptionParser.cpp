@@ -193,7 +193,10 @@ po::options_description OptionParser::CreateDescriptions() const {
   po::options_description misc("Miscellaneous options");
   misc.add_options()
     (options_.help.name, options_.help.description)
-    (options_.quiet.name, options_.quiet.description);
+    (options_.quiet.name, options_.quiet.description)
+    (options_.error_msg_dst.name,
+     po::value<::std::string>()->value_name(options_.error_msg_dst.parameter),
+     options_.error_msg_dst.description);
   // @formatter:on
 
   options.add(operations).add(fields).add(formats).add(misc);
@@ -203,6 +206,7 @@ po::options_description OptionParser::CreateDescriptions() const {
 
 void OptionParser::Parse(int argc, const char **argv) {
   parsed_options_ = po::parse_command_line(argc, argv, descriptions_);
+  map_.clear();
   po::store(parsed_options_, map_);
   po::notify(map_);
 
@@ -211,6 +215,8 @@ void OptionParser::Parse(int argc, const char **argv) {
       options_.dip_switch_config, options_.mac_address, options_.device_info,
       options_.backup, options_.restore, options_.get_backup_parameter_count,
       options_.dsa_mode, options_.fix_ip, options_.help);
+
+  OptionalAndMutuallyExclusive(map_, options_.error_msg_dst, options_.quiet);
 
   ExpectOptionPair(map_, options_.bridge_config, options_.get, options_.set);
   ExpectOptionPair(map_, options_.ip_config, options_.get, options_.get_current, options_.set);

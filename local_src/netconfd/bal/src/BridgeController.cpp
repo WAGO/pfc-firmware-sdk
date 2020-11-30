@@ -36,7 +36,7 @@ namespace ba = boost::adaptors;
 // function implementation
 //------------------------------------------------------------------------------
 
-#define SYSFS_CLASS_NET "/sys/class/net/"
+constexpr const char* SYSFS_CLASS_NET = "/sys/class/net/";
 
 namespace netconf {
 
@@ -70,34 +70,32 @@ static int AddInterfaceName(const char *bridge, const char *interface, void *vec
   return 0;
 }
 
-Status BridgeController::AddBridge(const Bridge& bridge) const {
+Error BridgeController::AddBridge(const Bridge& bridge) const {
   if (br_add_bridge(bridge.c_str()) != 0) {
-    return Status(StatusCode::ERROR, "Failed to add bridge " + bridge + ", system call error");
+    return MakeSystemCallError();
   }
-  return Status(StatusCode::OK);
+  return Error::Ok();
 }
 
-Status BridgeController::DeleteBridge(const Bridge& bridge) const {
+Error BridgeController::DeleteBridge(const Bridge& bridge) const {
   if (br_del_bridge(bridge.c_str()) != 0) {
-    return Status(StatusCode::ERROR, "Failed to delete bridge " + bridge + ", system call error");
+    return Error{ErrorCode::GENERIC_ERROR, "Failed to delete bridge " + bridge};
   }
-  return Status(StatusCode::OK);
+  return Error::Ok();
 }
 
-Status BridgeController::AddInterface(const Bridge& bridge, const Interface& interface) const {
+Error BridgeController::AddInterface(const Bridge& bridge, const Interface& interface) const {
   if (br_add_interface(bridge.c_str(), interface.c_str()) != 0) {
-    return Status(StatusCode::ERROR,
-                  "Failed to add interface " + interface + " to bridge " + bridge + ", system call error");
+    return MakeSystemCallError();
   }
-  return Status(StatusCode::OK);
+  return Error::Ok();
 }
 
-Status BridgeController::DeleteInterface(const Bridge& bridge, const Interface& interface) const {
+Error BridgeController::DeleteInterface(const Bridge& bridge, const Interface& interface) const {
   if (br_del_interface(bridge.c_str(), interface.c_str()) != 0) {
-    return Status(StatusCode::ERROR,
-                  "Failed to delete interface " + interface + " from bridge " + bridge + ", system call error");
+    return MakeSystemCallError();
   }
-  return Status(StatusCode::OK);
+  return Error::Ok();
 }
 
 Bridges BridgeController::GetBridges() const {
@@ -131,12 +129,12 @@ Interfaces BridgeController::GetInterfaces() const {
   return interfaces;
 }
 
-static Status SetInterfaceUpDown(const ::std::string& name, bool up) {
+static Error SetInterfaceUpDown(const ::std::string& name, bool up) {
   ifreq ifr = { };
 
   int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (-1 == fd) {
-    return Status(StatusCode::ERROR, "system call open socket failed");
+    return MakeSystemCallError();
   }
 
   strncpy(ifr.ifr_name, name.c_str(), IFNAMSIZ);  //NOLINT: do not access members of unions is unavoidable at this point
@@ -144,7 +142,7 @@ static Status SetInterfaceUpDown(const ::std::string& name, bool up) {
 
   if (ioctl(fd, SIOCGIFFLAGS, &ifr) < 0) {
     close(fd);
-    return Status(StatusCode::ERROR, "system call get interface flags error (SIOCGIFFLAGS)");
+    return MakeSystemCallError();
   }
 
   if (up) {
@@ -154,39 +152,25 @@ static Status SetInterfaceUpDown(const ::std::string& name, bool up) {
   }
   if (ioctl(fd, SIOCSIFFLAGS, &ifr) < 0) {
     close(fd);
-    return Status(StatusCode::ERROR, "system call set interface flags error (SIOCSIFFLAGS)");
+    return MakeSystemCallError();
   }
 
   close(fd);
 
-  return Status(StatusCode::OK);
+  return Error(ErrorCode::OK);
 }
 
-Status BridgeController::SetInterfaceUp(const ::std::string& name) const {
-  Status status = SetInterfaceUpDown(name, true);
-  if (status.NotOk()) {
-    status.Prepend("Failed to set up interface " + name + ", ");
-  }
-  return status;
+Error BridgeController::SetInterfaceUp(const ::std::string& name) const {
+  return SetInterfaceUpDown(name, true);
 }
 
-Status BridgeController::SetInterfaceDown(const ::std::string& name) const {
-  Status status = SetInterfaceUpDown(name, false);
-  if (status.NotOk()) {
-    status.Prepend("Failed to set down interface " + name + ", ");
-  }
-  return status;
+Error BridgeController::SetInterfaceDown(const ::std::string& name) const {
+  return SetInterfaceUpDown(name, false);
 }
 
-Status BridgeController::SetAgetime(const Bridge& bridge, int seconds) const {
+void BridgeController::SetAgetime(const Bridge& bridge, int seconds) const {
   struct timeval timeval {seconds, 0};
-
-  auto result = br_set_ageing_time(bridge.c_str(), &timeval);
-  if (result != 0) {
-    return Status{StatusCode::ERROR, "Failed to set ageing time for bridge: " + bridge};
-  }
-
-  return Status{};
+  br_set_ageing_time(bridge.c_str(), &timeval);
 }
 
 }  // namespace name

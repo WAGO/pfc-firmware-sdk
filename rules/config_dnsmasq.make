@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_CONFIG_DNSMASQ) += config_dnsmasq
 #
 # Paths and names
 #
-CONFIG_DNSMASQ_VERSION        := 0.1.0
+CONFIG_DNSMASQ_VERSION        := 1.0.2
 CONFIG_DNSMASQ_MD5            :=
 CONFIG_DNSMASQ                := config_dnsmasq
 CONFIG_DNSMASQ_BUILDCONFIG    := Release

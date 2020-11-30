@@ -1,0 +1,28 @@
+## SECTION=system_libraries
+
+menuconfig PROTOBUF
+	tristate
+	select LIBC_M
+	select LIBC_PTHREAD
+	select GCCLIBS_CXX
+	select GCCLIBS_GCC_S
+	select HOST_CMAKE
+	select HOST_PROTOBUF
+	select ZLIB
+	prompt "protobuf                      "
+	help
+	  Protocol Buffers are a way of encoding structured data in an
+	  efficient yet extensible format.
+
+
+
+if PROTOBUF
+config PROTOBUF_FULL
+  bool
+  default n
+  prompt "install full version"
+config PROTOBUF_LITE
+  bool
+  default y
+  prompt "install lite version"
+endif

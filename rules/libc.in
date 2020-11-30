@@ -1,0 +1,118 @@
+## SECTION=core
+
+menuconfig LIBC
+	tristate
+	prompt "c library                     "
+	select GLIBC	if LIBC_GLIBC
+	select UCLIBC	if LIBC_UCLIBC
+	default y
+
+if LIBC
+
+choice
+	prompt "c library           "
+	default LIBC_GLIBC
+
+	config LIBC_GLIBC
+		bool
+		prompt "glibc  "
+		help
+		  This menu entry lets you select components from the
+		  standard C library called glibc. It depends on the
+		  system what components are required.
+
+	config LIBC_UCLIBC
+		bool
+		prompt "uClibc "
+endchoice
+
+source "generated/libc.in"
+
+endif
+
+config LIBC_C
+	bool
+	select GLIBC_C			if LIBC_GLIBC
+	select UCLIBC_C			if LIBC_UCLIBC
+
+config LIBC_PTHREAD
+	bool
+	select GLIBC_PTHREAD		if LIBC_GLIBC
+	select UCLIBC_PTHREAD		if LIBC_UCLIBC
+
+config LIBC_THREAD_DB
+	bool
+	select GLIBC_THREAD_DB		if LIBC_GLIBC
+	select UCLIBC_THREAD_DB		if LIBC_UCLIBC
+
+config LIBC_RT
+	bool
+	select GLIBC_RT			if LIBC_GLIBC
+	select GLIBC_PTHREAD		if LIBC_GLIBC
+	select UCLIBC_RT		if LIBC_UCLIBC
+
+config LIBC_DL
+	bool
+	select GLIBC_DL			if LIBC_GLIBC
+	select UCLIBC_DL		if LIBC_UCLIBC
+
+config LIBC_CRYPT
+	bool
+	select GLIBC_CRYPT		if LIBC_GLIBC
+	select UCLIBC_CRYPT		if LIBC_UCLIBC
+
+config LIBC_UTIL
+	bool
+	select GLIBC_UTIL		if LIBC_GLIBC
+	select UCLIBC_UTIL		if LIBC_UCLIBC
+
+config LIBC_M
+	bool
+	select GLIBC_M			if LIBC_GLIBC
+	select UCLIBC_M			if LIBC_UCLIBC
+
+config LIBC_NSS_DNS
+	bool
+	default y
+	select GLIBC_NSS_DNS		if LIBC_GLIBC
+
+config LIBC_NSS_FILES
+	bool
+	default y
+	select GLIBC_NSS_FILES		if LIBC_GLIBC
+
+config LIBC_NSS_HESIOD
+	bool
+	select GLIBC_NSS_HESIOD		if LIBC_GLIBC
+
+config LIBC_NSS_NIS
+	bool
+	select GLIBC_NSS_NIS		if LIBC_GLIBC
+
+config LIBC_NSS_NISPLUS
+	bool
+	select GLIBC_NSS_NISPLUS	if LIBC_GLIBC
+
+config LIBC_NSS_COMPAT
+	bool
+	select GLIBC_NSS_COMPAT		if LIBC_GLIBC
+
+
+config LIBC_RESOLV
+	bool
+	select GLIBC_RESOLV		if LIBC_GLIBC
+	select UCLIBC_RESOLV		if LIBC_UCLIBC
+
+config LIBC_NSL
+	bool
+	select LIBNSL			if LIBC_GLIBC
+	select UCLIBC_NSL		if LIBC_UCLIBC
+
+#
+# needed to keep dependencies working
+# there must be a package selecting BASE
+#
+config NO_LIBC
+	tristate
+	select BASE
+	default y if !LIBC

@@ -30,6 +30,12 @@ if [ "$OPCUA_IPK" = "" ]; then
 fi
 OPCUA_IPK_VERSION=$(echo $OPCUA_IPK|sed -e 's/opcuaserver_//' -e 's/_armhf//')
 
+ABSEIL_CPP_IPK=$(ls $PTXDIST_PLATFORMDIR/packages | grep abseil-cpp_ | cut -f2)
+if [ "$ABSEIL_CPP_IPK" = "" ]; then
+  echo !!! ABSEIL_CPP_IPK not found
+  exit 1
+fi
+
 C_ARES_IPK=$(ls $PTXDIST_PLATFORMDIR/packages | grep c-ares_ | cut -f2 )
 if [ "$C_ARES_IPK" = "" ]; then
   echo !!! C_ARES_IPK not found
@@ -72,7 +78,7 @@ if [ "$CDS3_TSCVAREXPORT_IPK" = "" ]; then
 fi
 
 
-PACKAGES="$C_ARES_IPK $PROTOBUF_IPK $GRPC_IPK $FLEX_IPK $LINUX_PAM_IPK $OPCUACSDK_IPK $CDS3_TSCVAREXPORT_IPK ${OPCUA_IPK}.ipk"
+PACKAGES="$ABSEIL_CPP_IPK $C_ARES_IPK $PROTOBUF_IPK $GRPC_IPK $FLEX_IPK $LINUX_PAM_IPK $OPCUACSDK_IPK $CDS3_TSCVAREXPORT_IPK ${OPCUA_IPK}.ipk"
 IPKGNAME="opcuarepo_${OPCUA_IPK_VERSION}_FW${FW_VERSION}.ipk"
 
 #--------------------------------------

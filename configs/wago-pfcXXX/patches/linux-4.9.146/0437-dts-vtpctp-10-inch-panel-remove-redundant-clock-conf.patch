@@ -1,0 +1,36 @@
+From 82197503cdb72a651515dedeca2f88daeed4b5fa Mon Sep 17 00:00:00 2001
+From: Ralf Gliese <gliese@elrest.de>
+Date: Wed, 7 Oct 2020 11:34:30 +0200
+Subject: [PATCH] dts: vtpctp: 10 inch panel remove redundant clock config
+
+Signed-off-by: Ralf Gliese <gliese@elrest.de>
+---
+ arch/arm/boot/dts/imx6q-vtpctp-0010.dts | 15 ---------------
+ 1 file changed, 15 deletions(-)
+
+diff --git a/arch/arm/boot/dts/imx6q-vtpctp-0010.dts b/arch/arm/boot/dts/imx6q-vtpctp-0010.dts
+index 9de8222..36ba9a0 100644
+--- a/arch/arm/boot/dts/imx6q-vtpctp-0010.dts
++++ b/arch/arm/boot/dts/imx6q-vtpctp-0010.dts
+@@ -103,18 +103,3 @@
+ 				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>;
+ 	assigned-clock-rates =  <0>, <0>, <0>, <0>, <0>, <0>, <12000000>;
+ };
+-
+-&clks {
+-	assigned-clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>,
+-			  <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
+-			  <&clks IMX6QDL_CLK_IPU1_DI0_PRE_SEL>,
+-			  <&clks IMX6QDL_CLK_IPU1_DI1_PRE_SEL>,
+-			  <&clks IMX6QDL_CLK_IPU2_DI0_PRE_SEL>,
+-			  <&clks IMX6QDL_CLK_IPU2_DI1_PRE_SEL>;
+-	assigned-clock-parents = <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
+-				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
+-				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
+-				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
+-				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
+-				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>;
+-};
+-- 
+2.7.4
+

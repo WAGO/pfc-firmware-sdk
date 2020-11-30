@@ -1,8 +1,8 @@
 From 9507cc513f5b7b0754c76b001631e506cbb93bd8 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 27 Aug 2018 16:05:08 +0200
-Subject: [PATCH 069/144] defaultenv: defaultenv-pfc-base: pfc-debug-uart-mode:
- set global variable when updating
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: pfc-debug-uart-mode: set
+ global variable when updating
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

@@ -1,0 +1,46 @@
+From d1c20e617e3d70cd3d7a643e9865a7bfb86ea4eb Mon Sep 17 00:00:00 2001
+From: Ralf Gliese <gliese@elrest.de>
+Date: Tue, 2 Jun 2020 16:07:37 +0200
+Subject: [PATCH] gpu: drm: increase timeout for vblank on crtcs
+
+Signed-off-by: Ralf Gliese <gliese@elrest.de>
+---
+ drivers/gpu/drm/drm_atomic_helper.c | 4 ++++
+ drivers/gpu/drm/imx/Kconfig         | 8 ++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
+index 50acd79..be42ea3 100644
+--- a/drivers/gpu/drm/drm_atomic_helper.c
++++ b/drivers/gpu/drm/drm_atomic_helper.c
+@@ -1135,7 +1135,11 @@ drm_atomic_helper_wait_for_vblanks(struct drm_device *dev,
+ 		ret = wait_event_timeout(dev->vblank[i].queue,
+ 				old_crtc_state->last_vblank_count !=
+ 					drm_crtc_vblank_count(crtc),
++#ifdef CONFIG_DRM_IMX_INCREASE_VBLANK_TIMEOUT
++				msecs_to_jiffies(500));
++#else
+ 				msecs_to_jiffies(50));
++#endif
+ 
+ 		WARN(!ret, "[CRTC:%d] vblank wait timed out\n", crtc->base.id);
+ 
+diff --git a/drivers/gpu/drm/imx/Kconfig b/drivers/gpu/drm/imx/Kconfig
+index f2c9ae8..d0d513b 100644
+--- a/drivers/gpu/drm/imx/Kconfig
++++ b/drivers/gpu/drm/imx/Kconfig
+@@ -44,3 +44,11 @@ config DRM_IMX_HDMI
+ 	depends on DRM_IMX
+ 	help
+ 	  Choose this if you want to use HDMI on i.MX6.
++
++config DRM_IMX_INCREASE_VBLANK_TIMEOUT
++	tristate "Increase vblank timeout"
++	depends on DRM_IMX
++	help
++	  Choose this if you want to increase the wait time for vblanks from 50
++	  to 500 miliseconfs on crtcs. This value is empirically determinded on
++	  wago touch panels with a panelsize from 15 till 21 inch.
+-- 
+2.7.4
+

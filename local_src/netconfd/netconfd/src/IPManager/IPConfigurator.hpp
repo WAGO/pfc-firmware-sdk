@@ -2,8 +2,8 @@
 
 #pragma once
 
+#include "Error.hpp"
 #include "IBootpClientController.hpp"
-#include "Status.hpp"
 #include "Types.hpp"
 #include "IIPController.hpp"
 #include "IDHCPClientController.hpp"
@@ -25,21 +25,20 @@ class IPConfigurator : public IIPConfigure {
   IPConfigurator(const IPConfigurator&&) = delete;
   IPConfigurator& operator=(const IPConfigurator&&) = delete;
 
-	IPConfigs GetConfigurations(const Bridges& bridges) const;
-  Status Configure(const IPConfigs& configs) const;
-  Status Configure(const IPConfig& config) const override;
+  Error Configure(const IPConfigs& configs) const;
+  Error Configure(const IPConfig& config) const override;
 
  private:
 
-  Status SetStatic(const IPConfig& ip_config) const;
-  Status SetTemporary(const IPConfig& ip_config) const;
-  Status SetDHCP(const IPConfig& ip_config) const;
-  Status SetBootp(const IPConfig& ip_config) const;
+  Error SetStatic(const IPConfig& ip_config) const;
+  Error SetTemporary(const IPConfig& ip_config) const;
+  Error SetDHCP(const IPConfig& ip_config) const;
+  Error SetBootp(const IPConfig& ip_config) const;
   void SetNone(const IPConfig& ip_config) const;
 
-  Status EnableGratuitousArp(const IPConfig& ip_config) const;
+  Error EnableGratuitousArp(const IPConfig& ip_config) const;
 
-  Status FlushIP(const Interface& interface) const;
+  Error FlushIP(const Interface& interface) const;
 
   void DeleteTempFiles(const Bridge& bridge) const;
 

@@ -1,3 +1,35 @@
+Firmware Release 03.06.09 (99)
+System:
+[NEW] PFC200 with 4G: Modem reset possible
+[NEW] The invalid IP adress 0.0.0.0 is not accepted by the system.
+[NEW] In case of IP missconfguration a corresponding error message
+      is displayed in the WBM dialog.
+[NEW] Compiler Update to Linaro GCC 9.2
+[FIXED] WBM: Not all TZ strings can be set and displayed
+[FIXED] Communication over service port could not established.
+[FIXED] Connection problems with roaming SIM cards
+[FIXED] Config tool bootproject argument not available
+[FIXED] PFC sends undocumented emergency telegram
+[REMOVED] Removed deprecated function ct_liblog_reportError 
+
+Runtime System:
+[NEW] e!RUNTIME Upgrade to Version 3.5.15.4 (based on CODESYS 3.5, SP 15, Patch 4)
+[FIXED] RUN-LED stays red when application restarts itself
+[FIXED] Wrong time stamp for alarms.
+
+Fieldbus Interface & Protocols:
+ -OPC UA
+  [NEW] Integration of the WAGO OPC UA server into the Firmware.
+  [NEW] Import of a customer-specific information model possible.
+  (WAGO Mapping Editor is required.)
+  [REMOVED] Discontinue 3S OPC UA Server in the firmware. (Can be installed
+            for firmware 19, available via support: support@wago.com).
+-CAN
+  [FIXED] WAT32038 CAN continues to run even if the Runtime crashes
+  [FIXED] WAT31936 750-8215: Missing EDS file for CANopen
+
+################################################################################
+
 Firmware Release 03.05.10 (99)
 System:
 [NEW] Each bridge contains its own MAC address for 2nd generation PFC200(750-821X)
@@ -37,7 +69,7 @@ Runtime System:
 [FIXED] PFC200: CODESYS2: No access after double download FW13
 
 Fieldbus Interface & Protocols:
-- OPC UA
+ -OPC UA
   [NEW] Structures are supported
   [NEW] Security Policy Base128Rsa15 is supported
   [NEW] Activation of the Commissioning Mode
@@ -45,8 +77,30 @@ Fieldbus Interface & Protocols:
       • The device starts with the highest security policy (Base256Sha256).
       • Trust all clients is deactivated
       • Unlimited anonymous access is deactivated
-- Modbus
+ -Modbus
   [FIXED] ModbusSlave: Overwriting of registers / variables
+ -BACnet
+  [NEW] BACnet S license added to the BACnet Stack.
+  [NEW] BACnet: Added further error code information on incorrect userinput.
+ -Cloud Connectivity
+  [NEW] Cloud Connectivity: Use Azure specific system properties to provide
+        content type and content encoding of device2cloud messages
+        for message routing
+  [FIXED] Cloud Connectivity: WBM: Minor usability issues
+  [FIXED] Cloud Connectivity: Improve robustness in scenarios with high
+          transmission rate and high data volume
+  [FIXED] Cloud Connectivity: Resend DeviceHello message with interval
+          of 30 seconds if corresponding CloudHello message is not received
+  [REMOVED] Cloud Connectivity: Discontinue support of WAGO Protocol 1.0
+  [REMOVED] Cloud Connectivity: Discontinue support of Cloud Connectivity
+            with WagoLibCloud_02.lib for Codesys 2.3
+ -SFTP
+  [FIXED] SFTP Client freezes
+
+Libraries:
+[NEW] Updated libssh (1.8.0 -> 1.9.0)
+[NEW] Library for monitoring and controlling the modem.
+[FIXED] CDS2 configToolFb is blocking while error handling
 
 ################################################################################
 

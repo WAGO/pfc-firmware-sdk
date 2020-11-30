@@ -11,7 +11,7 @@
 ///
 ///  \file     ipdatacheck.c
 ///
-///  \version  $Revision: 48550 $
+///  \version  $Revision: 50494 $
 ///
 ///  \brief    Check functions of network parameters.
 ///
@@ -100,7 +100,6 @@ static void erh_set_error(enum eStatusCode code, const char *msgfmt, const char 
     slen += snprintf(message + slen, sizeof(message) - slen, msgfmt, par);
     assert(slen <= sizeof(message));
     ct_liblog_setLastError(message);
-    ct_liblog_reportError(code, message);
 
     fprintf(stderr, "%s: %s\n", p->text, message);
     exit(code);

@@ -1,0 +1,567 @@
+diff --git a/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c b/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c
+index 86a2246..bc39808 100644
+--- a/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c
++++ b/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c
+@@ -147,6 +147,7 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_NewItemValue");
+             a_pValue->StatusCode = OpcUa_BadIndexRangeNoData;
+             if (OpcUa_GetCode(a_pMonitoredItemData->LastDataValue.StatusCode) != OpcUa_BadIndexRangeNoData)
+             {
++                a_pMonitoredItemData->bStartupFlag = OpcUa_False;
+                 bChanged = OpcUa_True;
+             }
+         }
+@@ -287,7 +288,7 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_NewItemValue");
+             }
+             /* copy current value for next interval compare */
+             OpcUa_DataValue_Clear(&a_pMonitoredItemData->LastDataValue);
+-            a_pMonitoredItemData->LastDataValue = currentValue;
++            OpcUa_DataValue_CopyTo(&currentValue, &a_pMonitoredItemData->LastDataValue);
+         }
+         else /* do not discard oldest */
+         {
+@@ -316,7 +317,7 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_NewItemValue");
+ 
+             /* copy current value for next interval compare */
+             OpcUa_DataValue_Clear(&a_pMonitoredItemData->LastDataValue);
+-            a_pMonitoredItemData->LastDataValue = currentValue;
++            OpcUa_DataValue_CopyTo(&currentValue, &a_pMonitoredItemData->LastDataValue);
+         }
+ 
+         uStatus = UaServer_ItemChanged((UaServer_MonitoredItem*)a_pMonitoredItemData);
+diff --git a/src/uaserver/uaserverc/uaserver_utilities.c b/src/uaserver/uaserverc/uaserver_utilities.c
+index c04fd1d..7ca8fc0 100644
+--- a/src/uaserver/uaserverc/uaserver_utilities.c
++++ b/src/uaserver/uaserverc/uaserver_utilities.c
+@@ -998,27 +998,7 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantNumericRangePlausib
+     /* check if a_pVariant->ArrayType fits a_NumRanges */
+     if (a_pVariant->ArrayType == OpcUa_VariantArrayType_Scalar)
+     {
+-        if (a_pVariant->Datatype == OpcUaType_ByteString && a_NumRanges == 1)
+-        {
+-            /* check bounds of the IndexRange */
+-            if (a_pVariant->Value.ByteString.Length <= 0 ||
+-                a_pRangeArray[0].From >= (OpcUa_UInt32)a_pVariant->Value.ByteString.Length)
+-            {
+-                uStatus = OpcUa_BadIndexRangeNoData;
+-                OpcUa_GotoError;
+-            }
+-        }
+-        else if (a_pVariant->Datatype == OpcUaType_String && a_NumRanges == 1)
+-        {
+-            /* check bounds of the IndexRange */
+-            if (OpcUa_String_StrLen(&a_pVariant->Value.String) == 0 ||
+-                a_pRangeArray[0].From >= OpcUa_String_StrLen(&a_pVariant->Value.String))
+-            {
+-                uStatus = OpcUa_BadIndexRangeNoData;
+-                OpcUa_GotoError;
+-            }
+-        }
+-        else
++        if (a_NumRanges != 1 || (a_pVariant->Datatype != OpcUaType_ByteString && a_pVariant->Datatype != OpcUaType_String))
+         {
+             uStatus = OpcUa_BadIndexRangeNoData;
+             OpcUa_GotoError
+@@ -1036,36 +1016,6 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantNumericRangePlausib
+                 uStatus = OpcUa_BadIndexRangeNoData;
+                 OpcUa_GotoError;
+             }
+-
+-            if (a_NumRanges == 2)
+-            {
+-                OpcUa_UInt32 iFrom  = a_pRangeArray[0].From;
+-                OpcUa_UInt32 iTo    = a_pRangeArray[0].Type == UaServer_RangeType_Range ? a_pRangeArray[0].To : a_pRangeArray[0].From;
+-
+-                for (; iFrom <= iTo && iFrom < (OpcUa_UInt32)a_pVariant->Value.Array.Length; iFrom++)
+-                {
+-                    if (a_pVariant->Datatype == OpcUaType_ByteString)
+-                    {
+-                        /* check bounds of the IndexRange */
+-                        if (a_pVariant->Value.Array.Value.ByteStringArray[iFrom].Length <= 0 ||
+-                            a_pRangeArray[1].From >= (OpcUa_UInt32)a_pVariant->Value.Array.Value.ByteStringArray[iFrom].Length)
+-                        {
+-                            uStatus = OpcUa_BadIndexRangeNoData;
+-                            OpcUa_GotoError;
+-                        }
+-                    }
+-                    else if (a_pVariant->Datatype == OpcUaType_String)
+-                    {
+-                        /* check bounds of the IndexRange */
+-                        if (OpcUa_String_StrLen(&a_pVariant->Value.Array.Value.StringArray[iFrom]) == 0 ||
+-                            a_pRangeArray[1].From >= OpcUa_String_StrLen(&a_pVariant->Value.Array.Value.StringArray[iFrom]))
+-                        {
+-                            uStatus = OpcUa_BadIndexRangeNoData;
+-                            OpcUa_GotoError;
+-                        }
+-                    }
+-                }
+-            }
+         }
+         else
+         {
+@@ -1076,7 +1026,22 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantNumericRangePlausib
+ #if !OPCUA_VARIANT_OMIT_MATRIX
+     else if (a_pVariant->ArrayType == OpcUa_VariantArrayType_Matrix)
+     {
+-        if (a_NumRanges != a_pVariant->Value.Matrix.NoOfDimensions)
++        if (a_NumRanges == a_pVariant->Value.Matrix.NoOfDimensions ||
++           (a_NumRanges == a_pVariant->Value.Matrix.NoOfDimensions + 1 && (a_pVariant->Datatype == OpcUaType_ByteString || a_pVariant->Datatype == OpcUaType_String)))
++        {
++            /* check bounds of the IndexRange */
++            for (i = 0; i < a_pVariant->Value.Matrix.NoOfDimensions; i++)
++            {
++                if (a_pVariant->Value.Matrix.Dimensions[i] <= 0 ||
++                    a_pRangeArray[i].From >= (OpcUa_UInt32)a_pVariant->Value.Matrix.Dimensions[i])
++                {
++                    uStatus = OpcUa_BadIndexRangeNoData;
++                    OpcUa_GotoError;
++                }
++
++            }
++        }
++        else
+         {
+             uStatus = OpcUa_BadIndexRangeNoData;
+             OpcUa_GotoError;
+@@ -1201,6 +1166,10 @@ OpcUa_FinishErrorHandling;
+  */
+ UASERVER_API(OpcUa_StatusCode) UaServer_VariantAdjustElementsByNumericRanges(OpcUa_Variant* a_pVariant, UaServer_NumericRange *a_pRangeArray, OpcUa_Int32 a_NumRanges)
+ {
++    OpcUa_Int32* tgtDimensions = OpcUa_Null;
++    OpcUa_Int32* currentPos    = OpcUa_Null;
++    OpcUa_Int32* srcIndices    = OpcUa_Null;
++
+ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNumericRanges");
+ 
+     uStatus = UaServer_VariantNumericRangePlausible(a_pVariant, a_pRangeArray, a_NumRanges);
+@@ -1217,6 +1186,14 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+                     OpcUa_UInt32    uFrom           = a_pRangeArray[0].From;
+                     OpcUa_UInt32    uTo             = a_pRangeArray[0].To;
+ 
++                    /* check bounds of the IndexRange */
++                    if (OpcUa_String_StrLen(&a_pVariant->Value.String) == 0 ||
++                        a_pRangeArray[0].From >= OpcUa_String_StrLen(&a_pVariant->Value.String))
++                    {
++                        OpcUa_String_Clear(&a_pVariant->Value.String);
++                        OpcUa_GotoErrorWithStatus(OpcUa_BadIndexRangeNoData);
++                    }
++
+                     if (a_pRangeArray[0].Type == UaServer_RangeType_Index)
+                     {
+                         uTo = uFrom;
+@@ -1245,6 +1222,14 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+                     OpcUa_UInt32        uFrom       = a_pRangeArray[0].From;
+                     OpcUa_UInt32        uTo         = a_pRangeArray[0].To;
+ 
++                    /* check bounds of the IndexRange */
++                    if (a_pVariant->Value.ByteString.Length <= 0 ||
++                        a_pRangeArray[0].From >= (OpcUa_UInt32)a_pVariant->Value.ByteString.Length)
++                    {
++                        OpcUa_ByteString_Clear(&a_pVariant->Value.ByteString);
++                        OpcUa_GotoErrorWithStatus(OpcUa_BadIndexRangeNoData);
++                    }
++
+                     if (a_pRangeArray[0].Type == UaServer_RangeType_Index)
+                     {
+                         uTo = uFrom;
+@@ -1362,6 +1347,8 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+ 
+                     if (a_NumRanges == 2)
+                     {
++                        OpcUa_Boolean bStringIndexRangeContainsData = OpcUa_False;
++
+                         for (i = 0; i < a_pVariant->Value.Array.Length; i++)
+                         {
+                             OpcUa_UInt32    uStrFrom        = a_pRangeArray[1].From;
+@@ -1369,6 +1356,16 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+                             OpcUa_UInt32    uCurrStrLen     = OpcUa_String_StrLen(&a_pVariant->Value.Array.Value.StringArray[i]);
+                             OpcUa_String*   pSubstring      = OpcUa_Null;
+ 
++                            /* check bounds of the IndexRange */
++                            if (OpcUa_String_StrLen(&a_pVariant->Value.Array.Value.StringArray[i]) == 0 ||
++                                a_pRangeArray[1].From >= OpcUa_String_StrLen(&a_pVariant->Value.Array.Value.StringArray[i]))
++                            {
++                                OpcUa_String_Clear(&a_pVariant->Value.Array.Value.StringArray[i]);
++                                continue;
++                            }
++
++                            bStringIndexRangeContainsData = OpcUa_True;
++
+                             if (a_pRangeArray[1].Type == UaServer_RangeType_Index)
+                             {
+                                 uStrTo = uStrFrom;
+@@ -1392,6 +1389,11 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+                                 OpcUa_Free(pSubstring);
+                             }
+                         }
++
++                        if (!bStringIndexRangeContainsData)
++                        {
++                            OpcUa_GotoErrorWithStatus(OpcUa_BadIndexRangeNoData);
++                        }
+                     }
+                     break;
+                 }
+@@ -1414,12 +1416,24 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+                     if (a_NumRanges == 2)
+                     {
+                         OpcUa_Int32 j;
++                        OpcUa_Boolean bByteStringIndexRangeContainsData = OpcUa_False;
++
+                         for (i = 0; i < a_pVariant->Value.Array.Length; i++)
+                         {
+                             OpcUa_UInt32    uBStrFrom       = a_pRangeArray[1].From;
+                             OpcUa_UInt32    uBStrTo         = a_pRangeArray[1].To;
+                             OpcUa_UInt32    uCurrLen        = (OpcUa_UInt32)a_pVariant->Value.Array.Value.ByteStringArray[i].Length;
+ 
++                            /* check bounds of the IndexRange */
++                            if (a_pVariant->Value.Array.Value.ByteStringArray[i].Length <= 0 ||
++                                a_pRangeArray[1].From >= (OpcUa_UInt32)a_pVariant->Value.Array.Value.ByteStringArray[i].Length)
++                            {
++                                OpcUa_ByteString_Clear(&a_pVariant->Value.Array.Value.ByteStringArray[i]);
++                                continue;
++                            }
++
++                            bByteStringIndexRangeContainsData = OpcUa_True;
++
+                             if (a_pRangeArray[1].Type == UaServer_RangeType_Index)
+                             {
+                                 uBStrTo = uBStrFrom;
+@@ -1441,6 +1455,11 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+                                 }
+                             }
+                         }
++
++                        if (!bByteStringIndexRangeContainsData)
++                        {
++                            OpcUa_GotoErrorWithStatus(OpcUa_BadIndexRangeNoData);
++                        }
+                     }
+                     break;
+                 }
+@@ -1452,12 +1471,324 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantAdjustElementsByNum
+     }
+     else if (a_pVariant->ArrayType == OpcUa_VariantArrayType_Matrix)
+     {
+-        /* ToDo */
+-        return OpcUa_BadNotSupported;
++        OpcUa_UInt32        uFrom;
++        OpcUa_UInt32        uTo;
++        OpcUa_Int32         dimensionLength;
++        OpcUa_Int32         noOfTargetElements = 1;
++        OpcUa_Int32         noOfSourceElements = 1;
++        OpcUa_Int32         i;
++        OpcUa_Int32         iDim;
++        OpcUa_Int32         iTgtIndex;
++        OpcUa_Int32         srcIndex;
++        OpcUa_Int32         iDim2;
++        OpcUa_Boolean       doBreak = OpcUa_False;
++
++        for (i = 0; i < a_pVariant->Value.Matrix.NoOfDimensions; i++)
++        {
++            noOfSourceElements *= a_pVariant->Value.Matrix.Dimensions[i];
++        }
++
++        tgtDimensions = OpcUa_Alloc(sizeof(OpcUa_Int32) * a_pVariant->Value.Matrix.NoOfDimensions);
++        OpcUa_GotoErrorIfAllocFailed(tgtDimensions);
++
++        for (i = 0; i < a_pVariant->Value.Matrix.NoOfDimensions; i++)
++        {
++            uFrom = a_pRangeArray[i].From;
++            uTo = a_pRangeArray[i].To;
++            dimensionLength = a_pVariant->Value.Matrix.Dimensions[i];
++
++
++            if (a_pRangeArray[i].Type == UaServer_RangeType_Index)
++            {
++                uTo = uFrom;
++            }
++            else if (a_pRangeArray[i].Type == UaServer_RangeType_Range && /* //-V560 */
++                uTo >= (OpcUa_UInt32)dimensionLength)
++            {
++                /* partial result */
++                uTo = dimensionLength - 1;
++            }
++
++            tgtDimensions[i] = uTo - uFrom + 1;
++            noOfTargetElements *= tgtDimensions[i];
++        }
++
++        srcIndices = OpcUa_Alloc(sizeof(OpcUa_Int32) * noOfTargetElements);
++        OpcUa_GotoErrorIfAllocFailed(srcIndices);
++
++        currentPos = OpcUa_Alloc(sizeof(OpcUa_Int32) * a_pVariant->Value.Matrix.NoOfDimensions);
++        OpcUa_GotoErrorIfAllocFailed(currentPos);
++
++        /* initialize currentPos to point to the first element we want
++           e.g. "1:2,1,0:1" -> [1][1][0] */
++        for (iDim = 0; iDim < a_pVariant->Value.Matrix.NoOfDimensions; iDim++)
++        {
++            currentPos[iDim] = a_pRangeArray[iDim].From;
++        }
++
++        for (iTgtIndex = 0; iTgtIndex < noOfTargetElements; iTgtIndex++)
++        {
++             /* calculate source index
++                for matrix = [2][3][4] and currentPos = [1][0][3], add the values:
++                1 * (3 * 4 * 1)
++                0 * (4 * 1)
++                3 * (1)
++                --> 15 is the calculated source index */
++            srcIndex = 0;
++            for (iDim = 0; iDim < a_pVariant->Value.Matrix.NoOfDimensions; iDim++)
++            {
++                OpcUa_Int32 iMultiplicator = 1;
++                for (iDim2 = iDim + 1; iDim2 < a_pVariant->Value.Matrix.NoOfDimensions; iDim2++)
++                {
++                    iMultiplicator *= a_pVariant->Value.Matrix.Dimensions[iDim2];
++                }
++                srcIndex += iMultiplicator * currentPos[iDim];
++            }
++
++            srcIndices[iTgtIndex] = srcIndex;
++
++            doBreak = OpcUa_False;
++            for (iDim = a_pVariant->Value.Matrix.NoOfDimensions - 1; iDim >= 0 && doBreak == OpcUa_False; iDim--)
++            {
++                switch (a_pRangeArray[iDim].Type)
++                {
++                case UaServer_RangeType_Range:
++                    currentPos[iDim]++;
++                    if (currentPos[iDim] > (OpcUa_Int32)a_pRangeArray[iDim].To ||
++                        currentPos[iDim] >= a_pVariant->Value.Matrix.Dimensions[iDim])
++                    {
++                        currentPos[iDim] = a_pRangeArray[iDim].From;
++                    }
++                    else
++                    {
++                        doBreak = OpcUa_True;
++                    }
++                    break;
++                case UaServer_RangeType_Index:
++                default:
++                    continue;
++                    break;
++                }
++            }
++        }
++
++#define ADJUST_SCALAR_MATRIX(TYPENAME) \
++{ \
++    for (i = 0; i < noOfTargetElements; i++) \
++    { \
++        srcIndex = srcIndices[i]; \
++        if (srcIndex != i) \
++        { \
++            a_pVariant->Value.Matrix.Value.TYPENAME##Array[i] = a_pVariant->Value.Matrix.Value.TYPENAME##Array[srcIndex]; \
++        } \
++    } \
++     break; \
++}
++
++#define ADJUST_COMPLEX_MATRIX(TYPENAME) \
++{ \
++    for (i = 0; i < noOfTargetElements; i++) \
++    { \
++        srcIndex = srcIndices[i]; \
++        if (srcIndex != i) \
++        { \
++            OpcUa_##TYPENAME##_Clear(&a_pVariant->Value.Matrix.Value.TYPENAME##Array[i]); \
++            a_pVariant->Value.Matrix.Value.TYPENAME##Array[i] = a_pVariant->Value.Matrix.Value.TYPENAME##Array[srcIndex]; \
++            OpcUa_##TYPENAME##_Initialize(&a_pVariant->Value.Matrix.Value.TYPENAME##Array[srcIndex]); \
++        } \
++    } \
++    for (i = noOfTargetElements; i < noOfSourceElements; i++) \
++    { \
++        OpcUa_##TYPENAME##_Clear(&a_pVariant->Value.Matrix.Value.TYPENAME##Array[i]); \
++    } \
++    break; \
++}
++
++        switch (a_pVariant->Datatype)
++        {
++            case OpcUaType_Null:            break;
++            case OpcUaType_Boolean:         ADJUST_SCALAR_MATRIX(Boolean)
++            case OpcUaType_SByte:           ADJUST_SCALAR_MATRIX(SByte)
++            case OpcUaType_Byte:            ADJUST_SCALAR_MATRIX(Byte)
++            case OpcUaType_Int16:           ADJUST_SCALAR_MATRIX(Int16)
++            case OpcUaType_UInt16:          ADJUST_SCALAR_MATRIX(UInt16)
++            case OpcUaType_Int32:           ADJUST_SCALAR_MATRIX(Int32)
++            case OpcUaType_UInt32:          ADJUST_SCALAR_MATRIX(UInt32)
++            case OpcUaType_Int64:           ADJUST_SCALAR_MATRIX(Int64)
++            case OpcUaType_UInt64:          ADJUST_SCALAR_MATRIX(UInt64)
++            case OpcUaType_Float:           ADJUST_SCALAR_MATRIX(Float)
++            case OpcUaType_Double:          ADJUST_SCALAR_MATRIX(Double)
++            case OpcUaType_DateTime:        ADJUST_COMPLEX_MATRIX(DateTime)
++            case OpcUaType_Guid:            ADJUST_COMPLEX_MATRIX(Guid)
++            case OpcUaType_XmlElement:      ADJUST_COMPLEX_MATRIX(XmlElement)
++            case OpcUaType_QualifiedName:   ADJUST_COMPLEX_MATRIX(QualifiedName)
++            case OpcUaType_LocalizedText:   ADJUST_COMPLEX_MATRIX(LocalizedText)
++            case OpcUaType_NodeId:          ADJUST_COMPLEX_MATRIX(NodeId)
++            case OpcUaType_ExpandedNodeId:  ADJUST_COMPLEX_MATRIX(ExpandedNodeId)
++            case OpcUaType_StatusCode:      ADJUST_COMPLEX_MATRIX(StatusCode)
++            case OpcUaType_ExtensionObject: ADJUST_COMPLEX_MATRIX(ExtensionObject)
++            case OpcUaType_DataValue:       ADJUST_COMPLEX_MATRIX(DataValue)
++            case OpcUaType_Variant:         ADJUST_COMPLEX_MATRIX(Variant)
++            case OpcUaType_String:
++                {
++                    for (i = 0; i < noOfTargetElements; i++)
++                    {
++                        srcIndex = srcIndices[i];
++                        if (srcIndex != i)
++                        {
++                            OpcUa_String_Clear(&a_pVariant->Value.Matrix.Value.StringArray[i]);
++                            a_pVariant->Value.Matrix.Value.StringArray[i] = a_pVariant->Value.Matrix.Value.StringArray[srcIndex];
++                            OpcUa_String_Initialize(&a_pVariant->Value.Matrix.Value.StringArray[srcIndex]);
++                        }
++                    }
++
++                    for (i = noOfTargetElements; i < noOfSourceElements; i++)
++                    {
++                        OpcUa_String_Clear(&a_pVariant->Value.Matrix.Value.StringArray[i]);
++                    }
++
++                    if (a_NumRanges == a_pVariant->Value.Matrix.NoOfDimensions + 1)
++                    {
++                        OpcUa_Boolean bStringIndexRangeContainsData = OpcUa_False;
++
++                        for (i = 0; i < noOfTargetElements; i++)
++                        {
++                            OpcUa_UInt32    uStrFrom        = a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].From;
++                            OpcUa_UInt32    uStrTo          = a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].To;
++                            OpcUa_UInt32    uCurrStrLen     = OpcUa_String_StrLen(&a_pVariant->Value.Matrix.Value.StringArray[i]);
++                            OpcUa_String*   pSubstring      = OpcUa_Null;
++
++                            /* check bounds of the IndexRange */
++                            if (uCurrStrLen == 0 ||
++                                a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].From >= uCurrStrLen)
++                            {
++                                OpcUa_String_Clear(&a_pVariant->Value.Matrix.Value.StringArray[i]);
++                                continue;
++                            }
++
++                            bStringIndexRangeContainsData = OpcUa_True;
++
++                            if (a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].Type == UaServer_RangeType_Index)
++                            {
++                                uStrTo = uStrFrom;
++                            }
++                            else if (a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].Type == UaServer_RangeType_Range && /* //-V560 */
++                                     uStrTo >= uCurrStrLen)
++                            {
++                                /* partial result */
++                                uStrTo = uCurrStrLen - 1;
++                            }
++
++                            uStatus = UaServer_StringGetSubstring(&a_pVariant->Value.Matrix.Value.StringArray[i],
++                                                                  uStrFrom,
++                                                                  uStrTo,
++                                                                  &pSubstring);
++
++                            if (OpcUa_IsGood(uStatus) && pSubstring != OpcUa_Null)
++                            {
++                                OpcUa_String_Clear(&a_pVariant->Value.Matrix.Value.StringArray[i]);
++                                a_pVariant->Value.Matrix.Value.StringArray[i] = *pSubstring;
++                                OpcUa_Free(pSubstring);
++                            }
++                        }
++
++                        if (!bStringIndexRangeContainsData)
++                        {
++                            OpcUa_GotoErrorWithStatus(OpcUa_BadIndexRangeNoData);
++                        }
++                    }
++                    break;
++                }
++            case OpcUaType_ByteString:
++                {
++                    for (i = 0; i < noOfTargetElements; i++)
++                    {
++                        srcIndex = srcIndices[i];
++                        if (srcIndex != i)
++                        {
++                            OpcUa_ByteString_Clear(&a_pVariant->Value.Matrix.Value.ByteStringArray[i]);
++                            a_pVariant->Value.Matrix.Value.ByteStringArray[i] = a_pVariant->Value.Matrix.Value.ByteStringArray[srcIndex];
++                            OpcUa_ByteString_Initialize(&a_pVariant->Value.Matrix.Value.ByteStringArray[srcIndex]);
++                        }
++                    }
++
++                    for (i = noOfTargetElements; i < noOfSourceElements; i++)
++                    {
++                         OpcUa_ByteString_Clear(&a_pVariant->Value.Matrix.Value.ByteStringArray[i]);
++                    }
++
++                    if (a_NumRanges == a_pVariant->Value.Matrix.NoOfDimensions + 1)
++                    {
++                        OpcUa_Int32 j;
++                        OpcUa_Boolean bByteStringIndexRangeContainsData = OpcUa_False;
++
++                        for (i = 0; i < noOfTargetElements; i++)
++                        {
++                            OpcUa_UInt32    uBStrFrom       = a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].From;
++                            OpcUa_UInt32    uBStrTo         = a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].To;
++                            OpcUa_UInt32    uCurrLen        = (OpcUa_UInt32)a_pVariant->Value.Matrix.Value.ByteStringArray[i].Length;
++
++                            /* check bounds of the IndexRange */
++                            if (a_pVariant->Value.Matrix.Value.ByteStringArray[i].Length <= 0 ||
++                                a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].From >= (OpcUa_UInt32)a_pVariant->Value.Matrix.Value.ByteStringArray[i].Length)
++                            {
++                                OpcUa_ByteString_Clear(&a_pVariant->Value.Matrix.Value.ByteStringArray[i]);
++                                continue;
++                            }
++
++                            bByteStringIndexRangeContainsData = OpcUa_True;
++
++                            if (a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].Type == UaServer_RangeType_Index)
++                            {
++                                uBStrTo = uBStrFrom;
++                            }
++                            else if (a_pRangeArray[a_pVariant->Value.Matrix.NoOfDimensions].Type == UaServer_RangeType_Range && /* //-V560 */
++                                uBStrTo >= uCurrLen)
++                            {
++                                /* partial result */
++                                uBStrTo = uCurrLen - 1;
++                            }
++
++                            a_pVariant->Value.Matrix.Value.ByteStringArray[i].Length = uBStrTo - uBStrFrom + 1;
++
++                            if (uBStrFrom != 0)
++                            {
++                                for (j = 0; j < a_pVariant->Value.Matrix.Value.ByteStringArray[i].Length; j++)
++                                {
++                                    a_pVariant->Value.Matrix.Value.ByteStringArray[i].Data[j] = a_pVariant->Value.Matrix.Value.ByteStringArray[i].Data[j + uBStrFrom];
++                                }
++                            }
++                        }
++
++                        if (!bByteStringIndexRangeContainsData)
++                        {
++                            OpcUa_GotoErrorWithStatus(OpcUa_BadIndexRangeNoData);
++                        }
++                    }
++                    break;
++                }
++            /* there is no DiagnosticInfoArray */
++            case OpcUaType_DiagnosticInfo:
++            default:
++                break;
++        }
++
++        for (i = 0; i < a_pVariant->Value.Matrix.NoOfDimensions; i++)
++        {
++            a_pVariant->Value.Matrix.Dimensions[i] = tgtDimensions[i];
++        }
++
++        OpcUa_Free(tgtDimensions);
++        OpcUa_Free(currentPos);
++        OpcUa_Free(srcIndices);
+     }
+ 
+ OpcUa_ReturnStatusCode;
+ OpcUa_BeginErrorHandling;
++    OpcUa_Free(tgtDimensions);
++    OpcUa_Free(currentPos);
++    OpcUa_Free(srcIndices);
++    OpcUa_Variant_Clear(a_pVariant);
+ OpcUa_FinishErrorHandling;
+ }
+ 

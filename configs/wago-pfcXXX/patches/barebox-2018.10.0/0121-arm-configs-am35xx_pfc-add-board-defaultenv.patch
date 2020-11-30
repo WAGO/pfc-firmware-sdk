@@ -1,7 +1,7 @@
 From 0e6607a91e1660f7e9566b3509a83f86289e2f91 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 17 Oct 2018 11:30:20 +0200
-Subject: [PATCH 121/144] arm: configs: am35xx_pfc: add board defaultenv
+Subject: [PATCH] arm: configs: am35xx_pfc: add board defaultenv
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

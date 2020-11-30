@@ -1,8 +1,8 @@
 From c581f781427cd89ad174e7ca29d5eb92df0f01b1 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 27 Aug 2018 16:08:31 +0200
-Subject: [PATCH 066/144] arm: dts: am3xxx: pfc: move eeprom partitions to a
- separated file
+Subject: [PATCH] arm: dts: am3xxx: pfc: move eeprom partitions to a separated
+ file
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

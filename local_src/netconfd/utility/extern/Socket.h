@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-#ifndef PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_SOCKET_H_
-#define PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_SOCKET_H_
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
+#pragma once
 
 //------------------------------------------------------------------------------
 // include files
@@ -45,7 +45,4 @@ class Socket {
  private:
   int s_;
 };
-
-#endif /* PFCSPECIFIC_SRC_ALL_LOGICALDEVICE_SOCKET_H_ */
-//---- End of source file ------------------------------------------------------
 

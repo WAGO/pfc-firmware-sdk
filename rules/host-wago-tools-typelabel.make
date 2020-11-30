@@ -81,15 +81,16 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@$(call world/install, HOST_TYPELABEL)
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	# Backup headers for later use in configs/@platform@/packages
-	cd $(PKGDIR)/$(HOST_TYPELABEL)/ && \
+	@mkdir -p $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)
+	@cd $(PKGDIR)/$(HOST_TYPELABEL)/ && \
 	tar -czvf $(HOST_TYPELABEL).tgz * && \
 	mv $(HOST_TYPELABEL).tgz $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/
 endif
 endif
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Recover header from archive in configs/@platform@/packages
-	mkdir -p $(PKGDIR)/$(HOST_TYPELABEL)
-	tar -xzvf $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/$(HOST_TYPELABEL).tgz -C $(PKGDIR)/$(HOST_TYPELABEL)
+	@mkdir -p $(PKGDIR)/$(HOST_TYPELABEL)
+	@tar -xzvf $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/$(HOST_TYPELABEL).tgz -C $(PKGDIR)/$(HOST_TYPELABEL)
 endif
 	@$(call touch)
 
@@ -106,8 +107,8 @@ $(STATEDIR)/host-typelabel.targetinstall:
 	@$(call install_fixup, host-typelabel,DESCRIPTION,missing)
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# Extract precompiled binaries from archive
-	rm -rf $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/*
-	cd $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp && \
+	@rm -rf $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/*
+	@cd $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp && \
 	ar -xov $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/$(HOST_TYPELABEL_PACKAGE_NAME).ipk
 	@$(call install_archive, typelabel, 0, 0, $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else

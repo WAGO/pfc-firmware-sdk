@@ -11,6 +11,8 @@
 #include "IControllable.hpp"
 #include "IBridgeManager.hpp"
 #include "IIPManager.hpp"
+#include "JsonConverter.hpp"
+
 
 namespace netconf {
 
@@ -36,35 +38,35 @@ class NetworkConfigBrain : public IControllable{
   NetworkConfigBrain(const NetworkConfigBrain&&) = delete;
   NetworkConfigBrain& operator=(const NetworkConfigBrain&&) = delete;
 
-  Status Start() override;
+  void Start() override;
 
-  Status SetBridgeConfig(::std::string const& product_config);
-  ::std::string GetBridgeConfig() const;
-  ::std::string GetInterfaceInformation() const;
-  Status SetInterfaceConfig(::std::string const& config);
-  ::std::string GetInterfaceConfig() const;
+  ::std::string SetBridgeConfig(::std::string const& product_config);
+  ::std::string GetBridgeConfig(::std::string&) const;
+  ::std::string GetInterfaceInformation(::std::string&) const;
+  ::std::string SetInterfaceConfig(::std::string const& config);
+  ::std::string GetInterfaceConfig(::std::string&) const;
 
-  ::std::string GetDipSwitchConfig() const;
-  ::std::string GetAllIPConfigs() const;
-  ::std::string GetIPConfig(const ::std::string& config) const;
-  ::std::string GetAllCurrentIPConfigs() const;
-  Status SetDipSwitchConfig(const ::std::string& config);
-  Status SetAllIPConfigs(const ::std::string& config);
-  Status SetIPConfig(const ::std::string& config);
+  ::std::string GetDipSwitchConfig(::std::string&) const;
+  ::std::string GetAllIPConfigs(::std::string&) const;
+  ::std::string GetIPConfig(const ::std::string& config, ::std::string&) const;
+  ::std::string GetAllCurrentIPConfigs(::std::string&) const;
+  ::std::string SetDipSwitchConfig(const ::std::string&);
+  ::std::string SetAllIPConfigs(const ::std::string&);
+  ::std::string SetIPConfig(const ::std::string&);
 
-  uint32_t GetBackupParamterCount() const;
-  Status Backup(const ::std::string& file_path, const ::std::string& targetversion) const;
-  Status Restore(const std::string& file_path);
+  ::std::string GetBackupParamterCount() const;
+  ::std::string Backup(const ::std::string& file_path, const ::std::string& targetversion) const;
+  ::std::string Restore(const std::string& file_path);
 
-  void TempFixIp();
+  ::std::string TempFixIp();
 
  private:
   bool HasToApplyDipSwitchConfig() const;
   void ModifyIpConfigByDipSwitch(IPConfigs& ip_configs);
   void ModifyIpConfigByDipSwitch(IPConfigs& ip_configs, const DipSwitchIpConfig& dip_switch_ip_config);
-  Status ApplyConfig(BridgeConfig& product_config, const IPConfigs& ip_configs) const;
-  Status ApplyFallbackConfig();
-  Status StopDynamicIPClientsOfBridgesToBeRemoved(const BridgeConfig &product_config) const;
+  Error ApplyConfig(BridgeConfig& product_config, const IPConfigs& ip_configs) const;
+  Error ApplyFallbackConfig();
+  Error StopDynamicIPClientsOfBridgesToBeRemoved(const BridgeConfig &product_config) const;
   void RemoveEmptyBridges(BridgeConfig& config) const;
   void RemoveUnsupportedInterfaces(BridgeConfig& config, Interfaces &supported_interfaces) const;
   void FilterRequiredIpConfigs(IPConfigs &ip_configs, const BridgeConfig &bridge_config) const;
@@ -79,10 +81,10 @@ class NetworkConfigBrain : public IControllable{
 
   void GetValidIpConfigsSubset(const IPConfigs& configs, IPConfigs& subset);
 
-  Status ApplyIpConfiguration(const IPConfigs& config);
-  Status ApplyIpConfiguration(const IPConfigs& config, const DipSwitchIpConfig& dip_switch_config);
-  Status PersistIpConfiguration(const IPConfigs& config);
-
+  Error ApplyIpConfiguration(const IPConfigs& config);
+  Error ApplyIpConfiguration(const IPConfigs& config, const DipSwitchIpConfig& dip_switch_config);
+  Error PersistIpConfiguration(const IPConfigs& config);
+  JsonConverter jc;
   IBridgeManager& bridge_manager_;
   IBridgeInformation& bridge_information_;
   InterfaceConfigManager& interface_config_manager_;

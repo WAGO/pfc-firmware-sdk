@@ -1,0 +1,20 @@
+## SECTION=networking
+
+menuconfig RPCBIND
+	tristate
+	select LIBNSL
+	select LIBTIRPC
+	select SYSTEMD		if RPCBIND_SYSTEMD_UNIT
+	prompt "rpcbind                       "
+	help
+	  converts RPC program numbers into universal addresses
+
+if RPCBIND
+
+config RPCBIND_SYSTEMD_UNIT
+	bool
+	default y
+	depends on INITMETHOD_SYSTEMD
+	prompt "install systemd unit files"
+
+endif

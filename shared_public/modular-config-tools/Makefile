@@ -17,7 +17,7 @@
 .SUFFIXES:
 
 .PHONY: default doc
-default: all doc
+default: all 
 
 
 #######################################################################################################################
@@ -379,9 +379,8 @@ detect_feature_tests.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/src/detect_fe
 # Custom rules
 
 doc:
-	rm -rf out/doc/
 	# explicitly use line buffering for doxygen to avoid stdout being interrupted by stderr mid-line
-	stdbuf --output=L doxygen doc/doxygen.config
+	rm -rf out/doc/ && stdbuf --output=L doxygen doc/doxygen.config
 
 
 #######################################################################################################################

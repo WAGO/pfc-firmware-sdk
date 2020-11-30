@@ -1,7 +1,7 @@
 From 65123a43d1ef1125c3bc2e5531e7acf405ff37b8 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 19 Oct 2018 08:29:25 +0200
-Subject: [PATCH 127/144] defaultenv: defaultenv-pfc-base: net-setupfw: do not
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: net-setupfw: do not
  configure dyn.ip param
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>

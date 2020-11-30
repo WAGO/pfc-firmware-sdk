@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CODESYS3) += codesys3
 
-CODESYS3_VERSION    := 3.5.14.3.4
+CODESYS3_VERSION    := 3.5.15.4.0
 CODESYS3            := codesys-3
 CODESYS3_DIR        := $(BUILDDIR)/$(CODESYS3)
 CODESYS3_URL        := file://$(PTXDIST_WORKSPACE)/wago_intern/plc/codesys/$(CODESYS3)/
@@ -369,16 +369,20 @@ endif
 
 	@cd $(CODESYS3_DIR)/cmp/ && \
 	for file in `find -name "*.so*"`; do \
-	  if [[ -h $$file ]]; then \
-	    if [[ "$$(basename $$file)" != "libCmpBlkDrvCom.so" ]]; then \
-	      $(call install_link, codesys3, ./$$(readlink $$file), /usr/lib/$$file); \
-	     fi \
-	  elif [[ -f $$file ]]; then \
-	    $(call install_copy, codesys3, 0, 0, 0755, $(CODESYS3_DIR)/cmp/$$file, /usr/lib/$$file); \
-	  fi; \
-	  if [[ $$file == *.so ]]; then \
-	    if [[ "$$(basename $$file)" != "libCmpBlkDrvCom.so" ]]; then \
-	      $(call install_link, codesys3, ../$$file, /usr/lib/cds3-custom-components/$$file); \
+	if [[ "$$(basename $$file)" == *"libCmpOPCUA"* ]] && [[ $(call ptx/endis, PTXCONF_OPCUASERVER) == "enable" ]]; then \
+	    echo "INFO wago opcua server is enabled: did not install: "$$(basename $$file); \
+	  else \
+	    if [[ -h $$file ]]; then \
+	      if [[ "$$(basename $$file)" != "libCmpBlkDrvCom.so" ]]; then \
+	        $(call install_link, codesys3, ./$$(readlink $$file), /usr/lib/$$file); \
+	       fi \
+	    elif [[ -f $$file ]]; then \
+	      $(call install_copy, codesys3, 0, 0, 0755, $(CODESYS3_DIR)/cmp/$$file, /usr/lib/$$file); \
+	    fi; \
+	    if [[ $$file == *.so ]]; then \
+	      if [[ "$$(basename $$file)" != "libCmpBlkDrvCom.so" ]]; then \
+	        $(call install_link, codesys3, ../$$file, /usr/lib/cds3-custom-components/$$file); \
+	      fi; \
 	    fi; \
 	  fi; \
 	done
@@ -401,7 +405,15 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	# Backup binaries in configs/@platform@/packages/
 	cp $(PKGDIR)/$(CODESYS3_PACKAGE_NAME).ipk $(CODESYS3_PLATFORMCONFIGPACKAGEDIR)/
 endif
+
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+ifdef PTXCONF_CDS3_RTS_FEATURE_OPCUA
+	$(PTXDIST_WORKSPACE)/scripts/opcuaserver-helpers/make-metaipk-3s.sh
+endif
+endif
 	@$(call touch)
+	
+
 
 # ----------------------------------------------------------------------------
 # Clean

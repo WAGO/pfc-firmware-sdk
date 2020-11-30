@@ -87,72 +87,6 @@ class ABridgeController_Target : public Test {
 
 };
 
-//TEST_F(ABridgeController_Target, GetsBridgeBr0) {
-//
-//  Bridge bridge_name = "br0";
-//  Bridges bridges = bridge_controller_->GetBridges();
-//  ASSERT_LT(0, bridges.size());
-//  EXPECT_TRUE(Contains(bridge_name, bridges));
-//}
-//
-//TEST_F(ABridgeController_Target, GetsInterfaceEthX1OfBridgeBr0) {
-//
-//  Bridge bridge_name = "br0";
-//  Interface interface_name = "ethX1";
-//
-//  Interfaces interfaces = bridge_controller_->GetBridgeInterfaces(bridge_name);
-//  ASSERT_LT(0, interfaces.size());
-//  EXPECT_TRUE(Contains(interface_name, interfaces));
-//}
-//
-//TEST_F(ABridgeController_Target, AddsABridge) {
-//
-//  Status status = bridge_controller_->AddBridge(test_br42_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//
-//  Bridges bridges = bridge_controller_->GetBridges();
-//  ASSERT_LT(0, bridges.size());
-//  ASSERT_TRUE(Contains(test_br42_, bridges));
-//}
-//
-//TEST_F(ABridgeController_Target, RemovesABridge) {
-//
-//  AddBridge(test_br42_);
-//
-//  Status status = bridge_controller_->DeleteBridge(test_br42_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//
-//  Bridges bridges = bridge_controller_->GetBridges();
-//  ASSERT_LT(0, bridges.size());
-//  ASSERT_FALSE(Contains(test_br42_, bridges));
-//}
-//
-//TEST_F(ABridgeController_Target, AddsAnInterfaceToABridge) {
-//
-//  AddBridge(test_br43_);
-//  AddTunInterface(test_tap43_);
-//
-//  Status status = bridge_controller_->AddInterface(test_br43_, test_tap43_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//
-//  Interfaces interfaces = bridge_controller_->GetBridgeInterfaces(test_br43_);
-//  ASSERT_LT(0, interfaces.size());
-//  ASSERT_TRUE(Contains(test_tap43_, interfaces));
-//}
-//
-//TEST_F(ABridgeController_Target, RemovesAnInterfaceFromABridge) {
-//
-//  AddTunInterface(test_tap43_);
-//  AddBridge(test_br43_);
-//  bridge_controller_->AddInterface(test_br43_, test_tap43_);
-//
-//  Status status = bridge_controller_->DeleteInterface(test_br43_, test_tap43_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//
-//  Interfaces interfaces = bridge_controller_->GetBridgeInterfaces(test_br43_);
-//  ASSERT_EQ(0, interfaces.size());
-//  EXPECT_FALSE(Contains(test_tap43_, interfaces));
-//}
 
 TEST_F(ABridgeController_Target, GetsAllInterfaces) {
 
@@ -169,30 +103,5 @@ TEST_F(ABridgeController_Target, GetsAllInterfaces) {
 }
 
 
-//TEST_F(ABridgeController_Target, SetsInterfaceUpDown) {
-//  AddTunInterface(test_tap43_);
-//  Status status = bridge_controller_->SetInterfaceUp(test_tap43_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//
-//  status = bridge_controller_->SetInterfaceDown(test_tap43_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//}
-//
-//TEST_F(ABridgeController_Target, GetsInterfaceUpDownState) {
-//  AddTunInterface(test_tap43_);
-//  Status status = bridge_controller_->SetInterfaceUp(test_tap43_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//
-//  bool is_up;
-//  status = bridge_controller_->IsInterfaceUp(test_tap43_,is_up);
-//  EXPECT_TRUE(is_up);
-//
-//  status = bridge_controller_->SetInterfaceDown(test_tap43_);
-//  ASSERT_EQ(StatusCode::OK, status.Get());
-//
-//  status = bridge_controller_->IsInterfaceUp(test_tap43_,is_up);
-//  EXPECT_FALSE(is_up);
-//}
-//
 
 }

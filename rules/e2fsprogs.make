@@ -17,16 +17,16 @@ PACKAGES-$(PTXCONF_E2FSPROGS) += e2fsprogs
 #
 # Paths and names
 #
-E2FSPROGS_VERSION	:= 1.44.5
-E2FSPROGS_MD5		:= 8d78b11d04d26c0b2dd149529441fa80
+E2FSPROGS_VERSION	:= 1.45.6
+E2FSPROGS_MD5		:= 22cc85579c5ac4b8c1959e6d4d98755d
 E2FSPROGS		:= e2fsprogs-$(E2FSPROGS_VERSION)
 E2FSPROGS_SUFFIX	:= tar.gz
-E2FSPROGS_URL		:= $(call ptx/mirror, SF, e2fsprogs/e2fsprogs/v$(E2FSPROGS_VERSION)/$(E2FSPROGS).$(E2FSPROGS_SUFFIX))
+E2FSPROGS_URL		:= $(call ptx/mirror, SF, e2fsprogs/$(E2FSPROGS).$(E2FSPROGS_SUFFIX))
 E2FSPROGS_SOURCE	:= $(SRCDIR)/$(E2FSPROGS).$(E2FSPROGS_SUFFIX)
 E2FSPROGS_DIR		:= $(BUILDDIR)/$(E2FSPROGS)
-E2FSPROGS_LICENSE	:= GPL-2.0-or-later AND LGPL-2.0-or-later AND BSD-3-Clause AND MIT
+E2FSPROGS_LICENSE	:= GPL-2.0+, LGPL-2.0+, BSD-3-Clause, MIT
 E2FSPROGS_LICENSE_FILES	:= \
-	file://NOTICE;md5=d50be0580c0b0a7fbc7a4830bbe6c12b \
+	file://NOTICE;md5=b48f21d765b875bd10400975d12c1ca2 \
 	file://lib/uuid/gen_uuid.c;startline=4;endline=31;md5=697cf5d1be275fa2588beaaf2bb481bd
 
 # ----------------------------------------------------------------------------
@@ -53,7 +53,6 @@ E2FSPROGS_CONF_OPT	:= \
 	--disable-testio-debug \
 	--disable-libuuid \
 	--disable-libblkid \
-	--disable-subset \
 	--disable-backtrace \
 	--$(call ptx/endis,PTXCONF_E2FSPROGS_INSTALL_DEBUGFS)-debugfs \
 	--$(call ptx/endis,PTXCONF_E2FSPROGS_IMAGER)-imager \

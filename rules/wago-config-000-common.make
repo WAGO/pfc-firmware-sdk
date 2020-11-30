@@ -527,10 +527,15 @@ ifdef PTXCONF_CT_RS232_OWNER
 	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/config-tools/RS232_OWNER);
 endif
 
+ifdef PTXCONF_CT_LEDSERVER
+	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/leds.conf)
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_ledserver, /etc/config-tools/config_ledserver);
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_ledserver, /etc/config-tools/get_ledserver);
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_ledserver_generate, /etc/config-tools/config_ledserver_generate);
+endif
+
 ifdef PTXCONF_CT_SETTINGS_BACKUP
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_backup, /etc/config-tools/settings_backup);
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/settings_factory, /etc/config-tools/settings_factory);
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/rc.once.d/save-factory-defaults, /etc/rc.once.d/save-factory-defaults);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/backup-restore);
 endif
 
@@ -892,6 +897,11 @@ endif
 ifdef PTXCONF_CT_CONF_INTERNAL_BOOT
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_boot_mode, /etc/config-tools/config_boot_mode);
 endif
+
+ifdef PTXCONF_IPWATCHD
+	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/events/networking/update_ipwatchd);
+endif
+
 
 	@$(call install_finish,config-tools)
 

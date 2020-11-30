@@ -103,6 +103,7 @@ BOOST_JAM	:= \
 	debug-symbols=on \
 	threading=multi \
 	link=shared \
+	optimization=space \
 	toolset=gcc-$(PTXCONF_ARCH_STRING) \
 	target-os=linux \
 	abi=$(BOOST_ABI) \

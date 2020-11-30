@@ -18,9 +18,9 @@ PACKAGES-$(PTXCONF_SYSLOGNG) += syslogng
 #
 # Paths and names
 #
-SYSLOGNG_VERSION	:= 3.20.1
-SYSLOG_LIBVERSION	:= 3.20
-SYSLOGNG_MD5		:= 9cdb18d4cab84cfdaa38937f134970c4
+SYSLOGNG_VERSION	:= 3.28.1
+SYSLOG_LIBVERSION	:= 3.28
+SYSLOGNG_MD5		:= 2a7cd121bc60105db973bb8126b5b9d7
 SYSLOGNG		:= syslog-ng-$(SYSLOGNG_VERSION)
 SYSLOGNG_SUFFIX		:= tar.gz
 SYSLOGNG_URL		:= https://github.com/balabit/syslog-ng/releases/download/syslog-ng-$(SYSLOGNG_VERSION)/$(SYSLOGNG).$(SYSLOGNG_SUFFIX)
@@ -76,7 +76,8 @@ $(STATEDIR)/syslogng.targetinstall:
 	@$(call install_lib, syslogng, 0, 0, 0644, libsyslog-ng-$(SYSLOG_LIBVERSION))
 	@$(call install_lib, syslogng, 0, 0, 0644, libevtlog-$(SYSLOG_LIBVERSION))
 	@$(call install_lib, syslogng, 0, 0, 0644, libsecret-storage)
-	@$(call install_glob, syslogng, 0, 0, -, /usr/lib/syslog-ng, *.so)
+	@$(call install_glob, syslogng, 0, 0, -, /usr/lib/syslog-ng, *.so, */libexamples.so)
+
 
 #	# config
 ifdef PTXCONF_SYSLOGNG_CONFIG

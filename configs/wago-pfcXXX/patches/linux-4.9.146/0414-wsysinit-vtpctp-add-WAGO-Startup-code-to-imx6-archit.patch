@@ -1,0 +1,51 @@
+From 148d41c53f41b9053d976355cb21a06244d6ba65 Mon Sep 17 00:00:00 2001
+From: Ralf Gliese <gliese@elrest.de>
+Date: Fri, 7 Dec 2018 08:59:04 +0100
+Subject: [PATCH] wsysinit: vtpctp: add WAGO-Startup code to imx6 architecture
+
+Signed-off-by: Ralf Gliese <gliese@elrest.de>
+---
+ arch/arm/mach-imx/Makefile     | 2 ++
+ arch/arm/mach-omap2/wsysinit.c | 8 +++++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-imx/Makefile b/arch/arm/mach-imx/Makefile
+index cab1289..a5207ae 100644
+--- a/arch/arm/mach-imx/Makefile
++++ b/arch/arm/mach-imx/Makefile
+@@ -97,4 +97,6 @@ obj-$(CONFIG_SOC_VF610) += mach-vf610.o
+ 
+ obj-$(CONFIG_SOC_LS1021A) += mach-ls1021a.o
+ 
++obj-$(CONFIG_WAGO_SYSTEM_BASED_STARTUP) += ../mach-omap2/wsysinit.o ../mach-omap2/wsysinit-boot-table.o ../mach-omap2/wsysinit-testenv.o
++
+ obj-y += devices/
+diff --git a/arch/arm/mach-omap2/wsysinit.c b/arch/arm/mach-omap2/wsysinit.c
+index f111a5e..5c66795 100644
+--- a/arch/arm/mach-omap2/wsysinit.c
++++ b/arch/arm/mach-omap2/wsysinit.c
+@@ -39,7 +39,9 @@
+ 
+ #include <linux/timex.h>
+ 
++#ifndef CONFIG_ARCH_MXC
+ #include "soc.h"
++#endif
+ 
+ #define	DEVICE_NAME		"wsysinit-drv"
+ 
+@@ -483,6 +485,10 @@ static __exit void wsysinit_exit(void)
+ {
+ 	platform_driver_unregister(&wsysinit_init_driver);
+ }
+-
++#ifdef CONFIG_ARCH_MXC
++postcore_initcall(wsysinit_init);
++#else
+ omap_postcore_initcall(wsysinit_init);
++#endif
++
+ module_exit(wsysinit_exit);
+-- 
+2.7.4
+

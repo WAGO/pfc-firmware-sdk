@@ -22,7 +22,7 @@
  *        after next reboot.
  *  v0.5: Added support for HW03 EMMC.
  *  V0.6: M. Laschinsky: deactivated eeprom boot-options -> obsolete (use rauc instead)
- *  V0.7: added printing of current state of internal boot mode (enabled/disabled)
+ *  V0.7: O. Ganin: added printing of current state of internal boot mode (enabled/disabled)
  *
 */
 
@@ -228,11 +228,11 @@ void dump_boot_mode(u8 boot_mode_id){
 
   //TODO: sync ubifs labels with bootloader
   printf("%s: Default root partition is %s\n",
-  STR_ROOTFS_MEM(booting_from_nand), partLabelDefault);
+	 STR_ROOTFS_MEM(booting_from_nand), partLabelDefault);
 
   if(booting_from_nand || booting_from_emmc) {
     printf("%s: Current root partition is %s\n",
-    STR_ROOTFS_MEM(booting_from_nand), partLabelCurrent);
+	   STR_ROOTFS_MEM(booting_from_nand), partLabelCurrent);
   }
   printf("%s: Next time will boot from  %s\n",
   STR_ROOTFS_MEM(booting_from_nand), partLabelNext);
@@ -249,7 +249,7 @@ void dump_section(unsigned char xsection_id)
 {
 	pac_debug("This is %s [%d].\n", __func__, __LINE__);
 
-	if (xsection_id & OP_XSECTION_QUIET || 
+	if (xsection_id & OP_XSECTION_QUIET ||
 	    xsection_id & OP_XSECTION_NONE)
 		return;
 
@@ -266,7 +266,7 @@ void dump_section(unsigned char xsection_id)
 				printf("%x\n", *(buf + i));
 		}
 		else if (xsection_id & OP_XSECTION_PRBOOT) {
-		  // print state of "internal" boot mode (invert to SD Card boot mode)
+		  // print state of "internal" boot mode (inverted to SD Card boot mode)
 		  printf("%s\n", STR_ENABLED_DISABLED(get_sd_boot_disabled() == SD_DISABLE_BIT));
 		}
 		else {
@@ -382,7 +382,7 @@ void print_usage(char *progname)
 		"Write Mode Options:\n"				   \
 		" (obsolete) -F:              [F]inalize boot partition (set current root as default)\n"	   \
 		" (obsolete) -o [1/0/first]:  if 1: boot from the currently inactive NAND root partition [o]nce\n"		   \
-    "                             if \'first\': boot from first NAND root partition (at least) once\n\n" \
+		"                             if \'first\': boot from first NAND root partition (at least) once\n\n" \
 		" (obsolete) -c [1/0]:        if 1: use [c]ustom cmdline (EEPROM/SD card) (on/off) \n"	   \
 		"            -s [1/0]:        set linux use [s]erial console usage status (on/off) \n"	   \
 		"            -D [1/0]:        disable boot from SD card\n"

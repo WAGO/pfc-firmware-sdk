@@ -1,4 +1,4 @@
-
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -18,9 +18,9 @@ TEST(JsonConverterInterfaceInformationTest, ConvertBackAndForth){
   auto ii_json = jc.ToJsonString(ii);
 
   InterfaceInformation out_obj;
-  auto status = jc.FromJsonString(ii_json, out_obj);
+  auto error = jc.FromJsonString(ii_json, out_obj);
 
-  EXPECT_EQ(StatusCode::OK, status.Get()) << ii_json << "\n"<< status.GetMessage();
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << ii_json << "\n"<< error.ToString();
 
   EXPECT_EQ("mydev", out_obj.GetInterfaceName());
   EXPECT_EQ("mylabel", out_obj.GetInterfaceLabel());
@@ -33,9 +33,9 @@ TEST(JsonConverterInterfaceInformationTest, FailOnMissingKeys){
   auto ii_json = R"({"name":"mydev","label":"mylabel"})";
 
   InterfaceInformation out_obj;
-  auto status = jc.FromJsonString(ii_json, out_obj);
+  auto error = jc.FromJsonString(ii_json, out_obj);
 
-  EXPECT_EQ(StatusCode::JSON_CONVERT_ERROR, status.Get()) << status.GetMessage();
+  EXPECT_EQ(ErrorCode::JSON_KEY_MISSING, error.GetErrorCode()) << error.ToString();
 
 }
 
@@ -50,20 +50,20 @@ TEST(JsonConverterInterfaceInformationTest, AllTypes){
   auto ii_json_other = R"({"name":"mydev","label":"mylabel","type":"wwan","ip-ro":true})";
 
   InterfaceInformation out_obj;
-  auto status = jc.FromJsonString(ii_json_ethernet, out_obj);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
-  status = jc.FromJsonString(ii_json_bridge, out_obj);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
-  status = jc.FromJsonString(ii_json_virtual, out_obj);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
-  status = jc.FromJsonString(ii_json_service, out_obj);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
-  status = jc.FromJsonString(ii_json_port, out_obj);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
-  status = jc.FromJsonString(ii_json_wwan, out_obj);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
-  status = jc.FromJsonString(ii_json_other, out_obj);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
+  auto error = jc.FromJsonString(ii_json_ethernet, out_obj);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
+  error = jc.FromJsonString(ii_json_bridge, out_obj);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
+  error = jc.FromJsonString(ii_json_virtual, out_obj);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
+  error = jc.FromJsonString(ii_json_service, out_obj);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
+  error = jc.FromJsonString(ii_json_port, out_obj);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
+  error = jc.FromJsonString(ii_json_wwan, out_obj);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
+  error = jc.FromJsonString(ii_json_other, out_obj);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
 
 }
 
@@ -73,8 +73,8 @@ TEST(JsonConverterInterfaceInformationTest, MultipleInformationObjects){
                          R"({"name":"dev2","label":"mylabel2","type":"bridge","ip-ro":true}])";
 
   InterfaceInformations iis;
-  auto status = jc.FromJsonString(ii_json_ethernet, iis);
-  EXPECT_EQ(StatusCode::OK, status.Get()) << status.GetMessage();
+  auto error = jc.FromJsonString(ii_json_ethernet, iis);
+  EXPECT_EQ(ErrorCode::OK, error.GetErrorCode()) << error.ToString();
   EXPECT_EQ(2, iis.size());
 
   auto j_str = jc.ToJsonString(iis);

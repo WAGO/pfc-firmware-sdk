@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_MDMD_NG) += mdmd-ng
 #
 # Paths and names
 #
-MDMD_NG_VERSION        := 0.7.0
+MDMD_NG_VERSION        := 0.8.5
 MDMD_NG_MD5            := 
 MDMD_NG                := mdmd-ng
 MDMD_NG_URL            := file://$(PTXDIST_WORKSPACE)/wago_intern/mdmd-ng
@@ -149,7 +149,7 @@ $(STATEDIR)/mdmd-ng.targetinstall:
 	@$(call install_copy, mdmd-ng, 0, 0, 0750, -, /etc/init.d/mdmd-ng)
 	@$(call install_copy, mdmd-ng, 0, 0, 0750, -, /usr/bin/mdmd-ng_wrapper)
 	@$(call install_copy, mdmd-ng, 0, 0, 0640, -, /etc/specific/features/wireless-mobile-EC25)
-	@$(call install_link, mdmd-ng, /etc/init.d/mdmd-ng, /etc/rc.d/S60_mdmd-ng)
+	@$(call install_link, mdmd-ng, /etc/init.d/mdmd-ng, /etc/rc.d/S95_mdmd-ng)
 	
 	@$(call install_finish, mdmd-ng)
 	@$(call touch)

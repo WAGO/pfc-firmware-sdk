@@ -1,8 +1,8 @@
 From 7530101dba6587dff27112aace3ae54dcef36624 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 8 Aug 2018 11:31:45 +0200
-Subject: [PATCH 042/144] defaultenv: defaultenv-pfc: detect-boot-mode: use
- detected boot-mode from bootmatrix driver
+Subject: [PATCH] defaultenv: defaultenv-pfc: detect-boot-mode: use detected
+ boot-mode from bootmatrix driver
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

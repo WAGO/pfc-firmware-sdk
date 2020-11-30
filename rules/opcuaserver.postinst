@@ -1,0 +1,271 @@
+#!/bin/bash
+
+###########################################
+# function to log massages 
+# in case of development the amount of messages
+# can be expand and help during analyse problems.
+###########################################
+logmessage ()
+{
+	#if [ "$1" = "INFO" ] ; then
+	#	echo ${@:2}
+	#fi
+	
+	if [ "$1" = "ERROR" ] ; then
+		echo ${@:2}
+	fi
+	
+	return 0
+}
+
+############################################
+# check if script is executed on device or on 
+# development maschien 
+############################################
+IsOnDevice ()
+{
+	return 0
+}
+#########################################
+# check if group exist on device
+#   param $1 
+#      user name
+#########################################
+ExistGroup ()
+{
+  if [ -n "$(sed -nr "s/^$1:x:([0-9]+):.*/\1/p" /etc/group)" ] ; then
+    return 0
+  fi
+  return 1
+}
+
+#########################################
+# check if group own the correct id
+#   param $1
+#      user name
+#   param $2
+#      id to check
+#########################################
+IsGroupId ()
+{
+  if [ "$(sed -nr "s/^$1:x:([0-9]+):.*/\1/p" /etc/group)" == "$2" ] ; then
+    return 0
+  fi
+  return 1
+}
+
+#########################################
+# return the group id if group exist
+#   param $1
+#      group name
+# return
+#     id of group
+#########################################
+GroupIdOf ()
+{
+	id="$1 not exist"
+  if ExistGroup $1 ; then
+    id="$(sed -nr "s/^$1:x:([0-9]+):.*/\1/p" /etc/group)"
+  fi
+  echo $id
+}
+
+#########################################
+# check if user exist on device
+#   param $1 
+#      user name
+#########################################
+ExistUser ()
+{
+  #groups opc > /dev/null 2>&1
+  id $1 > /dev/null 2>&1
+  return $?
+}
+
+#########################################
+# check if user own the correct id
+#   param $1
+#      user name
+#   param $2
+#      id to check
+#########################################
+IsUserId ()
+{
+	myid=$(id -u $1)
+	if [ "$myid" == "$2" ]; then
+		return 0
+	fi
+	return 1
+}
+
+#########################################
+# return the user id if user exist
+#   param $1
+#      group name
+# return
+#     id of group
+#########################################
+UserIdOf ()
+{
+	id="$1 not exist"
+  if ExistUser $1 ; then
+    id=$(id -u $1)
+    #id="$(sed -nr "s/^$1:x:([0-9]+):.*/\1/p" /etc/passwq)"
+  fi
+  echo $id
+}
+
+########################################
+# handle the group paramaccess 
+# check if exist 
+# create if not exist
+# check id and print info if it is not expected id
+#########################################
+HandleParamAccessGroup ()
+{
+  if ! (ExistGroup $LINUX_GROUP_NAME_PARAMACCESS) ; then
+    addgroup -g $LINUX_GROUP_ID_PARAMACCESS $LINUX_GROUP_NAME_PARAMACCESS
+    if [ $? -eq 0 ]; then
+    	logmessage "INFO" "CREATE of GROUP $LINUX_GROUP_NAME_PARAMACCESS [OK]"
+    else
+    	logmessage "ERROR" "CREATE of GROUP $LINUX_GROUP_NAME_PARAMACCESS [FAIL] $?"
+    fi
+    return $?
+  else
+    if IsGroupId $LINUX_GROUP_NAME_PARAMACCESS $LINUX_GROUP_ID_PARAMACCESS ; then
+      logmessage "INFO" "GROUP $LINUX_GROUP_NAME_PARAMACCESS [OK]"
+    else
+      logmessage "INFO" "!!!WARNING id of group $LINUX_GROUP_NAME_PARAMACCESS is $(GroupIdOf $LINUX_GROUP_NAME_PARAMACCESS) expected $LINUX_GROUP_ID_PARAMACCESS !!!"
+    fi
+  fi
+  return 0
+}
+
+########################################
+# handle the user opc 
+# check if exist 
+# create if not exist
+# check id and print info if it is not expected id
+# during createing the opc group is created too
+#########################################
+HandleOpcUser ()
+{
+  if ! (ExistUser $LINUX_USER_NAME_OPC) ; then
+    adduser -u $LINUX_USER_ID_OPC $LINUX_USER_NAME_OPC -D -h /dev/null -s /bin/false 
+    if [ $? -eq 0 ] ; then
+    	logmessage "INFO" "CREATE of user $LINUX_USER_NAME_OPC [OK]"
+    else
+    	logmessage "INFO" "CREATE of user $LINUX_USER_NAME_OPC [FAIL] $?"
+    fi
+    return $?
+  else
+  	if (IsUserId $LINUX_USER_NAME_OPC $LINUX_USER_ID_OPC) ; then
+  		logmessage "INFO" "USER $LINUX_USER_NAME_OPC [OK]"
+  	else
+  		logmessage "INFO" "!!!WARNING id of user $LINUX_USER_NAME_OPC is $(UserIdOf $LINUX_USER_NAME_OPC) expected $LINUX_USER_ID_OPC !!!"
+  	fi
+  fi
+  return 0
+}
+
+########################################
+# handle the group opc 
+# check if exist 
+# create if not exist
+# check id and print info if it is not expected id
+# normaly the group is created by the user create
+# the creation part in this function is only for completeness.
+#########################################
+HandleOpcGroup ()
+{
+  if ! (ExistGroup $LINUX_USER_NAME_OPC) ; then
+    logmessage "ADD GROUP $LINUX_USER_NAME_OPC"
+    addgroup -g $LINUX_GROUP_ID_OPC $LINUX_USER_NAME_OPC
+    if ! $? ; then
+    	logmessage "ERROR" "CREATE of GROUP $LINUX_GROUP_NAME_OPC [FAIL] $?"
+    else
+    	logmessage "INFO" "CREATE of GROUP $LINUX_GROUP_NAME_OPC [OK]"
+    fi
+    return $?
+  else
+    if IsGroupId $LINUX_GROUP_NAME_OPC $LINUX_GROUP_ID_OPC ; then
+      logmessage "INFO" "GROUP $LINUX_GROUP_NAME_OPC [OK]"
+    else
+      logmessage "INFO" "!!!WARNING id of group $LINUX_GROUP_NAME_OPC is $(GroupIdOf $LINUX_GROUP_NAME_OPC) expected $LINUX_GROUP_ID_OPC !!!"
+    fi
+  fi
+  return 0
+}
+
+##################################################
+# add the opc and root user to paramaccess group
+##################################################
+HandleAddUserToGroup ()
+{
+	addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_PARAMACCESS
+	if [ $? -eq 0 ] ; then
+		addgroup root $LINUX_GROUP_NAME_PARAMACCESS
+		if [ $? -ne 0 ] ; then
+			logmessage "ERROR" "addgroup root $LINUX_GROUP_NAME_PARAMACCESS [FAIL]"
+		fi
+		addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_DRM
+		if [ $? -ne 0 ] ; then
+			logmessage "ERROR" "addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_DRM [FAIL]"
+		fi
+	else
+	  logmessage "ERROR" "addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_PARAMACCESS [FAIL]"
+	fi
+	return $?
+}
+
+##################################################
+# change the mode of all opc files from root to opc user
+##################################################
+
+ChangeOpcFileSettings ()
+{
+	chown -R opc:opc /etc/specific/opcua-server/pki
+	return $?
+}
+###############   MAIN   #################
+
+LINUX_USER_NAME_OPC="opc"
+LINUX_USER_ID_OPC=117
+
+LINUX_GROUP_NAME_OPC="opc"
+LINUX_GROUP_ID_OPC=117
+
+LINUX_GROUP_NAME_PARAMACCESS="paramaccess"
+LINUX_GROUP_ID_PARAMACCESS=116
+
+LINUX_GROUP_NAME_DRM="drm"
+LINUX_GROUP_ID_DRM=119
+
+
+if [ -d /etc/specific/opcua-server ]; then
+	if HandleParamAccessGroup ; then
+		if HandleOpcUser ; then
+			if HandleOpcGroup ; then
+				if HandleAddUserToGroup ; then
+					ChangeOpcFileSettings
+					logmessage "INFO" "super !!"
+			  else
+			  	logmessage "ERROR" "HandleAddUserToGroup FAIL"
+				fi
+			else
+				logmessage "ERROR" "HandleOpcGroup FAIL"
+			fi
+		else
+			logmessage "ERROR" "HandleOpcUser FAIL"
+		fi
+	else
+  	logmessage "ERROR" "HandleParamAccessGroup FAIL"
+	fi
+else
+	logmessage "INFO" "executed on maschins with out opc resources"
+fi
+
+
+if [ -f /etc/config-tools/config-opcua ]; then
+  /etc/config-tools/config-opcua --reset
+fi

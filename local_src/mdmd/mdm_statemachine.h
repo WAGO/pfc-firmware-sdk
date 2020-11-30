@@ -79,6 +79,8 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     std::string _port_read_buffer;
     int        _port_wait_count;
     int        _cfun_wait_count;
+    bool       _siminit_wait_flag;
+    bool       _sim_sms_support_flag;
     MdmTimeout *_timeout;
 
     GPIO_Control _gpioPowerKey;
@@ -150,6 +152,10 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     void modem_reset(ModemResetMode reset_mode);
     int  get_cfun_wait_count() const { return _cfun_wait_count; }
     int  inc_cfun_wait_count() { _cfun_wait_count++; return _cfun_wait_count; }
+    bool get_siminit_wait_flag() const { return _siminit_wait_flag; }
+    void set_siminit_wait_flag() { _siminit_wait_flag = true; }
+    bool get_sim_sms_support_flag() const { return _sim_sms_support_flag; }
+    void set_sim_sms_support_flag() { _sim_sms_support_flag = true; }
 
     void set_oper_reg_state(int state, const std::string &lac, const std::string &cid, int act );
     int get_oper_reg_state() const { return _oper_reg_state; }
@@ -234,6 +240,7 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     bool get_continue_getoperlist() const { return _continue_getoperlist; }
 
     void reset_service_states();
+    void reset_sim_states();
 };
 
 class MdmSMPort : public SerialPort

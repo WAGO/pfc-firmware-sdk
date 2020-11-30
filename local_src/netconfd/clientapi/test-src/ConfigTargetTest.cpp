@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BridgeConfig.hpp"
 #include "IPConfig.hpp"
@@ -40,58 +40,63 @@ class ConfigTest_Target : public Test {
 };
 
 TEST_F(ConfigTest_Target, SetAndGetBridgeConfig) {
-  Status s1                     = SetBridgeConfig(seperated_);
-  BridgeConfig actual_seperated = GetBridgeConfig();
-  EXPECT_EQ(Status::OK, s1);
+  Error error = SetBridgeConfig(seperated_);
+  BridgeConfig actual_seperated;
+  GetBridgeConfig(actual_seperated);
+  EXPECT_TRUE(error.IsOk());
 
   JsonConverter jc;
   EXPECT_EQ(R"({"br0":["X1"],"br1":["X2"]})", jc.ToJsonString(actual_seperated.GetConfig()));
 
-  Status s2                    = SetBridgeConfig(switched_);
-  BridgeConfig actual_switched = GetBridgeConfig();
-  EXPECT_EQ(Status::OK, s2);
+  error = SetBridgeConfig(switched_);
+  BridgeConfig actual_switched;
+  GetBridgeConfig(actual_switched);
+  EXPECT_TRUE(error.IsOk());
   EXPECT_EQ(R"({"br0":["X1","X2"]})", jc.ToJsonString(actual_switched.GetConfig()));
 }
 
 TEST_F(ConfigTest_Target, SetAndGetIpConfig) {
   SetBridgeConfig(seperated_);
 
-  Status status;
-  IPConfig ip_config1_br1_{"br1", IPSource::STATIC, "192.168.5.5", "255.255.255.0"};
-  IPConfig ip_config2_br1_{"br1", IPSource::STATIC, "192.168.6.6", "255.255.255.0"};
+  Error error;
+  IPConfig ip_config1_br1_ { "br1", IPSource::STATIC, "192.168.5.5", "255.255.255.0" };
+  IPConfig ip_config2_br1_ { "br1", IPSource::STATIC, "192.168.6.6", "255.255.255.0" };
 
   IPConfigs ip_configs1;
   ip_configs1.AddIPConfig(ip_config1_br1_);
-  status             = SetIPConfigs(ip_configs1);
-  IPConfigs actual_1 = GetIPConfigs();
-  EXPECT_EQ(Status::OK, status);
+  error = SetIPConfigs(ip_configs1);
+  IPConfigs actual_1;
+  GetIPConfigs(actual_1);
+  EXPECT_TRUE(error.IsOk());
   EXPECT_EQ(ip_config1_br1_, actual_1.GetIPConfig("br1"));
 
   IPConfigs ip_configs2;
   ip_configs2.AddIPConfig(ip_config2_br1_);
-  status             = SetIPConfigs(ip_configs2);
-  IPConfigs actual_2 = GetIPConfigs();
-  EXPECT_EQ(Status::OK, status);
+  error = SetIPConfigs(ip_configs2);
+  IPConfigs actual_2;
+  GetIPConfigs(actual_2);
+  EXPECT_TRUE(error.IsOk());
   EXPECT_EQ(ip_config2_br1_, *actual_2.GetIPConfig("br1"));
 }
 
 TEST_F(ConfigTest_Target, DeleteIpConfig) {
   SetBridgeConfig(seperated_);
 
-  IPConfig ip_config1_br1_{"br1", IPSource::STATIC, "192.168.5.5", "255.255.255.0"};
+  IPConfig ip_config1_br1_ { "br1", IPSource::STATIC, "192.168.5.5", "255.255.255.0" };
 
   IPConfigs ip_configs1;
   ip_configs1.AddIPConfig(ip_config1_br1_);
   SetIPConfigs(ip_configs1);
-  IPConfigs actual_1 = GetIPConfigs();
+  IPConfigs actual_1;
+  GetIPConfigs(actual_1);
   ASSERT_EQ(ip_config1_br1_, actual_1.GetIPConfig("br1"));
 
   DeleteIPConfig("br1");
-  IPConfigs actual_2 = GetIPConfigs();
-  IPConfig expected{"br1", IPSource::NONE, netconf::ZeroIP, netconf::ZeroIP};
-  EXPECT_EQ(expected,*actual_2.GetIPConfig("br1"));
+  IPConfigs actual_2;
+  GetIPConfigs(actual_2);
+  IPConfig expected { "br1", IPSource::NONE, netconf::ZeroIP, netconf::ZeroIP };
+  EXPECT_EQ(expected, *actual_2.GetIPConfig("br1"));
 }
-
 
 }  // namespace api
 }  // namespace netconf

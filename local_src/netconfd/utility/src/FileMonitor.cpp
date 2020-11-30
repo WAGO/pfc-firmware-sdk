@@ -1,11 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-//------------------------------------------------------------------------------
-///  \file     FileMonitor.cpp
-///
-///  \brief    <short description of the file contents>
-///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
-//------------------------------------------------------------------------------
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "FileMonitor.hpp"
 

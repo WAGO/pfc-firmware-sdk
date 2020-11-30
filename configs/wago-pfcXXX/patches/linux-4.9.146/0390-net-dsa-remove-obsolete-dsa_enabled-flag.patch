@@ -8,16 +8,16 @@ at runtime.
 
 Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
 ---
- .../dts/am335x-pfc-750_821x-mv88e6321.dtsi     |  1 -
- .../boot/dts/am3505-pfc-750_820x-ksz8863.dtsi  |  1 -
- drivers/net/dsa/ksz886x/ksz8863.c              |  3 ---
- drivers/net/dsa/mv88e6xxx/chip.c               |  5 -----
- include/net/dsa.h                              | 16 +---------------
- net/dsa/dsa.c                                  | 18 ------------------
+ arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi |  1 -
+ arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi   |  1 -
+ drivers/net/dsa/ksz886x/ksz8863.c                    |  3 ---
+ drivers/net/dsa/mv88e6xxx/chip.c                     |  5 -----
+ include/net/dsa.h                                    | 16 +---------------
+ net/dsa/dsa.c                                        | 18 ------------------
  6 files changed, 1 insertion(+), 43 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
-index 64504ada8e98..7e3472674a75 100644
+index 64504ad..7e34726 100644
 --- a/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
 +++ b/arch/arm/boot/dts/am335x-pfc-750_821x-mv88e6321.dtsi
 @@ -60,7 +60,6 @@
@@ -29,7 +29,7 @@ index 64504ada8e98..7e3472674a75 100644
  		interrupt-controller;
  		#interrupt-cells = <2>;
 diff --git a/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi b/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
-index df202c1c17ea..6df6319c19b2 100644
+index df202c1..6df6319 100644
 --- a/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
 +++ b/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
 @@ -43,7 +43,6 @@
@@ -41,7 +41,7 @@ index df202c1c17ea..6df6319c19b2 100644
  		ksz,reset-switch;
  
 diff --git a/drivers/net/dsa/ksz886x/ksz8863.c b/drivers/net/dsa/ksz886x/ksz8863.c
-index df99dcf456d3..51410a288330 100644
+index df99dcf..51410a2 100644
 --- a/drivers/net/dsa/ksz886x/ksz8863.c
 +++ b/drivers/net/dsa/ksz886x/ksz8863.c
 @@ -865,9 +865,6 @@ static int ksz8863_probe(struct mdio_device *mdiodev)
@@ -55,7 +55,7 @@ index df99dcf456d3..51410a288330 100644
  	if (err)
  		goto err_free;
 diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
-index 06ea9063ff1a..d5bd3d5951fd 100644
+index 06ea906..d5bd3d5 100644
 --- a/drivers/net/dsa/mv88e6xxx/chip.c
 +++ b/drivers/net/dsa/mv88e6xxx/chip.c
 @@ -4352,11 +4352,6 @@ static int mv88e6xxx_probe(struct mdio_device *mdiodev)
@@ -71,7 +71,7 @@ index 06ea9063ff1a..d5bd3d5951fd 100644
  	if (err)
  		return err;
 diff --git a/include/net/dsa.h b/include/net/dsa.h
-index 8f369db527fe..d9f19dd499af 100644
+index 8f369db..d9f19dd 100644
 --- a/include/net/dsa.h
 +++ b/include/net/dsa.h
 @@ -397,21 +397,10 @@ struct mii_bus *dsa_host_dev_to_mii_bus(struct device *dev);
@@ -109,7 +109,7 @@ index 8f369db527fe..d9f19dd499af 100644
  
  void dsa_unregister_switch(struct dsa_switch *ds);
 diff --git a/net/dsa/dsa.c b/net/dsa/dsa.c
-index 967067ef154c..ed593589b86e 100644
+index 967067e..ed59358 100644
 --- a/net/dsa/dsa.c
 +++ b/net/dsa/dsa.c
 @@ -31,9 +31,6 @@
@@ -152,5 +152,5 @@ index 967067ef154c..ed593589b86e 100644
  	if (!mdio)
  		return -EINVAL;
 -- 
-2.17.1
+2.7.4
 

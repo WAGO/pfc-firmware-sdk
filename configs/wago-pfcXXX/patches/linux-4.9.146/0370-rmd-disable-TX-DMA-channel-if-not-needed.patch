@@ -15,7 +15,7 @@ Signed-off-by: Christian Hohnstaedt <Christian.Hohnstaedt@wago.com>
  1 file changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/char/rmd.c b/drivers/char/rmd.c
-index 680a8cc89122..0f42e8e9c978 100644
+index 680a8cc..0f42e8e 100644
 --- a/drivers/char/rmd.c
 +++ b/drivers/char/rmd.c
 @@ -635,6 +635,17 @@ static int rmd_dma_setup_channel(struct rmd *rmd, struct rmd_channel *chan,
@@ -56,5 +56,5 @@ index 680a8cc89122..0f42e8e9c978 100644
  	case RMD_GET_READ_TRIPPLE_BUF_CTRL_OFFSET:
  		return info->rx_channel.tripple_buf_ctrl_offset;
 -- 
-2.17.1
+2.7.4
 

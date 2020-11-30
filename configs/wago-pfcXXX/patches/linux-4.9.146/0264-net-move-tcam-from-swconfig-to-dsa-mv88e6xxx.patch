@@ -1222,7 +1222,7 @@ index 4749281..467fef8 100644
 -obj-$(CONFIG_SWCFG_MV88E6321)   += mv88e6321-cfg.o mv88e6321_tcam.o
 +obj-$(CONFIG_SWCFG_MV88E6321)   += mv88e6321-cfg.o
 diff --git a/drivers/net/phy/mv88e6321-cfg.c b/drivers/net/phy/mv88e6321-cfg.c
-index 511a2bf..aa73f9c 100644
+index 511a2bf7..aa73f9c 100644
 --- a/drivers/net/phy/mv88e6321-cfg.c
 +++ b/drivers/net/phy/mv88e6321-cfg.c
 @@ -29,7 +29,7 @@

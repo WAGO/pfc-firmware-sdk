@@ -71,8 +71,6 @@ libconfig_dnsmasq.a_CXXFLAGS         += $(libconfig_dnsmasq.a_CCXXFLAGS)
 libconfig_dnsmasq.a_CXXFLAGS         += $(call pkg_config_cxxflags,$(libconfig_dnsmasq.a_PKG_CONFIGS))
 libnetwork_config.a_CLANG_TIDY_CHECKS += $(GTEST_CLANG_TIDY_CHECKS)
 libnetwork_config.a_CLANG_TIDY_CHECKS += -google-runtime-references
-#libconfig_dnsmasq.a_LDFLAGS          += $(call option_lib,$(libconfig_dnsmasq.a_LIBS),libconfig_dnsmasq)
-#libconfig_dnsmasq.a_LDFLAGS          += $(call pkg_config_ldflags,$(libconfig_dnsmasq.a_PKG_CONFIGS))
 
 
 #######################################################################################################################
@@ -102,7 +100,7 @@ alltests.elf_CLANG_TIDY_CHECKS += $(GTEST_CLANG_TIDY_CHECKS)
 
 #######################################################################################################################
 # Settings for build target config_dnsmasq_c.elf
-config_dnsmasq_c.elf_LIBS             += config_dnsmasq ctnetwork ctlog glib-2.0
+config_dnsmasq_c.elf_LIBS             += config_dnsmasq ctnetwork ctlog
 config_dnsmasq_c.elf_STATICALLYLINKED += config_dnsmasq
 config_dnsmasq_c.elf_PKG_CONFIGS      += libnetconf glib-2.0
 config_dnsmasq_c.elf_DISABLEDWARNINGS += $(SHARED_DISABLEDWARNINGS)

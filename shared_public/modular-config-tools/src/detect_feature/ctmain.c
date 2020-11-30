@@ -228,7 +228,7 @@ static bool IsFeatureAvailable(ctutil_OptionsCommon_t const * const pstCommonOpt
     char const * const szDeviceFeaturePath = pstResources->pstSpecificResources->szDeviceFeaturePath;
     char szPathBuffer[PATH_MAX];
     strncpy(szPathBuffer, szDeviceFeaturePath, PATH_MAX - 1U);
-    szPathBuffer[PATH_MAX] = '\0';
+    szPathBuffer[PATH_MAX - 1U] = '\0';
     strncat(szPathBuffer, "/", PATH_MAX - 1U);
     strncat(szPathBuffer, szFeature, PATH_MAX - 1U);
     char szResolvedPathBuffer[PATH_MAX];

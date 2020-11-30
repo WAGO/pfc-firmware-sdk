@@ -1,0 +1,13 @@
+## SECTION=networking
+
+config GRPC
+	tristate
+	select HOST_GRPC
+	select PROTOBUF
+	select ABSEIL_CPP
+	select C_ARES
+	select OPENSSL
+	select ZLIB
+	prompt "grpc"
+	help
+	  A high performance, open-source universal RPC framework

@@ -64,9 +64,3 @@ int ct_liblog_setLastError(const char *errorStr)
     return status;
 }
 
-int ct_liblog_reportError(enum eStatusCode errNum, const char *additionalStr)
-{
-    (void) errNum;
-    (void) additionalStr;
-    return SUCCESS;
-}

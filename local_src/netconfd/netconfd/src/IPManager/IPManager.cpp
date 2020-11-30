@@ -70,14 +70,14 @@ IPManager::IPManager(const IDeviceProperties &properties_provider, const IBridge
   return nullptr;
 }
 
-Status IPManager::Configure(const IPConfigs &configs) {
-  Status status;
+Error IPManager::Configure(const IPConfigs &configs) {
+  Error status;
 
   for (auto &ip_config : configs) {
     auto ip_link = CreateOrGet(ip_config.interface_);
     status = ip_link->SetIPConfig(ip_config);
 
-    if (status.NotOk()) {
+    if (status.IsNotOk()) {
       break;
     }
   }
@@ -147,7 +147,7 @@ IPConfigs IPManager::QueryAllCurrentIPConfigsThatAreNotIncludetInIPConfigs(const
   return configs;
 }
 
-Status IPManager::ValidateIPConfigs(const IPConfigs &configs) const {
+Error IPManager::ValidateIPConfigs(const IPConfigs &configs) const {
   return IPValidator::ValidateIPConfigs(configs);
 }
 
@@ -157,7 +157,7 @@ void IPManager::OnNetDevRemoved(NetDevPtr netdev) {
   });
 
   IPConfigs configs;
-  Status status = persistence_provider_.Read(configs);
+  Error status = persistence_provider_.Read(configs);
 
   auto it = ::std::find_if(configs.begin(), configs.end(), [&](IPConfig config) {
     return netdev->GetName() == config.interface_;
@@ -166,7 +166,7 @@ void IPManager::OnNetDevRemoved(NetDevPtr netdev) {
     configs.erase(it);
   }
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = persistence_provider_.Write(configs);
   }
 }
@@ -195,7 +195,7 @@ bool IPManager::HasToApplyDipSwitchConfig() const {
 
 void IPManager::ModifyIpConfigByDipSwitch(IPConfigs &ip_configs) {
   DipSwitchIpConfig dip_switch_ip_config;
-  Status status = persistence_provider_.Read(dip_switch_ip_config);
+  Error status = persistence_provider_.Read(dip_switch_ip_config);
 
   ModifyIpConfigByDipSwitch(ip_configs, dip_switch_ip_config);
 }
@@ -241,14 +241,14 @@ void IPManager::ModifyIpConfigByDipSwitch(IPConfigs &config, const DipSwitchIpCo
 }
 
 bool IPManager::HasToBePersisted(const IPConfig &ip_config) const {
-  if (ip_config.interface_ == "wwan0") {
-    return false;
+  auto netdev = netdev_manager_.GetByName(ip_config.interface_);
+  if (netdev && (netdev->GetKind() && persistetDevices) ) {
+    return (ip_config.source_ != IPSource::TEMPORARY && ip_config.source_ != IPSource::UNKNOWN);
   }
-
-  return (ip_config.source_ != IPSource::TEMPORARY && ip_config.source_ != IPSource::UNKNOWN);
+  return false;
 }
 
-Status IPManager::Persist(const IPConfigs &config) {
+Error IPManager::Persist(const IPConfigs &config) {
   IPConfigs new_config;
   persistence_provider_.Read(new_config);
 
@@ -258,89 +258,83 @@ Status IPManager::Persist(const IPConfigs &config) {
     }
   }
 
-  Status status = persistence_provider_.Write(new_config);
-
-  if (status.NotOk()) {
-    status.Prepend("Failed to persist the ip configuration: ");
-  }
-
-  return status;
+  return persistence_provider_.Write(new_config);
 }
 
-Status IPManager::ApplyTempFixIpConfiguration(const IPConfigs &config) {
+Error IPManager::ApplyTempFixIpConfiguration(const IPConfigs &config) {
   DipSwitchIpConfig dip;
   const auto &bridges = netdev_manager_.GetBridgeNetDevs();
   IPConfigs ip_configs;
   for (const auto &netdev : bridges) {
-    ip_configs.emplace_back(netdev->GetName(), IPSource::TEMPORARY, ZeroIP, ZeroIP);
+    ip_configs.emplace_back(netdev->GetName(), IPSource::NONE, ZeroIP, ZeroIP);
   }
 
   auto status = Apply(ip_configs, dip);
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = Apply(config, dip);
   }
 
   return status;
 }
 
-Status IPManager::ApplyIpConfiguration(const IPConfigs &config) {
+Error IPManager::ApplyIpConfiguration(const IPConfigs &config) {
   DipSwitchIpConfig dip_switch_ip_config;
   persistence_provider_.Read(dip_switch_ip_config);
 
   // Apply and persist IP-Configuration
   IPConfigs new_config = config;
   ComplementNetmasks(new_config);
-  Status status = Apply(new_config, dip_switch_ip_config);
-  if (status.Ok()) {
+  Error status = Apply(new_config, dip_switch_ip_config);
+  if (status.IsOk()) {
     status = Persist(new_config);
   }
 
   return status;
 }
 
-Status IPManager::ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) {
+Error IPManager::ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) {
   auto ip_configs = GetIPConfigs( { DIP_SWITCH_BRIDGE });
   // Apply ip but do not persist ip configuration.
   // Persist dip switch ip configuration only.
 
-  Status status = Apply(ip_configs, dip_switch_ip_config);
+  Error status = Apply(ip_configs, dip_switch_ip_config);
 
-  if (status.Ok() && ip_dip_switch_.GetMode() != DipSwitchMode::HW_NOT_AVAILABLE) {
+  if (status.IsOk() && ip_dip_switch_.GetMode() != DipSwitchMode::HW_NOT_AVAILABLE) {
     status = persistence_provider_.Write(dip_switch_ip_config);
   }
 
   return status;
 }
 
-Status IPManager::ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) {
+Error IPManager::ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) {
   IPConfigs new_config = ip_configs;
   ComplementNetmasks(new_config);
-  Status status = Apply(new_config, dip_switch_ip_config);
+  Error status = Apply(new_config, dip_switch_ip_config);
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = Persist(new_config);
   }
 
-  if (status.Ok() && ip_dip_switch_.GetMode() != DipSwitchMode::HW_NOT_AVAILABLE) {
+  if (status.IsOk() && ip_dip_switch_.GetMode() != DipSwitchMode::HW_NOT_AVAILABLE) {
     status = persistence_provider_.Write(dip_switch_ip_config);
   }
 
   return status;
 }
 
-Status IPManager::CheckExistenceAndAccess(const IPConfigs &ip_configs) const {
+Error IPManager::CheckExistenceAndAccess(const IPConfigs &ip_configs) const {
   Interfaces not_assignable_interfaces = interface_information_.GetBridgeAssignedInterfaces();
-  auto status = Status {};
+  auto status = Error {};
   for (const auto &ip_config : ip_configs) {
     const Interface &interface = ip_config.interface_;
     const auto netdev = netdev_manager_.GetByName(interface);
 
     if (netdev) {
       if (netdev->IsIpConfigReadonly()) {
-        status.Append(StatusCode::INVALID_CONFIG, "IP config of " + interface + " is readonly! ");
+        status.Set(ErrorCode::IP_CONFIG_READONLY, interface);
       }
     } else {
-      status.Append(StatusCode::INVALID_CONFIG, interface + " does not exist! ");
+      status.Set(ErrorCode::INTERFACE_NOT_EXISTING, interface);
     }
   }
 
@@ -348,33 +342,29 @@ Status IPManager::CheckExistenceAndAccess(const IPConfigs &ip_configs) const {
 
 }
 
-Status IPManager::ValidateIPConfigIsApplicableToSystem(const IPConfigs &ip_configs) const {
+Error IPManager::ValidateIPConfigIsApplicableToSystem(const IPConfigs &ip_configs) const {
   IPConfigs remain_ip_configs = QueryAllCurrentIPConfigsThatAreNotIncludetInIPConfigs(ip_configs);
   IPConfigs new_ip_configs = IPValidator::FilterValidStaticAndTemporaryIPConfigs(ip_configs);
   return IPValidator::ValidateCombinabilityOfIPConfigs(new_ip_configs, remain_ip_configs);
 }
 
-Status IPManager::Apply(const IPConfigs &config, const DipSwitchIpConfig &dip_switch_ip_config) {
+Error IPManager::Apply(const IPConfigs &config, const DipSwitchIpConfig &dip_switch_ip_config) {
   auto configs = config;
 
   ModifyIpConfigByDipSwitch(configs, dip_switch_ip_config);
 
-  Status status = IPValidator::ValidateIPConfigs(configs);
+  Error status = IPValidator::ValidateIPConfigs(configs);
 
-  if (status.Ok()){
+  if (status.IsOk()){
     status = CheckExistenceAndAccess(configs);
   }
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = ValidateIPConfigIsApplicableToSystem(configs);
   }
 
-  if (status.Ok()) {
+  if (status.IsOk()) {
     status = Configure(configs);
-  }
-
-  if (status.NotOk()) {
-    status.Prepend("Failed to apply the ip configuration: ");
   }
 
   return status;

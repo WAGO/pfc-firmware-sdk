@@ -28,7 +28,6 @@ $(NETCONFD_SHARED_INCLUDES)      \
 -I$(common_PROJECT_ROOT)/src     \
 -I$(PROJECT_ROOT)/utility/extern 
 
-
 libcommon.a_DISABLEDWARNINGS +=
 libcommon.a_CXXDISABLEDWARNINGS += $(libcommon.a_DISABLEDWARNINGS) abi-tag
 libcommon.a_CDISABLEDWARNINGS += $(libcommon.a_DISABLEDWARNINGS)
@@ -44,7 +43,7 @@ libcommon.a_CFLAGS += $(call option_std,c99)
 libcommon.a_CFLAGS += $(call option_disable_warning,$(libcommon.a_CDISABLEDWARNINGS))
 libcommon.a_CFLAGS += $(libcommon.a_CCXXFLAGS)
 libcommon.a_CXXFLAGS += $(call pkg_config_cxxflags,$(libcommon.a_PKG_CONFIGS))
-libcommon.a_CXXFLAGS += $(call option_std,c++14)
+libcommon.a_CXXFLAGS += $(call option_std,c++17)
 libcommon.a_CXXFLAGS += $(call option_disable_warning,$(libcommon.a_CXXDISABLEDWARNINGS))
 libcommon.a_CXXFLAGS += $(libcommon.a_CCXXFLAGS)
 libcommon.a_SOURCES += $(call fglob_r,$(common_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
@@ -52,8 +51,7 @@ libcommon.a_SOURCES += $(netonfd_common_sources)
 libcommon.a_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
 libcommon.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
 libcommon.a_CLANG_TIDY_CHECKS += -google-runtime-references
-
-
+libcommon.a_VERSION := $(NETCONFD_VERSION)
 
 
 #######################################################################################################################
@@ -79,7 +77,7 @@ common_tests.elf_CPPFLAGS += $(call uniq, $(libcommon.a_DEFINES))
 common_tests.elf_CPPFLAGS += $(call pkg_config_cppflags,$(common_tests.elf_PKG_CONFIGS))
 common_tests.elf_CFLAGS += $(call option_std,gnu99)
 common_tests.elf_CFLAGS += $(call option_disable_warning,$(common_tests.elf_CDISABLEDWARNINGS))
-common_tests.elf_CXXFLAGS += $(call option_std,gnu++14)
+common_tests.elf_CXXFLAGS += $(call option_std,gnu++17)
 common_tests.elf_CXXFLAGS += $(call option_disable_warning,$(common_tests.elf_CXXDISABLEDWARNINGS))
 common_tests.elf_LDFLAGS += $(call option_lib,$(common_tests.elf_LIBS),common_tests.elf)
 common_tests.elf_LDFLAGS += $(call pkg_config_ldflags,$(common_tests.elf_PKG_CONFIGS))

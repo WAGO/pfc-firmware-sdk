@@ -1,0 +1,11 @@
+--- ppp-2.4.8/pppd/pppcrypt.h	2020-06-22 16:21:29.974151426 +0200
++++ ppp-2.4.8/pppd/pppcrypt.h	2020-06-22 16:23:46.996881912 +0200
+@@ -38,7 +38,7 @@
+ #endif
+ 
+ #ifndef USE_CRYPT
+-#include <des.h>
++#include <openssl/des.h>
+ #endif
+ 
+ extern bool	DesSetkey __P((u_char *));

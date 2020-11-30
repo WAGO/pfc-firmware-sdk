@@ -1,0 +1,39 @@
+From be312cbfae0a2e7c50f1ac64c71bd20fbd9a434f Mon Sep 17 00:00:00 2001
+From: Jan Sondhauss <jan.sondhauss@wago.com>
+Date: Mon, 21 Sep 2020 07:51:56 +0200
+Subject: [PATCH] drivers: omap rng: set random quality as with newer kernels
+ to ensure fast crng initialization
+
+Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
+---
+ drivers/char/hw_random/omap-rng.c      | 1 +
+ drivers/char/hw_random/omap3-rom-rng.c | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
+index f5c26a5..557bd4c 100644
+--- a/drivers/char/hw_random/omap-rng.c
++++ b/drivers/char/hw_random/omap-rng.c
+@@ -373,6 +373,7 @@ static int omap_rng_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	omap_rng_ops.priv = (unsigned long)priv;
++	omap_rng_ops.quality = 900;
+ 	platform_set_drvdata(pdev, priv);
+ 	priv->dev = dev;
+ 
+diff --git a/drivers/char/hw_random/omap3-rom-rng.c b/drivers/char/hw_random/omap3-rom-rng.c
+index 37a58d7..1aa14b4 100644
+--- a/drivers/char/hw_random/omap3-rom-rng.c
++++ b/drivers/char/hw_random/omap3-rom-rng.c
+@@ -84,6 +84,7 @@ static int omap3_rom_rng_read(struct hwrng *rng, void *data, size_t max, bool w)
+ static struct hwrng omap3_rom_rng_ops = {
+ 	.name		= "omap3-rom",
+ 	.read		= omap3_rom_rng_read,
++	.quality	= 900,
+ };
+ 
+ static int omap3_rom_rng_probe(struct platform_device *pdev)
+-- 
+2.7.4
+

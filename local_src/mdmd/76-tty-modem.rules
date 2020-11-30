@@ -6,9 +6,6 @@ ACTION=="remove", GOTO="tty_remove"
 # Create symlinks for PFC UMTS modem device on 8207
 KERNEL=="ttyUSB*", ENV{ID_VENDOR_ID}=="05c6", ENV{ID_MODEL_ID}=="9003", SYMLINK+="ttyModem%n"
 
-# Create symlinks for PFC UMTS modem device on 8217
-KERNEL=="ttyUSB*", ENV{ID_VENDOR_ID}=="2c7c", ENV{ID_MODEL_ID}=="0125", SYMLINK+="ttyModem%n"
-
 LABEL="tty_remove"
 
 LABEL="tty_end"

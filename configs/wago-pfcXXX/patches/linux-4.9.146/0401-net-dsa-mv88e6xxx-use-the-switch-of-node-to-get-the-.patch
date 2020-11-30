@@ -10,7 +10,7 @@ Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
-index d5bd3d5951fd..022f0ff701c9 100644
+index d5bd3d5..022f0ff 100644
 --- a/drivers/net/dsa/mv88e6xxx/chip.c
 +++ b/drivers/net/dsa/mv88e6xxx/chip.c
 @@ -2847,7 +2847,7 @@ static u16 mv88e6xxx_of_get_led_ctrl(struct mv88e6xxx_chip *chip, int port,
@@ -32,5 +32,5 @@ index d5bd3d5951fd..022f0ff701c9 100644
  	return def_value;
  }
 -- 
-2.17.1
+2.7.4
 

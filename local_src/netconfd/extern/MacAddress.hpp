@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
 #include <string>
@@ -13,7 +13,7 @@ struct MacAddress {
   ::std::uint8_t addr_[LENGTH] = {0};
 
   MacAddress(){}
-  constexpr MacAddress(const ::std::uint8_t(& array)[LENGTH]): addr_{}{
+  constexpr MacAddress(const ::std::uint8_t(& array)[LENGTH]) noexcept: addr_{}{
     for (auto i = 0; i != LENGTH; ++i)
       addr_[i] = array[i];
   }

@@ -1,7 +1,5 @@
-
-#ifndef ALPHANUM__HPP
-#define ALPHANUM__HPP
-
+// SPDX-License-Identifier: LGPL-3.0-or-later
+#pragma once
 #pragma GCC diagnostic ignored "-Wunused-function"
 
 /*
@@ -444,6 +442,3 @@ int main()
   return 0;
 }
 #endif
-
-#endif
-

@@ -18,7 +18,8 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
-#include <Status.hpp>
+
+#include "Error.hpp"
 
 using namespace testing;
 
@@ -74,26 +75,26 @@ TEST_F(AFileEditor, ReadsAConfiguration) {
   WriteConfigFile(path_, data_);
 
   ::std::string data;
-  Status status = file_editor->Read(path_, data);
+  Error status = file_editor->Read(path_, data);
 
   EXPECT_EQ(data, data_);
-  EXPECT_TRUE(status.Ok());
+  EXPECT_TRUE(status.IsOk());
 
 }
 
 TEST_F(AFileEditor, TriesToReadAMissingFile) {
 
   ::std::string data;
-  Status status = file_editor->Read(missing_path_, data);
+  Error status = file_editor->Read(missing_path_, data);
 
   EXPECT_EQ(data.size(), 0);
-  EXPECT_EQ(StatusCode::FILE_READ_ERROR, status.Get());
+  EXPECT_EQ(ErrorCode::FILE_READ, status.GetErrorCode());
 }
 
 TEST_F(AFileEditor, WritesAConfiguration) {
 
-  Status status = file_editor->Write(path_, data_);
-  EXPECT_TRUE(status.Ok());
+  Error status = file_editor->Write(path_, data_);
+  EXPECT_TRUE(status.IsOk());
 
   EXPECT_EQ(data_, ReadConfigFile(path_));
 
@@ -103,18 +104,18 @@ TEST_F(AFileEditor, AppensAConfiguration) {
 
   WriteConfigFile(path_, data_);
 
-  Status status = file_editor->Append(path_,data_);
+  Error status = file_editor->Append(path_,data_);
 
-  EXPECT_TRUE(status.Ok());
+  EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(data_+data_, ReadConfigFile(path_));
 
 }
 
 TEST_F(AFileEditor, TriesToAppendAMissingFile) {
 
-  Status status = file_editor->Append(missing_path_,data_);
+  Error status = file_editor->Append(missing_path_,data_);
 
-  EXPECT_EQ(StatusCode::FILE_DOES_NOT_EXIST_ERROR, status.Get());
+  EXPECT_EQ(ErrorCode::FILE_WRITE, status.GetErrorCode());
 
 }
 

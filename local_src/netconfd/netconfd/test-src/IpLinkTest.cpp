@@ -41,7 +41,7 @@ return arg.source_ == source;
 
 TEST_F(IpLinkTest, FlushOnDestruction) {
 
-  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::NONE))).WillOnce(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::NONE))).WillOnce(Return(Error { }));
 
   {
     IPLink link(mock_ip_configure_, mock_event_manager_, netdev, "", "");
@@ -52,7 +52,7 @@ TEST_F(IpLinkTest, FlushOnDestruction) {
 
 TEST_F(IpLinkTest, NewSourceStatic) {
 
-  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::STATIC))).WillOnce(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::STATIC))).WillOnce(Return(Error { }));
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(1);
 
   sut_->SetIPConfig( { "br0", IPSource::STATIC });
@@ -63,7 +63,7 @@ TEST_F(IpLinkTest, NewSourceStatic) {
 
 TEST_F(IpLinkTest, SetSameIpNoNotify) {
 
-  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::STATIC))).Times(2).WillRepeatedly(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::STATIC))).Times(2).WillRepeatedly(Return(Error { }));
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(1);
 
   sut_->SetIPConfig( { "br0", IPSource::STATIC });
@@ -75,7 +75,7 @@ TEST_F(IpLinkTest, SetSameIpNoNotify) {
 
 TEST_F(IpLinkTest, ChangeOfSourcesNotifies) {
 
-  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Error { }));
   auto config = IPConfig{ "br0", IPSource::STATIC, "192.168.42.42",  "255.255.255.0"};
   sut_->SetIPConfig( config );
 
@@ -93,7 +93,7 @@ TEST_F(IpLinkTest, ChangeOfSourcesNotifies) {
 
 TEST_F(IpLinkTest, SameServiceSourceNoTrigger) {
   /* When source is still DHCP but the address changes the event folder is not triggered */
-  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Error { }));
   auto config = IPConfig{ "br0", IPSource::DHCP, "192.168.42.42",  "255.255.255.0"};
   sut_->SetIPConfig( config );
 
@@ -108,7 +108,7 @@ TEST_F(IpLinkTest, SameServiceSourceNoTrigger) {
 }
 TEST_F(IpLinkTest, SetSameIpWithTemporaryDoesNotify) {
 
-  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Error { }));
   sut_->SetIPConfig( { "br0", IPSource::DHCP });
 
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(2);
@@ -122,7 +122,7 @@ TEST_F(IpLinkTest, SetSameIpWithTemporaryDoesNotify) {
 
 TEST_F(IpLinkTest, SetDifferentIpWithSourceTemporaryNotifies) {
 
-  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(_)).WillRepeatedly(Return(Error { }));
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(1);
   sut_->SetIPConfig( { "br0", IPSource::DHCP });
 
@@ -141,9 +141,9 @@ TEST_P(IpLinkFlushTest, NewSourceDhcpFlushesFirst) {
   auto new_source = GetParam();
 
   // First the flush
-  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::NONE))).WillOnce(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(IPSource::NONE))).WillOnce(Return(Error { }));
   // The the set of the new parameter
-  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(new_source))).WillOnce(Return(Status { }));
+  EXPECT_CALL(mock_ip_configure_, Configure(IpConfigSourceEq(new_source))).WillOnce(Return(Error { }));
   EXPECT_CALL(mock_event_manager_, NotifyNetworkChanges(_,_,_)).Times(1);
 
   sut_->SetIPConfig( { "br0", new_source });

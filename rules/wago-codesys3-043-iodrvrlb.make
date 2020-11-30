@@ -68,7 +68,7 @@ endif
 $(STATEDIR)/cds3-iodrvrlb.compile:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-#	@$(call xslt_compile, $(CDS3_IODRVRLB_DIR)/src/xml/iodrvrlb_diag.xml)
+	@$(call xslt_compile, $(CDS3_IODRVRLB_DIR)/src/xml/iodrvrlb_diag.xml)
 	$(call world/compile, CDS3_IODRVRLB)
 endif
 	@$(call touch)

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #pragma once
 #include <functional>
@@ -6,7 +6,7 @@
 #include <utility>
 #include <nlohmann/json_fwd.hpp>
 
-#include "Status.hpp"
+#include "Error.hpp"
 
 namespace netconf {
 
@@ -17,7 +17,7 @@ class JsonRestorer {
   };
 
   template<class T>
-  Status Restore(const ::std::string &key, T&);
+  Error Restore(const ::std::string &key, T&);
  private:
   const ::std::string backup_;
 };

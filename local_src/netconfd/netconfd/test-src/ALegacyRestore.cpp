@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 #include <gtest/gtest.h>
 #include <MockIDeviceProperties.hpp>
 #include "RestoreLegacy.hpp"
@@ -86,11 +87,11 @@ R"( {
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_EQ(StringRemoveNewlineAndBlank(expected_config),
             StringRemoveNewlineAndBlank(network_data));
-  ASSERT_EQ(StatusCode::OK, status.Get());
+  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
 }
 
 TEST_F(ALegacyRestore, RestoresABackupOfAPreviousFirmwareInSeperatedMode) {
@@ -136,11 +137,11 @@ R"( {
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_EQ(StringRemoveNewlineAndBlank(expected_config),
             StringRemoveNewlineAndBlank(network_data));
-  ASSERT_EQ(StatusCode::OK, status.Get());
+  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
 }
 
 TEST_F(ALegacyRestore, RestoresABackupOfAPreviousFirmwareInvalidDsaTag) {
@@ -162,9 +163,9 @@ XXX=123
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
-  EXPECT_EQ(StatusCode::BACKUP_FILE_ERROR, status);
+  EXPECT_EQ(ErrorCode::BACKUP_CONTENT_INVALID, status.GetErrorCode()) << status.ToString();
 }
 
 
@@ -185,10 +186,10 @@ XXX=123
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_TRUE(network_data.empty());
-  EXPECT_EQ(StatusCode::BACKUP_FILE_ERROR, status.Get());
+  EXPECT_EQ(ErrorCode::BACKUP_CONTENT_MISSING, status.GetErrorCode());
 }
 
 }  // namespace netconf

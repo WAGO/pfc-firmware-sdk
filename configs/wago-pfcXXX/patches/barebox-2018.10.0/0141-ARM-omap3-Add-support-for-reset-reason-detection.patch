@@ -1,7 +1,7 @@
 From bc3591a117e073cdc8b7eb1e7e92b51612ae7e8d Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 7 Nov 2018 07:35:28 +0100
-Subject: [PATCH 141/144] ARM: omap3: Add support for reset reason detection
+Subject: [PATCH] ARM: omap3: Add support for reset reason detection
 
 Due to the Errata i520, the reset code in the linux kernel aswell in barebox
 triggers a cpu reset by setting the bit RST_DPLL3 in the PRM_RSTCTRL register.

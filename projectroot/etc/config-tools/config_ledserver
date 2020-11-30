@@ -1,0 +1,58 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_ledserver
+#
+# Configure ledserver settings.
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+LED_CONFIG_FILE=/etc/specific/leds.conf
+
+
+#-------------- main-programm ------------------------#
+
+status=$SUCCESS
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change ledserver settings: frontled *"
+  echo
+  echo "Usage: config_ledserver frontled=\"active\" | \"inactive\""
+  echo
+  exit $status
+fi
+
+FRONTLED_VALUE=$(GetParameterValue frontled $*)
+
+if [ "$FRONTLED_VALUE" = "active" ] || [ "$FRONTLED_VALUE" = "inactive" ]; then
+
+  rm -f /etc/specific/ledsetup-* 2> /dev/null 
+  TEMP_CONFIG_FILE=${LED_CONFIG_FILE}~
+  sed "s/FRONTLED=.*/FRONTLED=$FRONTLED_VALUE/" ${LED_CONFIG_FILE} > ${TEMP_CONFIG_FILE}
+  sync
+  mv ${TEMP_CONFIG_FILE} ${LED_CONFIG_FILE}
+  sync
+
+  exit $status
+
+fi
+
+SetLastError "Invalid input parameter ($1)"
+status=$INVALID_PARAMETER
+exit $status

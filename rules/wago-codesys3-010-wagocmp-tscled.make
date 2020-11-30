@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CDS3_TSCLED) += cds3-tscled
 
-CDS3_TSCLED_VERSION	 := 0.0.2
+CDS3_TSCLED_VERSION	 := 0.0.3
 CDS3_TSCLED              := TscLED
 CDS3_TSCLED_DIR          := $(BUILDDIR)/$(CDS3_TSCLED)
 CDS3_TSCLED_URL          := file://$(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/$(CDS3_TSCLED)

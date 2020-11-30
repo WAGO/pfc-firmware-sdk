@@ -10,7 +10,7 @@ RUNDIR="/var/run/netconfd"
 PIDFILE="netconfd.pid"
 PATHPIDFILE=$RUNDIR/$PIDFILE
 NETCONFD="/usr/bin/netconfd"
-STARTCMD="$NETCONFD --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=warning"
+STARTCMD="$NETCONFD --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=debug"
 
 set -e
 

@@ -5,6 +5,7 @@ menuconfig RAUC
 	prompt "Rauc Update Tool              "
 	select OPENSSL
 	select GLIB
+	select DBUS
 	select LIBCURL		if RAUC_NETWORK
 	select JSON_GLIB	if RAUC_JSON
 	select SQUASHFS_TOOLS			if RUNTIME

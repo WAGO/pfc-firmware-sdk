@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Status.hpp"
+#include "Error.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -19,10 +19,8 @@ class IBridgeManager {
 
   virtual Bridges GetBridges() const = 0;
   virtual BridgeConfig GetBridgeConfig() const = 0;
-  virtual Status ApplyBridgeConfiguration(BridgeConfig& product_config) const = 0;
-  virtual Status IsValid(BridgeConfig const& product_config) const = 0;
-  virtual Status SetBridgeUp(const Bridge& bridge) const = 0;
-  virtual Status SetBridgeDown(const Bridge& bridge) const = 0;
+  virtual Error ApplyBridgeConfiguration(BridgeConfig& product_config) const = 0;
+  virtual Error IsValid(BridgeConfig const& product_config) const = 0;
 
 };
 

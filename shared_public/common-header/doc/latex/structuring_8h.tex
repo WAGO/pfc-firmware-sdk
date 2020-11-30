@@ -5,8 +5,8 @@
 Helper macros for structuring with member sizes, containers, alignments and so on.  
 
 
-{\ttfamily \#include \char`\"{}wc/compiler.\+h\char`\"{}}\newline
-{\ttfamily \#include \char`\"{}wc/preprocessing.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}wc/compiler.\+h\char`\"{}}\\*
+{\ttfamily \#include \char`\"{}wc/preprocessing.\+h\char`\"{}}\\*
 \subsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
@@ -49,88 +49,100 @@ O\+E\+LH\+: W\+A\+GO Kontakttechnik GmbH \& Co. KG
 
 
 \subsection{Macro Definition Documentation}
-\hypertarget{structuring_8h_af0be53b479ab23dc42f358b421622f68}{}\label{structuring_8h_af0be53b479ab23dc42f358b421622f68} 
 \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE@{W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE}}
 \index{W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE@{W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE}{WC\_BREAKABLE\_SCOPE}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE}
-
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE}{WC_BREAKABLE_SCOPE}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+B\+R\+E\+A\+K\+A\+B\+L\+E\+\_\+\+S\+C\+O\+PE}\hypertarget{structuring_8h_af0be53b479ab23dc42f358b421622f68}{}\label{structuring_8h_af0be53b479ab23dc42f358b421622f68}
 {\bfseries Value\+:}
 \begin{DoxyCode}
-\textcolor{keywordflow}{for}(\textcolor{keywordtype}{size\_t} \hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{WC\_SUBST\_AND\_GLUE}(scope, \_\_LINE\_\_) = 0U; \(\backslash\)
-                                      WC\_SUBST\_AND\_GLUE(scope, \_\_LINE\_\_) == 0U;\(\backslash\)
-                                      WC\_SUBST\_AND\_GLUE(scope, \_\_LINE\_\_)++)
+\textcolor{keywordflow}{for}(\textcolor{keywordtype}{size\_t} \hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{WC\_SUBST\_AND\_GLUE}(scope, \_\_LINE\_\_) = 0U; \hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{\(\backslash\)}
+\hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{                                      WC\_SUBST\_AND\_GLUE}
+      (scope, \_\_LINE\_\_) == 0U;\hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{\(\backslash\)}
+\hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{                                      WC\_SUBST\_AND\_GLUE}
+      (scope, \_\_LINE\_\_)++)
 \end{DoxyCode}
-Defines an breakable scope, maybe exited by a break statement. \hypertarget{structuring_8h_a93e5a054ec246223cc9a036588bc5f8b}{}\label{structuring_8h_a93e5a054ec246223cc9a036588bc5f8b} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF@{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF}}
+Defines an breakable scope, maybe exited by a break statement. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF@{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF}}
 \index{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF@{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF}{WC\_CONTAINER\_OF}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF(\begin{DoxyParamCaption}\item[{}]{container,  }\item[{}]{member,  }\item[{}]{p\+Member }\end{DoxyParamCaption})~(container $\ast$)( ((char $\ast$)(p\+Member)) -\/ offsetof(container, member) )}
-
-Returns the container pointer for a pointer of its member. \hypertarget{structuring_8h_acbe7cb1c9a40dcacab33123c1548f3b8}{}\label{structuring_8h_acbe7cb1c9a40dcacab33123c1548f3b8} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R@{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF}{WC_CONTAINER_OF}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+OF(
+\begin{DoxyParamCaption}
+\item[{}]{container, }
+\item[{}]{member, }
+\item[{}]{p\+Member}
+\end{DoxyParamCaption}
+)~(container $\ast$)( ((char $\ast$)(p\+Member)) -\/ offsetof(container, member) )}\hypertarget{structuring_8h_a93e5a054ec246223cc9a036588bc5f8b}{}\label{structuring_8h_a93e5a054ec246223cc9a036588bc5f8b}
+Returns the container pointer for a pointer of its member. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R@{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R}}
 \index{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R@{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R}{WC\_CONTAINER\_OF\_R}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R(\begin{DoxyParamCaption}\item[{}]{container,  }\item[{}]{member,  }\item[{}]{p\+Member }\end{DoxyParamCaption})~(container const $\ast$)( ((char const $\ast$)(p\+Member)) -\/ offsetof(container, member) )}
-
-Returns the readonly container pointer for a pointer of its member. \hypertarget{structuring_8h_a768501d7e6c74550d8d82d58e22f73a3}{}\label{structuring_8h_a768501d7e6c74550d8d82d58e22f73a3} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED@{W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R}{WC_CONTAINER_OF_R}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+C\+O\+N\+T\+A\+I\+N\+E\+R\+\_\+\+O\+F\+\_\+R(
+\begin{DoxyParamCaption}
+\item[{}]{container, }
+\item[{}]{member, }
+\item[{}]{p\+Member}
+\end{DoxyParamCaption}
+)~(container const $\ast$)( ((char const $\ast$)(p\+Member)) -\/ offsetof(container, member) )}\hypertarget{structuring_8h_acbe7cb1c9a40dcacab33123c1548f3b8}{}\label{structuring_8h_acbe7cb1c9a40dcacab33123c1548f3b8}
+Returns the readonly container pointer for a pointer of its member. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED@{W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED}}
 \index{W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED@{W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED}{WC\_DEPRECATED}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED(\begin{DoxyParamCaption}\item[{}]{func }\end{DoxyParamCaption})~func}
-
-Helper macro to indicate a deprecated function. \hypertarget{structuring_8h_a6b69f1f219fc5154255e56de360b79a9}{}\label{structuring_8h_a6b69f1f219fc5154255e56de360b79a9} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED}{WC_DEPRECATED}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+D\+E\+P\+R\+E\+C\+A\+T\+ED(
+\begin{DoxyParamCaption}
+\item[{}]{func}
+\end{DoxyParamCaption}
+)~func}\hypertarget{structuring_8h_a768501d7e6c74550d8d82d58e22f73a3}{}\label{structuring_8h_a768501d7e6c74550d8d82d58e22f73a3}
+Helper macro to indicate a deprecated function. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN}}
 \index{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN}{WC\_DISBALE\_CLASS\_COPY\_AND\_ASSIGN}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})}
-
-Helper macro to disable copy and assign for a class. \hypertarget{structuring_8h_aed5deff6528d6dcb52f08c6ea0679624}{}\label{structuring_8h_aed5deff6528d6dcb52f08c6ea0679624} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN}{WC_DISBALE_CLASS_COPY_AND_ASSIGN}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+N\+D\+\_\+\+A\+S\+S\+I\+GN(
+\begin{DoxyParamCaption}
+\item[{}]{x}
+\end{DoxyParamCaption}
+)}\hypertarget{structuring_8h_a6b69f1f219fc5154255e56de360b79a9}{}\label{structuring_8h_a6b69f1f219fc5154255e56de360b79a9}
+Helper macro to disable copy and assign for a class. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE}}
 \index{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE}{WC\_DISBALE\_CLASS\_COPY\_ASSIGN\_AND\_MOVE}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})}
-
-Helper macro to disable copy, assign and move for a class. \hypertarget{structuring_8h_a4d23379f0c142cf2011321f103c025b0}{}\label{structuring_8h_a4d23379f0c142cf2011321f103c025b0} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE}{WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+C\+O\+P\+Y\+\_\+\+A\+S\+S\+I\+G\+N\+\_\+\+A\+N\+D\+\_\+\+M\+O\+VE(
+\begin{DoxyParamCaption}
+\item[{}]{x}
+\end{DoxyParamCaption}
+)}\hypertarget{structuring_8h_aed5deff6528d6dcb52f08c6ea0679624}{}\label{structuring_8h_aed5deff6528d6dcb52f08c6ea0679624}
+Helper macro to disable copy, assign and move for a class. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE}}
 \index{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE@{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE}{WC\_DISBALE\_CLASS\_MOVE}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})}
-
-Helper macro to disable move for a class. \hypertarget{structuring_8h_a5db6a60a7c5484686cc5478f67fbc85c}{}\label{structuring_8h_a5db6a60a7c5484686cc5478f67fbc85c} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK@{W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE}{WC_DISBALE_CLASS_MOVE}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+D\+I\+S\+B\+A\+L\+E\+\_\+\+C\+L\+A\+S\+S\+\_\+\+M\+O\+VE(
+\begin{DoxyParamCaption}
+\item[{}]{x}
+\end{DoxyParamCaption}
+)}\hypertarget{structuring_8h_a4d23379f0c142cf2011321f103c025b0}{}\label{structuring_8h_a4d23379f0c142cf2011321f103c025b0}
+Helper macro to disable move for a class. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK@{W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK}}
 \index{W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK@{W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK}{WC\_LOOP\_UNITL\_BREAK}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK~for(;;)}
-
-Defines an endless loop, maybe exited by a break statement. \hypertarget{structuring_8h_aae8539bc6ea741e2f590c7c363ad4130}{}\label{structuring_8h_aae8539bc6ea741e2f590c7c363ad4130} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT@{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK}{WC_LOOP_UNITL_BREAK}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+L\+O\+O\+P\+\_\+\+U\+N\+I\+T\+L\+\_\+\+B\+R\+E\+AK~for(;;)}\hypertarget{structuring_8h_a5db6a60a7c5484686cc5478f67fbc85c}{}\label{structuring_8h_a5db6a60a7c5484686cc5478f67fbc85c}
+Defines an endless loop, maybe exited by a break statement. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT@{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT}}
 \index{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT@{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT}{WC\_SIZEOF\_ELEMENT}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT(\begin{DoxyParamCaption}\item[{}]{array }\end{DoxyParamCaption})~(sizeof((array)\mbox{[}0\mbox{]}))}
-
-Returns the size of an array member. \hypertarget{structuring_8h_aa19c3ea7cf05f6cf5e3f7185754a35a1}{}\label{structuring_8h_aa19c3ea7cf05f6cf5e3f7185754a35a1} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER@{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT}{WC_SIZEOF_ELEMENT}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+E\+L\+E\+M\+E\+NT(
+\begin{DoxyParamCaption}
+\item[{}]{array}
+\end{DoxyParamCaption}
+)~(sizeof((array)\mbox{[}0\mbox{]}))}\hypertarget{structuring_8h_aae8539bc6ea741e2f590c7c363ad4130}{}\label{structuring_8h_aae8539bc6ea741e2f590c7c363ad4130}
+Returns the size of an array member. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER@{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER}}
 \index{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER@{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER}{WC\_SIZEOF\_MEMBER}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{member }\end{DoxyParamCaption})~(sizeof(((type $\ast$)(0))-\/$>$member))}
-
-Returns the size of a structure or public class member. \hypertarget{structuring_8h_a2e0a68531cc3cecf394f6b7f65c22c45}{}\label{structuring_8h_a2e0a68531cc3cecf394f6b7f65c22c45} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+T\+Y\+P\+E\+OF@{W\+C\+\_\+\+T\+Y\+P\+E\+OF}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER}{WC_SIZEOF_MEMBER}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+S\+I\+Z\+E\+O\+F\+\_\+\+M\+E\+M\+B\+ER(
+\begin{DoxyParamCaption}
+\item[{}]{type, }
+\item[{}]{member}
+\end{DoxyParamCaption}
+)~(sizeof(((type $\ast$)(0))-\/$>$member))}\hypertarget{structuring_8h_aa19c3ea7cf05f6cf5e3f7185754a35a1}{}\label{structuring_8h_aa19c3ea7cf05f6cf5e3f7185754a35a1}
+Returns the size of a structure or public class member. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+T\+Y\+P\+E\+OF@{W\+C\+\_\+\+T\+Y\+P\+E\+OF}}
 \index{W\+C\+\_\+\+T\+Y\+P\+E\+OF@{W\+C\+\_\+\+T\+Y\+P\+E\+OF}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+T\+Y\+P\+E\+OF}{WC\_TYPEOF}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+T\+Y\+P\+E\+OF(\begin{DoxyParamCaption}\item[{}]{variable }\end{DoxyParamCaption})}
-
-Placeholder for the type of variable. \hypertarget{structuring_8h_ad8ae38e7d9abae9852197a1990d10bff}{}\label{structuring_8h_ad8ae38e7d9abae9852197a1990d10bff} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA@{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+T\+Y\+P\+E\+OF}{WC_TYPEOF}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+T\+Y\+P\+E\+OF(
+\begin{DoxyParamCaption}
+\item[{}]{variable}
+\end{DoxyParamCaption}
+)}\hypertarget{structuring_8h_a2e0a68531cc3cecf394f6b7f65c22c45}{}\label{structuring_8h_a2e0a68531cc3cecf394f6b7f65c22c45}
+Placeholder for the type of variable. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA@{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA}}
 \index{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA@{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA}{WC\_UNUSED\_DATA}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~((void)x)}
-
-Helper macro to explicitly define a variable as unused. \hypertarget{structuring_8h_a709f71518f7bad7977f13ea9dd19ce44}{}\label{structuring_8h_a709f71518f7bad7977f13ea9dd19ce44} 
-\index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM@{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM}}
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA}{WC_UNUSED_DATA}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+D\+A\+TA(
+\begin{DoxyParamCaption}
+\item[{}]{x}
+\end{DoxyParamCaption}
+)~((void)x)}\hypertarget{structuring_8h_ad8ae38e7d9abae9852197a1990d10bff}{}\label{structuring_8h_ad8ae38e7d9abae9852197a1990d10bff}
+Helper macro to explicitly define a variable as unused. \index{structuring.\+h@{structuring.\+h}!W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM@{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM}}
 \index{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM@{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM}!structuring.\+h@{structuring.\+h}}
-\subsubsection{\texorpdfstring{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM}{WC\_UNUSED\_PARAM}}
-{\footnotesize\ttfamily \#define W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~\hyperlink{preprocessing_8h_ae57ce93eefdbe25f66801ff96cbcd914}{W\+C\+\_\+\+S\+U\+B\+S\+T\+\_\+\+A\+N\+D\+\_\+\+G\+L\+UE}(\+\_\+unused\+\_\+, x) \+\_\+\+\_\+attribute\+\_\+\+\_\+((unused))}
-
+\subsubsection[{\texorpdfstring{W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM}{WC_UNUSED_PARAM}}]{\setlength{\rightskip}{0pt plus 5cm}\#define W\+C\+\_\+\+U\+N\+U\+S\+E\+D\+\_\+\+P\+A\+R\+AM(
+\begin{DoxyParamCaption}
+\item[{}]{x}
+\end{DoxyParamCaption}
+)~{\bf W\+C\+\_\+\+S\+U\+B\+S\+T\+\_\+\+A\+N\+D\+\_\+\+G\+L\+UE}(\+\_\+unused\+\_\+, x) \+\_\+\+\_\+attribute\+\_\+\+\_\+((unused))}\hypertarget{structuring_8h_a709f71518f7bad7977f13ea9dd19ce44}{}\label{structuring_8h_a709f71518f7bad7977f13ea9dd19ce44}
 Helper macro to explicitly define a function parameter as unused. 

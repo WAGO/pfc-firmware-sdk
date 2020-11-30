@@ -1,0 +1,19 @@
+## SECTION=networking
+
+config LIBSSH2
+	tristate
+	prompt "libssh2"
+	select ZLIB
+	select OPENSSL
+	help
+	  SSH2 client-side library
+	  
+	  libssh2 is the thin library implementing client side of SSH2
+	  protocol as defined by Internet Drafts SECSH-TRANS,
+	  SECSH-USERAUTH, SECSH-CONNECTION, SECSH-ARCH,
+	  SECSH-FILEXFER, SECSH-DHGEX, SECSH-NUMBERS, and
+	  SECSH-PUBLICKEY
+
+	  This boils down to the regular terminal, scp and SFTP
+	  sessions; port forwarding; password, key-based and
+	  keyboard-interactive authentication.

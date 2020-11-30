@@ -1,7 +1,7 @@
 From 600b5b00c65c88c32db26ea1eda8c1cbfc9bdc5a Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Wed, 12 Sep 2018 09:50:48 +0200
-Subject: [PATCH 079/144] arm: dts: am335x: add emmc mlo and boot partitions
+Subject: [PATCH] arm: dts: am335x: add emmc mlo and boot partitions
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

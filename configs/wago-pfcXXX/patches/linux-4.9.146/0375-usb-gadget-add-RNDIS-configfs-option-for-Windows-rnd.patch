@@ -126,7 +126,7 @@ index 4e2ad04..268c7ac 100644
  	struct usb_os_desc		rndis_os_desc;
 diff --git a/include/uapi/linux/usb/misc.h b/include/uapi/linux/usb/misc.h
 new file mode 100644
-index 00000000..a6661f6
+index 0000000..a6661f6
 --- /dev/null
 +++ b/include/uapi/linux/usb/misc.h
 @@ -0,0 +1,14 @@

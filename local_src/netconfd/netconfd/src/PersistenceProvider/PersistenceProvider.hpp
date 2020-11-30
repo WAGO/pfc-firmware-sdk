@@ -23,23 +23,23 @@ class PersistenceProvider : public IPersistenceProvider, public IPersistence<Int
   PersistenceProvider(const PersistenceProvider&&) = delete;
   PersistenceProvider& operator=(const PersistenceProvider&&) = delete;
 
-  Status Write(const BridgeConfig& config) override;
-  Status Read(BridgeConfig& config) override;
+  Error Write(const BridgeConfig& config) override;
+  Error Read(BridgeConfig& config) override;
 
-  Status Write(const IPConfigs& configs) override;
-  Status Read(IPConfigs& configs) override;
+  Error Write(const IPConfigs& configs) override;
+  Error Read(IPConfigs& configs) override;
 
-  Status Write(const DipSwitchIpConfig& config) override;
-  Status Read(DipSwitchIpConfig& config) override;
+  Error Write(const DipSwitchIpConfig& config) override;
+  Error Read(DipSwitchIpConfig& config) override;
 
-  Status Read(BridgeConfig& config, IPConfigs& configs) override;
+  Error Read(BridgeConfig& config, IPConfigs& configs) override;
 
-  Status Read(InterfaceConfigs& port_configs) override;
-  Status Write(const InterfaceConfigs& port_configs) override;
+  Error Read(InterfaceConfigs& port_configs) override;
+  Error Write(const InterfaceConfigs& port_configs) override;
 
-  Status Backup(const std::string &file_path,
+  Error Backup(const std::string &file_path,
                 const std::string &targetversion) override;
-  Status Restore(const ::std::string &file_path,
+  Error Restore(const ::std::string &file_path,
                  BridgeConfig &bridge_config,
                  IPConfigs &ip_configs,
                  InterfaceConfigs &interface_configs,

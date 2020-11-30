@@ -31,15 +31,9 @@
       </string>
     
   </event>
-  <event id="x0005" name="DoubleIP_br0">
+  <event id="x0005" name="IpConflict">
     <string>
-        <en>ipwatchd: Duplicate IP address detected in network attached to socket X1</en>
-      </string>
-    
-  </event>
-  <event id="x0006" name="DoubleIP_br1">
-    <string>
-        <en>ipwatchd: Duplicate IP address detected in network attached to socket X2</en>
+	      <en>IP address conflict detected. See /var/log/messages for details.</en>
       </string>
     
   </event>
@@ -130,6 +124,16 @@
     </led>
     <string>
         <en>System Booted</en>
+      </string>
+    
+  </event>
+  <event id="x00D0" name="wait_to_start">
+    <led name="SYS" state="BLINK_GRN_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>Wait to start</en>
       </string>
     
   </event>
@@ -3556,6 +3560,24 @@
       </string>
     
   </event>
+  <event id="x000D" name="Warm-Reset-run">
+    <led name="RUN" state="FLASH_OFF_GRN">
+      <on>300</on>
+    </led>
+    <string>
+        <en>Warm reset performed but PLC is already running</en>
+      </string>
+    
+  </event>
+  <event id="x000E" name="Cold-Reset-run">
+    <led name="RUN" state="FLASH_OFF_GRN">
+      <on>1000</on>
+    </led>
+    <string>
+        <en>Cold reset performed but PLC is already running</en>
+      </string>
+    
+  </event>
   <event id="x0010" name="EDEC_KBUS_conf_mismatch">
     <led name="MS" state="BLINK_SEQ_750">
       <blinkcode>1</blinkcode>
@@ -4025,6 +4047,17 @@
     <string>
         <en>Modem SIM card is blocked</en>
         <de>Modem SIM-Karte ist gesperrt</de>
+      </string>
+    
+  </event>
+  <event id="x0036" name="MDMDNG_NET_SEARCHING_MODEM">
+    <led name="NET" state="BLINK_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>Searching for modem</en>
+        <de>Suche nach Modem</de>
       </string>
     
   </event>

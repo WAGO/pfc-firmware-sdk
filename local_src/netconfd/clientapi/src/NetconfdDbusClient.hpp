@@ -1,8 +1,11 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
 #include <chrono>
 #include <string>
+#include <vector>
+
+#include "DbusResult.hpp"
 
 struct DBusConnection;
 
@@ -20,35 +23,36 @@ namespace netconf
 
       bool CheckServiceAvailability(::std::chrono::seconds timeout);
 
-      bool SetBridgeConfig(const ::std::string &config);
-      ::std::string GetBridgeConfig();
+      DbusResult SetBridgeConfig(const ::std::string &config);
+      DbusResult GetBridgeConfig();
 
-      bool SetIpConfigs(const ::std::string &config);
-      ::std::string GetIpConfigs();
-      ::std::string GetCurrentIpConfigs();
+      DbusResult SetIpConfigs(const ::std::string &config);
+      DbusResult GetIpConfigs();
+      DbusResult GetCurrentIpConfigs();
 
-      bool SetInterfaceConfigs(const ::std::string &config);
-      ::std::string GetInterfaceConfigs();
+      DbusResult SetInterfaceConfigs(const ::std::string &config);
+      DbusResult GetInterfaceConfigs();
 
-      ::std::string GetDeviceInterfaces();
+      DbusResult GetDeviceInterfaces();
 
-      bool SetTemporaryFixedIpAddress();
+      DbusResult SetTemporaryFixedIpAddress();
 
-      ::std::string GetDipSwitchConfig();
-      bool SetDipSwitchConfig(const ::std::string &config);
+      DbusResult GetDipSwitchConfig();
+      DbusResult SetDipSwitchConfig(const ::std::string &config);
 
-      bool Backup(const ::std::string& backup_file_path, const ::std::string& targetversion);
-      bool Restore(const ::std::string &backup_file_path);
-      ::std::string GetBackupParameterCount();
+      DbusResult Backup(const ::std::string& backup_file_path, const ::std::string& targetversion);
+      DbusResult Restore(const ::std::string &backup_file_path);
+      DbusResult GetBackupParameterCount();
 
     private:
       DBusConnection *conn_;
-
-      ::std::string GetString(const DbusMsgPtr &msg);
-      int32_t SendString(const DbusMsgPtr &msg,
-                         const ::std::string &content);
-      int32_t Send(const DbusMsgPtr &msg);
       int timeout_millis_;
+
+      DBusConnection* ConnectToDbus(::std::chrono::seconds timeout);
+      DbusResult Send(const DbusMsgPtr &msg, const ::std::string &content);
+      DbusResult Send(const DbusMsgPtr &msg);
+
+
   };
 
 }  // namespace netconf

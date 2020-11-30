@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "BridgeConfig.hpp"
 
@@ -117,16 +117,15 @@ bool operator==(const BridgeConfig &rhs, const BridgeConfig &lhs) {
   return IsEqual(rhs.configs_, lhs.configs_);
 }
 
-BridgeConfig MakeBridgeConfig(const std::string& json_str)
+Error MakeBridgeConfig(const std::string& json_str, BridgeConfig& config)
 {
   JsonConverter jc;
-  netconf::BridgeConfig bc;
-  auto status = jc.FromJsonString(json_str, bc);
-  if(status.NotOk()) {
-    // TODO: throw something useful(please!!)
-  }
-  return BridgeConfig{bc};
+  netconf::BridgeConfig c;
+  Error error = jc.FromJsonString(json_str, c);
+  config = BridgeConfig(c);
+  return error;
 }
+
 
 } /* namespace api */
 } /* namespace netconf */

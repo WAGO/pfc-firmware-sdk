@@ -1,7 +1,7 @@
 From e613eaa53b9eb98b1254a372c6f83de09918ae8d Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 25 May 2018 14:08:07 +0200
-Subject: [PATCH 013/144] arm: am335x_defconfig: activate pfc xsection driver
+Subject: [PATCH] arm: am335x_defconfig: activate pfc xsection driver
 
 ---
  arch/arm/configs/am335x_defconfig | 3 ++-

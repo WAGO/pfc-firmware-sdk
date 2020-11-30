@@ -122,6 +122,14 @@ case $1 in
     homedir-on-sdcard)
         result="$CODESYS_HOMEDIR_SDCARD"
         ;;
+    boot-project)
+        # backward compatibility: convert new argument "homedir-on-sdcard" to old argument "boot-project" (WAT32108)
+        if [ "$CODESYS_HOMEDIR_SDCARD" -a "$CODESYS_HOMEDIR_SDCARD" == "enabled" ]; then
+          result="CARD://"
+        else
+          result="HOME://"
+        fi
+        ;;
     webserver-state)
         arg_assert ${CONFIG_VERSION:-0} "2 3" "Missing or wrong argument cfg-version"
         result=$(getrtval $CONFIG_VERSION "WEBSERVER_STATE")

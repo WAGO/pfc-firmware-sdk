@@ -46,7 +46,7 @@ class EthernetSettingsXml {
 
   explicit EthernetSettingsXml(netconf::InterfaceConfig port_config)
       : port_name { port_config.device_name_ },
-        autoneg { port_config.autoneg_ == netconf::Autonegotiation::ON ? "enabled" : "disbaled" },
+        autoneg { port_config.autoneg_ == netconf::Autonegotiation::ON ? "enabled" : "disabled" },
         speed { ::std::to_string(port_config.speed_).append("M") },
         duplex { netconf::DuplexToString(port_config.duplex_) },
         mac { "" } {
@@ -330,7 +330,7 @@ BOOST_CLASS_IMPLEMENTATION(BridgeXml, object_serializable);
 
 namespace netconf {
 
-Status WriteNetworkInterfacesXML(IFileEditor &file_editor_, const BridgeConfig& bridge_config, const IPConfigs& ip_configs,
+Error WriteNetworkInterfacesXML(IFileEditor &file_editor_, const BridgeConfig& bridge_config, const IPConfigs& ip_configs,
                                  const InterfaceConfigs& port_configs) {
 
   auto interfaces = InterfacesXml { bridge_config, ip_configs, port_configs };

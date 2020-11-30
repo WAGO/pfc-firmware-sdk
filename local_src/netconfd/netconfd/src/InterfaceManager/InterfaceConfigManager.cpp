@@ -30,7 +30,7 @@ InterfaceConfigManager::InterfaceConfigManager(INetDevManager &netdev_manager,
 
   InterfaceConfigs peristet_configs;
   auto read_persistence_data_status = persistence_provider.Read(peristet_configs);
-  if (read_persistence_data_status.NotOk()) {
+  if (read_persistence_data_status.IsNotOk()) {
     LogWarning("InterfaceConfigManager: Failed to read persistence data, use default data set");
   }
 
@@ -47,9 +47,9 @@ void InterfaceConfigManager::InitializePorts() {
   ApplyPortConfigs(current_config_);
 }
 
-Status InterfaceConfigManager::Configure(InterfaceConfigs &port_configs) {
+Error InterfaceConfigManager::Configure(InterfaceConfigs &port_configs) {
   auto status = IsPortConfigValid(port_configs);
-  if (status.NotOk()) {
+  if (status.IsNotOk()) {
     return status;
   }
 
@@ -57,7 +57,7 @@ Status InterfaceConfigManager::Configure(InterfaceConfigs &port_configs) {
 
   status = ApplyPortConfigs(current_config_);
 
-  if (status.NotOk()) {
+  if (status.IsNotOk()) {
     InterfaceConfigs old_port_configs;
     ApplyPortConfigs(old_port_configs);
   } else {
@@ -89,21 +89,19 @@ void InterfaceConfigManager::InitializeCurrentConfigs(const NetDevs &netdevs,
   UpdateCurrentInterfaceConfigs(persistet_configs);
 }
 
-Status InterfaceConfigManager::IsPortConfigValid(const InterfaceConfigs &port_configs) {
+Error InterfaceConfigManager::IsPortConfigValid(const InterfaceConfigs &port_configs) {
   auto device_does_not_exist = [this](const auto &port_config) {
     return ethernet_interfaces_.count(port_config.device_name_) == 0;
   };
 
   auto none_existing_entry = find_if(port_configs.begin(), port_configs.end(), device_does_not_exist);
   if (none_existing_entry != port_configs.end()) {
-    auto error_message = (::boost::format("Unknown device '%s'") % none_existing_entry->device_name_).str();
-    return Status { StatusCode::INVALID_CONFIG, error_message };
+    return Error { ErrorCode::INTERFACE_NOT_EXISTING, none_existing_entry->device_name_};
   }
-
-  return Status { };
+  return Error::Ok();
 }
 
-Status InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
+Error InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
 
   auto &eif = ethernet_interfaces_.at(cfg.device_name_);
   if (cfg.autoneg_ != Autonegotiation::UNKNOWN) {
@@ -122,31 +120,28 @@ Status InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
   try {
     eif->Commit();
   } catch (std::exception &e) {
-    auto error_message = (::boost::format("InterfaceConfigManager: Failed to apply port config for %s: %s")
-        % cfg.device_name_ % e.what()).str();
-    return Status { StatusCode::ERROR, error_message };
+    return Error { ErrorCode::SET_INTERFACE, cfg.device_name_ };
   }
-
-  return Status { StatusCode::OK };
+  return Error { ErrorCode::OK };
 
 }
 
-Status InterfaceConfigManager::ApplyPortConfigs(InterfaceConfigs &port_configs) {
-  ::std::vector<Status> applyResults;
+Error InterfaceConfigManager::ApplyPortConfigs(InterfaceConfigs &port_configs) {
+  ::std::vector<Error> applyResults;
   std::transform(port_configs.begin(), port_configs.end(), ::std::back_inserter(applyResults),
                  [this](auto &port_config) {
                    return this->ApplyPortConfig(port_config);
                  });
 
   auto first_negative_status = std::find_if(applyResults.begin(), applyResults.end(), [](auto &status) {
-    return status.NotOk();
+    return status.IsNotOk();
   });
 
   if (first_negative_status != applyResults.end()) {
     return *first_negative_status;
   }
 
-  return Status { StatusCode::OK };
+  return Error { ErrorCode::OK };
 }
 
 void InterfaceConfigManager::UpdateCurrentInterfaceConfigs(const InterfaceConfigs &port_configs) {

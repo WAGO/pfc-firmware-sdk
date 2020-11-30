@@ -16,14 +16,59 @@ PACKAGES-$(PTXCONF_LIBBACNETSTACK) += libbacnetstack
 #
 #--- paths and names --------------------------------------------------------- 
 #
-LIBBACNETSTACK_VERSION           := 0.0.1
-LIBBACNETSTACK_MD5               :=
 LIBBACNETSTACK                   := libbacnetstack
-LIBBACNETSTACK_SRC_DIR           := $(PTXDIST_WORKSPACE)/wago_intern/device/bacnet/$(LIBBACNETSTACK)
-LIBBACNETSTACK_URL               := file://$(LIBBACNETSTACK_SRC_DIR)
-LIBBACNETSTACK_BUILDCONFIG       := Release
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_DEV
+LIBBACNETSTACK_REVISION          := 22
+LIBBACNETSTACK_SO_VERSION        := 1.0.0
+LIBBACNETSTACK_GIT_URL           := ssh://svtfs01007:22/tfs/ProductDevelopment/_git/BACnet_Stack
+LIBBACNETSTACK_FOLDER            := libbacnetstack_rev$(LIBBACNETSTACK_REVISION)
+endif
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
+LIBBACNETSTACK_REVISION          := 22
+LIBBACNETSTACK_SO_VERSION        := 1.0.0
+LIBBACNETSTACK_BUILD_ID          := 15972403399
+LIBBACNETSTACK_FOLDER            := libbacnetstack_rev$(LIBBACNETSTACK_REVISION)
+endif
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY
+LIBBACNETSTACK_REVISION          := 14
+LIBBACNETSTACK_SO_VERSION        := 0.0.1
+LIBBACNETSTACK_FOLDER            := libbacnetstack
+endif
+
+
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_DEV
+LIBBACNETSTACK_BUILD_ID_SUFFIX      := -$(call remove_quotes,$(PTXCONF_LIBBACNETSTACK_SOURCE_DEV_BRANCH))
+endif
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
+LIBBACNETSTACK_BUILD_ID_SUFFIX      := -$(LIBBACNETSTACK_BUILD_ID)
+endif
+
+LIBBACNETSTACK_REL_PATH          := wago_intern/device/bacnet/$(LIBBACNETSTACK_FOLDER)
+LIBBACNETSTACK_SRC_DIR           := $(PTXDIST_WORKSPACE)/$(LIBBACNETSTACK_REL_PATH)
+LIBBACNETSTACK_VERSION           := rev$(LIBBACNETSTACK_REVISION)_$(LIBBACNETSTACK_SO_VERSION)$(LIBBACNETSTACK_BUILD_ID_SUFFIX)
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
+LIBBACNETSTACK_URL               := $(call jfrog_template_to_url, LIBBACNETSTACK)
+else
+LIBBACNETSTACK_URL               := file://$(LIBBACNETSTACK_REL_PATH)
+endif
+LIBBACNETSTACK_SUFFIX            := $(suffix $(LIBBACNETSTACK_URL))
+LIBBACNETSTACK_MD5                = $(shell [ -f $(LIBBACNETSTACK_MD5_FILE) ] && cat $(LIBBACNETSTACK_MD5_FILE))
+LIBBACNETSTACK_MD5_FILE          := wago_intern/artifactory_sources/$(LIBBACNETSTACK)$(LIBBACNETSTACK_SUFFIX).md5
+LIBBACNETSTACK_ARTIFACT           = $(call jfrog_get_filename,$(LIBBACNETSTACK_URL))
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
+LIBBACNETSTACK_ARCHIVE           := $(LIBBACNETSTACK)-$(LIBBACNETSTACK_VERSION)$(LIBBACNETSTACK_SUFFIX)
+endif
+
 LIBBACNETSTACK_BUILDROOT_DIR     := $(BUILDDIR)/$(LIBBACNETSTACK)
 LIBBACNETSTACK_DIR               := $(LIBBACNETSTACK_BUILDROOT_DIR)/$(LIBBACNETSTACK)
+LIBBACNETSTACK_LICENSE           := unknown
+
+LIBBACNETSTACK_BUILDCONFIG       := Release
 LIBBACNETSTACK_BUILD_DIR         := $(LIBBACNETSTACK_BUILDROOT_DIR)/bin/$(LIBBACNETSTACK_BUILDCONFIG)
 LIBBACNETSTACK_LICENSE           := unknown
 LIBBACNETSTACK_BIN               := $(LIBBACNETSTACK).a
@@ -41,18 +86,57 @@ LIBBACNETSTACK_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
 
 
 # ----------------------------------------------------------------------------
+# Get
+# ----------------------------------------------------------------------------
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_DEV
+
+$(LIBBACNETSTACK_SRC_DIR):
+	{ cd $(PTXDIST_WORKSPACE)/wago_intern && git clone $(LIBBACNETSTACK_GIT_URL) $(LIBBACNETSTACK_SRC_DIR); } \
+    || rm -fr $(LIBBACNETSTACK_SRC_DIR)
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_DEV_BRANCH
+	{ cd $(LIBBACNETSTACK_SRC_DIR) && git checkout $(PTXCONF_LIBBACNETSTACK_SOURCE_DEV_BRANCH); } \
+    || rm -fr $(LIBBACNETSTACK_SRC_DIR)
+endif
+
+$(STATEDIR)/libbacnetstack.get: | $(LIBBACNETSTACK_SRC_DIR)
+
+endif
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
+$(STATEDIR)/libbacnetstack.get:
+	@$(call targetinfo)
+
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@${PTXDIST_WORKSPACE}/scripts/wago/artifactory.sh fetch \
+    '$(LIBBACNETSTACK_URL)' wago_intern/artifactory_sources/$(LIBBACNETSTACK_ARCHIVE) '$(LIBBACNETSTACK_MD5_FILE)'
+endif
+
+	@$(call touch)
+endif
+
+# ----------------------------------------------------------------------------
 # Extract
 # ----------------------------------------------------------------------------
+
 
 $(STATEDIR)/libbacnetstack.extract:
 	@$(call targetinfo)
 	@mkdir -p $(LIBBACNETSTACK_BUILDROOT_DIR)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
+	@mkdir -p $(LIBBACNETSTACK_DIR)
+	@tar xvf wago_intern/artifactory_sources/$(LIBBACNETSTACK_ARCHIVE) -C $(LIBBACNETSTACK_DIR) --strip-components=1
+	@$(call patchin, LIBBACNETSTACK)
+endif
+ifndef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
 	@if [ ! -L $(LIBBACNETSTACK_DIR) ]; then \
 		ln -s $(LIBBACNETSTACK_SRC_DIR) $(LIBBACNETSTACK_DIR); \
 	fi
 endif
+endif
 	@$(call touch)
+
 
 # ----------------------------------------------------------------------------
 # Extract.post

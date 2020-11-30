@@ -9,7 +9,7 @@ Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
  1 file changed, 8 insertions(+)
 
 diff --git a/arch/arm/boot/dts/am335x-pfc-750_8217.dts b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
-index 141ac5091fc7..91ef6a8b8de0 100644
+index 141ac50..91ef6a8 100644
 --- a/arch/arm/boot/dts/am335x-pfc-750_8217.dts
 +++ b/arch/arm/boot/dts/am335x-pfc-750_8217.dts
 @@ -97,6 +97,14 @@
@@ -28,5 +28,5 @@ index 141ac5091fc7..91ef6a8b8de0 100644
  	status = "okay";
  };
 -- 
-2.17.1
+2.7.4
 

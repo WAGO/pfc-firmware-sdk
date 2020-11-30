@@ -378,5 +378,5 @@ SerialPort::io_watch(GIOChannel *source, GIOCondition cond)
 void
 SerialPort::read_line_cb( const std::string &text )
 {
-    mdmd_Log(MD_LOG_DBG2, "Read line: %s\n", text.c_str() );
+    (void)text; //unused parameter
 }

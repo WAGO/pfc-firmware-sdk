@@ -13,24 +13,20 @@ device=/dev/ubi0_0
 type=ubifs
 bootname=rootfs.1
 force-install-same=true
-ignore-checksum=true
 
 [slot.rootfs.2]
 device=/dev/ubi0_2
 type=ubifs
 bootname=rootfs.2
 force-install-same=true
-ignore-checksum=true
 
 [slot.home.0]
 device=/dev/null
 type=raw
 force-install-same=true
-ignore-checksum=true
 
 [slot.bootloader.0]
 device=/dev/null
 type=raw
 force-install-same=true
-ignore-checksum=true
 

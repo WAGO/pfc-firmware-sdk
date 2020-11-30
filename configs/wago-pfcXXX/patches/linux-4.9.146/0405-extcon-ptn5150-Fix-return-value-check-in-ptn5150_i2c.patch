@@ -15,7 +15,7 @@ Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/extcon/extcon-ptn5150.c b/drivers/extcon/extcon-ptn5150.c
-index 18a8f258767b..d1c997599390 100644
+index 18a8f25..d1c9975 100644
 --- a/drivers/extcon/extcon-ptn5150.c
 +++ b/drivers/extcon/extcon-ptn5150.c
 @@ -240,14 +240,14 @@ static int ptn5150_i2c_probe(struct i2c_client *i2c,
@@ -38,5 +38,5 @@ index 18a8f258767b..d1c997599390 100644
  	ret = gpiod_direction_output(info->vbus_gpiod, 0);
  	if (ret) {
 -- 
-2.17.1
+2.7.4
 

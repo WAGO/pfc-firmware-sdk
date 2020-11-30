@@ -12,7 +12,7 @@ Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
  create mode 100644 drivers/char/rmd.c
 
 diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
-index 8453a49..832ce8f 100644
+index 8453a49..832ce8f1 100644
 --- a/drivers/char/Kconfig
 +++ b/drivers/char/Kconfig
 @@ -593,5 +593,14 @@ config TILE_SROM

@@ -24,7 +24,7 @@ using boost::filesystem::path;
 
 namespace netconf {
 
-static ::std::string GetFileContent(const path& path) noexcept {
+static ::std::string GetFileContent(const path &path) noexcept {
   try {
     boost::filesystem::ifstream stream { path };
     std::string file_content;
@@ -36,7 +36,7 @@ static ::std::string GetFileContent(const path& path) noexcept {
   }
 }
 
-static bool IsRegularFile(const path& path) {
+static bool IsRegularFile(const path &path) {
   boost::system::error_code ec;
   return boost::filesystem::is_regular_file(path, ec) && not ec;
 }
@@ -49,7 +49,6 @@ static pid_t GetPid(const ::std::string &process_name_pattern) {
       cmdline_path += entry;
       cmdline_path /= "cmdline";
 
-      boost::system::error_code ec;
       if (IsRegularFile(cmdline_path)) {
         auto file_content = GetFileContent(cmdline_path);
 
@@ -70,46 +69,39 @@ static pid_t GetPid(const ::std::string &process_name_pattern) {
   return 0;
 }
 
-Status BootpClientController::StartClient(const Bridge &bridge) const {
-  Status status;
+Error BootpClientController::StartClient(const Bridge &bridge) const {
 
   if (BootpClientStatus::RUNNING == GetStatus(bridge)) {
     LogDebug("Bootp client for bridge " + bridge + " is already running");
-    return status;
+    return Error::Ok();
   }
   LogDebug("Run Bootp client for bridge " + bridge);
 
-  auto argv_array = make_array(BOOTP_SCRIPT_PATH.c_str(), bridge.c_str());
+  auto argv_array = make_array(BOOTP_SCRIPT_PATH.c_str(), bridge.c_str(), nullptr);
+
   GPid pid;
-  GError *error;
+  GError *g_error;
   auto spawned = g_spawn_async(nullptr, const_cast<gchar**>(argv_array.data()), nullptr, G_SPAWN_DEFAULT, nullptr,  // NOLINT(cppcoreguidelines-pro-type-const-cast)
-                               nullptr, &pid, &error);
+                               nullptr, &pid, &g_error);
 
   if (spawned == TRUE) {
     LogDebug("BootpClientController: spawned bootpc pid#" + ::std::to_string(pid));
+    return Error::Ok();
   } else {
-    status.Prepend(StatusCode::ERROR, "Failed to start bootp client create child process error: "s + error->message);
+    return Error { ErrorCode::DHCP_CLIENT_START, bridge };
   }
-
-  return status;
 }
 
-Status BootpClientController::StopClient(const Bridge &bridge) const {
-
-  Status status;
-
+void BootpClientController::StopClient(const Bridge &bridge) const {
   ::std::string pattern = "bootpc-startup\0"s + bridge;
   pid_t pid = GetPid(pattern);
 
   if (pid > 0) {
     if (0 == kill(pid, SIGKILL)) {
       LogDebug("Stopped Bootp Client for bridge " + bridge);
-    } else {
-      status.Prepend(StatusCode::ERROR, "Failed to stop Bootp client for bridge " + bridge);
     }
   }
 
-  return status;
 }
 
 BootpClientStatus BootpClientController::GetStatus(const Bridge &bridge) const {

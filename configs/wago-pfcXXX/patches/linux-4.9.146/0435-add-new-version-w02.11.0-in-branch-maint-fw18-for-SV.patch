@@ -1,0 +1,21 @@
+From 2c1342ea44f9552b8becee6224c02805f6568d11 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Thu, 1 Oct 2020 10:20:22 +0200
+Subject: [PATCH] add new version w02.11.0 in branch maint-fw18 for
+ SVN-Release-branch V03.06.xx
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ localversion-wago | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/localversion-wago b/localversion-wago
+index 2e84010..0cbe931 100644
+--- a/localversion-wago
++++ b/localversion-wago
+@@ -1 +1 @@
+-w02.10.00
++w02.11.00
+-- 
+2.7.4
+

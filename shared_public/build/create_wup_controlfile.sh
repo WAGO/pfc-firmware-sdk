@@ -96,6 +96,9 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8216/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/K000-0002\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         ;;
 
     vtp-ctp)
@@ -107,18 +110,31 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0762-4202/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-4203/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-4204/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-4205/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-4206/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-4301/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-4302/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-4303/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-4304/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-4305/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-4306/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-5203/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-5204/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-5205/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-5206/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-5303/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-5304/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-5305/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-5306/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-6201/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-6202/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-6203/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0762-6204/8000-0001\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-6301/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-6302/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-6303/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0762-6304/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0752-8303/8000-0002\"            GroupRef=\"TP-Common\"/>" >> "$FILE"
         ;;
         
     wago-pfc-adv)

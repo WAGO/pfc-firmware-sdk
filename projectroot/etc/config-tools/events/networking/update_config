@@ -20,6 +20,9 @@ set -u      # error exit on undefined shell variables
 
 dnsmasq_config_changed=false
 
+ETC_HOSTS_FILE=/etc/hosts
+ETC_HOSTS_TMPFILE=/tmp/hosts
+
 function DomainToResolvConf()
 {
     local validdomain=$1
@@ -80,14 +83,14 @@ function UpdateLocalDNSResolve()
    local marker_text_2="#END SYSTEM HOST -- DO NOT REMOVE"
 
    # create Marker if not present
-   grep -q "^$marker_text_1" /etc/hosts || echo "$marker_text_1" >> /etc/hosts
-   grep -q "^$marker_text_2" /etc/hosts || echo "$marker_text_2" >> /etc/hosts
+   grep -q "^$marker_text_1" $ETC_HOSTS_TMPFILE || echo "$marker_text_1" >> $ETC_HOSTS_TMPFILE
+   grep -q "^$marker_text_2" $ETC_HOSTS_TMPFILE || echo "$marker_text_2" >> $ETC_HOSTS_TMPFILE
 
    #remove everything between marker1 and marker2
-   sed -i -e "/$marker_text_1/,/$marker_text_2/{/$marker_text_1/b;/$marker_text_2/b;d}" /etc/hosts
+   sed -i -e "/$marker_text_1/,/$marker_text_2/{/$marker_text_1/b;/$marker_text_2/b;d}" $ETC_HOSTS_TMPFILE
 
    for ip in $ips; do
-     sed -i -e "/^$marker_text_1/a$ip\t$FQDN\t$hostname" /etc/hosts
+     sed -i -e "/^$marker_text_1/a$ip\t$FQDN\t$hostname" $ETC_HOSTS_TMPFILE
    done
 }
 
@@ -96,17 +99,20 @@ function UpdateHostConf()
     local validhost
     local validdomain
     local defaulthost
+    # check existence of localhost entry
+    # WAT32141: Precautionary action to ensure localhost is always present.
+    grep -q "^127\.0\.0\.1" $ETC_HOSTS_TMPFILE || echo -e "127.0.0.1\tlocalhost" > $ETC_HOSTS_TMPFILE
 
     # set default hostname
     defaulthost=$(/etc/config-tools/determine_hostname --default)
-    grep -q "^127\.0\.1\.1" /etc/hosts || sed -i -e "/^127\.0\.0\.1/a127.0.1.1\t$defaulthost\t$defaulthost" /etc/hosts
+    grep -q "^127\.0\.1\.1" $ETC_HOSTS_TMPFILE || sed -i -e "/^127\.0\.0\.1/a127.0.1.1\t$defaulthost\t$defaulthost" $ETC_HOSTS_TMPFILE
 
     # load static names
     . "$HOSTCONFFILE"
     [ "$HOSTNAME" ] && validhost=$HOSTNAME
     [ "$DNSDOMAIN" ] && validdomain=$DNSDOMAIN
 
-    # now load dynamic dhcp names of newest file				
+    # now load dynamic dhcp names of newest file
     if [ "$(find /tmp -maxdepth 1 -name 'dhcp-bootp-data-*' -type f -printf . | wc -c)" -gt 0 ]; then
         cfgfile=$(ls -rt "$DHCP_DATA_FILE_TEMPLATE"* | tail -1)
         DHCPHOSTNAME=
@@ -124,19 +130,19 @@ function UpdateHostConf()
             else
                 FQDN=$validhost
             fi
-            if grep -q "^127.0.1.1" /etc/hosts; then
-                sed -i -e "/^127\.0\.1\.1/c127.0.1.1\t$FQDN\t$validhost" /etc/hosts
+            if grep -q "^127.0.1.1" $ETC_HOSTS_TMPFILE; then
+                sed -i -e "/^127\.0\.1\.1/c127.0.1.1\t$FQDN\t$validhost" $ETC_HOSTS_TMPFILE
             else
-                echo -e "127.0.1.1\t$FQDN\t$validhost" >> /etc/hosts
+                echo -e "127.0.1.1\t$FQDN\t$validhost" >> $ETC_HOSTS_TMPFILE
             fi
             echo "$validhost" > /etc/hostname
             echo "$validhost" > /proc/sys/kernel/hostname
         else
             # empty hostname, clear hostname files and set default hostname in kernel
             if [ "${validdomain-}" ]; then
-                sed -i -e "/^127\.0\.1\.1/c127.0.1.1\t$defaulthost.$validdomain\t$defaulthost" /etc/hosts
+                sed -i -e "/^127\.0\.1\.1/c127.0.1.1\t$defaulthost.$validdomain\t$defaulthost" $ETC_HOSTS_TMPFILE
             else
-                sed -i -e "/^127\.0\.1\.1/c127.0.1.1\t$defaulthost\t$defaulthost" /etc/hosts
+                sed -i -e "/^127\.0\.1\.1/c127.0.1.1\t$defaulthost\t$defaulthost" $ETC_HOSTS_TMPFILE
             fi
             rm -f /etc/hostname
             echo "$defaulthost" > /proc/sys/kernel/hostname
@@ -166,7 +172,7 @@ function UpdateDnsmasqConfig()
     if ! diff -q $DNSMASQ_CONFIG $DNSMASQ_CONFIG_TMP ; then
         mv $DNSMASQ_CONFIG_TMP $DNSMASQ_CONFIG
         sync
-	      dnsmasq_config_changed=true
+	    dnsmasq_config_changed=true
     fi
 
     if [[ -e $DNSMASQ_CONFIG_TMP ]]; then
@@ -182,11 +188,16 @@ HOSTCONFFILE=/etc/specific/host.conf
 
 # Use advisory lock to avoid race with config_dnsmasq_c and this script on more then one
 # interface with dhcp
-( flock 9; UpdateHostConf; ) 9< /etc/hosts
+
+/usr/bin/cp $ETC_HOSTS_FILE $ETC_HOSTS_TMPFILE
+
+( flock 9; UpdateHostConf; ) 9< $ETC_HOSTS_TMPFILE
+
+/usr/bin/mv $ETC_HOSTS_TMPFILE $ETC_HOSTS_FILE
 sync
 
 # dnsmasq update relies on /etc/hosts too. Therefore, run dnsmasq update after UpdateHostConf part.
-shift 
+shift
 UpdateDnsmasqConfig "$@"
 
 if [[ "$dnsmasq_config_changed" == true ]]; then
@@ -194,4 +205,7 @@ if [[ "$dnsmasq_config_changed" == true ]]; then
     # Use the "update" option to avoid regenerating the file /etc/dnsmasq.conf .
     # The generation was already done during UpdateDnsmasqConfig execution.
     /etc/init.d/dnsmasq update
+else
+    # just sighup to reload hosts
+    /etc/init.d/dnsmasq reload
 fi

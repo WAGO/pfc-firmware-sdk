@@ -122,9 +122,6 @@ $(call add-order,syslogng,flex)
 $(call add-order,syslogng,libcap)
 $(call add-order,host-util-linux-ng,host-ncurses)
 
-# Avoid cbm and wbm being built parallelly, to avoid clashes in .in file inclusion.
-$(call add-order,wbm,cbm)
-
 # Todo'
 # host-libxslt depends on host-libxml2, but host-libxml2 uses host-libxslt's xsltproc. Is it a problem?
 

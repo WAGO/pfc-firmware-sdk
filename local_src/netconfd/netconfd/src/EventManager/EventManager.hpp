@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "IDeviceProperties.hpp"
+#include "INetDevManager.hpp"
 #include "IEventManager.hpp"
 #include "IBridgeInformation.hpp"
 #include "IIPInformation.hpp"
@@ -13,7 +13,7 @@ namespace netconf {
 
 class EventManager : public IEventManager {
  public:
-  EventManager(IDeviceProperties &device_properties_provider);
+  EventManager(INetDevManager &netdev_manager);
   virtual ~EventManager() = default;
 
   EventManager(const EventManager&) = delete;

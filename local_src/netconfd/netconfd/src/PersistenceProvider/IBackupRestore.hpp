@@ -3,7 +3,8 @@
 #pragma once
 
 #include <string>
-#include "Status.hpp"
+
+#include "Error.hpp"
 
 namespace netconf {
 
@@ -18,8 +19,8 @@ class IBackupRestore {
   IBackupRestore& operator=(const IBackupRestore&&) = delete;
 
   virtual ::std::uint32_t GetBackupParameterCount() const = 0;
-  virtual Status Backup(const ::std::string& file_path, const ::std::string& data, const ::std::string& data_key, uint32_t version) const = 0;
-  virtual Status Restore(const ::std::string& file_path, ::std::string& backup_network_data, ::std::string& backup_dipswitch_data, uint32_t& version) const = 0;
+  virtual Error Backup(const ::std::string& file_path, const ::std::string& data, const ::std::string& data_key, uint32_t version) const = 0;
+  virtual Error Restore(const ::std::string& file_path, ::std::string& backup_network_data, ::std::string& backup_dipswitch_data, uint32_t& version) const = 0;
 };
 
 } /* namespace netconf */

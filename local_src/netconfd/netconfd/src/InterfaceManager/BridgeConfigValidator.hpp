@@ -18,7 +18,7 @@ class BridgeConfigValidator : public IBridgeConfigValidator {
   BridgeConfigValidator(const BridgeConfigValidator&&) = delete;
   BridgeConfigValidator& operator=(const BridgeConfigValidator&&) = delete;
 
-  Status Validate(BridgeConfig const& config) const override;
+  Error Validate(BridgeConfig const& config) const override;
 
  private:
   IBridgeController& bridge_controller_;

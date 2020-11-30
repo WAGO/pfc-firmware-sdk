@@ -1,0 +1,27 @@
+From 81478b8b5b837827f801bd872d000e80aa5e3c39 Mon Sep 17 00:00:00 2001
+From: Ralf Gliese <gliese@elrest.de>
+Date: Sat, 8 Dec 2018 11:43:25 +0100
+Subject: [PATCH] input: gpio-keys: fix missing base time when timer is
+ modified
+
+Signed-off-by: Ralf Gliese <gliese@elrest.de>
+---
+ drivers/input/keyboard/gpio_keys.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/input/keyboard/gpio_keys.c b/drivers/input/keyboard/gpio_keys.c
+index df320ef..3fe6c45 100644
+--- a/drivers/input/keyboard/gpio_keys.c
++++ b/drivers/input/keyboard/gpio_keys.c
+@@ -409,7 +409,7 @@ static irqreturn_t gpio_keys_gpio_isr(int irq, void *dev_id)
+ 		pm_stay_awake(bdata->input->dev.parent);
+ 	if (bdata->software_debounce)
+ 		mod_timer(&bdata->release_timer,
+-				msecs_to_jiffies(bdata->software_debounce));
++			jiffies + msecs_to_jiffies(bdata->software_debounce));
+ 	else
+ 		kthread_queue_work(&ddata->irq_kworker, &bdata->kwork);
+ 
+-- 
+2.7.4
+

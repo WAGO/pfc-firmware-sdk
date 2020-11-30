@@ -1,8 +1,8 @@
 From 4ae36488082bd54ccc804dcfa6f7778b71c370f5 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 28 Sep 2018 14:39:21 +0200
-Subject: [PATCH 104/144] defaultenv: defaultenv-pfc-base: introduce global
- variable barebox_linux_uart
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: introduce global variable
+ barebox_linux_uart
 
 If the serial interface of an pfc device is disabled and the develop bit is
 enabled, barebox sets the console kernel parameter to the service uart. On

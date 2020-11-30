@@ -10,15 +10,15 @@
 #include "CommandExecutor.hpp"
 #include "Logger.hpp"
 #include "JsonConverter.hpp"
+#include "FileOperations.hpp"
 
 namespace netconf {
 
 namespace bfs = boost::filesystem;
 using namespace std::literals;
 #define IPV4_CHANGE_DIR "/var/run/ipv4"
-#define MODEM_DEVICE "wwan0"
 
-EventManager::EventManager(IDeviceProperties &device_properties_provider)
+EventManager::EventManager(INetDevManager &netdev_manager)
     : trigger_event_folder_ { false } {
 
   bool dir_exists = bfs::exists(IPV4_CHANGE_DIR) || bfs::create_directory(IPV4_CHANGE_DIR);
@@ -27,16 +27,19 @@ EventManager::EventManager(IDeviceProperties &device_properties_provider)
     IPV4_CHANGE_DIR,
                      bfs::owner_all | bfs::group_read | bfs::group_exe | bfs::others_read | bfs::others_exe);
 
-    // Get count of ethX interfaces.
-    const size_t bridge_count_max = device_properties_provider.GetProductPortNames().size();
-    for (size_t i = 0; i < bridge_count_max; i++) {
+    auto port_devs = netdev_manager.GetNetDevs(DeviceType::Port);
+    for (size_t i = 0; i < port_devs.size(); i++) {
       NotifyNetworkChanges(EventType::USER, EventLayer::IP_CHANGE_FILES, "br"s.append(std::to_string(i)));
     }
+
+    auto wwans = netdev_manager.GetNetDevs(DeviceType::Wwan);
+    for(auto& wwan_dev : wwans){
+      NotifyNetworkChanges(EventType::USER, EventLayer::IP_CHANGE_FILES, wwan_dev->GetName());
+    }
+
   }
 
-  if (device_properties_provider.HasInterface(MODEM_DEVICE)) {
-    NotifyNetworkChanges(EventType::USER, EventLayer::IP_CHANGE_FILES, MODEM_DEVICE);
-  }
+
 }
 
 void EventManager::RegisterNetworkInformation(IBridgeInformation &bridge_information, IIPInformation &ip_information,
@@ -82,12 +85,12 @@ void EventManager::SpawnProcess() {
   auto ip_config = GetIPConfigAsJson();
   auto interface_config = GetInterfaceConfigAsJson();
   gchar *argv[] = { "/usr/bin/run-parts", "-a", "config", "/etc/config-tools/events/networking", nullptr };
-  g_setenv("NETCONF_BRIDGE_CONFIG", &bridge_config[0], true);
-  g_setenv("NETCONF_IP_CONFIG", &ip_config[0], true);
-  g_setenv("NETCONF_INTERFACE_CONFIG", &interface_config[0], true);
+  g_setenv("NETCONF_BRIDGE_CONFIG", &bridge_config[0], static_cast<gboolean>(true));
+  g_setenv("NETCONF_IP_CONFIG", &ip_config[0], static_cast<gboolean>(true));
+  g_setenv("NETCONF_INTERFACE_CONFIG", &interface_config[0], static_cast<gboolean>(true));
   gint exit_status = 0;
   GError *error = nullptr;
-  if (g_spawn_sync(nullptr, static_cast<gchar**>(argv), nullptr, G_SPAWN_DEFAULT, nullptr , nullptr, nullptr, nullptr,
+  if (g_spawn_sync(nullptr, static_cast<gchar**>(argv), nullptr, G_SPAWN_DEFAULT, nullptr, nullptr, nullptr, nullptr,
                    &exit_status, &error) != 0) {
     LogDebug("EventManager: called run-parts on /etc/config-tools/events/networking");
   } else {
@@ -120,13 +123,8 @@ void EventManager::UpdateIpChangeFiles() {
 
     ::std::string file = IPV4_CHANGE_DIR"/ipconchg-" + interface;
 
-    int fd = open(file.c_str(), O_CREAT | O_WRONLY,
-    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    TouchFile(file);
 
-    if (fd >= 0) {
-      write(fd, "\n", 1);
-      close(fd);
-    }
   }
   ip_interface_update_pending_.clear();
 }

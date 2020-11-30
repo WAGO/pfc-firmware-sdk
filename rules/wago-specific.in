@@ -48,6 +48,9 @@ endmenu
 
 comment "------------------------------------"
 
+menu "OPC UA"
+source "generated/wago_specific_opcua.in"
+endmenu
 
 
 menu "Rocket Specific"
@@ -112,6 +115,7 @@ menu "Plugins                       "
 source "generated/wago_specific_wbm_plugins.in"
 endmenu
 endmenu
+
 
 comment "------------------------------------"
 

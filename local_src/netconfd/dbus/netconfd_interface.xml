@@ -8,9 +8,9 @@
             separated string of interfaces</doc:summary>
         </doc:doc>
       </arg>
-      <arg name="result" direction="out" type="i">
+      <arg name="result" direction="out" type="s">
         <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>
@@ -35,6 +35,11 @@
           <doc:summary>The bridge configuration</doc:summary>
         </doc:doc>
       </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
@@ -47,9 +52,15 @@
       </doc:doc>
     </method>
     <method name="getdeviceinterfaces">
+
       <arg name="interfaces" direction="out" type="s">
         <doc:doc>
           <doc:summary>The device interfaces</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>
@@ -64,15 +75,22 @@
       </doc:doc>
     </method>
     <method name="getinterfaceconfig">
+
       <arg name="config" direction="out" type="s">
         <doc:doc>
           <doc:summary>The configuration as JSON string</doc:summary>
         </doc:doc>
       </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
-            Get the interface configuration of the ethernet interfaces as JSON string.
+            Get the interface configuration of the ethernet
+            interfaces as JSON string.
             Example result:
             [{"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full"},{"device":"X2","state":true,"autonegotiation":true,"speed":100,"duplex":"full"}]
           </doc:para>
@@ -85,9 +103,9 @@
           <doc:summary>The device interface configuration as JSON String</doc:summary>
         </doc:doc>
       </arg>
-      <arg name="result" direction="out" type="i">
+      <arg name="result" direction="out" type="s">
         <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>
@@ -110,9 +128,9 @@
           <doc:summary>IP configuration </doc:summary>
         </doc:doc>
       </arg>
-      <arg name="result" direction="out" type="i">
+      <arg name="result" direction="out" type="s">
         <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>
@@ -120,7 +138,9 @@
           <doc:para>
             Set the ip configuration.
             Example:
-            { "br0": { "source": "static", "ipaddr": "192.168.1.17", "netmask": "255.255.255.0", "bcast": "192.168.1.255"} }
+            { "br0": {
+            "source": "static", "ipaddr": "192.168.1.17", "netmask":
+            "255.255.255.0", "bcast": "192.168.1.255"} }
           </doc:para>
         </doc:description>
       </doc:doc>
@@ -131,9 +151,9 @@
           <doc:summary>IP configuration for a single interface</doc:summary>
         </doc:doc>
       </arg>
-      <arg name="result" direction="out" type="i">
+      <arg name="result" direction="out" type="s">
         <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>
@@ -141,7 +161,9 @@
           <doc:para>
             Set the ip configuration for a single interface.
             Example:
-            { "br0": { "source": "static", "ipaddr": "192.168.1.17", "netmask": "255.255.255.0", "bcast": "192.168.1.255"} }
+            { "br0": { "source": "static", "ipaddr":
+            "192.168.1.17", "netmask": "255.255.255.0", "bcast":
+            "192.168.1.255"} }
           </doc:para>
         </doc:description>
       </doc:doc>
@@ -149,7 +171,8 @@
     <method name="get">
       <arg name="config" direction="in" type="s">
         <doc:doc>
-          <doc:summary>Minimal IP config containing at least interface name</doc:summary>
+          <doc:summary>Minimal IP config containing at least interface
+            name</doc:summary>
         </doc:doc>
       </arg>
       <arg name="config" direction="out" type="s">
@@ -157,15 +180,23 @@
           <doc:summary>The IP configuration of a single interface</doc:summary>
         </doc:doc>
       </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
-            Get the current ip configuration of a single interface as JSON string.
+            Get the current ip configuration of a single
+            interface as JSON string.
             Example:
             { "br0": {
-            "source": "static",
+            "source":
+            "static",
             "ipaddr": "192.168.1.17",
-            "netmask": "255.255.255.0",
+            "netmask":
+            "255.255.255.0",
             "bcast": "192.168.1.255"} }
           </doc:para>
         </doc:description>
@@ -177,6 +208,11 @@
           <doc:summary>The ip configuration</doc:summary>
         </doc:doc>
       </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
@@ -184,9 +220,11 @@
             Example:
             { "br0": {
             "source": "static",
-            "ipaddr": "192.168.1.17",
+            "ipaddr":
+            "192.168.1.17",
             "netmask": "255.255.255.0",
-            "bcast": "192.168.1.255"} }
+            "bcast":
+            "192.168.1.255"} }
           </doc:para>
         </doc:description>
       </doc:doc>
@@ -197,6 +235,11 @@
           <doc:summary>The ip configuration</doc:summary>
         </doc:doc>
       </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
@@ -204,18 +247,26 @@
             Example:
             { "br0": {
             "source": "static",
-            "ipaddr": "192.168.1.17",
+            "ipaddr":
+            "192.168.1.17",
             "netmask": "255.255.255.0",
-            "bcast": "192.168.1.255"} }
+            "bcast":
+            "192.168.1.255"} }
           </doc:para>
         </doc:description>
       </doc:doc>
-    </method>   
+    </method>
     <method name="tempfixip">
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
-            Temporarily fix the IP configuration of the first bridge 'br0'
+            Temporarily fix the IP configuration of the first
+            bridge 'br0'
             to '192.168.1.17'.
           </doc:para>
         </doc:description>
@@ -227,15 +278,22 @@
           <doc:summary>The ip configuration</doc:summary>
         </doc:doc>
       </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
-            Get the current dip switch configuration as JSON string.
+            Get the current dip switch configuration as JSON
+            string.
             Example:
             {"ipaddr": "192.168.1.0",
-             "netmask": "255.255.255.0",
-             "mode": "static",
-             "value" : 2 }
+            "netmask":
+            "255.255.255.0",
+            "mode": "static",
+            "value" : 2 }
           </doc:para>
         </doc:description>
       </doc:doc>
@@ -246,26 +304,28 @@
           <doc:summary>The ip configuration</doc:summary>
         </doc:doc>
       </arg>
-       <arg name="result" direction="out" type="i">
+      <arg name="result" direction="out" type="s">
         <doc:doc>
-          <doc:summary>The result of the operation 0 on success, -1 otherwise</doc:summary>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>
         <doc:description>
           <doc:para>
-            Set first 3 octets and netmask of the ip address that is set by the dip switch.
+            Set first 3 octets and netmask of the ip address
+            that is set by the dip switch.
             Example:
-            {"ipaddr": "192.168.1.0",
-             "netmask": "255.255.255.0"}
+            {"ipaddr":
+            "192.168.1.0",
+            "netmask": "255.255.255.0"}
           </doc:para>
         </doc:description>
       </doc:doc>
     </method>
   </interface>
   <interface name="de.wago.netconfd1.backup">
-      <method name="getbackupparamcount">
-      <arg name="interfaces" direction="out" type="s">
+    <method name="getbackupparamcount">
+      <arg name="count" direction="out" type="s">
         <doc:doc>
           <doc:summary>Get number of backup parameters.</doc:summary>
         </doc:doc>
@@ -279,7 +339,7 @@
         </doc:description>
       </doc:doc>
     </method>
-      <method name="backup">
+    <method name="backup">
       <arg name="config" direction="in" type="s">
         <doc:doc>
           <doc:summary>Backup netconfd configuration</doc:summary>
@@ -287,12 +347,13 @@
       </arg>
       <arg name="targetversion" direction="in" type="s">
         <doc:doc>
-          <doc:summary>Target firmware version. Empty string means same as running firmware</doc:summary>
+          <doc:summary>Target firmware version. Empty string means same
+            as running firmware</doc:summary>
         </doc:doc>
       </arg>
-      <arg name="result" direction="out" type="i">
+      <arg name="result" direction="out" type="s">
         <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>
@@ -309,9 +370,9 @@
           <doc:summary>Restore netconfd configuration</doc:summary>
         </doc:doc>
       </arg>
-      <arg name="result" direction="out" type="i">
+      <arg name="result" direction="out" type="s">
         <doc:doc>
-          <doc:summary>0 if OK, != 0 otherwise</doc:summary>
+          <doc:summary>Error object containing the result</doc:summary>
         </doc:doc>
       </arg>
       <doc:doc>

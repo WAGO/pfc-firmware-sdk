@@ -13,7 +13,6 @@ config NETCONFD
   select GLIB_GDBUS
   select DBUS_GLIB
   select GLIB
-  select DBUS_WAIT
   select LIBNL3
   select NLOHMANN_JSON
   select GSL

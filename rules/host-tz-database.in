@@ -1,5 +1,0 @@
-## SECTION=hosttools_noprompt
-
-config HOST_TZ_DATABASE
-	tristate
-	select HOST_GLIB

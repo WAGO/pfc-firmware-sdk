@@ -17,7 +17,6 @@
 
 #include "config_dnsmasq.hpp"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   return execute(argc, argv);
 }

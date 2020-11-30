@@ -1,7 +1,7 @@
 From 481089d9fe9f8eae337838e4637313e1c2c02a74 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Fri, 21 Sep 2018 15:09:47 +0200
-Subject: [PATCH 091/144] arm: configs: enable debug symbols
+Subject: [PATCH] arm: configs: enable debug symbols
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

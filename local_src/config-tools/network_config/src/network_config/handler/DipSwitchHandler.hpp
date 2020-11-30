@@ -29,7 +29,7 @@ class DipSwitchHandler : public IHandler {
   ::std::string Get(const ::std::string &command);
   void GetDipSwitchConfig();
   void SetDipSwitchConfig(const ::std::string &config);
-  void ParseConfig(netconf::api::DipSwitchConfig &dip_switch_config);
+  void ParseConfig(netconf::DipSwitchConfig &dip_switch_config);
   const ::boost::program_options::variables_map &vm_;
 };
 

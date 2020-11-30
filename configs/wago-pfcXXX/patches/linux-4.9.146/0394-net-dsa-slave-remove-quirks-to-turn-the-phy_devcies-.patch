@@ -12,7 +12,7 @@ Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
  4 files changed, 11 deletions(-)
 
 diff --git a/arch/arm/boot/dts/am335x-pfc-750_8xxx-ksz8863.dtsi b/arch/arm/boot/dts/am335x-pfc-750_8xxx-ksz8863.dtsi
-index ad7cc804a554..9dd9ddfdd345 100644
+index ad7cc80..9dd9ddf 100644
 --- a/arch/arm/boot/dts/am335x-pfc-750_8xxx-ksz8863.dtsi
 +++ b/arch/arm/boot/dts/am335x-pfc-750_8xxx-ksz8863.dtsi
 @@ -45,13 +45,11 @@
@@ -30,7 +30,7 @@ index ad7cc804a554..9dd9ddfdd345 100644
  
  			port@2 {
 diff --git a/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts b/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
-index 90ffbe2e2e65..fc87302f77ed 100644
+index 90ffbe2..fc87302 100644
 --- a/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
 +++ b/arch/arm/boot/dts/am335x-pfc200v3-setupfw.dts
 @@ -145,7 +145,6 @@
@@ -50,7 +50,7 @@ index 90ffbe2e2e65..fc87302f77ed 100644
  
  			port@6 {
 diff --git a/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi b/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
-index 6df6319c19b2..0e6e77bbe157 100644
+index 6df6319..0e6e77b 100644
 --- a/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
 +++ b/arch/arm/boot/dts/am3505-pfc-750_820x-ksz8863.dtsi
 @@ -55,13 +55,11 @@
@@ -68,7 +68,7 @@ index 6df6319c19b2..0e6e77bbe157 100644
  
  			port@2 {
 diff --git a/net/dsa/slave.c b/net/dsa/slave.c
-index 14963efeedda..464f6bbf9500 100644
+index 14963ef..464f6bb 100644
 --- a/net/dsa/slave.c
 +++ b/net/dsa/slave.c
 @@ -1196,11 +1196,6 @@ static int dsa_slave_phy_setup(struct dsa_slave_priv *p,
@@ -84,5 +84,5 @@ index 14963efeedda..464f6bbf9500 100644
  }
  
 -- 
-2.17.1
+2.7.4
 

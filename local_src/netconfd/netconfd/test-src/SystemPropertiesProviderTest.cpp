@@ -33,9 +33,8 @@ class ASystemPropertiesProvider : public Test {
 
 TEST_F(ASystemPropertiesProvider, GetsTheHostname) {
   ::std::string hostname;
-  Status status = system_properties_provider_->GetHostname(hostname);
+  hostname = system_properties_provider_->GetHostname();
 
-  ASSERT_EQ(StatusCode::OK, status.Get());
   EXPECT_FALSE(hostname.empty());
 }
 

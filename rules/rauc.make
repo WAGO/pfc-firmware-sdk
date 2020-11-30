@@ -16,8 +16,8 @@ PACKAGES-$(PTXCONF_RAUC) += rauc
 #
 # Paths and names
 #
-RAUC_VERSION	:= 0.4
-RAUC_MD5	:= 52a8f15e9484d590e6261e9bd453ff76
+RAUC_VERSION	:= 1.2
+RAUC_MD5	:= e2a1772825c6ea900e4824b670846a00
 RAUC		:= rauc-$(RAUC_VERSION)
 RAUC_SUFFIX	:= tar.xz
 RAUC_URL	:= https://github.com/rauc/rauc/releases/download/v$(RAUC_VERSION)/$(RAUC).$(RAUC_SUFFIX)
@@ -101,6 +101,11 @@ ifeq ($(PTXCONF_PLATFORM), vtp-ctp)
 		@RAUC_BUNDLE_COMPATIBLE@, \
 		$(PTXCONF_RAUC_COMPATIBLE))
 	@$(call install_link, rauc, system.conf.TP600, /etc/rauc/system.conf.tp600)
+	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.EC752)
+	@$(call install_replace, rauc, /etc/rauc/system.conf.EC752, \
+		@RAUC_BUNDLE_COMPATIBLE@, \
+		$(PTXCONF_RAUC_COMPATIBLE))
+	@$(call install_link, rauc, system.conf.EC752, /etc/rauc/system.conf.ec752)
 endif
 	@$(call install_copy, rauc, 0, 0, 0644, $(PTXDIST_WORKSPACE)/$(RAUC_CERTIFICATE), /etc/rauc/ca.cert.pem)
 	@$(call install_copy, rauc, 0, 0, 0644, -, \

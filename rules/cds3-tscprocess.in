@@ -1,0 +1,12 @@
+## SECTION=wago_specific_codesys_3_wagocmp
+
+config CDS3_TSCPROCESS
+	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select CODESYS3
+	select CDS3_INCLUDES
+	select PROGEXECD
+	prompt "cds3-tscprocess"
+	help
+	  "Component to execute shell commands from IEC program"

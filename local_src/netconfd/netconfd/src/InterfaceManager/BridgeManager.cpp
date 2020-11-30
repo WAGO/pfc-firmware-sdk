@@ -30,20 +30,27 @@ BridgeManager::BridgeManager(IBridgeController &bridge_controller, IDeviceProper
   UpdateAgetime();
 }
 
-Status BridgeManager::SetDefaultInterfaceUp() const {
+Error BridgeManager::SetDefaultInterfaceUp() const {
   // CAUTION: eth0 has to be up, before ethX? devices can be set up.
-  return bridge_controller_.SetInterfaceUp("eth0");
+
+  Error system_error = bridge_controller_.SetInterfaceUp("eth0");
+  if(system_error.IsNotOk()){
+    Error error { ErrorCode::SET_INTERFACE_STATE, "eth0" };
+    LogError(error.ToString() + " " + system_error.ToString());
+  }
+  return system_error;
+
 }
 
-Status BridgeManager::ApplyBridgeConfig(BridgeConfig const &os_config) const {
+Error BridgeManager::ApplyBridgeConfig(BridgeConfig const &os_config) const {
 
-  Status status = SetDefaultInterfaceUp();
+  Error error = SetDefaultInterfaceUp();
 
-  if (status.Ok()) {
-    status = bridge_configurator_.Configure(os_config);
+  if (error.IsOk()) {
+    error = bridge_configurator_.Configure(os_config);
   }
 
-  return status;
+  return error;
 }
 
 Bridges BridgeManager::GetBridges() const {
@@ -66,64 +73,45 @@ BridgeConfig BridgeManager::GetBridgeConfig() const {
 
 }
 
-Status BridgeManager::IsValid(BridgeConfig const &product_config) const {
+Error BridgeManager::IsValid(BridgeConfig const &product_config) const {
 
-  Status status;
+  Error error;
 
   if (product_config.empty()) {
-    status.Prepend(StatusCode::INVALID_CONFIG, "Bridge configuration validation error, empty configuration");
+    error.Set(ErrorCode::JSON_INCOMPLETE);
   }
 
   BridgeConfig os_config;
-  if (status.Ok()) {
-    os_config = bridge_config_transformator_.ConvertProductToOS(product_config);
-    if (os_config.empty()) {
-      status.Prepend(StatusCode::INVALID_CONFIG,
-                     "Bridge configuration validation error, conversion product to OS bridge config error");
-    }
+  if (error.IsOk()) {
+    error = interface_validator_.Validate(product_config);
   }
 
-  if (status.Ok()) {
-    status = interface_validator_.Validate(os_config);
-  }
-
-  return status;
+  return error;
 
 }
 
-Status BridgeManager::ApplyBridgeConfiguration(BridgeConfig &product_config) const {
-
-  Status status = IsValid(product_config);
-  if (status.NotOk()) {
-    return status;
-  }
+Error BridgeManager::ApplyBridgeConfiguration(BridgeConfig &product_config) const {
 
   BridgeConfig os_config = bridge_config_transformator_.ConvertProductToOS(product_config);
-  if (os_config.empty()) {
-    status.Prepend(StatusCode::INVALID_CONFIG, "Conversion product to OS bridge config error");
+
+  Error error = IsValid(os_config);
+  if (error.IsNotOk()) {
+    return error;
   }
 
-  if (status.Ok()) {
-    status = ApplyBridgeConfig(os_config);
+  if (error.IsOk()) {
+    error = ApplyBridgeConfig(os_config);
   }
 
-  if (status.Ok()) {
+  if (error.IsOk()) {
     netdev_manager_.ConfigureBridges(product_config);
   }
 
-  if (status.Ok()) {
+  if (error.IsOk()) {
     UpdateAgetime();
   }
 
-  return status;
-}
-
-Status BridgeManager::SetBridgeUp(const Bridge &bridge) const {
-  return bridge_configurator_.SetBridgeUp(bridge);
-}
-
-Status BridgeManager::SetBridgeDown(const Bridge &bridge) const {
-  return bridge_configurator_.SetBridgeDown(bridge);
+  return error;
 }
 
 Interfaces BridgeManager::GetBridgeAssignedInterfaces() const {

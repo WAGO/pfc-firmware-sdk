@@ -13,7 +13,7 @@ Signed-off-by: Jan Sondhauss <jan.sondhauss@wago.com>
  1 file changed, 6 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/phy/phy_device.c b/drivers/net/phy/phy_device.c
-index fb9e1c88586a..a3668a2321fa 100644
+index fb9e1c8..a3668a2 100644
 --- a/drivers/net/phy/phy_device.c
 +++ b/drivers/net/phy/phy_device.c
 @@ -917,7 +917,6 @@ int phy_attach_direct(struct net_device *dev, struct phy_device *phydev,
@@ -44,5 +44,5 @@ index fb9e1c88586a..a3668a2321fa 100644
  	return err;
  
 -- 
-2.17.1
+2.7.4
 

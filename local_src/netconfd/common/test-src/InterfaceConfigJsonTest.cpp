@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+
 #include <gtest/gtest.h>
 #include "JsonConverter.hpp"
 #include <string>
@@ -50,7 +52,7 @@ TEST_F(InterfaceConfigJsonTest, parseSingleConfig){
 
   auto status = converter.FromJsonString(single_port_config, port_configs);
 
-  EXPECT_TRUE(status.Ok());
+  EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(1u, port_configs.size());
   ExpectEq(expectedX1, port_configs.at(0));
 }
@@ -63,7 +65,7 @@ TEST_F(InterfaceConfigJsonTest, parseMultipleConfigs){
 
   auto status = converter.FromJsonString(multi_port_full, port_configs);
 
-  EXPECT_TRUE(status.Ok());
+  EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(2u, port_configs.size());
 
   ExpectEq(expectedX1, port_configs.at(0));
@@ -76,7 +78,7 @@ TEST_F(InterfaceConfigJsonTest, parseJsonWithWrongContents){
 
   auto status = converter.FromJsonString(single_port_config_wrong, port_configs);
 
-  EXPECT_TRUE(status.NotOk());
+  EXPECT_TRUE(status.IsNotOk());
   EXPECT_TRUE(port_configs.empty());
 
 }
@@ -87,7 +89,7 @@ TEST_F(InterfaceConfigJsonTest, parseJsonWithExtraContents){
 
   auto status = converter.FromJsonString(single_port_config_extra_member, port_configs);
 
-  EXPECT_TRUE(status.NotOk());
+  EXPECT_TRUE(status.IsNotOk());
   EXPECT_TRUE(port_configs.empty());
 
 }
@@ -98,7 +100,7 @@ TEST_F(InterfaceConfigJsonTest, parseJsonMissingContents){
 
   auto status = converter.FromJsonString(single_port_config_missing_state, port_configs);
 
-  EXPECT_TRUE(status.Ok());
+  EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(1u, port_configs.size());
   EXPECT_EQ(InterfaceState::UNKNOWN, port_configs.at(0).state_);
 }

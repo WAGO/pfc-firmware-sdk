@@ -2,16 +2,19 @@
 #pragma once
 
 #include "Types.hpp"
+#include "Error.hpp"
 #include <ostream>
-
 namespace netconf {
 
-std::ostream& operator<<(std::ostream& os, const InterfaceConfig& pc) ;
+std::ostream& operator<<(std::ostream& os, const ::netconf::InterfaceConfig& pc) ;
 
-std::ostream& operator<<(std::ostream& os, const IPConfig& pc) ;
+std::ostream& operator<<(std::ostream& os, const ::netconf::IPConfig& pc) ;
 
+std::ostream& operator<<(std::ostream& os, const ::netconf::Error& e);
 
+std::ostream& operator<<(std::ostream &os, const ::netconf::ErrorCode &e);
 
 }  // namespace netconf
+
 
 

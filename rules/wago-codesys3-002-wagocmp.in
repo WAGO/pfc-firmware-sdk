@@ -578,6 +578,8 @@ config CDS3_IODRVRLB
     select CODESYS3
     select LIBUIO
     select LIBCOMMONHEADER
+    select LED_SERVER_META
+    select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
     help
         This component implements the process data communication between codesys3 and rocket local bus
 
@@ -597,6 +599,7 @@ config CDS3_TSCPAMIECINTERFACE
 	default n
 	select CODESYS3
 	select CDS3_INCLUDES
+	select LINUX_PAM
 	help
 		Builds and installs lib-interface for PAM library
 

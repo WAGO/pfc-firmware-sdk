@@ -94,7 +94,8 @@ ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@$(call world/install, TYPELABEL)
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	# Backup headers for later use in configs/@platform@/packages
-	cd $(PKGDIR)/$(TYPELABEL)/ && \
+	@mkdir -p $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)
+	@cd $(PKGDIR)/$(TYPELABEL)/ && \
 	tar -czvf $(TYPELABEL).tgz * && \
 	mv $(TYPELABEL).tgz $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/ 
 endif
@@ -119,8 +120,8 @@ $(STATEDIR)/typelabel.targetinstall:
 	@$(call install_fixup, typelabel,DESCRIPTION,missing)
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
 	# Extract precompiled binaries from archive
-	rm -rf $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
-	cd $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp && \
+	@rm -rf $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/*  
+	@cd $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp && \
 	ar -xov $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/$(TYPELABEL_PACKAGE_NAME).ipk  
 	@$(call install_archive, typelabel, 0, 0, $(TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else

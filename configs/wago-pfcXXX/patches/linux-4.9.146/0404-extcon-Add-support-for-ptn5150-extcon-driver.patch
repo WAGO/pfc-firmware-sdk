@@ -11,17 +11,17 @@ Signed-off-by: Vijai Kumar K <vijaikumar.kanagarajan@gmail.com>
 [cw00.choi: Fix bulid dependency and clean-up code]
 Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
 ---
- .../bindings/extcon/extcon-ptn5150.txt        |  27 ++
- drivers/extcon/Kconfig                        |   8 +
- drivers/extcon/Makefile                       |   1 +
- drivers/extcon/extcon-ptn5150.c               | 339 ++++++++++++++++++
+ .../devicetree/bindings/extcon/extcon-ptn5150.txt  |  27 ++
+ drivers/extcon/Kconfig                             |   8 +
+ drivers/extcon/Makefile                            |   1 +
+ drivers/extcon/extcon-ptn5150.c                    | 339 +++++++++++++++++++++
  4 files changed, 375 insertions(+)
  create mode 100644 Documentation/devicetree/bindings/extcon/extcon-ptn5150.txt
  create mode 100644 drivers/extcon/extcon-ptn5150.c
 
 diff --git a/Documentation/devicetree/bindings/extcon/extcon-ptn5150.txt b/Documentation/devicetree/bindings/extcon/extcon-ptn5150.txt
 new file mode 100644
-index 000000000000..936fbdf12815
+index 0000000..936fbdf
 --- /dev/null
 +++ b/Documentation/devicetree/bindings/extcon/extcon-ptn5150.txt
 @@ -0,0 +1,27 @@
@@ -53,7 +53,7 @@ index 000000000000..936fbdf12815
 +		status = "okay";
 +	};
 diff --git a/drivers/extcon/Kconfig b/drivers/extcon/Kconfig
-index 04788d92ea52..e270bbe33f6d 100644
+index 04788d9..e270bbe 100644
 --- a/drivers/extcon/Kconfig
 +++ b/drivers/extcon/Kconfig
 @@ -96,6 +96,14 @@ config EXTCON_PALMAS
@@ -72,7 +72,7 @@ index 04788d92ea52..e270bbe33f6d 100644
  	tristate "Qualcomm USB extcon support"
  	help
 diff --git a/drivers/extcon/Makefile b/drivers/extcon/Makefile
-index 31a0a999c4fb..4d51706be9da 100644
+index 31a0a99..4d51706 100644
 --- a/drivers/extcon/Makefile
 +++ b/drivers/extcon/Makefile
 @@ -14,6 +14,7 @@ obj-$(CONFIG_EXTCON_MAX77693)	+= extcon-max77693.o
@@ -85,7 +85,7 @@ index 31a0a999c4fb..4d51706be9da 100644
  obj-$(CONFIG_EXTCON_SM5502)	+= extcon-sm5502.o
 diff --git a/drivers/extcon/extcon-ptn5150.c b/drivers/extcon/extcon-ptn5150.c
 new file mode 100644
-index 000000000000..18a8f258767b
+index 0000000..18a8f25
 --- /dev/null
 +++ b/drivers/extcon/extcon-ptn5150.c
 @@ -0,0 +1,339 @@
@@ -429,5 +429,5 @@ index 000000000000..18a8f258767b
 +MODULE_AUTHOR("Vijai Kumar K <vijaikumar.kanagarajan@gmail.com>");
 +MODULE_LICENSE("GPL v2");
 -- 
-2.17.1
+2.7.4
 

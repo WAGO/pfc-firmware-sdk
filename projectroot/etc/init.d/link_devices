@@ -104,10 +104,6 @@ GSM_MODEM_TTY_PFCXXX_LINK_NAME="/dev/ttyRUNTIME66"
 PROFIBUS_DP_UIO_XINT_NAME="UIO_DPC31_XINT"
 PROFIBUS_DP_UIO_SYNC_NAME="UIO_DPC31_SYNC"
 
-# led name mapping
-LED_SRC_PATH="/sys/class/leds/"
-LED_DEST_PATH="/dev/leds/"
-
 if [ ! -f "${DEVS_TO_LINK}" ]; then
         echo "${DEVS_TO_LINK} not found"
         exit 1
@@ -177,19 +173,6 @@ case $1 in
         for path in "${device_paths[@]}"; do
                 ln -s ${path} /dev/
         done
-
-        # ----- led naming -----
-        # create folder 
-        if [ ! -d "${LED_DEST_PATH}" ]; then
-                mkdir "${LED_DEST_PATH}"
-        fi
-
-        # link led names 
-        if [ -d "${LED_DEST_PATH}" ]; then
-                ln -s ${LED_SRC_PATH}* "${LED_DEST_PATH}"
-        else
-                echo "ERROR: could not set ${LED_DEST_PATH}, leds will not work"
-        fi
 
         # ----- internal flash partitions -----
         if [[ -c "/dev/mtd8" ]]; then

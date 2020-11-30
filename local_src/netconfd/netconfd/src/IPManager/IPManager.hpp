@@ -31,6 +31,9 @@ const DipSwitchIpConfig DIP_SWITCH_DEFAULT_IP_CONFIG = DipSwitchIpConfig("192.16
 
 class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks, public IIPEvent, public IIPInformation {
  public:
+
+  static constexpr DeviceType persistetDevices = DeviceType::Bridge;
+
   IPManager(const IDeviceProperties &properties_provider, const IBridgeInformation &interface_information,
             IEventManager &event_manager, IPersistenceProvider &persistence_provider, INetDevManager &netdev_manager,
             IDipSwitch &ip_dip_switch, ::std::shared_ptr<IIPMonitor> ip_monitor);
@@ -41,8 +44,8 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
   IPManager(const IPManager &&)           = delete;
   IPManager &operator=(const IPManager &&) = delete;
 
-  Status Configure(const IPConfigs &config);
-  Status ValidateIPConfigs(const IPConfigs &configs) const override;
+  Error Configure(const IPConfigs &config);
+  Error ValidateIPConfigs(const IPConfigs &configs) const override;
 
   IPConfigs GetIPConfigs() const override;
   IPConfigs GetIPConfigs(const Bridges &bridges) const override;
@@ -56,22 +59,22 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
   ::std::shared_ptr<IPLink> CreateOrGet(const ::std::string &interface_name) override;
   ::std::shared_ptr<IPLink> Get(const ::std::string &interface) override;
 
-  Status ApplyTempFixIpConfiguration(const IPConfigs &config) override;
-  Status ApplyIpConfiguration(const IPConfigs &config) override;
-  Status ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) override;
-  Status ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) override;
+  Error ApplyTempFixIpConfiguration(const IPConfigs &config) override;
+  Error ApplyIpConfiguration(const IPConfigs &config) override;
+  Error ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) override;
+  Error ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) override;
   void ModifyIpConfigByDipSwitch(IPConfigs &ip_configs);
   void ModifyIpConfigByDipSwitch(IPConfigs &config, const DipSwitchIpConfig &dip_switch_config);
   bool HasToApplyDipSwitchConfig() const;
 
  private:
-  Status ValidateIPConfigIsApplicableToSystem(const IPConfigs &configs) const;
-  Status CheckExistenceAndAccess(const IPConfigs &configs) const;
+  Error ValidateIPConfigIsApplicableToSystem(const IPConfigs &configs) const;
+  Error CheckExistenceAndAccess(const IPConfigs &configs) const;
 
   IPConfigs QueryAllCurrentIPConfigsThatAreNotIncludetInIPConfigs(const IPConfigs &ip_configs) const;
 
-  Status Apply(const IPConfigs &config, const DipSwitchIpConfig &dip_switch_ip_config);
-  Status Persist(const IPConfigs &config);
+  Error Apply(const IPConfigs &config, const DipSwitchIpConfig &dip_switch_ip_config);
+  Error Persist(const IPConfigs &config);
   bool HasToBePersisted(const IPConfig &ip_config) const;
 
   IPLinks ip_links_;

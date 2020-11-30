@@ -238,7 +238,7 @@ index 2486acb..44e2e3a 100644
  	/* uart1 disabled for cmtest gpio test */
  	status = "disabled";
 diff --git a/arch/arm/boot/dts/am3505-pfc200-setupfw.dts b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
-index ac2c61c..121a2ff 100644
+index ac2c61c0..121a2ff 100644
 --- a/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
 +++ b/arch/arm/boot/dts/am3505-pfc200-setupfw.dts
 @@ -39,6 +39,10 @@

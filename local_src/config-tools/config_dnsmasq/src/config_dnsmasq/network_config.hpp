@@ -18,38 +18,14 @@
 #ifndef SRC_CONFIG_DNSMASQ_NETWORK_CONFIG_HPP_
 #define SRC_CONFIG_DNSMASQ_NETWORK_CONFIG_HPP_
 
-#include <cstdint>
+#include <string>
+#include <vector>
 
 #include "defines.hpp"
+#include "IpConfiguration.hpp"
+#include "PortData.hpp"
 
-typedef struct {
-    char *port_name;
-    char *state;
-    char *type;
-    char *ip_addr;
-    char *netmask;
-    uint32_t ip_addr_bin;
-    uint32_t netmask_bin;
-    uint32_t network_bin;
-} port_data_t;
-
-typedef struct {
-    char *host_name;
-    int  no_of_ports;
-    char **port_name_list;
-    port_data_t **port_data_list;
-} ip_config_t;
-
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif // __cplusplus
-
-void netcfg_read_settings(ip_config_t *data, char ***legal_ports, prgconf_t const * const prgconf, int debugmode);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif // __cplusplus
+void netcfg_read_settings(IpConfiguration &data, std::vector<std::string> &legal_ports,
+                          const prgconf_t &prgconf, int debugmode);
 
 #endif /* SRC_CONFIG_DNSMASQ_NETWORK_CONFIG_HPP_ */

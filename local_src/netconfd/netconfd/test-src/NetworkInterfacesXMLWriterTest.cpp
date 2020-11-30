@@ -273,10 +273,10 @@ static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected, ::std::s
 }
 
 struct StrArg {
-  Status Write(const ::std::string& file_path, const ::std::string& data) {
+  Error Write(const ::std::string& file_path, const ::std::string& data) {
     file_path_ = file_path;
     data_ = data;
-    return Status();
+    return Error();
   }
 
   ::std::string file_path_;
@@ -327,7 +327,7 @@ TEST_F(ANetworkInterfacesXML, PersistsAStartupConfig) {
   InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
       "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
   auto write_result = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
-  EXPECT_EQ(Status{}, write_result);
+  EXPECT_EQ(Error::Ok(), write_result);
   ExpectStringEqIgnoreNewlineAndBlank(NetworkInterfacesXMLStartup, actual_content.data_);
 }
 
@@ -342,7 +342,7 @@ TEST_F(ANetworkInterfacesXML, PersistsAnZeroIPAndBridgeConfig) {
   InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
       "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
   auto write_result = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
-  EXPECT_EQ(Status{}, write_result);
+  EXPECT_EQ(Error{}, write_result);
 }
 
 } /* namespace netconf */

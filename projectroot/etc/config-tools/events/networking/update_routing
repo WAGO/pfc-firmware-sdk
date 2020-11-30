@@ -120,7 +120,7 @@ function DeleteDhcpDefaultGateways()
         if [[ "true" == "$_remove" ]]; then
             #Load dhcp-data-file content to array. Remove only gateways which are not part of this list.
             new_gateways=()
-    [[ -e  $DHCP_DATA_FILE_TEMPLATE$device_name ]] && new_gateways=($($AWK 'BEGIN{RS="[ \t\n]+"; FS="="} /DEFAULT_GATEWAY/ {print $2}' "$DHCP_DATA_FILE_TEMPLATE$device_name" ))
+            [[ -e  $DHCP_DATA_FILE_TEMPLATE$device_name ]] && new_gateways=($($AWK 'BEGIN{RS="[ \t\n]+"; FS="="} /DEFAULT_GATEWAY/ {print $2}' "$DHCP_DATA_FILE_TEMPLATE$device_name" ))
 
             # Load backup file content.
             . "$cfgfile"
@@ -172,7 +172,7 @@ function DeleteRoutes
             if [[ $is_valid == TRUE ]]; then
                 local index=0
                 # Remove static routes.
-                while [[ $index < $count ]]; do
+                while [[ $index -lt $count ]]; do
                     DeleteRoute "${static_dest_remove[$index]}" "${static_gw_remove[$index]}" "${static_dest_mask_remove[$index]}" "${static_metric_remove[$index]}"
                     ((index++))
                 done
@@ -241,11 +241,22 @@ function SetGeneralForwarding
 
 function SetMulticastRoutes
 {
+    local ret=$SUCCESS
+    local status=$SUCCESS
+
     local bridges=$($BRCTL show | $GREP -E '^[[:alpha:]]' | $AWK '(NR>1)  {print $1}')
     for bridge in $bridges; do
-        $ROUTE add -net 224.0.0.0 netmask 224.0.0.0 dev $bridge
-    Log "Set 224.0.0.0 on $bridge: result($?)"
+        ret=$($ROUTE add -net 224.0.0.0 netmask 224.0.0.0 dev $bridge 2>&1)
+        # Ignore duplicates
+        if [[ $? != 0 && $ret != "route: SIOCADDRT: File exists" ]]; then
+            status=$INVALID_PARAMETER
+            Log "Failed to add multicast route for bridge: $bridge"
+        else
+            Log "Set 224.0.0.0 on $bridge"
+        fi
     done
+
+    echo "$status"
 }
 
 function SetRoutes
@@ -260,7 +271,7 @@ function SetRoutes
     local count=0
     [[ "${static_dest[@]-}" ]] && count=${#static_dest[@]}
     # Configure static routes.
-    while [[ $index < $count ]]; do
+    while [[ $index -lt $count ]]; do
         if [[ "${static_state[$index]}" == "enabled" ]]; then
             if [[ "${static_dest[$index]}" && ( "${static_dest[$index]}" == "default" || "${static_dest[$index]}" == "0.0.0.0" ) ]]; then
                 # Default gateway
@@ -386,16 +397,18 @@ function DoUpdate
     ret=$(SetPortForwarding)
     [[ $ret != $SUCCESS ]] && status=$INTERNAL_ERROR
 
-		# Set multicast routes on all active bridges
-		SetMulticastRoutes
-		
+    # Set multicast routes on all active bridges
+    ret=$(SetMulticastRoutes)
+    [[ $ret != $SUCCESS ]] && status=$INTERNAL_ERROR
+
     sync
 
     # Apply previously set changes if no errors occurred.
     if [[ $status == "$SUCCESS" ]]; then 
         $FIREWALL iptables --apply &> /dev/null
     else
-        SetLastError "One or more errors occur during routing setup. See /var/log/messages for details."    
+        # Do not log last error when called by netconfd.
+        [[ -z ${NETCONF_IP_CONFIG+x} ]] && SetLastError "One or more errors occur during routing setup. See /var/log/messages for details."    
     fi
 
     echo "$status"

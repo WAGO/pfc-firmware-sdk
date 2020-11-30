@@ -1,0 +1,8 @@
+## SECTION=system_libraries
+
+config MPARK_VARIANT
+	bool
+	prompt "mpark-variant"
+	select HOST_CMAKE
+	help
+	  "C++17 `std::variant` for C++11/14/17"

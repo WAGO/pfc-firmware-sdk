@@ -30,7 +30,7 @@ GPROF=
 # Add no sign compare option to handle linux kernel 4.9 ethtool.h warning.
 override CFLAGS+= -Wall -Wextra -Wno-sign-compare -Werror -Wshadow -fPIC $(LIBXML_CFLAGS) $(LIBNL_CFLAGS) $(LIBXSLT_CFLAGS) $(GLIB_CFLAGS) $(NETCONF_CFLAGS)
 override LDLIBS+= $(LIBXML_LDLIBS) $(LIBNL_LDLIBS) $(LIBXSLT_LDLIBS) $(GLIB_LDLIBS) $(NETCONF_LDFLAGS) -lstdc++
-override CXXFLAGS += $(CFLAGS) -std=c++14
+override CXXFLAGS += $(CFLAGS) -std=c++17
 
 ifeq ($(WITH_SWCONFIG),yes)
 override LDLIBS += -lswconfig

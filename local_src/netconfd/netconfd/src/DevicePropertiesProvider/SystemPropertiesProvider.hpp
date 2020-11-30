@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "Status.hpp"
 #include <string>
+#include "Error.hpp"
 
 namespace netconf {
 
@@ -17,7 +17,7 @@ class SystemPropertiesProvider {
   SystemPropertiesProvider(SystemPropertiesProvider&&) = delete;
   SystemPropertiesProvider& operator=(SystemPropertiesProvider&&) = delete;
 
-  Status GetHostname(::std::string& hostname) const;
+  ::std::string GetHostname() const;
 };
 
 }

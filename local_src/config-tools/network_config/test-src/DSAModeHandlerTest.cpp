@@ -4,6 +4,7 @@
 
 #include "DSAModeHandler.hpp"
 #include "MockBridgeConfig.hpp"
+#include "Error.hpp"
 #include <gmock/gmock.h>
 
 using namespace testing;
@@ -33,8 +34,9 @@ TEST(DSAModeHandlerTest, GetAConfig)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
-  EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
+  BridgeConfig returned_config;
+  MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})", returned_config);
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
 
   dut.Execute();
 
@@ -46,11 +48,13 @@ TEST(DSAModeHandlerTest, SetDSAModeNoChange)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
-  auto expected_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
-  EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
+  BridgeConfig returned_config;
+  BridgeConfig expected_config;
+  MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})",returned_config);
+  MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})",expected_config);
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
   BridgeConfig set_parameter;
-  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(Status::OK)));
+  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Error::Ok())));
 
   dut.Execute();
 
@@ -63,11 +67,13 @@ TEST(DSAModeHandlerTest, SetDSAModeWithChange)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})");
-  auto expected_config = MakeBridgeConfig(R"({"br0":["X1", "X2"]})");
-  EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
+  BridgeConfig returned_config;
+  BridgeConfig expected_config;
+  MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})", returned_config);
+  MakeBridgeConfig(R"({"br0":["X1", "X2"]})", expected_config);
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
   BridgeConfig set_parameter;
-  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(Status::OK)));
+  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Error::Ok())));
 
   dut.Execute();
 
@@ -80,11 +86,13 @@ TEST(DSAModeHandlerTest, SetDSAModeOtherInterfaceRemains)
 
   DSAModeHandler dut{opt_map};
   MockBridgeConfig mbc;
-  auto returned_config = MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2", "X11"]})");
-  auto expected_config = MakeBridgeConfig(R"({"br0":["X1", "X2"],"br1":["X11"]})");
-  EXPECT_CALL(mbc, GetBridgeConfig()).WillOnce(Return(returned_config));
+  BridgeConfig returned_config;
+  BridgeConfig expected_config;
+  MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2", "X11"]})",returned_config);
+  MakeBridgeConfig(R"({"br0":["X1", "X2"],"br1":["X11"]})",expected_config);
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
   BridgeConfig set_parameter;
-  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(Status::OK)));
+  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Error::Ok())));
 
   dut.Execute();
 

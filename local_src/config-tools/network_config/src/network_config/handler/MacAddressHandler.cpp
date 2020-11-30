@@ -8,11 +8,14 @@
 
 #include "Utils.hpp"
 #include "InterfaceConfig.hpp"
+#include "Error.hpp"
+#include "NetconfError.hpp"
 
 namespace po = boost::program_options;
 
 namespace network_config
 {
+  using namespace netconf;
 
   MacAddressHandler::MacAddressHandler(const po::variables_map &vm) :
           vm_{vm}
@@ -34,15 +37,16 @@ namespace network_config
 
   void MacAddressHandler::GetMacAddress()
   {
+    try{
     auto value = GetDevice(vm_);
-    if(value.empty())
-    {
-      throw ::std::runtime_error("Failed to get mac address. Missing interface name. (e.g. --device=X1)");
-    }
 
     AddSystemInterfacePrefixWhenLabelStartsWithX(value);
 
     ::std::cout << netconf::api::GetMacAddress(value).ToString() << ::std::flush;
+    }
+    catch (std::exception& e) {
+      throw NetconfError{Error{ErrorCode::SYSTEM_CALL, e.what()}};
+    }
   }
 
   void MacAddressHandler::Execute()

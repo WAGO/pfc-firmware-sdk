@@ -35,7 +35,8 @@ function SourceMenu {
             "0. Back to TCP/IP Configuration Menu" \
             "1. Static IP" \
             "2. DHCP" \
-            "3. BootP"
+            "3. BootP" \
+            "4. None"
 
   # assign the selected number to the according config-types
   local newSource
@@ -43,6 +44,7 @@ function SourceMenu {
     1) newSource=static;;
     2) newSource=dhcp;;
     3) newSource=bootp;;
+    4) newSource=none;;
     *) newSource="";
   esac
 

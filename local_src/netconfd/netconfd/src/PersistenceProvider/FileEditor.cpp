@@ -9,9 +9,8 @@
 
 namespace netconf {
 
-Status FileEditor::Read(const ::std::string& file_path, ::std::string& data) const {
+Error FileEditor::Read(const ::std::string& file_path, ::std::string& data) const {
 
-  Status status(StatusCode::OK);
   ::std::ifstream stream(file_path);
 
   if (stream.good()) {
@@ -20,16 +19,16 @@ Status FileEditor::Read(const ::std::string& file_path, ::std::string& data) con
     stream.close();
 
   } else {
-    status.Prepend(StatusCode::FILE_READ_ERROR, "Read file " + file_path + " error");
+    return Error{ErrorCode::FILE_READ, file_path};
   }
 
-  return status;
+  return Error::Ok();
 
 }
 
-Status FileEditor::Write(const ::std::string& file_path,
+Error FileEditor::Write(const ::std::string& file_path,
                          const ::std::string& data) const {
-  Status status(StatusCode::OK);
+  Error status(ErrorCode::OK);
 
   ::std::string file_path_tmp = file_path + ".tmp";
 
@@ -48,21 +47,18 @@ Status FileEditor::Write(const ::std::string& file_path,
     sync();
 
   } else {
-    status.Prepend(StatusCode::FILE_WRITE_ERROR, "Write file " + file_path + " error");
+    return Error{ErrorCode::FILE_WRITE, file_path};
   }
 
   return status;
 }
 
-Status FileEditor::Append(const ::std::string& file_path,
+Error FileEditor::Append(const ::std::string& file_path,
                           const ::std::string& data) const {
-  Status status(StatusCode::OK);
 
   ::std::ifstream in_stream(file_path);
   if (not in_stream.good()) {
-    status.Prepend(StatusCode::FILE_DOES_NOT_EXIST_ERROR,
-               "Append file " + file_path + " error. File does not exist.");
-    return status;
+    return Error{ErrorCode::FILE_WRITE, file_path};
   }
   in_stream.close();
 
@@ -78,10 +74,10 @@ Status FileEditor::Append(const ::std::string& file_path,
     sync();
 
   } else {
-    status.Prepend(StatusCode::FILE_WRITE_ERROR, "Write file " + file_path + " error");
+    return {ErrorCode::FILE_WRITE, file_path };
   }
 
-  return status;
+  return Error::Ok();
 }
 
 } /* namespace netconf */

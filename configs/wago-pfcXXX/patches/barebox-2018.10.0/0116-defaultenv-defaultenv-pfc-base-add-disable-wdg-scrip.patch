@@ -1,8 +1,7 @@
 From 39cdcbe835b15e2cad1504e809615b80e043b1a2 Mon Sep 17 00:00:00 2001
 From: Oleg Karfich <oleg.karfich@wago.com>
 Date: Mon, 15 Oct 2018 16:42:07 +0200
-Subject: [PATCH 116/144] defaultenv: defaultenv-pfc-base: add disable wdg
- script
+Subject: [PATCH] defaultenv: defaultenv-pfc-base: add disable wdg script
 
 Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
 ---

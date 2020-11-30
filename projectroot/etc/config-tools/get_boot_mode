@@ -37,7 +37,7 @@ if [[ "$1" = "-h" ]] || [[ "$1" = "--help" ]]; then
     OPTION:  --json                  Prints output in JSON format (default is text format).
 
   Example:
-    get_boot_mode --force_internal_boot -json  *Prints state of internal boot mode in JSON format.*
+    get_boot_mode --force_internal_boot --json  *Prints state of internal boot mode in JSON format.*
 
 EOF
   exit "$SUCCESS"
@@ -48,20 +48,19 @@ if [[ ! -f $CONF_TOOL_FILENAME ]] ; then
   exit "$INTERNAL_ERROR"
 fi
 
-result="$("$CONF_TOOL_FILENAME" "-R" "-b")"
-status=$?
-
-if [[ $status == "$SUCCESS" ]] && 
-   [[ ($result == "enabled") || ($result == "disabled") ]]; then
-  if [[ "$1" == "--force_internal_boot" ]]; then
+if [[ "$1" == "--force_internal_boot" ]]; then
+  result="$("$CONF_TOOL_FILENAME" "-R" "-b")"
+  status=$?
+  if [[ $status == "$SUCCESS" ]] && 
+     [[ ($result == "enabled") || ($result == "disabled") ]]; then
     if [[ "$2" == "--json" ]] ; then
       echo "{\"force_internal_boot\": \"$result\"}"
     else
       echo "$result"
     fi
   else
-    exit "$MISSING_PARAMETER"
+    exit "$INTERNAL_ERROR"
   fi  
 else
-  exit "$INTERNAL_ERROR"
+  exit "$INVALID_PARAMETER"
 fi

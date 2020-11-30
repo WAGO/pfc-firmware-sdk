@@ -22,6 +22,15 @@
         <en>System Booted</en>
       </string>
     </event>
+    <event id="x00D0" name="wait_to_start">
+      <led name="SYS" state="BLINK_GRN_RED" >
+        <on>500</on>
+        <off>500</off>
+      </led>
+      <string>
+        <en>Wait to start</en>
+      </string>
+    </event>
     <event id="x0003" name="Reset_all" persistent="yes">
       <string>
         <en>Perform Hard System Reset</en>
@@ -36,14 +45,9 @@
         <en>not active</en>
       </string>
     </event>
-    <event id="x0005" name="DoubleIP_br0">
+    <event id="x0005" name="IpConflict">    
       <string>
-        <en>ipwatchd: Duplicate IP address detected in network attached to socket X1</en>
-      </string>
-    </event>
-    <event id="x0006" name="DoubleIP_br1">
-      <string>
-        <en>ipwatchd: Duplicate IP address detected in network attached to socket X2</en>
+	      <en>IP address conflict detected. See /var/log/messages for details.</en>
       </string>
     </event>
     <event id="x0007" name="factory_reset_mode">

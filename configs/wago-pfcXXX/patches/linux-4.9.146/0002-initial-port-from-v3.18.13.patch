@@ -8948,7 +8948,7 @@ index 0000000..93531f8
 +MODULE_VERSION("2016-29-06");
 +MODULE_DESCRIPTION("OMAP DMTimer based I/O Counter driver");
 diff --git a/drivers/bus/omap_l3_smx.c b/drivers/bus/omap_l3_smx.c
-index 360a5c0..6a55573 100644
+index 360a5c0..6a55573a 100644
 --- a/drivers/bus/omap_l3_smx.c
 +++ b/drivers/bus/omap_l3_smx.c
 @@ -159,6 +159,12 @@ static irqreturn_t omap3_l3_block_irq(struct omap3_l3 *l3,

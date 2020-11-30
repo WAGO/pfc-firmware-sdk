@@ -1,7 +1,7 @@
 From 49acca3be5ac166c69cbb3c85cd7606981ca94f8 Mon Sep 17 00:00:00 2001
 From: Heinrich Toews <heinrich.toews@wago.com>
 Date: Tue, 16 Oct 2018 10:32:43 +0000
-Subject: [PATCH 128/144] net: davinci-emac: add device tree support
+Subject: [PATCH] net: davinci-emac: add device tree support
 
 Signed-off-by: Heinrich Toews <heinrich.toews@wago.com>
 ---

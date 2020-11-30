@@ -1,0 +1,84 @@
+From e837f79e81ad35fe55ff09f6c0b326b1cf05d45e Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 25 May 2020 12:12:36 +0200
+Subject: [PATCH] arm: dts: vtpctp: assign pll2 clk as video parent clk
+
+Signed-off-by: Oleg Karfich <oleg.karfich@wago.com>
+---
+ arch/arm/boot/dts/imx6q-vtpctp-0010.dts | 15 +++++++++++++++
+ arch/arm/boot/dts/imx6q-vtpctp-0015.dts | 15 +++++++++++++++
+ arch/arm/boot/dts/imx6q-vtpctp-0021.dts | 15 +++++++++++++++
+ 3 files changed, 45 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6q-vtpctp-0010.dts b/arch/arm/boot/dts/imx6q-vtpctp-0010.dts
+index a03eb74..6a06c95 100644
+--- a/arch/arm/boot/dts/imx6q-vtpctp-0010.dts
++++ b/arch/arm/boot/dts/imx6q-vtpctp-0010.dts
+@@ -101,3 +101,18 @@
+ 				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
+ 				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>;
+ };
++
++&clks {
++	assigned-clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>,
++			  <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
++			  <&clks IMX6QDL_CLK_IPU1_DI0_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU1_DI1_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU2_DI0_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU2_DI1_PRE_SEL>;
++	assigned-clock-parents = <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-vtpctp-0015.dts b/arch/arm/boot/dts/imx6q-vtpctp-0015.dts
+index f97a939..754f6be 100644
+--- a/arch/arm/boot/dts/imx6q-vtpctp-0015.dts
++++ b/arch/arm/boot/dts/imx6q-vtpctp-0015.dts
+@@ -92,3 +92,18 @@
+ 		linux,wakeup;
+ 	};
+ };
++
++&clks {
++	assigned-clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>,
++			  <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
++			  <&clks IMX6QDL_CLK_IPU1_DI0_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU1_DI1_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU2_DI0_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU2_DI1_PRE_SEL>;
++	assigned-clock-parents = <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>;
++};
+diff --git a/arch/arm/boot/dts/imx6q-vtpctp-0021.dts b/arch/arm/boot/dts/imx6q-vtpctp-0021.dts
+index 5605f4a..a310564 100644
+--- a/arch/arm/boot/dts/imx6q-vtpctp-0021.dts
++++ b/arch/arm/boot/dts/imx6q-vtpctp-0021.dts
+@@ -91,3 +91,18 @@
+ 		linux,wakeup;
+ 	};
+ };
++
++&clks {
++	assigned-clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>,
++			  <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
++			  <&clks IMX6QDL_CLK_IPU1_DI0_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU1_DI1_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU2_DI0_PRE_SEL>,
++			  <&clks IMX6QDL_CLK_IPU2_DI1_PRE_SEL>;
++	assigned-clock-parents = <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>,
++				 <&clks IMX6QDL_CLK_PLL2_PFD2_396M>;
++};
+-- 
+2.7.4
+

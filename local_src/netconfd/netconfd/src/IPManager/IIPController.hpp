@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Status.hpp"
+#include "Error.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -17,9 +17,7 @@ class IIPController {
   IIPController(const IIPController&&) = delete;
   IIPController& operator=(const IIPController&&) = delete;
 
-
-  virtual Status GetIPConfig(const Interface& interface, IPConfig& config) const = 0;
-  virtual Status SetIPConfig(const IPConfig& config) const = 0;
+  virtual Error SetIPConfig(const IPConfig& config) const = 0;
 
 };
 

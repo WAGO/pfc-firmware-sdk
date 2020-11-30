@@ -64,11 +64,11 @@ case $1 in
 
     reload)
         # /etc/dnsmasq.conf is not reloaded during this reload, see dnsmasq manual page.
-        test -e $PIDFILE || echo "not running"
+        test -e $PIDFILE || { echo "not running" && exit 0; }
         kill -s SIGHUP `cat $PIDFILE`
         event_start
         ;;
-        
+
     update)
         # Restart without generating /etc/dnsmasq.conf.
         stop_dnsmasq

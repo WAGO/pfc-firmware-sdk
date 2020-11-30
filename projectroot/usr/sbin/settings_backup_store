@@ -58,7 +58,6 @@ SaveBackupValue ()
   return $status
 }
 
-
 #-------------- main-programm ------------------------#
 
 status=$SUCCESS
@@ -164,67 +163,22 @@ createBackupFile()
       dnsServer=$(/etc/config-tools/get_dns_server $dnsServerNo)
       ProcessErrBackupOperation $? "Failed to get dns server" $dnsServerNo
     done
+    
     #-------------------------------------------------------------
     # save network settings
-    if ! IsNetworkSettingsV2 ; then
-      interfaceNo=0
-      ports=$(GetPortsList)
-      
-      for port in $ports; do
-  
-          #-------------------------------------------------------------
-          # save eth ip configs which must be processed together
-          ethIpConfigType=$(/etc/config-tools/get_eth_config $port config-type)
-          ProcessErrBackupOperation $? "Failed to get eth config type from port:" $port
-          ethState=$(/etc/config-tools/get_eth_config $port state)
-          ProcessErrBackupOperation $? "Failed to get eth config state from port:"  $port
-          SaveBackupValue "ip-config-type-eth${interfaceNo}" "${ethIpConfigType:-static}" "$backupFile"
-          SaveBackupValue "ip-state-eth${interfaceNo}"       "$ethState"        "$backupFile"
-  
-          # save network settings
-          ethIpAddress=$(/etc/config-tools/get_eth_config $port ip-address)
-          ProcessErrBackupOperation $? "Failed to get eth config ip address from port:" $port
-          ethIpSubnetmask=$(/etc/config-tools/get_eth_config $port subnet-mask)
-          ProcessErrBackupOperation $? "Failed to get eth config subnet mask from port:" $port
-          SaveBackupValue "ip-address-eth${interfaceNo}" "$ethIpAddress" "$backupFile"
-          SaveBackupValue "subnet-mask-eth${interfaceNo}" "$ethIpSubnetmask" "$backupFile"
-  
-          #-------------------------------------------------------------
-          # save ethernet settings
-          # 
-          state=$(/etc/config-tools/get_eth_config   $port state)
-          ProcessErrBackupOperation $? "Failed to get eth config state from port:" $port
-          autoneg=`/etc/config-tools/get_eth_config $port autoneg`
-          ProcessErrBackupOperation $? "Failed to get eth config autoneg from port:" $port
-          speed=`/etc/config-tools/get_eth_config   $port speed`
-          ProcessErrBackupOperation $? "Failed to get eth config speed from port:" $port
-          duplex=`/etc/config-tools/get_eth_config  $port duplex`
-          ProcessErrBackupOperation $? "Failed to get eth config duplex from port:" $port
-          SaveBackupValue "eth${interfaceNo}-state" "$state" "$backupFile"
-          SaveBackupValue "eth${interfaceNo}-autoneg" "$autoneg" "$backupFile"
-          SaveBackupValue "eth${interfaceNo}-speed" "${speed}" "$backupFile"
-          SaveBackupValue "eth${interfaceNo}-duplex" "${duplex}" "$backupFile"
-  
-          #-------------------------------------------------------------
-          # save dhcp server settings
-          # 
-          state=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-state)
-          ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-state from port:" $port
-          range=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-range)
-          ProcessErrBackupOperation $? "Failed to get dhcpd config dhcpd-range from port:" $port
-          lease=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-lease-time)
-          ProcessErrBackupOperation $? "Failed to get dhcpd config lease time from port:" $port
-          fixhost=$(/etc/config-tools/get_dhcpd_config -p $port -g dhcpd-fix-host)
-          ProcessErrBackupOperation $? "Failed to get dhcpd config fixhost from port:" $port
-          SaveBackupValue "$port-dhcpd-state" "${state}" "$backupFile"
-          SaveBackupValue "$port-dhcpd-range" "${range}" "$backupFile"
-          SaveBackupValue "$port-dhcpd-lease-time" "${lease}" "$backupFile"
-          SaveBackupValue "$port-dhcpd-fix-host" "${fixhost}" "$backupFile"
-  
-          interfaceNo=$[$interfaceNo + 1]
-      done
+    BACKUP_TARGET_VERSION_PARAM=
+    if [ -n "${WAGO_BACKUP_TARGET_VERSION:-}" ]; then
+      BACKUP_TARGET_VERSION_PARAM="--backup-targetversion ${WAGO_BACKUP_TARGET_VERSION:-}"
     fi
- 
+
+    /etc/config-tools/network_config --backup $backupFile $BACKUP_TARGET_VERSION_PARAM
+    ProcessErrRestoreOperation $? "Failed to get network parameters by " "/etc/config-tools/network_config"
+     
+    #-------------------------------------------------------------
+    # save dhcp server settings
+    /etc/config-tools/config_dnsmasq_c --store-config "$backupFile"
+    ProcessErrRestoreOperation $? "Failed to get config_dnsmasq by " "/etc/config-tools/config_dnsmasq_c"
+         
     #-------------------------------------------------------------
     # save dns service settings
     state=$(/etc/config-tools/get_dns_service_config -g dns-state)

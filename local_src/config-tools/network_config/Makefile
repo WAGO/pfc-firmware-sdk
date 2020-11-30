@@ -45,7 +45,7 @@ INSTALL_TARGETS += \
 SHARED_CCXXFLAGS += -fPIC
 SHARED_CCXXFLAGS += -fvisibility=hidden
 SHARED_CFLAGS    += $(call option_std,gnu99)
-SHARED_CXXFLAGS  += $(call option_std,gnu++14)
+SHARED_CXXFLAGS  += $(call option_std,c++17)
 SHARED_CXXFLAGS  += -fvisibility-inlines-hidden
 SHARED_INCLUDES  += -I$(PROJECT_ROOT)/src/network_config/ \
 										-I$(PROJECT_ROOT)/src/network_config/handler/
@@ -99,7 +99,7 @@ alltests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 #######################################################################################################################
 # Settings for build target network_config.elf
 network_config.elf_LIBS             += network_config netconf boost_system boost_program_options
-network_config.elf_STATICALLYLINKED += netconf network_config 
+network_config.elf_STATICALLYLINKED += network_config 
 network_config.elf_PKG_CONFIGS      += $(libnetwork_config.a_PKG_CONFIGS)
 network_config.elf_DISABLEDWARNINGS += 
 network_config.elf_PREREQUISITES    += $(call local_prerequisites,network_config.elf)

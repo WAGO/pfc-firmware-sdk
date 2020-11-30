@@ -1,0 +1,7 @@
+## SECTION=wago_specific
+
+config FACTORY_SETTINGS
+	tristate
+	prompt "factory_settings"
+	help
+	  Create factory settings during first boot.

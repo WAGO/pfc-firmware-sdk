@@ -257,20 +257,6 @@ config LINUX_PAM_PAM_NAMESPACE
 	help
 	  FIXME
 
-config LINUX_PAM_PAM_TALLY
-	bool
-	default n
-	prompt "pam_tally"
-	help
-	  FIXME
-
-config LINUX_PAM_PAM_TALLY2
-	bool
-	default n
-	prompt "pam_tally2"
-	help
-	  FIXME
-
 config LINUX_PAM_PAM_TIME
 	bool
 	default n
@@ -295,7 +281,7 @@ config LINUX_PAM_PAM_UNIX
 config LINUX_PAM_PAM_CRACKLIB
 	bool
 	default n
-	prompt "pam_cracklib"
+	prompt "pam_cracklib (deprecated)"
 	help
 	  FIXME
 

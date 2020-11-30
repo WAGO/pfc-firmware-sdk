@@ -1,6 +1,6 @@
 
 #include <gmock/gmock.h>
-#include "IPConfig.hpp"
+#include <IPConfig.hpp>
 
 namespace netconf {
 namespace api {
@@ -11,10 +11,10 @@ struct MockIPConfig {
   MockIPConfig();
   ~MockIPConfig();
 
-  MOCK_METHOD0(GetIPConfigs,IPConfigs() );
-  MOCK_METHOD0(GetCurrentIPConfigs,IPConfigs() );
-  MOCK_METHOD1(SetIPConfigs, Status(const IPConfigs &config) );
-  MOCK_METHOD0(SetTempFixIp, void() );
+  MOCK_METHOD1(GetIPConfigs,Error(IPConfigs &config) );
+  MOCK_METHOD1(GetCurrentIPConfigs,Error(IPConfigs &config) );
+  MOCK_METHOD1(SetIPConfigs, Error(const IPConfigs &config) );
+  MOCK_METHOD0(SetTempFixIp, Error() );
 
 
 };

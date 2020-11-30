@@ -11,7 +11,7 @@
 ///
 ///  \file     config_mdmd.c
 ///
-///  \version  $Revision: 49670 $
+///  \version  $Revision: 50237 $
 ///
 ///  \brief    Configuration tool for WAGO Modem Management Daemon. 
 ///
@@ -1472,9 +1472,9 @@ static void PrintNetworkList(tPrintFormat format)
   gint i;
 
   gint result = GetOperList(&size, &operList);
-  //AssertCondition(result == 0, SYSTEM_CALL_ERROR, g_mdmDbusClient.lastError);
-  if (result!=0)
-  { //print empty list when not available, e.g. when PIN must be set
+  AssertCondition(result == 0, SYSTEM_CALL_ERROR, g_mdmDbusClient.lastError);
+  if (operList==NULL)
+  { //print empty list when not available
     if (format==FMT_JSON) printf("[ ] ");
   }
   else
@@ -1518,12 +1518,12 @@ static void PrintNetworkList(tPrintFormat format)
     }
     g_string_free(state, TRUE);
     g_string_free(type, TRUE);
+    for (i = 0; i < size; i++)
+    {
+      MdmOperFree(&operList[i]);
+    }
+    free(operList);
   }
-  for (i = 0; i < size; i++)
-  {
-    MdmOperFree(&operList[i]);
-  }
-  free(operList);
 }
 
 static void PrintGprsAccessParams(tPrintFormat format)

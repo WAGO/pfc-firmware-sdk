@@ -16,8 +16,8 @@ PACKAGES-$(PTXCONF_LINUX_PAM) += linux-pam
 #
 # Paths and names
 #
-LINUX_PAM_VERSION       := 1.3.1
-LINUX_PAM_MD5           := 558ff53b0fc0563ca97f79e911822165
+LINUX_PAM_VERSION       := 1.4.0
+LINUX_PAM_MD5           := 39fca0523bccec6af4b63b5322276c84
 LINUX_PAM               := Linux-PAM-$(LINUX_PAM_VERSION)
 LINUX_PAM_SUFFIX        := tar.xz
 LINUX_PAM_URL           := https://github.com/linux-pam/linux-pam/releases/download/v$(LINUX_PAM_VERSION)/$(LINUX_PAM).$(LINUX_PAM_SUFFIX)
@@ -44,6 +44,13 @@ LINUX_PAM_LICENSE       := GPLv2
 # ----------------------------------------------------------------------------
 # Prepare
 # ----------------------------------------------------------------------------
+
+#
+# autoconf
+#
+LINUX_PAM_AUTOCONF := \
+        $(CROSS_AUTOCONF_USR) \
+	--$(call ptx/endis, PTXCONF_LINUX_PAM_PAM_CRACKLIB)-cracklib
 
 #$(STATEDIR)/linux-pam.prepare:
 #	@$(call targetinfo)

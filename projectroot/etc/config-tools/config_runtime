@@ -79,10 +79,10 @@ chplcconfig_wrapper()
     local_status=$?
     if [ "$local_status" != "0" ]; then
         if [ "$local_status" = "1" ]; then
-            # ignore warning
+            # ignore warning for recommended restart of PLC
             local_status=0
         elif [ "$local_status" = "2" ]; then
-            POST_ACTION="post_action_need_restart"
+            # ignore warning for necessary restart of PLC (see defect PP8XXX-5840)
             local_status=0
         else
             SetLastError "Parameter change failed"
@@ -109,13 +109,6 @@ write_cds3config()
         V3_PORT_AUTH)
             chplcconfig_wrapper TscUserDB SecureLogin $parvalue
     esac
-}
-
-# Set error message and status because config change requires a controller restart
-post_action_need_restart()
-{
-    SetLastError "Configuration change needs controller restart"
-    status=$INTERNAL_ERROR
 }
 
 # Wrapper function to set the webserver state for codesys3 to enabled or disabled.
@@ -324,7 +317,6 @@ if [ "$1" = "-w" ] || [ "$1" = "--wait" ]; then
     shift
 fi
 
-POST_ACTION=
 NEW_RUNTIME_VERSION=$(GetParameterValue "runtime-version" $*)
 FORCE_NEW_VERSION=$(GetParameterValue "force-new-version" $*)
 NEW_HOMEDIR_SD=$(GetParameterValue "homedir-on-sdcard" $*)
@@ -336,6 +328,20 @@ NEW_SERVICE_DISABLED=$(GetParameterValue "service-state" $*)
 NEW_SERVICE_PORT_NO=$(GetParameterValue "comm-port" $*)
 CFG_VERSION=$(GetParameterValue "cfg-version" $*)
 RESTART_SERVER=$(GetParameterValue "restart-server" $*)
+
+# backward compatibility: convert old argument "boot-project" to new argument "homedir-on-sdcard" (WAT32108)
+NEW_BOOTPROJECT_LOCATION=$(GetParameterValue "boot-project" $*)
+if [ "$NEW_BOOTPROJECT_LOCATION" -a ! "$NEW_HOMEDIR_SD" ]; then
+    if [ "$NEW_BOOTPROJECT_LOCATION" == "CARD://" ]; then
+      NEW_HOMEDIR_SD="enabled"
+    elif [ "$NEW_BOOTPROJECT_LOCATION" == "HOME://" ]; then
+      NEW_HOMEDIR_SD="disabled"
+    else
+      status=$INVALID_PARAMETER
+      SetLastError "Invalid bootproject location value."
+      exit $status
+    fi
+fi
 
 # Check restart system webserver flag and make command line argument for change_default_webserver
 if [ "$RESTART_SERVER" ]; then
@@ -477,7 +483,6 @@ elif [ "$NEW_RUNTIME_VERSION" ] && [ "$NEW_RUNTIME_VERSION" != "$CURRENT_RUNTIME
 
     status=$SUCCESS
 fi
-eval $POST_ACTION
 sync
 exit $status
 

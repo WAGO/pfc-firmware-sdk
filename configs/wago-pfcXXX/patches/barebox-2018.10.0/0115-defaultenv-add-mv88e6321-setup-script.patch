@@ -1,7 +1,7 @@
 From bf195e7808112bb7fd93d3ef9e9b495b7d16010c Mon Sep 17 00:00:00 2001
 From: Andreas Schmidt <andreas.schmidt@wago.com>
 Date: Fri, 12 Oct 2018 16:05:46 +0200
-Subject: [PATCH 115/144] defaultenv: add mv88e6321 setup script
+Subject: [PATCH] defaultenv: add mv88e6321 setup script
 
 This script enable ethX1 port of Marvell MV88E6321 switch
 for production or debugging mode. By default are all ports of

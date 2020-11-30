@@ -1,5 +1,10 @@
 ***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
+# ..:: Attention ::.. 
+## For FW19 a new toolchain is required!
+Follow the steps in chapter "Install "cross-toolchain"" also
+check the installation path.
+
 # Install WAGO-PFC-SDK on Ubuntu 16.04.5 (64bit) LTS
 
 This HowTo describes steps to install the Software-Development-Kit (SDK) for PFC's on Ubuntu16.04
@@ -91,21 +96,21 @@ These steps will only concentrate on the recommented Ubuntu version:
     >git clone https://github.com/WAGO/pfc-firmware-sdk.git .
 ```
 
-## 2.) Install "cross tool chain" 
+## 2.) Install "cross toolchain"
 We will provide a ’ready to use’ toolchain in a binary manner.
-To install the Linaro binary toolchain act as follows:
+To install the binary toolchain act as follows:
 
-### 2.1) Clone Linaro tool chain to /opt directory
-We need to clone the pre-compiled tool chain archive to the storage directory. We expect **/opt**
+### 2.1) Clone toolchain to /opt directory
+We need to clone the pre-compiled toolchain archive to the storage directory. We expect **/opt**
 ```
-    >sudo mkdir -p /opt/LINARO.Toolchain-2017.10/
-    >sudo git clone http://www.github.com/wago/gcc-linaro.toolchain-2017-precompiled.git /opt/LINARO.Toolchain-2017.10/
+    >sudo mkdir -p /opt/gcc-Toolchain-2019.12/
+    >sudo git clone http://www.github.com/wago/gcc-linaro.toolchain-2017-precompiled.git /opt/gcc-Toolchain-2019.12/
 ```
->After that the cross toolchain is located into folder: /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/
+>After that the cross toolchain is located into folder: /opt/gcc-Toolchain-2019.12/arm-linux-gnueabihf/bin/
 
-If you are interested in the sources of the linaro toolchain take a look at:
+If you are interested in the sources of the toolchain take a look at:
 ```
-http://www.github.com/wago/gcc-linaro.toolchain-2017
+http://www.github.com/wago/gcc-toolchain-2019.12
 ```
 
 ## 3.) Get, configure, build and install the build tool "ptxdist"(as normal user)
@@ -236,9 +241,9 @@ The output looks like this:
 ### 4.3) Select "toolchain" to use
 ```
     >cd ~/wago/ptxproj
-    >ptxdist toolchain /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/
+    >ptxdist toolchain /opt/gcc-Toolchain-2019.12/arm-linux-gnueabihf/bin/
     found and using toolchain:
-    'ptxdist toolchain /opt/LINARO.Toolchain-2017.10/arm-linux-gnueabihf/bin/'
+    'ptxdist toolchain /opt/gcc-Toolchain-2019.12/arm-linux-gnueabihf/bin/'
 ```
 
 ### 4.4) Enter the main menu dialog once

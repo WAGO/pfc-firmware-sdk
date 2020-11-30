@@ -41,11 +41,11 @@ bool IPLink::IsDifferentFromCurrentIpAddress(const IPConfig &new_ip_config) cons
     /* Special case when testing zero IP, empty string is also considered to be zero IP */
     return (new_ip_config.address_ != ZeroIP) && !new_ip_config.address_.empty();
   }
-  return (new_ip_config.address_ != address_) || (new_ip_config.netmask_ != netmask_);
+  return (new_ip_config.address_ != ip_config_.address_) || (new_ip_config.netmask_ != ip_config_.netmask_);
 }
 
-Status IPLink::Configure(const IPConfig &new_ip_config) {
-  Status status;
+Error IPLink::Configure(const IPConfig &new_ip_config) {
+  Error status;
   if (address_ != ZeroIP) {
     if (IPConfig::SourceChangesToAnyOf(ip_config_, new_ip_config, IPSource::BOOTP, IPSource::DHCP,
                                        IPSource::EXTERNAL)) {
@@ -57,12 +57,17 @@ Status IPLink::Configure(const IPConfig &new_ip_config) {
   }
   status = ip_configure_.Configure(new_ip_config);
 
-  if (IPConfig::SourceIsAnyOf(new_ip_config, IPSource::STATIC, IPSource::TEMPORARY) && status.Ok()) {
-    /* Manually set current IP, because during system boot no netlink events are send tu us.
-     * This will circumvent this issue
-     */
-    address_ = new_ip_config.address_;
-    netmask_ = new_ip_config.netmask_;
+  if (status.IsOk()) {
+    if (IPConfig::SourceIsAnyOf(new_ip_config, IPSource::STATIC, IPSource::TEMPORARY)) {
+      /* Manually set current IP, because during system boot no netlink events are send tu us.
+       * This will circumvent this issue
+       */
+      address_ = new_ip_config.address_;
+      netmask_ = new_ip_config.netmask_;
+    } else if (IPConfig::SourceIsAnyOf(new_ip_config, IPSource::NONE)) {
+      address_ = ZeroIP;
+      netmask_ = ZeroIP;
+    }
   }
 
   return status;
@@ -99,10 +104,10 @@ void IPLink::NotifyChanges(const IPConfig &new_ip_config) {
   }
 }
 
-Status IPLink::SetIPConfig(const IPConfig new_ip_config) {
-  Status status = Configure(new_ip_config);
+Error IPLink::SetIPConfig(const IPConfig new_ip_config) {
+  Error status = Configure(new_ip_config);
 
-  if(status.Ok()) {
+  if(status.IsOk()) {
     NotifyChanges(new_ip_config);
 
     AcceptNewConfig(new_ip_config);
