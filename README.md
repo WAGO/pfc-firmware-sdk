@@ -1,8 +1,8 @@
 ***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
 # ..:: Attention ::.. 
-## For FW19 a new toolchain is required!
-Follow the steps in chapter "Install "cross-toolchain"" also
+## For FW18 a new toolchain is required!
+Follow the steps in chapter "Install "cross-toolchain" also
 check the installation path.
 
 # Install WAGO-PFC-SDK on Ubuntu 16.04.5 (64bit) LTS
