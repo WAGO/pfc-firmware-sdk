@@ -104,7 +104,7 @@ To install the binary toolchain act as follows:
 We need to clone the pre-compiled toolchain archive to the storage directory. We expect **/opt**
 ```
     >sudo mkdir -p /opt/gcc-Toolchain-2019.12/
-    >sudo git clone http://github.com/WAGO/gcc-toolchain-2019.12-precompile.git /opt/gcc-Toolchain-2019.12/
+    >sudo git clone http://github.com/WAGO/gcc-toolchain-2019.12-precompiled.git /opt/gcc-Toolchain-2019.12/
 ```
 >After that the cross toolchain is located into folder: /opt/gcc-Toolchain-2019.12/arm-linux-gnueabihf/bin/
 
