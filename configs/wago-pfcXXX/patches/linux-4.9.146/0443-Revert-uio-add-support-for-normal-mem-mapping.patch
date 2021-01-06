@@ -1,0 +1,77 @@
+From 459f800babfe34f5cbbf38cf0d988cbd01a265f0 Mon Sep 17 00:00:00 2001
+From: Oleg Karfich <oleg.karfich@wago.com>
+Date: Mon, 14 Dec 2020 12:21:22 +0100
+Subject: [PATCH] Revert "uio: add support for normal mem mapping"
+
+This reverts commit 13d2d971cf3d5c3c2dd2a700ca677df81ef93101.
+
+Revert this patch due to hanging cpu
+---
+ arch/arm/boot/dts/am335x-pfc-750_8xxx-nvram.dtsi |  1 -
+ arch/arm/boot/dts/am3505-pfc-750_820x.dtsi       |  1 -
+ drivers/uio/uio.c                                | 11 +----------
+ 3 files changed, 1 insertion(+), 12 deletions(-)
+
+diff --git a/arch/arm/boot/dts/am335x-pfc-750_8xxx-nvram.dtsi b/arch/arm/boot/dts/am335x-pfc-750_8xxx-nvram.dtsi
+index aaa72ad..e7df885 100644
+--- a/arch/arm/boot/dts/am335x-pfc-750_8xxx-nvram.dtsi
++++ b/arch/arm/boot/dts/am335x-pfc-750_8xxx-nvram.dtsi
+@@ -9,7 +9,6 @@
+ / {
+ 	uio_nvram: UIO_NVRAM@0x1000000 {
+ 		compatible = "uio_pdrv_genirq";
+-		uio,map-wc;
+ 		reg = <0x01000000 0x00020000>; /* 128k 16bit NVRAM */
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi b/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi
+index 2b7502b..578272c 100644
+--- a/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi
++++ b/arch/arm/boot/dts/am3505-pfc-750_820x.dtsi
+@@ -106,7 +106,6 @@
+ 	/* nvram is on cs2 */
+ 	UIO_NVRAM@0x2000000 {
+ 		compatible = "uio_pdrv_genirq";
+-		uio,map-wc;
+ 		reg = <0x2000000 0x20000>; /* 128k */
+ 	};
+ 
+diff --git a/drivers/uio/uio.c b/drivers/uio/uio.c
+index 170d053..77ceda1 100644
+--- a/drivers/uio/uio.c
++++ b/drivers/uio/uio.c
+@@ -25,7 +25,6 @@
+ #include <linux/kobject.h>
+ #include <linux/cdev.h>
+ #include <linux/uio_driver.h>
+-#include <linux/of.h>
+ 
+ #define UIO_MAX_DEVICES		(1U << MINORBITS)
+ 
+@@ -647,7 +646,6 @@ static const struct vm_operations_struct uio_physical_vm_ops = {
+ static int uio_mmap_physical(struct vm_area_struct *vma)
+ {
+ 	struct uio_device *idev = vma->vm_private_data;
+-	struct device_node *np = idev->dev->of_node;
+ 	int mi = uio_find_mem_index(vma);
+ 	struct uio_mem *mem;
+ 	if (mi < 0)
+@@ -660,14 +658,7 @@ static int uio_mmap_physical(struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 
+ 	vma->vm_ops = &uio_physical_vm_ops;
+-	if(of_find_property(np, "uio,map-wc", NULL))
+-		/* map the region as normal memory with the attributes:
+-		 * non-cacheable and bufferable. On ARM this is needed for
+-		 * ldrex and strex operations.
+-		 */
+-		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+-	else
+-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 
+ 	/*
+ 	 * We cannot use the vm_iomap_memory() helper here,
+-- 
+2.7.4
+

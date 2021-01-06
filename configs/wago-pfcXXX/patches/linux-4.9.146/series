@@ -437,3 +437,8 @@
 0437-dts-vtpctp-10-inch-panel-remove-redundant-clock-conf.patch
 0438-dts-ec-change-spi-chip-select-for-dio.patch
 0439-add-new-version-w02.11.1-in-branch-maint-fw18-for-SV.patch
+0440-config-dts-ec-enable-PTN5150-driver-and-adjust-ec300.patch
+0441-add-new-version-w02.11.2-in-branch-maint-fw18-for-SV.patch
+0442-Revert-uio-map-wc-fix-forward-of_node-to-uio-dev-reg.patch
+0443-Revert-uio-add-support-for-normal-mem-mapping.patch
+0444-add-new-version-w02.11.03-in-branch-maint-fw18-for-S.patch

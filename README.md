@@ -125,6 +125,7 @@ http://www.github.com/wago/gcc-toolchain-2019.12
     >sudo apt install python-dev
     >sudo apt install g++
     >sudo apt install dialog
+    >sudo apt install libc6-dev
     >sudo apt install lzop       #used to build kernel image, ./configure did not check if installed
     >sudo apt install autoconf   #used to build kernel image, ./configure did not check if installed
     >sudo apt install libtool    #used to build kernel image, ./configure did not check if installed
@@ -137,7 +138,7 @@ http://www.github.com/wago/gcc-toolchain-2019.12
 or in one-shot:
 
 ```
-    >sudo apt install libncurses5-dev gawk flex bison texinfo python-dev g++ dialog lzop autoconf libtool xmlstarlet xsltproc doxygen autopoint
+    >sudo apt install libncurses5-dev gawk flex bison texinfo python-dev g++ dialog libc6-dev lzop autoconf libtool xmlstarlet xsltproc doxygen autopoint
 ```
 
 ### 3.2) Clone the build tool "ptxdist" somewhere, we expect ~/ptxdist
