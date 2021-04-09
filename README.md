@@ -41,6 +41,17 @@ In case you do not have a internet connetion on your development host. Please re
 ## 0.) Download and setup a virtual or physical Ubuntu 16.04.5 LTS 64bit machine from scratch
 You can download the Ubuntu-Iso directly form their website: http://releases.ubuntu.com/16.04/
 
+```
+Is Ubuntu 16.04 LTS still supported?
+
+Yes, Ubuntu 16.04 LTS is supported until 2024 through
+Canonical’s Extended Security Maintenance (ESM) product.
+Xenial enters the ESM period in April 2021, with security
+patches provided for an additional three years beyond the 
+traditional five-year standard support.
+https://ubuntu.com/16-04
+```
+
 **Make sure if you like to use the precompiled toolchain that you use the Ubuntu-64bit variant.**
 
 A minimal disk space of 25GB is required. We recommend 50GB.
