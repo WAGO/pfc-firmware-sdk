@@ -60,9 +60,9 @@ if [ "$FLEX_IPK" = "" ]; then
   exit 1
 fi
 
-LINUX_PAM_IPK=$(ls $PTXDIST_PLATFORMDIR/packages | grep linux-pam_ | cut -f2 )
-if [ "$LINUX_PAM_IPK" = "" ]; then
-  echo !!! LINUX_PAM_IPK not found
+PAM_IPK=$(ls $PTXDIST_PLATFORMDIR/packages | grep pam_ | cut -f2 )
+if [ "$PAM_IPK" = "" ]; then
+  echo !!! PAM_IPK not found
   exit 1
 fi
 OPCUACSDK_IPK=$(ls $PTXDIST_PLATFORMDIR/packages | grep opcuacsdk_ | cut -f2 )
@@ -77,8 +77,14 @@ if [ "$CDS3_TSCVAREXPORT_IPK" = "" ]; then
   exit 1
 fi
 
+WAGO_NG_PLUGIN_OPCUA_IPK=$(ls $PTXDIST_PLATFORMDIR/packages | grep wbm-ng-plugin-opcua_ | cut -f2 )
+if [ "$WAGO_NG_PLUGIN_OPCUA_IPK" = "" ]; then
+  echo !!! WAGO_NG_PLUGIN_OPCUA_IPK not found
+  exit 1
+fi
 
-PACKAGES="$ABSEIL_CPP_IPK $C_ARES_IPK $PROTOBUF_IPK $GRPC_IPK $FLEX_IPK $LINUX_PAM_IPK $OPCUACSDK_IPK $CDS3_TSCVAREXPORT_IPK ${OPCUA_IPK}.ipk"
+
+PACKAGES="$WAGO_NG_PLUGIN_OPCUA_IPK $ABSEIL_CPP_IPK $C_ARES_IPK $PROTOBUF_IPK $GRPC_IPK $FLEX_IPK $PAM_IPK $OPCUACSDK_IPK $CDS3_TSCVAREXPORT_IPK ${OPCUA_IPK}.ipk"
 IPKGNAME="opcuarepo_${OPCUA_IPK_VERSION}_FW${FW_VERSION}.ipk"
 
 #--------------------------------------
@@ -135,7 +141,7 @@ echo '   name="${name%%_*}"' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg
 echo ' # [[ "$name" = "kernel" ]] && continue' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
 echo ' # [[ "$name" = "libc" ]] && continue' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
 echo '   echo "Generating index for package $pkg" >&2' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
-echo '   file_size=$(ls -l $pkg | awk '\''{print $6}'\'')' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
+echo '   file_size=$(ls -l $pkg | awk '\''{print $5}'\'')' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
 echo '   md5sum=$(md5sum $pkg | awk '\''{print $1}'\'')' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
 echo '   sha256sumvar=$(sha256sum $pkg | awk '\''{print $1}'\'')' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
 echo '   # Take pains to make variable value sed-safe' >> ${BUILD_DIR}opc-ipkg-src/data/root/packages/ipkg-make-index.sh
@@ -238,6 +244,16 @@ echo "    opkg remove screen"                           >> ${BUILD_DIR}opc-ipkg-
 echo "    opkg remove ppp"                              >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
 echo "    opkg clean"                                   >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
 echo "fi"                                               >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo ""                                                 >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove opcuaserver"                          >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove opcuacsdk"                            >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove cds3-tscvarexport"                    >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove grpc"                                 >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove protobuf"                             >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove c-ares"                               >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove abseil-cpp"                           >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg remove wbm-ng-plugin-opcua"                  >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
+echo "opkg clean"                                       >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
 echo ""                                                 >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
 echo "opkg update"                                      >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh
 echo "opkg install opcuaserver"                         >> ${BUILD_DIR}opc-ipkg-src/data/root/install_opcuaserver.sh

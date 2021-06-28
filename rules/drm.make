@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_DRM) += drm
 # Paths and names
 #
 DRM                 := drm
-DRM_VERSION         := 1.0.2
+DRM_VERSION         := 1.0.3
 DRM_URL             := file://$(PTXDIST_WORKSPACE)/wago_intern/$(DRM)
 DRM_BUILDCONFIG     := Release
 DRM_SRC_DIR         := $(PTXDIST_WORKSPACE)/wago_intern/$(DRM)
@@ -144,6 +144,8 @@ else
 	@$(call install_copy, drm, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/etc/init.d/drm, \
 		/etc/init.d/drm, n)
+	@$(call install_copy, drm, 0, 0, 0750, /etc/specific/features/)
+	@$(call install_copy, drm, 0, 0, 0640, $(DRM_DIR)/etc/specific/features/feature_drm, /etc/specific/features/feature_drm)
 
 	@$(call install_link, drm, ../init.d/drm, /etc/rc.d/S15_drm)
 endif

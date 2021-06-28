@@ -1,0 +1,60 @@
+From: Jobst Wellensiek <jobst.wellensiek@wago.com>
+Date: Thu, 29 Apr 2021 11:14:55 +0200
+Subject: [PATCH] Fix Segmentation fail in Server during working with ICONICS
+ Genesis. WAT-33056 Stadt Werke Lemgo. Unified Automation patch
+
+---
+ src/uaserver/uaserverc/uaserver_translate.c | 28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
+
+diff --git a/src/uaserver/uaserverc/uaserver_translate.c b/src/uaserver/uaserverc/uaserver_translate.c
+index db9d234a121d..6bfe003a4594 100644
+--- a/src/uaserver/uaserverc/uaserver_translate.c
++++ b/src/uaserver/uaserverc/uaserver_translate.c
+@@ -110,6 +110,7 @@ OpcUa_StatusCode OPCUA_DLLCALL UaServer_TranslateCallback(OpcUa_Void*   pvCallba
+         OpcUa_UInt32 idxProviders = 0;
+         UaServer_Provider *pProvider;
+         OpcUa_BrowsePath *pBrowsePath = OpcUa_Null;
++        OpcUa_Boolean isBasicError = OpcUa_False;
+ 
+         UASERVER_LOCK_TRANSLATE();
+         iSize = UaBase_Vector_GetSize(&g_vecTranslateJobs);
+@@ -125,14 +126,35 @@ OpcUa_StatusCode OPCUA_DLLCALL UaServer_TranslateCallback(OpcUa_Void*   pvCallba
+ 
+         pBrowsePath = &pTranslateCtx->pRequest->BrowsePaths[pTranslateCtx->nCurrentBrowsePath];
+         pTranslateCtx->pCurrentElement = &pBrowsePath->RelativePath.Elements[pTranslateCtx->nCurrentElement];
++        if (OpcUa_NodeId_IsNull(&pBrowsePath->StartingNode) != OpcUa_False)
++        {
++            pTranslateCtx->TranslateResult = OpcUa_BadNodeIdInvalid;
++            isBasicError = OpcUa_True;
++        }
++        else if (pBrowsePath->RelativePath.NoOfElements <= 0 ||
++                 pBrowsePath->RelativePath.Elements == OpcUa_Null)
++        {
++            pTranslateCtx->TranslateResult = OpcUa_BadNothingToDo;
++            isBasicError = OpcUa_True;
++        }
++        else if (OpcUa_String_IsNull(&pBrowsePath->RelativePath.Elements[pTranslateCtx->nCurrentElement].TargetName.Name) == OpcUa_True ||
++            OpcUa_String_IsEmpty(&pBrowsePath->RelativePath.Elements[pTranslateCtx->nCurrentElement].TargetName.Name) == OpcUa_True)
++        {
++            pTranslateCtx->TranslateResult = OpcUa_BadBrowseNameInvalid;
++            isBasicError = OpcUa_True;
++        }
+ 
+         /* prevent nOutstandingCbs reaching zero before all TRANSLATE_ASYNC are exectuted */
+         pTranslateCtx->nOutstandingCbs = 1;
+ 
+-        for (idxProviders = 0; idxProviders < pUaServer->numProviders; idxProviders++)
++        /* set next starting node if skipped */
++        if (isBasicError == OpcUa_False)
+         {
+-            pProvider = &pUaServer->pProviderList[idxProviders];
+-            PROV_TRANSLATE_ASYNC(pProvider, (UaServer_ProviderTranslateContext*)(void*)pTranslateCtx);
++            for (idxProviders = 0; idxProviders < pUaServer->numProviders; idxProviders++)
++            {
++                pProvider = &pUaServer->pProviderList[idxProviders];
++                PROV_TRANSLATE_ASYNC(pProvider, (UaServer_ProviderTranslateContext*)(void*)pTranslateCtx);
++            }
+         }
+ 
+         /* decrement our nOutstandingCbs */

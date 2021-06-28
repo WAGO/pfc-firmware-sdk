@@ -79,6 +79,12 @@ endif
 # Compile
 # ----------------------------------------------------------------------------
 
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY
+LIBBACNET_MAKE_OPT += "LIBBACNETSTACK_REVISION=14"
+else
+LIBBACNET_MAKE_OPT += "LIBBACNETSTACK_REVISION=22"
+endif
+
 $(STATEDIR)/libbacnet.compile:
 	@$(call targetinfo)
 

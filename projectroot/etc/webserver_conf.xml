@@ -5,4 +5,5 @@
 	<use-file-upload-dir> true </use-file-upload-dir>
 	<file-upload-dir> /home/codesys </file-upload-dir>
 	<use-intel-byte-order> true </use-intel-byte-order>
+	<disable-secure-web-client-login> false </disable-secure-web-client-login>
 </webserver-configuration>

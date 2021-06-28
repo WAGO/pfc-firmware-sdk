@@ -12,6 +12,7 @@
 case $1 in
 
         start)
+                echo "daemon-is-running=false" >"/etc/specific/features/feature_drm"
                 mkdir -p /run/drm
                 /usr/bin/drm /run/drm -s -o allow_other,gid=119
                 ;;

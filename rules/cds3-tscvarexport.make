@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_CDS3_TSCVAREXPORT) += cds3-tscvarexport
 #
 # Paths and names
 #
-CDS3_TSCVAREXPORT_VERSION        := 0.6.0
+CDS3_TSCVAREXPORT_VERSION        := 0.6.1
 CDS3_TSCVAREXPORT_MD5            :=
 CDS3_TSCVAREXPORT                := cds3-tscvarexport
 CDS3_TSCVAREXPORT_SRC_DIR        := $(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/cds3-tscvarexport

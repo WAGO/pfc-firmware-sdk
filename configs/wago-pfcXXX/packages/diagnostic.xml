@@ -119,6 +119,15 @@
       </string>
     
   </event>
+  <event id="x0011" name="MODEM_MANAGER_NOT_IN_OPERATION" persistent="none">
+    <led name="NET" state="STATIC_OFF">
+    </led>
+    <string>
+        <en>Modem Manager is not in operation</en>
+        <de>Modem Manager ist nicht in Betrieb</de>
+      </string>
+    
+  </event>
   <event id="x00C0" name="system_start" persistent="yes">
     <led name="SYS" state="STATIC_GRN">
     </led>
@@ -3815,14 +3824,10 @@
   </event>
 </eventclass>
 <eventclass class_range="x0016" name="MM">
-  <event id="x0001" name="MDMDNG_ERR_NO_SIM">
-    <led name="NET" state="BLINK_SEQ_750">
-      <blinkcode>1</blinkcode>
-      <blinkarg>1</blinkarg>
-    </led>
+  <event id="x0002" name="MDMDNG_MODEM_AVAILABLE">
     <string>
-        <en>Modem SIM card not inserted or not readable</en>
-        <de>Modem SIM-Karte nicht eingelegt oder nicht lesbar</de>
+        <en>Modem available</en>
+        <de>Modem verfügbar</de>
       </string>
     
   </event>
@@ -3834,6 +3839,34 @@
     <string>
       	<en>Modem not available</en>
       	<de>Modem nicht verfügbar</de>
+      </string>
+    
+  </event>
+  <event id="x0004" name="MDMDNG_RESET_AFTER_TIMEOUT" persistent="yes">
+    <string>
+        <en>Modem reset triggered automatically by command timeout</en>
+        <de>Modem Neustart automatisch ausgelöst nach Zeitüberschreitung</de>
+      </string>
+    
+  </event>
+  <event id="x0005" name="MDMDNG_RESET_BY_USER">
+    <string>
+        <en>Modem reset triggered by user</en>
+        <de>Modem Neustart ausgelöst durch Anwender</de>
+      </string>
+    
+  </event>
+  <event id="x0006" name="MDMDNG_STARTED">
+    <string>
+        <en>Modem Manager started</en>
+        <de>Modem Manager gestartet</de>
+      </string>
+    
+  </event>
+  <event id="x0007" name="MDMDNG_TERMINATED">
+    <string>
+        <en>Modem Manager terminated</en>
+        <de>Modem Manager beendet</de>
       </string>
     
   </event>
@@ -4019,27 +4052,62 @@
       </string>
     
   </event>
-  <event id="x0033" name="MDMDNG_WDS_DENIED">
-    <led name="WDS" state="STATIC_RED">
+  <event id="x0033" name="MDMDNG_WDS_CONFIG_DENIED">
+    <led name="WDS" state="BLINK_YLW_RED">
+      <on>500</on>
+      <off>500</off>
     </led>
     <string>
-        <en>Wireless Data Service denied</en>
-        <de>Mobiler Datendienst abgelehnt</de>
+        <en>Wireless Data Service configuration denied</en>
+        <de>Konfiguration des mobilen Datendienstes wurde abgelehnt</de>
       </string>
     
   </event>
-  <event id="x0034" name="MDMDNG_NET_SIM_PIN_PUK_REQUIRED">
+  <event id="x0036" name="MDMDNG_WDS_NOT_AVAILABLE">
+    <led name="WDS" state="BLINK_YLW_RED">
+      <on>500</on>
+      <off>500</off>
+    </led>
+    <string>
+        <en>Wireless Data Service is currently not available</en>
+        <de>Mobiler Datendienst ist zurzeit nicht verfügbar</de>
+      </string>
+    
+  </event>
+  <event id="x0040" name="MDMDNG_ERR_NO_SIM">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>1</blinkarg>
+    </led>
+    <string>
+        <en>Modem SIM card not inserted or not readable</en>
+        <de>Modem SIM-Karte nicht eingelegt oder nicht lesbar</de>
+      </string>
+    
+  </event>
+  <event id="x0041" name="MDMDNG_SIM_PIN_REQUIRED">
     <led name="NET" state="BLINK_SEQ_750">
       <blinkcode>1</blinkcode>
       <blinkarg>3</blinkarg>
     </led>
     <string>
-      	<en>Modem SIM card requires PIN/PUK</en>
-      	<de>Modem SIM-Karte erfordert PIN/PUK</de>
+        <en>Modem SIM card requires PIN</en>
+        <de>Modem SIM-Karte erfordert PIN</de>
       </string>
     
   </event>
-  <event id="x0035" name="MDMDNG_NET_SIM_BLOCKED">
+  <event id="x0042" name="MDMDNG_SIM_PUK_REQUIRED">
+    <led name="NET" state="BLINK_SEQ_750">
+      <blinkcode>1</blinkcode>
+      <blinkarg>4</blinkarg>
+    </led>
+    <string>
+        <en>Modem SIM card requires PUK</en>
+        <de>Modem SIM-Karte erfordert PUK</de>
+      </string>
+    
+  </event>
+  <event id="x0043" name="MDMDNG_SIM_BLOCKED">
     <led name="NET" state="BLINK_SEQ_750">
       <blinkcode>1</blinkcode>
       <blinkarg>2</blinkarg>
@@ -4050,14 +4118,10 @@
       </string>
     
   </event>
-  <event id="x0036" name="MDMDNG_NET_SEARCHING_MODEM">
-    <led name="NET" state="BLINK_RED">
-      <on>500</on>
-      <off>500</off>
-    </led>
+  <event id="x0050" name="MDMDNG_SMS_STORAGE_ERROR">
     <string>
-        <en>Searching for modem</en>
-        <de>Suche nach Modem</de>
+        <en>Unable to initialize SMS storage - Persistent storage of SMS deactivated</en>
+        <de>Initialisierung des SMS-Speichers nicht möglich - Persistente Speicherung von SMS deaktiviert</de>
       </string>
     
   </event>

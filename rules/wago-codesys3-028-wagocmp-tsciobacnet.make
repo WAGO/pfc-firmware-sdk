@@ -27,6 +27,7 @@ CDS3_TSCIOBACNET_PACKAGE_NAME := cds3-tsciobacnet_$(CDS3_TSCIOBACNET_VERSION)_$(
 CDS3_TSCIOBACNET_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
 
 
+
 # ----------------------------------------------------------------------------
 # Get
 # ----------------------------------------------------------------------------
@@ -79,6 +80,11 @@ CDS3_TSCIOBACNET_MAKE_OPT  := CC=$(CROSS_CC)
 CDS3_TSCIOBACNET_MAKE_OPT += "DBGMODE=-g3"
 CDS3_TSCIOBACNET_MAKE_OPT += "OPTIMIZE=-O2"
 
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY
+CDS3_TSCIOBACNET_MAKE_OPT += "LIBBACNETSTACK_REVISION=14"
+else
+CDS3_TSCIOBACNET_MAKE_OPT += "LIBBACNETSTACK_REVISION=22"
+endif
 
 $(STATEDIR)/cds3-tsciobacnet.compile:
 	@$(call targetinfo)

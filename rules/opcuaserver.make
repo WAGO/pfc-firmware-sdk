@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_OPCUASERVER) += opcuaserver
 #
 # Paths and names
 #
-OPCUASERVER_VERSION        := 1.2.5
+OPCUASERVER_VERSION        := 1.3.0
 OPCUASERVER_MD5            :=
 OPCUASERVER                := opcuaserver
 OPCUASERVER_SRC_DIR        := $(PTXDIST_WORKSPACE)/wago_intern/opcua/server
@@ -127,7 +127,6 @@ $(STATEDIR)/opcuaserver.targetinstall:
 #
 #	@$(call install_copy, opcuaserver, 0, 0, 0755, $(OPCUASERVER_BUILD_DIR)/opcua-server.elf, /usr/bin/opcua-server)
 	@$(call install_copy, opcuaserver, 0, 0, 0755, -, /usr/bin/opcua-server)
-	@$(call install_copy, opcuaserver, 0, 0, 0755, -, /usr/bin/opcua-server-wrapper)
 	@$(call install_copy, opcuaserver, 0, 0, 0755, -, /etc/config-tools/config-opcua)
 	@$(call install_alternative, opcuaserver, 0, 0, 0755, /etc/init.d/opcua-server, n)
 	@$(call install_link, opcuaserver, ../init.d/opcua-server, /etc/rc.d/S86_opcua-server)
@@ -140,6 +139,7 @@ $(STATEDIR)/opcuaserver.targetinstall:
 	@$(call install_copy, opcuaserver, 117, 117, 0640, -, /etc/specific/opcua-server/pki/own/certificate.der)
 	@$(call install_copy, opcuaserver, 117, 117, 0640, -, /etc/specific/opcua-server/pki/own/key.pem)
 	@$(call install_copy, opcuaserver, 0, 0, 0744, -, /etc/config-tools/backup-restore/opcuaserver-backup)
+#	@$(call install_copy, opcuaserver, 0, 0, 0750, -, /etc/config-tools/events/networking/update_opcua)
 
 	@$(call install_finish, opcuaserver)
 	@$(call touch)

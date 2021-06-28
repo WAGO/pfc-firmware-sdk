@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_BACNET) += wbm-ng-plugin-bacnet
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_BACNET_VERSION        := 1.3.3
+WBM_NG_PLUGIN_BACNET_VERSION        := 1.3.4
 WBM_NG_PLUGIN_BACNET                := wbm-bacnet-$(WBM_NG_PLUGIN_BACNET_VERSION)
 WBM_NG_PLUGIN_BACNET_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_BACNET)
 WBM_NG_PLUGIN_BACNET_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_BACNET_URL))
@@ -91,10 +91,10 @@ $(STATEDIR)/wbm-ng-plugin-bacnet.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_BACNET_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-bacnet, 0, 0, 0644, $(WBM_NG_PLUGIN_BACNET_DIR)/$$object, $(WBM_NG_PLUGIN_BACNET_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-bacnet, 0, 0, 0755, $(WBM_NG_PLUGIN_BACNET_TARGET_DIR)/$$object); \
 		fi; \
 	done;

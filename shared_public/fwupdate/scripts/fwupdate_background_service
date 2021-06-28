@@ -531,7 +531,7 @@ finish_clean_runtime_retain()
 
     /usr/sbin/retain_data -d >/dev/null 2>&1
     if [[ $? -ne 0 ]]; then
-        fwupdate_abort 100 "Unable to delete retain data"
+        fwupdate_report_warning "Unable to delete retain data"
     fi
 
     fwupdate_report_info "Cleanup runtime retain data done"

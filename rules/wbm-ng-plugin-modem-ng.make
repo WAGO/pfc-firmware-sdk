@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_MODEM_NG) += wbm-ng-plugin-modem-ng
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_MODEM_NG_VERSION        := 1.0.13
+WBM_NG_PLUGIN_MODEM_NG_VERSION        := 1.0.20
 WBM_NG_PLUGIN_MODEM_NG                := wbm-modem-ng-$(WBM_NG_PLUGIN_MODEM_NG_VERSION)
 WBM_NG_PLUGIN_MODEM_NG_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_MODEM_NG)
 WBM_NG_PLUGIN_MODEM_NG_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_MODEM_NG_URL))

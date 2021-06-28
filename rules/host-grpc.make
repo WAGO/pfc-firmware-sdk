@@ -41,18 +41,9 @@ HOST_GRPC_CONF_OPT	+= -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF
 # ----------------------------------------------------------------------------
 # Target-Install
 # ----------------------------------------------------------------------------
-
-$(STATEDIR)/host-grpc.targetinstall:
-	@$(call targetinfo)
-
-	@$(call install_init, grpc)
-	@$(call install_fixup, grpc,PRIORITY,optional)
-	@$(call install_fixup, grpc,SECTION,base)
-	@$(call install_fixup, grpc,AUTHOR,"Marvin Schmidt <marvin.schmidt@who-ing.de>")
-	@$(call install_fixup, grpc,DESCRIPTION,missing)
-
-	@$(call install_finish, grpc)
-
-	@$(call touch)
+# Host, image and cross packages don’t need to install anything in the target
+# file system. Therefore, PTXdist only respects the targetinstall and
+# targetinstall.post stages for packages whose name doesn’t start with host-,
+# image-, or cross-.
 
 # vim: syntax=make

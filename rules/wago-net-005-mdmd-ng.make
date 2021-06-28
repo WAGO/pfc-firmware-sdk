@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_MDMD_NG) += mdmd-ng
 #
 # Paths and names
 #
-MDMD_NG_VERSION        := 0.8.5
+MDMD_NG_VERSION        := 0.12.3
 MDMD_NG_MD5            := 
 MDMD_NG                := mdmd-ng
 MDMD_NG_URL            := file://$(PTXDIST_WORKSPACE)/wago_intern/mdmd-ng

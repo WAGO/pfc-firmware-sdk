@@ -1,3 +1,36 @@
+Firmware Release 03.06.19 (99)
+System:
+[NEW] PFC200 with 4G: Send and receive SMS via e!COCKPIT IEC-Library
+[NEW] PFC200 with 4G: Modem configuration can now be prepared in WBM even when
+      SIM is not inserted or locked
+[NEW] PFC200 with 4G: Manual configuration of net type and provider via WBM
+[NEW] PFC200 with 4G: Networkscan of available mobile radio networks via WBM
+[NEW] PFC200 with 4G: CID/LAC to determine the location of the cell tower
+[FIXED] PFC200 with 4G: Stabilization for applications with massive cell changes
+[FIXED] PFC200 with 4G: Authentication type "PAP or CHAP" can now be
+        configured correctly
+[KNOWN] PFC200 with 4G: 2kB Memoryleak for each Modem-Reset.
+
+Runtime System:
+[NEW] SEC, CDS2: CODESYS Advisory 2021-06 (Security update for CODESYS Control
+      V2 communication)
+[NEW] SEC, CDS2: CODESYS Advisory 2021-07 (Security update for CODESYS V2 web server)
+
+Fieldbus Interface & Protocols:
+-OPC UA
+ [FIXED] Nested IEC structures are now supported
+ [NEW] The Endpoint URL can be set in the WBM between the Hostname and the IP
+       ad-dresses of the bridges
+ [NEW] StructureFields are now supported. Structured DataType is used to provide the
+       metadata for a field of a custom Structure DataType. (OPC UA Specification
+       Part 3 - 8.51 StructureField)
+-Cloud Connectivity
+[FIXED] CC-2133 Fixed issues which may lead to crash or deadlock of cloud connection.
+[FIXED] CC-2247 native MQTT: Fixed blocked data transmission if more than 20
+        subscriptions are used and broker is not available during initial connect.
+
+################################################################################
+
 Firmware Release 03.06.09 (99)
 System:
 [NEW] PFC200 with 4G: Modem reset possible

@@ -17,5 +17,6 @@ config OPCUASERVER
   select CDS3_INCLUDES
   select CODESYS3
   select LIBWAGODRM
+  select NETCONFD
   help
     OPC UA server.

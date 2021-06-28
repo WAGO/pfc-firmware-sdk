@@ -113,7 +113,7 @@
             "leds":[
                 {
                     "name":"NET",
-                    "startid":"0x00100010"
+                    "startid":"0x00000011"
                 },
                 {
                     "name":"WDS",

@@ -14,8 +14,8 @@
 #
 PACKAGES-$(PTXCONF_PLCLINUXRT) += plclinuxrt
 
-PLCLINUXRT_VERSION    := 2.4.7.0
-PLCLINUXRT            := codesys-$(PLCLINUXRT_VERSION)
+PLCLINUXRT_VERSION    := 2.4.7.51
+PLCLINUXRT            := codesys-2.4.7.0
 PLCLINUXRT_DIR        := $(BUILDDIR)/$(PLCLINUXRT)
 PLCLINUXRT_URL        := file://$(PTXDIST_WORKSPACE)/wago_intern/plc/codesys/$(PLCLINUXRT)
 PLCLINUXRT_SRC_DIR    := $(PTXDIST_WORKSPACE)/wago_intern/plc/codesys/$(PLCLINUXRT)

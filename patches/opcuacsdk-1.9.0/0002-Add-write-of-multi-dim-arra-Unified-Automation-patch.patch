@@ -1,5 +1,14 @@
+From: unknown author <unknown.author@example.com>
+Date: Thu, 29 Apr 2021 09:55:32 +0200
+Subject: [PATCH] Add write of multi dim arra Unified Automation patch
+
+---
+ .../uaserverc/uaserver_monitoreditemmanager.c      |   5 +-
+ src/uaserver/uaserverc/uaserver_utilities.c        | 439 ++++++++++++++++++---
+ 2 files changed, 388 insertions(+), 56 deletions(-)
+
 diff --git a/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c b/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c
-index 86a2246..bc39808 100644
+index 86a22463fd20..bc398084c62a 100644
 --- a/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c
 +++ b/src/uaserver/uaserverc/uaserver_monitoreditemmanager.c
 @@ -147,6 +147,7 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_NewItemValue");
@@ -29,7 +38,7 @@ index 86a2246..bc39808 100644
  
          uStatus = UaServer_ItemChanged((UaServer_MonitoredItem*)a_pMonitoredItemData);
 diff --git a/src/uaserver/uaserverc/uaserver_utilities.c b/src/uaserver/uaserverc/uaserver_utilities.c
-index c04fd1d..7ca8fc0 100644
+index c04fd1d98077..7ca8fc01b373 100644
 --- a/src/uaserver/uaserverc/uaserver_utilities.c
 +++ b/src/uaserver/uaserverc/uaserver_utilities.c
 @@ -998,27 +998,7 @@ OpcUa_InitializeStatus(OpcUa_Module_Server, "UaServer_VariantNumericRangePlausib

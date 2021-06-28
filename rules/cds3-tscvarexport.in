@@ -2,7 +2,7 @@
 
 config CDS3_TSCVAREXPORT
   bool
-  prompt "CoDeSys Component Variable Export"
+  prompt "Variable Export for runtime (CoDeSys Component) "
   default n
   select BOOST
   select CODESYS3

@@ -428,7 +428,12 @@ int getledstate_main(int argc, char **argv)
     char name[255];
 
     tLedStatus ledState;
-    strcpy(name, argv[1]);
+
+    size_t size_led_name_buffer = sizeof(name);
+    size_t len_led_name = strlen(argv[1]);
+    size_t bytes_to_copy = MIN(len_led_name, size_led_name_buffer - 1);
+    memset(name, 0x00, size_led_name_buffer);
+    memcpy(name, argv[1], bytes_to_copy);
 
     if( 0 != led_GetLedStatus(name,&ledState))
     {
