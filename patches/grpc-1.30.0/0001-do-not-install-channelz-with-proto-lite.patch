@@ -1,7 +1,16 @@
-Index: CMakeLists.txt
+From: unknown author <unknown.author@example.com>
+Date: Wed, 3 Mar 2021 09:00:10 +0100
+Subject: [PATCH] do not install channelz with proto lite
+
 ===================================================================
---- CMakeLists.txt.orig
-+++ CMakeLists.txt
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9902152fd137..5e6a4ee67475 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
 @@ -3621,7 +3621,7 @@ endif()
  
  if(gRPC_BUILD_CODEGEN)

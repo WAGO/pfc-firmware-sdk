@@ -1,0 +1,14 @@
+Index: libqmi-1.24.4/src/libqmi-glib/qmi-utils.c
+===================================================================
+--- libqmi-1.24.4.orig/src/libqmi-glib/qmi-utils.c
++++ libqmi-1.24.4/src/libqmi-glib/qmi-utils.c
+@@ -153,6 +153,9 @@ __qmi_utils_get_driver (const gchar *cdc
+         driver = g_path_get_basename (path);
+         g_free (path);
+     }
++    if (i == G_N_ELEMENTS (subsystems))
++        g_set_error (error, QMI_CORE_ERROR, QMI_CORE_ERROR_FAILED,
++                     "Couldn't find sysfs entry");
+ 
+     g_free (device_basename);
+ 

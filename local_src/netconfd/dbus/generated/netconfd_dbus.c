@@ -384,6 +384,48 @@ static const _ExtendedGDBusMethodInfo _netconfd_interface_config_method_info_set
   FALSE
 };
 
+static const _ExtendedGDBusArgInfo _netconfd_interface_config_method_info_getinterfacestatuses_OUT_ARG_config =
+{
+  {
+    -1,
+    (gchar *) "config",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo _netconfd_interface_config_method_info_getinterfacestatuses_OUT_ARG_result =
+{
+  {
+    -1,
+    (gchar *) "result",
+    (gchar *) "s",
+    NULL
+  },
+  FALSE
+};
+
+static const _ExtendedGDBusArgInfo * const _netconfd_interface_config_method_info_getinterfacestatuses_OUT_ARG_pointers[] =
+{
+  &_netconfd_interface_config_method_info_getinterfacestatuses_OUT_ARG_config,
+  &_netconfd_interface_config_method_info_getinterfacestatuses_OUT_ARG_result,
+  NULL
+};
+
+static const _ExtendedGDBusMethodInfo _netconfd_interface_config_method_info_getinterfacestatuses =
+{
+  {
+    -1,
+    (gchar *) "getinterfacestatuses",
+    NULL,
+    (GDBusArgInfo **) &_netconfd_interface_config_method_info_getinterfacestatuses_OUT_ARG_pointers,
+    NULL
+  },
+  "handle-getinterfacestatuses",
+  FALSE
+};
+
 static const _ExtendedGDBusMethodInfo * const _netconfd_interface_config_method_info_pointers[] =
 {
   &_netconfd_interface_config_method_info_set,
@@ -391,6 +433,7 @@ static const _ExtendedGDBusMethodInfo * const _netconfd_interface_config_method_
   &_netconfd_interface_config_method_info_getdeviceinterfaces,
   &_netconfd_interface_config_method_info_getinterfaceconfig,
   &_netconfd_interface_config_method_info_setinterfaceconfig,
+  &_netconfd_interface_config_method_info_getinterfacestatuses,
   NULL
 };
 
@@ -451,6 +494,7 @@ netconfd_interface_config_override_properties (GObjectClass *klass, guint proper
  * @handle_get: Handler for the #netconfdInterface_config::handle-get signal.
  * @handle_getdeviceinterfaces: Handler for the #netconfdInterface_config::handle-getdeviceinterfaces signal.
  * @handle_getinterfaceconfig: Handler for the #netconfdInterface_config::handle-getinterfaceconfig signal.
+ * @handle_getinterfacestatuses: Handler for the #netconfdInterface_config::handle-getinterfacestatuses signal.
  * @handle_set: Handler for the #netconfdInterface_config::handle-set signal.
  * @handle_setinterfaceconfig: Handler for the #netconfdInterface_config::handle-setinterfaceconfig signal.
  *
@@ -575,6 +619,28 @@ netconfd_interface_config_default_init (netconfdInterface_configIface *iface)
     G_TYPE_BOOLEAN,
     2,
     G_TYPE_DBUS_METHOD_INVOCATION, G_TYPE_STRING);
+
+  /**
+   * netconfdInterface_config::handle-getinterfacestatuses:
+   * @object: A #netconfdInterface_config.
+   * @invocation: A #GDBusMethodInvocation.
+   *
+   * Signal emitted when a remote caller is invoking the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getinterfacestatuses">getinterfacestatuses()</link> D-Bus method.
+   *
+   * If a signal handler returns %TRUE, it means the signal handler will handle the invocation (e.g. take a reference to @invocation and eventually call netconfd_interface_config_complete_getinterfacestatuses() or e.g. g_dbus_method_invocation_return_error() on it) and no order signal handlers will run. If no signal handler handles the invocation, the %G_DBUS_ERROR_UNKNOWN_METHOD error is returned.
+   *
+   * Returns: %TRUE if the invocation was handled, %FALSE to let other signal handlers run.
+   */
+  g_signal_new ("handle-getinterfacestatuses",
+    G_TYPE_FROM_INTERFACE (iface),
+    G_SIGNAL_RUN_LAST,
+    G_STRUCT_OFFSET (netconfdInterface_configIface, handle_getinterfacestatuses),
+    g_signal_accumulator_true_handled,
+    NULL,
+    g_cclosure_marshal_generic,
+    G_TYPE_BOOLEAN,
+    1,
+    G_TYPE_DBUS_METHOD_INVOCATION);
 
 }
 
@@ -1099,6 +1165,110 @@ _out:
 }
 
 /**
+ * netconfd_interface_config_call_getinterfacestatuses:
+ * @proxy: A #netconfdInterface_configProxy.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @callback: A #GAsyncReadyCallback to call when the request is satisfied or %NULL.
+ * @user_data: User data to pass to @callback.
+ *
+ * Asynchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getinterfacestatuses">getinterfacestatuses()</link> D-Bus method on @proxy.
+ * When the operation is finished, @callback will be invoked in the <link linkend="g-main-context-push-thread-default">thread-default main loop</link> of the thread you are calling this method from.
+ * You can then call netconfd_interface_config_call_getinterfacestatuses_finish() to get the result of the operation.
+ *
+ * See netconfd_interface_config_call_getinterfacestatuses_sync() for the synchronous, blocking version of this method.
+ */
+void
+netconfd_interface_config_call_getinterfacestatuses (
+    netconfdInterface_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data)
+{
+  g_dbus_proxy_call (G_DBUS_PROXY (proxy),
+    "getinterfacestatuses",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    callback,
+    user_data);
+}
+
+/**
+ * netconfd_interface_config_call_getinterfacestatuses_finish:
+ * @proxy: A #netconfdInterface_configProxy.
+ * @out_config: (out): Return location for return parameter or %NULL to ignore.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @res: The #GAsyncResult obtained from the #GAsyncReadyCallback passed to netconfd_interface_config_call_getinterfacestatuses().
+ * @error: Return location for error or %NULL.
+ *
+ * Finishes an operation started with netconfd_interface_config_call_getinterfacestatuses().
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_interface_config_call_getinterfacestatuses_finish (
+    netconfdInterface_config *proxy,
+    gchar **out_config,
+    gchar **out_result,
+    GAsyncResult *res,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_finish (G_DBUS_PROXY (proxy), res, error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(ss)",
+                 out_config,
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
+ * netconfd_interface_config_call_getinterfacestatuses_sync:
+ * @proxy: A #netconfdInterface_configProxy.
+ * @out_config: (out): Return location for return parameter or %NULL to ignore.
+ * @out_result: (out): Return location for return parameter or %NULL to ignore.
+ * @cancellable: (nullable): A #GCancellable or %NULL.
+ * @error: Return location for error or %NULL.
+ *
+ * Synchronously invokes the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getinterfacestatuses">getinterfacestatuses()</link> D-Bus method on @proxy. The calling thread is blocked until a reply is received.
+ *
+ * See netconfd_interface_config_call_getinterfacestatuses() for the asynchronous version of this method.
+ *
+ * Returns: (skip): %TRUE if the call succeded, %FALSE if @error is set.
+ */
+gboolean
+netconfd_interface_config_call_getinterfacestatuses_sync (
+    netconfdInterface_config *proxy,
+    gchar **out_config,
+    gchar **out_result,
+    GCancellable *cancellable,
+    GError **error)
+{
+  GVariant *_ret;
+  _ret = g_dbus_proxy_call_sync (G_DBUS_PROXY (proxy),
+    "getinterfacestatuses",
+    g_variant_new ("()"),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    cancellable,
+    error);
+  if (_ret == NULL)
+    goto _out;
+  g_variant_get (_ret,
+                 "(ss)",
+                 out_config,
+                 out_result);
+  g_variant_unref (_ret);
+_out:
+  return _ret != NULL;
+}
+
+/**
  * netconfd_interface_config_complete_set:
  * @object: A #netconfdInterface_config.
  * @invocation: (transfer full): A #GDBusMethodInvocation.
@@ -1209,6 +1379,30 @@ netconfd_interface_config_complete_setinterfaceconfig (
 {
   g_dbus_method_invocation_return_value (invocation,
     g_variant_new ("(s)",
+                   result));
+}
+
+/**
+ * netconfd_interface_config_complete_getinterfacestatuses:
+ * @object: A #netconfdInterface_config.
+ * @invocation: (transfer full): A #GDBusMethodInvocation.
+ * @config: Parameter to return.
+ * @result: Parameter to return.
+ *
+ * Helper function used in service implementations to finish handling invocations of the <link linkend="gdbus-method-de-wago-netconfd1-interface_config.getinterfacestatuses">getinterfacestatuses()</link> D-Bus method. If you instead want to finish handling an invocation by returning an error, use g_dbus_method_invocation_return_error() or similar.
+ *
+ * This method will free @invocation, you cannot use it afterwards.
+ */
+void
+netconfd_interface_config_complete_getinterfacestatuses (
+    netconfdInterface_config *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *config,
+    const gchar *result)
+{
+  g_dbus_method_invocation_return_value (invocation,
+    g_variant_new ("(ss)",
+                   config,
                    result));
 }
 

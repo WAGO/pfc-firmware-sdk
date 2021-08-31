@@ -40,42 +40,42 @@ class ConfigTest_Target : public Test {
 };
 
 TEST_F(ConfigTest_Target, SetAndGetBridgeConfig) {
-  Error error = SetBridgeConfig(seperated_);
+  Status status = SetBridgeConfig(seperated_);
   BridgeConfig actual_seperated;
   GetBridgeConfig(actual_seperated);
-  EXPECT_TRUE(error.IsOk());
+  EXPECT_TRUE(status.IsOk());
 
   JsonConverter jc;
   EXPECT_EQ(R"({"br0":["X1"],"br1":["X2"]})", jc.ToJsonString(actual_seperated.GetConfig()));
 
-  error = SetBridgeConfig(switched_);
+  status = SetBridgeConfig(switched_);
   BridgeConfig actual_switched;
   GetBridgeConfig(actual_switched);
-  EXPECT_TRUE(error.IsOk());
+  EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(R"({"br0":["X1","X2"]})", jc.ToJsonString(actual_switched.GetConfig()));
 }
 
 TEST_F(ConfigTest_Target, SetAndGetIpConfig) {
   SetBridgeConfig(seperated_);
 
-  Error error;
+  Status status;
   IPConfig ip_config1_br1_ { "br1", IPSource::STATIC, "192.168.5.5", "255.255.255.0" };
   IPConfig ip_config2_br1_ { "br1", IPSource::STATIC, "192.168.6.6", "255.255.255.0" };
 
   IPConfigs ip_configs1;
   ip_configs1.AddIPConfig(ip_config1_br1_);
-  error = SetIPConfigs(ip_configs1);
+  status = SetIPConfigs(ip_configs1);
   IPConfigs actual_1;
   GetIPConfigs(actual_1);
-  EXPECT_TRUE(error.IsOk());
+  EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(ip_config1_br1_, actual_1.GetIPConfig("br1"));
 
   IPConfigs ip_configs2;
   ip_configs2.AddIPConfig(ip_config2_br1_);
-  error = SetIPConfigs(ip_configs2);
+  status = SetIPConfigs(ip_configs2);
   IPConfigs actual_2;
   GetIPConfigs(actual_2);
-  EXPECT_TRUE(error.IsOk());
+  EXPECT_TRUE(status.IsOk());
   EXPECT_EQ(ip_config2_br1_, *actual_2.GetIPConfig("br1"));
 }
 

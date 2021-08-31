@@ -3,8 +3,6 @@
 # Copyright (C) 2006-2009 by Robert Schwebel <r.schwebel@pengutronix.de>
 #                            Pengutronix <info@pengutronix.de>, Germany
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_GLIB) += glib
 #
 # Paths and names
 #
-GLIB_VERSION	:= 2.57.1
-GLIB_MD5	:= e32b090f0c24a6be61479a6e7a3f2a77
+GLIB_VERSION	:= 2.64.4
+GLIB_MD5	:= 0a4f67e9a9d729976e2f797e36fc1a57
 GLIB		:= glib-$(GLIB_VERSION)
 GLIB_SUFFIX	:= tar.xz
 GLIB_SOURCE	:= $(SRCDIR)/$(GLIB).$(GLIB_SUFFIX)
@@ -32,68 +30,37 @@ GLIB_LICENSE	:= LGPL-2.0-or-later
 # Prepare
 # ----------------------------------------------------------------------------
 
-# If one of GTKDOC tools is found at configure stage, it might be used,
-# no matter whether we use --disable-gtk-doc as this option controls
-# generating documentation, while in tarballs it is already generated
-# and providing empty paths to GTKDOC tools avoids doc installation.
-GLIB_CONF_ENV	:= \
-	$(CROSS_ENV) \
-	glib_cv_uscore=no \
-	glib_cv_stack_grows=no \
-	ac_cv_path_MSGFMT="" \
-	ac_cv_path_XGETTEXT="" \
-	ac_cv_prog_GTKDOC_CHECK="" \
-	ac_cv_path_GTKDOC_REBASE="" \
-	ac_cv_path_GTKDOC_MKPDF=""
-
 #
-# autoconf
+# meson
 #
-# --with-libiconv=no does also find the libc iconv implementation! So it
-# is the right choice for no locales and locales-via-libc
-#
-
-GLIB_CONF_TOOL	:= autoconf
+GLIB_CONF_TOOL	:= meson
 GLIB_CONF_OPT	:= \
-	$(CROSS_AUTOCONF_USR) \
-	--disable-maintainer-mode \
-	--enable-debug=minimum \
-	--disable-gc-friendly \
-	--enable-mem-pools \
-	--disable-installed-tests \
-	--disable-always-build-tests \
-	$(GLOBAL_LARGE_FILE_OPTION) \
-	--disable-static \
-	--enable-shared \
-	--disable-included-printf \
-	--disable-selinux \
-	--disable-fam \
-	--disable-xattr \
-	--disable-libelf \
-	--$(call ptx/endis, PTXCONF_GLIB_LIBMOUNT)-libmount \
-	--disable-gtk-doc \
-	--disable-gtk-doc-html \
-	--disable-gtk-doc-pdf \
-	--disable-man \
-	--disable-dtrace \
-	--disable-systemtap \
-	--disable-coverage \
-	--with-libiconv=no \
-	--with-threads=posix \
-	--with-pcre=system
-
-# workaround for broken libtool
-GLIB_CFLAGS:= -Wl,-rpath-link,$(GLIB_DIR)/gmodule/.libs
+	$(CROSS_MESON_USR) \
+	-Dbsymbolic_functions=true \
+	-Ddtrace=false \
+	-Dfam=false \
+	-Dforce_posix_threads=true \
+	-Dgtk_doc=false \
+	-Diconv=libc \
+	-Dinstalled_tests=false \
+	-Dinternal_pcre=false \
+	-Dlibmount=$(call ptx/endis, PTXCONF_GLIB_LIBMOUNT)d \
+	-Dman=false \
+	-Dnls=disabled \
+	-Dselinux=disabled \
+	-Dsystemtap=false \
+	-Dxattr=false
 
 # ----------------------------------------------------------------------------
 # Install
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/glib.install:
+$(STATEDIR)/glib.install.post:
 	@$(call targetinfo)
-	@$(call world/install, GLIB)
-	@mkdir -p $(PTXCONF_SYSROOT_TARGET)/usr/include/glib-2.0
-	@cp $(GLIB_DIR)/glib/glibconfig.h $(PTXCONF_SYSROOT_TARGET)/usr/include
+	@sed -i 's;^bindir=.*;bindir=$(PTXDIST_SYSROOT_HOST)/bin;' \
+		 $(GLIB_PKGDIR)/usr/lib/pkgconfig/gio-2.0.pc
+	@$(call world/install.post, GLIB)
+	@cd $(PTXDIST_SYSROOT_TARGET) && cp usr/lib/glib-2.0/include/glibconfig.h usr/include/glibconfig.h
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -111,9 +78,8 @@ $(STATEDIR)/glib.targetinstall:
 
 	@$(call install_copy, glib, 0, 0, 0755, /usr/lib/gio/modules)
 
-	@for i in libgio-2.0 libglib-2.0 libgmodule-2.0 libgobject-2.0 libgthread-2.0; do \
-		$(call install_lib, glib, 0, 0, 0644, $$i); \
-	done
+	@$(foreach lib, libgio-2.0 libglib-2.0 libgmodule-2.0 libgobject-2.0 libgthread-2.0, \
+		$(call install_lib, glib, 0, 0, 0644, $(lib))$(ptx/nl))
 
 ifdef PTXCONF_GLIB_GDBUS
 	@$(call install_copy, glib, 0, 0, 0755, -, /usr/bin/gdbus)

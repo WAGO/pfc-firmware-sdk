@@ -100,7 +100,7 @@ void netcfg_read_settings(IpConfiguration &data, std::vector<std::string> &legal
   napi::IPConfigs ip_configs;
   napi::InterfaceConfigs interface_configs;
 
-  ::netconf::Error status;
+  ::netconf::Status status;
 
   if (prgconf.bridge_config.empty() || prgconf.ip_config.empty() || prgconf.interface_config.empty()) {
     status = napi::GetBridgeConfig(bridge_config);

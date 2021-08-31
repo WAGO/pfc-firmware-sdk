@@ -385,7 +385,7 @@ endif
 #       # install backup/restore script
 #       #
 ifdef PTXCONF_CT_SETTINGS_BACKUP
-	@$(call install_alternative, dropbear, 0, 0, 0755, /etc/config-tools/backup-restore/backup_dropbear_host_keys)
+	@$(call install_alternative, dropbear, 0, 0, 0750, /etc/config-tools/backup-restore/backup_dropbear_host_keys)
 endif
 
 #	#

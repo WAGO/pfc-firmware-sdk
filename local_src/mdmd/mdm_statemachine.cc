@@ -70,12 +70,14 @@ MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_
     _gprs_autoconnect_count = 0;
     _sms_list.clear();
     _port_wait_count = 0;
-    _cfun_wait_count = 0;
     _siminit_wait_flag = false;
+    _cfun_wait_flag = false;
     _sim_sms_support_flag = false;
     _pdp_addr = "";
     _oper_map.clear();
     _continue_getoperlist = false;
+/* Vorbereitung Abfrage ServingCellState */
+//    _servingcell_state = "";
 
     //init logging
     ModemManagementConfig mdmdConfig = _parameter_storage.get_modem_management_config();
@@ -102,10 +104,6 @@ MdmStatemachine::MdmStatemachine (transition_list_t &tl, State &s1, action_list_
     //init WWAN interface, make sure that it is initially stopped
     wwan_stop();
 }
-
-constexpr auto _GPRS_CONNECTIVITY_DISABLED = 0;
-//#define _GPRS_CONNECTIVITY_ENABLED   int(1)
-//#define _GPRS_CONNECTIVITY_DEFAULT   _GPRS_CONNECTIVITY_ENABLED
 
 MdmStatemachine::~MdmStatemachine()
 {
@@ -561,7 +559,7 @@ MdmStatemachine::set_current_oper_csq(int ber, int rssi)
   const MdmSignalQualityLevel new_signal_quality = _diagnostic.get_signal_quality_level();
   if (previous_signal_quality != new_signal_quality)
   {
-    mdmd_Log(MD_LOG_INF, "%s: Signal Quality: level=%d\n", get_state().c_str(), static_cast<int>(new_signal_quality));
+    mdmd_Log(MD_LOG_DBG, "%s: Signal Quality: level=%d\n", get_state().c_str(), static_cast<int>(new_signal_quality));
   }
 }
 
@@ -579,21 +577,6 @@ MdmStatemachine::set_oper_reg_state(int state, const std::string &lac, const std
   {
     mdmd_Log(MD_LOG_INF, "%s: Mobile Network: state=%d(%s), area=%s, cell=%s\n", get_state().c_str(),
              state, (is_oper_registered()) ? "registered" : "not registered", lac.c_str(), cid.c_str());
-  }
-  if ((is_oper_registered()) && (_current_oper.is_valid()))
-  {
-    if (_current_oper.is_type_3g())
-    {
-      _diagnostic.set_access_class(MdmAccessClass::UMTS);
-    }
-    else
-    {
-      _diagnostic.set_access_class(MdmAccessClass::GSM);
-    }
-  }
-  else
-  {
-    _diagnostic.set_access_class(MdmAccessClass::NONE);
   }
 }
 
@@ -660,19 +643,18 @@ MdmStatemachine::set_current_oper(int mode, int id, int act)
 {
   if ((id != _current_oper.get_id()) || (act != _current_oper.get_act()))
   {
-    mdmd_Log(MD_LOG_INF, "%s: Mobile Network: operator=%d, act=%d\n", get_state().c_str(), id, act);
+    mdmd_Log(MD_LOG_DBG, "%s: Mobile Network: operator=%d, act=%d\n", get_state().c_str(), id, act);
     _current_oper.set_selection_mode(mode);
     _current_oper.set_id(id);
     _current_oper.set_act(act);
     _current_oper.set_current();
 
-    //workaround: set actual signal strength here again
-    //this is necessary since get_quality_step method returns no value as long as current_oper is invalid
-    //otherwise signal LEDs and diagnostics are not set before next signal strength change
+    //workaround: Set actual signal strength here with same values again to activate signal LEDs.
+    //Otherwise signal LEDs are not set before next signal strength change.
     set_current_oper_csq(_current_oper.get_ber(), _current_oper.get_rssi());
 
   }
-  if ((is_oper_registered()) && (_current_oper.is_valid()))
+  if (_current_oper.is_valid())
   {
     if (_current_oper.is_type_3g())
     {
@@ -866,7 +848,7 @@ bool
 MdmStatemachine::is_gprs_disabled() const
 {
   const GprsAccessConfig gprsAccessConfig = _parameter_storage.get_gprs_access_config();
-  return (gprsAccessConfig.get_state() == _GPRS_CONNECTIVITY_DISABLED);
+  return (gprsAccessConfig.get_state() == static_cast<int>(GPRS_ACCESS_STATE::DISABLED));
 }
 
 bool
@@ -908,6 +890,17 @@ MdmStatemachine::set_pdp_address( const std::string &pdp_addr )
     _pdp_addr = pdp_addr;
   }
 }
+
+/* Vorbereitung Abfrage ServingCellState */
+//void
+//MdmStatemachine::set_servingcell_state( const std::string &servingcell_state )
+//{
+//  if (_servingcell_state.compare(servingcell_state) != 0)
+//  {
+//    mdmd_Log(MD_LOG_INF, "%s: Serving Cell: State=\'%s\'\n", get_state().c_str(), servingcell_state.c_str());
+//    _servingcell_state = servingcell_state;
+//  }
+//}
 
 bool MdmStatemachine::insert_operator_name(int id, const std::string& name)
 {
@@ -966,10 +959,12 @@ void MdmStatemachine::reset_service_states()
   std::string cell_id;
   int access_technology = -1;
   set_oper_reg_state(static_cast<int>(SERVICE_REG_STATE::UNKNOWN), location_area_code, cell_id, access_technology);
+/* Vorbereitung Abfrage ServingCellState */
+//  _servingcell_state = "";
 
   //common
-  _cfun_wait_count = 0;
   _port_wait_count = 0;
+  _cfun_wait_flag = false;
 }
 
 void MdmStatemachine::reset_sim_states()

@@ -5,17 +5,14 @@
 #include <string>
 
 #include "IPConfig.hpp"
-#include "NetconfError.hpp"
+#include "NetconfStatus.hpp"
 
-namespace network_config
-{
-  void FixIpHandler::Execute()
-  {
-    auto error = netconf::api::SetTempFixIp();
-    if(error.IsNotOk()){
-      throw NetconfError(error);
-    }
+namespace network_config {
+void FixIpHandler::Execute() {
+  auto error = netconf::api::SetTempFixIp();
+  if (error.IsNotOk()) {
+    throw NetconfStatus(error);
   }
-
+}
 
 } /* namespace network_config */

@@ -4,7 +4,7 @@ menuconfig PUREFTPD
 	prompt "pureftpd                      "
 	select LIBC_CRYPT
 	select OPENSSL		if PUREFTPD_SSL
-	select LINUX_PAM	if PUREFTPD_PAM
+	select PAM	if PUREFTPD_PAM
 	help
 	  Pure-FTPd is a fast, production-quality, standards-conformant
 	  FTP server based upon Troll-FTPd. Features include chrooted

@@ -1,32 +1,95 @@
-#!/bin/sh
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
 
 #
-# lighttpd
+# lighttpd start script
 #
-PATH=/usr/bin:/usr/sbin:/bin:/sbin
 
 PREFIX="lighttpd: "
 LIGHTTPD="/usr/sbin/lighttpd"
+LIGHTTPD_PROC="lighttpd"
+LIGHTTPD_PIDFILE="/var/run/lighttpd.pid"
 LIGHTTPD_CONF="/etc/lighttpd/lighttpd.conf"
+LIGHTTPD_LOGDIR="/var/log/lighttpd"
+LIGHTTPD_PHP_SESSION_DIR="/var/run/php/sessions"
+START_STOP_DAEMON="/sbin/start-stop-daemon"
+
+# Utility function to store process id after service startup
+store_pidfile()
+{
+	# Determine the pid of lighttpd by filter out own pid.
+	# One will be this script itself because it's named equally.
+	local own_pid="$BASHPID"
+	local lighttpd_pids
+	lighttpd_pids="$(pidof "${LIGHTTPD_PROC}")"
+	for pid in $lighttpd_pids; do
+		if [[ "$pid" != "$own_pid" ]]; then
+			echo -n "$pid" > "${LIGHTTPD_PIDFILE}"
+		fi
+	done
+}
+
+# Utility function to remove PID-File after stopping the service
+remove_pidfile()
+{
+	rm -f "${LIGHTTPD_PIDFILE}"
+}
+
+# Utility function to create a directory and assign appropriate 
+# permissions as required by the service
+create_directry_if_needed()
+{
+	local directory="$1"
+	if [ ! -d "${directory}" ]; then
+		mkdir -p "${directory}"
+		chmod 700 "${directory}"
+		chown www:www "${directory}"
+    fi
+}
+
+# Start the service 
+start()
+{
+	create_directry_if_needed "${LIGHTTPD_LOGDIR}"
+	create_directry_if_needed "${LIGHTTPD_PHP_SESSION_DIR}"
+	$START_STOP_DAEMON --quiet --start --exec "${LIGHTTPD}" -- -f "${LIGHTTPD_CONF}"
+	return $?
+}
+
+# Stop the service 
+stop()
+{
+    $START_STOP_DAEMON --quiet --stop --oknodo --exec "${LIGHTTPD}"
+	return $?
+}
+
+# Reload configuration of the service
+reload()
+{
+	local retval=-1
+	store_pidfile
+	if $START_STOP_DAEMON --stop --signal SIGINT --oknodo --quiet --pidfile "${LIGHTTPD_PIDFILE}" --exec "${LIGHTTPD}"; then
+		while start-stop-daemon --stop -t --quiet --pidfile "${LIGHTTPD_PIDFILE}" --exec "${LIGHTTPD}"; do
+			usleep 10000;
+		done
+		if start; then
+			retval=0
+		fi
+	fi
+    remove_pidfile
+	return $retval;	
+}
 
 case $1 in
 
 	start)
 		echo "${PREFIX}starting"
-
-		if [ \! -d /var/log/lighttpd ]; then
-			mkdir -p /var/log/lighttpd
-			chmod 700 /var/log/lighttpd
-			chown www:www /var/log/lighttpd
-		fi
-
-		if [ \! -d /var/run/php/sessions ]; then
-			mkdir -p /var/run/php/sessions
-			chmod 700 /var/run/php/sessions
-			chown www:www /var/run/php/sessions
-		fi
-
-		if start-stop-daemon --start --quiet --oknodo --exec ${LIGHTTPD} -- -f ${LIGHTTPD_CONF}; then
+		if start; then
 			echo "${PREFIX}done"
 		else
 			echo "${PREFIX}error, could not start server"
@@ -35,16 +98,24 @@ case $1 in
 
 	stop)
 		echo "${PREFIX}stopping"
-		
-		if start-stop-daemon --stop --quiet --oknodo --exec ${LIGHTTPD}; then
+		if stop; then
 			echo "${PREFIX}done"
 		else
 			echo "${PREFIX}error, could not stop server"
 		fi
 		;;
 
+	reload)
+		echo "${PREFIX}reloading"
+		if reload; then
+			echo "${PREFIX}done"
+		else
+			echo "${PREFIX}error, could not reload server"
+		fi
+		;;
+
 	*)
-		echo "${PREFIX}usage: ${0} [start|stop]"
+		echo "${PREFIX}usage: ${0} [start|stop|reload]"
 		exit 1
 		;;
 

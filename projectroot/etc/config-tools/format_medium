@@ -166,6 +166,9 @@ else
     # now re-enable and trigger auto-mount (if available)
     udevadm control --env __SD_AUTOMOUNT=1
     trap - INT TERM EXIT
+    # Since kernel 5.10 the below line is required again (see WATT22776)
+    # even though the udev daemon receives the kernel udev events
+    echo add > /sys/$(udevadm info --query=path --name=${partitionName})/uevent
 
     # try to remount 10 times
     attempts=10

@@ -3,8 +3,6 @@
 # Copyright (C) 2008 by Robert Schwebel <r.schwebel@pengutronix.de>
 #               2009 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_LIBFFI) += libffi
 #
 # Paths and names
 #
-LIBFFI_VERSION	:= 3.2.1
-LIBFFI_MD5	:= 83b89587607e3eb65c70d361f13bab43
+LIBFFI_VERSION	:= 3.3
+LIBFFI_MD5	:= 6313289e32f1d38a9df4770b014a2ca7
 LIBFFI		:= libffi-$(LIBFFI_VERSION)
 LIBFFI_SUFFIX	:= tar.gz
 LIBFFI_SOURCE	:= $(SRCDIR)/$(LIBFFI).$(LIBFFI_SUFFIX)
@@ -61,8 +59,6 @@ $(STATEDIR)/libffi.targetinstall:
 
 	@$(call install_finish, libffi)
 
-	@cp $(PTXDIST_SYSROOT_TARGET)/usr/lib/$(LIBFFI)/include/*  $(PTXDIST_SYSROOT_TARGET)/usr/include
-	@cp $(PTXDIST_SYSROOT_HOST)/lib/$(LIBFFI)/include/*  $(PTXDIST_SYSROOT_HOST)/include
 	@$(call touch)
 
 # vim: syntax=make

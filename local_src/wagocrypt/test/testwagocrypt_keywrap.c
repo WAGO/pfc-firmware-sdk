@@ -58,62 +58,65 @@
 #include <openssl/evp.h>
 #include "../src/libwagocrypt.h"
 
+#if 0
 static const unsigned char default_iv[] = {
   0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6,
 };
+#endif
 
 
-int EVP_aes_wrap_unwrap_test(const unsigned char *kek, int keybits,
-			 const unsigned char *iv,
-			 const unsigned char *eout,
-			 const unsigned char *key, int keylen)
-	{
-	unsigned char *otmp = NULL, *ptmp = NULL;
-	int r, ret = 0;
-	EVP_CIPHER_CTX wctx;	
-	EVP_CIPHER_CTX_init(&wctx);
+static int EVP_aes_wrap_unwrap_test(const unsigned char *kek, int keybits,
+       const unsigned char *iv,
+       const unsigned char *eout,
+       const unsigned char *key, int keylen)
+  {
+  unsigned char *otmp = NULL, *ptmp = NULL;
+  int r, ret = 0;
+  EVP_CIPHER_CTX *ctx = WCRYPT_EVP_CIPHER_CTX_new();
+  WCRYPT_EVP_CIPHER_CTX_init(ctx);
 
     const EVP_CIPHER *cipher;
-	if (keybits == 128)
-		cipher = EVP_aes_128_ecb();
-	else if (keybits == 192)
-		cipher = EVP_aes_192_ecb();
-	else if (keybits == 256)
-		cipher = EVP_aes_256_ecb();
-	else
-		return 0;
-	otmp = WCRYPT_OPENSSL_malloc(keylen + 8);
-	ptmp = WCRYPT_OPENSSL_malloc(keylen);
-	if (!otmp || !ptmp)
-		return 0;
-	if (!WCRYPT_EVP_CipherInit_ex(&wctx, cipher, NULL, kek, NULL, 1))
-		goto err;
-	r = WCRYPT_EVP_aes_wrap_key(&wctx, iv, otmp, key, keylen);
-	if (r <= 0)
-		goto err;
+  if (keybits == 128)
+    cipher = EVP_aes_128_ecb();
+  else if (keybits == 192)
+    cipher = EVP_aes_192_ecb();
+  else if (keybits == 256)
+    cipher = EVP_aes_256_ecb();
+  else
+    return 0;
+  otmp = WCRYPT_OPENSSL_malloc(keylen + 8);
+  ptmp = WCRYPT_OPENSSL_malloc(keylen);
+  if (!otmp || !ptmp)
+    return 0;
+  if (!WCRYPT_EVP_CipherInit_ex(ctx, cipher, NULL, kek, NULL, 1))
+    goto err;
+  r = WCRYPT_EVP_aes_wrap_key(ctx, iv, otmp, key, keylen);
+  if (r <= 0)
+    goto err;
 
-	if (eout && memcmp(eout, otmp, keylen))
-		goto err;
-		
-	if (!WCRYPT_EVP_CipherInit_ex(&wctx, cipher, NULL, kek, NULL, 0))
-		goto err;
-	r = WCRYPT_EVP_aes_unwrap_key(&wctx, iv, ptmp, otmp, r);
+  if (eout && memcmp(eout, otmp, keylen))
+    goto err;
 
-	if (memcmp(key, ptmp, keylen))
-		goto err;
+  if (!WCRYPT_EVP_CipherInit_ex(ctx, cipher, NULL, kek, NULL, 0))
+    goto err;
+  r = WCRYPT_EVP_aes_unwrap_key(ctx, iv, ptmp, otmp, r);
 
-	ret = 1;
+  if (memcmp(key, ptmp, keylen))
+    goto err;
 
-	err:
-	WCRYPT_EVP_CIPHER_CTX_cleanup(&wctx);
-	if (otmp)
-		WCRYPT_OPENSSL_free(otmp);
-	if (ptmp)
-		WCRYPT_OPENSSL_free(ptmp);
+  ret = 1;
 
-	return ret;
+  err:
+  WCRYPT_EVP_CIPHER_CTX_cleanup(ctx);
+  WCRYPT_EVP_CIPHER_CTX_free(ctx);
+  if (otmp)
+    WCRYPT_OPENSSL_free(otmp);
+  if (ptmp)
+    WCRYPT_OPENSSL_free(ptmp);
 
-	}
+  return ret;
+
+  }
 
 
 
@@ -174,25 +177,24 @@ static const unsigned char e6[] = {
   0xfb, 0x98, 0x8b, 0x9b, 0x7a, 0x02, 0xdd, 0x21
 };
 
-
     //OpenSSL_add_all_algorithms();
     const EVP_CIPHER *c; 
     c = WCRYPT_EVP_get_cipherbyname("aes-128-cbc"); 
-    fprintf(stderr, "EVP_get_cipherbyname returns: %x\n", c);
+    fprintf(stderr, "EVP_get_cipherbyname returns: 0x%lx\n", (unsigned long)c);
 
-	int ret;
-	ret = EVP_aes_wrap_unwrap_test(kek, 128, NULL, e1, key, 16);
-	fprintf(stderr, "Key test result %d\n", ret);
-	ret = EVP_aes_wrap_unwrap_test(kek, 192, NULL, e2, key, 16);
-	fprintf(stderr, "Key test result %d\n", ret);
-	ret = EVP_aes_wrap_unwrap_test(kek, 256, NULL, e3, key, 16);
-	fprintf(stderr, "Key test result %d\n", ret);
-	ret = EVP_aes_wrap_unwrap_test(kek, 192, NULL, e4, key, 24);
-	fprintf(stderr, "Key test result %d\n", ret);
-	ret = EVP_aes_wrap_unwrap_test(kek, 256, NULL, e5, key, 24);
-	fprintf(stderr, "Key test result %d\n", ret);
-	ret = EVP_aes_wrap_unwrap_test(kek, 256, NULL, e6, key, 32);
-	fprintf(stderr, "Key test result %d\n", ret);
+  int ret;
+  ret = EVP_aes_wrap_unwrap_test(kek, 128, NULL, e1, key, 16);
+  fprintf(stderr, "Key test result %d\n", ret);
+  ret = EVP_aes_wrap_unwrap_test(kek, 192, NULL, e2, key, 16);
+  fprintf(stderr, "Key test result %d\n", ret);
+  ret = EVP_aes_wrap_unwrap_test(kek, 256, NULL, e3, key, 16);
+  fprintf(stderr, "Key test result %d\n", ret);
+  ret = EVP_aes_wrap_unwrap_test(kek, 192, NULL, e4, key, 24);
+  fprintf(stderr, "Key test result %d\n", ret);
+  ret = EVP_aes_wrap_unwrap_test(kek, 256, NULL, e5, key, 24);
+  fprintf(stderr, "Key test result %d\n", ret);
+  ret = EVP_aes_wrap_unwrap_test(kek, 256, NULL, e6, key, 32);
+  fprintf(stderr, "Key test result %d\n", ret);
 
     return 1;
 }

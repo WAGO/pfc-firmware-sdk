@@ -2,7 +2,7 @@
 #pragma once
 
 #include <string>
-#include "Error.hpp"
+#include "Status.hpp"
 
 namespace netconf {
 
@@ -18,7 +18,7 @@ class IJsonConvert {
   virtual ~IJsonConvert() = default;
 
   virtual ::std::string ToJsonString(const DataType &obj, JsonFormat format = JsonFormat::COMPACT) const noexcept = 0;
-  virtual Error FromJsonString(const ::std::string &str, DataType &out_obj) const noexcept = 0;
+  virtual Status FromJsonString(const ::std::string &str, DataType &out_obj) const noexcept = 0;
 
 };
 

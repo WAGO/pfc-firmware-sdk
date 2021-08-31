@@ -23,6 +23,7 @@ config WBM_NG_PLUGIN_DIAGNOSTIC
 
 	depends on WBM_NG
 	select CT_GET_WBM_DIAGLIST
+	select PRINT_LOG
 
 	help
 	 "Plugin to the Modular WBM that contains the 'Diagnostic' page."

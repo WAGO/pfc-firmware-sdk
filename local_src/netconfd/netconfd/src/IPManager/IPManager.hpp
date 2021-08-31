@@ -16,7 +16,6 @@
 #include "IEventManager.hpp"
 #include "IIPLinks.hpp"
 #include "IIPMonitor.hpp"
-#include "INetDevConstruction.hpp"
 #include "INetDevManager.hpp"
 #include "IPConfigurator.hpp"
 #include "IPController.hpp"
@@ -24,12 +23,14 @@
 #include "IPValidator.hpp"
 #include "IPersistenceProvider.hpp"
 #include "IIPInformation.hpp"
+#include "GratuitousArp.hpp"
+#include "INetDevEvents.hpp"
 
 namespace netconf {
 
 const DipSwitchIpConfig DIP_SWITCH_DEFAULT_IP_CONFIG = DipSwitchIpConfig("192.168.1.0", "255.255.255.0");
 
-class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks, public IIPEvent, public IIPInformation {
+class IPManager : public IIPManager, public INetDevEvents, public IIPLinks, public IIPEvent, public IIPInformation {
  public:
 
   static constexpr DeviceType persistetDevices = DeviceType::Bridge;
@@ -44,8 +45,8 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
   IPManager(const IPManager &&)           = delete;
   IPManager &operator=(const IPManager &&) = delete;
 
-  Error Configure(const IPConfigs &config);
-  Error ValidateIPConfigs(const IPConfigs &configs) const override;
+  Status Configure(const IPConfigs &config);
+  Status ValidateIPConfigs(const IPConfigs &configs) const override;
 
   IPConfigs GetIPConfigs() const override;
   IPConfigs GetIPConfigs(const Bridges &bridges) const override;
@@ -53,31 +54,32 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
 
   void OnNetDevCreated(NetDevPtr netdev) override;
   void OnNetDevRemoved(NetDevPtr netdev) override;
+  void OnNetDevChangeInterfaceRelations(NetDevPtr netdev) override;
   void OnAddressChange(IIPEvent::ChangeType change_type, ::std::uint32_t if_index, ::std::string address,
                        ::std::string netmask) override;
 
   ::std::shared_ptr<IPLink> CreateOrGet(const ::std::string &interface_name) override;
   ::std::shared_ptr<IPLink> Get(const ::std::string &interface) override;
 
-  Error ApplyTempFixIpConfiguration(const IPConfigs &config) override;
-  Error ApplyIpConfiguration(const IPConfigs &config) override;
-  Error ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) override;
-  Error ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) override;
-  void ModifyIpConfigByDipSwitch(IPConfigs &ip_configs);
+  Status ApplyTempFixIpConfiguration() override;
+  Status ApplyIpConfiguration(const IPConfigs &config) override;
+  Status ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) override;
+  Status ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) override;
+  void ClearIpConfiguration() override;
+
   void ModifyIpConfigByDipSwitch(IPConfigs &config, const DipSwitchIpConfig &dip_switch_config);
   bool HasToApplyDipSwitchConfig() const;
 
  private:
-  Error ValidateIPConfigIsApplicableToSystem(const IPConfigs &configs) const;
-  Error CheckExistenceAndAccess(const IPConfigs &configs) const;
+  Status ValidateIPConfigIsApplicableToSystem(const IPConfigs &configs) const;
+  Status CheckExistenceAndAccess(const IPConfigs &configs) const;
 
   IPConfigs QueryAllCurrentIPConfigsThatAreNotIncludetInIPConfigs(const IPConfigs &ip_configs) const;
 
-  Error Apply(const IPConfigs &config, const DipSwitchIpConfig &dip_switch_ip_config);
-  Error Persist(const IPConfigs &config);
+  Status Apply(const IPConfigs &config);
+  Status Persist(const IPConfigs &config);
   bool HasToBePersisted(const IPConfig &ip_config) const;
 
-  IPLinks ip_links_;
   const IDeviceProperties &properties_provider_;
   const IBridgeInformation &interface_information_;
   IEventManager &event_manager_;
@@ -90,6 +92,8 @@ class IPManager : public IIPManager, public INetDevConstruction, public IIPLinks
   BootpClientController bootp_controller_;
   IPController ip_controller_;
   IPConfigurator ip_configurator_;
+  GratuitousArp gratuitous_arp_;
+  IPLinks ip_links_;
 
 };
 

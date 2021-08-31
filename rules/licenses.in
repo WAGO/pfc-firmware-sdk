@@ -21,3 +21,9 @@ config LICENSES
 
   help
    "Runs through all projectroots and gatheres placed licenses."
+
+config PFC_200_G2
+  bool "Build for PFC 200 G2"
+  default n
+  help
+    Image will be build for PFC 200 G2 devices. Affects OSS licenses.

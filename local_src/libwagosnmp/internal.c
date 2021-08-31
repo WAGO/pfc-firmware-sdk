@@ -10,7 +10,7 @@
 ///
 ///  \file     internal.c
 ///
-///  \version  $Rev: 39636 $
+///  \version  $Rev: 54123 $
 ///
 ///  \brief    <Insert description here>
 ///
@@ -19,6 +19,7 @@
 
 #include "wagosnmp_API.h"
 #include "wagosnmp_internal.h"
+#include "error.h"
 
 
 INTERNAL_SYM  pthread_once_t snmp_is_initialized = PTHREAD_ONCE_INIT;
@@ -508,10 +509,13 @@ INTERNAL_SYM int INTERNAL_GetSnmpPdu(tWagoSnmpTranceiver * trcv, netsnmp_pdu **p
   if(trcv->sOID != NULL && trcv->sOID[0] != 0)
   {
     anOID_len = MAX_OID_LEN;
+    SNMP_MutexLock();
     if (!snmp_parse_oid(trcv->sOID, anOID, &anOID_len)) {
+      SNMP_MutexUnlock();
       snmp_perror(trcv->sOID);
       return WAGOSNMP_RETURN_PARSE_OID_ERROR;
     }
+    SNMP_MutexUnlock();
   }
   else
   {
@@ -564,13 +568,16 @@ INTERNAL_SYM int INTERNAL_GetSnmpPdu(tWagoSnmpTranceiver * trcv, netsnmp_pdu **p
       }
       //get InformOID into the anOID buffer for the additional OID
       anOID_len = MAX_OID_LEN;
+      SNMP_MutexLock();
       if (   (trcv->sInformOID != NULL && trcv->sInformOID[0] != 0)
           && (!snmp_parse_oid(trcv->sInformOID, anOID, &anOID_len)))
       {
-            snmp_perror(trcv->sInformOID);
-            snmp_free_pdu(*pdu);
-            return WAGOSNMP_RETURN_PARSE_OID_ERROR;
+        SNMP_MutexUnlock();
+        snmp_perror(trcv->sInformOID);
+        snmp_free_pdu(*pdu);
+        return WAGOSNMP_RETURN_PARSE_OID_ERROR;
       }
+      SNMP_MutexUnlock();
     }
     if(    !SNMP_TLV_IS_NULL(trcv->typData)
         &&  SNMP_TLV_INITALIZED(trcv->typData))
@@ -648,10 +655,12 @@ INTERNAL_SYM int INTERNAL_Tranceive(tWagoSnmpTranceiver * trcv, netsnmp_pdu *pdu
   }
   if (response)
     snmp_free_pdu(response);
+  SNMP_MutexLock();
   snmp_close(ss);
   //shutdown the app and set reinit flag correctly
   snmp_shutdown("snmpapp");
   snmp_is_initialized = PTHREAD_ONCE_INIT;
+  SNMP_MutexUnlock();
 
   return ret;
 }
@@ -829,10 +838,13 @@ INTERNAL_SYM int INTERNAL_AddVarAndSend(char                    sOID[128],
     OID_length = MAX_OID_LEN;
     if(sOID[0] != 0 && !SNMP_TLV_IS_NULL(stData))
     {
+      SNMP_MutexLock();
       if (!snmp_parse_oid(sOID, OID, &OID_length)) {
+        SNMP_MutexLock();
          snmp_perror(sOID);
         return WAGOSNMP_RETURN_PARSE_OID_ERROR;
        }
+       SNMP_MutexUnlock();
        ret = INTERNAL_ConvertTlvToTrapVar(&var,stData);
        if(ret != WAGOSNMP_RETURN_OK)
        {
@@ -882,11 +894,14 @@ INTERNAL_SYM netsnmp_pdu* INTERNAL_GetTrap2PDU_v2_v3(char                    sEn
    }
 
   entOID_length = MAX_OID_LEN;
+  SNMP_MutexLock();
   if (!snmp_parse_oid(sEnterprise, entOID, &entOID_length)) {
+    SNMP_MutexUnlock();
      snmp_perror(sEnterprise);
      *result = WAGOSNMP_RETURN_PARSE_OID_ERROR;
      return NULL;
   }
+  SNMP_MutexUnlock();
   if (NULL == snmp_pdu_add_variable(pdu,objid_snmptrap,
                                 sizeof(objid_snmptrap) / sizeof(oid),
                                 ASN_OBJECT_ID ,entOID,entOID_length*sizeof(oid)))
@@ -895,5 +910,35 @@ INTERNAL_SYM netsnmp_pdu* INTERNAL_GetTrap2PDU_v2_v3(char                    sEn
   }
   return pdu;
 }
+
+/* libnetsnmp */
+
+
+static pthread_mutex_t snmp_mutex;
+static pthread_once_t snmp_mutex_init_once = PTHREAD_ONCE_INIT;
+
+static void snmp_mutex_init()
+{
+  pthread_mutexattr_t attr = {0};
+  int err = pthread_mutexattr_init(&attr);
+
+  error(err, err, "pthread_mutexattr_init");
+  err = pthread_mutexattr_setprotocol(&attr, PTHREAD_PRIO_INHERIT);
+  error(err, err, "pthread_mutexattr_setprotocol");
+  err = pthread_mutex_init(&snmp_mutex, &attr);
+  error(err, err, "pthread_mutex_init");
+}
+
+void SNMP_MutexLock(void)
+{
+  pthread_once(&snmp_mutex_init_once, snmp_mutex_init);
+  pthread_mutex_lock(&snmp_mutex);
+}
+
+void SNMP_MutexUnlock(void)
+{
+  pthread_mutex_unlock(&snmp_mutex);
+}
+
 
 //---- End of source file ------------------------------------------------------

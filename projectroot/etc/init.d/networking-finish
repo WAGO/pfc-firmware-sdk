@@ -58,8 +58,12 @@ function get_next_macs
 
 function marvell_update_eeprom
 {
-    log "update switch eeprom"
-    /sbin/pfcXXX_config_network_switch_eeprom.sh /proc/device-tree/ocp/ethernet@4a100000/mdio@4a101000/switch@0/eeprom
+   /sbin/pfcXXX_config_network_switch_eeprom.sh /sys/firmware/devicetree/base/ocp/interconnect@4a000000/segment@0/target-module@100000/ethernet@0/mdio@1000/switch@0/eeprom
+   if [[ "$?" != "0" ]] ; then
+        log "update switch eeprom failed"
+   else
+        log "update switch eeprom"
+   fi
 }
 
 function marvell_configure_atu
@@ -74,6 +78,7 @@ function marvell_configure_atu
     declare -a macs
     get_next_macs "$macaddr" $mac_addr_count
 
+    swconfig dev switch0 set port_fdb_add "${macs[0]},6,0"
     for mac in "${macs[@]}"; do
         swconfig dev switch0 set port_fdb_add "${mac},6,0"
     done

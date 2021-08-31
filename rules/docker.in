@@ -14,6 +14,6 @@ config DOCKER_LAZY
 	default n
 	prompt "docker-lazy"
 	help
-	  say y if docker should not install to rootfs.
+	  say whether docker should install to rootfs or not. (deactivate to install docker to rootfs)
 
 endif

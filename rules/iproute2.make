@@ -3,8 +3,6 @@
 # Copyright (C) 2006 by Erwin Rol
 # Copyright (C) 2009 by Robert Schwebel/Juergen Beisert
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_IPROUTE2) += iproute2
 #
 # Paths and names
 #
-IPROUTE2_VERSION	:= 4.20.0
-IPROUTE2_MD5		:= f3dab4c812812bbb5873cb90f471bcbf
+IPROUTE2_VERSION	:= 5.7.0
+IPROUTE2_MD5		:= da22ab8562eda56ae232872fa72e4870
 IPROUTE2		:= iproute2-$(IPROUTE2_VERSION)
 IPROUTE2_SUFFIX		:= tar.xz
 IPROUTE2_URL		:= $(call ptx/mirror, KERNEL, utils/net/iproute2/$(IPROUTE2).$(IPROUTE2_SUFFIX))
@@ -60,6 +58,7 @@ IPROUTE2_INSTALL_FILES-y =
 IPROUTE2_INSTALL_FILES-$(PTXCONF_IPROUTE2_ARPD) +=	arpd
 IPROUTE2_INSTALL_FILES-$(PTXCONF_IPROUTE2_BRIDGE) +=	bridge
 IPROUTE2_INSTALL_FILES-$(PTXCONF_IPROUTE2_CTSTAT) +=	ctstat
+IPROUTE2_INSTALL_FILES-$(PTXCONF_IPROUTE2_DEVLINK) +=	devlink
 IPROUTE2_INSTALL_FILES-$(PTXCONF_IPROUTE2_GENL) +=	genl
 IPROUTE2_INSTALL_FILES-$(PTXCONF_IPROUTE2_IP) +=	ip
 IPROUTE2_INSTALL_FILES-$(PTXCONF_IPROUTE2_IFCFG) +=	ifcfg

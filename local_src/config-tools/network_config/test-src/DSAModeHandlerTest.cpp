@@ -4,7 +4,7 @@
 
 #include "DSAModeHandler.hpp"
 #include "MockBridgeConfig.hpp"
-#include "Error.hpp"
+#include "Status.hpp"
 #include <gmock/gmock.h>
 
 using namespace testing;
@@ -36,7 +36,7 @@ TEST(DSAModeHandlerTest, GetAConfig)
   MockBridgeConfig mbc;
   BridgeConfig returned_config;
   MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})", returned_config);
-  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Status::Ok())));
 
   dut.Execute();
 
@@ -52,9 +52,9 @@ TEST(DSAModeHandlerTest, SetDSAModeNoChange)
   BridgeConfig expected_config;
   MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})",returned_config);
   MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})",expected_config);
-  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Status::Ok())));
   BridgeConfig set_parameter;
-  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Error::Ok())));
+  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Status::Ok())));
 
   dut.Execute();
 
@@ -71,9 +71,9 @@ TEST(DSAModeHandlerTest, SetDSAModeWithChange)
   BridgeConfig expected_config;
   MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2"]})", returned_config);
   MakeBridgeConfig(R"({"br0":["X1", "X2"]})", expected_config);
-  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Status::Ok())));
   BridgeConfig set_parameter;
-  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Error::Ok())));
+  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Status::Ok())));
 
   dut.Execute();
 
@@ -90,9 +90,9 @@ TEST(DSAModeHandlerTest, SetDSAModeOtherInterfaceRemains)
   BridgeConfig expected_config;
   MakeBridgeConfig(R"({"br0":["X1"],"br1":["X2", "X11"]})",returned_config);
   MakeBridgeConfig(R"({"br0":["X1", "X2"],"br1":["X11"]})",expected_config);
-  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Error::Ok())));
+  EXPECT_CALL(mbc, GetBridgeConfig(_)).WillOnce(DoAll(SetArgReferee<0>(returned_config), Return(netconf::Status::Ok())));
   BridgeConfig set_parameter;
-  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Error::Ok())));
+  EXPECT_CALL(mbc, SetBridgeConfig(_)).WillOnce(DoAll(SaveArg<0>(&set_parameter), Return(netconf::Status::Ok())));
 
   dut.Execute();
 

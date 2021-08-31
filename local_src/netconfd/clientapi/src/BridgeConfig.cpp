@@ -100,6 +100,11 @@ bool BridgeConfig::BridgeIsEmpty(const ::std::string &bridge_name) const {
   return jc.ToJsonString(config.GetConfig());
 }
 
+::std::string ToPrettyJson(const BridgeConfig& config) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(config.GetConfig(), JsonFormat::PRETTY);
+}
+
 ::std::string ToString(const BridgeConfig& config) noexcept {
   ::std::stringstream ss;
   for(auto& bridge_entry: config.GetConfig()){
@@ -117,13 +122,13 @@ bool operator==(const BridgeConfig &rhs, const BridgeConfig &lhs) {
   return IsEqual(rhs.configs_, lhs.configs_);
 }
 
-Error MakeBridgeConfig(const std::string& json_str, BridgeConfig& config)
+Status MakeBridgeConfig(const std::string& json_str, BridgeConfig& config)
 {
   JsonConverter jc;
   netconf::BridgeConfig c;
-  Error error = jc.FromJsonString(json_str, c);
+  Status status = jc.FromJsonString(json_str, c);
   config = BridgeConfig(c);
-  return error;
+  return status;
 }
 
 

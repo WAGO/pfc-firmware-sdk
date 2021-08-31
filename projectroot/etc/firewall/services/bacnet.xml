@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<firewall xmlns="http://www.wago.com/security/firewall" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wago.com/security/firewall service.xsd">
+  <ipv4>
+    <service name="bacnet">
+      <interfaces>
+        <!-- BACnet can only run on interface br0, yet. -->
+        <interface state="on"  if="br0"/>
+        <interface state="off" if="br1"/>
+        <interface state="off" if="br2"/>
+        <interface state="off" if="br3"/>
+        <interface state="off" if="WAN"/>
+        <interface state="on"  if="VPN"/>
+      </interfaces>
+      <rules>
+        <rule state="on" proto="udp" src_port="47808" dst_port="47808"/>
+      </rules>
+    </service>
+  </ipv4>
+</firewall>

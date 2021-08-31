@@ -1,5 +1,5 @@
 ## -*-makefile-*-
-# $Id: wago-codesys3-005-iodrvcans.make 48568 2020-04-27 11:55:49Z charline.wueste@wago.com $
+# $Id: wago-codesys3-005-iodrvcans.make 54507 2020-12-14 15:09:28Z karsten.nuenthel@wago.com $
 #
 # Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
 #

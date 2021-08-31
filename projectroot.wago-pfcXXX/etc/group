@@ -20,8 +20,10 @@ nogroup:x:65534:
 rts:x:3540:admin
 paramaccess:x:116:opc,root
 opc:x:117:
-iot:x:118:
-drm:x:119:iot,opc
+iot:x:118:iot
+drm:x:119:iot
 wda:x:120:admin
 paramd:x:121:
+wdxprov:x:122:
+wdaadm:x:123:
 docker:x:1001:

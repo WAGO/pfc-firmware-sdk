@@ -18,7 +18,7 @@
 
 #include "Logger.hpp"
 #include "CommandExecutor.hpp"
-#include "Error.hpp"
+#include "Status.hpp"
 
 #include <chrono>
 
@@ -55,9 +55,9 @@ int static lockRegion(int fd, int16_t type, int16_t whence, int start, int16_t l
   return fcntl(fd, F_SETLK, &lock);
 }
 
-Error Daemonizer::Daemonize(InterprocessCondition &condition) {
+Status Daemonizer::Daemonize(InterprocessCondition &condition) {
 
-  Error error;
+  Status status;
   pid_t pid;
 
   pid = fork();
@@ -106,28 +106,28 @@ Error Daemonizer::Daemonize(InterprocessCondition &condition) {
   if (fd0 != 0 || fd1 != 1 || fd2 != 2) {
     return MakeSystemCallError();
   }
-  return Error::Ok();
+  return Status::Ok();
 }
 
-Error Daemonizer::PreparePidDir() const {
-  Error error;
+Status Daemonizer::PreparePidDir() const {
+  Status status;
 
   ::std::string pidFilePath = run_directory_ + "/" + pid_file_name_;
 
   if (pidFilePath.length() > 256) {
-    error.Set(ErrorCode::GENERIC_ERROR, "Pid file path too long! Max 256!");
+    status.Set(StatusCode::GENERIC_ERROR, "Pid file path too long! Max 256!");
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     // Setup dir
     if (!ExistsFile(run_directory_.c_str())) {
       if (0 != mkdir(run_directory_.c_str(), 0644)) {
-        error = MakeSystemCallError();
+        status = MakeSystemCallError();
       }
     }
   }
 
-  return error;
+  return status;
 }
 
 bool Daemonizer::IsPidFileLocked() const {
@@ -154,7 +154,7 @@ bool Daemonizer::IsPidFileLocked() const {
   return isLocked;
 }
 
-Error Daemonizer::OpenAndLockPidFile() {
+Status Daemonizer::OpenAndLockPidFile() {
   ::std::string pidFilePath = run_directory_ + "/" + pid_file_name_;
 
   pid_file_handle_ = open(static_cast<const char*>(pidFilePath.c_str()),  O_RDWR | O_CREAT, 0644);
@@ -167,22 +167,22 @@ Error Daemonizer::OpenAndLockPidFile() {
       return MakeSystemCallError();
     }
   }
-  return Error::Ok();
+  return Status::Ok();
 }
 
-Error Daemonizer::WritePidFile() {
+Status Daemonizer::WritePidFile() {
 
   ::std::string pidFilePath = run_directory_ + "/" + pid_file_name_;
 
-  Error error = OpenAndLockPidFile();
+  Status status = OpenAndLockPidFile();
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     if (ftruncate(pid_file_handle_, 0) == -1) {
-      error = MakeSystemCallError();
+      status = MakeSystemCallError();
     }
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     int const pid = getpid();
     char szPid[sizeof("32768\n")];  // 32768 is max pid for 32 bit systems
 
@@ -190,36 +190,36 @@ Error Daemonizer::WritePidFile() {
     if (pidLength > 0) {
       ssize_t bytesWritten = write(pid_file_handle_, static_cast<char*>(szPid), static_cast<size_t>(pidLength));
       if (bytesWritten <= 0) {
-        error = MakeSystemCallError();
+        status = MakeSystemCallError();
       }
     }
   }
 
-  if (error.IsOk()) {
-    error = SetCloseOnExecFlag();
+  if (status.IsOk()) {
+    status = SetCloseOnExecFlag();
   }
 
-  return error;
+  return status;
 }
 
-Error Daemonizer::SetCloseOnExecFlag() const {
+Status Daemonizer::SetCloseOnExecFlag() const {
   // Set close on exec file descriptor property.
-  Error error;
+  Status status;
 
   int flags = fcntl(pid_file_handle_, F_GETFD);
   if (flags == -1) {
-    error = MakeSystemCallError();
+    status = MakeSystemCallError();
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     flags |= FD_CLOEXEC;
 
     if (fcntl(pid_file_handle_, F_SETFD, flags) == -1) {
-      error = MakeSystemCallError();
+      status = MakeSystemCallError();
     }
   }
 
-  return error;
+  return status;
 }
 
 void Daemonizer::SetUnlinkPidOnExit() {

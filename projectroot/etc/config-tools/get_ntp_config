@@ -27,7 +27,6 @@ NTP_STATIC_LIST="/etc/specific/ntpclient-static-servers"
 
 getServerFromFile()
 {
-    local dummy_filename="/tmp/get_ntp_dummy_list"
     local file=$1
     local lines=`egrep "^NTP_SERVER_[[:digit:]]" $file | wc -l`
 
@@ -41,6 +40,7 @@ getServerFromFile()
     fi
     #Because of non working process substition on pfc we have to do a dirty hack
     #source <(egrep "^NTP_SERVER_[[:digit:]]" $file)
+    local dummy_filename="$(mktemp /tmp/get_ntp_dummy_list.XXXXXX)"
     egrep "^NTP_SERVER_[[:digit:]]" $file > $dummy_filename
     source $dummy_filename
 

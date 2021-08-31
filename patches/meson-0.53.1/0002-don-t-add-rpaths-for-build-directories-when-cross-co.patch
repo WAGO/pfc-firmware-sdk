@@ -1,0 +1,38 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Mon, 18 Mar 2019 10:42:15 +0100
+Subject: [PATCH] don't add rpaths for build directories when cross-compiling
+
+The binaries cannot be executed anyways, so this just increases the binary
+size unnecessarily.
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ mesonbuild/linkers.py | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/mesonbuild/linkers.py b/mesonbuild/linkers.py
+index 0a5c57e08a02..e905d2cc2617 100644
+--- a/mesonbuild/linkers.py
++++ b/mesonbuild/linkers.py
+@@ -516,7 +516,10 @@ class GnuLikeDynamicLinkerMixin:
+         # Need to deduplicate rpaths, as macOS's install_name_tool
+         # is *very* allergic to duplicate -delete_rpath arguments
+         # when calling depfixer on installation.
+-        all_paths = mesonlib.OrderedSet([os.path.join(origin_placeholder, p) for p in processed_rpaths])
++        if not env.is_cross_build():
++            all_paths = mesonlib.OrderedSet([os.path.join(origin_placeholder, p) for p in processed_rpaths])
++        else:
++            all_paths = mesonlib.OrderedSet()
+         # Build_rpath is used as-is (it is usually absolute).
+         if build_rpath != '':
+             all_paths.add(build_rpath)
+@@ -539,7 +542,8 @@ class GnuLikeDynamicLinkerMixin:
+                 paths = padding
+             else:
+                 paths = paths + ':' + padding
+-        args.extend(self._apply_prefix('-rpath,' + paths))
++        if paths:
++            args.extend(self._apply_prefix('-rpath,' + paths))
+ 
+         # TODO: should this actually be "for solaris/sunos"?
+         if mesonlib.is_sunos():

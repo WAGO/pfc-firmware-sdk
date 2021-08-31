@@ -14,7 +14,7 @@ class OutputFactory {
   OutputFactory() = default;
   virtual ~OutputFactory() = default;
 
-  static ::std::unique_ptr<Output> Create(const po::variables_map &vm) ;
+  static ::std::unique_ptr<Output> Create(const po::variables_map &vm);
 };
 
 }

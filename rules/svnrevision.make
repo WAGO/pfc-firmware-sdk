@@ -35,6 +35,7 @@ ETC_SVNREVISION_STRING="$(call assert,$(shell ptxd_get_svn_revision '@$(PTXCONF_
 ETC_SVNREVISION_BUILD_DATE="$(call assert,$(shell date),"Error: cannot determine current date. Aborting!")"
 ETC_SVNREVISION_BUILD_DATE_BASIC="$(call assert,$(shell date +%Y%m%d),"Error: cannot determine current basic date. Aborting!")"
 ETC_SVNREVISION_BUILD_URL="$(call assert,$(shell ptxd_get_svn_build_url '@$(PTXCONF_PLATFORM)'),"Error: cannot determine SVN URL. Aborting!")"
+ETC_SVNREVISION_BUILD_CONFIG="$(call assert,$(shell basename '$(shell readlink $(PTXDIST_WORKSPACE)/selected_ptxconfig)'),"Error: cannot determine config. Aborting!")"
 
 endif
 
@@ -70,6 +71,9 @@ else
 
 	@$(call install_replace, svnrevision, /etc/SVNREVISION, \
 		@SVN_BUILD_URL@, $(ETC_SVNREVISION_BUILD_URL))
+
+	@$(call install_replace, svnrevision, /etc/SVNREVISION, \
+		@SVN_BUILD_CONFIG@, $(ETC_SVNREVISION_BUILD_CONFIG))
 
 endif
 	@$(call install_finish,svnrevision)

@@ -16,8 +16,8 @@ PACKAGES-$(PTXCONF_MOSQUITTO) += mosquitto
 #
 # Paths and names
 #
-MOSQUITTO_VERSION	:= 1.5.7
-MOSQUITTO_MD5		:= cdb4d2776e498d7a83b37921f9877e08
+MOSQUITTO_VERSION	:= 1.6.7
+MOSQUITTO_MD5		:= ec9074c4f337f64eaa9a4320c6dab020
 MOSQUITTO		:= mosquitto-$(MOSQUITTO_VERSION)
 MOSQUITTO_SUFFIX	:= tar.gz
 MOSQUITTO_URL		:= https://mosquitto.org/files/source/$(MOSQUITTO).$(MOSQUITTO_SUFFIX)
@@ -89,6 +89,8 @@ $(STATEDIR)/mosquitto.targetinstall:
 	@$(call install_copy, mosquitto, 0, 0, 0755, -, /usr/bin/mosquitto_sub)
 #	@$(call install_copy, mosquitto, 0, 0, 0755, -, /usr/bin/mosquitto_passwd)
 #	@$(call install_copy, mosquitto, 0, 0, 0755, -, /usr/sbin/mosquitto)
+
+	@$(call install_copy, mosquitto, 0, 0, 0644, $(MOSQUITTO_DIR)/edl-v10, /usr/share/licenses/oss/license.mosquitto_$(MOSQUITTO_VERSION).txt)
 	@$(call install_finish, mosquitto)
 
 	@$(call touch)

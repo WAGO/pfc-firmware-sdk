@@ -175,7 +175,7 @@ int WCRYPT_EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr
 *-----------------------------------------------------------------------------*/
 void WCRYPT_EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *a)
 {
-    return EVP_CIPHER_CTX_free(a);
+    EVP_CIPHER_CTX_free(a);
 }
 
 
@@ -188,7 +188,7 @@ void WCRYPT_EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *a)
 *-----------------------------------------------------------------------------*/
 void WCRYPT_EVP_CIPHER_CTX_init (EVP_CIPHER_CTX *c)
 {
-    return EVP_CIPHER_CTX_init (c);
+    (void)EVP_CIPHER_CTX_init(c);
 }
 
 
@@ -494,7 +494,7 @@ unsigned short WCRYPT_fVersion()
 *-----------------------------------------------------------------------------*/
 void WCRYPT_OpenSSL_add_all_algs(void)
 {
-    return OpenSSL_add_all_algorithms();
+    (void)OpenSSL_add_all_algorithms();
 }
 
 /**----------------------------------------------------------------------------
@@ -506,7 +506,7 @@ void WCRYPT_OpenSSL_add_all_algs(void)
 *-----------------------------------------------------------------------------*/
 void WCRYPT_OPENSSL_cleanse(void *ptr, size_t len)
 {
-    return OPENSSL_cleanse(ptr, len);
+    OPENSSL_cleanse(ptr, len);
 }
 
 /** ---------------------------------------------------------------------------
@@ -518,7 +518,7 @@ void WCRYPT_OPENSSL_cleanse(void *ptr, size_t len)
 *------------------------------------------------------------------------------*/
 void WCRYPT_OPENSSL_free( void *addr )
 {
-    return OPENSSL_free(addr);
+    OPENSSL_free(addr);
 }
 
 /** ---------------------------------------------------------------------------

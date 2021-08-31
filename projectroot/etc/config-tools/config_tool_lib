@@ -222,6 +222,7 @@ PASSWD_CHECK_BIN="/usr/bin/true"
 PASS_MIN_LENGTH=10
 IS_PASS_WEAK_CHECK="y"
 TRACE_FILENAME="/etc/config-tools/trace_debug.txt"
+SNMP_USER_DEFINES_FILE="/etc/specific/snmp_user.conf"
 
 CONFIG_TOOLS_PATH="/etc/config-tools/"
 CONFIG_TOOLS_SBIN_PATH="/usr/sbin/"
@@ -233,7 +234,7 @@ timezoneList[2]="CST6CDT,M3.2.0,M11.1.0;CST/CDT: Central Standard Time, Chicago,
 timezoneList[3]="MST7MDT,M3.2.0,M11.1.0;MST/MDT: Mountain Standard Time, Denver, Edmonton"
 timezoneList[4]="PST8DPT,M3.2.0,M11.1.0;PST/PDT: Pacific Standard Time, Los Angeles, Whitehorse"
 timezoneList[5]="GMT0BST,M3.5.0/1,M10.5.0;GTM/BST: Greenwich Mean Time, GB, P, IRL, IS, ..."
-timezoneList[6]="CET-1CEST,M3.5.0/2,M10.5.0/3;CET/CEST: Central European Time, B, DK, D, F, I, CRO, NL, ..."
+timezoneList[6]="CET-1CEST,M3.5.0,M10.5.0/3;CET/CEST: Central European Time, B, DK, D, F, I, CRO, NL, ..."
 timezoneList[7]="EET-2EEST,M3.5.0/3,M10.5.0/4;EET/EEST: East European Time, BUL, FI, GR, TR, ..."
 timezoneList[8]="CST-8;CST: China Standard Time"
 timezoneList[9]="JST-9;JST: Japan / Korea Standard Time"
@@ -298,6 +299,8 @@ CHECK_SYSTEM_WDT_CONFIG="/etc/watchdog.conf"
 # Check system config file
 CHECK_SYSTEM_CONFIG="/etc/check-system/configuration"
 
+# Docker daemon config file
+DOCKER_DAEMON_CONFIG="/etc/docker/daemon.json"
 #-----------------------------------------------------------------------------#
 # global variables
 #-----------------------------------------------------------------------------#
@@ -618,14 +621,44 @@ report_array()
 escape_json()
 {
     local TEXT="$1"
-    local RESULT=0
+    local TEXT_LEN=${#TEXT}
 
     local JSON_TEXT=""
-    JSON_TEXT=$(printf '%s' "$TEXT" | php -r 'echo json_encode(file_get_contents("php://stdin"));')
-    RESULT=$?
-    echo "$JSON_TEXT"
+    local I=0
+    local CHAR
+    local CODE
+    local OUT
+    while [[ $I -lt ${TEXT_LEN} ]]; do
+        CHAR="${TEXT:$I:1}"
+        CODE=$(printf '%d' "'${CHAR}")
+        OUT=""
+        if [[ "$CHAR" == "\"" ]] ; then
+            OUT="\\\""
+        elif [[ "$CHAR" == "\\" ]] ; then
+            OUT="\\\\"
+        elif [[ "$CHAR" == "/" ]] ; then
+            OUT="\\/"
+        elif [[ 31 -lt $CODE ]] && [[ $CODE -lt 128 ]] ; then
+            OUT="$CHAR"
+        elif [[ $CODE -eq 8 ]] ; then
+            OUT="\\b"
+        elif [[ $CODE -eq 12 ]] ; then
+            OUT="\\f"
+        elif [[ $CODE -eq 10 ]] ; then
+            OUT="\\n"
+        elif [[ $CODE -eq 13 ]] ; then
+            OUT="\\r"
+        elif [[ $CODE -eq 9 ]] ; then
+            OUT="\\t"
+        else
+            OUT=$(printf '\\u%04x' "$CODE")
+        fi
+        JSON_TEXT="${JSON_TEXT}${OUT}"
+        I=$(( I + 1 ))
+    done
 
-    return $RESULT
+    echo "\"${JSON_TEXT}\""
+    return 0
 }
 
 # Function to print general command options in help text.
@@ -1431,12 +1464,7 @@ function CheckEncryptionPassphrase
   local status=$SUCCESS
   local password=$1
   
-  CheckStringForASCII "$password"
-  if [ $status != $? ]; then
-    status=$INVALID_PARAMETER
-    ReportError $status $?
-    SetLastError $?
-  fi
+  CheckStringForASCII "$password" || return "$INVALID_PARAMETER"
 
   # check password complexity only
   $PASSWD_CHECK_BIN minLength=$PASS_MIN_LENGTH weakCheck="$IS_PASS_WEAK_CHECK" username=" " oldPasswd=" " \

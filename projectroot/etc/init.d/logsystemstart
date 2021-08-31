@@ -16,7 +16,7 @@ case $1 in
 
     start)
         /usr/bin/touch "$SYSTEM_START_DONE_FILE"
-        eventmsg -n init 0x800000C0
+        eventmsg -n init 0x80000012
         echo "System start done."
         ;;
 

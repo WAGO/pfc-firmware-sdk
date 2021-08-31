@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -17,7 +17,7 @@ class IBridgeConfigValidator {
   IBridgeConfigValidator(const IBridgeConfigValidator&&) = delete;
   IBridgeConfigValidator& operator=(const IBridgeConfigValidator&&) = delete;
 
-  virtual Error Validate(BridgeConfig const& config) const = 0;
+  virtual Status Validate(BridgeConfig const& config) const = 0;
 
 };
 

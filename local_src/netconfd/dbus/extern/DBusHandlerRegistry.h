@@ -47,6 +47,10 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
     get_interface_config_handler_ = ::std::forward<Getter>(handler);
   }
 
+  void RegisterGetInterfaceStatusesHandler(Getter&& handler) {
+    get_interface_statuses_handler_ = ::std::forward<Getter>(handler);
+  }
+
   void RegisterGetBackupParamCountHandler(::std::function<::std::string(void)>&& handler) {
     get_backup_param_count_handler_ = ::std::forward<::std::function<::std::string(void)>>(handler);
   }
@@ -113,7 +117,9 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
                                      GDBusMethodInvocation *invocation,
                                      gpointer user_data);
 
-
+  static gboolean GetInterfaceStatuses(netconfdInterface_config *object,
+                                     GDBusMethodInvocation *invocation,
+                                     gpointer user_data);
 
 
   static gboolean SetAllIPConfig(netconfdIp_config *object,
@@ -171,6 +177,7 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
   Getter get_device_interfaces_handler_;
   Setter set_interface_config_handler_;
   Getter get_interface_config_handler_;
+  Getter get_interface_statuses_handler_;
   ::std::function<::std::string(void)> get_backup_param_count_handler_;
 
 

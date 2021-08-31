@@ -1,0 +1,52 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Mon, 4 Feb 2013 14:39:00 +0100
+Subject: [PATCH] scripts/trylink: honour SKIP_STRIP and don't strip if
+ requested to
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ scripts/trylink | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/scripts/trylink b/scripts/trylink
+index ba2d265bc919..a3f3b5b8cc10 100755
+--- a/scripts/trylink
++++ b/scripts/trylink
+@@ -268,7 +268,12 @@ if test "$CONFIG_BUILD_LIBBUSYBOX" = y; then
+ 	cat $EXE.out
+ 	exit 1
+     }
+-    $STRIP -s --remove-section=.note --remove-section=.comment $EXE -o "$sharedlib_dir/libbusybox.so.$BB_VER"
++    if test "$SKIP_STRIP" = "y"; then
++	cp $EXE "$sharedlib_dir/libbusybox.so.$BB_VER"
++    else
++	$STRIP -s --remove-section=.note --remove-section=.comment $EXE -o "$sharedlib_dir/libbusybox.so.$BB_VER"
++    fi
++
+     chmod a+x "$sharedlib_dir/libbusybox.so.$BB_VER"
+     echo "libbusybox: $sharedlib_dir/libbusybox.so.$BB_VER"
+ fi
+@@ -289,7 +294,11 @@ if test "$CONFIG_FEATURE_SHARED_BUSYBOX" = y; then
+ 	cat $EXE.out
+ 	exit 1
+     }
+-    $STRIP -s --remove-section=.note --remove-section=.comment $EXE -o "$sharedlib_dir/busybox"
++    if test "$SKIP_STRIP" = "y"; then
++	cp $EXE "$sharedlib_dir/busybox"
++    else
++	$STRIP -s --remove-section=.note --remove-section=.comment $EXE -o "$sharedlib_dir/busybox"
++    fi
+     echo "busybox linked against libbusybox: $sharedlib_dir/busybox"
+ fi
+ 
+@@ -326,7 +335,9 @@ int main(int argc, char **argv)
+ 	    exit 1
+ 	}
+ 	rm -- "$sharedlib_dir/applet.c" $EXE.out
+-	$STRIP -s --remove-section=.note --remove-section=.comment $EXE
++	if test "$SKIP_STRIP" != "y"; then
++	    $STRIP -s --remove-section=.note --remove-section=.comment $EXE
++	fi
+ 	# Let user see that we do something - list the names of created binaries:
+ 	echo "$EXE"
+ 

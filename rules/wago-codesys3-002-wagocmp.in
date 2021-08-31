@@ -180,6 +180,15 @@ config CDS3_RTS_CFG_ADD_TSCOMS
 	default TscOms
 
 
+config CDS3_TSCMOFWUP
+	bool "TscMoFwUp"
+	default n
+	select CODESYS3
+	select CDS3_INCLUDES
+	help
+		Builds and installs a component to support RLB module firmware update.
+
+
 config CDS3_CMPKBUSASYNCCOM
 	bool "Component for WagoSysKbusAsyncCom_Internal_PFC.library"
 	default n
@@ -278,6 +287,12 @@ config CDS3_TSCTIME_TARGET_VTPCTP
 	help
 		Set the Target to eDISPLAY
 
+config CDS3_TSCTIME_TARGET_CONTROLLER100
+	bool
+	default n
+	help
+		Set the Target to Controller100
+
 config CDS3_TSCTIME_TARGET_PAC
 	bool
 	default n
@@ -289,7 +304,7 @@ config CDS3_TSCTIME
 	default n
 	select CODESYS3
 	select CDS3_INCLUDES
-	select CDS3_TSCTIME_TARGET_PFCXXX if (CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_PAC)
+	select CDS3_TSCTIME_TARGET_PFCXXX if (CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_PAC || CDS3_RTS_PRODUCT_CC100)
 	select CDS3_TSCTIME_TARGET_VTPCTP if CDS3_RTS_PRODUCT_VTPCTP
 	help
 		Builds and installs WAGO time extentions.
@@ -330,6 +345,13 @@ config CDS3_TSCRETAINUIO_TARGET_VTPCTP
 	help
 		Set the Target to eDISPLAY
 
+config CDS3_TSCRETAINUIO_TARGET_CC100
+	bool
+	default n
+	help
+		Set the Target to CC100
+
+
 config CDS3_TSCRETAINUIO_TARGET_PAC
 	bool
 	default n
@@ -343,15 +365,8 @@ config CDS3_TSCRETAINUIO
 	select CDS3_INCLUDES
 	select CDS3_TSCRETAINUIO_TARGET_PFCXXX if (CDS3_RTS_PRODUCT_PFCXXX || CDS3_RTS_PRODUCT_PAC)
 	select CDS3_TSCRETAINUIO_TARGET_VTPCTP if CDS3_RTS_PRODUCT_VTPCTP
+	select CDS3_TSCRETAINUIO_TARGET_CC100 if CDS3_RTS_PRODUCT_CC100
 	select WRETAIN
-	help
-		Builds and installs WAGO time extentions.
-
-config CDS3_TSCUSERDB
-	bool "TscUserDB"
-	default n
-	select CODESYS3
-	select CDS3_INCLUDES
 	help
 		Builds and installs WAGO time extentions.
 
@@ -538,29 +553,29 @@ config CDS3_TSCIODRVCTP
         help
                 IoDrv for CTP (currently elrest)
 
-config CDS3_TSCWAGOAPPBEEPER
-        bool "cds3-tscwagoappbeeper"
+config CDS3_TSCWAGOSYSBEEPER
+        bool "cds3-tscwagosysbeeper"
         default n
         select CDS3_INCLUDES
         select CODESYS3
         help
-                Library for CTP Beeper (currently elrest)
+                Library for TP600/EdgeBox Beeper (currently elrest)
 
-config CDS3_TSCWAGOAPPSENSOR
-        bool "cds3-tscwagoappsensor"
+config CDS3_TSCWAGOSYSSENSOR
+        bool "cds3-tscwagosyssensor"
         default n
         select CDS3_INCLUDES
         select CODESYS3
         help
-                Library for CTP Sensor (currently elrest)
+                Library for TP600/EdgeBox Sensor (currently elrest)
 
-config CDS3_TSCWAGOAPPAUDIO
-        bool "cds3-tscwagoappaudio"
+config CDS3_TSCWAGOSYSAUDIO
+        bool "cds3-tscwagosysaudio"
         default n
         select CDS3_INCLUDES
         select CODESYS3
         help
-                Library for CTP Audio (currently elrest)
+                Library for TP600/EdgeBox Audio (currently elrest)
 
 config CDS3_TSCSYNCBOOTPROJECT
     bool "TscSyncBootproject" 
@@ -578,10 +593,21 @@ config CDS3_IODRVRLB
     select CODESYS3
     select LIBUIO
     select LIBCOMMONHEADER
+    select TSCPARAMSERV
     select LED_SERVER_META
     select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
     help
         This component implements the process data communication between codesys3 and rocket local bus
+
+config TSCPARAMSERV
+    bool "TscParamServ"
+    default n
+    select CODESYS3
+    select CDS3_INCLUDES
+    select HOST_CT_BUILD
+    select GOOGLETEST
+    help
+        This component implements access to parameter service in CODESYSv3 / e!RUNTIME
 
 config CDS3_TSCDRMIECINTERFACE
 	bool "TscDrmIecInterface"
@@ -599,7 +625,15 @@ config CDS3_TSCPAMIECINTERFACE
 	default n
 	select CODESYS3
 	select CDS3_INCLUDES
-	select LINUX_PAM
+	select PAM
 	help
 		Builds and installs lib-interface for PAM library
+		
+config CDS3_TSCIODRVCC100
+    bool "cds3-tsciodrvcc100"
+    default n
+    select CDS3_INCLUDES
+    select CODESYS3
+    help
+        IoDrv for CC100 (currently elrest)
 

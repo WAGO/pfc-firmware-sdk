@@ -1,3 +1,76 @@
+Firmware Release 03.07.14 (99)
+
+Starting with firmware 19, the PFC200 of the second generation has its own 
+image and release notes.
+
+System:
+[NEW] Extend routing functionality: routing over an interface.
+[NEW] The configuration of a default gateway can now be set on
+      the TCP/IP configuration page in the WBM together with the IP configuration.
+[NEW] Extend the Fix-IP-Feature to address all configured bridges. (Not only bridge 0)
+[NEW] Updated kernel to version 5.10
+[FIXED] SEC: Disabled local and remote port forwarding for SSH server
+        by de-fault (conforming to in BDEW whitepaper)
+[FIXED] Fixed invalid progress of 30% during firmware update.
+[FIXED] Prevent dropbear from logging "no such file or directory"
+[FIXED] PFC 3G: Show correct connection state and signal strength with
+        specific SIM cards for data service only
+[FIXED] Allow PN connection up to 64 modules.
+[FIXED] Fix synchronization error while using WagoLibNetSnmpManager and WagoLibNetSnmp.
+[FIXED] PFC is not sending coldstart trap via SNMP
+[FIXED] WagoConfigToolLib could not be used to read DHCP assigned DNS server and default gateway
+[FIXED] Fix port mirroring visualization error in WBM.
+[FIXED] SEC: Updated dnsmasq to 2.83; Fixed CVE-2020-25684, CVE-2020-25685, CVE-2020-25686
+[FIXED] SEC: Updated sudo to 1.9.5p2; Addresses CVE-2021-3156
+[FIXED] Fixed issue displaying the wrong time zone after select time zone CET via WBM.
+[FIXED] Fix SNMP v2c Inform Notification function (extend FB)
+[FIXED] Updated ca-certificates to NSS.3.60.1.RTM
+[FIXED] Updated webserver lighttpd to version 1.4.59
+[FIXED] PFC 3G: Modem Management: Unexpected network traffic with
+        deactivated wireless data service
+[FIXED] Fix temporary network loop/network bridge within the FW update process, 
+        if the network is separated and connected to more than one network
+
+Runtime System:
+[NEW] e!RUNTIME Upgrade to version 3.5.16.3 (based on CODESYS 3.5, SP 16, Patch 3)
+[FIXED] Bootproject with e!COCKPIT application doesn't start when using retain variables
+        and changing application without download.
+[FIXED] CODESYS2 WebVisu doesn't show variable values when port authentication
+        is enabled since FW18 Patch3
+
+Fieldbus Interface & Protocols:
+-OPC UA
+ [FIXED] The OPC UA port is now correctly opened in the firewall.
+-Modbus
+ [NEW] Bidirectional access to address ranges adjustable
+ [FIXED]Fix Modbus Master (Client) mode OnValueChange to write data in
+        Modbus Slave (Server) registers.
+-CAN
+ [FIXED] PFC sends unexpected CAN emergency telegram.
+ [FIXED] CAN layer2 receive does not work when calling FbCanL2Open in each SPS cycle.
+ [FIXED] CAN layer2 keeps sockets open / memory leak
+ [FIXED] CAN layer2 memory leak when opening CAN socket in disconnected state
+-Cloud Connectivity
+ [NEW] Add support for cache mode SD-Card for NativeMQTT
+ [NEW] IEC retain data is not deleted during transfer of boot application. Retain data
+       may be reused if it is still compatible to boot application.
+ [FIXED] Use exponential backoff for retry interval if connection fails due to failing
+         certificate validation
+
+Libraries:
+[FIXED] Set path to standard certificate store (/etc/ssl/certs) for curl library.
+[FIXED] Restore behavior of WagoSysProcess library for PFC firmware release 17 and older.
+
+Functional change:
+[DEPRECATED] Config tool function get_telecontrol_state will be removed in future releases.
+             The config tool was used to determine whether a device is a telecontrol. Since telecontrol
+             services can be added by dynamic licensing, the tool is no longer needed.
+[REMOVED] 3S OPC UA Server removed from the firmware. 
+          (Can be installed for firmware 19, available via support: support@wago.com).
+[CHANGED] In future releases, HTTPS-Port is always active and can only be switched off by the firewall.
+
+################################################################################
+
 Firmware Release 03.06.19 (99)
 System:
 [NEW] PFC200 with 4G: Send and receive SMS via e!COCKPIT IEC-Library

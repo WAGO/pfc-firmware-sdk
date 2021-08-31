@@ -108,7 +108,7 @@ menuconfig CT_MENU_CBM_CODESYS
 bool
 default n
 prompt "CODESYS       "
-depends on CT_MENU_CBM_MAIN && PLCLINUXRT
+depends on CT_MENU_CBM_MAIN && (PLCLINUXRT || CODESYS3)
 help
   __XML: simple_level text="PLC Runtime" 
                       ressource="codesys.sh" 

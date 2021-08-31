@@ -1,5 +1,5 @@
 ## -*-makefile-*-
-# $Id: wago-codesys3-044-tscdrmiecinterface.make 43070 2019-09-23 10:51:54Z hans-florian.scholz@wago.com $
+# $Id: wago-codesys3-044-tscdrmiecinterface.make 56269 2021-03-09 08:10:09Z william.dubbert@wago.com $
 #
 # Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
 #
@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CDS3_TSCDRMIECINTERFACE) += cds3-tscdrmiecinterface
 
-CDS3_TSCDRMIECINTERFACE_VERSION	     := 0.0.3
+CDS3_TSCDRMIECINTERFACE_VERSION	     := 0.1.0
 CDS3_TSCDRMIECINTERFACE_MD5          :=
 CDS3_TSCDRMIECINTERFACE              := TscDrmIecInterface
 CDS3_TSCDRMIECINTERFACE_BUILDCONFIG := Release

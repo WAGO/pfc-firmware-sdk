@@ -1,0 +1,17 @@
+## SECTION=system_libraries
+
+menuconfig LIBCAP
+	tristate
+	select HOST_GPERF
+	select PAM		if GLOBAL_PAM
+	prompt "libcap                        "
+	help
+	  A library for getting and setting POSIX.1e capabilities.
+
+if LIBCAP
+
+config LIBCAP_SETCAP
+	bool
+	prompt "Install setcap/getcap"
+
+endif

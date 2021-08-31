@@ -179,8 +179,12 @@ function MainEthernetInterface
         # if a new values were selected - change them, get actual values again and show possible errors
         if [ -n "$newSpeed" ] && [ -n "$newDuplex" ]; then
           if [ "$newSpeed" != "$speed" ] || [ "$newDuplex" != "$duplex" ]; then
-            SetInterfaceConfig $portLabel "up" "off" $newSpeed $newDuplex
-            ShowLastError
+           if DeviceSupportsPortSpeedDuplexConfiguration ; then
+             SetInterfaceConfig $portLabel "up" "off" $newSpeed $newDuplex
+           else
+           	 errorText="Device does not support speed and duplex configuration"
+           fi
+             ShowLastError
           fi
         fi
       fi

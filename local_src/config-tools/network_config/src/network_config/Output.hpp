@@ -42,12 +42,12 @@ class FileOutput : public Output {
 
 };
 
-class NullOutput : public Output , private std::ostream  {
+class NullOutput : public Output, private std::ostream {
  public:
 
   NullOutput() = default;
-  NullOutput(const NullOutput& other) = default;
-  NullOutput(NullOutput&& other) = default;
+  NullOutput(const NullOutput &other) = default;
+  NullOutput(NullOutput &&other) = default;
 
   ::std::ostream& GetStream() override {
     return *this;

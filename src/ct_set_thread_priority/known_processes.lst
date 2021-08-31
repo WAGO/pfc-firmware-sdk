@@ -8,63 +8,14 @@
 # --------------------------
 # IRQs
 # --------------------------
-# mode switch
-##irq/189-RESET_A;f;90
-##irq/188-RESET;f;90
-##irq/187-STOP;f;90
-##irq/186-RUN;f;90
-##
-# uart
-#irq/74-OMAP UAR
-#irq/72-OMAP UAR
-
-# ethernet
-#irq/70-eth0;f;70
-#irq/69-eth0;f;70
-#irq/68-eth0;f;70
-#irq/67-eth0;f;70
-
-# ??
-#irq/297-hwmod_i
-
-#irq/212-mmc0
-#irq/83-mmc0
-# profibus
-##irq/256-UIO_DPC;f;70
-##irq/257-UIO_DPC;f;70
-##irq/161-UIO_DPC;f;70
-
-# kbus
-##irq/200-kbus;f;82
-
-#irq/12-DMA;f;85
-#irq/10-l3-app-i
-#irq/9-l3-debug-
-#irq/57-omap_i2c
-
-#ksoftirqd/0;f;50
-
-#canbus
-#irq/24-can0;f;84
-#CANopen_Rx;f;80
-#CANopen_Tx;f;71
 
 # --------------------------
 # kernel threads
 # --------------------------
 
-#spi4
-#spi3
-#spi2
-
 # spi used by the kbus
 spi1;f;86
 irq/47-kbus;f;86
-
-#OMAP UART3
-#OMAP UART2
-#OMAP UART1
-#OMAP UART0;f;80
 
 
 # --------------------------
@@ -76,33 +27,5 @@ omsd;f;90
 # com_DBUS_worker is used in several processes => only specify once
 # cause we don't look at the parent process.
 com_DBUS_worker;f;49
-
-# IO-Check
-#inetd;f;65
-
-# WBM
-#php5-cgi;f;64
-#lighttpd;f;64
-
-
-# --------------------------
-# Codesys threads
-# --------------------------
-#sercom register request thread
-#SerCommRegister;f;63
-#KbusAsyncThread;f;69
-#tRetainTask;o;0
-#CtrlTask;f;71
-#oms event watch;f;62
-#KBUS dbus;f;63
-#DPC31_DRV_SYNC;f;69
-#DPC31_DRV_DXCH;f;68
-#DPC31_DRV_MAIN;f;67
-#DPC31_STACK_ENG;f;66
-#PSA_MSG_ENG;f;65
-#TSTRACE;f;10
-#DAL evt dispatc;f;62
-#dbus itf;f;62
-
 
 

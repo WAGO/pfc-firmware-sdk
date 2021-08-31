@@ -1,0 +1,32 @@
+ lib/mosquitto.c | 2 ++
+ lib/mosquitto.h | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/lib/mosquitto.c b/lib/mosquitto.c
+index d1510bc..25574b5 100644
+--- a/lib/mosquitto.c
++++ b/lib/mosquitto.c
+@@ -378,6 +378,8 @@ const char *mosquitto_strerror(int mosq_errno)
+ 			return "Keepalive timeout.";
+ 		case MOSQ_ERR_MALFORMED_UTF8:
+ 			return "Malformed UTF-8";
++		case MOSQ_ERR_LOOP_FOREVER_EXITED:
++			return "Loop forever exited.";
+ 		case MOSQ_ERR_DUPLICATE_PROPERTY:
+ 			return "Duplicate property in property list";
+ 		case MOSQ_ERR_TLS_HANDSHAKE:
+diff --git a/lib/mosquitto.h b/lib/mosquitto.h
+index 8f23948..b22d289 100644
+--- a/lib/mosquitto.h
++++ b/lib/mosquitto.h
+@@ -98,6 +98,7 @@ enum mosq_err_t {
+ 	MOSQ_ERR_QOS_NOT_SUPPORTED = 24,
+ 	MOSQ_ERR_OVERSIZE_PACKET = 25,
+ 	MOSQ_ERR_OCSP = 26,
++	MOSQ_ERR_LOOP_FOREVER_EXITED = 27,
+ };
+
+ /* Option values */
+-- 
+2.7.4
+

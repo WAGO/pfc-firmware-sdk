@@ -35,18 +35,19 @@ static inline ::std::string GetValueOf(const boost::program_options::variables_m
   return GetValueOf(map, option.name);
 }
 
-
-static inline boost::optional<::std::vector<::std::string>> GetValuesOf(const boost::program_options::variables_map &map, const ::std::string &key) {
-  if(!Contains(map, key)){
-    return boost::optional<::std::vector<::std::string>>{};
+static inline boost::optional<::std::vector<::std::string>> GetValuesOf(
+    const boost::program_options::variables_map &map, const ::std::string &key) {
+  if (!Contains(map, key)) {
+    return boost::optional<::std::vector<::std::string>> { };
   }
   auto values = map[key].as<::std::vector<::std::string>>();
   UriEscape uri_escape;
-  std::transform(values.begin(), values.end(), values.begin(), [&](auto& value){
+  std::transform(values.begin(), values.end(), values.begin(), [&](auto &value) {
     boost::algorithm::trim_if(value, boost::algorithm::is_any_of("'"));
-    return uri_escape.Unescape(value);});
+    return uri_escape.Unescape(value);
+  });
 
-  return boost::optional<::std::vector<::std::string>>{values};
+  return boost::optional<::std::vector<::std::string>> { values };
 }
 
 static inline ::std::string GetValueOfGet(const boost::program_options::variables_map &map) {
@@ -71,26 +72,24 @@ static inline ::std::string Get(const boost::program_options::variables_map &map
   return GetValueOf(map, option.name);
 }
 
-
 template<typename ... Options>
-::std::string JoinOptionNames(std::string separator, Options&& ... options){
-  ::std::array<::std::string, sizeof...(options)> options_a{{(options.name)...}};
+::std::string JoinOptionNames(std::string separator, Options &&... options) {
+  ::std::array<::std::string, sizeof...(options)> options_a { { (options.name)... } };
   return boost::algorithm::join(options_a, separator);
 }
 
 template<typename ... Args>
-static void OptionalAndMutuallyExclusive(const boost::program_options::variables_map &map, Args&& ... args) {
+static void OptionalAndMutuallyExclusive(const boost::program_options::variables_map &map, Args &&... args) {
   int option_count = (map.count(args.name) + ...);
 
   if (option_count > 1) {
     throw boost::program_options::error(
-        ::std::string("Optional arguments are mutually exclusive: " + JoinOptionNames(",",args...)));
+        ::std::string("Optional arguments are mutually exclusive: " + JoinOptionNames(",", args...)));
   }
 }
 
-
 template<typename ... Args>
-static void MutuallyExclusiveAndOnlyOnce(const boost::program_options::variables_map &map, Args&& ... args) {
+static void MutuallyExclusiveAndOnlyOnce(const boost::program_options::variables_map &map, Args &&... args) {
   int option_count = (map.count(args.name) + ... );
 
   if (option_count != 1) {
@@ -100,7 +99,7 @@ static void MutuallyExclusiveAndOnlyOnce(const boost::program_options::variables
 }
 
 template<typename ... Args>
-static void ExpectOptionPair(const boost::program_options::variables_map &map, Option option, Args&& ... suboptions) {
+static void ExpectOptionPair(const boost::program_options::variables_map &map, Option option, Args &&... suboptions) {
   if (Contains(map, option)) {
     MutuallyExclusiveAndOnlyOnce(map, suboptions...);
   }

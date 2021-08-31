@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_CLOUDCONNECTIVITY) += wbm-ng-plugin-cloudconnec
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_CLOUDCONNECTIVITY_VERSION        := 0.4.10
+WBM_NG_PLUGIN_CLOUDCONNECTIVITY_VERSION        := 1.9.8
 WBM_NG_PLUGIN_CLOUDCONNECTIVITY                := wbm-cloud-connectivity-$(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_VERSION)
 WBM_NG_PLUGIN_CLOUDCONNECTIVITY_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_CLOUDCONNECTIVITY)
 WBM_NG_PLUGIN_CLOUDCONNECTIVITY_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_URL))
@@ -91,10 +91,10 @@ $(STATEDIR)/wbm-ng-plugin-cloudconnectivity.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-cloudconnectivity, 0, 0, 0644, $(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_DIR)/$$object, $(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-cloudconnectivity, 0, 0, 0755, $(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_TARGET_DIR)/$$object); \
 		fi; \
 	done;

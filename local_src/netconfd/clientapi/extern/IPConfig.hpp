@@ -3,7 +3,7 @@
 
 #include "Types.hpp"
 #include "ConfigBase.hpp"
-#include "Error.hpp"
+#include "Status.hpp"
 
 #include <boost/optional.hpp>
 #include <memory>
@@ -59,27 +59,43 @@ class IPConfigs: public detail::ConfigBase<netconf::IPConfig> {
 /**
  * Simple builder of IP configuration from JSON string.
  *
- * @note In case of error it will only return empty object.
+ * @note In case of status it will only return empty object.
  *
  * @param json_str JSON input string
- * @param IPConfig object filled from JSON input, or empty in case of errors.
- * @return error [out] error of the creation operation.
+ * @param IPConfig object filled from JSON input, or empty in case of statuses.
+ * @return status [out] status of the creation operation.
  */
-Error MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept;
+Status MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept;
 
 /**
- * @brief Retruns the json representation of the ip configurations.
+ * @brief Returns the compact json representation of the ip configurations.
  *
  * @return json string
  */
 ::std::string ToJson(const IPConfigs& configs) noexcept;
 
 /**
- * Convert a single IP configuration to its JSON representation.
+ * @brief Returns the human readable json representation of the ip configurations.
+ *
+ * @return json string
+ */
+::std::string ToPrettyJson(const IPConfigs& configs) noexcept;
+
+/**
+ * Converts a single IP configuration to its compact json representation.
+ *
  * @param ip_config the IP config base object.
  * @return json string
  */
 ::std::string ToJson(const netconf::IPConfig& ip_config) noexcept;
+
+/**
+ * Converts a single IP configuration to its human readable json representation.
+ *
+ * @param ip_config the IP config base object.
+ * @return json string
+ */
+::std::string ToPrettyJson(const netconf::IPConfig& ip_config) noexcept;
 
 ::std::string ToString(netconf::IPSource source);
 
@@ -89,9 +105,9 @@ Error MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept;
  * @brief Returns the @see IPConfigs from the netconfd network configuration daemon.
  *
  * @param IPConfigs The @see IPConfigs
- * @return Error
+ * @return Status
  */
-Error GetIPConfigs(IPConfigs& config);
+Status GetIPConfigs(IPConfigs& config);
 
 /**
  * @brief Returns the @see IPConfigs of a specific device type.
@@ -101,14 +117,14 @@ Error GetIPConfigs(IPConfigs& config);
  *
  * @return The @see IPConfigs filtered by type.
  */
-Error GetIPConfigs(DeviceType type, IPConfigs& configs);
+Status GetIPConfigs(DeviceType type, IPConfigs& configs);
 
 /**
  * @brief Returns the current @see IPConfigs from the netconfd network configuration daemon.
  *
  * @return IPConfigs The @see IPConfigs
  */
-Error GetCurrentIPConfigs(IPConfigs& configs);
+Status GetCurrentIPConfigs(IPConfigs& configs);
 
 /**
  * @brief Returns the current @see IPConfigs filtered by device type
@@ -118,7 +134,7 @@ Error GetCurrentIPConfigs(IPConfigs& configs);
  *
  * @return The curent @see IPConfigs filtered by type.
  */
-Error GetCurrentIPConfigs(DeviceType type, IPConfigs& configs);
+Status GetCurrentIPConfigs(DeviceType type, IPConfigs& configs);
 
 
 /**
@@ -128,7 +144,7 @@ Error GetCurrentIPConfigs(DeviceType type, IPConfigs& configs);
  * @param config The configuration to apply.
  * @return Status @see Status::Ok on success.
  */
-Error SetIPConfigs(const IPConfigs& config);
+Status SetIPConfigs(const IPConfigs& config);
 
 /**
  * @brief Delete the ip configuration for one interface.
@@ -141,7 +157,7 @@ void DeleteIPConfig(::std::string interface_name);
  * @brief Set the Temp Fix Ip
  *
  */
-Error SetTempFixIp();
+Status SetTempFixIp();
 
 }  // namespace api
 }  // namespace netconf

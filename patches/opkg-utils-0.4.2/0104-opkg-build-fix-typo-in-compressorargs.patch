@@ -1,0 +1,25 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Sat, 30 May 2020 09:31:19 +0200
+Subject: [PATCH] opkg-build: fix typo in compressorargs
+
+Otherwise no compressorargs are set unless provided on the command-line and
+the result is not reproducible.
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ opkg-build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/opkg-build b/opkg-build
+index 2fb6216104b6..7e1a1af99948 100755
+--- a/opkg-build
++++ b/opkg-build
+@@ -236,7 +236,7 @@ if gzip --help 2>&1 | grep -- "-T" > /dev/null; then
+ 	zipargs="-9nT"
+ fi
+ 
+-if [ compressorargs = "" ] ; then
++if [ "$compressorargs" = "" ] ; then
+ 	if [ $compressor = "gzip" ] ; then
+ 		compressorargs=$zipargs
+ 	elif [ $compressor = "pigz" ] ; then

@@ -120,8 +120,9 @@ void MdmDiagnostic::update_signal_quality_leds(const MdmSignalQualityLevel sigLe
     }
 }
 
-void MdmDiagnostic::set_error_state(const MdmErrorState newErrorState)
+bool MdmDiagnostic::set_error_state(const MdmErrorState newErrorState)
 {
+    bool state_changed = false;
     if (_errorState != newErrorState)
     {
       switch (newErrorState)
@@ -161,7 +162,9 @@ void MdmDiagnostic::set_error_state(const MdmErrorState newErrorState)
           break;
       }
       _errorState = newErrorState;
+      state_changed = true;
     }
+    return state_changed;
 }
 
 void MdmDiagnostic::set_access_class(const MdmAccessClass newAccessClass)

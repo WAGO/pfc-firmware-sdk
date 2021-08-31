@@ -19,10 +19,10 @@ PACKAGES-$(PTXCONF_WSTD) += wstd
 ifdef PTXCONF_WSTD_DEV
 WSTD_BUILD_ID      := -$(call remove_quotes,$(PTXCONF_WSTD_DEV_BRANCH))
 else
-WSTD_BUILD_ID      := -159169057342
+WSTD_BUILD_ID      := -162486690073
 endif
 
-WSTD_VERSION	:= 1.0.2$(WSTD_BUILD_ID)
+WSTD_VERSION	:= 1.2.3$(WSTD_BUILD_ID)
 WSTD		    := wstd
 ifndef PTXCONF_WSTD_DEV
 WSTD_URL        := $(call jfrog_template_to_url, WSTD)

@@ -225,7 +225,7 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 else
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE	
 
-	@$(call install_alternative, io_check, 0, 0, 0644, /etc/specific/iocheck.conf)
+	@$(call install_alternative, io_check, 0, 0, 0640, /etc/specific/iocheck.conf)
 	@$(call install_alternative, io_check, 0, 0, 0750, /etc/specific/iocheck_factory_test.sh)
 	@$(call install_alternative, io_check, 0, 0, 0755, /usr/bin/iocheckd)
 endif

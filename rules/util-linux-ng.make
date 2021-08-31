@@ -15,8 +15,8 @@ PACKAGES-$(PTXCONF_UTIL_LINUX_NG) += util-linux-ng
 #
 # Paths and names
 #
-UTIL_LINUX_NG_VERSION	:= 2.34
-UTIL_LINUX_NG_MD5	:= a78cbeaed9c39094b96a48ba8f891d50
+UTIL_LINUX_NG_VERSION	:= 2.36
+UTIL_LINUX_NG_MD5	:= fe7c0f7e439f08970e462c9d44599903
 UTIL_LINUX_NG		:= util-linux-$(UTIL_LINUX_NG_VERSION)
 UTIL_LINUX_NG_SUFFIX	:= tar.xz
 UTIL_LINUX_NG_BASENAME	:= v$(call ptx/sh, echo $(UTIL_LINUX_NG_VERSION) | sed -e 's/\([0-9]*\.[0-9]*\)[^0-9].*\?/\1/g')
@@ -50,7 +50,9 @@ UTIL_LINUX_NG_CONF_OPT	:= \
 	$(CROSS_AUTOCONF_USR) \
 	--bindir=/usr/bin \
 	--sbindir=/usr/sbin \
+	--disable-werror \
 	--disable-asan \
+	--disable-ubsan \
 	--enable-shared \
 	--disable-static \
 	--enable-symvers \
@@ -92,7 +94,7 @@ UTIL_LINUX_NG_CONF_OPT	:= \
 	--disable-fdformat \
 	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_HWCLOCK)-hwclock \
 	--disable-lslogins \
-	--disable-wdctl \
+	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_WDCTL)-wdctl \
 	--disable-cal \
 	--disable-logger \
 	--disable-switch_root \
@@ -101,6 +103,8 @@ UTIL_LINUX_NG_CONF_OPT	:= \
 	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_CHMEM)-chmem \
 	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_IPCRM)-ipcrm \
 	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_IPCS)-ipcs \
+	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_IRQTOP)-irqtop \
+	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_LSIRQ)-lsirq \
 	--disable-rfkill \
 	--disable-tunelp \
 	--disable-kill \
@@ -115,11 +119,11 @@ UTIL_LINUX_NG_CONF_OPT	:= \
 	--disable-chfn-chsh-password \
 	--disable-chfn-chsh \
 	--disable-chsh-only-listed \
-	--disable-login \
+	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_LOGIN)-login \
 	--disable-login-chown-vcs \
 	--disable-login-stat-mail \
 	--disable-nologin \
-	--disable-sulogin \
+	--$(call ptx/endis, PTXCONF_UTIL_LINUX_NG_SULOGIN)-sulogin \
 	--disable-su \
 	--disable-runuser \
 	--disable-ul \
@@ -151,12 +155,14 @@ UTIL_LINUX_NG_CONF_OPT	:= \
 	--without-readline \
 	--without-utempter \
 	--without-cap-ng \
+	--without-libmagic \
 	--without-libz \
 	--without-user \
 	--without-btrfs \
 	--without-systemd \
 	--with-systemdsystemunitdir=/usr/lib/systemd/system \
 	--without-smack \
+	--without-econf \
 	--without-python
 
 # ----------------------------------------------------------------------------
@@ -200,6 +206,9 @@ endif
 ifdef PTXCONF_UTIL_LINUX_NG_LINE
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/line)
 endif
+ifdef PTXCONF_UTIL_LINUX_NG_GETOPT
+	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/getopt)
+endif
 ifdef PTXCONF_UTIL_LINUX_NG_DMESG
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/dmesg)
 endif
@@ -237,6 +246,9 @@ endif
 ifdef PTXCONF_UTIL_LINUX_NG_UMOUNT
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/umount)
 endif
+ifdef PTXCONF_UTIL_LINUX_NG_FLOCK
+	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/flock)
+endif
 ifdef PTXCONF_UTIL_LINUX_NG_FSCK
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/sbin/fsck)
 endif
@@ -248,6 +260,12 @@ ifdef PTXCONF_UTIL_LINUX_NG_FSTRIM
 endif
 ifdef PTXCONF_UTIL_LINUX_NG_IPCS
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/ipcs)
+endif
+ifdef PTXCONF_UTIL_LINUX_NG_IRQTOP
+	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/irqtop)
+endif
+ifdef PTXCONF_UTIL_LINUX_NG_LSIRQ
+	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/lsirq)
 endif
 ifdef PTXCONF_UTIL_LINUX_NG_IPCRM
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/ipcrm)
@@ -272,6 +290,9 @@ ifdef PTXCONF_UTIL_LINUX_NG_CHRT
 endif
 ifdef PTXCONF_UTIL_LINUX_NG_HWCLOCK
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/sbin/hwclock)
+endif
+ifdef PTXCONF_UTIL_LINUX_NG_WDCTL
+	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/wdctl)
 endif
 ifdef PTXCONF_UTIL_LINUX_NG_IONICE
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/ionice)
@@ -311,6 +332,12 @@ ifdef PTXCONF_UTIL_LINUX_NG_MKFS
 endif
 ifdef PTXCONF_UTIL_LINUX_NG_LSCPU
 	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/lscpu)
+endif
+ifdef PTXCONF_UTIL_LINUX_NG_LOGIN
+	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/bin/login)
+endif
+ifdef PTXCONF_UTIL_LINUX_NG_SULOGIN
+	@$(call install_copy, util-linux-ng, 0, 0, 0755, -, /usr/sbin/sulogin)
 endif
 
 	@$(call install_finish, util-linux-ng)

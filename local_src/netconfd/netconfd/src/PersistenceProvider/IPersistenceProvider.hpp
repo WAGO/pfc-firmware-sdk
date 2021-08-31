@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -17,19 +17,19 @@ class IPersistenceProvider {
   IPersistenceProvider(const IPersistenceProvider&&) = delete;
   IPersistenceProvider& operator=(const IPersistenceProvider&&) = delete;
 
-  virtual Error Write(const BridgeConfig& config) = 0;
-  virtual Error Read(BridgeConfig& config) = 0;
+  virtual Status Write(const BridgeConfig& config) = 0;
+  virtual Status Read(BridgeConfig& config) = 0;
 
-  virtual Error Write(const IPConfigs& configs) = 0;
-  virtual Error Read(IPConfigs& configs) = 0;
+  virtual Status Write(const IPConfigs& configs) = 0;
+  virtual Status Read(IPConfigs& configs) = 0;
 
-  virtual Error Write(const DipSwitchIpConfig& config) = 0;
-  virtual Error Read(DipSwitchIpConfig& config) = 0;
+  virtual Status Write(const DipSwitchIpConfig& config) = 0;
+  virtual Status Read(DipSwitchIpConfig& config) = 0;
 
-  virtual Error Read(BridgeConfig& config, IPConfigs& configs) = 0;
+  virtual Status Read(BridgeConfig& config, IPConfigs& configs) = 0;
 
-  virtual Error Backup(const std::string& file_path,const std::string& targetversion) = 0;
-  virtual Error Restore(const ::std::string &file_path,
+  virtual Status Backup(const std::string& file_path,const std::string& targetversion) = 0;
+  virtual Status Restore(const ::std::string &file_path,
                          BridgeConfig &bridge_config,
                          IPConfigs &ip_configs,
                          InterfaceConfigs &interface_configs,

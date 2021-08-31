@@ -2,8 +2,6 @@
 #
 # Copyright (C) 2012 by Michael Olbrich <m.olbrich@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -16,8 +14,8 @@ PACKAGES-$(PTXCONF_XZ) += xz
 #
 # Paths and names
 #
-XZ_VERSION	:= 5.2.4
-XZ_MD5		:= b3264b15ab1db04c8c428dc81838d4eb
+XZ_VERSION	:= 5.2.5
+XZ_MD5		:= 33ab3ef79aa1146b83b778210e7b0a54
 XZ		:= xz-$(XZ_VERSION)
 XZ_SUFFIX	:= tar.bz2
 XZ_URL		:= http://tukaani.org/xz/$(XZ).$(XZ_SUFFIX)
@@ -51,10 +49,10 @@ XZ_CONF_OPT	:= \
 	--disable-lzmainfo \
 	--disable-lzma-links \
 	--$(call ptx/endis,PTXCONF_XZ_TOOLS)-scripts \
-	--enable-shared \
 	--disable-doc \
 	--enable-symbol-versions \
 	--disable-sandbox \
+	--enable-shared \
 	--disable-static \
 	--disable-nls \
 	--disable-rpath \

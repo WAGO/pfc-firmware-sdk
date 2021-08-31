@@ -14,6 +14,7 @@ config LIBPROFINET
 	select LIBPCAP
 	select READLINE
 	select GSL
+	select LIBBPF
 	prompt "libprofinet"
 	help
 	  Builds and installs the PROFINET Library

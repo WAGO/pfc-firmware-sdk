@@ -204,6 +204,16 @@ firewall_get_service_state()
             fi
         fi
         ;;
+
+    bacnet)
+        if [[ -f "/etc/config-tools/bacnet_config" ]]; then
+            running=$(/etc/config-tools/bacnet_config -g config-state)
+            if [[ "true" == "$running" ]] ; then
+                active=1
+            fi
+        fi
+        ;;
+
     profinet)
         # (STS: 03/2020) No decent way to determine if profinet is running.
         active=1

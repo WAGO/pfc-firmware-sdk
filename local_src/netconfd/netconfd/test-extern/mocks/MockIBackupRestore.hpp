@@ -10,8 +10,8 @@ class MockIBackupRestore : public IBackupRestore {
  public:
 
   MOCK_CONST_METHOD0(GetBackupParameterCount, ::std::uint32_t() );
-  MOCK_CONST_METHOD4(Backup, Error(const ::std::string&,const ::std::string&,const ::std::string&, uint32_t version) );
-  MOCK_CONST_METHOD4(Restore, Error(const ::std::string&, ::std::string&, ::std::string&, uint32_t& version) );
+  MOCK_CONST_METHOD4(Backup, Status(const ::std::string&,const ::std::string&,const ::std::string&, uint32_t version) );
+  MOCK_CONST_METHOD4(Restore, Status(const ::std::string&, ::std::string&, ::std::string&, uint32_t& version) );
 
 };
 

@@ -3,8 +3,6 @@
 # Copyright (C) 2009 by Erwin Rol
 #               2010, 2013 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_LIBGCRYPT) += libgcrypt
 #
 # Paths and names
 #
-LIBGCRYPT_VERSION	:= 1.8.4
-LIBGCRYPT_MD5		:= fbfdaebbbc6d7e5fbbf6ffdb3e139573
+LIBGCRYPT_VERSION	:= 1.8.5
+LIBGCRYPT_MD5		:= 348cc4601ca34307fc6cd6c945467743
 LIBGCRYPT		:= libgcrypt-$(LIBGCRYPT_VERSION)
 LIBGCRYPT_SUFFIX	:= tar.bz2
 LIBGCRYPT_URL		:= https://www.gnupg.org/ftp/gcrypt/libgcrypt/$(LIBGCRYPT).$(LIBGCRYPT_SUFFIX)

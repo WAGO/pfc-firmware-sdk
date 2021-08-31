@@ -42,6 +42,7 @@ PHP7_URL := \
 
 PHP7_CONF_ENV := \
 	$(CROSS_ENV) \
+	CFLAGS="$(CROSS_CFLAGS) -Os" \
 	ac_cv_prog_cc_cross=yes \
 	ac_cv_c_bigendian_php=$(call ptx/yesno, PTXCONF_ENDIAN_BIG)
 
@@ -304,6 +305,14 @@ PHP7_AUTOCONF += --with-iconv=$(PTXDIST_SYSROOT_TARGET)/usr
 else
 PHP7_AUTOCONF += --without-iconv
 endif
+
+ifdef PTXCONF_PHP7_EXT_GD
+PHP7_AUTOCONF += --with-gd=$(SYSROOT)/usr
+PHP7_AUTOCONF += --with-jpeg-dir=$(SYSROOT)/usr
+PHP7_AUTOCONF += --with-png-dir=$(SYSROOT)/usr
+PHP7_AUTOCONF += --without-xpm-dir
+endif
+
 
 # ----------------------------------------------------------------------------
 # Target-Install

@@ -152,7 +152,7 @@ else
 	@$(call install_link, libmodbusconfig, $(LIBMODBUSCONFIG).so.$(LIBMODBUSCONFIG_VERSION), /usr/lib/$(LIBMODBUSCONFIG).so.$(LIBMODBUSCONFIG_VERSION_MAJOR))
 	@$(call install_link, libmodbusconfig, $(LIBMODBUSCONFIG).so.$(LIBMODBUSCONFIG_VERSION), /usr/lib/$(LIBMODBUSCONFIG).so)
 
-	@$(call install_copy, libmodbusconfig, 0, 0, 0755, $(LIBMODBUSCONFIG_DIR)/modbus.conf, /etc/specific/modbus.conf)
+	@$(call install_copy, libmodbusconfig, 0, 0, 0640, $(LIBMODBUSCONFIG_DIR)/modbus.conf, /etc/specific/modbus.conf)
 	
 endif
 

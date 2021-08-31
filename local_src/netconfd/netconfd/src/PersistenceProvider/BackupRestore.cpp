@@ -17,7 +17,7 @@ namespace netconf {
 
 using namespace std::literals::string_literals;
 
-static Error GetKeyValue(const ::std::string &backup_content, const ::std::string &key, ::std::string &value) {
+static Status GetKeyValue(const ::std::string &backup_content, const ::std::string &key, ::std::string &value) {
 
   ::std::stringstream data_stream = ::std::stringstream(backup_content);
   ::std::string subdata;
@@ -29,9 +29,9 @@ static Error GetKeyValue(const ::std::string &backup_content, const ::std::strin
   }
 
   if (value.empty()) {
-    return Error { ErrorCode::BACKUP_CONTENT_MISSING, key };
+    return Status { StatusCode::BACKUP_CONTENT_MISSING, key };
   }
-  return Error::Ok();
+  return Status::Ok();
 
 }
 
@@ -44,10 +44,10 @@ uint32_t BackupRestore::GetBackupParameterCount() const {
   return 2;
 }
 
-Error BackupRestore::AppendTextWithKeyAndSeparateOnNewLine(const ::std::string &file_path, const ::std::string &key,
+Status BackupRestore::AppendTextWithKeyAndSeparateOnNewLine(const ::std::string &file_path, const ::std::string &key,
                                                            const ::std::string &data) const {
 
-  Error status;
+  Status status;
 
   auto lines = static_cast<uint32_t>(::std::floor(data.size() / chars_per_line_));
   for (uint32_t line = 0; line < lines; line++) {
@@ -69,10 +69,10 @@ Error BackupRestore::AppendTextWithKeyAndSeparateOnNewLine(const ::std::string &
   return status;
 }
 
-Error BackupRestore::Backup(const ::std::string &file_path, const ::std::string &network_data,
+Status BackupRestore::Backup(const ::std::string &file_path, const ::std::string &network_data,
                             const ::std::string &dip_switch_data, uint32_t version) const {
 
-  Error status = AppendTextWithKeyAndSeparateOnNewLine(file_path, KEY_NETCONFD_VERSION, ::std::to_string(version));
+  Status status = AppendTextWithKeyAndSeparateOnNewLine(file_path, KEY_NETCONFD_VERSION, ::std::to_string(version));
   if (status.IsOk()) {
     status = AppendTextWithKeyAndSeparateOnNewLine(file_path, KEY_NETCONFD_NETWORK_DATA, network_data);
   }
@@ -84,13 +84,13 @@ Error BackupRestore::Backup(const ::std::string &file_path, const ::std::string 
 
 }
 
-Error BackupRestore::Restore(const ::std::string &file_path, ::std::string &backup_network_data,
+Status BackupRestore::Restore(const ::std::string &file_path, ::std::string &backup_network_data,
                              ::std::string &backup_dipswitch_data, uint32_t &version) const {
 
   ::std::string backup_content;
   version = 0;
 
-  Error status = file_editor_.Read(file_path, backup_content);
+  Status status = file_editor_.Read(file_path, backup_content);
 
   auto stored_version = ::std::string { };
   if (status.IsOk()) {
@@ -102,7 +102,7 @@ Error BackupRestore::Restore(const ::std::string &file_path, ::std::string &back
     if (!boost::conversion::try_lexical_convert(stored_version, version)) {
       version = 0;
       backup_network_data = "";
-      status.Set(ErrorCode::BACKUP_VERSION, ::std::to_string(version), stored_version);
+      status.Set(StatusCode::BACKUP_VERSION, ::std::to_string(version), stored_version);
     }
   }
 

@@ -1,0 +1,12 @@
+## SECTION=wago_specific_config
+
+config PRINT_LOG
+	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select GLIB
+	select CONFIG_TOOL_BASE
+	select CONFIG_TOOLS
+	prompt "print_log"
+	help
+	  FIXME

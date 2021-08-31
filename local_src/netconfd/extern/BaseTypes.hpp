@@ -4,7 +4,7 @@
 
 #include <string>
 #include <utility>
-
+#include "MacAddress.hpp"
 
 namespace netconf {
 
@@ -13,25 +13,21 @@ constexpr char ZeroIP[] = "0.0.0.0";
 
 struct Interface : public ::std::string {
   Interface()
-      :
-      ::std::string() {
+      : ::std::string() {
   }
   Interface(const ::std::string &interface)
-      :
-      ::std::string(interface) {
+      : ::std::string(interface) {
   }
   using ::std::string::string;
 };
 
 struct Bridge : public ::std::string {
   Bridge()
-      :
-      ::std::string() {
+      : ::std::string() {
   }
   ;
   Bridge(const ::std::string &str)
-      :
-      ::std::string(str) {
+      : ::std::string(str) {
   }
   ;
   using ::std::string::string;
@@ -39,13 +35,11 @@ struct Bridge : public ::std::string {
 
 struct Address : public ::std::string {
   Address()
-      :
-      ::std::string() {
+      : ::std::string() {
   }
   ;
   Address(const ::std::string &str)
-      :
-      ::std::string(str) {
+      : ::std::string(str) {
   }
   ;
   using ::std::string::string;
@@ -53,13 +47,11 @@ struct Address : public ::std::string {
 
 struct Netmask : public ::std::string {
   Netmask()
-      :
-      ::std::string() {
+      : ::std::string() {
   }
   ;
   Netmask(const ::std::string &str)
-      :
-      ::std::string(str) {
+      : ::std::string(str) {
   }
   ;
   using ::std::string::string;
@@ -72,9 +64,9 @@ enum class IPSource {
   DHCP,
   BOOTP,
   EXTERNAL,
-  TEMPORARY
+  TEMPORARY,
+  FIXIP
 };
-
 
 /**
  * @brief POCO class to hold the ip-config for one interface
@@ -88,27 +80,24 @@ enum class IPSource {
  */
 struct IPConfig {
   IPConfig()
-      :
-      interface_ { "" },
-      source_ { IPSource::NONE },
-      address_ { ZeroIP },
-      netmask_ { ZeroIP } {
+      : interface_ { "" },
+        source_ { IPSource::NONE },
+        address_ { ZeroIP },
+        netmask_ { ZeroIP } {
   }
 
-  IPConfig(const Interface &interface, const IPSource source)
-      :
-      interface_ { interface },
-      source_ { source },
-      address_ { ZeroIP },
-      netmask_ { ZeroIP } {
+  IPConfig(const Interface &interface, const IPSource source = IPSource::NONE)
+      : interface_ { interface },
+        source_ { source },
+        address_ { ZeroIP },
+        netmask_ { ZeroIP } {
   }
 
   IPConfig(const Interface &interface, const IPSource source, const Address &address, const Netmask &netmask)
-      :
-      interface_ { interface },
-      source_ { source },
-      address_ { address },
-      netmask_ { netmask } {
+      : interface_ { interface },
+        source_ { source },
+        address_ { address },
+        netmask_ { netmask } {
   }
 
   static IPConfig CreateDefault(const Interface &interface) {
@@ -136,8 +125,7 @@ struct IPConfig {
     if (old.source_ != new_.source_) {
       if (sizeof...(sources) > 0) {
         return SourceIsAnyOf(new_, sources...);
-      }
-      else {
+      } else {
         return true;
       }
     }
@@ -150,7 +138,6 @@ struct IPConfig {
     (void) std::initializer_list<int> { (match |= (config.source_ == (sources)),0)... };
     return match;
   }
-
 
   Interface interface_;
   IPSource source_;
@@ -169,15 +156,13 @@ enum class DipSwitchMode {
 struct DipSwitchIpConfig {
 
   DipSwitchIpConfig()
-      :
-      address_(""),
-      netmask_("") {
+      : address_(""),
+        netmask_("") {
   }
 
   DipSwitchIpConfig(const Address &address, const Netmask &netmask)
-      :
-      address_(address),
-      netmask_(netmask) {
+      : address_(address),
+        netmask_(netmask) {
   }
 
   bool IsIncomplete() const {
@@ -198,17 +183,18 @@ struct DipSwitchIpConfig {
 };
 
 struct DipSwitchConfig {
-  DipSwitchConfig() :
-    DipSwitchConfig(DipSwitchIpConfig{}) {}
+  DipSwitchConfig()
+      : DipSwitchConfig(DipSwitchIpConfig { }) {
+  }
 
-  explicit DipSwitchConfig(const DipSwitchIpConfig &ip_config) :
-    DipSwitchConfig(ip_config, DipSwitchMode::OFF, 0) {}
+  explicit DipSwitchConfig(const DipSwitchIpConfig &ip_config)
+      : DipSwitchConfig(ip_config, DipSwitchMode::OFF, 0) {
+  }
 
   DipSwitchConfig(const DipSwitchIpConfig &ip_config, const DipSwitchMode &mode, const int &value)
-      :
-      ip_config_(ip_config),
-      mode_(mode),
-      value_(value) {
+      : ip_config_(ip_config),
+        mode_(mode),
+        value_(value) {
   }
 
   DipSwitchIpConfig ip_config_;
@@ -222,10 +208,16 @@ enum class InterfaceState {
   UP,
 };
 
-enum class Duplex {
+enum class LinkState {
   UNKNOWN,
-  HALF,
-  FULL
+  DOWN,
+  UP,
+};
+
+enum class Duplex {
+  UNKNOWN = 0xFF,
+  HALF = 0,
+  FULL = 1
 };
 
 enum class Autonegotiation {
@@ -234,32 +226,43 @@ enum class Autonegotiation {
   OFF
 };
 
-struct InterfaceConfig {
+enum class AutonegotiationSupported {
+  UNKNOWN,
+  NO,
+  YES
+};
+
+struct InterfaceBase {
   static constexpr int UNKNOWN_SPEED = -1;
 
-  InterfaceConfig(::std::string device_name, InterfaceState state = InterfaceState::UNKNOWN, Autonegotiation autoneg =
-                      Autonegotiation::UNKNOWN,
-                  int speed = UNKNOWN_SPEED, Duplex duplex = Duplex::UNKNOWN) noexcept
-      :
-      device_name_ { std::move(device_name) },
-      state_ { state },
-      autoneg_ { autoneg },
-      speed_ { speed },
-      duplex_ { duplex } {
+  InterfaceBase(
+      ::std::string device_name,
+      InterfaceState state = InterfaceState::UNKNOWN,
+      Autonegotiation autoneg = Autonegotiation::UNKNOWN,
+      int speed = UNKNOWN_SPEED,
+      Duplex duplex = Duplex::UNKNOWN) noexcept
+
+      : device_name_ { std::move(device_name) },
+        state_ { state },
+        autoneg_ { autoneg },
+        speed_ { speed },
+        duplex_ { duplex } {
   }
 
-  InterfaceConfig() noexcept
-      :
-      device_name_ { },
-      state_ { InterfaceState::UNKNOWN },
-      autoneg_ { Autonegotiation::UNKNOWN },
-      speed_ { UNKNOWN_SPEED },
-      duplex_ { Duplex::UNKNOWN } {
+  InterfaceBase() noexcept
+      : device_name_ { },
+        state_ { InterfaceState::UNKNOWN },
+        autoneg_ { Autonegotiation::UNKNOWN },
+        speed_ { UNKNOWN_SPEED },
+        duplex_ { Duplex::UNKNOWN } {
   }
 
-  bool operator==(const InterfaceConfig &config) const {
-    return ((this->autoneg_ == config.autoneg_) && (this->device_name_ == config.device_name_)
-        && (this->duplex_ == config.duplex_) && (this->speed_ == config.speed_) && (this->state_ == config.state_));
+  bool operator==(const InterfaceBase &config) const {
+    return ((this->autoneg_ == config.autoneg_)
+        && (this->device_name_ == config.device_name_)
+        && (this->duplex_ == config.duplex_)
+        && (this->speed_ == config.speed_)
+        && (this->state_ == config.state_));
   }
 
   void FillUpDefaults() {
@@ -269,8 +272,8 @@ struct InterfaceConfig {
     duplex_ = (duplex_ == Duplex::UNKNOWN) ? Duplex::FULL : duplex_;
   }
 
-  static InterfaceConfig DefaultConfig(::std::string device_name) {
-    return InterfaceConfig { device_name, InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL };
+  static InterfaceBase DefaultConfig(::std::string device_name) {
+    return InterfaceBase { device_name, InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL };
   }
 
   ::std::string device_name_;
@@ -281,5 +284,48 @@ struct InterfaceConfig {
 
 };
 
+using InterfaceConfig = InterfaceBase;
 
-} // netconf
+struct InterfaceStatus : InterfaceBase {
+
+  InterfaceStatus(
+      ::std::string device_name,
+      InterfaceState state = InterfaceState::UNKNOWN,
+      Autonegotiation autoneg = Autonegotiation::UNKNOWN,
+      int speed = UNKNOWN_SPEED,
+      Duplex duplex = Duplex::UNKNOWN,
+      LinkState link_state = LinkState::UNKNOWN,
+      MacAddress mac = MacAddress { }) noexcept
+
+      : InterfaceBase { device_name, state, autoneg, speed, duplex },
+        link_state_ { link_state },
+        mac_ { mac } {
+  }
+
+  InterfaceStatus(InterfaceBase base) noexcept
+      : InterfaceBase { base },
+        link_state_ { LinkState::UNKNOWN },
+        mac_ { } {
+  }
+
+  InterfaceStatus() noexcept
+      : InterfaceBase { "", InterfaceState::UNKNOWN, Autonegotiation::UNKNOWN, UNKNOWN_SPEED, Duplex::UNKNOWN },
+        link_state_ { LinkState::UNKNOWN },
+        mac_ { } {
+  }
+
+  bool operator==(const InterfaceStatus &config) const {
+    return ((this->autoneg_ == config.autoneg_)
+        && (this->device_name_ == config.device_name_)
+        && (this->duplex_ == config.duplex_)
+        && (this->speed_ == config.speed_)
+        && (this->state_ == config.state_)
+        && (this->link_state_ == config.link_state_)
+        && (this->mac_ == config.mac_));
+  }
+
+  LinkState link_state_;
+  MacAddress mac_;
+};
+
+}  // netconf

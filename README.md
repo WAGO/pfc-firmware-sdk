@@ -1,6 +1,10 @@
 ***The open source software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
+# FIRMWARE FOR PFC200-G1 and PFC100
+Find the table of supported devices at the end of the document [Link to table](#supported-devices)
+
 # ..:: Attention ::.. 
+## Starting with firmware 19, the PFC200 of the second generation has its own image and release notes.
 ## For FW18 a new toolchain is required!
 Follow the steps in chapter "Install "cross-toolchain" also
 check the installation path.
@@ -144,12 +148,13 @@ http://www.github.com/wago/gcc-toolchain-2019.12
     >sudo apt install xsltproc   #used to build led_server package, ./configure did not check if installed
     >sudo apt install doxygen    #used to build modular-config-tools package, ./configure did not check if installed
     >sudo apt install autopoint  #used to build libmodbus_tglx package
+    >sudo apt install python3-setuptools  #used to build host-system-python3
 ```
 
 or in one-shot:
 
 ```
-    >sudo apt install libncurses5-dev gawk flex bison texinfo python-dev g++ dialog libc6-dev lzop autoconf libtool xmlstarlet xsltproc doxygen autopoint
+    >sudo apt install libncurses5-dev gawk flex bison texinfo python-dev g++ dialog libc6-dev lzop autoconf libtool xmlstarlet xsltproc doxygen autopoint python3-setuptools
 ```
 
 ### 3.2) Clone the build tool "ptxdist" somewhere, we expect ~/ptxdist
@@ -275,25 +280,6 @@ The output looks like this:
 ```
     Leave dialog with [Exit]
 ```
-
-### 4.6) Download packages
-In case you have a internet connection skip this section.
-Otherwise follow along.
-
-The source file can be found at:
-
-https://github.com/nlohmann/json/archive/v3.7.0.tar.gz
-
-Download it. Store it to an exchangable storage device of your choise.
-After you have downloaded the source file and copied it for example to a USB thumb drive.
-
-On development host:
- * On Ubuntu 16.04 USB drives are mounted automatically.
- * copy the file: nlohmann-json-v3.7.0.tar.gz to the following location
- ```
-    ~/<pfc-firmware-sdk-directory/src
- ```
-Now you are able to build the firmware image.
 
 ## 5) Build the firmware image file "sd.hdimg"
 
@@ -532,4 +518,43 @@ Depending on type of package a restart of PFC may required.
 
 **It may a good idea to setup a build server for a nightly build to check dependencies 
 and consistency and do some unit testing in an automated way.**
+
+## Supported devices
+| Article Number   | Designation |
+|------------------|-------------|
+| 750-8100         | PFC100 2ETH ECO |
+| 750-8101         | PFC100 2ETH |
+| 750-8101/025-000 |PFC100 2ETH T |
+| 750-8102         | PFC100 2ETH RS |
+| 750-8102/025-000 | PFC100 2ETH RS T |
+| | |
+| 750-8101/000-010 | PFC100 FG0 2ETH |
+| | |
+| 750-8202         | PFC200 2ETH RS |
+| 750-8203         | PFC200 2ETH CAN |
+| 750-8204         | PFC200 2ETH RS CAN |
+| 750-8206         | PFC200 2ETH RS CAN DPS |
+| 750-8207         | PFC200 2ETH RS 3G |
+| 750-8208         | PFC200 2ETH RS CAN |
+| 750-8202/025-000 | PFC200 2ETH RS T |
+| 750-8202/025-001 | PFC200 2ETH RS Tele T |
+| 750-8202/025-002 | PFC200 2ETH RS ECO Tele T |
+| 750-8203/025-000 | PFC200 2ETH CAN T |
+| 750-8204/025-000 | PFC200 2ETH RS CAN T |
+| 750-8206/025-000 | PFC200 2ETH RS CAN DPS T |
+| 750-8206/025-001 | PFC200 2ETH RS CAN DPS Tele T |
+| 750-8207/025-000 | PFC200 2ETH RS 3G T |
+| 750-8207/025-001 | PFC200 2ETH RS 3G Tele T |
+| 750-8208/025-000 | PFC200 2ETH RS CAN DPM T |
+| 750-8208/025-001 | PFC200 2ETH RS CAN DPM Tele T |
+| | |
+| 750-8202/040-000 | PFC200 2ETH RS XTR |
+| 750-8202/040-001 | PFC200 2ETH RS Tele XTR |
+| 750-8206/040-000 | PFC200 2ETH RS CAN DPS XTR |
+| 750-8206/040-001 | PFC200 2ETH RS CAN DPS Tele XTR |
+| | |
+| 750-8202/000-011 | PFC200 FG1 2ETH RS |
+| 750-8202/000-012 | PFC200 FG2 2ETH RS |
+| 750-8202/000-022 | PFC200 FGE 2ETH RS |
+| 750-8207/000-022 | PFC200 FGE 2ETH RS |
 

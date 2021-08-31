@@ -293,17 +293,26 @@ get_state()
 #-----------------------------------------------------------------------------#
 update_rauc_progress()
 {
+    local LAST_PROGRESS=0
+
     # update progress while fwupdate-service is installing image
     while [ -e "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" ]; do
         local PROGRESS=300
-        local INSTALL_PROGRESS=$(tail -n 1 "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE" | cut -d ':' -f3 | cut -d '%' -f1)
+        local LINE=$(tail -n 1 "$WAGO_FW_UPDATE_INSTALL_PROGRESS_FILE")
+        local INSTALL_PROGRESS=$(echo "$LINE" | cut -d ':' -f3 | cut -d '%' -f1)
         if [ -z $INSTALL_PROGRESS ]; then
             INSTALL_PROGRESS=0
         elif [ $INSTALL_PROGRESS -gt 99 ]; then
             INSTALL_PROGRESS=100
         fi
         PROGRESS=$(($PROGRESS+($INSTALL_PROGRESS*10)/2))
-        fwupdate_unchecked_progress_update $PROGRESS true
+
+	if [ $PROGRESS -gt $LAST_PROGRESS ]; then
+            fwupdate_unchecked_progress_update $PROGRESS true
+            LAST_PROGRESS=$PROGRESS
+        elif [ $PROGRESS -lt $LAST_PROGESS ]; then
+            fwupdate_report_info "Suspicious progress detected: $LINE"
+	fi
         
         sleep 2
     done
@@ -527,11 +536,16 @@ finish_clean_runtime_home()
 #-----------------------------------------------------------------------------#
 finish_clean_runtime_retain()
 {
-    fwupdate_report_info "Cleaning up runtime retain data"
+    # retain_data available?
+    /usr/sbin/retain_data -s > /dev/null 2>&1
+    if [[ $? -ne 255 ]]; then
 
-    /usr/sbin/retain_data -d >/dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-        fwupdate_report_warning "Unable to delete retain data"
+        fwupdate_report_info "Cleaning up runtime retain data"
+
+        /usr/sbin/retain_data -d >/dev/null 2>&1
+        if [[ $? -ne 0 ]]; then
+            fwupdate_abort 100 "Unable to delete retain data"
+        fi
     fi
 
     fwupdate_report_info "Cleanup runtime retain data done"

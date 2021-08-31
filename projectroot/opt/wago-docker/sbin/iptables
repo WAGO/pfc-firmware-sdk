@@ -29,8 +29,6 @@ DOCKER_IPT_NAMESPACE="WAGO_DOCKER_IPT"
 NAMESPACE_ROOT="/proc/1/ns/net"
 NAMESPACE_SELF="/proc/self/ns/net"
 
-case "$@" in *--wait*) exit 1;; esac
-
 $IPTABLES_BIN ${@} #execute command on iptables
 RET=$?
 

@@ -1,0 +1,24 @@
+From: Alexander Aring <aar@pengutronix.de>
+Date: Fri, 26 Aug 2016 18:44:36 +0200
+Subject: [PATCH] fakeroot: disable build of doc and test
+
+Otherwise po4a is needed to generate the docs.
+
+Signed-off-by: Alexander Aring <aar@pengutronix.de>
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 76210b5a6886..4ed7463a6561 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,6 +1,6 @@
+ AUTOMAKE_OPTIONS=foreign
+ ACLOCAL_AMFLAGS = -I build-aux
+-SUBDIRS=doc scripts test
++SUBDIRS=scripts
+ 
+ noinst_LTLIBRARIES = libcommunicate.la libmacosx.la
+ libcommunicate_la_SOURCES = communicate.c

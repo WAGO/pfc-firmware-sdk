@@ -44,9 +44,9 @@ TEST_F(AnInterfaceValidator, DISABLED_checksAValidConfigurationContainingOneBrid
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::OK, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksAValidConfigurationContainingTwoBridges) {
@@ -58,9 +58,9 @@ TEST_F(AnInterfaceValidator, checksAValidConfigurationContainingTwoBridges) {
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::OK, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationMissingInterface) {
@@ -72,9 +72,9 @@ TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationMissingInterface) {
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::INTERFACE_NOT_EXISTING, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::INTERFACE_NOT_EXISTING, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationContainingMultipleBridgesMissingInterface) {
@@ -86,9 +86,9 @@ TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationContainingMultipleBridg
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::INTERFACE_NOT_EXISTING, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::INTERFACE_NOT_EXISTING, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationInterfacesAssignedServeralTimes) {
@@ -100,9 +100,9 @@ TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationInterfacesAssignedServe
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::ENTRY_DUPLICATE, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::ENTRY_DUPLICATE, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationInterfacesAssignedServeralTimesToSameBridge) {
@@ -114,9 +114,9 @@ TEST_F(AnInterfaceValidator, checksAnInvalidConfigurationInterfacesAssignedServe
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::ENTRY_DUPLICATE, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::ENTRY_DUPLICATE, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksAnInvalidBridgeNameContainingBlanks) {
@@ -128,9 +128,9 @@ TEST_F(AnInterfaceValidator, checksAnInvalidBridgeNameContainingBlanks) {
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::BRIDGE_NAME_INVALID, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::BRIDGE_NAME_INVALID, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksMaximumBridgeNameLengthOf15Characters) {
@@ -142,9 +142,9 @@ TEST_F(AnInterfaceValidator, checksMaximumBridgeNameLengthOf15Characters) {
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::OK, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(AnInterfaceValidator, checksMaximumBridgeNameLengthGreaterThan15Characters) {
@@ -156,9 +156,9 @@ TEST_F(AnInterfaceValidator, checksMaximumBridgeNameLengthGreaterThan15Character
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(
       Return(system_interfaces));
 
-  Error status = validator_->Validate(os_config);
+  Status status = validator_->Validate(os_config);
 
-  EXPECT_EQ(ErrorCode::BRIDGE_NAME_INVALID, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::BRIDGE_NAME_INVALID, status.GetStatusCode());
 }
 
 } /* namespace netconf */

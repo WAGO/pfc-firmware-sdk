@@ -11,7 +11,7 @@ menuconfig DROPBEAR
 	select BUSYBOX_START_STOP_DAEMON			if DROPBEAR_STARTSCRIPT
 	select BUSYBOX_FEATURE_START_STOP_DAEMON_FANCY		if DROPBEAR_STARTSCRIPT
 	select BUSYBOX_FEATURE_START_STOP_DAEMON_LONG_OPTIONS	if DROPBEAR_STARTSCRIPT
-	select LINUX_PAM                                        if DROPBEAR_PAM
+	select PAM                                        if DROPBEAR_PAM
 	help
 	  dropbear is a SSH 2 server and client designed
 	  to be small enough to be used in small memory
@@ -57,7 +57,7 @@ config DROPBEAR_DIS_OPENPTY
 config DROPBEAR_PAM
 	bool
 	depends on DROPBEAR_PASSWD
-#	#depends on LINUX_PAM
+#	#depends on PAM
 	default n
 	prompt "Include Linux-PAM (Pluggable Authentication Module) support"
 	help

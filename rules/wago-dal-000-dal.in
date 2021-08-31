@@ -117,14 +117,12 @@ config LIBBACNET
 	bool
 	default n
 	select DAL
-	select EXPAT
 	select HOST_CT_BUILD
 	select GOOGLETEST
 	select LIBBACNETSTACK
 	select LIBFFI
 	select LIBWAGODRM
 	select LIBBACNETCONFIG
-	select LIBWAGODRM
 	prompt "BACnet Library"
 	help
 		Build BACnet.

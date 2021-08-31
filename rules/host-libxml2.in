@@ -1,0 +1,15 @@
+## SECTION=hosttools_noprompt
+
+config HOST_LIBXML2
+	tristate
+	select HOST_ZLIB
+	default y if ALLYES
+	help
+	  Libxml2 is a XML C parser and toolkit. XML itself is a
+	  metalanguage to design markup languages, i.e. text
+	  language where semantic and structure are added to the
+	  content using extra "markup" information enclosed
+	  between angle brackets. HTML is the most well-known
+	  markup language. Though the library is written in C a
+	  variety of language bindings make it available in other
+	  environments.

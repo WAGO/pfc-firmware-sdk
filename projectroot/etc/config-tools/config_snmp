@@ -25,12 +25,24 @@ SNMP_CONF_FILE="/etc/snmp/snmpd.conf"
 SNMP_TRAP_FILE="/etc/snmp/snmptrapd.conf"
 SNMP_V3_CONF_FILE="/var/lib/net-snmp/snmpd.conf"
 
+SNMP_GET="/etc/config-tools/get_snmp_data"
+
+# Predefine entries:
+USE_USER_DEFINED_DEVICE_NAME=no
+USE_USER_DEFINED_DESCRIPTION=no
+[[ -e "$SNMP_USER_DEFINES_FILE" ]] && . "$SNMP_USER_DEFINES_FILE"
+
 DEVICE_NAME="device-name"
 DESCRIPTION="description"
 PHYSICAL_LOCATION="physical-location"
 CONTACT="contact"
 
 
+function write_snmp_user_conf
+{
+  echo "USE_USER_DEFINED_DEVICE_NAME=$USE_USER_DEFINED_DEVICE_NAME" > "$SNMP_USER_DEFINES_FILE"
+  echo "USE_USER_DEFINED_DESCRIPTION=$USE_USER_DEFINED_DESCRIPTION" >> "$SNMP_USER_DEFINES_FILE"
+}
 
 #-------------- main-programm ------------------------#
 
@@ -84,7 +96,7 @@ fi
 #--------------------------------------------------------------------
 # enable/disable snmp
 #--------------------------------------------------------------------
-setSnmp=`GetParameterValue set-snmp $*`
+setSnmp=$(GetParameterValue set-snmp $*)
 if [ "$status" = "$SUCCESS" ] && [ -n "$setSnmp" ]; then
   if [ "$setSnmp" = "enabled" ]; then
     ln -sf ../init.d/net-snmptrapd /etc/rc.d/S22netsnmptrapd &> /dev/null
@@ -102,7 +114,7 @@ fi
 #--------------------------------------------------------------------
 # device name
 #--------------------------------------------------------------------
-newDeviceName=`GetParameterValue device-name $*`
+newDeviceName=$(GetParameterValue device-name $*)
 #echo "newDeviceName:"$newDeviceName "newDescription:"$newDescription
 if [ "$status" = "$SUCCESS" ] && [ -n "$newDeviceName" ]; then
 
@@ -113,11 +125,18 @@ if [ "$status" = "$SUCCESS" ] && [ -n "$newDeviceName" ]; then
     newDeviceName=""
   fi
 
-  # delete possible line with old parameter definition and write new line with new parameter definition
-  sed -i '/^ *'sysName'/ d' $SNMP_CONF_FILE
-  if [ "$newDeviceName" != "\"\"" ]; then
+  currentDeviceName=$("$SNMP_GET" device-name)
+  if [[ "$newDeviceName" != "\"\"" && "$newDeviceName" != "$currentDeviceName" ]]; then
+    # delete possible line with old parameter definition and write new line with new parameter definition
+    sed -i '/^ *'sysName'/ d' $SNMP_CONF_FILE
+
     echo "sysName $newDeviceName" >> $SNMP_CONF_FILE
     status=$?
+
+    if [[ $status == $SUCCESS ]]; then
+      USE_USER_DEFINED_DEVICE_NAME=yes
+      write_snmp_user_conf
+    fi
   fi
   
   if [ "$status" != "$SUCCESS" ]; then
@@ -131,7 +150,7 @@ fi
 #--------------------------------------------------------------------
 # description
 #--------------------------------------------------------------------
-newDescription=`GetParameterValue description $*`
+newDescription=$(GetParameterValue description $*)
 if [ "$status" = "$SUCCESS" ] && [ -n "$newDescription" ]; then
 
   # no value check - any string is ok for description
@@ -141,11 +160,19 @@ if [ "$status" = "$SUCCESS" ] && [ -n "$newDescription" ]; then
     newDescription=""
   fi
 
-  # delete possible line with old parameter definition and write new line with new parameter definition
-  sed -i '/^ *'sysDescr'/ d' $SNMP_CONF_FILE
-  echo "sysDescr $newDescription" >> $SNMP_CONF_FILE
-  status=$?
-  
+  currentDescription=$("$SNMP_GET" description)
+  if [[ "$newDescription" != "$currentDescription" ]]; then
+
+    # delete possible line with old parameter definition and write new line with new parameter definition
+    sed -i '/^ *'sysDescr'/ d' $SNMP_CONF_FILE
+    echo "sysDescr $newDescription" >> $SNMP_CONF_FILE
+    status=$?
+    
+    if [[ $status == $SUCCESS ]]; then
+      USE_USER_DEFINED_DESCRIPTION=yes
+      write_snmp_user_conf
+    fi
+  fi
   if [ "$status" != "$SUCCESS" ]; then
     status=$SHELL_ERROR
     ReportError $status
@@ -157,7 +184,7 @@ fi
 #--------------------------------------------------------------------
 # physical location
 #--------------------------------------------------------------------
-newPhysicalLocation=`GetParameterValue physical-location $*`
+newPhysicalLocation=$(GetParameterValue physical-location $*)
 if [ "$status" = "$SUCCESS" ] && [ -n "$newPhysicalLocation" ]; then
 
   # no value check - any string is ok for location
@@ -183,7 +210,7 @@ fi
 #--------------------------------------------------------------------
 # contact
 #--------------------------------------------------------------------
-newContact=`GetParameterValue contact $*`
+newContact=$(GetParameterValue contact $*)
 if [ "$status" = "$SUCCESS" ] && [ -n "$newContact" ]; then
 
   # no value check - any string is ok for contact
@@ -209,7 +236,7 @@ fi
 #--------------------------------------------------------------------
 # sysObjectID
 #--------------------------------------------------------------------
-newObjectID=`GetParameterValue objectID $*`
+newObjectID=$(GetParameterValue objectID $*)
 if [ "$status" = "$SUCCESS" ] && [ -n "$newObjectID" ]; then
 
   # no value check - any string is ok for contact
@@ -235,7 +262,7 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c state - old version
 #--------------------------------------------------------------------
-newV1V2cState=`GetParameterValue v1-v2c-state $*`
+newV1V2cState=$(GetParameterValue v1-v2c-state $*)
 
 if [ 0 = 1 ] && [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
 
@@ -271,7 +298,7 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c state
 #--------------------------------------------------------------------
-newV1V2cState=`GetParameterValue v1-v2c-state $*`
+newV1V2cState=$(GetParameterValue v1-v2c-state $*)
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
 
@@ -287,7 +314,7 @@ if [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
       
   elif [ "enabled" = "$newV1V2cState" ]; then
     
-    newCommunityName=`GetParameterValue v1-v2c-community-name $*`
+    newCommunityName=$(GetParameterValue v1-v2c-community-name $*)
     if [ -z "$newCommunityName" ]; then
       status=$MISSING_PARAMETER
       SetLastError "Missing parameter: community name"
@@ -303,7 +330,7 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c commmunity name
 #--------------------------------------------------------------------
-newCommunityName=`GetParameterValue v1-v2c-community-name $*`
+newCommunityName=$(GetParameterValue v1-v2c-community-name $*)
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$newCommunityName" ]; then
 
@@ -315,7 +342,7 @@ if [ "$status" = "$SUCCESS" ] && [ -n "$newCommunityName" ]; then
   else
 
     # get actual community name
-    actualCommunityName=`/etc/config-tools/get_snmp_data v1-v2c-community-name`
+    actualCommunityName=$(/etc/config-tools/get_snmp_data v1-v2c-community-name)
     #echo "actualCommunityName:"$actualCommunityName #> /etc/config-tools/output
     
     # if community name is already existing (v1/v2c is enabled)
@@ -323,8 +350,8 @@ if [ "$status" = "$SUCCESS" ] && [ -n "$newCommunityName" ]; then
     #if [ "$newCommunityName" != "$actualCommunityName" ]; then
   
       # replace community name in all definition lines of config file (except comment lines)
-      actualCommunityName=`/etc/config-tools/string_encode reg-ex $actualCommunityName`
-      newCommunityName=`/etc/config-tools/string_encode sed-write $newCommunityName`
+      actualCommunityName=$(/etc/config-tools/string_encode reg-ex $actualCommunityName)
+      newCommunityName=$(/etc/config-tools/string_encode sed-write $newCommunityName)
       #sed -n '/^ *rwcommunity .*$/ p' $SNMP_CONF_FILE
       #echo "actualCommunityName:$actualCommunityName newCommunityName:$newCommunityName" #>> /etc/config-tools/output
       sed -i '/^ *rwcommunity .*$/ s/'$actualCommunityName'/'$newCommunityName'/g' $SNMP_CONF_FILE
@@ -355,14 +382,14 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c trap receiver edit
 #--------------------------------------------------------------------
-trapReceiverEdit=`GetParameterValue v1-v2c-trap-receiver-edit $*`
+trapReceiverEdit=$(GetParameterValue v1-v2c-trap-receiver-edit $*)
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$trapReceiverEdit" ]; then
 
   # get parameter from input
-  address=`GetParameterValue v1-v2c-trap-receiver-address $*`
-  communityName=`GetParameterValue v1-v2c-trap-receiver-community-name $*`
-  version=`GetParameterValue v1-v2c-trap-receiver-version $*`
+  address=$(GetParameterValue v1-v2c-trap-receiver-address $*)
+  communityName=$(GetParameterValue v1-v2c-trap-receiver-community-name $*)
+  version=$(GetParameterValue v1-v2c-trap-receiver-version $*)
   #echo "address:${address} communityName:${communityName} version:${version}"
 
   if [ -z "$address" ] || [ -z "$communityName" ] || [ -z "$version" ]; then
@@ -453,19 +480,28 @@ fi
 #--------------------------------------------------------------------
 # v3 edit
 #--------------------------------------------------------------------
-v3Edit=`GetParameterValue v3-edit $*`
+v3Edit=$(GetParameterValue v3-edit $*)
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$v3Edit" ]; then
 
   # get parameter from input
-  authName=`GetParameterValue v3-auth-name $*`
-  authType=`GetParameterValue v3-auth-type $*`
-  authKey=`GetParameterValue v3-auth-key $*`
-  privacy=`GetParameterValue v3-privacy $*`
-  privacyKey=`GetParameterValue v3-privacy-key $*`
-  notificationReceiver=`GetParameterValue v3-notification-receiver $*`
-  #echo "authName:"$authName "authType:"$authType "authKey:"$authKey 
-  #echo "privacy:"$privacy "privacyKey:"$privacyKey "notificationReceiver:"$notificationReceiver
+  authName=$(GetParameterValue v3-auth-name $*)
+  authType=$(GetParameterValue v3-auth-type $*)
+  authKey=$(GetParameterValue v3-auth-key $*)
+  privacy=$(GetParameterValue v3-privacy $*)
+  privacyKey=$(GetParameterValue v3-privacy-key $*)
+  notificationReceiver=$(GetParameterValue v3-notification-receiver $*)
+  echo "authName:"$authName "authType:"$authType "authKey:"$authKey 
+  echo "privacy:"$privacy "privacyKey:"$privacyKey "notificationReceiver:"$notificationReceiver
+
+  if [ -z "$privacyKey" ] && [ "$privacy" != "none" ]; then
+	 privacyKey=$authKey
+  fi
+
+  if [ "$privacy" != "none" ] && [ "$authType" == "none" ]; then
+	status=$INVALID_PARAMETER
+	SetLastError "Privacy without authentication is invalid"
+  fi
 
   # check if obsolete parameters are existing
   if [ -z "$authName" ]; then
@@ -601,10 +637,9 @@ if [ "$status" = "$SUCCESS" ] && [ -n "$v3Edit" ]; then
       if [ "$SUCCESS" = "$status" ]; then
       
         #echo "add new v3 user"
-        userAuthString="auth"
-        if [ -z "$authType" ]; then
-          userAuthString="noauth"
-        fi
+        userAuthString="priv"
+        [ -z "$privacy" ] && userAuthString="auth"
+        [ -z "$authType" ] && userAuthString="noauth"
         
         # add lines to create user and add him to VACM
         printf "createUser $authName $authType $authKey $privacy $privacyKey\nrwuser $authName $userAuthString\n" >> $SNMP_V3_CONF_FILE

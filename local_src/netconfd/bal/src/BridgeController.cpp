@@ -21,7 +21,7 @@
 #include <linux/sockios.h>
 #include <unistd.h>
 
-#include "Socket.h"
+#include "Socket.hpp"
 #include "BridgeController.hpp"
 #include "libbridge.h"
 
@@ -70,32 +70,32 @@ static int AddInterfaceName(const char *bridge, const char *interface, void *vec
   return 0;
 }
 
-Error BridgeController::AddBridge(const Bridge& bridge) const {
+Status BridgeController::AddBridge(const Bridge& bridge) const {
   if (br_add_bridge(bridge.c_str()) != 0) {
     return MakeSystemCallError();
   }
-  return Error::Ok();
+  return Status::Ok();
 }
 
-Error BridgeController::DeleteBridge(const Bridge& bridge) const {
+Status BridgeController::DeleteBridge(const Bridge& bridge) const {
   if (br_del_bridge(bridge.c_str()) != 0) {
-    return Error{ErrorCode::GENERIC_ERROR, "Failed to delete bridge " + bridge};
+    return Status{StatusCode::GENERIC_ERROR, "Failed to delete bridge " + bridge};
   }
-  return Error::Ok();
+  return Status::Ok();
 }
 
-Error BridgeController::AddInterface(const Bridge& bridge, const Interface& interface) const {
+Status BridgeController::AddInterface(const Bridge& bridge, const Interface& interface) const {
   if (br_add_interface(bridge.c_str(), interface.c_str()) != 0) {
     return MakeSystemCallError();
   }
-  return Error::Ok();
+  return Status::Ok();
 }
 
-Error BridgeController::DeleteInterface(const Bridge& bridge, const Interface& interface) const {
+Status BridgeController::DeleteInterface(const Bridge& bridge, const Interface& interface) const {
   if (br_del_interface(bridge.c_str(), interface.c_str()) != 0) {
     return MakeSystemCallError();
   }
-  return Error::Ok();
+  return Status::Ok();
 }
 
 Bridges BridgeController::GetBridges() const {
@@ -129,8 +129,9 @@ Interfaces BridgeController::GetInterfaces() const {
   return interfaces;
 }
 
-static Error SetInterfaceUpDown(const ::std::string& name, bool up) {
+static Status SetInterfaceUpDown(const ::std::string& name, bool up) {
   ifreq ifr = { };
+  short int current_flags;
 
   int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (-1 == fd) {
@@ -145,26 +146,30 @@ static Error SetInterfaceUpDown(const ::std::string& name, bool up) {
     return MakeSystemCallError();
   }
 
+  current_flags = ifr.ifr_flags;                  //NOLINT: do not access members of unions is unavoidable at this point
+
   if (up) {
     ifr.ifr_flags |= (IFF_UP | IFF_RUNNING);      //NOLINT: do not access members of unions is unavoidable at this point
   } else {
     ifr.ifr_flags &= ~(IFF_UP | IFF_RUNNING);     //NOLINT: do not access members of unions is unavoidable at this point
   }
-  if (ioctl(fd, SIOCSIFFLAGS, &ifr) < 0) {
-    close(fd);
-    return MakeSystemCallError();
+  if (current_flags != ifr.ifr_flags) {           //NOLINT: do not access members of unions is unavoidable at this point
+    if (ioctl(fd, SIOCSIFFLAGS, &ifr) < 0) {
+      close(fd);
+      return MakeSystemCallError();
+    }
   }
 
   close(fd);
 
-  return Error(ErrorCode::OK);
+  return Status(StatusCode::OK);
 }
 
-Error BridgeController::SetInterfaceUp(const ::std::string& name) const {
+Status BridgeController::SetInterfaceUp(const ::std::string& name) const {
   return SetInterfaceUpDown(name, true);
 }
 
-Error BridgeController::SetInterfaceDown(const ::std::string& name) const {
+Status BridgeController::SetInterfaceDown(const ::std::string& name) const {
   return SetInterfaceUpDown(name, false);
 }
 

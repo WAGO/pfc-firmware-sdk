@@ -3,7 +3,8 @@
 #pragma once
 
 #include <string>
-#include "Error.hpp"
+
+#include "Status.hpp"
 
 namespace netconf {
 

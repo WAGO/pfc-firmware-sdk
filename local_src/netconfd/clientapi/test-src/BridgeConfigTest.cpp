@@ -107,7 +107,7 @@ TEST_F(BridgeConfigTest, GetBridgeOfInterface) {
 TEST_F(BridgeConfigTest, InitializeWithConfiguration) {
   auto expected = R"({"br0":["X1"]})";
   BridgeConfig config;
-  auto error = MakeBridgeConfig(expected,config);
+  auto status = MakeBridgeConfig(expected,config);
 
   JsonConverter jc;
   EXPECT_EQ(expected, jc.ToJsonString(config.GetConfig()));
@@ -115,21 +115,21 @@ TEST_F(BridgeConfigTest, InitializeWithConfiguration) {
 
 TEST_F(BridgeConfigTest, BridgeConfigToString) {
   BridgeConfig config;
-  auto error = MakeBridgeConfig(R"({})", config);
+  auto status = MakeBridgeConfig(R"({})", config);
   JsonConverter jc;
   EXPECT_EQ("{}", jc.ToJsonString(config.GetConfig()));
 }
 
 TEST_F(BridgeConfigTest, CheckIfBridgeIsEmpty) {
   BridgeConfig config;
-  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[]})", config);
+  auto status = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[]})", config);
   EXPECT_FALSE(config.BridgeIsEmpty("br0"));
   EXPECT_TRUE(config.BridgeIsEmpty("br1"));
 }
 
 TEST_F(BridgeConfigTest, CheckIfNonExistingBridgeIsEmpty) {
   BridgeConfig config;
-  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"]})", config);
+  auto status = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"]})", config);
   EXPECT_FALSE(config.BridgeIsEmpty("br0"));
   EXPECT_TRUE(config.BridgeIsEmpty("br1"));
 }
@@ -137,14 +137,14 @@ TEST_F(BridgeConfigTest, CheckIfNonExistingBridgeIsEmpty) {
 TEST_F(BridgeConfigTest, CheckIfBridgeIsEmptyWhenBridgeIsNotAnArray) {
   // Just for sake of completeness, this won't happen in productivity code
   BridgeConfig config;
-  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })", config);
+  auto status = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })", config);
   EXPECT_FALSE(config.BridgeIsEmpty("br0"));
   EXPECT_TRUE(config.BridgeIsEmpty("br1"));
 }
 
 TEST_F(BridgeConfigTest, GetInterfaceListOfBridge) {
   BridgeConfig config;
-  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })", config);
+  auto status = MakeBridgeConfig(R"({"br0":["X1", "X2", "X11","X12"], "br1":[] })", config);
   EXPECT_EQ(4, config.GetBridgeInterfaces("br0").size());
   EXPECT_EQ(0, config.GetBridgeInterfaces("br1").size());
   EXPECT_EQ(0, config.GetBridgeInterfaces("br42").size());
@@ -156,11 +156,11 @@ TEST_F(BridgeConfigTest, AreInSameBridge) {
   ::std::string config3 = R"({"br0":[], "br1":[] })";
 
   BridgeConfig cfg1;
-  auto error = MakeBridgeConfig(config, cfg1);
+  auto status = MakeBridgeConfig(config, cfg1);
   BridgeConfig cfg2;
-  error = MakeBridgeConfig(config2, cfg2);
+  status = MakeBridgeConfig(config2, cfg2);
   BridgeConfig cfg3;
-  error = MakeBridgeConfig(config3, cfg3);
+  status = MakeBridgeConfig(config3, cfg3);
 
   EXPECT_TRUE(cfg1.AreInSameBridge({"X1", "X2"}));
   EXPECT_TRUE(cfg1.AreInSameBridge({"X1"}));
@@ -178,7 +178,7 @@ TEST_F(BridgeConfigTest, AreInSameBridge) {
 
 TEST_F(BridgeConfigTest, GetBridges) {
   BridgeConfig config;
-  auto error = MakeBridgeConfig(R"({"br0":["X1", "X2"], "br1":["X11"], "br2":["X12"] })", config);
+  auto status = MakeBridgeConfig(R"({"br0":["X1", "X2"], "br1":["X11"], "br2":["X12"] })", config);
   auto bridges = config.GetBridges();
   EXPECT_EQ(3, bridges.size());
   EXPECT_THAT(bridges, ::testing::ElementsAre("br0", "br1", "br2"));

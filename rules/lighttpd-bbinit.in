@@ -1,0 +1,8 @@
+## SECTION=initmethod_bbinit
+
+config LIGHTTPD_BBINIT_LINK
+	string
+	depends on LIGHTTPD_STARTSCRIPT
+	prompt "lighttpd"
+	default "S91lighttpd"
+

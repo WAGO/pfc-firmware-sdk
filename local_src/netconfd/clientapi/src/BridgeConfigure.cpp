@@ -10,7 +10,7 @@ namespace api {
 
 // Those are in this separate compilation unit, so that link time substitution works for the unit tests
 
-Error GetBridgeConfig(BridgeConfig& config) {
+Status GetBridgeConfig(BridgeConfig& config) {
 
   NetconfdDbusClient client;
   auto result = client.GetBridgeConfig();
@@ -26,7 +26,7 @@ Error GetBridgeConfig(BridgeConfig& config) {
 
 }
 
-Error SetBridgeConfig(const BridgeConfig &config) {
+Status SetBridgeConfig(const BridgeConfig &config) {
   NetconfdDbusClient client;
   auto result = client.SetBridgeConfig(ToJson(config));
   return result.error_;

@@ -5,8 +5,6 @@
 #		2009 by Marc Kleine-Budde <mkl@pengutronix.de>
 #		2015 by Clemens Gruber <clemens.gruber@pqgruber.com>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -19,14 +17,14 @@ PACKAGES-$(PTXCONF_PROCPS) += procps
 #
 # Paths and names
 #
-PROCPS_VERSION	:= 3.3.15
-PROCPS_MD5	:= 2b0717a7cb474b3d6dfdeedfbad2eccc
+PROCPS_VERSION	:= 3.3.16
+PROCPS_MD5	:= e8dc8455e573bdc40b8381d572bbb89b
 PROCPS		:= procps-ng-$(PROCPS_VERSION)
 PROCPS_SUFFIX	:= tar.xz
 PROCPS_URL	:= $(call ptx/mirror, SF, procps-ng/Production/$(PROCPS).$(PROCPS_SUFFIX))
 PROCPS_SOURCE	:= $(SRCDIR)/$(PROCPS).$(PROCPS_SUFFIX)
 PROCPS_DIR	:= $(BUILDDIR)/$(PROCPS)
-PROCPS_LICENSE	:= GPL-2.0-only AND LGPL-2.0-only
+PROCPS_LICENSE	:= GPL-2.0-or-later AND LGPL-2.1-or-later
 PROCPS_LICENSE_FILES := \
 	file://COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263 \
 	file://COPYING.LIB;md5=4cf66a4984120007c9881cc871cf49db

@@ -7,8 +7,8 @@ config OPCUACSDK
 	select HOST_CMAKE
 	select OPENSSL
 	select LIBXML2
-	select LINUX_PAM
-	select LINUX_PAM_PAM_UNIX
+	select PAM
+	select PAM_PAM_UNIX
 	help
 	  This packet contains the opc ua sdk for cpp from Unified Automation
 

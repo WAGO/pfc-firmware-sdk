@@ -73,15 +73,7 @@ function EvaluateCommandLine()
 
 function IsTelecontrol()
 {
-    is_telecontrol=0
-    targetid="$(/etc/config-tools/get_typelabel_value TARGETID)"
-    
-    for t in $telecontrol_targetids ; do 
-        if [[ $t == $targetid ]]; then
-            is_telecontrol=1
-            break
-        fi
-    done
+    is_telecontrol=1
 }
 
 function GetState()

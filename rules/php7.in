@@ -6,9 +6,9 @@ menuconfig PHP7
 	prompt "php7                          "
 #	# we do not realy want valgrind, but if it is not installed before(!)
 #	# PHP 7 is build, build will fail as PHP wants valgrind.
-	select VALGRIND
+	select VALGRIND if BUILDTIME
 	select PHP7_SAPI_FPM		if PHP5
-	select APACHE2		if PHP7_SAPI_APXS2 || PHP7_SAPI_APXS2FILTER
+#	select APACHE2		if PHP7_SAPI_APXS2 || PHP7_SAPI_APXS2FILTER
 	select LIBCURL		if PHP7_EXT_CURL
 	select LIBXML2		if PHP7_XML_LIBXML2
 	select LIBXML2_C14N	if PHP7_XML_LIBXML2
@@ -19,10 +19,12 @@ menuconfig PHP7
 	select LIBXSLT		if PHP7_XML_LIBXML2_XSLT
 #	#select MYSQLDB		if PHP7_EXT_MYSQL
 	select PHP7_XML		if PHP7_EXT_SOAP
-	select XMLRPC_C		if PHP7_XML_LIBXML2_XMLRPC
+#	select XMLRPC_C		if PHP7_XML_LIBXML2_XMLRPC
 	select SQLITE		if PHP7_EXT_SQLITE3
 	select ZLIB		if PHP7_EXT_ZLIB
 	select OPENSSL		if PHP7_EXT_OPENSSL
+	select LIBPNG		if PHP7_EXT_GD
+	select LIBGD		if PHP7_EXT_GD
 
 if PHP7
 
@@ -334,6 +336,12 @@ config PHP7_EXT_ICONV
 	prompt "iconv"
 	help
 	  Enable iconv support for PHP.
+
+config PHP7_EXT_GD
+	bool
+	prompt "libgd"
+	help
+	  Enable libgd support for PHP.
 
 endmenu
 

@@ -107,7 +107,7 @@ $(STATEDIR)/canopenwide.targetinstall:
 	@$(call install_fixup,canopenwide,PRIORITY,optional)
 	@$(call install_fixup,canopenwide,VERSION,$(CANOPEN_VERSION))	
 	@$(call install_fixup,canopenwide,SECTION,base)
-	@$(call install_fixup,canopenwide,AUTHOR,"Axel Wueste")
+	@$(call install_fixup,canopenwide,AUTHOR,"Charline Wueste")
 	@$(call install_fixup,canopenwide,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 

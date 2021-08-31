@@ -1,0 +1,374 @@
+## SECTION=shell_and_console
+
+menuconfig MTD_UTILS
+	tristate
+	prompt "mtd-utils                     "
+	select HOST_MTD_UTILS
+	select LIBC_M if MTD_UTILS_MKFS_UBIFS
+	select ZLIB
+	select LIBUUID if MTD_UTILS_UBIFS
+	select LIBLZO if MTD_UTILS_USE_LIBLZO
+	help
+	  Memory Technology Device Utilities
+
+	  mtdutils is a set of utilities for doing low-level
+	  operations on flash devices.
+
+if MTD_UTILS
+
+config MTD_UTILS_JFFS
+	bool
+
+config MTD_UTILS_UBIFS
+	bool
+
+config MTD_UTILS_USE_LIBLZO
+	bool
+	prompt "liblzo support"
+	help
+	  Enable LZO support
+
+config MTD_UTILS_DOC_LOADBIOS
+	bool
+	prompt "doc_loadbios"
+	help
+	  Tool for DoC
+
+config MTD_UTILS_DOCFDISK
+	bool
+	prompt "docfdisk"
+	help
+	  Modify INFTL partition tables
+
+config MTD_UTILS_FLASH_ERASE
+	bool
+	prompt "flash_erase"
+	help
+	  Erase parts of a MTD device
+
+config MTD_UTILS_FLASH_ERASEALL
+	bool
+	prompt "flash_eraseall (deprecated)"
+	select MTD_UTILS_FLASH_ERASE
+	help
+	  Deprecated ... use flash_erase instead
+
+config MTD_UTILS_FLASH_LOCK
+	bool
+	prompt "flash_lock"
+	depends on !BUSYBOX_FLASH_LOCK || ALLYES
+	help
+	  This utility locks one or more sectors of a flash device.
+
+comment "busybox' flash_lock is selected!"
+	depends on BUSYBOX_FLASH_LOCK
+
+config MTD_UTILS_FLASH_OTP_DUMP
+	bool
+	prompt "flash_otp_dump"
+	help
+	  Display one-time programmable data.
+
+config MTD_UTILS_FLASH_OTP_INFO
+	bool
+	prompt "flash_otp_info"
+	help
+	  Print info about one-time programmable data.
+
+config MTD_UTILS_FLASH_OTP_LOCK
+	bool
+	prompt "flash_otp_lock"
+	help
+	  Lock one-time programmable data.
+
+config MTD_UTILS_FLASH_OTP_WRITE
+	bool
+	prompt "flash_otp_write"
+	help
+	  Write one-time programmable data.
+
+config MTD_UTILS_FLASH_UNLOCK
+	bool
+	prompt "flash_unlock"
+	depends on !BUSYBOX_FLASH_UNLOCK || ALLYES
+	help
+	  This utility unlocks all sectors of a flash device.
+
+comment "busybox' flash_unlock is selected!"
+	depends on BUSYBOX_FLASH_UNLOCK
+
+config MTD_UTILS_FLASHCP
+	bool
+	prompt "flashcp"
+	depends on !BUSYBOX_FLASHCP || ALLYES
+	help
+	  Flash Copy - Written by Abraham van der Merwe
+
+comment "busybox' flashcp is selected!"
+	depends on BUSYBOX_FLASHCP
+
+config MTD_UTILS_FTL_CHECK
+	bool
+	prompt "ftl_check"
+	help
+	  Utility to check an FTL (Flash Translation Layer) partition
+
+config MTD_UTILS_FTL_FORMAT
+	bool
+	prompt "ftl_format"
+	help
+	  Utility to create an FTL (Flash Translation Layer) partition
+	  in a memory region
+
+config MTD_UTILS_LSMTD
+	bool
+	prompt "lsmtd"
+	help
+	  Pretty prints a list with hierarchical information about all
+	  available or the specified MTD and UBI devices. Tries to
+	  imitate the lsblk program from util-linux.
+
+config MTD_UTILS_JFFS2_DUMP
+	bool
+	prompt "jffs2dump"
+	select MTD_UTILS_JFFS
+	help
+	  This utility dumps the contents of a binary JFFS2 image.
+
+#config MTD_UTILS_JFFS2READER
+#	bool
+#	prompt "jffs2reader"
+#	select MTD_UTILS_JFFS
+#	help
+#	  A jffs2 image reader
+
+config MTD_UTILS_JITTERTEST
+	bool
+	prompt "jittertest"
+	help
+	  This program is used to measure what the jitter of a
+	  real time task would be under "standard" Linux.
+
+	  More particularly, what is the effect of running
+	  a real time task under Linux with background
+	  JFFS file system activity.
+
+config MTD_UTILS_MTDDEBUG
+	bool
+	prompt "mtd_debug"
+	help
+	  Does info, read, write and erase on mtd devices
+
+config MTD_UTILS_NANDDUMP
+	bool
+	prompt "nanddump"
+	depends on !BUSYBOX_NANDDUMP || ALLYES
+	help
+	  This utility dumps the contents of raw NAND chips or NAND
+	  chips contained in DoC devices.
+
+comment "busybox' nanddump is selected!"
+	depends on BUSYBOX_NANDDUMP
+
+config MTD_UTILS_NANDMARKBAD
+	bool
+	prompt "nandmarkbad"
+	help
+	  Mark block bad.
+
+config MTD_UTILS_NANDTEST
+	bool
+	prompt "nandtest"
+	help
+	  NAND flash test program.
+
+config MTD_UTILS_NANDWRITE
+	bool
+	prompt "nandwrite"
+	depends on !BUSYBOX_NANDWRITE || ALLYES
+	help
+	  This utility writes a binary image directly to NAND flash
+	  chips or NAND chips contained in DoC devices. This is the
+	  "inverse operation" of nanddump.
+
+comment "busybox' nandwrite is selected!"
+	depends on BUSYBOX_NANDWRITE
+
+config MTD_UTILS_NFTL_FORMAT
+	bool
+	prompt "nftl_format"
+	help
+	  Creating an NFTL/INFTL partition on an MTD device
+
+config MTD_UTILS_NFTLDUMP
+	bool
+	prompt "nftldump"
+	help
+	  Dumping the contents of NFTL partitions on a "Physical Disk"
+
+config MTD_UTILS_MKJFFS2
+	bool
+	prompt "mkfs.jffs2"
+	select MTD_UTILS_JFFS
+	help
+	  Build a JFFS2 image in a file, from a given directory tree.
+
+config MTD_UTILS_RECV_IMAGE
+	bool
+	prompt "recv_image"
+	help
+	  Receive an image via multicast
+
+config MTD_UTILS_RFDDUMP
+	bool
+	prompt "rfddump"
+	help
+	  Dumps the contents of a resident flash disk.
+
+config MTD_UTILS_RFDFORMAT
+	bool
+	prompt "rfdformat"
+	help
+	  Formats NOR flash for resident flash disk.
+
+config MTD_UTILS_SERVE_IMAGE
+	bool
+	prompt "serve_image"
+	help
+	  Distribute flash image to network
+
+config MTD_UTILS_SUMTOOL
+	bool
+	prompt "sumtool"
+	select MTD_UTILS_JFFS
+	help
+	  Sumtool can be used to generate EBS(Erase Block Summary)
+	  information for a jffs2 image. This way we can do faster
+	  filesystem mount. To use this the JFFS2_SUMMARY option must
+	  be enabled in kernel.
+
+menuconfig MTD_UTILS_UBI_UTILS
+	bool
+	prompt "ubi utils"
+	help
+	  Build UBI Utils
+
+if MTD_UTILS_UBI_UTILS
+
+config MTD_UTILS_UBIATTACH
+	bool
+	prompt "ubiattach"
+	depends on !BUSYBOX_UBIATTACH || ALLYES
+	help
+	  Attach a UBI device to an MTD device
+
+comment "busybox' ubiattach is selected!"
+	depends on BUSYBOX_UBIATTACH
+
+config MTD_UTILS_UBIBLOCK
+	bool
+	prompt "ubiblock"
+	help
+	  Manage block interfaces for UBI volumes
+
+config MTD_UTILS_UBICRC32
+	bool
+	prompt "ubicrc32"
+	help
+	  UBI CRC32 file checksum
+
+config MTD_UTILS_UBIDETACH
+	bool
+	prompt "ubidetach"
+	depends on !BUSYBOX_UBIDETACH || ALLYES
+	help
+	  Detach a UBI device from an MTD device
+
+comment "busybox' ubidetach is selected!"
+	depends on BUSYBOX_UBIDETACH
+
+config MTD_UTILS_UBIFORMAT
+	bool
+	select GCCLIBS_GCC_S
+	prompt "ubiformat"
+	help
+	  Format an MTD device
+
+config MTD_UTILS_UBIMKVOL
+	bool
+	prompt "ubimkvol"
+	depends on !BUSYBOX_UBIMKVOL || ALLYES
+	help
+	  Creates a volume on a UBI device.
+
+comment "busybox' ubimkvol is selected!"
+	depends on BUSYBOX_UBIMKVOL
+
+config MTD_UTILS_UBIRENAME
+	bool
+	prompt "ubirename"
+	depends on !BUSYBOX_UBIRENAME || ALLYES
+	help
+	  Rename a volume on a UBI device
+
+comment "busybox' ubirename is selected!"
+	depends on BUSYBOX_UBIRENAME
+
+config MTD_UTILS_UBIRSVOL
+	bool
+	prompt "ubirsvol"
+	depends on !BUSYBOX_UBIRSVOL || ALLYES
+	help
+	  Resize UBI volumes
+
+comment "busybox' ubirsvol is selected!"
+	depends on BUSYBOX_UBIRSVOL
+
+config MTD_UTILS_UBINFO
+	bool
+	prompt "ubinfo"
+	help
+	  Provides infos on UBI volumes and devices.
+
+config MTD_UTILS_UBINIZE
+	bool
+	prompt "ubinize"
+	help
+	  Creates UBI images. Probably more useful on host than on target.
+
+config MTD_UTILS_UBIRMVOL
+	bool
+	prompt "ubirmvol"
+	depends on !BUSYBOX_UBIRMVOL || ALLYES
+	help
+	  Deletes a volume on a UBI device
+
+comment "busybox' ubirmvol is selected!"
+	depends on BUSYBOX_UBIRMVOL
+
+config MTD_UTILS_UBIUPDATEVOL
+	bool
+	prompt "ubiupdatevol"
+	depends on !BUSYBOX_UBIUPDATEVOL || ALLYES
+	help
+	  Updates a volume with data from file
+
+comment "busybox' ubiupdatevol is selected!"
+	depends on BUSYBOX_UBIUPDATEVOL
+
+config MTD_UTILS_MKFS_UBIFS
+	bool
+	prompt "mkfs.ubifs"
+	select MTD_UTILS_UBIFS
+	help
+	  Create ubifs filesystems
+
+config MTD_UTILS_MTDINFO
+	bool
+	prompt "mtdinfo"
+	help
+	  Print UBI specific information about MTD devices
+
+endif
+
+endif

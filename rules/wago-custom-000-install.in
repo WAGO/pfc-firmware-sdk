@@ -351,4 +351,11 @@ config WAGO_CUSTOM_INSTALL_PROTOCOL_BOOTP_ON
     prompt "install /etc/special/features/bootp"
     help
 	Install to enable BootP protocol in wbm/firewall
+
+config WAGO_CUSTOM_INSTALL_IOCHECK_ON
+    bool
+    default n
+    prompt "install /etc/special/features/iocheck"
+    help
+	Install to enable IO Check service in wbm and firewall
 endif

@@ -26,6 +26,9 @@ createXmlLink()
     elif [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]
     then
         PRODUCT="TP600"
+    elif [ "${ORDER:0:6}" == "751-93" ]
+    then
+      PRODUCT="CC100"
     elif [ "${ORDER:0:3}" == "768" ]
     then
       PRODUCT="PFC200-ADV"

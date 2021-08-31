@@ -27,9 +27,12 @@ TEMP_SETUP_FILE=${FAST_SETUP_FILE}~
 rm -f /etc/specific/ledsetup-* 2> /dev/null 
 
 echo "#!/bin/bash" > $TEMP_SETUP_FILE
-
+echo "PREFIX=\"pca955x:\"" >> $TEMP_SETUP_FILE
 echo "if [ ! -d \"${LED_DEST_PATH}\" ]; then mkdir \"${LED_DEST_PATH}\"; fi" >> $TEMP_SETUP_FILE
-echo "if [ -d \"${LED_DEST_PATH}\" ]; then ln -s ${LED_SRC_PATH}/* \"${LED_DEST_PATH}\"; fi" >> $TEMP_SETUP_FILE
+echo "if [ ! -d \"${LED_DEST_PATH}\" ]; then exit 1; fi" >> $TEMP_SETUP_FILE
+echo "LIST=\$(find ${LED_SRC_PATH} -type l,f -name \"\$PREFIX*\")" >> $TEMP_SETUP_FILE
+echo "for SRC in \$LIST; do   FN=\"\${SRC##*/}\";   DST=\$(echo \"\${FN//\$PREFIX/}\");   ln -s \$SRC \"/dev/leds/\$DST\"; done" >> $TEMP_SETUP_FILE
+echo "if [ -z \"\$LIST\" ]; then   PREFIX=\"\";   ln -s ${LED_SRC_PATH}/* \"/dev/leds\"; fi" >> $TEMP_SETUP_FILE
 
 #modification of lednames for BACnet-PFC 
 if [ "$ORDER" = "750-8212/0000-0100" ]
@@ -43,13 +46,13 @@ if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]
 then
   if [ "$FRONTLED" != "active" ]
   then
-    echo "ln -snf ${LED_SRC_PATH}/sys-green-back ${LED_DEST_PATH}/sys-green" >> $TEMP_SETUP_FILE
-    echo "ln -snf ${LED_SRC_PATH}/sys-red-back ${LED_DEST_PATH}/sys-red" >> $TEMP_SETUP_FILE
-    echo "ln -snf ${LED_SRC_PATH}/sys-blue-back ${LED_DEST_PATH}/sys-blue" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/\sys-green-back ${LED_DEST_PATH}/sys-green" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/\sys-red-back ${LED_DEST_PATH}/sys-red" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/\sys-blue-back ${LED_DEST_PATH}/sys-blue" >> $TEMP_SETUP_FILE
   else
-    echo "ln -snf ${LED_SRC_PATH}/sys-green ${LED_DEST_PATH}/sys-green" >> $TEMP_SETUP_FILE
-    echo "ln -snf ${LED_SRC_PATH}/sys-red ${LED_DEST_PATH}/sys-red" >> $TEMP_SETUP_FILE
-    echo "ln -snf ${LED_SRC_PATH}/sys-blue ${LED_DEST_PATH}/sys-blue" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/\sys-green ${LED_DEST_PATH}/sys-green" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/\sys-red ${LED_DEST_PATH}/sys-red" >> $TEMP_SETUP_FILE
+    echo "ln -snf ${LED_SRC_PATH}/\sys-blue ${LED_DEST_PATH}/sys-blue" >> $TEMP_SETUP_FILE
   fi
 fi
 

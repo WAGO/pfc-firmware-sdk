@@ -21,16 +21,14 @@ class MockIEthernetInterface : public IEthernetInterface {
       void());
   MOCK_CONST_METHOD0(GetName,
       const ::std::string&());
-  MOCK_CONST_METHOD0(GetMauType,
-      eth::EthernetMauType());
   MOCK_CONST_METHOD0(GetMac,
       MacAddress());
   MOCK_CONST_METHOD0(GetAutonegSupport,
       bool());
   MOCK_CONST_METHOD0(GetAutonegEnabled,
       bool());
-  MOCK_CONST_METHOD0(GetAutonegCapabilities,
-      ::std::uint32_t());
+  MOCK_CONST_METHOD0(GetSupportedLinkModes,
+      gsl::span<const uint32_t>());
   MOCK_CONST_METHOD0(GetMediaType,
       eth::MediaType());
   MOCK_CONST_METHOD0(GetState,
@@ -39,10 +37,12 @@ class MockIEthernetInterface : public IEthernetInterface {
       eth::InterfaceLinkState());
   MOCK_CONST_METHOD0(GetInterfaceIndex,
       ::std::uint32_t());
-  MOCK_CONST_METHOD0(GetAutonegCapabilitiesXdot3,
-      ::std::uint32_t());
   MOCK_CONST_METHOD0(GetMTU,
       ::std::uint32_t());
+  MOCK_CONST_METHOD0(GetSpeed,
+      ::std::int32_t());
+  MOCK_CONST_METHOD0(GetDuplex,
+      eth::Duplex());
   MOCK_METHOD0(Commit,
       void());
   MOCK_METHOD1(SetAutoneg,

@@ -73,7 +73,7 @@ for LIB in $LIB_CODESYS_OPCUA; do
 done
 
 # infos
-FW_VERSION=$(cat  $PTXDIST_WORKSPACE/projectroot/etc/REVISIONS | grep "FIRMWARE=" | cut -d= -f2 )
+FW_VERSION=$(cat  $PTXDIST_WORKSPACE/projectroot/etc/REVISIONS | grep "FIRMWARE=" | cut -d= -f2 | sed -e 's/(/_/g;s/)//g' )
 PROJECT_NAME_FOR_IPK=$(cat selected_ptxconfig | grep "PTXCONF_PROJECT=" | cut -d= -f2 | sed 's/"//g')
 OPCUA_IPK_VERSION=$(ls $DATA_DIR/$DST_PATH_LIB | grep libCmpOPCUAServer.so. |sed 's/libCmpOPCUAServer.so.//')
 IPKGNAME="${NAME}_${OPCUA_IPK_VERSION}_${PROJECT_NAME_FOR_IPK}_FW${FW_VERSION}.ipk"
@@ -148,9 +148,9 @@ echo "#!/bin/sh"                                                   > ${BUILD_DIR
 echo ""                                                           >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "/etc/init.d/runtime stop"                                   >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "/etc/init.d/opcua-server stop"                              >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
+echo "opkg remove pp-opcua"                                       >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "opkg remove opcuaserver"                                    >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "opkg remove opcuacsdk"                                      >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
-echo "opkg remove cds3-tscvarexport"                              >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "cp -au /tmp_libs/usr/lib/ /usr/"                            >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "cp -au /tmp_libs/usr/lib/cds3-custom-components/ /usr/lib/" >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "/etc/init.d/runtime start"                                  >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh

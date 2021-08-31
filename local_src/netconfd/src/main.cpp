@@ -7,12 +7,14 @@
 #include <gio/gio.h>
 
 #include <cstring>
+#include <optional>
 
 #include <getopt.h>
-#include "NetworkConfigurator.hpp"
 #include <gsl/gsl>
 
-#include "Error.hpp"
+#include "NetworkConfigurator.hpp"
+#include "NetworkConfiguratorSettings.hpp"
+#include "Status.hpp"
 #include "Daemonizer.hpp"
 #include "InterprocessCondition.h"
 #include "Logger.hpp"
@@ -26,33 +28,34 @@
 
 using ::std::string;
 
-static struct option long_options[] = { { "help", no_argument, nullptr, 'h' }, {
-    "version", no_argument, nullptr, 'v' }, { "rundir", required_argument,
-    nullptr, 'r' }, { "pidfile", required_argument, nullptr, 'p' }, { "daemon",
-no_argument, nullptr, 'd' }, { "loglevel", required_argument, nullptr, 'l' }, {
-    nullptr, 0, nullptr, 0 } /* end marker */
+static struct option long_options[] = { { "help", no_argument, nullptr, 'h' }, { "version", no_argument, nullptr, 'v' },
+    { "rundir", required_argument, nullptr, 'r' }, { "pidfile", required_argument, nullptr, 'p' }, { "daemon",
+    no_argument, nullptr, 'd' }, { "loglevel", required_argument, nullptr, 'l' }, {"startup-ports-down", no_argument, nullptr, 'n'}, { nullptr, 0, nullptr, 0 } /* end marker */
 };
 
-static char const * const usage_text =
-    "%s: WAGO network configuration service\n"
-        "Usage:   -h, --help:             Print this help message.\n"
-        "         -v, --version           Print program version\n"
-        "Options:\n"
-        "         -d, --daemon            Daemonize this program\n"
-        "         -r, --rundir=<dir>      Run directory, default = /var/run/netconfd\n"
-        "         -p, --pidfile=<name>    Name of pidfile, default = netconfd.pid\n"
-        "         -l, --loglevel=<level>  Level of logging, default = debug\n"
-        "                                 loglevel: error, warning, info, debug\n";
+static char const *const usage_text = "%s: WAGO network configuration service\n"
+    "Usage:   -h, --help:             Print this help message.\n"
+    "         -v, --version           Print program version\n"
+    "Options:\n"
+    "         -d, --daemon            Daemonize this program\n"
+    "         -r, --rundir=<dir>      Run directory, default = /var/run/netconfd\n"
+    "         -l, --loglevel=<level>  Level of logging, default = debug\n"
+    "         -p, --pidfile=<name>    Name of pidfile, default = netconfd.pid\n"
+    "                                 loglevel: error, warning, info, debug\n"
+    "         --startup-ports-down    start the netconfd with all ethernet ports down\n"
+    ;
 
-static char const * const version_text =
-    "%s version " STR(NETCONFD_VERSION) "\n";
+static char const *const version_text = "%s version " STR(NETCONFD_VERSION) "\n";
+
+std::optional<GMainLoop*> mainloop;
+bool terminate = false;
 
 int main(int argc, char *argv[]) {
 
   ::std::string run_dir = "/var/run/netconfd";
   ::std::string pid_file_name = "netconfd.pid";
   ::std::string loglevel = "debug";
-
+  netconf::StartWithPortstate startupPortState = netconf::StartWithPortstate::Normal;
   printf("Starting network configuration daemon... \n");
 
   int option_index = 0;
@@ -60,9 +63,7 @@ int main(int argc, char *argv[]) {
   auto args = gsl::make_span(argv, static_cast<size_t>(argc));
 
   int c;
-  while ((c = getopt_long(argc, args.data(), "hvrpdl:",
-                          static_cast<option*>(long_options), &option_index))
-      != -1) {
+  while ((c = getopt_long(argc, args.data(), "hvrpdl:", static_cast<option*>(long_options), &option_index)) != -1) {
     switch (c) {
       case 'h':
         printf(usage_text, args[0]);
@@ -84,6 +85,9 @@ int main(int argc, char *argv[]) {
       case 'l':
         loglevel = ::std::string(optarg);
         break;
+      case 'n':
+        startupPortState = netconf::StartWithPortstate::Down;
+        break;
       default:
         fprintf(stderr, "Illegal command line option %c", c);
         exit(EXIT_FAILURE);
@@ -94,7 +98,7 @@ int main(int argc, char *argv[]) {
   netconf::SetLogSink(netconf::LogSink::SYSLOG);
   netconf::SetLogLevel(netconf::LogLevelFromString(loglevel));
 
-  netconf::Error status;
+  netconf::Status status;
   netconf::Daemonizer daemon(run_dir, pid_file_name);
 
   if (status.IsOk()) {
@@ -111,7 +115,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  netconf::InterprocessCondition start_condition{"netconfd_interprocess"};
+  netconf::InterprocessCondition start_condition { "netconfd_interprocess" };
 
   if (daemonize) {
     status = daemon.Daemonize(start_condition);
@@ -136,19 +140,30 @@ int main(int argc, char *argv[]) {
 
   auto context = g_main_context_default();
   auto loop = g_main_loop_new(context, 0);
+  mainloop = loop;
+  struct sigaction action { };
+  action.sa_handler = [](int) {
+    terminate = true;
+    if (mainloop) {
+      g_main_loop_quit(*mainloop);
+    }
+  };
+
+  sigaction(SIGTERM, &action, NULL);
 
   try {
-    netconf::NetworkConfigurator network_configurator{start_condition};
-    g_main_loop_run(loop);
-  } catch (::std::exception& ex) {
+    netconf::NetworkConfigurator network_configurator { start_condition , startupPortState};
+    if (!terminate) {  // Check for early quit signals
+      g_main_loop_run(loop);
+    }
+  } catch (::std::exception &ex) {
     ::std::string exception_message(ex.what());
-    netconf::LogError("NetConf initialization exception: " + exception_message);
+    netconf::LogError("NetConf exception: " + exception_message);
     exit(EXIT_FAILURE);
   } catch (...) {
-    netconf::LogError("NetConf unknown initialization exception");
+    netconf::LogError("NetConf unknown exception");
     exit(EXIT_FAILURE);
   }
-
 
   exit(EXIT_SUCCESS);
 }

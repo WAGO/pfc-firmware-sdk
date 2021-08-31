@@ -762,7 +762,7 @@ int RunUdevQuery(char              * szBuf,
   {
     const char *nodeName = udev_device_get_devnode(dev);
     
-    if(strlen(nodeName) < bufSize)
+    if((NULL != nodeName) && (strlen(nodeName) < bufSize))
     {
       safe_strncpy(szBuf, nodeName, bufSize);
     }
@@ -1248,6 +1248,7 @@ int ctlib_VerifyDomainName(char const * szName)
 {
   bool isname = true;
   int labelidx = 0;
+  int max_label_size = 0;
   int charidx = 0;
   dom_state state = START;
   while(state > 0 && isname && charidx <= 255)
@@ -1259,13 +1260,16 @@ int ctlib_VerifyDomainName(char const * szName)
     {
     case START:
       isname = (ccl == 2);
-      labelidx = 0;
+      labelidx = -1;
       break;
     case INLABEL:
       isname = (ccl > 0);
       break;
     case HYPHEN:
       isname = (ccl == 1 || ccl == 2 || ccl == 3);
+      break;
+    case STOP:
+      labelidx = -1;
       break;
     default:
       break;
@@ -1274,8 +1278,10 @@ int ctlib_VerifyDomainName(char const * szName)
     szName++;
     labelidx++;
     charidx++;
+
+    if (max_label_size < labelidx) { max_label_size = labelidx; }
   }
-  return isname && state == STOP && labelidx <= 64;
+  return (isname && (state == STOP) && (max_label_size < 64));
 }
 
 /**

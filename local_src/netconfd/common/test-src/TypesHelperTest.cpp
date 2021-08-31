@@ -213,3 +213,25 @@ TEST(TypesHelper, ComplementNetmasks)
 
   EXPECT_TRUE(IsEqual(configs_complemented, configs_wo_netmasks));
 }
+
+TEST(TypesHelper, IncrementIPAddress){
+
+  Address base {"192.168.1.17"};
+
+  ASSERT_EQ("192.168.1.18", IpAddressV4Increment(base));
+  ASSERT_EQ("192.168.1.30", IpAddressV4Increment(base, 13));
+  ASSERT_EQ("192.168.3.17", IpAddressV4Increment(base, 0x200));
+
+}
+
+TEST(TypesHelper, ExtractIndexFromInterfacename)
+{
+
+  ASSERT_EQ(5, ExtractInterfaceIndex("br5"));
+  ASSERT_EQ(42, ExtractInterfaceIndex("br042"));
+  ASSERT_EQ(1337, ExtractInterfaceIndex("interface1337"));
+  ASSERT_EQ(std::nullopt, ExtractInterfaceIndex("brbla"));
+  ASSERT_EQ(std::nullopt, ExtractInterfaceIndex("007"));
+  ASSERT_EQ(std::nullopt, ExtractInterfaceIndex("br007kill"));
+  ASSERT_EQ(std::nullopt, ExtractInterfaceIndex("br0x10"));
+}

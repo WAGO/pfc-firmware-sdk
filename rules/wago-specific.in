@@ -44,6 +44,11 @@ config ARTIFACTORY_BASE_URL
     help
      "URL of the artifactory server."
 
+config CYCLON5_IMAGES
+	bool
+	prompt "cyclon5_images"
+	help
+	 Images required for the cyclon5 fpga (750-8230)
 endmenu
 
 comment "------------------------------------"

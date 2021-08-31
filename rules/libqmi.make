@@ -43,6 +43,7 @@ LIBQMI_AUTHORS := AUTHORS
 LIBQMI_CONF_TOOL	:= autoconf
 LIBQMI_CONF_OPT		:= \
 	$(CROSS_AUTOCONF_USR) \
+        CFLAGS="$(CFLAGS) -g -Os" \
 	--disable-more-warnings \
 	--disable-gtk-doc \
 	--disable-gtk-doc-html \

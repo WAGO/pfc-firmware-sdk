@@ -2,11 +2,11 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <Status.hpp>
 #include "TypesHelper.hpp"
 #include <memory>
 
 #include "JsonConverter.hpp"
-#include "Error.hpp"
 
 using namespace testing;
 
@@ -141,58 +141,58 @@ static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected,
 TEST_F(AJsonConfigConverter, ConvertsAJsonConfiguration) {
 
   BridgeConfig bridge_config;
-  Error status = parser_->FromJsonString(json_valid_config_, bridge_config);
+  Status status = parser_->FromJsonString(json_valid_config_, bridge_config);
 
   EXPECT_EQ(bridge_config["br0"][0], "X1");
   EXPECT_EQ(bridge_config["br0"][1], "X2");
   EXPECT_EQ(bridge_config["br1"][0], "X11");
   EXPECT_EQ(bridge_config["br2"][0], "X12");
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnInvalidJsonConfiguration) {
 
   BridgeConfig bridge_config;
-  Error status = parser_->FromJsonString(json_invalid_config_, bridge_config);
+  Status status = parser_->FromJsonString(json_invalid_config_, bridge_config);
 
   EXPECT_EQ(0, bridge_config.size());
-  EXPECT_EQ(ErrorCode::JSON_CONVERT, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::JSON_CONVERT, status.GetStatusCode());
 
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnEmptyJsonBridgeConfiguration) {
 
   BridgeConfig bridge_config;
-  Error status = parser_->FromJsonString(json_emptybridge_config_, bridge_config);
+  Status status = parser_->FromJsonString(json_emptybridge_config_, bridge_config);
 
   EXPECT_EQ(bridge_config["br0"][0], "X1");
   EXPECT_EQ(bridge_config["br0"][1], "X2");
   EXPECT_EQ(bridge_config["br1"].size(), 0);
   EXPECT_EQ(bridge_config["br2"].size(), 0);
   EXPECT_EQ(bridge_config["br3"][0], "X12");
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnEmptyBridgeNameJsonConfiguration) {
 
   BridgeConfig bridge_config;
-  Error error = parser_->FromJsonString(json_emptybridgename_config_,
+  Status status = parser_->FromJsonString(json_emptybridgename_config_,
                                               bridge_config);
 
   EXPECT_EQ(0, bridge_config.size());
-  EXPECT_EQ(ErrorCode::NAME_EMPTY, error.GetErrorCode()) << error.ToString();
+  EXPECT_EQ(StatusCode::NAME_EMPTY, status.GetStatusCode()) << status.ToString();
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnInvalidJsonConfigurationWithTwoIdenticalNamedBridges) {
 
   BridgeConfig bridge_config;
-  Error status = parser_->FromJsonString(json_invalid_config_duplicat_bridge_name_,
+  Status status = parser_->FromJsonString(json_invalid_config_duplicat_bridge_name_,
                                               bridge_config);
 
   EXPECT_EQ(0, bridge_config.size());
-  EXPECT_EQ(ErrorCode::JSON_CONVERT, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::JSON_CONVERT, status.GetStatusCode());
 
 }
 
@@ -220,9 +220,9 @@ TEST_F(AJsonConfigConverter, ConvertsABridgeConfigurationWithoutInterface) {
 
 TEST_F(AJsonConfigConverter, ConvertsBackAndForth) {
   BridgeConfig bridge_config1;
-  Error status = parser_->FromJsonString(json_valid_config_, bridge_config1);
+  Status status = parser_->FromJsonString(json_valid_config_, bridge_config1);
 
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 
   ::std::string json = parser_->ToJsonString(bridge_config1);
 
@@ -230,7 +230,7 @@ TEST_F(AJsonConfigConverter, ConvertsBackAndForth) {
   status = parser_->FromJsonString(json, bridge_config2);
 
   EXPECT_TRUE(IsEqual(bridge_config1, bridge_config2));
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 }

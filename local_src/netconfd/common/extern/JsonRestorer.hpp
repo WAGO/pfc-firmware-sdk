@@ -6,7 +6,7 @@
 #include <utility>
 #include <nlohmann/json_fwd.hpp>
 
-#include "Error.hpp"
+#include "Status.hpp"
 
 namespace netconf {
 
@@ -17,7 +17,7 @@ class JsonRestorer {
   };
 
   template<class T>
-  Error Restore(const ::std::string &key, T&);
+  Status Restore(const ::std::string &key, T&);
  private:
   const ::std::string backup_;
 };

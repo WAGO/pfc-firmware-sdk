@@ -1,0 +1,34 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Mon, 8 Aug 2011 08:57:32 +0200
+Subject: [PATCH] make kernel version a autoconf cache variable
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Adapted-by: PEn (WAGO)
+---
+ configure.ac | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff a/configure.ac b/configure.ac
+--- a/configure.ac
++++ b/configure.ac
+@@ -345,16 +345,17 @@
+         # Ok, this is linux. Check the kernel version
+         AC_MSG_CHECKING([for the kernel version])
+ 
+-        kernel=`uname -r`
++        AC_CACHE_VAL([valgrind_cv_sys_kernel_version],
++          [valgrind_cv_sys_kernel_version=`uname -r`])
+ 
+-        case "${kernel}" in
++        case "${valgrind_cv_sys_kernel_version}" in
+              0.*|1.*|2.0.*|2.1.*|2.2.*|2.3.*|2.4.*|2.5.*) 
+-        	    AC_MSG_RESULT([unsupported (${kernel})])
++        	    AC_MSG_RESULT([unsupported (${valgrind_cv_sys_kernel_version})])
+         	    AC_MSG_ERROR([Valgrind needs a Linux kernel >= 2.6])
+         	    ;;
+ 
+              *)
+-        	    AC_MSG_RESULT([2.6 or later (${kernel})])
++        	    AC_MSG_RESULT([2.6 or later (${valgrind_cv_sys_kernel_version})])
+                     ;;
+         esac

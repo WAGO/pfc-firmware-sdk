@@ -9,7 +9,7 @@
 
 namespace netconf {
 
-Error FileEditor::Read(const ::std::string& file_path, ::std::string& data) const {
+Status FileEditor::Read(const ::std::string& file_path, ::std::string& data) const {
 
   ::std::ifstream stream(file_path);
 
@@ -19,16 +19,16 @@ Error FileEditor::Read(const ::std::string& file_path, ::std::string& data) cons
     stream.close();
 
   } else {
-    return Error{ErrorCode::FILE_READ, file_path};
+    return Status{StatusCode::FILE_READ, file_path};
   }
 
-  return Error::Ok();
+  return Status::Ok();
 
 }
 
-Error FileEditor::Write(const ::std::string& file_path,
+Status FileEditor::Write(const ::std::string& file_path,
                          const ::std::string& data) const {
-  Error status(ErrorCode::OK);
+  Status status(StatusCode::OK);
 
   ::std::string file_path_tmp = file_path + ".tmp";
 
@@ -47,18 +47,18 @@ Error FileEditor::Write(const ::std::string& file_path,
     sync();
 
   } else {
-    return Error{ErrorCode::FILE_WRITE, file_path};
+    return Status{StatusCode::FILE_WRITE, file_path};
   }
 
   return status;
 }
 
-Error FileEditor::Append(const ::std::string& file_path,
+Status FileEditor::Append(const ::std::string& file_path,
                           const ::std::string& data) const {
 
   ::std::ifstream in_stream(file_path);
   if (not in_stream.good()) {
-    return Error{ErrorCode::FILE_WRITE, file_path};
+    return Status{StatusCode::FILE_WRITE, file_path};
   }
   in_stream.close();
 
@@ -74,10 +74,10 @@ Error FileEditor::Append(const ::std::string& file_path,
     sync();
 
   } else {
-    return {ErrorCode::FILE_WRITE, file_path };
+    return {StatusCode::FILE_WRITE, file_path };
   }
 
-  return Error::Ok();
+  return Status::Ok();
 }
 
 } /* namespace netconf */

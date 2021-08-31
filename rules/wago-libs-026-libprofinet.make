@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBPROFINET) += libprofinet
 #
 # Paths and names
 #
-LIBPROFINET_VERSION  := 1.0.2
+LIBPROFINET_VERSION  := 1.0.3
 LIBPROFINET_MD5      :=
 LIBPROFINET          := libprofinet
 LIBPROFINET_URL      := file://$(PTXDIST_WORKSPACE)/wago_intern/device/profinet
@@ -117,6 +117,8 @@ $(STATEDIR)/libprofinet.targetinstall:
 	@$(call install_copy, libprofinet, 0, 0, 0644, -, /usr/share/snmp/mibs/LLDP-EXT-IEC61158-TYPE10-V2.3.2.32-MIB.txt)
 	@$(call install_copy, libprofinet, 0, 0, 0644, -, /usr/share/snmp/mibs/LLDP-MIB.txt)
 	@$(call install_copy, libprofinet, 0, 0, 0644, -, /usr/share/snmp/mibs/PNIO-MIB.txt)
+	
+	@$(call install_copy, libprofinet, 0, 0, 0644, -, /etc/specific/xsk/af_xdp_profinet.o,n)
 	
 	
 	

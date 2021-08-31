@@ -11,9 +11,9 @@
 ///
 ///  \file     get_actual_eth_config.c
 ///
-///  \version  $Revision: 48824 $1
+///  \version  $Revision: 56259 $1
 ///
-///  \brief    
+///  \brief
 ///
 ///  \author   StM, AGa : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
@@ -55,7 +55,7 @@
 static int PrintParameter(char *pPortString, char *pParamString, libnetSession_t *session);
 
 // Pointer to funktion to search the requested parameter
-typedef int (*tFktPrintParameter)(char* pPortString, 
+typedef int (*tFktPrintParameter)(char* pPortString,
                                   char* pParamString,
                                   libnetSession_t *session);
 
@@ -78,7 +78,8 @@ static tParameterJumptab astParameterJumptab[] =
   { "ip-address",               PrintParameter },
   { "mac-address",              PrintParameter },
   { "subnet-mask",              PrintParameter },
-  { "default-gateway",          PrintParameter }, 
+  { "default-gateway",          PrintParameter },
+  { "default-gateway-nofail",   PrintParameter },
   { "cable-state",              PrintParameter },
   { "state",                    PrintParameter }, // duplicate of "get_eth_config state", needed for compatibility reasons
 
@@ -157,7 +158,7 @@ static int nlroute_send_request(struct nlink_if *nlp)
     struct sockaddr_nl dstaddr;
     struct request *rqp = g_malloc0(sizeof (struct request));
     int status = SUCCESS;
-    
+
     // prepare netlink request message
     rqp->nl.nlmsg_len = NLMSG_LENGTH(sizeof(struct rtmsg));
     rqp->nl.nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
@@ -274,7 +275,7 @@ enum netvalue {
 };
 
 // get port specific network parameter value
-static int NetValueGet(char *pPortString, uint32_t *value, enum netvalue type, libnetSession_t *session)
+static int NetValueGet(const char *pPortString, uint32_t *value, enum netvalue type, libnetSession_t *session)
 {
     char buffer[sizeof ("255.255.255.255/32")];
     int status = SUCCESS;
@@ -325,6 +326,37 @@ static int read_dipvalue()
     return dipval;
 }
 
+static int PrintDefaultGateway(const char *pPortString, libnetSession_t *session)
+{
+    int status = SUCCESS;
+    char defaultVia[sizeof ("255.255.255.255")];
+    uint32_t ipaddr;
+    uint32_t netmask;
+    struct nlink_if *nlk;
+
+    defaultVia[0] = '\0';
+
+    if ((status = NetValueGet(pPortString, &ipaddr, IPADDR, session)) == SUCCESS)
+    {
+        status = NetValueGet(pPortString, &netmask, NETMASK, session);
+    }
+
+    if(SUCCESS == status)
+    {
+        nlk = nlroute_init();
+        status = nlroute_table_read(nlk);
+
+        if(SUCCESS == status)
+        {
+            nlroute_default_gw_of_if(nlk, ipaddr, netmask, defaultVia, sizeof (defaultVia));
+        }
+        nlroute_close(nlk);
+    }
+
+    printf("%s", defaultVia);
+    return status;
+}
+
 static int PrintParameter(char *pPortString, char *pParamString, libnetSession_t *session)
 {
     int status = INVALID_PARAMETER;
@@ -343,7 +375,7 @@ static int PrintParameter(char *pPortString, char *pParamString, libnetSession_t
     else if(0 == strcmp(pParamString, "cable-state"))
     {
         enum cableState_t state = CT_CABLE_STATE_UNKNOWN;
-        
+
         status = ct_libnet_get_cable_state(pPortString, &state, session);
 
         if(SUCCESS == status)
@@ -427,35 +459,15 @@ static int PrintParameter(char *pPortString, char *pParamString, libnetSession_t
         {
             printf("%s", netmask);
         }
-    } 
+    }
     else if(0 == strcmp(pParamString, "default-gateway"))
     {
-        char defaultVia[sizeof ("255.255.255.255")];
-        uint32_t ipaddr;
-        uint32_t netmask;
-        struct nlink_if *nlk;
-
-        defaultVia[0] = '\0';
-
-        if ((status = NetValueGet(pPortString, &ipaddr, IPADDR, session)) == SUCCESS)
-        {
-            status = NetValueGet(pPortString, &netmask, NETMASK, session);
-        }
-
-        if(SUCCESS == status)
-        {
-            nlk = nlroute_init();
-            status = nlroute_table_read(nlk);
-
-            if(SUCCESS == status)
-            {
-                nlroute_default_gw_of_if(nlk, ipaddr, netmask, defaultVia, sizeof (defaultVia));
-            }
-            nlroute_close(nlk);
-        }
-
-        printf("%s", defaultVia);
-    } 
+        status = PrintDefaultGateway(pPortString, session);
+    } else if(0 == strcmp(pParamString, "default-gateway-nofail"))
+    {
+        PrintDefaultGateway(pPortString, session);
+        status = SUCCESS;
+    }
 
     return status;
 }
@@ -482,7 +494,7 @@ static void ShowHelpText(const char *progName)
 
   printf("\n");
   printf("[Default XML network configuration file: %s]\n", NETWORK_INTERFACES_XML);
-  
+
 }
 
 static int GetCurrentEthSettings(int argc, char **argv, struct options *opts)
@@ -512,7 +524,7 @@ static int GetCurrentEthSettings(int argc, char **argv, struct options *opts)
 static int __ct_getopt(int argc, char **argv, struct options *opts)
 {
     int nrOptsFound = 0;
-    
+
     int c;
 
     opts->xmlConfigFile = strdup(NETWORK_INTERFACES_XML);
@@ -521,7 +533,7 @@ static int __ct_getopt(int argc, char **argv, struct options *opts)
     {
         int option_index = 0;
 
-        static struct option long_options[] = 
+        static struct option long_options[] =
         {
             {"help", no_argument, 0, 'h'},
         };
@@ -576,7 +588,7 @@ int main(int argc, char **argv)
             status = MISSING_PARAMETER;
         }
         break;
-    
+
     case 3:
         // number of command line arguments - nr of getopt args  - program name
         status = GetCurrentEthSettings(argc - nrArgsInterpreted - 1, &argv[optind], &opts);
@@ -592,4 +604,3 @@ int main(int argc, char **argv)
 
     return status;
 }
-

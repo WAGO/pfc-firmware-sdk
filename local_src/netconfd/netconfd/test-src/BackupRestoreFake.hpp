@@ -10,7 +10,7 @@ class BackupRestoreFake : public IBackupRestore {
  public:
   ::std::uint32_t GetBackupParameterCount() const {return 0;}
 
-  Error Backup(const ::std::string& file_path, const ::std::string& network_data, const ::std::string& dipswitch_data, uint32_t version) const {
+  Status Backup(const ::std::string& file_path, const ::std::string& network_data, const ::std::string& dipswitch_data, uint32_t version) const {
     (void) file_path;
     backup_network_data_content = network_data;
     backup_dipswicth_data_content = dipswitch_data;
@@ -18,7 +18,7 @@ class BackupRestoreFake : public IBackupRestore {
     return backup_status;
   }
 
-  Error Restore(const ::std::string& file_path, ::std::string& network_data, ::std::string& dipswitch_data, uint32_t& version) const {
+  Status Restore(const ::std::string& file_path, ::std::string& network_data, ::std::string& dipswitch_data, uint32_t& version) const {
     (void) file_path;
     network_data = restore_network_data_content;
     dipswitch_data = restore_network_dipswitch_content;
@@ -30,8 +30,8 @@ class BackupRestoreFake : public IBackupRestore {
   mutable ::std::string backup_dipswicth_data_content;
   ::std::string restore_network_data_content;
   ::std::string restore_network_dipswitch_content;
-  Error backup_status;
-  Error restore_status;
+  Status backup_status;
+  Status restore_status;
   mutable ::std::uint32_t backup_version;
   ::std::uint32_t restore_version;
 

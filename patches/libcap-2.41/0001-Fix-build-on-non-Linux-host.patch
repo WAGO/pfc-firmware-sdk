@@ -1,0 +1,41 @@
+From: Bernhard Walle <bernhard@bwalle.de>
+Date: Sun, 8 Apr 2012 17:55:56 +0200
+Subject: [PATCH] Fix build on non-Linux host
+
+Signed-off-by: Bernhard Walle <bernhard@bwalle.de>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ libcap/include/sys/capability.h        | 1 -
+ libcap/include/uapi/linux/capability.h | 6 ++++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/libcap/include/sys/capability.h b/libcap/include/sys/capability.h
+index ac13c128e3d2..18391f853769 100644
+--- a/libcap/include/sys/capability.h
++++ b/libcap/include/sys/capability.h
+@@ -21,7 +21,6 @@ extern "C" {
+ 
+ #include <sys/types.h>
+ #include <stdint.h>
+-#include <linux/types.h>
+ 
+ #ifndef __user
+ #define __user
+diff --git a/libcap/include/uapi/linux/capability.h b/libcap/include/uapi/linux/capability.h
+index e3aef34d6c92..855919463c4a 100644
+--- a/libcap/include/uapi/linux/capability.h
++++ b/libcap/include/uapi/linux/capability.h
+@@ -14,7 +14,13 @@
+ #ifndef _UAPI_LINUX_CAPABILITY_H
+ #define _UAPI_LINUX_CAPABILITY_H
+ 
++#ifdef __linux__
+ #include <linux/types.h>
++#else
++#include <stdint.h>
++typedef uint32_t __u32;
++typedef uint32_t __le32;
++#endif
+ 
+ /* User-level do most of the mapping between kernel and user
+    capabilities based on the version tag given by the kernel. The

@@ -34,6 +34,8 @@ set -u
     tgtidx=1
     if [ "$(ls /tmp | grep ^$DHCP_DATA_FILE_NAME)" ]; then
         for cfgfile in $(ls -rt $DHCP_FILE_TEMPLATE*); do
+            owner=$(ls -l "$cfgfile" | awk '{ print $3 }')
+            if [ "$owner" != "root" ]; then continue; fi
             . "$cfgfile"
             index=1
             varname="NTP_SERVER_$index"

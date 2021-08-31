@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# unpack docker binaries on demand
+
+DOCKER_DIR="/home/wago-docker/"
+DOCKER_ARCHIVE="/home/wago-docker/docker-binaries.tar.xz"
+
+unpack_docker ()
+{
+	mkdir -p $DOCKER_DIR
+	tar xvf $DOCKER_ARCHIVE -C $DOCKER_DIR
+	rm $DOCKER_ARCHIVE 
+}
+
+if [ ! "$PTXDIST" ]; then
+  unpack_docker
+fi

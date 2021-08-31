@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_PACKAGE_SERVER) += wbm-ng-plugin-package-server
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_PACKAGE_SERVER_VERSION        := 1.2.6
+WBM_NG_PLUGIN_PACKAGE_SERVER_VERSION        := 1.3.0
 WBM_NG_PLUGIN_PACKAGE_SERVER                := wbm-package-server-$(WBM_NG_PLUGIN_PACKAGE_SERVER_VERSION)
 WBM_NG_PLUGIN_PACKAGE_SERVER_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_PACKAGE_SERVER)
 WBM_NG_PLUGIN_PACKAGE_SERVER_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_PACKAGE_SERVER_URL))
@@ -91,10 +91,10 @@ $(STATEDIR)/wbm-ng-plugin-package-server.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_PACKAGE_SERVER_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-package-server, 0, 0, 0644, $(WBM_NG_PLUGIN_PACKAGE_SERVER_DIR)/$$object, $(WBM_NG_PLUGIN_PACKAGE_SERVER_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-package-server, 0, 0, 0755, $(WBM_NG_PLUGIN_PACKAGE_SERVER_TARGET_DIR)/$$object); \
 		fi; \
 	done;

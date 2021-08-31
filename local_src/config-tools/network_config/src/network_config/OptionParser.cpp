@@ -39,7 +39,7 @@ static void validate(boost::any &v, std::vector<std::string> const &values, Form
   (void) format;
   (void) i;
   ValidateOption<FormatOption>(v, values, [](const ::std::string &s) {
-    return s == "text" || s == "json";
+    return s == "text" || s == "json" || s == "pretty-json";
   });
 }
 
@@ -186,7 +186,7 @@ po::options_description OptionParser::CreateDescriptions() const {
         options_.format.name,
         po::value<FormatOption>()
           ->value_name("<format>")
-          ->default_value(FormatOption("text"),"text"),
+          ->default_value(FormatOption("text"), "text"),
         options_.format.description
     );
 

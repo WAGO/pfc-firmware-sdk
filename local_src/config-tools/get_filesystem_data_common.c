@@ -11,7 +11,7 @@
 ///
 ///  \file     get_filesystem_data.c
 ///
-///  \version  $Revision: 35107 $1
+///  \version  $Revision: 57368 $1
 ///
 ///  \brief
 ///
@@ -979,6 +979,7 @@ static int ShowDeviceDataListJson(char* pOutputString,
   int   status                                    = SUCCESS;
   int   mainDeviceIndex                           = 0;
   char  deviceString[MAX_LENGTH_OUTPUT_STRING]    = "";
+  int   firstPrint                                = 1;
 
   UNUSED_PARAMETER(additionalParam);
   UNUSED_PARAMETER(pOutputString);
@@ -1020,7 +1021,8 @@ static int ShowDeviceDataListJson(char* pOutputString,
     strncpy(labelString, pacLabel, MAX_LENGTH_OUTPUT_STRING);
     SystemCall_Destruct(&pacLabel);
 
-    if(mainDeviceIndex > 1) printf(", ");
+    if(firstPrint != 1) printf(", ");
+    else firstPrint = 0;
     printf("{ \"deviceName\": \"%s\",", deviceString);
     printf("\"deviceMedium\": \"%s\",", mediumString);
     printf("\"deviceLabel\": \"%s\" }", labelString);

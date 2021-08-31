@@ -1,0 +1,9 @@
+## SECTION=system_libraries
+
+config LIBBPF
+	bool
+	prompt "libbpf"
+	select KERNEL_HEADER
+	select LIBELF
+	help
+	  FIXME

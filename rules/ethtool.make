@@ -3,8 +3,6 @@
 # Copyright (C) 2007 by Sascha Hauer
 #               2010 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_ETHTOOL) += ethtool
 #
 # Paths and names
 #
-ETHTOOL_VERSION	:= 4.19
-ETHTOOL_MD5	:= c0c3e3339a40cbefed7033b3c7c10df1
+ETHTOOL_VERSION	:= 5.7
+ETHTOOL_MD5	:= 3293642e58a205a834cbe5754df9c832
 ETHTOOL_SUFFIX	:= tar.xz
 ETHTOOL		:= ethtool-$(ETHTOOL_VERSION)
 ETHTOOL_URL	:= $(call ptx/mirror, KERNEL, ../software/network/ethtool/$(ETHTOOL).$(ETHTOOL_SUFFIX))

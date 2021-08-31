@@ -14,7 +14,7 @@ namespace netconf {
 class MockIIPConfigure : public IIPConfigure {
  public:
 
-  MOCK_CONST_METHOD1(Configure, Error(const netconf::IPConfig& config) );
+  MOCK_CONST_METHOD1(Configure, Status(const netconf::IPConfig& config) );
 
 };
 

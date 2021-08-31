@@ -9,9 +9,9 @@ namespace netconf {
 class MockIFileEditor : public IFileEditor {
  public:
 
-  MOCK_CONST_METHOD2(Read, Error(const ::std::string&, ::std::string&) );
-  MOCK_CONST_METHOD2(Write, Error(const ::std::string&,const ::std::string&) );
-  MOCK_CONST_METHOD2(Append, Error(const ::std::string&,const ::std::string&) );
+  MOCK_CONST_METHOD2(Read, Status(const ::std::string&, ::std::string&) );
+  MOCK_CONST_METHOD2(Write, Status(const ::std::string&,const ::std::string&) );
+  MOCK_CONST_METHOD2(Append, Status(const ::std::string&,const ::std::string&) );
 
 };
 

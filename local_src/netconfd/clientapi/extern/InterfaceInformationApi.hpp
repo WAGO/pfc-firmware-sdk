@@ -32,7 +32,8 @@ InterfaceInformations GetInterfaceInformation(DeviceType type);
 ::std::string ToJson(const InterfaceInformation& info) noexcept;
 ::std::string ToJson(const InterfaceInformations& info) noexcept;
 
-
+::std::string ToPrettyJson(const InterfaceInformation& info) noexcept;
+::std::string ToPrettyJson(const InterfaceInformations& info) noexcept;
 
 } // namespace api
 } // namespace netconf

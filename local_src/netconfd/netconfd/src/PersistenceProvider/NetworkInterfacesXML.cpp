@@ -330,7 +330,7 @@ BOOST_CLASS_IMPLEMENTATION(BridgeXml, object_serializable);
 
 namespace netconf {
 
-Error WriteNetworkInterfacesXML(IFileEditor &file_editor_, const BridgeConfig& bridge_config, const IPConfigs& ip_configs,
+Status WriteNetworkInterfacesXML(IFileEditor &file_editor_, const BridgeConfig& bridge_config, const IPConfigs& ip_configs,
                                  const InterfaceConfigs& port_configs) {
 
   auto interfaces = InterfacesXml { bridge_config, ip_configs, port_configs };

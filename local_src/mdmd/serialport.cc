@@ -88,7 +88,7 @@ SerialPort::open(int fd)
     const speed_t speed = B9600;
     if (cfgetispeed(&stbuf) != speed)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): set input speed 0x%08x (B9600)\n",
+      mdmd_Log(MD_LOG_DBG, "%s(%s): set input speed 0x%08x (B9600)\n",
                __func__,_tty_fname.c_str(), speed);
       errno = 0;
       if (cfsetispeed (&stbuf, speed) != 0)
@@ -100,7 +100,7 @@ SerialPort::open(int fd)
     }
     if (cfgetospeed(&stbuf) != speed)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): set output speed 0x%08x (B9600)\n",
+      mdmd_Log(MD_LOG_DBG, "%s(%s): set output speed 0x%08x (B9600)\n",
                __func__,_tty_fname.c_str(), speed);
       errno = 0;
       if (cfsetospeed (&stbuf, speed) != 0)
@@ -116,45 +116,45 @@ SerialPort::open(int fd)
     flag_to_set = CREAD;
     if ((stbuf.c_cflag & flag_to_set) == 0)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): set control flag CREAD\n", __func__,_tty_fname.c_str() );
+      mdmd_Log(MD_LOG_DBG, "%s(%s): set control flag CREAD\n", __func__,_tty_fname.c_str() );
       stbuf.c_cflag |= flag_to_set;
     }
     flag_to_set = CLOCAL;
     if ((stbuf.c_cflag & flag_to_set) == 0)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): set control flag CLOCAL\n", __func__,_tty_fname.c_str() );
+      mdmd_Log(MD_LOG_DBG, "%s(%s): set control flag CLOCAL\n", __func__,_tty_fname.c_str() );
       stbuf.c_cflag |= flag_to_set;
     }
 
     flag_to_unset = CSIZE;
     if ((stbuf.c_cflag & flag_to_unset) != 0)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag CSIZE\n", __func__,_tty_fname.c_str() );
+      mdmd_Log(MD_LOG_DBG, "%s(%s): unset control flag CSIZE\n", __func__,_tty_fname.c_str() );
       stbuf.c_cflag &= ~flag_to_unset;
     }
     flag_to_set = CS8;
     if ((stbuf.c_cflag & flag_to_set) == 0)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): set control flag CS8\n", __func__,_tty_fname.c_str() );
+      mdmd_Log(MD_LOG_DBG, "%s(%s): set control flag CS8\n", __func__,_tty_fname.c_str() );
       stbuf.c_cflag |= flag_to_set;
     }
 
     flag_to_unset = CSTOPB;
     if ((stbuf.c_cflag & flag_to_unset) != 0)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag CSTOPB\n", __func__,_tty_fname.c_str() );
+      mdmd_Log(MD_LOG_DBG, "%s(%s): unset control flag CSTOPB\n", __func__,_tty_fname.c_str() );
       stbuf.c_cflag &= ~flag_to_unset;
     }
     flag_to_unset = PARENB;
     if ((stbuf.c_cflag & flag_to_unset) != 0)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag PARENB\n", __func__,_tty_fname.c_str() );
+      mdmd_Log(MD_LOG_DBG, "%s(%s): unset control flag PARENB\n", __func__,_tty_fname.c_str() );
       stbuf.c_cflag &= ~flag_to_unset;
     }
     flag_to_unset = CRTSCTS;
     if ((stbuf.c_cflag & flag_to_unset) != 0)
     {
-      mdmd_Log(MD_LOG_INF, "%s(%s): unset control flag CRTSCTS\n", __func__,_tty_fname.c_str() );
+      mdmd_Log(MD_LOG_DBG, "%s(%s): unset control flag CRTSCTS\n", __func__,_tty_fname.c_str() );
       stbuf.c_cflag &= ~flag_to_unset;
     }
 

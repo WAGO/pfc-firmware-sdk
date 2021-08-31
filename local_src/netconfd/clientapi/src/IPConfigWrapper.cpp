@@ -19,7 +19,7 @@ int NetconfGetDipSwitchConfig(uint32_t *ip_address, uint32_t *netmask, uint8_t *
   try {
 
     netconf::DipSwitchConfig dip_switch_config;
-    auto error = netconf::api::GetDipSwitchConfig(dip_switch_config);
+    netconf::api::GetDipSwitchConfig(dip_switch_config);
 
     auto status = inet_pton(AF_INET, dip_switch_config.ip_config_.address_.c_str(), ip_address);
     if (status == 1) {
@@ -54,11 +54,13 @@ int NetconfSetDipSwitchConfig(uint32_t ip_address, uint32_t netmask) {
       auto netmask_ = ::std::string { static_cast<const char*>(netmask_buffer) };
       netconf::DipSwitchConfig config { netconf::DipSwitchIpConfig { ipaddr_, netmask_ } };
 
-      auto error = netconf::api::SetDipSwitchConfig(netconf::DipSwitchConfig { config });
-      if (error.IsOk()) {
-        netconflog("failed to set dip switch config");
+      auto status = netconf::api::SetDipSwitchConfig(netconf::DipSwitchConfig { config });
+      if (status.IsNotOk()) {
+        std::string msg{"failed to set dip switch config: "};
+        msg.append(status.ToString());
+        netconflog(msg.c_str());
       }
-      return error.IsOk() ? 0 : -1;
+      return status.IsOk() ? 0 : -1;
     }
   } catch (::std::runtime_error &e) {
     netconflog(e.what());

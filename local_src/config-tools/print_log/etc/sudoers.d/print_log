@@ -1,0 +1,1 @@
+www ALL=NOPASSWD: /etc/config-tools/print_log

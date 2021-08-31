@@ -17,10 +17,10 @@ class DipSwitchHandler : public IHandler {
   explicit DipSwitchHandler(const ::boost::program_options::variables_map &vm);
   ~DipSwitchHandler() override = default;
 
-  DipSwitchHandler(const DipSwitchHandler &) = delete;
-  DipSwitchHandler &operator=(const DipSwitchHandler &) = delete;
-  DipSwitchHandler(const DipSwitchHandler &&)           = delete;
-  DipSwitchHandler &operator=(const DipSwitchHandler &&) = delete;
+  DipSwitchHandler(const DipSwitchHandler&) = delete;
+  DipSwitchHandler& operator=(const DipSwitchHandler&) = delete;
+  DipSwitchHandler(const DipSwitchHandler&&) = delete;
+  DipSwitchHandler& operator=(const DipSwitchHandler&&) = delete;
 
   void Execute() override;
 

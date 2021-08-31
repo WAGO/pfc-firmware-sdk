@@ -1,0 +1,11 @@
+## SECTION=networking
+config ETHTOOL
+	tristate
+	prompt "ethtool"
+	select LIBMNL
+	help
+	  Ethtool is a GNU/Linux net driver diagnostic and tuning
+	  tool.
+	  It obtains information and diagnostics related to media,
+	  link status, driver version, PCI (or other) bus location,
+	  and more.

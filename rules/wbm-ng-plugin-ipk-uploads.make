@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_IPK_UPLOADS) += wbm-ng-plugin-ipk-uploads
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_IPK_UPLOADS_VERSION        := 1.0.3
+WBM_NG_PLUGIN_IPK_UPLOADS_VERSION        := 1.1.0
 WBM_NG_PLUGIN_IPK_UPLOADS                := wbm-ipk-uploads-$(WBM_NG_PLUGIN_IPK_UPLOADS_VERSION)
 WBM_NG_PLUGIN_IPK_UPLOADS_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_IPK_UPLOADS)
 WBM_NG_PLUGIN_IPK_UPLOADS_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_IPK_UPLOADS_URL))
@@ -94,10 +94,10 @@ $(STATEDIR)/wbm-ng-plugin-ipk-uploads.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_IPK_UPLOADS_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-ipk-uploads, 0, 0, 0644, $(WBM_NG_PLUGIN_IPK_UPLOADS_DIR)/$$object, $(WBM_NG_PLUGIN_IPK_UPLOADS_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-ipk-uploads, 0, 0, 0755, $(WBM_NG_PLUGIN_IPK_UPLOADS_TARGET_DIR)/$$object); \
 		fi; \
 	done;

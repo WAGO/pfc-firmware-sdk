@@ -25,6 +25,7 @@ using InterfaceNameMapping = ::std::map<Interface, Interface>;
 
 using IPConfigs = ::std::vector<IPConfig>;
 using InterfaceConfigs = ::std::vector<InterfaceConfig>;
+using InterfaceStatuses = ::std::vector<InterfaceStatus>;
 
 }
 

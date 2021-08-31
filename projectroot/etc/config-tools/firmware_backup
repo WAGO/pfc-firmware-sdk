@@ -181,11 +181,7 @@ fi
 
 # check input parameter passphrase
 if [ "$DO_ENCRYPT" = yes ]; then
-    CheckEncryptionPassphrase "$ENCPASSPHRASE"
-    if [ $? -ne 0 ]; then
-      SetLastError "weak/invalid encryption passphrase"
-      exit $INVALID_PARAMETER
-    fi
+  CheckEncryptionPassphrase "$ENCPASSPHRASE" || exit "$INVALID_PARAMETER"
 fi
 
 # check input for device medium; must be included in DEVICE_MEDIA configuration or network 

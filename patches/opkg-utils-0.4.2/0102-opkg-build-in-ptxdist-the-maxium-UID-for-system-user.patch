@@ -1,0 +1,31 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Fri, 10 Nov 2017 19:52:05 +0100
+Subject: [PATCH] opkg-build: in ptxdist the maxium UID for system users is 999
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ opkg-build | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/opkg-build b/opkg-build
+index eca1ee2fa42c..6d6f7e92b919 100755
+--- a/opkg-build
++++ b/opkg-build
+@@ -69,14 +69,14 @@ You probably want to remove them: " >&2
+ 	    fi
+ 	fi
+ 
+-	large_uid_files=`find . -uid +99 -ls -printf '\\\n' || true`
++	large_uid_files=`find . -uid +999 -ls -printf '\\\n' || true`
+ 
+ 	if [ "$ogargs" = "" ]  && [ -n "$large_uid_files" ]; then
+-		echo "*** Warning: The following files have a UID greater than 99.
++		echo "*** Warning: The following files have a UID greater than 999.
+ You probably want to chown these to a system user: " >&2
+ 		echo -e $large_uid_files
+ 		if [ $? -ne 0 ]; then
+-			echo "*** Error: Fail to list files have a UID greater than 99."
++			echo "*** Error: Fail to list files have a UID greater than 999."
+ 			exit 1
+ 		fi
+ 		echo >&2

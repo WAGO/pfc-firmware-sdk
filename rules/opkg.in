@@ -1,0 +1,113 @@
+## SECTION=disk_and_file
+
+menuconfig OPKG
+	tristate
+	select LIBARCHIVE
+	select LIBCURL if OPKG_CURL
+	select OPENSSL if OPKG_OPENSSL
+	prompt "opkg                          "
+	help
+	  Opkg is a lightweight package management system based on Ipkg.
+
+	  http://code.google.com/p/opkg/
+
+if OPKG
+
+config OPKG_PATHFINDER
+	bool
+	prompt "pathfinder support"
+	# needs pathfinder-openssl
+	depends on BROKEN
+	help
+	  Pathfinder is designed to provide a mechanism for any
+	  program to perform RFC3280-compliant path validation
+	  of X.509 certificates, even when some of the intermediate
+	  certificates are not present on the local machine. It will
+	  automatically download any such certificates (and their
+	  CRLs) from the Internet as needed using the AIA and CRL
+	  distribution point extensions of the certificate it is
+	  processing.
+
+config OPKG_CURL
+	bool
+	prompt "libcurl support"
+	help
+	  FIXME - is this optional?
+	  curl is a command line tool for transferring data with
+	  URL syntax.
+
+config OPKG_SHA256
+	bool
+	prompt "sha256 support"
+	help
+	  FIXME
+
+config OPKG_OPENSSL
+	bool
+	prompt "openssl signature checking"
+	help
+	  FIXME
+
+config OPKG_SSL_CURL
+	bool
+	prompt "libcurl certificate authentication"
+	help
+	  FIXME
+
+config OPKG_GPG
+	bool
+	prompt "signature checking with gpg"
+	# gpg and openssl are mutually exclusive
+	depends on ! OPKG_OPENSSL
+	# needs gpgme
+	depends on BROKEN
+	help
+	  FIXME
+
+config OPKG_OPKG_CONF
+	bool
+	prompt "install /etc/opkg/opkg.conf"
+	default y
+	help
+	  Installs a generic /etc/opkg/opkg.conf file.
+
+	  Important: To make opkg work at runtime, you must install this
+	  configuration file. Without it you can't install new packages.
+
+if OPKG_OPKG_CONF
+
+config OPKG_OPKG_CONF_HOST
+	prompt "OPKG Update Site Host"
+	default "www.example.org"
+	string
+	help
+	  Enter the hostname of your update site here. You can
+	  use it as part of the opkg.conf URL below.
+
+config OPKG_OPKG_CONF_URL
+	string
+	prompt "OPKG Update Site URL"
+	default "src ptxdist http://${PTXCONF_OPKG_OPKG_CONF_HOST}/ptxdist/${PTXCONF_PROJECT}/dists/${PTXCONF_PROJECT}${PTXCONF_PROJECT_VERSION}"
+	help
+	  This path is put into the /etc/opkg/opkg.conf file and specifies
+	  where to find an OPKG packet feed.
+
+	  Note: Keep the "src" in front of the URL, its required if the
+	  URL should be used.
+
+	  If you don't want to use this feature, keep the whole entry empty.
+
+config OPKG_OPKG_CONF_CHECKSIG
+	bool
+	prompt "enable repository signature checking"
+	depends on OPKG_OPENSSL
+	help
+	  Set the following options in opkg.conf:
+	     option check_signature 1
+	     option signature_ca_path /etc/ssl/certs
+	     option signature_ca_file /etc/ssl/certs/opkg.crt
+	
+	  Repository will only be used if it's signature can be validated.
+endif
+
+endif

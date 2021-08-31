@@ -20,7 +20,7 @@ else
 BUILD_DIR=$PTXDIST_PLATFORMDIR/packages/
 fi
 
-FW_VERSION=$(cat  $PTXDIST_WORKSPACE/projectroot/etc/REVISIONS | grep "FIRMWARE=" | cut -d= -f2 )
+FW_VERSION=$(cat  $PTXDIST_WORKSPACE/projectroot/etc/REVISIONS | grep "FIRMWARE=" | cut -d= -f2 | sed -e 's/(/_/g;s/)//g' )
 
 
 OPCUA_IPK=$(basename $(find $PTXDIST_PLATFORMDIR/packages -name "opcuaserver_*_armhf.ipk"| sed -e 's/.ipk//g'))

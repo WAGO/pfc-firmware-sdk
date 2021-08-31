@@ -11,7 +11,7 @@ namespace network_config {
   if (Contains(vm, optstr.quiet)) {
     return ::std::make_unique<NullOutput>();
   } else if (Contains(vm, optstr.error_msg_dst)) {
-    return ::std::make_unique < FileOutput > (Get(vm, optstr.error_msg_dst));
+    return ::std::make_unique<FileOutput>(Get(vm, optstr.error_msg_dst));
   } else {
     return ::std::make_unique<StderrOutput>();
   }

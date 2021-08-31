@@ -6,7 +6,7 @@
 
 #include "InterfaceConfig.hpp"
 #include "NetworkInterfaceConstants.hpp"
-#include "Socket.h"
+#include "Socket.hpp"
 
 namespace netconf {
 namespace api {

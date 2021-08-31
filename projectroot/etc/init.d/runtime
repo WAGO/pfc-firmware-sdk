@@ -45,24 +45,22 @@ function tp_is_multicore()
 #only TP600
 function tp_start_mode()
 {
-  local RESULT=0
+  # result 0: start codesys3 without browser
+  # result 1: start browser with WBM without codesys3
+  # result 2: start browser with startpage from Plclist and codesys3
+  local RESULT=2
   local BOOTAPP="$(/etc/config-tools/get_eruntime bootapp)"
+  local PLCSELECTED="0"
   
-  if [ ! -e /home/codesys/eRUNTIME.cfg ]; then
-    # Starting Browser with startpage from Plclist and codesys3
-    RESULT=2
-  else
-    # cfg exists, start WBM if no application is included
-    if [ "$BOOTAPP" == "no" ]; then
-      # Starting Browser with startpage from Plclist and codesys3
-      RESULT=2
-    fi
-  fi
-
-  if [ "$RESULT" == "0" ]; then
+  if [ "$BOOTAPP" == "yes" ]; then
     if [ $(tp_wait4touchpressed) == "1" ]; then
       # Starting Browser with WBM only without codesys3
       RESULT=1
+    else
+      PLCSELECTED="$(/etc/config-tools/get_plcselect plc_selected)"
+      if [ "$PLCSELECTED" == "0" ]; then
+        RESULT=0
+      fi
     fi
   fi
 

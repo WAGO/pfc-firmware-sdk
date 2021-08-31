@@ -3,8 +3,6 @@
 # Copyright (C) 2009 by Robert Schwebel
 # Copyright (C) 2014 by Juergen Beisert
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,14 +15,15 @@ PACKAGES-$(PTXCONF_OPKG) += opkg
 #
 # Paths and names
 #
-OPKG_VERSION	:= 0.4.0
-OPKG_MD5	:= fafa1917490f855d3f259b9c45e291e0
+OPKG_VERSION	:= 0.4.1
+OPKG_MD5	:= ba0c21305fc93b26e844981ef100dc85
 OPKG		:= opkg-$(OPKG_VERSION)
 OPKG_SUFFIX	:= tar.gz
 OPKG_URL	:= http://downloads.yoctoproject.org/releases/opkg/$(OPKG).$(OPKG_SUFFIX)
 OPKG_SOURCE	:= $(SRCDIR)/$(OPKG).$(OPKG_SUFFIX)
 OPKG_DIR	:= $(BUILDDIR)/$(OPKG)
 OPKG_LICENSE	:= GPL-2.0-or-later
+OPKG_LICENSE_FILES := file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f
 
 # ----------------------------------------------------------------------------
 # Prepare

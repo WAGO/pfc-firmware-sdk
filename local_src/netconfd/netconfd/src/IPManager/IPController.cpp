@@ -13,18 +13,18 @@
 #include <cerrno>
 #include "Logger.hpp"
 #include <gsl/gsl>
-#include <Socket.h>
+#include "Socket.hpp"
 #include <errno.h>
 
 namespace netconf {
 
 
 
-static Error SetIPParameter(int fd, uint16_t flag, const Interface &interface, const ::std::string &value_str) {
+static Status SetIPParameter(int fd, uint16_t flag, const Interface &interface, const ::std::string &value_str) {
 
   uint32_t value;
   if (1 != inet_pton(AF_INET, value_str.c_str(), &value)) {
-    return Error{ErrorCode::IPV4_FORMAT, value_str};
+    return Status{StatusCode::IPV4_FORMAT, value_str};
   }
 
   ifreq if_req = { };
@@ -40,30 +40,30 @@ static Error SetIPParameter(int fd, uint16_t flag, const Interface &interface, c
     return MakeSystemCallError();
   }
 
-  return Error::Ok();
+  return Status::Ok();
 }
 
-Error IPController::SetIPConfig(const IPConfig &config) const {
+Status IPController::SetIPConfig(const IPConfig &config) const {
 
-  Error error(ErrorCode::OK);
+  Status status(StatusCode::OK);
 
   try {
 
     ::Socket fd { PF_INET, SOCK_DGRAM, IPPROTO_IP };
 
-    error = SetIPParameter(fd, SIOCSIFADDR, config.interface_, config.address_);
-    if (error.IsNotOk()) {
-      auto user_error = Error{ErrorCode::SET_IP, config.address_, config.netmask_, config.interface_};
-      LogError(user_error.ToString() + ": " + error.ToString());
-      return user_error;
+    status = SetIPParameter(fd, SIOCSIFADDR, config.interface_, config.address_);
+    if (status.IsNotOk()) {
+      auto user_status = Status{StatusCode::SET_IP, config.address_, config.netmask_, config.interface_};
+      LogError(user_status.ToString() + ": " + status.ToString());
+      return user_status;
     }
 
     if (ZeroIP != config.address_) {
-      error = SetIPParameter(fd, SIOCSIFNETMASK, config.interface_, config.netmask_);
-      if (error.IsNotOk()) {
-        auto user_error = Error{ErrorCode::SET_IP, config.address_, config.netmask_, config.interface_};
-        LogError(user_error.ToString() + ": " +error.ToString());
-        return user_error;
+      status = SetIPParameter(fd, SIOCSIFNETMASK, config.interface_, config.netmask_);
+      if (status.IsNotOk()) {
+        auto user_status = Status{StatusCode::SET_IP, config.address_, config.netmask_, config.interface_};
+        LogError(user_status.ToString() + ": " +status.ToString());
+        return user_status;
       }
     }
 
@@ -71,7 +71,7 @@ Error IPController::SetIPConfig(const IPConfig &config) const {
     return MakeSystemCallError();
   }
 
-  return error;
+  return status;
 }
 
 }

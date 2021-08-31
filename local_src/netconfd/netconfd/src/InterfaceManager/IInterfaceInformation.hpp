@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -18,6 +18,7 @@ class IInterfaceInformation {
   IInterfaceInformation& operator=(const IInterfaceInformation&&) = delete;
 
   virtual InterfaceConfigs const& GetPortConfigs() = 0;
+  virtual InterfaceStatuses GetCurrentPortStatuses() = 0;
 
 };
 

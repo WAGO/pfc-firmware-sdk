@@ -6,7 +6,6 @@ config NETCONFD
   select GOOGLETEST
   select BOOST
   select BOOST_LOG
-  select BOOST_REGEX
   select BOOST_SYSTEM
   select BOOST_FILESYSTEM
   select BOOST_SERIALIZATION
@@ -19,4 +18,5 @@ config NETCONFD
   select LIBBRIDGE
   prompt "netconfd"
   help
-    FIXME
+    Network Configuration Daemon
+    Takes care of ethernet ports, bridges and IP settings. 

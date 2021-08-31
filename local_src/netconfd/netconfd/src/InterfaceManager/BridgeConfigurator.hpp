@@ -28,28 +28,28 @@ class BridgeConfigurator : public IBridgeConfigurator {
   BridgeConfigurator& operator=(const BridgeConfigurator&&) = delete;
 
   BridgeConfig GetConfiguration() const override;
-  Error Configure(BridgeConfig const& config) const override;
+  Status Configure(BridgeConfig const& config) const override;
 
   Interfaces GetBridgeAssignedInterfaces() const;
 
  private:
 
-  Error RemoveAllActualBridgesThatAreNotNeeded(
+  Status RemoveAllActualBridgesThatAreNotNeeded(
       BridgeConfig const& config_os, Bridges& adapted_target_bridges) const;
-  Error RemoveAllActualBridgeInterfacesThatAreNotNeeded(Bridges const& actual_bridges,
+  Status RemoveAllActualBridgeInterfacesThatAreNotNeeded(Bridges const& actual_bridges,
                                                        BridgeConfig const& config_os) const;
-  Error AddMissingInterfacesToActualBridges(Bridges const& actual_bridges,
+  Status AddMissingInterfacesToActualBridges(Bridges const& actual_bridges,
                                            BridgeConfig const& config_os) const;
-  Error AddMissingBridgesAndTheirInterfaces(Bridges const& actual_bridges,
+  Status AddMissingBridgesAndTheirInterfaces(Bridges const& actual_bridges,
                                            BridgeConfig const& config_os) const;
-  Error SetAllBridgesUp(BridgeConfig const &config_os) const;
-  Error SetInterfaceDown(Interface const& interface) const;
-  Error SetInterfaceUpAndAddToBridge(Interface const& interface, Bridge const& bridge) const;
-  Error SetInterfaceDownAndDeleteFromBridge(Interface const& interface,
+  Status SetAllBridgesUp(BridgeConfig const &config_os) const;
+  Status SetInterfaceDown(Interface const& interface) const;
+  Status SetInterfaceUpAndAddToBridge(Interface const& interface, Bridge const& bridge) const;
+  Status SetInterfaceDownAndDeleteFromBridge(Interface const& interface,
                                              Bridge const& bridge) const;
-  Error AddBridge(Bridge const& bridge) const;
-  Error SetBridgeDownAndDelete(Bridge const& bridge) const;
-  Error SetDefaultInterfaceUp() const;
+  Status AddBridge(Bridge const& bridge) const;
+  Status SetBridgeDownAndDelete(Bridge const& bridge) const;
+  Status SetDefaultInterfaceUp() const;
 
   IBridgeController& bridge_controller_;
 

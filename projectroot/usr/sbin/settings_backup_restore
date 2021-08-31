@@ -199,6 +199,34 @@ if [ -n "${backupFile}" ]; then
     ProcessErrRestoreOperation $? "Failed to set dns_mode by " "/etc/config-tools/config_dns_service"
 
     #-------------------------------------------------------------
+    # restore snmp user definitions.
+
+    USE_USER_DEFINED_DEVICE_NAME=no
+    USE_USER_DEFINED_DESCRIPTION=no
+
+    use_user_defined_device_name=$(GetBackupValue "snmp-use-user-defined-device-name" $backupFile)
+    if [[ $? -eq $SUCCESS ]]; then
+      USE_USER_DEFINED_DEVICE_NAME=$use_user_defined_device_name
+    else
+      USE_USER_DEFINED_DEVICE_NAME=yes
+    fi
+
+    use_user_defined_description=$(GetBackupValue "snmp-use-user-defined-description" $backupFile)
+    if [[ $? -eq $SUCCESS ]]; then
+      USE_USER_DEFINED_DESCRIPTION=$use_user_defined_description
+    else
+      USE_USER_DEFINED_DESCRIPTION=yes
+    fi
+  
+    # During restore process the config_snmp tool is used to set device-name and description.
+    # Therefore, config_snmp sets both user defines (USE_USER_DEFINED_*) to yes. Here, we 
+    # reset these values to the desired ones from the backup file.
+    echo "USE_USER_DEFINED_DEVICE_NAME=$USE_USER_DEFINED_DEVICE_NAME" > "$SNMP_USER_DEFINES_FILE"
+    echo "USE_USER_DEFINED_DESCRIPTION=$USE_USER_DEFINED_DESCRIPTION" >> "$SNMP_USER_DEFINES_FILE"
+    
+    /etc/init.d/writeSnmpDefaultConf start
+
+    #-------------------------------------------------------------
     # delete all existing snmp v1/v2c trap receiver before we restore the ones from backup
     # we only must delete allways the fist one in sequential list, until none is existing
     address=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-address 1`
@@ -332,7 +360,15 @@ if [ -n "${backupFile}" ]; then
         cat "$backupFile" | /usr/sbin/settings_backup_checksys restore
         ProcessErrRestoreOperation $? "Failed to restore Check-System settings"
     else
-        ProcessErrRestoreOperation $? "Invalid backup Check-System config tool file: " "/usr/sbin/settings_backup_checksys"   
+        ProcessErrRestoreOperation $? "Invalid backup Check-System config tool file: " "/usr/sbin/settings_backup_checksys"
+    fi
+    
+    # restore Docker-Daemon settings
+    if [[ -x /usr/sbin/settings_backup_docker ]]; then
+        cat "$backupFile" | /usr/sbin/settings_backup_docker restore
+        ProcessErrRestoreOperation $? "Failed to restore Docker Daemon settings"
+    else
+        ProcessErrRestoreOperation $? "Invalid backup Docker-Daemon config tool file: " "/usr/sbin/settings_backup_docker"
     fi
     
     # Restore parameters of modular restore scripts.

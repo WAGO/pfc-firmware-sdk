@@ -4,22 +4,20 @@
 
 namespace network_config {
 
-MessagePrinter::MessagePrinter()
-{
+MessagePrinter::MessagePrinter() {
   output_ = ::std::make_unique<StderrOutput>();
 }
 
-void MessagePrinter::SetDestination(::std::unique_ptr<Output> output)
-{
+void MessagePrinter::SetDestination(::std::unique_ptr<Output> output) {
   output_ = std::move(output);
 }
 
-void MessagePrinter::Print(const ::netconf::Error &error){
-  Print(error.ToString());
+void MessagePrinter::Print(const ::netconf::Status &status) {
+  Print(status.ToString());
 }
 
-void MessagePrinter::Print(const ::std::string& text){
-  if(output_){
+void MessagePrinter::Print(const ::std::string &text) {
+  if (output_) {
     output_->GetStream() << text;
     output_->GetStream().flush();
   }

@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_CONFIG_TOOLS) += config-tools
 #
 # Paths and names
 #
-CONFIG_TOOLS_VERSION 	      := 1.2.0
+CONFIG_TOOLS_VERSION 	      := 1.3.0
 CONFIG_TOOLS		            := config-tools
 CONFIG_TOOLS_URL            := file://$(PTXDIST_WORKSPACE)/local_src/$(CONFIG_TOOLS)
 CONFIG_TOOLS_DIR	          := $(BUILDDIR)/$(CONFIG_TOOLS)
@@ -69,16 +69,6 @@ endif
 
 ifdef PTXCONF_CT_MODBUS_CONFIG
 	CONFIG_TOOLS_ENV+=WITH_LIBMODBUSCONFIG=yes
-endif
-
-ifdef PTXCONF_CT_BACNET_CONFIG
-	CT_CFLAGS+= -D__CT_WITH_LIBBACNETCONFIG
-	CONFIG_TOOLS_ENV+=WITH_LIBBACNETCONFIG=yes
-endif
-
-ifdef PTXCONF_CT_BACNET_BACKUP_RESTORE
-	CT_CFLAGS+= -D__CT_WITH_LIBBACNETCONFIGS
-	CONFIG_TOOLS_ENV+=WITH_LIBBACNETCONFIG=yes
 endif
 
 ifdef PTXCONF_CT_CONFIG_MDMD
@@ -205,14 +195,6 @@ ifdef PTXCONF_CT_MODBUS_CONFIG
 	CT_MAKE_ARGS+=modbus_config
 endif
 
-ifdef PTXCONF_CT_BACNET_CONFIG
-	CT_MAKE_ARGS+=bacnet_config
-endif
-
-ifdef PTXCONF_CT_BACNET_BACKUP_RESTORE
-  CT_MAKE_ARGS+=bacnet_backup_restore
-endif
-
 ifdef PTXCONF_CT_CONFIG_MDMD
 	CT_MAKE_ARGS+=config_mdmd
 endif
@@ -259,7 +241,7 @@ $(STATEDIR)/config-tools.compile: $(STATEDIR)/barebox.install
 	fi 
 
 ifdef CONFIG_TOOLS_WITH_UNIT_TESTS	
-  	@cd $(CONFIG_TOOLS_DIR)/unit-tests && echo $$PWD && $(CONFIG_TOOLS_ENV) $(CONFIG_TOOLS_PATH) \
+	@cd $(CONFIG_TOOLS_DIR)/unit-tests && echo $$PWD && $(CONFIG_TOOLS_ENV) $(CONFIG_TOOLS_PATH) \
 	_HW_PLATFORM=$(PTXCONF_PLATFORM) _SYSROOT=$(PTXCONF_SYSROOT_TARGET) CPPUTEST_HOME=$(BUILDDIR)/cpputest-3.1/ $(MAKE) clean;  \
 	cd $(CONFIG_TOOLS_DIR)/unit-tests && echo $$PWD && $(CONFIG_TOOLS_ENV) $(CONFIG_TOOLS_PATH) \
 	_SYSROOT=$(PTXCONF_SYSROOT_TARGET) CPPUTEST_HOME=$(BUILDDIR)/cpputest-3.1/ $(MAKE) all_no_tests
@@ -288,13 +270,13 @@ $(STATEDIR)/config-tools.install: $(config-tools_install_deps_default)
 #		@cp frasel.h  $(PTXCONF_GNU_TARGET)/include
 #	Example for a target library file:
 #		@cp frasel.so $(PTXCONF_GNU_TARGET)/lib
-	
+
 	@cp $(CONFIG_TOOLS_DIR)/libnet/ct_libnet.h      $(PTXCONF_SYSROOT_TARGET)/usr/include/libctnetwork.h
 	@cp $(CONFIG_TOOLS_DIR)/libnet/libctnetwork.so  $(PTXCONF_SYSROOT_TARGET)/usr/lib/libctnetwork.so
-	
+
 	@cp $(CONFIG_TOOLS_DIR)/liblog/ct_liblog.h      $(PTXCONF_SYSROOT_TARGET)/usr/include/ct_liblog.h
 	@cp $(CONFIG_TOOLS_DIR)/liblog/libctlog.so      $(PTXCONF_SYSROOT_TARGET)/usr/lib/libctlog.so
-	
+
 	@cp $(CONFIG_TOOLS_DIR)/config_tool_lib.h      $(PTXCONF_SYSROOT_TARGET)/usr/include/config_tool_lib.h
 	@cp $(CONFIG_TOOLS_DIR)/libctcommon.so      $(PTXCONF_SYSROOT_TARGET)/usr/lib/libctcommon.so
 
@@ -344,7 +326,7 @@ endif
 
 ifdef PTXCONF_CT_CHANGE_HOSTNAME
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/change_hostname, /etc/config-tools/change_hostname);
-	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/host.conf)
+	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/specific/host.conf)
 endif
 
 ifdef PTXCONF_CT_CHANGE_KEYBOARD_LAYOUT
@@ -383,7 +365,6 @@ ifdef PTXCONF_CT_CONFIG_DEFAULT_GATEWAY
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_default_gateway, /etc/config-tools/config_default_gateway);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_default_gateway_config, /etc/config-tools/get_default_gateway_config);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/networking/update_config, /etc/config-tools/events/networking/update_config);
-	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/static_gateway.conf)
 endif
 
 ifdef PTXCONF_CT_CONFIG_OVERWRITE_DHCP_GATEWAY
@@ -528,7 +509,7 @@ ifdef PTXCONF_CT_RS232_OWNER
 endif
 
 ifdef PTXCONF_CT_LEDSERVER
-	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/leds.conf)
+	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/specific/leds.conf)
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_ledserver, /etc/config-tools/config_ledserver);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_ledserver, /etc/config-tools/get_ledserver);
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_ledserver_generate, /etc/config-tools/config_ledserver_generate);
@@ -658,10 +639,6 @@ ifdef PTXCONF_CT_GET_TELECONTROL_STATE
 	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/specific/telecontrol_states);
 	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/init.d/telecontrol);
 	@$(call install_link, config-tools, ../init.d/telecontrol, /etc/rc.d/S90_telecontrol)
-endif
-
-ifdef PTXCONF_CT_BACNET_WBM_DIAGLIST
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/bacnet_wbm_diaglist, /etc/config-tools/bacnet_wbm_diaglist);
 endif
 
 ifdef PTXCONF_CT_GET_SYSTEMINFO
@@ -799,14 +776,6 @@ ifdef PTXCONF_CT_CONFIG_MDMD
 	@$(call install_link, config-tools, ../init.d/mdmd_check, /etc/rc.d/S90_mdmd_check);
 endif
 
-ifdef PTXCONF_CT_BACNET_CONFIG
-	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/bacnet_config, /etc/config-tools/bacnet_config);
-endif
-
-ifdef PTXCONF_CT_BACNET_BACKUP_RESTORE
-	@$(call install_copy, config-tools, 0, 0, 0750, $(CONFIG_TOOLS_DIR)/bacnet_backup_restore, /etc/config-tools/backup-restore/bacnet_backup_restore);
-endif
-
 #
 # New networking tools
 #
@@ -824,10 +793,10 @@ ifdef PTXCONF_CT_LIBCTNETWORK
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/snmp/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/ssh/);
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/ssl/);
-	
+
 
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
-	# Does not install /etc/config-tools/events/telnet if Telnet protocol is not available (default for PFC_ADV)
+# Does not install /etc/config-tools/events/telnet if Telnet protocol is not available (default for PFC_ADV)
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/telnet/);
 endif
 
@@ -836,7 +805,11 @@ ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/tftp/);
 endif
 
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_IOCHECK_ON
+  # Does not install /etc/config-tools/events/iocheckport if iocheck service is not available (default for PFC_ADV)
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/iocheckport/);
+endif
+
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/networking/);
 	@$(call install_copy, config-tools, 0, 0, 0644, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/networking/README, /etc/config-tools/events/networking/README);
 
@@ -881,7 +854,7 @@ ifdef PTXCONF_CT_SET_SERIAL_MODE
 endif
 ifdef PTXCONF_CT_WWAN_INTERFACE
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_wwan, /etc/config-tools/config_wwan);
-	@$(call install_alternative, config-tools, 0, 0, 0644, /etc/specific/wwan.conf);
+	@$(call install_alternative, config-tools, 0, 0, 0640, /etc/specific/wwan.conf);
 endif
 
 ifdef PTXCONF_CT_VPNCFG
@@ -898,10 +871,18 @@ ifdef PTXCONF_CT_CONF_INTERNAL_BOOT
 	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_boot_mode, /etc/config-tools/config_boot_mode);
 endif
 
+ifdef PTXCONF_CT_DOCKER
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot.wago-pfc-adv/etc/config-tools/config_docker, /etc/config-tools/config_docker);
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot.wago-pfc-adv/etc/config-tools/get_docker_config, /etc/config-tools/get_docker_config);
+endif
+
 ifdef PTXCONF_IPWATCHD
 	@$(call install_alternative, config-tools, 0, 0, 0750, /etc/config-tools/events/networking/update_ipwatchd);
 endif
 
+ifdef PTXCONF_CT_INOTIFY
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_inotify, /etc/config-tools/config_inotify);
+endif
 
 	@$(call install_finish,config-tools)
 

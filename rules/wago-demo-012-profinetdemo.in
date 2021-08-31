@@ -9,11 +9,11 @@ config PROFINETDEMO
 
 if PROFINETDEMO
 
-config PROFINETDEMO_LAZY
+config PROFINETDEMO_SKIP_TARGETINSTALL
   bool
-  prompt "Do not install PROFINET iDevice application demonstration program to rootfs"
-  help 
-    Say Y if you do not want to instal the PROFINET iDevice application demonstration program into the Firmware Image.
-
+  prompt "Skip targetinstall stage for PROFINET iDevice application demonstration"
+  help
+    Skip targetinstall stage for PROFINET iDevice application demonstration in order to save memory inside the target device.
+    The install stage will create the package files into $(PTXDIST_PLATFORMDIR)/packages.
 
 endif

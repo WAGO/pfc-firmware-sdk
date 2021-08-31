@@ -3,18 +3,19 @@
 config LIBBACNETSTACK
 	bool
 	default n
-	select LED_SERVER_META
-	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
+	select WAGO_PFC_DIAGNOSTIC
 	select HOST_CT_BUILD
 	select GOOGLETEST
 	select LIBOSAL
+	select TYPELABEL
+	select CT_LIBCTNETWORK
 	select CONFIG_TOOLS
 	select SQLITE
 	select LIBBACNETCONFIG
-	select DBUS
 	select LIBCTCALLHELPER
 	select DAL
 	select LIBWAGODRM
+	select LIBXML2
 	prompt "BACnet Stack"
 	help
 	  Build the BACnet stack as a static library. This software component is the BACnet communication stack.

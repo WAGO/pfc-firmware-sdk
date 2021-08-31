@@ -33,7 +33,7 @@ class MdmDiagnostic
     MdmAccessClass get_access_class() const { return _accessClass; }
     MdmSignalQualityLevel get_signal_quality_level() const { return _sigLevel; }
 
-    void set_error_state(const MdmErrorState newErrorState);
+    bool set_error_state(const MdmErrorState newErrorState);
     void set_access_class(const MdmAccessClass newAccessClass);
     void set_signal_quality_level(const MdmSignalQualityLevel newSigLevel);
 };

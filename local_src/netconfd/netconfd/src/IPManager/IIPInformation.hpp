@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Types.hpp"
 
 namespace netconf {

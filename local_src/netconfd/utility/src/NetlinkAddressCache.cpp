@@ -53,14 +53,17 @@ class NetlinkAddressCache::Impl {
       auto rt_nl_addr =
           reinterpret_cast<rtnl_addr*>(nl_object_priv(obj));  // NOLINT: Need reinterpret_cast to cast from void*.
 
-      address_cache_impl->CallEventHandler(rt_nl_addr, change_type);
+      auto family = rtnl_addr_get_family(rt_nl_addr);
+      if (family == AF_INET) {
+        address_cache_impl->CallEventHandler(rt_nl_addr, change_type);
+      }
     } catch (::std::exception& e) {
      // LogError(e.what());
     }
   }
 
   void CallEventHandler(rtnl_addr* rtnl_addr, int change_type) {
-    if (event_handler_ == nullptr) return; // NOLINT: oneline statement, readability
+    if (event_handler_ == nullptr) return; // NOLINT: online statement, readability
 
     int if_index = rtnl_addr_get_ifindex(rtnl_addr);
 
@@ -82,6 +85,7 @@ class NetlinkAddressCache::Impl {
       auto lp = reinterpret_cast<struct param*>(p); // NOLINT: Need reinterpret_cast to cast from void*.
       if (addr == nullptr){ return; }
       if (rtnl_addr_get_ifindex(addr) != lp->if_index){ return; }
+      if (rtnl_addr_get_family(addr) != AF_INET) { return; }
 
       lp->addr = addr;
     };

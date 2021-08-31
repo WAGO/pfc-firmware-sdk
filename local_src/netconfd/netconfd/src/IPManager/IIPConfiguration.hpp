@@ -6,7 +6,7 @@ namespace netconf {
 class IIPConfiguration {
  public:
 
-  virtual Error Configure(IPConfigs const& config) const = 0;
+  virtual Status Configure(IPConfigs const& config) const = 0;
 
  private:
 };

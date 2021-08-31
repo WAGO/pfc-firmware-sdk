@@ -22,6 +22,9 @@
 # Set "1" to enable, "0" to disable
 PRINT_DEBUG=0
 
+# Set nand threshold value for warning (default 5% for firmware)
+WARNING_PERCENTAGE="${WARNING_PERCENTAGE:-5}"
+
 
 function print_debug
 {
@@ -110,10 +113,10 @@ function check_size_NAND
     if print_debug; then echo "free space difference:        $difference"; fi
 
     # integer division, error of <20 bytes possible
-    five_percent_of_target=$((${target_location_size_bytes} / 20))
-    if print_debug; then echo "5% of target size bytes:      $five_percent_of_target"; fi
+    buffer_percentage_of_target=$((${target_location_size_bytes} * ${WARNING_PERCENTAGE} / 100))
+    if print_debug; then echo "$WARNING_PERCENTAGE% of target size bytes:      $buffer_percentage_of_target"; fi
 
-    if [[ ${difference} -lt ${five_percent_of_target} ]]; then
+    if [[ ${difference} -lt ${buffer_percentage_of_target} ]]; then
       if print_debug; then echo "result: warning"; fi
       result=${NARROW_SPACE_WARNING}
     else
@@ -168,6 +171,9 @@ function main_emmc
             if (( ${partition_sizes[${index}]} * 1000 * 1000 < size_on_sd )); then
                 return "${NOT_ENOUGH_SPACE_ERROR}"
             fi
+            if (( ${partition_sizes[${index}]} * 1000 * 1000 * (100 - ${WARNING_PERCENTAGE}) / 100 < size_on_sd )); then
+                return "${NARROW_SPACE_WARNING}"
+            fi 
         fi
         index=$((index+1))
     done

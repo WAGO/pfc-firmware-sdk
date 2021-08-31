@@ -199,6 +199,10 @@ configParam+=(
   "gprs-apn;                  /etc/config-tools/settings_backup_mdmd backup gprs-apn;           /etc/config-tools/settings_backup_mdmd restore dummy "
   "gprs-connectivity;         /etc/config-tools/settings_backup_mdmd backup gprs-connectivity;  /etc/config-tools/settings_backup_mdmd restore gprs-connectivity "
   "net-selection-mode;        /etc/config-tools/settings_backup_mdmd backup net-selection-mode; /etc/config-tools/settings_backup_mdmd restore net-selection-mode " 
+
+  "inotify-max-queued-events; /etc/config-tools/config_inotify backup max_queued_events;        /etc/config-tools/config_inotify restore max_queued_events "
+  "inotify-max-user-instances;/etc/config-tools/config_inotify backup max_user_instances;       /etc/config-tools/config_inotify restore max_user_instances "
+  "inotify-max-user-watches;  /etc/config-tools/config_inotify backup max_user_watches;         /etc/config-tools/config_inotify restore max_user_watches "
   )
 
 

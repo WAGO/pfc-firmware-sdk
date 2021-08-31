@@ -1,0 +1,34 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Tue, 9 Oct 2018 11:19:37 +0200
+Subject: [PATCH] Update Installed-Size properly
+
+Convert '-' to '_' to match the variable name 'installed_size' and use the
+correct property name 'Installed-Size'.
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ opkg.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/opkg.py b/opkg.py
+index ba947c2e887b..7b7e216419a1 100644
+--- a/opkg.py
++++ b/opkg.py
+@@ -248,7 +248,7 @@ class Package(object):
+             lineparts = re.match(r'([\w-]*?):\s*(.*)', line)
+             if lineparts:
+                 name = lineparts.group(1)
+-                name_lowercase = name.lower()
++                name_lowercase = name.lower().replace('-',"_")
+                 value = lineparts.group(2)
+                 while 1:
+                     line = control.readline().rstrip()
+@@ -510,7 +510,7 @@ class Package(object):
+         if 'sha256' in checksum:
+             if self.sha256: out = out + "SHA256sum: %s\n" % (self.sha256)
+         if self.size: out = out + "Size: %d\n" % int(self.size)
+-        if self.installed_size: out = out + "InstalledSize: %d\n" % int(self.installed_size)
++        if self.installed_size: out = out + "Installed-Size: %d\n" % int(self.installed_size)
+         if self.filename: out = out + "Filename: %s\n" % (self.filename)
+         if self.source: out = out + "Source: %s\n" % (self.source)
+         if self.description: out = out + "Description: %s\n" % (self.description)

@@ -13,7 +13,7 @@
 #
 PACKAGES-$(PTXCONF_ROUTING_CONFIG) += routing-config
 
-ROUTING_CONFIG_VERSION	:= 1.0.1
+ROUTING_CONFIG_VERSION	:= 1.1.0
 
 # ----------------------------------------------------------------------------
 # Get
@@ -109,11 +109,13 @@ $(STATEDIR)/routing-config.targetinstall:
 
 # Files that should be copied to the target
 
+	@$(call install_copy, routing-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_routing_lib, /etc/config-tools/config_routing_lib);
 	@$(call install_copy, routing-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_routing, /etc/config-tools/config_routing);
+	@$(call install_copy, routing-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/init.d/validate_gateway_config, /etc/init.d/validate_gateway_config);
 	@$(call install_copy, routing-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/events/networking/update_routing, /etc/config-tools/events/networking/update_routing);
 	@$(call install_alternative, routing-config, 0, 0, 0644, /etc/specific/routing.conf);
 	@$(call install_copy, routing-config, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/backup-restore/backup_routing, /etc/config-tools/backup-restore/backup_routing);
-
+	@$(call install_link, routing-config, ../init.d/validate_gateway_config, /etc/rc.d/S12_validate_gateway_config);
 	@$(call install_finish,routing-config)
 
 	@$(call touch)

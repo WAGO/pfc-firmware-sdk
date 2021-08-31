@@ -40,7 +40,6 @@ class MacAddressAssignment {
   Mode GetMode();
 
   ::std::string GetBaseMac() const;
-  ::std::string GetIncementedMac(uint32_t inc) const;
 
  private:
 

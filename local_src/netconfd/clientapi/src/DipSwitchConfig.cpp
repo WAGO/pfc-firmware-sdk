@@ -3,7 +3,7 @@
 #include "DipSwitchConfig.hpp"
 #include "JsonConverter.hpp"
 #include "NetconfdDbusClient.hpp"
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Convert.hpp"
 #include <sstream>
 #include <string>
@@ -13,17 +13,17 @@ namespace api {
 
 using namespace std::literals;
 
-Error MakeDipSwitchConfig(const ::std::string &json_str, netconf::DipSwitchConfig &config) {
+Status MakeDipSwitchConfig(const ::std::string &json_str, netconf::DipSwitchConfig &config) {
   JsonConverter jc;
   return jc.FromJsonString(json_str, config);
 }
 
-Error MakeDipSwitchIpConfig(const ::std::string &json_str, netconf::DipSwitchIpConfig &config) {
+Status MakeDipSwitchIpConfig(const ::std::string &json_str, netconf::DipSwitchIpConfig &config) {
   JsonConverter jc;
   return jc.FromJsonString(json_str, config);
 }
 
-Error GetDipSwitchConfig(netconf::DipSwitchConfig &config) {
+Status GetDipSwitchConfig(netconf::DipSwitchConfig &config) {
 
   NetconfdDbusClient client;
   auto result = client.GetDipSwitchConfig();
@@ -38,7 +38,7 @@ Error GetDipSwitchConfig(netconf::DipSwitchConfig &config) {
 
 }
 
-Error SetDipSwitchConfig(const netconf::DipSwitchConfig &config) {
+Status SetDipSwitchConfig(const netconf::DipSwitchConfig &config) {
   NetconfdDbusClient client;
   auto error_set = client.SetDipSwitchConfig(ToJson(config));
   return error_set.error_;
@@ -47,6 +47,11 @@ Error SetDipSwitchConfig(const netconf::DipSwitchConfig &config) {
 ::std::string ToJson(const netconf::DipSwitchConfig &config) noexcept {
   JsonConverter jc;
   return jc.ToJsonString(config);
+}
+
+::std::string ToPrettyJson(const netconf::DipSwitchConfig &config) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(config, JsonFormat::PRETTY);
 }
 
 ::std::string ToString(const netconf::DipSwitchConfig &config, const char sep) noexcept {

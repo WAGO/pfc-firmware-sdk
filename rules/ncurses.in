@@ -1,0 +1,87 @@
+## SECTION=system_libraries
+menuconfig NCURSES
+	tristate
+	prompt "ncurses                       "
+	select HOST_NCURSES
+	help
+	  The ncurses libraries implement the curses API.  The panel, menu and
+	  forms libraries implement clones of the SVr4 panel, menu and forms
+	  APIs. The source code for these lives in the `ncurses', `panel',
+	  `menu', and `form' directories respectively.
+	  For a smaller library select the termcap package instead of ncurses.
+
+if NCURSES
+
+comment "build options ---"
+
+config NCURSES_WIDE_CHAR
+	bool "Enable wide char support"
+	help
+	  Build ncurses with wide-char/UTF-8 code support. This will create
+	  the wide character libraries used by some other programs to support
+	  utf8. They are backward API compatible with the non wide char libraries.
+
+config NCURSES_BACKWARD_COMPATIBLE_NON_WIDE_CHAR
+	bool "Create links for backward compatibility"
+	depends on NCURSES_WIDE_CHAR
+	help
+	  Creates links to the wide char libraries with non wide names to support
+	  applications that are externally linked against the non wide libraries.
+	  This is not required for applications built within this project.
+
+config NCURSES_BIG_CORE
+	bool "Enable the big core"
+	default y
+	help
+	  Disable this entry if your target machine has little memory.
+	  Note: Not all programs that need ncurses may run with this feature
+	  disabled.
+
+comment "install options ---"
+
+config NCURSES_TERMCAP
+	bool "install minimal set of termcap data files"
+	default y
+	help
+		Installs the following termcap files:
+		- xterm
+		- xterm-color
+		- xterm-xfree86
+		- vt100
+		- vt200
+		- ansi
+		- linux
+		- screen
+
+config NCURSES_FORM
+	bool "Install libform on the target"
+	help
+	  From the manual:
+	  If you have seen those forms on web pages which take input from users
+	  and do various kinds of things, you might be wondering how would any
+	  one create such forms in text mode display. It's quite difficult to
+	  write those nifty forms in plain ncurses. Forms library tries to provide
+	  a basic frame work to build and maintain forms with ease. It has lot
+	  of features(functions) which manage validation, dynamic expansion of
+	  fields etc..
+
+config NCURSES_MENU
+	bool "Install libmenu on the target"
+	help
+	  The menus library provides a nice extension to basic curses, through
+	  which you can create menus. It provides a set of functions to create
+	  menus. But they have to be customized to give a nicer look, with
+	  colors etc.
+
+config NCURSES_PANEL
+	bool "Install libpanel on the target"
+	help
+	  This library handles windows on the screen.
+	  From the manual:
+	  If you have lot of overlapping windows, then panels library is the way
+	  to go. It obviates the need of doing series of wnoutrefresh(),
+	  doupdate() and relieves the burden of doing it correctly(bottom up).
+	  The library maintains information about the order of windows, their
+ 	  overlapping and update the screen properly.
+
+endif

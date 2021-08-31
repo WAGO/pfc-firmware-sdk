@@ -1,0 +1,38 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Sat, 25 Jan 2020 18:28:40 +0100
+Subject: [PATCH] Revert "opkg-build: clamp mtimes to SOURCE_DATE_EPOCH"
+
+This reverts commit c3cc95693048bdd57a82069bad47abbc72a1932e.
+
+We set the mtime already in PTXdist so it's not needed and this breaks
+building with tar <= 1.28 (e.g. CentOS 7).
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ opkg-build | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/opkg-build b/opkg-build
+index 6d6f7e92b919..2fb6216104b6 100755
+--- a/opkg-build
++++ b/opkg-build
+@@ -298,18 +298,11 @@ mkdir $tmp_dir
+ 
+ build_date="${SOURCE_DATE_EPOCH:-$(date +%s)}"
+ 
+-mtime_args=""
+-# --clamp-mtime requires tar > 1.28. Only use it if SOURCE_DATE_EPOCH is set, to avoid having a generic case dependency on tar > 1.28.
+-# this setting will make sure files generated at build time have consistent mtimes, for reproducible builds.
+-if [ ! -z "$SOURCE_DATE_EPOCH"  ]; then
+-    mtime_args="--mtime=@$build_date --clamp-mtime"
+-fi
+-
+ export LANG=C
+ export LC_ALL=C
+ ( cd $pkg_dir/$CONTROL && find . -type f | sort > $tmp_dir/control_list )
+ ( cd $pkg_dir && find . -path ./$CONTROL -prune -o -path . -o -print  | sort > $tmp_dir/file_list )
+-( cd $pkg_dir && tar $ogargs $tsortargs --no-recursion $mtime_args -c $tarformat -T $tmp_dir/file_list | $compressor $compressorargs > $tmp_dir/data.tar.$cext )
++( cd $pkg_dir && tar $ogargs $tsortargs --no-recursion -c $tarformat -T $tmp_dir/file_list | $compressor $compressorargs > $tmp_dir/data.tar.$cext )
+ ( cd $pkg_dir/$CONTROL && tar $ogargs $tsortargs --no-recursion --mtime=@$build_date -c $tarformat -T $tmp_dir/control_list | gzip $zipargs > $tmp_dir/control.tar.gz )
+ rm $tmp_dir/file_list
+ rm $tmp_dir/control_list

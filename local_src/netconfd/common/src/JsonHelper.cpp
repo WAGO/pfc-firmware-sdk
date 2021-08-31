@@ -12,7 +12,7 @@
 #include "JsonKeyList.hpp"
 #include "JsonHelper.hpp"
 #include "JsonHelper.hpp"
-#include "Error.hpp"
+#include "Status.hpp"
 
 namespace netconf {
 
@@ -25,11 +25,16 @@ using boost_error = boost::system::error_code;
 constexpr auto PORT_CFG_KEY_DEVICE = "device";
 constexpr auto PORT_CFG_KEY_STATE = "state";
 constexpr auto PORT_CFG_KEY_AUTONEG = "autonegotiation";
+constexpr auto PORT_CFG_KEY_AUTONEG_SUPPORTED = "autonegsupported";
 constexpr auto PORT_CFG_KEY_SPEED = "speed";
 constexpr auto PORT_CFG_KEY_DUPLEX = "duplex";
+constexpr auto PORT_CFG_KEY_LINKSTATE = "link";
+constexpr auto PORT_CFG_KEY_MAC = "mac";
+constexpr auto PORT_CFG_KEY_SUPPORTED_LINK_MODES = "supportedlinkmodes";
 
-JsonKeyList interface_config_keys_ { PORT_CFG_KEY_DEVICE, PORT_CFG_KEY_STATE, PORT_CFG_KEY_AUTONEG, PORT_CFG_KEY_SPEED,
-    PORT_CFG_KEY_DUPLEX };
+
+JsonKeyList interface_config_keys_ { PORT_CFG_KEY_DEVICE, PORT_CFG_KEY_STATE, PORT_CFG_KEY_AUTONEG, PORT_CFG_KEY_AUTONEG_SUPPORTED, PORT_CFG_KEY_SPEED,
+    PORT_CFG_KEY_DUPLEX, PORT_CFG_KEY_LINKSTATE, PORT_CFG_KEY_MAC };
 
 json DipSwitchIpConfigToNJson(const DipSwitchIpConfig &ip_config) {
   return json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ } };
@@ -74,16 +79,14 @@ json DipSwitchConfigToNJson(const DipSwitchConfig &config) {
   return DipSwitchConfigToNJson(config).dump();
 }
 
-Error JsonToNJson(::std::string const &json_str, json &json_object) {
-
+Status JsonToNJson(::std::string const &json_str, json &json_object) {
 
   try {
 
     class throwing_sax : public nlohmann::detail::json_sax_dom_parser<nlohmann::json> {
      public:
       explicit throwing_sax(nlohmann::json &j)
-          :
-          nlohmann::detail::json_sax_dom_parser<nlohmann::json>(j) {
+          : nlohmann::detail::json_sax_dom_parser<nlohmann::json>(j) {
       }
       ;
 
@@ -98,9 +101,9 @@ Error JsonToNJson(::std::string const &json_str, json &json_object) {
     json::sax_parse(json_str, &sax_consumer);
 
   } catch (std::exception const &e) {
-    return Error{ErrorCode::JSON_CONVERT, e.what()};
+    return Status { StatusCode::JSON_CONVERT, e.what() };
   }
-  return Error::Ok();
+  return Status::Ok();
 
 }
 
@@ -120,7 +123,7 @@ Error JsonToNJson(::std::string const &json_str, json &json_object) {
   return json_string;
 }
 
-Error GetAddressFromJson(const std::string &json_field, const json &from, std::string &to) {
+Status GetAddressFromJson(const std::string &json_field, const json &from, std::string &to) {
 
   try {
     auto iter = from.find(json_field);
@@ -130,32 +133,32 @@ Error GetAddressFromJson(const std::string &json_field, const json &from, std::s
       boost_error error_code;
       boost_address::from_string(to, error_code);
       if (error_code) {
-        return Error{ErrorCode::IPV4_FORMAT, ::std::to_string(error_code.value())};
+        return Status { StatusCode::IPV4_FORMAT, ::std::to_string(error_code.value()) };
       }
     }
 
   } catch (std::exception const &e) {
     to.clear();
-    return Error{ErrorCode::JSON_CONVERT, e.what()};
+    return Status { StatusCode::JSON_CONVERT, e.what() };
   } catch (...) {
     to.clear();
-    return Error{ErrorCode::JSON_CONVERT, "General JSON error"};
+    return Status { StatusCode::JSON_CONVERT, "General JSON error" };
   }
 
-  return Error::Ok();
+  return Status::Ok();
 
 }
 
-Error NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config) {
-  Error status;
+Status NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config) {
+  Status status;
 
   for (const auto &bridge_cfg_json : json_object.items()) {
     auto bridge_cfg_pair = std::make_pair<Bridge, Interfaces>(bridge_cfg_json.key(), bridge_cfg_json.value());  // NOLINT: Need to express types in make_pair to get it working.
 
     if (bridge_cfg_pair.first.empty()) {
-      status.Set(ErrorCode::NAME_EMPTY);
+      status.Set(StatusCode::NAME_EMPTY);
     } else if (bridge_config.count(bridge_cfg_pair.first) > 0) {
-      status.Set(ErrorCode::ENTRY_DUPLICATE, bridge_cfg_pair.first);
+      status.Set(StatusCode::ENTRY_DUPLICATE, bridge_cfg_pair.first);
     }
 
     if (status.IsNotOk()) {
@@ -168,8 +171,8 @@ Error NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config) 
   return status;
 }
 
-Error NJsonToDipIPConfig(const nlohmann::json &json_object, DipSwitchIpConfig &ip_config) {
-  Error status;
+Status NJsonToDipIPConfig(const nlohmann::json &json_object, DipSwitchIpConfig &ip_config) {
+  Status status;
 
   status = GetAddressFromJson("ipaddr", json_object, ip_config.address_);
 
@@ -180,7 +183,7 @@ Error NJsonToDipIPConfig(const nlohmann::json &json_object, DipSwitchIpConfig &i
   return status;
 }
 
-Error JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &out_obj) {
+Status JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &out_obj) {
   json json_object;
   auto status = JsonToNJson(json_string, json_object);
   if (status.IsOk()) {
@@ -199,21 +202,21 @@ Error JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &o
   return status;
 }
 
-Error NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs) {
+Status NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs) {
 
   try {
     auto items = json_object.items();
     ::std::transform(items.begin(), items.end(), ::std::back_inserter(ip_configs), parse_ip_config);
   } catch (std::exception const &e) {
-    return Error{ErrorCode::JSON_CONVERT, e.what()};
+    return Status { StatusCode::JSON_CONVERT, e.what() };
   } catch (...) {
-    return Error{ErrorCode::JSON_CONVERT, "General JSON error"};
+    return Status { StatusCode::JSON_CONVERT, "General JSON error" };
   }
 
-  return Error::Ok();
+  return Status::Ok();
 }
 
-json InterfaceConfigToNJson(const InterfaceConfig &interface_config) {
+static json InterfaceBaseToNJson(const InterfaceBase &interface_config) {
   json j;
 
   j[PORT_CFG_KEY_DEVICE] = interface_config.device_name_;
@@ -233,6 +236,23 @@ json InterfaceConfigToNJson(const InterfaceConfig &interface_config) {
   if (interface_config.duplex_ != Duplex::UNKNOWN) {
     j[PORT_CFG_KEY_DUPLEX] = interface_config.duplex_;
   }
+  return j;
+}
+
+json InterfaceConfigToNJson(const InterfaceConfig &interface_config) {
+  return InterfaceBaseToNJson(interface_config);
+}
+
+json InterfaceStatusToNJson(const InterfaceStatus &interface_status) {
+
+  json j = InterfaceBaseToNJson(interface_status);
+
+  if (interface_status.link_state_ != LinkState::UNKNOWN) {
+    j[PORT_CFG_KEY_LINKSTATE] = interface_status.link_state_;
+  }
+
+  j[PORT_CFG_KEY_MAC] = interface_status.mac_.ToString();
+
   return j;
 }
 
@@ -277,9 +297,21 @@ json InterfaceConfigsToNJson(const InterfaceConfigs &interface_configs, const Fi
   return interface_configs.size() == 1 ? InterfaceConfigToNJson(interface_configs.at(0)) : nlohmann::json( { });
 }
 
-InterfaceConfig InterfaceConfigFromJson(const json &config) {
+json InterfaceStatusesToNJson(const InterfaceStatuses &interface_status) {
 
-  InterfaceConfig p { config.at(PORT_CFG_KEY_DEVICE).get<::std::string>() };
+  if (interface_status.size() > 1) {
+    nlohmann::json jarray { };
+    for (const auto &config : interface_status) {
+      jarray.push_back(InterfaceStatusToNJson(config));
+    }
+    return jarray;
+  }
+
+  return interface_status.size() == 1 ? InterfaceStatusToNJson(interface_status.at(0)) : nlohmann::json( { });
+}
+
+static InterfaceBase InterfaceBaseFromJson(const json &config) {
+  InterfaceBase p { config.at(PORT_CFG_KEY_DEVICE).get<::std::string>() };
 
   auto autoneg_opt = config.find(PORT_CFG_KEY_AUTONEG) != config.end();
   if (autoneg_opt) {
@@ -303,52 +335,153 @@ InterfaceConfig InterfaceConfigFromJson(const json &config) {
   return p;
 }
 
-Error NJsonToInterfaceConfigs(const nlohmann::json &json_object, InterfaceConfigs &interface_configs) {
+InterfaceConfig InterfaceConfigFromJson(const json &config) {
+
+  InterfaceConfig p { ::std::move(InterfaceBaseFromJson(config)) };
+  return p;
+}
+
+InterfaceStatus InterfaceStatusFromJson(const json &config) {
+
+  InterfaceStatus p { ::std::move(InterfaceBaseFromJson(config)) };
+
+  auto link_opt = config.find(PORT_CFG_KEY_LINKSTATE) != config.end();
+  if (link_opt) {
+    p.link_state_ = config.at(PORT_CFG_KEY_LINKSTATE).get<LinkState>();
+  }
+
+  auto mac_opt = config.find(PORT_CFG_KEY_MAC) != config.end();
+  if (mac_opt) {
+    auto mac = config.at(PORT_CFG_KEY_MAC).get<::std::string>();
+    p.mac_ = MacAddress::FromString(mac);
+  }
+
+  return p;
+}
+
+Status NJsonToInterfaceConfigs(const nlohmann::json &json_object, InterfaceConfigs &interface_configs) {
   if (json_object.empty()) {
-    return Error { ErrorCode::JSON_INCOMPLETE};
+    return Status { StatusCode::JSON_INCOMPLETE };
   }
   if (json_object.is_array()) {
     for (auto &jentry : json_object) {
       if (!interface_config_keys_.matchesJsonObject(jentry)) {
-        return Error { ErrorCode::JSON_INCOMPLETE};
+        return Status { StatusCode::JSON_INCOMPLETE };
       }
       interface_configs.push_back(InterfaceConfigFromJson(jentry));
     }
   } else {
     if (!interface_config_keys_.matchesJsonObject(json_object)) {
-      return Error { ErrorCode::JSON_INCOMPLETE};
+      return Status { StatusCode::JSON_INCOMPLETE };
     }
     interface_configs.push_back(InterfaceConfigFromJson(json_object));
   }
-  return Error::Ok();
+  return Status::Ok();
+}
+
+Status NJsonToInterfaceStatuses(const nlohmann::json &json_object, InterfaceStatuses &interface_statuses) {
+  if (json_object.empty()) {
+    return Status { StatusCode::JSON_INCOMPLETE };
+  }
+  if (json_object.is_array()) {
+    for (auto &jentry : json_object) {
+      if (!interface_config_keys_.matchesJsonObject(jentry)) {
+        return Status { StatusCode::JSON_INCOMPLETE };
+      }
+      interface_statuses.push_back(InterfaceStatusFromJson(jentry));
+    }
+  } else {
+    if (!interface_config_keys_.matchesJsonObject(json_object)) {
+      return Status { StatusCode::JSON_INCOMPLETE };
+    }
+    interface_statuses.push_back(InterfaceStatusFromJson(json_object));
+  }
+  return Status::Ok();
+}
+
+static json LinkModesToNJson(const LinkModes &link_modes) {
+  json array;
+  for (auto link_mode : link_modes) {
+
+    json j;
+    if (link_mode.speed_ > 0) {
+      j[PORT_CFG_KEY_SPEED] = link_mode.speed_;
+    }
+    if (link_mode.duplex_ != Duplex::UNKNOWN) {
+      j[PORT_CFG_KEY_DUPLEX] = link_mode.duplex_;
+    }
+
+    array.push_back(j);
+  }
+  return array;
 }
 
 json InterfaceInformationToNJson(const InterfaceInformation &obj) {
-  return json { { "name", obj.GetInterfaceName() }, { "label", obj.GetInterfaceLabel() }, { "type", obj.GetType() }, {
-      "ip-ro", obj.IsIpConfigurationReadonly() } };
+  json j { { "name", obj.GetInterfaceName() }, { "label", obj.GetInterfaceLabel() }, { "type", obj.GetType() }, {
+      "ipreadonly", obj.IsIpConfigurationReadonly() } };
+
+  if(obj.GetAutonegSupported() != AutonegotiationSupported::UNKNOWN){
+    j[PORT_CFG_KEY_AUTONEG_SUPPORTED] = obj.GetAutonegSupported();
+  }
+
+  auto link_modes = obj.GetSupportedlinkModes();
+  if (!link_modes.empty()) {
+    j[PORT_CFG_KEY_SUPPORTED_LINK_MODES] = LinkModesToNJson(link_modes);
+  }
+  return j;
 }
 
-Error NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information) {
+static void parse_link_modes(const json &json_object, LinkModes &link_modes) {
+
+  if (json_object.find(PORT_CFG_KEY_SUPPORTED_LINK_MODES) != json_object.end()) {
+    for (auto &link_mode : json_object[PORT_CFG_KEY_SUPPORTED_LINK_MODES]) {
+
+      LinkMode lm;
+      auto duplex_opt = link_mode.find(PORT_CFG_KEY_DUPLEX) != link_mode.end();
+      if (duplex_opt) {
+        lm.duplex_ = link_mode.at(PORT_CFG_KEY_DUPLEX).get<Duplex>();
+      }
+
+      auto speed_opt = link_mode.find(PORT_CFG_KEY_SPEED) != link_mode.end();
+      if (speed_opt) {
+        lm.speed_ = link_mode.at(PORT_CFG_KEY_SPEED).get<int>();
+      }
+
+      link_modes.emplace_back(lm);
+    }
+  }
+
+}
+
+Status NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information) {
   ::std::string name;
   ::std::string label;
   DeviceType type = DeviceType::Other;
   bool ip_config_ro = true;
-  Error error = get_to_or_error("name", json_object, name);
-  if (error.IsOk()) {
-    error = get_to_or_error("label", json_object, label);
+  AutonegotiationSupported autoneg_supported = AutonegotiationSupported::UNKNOWN;
+  LinkModes link_modes { };
+  Status status = get_to_or_error("name", json_object, name);
+  if (status.IsOk()) {
+    status = get_to_or_error("label", json_object, label);
   }
-  if (error.IsOk()) {
-    error = get_to_or_error("type", json_object, type);
+  if (status.IsOk()) {
+    status = get_to_or_error("type", json_object, type);
   }
-  if (error.IsOk()) {
-    error = get_to_or_error("ip-ro", json_object, ip_config_ro);
+  if (status.IsOk()) {
+    status = get_to_or_error("ipreadonly", json_object, ip_config_ro);
+  }
+  if (status.IsOk()) {
+    get_to_if_exists(PORT_CFG_KEY_AUTONEG_SUPPORTED, json_object, autoneg_supported);
+  }
+  if (status.IsOk()) {
+    parse_link_modes(json_object, link_modes);
   }
 
-  if (error.IsOk()) {
-    interface_information = InterfaceInformation { name, label, type, ip_config_ro };
+  if (status.IsOk()) {
+    interface_information = InterfaceInformation { name, label, type, ip_config_ro, autoneg_supported, link_modes };
   }
 
-  return error;
+  return status;
 }
 
 }

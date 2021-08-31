@@ -2,8 +2,6 @@
 #
 # Copyright (C) 2016 by Andreas Geisenhainer <andreas.geisenhainer@atsonline.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -16,22 +14,20 @@ PACKAGES-$(PTXCONF_LIBNFTNL) += libnftnl
 #
 # Paths and names
 #
-LIBNFTNL_VERSION	:= 1.0.9
-LIBNFTNL_MD5	:= 6c4f392faab5745933553b4354be5d8d
+LIBNFTNL_VERSION	:= 1.1.3
+LIBNFTNL_MD5		:= e2a7af0a85c283b2cc837c09635b6bca
 LIBNFTNL		:= libnftnl-$(LIBNFTNL_VERSION)
-LIBNFTNL_SUFFIX	:= tar.bz2
+LIBNFTNL_SUFFIX		:= tar.bz2
 LIBNFTNL_URL		:= http://ftp.netfilter.org/pub/libnftnl/$(LIBNFTNL).$(LIBNFTNL_SUFFIX)
-LIBNFTNL_SOURCE	:= $(SRCDIR)/$(LIBNFTNL).$(LIBNFTNL_SUFFIX)
+LIBNFTNL_SOURCE		:= $(SRCDIR)/$(LIBNFTNL).$(LIBNFTNL_SUFFIX)
 LIBNFTNL_DIR		:= $(BUILDDIR)/$(LIBNFTNL)
-LIBNFTNL_LICENSE	:= GPL-2.0-only
+LIBNFTNL_LICENSE	:= GPL-2.0-only AND GPL-2.0-or-later
+LIBNFTNL_LICENSE_FILES	:= file://COPYING;md5=79808397c3355f163c012616125c9e26
 
 #
 # autoconf
 #
 LIBNFTNL_CONF_TOOL	:= autoconf
-LIBNFTNL_CONF_OPT	:= \
-	$(CROSS_AUTOCONF_USR) \
-	--$(call ptx/wwo, PTXCONF_LIBNFTNL_JSON)-json-parsing
 
 # ----------------------------------------------------------------------------
 # Target-Install

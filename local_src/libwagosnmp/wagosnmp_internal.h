@@ -10,7 +10,7 @@
 ///
 ///  \file     wagosnmp_internal.h
 ///
-///  \version  $Revision: 16684 $
+///  \version  $Revision: 54119 $
 ///
 ///  \brief    <Insert description here>
 ///
@@ -178,6 +178,11 @@ INTERNAL_SYM void AGENT_SetOidObjectValue(tOidObject* pObj,netsnmp_variable_list
 INTERNAL_SYM tWagoSnmpReturnCode AGENT_CreateNewOidObject(oid * anOID,
                                                           size_t anOID_len,
                                                           netsnmp_variable_list * stData,uint8_t readOnly);
+
+/* libnetsnmp */
+
+INTERNAL_SYM void SNMP_MutexLock(void);
+INTERNAL_SYM void SNMP_MutexUnlock(void);
 
 
 

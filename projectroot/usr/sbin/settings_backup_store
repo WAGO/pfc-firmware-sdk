@@ -192,6 +192,16 @@ createBackupFile()
     SaveBackupValue "dns-fixhosts" "${fixhosts}" "$backupFile"
 
     #-------------------------------------------------------------
+    # save snmp user definitions
+
+    USE_USER_DEFINED_DEVICE_NAME=no
+    USE_USER_DEFINED_DESCRIPTION=no
+    [[ -e "$SNMP_USER_DEFINES_FILE" ]] && . "$SNMP_USER_DEFINES_FILE"
+
+    SaveBackupValue "snmp-use-user-defined-device-name" "$USE_USER_DEFINED_DEVICE_NAME" "$backupFile"
+    SaveBackupValue "snmp-use-user-defined-description" "$USE_USER_DEFINED_DESCRIPTION" "$backupFile"
+
+    #-------------------------------------------------------------
     # save snmp v1/v2c trap configs
     trapReceiverNo=1
     address=`/etc/config-tools/get_snmp_data v1-v2c-trap-receiver-address $trapReceiverNo`
@@ -217,7 +227,7 @@ createBackupFile()
       authType=`/etc/config-tools/get_snmp_data v3-auth-type $userNo`
       ProcessErrBackupOperation $? " v3-auth-name for userNo:" $userNo
       authKey=`/etc/config-tools/get_snmp_data v3-auth-key $userNo`
-      ProcessErrBackupOperation $?"v3-auth-key  for userNo:" $userNo
+      ProcessErrBackupOperation $? "v3-auth-key for userNo:" $userNo
       privacy=`/etc/config-tools/get_snmp_data v3-privacy $userNo`
       ProcessErrBackupOperation $? "v3-privacy for userNo:" $userNo
       privacyKey=`/etc/config-tools/get_snmp_data v3-privacy-key $userNo`
@@ -279,11 +289,19 @@ createBackupFile()
         /usr/sbin/settings_backup_checksys backup >> "$backupFile"
         ProcessErrBackupOperation $? "Failed to backup Check-System settings"
     else 
-        ReportError $INTERNAL_ERROR "Invalid Check-System config tool /usr/sbin/settings_backup_checksys backup"
+        ReportError $INTERNAL_ERROR "Invalid Check-System config tool /usr/sbin/settings_backup_checksys"
         backup_error_count=$((backup_error_count+1))
     fi
     
-
+    # backup Docker-Daemon settings
+    if [[ -x /usr/sbin/settings_backup_docker ]]; then
+        /usr/sbin/settings_backup_docker backup >> "$backupFile"
+        ProcessErrBackupOperation $? "Failed to backup Docker-Daemon settings"
+    else 
+        ReportError $INTERNAL_ERROR "Invalid Docker-Deaemon config tool /usr/sbin/settings_backup_docker"
+        backup_error_count=$((backup_error_count+1))
+    fi
+    
     # Save parameters of modular backup scripts
     for file in "$BACKUP_RESTORE_SCRIPT_DIR/"*; do
         if [[ -x $file ]]; then

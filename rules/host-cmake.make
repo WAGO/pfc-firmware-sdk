@@ -46,7 +46,7 @@ HOST_CMAKE_CONF_OPT	:= \
 	$(HOST_AUTOCONF) \
 	-- \
 	-DBUILD_TESTING=NO \
-	-DCMAKE_USE_OPENSSL=NO
+	-DCMAKE_USE_OPENSSL=YES
 
 
 $(STATEDIR)/host-cmake.install.post: \

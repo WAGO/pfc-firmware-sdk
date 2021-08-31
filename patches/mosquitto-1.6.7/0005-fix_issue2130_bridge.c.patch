@@ -1,0 +1,11 @@
+Fix for issue https://github.com/eclipse/mosquitto/issues/2130
+--- mosquitto-1.6.7/src/bridge.c
++++ mosquitto-1.6.7/src/bridge.c
+@@ -90,6 +90,7 @@
+ 	new_context->tls_alpn = new_context->bridge->tls_alpn;
+ 	new_context->tls_engine = db->config->default_listener.tls_engine;
+ 	new_context->tls_keyform = db->config->default_listener.tls_keyform;
++	new_context->ssl_ctx_defaults = true;
+ #ifdef FINAL_WITH_TLS_PSK
+ 	new_context->tls_psk_identity = new_context->bridge->tls_psk_identity;
+ 	new_context->tls_psk = new_context->bridge->tls_psk;

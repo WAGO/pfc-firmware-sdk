@@ -11,7 +11,7 @@
 ///
 ///  \file     get_clock_data.c
 ///
-///  \version  $Revision: 52155 $1
+///  \version  $Revision: 55301 $1
 ///
 ///  \brief    
 ///
@@ -171,7 +171,7 @@ static tstTimezoneStringAssign astTimezoneStringAssign[] =
   { "MST7MDT,M3.2.0,M11.1.0",       "MST/MDT: Mountain Standard Time, Denver, Edmonton" },
   { "PST8DPT,M3.2.0,M11.1.0",       "PST/PDT: Pacific Standard Time, Los Angeles, Whitehorse" },
   { "GMT0BST,M3.5.0/1,M10.5.0",     "GTM/BST: Greenwich Main Time, GB, P, IRL, IS, ..." },
-  { "CET-1CEST,M3.5.0/2,M10.5.0/3", "CET/CEST: Central European Time, B, DK, D, F, I, CRO, NL, ..." },
+  { "CET-1CEST,M3.5.0,M10.5.0/3", "CET/CEST: Central European Time, B, DK, D, F, I, CRO, NL, ..." },
   { "EET-2EEST,M3.5.0/3,M10.5.0/4", "EET/EEST: East European Time, BUL, FI, GR, TR, ..." },
   { "CST-8",                        "CST: China Standard Time" },
   { "JST-9",                        "JST: Japan / Korea Standard Time" },
@@ -734,7 +734,7 @@ int GetTimezonePlainStringByNr(char* pNrString,
   {
     int i;
     FILE * fp;
-    fp = fopen("/usr/share/zoneinfo/zoneinfos","r");
+    fp = fopen("/usr/share/zoneinfo/allzones","r");
     status = NOT_FOUND;
     if(fp != NULL)
     {
@@ -818,7 +818,7 @@ int GetActualTimezonePlainString(char* pAdditionalParam,
     }
 #else
     FILE *fp;
-    fp = fopen("/usr/share/zoneinfo/zoneinfos","r");
+    fp = fopen("/usr/share/zoneinfo/allzones","r");
     if(fp != NULL)
     {
       long int fileSize;

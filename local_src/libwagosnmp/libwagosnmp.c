@@ -240,10 +240,12 @@ PUBLIC_SYM tWagoSnmpReturnCode libwagosnmp_StrToTlv (char              * str,
     case ASN_PRIV_EXCL_RANGE:
     {
       size_t anOID_len = MAX_OID_LEN;
+      SNMP_MutexLock();
       if (!snmp_parse_oid(str, anOID, &anOID_len))
       {
         ret = WAGOSNMP_RETURN_BAD_STR_VALUE;
       }
+      SNMP_MutexUnlock();
       str_val = (u_char*)anOID;
       val_len = anOID_len * (sizeof(oid));
       break;
@@ -454,15 +456,11 @@ PUBLIC_SYM tWagoSnmpReturnCode libwagosnmp_SendTrap(char * sEnterprise,
   netsnmp_variable_list * stData = (netsnmp_variable_list*)stTlvData;
   tWagoSnmpMsg trap;
 
-  /*if(specific_type < 25 && trap_type == 6)
-  {
-    return WAGOSNMP_RETURN_ERROR_PARAMETER;
-  }*/
-
   INIT_SNMP_ONCE;
-
   trap.enterprise_length = MAX_OID_LEN;
+  SNMP_MutexLock();
   if (!snmp_parse_oid(sEnterprise, trap.enterprise, &trap.enterprise_length)) {
+    SNMP_MutexUnlock();
     snmp_perror(sEnterprise);
     return WAGOSNMP_RETURN_PARSE_OID_ERROR;
   }
@@ -473,9 +471,11 @@ PUBLIC_SYM tWagoSnmpReturnCode libwagosnmp_SendTrap(char * sEnterprise,
 
   trap.variable.sOID_length = MAX_OID_LEN;
   if (!snmp_parse_oid(sOID, trap.variable.sOID, &trap.variable.sOID_length)) {
+      SNMP_MutexUnlock();
       snmp_perror(sOID);
     return WAGOSNMP_RETURN_PARSE_OID_ERROR;
   }
+  SNMP_MutexUnlock();
   ret=INTERNAL_ConvertTlvToTrapVar(&trap.variable,stData);
   }
   else
@@ -551,10 +551,13 @@ PUBLIC_SYM tWagoSnmpReturnCode libwagosnmp_SendTrapToAdrV1( char                
      return WAGOSNMP_RETURN_ERR_MALLOC;
    }
    entOID_length = MAX_OID_LEN;
+   SNMP_MutexLock();
    if (!snmp_parse_oid(sEnterprise, entOID, &entOID_length)) {
+     SNMP_MutexUnlock();
      snmp_perror(sEnterprise);
      return WAGOSNMP_RETURN_PARSE_OID_ERROR;
    }
+   SNMP_MutexUnlock();
    pdu->enterprise = (oid *) malloc(entOID_length * sizeof(oid));
    memcpy(pdu->enterprise, entOID, entOID_length * sizeof(oid));
    pdu->enterprise_length = entOID_length;
@@ -723,12 +726,15 @@ PUBLIC_SYM tWagoSnmpReturnCode libwagosnmp_RegisterCustomOid(char * sOID,tWagoSn
 
   INIT_SNMP_AGENT_ONCE;
   INTERNAL_ReTwist(stData);
+  SNMP_MutexLock();
   if (!snmp_parse_oid(sOID, anOID, &anOID_len))
-//  if (!read_objid(sOID, anOID, &anOID_len))
   {
+    SNMP_MutexUnlock();
     snmp_perror(sOID);
     return WAGOSNMP_RETURN_PARSE_OID_ERROR;
   }
+  SNMP_MutexUnlock();
+
   if(AGENT_GetOidObject(anOID,anOID_len) == NULL)
   {
     result = AGENT_CreateNewOidObject(anOID,anOID_len,stData,readOnly);
@@ -750,11 +756,14 @@ PUBLIC_SYM tWagoSnmpReturnCode libwagosnmp_GetCustomOid(char * sOID,tWagoSnmpTlv
   tOidObject * object = NULL;
 
   INIT_SNMP_AGENT_ONCE;
+  SNMP_MutexLock();
   if (!snmp_parse_oid(sOID, anOID, &anOID_len))
   {
+    SNMP_MutexUnlock();
     snmp_perror(sOID);
     return WAGOSNMP_RETURN_PARSE_OID_ERROR;
   }
+  SNMP_MutexUnlock();
 
   INTERNAL_ReTwist(stData);
   AGENT_MutexLock();
@@ -791,11 +800,14 @@ PUBLIC_SYM tWagoSnmpReturnCode libwagosnmp_SetCustomOid(char * sOID,tWagoSnmpTlv
   }
 
   INIT_SNMP_AGENT_ONCE;
+  SNMP_MutexLock();
   if (!snmp_parse_oid(sOID, anOID, &anOID_len))
   {
+    SNMP_MutexUnlock();
     snmp_perror(sOID);
     return WAGOSNMP_RETURN_PARSE_OID_ERROR;
   }
+  SNMP_MutexUnlock();
 
   INTERNAL_ReTwist(stData);
   AGENT_MutexLock();

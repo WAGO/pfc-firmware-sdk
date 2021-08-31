@@ -182,6 +182,7 @@ void ct_libnet_print_port_mirror_args(void);
 int ct_libnet_set_rate_limit(const char *dev, const char *value);
 int ct_libnet_get_rate_limit(const char *dev, char *value, size_t valueLen);
 void ct_libnet_print_rate_limit_args(void);
+const char * ct_libnet_get_rate_limit_by_index (size_t value);
 
 int ct_libnet_set_fast_aging(const char *dev, const char *value);
 int ct_libnet_get_fast_aging(const char *dev, char *value, size_t valueLen);

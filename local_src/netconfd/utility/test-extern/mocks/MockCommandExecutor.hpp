@@ -9,8 +9,8 @@ namespace netconf {
 
 class MockCommandExecutor : public CommandExecutor {
  public:
-  MOCK_CONST_METHOD1(Execute, Error(::std::string const&) );
-  MOCK_CONST_METHOD2(Execute, Error(::std::string const&, ::std::string &) );
+  MOCK_CONST_METHOD1(Execute, Status(::std::string const&) );
+  MOCK_CONST_METHOD2(Execute, Status(::std::string const&, ::std::string &) );
 };
 
 } // namespace netconf

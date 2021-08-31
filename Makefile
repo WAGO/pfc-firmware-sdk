@@ -5,7 +5,7 @@
 #
 # This file is part of WAGO PFC BSP.
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2021 WAGO Kontakttechnik GmbH & Co. KG
 #
 # Contributors:
 #   PEn: WAGO Kontakttechnik GmbH & Co. KG
@@ -24,6 +24,7 @@ BUILDTYPE ?= development
 IMAGE_DIR ?= $(PLATFORMDIR)/images
 OUT_DIR ?= $(IMAGE_DIR)
 PLATFORM ?= $(shell echo $(PTXCONF_PLATFORM))
+SELECTED_PTXCONFIG ?= $(shell basename `readlink selected_ptxconfig`)
 SD_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_SD)$(PTXCONF_IMAGE_SRC_SD)" | grep --only-matching y)
 ifeq ($(PLATFORM),wago-pfc-adv)
 PRODUCTION_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_PRODUCTION)")
@@ -53,13 +54,19 @@ FIRMWARE_SVNREVISION := $(shell cat $(TARGETROOT)/etc/SVNREVISION | head -n1 | c
 
 # Map platform/project names to more user friendly target names
 ifeq ($(PLATFORM),wago-pfcXXX)
+ifeq ($(SELECTED_PTXCONFIG),ptxconfig_pfc_g2)
+FIRMWARE_PLATFORM ?= PFC-G2-Linux
+else
 FIRMWARE_PLATFORM ?= PFC-Linux
+endif
 else ifeq ($(PLATFORM),wago-pfc-adv)
 FIRMWARE_PLATFORM ?= PFC_ADV-Linux
 else ifeq ($(PLATFORM),wago-pfcXXX-hardened)
-FIRMWARE_PLATFORM ?= PFC-Linux
+FIRMWARE_PLATFORM ?= PFC_Hardened-Linux
 else ifeq ($(PLATFORM),vtp-ctp)
 FIRMWARE_PLATFORM ?= TP-Linux
+else ifeq ($(PLATFORM),cc100)
+FIRMWARE_PLATFORM ?= CC100-Linux
 else
 FIRMWARE_PLATFORM ?= $(PLATFORM)_$(PROJECT)
 endif
@@ -103,6 +110,9 @@ RAUC_KEYRING ?= $(shell echo $(PTXCONF_RAUC_DEVELOPMENT_KEYRING))
 RAUC_CMD ?= $(PLATFORMDIR)/build-host/$(RAUC_HOST_FOLDER)/rauc
 RAUC_DISTINCT_KEYRING = $(RAUC_CERTIFICATE)
 
+# Lazy packages to build
+ADDITIONAL_PACKAGES ?= $(shell ptxdist print LAZY_PACKAGES-y | sed 's/host-[^ ]*//g' | sed 's/cross-[^ ]*//g')
+
 # Downgrade images
 DOWNGRADE_IMAGES += $(OUT_DIR)/sd-downgrade-firmware-02-pfc200_$(IMAGE_ID).img
 DOWNGRADE_IMAGES += $(OUT_DIR)/sd-downgrade-firmware-03-pfc200_$(IMAGE_ID).img
@@ -120,9 +130,7 @@ else
 PRODUCTION_IMAGES += $(OUT_DIR)/production_$(IMAGE_ID).zip
 endif
 
-ifeq ($(BUILDTYPE),release)
 PRODUCTION_IMAGES += $(OUT_DIR)/vmlinux_$(IMAGE_ID)
-endif
 
 # Firmware description files
 FW_DESC_FILES += $(OUT_DIR)/SVNREVISION
@@ -156,12 +164,21 @@ DIST_TARGETS += $(ROOT_DEBUG_ARCHIVE)
 endif
 
 
+.PHONY: default
+default: dist
+
+
+# Module includes
+#######################################################################################################################
+-include wago_parameter_service_model_files.mk
+
+
 # Main targets
 #######################################################################################################################
-.PHONY: dist distclean sdcard wup updatefile updatepack production_images downgrade_images fw_desc_files
+.PHONY: dist distclean sdcard wup updatefile updatepack production_images downgrade_images additional_packages fw_desc_files
 
 
-dist: $(DIST_TARGETS)
+dist: $(DIST_TARGETS) additional_packages
 
 sdcard: $(SD_IMAGE)
 
@@ -174,6 +191,9 @@ production_images: $(PRODUCTION_IMAGES)
 downgrade_images: $(DOWNGRADE_IMAGES)
 
 fw_desc_files: $(FW_DESC_FILES)
+
+additional_packages:
+	ptxdist targetinstall $(ADDITIONAL_PACKAGES)
 
 distclean:
 	   rm -f $(DIST_TARGETS) \
@@ -192,7 +212,7 @@ distclean:
 # Changes to this target have to be sync-ed with Jenkins Shared Library.
 # Please contact DevTools group for details.
 $(OUT_DIR)/ptxdist.images.stage:
-	touch $@
+	echo "This file must not be empty because of Artifactory!" > $@
 
 $(OUT_DIR)/%: $(TARGETROOT)/etc/% | $(OUT_DIR)
 	@echo "Extract from target root directory: $<"
@@ -257,7 +277,7 @@ $(WUP_CONTROLFILE): $(WUP_CONTROLFILE_SCHEMA) $(WUP_CONTROLFILE_GENERATOR) $(RAU
 	                                $(FIRMWARE_REVISION_BUGFIX)\
 	                                $(FIRMWARE_RELEASE_INDEX)\
 	                                $(RAUC_UPDATEFILE)\
-	                                $(PLATFORM)\
+	                                $(FIRMWARE_PLATFORM)\
 	&& $(XMLSTARLET) validate --xsd $< $@
 
 $(OUT_DIR):

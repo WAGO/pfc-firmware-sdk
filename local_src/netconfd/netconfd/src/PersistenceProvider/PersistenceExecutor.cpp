@@ -36,8 +36,8 @@ PersistenceExecutor::PersistenceExecutor(const ::std::string &persistence_path, 
   UpdateInterfacesXml();
 }
 
-Error PersistenceExecutor::UpdateNetconfdJson() const {
-  Error status;
+Status PersistenceExecutor::UpdateNetconfdJson() const {
+  Status status;
   ::std::string json_str;
   if (status.IsOk()) {
     if (dip_switch_.GetMode() == DipSwitchMode::HW_NOT_AVAILABLE || current_dip_switch_config_.IsIncomplete()) {
@@ -65,23 +65,23 @@ void PersistenceExecutor::UpdateInterfacesXml() const {
   }
 }
 
-Error PersistenceExecutor::Write(const BridgeConfig &config) {
+Status PersistenceExecutor::Write(const BridgeConfig &config) {
   if (current_bridge_config_ == config) {
-    return Error();
+    return Status();
   }
 
   current_bridge_config_ = config;
 
-  Error status = UpdateNetconfdJson();
+  Status status = UpdateNetconfdJson();
 
   UpdateInterfacesXml();
 
   return status;
 }
 
-Error PersistenceExecutor::ReadNetconfdJson() {
+Status PersistenceExecutor::ReadNetconfdJson() {
   ::std::string json;
-  Error status = file_editor_.Read(persistence_path_, json);
+  Status status = file_editor_.Read(persistence_path_, json);
 
   if (status.IsOk()) {
     current_bridge_config_.clear();
@@ -100,67 +100,67 @@ Error PersistenceExecutor::ReadNetconfdJson() {
   return status;
 }
 
-Error PersistenceExecutor::Read(BridgeConfig &config) {
+Status PersistenceExecutor::Read(BridgeConfig &config) {
   config = current_bridge_config_;
   if (current_bridge_config_.empty()) {
-    return Error { ErrorCode::PERSISTENCE_READ};
+    return Status { StatusCode::PERSISTENCE_READ};
   }
-  return Error { };
+  return Status { };
 }
 
-Error PersistenceExecutor::Read(BridgeConfig &config, IPConfigs &configs) {
+Status PersistenceExecutor::Read(BridgeConfig &config, IPConfigs &configs) {
   config = current_bridge_config_;
   configs = current_ip_configs_;
 
   if (current_bridge_config_.empty() || current_ip_configs_.empty()) {
-    return Error { ErrorCode::PERSISTENCE_READ};
+    return Status { StatusCode::PERSISTENCE_READ};
   }
 
-  return Error { };
+  return Status { };
 }
 
-Error PersistenceExecutor::Read(DipSwitchIpConfig &config) {
+Status PersistenceExecutor::Read(DipSwitchIpConfig &config) {
   config = current_dip_switch_config_;
   if (current_dip_switch_config_.IsIncomplete()) {
-    return Error { ErrorCode::PERSISTENCE_READ};
+    return Status { StatusCode::PERSISTENCE_READ};
   }
-  return Error { };
+  return Status { };
 }
 
-Error PersistenceExecutor::Read(IPConfigs &configs) {
+Status PersistenceExecutor::Read(IPConfigs &configs) {
   configs = current_ip_configs_;
 
   if (current_ip_configs_.empty()) {
-    return Error { ErrorCode::PERSISTENCE_READ};
+    return Status { StatusCode::PERSISTENCE_READ};
   }
-  return Error { };
+  return Status { };
 }
 
-Error PersistenceExecutor::Write(const DipSwitchIpConfig &config) {
+Status PersistenceExecutor::Write(const DipSwitchIpConfig &config) {
   if (current_dip_switch_config_ == config) {
-    return Error();
+    return Status();
   }
 
   current_dip_switch_config_ = config;
-  Error status = UpdateNetconfdJson();
+  Status status = UpdateNetconfdJson();
 
   if (status.IsNotOk()) {
-    status.Set(ErrorCode::PERSISTENCE_WRITE);
+    status.Set(StatusCode::PERSISTENCE_WRITE);
   }
 
   return status;
 }
 
-Error PersistenceExecutor::Write(const IPConfigs &configs) {
+Status PersistenceExecutor::Write(const IPConfigs &configs) {
   if (current_ip_configs_ == configs) {
-    return Error::Ok();
+    return Status::Ok();
   }
 
   current_ip_configs_ = configs;
-  Error status = UpdateNetconfdJson();
+  Status status = UpdateNetconfdJson();
 
   if (status.IsNotOk()) {
-    status.Set(ErrorCode::PERSISTENCE_WRITE);
+    status.Set(StatusCode::PERSISTENCE_WRITE);
   }
 
   UpdateInterfacesXml();
@@ -169,10 +169,10 @@ Error PersistenceExecutor::Write(const IPConfigs &configs) {
 }
 
 
-Error PersistenceExecutor::Write(const InterfaceConfigs &configs) {
+Status PersistenceExecutor::Write(const InterfaceConfigs &configs) {
 
   if (current_interface_configs_ == configs) {
-    return Error();
+    return Status();
   }
 
   current_interface_configs_ = configs;
@@ -180,16 +180,16 @@ Error PersistenceExecutor::Write(const InterfaceConfigs &configs) {
   JsonConverter jc;
   auto json_str = jc.ToJsonString(current_interface_configs_, JsonFormat::PRETTY);
 
-  Error status = file_editor_.Write(interface_config_file_path_, json_str);
+  Status status = file_editor_.Write(interface_config_file_path_, json_str);
 
   UpdateInterfacesXml();
 
   return status;
 }
 
-Error PersistenceExecutor::ReadInterfaceConfigJson() {
+Status PersistenceExecutor::ReadInterfaceConfigJson() {
   ::std::string json;
-  Error status = file_editor_.Read(interface_config_file_path_, json);
+  Status status = file_editor_.Read(interface_config_file_path_, json);
   if (status.IsOk()) {
     current_interface_configs_.clear();
     JsonConverter jc;
@@ -198,9 +198,9 @@ Error PersistenceExecutor::ReadInterfaceConfigJson() {
   return status;
 }
 
-Error PersistenceExecutor::Read(InterfaceConfigs &configs) {
+Status PersistenceExecutor::Read(InterfaceConfigs &configs) {
   configs = current_interface_configs_;
-  return Error { };
+  return Status { };
 }
 
 static void AddLegacyIpParameter(IPConfigs &ip_configs, ::std::string bridge, ::std::string &legacy_ip_config) {
@@ -284,7 +284,7 @@ static ::std::string GenerateLegacyInterfaceBackup(InterfaceConfigs & itf_config
   return legacy_interface_parameter;
 }
 
-Error PersistenceExecutor::Backup(const std::string &file_path, const std::string &targetversion) {
+Status PersistenceExecutor::Backup(const std::string &file_path, const std::string &targetversion) {
   IPConfigs current_ip_configs = current_ip_configs_;
 
   FirmwareVersion fw_target { targetversion };
@@ -306,7 +306,7 @@ Error PersistenceExecutor::Backup(const std::string &file_path, const std::strin
     dipswitch_data = jb_dipswitch_data.ToString();
   }
 
-  Error status = backup_restore_.Backup(file_path, jb_network_data.ToString(), dipswitch_data, persistence_version_);
+  Status status = backup_restore_.Backup(file_path, jb_network_data.ToString(), dipswitch_data, persistence_version_);
 
   if (status.IsOk()) {
     ::std::string legacy_ip_parameter = GenerateLegacyIPBackup(current_ip_configs);
@@ -317,7 +317,7 @@ Error PersistenceExecutor::Backup(const std::string &file_path, const std::strin
   return status;
 }
 
-Error PersistenceExecutor::Restore(const ::std::string &file_path, BridgeConfig &bridge_config, IPConfigs &ip_configs,
+Status PersistenceExecutor::Restore(const ::std::string &file_path, BridgeConfig &bridge_config, IPConfigs &ip_configs,
                                     InterfaceConfigs &interface_configs, DipSwitchIpConfig &dip_switch_config) {
   bridge_config.clear();
   ip_configs.clear();
@@ -328,13 +328,13 @@ Error PersistenceExecutor::Restore(const ::std::string &file_path, BridgeConfig 
   ::std::string network_data_json;
   ::std::string dipswitch_data_json;
 
-  Error status = backup_restore_.Restore(file_path, network_data_json, dipswitch_data_json, version);
+  Status status = backup_restore_.Restore(file_path, network_data_json, dipswitch_data_json, version);
   if (status.IsNotOk()) {
     status = legacy_restore_.Restore(file_path, network_data_json, dipswitch_data_json, version);
   }
 
   if (status.IsOk() && (version != persistence_version_)) {
-    status = Error{ErrorCode::BACKUP_VERSION, ::std::to_string(persistence_version_) , ::std::to_string(version)};
+    status = Status{StatusCode::BACKUP_VERSION, ::std::to_string(persistence_version_) , ::std::to_string(version)};
   }
 
   JsonRestorer data_restorer { ::std::move(network_data_json) };

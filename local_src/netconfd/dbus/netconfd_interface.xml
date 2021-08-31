@@ -120,6 +120,28 @@
         </doc:description>
       </doc:doc>
     </method>
+    <method name="getinterfacestatuses">
+      <arg name="config" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>The statuses as JSON string</doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Get the interface statuses of the ethernet
+            interfaces as JSON string.
+            Example result:
+            [{"device":"X1","state":"up","autonegotiation":true,"speed":100,"duplex":"full","link":"up"},{"device":"X2","state":true,"autonegotiation":true,"speed":100,"duplex":"full","link":"up"}]
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
   </interface>
   <interface name="de.wago.netconfd1.ip_config">
     <method name="setall">

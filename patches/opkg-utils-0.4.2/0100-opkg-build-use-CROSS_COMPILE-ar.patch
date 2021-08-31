@@ -1,0 +1,28 @@
+From: =?UTF-8?q?Andreas=20Bie=C3=9Fmann?= <andreas@biessmann.de>
+Date: Fri, 20 Jan 2012 09:03:55 +0100
+Subject: [PATCH] opkg-build: use ${CROSS_COMPILE}ar
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Some host systems do not provide proper ar, make it possible to switch
+to cross-ar here.
+
+Signed-off-by: Andreas Bießmann <andreas@biessmann.de>
+---
+ opkg-build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/opkg-build b/opkg-build
+index 1b564166a7a4..eca1ee2fa42c 100755
+--- a/opkg-build
++++ b/opkg-build
+@@ -324,7 +324,7 @@ fi
+ 
+ rm -f $pkg_file
+ if [ "$outer" = "ar" ] ; then
+-  ( cd $tmp_dir && ar -crfD $pkg_file ./debian-binary ./control.tar.gz ./data.tar.$cext )
++  ( cd $tmp_dir && ${CROSS_COMPILE}ar -crfD $pkg_file ./debian-binary ./control.tar.gz ./data.tar.$cext )
+ else
+   ( cd $tmp_dir && tar -c $tsortargs --mtime=@$build_date $tarformat ./debian-binary ./control.tar.gz ./data.tar.$cext | gzip $zipargs > $pkg_file )
+ fi

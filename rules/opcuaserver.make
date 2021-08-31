@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_OPCUASERVER) += opcuaserver
 #
 # Paths and names
 #
-OPCUASERVER_VERSION        := 1.3.0
+OPCUASERVER_VERSION        := 1.3.1
 OPCUASERVER_MD5            :=
 OPCUASERVER                := opcuaserver
 OPCUASERVER_SRC_DIR        := $(PTXDIST_WORKSPACE)/wago_intern/opcua/server

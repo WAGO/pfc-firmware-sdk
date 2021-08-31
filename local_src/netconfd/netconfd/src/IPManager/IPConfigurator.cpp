@@ -33,8 +33,8 @@ void IPConfigurator::DeleteTempFiles(const Bridge &bridge) const {
 
 }
 
-Error IPConfigurator::SetStatic(const IPConfig &ip_config) const {
-  Error status;
+Status IPConfigurator::SetStatic(const IPConfig &ip_config) const {
+  Status status;
 
   dhcp_client_controller_.StopClient(ip_config.interface_);
   bootp_client_controller_.StopClient(ip_config.interface_);
@@ -44,13 +44,13 @@ Error IPConfigurator::SetStatic(const IPConfig &ip_config) const {
   return status;
 }
 
-Error IPConfigurator::SetTemporary(const IPConfig &ip_config) const {
+Status IPConfigurator::SetTemporary(const IPConfig &ip_config) const {
 
   return ip_controller_.SetIPConfig(ip_config);
 }
 
-Error IPConfigurator::SetDHCP(const IPConfig &ip_config) const {
-  Error status;
+Status IPConfigurator::SetDHCP(const IPConfig &ip_config) const {
+  Status status;
 
   bootp_client_controller_.StopClient(ip_config.interface_);
   if (dhcp_client_controller_.GetStatus(ip_config.interface_) != DHCPClientStatus::RUNNING) {
@@ -62,8 +62,8 @@ Error IPConfigurator::SetDHCP(const IPConfig &ip_config) const {
   return status;
 }
 
-Error IPConfigurator::SetBootp(const IPConfig &ip_config) const {
-  Error status;
+Status IPConfigurator::SetBootp(const IPConfig &ip_config) const {
+  Status status;
 
   dhcp_client_controller_.StopClient(ip_config.interface_);
   FlushIP(ip_config.interface_);
@@ -84,13 +84,17 @@ void IPConfigurator::SetNone(const IPConfig &ip_config) const {
   DeleteTempFiles(ip_config.interface_);
 }
 
-Error IPConfigurator::FlushIP(const Interface &interface) const {
+Status IPConfigurator::FlushIP(const Interface &interface) const {
   LogDebug("Flush IP of "s.append(interface));
   IPConfig config(interface, IPSource::TEMPORARY, ZeroIP, ZeroIP);
   return ip_controller_.SetIPConfig(config);
 }
 
-Error IPConfigurator::EnableGratuitousArp(const IPConfig &ip_config) const {
+Status IPConfigurator::EnableGratuitousArp(const IPConfig &ip_config) const {
+
+  //(arp_notify = 1) generates gratuitous arp requests when device is brought up or hardware address changes.
+  // It does not if ip address changes!
+
   auto buffer_len = std::snprintf(nullptr, 0, "/proc/sys/net/ipv4/conf/%s/arp_notify", ip_config.interface_.c_str());
 
   assert(buffer_len > 0);  //NOLINT: do not implicitly decay an array into a pointer
@@ -109,11 +113,13 @@ Error IPConfigurator::EnableGratuitousArp(const IPConfig &ip_config) const {
     arp_notify.close();
   }
 
-  return arp_notify.good() ? Error { ErrorCode::OK } : Error { ErrorCode::GENERIC_ERROR, "Failed to enable gratuitous arp" };
+  return arp_notify.good() ? Status { StatusCode::OK } : Status { StatusCode::GENERIC_ERROR,
+                                 "Failed to enable gratuitous arp" };
 }
 
-Error IPConfigurator::Configure(const netconf::IPConfig &ip_config) const {
-  Error set_status = EnableGratuitousArp(ip_config);
+Status IPConfigurator::Configure(const netconf::IPConfig &ip_config) const {
+
+  Status set_status = EnableGratuitousArp(ip_config);
   switch (ip_config.source_) {
     case IPSource::STATIC:
       set_status = SetStatic(ip_config);
@@ -130,37 +136,18 @@ Error IPConfigurator::Configure(const netconf::IPConfig &ip_config) const {
     case IPSource::NONE:
       SetNone(ip_config);
       break;
+    case IPSource::FIXIP:
+      SetStatic(ip_config);
+      break;
     case IPSource::EXTERNAL:
       SetNone(ip_config);
       break;
     default:
-      set_status = Error { ErrorCode::IP_CONFIG_SOURCE, ip_config.interface_ };
+      set_status = Status { StatusCode::IP_CONFIG_SOURCE, ip_config.interface_ };
       break;
   }
 
   return set_status;
-}
-
-Error IPConfigurator::Configure(const IPConfigs &ip_configs) const {
-
-  auto configure_ip = [this](const IPConfig &ip_config) -> Error {
-    return this->Configure(ip_config);
-  };
-
-  auto merge_status = [this](Error &old_error, Error &new_error) -> Error {
-    if(new_error.IsNotOk()){
-      LogError(new_error.ToString());
-      return new_error;
-    }
-    return old_error;
-  };
-
-  ::std::vector<Error> errors;
-  errors.reserve(ip_configs.size());
-  ::std::transform(ip_configs.begin(), ip_configs.end(), ::std::back_inserter(errors), configure_ip);
-
-  return ::std::reduce(errors.begin(), errors.end(), Error::Ok(), merge_status);
-
 }
 
 } /* namespace netconf */

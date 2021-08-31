@@ -87,11 +87,11 @@ R"( {
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_EQ(StringRemoveNewlineAndBlank(expected_config),
             StringRemoveNewlineAndBlank(network_data));
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(ALegacyRestore, RestoresABackupOfAPreviousFirmwareInSeperatedMode) {
@@ -137,11 +137,11 @@ R"( {
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_EQ(StringRemoveNewlineAndBlank(expected_config),
             StringRemoveNewlineAndBlank(network_data));
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(ALegacyRestore, RestoresABackupOfAPreviousFirmwareInvalidDsaTag) {
@@ -163,9 +163,9 @@ XXX=123
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
-  EXPECT_EQ(ErrorCode::BACKUP_CONTENT_INVALID, status.GetErrorCode()) << status.ToString();
+  EXPECT_EQ(StatusCode::BACKUP_CONTENT_INVALID, status.GetStatusCode()) << status.ToString();
 }
 
 
@@ -186,10 +186,10 @@ XXX=123
 
   ::std::string network_data;
   ::std::string dipswitch_data;
-  Error status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
+  Status status = backup_restore_->Restore(path, network_data, dipswitch_data, restored_version);
 
   EXPECT_TRUE(network_data.empty());
-  EXPECT_EQ(ErrorCode::BACKUP_CONTENT_MISSING, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::BACKUP_CONTENT_MISSING, status.GetStatusCode());
 }
 
 }  // namespace netconf

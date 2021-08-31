@@ -14,8 +14,8 @@ PACKAGES-$(PTXCONF_BUSYBOX) += busybox
 #
 # Paths and names
 #
-BUSYBOX_VERSION	:= 1.30.1
-BUSYBOX_MD5	:= 4f72fc6abd736d5f4741fc4a2485547a
+BUSYBOX_VERSION	:= 1.31.1
+BUSYBOX_MD5	:= 70913edaf2263a157393af07565c17f0
 BUSYBOX		:= busybox-$(BUSYBOX_VERSION)
 BUSYBOX_SUFFIX	:= tar.bz2
 BUSYBOX_URL	:= https://www.busybox.net/downloads/$(BUSYBOX).$(BUSYBOX_SUFFIX)
@@ -48,6 +48,11 @@ ifeq ($(BUSYBOX_ARCH),i386)
 BUSYBOX_ARCH := x86
 endif
 
+# ----------------------------------------------------------------------------
+# Compile
+# ----------------------------------------------------------------------------
+
+# does not build reproducibly unless we set KCONFIG_NOTIMESTAMP
 BUSYBOX_MAKE_OPT := \
 	KCONFIG_NOTIMESTAMP=1 \
 	V=$(PTXDIST_VERBOSE) \
@@ -64,14 +69,14 @@ BUSYBOX_MAKE_ENV := \
 	$(CROSS_ENV) \
 	SKIP_STRIP=y
 
+# ----------------------------------------------------------------------------
+# Install
+# ----------------------------------------------------------------------------
+
 BUSYBOX_INSTALL_OPT := \
 	$(BUSYBOX_MAKE_OPT) \
 	CONFIG_PREFIX=$(BUSYBOX_PKGDIR)/usr \
 	install
-
-# ----------------------------------------------------------------------------
-# Install
-# ----------------------------------------------------------------------------
 
 $(STATEDIR)/busybox.install:
 	@$(call targetinfo)

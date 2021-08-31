@@ -14,7 +14,6 @@
             </interfaces>
             <rules>
                 <rule state="on" proto="tcp" dst_port="8080"/>
-                <rule state="on" proto="tcp" dst_port="8080"/>
             </rules>
         </service>
     </ipv4>

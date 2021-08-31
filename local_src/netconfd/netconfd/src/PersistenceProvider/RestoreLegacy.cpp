@@ -19,9 +19,9 @@ RestoreLegacy::RestoreLegacy(IFileEditor &file_editor, IDeviceProperties &proper
       properties_provider_ { properties_provider } {
 }
 
-static Error GetKeyValue(const ::std::string &backup_content, const ::std::string &key, ::std::string &value) {
+static Status GetKeyValue(const ::std::string &backup_content, const ::std::string &key, ::std::string &value) {
 
-  Error status;
+  Status status;
 
   ::std::stringstream data_stream = ::std::stringstream(backup_content);
   ::std::string subdata;
@@ -33,16 +33,16 @@ static Error GetKeyValue(const ::std::string &backup_content, const ::std::strin
   }
 
   if (value.empty()) {
-    status.Set(ErrorCode::BACKUP_CONTENT_MISSING, key);
+    status.Set(StatusCode::BACKUP_CONTENT_MISSING, key);
     return status;
   }
   return status;
 
 }
 
-static Error CalculateBroadcast(const ::std::string &address, const ::std::string &netmask, ::std::string &broadcast) {
+static Status CalculateBroadcast(const ::std::string &address, const ::std::string &netmask, ::std::string &broadcast) {
 
-  Error status;
+  Status status;
   boost_error error_code;
 
   if (address == ZeroIP && netmask == ZeroIP) {
@@ -52,11 +52,11 @@ static Error CalculateBroadcast(const ::std::string &address, const ::std::strin
 
   auto binary_address = boost_address::from_string(address, error_code).to_v4().to_uint();
   if (error_code) {
-    status.Set(ErrorCode::IPV4_FORMAT, address);
+    status.Set(StatusCode::IPV4_FORMAT, address);
   }
   auto binary_netmask = boost_address::from_string(netmask, error_code).to_v4().to_uint();
   if (error_code) {
-    status.Set(ErrorCode::IPV4_FORMAT, netmask);
+    status.Set(StatusCode::IPV4_FORMAT, netmask);
   }
 
   if (status.IsOk()) {
@@ -65,7 +65,7 @@ static Error CalculateBroadcast(const ::std::string &address, const ::std::strin
 
     boost::asio::ip::address_v4 bc(binary_broadcast);
     if (error_code) {
-      status.Set(ErrorCode::GENERIC_ERROR, "Failed to calculate broadcast address");
+      status.Set(StatusCode::GENERIC_ERROR, "Failed to calculate broadcast address");
     } else {
       broadcast = bc.to_string(error_code);
     }
@@ -74,9 +74,9 @@ static Error CalculateBroadcast(const ::std::string &address, const ::std::strin
   return status;
 }
 
-static Error GetIPConfigsFromAPreviousFirmware(const ::std::string &backup_content, ::std::string &ip_config) {
+static Status GetIPConfigsFromAPreviousFirmware(const ::std::string &backup_content, ::std::string &ip_config) {
 
-  Error status;
+  Status status;
 
   ::std::string br0_config = { };
   ::std::string eth0_state;
@@ -135,9 +135,9 @@ static Error GetIPConfigsFromAPreviousFirmware(const ::std::string &backup_conte
   return status;
 }
 
-static Error GetBridgeConfigFromAPreviousFirmware(const ::std::string &backup_content, ::std::string &bridge_config) {
+static Status GetBridgeConfigFromAPreviousFirmware(const ::std::string &backup_content, ::std::string &bridge_config) {
 
-  Error status;
+  Status status;
 
   ::std::string dsa_tag_value;
   status = GetKeyValue(backup_content, "dsa-mode=", dsa_tag_value);
@@ -147,20 +147,20 @@ static Error GetBridgeConfigFromAPreviousFirmware(const ::std::string &backup_co
     } else if ("1" == dsa_tag_value) {
       bridge_config = R"("br0":["X1"],"br1":["X2"])";
     } else {
-      status.Set(ErrorCode::BACKUP_CONTENT_INVALID, "dsa-mode");
+      status.Set(StatusCode::BACKUP_CONTENT_INVALID, "dsa-mode");
     }
   }
 
   return status;
 }
 
-static Error AppendInterfaceConfig(const string &device, const string &backup_device,
+static Status AppendInterfaceConfig(const string &device, const string &backup_device,
                                     const ::std::string &backup_content, ::std::string &interface_config) {
   string state;
   string autoneg;
   string speed;
   string duplex;
-  Error status = GetKeyValue(backup_content, backup_device + "-state=", state);
+  Status status = GetKeyValue(backup_content, backup_device + "-state=", state);
   if (status.IsOk()) {
     status = GetKeyValue(backup_content, backup_device + "-autoneg=", autoneg);
   }
@@ -179,7 +179,7 @@ static Error AppendInterfaceConfig(const string &device, const string &backup_de
   return status;
 }
 
-Error RestoreLegacy::GetInterfaceConfigFromAPreviousFirmware(const ::std::string &backup_content,
+Status RestoreLegacy::GetInterfaceConfigFromAPreviousFirmware(const ::std::string &backup_content,
                                                               ::std::string &interface_config) const {
 
   /*
@@ -209,10 +209,10 @@ Error RestoreLegacy::GetInterfaceConfigFromAPreviousFirmware(const ::std::string
   return status;
 }
 
-Error RestoreLegacy::GetConfigsFromAPreviousFirmwareBackup(const ::std::string &backup_content,
+Status RestoreLegacy::GetConfigsFromAPreviousFirmwareBackup(const ::std::string &backup_content,
                                                             ::std::string &backup_network_data) const {
 
-  Error status;
+  Status status;
 
   ::std::string bridge_config;
   status = GetBridgeConfigFromAPreviousFirmware(backup_content, bridge_config);
@@ -234,7 +234,7 @@ Error RestoreLegacy::GetConfigsFromAPreviousFirmwareBackup(const ::std::string &
   return status;
 }
 
-Error RestoreLegacy::Restore(const ::std::string &file_path, ::std::string &backup_network_data,
+Status RestoreLegacy::Restore(const ::std::string &file_path, ::std::string &backup_network_data,
                               ::std::string &backup_dipswitch_data, uint32_t &version) const {
   (void) backup_dipswitch_data;
   version = 1;
@@ -249,7 +249,7 @@ Error RestoreLegacy::Restore(const ::std::string &file_path, ::std::string &back
 }
 
 [[gnu::const]]
-Error RestoreLegacy::Backup(const ::std::string &file_path, const ::std::string &data, const ::std::string &data_key,
+Status RestoreLegacy::Backup(const ::std::string &file_path, const ::std::string &data, const ::std::string &data_key,
                              uint32_t version) const {
   (void) version;
   (void) data_key;

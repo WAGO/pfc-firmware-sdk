@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <string>
 
-#include "Error.hpp"
+#include "Status.hpp"
 
 namespace netconf {
 
@@ -19,8 +19,8 @@ class ICommandExecutor {
   ICommandExecutor(ICommandExecutor&&) = default;
   ICommandExecutor& operator=(ICommandExecutor&&) = default;
 
-  virtual Error Execute(const ::std::string& command) const = 0;
-  virtual Error Execute(const ::std::string& command, ::std::string & result) const = 0;
+  virtual Status Execute(const ::std::string& command) const = 0;
+  virtual Status Execute(const ::std::string& command, ::std::string & result) const = 0;
 
 };
 

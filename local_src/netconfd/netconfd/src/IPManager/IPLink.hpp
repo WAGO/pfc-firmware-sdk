@@ -3,9 +3,11 @@
 
 #include <functional>
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "IEventManager.hpp"
+#include "IGratuitousArp.hpp"
 #include "IIPEvent.hpp"
+#include "IIPLinks.hpp"
 #include "NetDev.hpp"
 #include "Types.hpp"
 
@@ -19,10 +21,11 @@ using IPLinks = ::std::list<::std::shared_ptr<IPLink>>;
 class IPLink {
  public:
 
-  IPLink(IIPConfigure &configurator, IEventManager &event_manager, NetDevPtr netdev, const ::std::string &init_address = ZeroIP, const ::std::string &init_netmask = ZeroIP);
+  IPLink(IIPConfigure &configurator, IEventManager &event_manager, IGratuitousArp &gratuitous_arp, IIPLinks &ip_links, NetDevPtr netdev, const ::std::string &init_address = ZeroIP, const ::std::string &init_netmask = ZeroIP);
   ~IPLink();
 
-  Error SetIPConfig(const IPConfig new_ip_config);
+  Status SetIPConfig(const IPConfig new_ip_config);
+  void RefreshIP();
 
   IPConfig GetIPConfig() const;
   IPConfig GetCurrentIPConfig() const;
@@ -37,6 +40,8 @@ class IPLink {
  private:
   IIPConfigure &ip_configure_;
   IEventManager &event_manager_;
+  IGratuitousArp &gratuitous_arp_;
+  IIPLinks &ip_links_;
   NetDevPtr netdev_;
   IPConfig ip_config_;
   ::std::string address_;
@@ -45,9 +50,13 @@ class IPLink {
   bool shall_trigger_event_folder_;
 
   bool IsDifferentFromCurrentIpAddress(const IPConfig &new_ip_config) const;
-  Error Configure(const IPConfig &new_ip_config);
+  Status Configure(const IPConfig &new_ip_config);
   void AcceptNewConfig(const IPConfig &new_ip_config);
   void NotifyChanges(const IPConfig &new_ip_config);
+
+  void SendGratuitousArpOnBridge();
+  void SendGratuitousArpOnPortIfAssociatedBridgeIsConfigured();
+  void NotifyNetworkChanges();
 };
 
 }  // namespace netconf

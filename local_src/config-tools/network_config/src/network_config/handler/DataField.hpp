@@ -7,22 +7,24 @@
 
 namespace network_config {
 
-template <typename DataType>
+template<typename DataType>
 class DataField {
  public:
   using ValueGetter = ::std::function<::std::string(const DataType&)>;
   using ValueSetter = ::std::function<void(DataType&,const ::std::string&)>;
 
-  DataField(ValueGetter getter, ValueSetter setter = [](auto&, const ::std::string&){}) noexcept :
-    getter_{std::move(getter)},setter_{std::move(setter)}
-    {}
+  DataField(ValueGetter getter, ValueSetter setter = [](auto&, const ::std::string&) {
+  }) noexcept
+      : getter_ { std::move(getter) },
+        setter_ { std::move(setter) } {
+  }
   virtual ~DataField() = default;
 
-  ::std::string Get(const DataType& data){
+  ::std::string Get(const DataType &data) {
     return getter_(data);
   }
 
-  ::std::string Set(DataType& data, ::std::string value){
+  ::std::string Set(DataType &data, ::std::string value) {
     return setter_(data, value);
   }
 
@@ -30,7 +32,6 @@ class DataField {
   ValueGetter getter_;
   ValueSetter setter_;
 };
-
 
 } /* namespace network_config */
 

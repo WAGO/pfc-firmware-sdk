@@ -22,9 +22,8 @@ set_ip_config () {
   local source="$2"
   local address="$3"
   local mask="$4"
-  local bcast="$5"
 
-  local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
+  local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'"}}'
 
   out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
 
@@ -33,12 +32,11 @@ set_ip_config () {
   fi
 }
 
-[[ -n "$broadcast" ]] && BROADCAST="broadcast $broadcast"
 [[ -n "$subnet" ]] && NETMASK="netmask $subnet"
 
 case "$1" in
     deconfig)
-        #set_ip_config $interface temporary 0.0.0.0 0.0.0.0
+        set_ip_config $interface temporary 0.0.0.0 0.0.0.0
         /sbin/route del -net 224.0.0.0 netmask 224.0.0.0 "$interface" || true
         ;;
 
@@ -78,10 +76,7 @@ case "$1" in
         fi
 
 
-        set_ip_config "$interface" temporary "$ip" "$subnet" "$broadcast"
-
-        # send gratuitous ARP.
-        arping -I "$interface" -c1 -s "$ip" "$ip"
+        set_ip_config "$interface" temporary "$ip" "$subnet"
 
         ;;
 esac

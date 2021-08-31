@@ -95,6 +95,14 @@ ifeq ($(PTXCONF_PLATFORM), wago-pfc-adv)
 	@$(call install_link, rauc, system.conf.pfcv3, /etc/rauc/system.conf.pfc200adv)
 endif
 
+ifeq ($(PTXCONF_PLATFORM), wago-pfc200-pnc)
+	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.pfcv3)
+	@$(call install_replace, rauc, /etc/rauc/system.conf.pfcv3, \
+		@RAUC_BUNDLE_COMPATIBLE@, \
+		$(PTXCONF_RAUC_COMPATIBLE))
+	@$(call install_link, rauc, system.conf.pfcv3, /etc/rauc/system.conf.pfc200pnc)
+endif
+
 ifeq ($(PTXCONF_PLATFORM), vtp-ctp)
 	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.TP600)
 	@$(call install_replace, rauc, /etc/rauc/system.conf.TP600, \
@@ -107,6 +115,15 @@ ifeq ($(PTXCONF_PLATFORM), vtp-ctp)
 		$(PTXCONF_RAUC_COMPATIBLE))
 	@$(call install_link, rauc, system.conf.EC752, /etc/rauc/system.conf.ec752)
 endif
+
+ifeq ($(PTXCONF_PLATFORM), cc100)
+	@$(call install_alternative, rauc, 0, 0, 0644, /etc/rauc/system.conf.CC100)
+	@$(call install_replace, rauc, /etc/rauc/system.conf.CC100, \
+		@RAUC_BUNDLE_COMPATIBLE@, \
+		$(PTXCONF_RAUC_COMPATIBLE))
+	@$(call install_link, rauc, system.conf.CC100, /etc/rauc/system.conf.cc100)
+endif
+
 	@$(call install_copy, rauc, 0, 0, 0644, $(PTXDIST_WORKSPACE)/$(RAUC_CERTIFICATE), /etc/rauc/ca.cert.pem)
 	@$(call install_copy, rauc, 0, 0, 0644, -, \
 		/usr/share/dbus-1/system-services/de.pengutronix.rauc.service)

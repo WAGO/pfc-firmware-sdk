@@ -5,14 +5,16 @@
 
 #include <memory>
 #include "InterprocessCondition.h"
+#include "NetworkConfiguratorSettings.hpp"
 
 namespace netconf {
 
 class NetworkConfiguratorImpl;
 
 class NetworkConfigurator {
+
  public:
-  NetworkConfigurator(InterprocessCondition& start_condition);
+  NetworkConfigurator(InterprocessCondition& start_condition, StartWithPortstate startWithPortState = StartWithPortstate::Normal);
   virtual ~NetworkConfigurator();
 
   NetworkConfigurator(const NetworkConfigurator&) = delete;

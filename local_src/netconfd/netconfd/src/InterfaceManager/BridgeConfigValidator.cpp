@@ -14,30 +14,30 @@ BridgeConfigValidator::BridgeConfigValidator(IBridgeController &bridge_controlle
     : bridge_controller_(bridge_controller) {
 }
 
-static Error CheckBridgeName(const ::std::string &bridge_name) {
+static Status CheckBridgeName(const ::std::string &bridge_name) {
   // Hint: A check for duplicated bridges is not required, because we use a map that
   // does not allow duplicate keys.
 
   // Check bridge name length
   if (bridge_name.size() > IFNAMSIZ - 1) {
-    return Error { ErrorCode::BRIDGE_NAME_INVALID, bridge_name };
+    return Status { StatusCode::BRIDGE_NAME_INVALID, bridge_name };
   }
   // Checks bridge contains blanks
   if (::std::string::npos != bridge_name.find(' ')) {
-    return Error { ErrorCode::BRIDGE_NAME_INVALID, bridge_name };
+    return Status { StatusCode::BRIDGE_NAME_INVALID, bridge_name };
   }
 
-  return Error::Ok();
+  return Status::Ok();
 }
 
-static Error CheckBridgeInterfaces(const Interfaces& bridge_interfaces, const Interfaces& available_interfaces, Interfaces& former_bridge_interfaces){
+static Status CheckBridgeInterfaces(const Interfaces& bridge_interfaces, const Interfaces& available_interfaces, Interfaces& former_bridge_interfaces){
   for (auto &interface : bridge_interfaces) {
     // Check if interface is available in the system
     if (IsNotIncluded(interface, available_interfaces)) {
       if (interface.empty()) {
-        return Error{ErrorCode::NAME_EMPTY};
+        return Status{StatusCode::NAME_EMPTY};
       } else {
-        return Error{ErrorCode::INTERFACE_NOT_EXISTING ,interface};
+        return Status{StatusCode::INTERFACE_NOT_EXISTING ,interface};
       }
     }
 
@@ -45,31 +45,31 @@ static Error CheckBridgeInterfaces(const Interfaces& bridge_interfaces, const In
     if (IsNotIncluded(interface, former_bridge_interfaces)) {
       former_bridge_interfaces.push_back(interface);
     } else {
-      return Error{ErrorCode::ENTRY_DUPLICATE, interface };
+      return Status{StatusCode::ENTRY_DUPLICATE, interface };
     }
   }
-  return Error::Ok();
+  return Status::Ok();
 }
 
-Error BridgeConfigValidator::Validate(BridgeConfig const &os_config) const {
-  Error error;
+Status BridgeConfigValidator::Validate(BridgeConfig const &os_config) const {
+  Status status;
   Interfaces available_interfaces = bridge_controller_.GetInterfaces();
   Interfaces found_interfaces;
 
   // HINT: Do not exit loop on first invalidity to log all errors.
   for (auto &[bridge_name, interfaces] : os_config) {
-    error = CheckBridgeName(bridge_name);
-    if (error.IsNotOk()) {
+    status = CheckBridgeName(bridge_name);
+    if (status.IsNotOk()) {
       break;
     }
-    error = CheckBridgeInterfaces(interfaces, available_interfaces, found_interfaces);
-    if( error.IsNotOk())
+    status = CheckBridgeInterfaces(interfaces, available_interfaces, found_interfaces);
+    if( status.IsNotOk())
     {
       break;
     }
   }
 
-  return error;
+  return status;
 }
 
 } /* namespace netconf */

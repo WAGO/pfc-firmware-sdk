@@ -12,16 +12,16 @@ struct IMockBridgeConfig {
   IMockBridgeConfig() = default;
   virtual ~IMockBridgeConfig() = default;
 
-  virtual Error GetBridgeConfig(BridgeConfig& config) = 0;
-  virtual Error SetBridgeConfig(const BridgeConfig &config) = 0;
+  virtual Status GetBridgeConfig(BridgeConfig& config) = 0;
+  virtual Status SetBridgeConfig(const BridgeConfig &config) = 0;
 };
 
 struct MockBridgeConfig : public IMockBridgeConfig {
   MockBridgeConfig();
   virtual ~MockBridgeConfig();
 
-  MOCK_METHOD1(GetBridgeConfig,Error(BridgeConfig& config) )
-  ;MOCK_METHOD1(SetBridgeConfig, Error(const BridgeConfig &config) )
+  MOCK_METHOD1(GetBridgeConfig,Status(BridgeConfig& config) )
+  ;MOCK_METHOD1(SetBridgeConfig, Status(const BridgeConfig &config) )
   ;
 
 };

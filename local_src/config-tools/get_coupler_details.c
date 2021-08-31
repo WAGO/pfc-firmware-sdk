@@ -11,7 +11,7 @@
 ///
 ///  \file     get_coupler_details.c
 ///
-///  \version  $Revision: 43802 $1
+///  \version  $Revision: 57110 $1
 ///
 ///  \brief
 ///
@@ -1609,14 +1609,6 @@ int GetSerialNumber(char *pOutputString)
   sprintf(pOutputString, "");
 
   do{
-    if(SUCCESS != GetValueFromTypelabel(stPrgdate, TYPELABEL_PRGDATE))
-    {
-      break;
-    }
-    if(SUCCESS != GetValueFromTypelabel(stWagoNr, TYPELABEL_WAGONR))
-    {
-      break;
-    }
     if(SUCCESS != GetValueFromTypelabel(stMarking, TYPELABEL_MARKING))
     {
       if(SUCCESS != GetValueFromTypelabel(stMarking, TYPELABEL_ORDER_NR))
@@ -1635,6 +1627,43 @@ int GetSerialNumber(char *pOutputString)
         break;
       }
     }
+    if(SUCCESS != GetValueFromTypelabel(stPrgdate, TYPELABEL_PRGDATE))
+    {
+      break;
+    }
+
+    char  stTmp[MAX_LENGTH_COUPLER_DETAIL_STRING + 1] = "";
+    const size_t serialNbLgt = 7;
+
+    if(SUCCESS != GetValueFromTypelabel(stTmp, TYPELABEL_WAGONR))
+    {
+      // Sonderbehandlung fuer Panels
+      if ((strncmp(stMarking, "TP", 2) == 0) || (strncmp(stMarking, "EC", 2) == 0))
+      {
+        if(SUCCESS == GetValueFromTypelabel(stTmp, "UII"))
+        {
+          size_t uiiLgt = strlen(stTmp);
+          if (uiiLgt >= serialNbLgt)
+          {
+            strncpy(stWagoNr, &stTmp[uiiLgt-serialNbLgt], serialNbLgt);
+          }
+          else break;
+        }
+        else break;
+      }
+      else break;
+    }
+    else
+    {
+      // Sonderbehandlung PFC G2 (10-stellige WAGONR)
+      size_t wagoNrLgt = strlen(stTmp);
+      if (wagoNrLgt >= serialNbLgt)
+      {
+        strncpy(stWagoNr, &stTmp[wagoNrLgt-serialNbLgt], serialNbLgt);
+      }
+      else break;
+    }
+
     if(SUCCESS != GetValueFromTypelabel(stMac, TYPELABEL_MAC))
     {
       break;
@@ -1646,7 +1675,7 @@ int GetSerialNumber(char *pOutputString)
          "%X:%X:%X:%X:%X:%X",
           &macInt[0], &macInt[1],
           &macInt[2], &macInt[3],
-         &macInt[4], &macInt[5]);
+          &macInt[4], &macInt[5]);
   sprintf(pOutputString, "SN%s-%.7u#%s|%.2X%.2X%.2X%.2X%.2X%.2X",
           stPrgdate,iWagoNr,stMarking,macInt[0],macInt[1],
           macInt[2],macInt[3],macInt[4],macInt[5]);

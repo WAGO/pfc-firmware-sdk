@@ -41,6 +41,10 @@ struct _netconfdInterface_configIface
     netconfdInterface_config *object,
     GDBusMethodInvocation *invocation);
 
+  gboolean (*handle_getinterfacestatuses) (
+    netconfdInterface_config *object,
+    GDBusMethodInvocation *invocation);
+
   gboolean (*handle_set) (
     netconfdInterface_config *object,
     GDBusMethodInvocation *invocation,
@@ -86,6 +90,12 @@ void netconfd_interface_config_complete_getinterfaceconfig (
 void netconfd_interface_config_complete_setinterfaceconfig (
     netconfdInterface_config *object,
     GDBusMethodInvocation *invocation,
+    const gchar *result);
+
+void netconfd_interface_config_complete_getinterfacestatuses (
+    netconfdInterface_config *object,
+    GDBusMethodInvocation *invocation,
+    const gchar *config,
     const gchar *result);
 
 
@@ -187,6 +197,26 @@ gboolean netconfd_interface_config_call_setinterfaceconfig_finish (
 gboolean netconfd_interface_config_call_setinterfaceconfig_sync (
     netconfdInterface_config *proxy,
     const gchar *arg_config,
+    gchar **out_result,
+    GCancellable *cancellable,
+    GError **error);
+
+void netconfd_interface_config_call_getinterfacestatuses (
+    netconfdInterface_config *proxy,
+    GCancellable *cancellable,
+    GAsyncReadyCallback callback,
+    gpointer user_data);
+
+gboolean netconfd_interface_config_call_getinterfacestatuses_finish (
+    netconfdInterface_config *proxy,
+    gchar **out_config,
+    gchar **out_result,
+    GAsyncResult *res,
+    GError **error);
+
+gboolean netconfd_interface_config_call_getinterfacestatuses_sync (
+    netconfdInterface_config *proxy,
+    gchar **out_config,
     gchar **out_result,
     GCancellable *cancellable,
     GError **error);

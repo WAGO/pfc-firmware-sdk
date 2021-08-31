@@ -6,7 +6,7 @@
 #include <memory>
 #include <utility>
 #include <iostream>
-#include "Error.hpp"
+#include <Status.hpp>
 #include "Output.hpp"
 
 namespace network_config {
@@ -17,8 +17,8 @@ class MessagePrinter {
   ~MessagePrinter() = default;
 
   void SetDestination(::std::unique_ptr<Output> output);
-  void Print(const ::netconf::Error &error);
-  void Print(const ::std::string &error);
+  void Print(const ::netconf::Status &status);
+  void Print(const ::std::string &status);
 
  private:
   ::std::unique_ptr<Output> output_;

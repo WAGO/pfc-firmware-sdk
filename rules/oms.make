@@ -123,15 +123,15 @@ $(STATEDIR)/oms.targetinstall:
 			$(call install_link, oms, $$from, $$to); \
 		done; \
 	fi
-	@$(call install_alternative, oms, 0, 0, 0644, /etc/oms.d/omsd.conf,n)
+	@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/omsd.conf,n)
 	@$(call install_alternative, oms, 0, 0, 0770, /etc/oms.d/power_on_reset.sh,n)
 ifdef PTXCONF_OMS_FIX_IP
-	@$(call install_alternative, oms, 0, 0, 0644, /etc/oms.d/pfc/fix_ip.conf,n)
+	@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/pfc/fix_ip.conf,n)
 	@$(call install_alternative, oms, 0, 0, 0770, /etc/oms.d/fix_ip.sh,n)
 endif
 ifdef PTXCONF_OMS_FACTORY_DEFUALTS
-	@$(call install_alternative, oms, 0, 0, 0644, /etc/oms.d/pfc/factory_defaults.conf,n)
-	#@$(call install_alternative, oms, 0, 0, 0644, /etc/oms.d/src/factory_defaults.conf,n)
+	@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/pfc/factory_defaults.conf,n)
+	#@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/src/factory_defaults.conf,n)
 	@$(call install_alternative, oms, 0, 0, 0770, /etc/oms.d/set_factory_defaults.sh,n)
 endif
 	@$(call install_copy, oms, 0, 0, 0755, -, /etc/init.d/omsdaemon)

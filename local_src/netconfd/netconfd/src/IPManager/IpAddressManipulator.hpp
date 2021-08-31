@@ -9,7 +9,8 @@ namespace netconf {
 class IpAddressManipulator {
  public:
 
-  static IPConfig ChangeLastAddressOctet(IPConfig const& current, uint32_t new_oktett);
+  static IPConfig ChangeLastAddressOctet(IPConfig const& current, uint32_t new_octet);
+  static Address ChangeLastAddressOctet(Address const& current, uint32_t new_octet);
 };
 
 } /* namespace netconf */

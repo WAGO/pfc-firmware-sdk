@@ -11,24 +11,28 @@
 #include "IInterfaceInformation.hpp"
 #include "IPersistence.hpp"
 #include "INetDevManager.hpp"
+#include "InterfaceInformation.hpp"
 
 namespace netconf {
 
 class InterfaceConfigManager : public IInterfaceInformation{
  public:
+
   InterfaceConfigManager(INetDevManager& netdev_manager,
       IPersistence<InterfaceConfigs>& persistence_provider,
       IEthernetInterfaceFactory& eth_factory);
   virtual ~InterfaceConfigManager() = default;
 
-  virtual void InitializePorts();
-  virtual Error Configure(InterfaceConfigs& port_configs);
+  virtual void InitializePorts(InterfaceState initalPortState = InterfaceState::UNKNOWN);
+  virtual Status Configure(InterfaceConfigs& port_configs);
   virtual InterfaceConfigs const& GetPortConfigs() override;
+  InterfaceStatuses GetCurrentPortStatuses() override;
+  InterfaceInformation GetInterfaceInformation(const NetDev& netdev) const;
 
  private:
-  Error IsPortConfigValid(const InterfaceConfigs& port_configs);
-  Error ApplyPortConfig(InterfaceConfig const& cfg);
-  Error ApplyPortConfigs(InterfaceConfigs& port_configs);
+  Status IsPortConfigValid(const InterfaceConfigs& port_configs);
+  Status ApplyPortConfig(InterfaceConfig const& cfg);
+  Status ApplyPortConfigs(InterfaceConfigs& port_configs);
   void InitializeEthernetInterfaceMap(const NetDevs& netdevs);
   void InitializeCurrentConfigs(const NetDevs& netdevs, const InterfaceConfigs& persistet_configs);
   void UpdateCurrentInterfaceConfigs(const InterfaceConfigs &port_configs);

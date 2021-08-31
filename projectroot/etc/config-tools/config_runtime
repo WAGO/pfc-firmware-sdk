@@ -107,7 +107,7 @@ write_cds3config()
             ;;
 
         V3_PORT_AUTH)
-            chplcconfig_wrapper TscUserDB SecureLogin $parvalue
+            chplcconfig_wrapper CmpUserMgr SecureLogin $parvalue
     esac
 }
 
@@ -125,7 +125,7 @@ cds3_webserverstate()
 
 cds3_port_auth()
 {
-    chplcconfig_wrapper TscUserDB SecureLogin $1
+    chplcconfig_wrapper CmpUserMgr SecureLogin $1
 }
 
 # Check version, update config file and perform parameter change.
@@ -429,7 +429,9 @@ elif [ "$NEW_DEFAULT_WEBPAGE" ]; then
     if [ "$NEW_DEFAULT_WEBPAGE" = "WBM" ]; then
         NEW_DEFAULT_WEBPAGE="Webserver"
     fi
-    do_update $CURRENT_RUNTIME_VERSION DEFAULT_WEBPAGE "$NEW_DEFAULT_WEBPAGE" "" "$RESTART_SERVER"
+    local cmd
+    cmd=$(build_set_command DEFAULT_WEBPAGE $NEW_DEFAULT_WEBPAGE)
+    $cmd "$RESTART_SERVER"
     status=$?
 
 elif [ "$NEW_RUNTIME_VERSION" ] && [ "$NEW_RUNTIME_VERSION" != "$CURRENT_RUNTIME_VERSION" ]; then
@@ -457,7 +459,7 @@ elif [ "$NEW_RUNTIME_VERSION" ] && [ "$NEW_RUNTIME_VERSION" != "$CURRENT_RUNTIME
 
     # Optionally start the new runtime, also switch default webpage.
     case $NEW_RUNTIME_VERSION in
-        0)  $CTDIR/change_default_webserver default-webserver=$DEFAULT_WEBPAGE $RESTART_SERVER
+        0)  $CTDIR/change_default_webserver default-webserver=Webserver $RESTART_SERVER
             ;;
 
         2)  bg_cds_webserver &

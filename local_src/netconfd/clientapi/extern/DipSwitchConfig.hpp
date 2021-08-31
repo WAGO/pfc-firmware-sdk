@@ -1,13 +1,25 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
+#include "Status.hpp"
 #include "BaseTypes.hpp"
-#include "Error.hpp"
 
 namespace netconf {
 namespace api {
 
+/**
+ * @brief Converts the dip switch configuration to its compact json representation.
+ *
+ * @return ::std::string The json string
+ */
 ::std::string ToJson(const netconf::DipSwitchConfig& config) noexcept;
+
+/**
+ * @brief Converts the dip switch configuration to its human readable json representation.
+ *
+ * @return ::std::string The json string
+ */
+::std::string ToPrettyJson(const netconf::DipSwitchConfig& config) noexcept;
 
 ::std::string ToString(const netconf::DipSwitchConfig& config, const char sep = ' ') noexcept;
 
@@ -20,13 +32,13 @@ namespace api {
  * {"mode":"static","value":123,"ipaddr":"192.168.1.1","netmask":"255.255.255.0"}
  *
  */
-Error MakeDipSwitchConfig(const ::std::string &json_str, DipSwitchConfig& config);
+Status MakeDipSwitchConfig(const ::std::string &json_str, DipSwitchConfig& config);
 
 /**
  * Create a DipSwitchIpConfig form json string.
  * @param {"ipaddr":"192.168.1.1","netmask":"255.255.255.0"}
  */
-Error MakeDipSwitchIpConfig(const ::std::string &json_str, DipSwitchIpConfig& config);
+Status MakeDipSwitchIpConfig(const ::std::string &json_str, DipSwitchIpConfig& config);
 
 /**
  * @brief Get DIP switch configuration.
@@ -37,7 +49,7 @@ Error MakeDipSwitchIpConfig(const ::std::string &json_str, DipSwitchIpConfig& co
  *         - mode, (off, dhcp, static, hw-not-available)
  *         - value, the value of the last octet (0 - 255)
  */
-Error GetDipSwitchConfig(netconf::DipSwitchConfig& config);
+Status GetDipSwitchConfig(netconf::DipSwitchConfig& config);
 
 /**
  * @brief Set DIP switch configuration.
@@ -45,7 +57,7 @@ Error GetDipSwitchConfig(netconf::DipSwitchConfig& config);
  * @param config The DIP switch configuration containing IP address and netmask.
  * @return Status @see Status::Ok on success.
  */
-Error SetDipSwitchConfig(const netconf::DipSwitchConfig& config);
+Status SetDipSwitchConfig(const netconf::DipSwitchConfig& config);
 
 
 }  // namespace api

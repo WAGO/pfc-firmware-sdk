@@ -16,8 +16,8 @@ class CommandExecutor : public ICommandExecutor {
   CommandExecutor(CommandExecutor&&) = default;
   CommandExecutor& operator=(CommandExecutor&&) = default;
 
-  Error Execute(const ::std::string& command) const override;
-  Error Execute(const ::std::string& command, ::std::string & result) const override;
+  Status Execute(const ::std::string& command) const override;
+  Status Execute(const ::std::string& command, ::std::string & result) const override;
 
 };
 

@@ -15,10 +15,10 @@ class BridgeController : public IBridgeController{
   BridgeController(const BridgeController&&) = delete;
   BridgeController& operator=(const BridgeController&&) = delete;
 
-  Error AddBridge(const Bridge& bridge) const override;
-  Error DeleteBridge(const Bridge& bridge) const override;
-  Error AddInterface(const Bridge& bridge, const Interface& interface) const override;
-  Error DeleteInterface(const Bridge& bridge, const Interface& interface) const override;
+  Status AddBridge(const Bridge& bridge) const override;
+  Status DeleteBridge(const Bridge& bridge) const override;
+  Status AddInterface(const Bridge& bridge, const Interface& interface) const override;
+  Status DeleteInterface(const Bridge& bridge, const Interface& interface) const override;
 
   Bridges GetBridges() const override;
   Interfaces GetBridgeInterfaces(const Bridge& bridge) const override;
@@ -26,8 +26,8 @@ class BridgeController : public IBridgeController{
   Interfaces GetInterfaces() const override;
 
 
-  Error SetInterfaceUp(const ::std::string& name) const override;
-  Error SetInterfaceDown(const ::std::string& name) const override;
+  Status SetInterfaceUp(const ::std::string& name) const override;
+  Status SetInterfaceDown(const ::std::string& name) const override;
 
   void SetAgetime(const Bridge& bridge, int seconds) const override;
 };

@@ -48,6 +48,7 @@ start()
     local actionr="down"
     local actionw="down"
     local action_opcua="down"
+    local action_bacnet="down"
 
     switch_versions $running
 
@@ -64,14 +65,21 @@ start()
         actionr="up"
         local statew=$(/etc/config-tools/get_port_state codesys3-webserver)
         [[ "enabled" == $statew ]] && actionw="up"
-        
+
         action_opcua="up"
-        local state_opcua=$(/etc/config-tools/config_opcua state)  
+        local state_opcua=$(/etc/config-tools/config_opcua state)
         [[ "enabled" == $state_opcua ]] && action_opcua="up"
+
+        if [[ -f "/etc/config-tools/bacnet_config" ]]; then
+          action_bacnet="up"
+          local state_bacnet=$(/etc/config-tools/bacnet_config -g config-state)
+          [[ "true" == $state_bacnet ]] && action_bacnet="up"
+        fi
     fi
 
     /etc/config-tools/firewall codesysr --apply ${actionr} >/dev/null 2>&1
     /etc/config-tools/firewall codesysw --apply ${actionw} >/dev/null 2>&1
+    /etc/config-tools/firewall bacnet --apply ${action_bacnet} >/dev/null 2>&1
 
     if [[ ! -f "/etc/config-tools/config-opcua" ]]; then
         /etc/config-tools/firewall opcua --apply ${action_opcua} >/dev/null 2>&1
@@ -83,6 +91,7 @@ stop()
 {
     /etc/config-tools/firewall codesysr --apply down >/dev/null 2>&1
     /etc/config-tools/firewall codesysw --apply down >/dev/null 2>&1
+    /etc/config-tools/firewall bacnet --apply down >/dev/null 2>&1
 
     if [[ ! -f "/etc/config-tools/config-opcua" ]]; then
         /etc/config-tools/firewall opcua --apply down >/dev/null 2>&1

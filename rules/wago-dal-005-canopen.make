@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_CANOPEN) += canopen
 #
 # Paths and names
 #
-CANOPEN_VERSION	:= 0.2
+CANOPEN_VERSION	:= 0.3
 CANOPEN			:= canopen
 CANOPEN_URL		:= file://$(PTXDIST_WORKSPACE)/wago_intern/device/can/
 CANOPEN_DIR		:= $(BUILDDIR)/$(CANOPEN)
@@ -102,18 +102,18 @@ $(STATEDIR)/canopen.install:
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 	rm -rf $(PTXCONF_SYSROOT_TARGET)/usr/lib/libcanopen.*
-	cp $(CANOPEN_DIR)/lib_CANopen/libcanopen.so.0.2 $(PTXCONF_SYSROOT_TARGET)/usr/lib
+	cp $(CANOPEN_DIR)/lib_CANopen/libcanopen.so.0.3 $(PTXCONF_SYSROOT_TARGET)/usr/lib
 	cp $(CANOPEN_DIR)/lib_CANopen/master/libcanopenm.so $(PTXCONF_SYSROOT_TARGET)/usr/lib
 	cp $(CANOPEN_DIR)/lib_CANopen/slave/libcanopens.so $(PTXCONF_SYSROOT_TARGET)/usr/lib
 	cp $(CANOPEN_DIR)/lib_CANopen/layer2/libcanlayer2.so $(PTXCONF_SYSROOT_TARGET)/usr/lib
-	ln $(PTXCONF_SYSROOT_TARGET)/usr/lib/libcanopen.so.0.2 $(PTXCONF_SYSROOT_TARGET)/usr/lib/libcanopen.so
+	ln $(PTXCONF_SYSROOT_TARGET)/usr/lib/libcanopen.so.0.3 $(PTXCONF_SYSROOT_TARGET)/usr/lib/libcanopen.so
 	cp $(CANOPEN_DIR)/lib_CANopen/canopen_types.h  $(PTXCONF_SYSROOT_TARGET)/usr/include/dal
 	cp $(CANOPEN_DIR)/lib_CANopen/libcanopen.h $(PTXCONF_SYSROOT_TARGET)/usr/include/dal/libcanopen.h 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	#Backup header files as archive for later use in configs/@platform@/packages
 	cd $(PTXCONF_SYSROOT_TARGET) && \
 	tar -czvf $(CANOPEN_PLATFORMCONFIGPACKAGEDIR)/$(CANOPEN_PACKAGE_NAME).tgz \
-		usr/lib/libcanopen.so.0.2 \
+		usr/lib/libcanopen.so.0.3 \
 		usr/lib/libcanopenm.so \
 		usr/lib/libcanopens.so \
 		usr/lib/libcanlayer2.so \
@@ -138,7 +138,7 @@ $(STATEDIR)/canopen.targetinstall:
 	@$(call install_fixup,canopen,PRIORITY,optional)
 	@$(call install_fixup,canopen,VERSION,$(CANOPEN_VERSION))	
 	@$(call install_fixup,canopen,SECTION,base)
-	@$(call install_fixup,canopen,AUTHOR,"Axel Wueste")
+	@$(call install_fixup,canopen,AUTHOR,"Charline Wueste")
 	@$(call install_fixup,canopen,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
@@ -149,11 +149,11 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@$(call install_archive, canopen, 0, 0, $(CANOPEN_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
 else
     # WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	@$(call install_copy, canopen, 0, 0, 0644, $(CANOPEN_DIR)/lib_CANopen/libcanopen.so.0.2,     /usr/lib/libcanopen.so.0.2)
+	@$(call install_copy, canopen, 0, 0, 0644, $(CANOPEN_DIR)/lib_CANopen/libcanopen.so.0.3,     /usr/lib/libcanopen.so.0.3)
 	@$(call install_copy, canopen, 0, 0, 0644, $(CANOPEN_DIR)/lib_CANopen/master/libcanopenm.so,  /usr/lib/libcanopenm.so)
 	@$(call install_copy, canopen, 0, 0, 0644, $(CANOPEN_DIR)/lib_CANopen/slave/libcanopens.so,  /usr/lib/libcanopens.so)
 	@$(call install_copy, canopen, 0, 0, 0644, $(CANOPEN_DIR)/lib_CANopen/layer2/libcanlayer2.so,/usr/lib/libcanlayer2.so)
-	@$(call install_link, canopen, libcanopen.so.0.2 , /usr/lib/libcanopen.so)
+	@$(call install_link, canopen, libcanopen.so.0.3 , /usr/lib/libcanopen.so)
 	@$(call install_link, canopen, ../libcanopenm.so , /usr/lib/dal/libcanopenm.so)
 	@$(call install_link, canopen, ../libcanopens.so , /usr/lib/dal/libcanopens.so)
 	@$(call install_link, canopen, ../libcanlayer2.so, /usr/lib/dal/libcanlayer2.so)

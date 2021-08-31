@@ -17,8 +17,8 @@ namespace netconf {
 
 class MockIPersistencePortConfigs : public IPersistence<InterfaceConfigs> {
  public:
-  MOCK_METHOD1(Write, Error(const InterfaceConfigs& d) );
-  MOCK_METHOD1(Read, Error(InterfaceConfigs& d) );
+  MOCK_METHOD1(Write, Status(const InterfaceConfigs& d) );
+  MOCK_METHOD1(Read, Status(InterfaceConfigs& d) );
 
 };
 

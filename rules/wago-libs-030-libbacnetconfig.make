@@ -15,7 +15,23 @@ PACKAGES-$(PTXCONF_LIBBACNETCONFIG) += libbacnetconfig
 #
 #--- paths and names --------------------------------------------------------- 
 #
-LIBBACNETCONFIG_VERSION           := 0.0.1
+# configure BACnet version (IPK)
+BACNET_VERSION       := 1.5.1
+
+# select BACnet stack revision
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_DEV
+BACNETSTACK_REVISION := 22
+endif
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
+BACNETSTACK_REVISION := 22
+endif
+
+ifdef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY
+BACNETSTACK_REVISION := 14
+endif
+
+LIBBACNETCONFIG_VERSION           := 1.5.0
 LIBBACNETCONFIG_MD5               :=
 LIBBACNETCONFIG                   := libbacnetconfig
 LIBBACNETCONFIG_URL               := file://$(PTXDIST_WORKSPACE)/wago_intern/device/bacnet/$(LIBBACNETCONFIG)
@@ -29,11 +45,13 @@ LIBBACNETCONFIG_BIN               := $(LIBBACNETCONFIG).so.$(LIBBACNETCONFIG_VER
 LIBBACNETCONFIG_SO_NAME           := $(LIBBACNETCONFIG).so
 LIBBACNETCONFIG_CONF_TOOL         := NO
 LIBBACNETCONFIG_MAKE_ENV          := $(CROSS_ENV) \
-BUILDCONFIG=$(LIBBACNETCONFIG_BUILDCONFIG) \
-              BIN_DIR=$(LIBBACNETCONFIG_BUILD_DIR) \
-              TARGET_ARCH=$(PTXCONF_ARCH_STRING) \
-              ARM_ARCH_VERSION=7 \
-              SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
+ 																		BUILDCONFIG=$(LIBBACNETCONFIG_BUILDCONFIG) \
+																		BIN_DIR=$(LIBBACNETCONFIG_BUILD_DIR) \
+																		TARGET_ARCH=$(PTXCONF_ARCH_STRING) \
+																		ARM_ARCH_VERSION=7 \
+																		BACNET_VERSION=$(BACNET_VERSION) \
+																		LIBBACNETSTACK_REV=$(BACNETSTACK_REVISION) \
+																		SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
 
 LIBBACNETCONFIG_PATH              := PATH=$(CROSS_PATH)
 LIBBACNETCONFIG_PACKAGE_NAME      := $(LIBBACNETCONFIG)_$(LIBBACNETCONFIG_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
@@ -77,10 +95,9 @@ endif
 # ----------------------------------------------------------------------------
 # Compile
 # ----------------------------------------------------------------------------
-
 $(STATEDIR)/libbacnetconfig.compile:
 	@$(call targetinfo)
-
+	
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@$(call world/compile, LIBBACNETCONFIG)
 endif
@@ -129,6 +146,18 @@ $(STATEDIR)/libbacnetconfig.targetinstall:
 
 	@$(call install_lib, libbacnetconfig, 0, 0, 0644, libbacnetconfig)
 	@$(call install_link, libbacnetconfig, $(LIBBACNETCONFIG_BIN), /usr/lib/$(LIBBACNETCONFIG_SO_NAME))
+	
+ifdef PTXCONF_CT_BACNET_CONFIG
+	@$(call install_copy, libbacnetconfig, 0, 0, 0750, -, /etc/config-tools/bacnet_config)
+endif
+	
+ifdef PTXCONF_CT_BACNET_BACKUP_RESTORE
+	@$(call install_copy, libbacnetconfig, 0, 0, 0750, -, /etc/config-tools/bacnet_backup_restore)
+endif
+	
+ifdef PTXCONF_CT_BACNET_WBM_DIAGLIST
+	@$(call install_copy, libbacnetconfig, 0, 0, 0750, -, /etc/config-tools/bacnet_wbm_diaglist)
+endif
 
 	@$(call install_finish, libbacnetconfig)
 	

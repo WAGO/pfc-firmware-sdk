@@ -1,8 +1,14 @@
 ## SECTION=system_libraries
 
-config LIBCONFIG
-	bool
-	prompt "libconfig"
-        default n
+menuconfig LIBCONFIG
+	tristate
+	prompt "libconfig                     "
 	help
-	  FIXME
+	  C/C++ Configuration File Library
+
+if LIBCONFIG
+
+config LIBCONFIG_CXX
+       bool "build and install install libconfig++"
+
+endif

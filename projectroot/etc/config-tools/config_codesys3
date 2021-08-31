@@ -100,7 +100,7 @@ setCs3SecureLogin()
     local state=$1
     local status=$SUCCESS
     if [ "$state" = "0" -o "$state" = "1" ]; then
-        chplcconfig -o -s TscUserDB -k SecureLogin -v $state
+        chplcconfig -o -s CmpUserMgr -k SecureLogin -v $state
     else
         status=$INVALID_PARAMETER
     fi

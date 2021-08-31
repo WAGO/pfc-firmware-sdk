@@ -13,12 +13,10 @@
 #
 PACKAGES-$(PTXCONF_MDMD) += mdmd
 
-
-
 #
 # Paths and names
 #
-MDMD_VERSION 				:= 0.7.12
+MDMD_VERSION 				:= 0.7.16
 MDMD_MD5				:=
 MDMD					:= mdmd
 MDMD_URL     				:= file://$(PTXDIST_WORKSPACE)/local_src/$(MDMD)
@@ -104,7 +102,7 @@ $(STATEDIR)/mdmd.targetinstall:
 
 	@$(call install_copy, mdmd, 0, 0, 0755, -, /usr/bin/mdmd)
 	@$(call install_copy, mdmd, 0, 0, 0755, -, /usr/bin/mdm_cuse)
-	@$(call install_copy, mdmd, 0, 0, 0644, -, /etc/dbus-1/system.d/mdmd.conf)
+	@$(call install_copy, mdmd, 0, 0, 0640, -, /etc/dbus-1/system.d/mdmd.conf)
 	@$(call install_copy, mdmd, 0, 0, 0640, -, /etc/specific/mdmd_init.conf)
 	@$(call install_copy, mdmd, 0, 0, 0644, -, /lib/udev/rules.d/76-tty-modem.rules)
 	@$(call install_copy, mdmd, 0, 0, 0750, /etc/specific/features/)

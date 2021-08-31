@@ -1,0 +1,36 @@
+## SECTION=system_libraries
+
+menuconfig LIBELF
+	tristate
+	prompt "libelf                        "
+	select ZLIB
+	help
+	  The libelf1 package provides a shared library which allows reading
+	  and writing ELF files on a high level.  Third party programs depend
+	  on this package to read internals of ELF files.
+
+if LIBELF
+
+config LIBELF_LIBDW
+	bool
+	prompt "libdw"
+	help
+	  libdw1 provides a library that provides access to DWARF debug
+	  information stored inside ELF files.
+
+config LIBELF_LIBASM
+	bool
+	prompt "libasm"
+	help
+	  The libasm1 package provides a library with a programmable assembler
+	  interface.  It allows you to create ELF files on a low level.
+
+config LIBELF_ELFSUTILS
+	bool
+	prompt "elfutils"
+	select LIBELF_LIBDW
+	select LIBELF_LIBASM
+	help
+	  Elfutils is a collection of utilities to handle ELF objects.
+
+endif

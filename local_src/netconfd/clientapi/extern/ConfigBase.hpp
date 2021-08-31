@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include "Error.hpp"
+
+#include "Status.hpp"
 
 namespace netconf {
 namespace api {
@@ -58,6 +59,39 @@ class ConfigBase {
     };
     auto to_remove = ::std::remove_if(configs_.begin(), configs_.end(), matches_interface_name);
     configs_.erase(to_remove);
+  }
+
+  /**
+   * Returns a reference to the config object, performing an insertion if no config object with interface name exists.
+   * @param interface_name The interface name of the config object.
+   * @return A reference to an existing config object or the reference to a newly created one.
+   */
+  T& operator[](const ::std::string &interface_name) {
+    auto matches_interface_name = [&](const T &c) {
+      return GetCompareValue(c) == interface_name;
+    };
+
+    auto it = ::std::find_if(configs_.begin(), configs_.end(), matches_interface_name);
+    if (it != configs_.end()) {
+      return *it;
+    } else {
+      return configs_.emplace_back(interface_name);
+    }
+
+  }
+
+  const T& operator[](const ::std::string &interface_name) const {
+    auto matches_interface_name = [&](const T &c) {
+      return GetCompareValue(c) == interface_name;
+    };
+
+    const auto it = ::std::find_if(configs_.begin(), configs_.end(), matches_interface_name);
+    if (it != configs_.end()) {
+      return *it;
+    } else {
+      throw std::out_of_range ("no object with interface name: "+ interface_name);
+    }
+
   }
 
 };

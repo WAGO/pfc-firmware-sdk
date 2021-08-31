@@ -9,7 +9,7 @@
 #include "OptionParser.hpp"
 #include "BridgeConfig.hpp"
 #include "MessagePrinter.hpp"
-#include "NetconfError.hpp"
+#include "NetconfStatus.hpp"
 #include "OutputFactory.hpp"
 
 namespace po = boost::program_options;
@@ -57,8 +57,10 @@ int main(int argc, const char *argv[]) {
     }
   } catch (po::error &e) {
     status = SYNTAX_ERROR;
-    error_printer.Print("Your call was syntactically incorrect:" + ::std::string{e.what()} + "\nMaybe pay attention to the order of your options and parameters");
-  } catch (::network_config::NetconfError &e) {
+    error_printer.Print(
+        "Your call was syntactically incorrect:" + ::std::string{e.what()} +
+        "\nMaybe pay attention to the order of your options and parameters");
+  } catch (::network_config::NetconfStatus &e) {
     status = OPERATION_ERROR;
     error_printer.Print(e.Get());
   } catch (std::exception& e) {

@@ -8,25 +8,23 @@
 #include <string>
 #include <boost/program_options.hpp>
 
+namespace network_config {
 
-namespace network_config
-{
+class FixIpHandler : public IHandler {
+ public:
+  FixIpHandler() = default;
+  ~FixIpHandler() override = default;
 
-  class FixIpHandler : public IHandler {
-    public:
-      FixIpHandler() = default;
-      ~FixIpHandler() override = default;
+  FixIpHandler(const FixIpHandler&) = delete;
+  FixIpHandler& operator=(const FixIpHandler&) = delete;
+  FixIpHandler(const FixIpHandler&&) = delete;
+  FixIpHandler& operator=(const FixIpHandler&&) = delete;
 
-      FixIpHandler(const FixIpHandler&) = delete;
-      FixIpHandler& operator=(const FixIpHandler&) = delete;
-      FixIpHandler(const FixIpHandler&&) = delete;
-      FixIpHandler& operator=(const FixIpHandler&&) = delete;
+  void Execute() override;
+ private:
+  void SetConfig();
 
-      void Execute() override;
-    private:
-      void SetConfig();
-
-      ::std::function<void()> execute_;
-  };
+  ::std::function<void()> execute_;
+};
 
 } /* namespace network_config */

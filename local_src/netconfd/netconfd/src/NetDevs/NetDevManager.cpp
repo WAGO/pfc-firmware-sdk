@@ -130,14 +130,19 @@ void NetDevManager::RemoveObsoleteBridgeNetdevs(const BridgeConfig &config) {
 void NetDevManager::RemoveObsoleteInterfaceRelations(const BridgeConfig &config) {
   for (auto &bridge_netdev : GetBridgeNetDevs()) {
     auto netdev_itfs = bridge_netdev->GetChildren();
-    auto &bridge_itf_labels = config.at(bridge_netdev->GetName());
+    auto &itf_labels = config.at(bridge_netdev->GetName());
+    bool change_ift_relations = false;
     for (auto &netdev_itf : netdev_itfs) {
       auto label = netdev_itf->GetLabel();
-      auto not_found = ::std::find(bridge_itf_labels.begin(), bridge_itf_labels.end(), label)
-          == bridge_itf_labels.end();
+      auto not_found = ::std::find(itf_labels.begin(), itf_labels.end(), label)
+          == itf_labels.end();
       if (not_found) {
         NetDev::RemoveParent(netdev_itf);
+        change_ift_relations = true;
       }
+    }
+    if(change_ift_relations){
+      OnNetDevChangeInterfaceRelations(bridge_netdev);
     }
   }
 }
@@ -276,7 +281,7 @@ void NetDevManager::LinkChange(::std::uint32_t if_index, ::std::uint32_t flags) 
   }
 }
 
-void NetDevManager::RegisterForNetDevConstructionEvents(INetDevConstruction &netdev_construction) {
+void NetDevManager::RegisterForNetDevConstructionEvents(INetDevEvents &netdev_construction) {
   netdev_construction_ = &netdev_construction;
 }
 
@@ -289,6 +294,12 @@ void NetDevManager::OnNetDevCreated(NetDevPtr netdev) const {
 void NetDevManager::OnNetDevRemoved(NetDevPtr netdev) const {
   if (netdev_construction_ != nullptr) {
     netdev_construction_->OnNetDevRemoved(::std::move(netdev));
+  }
+}
+
+void NetDevManager::OnNetDevChangeInterfaceRelations(NetDevPtr netdev) const {
+  if (netdev_construction_ != nullptr) {
+    netdev_construction_->OnNetDevChangeInterfaceRelations(::std::move(netdev));
   }
 }
 

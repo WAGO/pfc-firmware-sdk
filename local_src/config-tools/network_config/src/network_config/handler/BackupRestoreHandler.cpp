@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 
-#include "NetconfError.hpp"
+#include "NetconfStatus.hpp"
 #include "OptionStrings.hpp"
 #include "Utils.hpp"
 
@@ -15,11 +15,12 @@ namespace po = boost::program_options;
 
 namespace network_config {
 
-BackupRestoreHandler::BackupRestoreHandler(const po::variables_map& vm) : vm_{vm} {
+BackupRestoreHandler::BackupRestoreHandler(const po::variables_map &vm)
+    : vm_ { vm } {
 }
 
 void BackupRestoreHandler::Execute() {
-  const auto& optstr = GetOptions();
+  const auto &optstr = GetOptions();
   if (Contains(vm_, optstr.backup)) {
     auto backup_file_path = GetValueOf(vm_, optstr.backup);
     ::std::string targetversion;
@@ -28,19 +29,19 @@ void BackupRestoreHandler::Execute() {
     }
     auto error = netconf::api::Backup(backup_file_path, targetversion);
     if (error.IsNotOk()) {
-      throw NetconfError(error);
+      throw NetconfStatus(error);
     }
   } else if (Contains(vm_, optstr.restore)) {
     auto restore_file_path = GetValueOf(vm_, optstr.restore);
-    auto error             = netconf::api::Restore(restore_file_path);
+    auto error = netconf::api::Restore(restore_file_path);
     if (error.IsNotOk()) {
-      throw NetconfError(error);
+      throw NetconfStatus(error);
     }
   } else if (Contains(vm_, optstr.get_backup_parameter_count)) {
     ::std::string count;
     auto error = netconf::api::GetBackupParameterCount(count);
     if (error.IsNotOk()) {
-      throw NetconfError(error);
+      throw NetconfStatus(error);
     }
     ::std::cout << count;
   }

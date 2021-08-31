@@ -9,7 +9,7 @@ PTXCONF__platformconfig_MAGIC__=y
 #
 
 #
-# Target Platform Configuration 
+# Target Platform Configuration
 #
 
 #
@@ -23,7 +23,7 @@ PTXCONF_VIRTUAL=y
 PTXCONF_PLATFORMCONFIG_VERSION="2017.11.1"
 
 #
-# architecture                  
+# architecture
 #
 # PTXCONF_ARCH_ALPHA is not set
 # PTXCONF_ARCH_AVR32 is not set
@@ -54,14 +54,14 @@ PTXCONF_SIZEOF_LONG_DOUBLE="8"
 PTXCONF_ARCH_STRING="arm"
 
 #
-# paths & directories           
+# paths & directories
 #
 PTXCONF_SYSROOT_TARGET="${PTXDIST_PLATFORMDIR}/sysroot-target"
 PTXCONF_SYSROOT_HOST="${PTXDIST_PLATFORMDIR}/sysroot-host"
 PTXCONF_SYSROOT_CROSS="${PTXDIST_PLATFORMDIR}/sysroot-cross"
 
 #
-# toolchain                     
+# toolchain
 #
 PTXCONF_CROSSCHAIN_VENDOR=""
 PTXCONF_CROSSCHAIN_CHECK="9.2.1"
@@ -74,7 +74,7 @@ PTXCONF_COMPILER_PREFIX_KERNEL="${PTXCONF_COMPILER_PREFIX}"
 PTXCONF_COMPILER_PREFIX_BOOTLOADER="${PTXCONF_COMPILER_PREFIX}"
 
 #
-# hardening options             
+# hardening options
 #
 PTXCONF_TARGET_HARDEN_STACK_NONE=y
 # PTXCONF_TARGET_HARDEN_STACK is not set
@@ -86,7 +86,7 @@ PTXCONF_TARGET_HARDEN_STACK_NONE=y
 # PTXCONF_TARGET_HARDEN_PIE is not set
 
 #
-# extra toolchain options       
+# extra toolchain options
 #
 PTXCONF_TARGET_LINKER_HASH_DEFAULT=y
 # PTXCONF_TARGET_LINKER_HASH_SYSV is not set
@@ -109,8 +109,8 @@ PTXCONF_KERNEL_INSTALL=y
 PTXCONF_KERNEL_MODULES=y
 PTXCONF_KERNEL_MODULES_INSTALL=y
 PTXCONF_KERNEL_MODULES_BUILD="modules"
-PTXCONF_KERNEL_VERSION="4.9.146"
-PTXCONF_KERNEL_MD5="66f721686738d684996ef7416a627aff"
+PTXCONF_KERNEL_VERSION="5.10.21"
+PTXCONF_KERNEL_MD5="57acfeb30097ec8a05e3d5ad2aff5f0d"
 PTXCONF_KERNEL_ARCH_STRING="arm"
 # PTXCONF_KERNEL_IMAGE_BZ is not set
 # PTXCONF_KERNEL_IMAGE_Z is not set
@@ -128,7 +128,7 @@ PTXCONF_KERNEL_IMAGE="${PTXCONF_KERNEL_IMAGE_U_TARGET}"
 # PTXCONF_KERNEL_OPENSSL is not set
 
 #
-# patching & configuration      
+# patching & configuration
 #
 PTXCONF_KERNEL_SERIES="series"
 PTXCONF_KERNEL_CONFIG="am3xxx_pfc_generic_defconfig"
@@ -148,17 +148,17 @@ PTXCONF_HOST_DTC_VERSION="1.4.0"
 PTXCONF_HOST_DTC_MD5="a68528a7d5c626c3fb8ee87b09568539"
 
 #
-# console options               
+# console options
 #
 PTXCONF_CONSOLE_NAME="ttyO0"
 PTXCONF_CONSOLE_SPEED="115200"
 
 #
-# extra kernel                  
+# extra kernel
 #
 
 #
-# bootloaders                   
+# bootloaders
 #
 # PTXCONF_AT91BOOTSTRAP is not set
 # PTXCONF_AT91BOOTSTRAP2 is not set
@@ -180,7 +180,7 @@ PTXCONF_BOOTLOADER=y
 # PTXCONF_HOST_MXS_UTILS is not set
 
 #
-# i.MX HAB                      
+# i.MX HAB
 #
 # PTXCONF_HOST_IMX_CST is not set
 # PTXCONF_U_BOOT_V2 is not set
@@ -188,22 +188,22 @@ PTXCONF_BOOTLOADER=y
 # PTXCONF_X_LOAD is not set
 
 #
-# bootloader spec entries       
+# bootloader spec entries
 #
 # PTXCONF_BLSPEC_ENTRY is not set
 PTXCONF_BLSPEC_PFC=y
 PTXCONF_BLSPEC_PFC_TARGET_PREFIX="PFC"
 PTXCONF_BLSPEC_PFC_EMMC=y
-PTXCONF_BLSPEC_PFC_EMMC_ROOTARG_ROOTFS0="rw root=/dev/mmcblk1p7 rootfstype=ext4 rootwait"
-PTXCONF_BLSPEC_PFC_EMMC_ROOTARG_ROOTFS1="rw root=/dev/mmcblk1p10 rootfstype=ext4 rootwait"
+PTXCONF_BLSPEC_PFC_EMMC_ROOTARG_ROOTFS0="rw root=/dev/mmcblk1p7 rootfstype=ext4 rootwait uio_pdrv_genirq.of_id=uio_pdrv_genirq"
+PTXCONF_BLSPEC_PFC_EMMC_ROOTARG_ROOTFS1="rw root=/dev/mmcblk1p10 rootfstype=ext4 rootwait uio_pdrv_genirq.of_id=uio_pdrv_genirq"
 PTXCONF_BLSPEC_PFC_NAND=y
-PTXCONF_BLSPEC_PFC_NAND_ROOTARG_ROOTFS0="rw ubi.mtd=8 rootfstype=ubifs root=ubi0:rootfs.1 rootwait"
-PTXCONF_BLSPEC_PFC_NAND_ROOTARG_ROOTFS1="rw ubi.mtd=8 rootfstype=ubifs root=ubi0:rootfs.2 rootwait"
+PTXCONF_BLSPEC_PFC_NAND_ROOTARG_ROOTFS0="rw ubi.mtd=8 rootfstype=ubifs root=ubi0:rootfs.1 rootwait uio_pdrv_genirq.of_id=uio_pdrv_genirq ubifs.default_version=4"
+PTXCONF_BLSPEC_PFC_NAND_ROOTARG_ROOTFS1="rw ubi.mtd=8 rootfstype=ubifs root=ubi0:rootfs.2 rootwait uio_pdrv_genirq.of_id=uio_pdrv_genirq ubifs.default_version=4"
 PTXCONF_BLSPEC_PFC_SD=y
-PTXCONF_BLSPEC_PFC_SD_ROOTARG_ROOTFS="rw root=/dev/mmcblk0p2 rootfstype=ext3 rootwait"
+PTXCONF_BLSPEC_PFC_SD_ROOTARG_ROOTFS="rw root=/dev/mmcblk0p2 rootfstype=ext3 rootwait uio_pdrv_genirq.of_id=uio_pdrv_genirq ubifs.default_version=4"
 
 #
-# image creation options        
+# image creation options
 #
 PTXCONF_IMAGE_FIRMWARE_IMAGE_TAR=y
 # PTXCONF_IMAGE_BOOT_MLO_VFAT is not set
@@ -214,7 +214,7 @@ PTXCONF_IMAGE_FIRMWARE_IMAGE_TAR=y
 # PTXCONF_IMAGE_VDI is not set
 
 #
-# ipkg options                  
+# ipkg options
 #
 # PTXCONF_IMAGE_IPKG_PUSH_TO_REPOSITORY is not set
 # PTXCONF_IMAGE_INSTALL_FROM_IPKG_REPOSITORY is not set
@@ -235,7 +235,7 @@ PTXCONF_IMAGE_KERNEL_INSTALL_EARLY=y
 # PTXCONF_IMAGE_UIMAGE is not set
 
 #
-# new image creation options    
+# new image creation options
 #
 # PTXCONF_IMAGE_BOOT_DOWNGRADE is not set
 PTXCONF_IMAGE_BOOT_DOWNGRADE_PLATFORM_SUFFIX="pfc200"
@@ -270,7 +270,7 @@ PTXCONF_IMAGE_DATA_UBI=y
 PTXCONF_IMAGE_DATA_UBI_BOOT_FILES="boot-pfc100.tgz boot-pfc200.tgz"
 
 #
-# Wago Platform Specific        
+# Wago Platform Specific
 #
 PTXCONF_HOST_ACL=y
 PTXCONF_HOST_ATTR=y

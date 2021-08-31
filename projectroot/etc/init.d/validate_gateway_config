@@ -1,0 +1,200 @@
+#!/bin/bash
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
+
+set -u
+
+# Static route parameters
+declare -a static_dest=( )
+declare -a static_dest_mask=( )
+declare -a static_gw=( )
+declare -a static_interface=( )
+declare -a static_metric=( )
+declare -a static_routing_type=( ) # default or fixed. Fixed routes cannot be deleted.
+declare -a static_state=( ) # enabled or disabled
+
+function log
+{
+    /usr/bin/logger -s -t validate_gateway_config "$@"
+}
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_routing_lib" ]; then
+    log "config_routing_lib missing"
+    exit 64
+fi
+
+. "/etc/config-tools/config_routing_lib"
+
+function determine_port_count
+{
+    /sbin/ip link | grep ethX -c
+}
+
+function determine_default_gateway_count_from_config
+{
+    local count=0
+
+    for type in "${static_routing_type[@]}"; do
+        [[ $type == "fixed" ]] && ((count++))
+    done
+
+    echo "$count"
+}
+
+function add_missing_default_gateways
+{
+    local needed_default_gateway_count=$1
+
+    local index=0
+    while [[ $index -lt $needed_default_gateway_count ]]; do
+        if [[ ${static_routing_type[$index]-missing} != fixed ]]; then
+            local state="disabled"
+            static_dest=("${static_dest[@]:0:$index}" "0.0.0.0" "${static_dest[@]:$index }" )
+            static_dest_mask=("${static_dest_mask[@]:0:$index}" "0.0.0.0" "${static_dest_mask[@]:$index }" )
+            static_gw=("${static_gw[@]:0:$index}" "$GATEWAY_DEFAULT_VALUE" "${static_gw[@]:$index }" )
+            static_interface=("${static_interface[@]:0:$index}" "" "${static_interface[@]:$index }" )
+            static_metric=("${static_metric[@]:0:$index}" "$((GATEWAY_DEFAULT_METRIC + index))" "${static_metric[@]:$index }" )
+            static_routing_type=("${static_routing_type[@]:0:$index}" "fixed" "${static_routing_type[@]:$index }" )
+            [[ "$GATEWAY_DEFAULT_VALUE" ]] && state="enabled"
+            static_state=("${static_state[@]:0:$index}" "$state" "${static_state[@]:$index }" )
+        fi
+
+        ((index++))
+    done
+
+    log "added missing default gateways"
+}
+
+function remove_obsolete_gateways
+{
+    local needed_default_gateway_count=$1
+
+    local count=${#static_dest[@]}
+    local index=$((count-1));
+    while [[ $index -ge $needed_default_gateway_count ]]; do
+
+        if [[ ${static_routing_type[$index]} == fixed ]]; then
+
+            static_dest=("${static_dest[@]:0:$index}" "${static_dest[@]:(($index + 1)) }" )
+            static_dest_mask=("${static_dest_mask[@]:0:$index}" "${static_dest_mask[@]:(($index + 1)) }" )
+            static_gw=("${static_gw[@]:0:$index}" "${static_gw[@]:(($index + 1)) }" )
+            static_interface=("${static_interface[@]:0:$index}" "${static_interface[@]:(($index + 1)) }" )
+            static_metric=("${static_metric[@]:0:$index}" "${static_metric[@]:(($index + 1)) }" )
+            static_routing_type=("${static_routing_type[@]:0:$index}" "${static_routing_type[@]:(($index + 1)) }" )
+            static_state=("${static_state[@]:0:$index}" "${static_state[@]:(($index + 1)) }" )
+        fi
+
+        ((index--))
+    done
+
+    log "removed obsolete default gateways"
+}
+
+# Change static routing type of default gateways that differ in metric, 
+# destination address or destination netmask from the default entry.
+#
+# return Number of changed default gateway entries.
+function change_routing_types_of_custom_default_gateways
+{
+    local number_of_changed_gateway_entries=0
+
+    local -a tmp_arr_static_dest=( )
+    local -a tmp_arr_static_dest_mask=( )
+    local -a tmp_arr_static_gw=( )
+    local -a tmp_arr_static_interface=( )
+    local -a tmp_arr_static_metric=( )
+    local -a tmp_arr_static_routing_type=( )
+    local -a tmp_arr_static_state=( )
+    
+    local -r count=${#static_dest[@]}
+    local index=0
+
+    while [[ $index -lt $count && ${static_routing_type[$index]} == fixed ]]; do
+        local expected_metric=$((GATEWAY_DEFAULT_METRIC + index))
+        local dest=${static_dest[$index]}
+        [[ $dest == "default" ]] && dest="0.0.0.0"
+
+        if [[ $dest != "0.0.0.0" || ${static_dest_mask[$index]} != "0.0.0.0" || ${static_interface[$index]} != "" || ${static_metric[$index]} -ne $expected_metric ]]; then
+            # Found custom default gateway.
+            # Store array content of current index to temporary array and change its routing type to default.
+            tmp_arr_static_dest=("${tmp_arr_static_dest[@]}" "$dest" )
+            tmp_arr_static_dest_mask=("${tmp_arr_static_dest_mask[@]}" "${static_dest_mask[$index]}" )
+            tmp_arr_static_gw=("${tmp_arr_static_gw[@]}" "${static_gw[index]}" )
+            tmp_arr_static_interface=("${tmp_arr_static_interface[@]}" "${static_interface[$index]}" )
+            tmp_arr_static_metric=("${tmp_arr_static_metric[@]}" "${static_metric[$index]}" )
+            tmp_arr_static_routing_type=("${tmp_arr_static_routing_type[@]}" "default" )
+            tmp_arr_static_state=("${tmp_arr_static_state[@]}" "${static_state[$index]}" )
+
+            # Replace current array content with default values.
+            static_dest[$index]="0.0.0.0"
+            static_dest_mask[$index]="0.0.0.0"
+            static_gw[$index]="$GATEWAY_DEFAULT_VALUE"
+            static_interface[$index]=""
+            static_metric[$index]="$expected_metric"
+            static_routing_type[$index]="fixed"
+            [[ "${static_gw[index]}" ]] && static_state[$index]="enabled" || static_state[$index]="disabled"
+        fi
+
+        ((index++))
+    done
+
+    # If count of temporary array is greater than 0, insert temporary array content at "index" position.
+    number_of_changed_gateway_entries=${#tmp_arr_static_dest[@]}
+    if [[ ${number_of_changed_gateway_entries} -gt 0 ]]; then
+        static_dest=("${static_dest[@]:0:$index}" "${tmp_arr_static_dest[@]}" "${static_dest[@]:$index }" )
+        static_dest_mask=("${static_dest_mask[@]:0:$index}" "${tmp_arr_static_dest_mask[@]}" "${static_dest_mask[@]:$index }" )
+        static_gw=("${static_gw[@]:0:$index}" "${tmp_arr_static_gw[@]}" "${static_gw[@]:$index }" )
+        static_interface=("${static_interface[@]:0:$index}" "${tmp_arr_static_interface[@]}" "${static_interface[@]:$index }" )
+        static_metric=("${static_metric[@]:0:$index}" "${tmp_arr_static_metric[@]}" "${static_metric[@]:$index }" )
+        static_routing_type=("${static_routing_type[@]:0:$index}" "${tmp_arr_static_routing_type[@]}" "${static_routing_type[@]:$index }" )
+        static_state=("${static_state[@]:0:$index}" "${tmp_arr_static_state[@]}" "${static_state[@]:$index }" )
+
+        log "Changed routing type of over-customized default gateways."
+    fi
+    
+    return "$number_of_changed_gateway_entries"
+}
+
+function main
+{
+    local port_count
+    local default_gateway_count
+    local changed_gateways=false
+    port_count=$(determine_port_count)
+
+    read_config_file "$ROUTING_CONFIG_FILE"
+    default_gateway_count=$(determine_default_gateway_count_from_config)
+
+    if [[ $port_count -gt $default_gateway_count ]]; then
+        add_missing_default_gateways "$port_count"
+        changed_gateways=true
+    elif [[ $port_count -lt $default_gateway_count ]]; then
+        remove_obsolete_gateways "$port_count"
+        changed_gateways=true
+    fi
+
+    # Change static routing type for "invalid" routes from >fixed< to >default<
+    change_routing_types_of_custom_default_gateways || changed_gateways=true
+
+    if [[ $changed_gateways == true ]]; then
+        #print_routes "$ROUTING_SOURCE_STATIC" "shell" static_dest static_dest_mask static_gw static_interface static_metric static_routing_type static_state
+        write_static_routes_to_file static_dest static_dest_mask static_gw static_interface static_metric static_routing_type static_state
+    fi
+}
+
+case "$1" in
+start)
+    main
+    ;;
+*)
+    echo "usage: $0 {start}" >&2
+    exit 1
+    ;;
+esac
+
+exit $SUCCESS

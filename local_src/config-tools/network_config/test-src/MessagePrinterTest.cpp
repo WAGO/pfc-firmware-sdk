@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "MessagePrinter.hpp"
-#include "Error.hpp"
+#include "Status.hpp"
 #include "StreamTee.hpp"
 
 using namespace testing;
@@ -62,15 +62,15 @@ TEST_F(MessagePrinterTest, PrintToOtherOutput)
   EXPECT_EQ("Hello MessagePrinter", GetLogFileText());
 }
 
-TEST_F(MessagePrinterTest, PrintErrorObject)
+TEST_F(MessagePrinterTest, PrintStatusObject)
 {
-  sut_.Print(Error{ErrorCode::GENERIC_ERROR, "Something went wrong"});
+  sut_.Print(Status{StatusCode::GENERIC_ERROR, "Something went wrong"});
   EXPECT_EQ("Error: Something went wrong", GetLogFileText());
 }
 
-TEST_F(MessagePrinterTest, ErrorOkIsNotPrinted)
+TEST_F(MessagePrinterTest, StatusOkIsNotPrinted)
 {
-  sut_.Print(Error{ErrorCode::OK});
+  sut_.Print(Status{StatusCode::OK});
   EXPECT_EQ("", GetLogFileText());
 }
 

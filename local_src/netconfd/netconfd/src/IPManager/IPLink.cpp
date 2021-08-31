@@ -1,20 +1,30 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include "GratuitousArp.hpp"
 #include "NetworkHelper.hpp"
 #include "IPLink.hpp"
 #include "IIPConfigure.hpp"
 #include "NetworkInterfaceConstants.hpp"
+#include "boost/algorithm/string.hpp"
+#include "Logger.hpp"
+
+#include <chrono>
+#include <thread>
+
+#include <unistd.h>
 
 namespace netconf {
 
-IPLink::IPLink(IIPConfigure &configurator, IEventManager &event_manager, NetDevPtr netdev,
-               const ::std::string &init_address, const ::std::string &init_netmask)
-    :
-    ip_configure_ { configurator },
-    event_manager_ { event_manager },
-    netdev_ { ::std::move(netdev) },
-    address_ { init_address },
-    netmask_ { init_netmask } {
+IPLink::IPLink(IIPConfigure &configurator, IEventManager &event_manager, IGratuitousArp &gratuitous_arp,
+               IIPLinks &ip_links, NetDevPtr netdev, const ::std::string &init_address,
+               const ::std::string &init_netmask)
+    : ip_configure_ { configurator },
+      event_manager_ { event_manager },
+      gratuitous_arp_ { gratuitous_arp },
+      ip_links_ { ip_links },
+      netdev_ { ::std::move(netdev) },
+      address_ { init_address },
+      netmask_ { init_netmask } {
   auto on_link_change = [this](NetDev& /*netdev*/, eth::InterfaceLinkState state) {
     if (state == eth::InterfaceLinkState::Up) {
       this->Enable();
@@ -44,8 +54,9 @@ bool IPLink::IsDifferentFromCurrentIpAddress(const IPConfig &new_ip_config) cons
   return (new_ip_config.address_ != ip_config_.address_) || (new_ip_config.netmask_ != ip_config_.netmask_);
 }
 
-Error IPLink::Configure(const IPConfig &new_ip_config) {
-  Error status;
+Status IPLink::Configure(const IPConfig &new_ip_config) {
+
+  Status status;
   if (address_ != ZeroIP) {
     if (IPConfig::SourceChangesToAnyOf(ip_config_, new_ip_config, IPSource::BOOTP, IPSource::DHCP,
                                        IPSource::EXTERNAL)) {
@@ -55,15 +66,19 @@ Error IPLink::Configure(const IPConfig &new_ip_config) {
       netmask_ = ZeroIP;
     }
   }
+
   status = ip_configure_.Configure(new_ip_config);
 
   if (status.IsOk()) {
     if (IPConfig::SourceIsAnyOf(new_ip_config, IPSource::STATIC, IPSource::TEMPORARY)) {
-      /* Manually set current IP, because during system boot no netlink events are send tu us.
+      /* Manually set current IP, because during system boot no netlink events are send.
        * This will circumvent this issue
        */
       address_ = new_ip_config.address_;
       netmask_ = new_ip_config.netmask_;
+
+      SendGratuitousArpOnBridge();
+
     } else if (IPConfig::SourceIsAnyOf(new_ip_config, IPSource::NONE)) {
       address_ = ZeroIP;
       netmask_ = ZeroIP;
@@ -104,10 +119,21 @@ void IPLink::NotifyChanges(const IPConfig &new_ip_config) {
   }
 }
 
-Error IPLink::SetIPConfig(const IPConfig new_ip_config) {
-  Error status = Configure(new_ip_config);
+Status IPLink::SetIPConfig(const IPConfig new_ip_config) {
 
-  if(status.IsOk()) {
+  /**
+   * XXX: Avoid setting temporary IP on former 'static' and 'FixIP' config.
+   * This happens when DHCP client is stopped by 'static' or 'FixIP' config, but the DHCP script is simultaneously waiting for the temporary IP set!
+   * This race cannot be solved adequately without refactoring the whole DHCP lease processing!!!
+   */
+  if(IPConfig::SourceIsAnyOf(ip_config_, IPSource::STATIC, IPSource::FIXIP) && new_ip_config.source_ == IPSource::TEMPORARY){
+    LogWarning("IPLink: setting temporary IP on 'Static' or 'FixIP' config is ignored: " + new_ip_config.interface_);
+    return Status::Ok();
+  }
+
+  Status status = Configure(new_ip_config);
+
+  if (status.IsOk()) {
     NotifyChanges(new_ip_config);
 
     AcceptNewConfig(new_ip_config);
@@ -138,13 +164,12 @@ IPConfig IPLink::GetCurrentIPConfig() const {
 
 void IPLink::OnAddressChange(IIPEvent::ChangeType change_type, const ::std::string &address,
                              const ::std::string &netmask) {
-  // NETLINK reports address changes twice. The IP that is deleted (del) and the new one (add)
 
+  // NETLINK reports address changes twice. The IP that is deleted (del) and the new one (add)
   if (change_type == IIPEvent::ChangeType::Delete) {
     address_ = ZeroIP;
     netmask_ = ZeroIP;
-  } else if (address_ != address || netmask_ != netmask) {
-    // NETLINK add ip
+  } else {
     address_ = address;
     netmask_ = netmask;
   }
@@ -153,7 +178,20 @@ void IPLink::OnAddressChange(IIPEvent::ChangeType change_type, const ::std::stri
   }
 }
 
+void IPLink::RefreshIP(){
+  if(IPConfig::SourceIsAnyOf(ip_config_, IPSource::BOOTP, IPSource::DHCP)){
+    IPConfig ip_config = ip_config_;
+    ip_config.source_ = IPSource::NONE;
+    ip_configure_.Configure(ip_config);
+
+    NotifyNetworkChanges();
+
+    ip_configure_.Configure(ip_config_);
+  }
+}
+
 void IPLink::Enable() {
+
   if (enabled_) {
     return;
   }
@@ -163,16 +201,23 @@ void IPLink::Enable() {
     ip_configure_.Configure(ip_config_);
   }
 
-  if (shall_trigger_event_folder_) {
-    event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
-  }
+  SendGratuitousArpOnPortIfAssociatedBridgeIsConfigured();
+
+  NotifyNetworkChanges();
 }
 
 static bool ShouldFlush(const IPConfig &config) {
   return !IPConfig::SourceIsAnyOf(config, IPSource::EXTERNAL, IPSource::STATIC);
 }
 
+void IPLink::NotifyNetworkChanges() {
+  if (shall_trigger_event_folder_) {
+    event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
+  }
+}
+
 void IPLink::Disable() {
+
   if (not enabled_) {
     return;
   }
@@ -184,8 +229,32 @@ void IPLink::Disable() {
     ip_configure_.Configure(ip_config);
   }
 
-  if (shall_trigger_event_folder_) {
-    event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
+  NotifyNetworkChanges();
+}
+
+void IPLink::SendGratuitousArpOnBridge() {
+  if (address_ != ZeroIP) {
+    gratuitous_arp_.Send(address_, netdev_, netdev_);
+  }
+}
+
+void IPLink::SendGratuitousArpOnPortIfAssociatedBridgeIsConfigured() {
+
+  if (netdev_->GetKind() == DeviceType::Port) {
+    auto br_netdev = netdev_->GetParent();
+
+    if (br_netdev) {
+      auto br_ip_link = ip_links_.Get(br_netdev->GetName());
+
+      if (br_ip_link) {
+        auto br_ip_address = br_ip_link->address_;
+
+        if (br_ip_address != ZeroIP) {
+          usleep(50 * 1000); // TODO: Workaround for PFC-ADV, see BUWA 3901
+          gratuitous_arp_.Send(br_ip_address, netdev_->GetParent(), netdev_);
+        }
+      }
+    }
   }
 }
 

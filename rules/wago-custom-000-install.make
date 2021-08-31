@@ -380,6 +380,9 @@ ifdef PTXCONF_WAGO_CUSTOM_INSTALL_BACKUP_SETTINGS
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 	  $(PTXDIST_WORKSPACE)/projectroot/usr/sbin/settings_backup_checksys, \
 		/usr/sbin/settings_backup_checksys, n)
+	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
+	  $(PTXDIST_WORKSPACE)/projectroot/usr/sbin/settings_backup_docker, \
+		/usr/sbin/settings_backup_docker, n)
 endif
 
 #
@@ -469,8 +472,7 @@ endif
 		/etc/VIDEO_MODES, n)
 
 ifdef PTXCONF_WAGO_CUSTOM_CRONJOBS_ROOT
-	@$(call install_copy, wago-custom-install, 0, 0, 0644, \
-		$(PTXDIST_WORKSPACE)/projectroot/var/spool/cron/crontabs/root, \
+	@$(call install_alternative, wago-custom-install, 0, 0, 0600, \
 		/var/spool/cron/crontabs/root, n)
 endif
 
@@ -704,6 +706,11 @@ ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_BOOTP_ON
 	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/bootp)
 endif
 
+ifdef PTXCONF_WAGO_CUSTOM_INSTALL_IOCHECK_ON
+	@touch $(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/iocheck
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/iocheck)
+endif
+
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
 		$(PTXDIST_WORKSPACE)/projectroot/usr/sbin/setup_ssh_keys, \
 		/usr/sbin/setup_ssh_keys, n)
@@ -714,8 +721,12 @@ endif
 		$(PTXDIST_WORKSPACE)/projectroot/usr/sbin/random_seed, \
 		/usr/sbin/random_seed, n)
 
-
-
+#build IPK's 
+ifdef PTXCONF_CDS3_TSCIOBACNET
+	#--- bacnet ipk ---
+	$(PTXDIST_WORKSPACE)/scripts/bacnet-helpers/make-metaipk_bacnet.sh $(BACNET_VERSION) $(BACNETSTACK_REVISION) \
+		$(PTXCONF_PROJECT) $(PTXCONF_PROJECT_VERSION) $(PTXCONF_OPKG_OPKG_CONF_HOST)
+endif
 
 	@$(call install_finish, wago-custom-install)
 

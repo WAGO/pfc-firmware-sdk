@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -26,7 +26,7 @@ class IDHCPClientController {
   IDHCPClientController(const IDHCPClientController&&) = delete;
   IDHCPClientController& operator=(const IDHCPClientController&&) = delete;
 
-  virtual Error StartClient(const Bridge& bridge) const = 0;
+  virtual Status StartClient(const Bridge& bridge) const = 0;
   virtual void StopClient(const Bridge& bridge) const = 0;
   virtual DHCPClientStatus GetStatus(const Bridge& bridge) const = 0;
 };

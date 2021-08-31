@@ -46,10 +46,14 @@ boost::optional<IPConfig> IPConfigs::GetIPConfig(const ::std::string &interface_
   return config.interface_;
 }
 
-
 ::std::string ToJson(const IPConfigs& configs) noexcept {
   JsonConverter jc;
   return jc.ToJsonString(configs.GetConfig());
+}
+
+::std::string ToPrettyJson(const IPConfigs& configs) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(configs.GetConfig(), JsonFormat::PRETTY);
 }
 
 static IPConfigs FilterCopyByType(const IPConfigs &ip_configs, DeviceType type) {
@@ -70,26 +74,26 @@ static IPConfigs FilterCopyByType(const IPConfigs &ip_configs, DeviceType type) 
 }
 
 
-Error GetIPConfigs(DeviceType type, IPConfigs& configs) {
+Status GetIPConfigs(DeviceType type, IPConfigs& configs) {
   IPConfigs c;
-  auto error = GetIPConfigs(c);
-  if(error.IsNotOk())
+  auto status = GetIPConfigs(c);
+  if(status.IsNotOk())
   {
-    return error;
+    return status;
   }
   configs = FilterCopyByType(c, type);
-  return error;
+  return status;
 }
 
-Error GetCurrentIPConfigs(DeviceType type, IPConfigs& configs) {
+Status GetCurrentIPConfigs(DeviceType type, IPConfigs& configs) {
   IPConfigs c;
-  auto error = GetCurrentIPConfigs(c);
-  if(error.IsNotOk())
+  auto status = GetCurrentIPConfigs(c);
+  if(status.IsNotOk())
   {
-    return error;
+    return status;
   }
   configs = FilterCopyByType(c, type);
-  return error;
+  return status;
 }
 
 void DeleteIPConfig(::std::string interface_name) {
@@ -109,13 +113,12 @@ void DeleteIPConfig(::std::string interface_name) {
   }
 }
 
-Error MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept{
+Status MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept{
   JsonConverter jc;
   netconf::IPConfigs c;
-  Error error = jc.FromJsonString(json_str, c);
+  Status status = jc.FromJsonString(json_str, c);
   config = IPConfigs(c);
-  return error;
-
+  return status;
 }
 
 ::std::string ToJson(const netconf::IPConfig &ip_config) noexcept{
@@ -123,7 +126,10 @@ Error MakeIPConfigs(const ::std::string& json_str, IPConfigs& config) noexcept{
   return jc.ToJsonString(ip_config);
 }
 
-
+::std::string ToPrettyJson(const netconf::IPConfig &ip_config) noexcept{
+  JsonConverter jc;
+  return jc.ToJsonString(ip_config, JsonFormat::PRETTY);
+}
 
 }  // api
 }  // netconf

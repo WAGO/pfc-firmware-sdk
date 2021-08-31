@@ -1,0 +1,14 @@
+## SECTION=system_libraries
+
+config LIBGCRYPT
+	tristate
+	select LIBGPG_ERROR
+	prompt "libgcrypt"
+	help
+	  LGPL Crypto library
+
+	  libgcrypt contains cryptographic functions.  Many important
+	  free ciphers, hash algorithms and public key signing
+	  algorithms have been implemented: arcfour, blowfish, cast5,
+	  DSA, DSA2, des, 3DES, elgamal, MD5, rijndael, RMD160, RSA,
+	  SEED, SHA1, SHA-384, SHA-512, twofish, tiger.

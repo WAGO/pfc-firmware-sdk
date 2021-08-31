@@ -29,17 +29,33 @@ class NetlinkLinkCache::Impl {
 
   ~Impl() = default;
 
-  static void CacheChange(struct nl_cache* cache, struct nl_object* obj, int num, void* user) {
+  static void CacheChange(struct nl_cache* cache, struct nl_object* obj, int action, void* user) {
     (void)cache;
-    (void)num;
+    (void)action;
     auto* link_cache_impl = reinterpret_cast<Impl*>(user);  // NOLINT: Need reinterpret_cast to cast from void*.
 
-    auto* l = reinterpret_cast<rtnl_link*>(nl_object_priv(obj));  // NOLINT: Need reinterpret_cast to cast from void*.
+    auto cache_obj = nl_cache_find(cache, obj);
+    if(cache_obj == nullptr)
+      return;
+
+    auto* l = reinterpret_cast<rtnl_link*>(nl_object_priv(cache_obj));  // NOLINT: Need reinterpret_cast to cast from void*.
+    if(rtnl_link_get_family(l) == AF_BRIDGE){
+      if(rtnl_link_get_master(l) != 0){
+        /* Skip entry in context of bridge:
+         * e.g.: bridge ethX12 ether 00:30:de:44:bd:99 master br0 <broadcast,multicast,up,running,lowerup> slave-of eth0
+         * We only want the entries without the bridge context
+         */
+        nl_object_put(cache_obj);
+        return;
+      }
+    }
 
     uint32_t flags = rtnl_link_get_flags(l);
     auto if_index  = static_cast<uint32_t>(rtnl_link_get_ifindex(l));
 
     link_cache_impl->CallEventHandler(if_index, flags);
+
+    nl_object_put(cache_obj);
   }
 
   void CallEventHandler(uint32_t if_index, uint32_t flags) {

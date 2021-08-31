@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_CDS3_TSCSECURE) += cds3-tscsecure
 # Paths and names
 #
 
-CDS3_TSCSECURE_VERSION        := 2.1.1
+CDS3_TSCSECURE_VERSION        := 2.1.2
 CDS3_TSCSECURE_MD5            :=
 CDS3_TSCSECURE                := cds3-tscsecure
 CDS3_TSCSECURE_SRC_DIR        := $(PTXDIST_WORKSPACE)/wago_intern/codesys3-Component/cds3-tscsecure

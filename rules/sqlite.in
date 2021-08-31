@@ -12,14 +12,13 @@ menuconfig SQLITE
 
 if SQLITE
 
-
 comment "build options"
 
 config SQLITE_THREADSAFE
 	bool
 	prompt "Safe for use within a multi-threaded program"
 
-config SQLITE_LOAD_EXTENTION
+config SQLITE_LOAD_EXTENSION
 	bool
 	prompt "external extensions"
 	help
@@ -31,58 +30,13 @@ config SQLITE_READLINE
 	help
 	  Enable readline support
 
-config SQLITE_WAL_SYNCHRONOUS_NORMAL
+config SQLITE_FOREIGN_KEYS
 	bool
-	default n
-	prompt "set synchronous WAL mode to NORMAL"
+	prompt "enable foreign keys by default"
 	help
-	  Enable this entry to set SQLite's Write-Ahead Log (WAL) mode to NORMAL. SQLite default value is FULL.
-	  Detailed information can be found at
-	    www.sqlite.org/wal.html
-	    www.sqlite.org/pragma.html#pragma_synchronous
-
-config SQLITE_DISABLE_MEMSTATUS
-	bool
-	default y
-	prompt "disable tracking memory usage"
-	help
-      Disable tracking of memory usage. 
-
-config SQLITE_LIKE_DOESNT_MATCH_BLOBS
-	bool
-	default y
-	prompt "LIKE operator does not match BLOB operands"
-	help
-      LIKE and GLOB operators always return FALSE if either operand is a BLOB. 
-
-config SQLITE_MAX_EXPR_DEPTH
-	bool
-	default n
-	prompt "disable checking of expression parse-tree depth"
-	help
-	  Disable checking of expression parse-tree depth.
-
-config SQLITE_OMIT_DEPRECATED
-	bool
-	default n
-	prompt "omit deprecated interfaces and features"
-	help
-     Omit deprecated interfaces and features.
-
-config SQLITE_OMIT_SHARED_CACHE
-	bool
-	default y
-	prompt "disable shared cache"
-	help
-     Disable SQLite shared-cache mode. Detailed information can be found at https://www.sqlite.org/sharedcache.html
-
-config SQLITE_USE_ALLOCA
-	bool
-	default n
-	prompt "use alloca"
-	help
-      Use alloca() for dynamically allocating temporary stack space. Might not be supported on every system.
-
+	  Enable foreign keys support by default on database
+	  connections. This ensures database schema constrains
+	  are enforced by default e.g. consistency between tables.
 
 comment "install options"
 

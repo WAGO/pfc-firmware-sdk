@@ -1,0 +1,63 @@
+#!/bin/bash
+
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package wago-custom-install.
+#
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   settings_backup_
+#
+# Brief:    Save docker daemon configuration settings to stdout or restore 
+#           them from stdin.
+#
+# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load common backup/restore functions
+if [[ ! -f "/usr/sbin/settings_backup_lib" ]]; then
+    echo "settings_backup_lib missing"
+    exit 64
+fi
+
+source /usr/sbin/settings_backup_lib
+
+RESULT=0
+OPERATION=${1:-}
+readonly TMP=".tmp"
+#-------------------------------------------------------------
+# restore of settings
+#-------------------------------------------------------------
+if [[ $OPERATION = restore ]]; then
+    
+    # read backup file from stdin
+    while read line; do
+        # get parameter key
+        key=${line%%=*}
+        # get parameter value
+        value=${line#*=}
+        if [[ "$key" = docker-daemon-conf ]]; then
+            base64 -d <<< "$value" >> "$DOCKER_DAEMON_CONFIG$TMP"
+        fi
+    done
+    
+    mv "$DOCKER_DAEMON_CONFIG$TMP" "$DOCKER_DAEMON_CONFIG"
+#-------------------------------------------------------------
+# backup settings
+#-------------------------------------------------------------
+elif [[ $OPERATION = backup ]]; then
+    BackupKnownFile docker-daemon-conf "$DOCKER_DAEMON_CONFIG"
+    RESULT=$?
+else
+    echo
+    echo "* Save docker daemon configuration settings to stdout or restore them from stdin *"
+    echo
+    echo "Usage: settings_backup_docker < backup | restore >"
+    echo
+fi
+
+exit $RESULT

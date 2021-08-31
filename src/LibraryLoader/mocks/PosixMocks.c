@@ -150,7 +150,6 @@ void *PosixMock_DlOpen(__const char *file,
 
 int PosixMock_DlClose(void * handle)
 {
-   CHECK_C(handle != NULL);
    if ( s_DlCloseFakeData.Mock != NULL)
    {
       return s_DlCloseFakeData.Mock->actualCall("dlclose")
@@ -165,7 +164,6 @@ void *PosixMock_DlSym(void *__restrict handle,
                       __const char *__restrict name)
 {
    CHECK_C(handle != NULL);
-   CHECK_C(name != NULL);
 
    if ( s_DlSymFakeData.Mock != NULL)
    {

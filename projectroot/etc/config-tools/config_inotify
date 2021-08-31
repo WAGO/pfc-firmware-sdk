@@ -1,0 +1,74 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_inotify
+#
+# Set the inotify parameters
+#
+# Author: WAGO Kontakttechnik GmbH
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  echo "config_tool_lib missing"
+  exit 255
+fi
+
+. /etc/config-tools/config_tool_lib
+
+readonly operation="$1"
+readonly setting="$2"
+
+# path to sysctl tool
+SYSCTL_EXE=sysctl
+
+#-------------------------------------------------------------
+# sanity check
+#-------------------------------------------------------------
+
+# check whether the sysctl is executable
+SYSCTL_EXE=$(command -v $SYSCTL_EXE)
+if ! [ -x $SYSCTL_EXE ];  then
+  ReportError $FILE_NOT_EXECUTABLE "($SYSCTL_EXE)"
+  SetLastError 'Error while execution (sysctl utility missing)'
+  exit $FILE_NOT_EXECUTABLE
+fi
+
+#-------------------------------------------------------------
+# backup settings
+#-------------------------------------------------------------
+
+if [ "$operation" = "restore" ]; then
+  if ! $SYSCTL_EXE -w fs.inotify.$setting=$3; then
+    ReportError $SHELL_ERROR "$SYSCTL_EXE -w fs.inotify.$setting=$3"
+    SetLastError Error writing inotify parameter with sysctl
+  fi
+      
+#-------------------------------------------------------------
+# backup settings
+#-------------------------------------------------------------
+
+elif [ "$operation" = "backup" ]; then
+  val=$($SYSCTL_EXE fs.inotify."$setting")
+  if [ "$?" -ne 0 ]
+   then
+     ReportError $SHELL_ERROR "$SYSCTL_EXE fs.inotify.$setting"
+     SetLastError Error reading inotify parameter with sysctl
+   else
+     echo $val |  awk -F = '{ printf $2 }'
+   fi  
+else
+	echo
+	echo "* get or set inotify settings *"
+	echo
+	echo "Usage:  $(basename "$0") < backup | restore > max_queued_events [0..MAX]"
+  echo "       $(basename "$0") < backup | restore > max_user_instances [0..MAX]"
+  echo "       $(basename "$0") < backup | restore > max_user_watches [0..MAX]"
+fi
+
+exit $status

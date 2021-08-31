@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #
 # NET-SNMP snmpd
@@ -16,52 +16,58 @@ SNMPD="/usr/sbin/snmpd"
 SNMPD_CONF="/var/lib/net-snmp/snmpd.conf"
 SNMPD_PID="/var/run/snmpd.pid"
 SNMP_CONFIG_AGENT_INIT="/etc/init.d/snmpconfigagent"
-                                                    
+
+function start {
+    echo "${PREFIX}starting ..."
+    NAMES=""
+    shopt -s nullglob  # in case globbing was not successful
+    for NAME in /etc/snmp/snmpd_*.conf; do
+        if [[ "$NAMES" == "" ]]; then
+            NAMES=$NAME
+        else
+            NAMES=$NAMES,$NAME
+        fi
+    done
+    $SNMPD -c $NAMES,$SNMPD_CONF -p $SNMPD_PID&
+    [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a start /etc/config-tools/events/snmp/ >/dev/null 2>&1
+    [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT start
+}
+
+function stop {
+    echo "${PREFIX}stopping"
+    [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT stop
+    [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a stop /etc/config-tools/events/snmp/ >/dev/null 2>&1
+
+    if [ -f $SNMPD_PID ]; then
+        kill "$(cat $SNMPD_PID)"
+    fi
+}
+
+function restart {
+#only restart if snmpd is running and pid-file exist
+    if [ -f $SNMPD_PID ]; then
+        stop
+    fi
+    start
+}
+
 case $1 in
-                                                    
-        start)
-                echo "${PREFIX}starting ..."
-                NAMES=""                    
-                for NAME in `ls /etc/snmp/snmpd_*.conf`;
-                do                                      
-                        if [ "$NAMES" = "" ]
-                        then                            
-                                NAMES=$NAME
-                        else                
-                                NAMES=$NAMES,$NAME
-                        fi                        
-                done        
-                $SNMPD -c $NAMES,$SNMPD_CONF -p $SNMPD_PID&
-                [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a start /etc/config-tools/events/snmp/ >/dev/null 2>&1
-                [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT start                                                                               
-                ;;                                         
-                                                                                                                            
-        stop)                                
-                echo "${PREFIX}stopping"
-                [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT stop
-                [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a stop /etc/config-tools/events/snmp/ >/dev/null 2>&1
-        if [ -f $SNMPD_PID ]; then                                                                                         
-                    kill `cat $SNMPD_PID`   
-        fi                                                                                                                 
-                ;;                
-                                         
-        restart)
-                #only restart if snmpd is running and pid-file exist
-                if [ -f $SNMPD_PID ]; then                          
-                        [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a config /etc/config-tools/events/snmp/ >/dev/null 2>&1
-                        [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT stop                                                                                 
-                        $0 stop                     
-                        $0 start                                                                                                     
-                        [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT start
-                else                                 
-                        echo "${PREFIX} Not running. Use ${0} start"
-                        exit 1                                      
-                fi            
-                ;;
-                              
-        *)
-                echo "${PREFIX}usage: ${0} [start|stop]"
-                exit 1
-                ;;
-                                                        
+
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    restart)
+        restart
+        ;;
+
+    *)
+        echo "${PREFIX}usage: ${0} [start|stop]"
+        exit 1
+        ;;
+
 esac

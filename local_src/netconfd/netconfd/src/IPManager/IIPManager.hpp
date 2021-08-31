@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Types.hpp"
 
 namespace netconf {
@@ -17,12 +17,14 @@ class IIPManager {
   IIPManager(const IIPManager&&) = delete;
   IIPManager& operator=(const IIPManager&&) = delete;
 
-  virtual Error ApplyTempFixIpConfiguration(const IPConfigs &config) = 0;
-  virtual Error ApplyIpConfiguration(const IPConfigs &config) = 0;
-  virtual Error ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) = 0;
-  virtual Error ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) = 0;
+  virtual Status ApplyTempFixIpConfiguration() = 0;
+  virtual Status ApplyIpConfiguration(const IPConfigs &config) = 0;
+  virtual Status ApplyIpConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) = 0;
+  virtual Status ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) = 0;
 
-  virtual Error ValidateIPConfigs(const IPConfigs &configs) const = 0;
+  virtual void ClearIpConfiguration() = 0;
+
+  virtual Status ValidateIPConfigs(const IPConfigs &configs) const = 0;
   virtual IPConfigs GetIPConfigs() const = 0;
   virtual IPConfigs GetIPConfigs(const Bridges &bridges) const = 0;
   virtual IPConfigs GetCurrentIPConfigs() const = 0;

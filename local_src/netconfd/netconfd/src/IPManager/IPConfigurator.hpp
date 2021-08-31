@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "IBootpClientController.hpp"
 #include "Types.hpp"
 #include "IIPController.hpp"
@@ -25,20 +25,19 @@ class IPConfigurator : public IIPConfigure {
   IPConfigurator(const IPConfigurator&&) = delete;
   IPConfigurator& operator=(const IPConfigurator&&) = delete;
 
-  Error Configure(const IPConfigs& configs) const;
-  Error Configure(const IPConfig& config) const override;
+  Status Configure(const IPConfig& config) const override;
 
  private:
 
-  Error SetStatic(const IPConfig& ip_config) const;
-  Error SetTemporary(const IPConfig& ip_config) const;
-  Error SetDHCP(const IPConfig& ip_config) const;
-  Error SetBootp(const IPConfig& ip_config) const;
+  Status SetStatic(const IPConfig& ip_config) const;
+  Status SetTemporary(const IPConfig& ip_config) const;
+  Status SetDHCP(const IPConfig& ip_config) const;
+  Status SetBootp(const IPConfig& ip_config) const;
   void SetNone(const IPConfig& ip_config) const;
 
-  Error EnableGratuitousArp(const IPConfig& ip_config) const;
+  Status EnableGratuitousArp(const IPConfig& ip_config) const;
 
-  Error FlushIP(const Interface& interface) const;
+  Status FlushIP(const Interface& interface) const;
 
   void DeleteTempFiles(const Bridge& bridge) const;
 

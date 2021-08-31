@@ -1,0 +1,9 @@
+## SECTION=hosttools_noprompt
+
+config HOST_OPKG_UTILS
+	tristate
+	select HOST_SYSTEM_PYTHON3
+	default y if ALLYES
+	help
+	  opkg-utils let you build packages in the opkg format.
+

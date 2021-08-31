@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# generate inetd.conf
+if [ "$(echo $DESTDIR/etc/inetd.conf.d/*)" != "$DESTDIR/etc/inetd.conf.d/*" ]; then
+	cat $DESTDIR/etc/inetd.conf.d/* > $DESTDIR/etc/inetd.conf
+fi
+

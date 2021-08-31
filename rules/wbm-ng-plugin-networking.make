@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_NETWORKING) += wbm-ng-plugin-networking
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_NETWORKING_VERSION        := 1.9.3
+WBM_NG_PLUGIN_NETWORKING_VERSION        := 1.14.3
 WBM_NG_PLUGIN_NETWORKING                := wbm-networking-$(WBM_NG_PLUGIN_NETWORKING_VERSION)
 WBM_NG_PLUGIN_NETWORKING_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_NETWORKING)
 WBM_NG_PLUGIN_NETWORKING_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_NETWORKING_URL))
@@ -91,10 +91,10 @@ $(STATEDIR)/wbm-ng-plugin-networking.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_NETWORKING_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-networking, 0, 0, 0644, $(WBM_NG_PLUGIN_NETWORKING_DIR)/$$object, $(WBM_NG_PLUGIN_NETWORKING_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-networking, 0, 0, 0755, $(WBM_NG_PLUGIN_NETWORKING_TARGET_DIR)/$$object); \
 		fi; \
 	done;

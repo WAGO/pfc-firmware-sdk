@@ -20,7 +20,7 @@ namespace netconf
       INetworkDevice& operator=(INetworkDevice&&) = default;
 
       virtual int GetIfIndex() const = 0;
-      virtual Error SetState(DeviceState state) = 0;
+      virtual Status SetState(DeviceState state) = 0;
       virtual DeviceState GetState() const = 0;
 
 

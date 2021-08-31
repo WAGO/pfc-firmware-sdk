@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "IFileEditor.hpp"
 
 namespace netconf {
@@ -19,9 +19,9 @@ class FileEditor : public IFileEditor {
   FileEditor(const FileEditor&&) = delete;
   FileEditor& operator=(const FileEditor&&) = delete;
 
-  Error Read(const ::std::string& file_path, ::std::string& data) const override;
-  Error Write(const ::std::string& file_path, const ::std::string& data) const override;
-  Error Append(const ::std::string& file_path, const ::std::string& data) const override;
+  Status Read(const ::std::string& file_path, ::std::string& data) const override;
+  Status Write(const ::std::string& file_path, const ::std::string& data) const override;
+  Status Append(const ::std::string& file_path, const ::std::string& data) const override;
 
 };
 

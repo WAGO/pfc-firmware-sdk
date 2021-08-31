@@ -16,7 +16,7 @@ class IIPConfigure {
   IIPConfigure(const IIPConfigure&&) = delete;
   IIPConfigure& operator=(const IIPConfigure&&) = delete;
 
-  virtual Error Configure(const IPConfig& config) const = 0;
+  virtual Status Configure(const IPConfig& config) const = 0;
 
 };
 

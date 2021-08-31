@@ -9,7 +9,7 @@
 
 namespace netconf {
 
-class INetDevConstruction;
+class INetDevEvents;
 
 class INetDevManager {
  public:
@@ -21,7 +21,7 @@ class INetDevManager {
   INetDevManager(const INetDevManager&&) = delete;
   INetDevManager& operator=(const INetDevManager&&) = delete;
 
-  virtual void RegisterForNetDevConstructionEvents(INetDevConstruction& netdev_construction) = 0;
+  virtual void RegisterForNetDevConstructionEvents(INetDevEvents& netdev_construction) = 0;
   virtual NetDevPtr GetByName(::std::string name) = 0;
   virtual NetDevPtr GetByLabel(::std::string name) = 0;
   virtual NetDevPtr GetByIfIndex(::std::uint32_t if_index) = 0;

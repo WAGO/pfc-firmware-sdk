@@ -2,27 +2,27 @@
 
 #include "Backup.hpp"
 #include "NetconfdDbusClient.hpp"
-#include "Error.hpp"
+#include "Status.hpp"
 #include "Convert.hpp"
 #include "JsonConverter.hpp"
 
 namespace netconf {
 namespace api {
 
-Error Backup(::std::string backup_file_path, ::std::string targetversion) {  //NOLINT(performance-unnecessary-value-param)
+Status Backup(::std::string backup_file_path, ::std::string targetversion) {  //NOLINT(performance-unnecessary-value-param)
   NetconfdDbusClient client;
   auto result = client.Backup(backup_file_path, targetversion);
   return result.error_;
 
 }
 
-Error Restore(::std::string backup_file_path) {  //NOLINT(performance-unnecessary-value-param)
+Status Restore(::std::string backup_file_path) {  //NOLINT(performance-unnecessary-value-param)
   NetconfdDbusClient client;
   auto result = client.Restore(backup_file_path);
   return result.error_;
 }
 
-Error GetBackupParameterCount(::std::string& count) {
+Status GetBackupParameterCount(::std::string& count) {
   NetconfdDbusClient client;
   auto result = client.GetBackupParameterCount();
 

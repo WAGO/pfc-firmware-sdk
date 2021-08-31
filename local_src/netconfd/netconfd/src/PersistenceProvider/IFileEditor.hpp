@@ -2,7 +2,7 @@
 
  #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 
 namespace netconf {
 
@@ -16,10 +16,10 @@ class IFileEditor {
   IFileEditor(IFileEditor&&) = default;
   IFileEditor& operator=(IFileEditor&&) = default;
 
-  virtual Error Read(const ::std::string& file_path, ::std::string& data) const =0;
-  virtual Error Write(const ::std::string& file_path,
+  virtual Status Read(const ::std::string& file_path, ::std::string& data) const =0;
+  virtual Status Write(const ::std::string& file_path,
                        const ::std::string& data) const =0;
-  virtual Error Append(const ::std::string& file_path,
+  virtual Status Append(const ::std::string& file_path,
                         const ::std::string& data) const =0;
 
 };

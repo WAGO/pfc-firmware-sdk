@@ -211,7 +211,7 @@ int port2dev_ip(const char *port,
     napi::BridgeConfig bridge_config;
     auto error = ::netconf::api::GetBridgeConfig(bridge_config);
     if (!error) {
-        return static_cast<int>( error.GetErrorCode());
+        return static_cast<int>( error.GetStatusCode());
     }
     bridge = bridge_config.GetBridgeOfInterface(port);
   }
@@ -1638,7 +1638,7 @@ bool ct_libnet_swconfig_is(const char* alias)
 {
   swconfigSession_t *sessionHandle = NULL;
   int status = ct_swconfig_start_session(SWCONFIG_SWITCH_NAME, &sessionHandle);
-  const char *found_alias;
+  const char *found_alias = "";
 
   if(SUCCESS == status)
   {
@@ -1851,6 +1851,7 @@ int ct_libnet_is_pfc100(void){
 const char *port_mirror_arg_list[] = {"0","1","2", NULL};
 } // namespace -> static linkage
 
+
 int ct_libnet_set_port_mirror(const char *dev, const char *value)
 {
     //A workaround is needed here because on PFC100 the ports X1 and X2
@@ -1952,6 +1953,23 @@ static const char *rate_limit_arg_list[] = {    "off",
                                                 "91.mbps", "92.mbps", "93.mbps", "94.mbps", "95.mbps", "96.mbps", "97.mbps", "98.mbps", "99.mbps",
 
                                                 NULL};
+
+const char *
+ct_libnet_get_rate_limit_by_index (size_t value)
+{
+  const char *rl;
+
+  if (value >= (sizeof(rate_limit_arg_list)/sizeof(rate_limit_arg_list[0])))
+  {
+    rl = NULL;
+  }
+  else
+  {
+    rl = rate_limit_arg_list[value];
+  }
+
+  return rl;
+}
 
 int ct_libnet_set_rate_limit(const char *dev, const char *value)
 {

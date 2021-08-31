@@ -3,18 +3,18 @@
 
 #include <string>
 
-#include "Error.hpp"
+#include "Status.hpp"
 #include "JsonConverter.hpp"
 
 namespace netconf {
 namespace api {
 
-inline Error MakeError(const ::std::string& error){
+inline Status MakeStatus(const ::std::string& status){
   JsonConverter jc;
-  Error e;
-  auto convert_error = jc.FromJsonString(error, e);
-  if(convert_error.IsNotOk()){
-    e = convert_error;
+  Status e;
+  auto convert_status = jc.FromJsonString(status, e);
+  if(convert_status.IsNotOk()){
+    e = convert_status;
   }
   return e;
 }

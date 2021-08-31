@@ -1,0 +1,8 @@
+## SECTION=initmethod_bbinit
+
+config DNSMASQ_BBINIT_LINK
+	string
+	depends on DNSMASQ_STARTSCRIPT
+	prompt "dnsmasq"
+	default "S24dnsmasq"
+

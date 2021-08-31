@@ -103,8 +103,8 @@ if [ -n "$statusFile" ]; then
   backupPackEncrypt > "${dest}" &
   pid="$!"
   while [ -d "/proc/$pid" ]; do
-    size="$(ls -s "$dest")"
-    echo "Creating archive: size ${size% *} bytes." > "${statusFile}.tmp"
+    size="$(du -k "$dest" | cut -f1)"
+    echo "Creating archive: size ${size% *} KBytes." > "${statusFile}.tmp"
     chgrp www "${statusFile}.tmp" && mv "${statusFile}.tmp" "${statusFile}"
     sleep 1
   done

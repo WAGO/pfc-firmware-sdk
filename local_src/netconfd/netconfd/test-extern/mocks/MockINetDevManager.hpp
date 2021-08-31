@@ -3,15 +3,15 @@
 
 #include <gmock/gmock.h>
 
+#include "../../src/IPManager/INetDevEvents.hpp"
 #include "INetDevManager.hpp"
-#include "INetDevConstruction.hpp"
 
 namespace netconf {
 
 class MockINetDevManager : public INetDevManager {
  public:
 
-  MOCK_METHOD1(RegisterForNetDevConstructionEvents,void(INetDevConstruction& netdev_construction));
+  MOCK_METHOD1(RegisterForNetDevConstructionEvents,void(INetDevEvents& netdev_construction));
   MOCK_METHOD1(GetByName, ::std::shared_ptr<NetDev>(::std::string name) );
   MOCK_METHOD1(GetByLabel, ::std::shared_ptr<NetDev>(::std::string name) );
   MOCK_METHOD1(GetByIfIndex, ::std::shared_ptr<NetDev>(::std::uint32_t if_index) );

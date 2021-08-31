@@ -2,12 +2,12 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <Status.hpp>
 #include "TypesHelper.hpp"
 #include <memory>
 #include <algorithm>
 #include <cctype>
 
-#include "Error.hpp"
 #include "JsonConverter.hpp"
 
 using namespace testing;
@@ -97,29 +97,29 @@ static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected,
 TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingOneConfigToIPConfig) {
 
   IPConfigs configs;
-  Error status = parser_->FromJsonString(json_one_ip_config_, configs);
+  Status status = parser_->FromJsonString(json_one_ip_config_, configs);
 
   EXPECT_TRUE(configs[0] == one_ip_config_[0]);
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingTwoConfigToIPConfig) {
 
   IPConfigs configs;
-  Error status = parser_->FromJsonString(json_two_ip_config_, configs);
+  Status status = parser_->FromJsonString(json_two_ip_config_, configs);
 
   EXPECT_TRUE(configs[0] == two_ip_config_[0]);
   EXPECT_TRUE(configs[1] == two_ip_config_[1]);
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingEmptyElements) {
 
   IPConfigs configs;
-  Error status = parser_->FromJsonString(json_one_ip_config_empty_elements_, configs);
+  Status status = parser_->FromJsonString(json_one_ip_config_empty_elements_, configs);
 
   EXPECT_TRUE(configs[0] == one_ip_config_empty_elements_[0]);
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesOneIPConfigToJson) {

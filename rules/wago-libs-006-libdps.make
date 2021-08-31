@@ -131,7 +131,7 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 else
 		# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
 		@$(call install_copy, libdps, 0, 0, 0755, $(PTXCONF_SYSROOT_TARGET)/usr/lib/$(LIBDPS_NAME).so.$(LIBDPS_VERSION), /usr/lib/$(LIBDPS_NAME).so.$(LIBDPS_VERSION))
-		@$(call install_copy, libdps, 0, 0, 0664, $(PTXCONF_SYSROOT_TARGET)/etc/specific/dps.conf, /etc/specific/dps.conf)
+		@$(call install_copy, libdps, 0, 0, 0660, $(PTXCONF_SYSROOT_TARGET)/etc/specific/dps.conf, /etc/specific/dps.conf)
 		@$(call install_link,  libdps, ../$(LIBDPS_NAME).so.$(LIBDPS_VERSION), /usr/lib/dal/$(LIBDPS_NAME).so)
 endif
 		@$(call install_finish, libdps)

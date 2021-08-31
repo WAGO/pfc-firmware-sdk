@@ -38,7 +38,10 @@ $(STATEDIR)/glibc.targetinstall:
 	@$(call install_fixup, glibc,DESCRIPTION,missing)
 
 ifdef PTXCONF_GLIBC_LD
-	@$(call install_copy_toolchain_dl, glibc, /lib)
+	@$(call install_copy_toolchain_dl, glibc)
+	# FixMe: get rid of hard coded ld version
+	#        This link is introduced to make ldd work on target
+	@$(call install_link, glibc, ld-2.30.so, /usr/lib/ld-linux.so.2)
 endif
 
 ifdef PTXCONF_GLIBC_C

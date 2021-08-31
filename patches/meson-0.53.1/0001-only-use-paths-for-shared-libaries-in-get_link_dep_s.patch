@@ -1,0 +1,26 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Mon, 18 Mar 2019 10:41:08 +0100
+Subject: [PATCH] only use paths for shared libaries in get_link_dep_subdirs()
+
+This is used for -rpath / -rpath-link. So paths for anything else make no
+sense.
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ mesonbuild/build.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/mesonbuild/build.py b/mesonbuild/build.py
+index 0eb930bea0fb..8e50d67ee133 100644
+--- a/mesonbuild/build.py
++++ b/mesonbuild/build.py
+@@ -792,7 +792,8 @@ class BuildTarget(Target):
+     def get_link_dep_subdirs(self):
+         result = OrderedSet()
+         for i in self.link_targets:
+-            result.add(i.get_subdir())
++            if isinstance(i, SharedLibrary):
++                result.add(i.get_subdir())
+             result.update(i.get_link_dep_subdirs())
+         return result
+ 

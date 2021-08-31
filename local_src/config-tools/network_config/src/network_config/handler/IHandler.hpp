@@ -7,16 +7,16 @@
 namespace network_config {
 
 class IHandler {
-  public:
-    IHandler() = default;
-    virtual ~IHandler() = default;
+ public:
+  IHandler() = default;
+  virtual ~IHandler() = default;
 
-    IHandler(const IHandler&) = delete;
-    IHandler& operator=(const IHandler&) = delete;
-    IHandler(const IHandler&&) = delete;
-    IHandler& operator=(const IHandler&&) = delete;
+  IHandler(const IHandler&) = delete;
+  IHandler& operator=(const IHandler&) = delete;
+  IHandler(const IHandler&&) = delete;
+  IHandler& operator=(const IHandler&&) = delete;
 
-    virtual void Execute() = 0;
+  virtual void Execute() = 0;
 };
 
 }

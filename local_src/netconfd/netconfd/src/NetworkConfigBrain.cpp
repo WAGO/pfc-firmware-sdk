@@ -2,6 +2,11 @@
 
 #include "NetworkConfigBrain.hpp"
 
+#include <string>
+#include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
+
+
 #include "Logger.hpp"
 #include "Helper.hpp"
 #include "IpAddressManipulator.hpp"
@@ -10,16 +15,12 @@
 #include "InterfaceConfigManager.hpp"
 #include "NetDevManager.hpp"
 #include "IpConfigHelper.hpp"
-#include <boost/format.hpp>
-#include <IBridgeInformation.hpp>
+#include "IBridgeInformation.hpp"
 #include "TypesHelper.hpp"
 #include "JsonConverter.hpp"
-#include <string>
+#include "LinkMode.hpp"
 
 namespace netconf {
-
-// NOLINTNEXTLINE(cert-err58-cpp) This won't fail
-const IPConfigs FIX_IP_CONFIG = IPConfigs( { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" } });
 
 using namespace ::std::literals;
 
@@ -29,8 +30,7 @@ NetworkConfigBrain::NetworkConfigBrain(IBridgeManager &interface_manager, IBridg
                                        IPersistenceProvider &persistence_provider, IDipSwitch &ip_dip_switch,
                                        InterfaceConfigManager &interface_config_manager, INetDevManager &netdev_manager)
 
-    :
-    bridge_manager_ { interface_manager },
+    : bridge_manager_ { interface_manager },
       bridge_information_ { itf_info },
       interface_config_manager_ { interface_config_manager },
       ip_manager_ { ip_manager },
@@ -41,11 +41,11 @@ NetworkConfigBrain::NetworkConfigBrain(IBridgeManager &interface_manager, IBridg
       ip_dip_switch_ { ip_dip_switch } {
 }
 
-void NetworkConfigBrain::Start() {
-  Error statusBridgeConfig;
-  Error statusIPConfig;
-  Error statusDIPSwitchIPConfig;
-  Error status;
+void NetworkConfigBrain::Start(StartWithPortstate startwithportstate) {
+  Status statusBridgeConfig;
+  Status statusIPConfig;
+  Status statusDIPSwitchIPConfig;
+  Status status;
 
   BridgeConfig bridge_config;
   IPConfigs ip_configs;
@@ -69,15 +69,15 @@ void NetworkConfigBrain::Start() {
     LogWarning("Start: " + statusBridgeConfig.ToString());
   }
 
-    if (statusIPConfig.IsNotOk()) {
-      LogDebug("Start: Reset IP configuration.");
-      ResetIpConfigsToDefault(ip_configs);
-    }
+  if (statusIPConfig.IsNotOk()) {
+    LogDebug("Start: Reset IP configuration.");
+    ResetIpConfigsToDefault(ip_configs);
+  }
 
   FilterRequiredIpConfigs(ip_configs, bridge_config);
   RemoveUnnecessaryIPParameter(ip_configs);
 
-  if(ip_configs.empty()){
+  if (ip_configs.empty()) {
     LogWarning("Start: No IP config left on startup!");
   }
 
@@ -85,7 +85,7 @@ void NetworkConfigBrain::Start() {
   if (status.IsNotOk()) {
     LogWarning("Start: IP validation failed. Reset IP configuration.");
     ResetIpConfigsToDefault(ip_configs);
-    status = Error { };
+    status = Status { };
   }
 
   // At this point bridge and IP configs should be valid.
@@ -103,7 +103,9 @@ void NetworkConfigBrain::Start() {
     status = ApplyConfig(bridge_config, ip_configs);
   }
 
-  interface_config_manager_.InitializePorts();
+  interface_config_manager_.InitializePorts(static_cast<InterfaceState>(startwithportstate));
+
+
 
   if (status.IsOk()) {
     event_manager_.ProcessEvents();
@@ -118,7 +120,7 @@ void NetworkConfigBrain::GetValidIpConfigsSubset(const IPConfigs &configs, IPCon
   subset.clear();
   for (const auto &config : configs) {
     subset.push_back(config);
-    Error status = ip_manager_.ValidateIPConfigs(subset);
+    Status status = ip_manager_.ValidateIPConfigs(subset);
     if (status.IsNotOk()) {
       // Remove element that leads to an invalid configuration.
       subset.pop_back();
@@ -198,9 +200,9 @@ IPConfigs NetworkConfigBrain::FilterRequiredIPConfigs(const IPConfigs &ip_config
 
 }
 
-Error NetworkConfigBrain::ApplyConfig(BridgeConfig &product_config, const IPConfigs &ip_configs) const {
+Status NetworkConfigBrain::ApplyConfig(BridgeConfig &product_config, const IPConfigs &ip_configs) const {
 
-  Error status = bridge_manager_.ApplyBridgeConfiguration(product_config);
+  Status status = bridge_manager_.ApplyBridgeConfiguration(product_config);
 
   if (status.IsOk()) {
     status = ip_manager_.ApplyIpConfiguration(ip_configs);
@@ -225,93 +227,86 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 
   BridgeConfig product_config;
 
-
-  Error error = jc.FromJsonString(product_config_json, product_config);
+  Status status = jc.FromJsonString(product_config_json, product_config);
 
   ReplaceSystemToLabelInterfaces(product_config);
   RemoveEmptyBridges(product_config);
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     BridgeConfig current_config;
     persistence_provider_.Read(current_config);
 
     if (IsEqual(product_config, current_config)) {
       LogDebug("New bridge configuration is equal to current. Do nothing.");
-      return jc.ToJsonString(Error::Ok());
+      return jc.ToJsonString(Status::Ok());
     }
   }
 
-  if (error.IsOk()) {
-    error = bridge_manager_.ApplyBridgeConfiguration(product_config);
+  if (status.IsOk()) {
+    status = bridge_manager_.ApplyBridgeConfiguration(product_config);
   }
 
-  Error persistence_status;
-  if (error.IsOk()) {
+  Status persistence_status;
+  if (status.IsOk()) {
     persistence_status = persistence_provider_.Write(product_config);
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
   }
 
   if (persistence_status.IsNotOk()) {
-    error.Set(ErrorCode::PERSISTENCE_WRITE);
+    status.Set(StatusCode::PERSISTENCE_WRITE);
   }
 
-  if (error.IsNotOk()) {
-    LogError("Set Bridge Config: " + error.ToString());
+  if (status.IsNotOk()) {
+    LogError("Set Bridge Config: " + status.ToString());
   }
 
-  return jc.ToJsonString(error);
+  return jc.ToJsonString(status);
 }
 
-::std::string NetworkConfigBrain::GetBridgeConfig(::std::string& data) const {
+::std::string NetworkConfigBrain::GetBridgeConfig(::std::string &data) const {
 
   BridgeConfig product_config = bridge_manager_.GetBridgeConfig();
 
-
   data = jc.ToJsonString(product_config);
 
-  return jc.ToJsonString(Error::Ok());
-  }
+  return jc.ToJsonString(Status::Ok());
+}
 
-::std::string NetworkConfigBrain::GetInterfaceInformation(::std::string& data) const {
+::std::string NetworkConfigBrain::GetInterfaceInformation(::std::string &data) const {
 
   auto netdevs = netdev_manager_.GetNetDevs();
   InterfaceInformations iis;
-  std::transform(netdevs.begin(), netdevs.end(), ::std::back_inserter(iis),
-                 [](const auto &netdev_ptr) {
-                   return InterfaceInformation { netdev_ptr->GetName(), netdev_ptr->GetLabel(), netdev_ptr->GetKind(),
-                       netdev_ptr->IsIpConfigReadonly() };
-                 });
-
+  std::transform(netdevs.begin(), netdevs.end(), ::std::back_inserter(iis), [&](const auto &netdev_ptr) {
+       return interface_config_manager_.GetInterfaceInformation(*netdev_ptr);
+     });
 
   data = jc.ToJsonString(iis);
 
-  return jc.ToJsonString(Error::Ok());
+  return jc.ToJsonString(Status::Ok());
 
 }
 
 ::std::string NetworkConfigBrain::SetInterfaceConfig(const ::std::string &config) {
   InterfaceConfigs port_configs;
 
+  auto status = jc.FromJsonString(config, port_configs);
 
-  auto error = jc.FromJsonString(config, port_configs);
-
-  if (error.IsOk()) {
-    error = interface_config_manager_.Configure(port_configs);
+  if (status.IsOk()) {
+    status = interface_config_manager_.Configure(port_configs);
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     event_manager_.ProcessEvents();
   }
 
-  if (error.IsNotOk()) {
-    LogError("SetInterfaceConfig: " + error.ToString());
+  if (status.IsNotOk()) {
+    LogError("SetInterfaceConfig: " + status.ToString());
   }
 
-
-  return jc.ToJsonString(error);
+  return jc.ToJsonString(status);
 }
 
 ::std::string NetworkConfigBrain::GetInterfaceConfig(::std::string &config) const {
@@ -319,7 +314,15 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 
   config = jc.ToJsonString(port_configs);
 
-  return jc.ToJsonString(Error::Ok());
+  return jc.ToJsonString(Status::Ok());
+}
+
+::std::string NetworkConfigBrain::GetInterfaceStatuses(::std::string &config) const {
+  auto itf_statuses = interface_config_manager_.GetCurrentPortStatuses();
+
+  config = jc.ToJsonString(itf_statuses);
+
+  return jc.ToJsonString(Status::Ok());
 }
 
 ::std::string NetworkConfigBrain::GetAllIPConfigs(::std::string &config) const {
@@ -327,24 +330,23 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 
   config = jc.ToJsonString(configs);
 
-  return jc.ToJsonString(Error::Ok());
+  return jc.ToJsonString(Status::Ok());
 }
 
-::std::string NetworkConfigBrain::GetAllCurrentIPConfigs(::std::string& data) const {
+::std::string NetworkConfigBrain::GetCurrentIPConfigs(::std::string &data) const {
   IPConfigs configs = ip_manager_.GetCurrentIPConfigs();
 
   data = jc.ToJsonString(configs);
-  return jc.ToJsonString(Error::Ok());
+  return jc.ToJsonString(Status::Ok());
 }
 
-::std::string NetworkConfigBrain::GetIPConfig(const ::std::string &config, ::std::string& data) const {
+::std::string NetworkConfigBrain::GetIPConfig(const ::std::string &config, ::std::string &data) const {
 
   IPConfigs ip_configs;
 
-  Error error = jc.FromJsonString(config, ip_configs);
+  Status status = jc.FromJsonString(config, ip_configs);
 
-
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     Bridges bridges;
     IPConfigs configs;
 
@@ -357,17 +359,17 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
     data = jc.ToJsonString(configs);
   }
 
-  if (error.IsNotOk()) {
-    LogError("GetIPConfig: " + error.ToString());
+  if (status.IsNotOk()) {
+    LogError("GetIPConfig: " + status.ToString());
   }
 
-  return jc.ToJsonString(error);
+  return jc.ToJsonString(status);
 }
 
 ::std::string NetworkConfigBrain::SetAllIPConfigs(::std::string const &json_config) {
   IPConfigs ip_configs;
 
-  Error status = jc.FromJsonString(json_config, ip_configs);
+  Status status = jc.FromJsonString(json_config, ip_configs);
 
   RemoveUnnecessaryIPParameter(ip_configs);
 
@@ -386,7 +388,7 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   return jc.ToJsonString(status);
 }
 
-Error NetworkConfigBrain::ApplyIpConfiguration(const IPConfigs &config) {
+Status NetworkConfigBrain::ApplyIpConfiguration(const IPConfigs &config) {
   DipSwitchIpConfig dip_switch_config;
   persistence_provider_.Read(dip_switch_config);
 
@@ -402,13 +404,13 @@ Error NetworkConfigBrain::ApplyIpConfiguration(const IPConfigs &config) {
 }
 
 ::std::string NetworkConfigBrain::Backup(const ::std::string &file_path, const ::std::string &targetversion) const {
-  Error error = persistence_provider_.Backup(file_path, targetversion);
+  Status status = persistence_provider_.Backup(file_path, targetversion);
 
-  if (error.IsNotOk()) {
-    LogError("Backup: " + error.ToString());
+  if (status.IsNotOk()) {
+    LogError("Backup: " + status.ToString());
   }
 
-  return jc.ToJsonString(error);
+  return jc.ToJsonString(status);
 }
 
 ::std::string NetworkConfigBrain::Restore(const std::string &file_path) {
@@ -420,97 +422,97 @@ Error NetworkConfigBrain::ApplyIpConfiguration(const IPConfigs &config) {
 
   BridgeConfig persisted_bridge_config;
   IPConfigs persisted_ip_configs;
-  Error error = persistence_provider_.Read(persisted_bridge_config, persisted_ip_configs);
-  if (error.IsOk()) {
+  Status status = persistence_provider_.Read(persisted_bridge_config, persisted_ip_configs);
+  if (status.IsOk()) {
     // TODO (PND): Cleanup the backup data before restoring it, might contain data that is not applicable!!!
-    error = persistence_provider_.Restore(file_path, bridge_config, ip_configs, interface_configs,
-                                           dip_switch_ip_config);
+    status = persistence_provider_.Restore(file_path, bridge_config, ip_configs, interface_configs,
+                                          dip_switch_ip_config);
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     interface_config_manager_.Configure(interface_configs);
 
     RemoveEmptyBridges(bridge_config);
     RemoveUnnecessaryIPParameter(ip_configs);
-    error = bridge_manager_.ApplyBridgeConfiguration(bridge_config);
-    if(error.IsNotOk())
-    {
-      LogError("Failed to restore bridge configuration from file:"s+file_path);
+    status = bridge_manager_.ApplyBridgeConfiguration(bridge_config);
+    if (status.IsNotOk()) {
+      LogError("Failed to restore bridge configuration from file:"s + file_path);
     }
+
+    ip_manager_.ClearIpConfiguration();
     /* Clean out ip configs that are not available,
      * the restore data might contain unnecessary ip data from former netconfd releases. */
-    CleanWithRespectToSystem(ip_configs, netdev_manager_.GetNetDevs(), bridge_information_.GetBridgeAssignedInterfaces());
-    error = ip_manager_.ApplyIpConfiguration(ip_configs, dip_switch_ip_config);
-    if (error.IsNotOk()) {
-      LogError("Failed to restore ip configuration configuration from file:"s+file_path);
+    CleanWithRespectToSystem(ip_configs, netdev_manager_.GetNetDevs(),
+                             bridge_information_.GetBridgeAssignedInterfaces());
+    status = ip_manager_.ApplyIpConfiguration(ip_configs, dip_switch_ip_config);
+    if (status.IsNotOk()) {
+      LogError("Failed to restore ip configuration configuration from file:"s + file_path);
     }
 
-
     // Try rollback if status is not ok
-    if (error.IsNotOk()) {
-      error = ApplyConfig(persisted_bridge_config, persisted_ip_configs);
-      if (error.IsNotOk()) {
-        LogError("Failed to rollback after restore error: " + error.ToString());
+    if (status.IsNotOk()) {
+      status = ApplyConfig(persisted_bridge_config, persisted_ip_configs);
+      if (status.IsNotOk()) {
+        LogError("Failed to rollback after restore error: " + status.ToString());
       }
     }
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     event_manager_.ProcessEvents();
   }
 
-  if (error.IsNotOk()) {
-    LogError("Restore configurations: " + error.ToString());
+  if (status.IsNotOk()) {
+    LogError("Restore configurations: " + status.ToString());
   }
 
-  return jc.ToJsonString(error);
+  return jc.ToJsonString(status);
 }
 
 ::std::string NetworkConfigBrain::TempFixIp() {
-  auto error = ip_manager_.ApplyTempFixIpConfiguration(FIX_IP_CONFIG);
+  auto status = ip_manager_.ApplyTempFixIpConfiguration();
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     event_manager_.ProcessEvents();
   } else {
-    LogError("Set temp fix IP: "+ error.ToString());
+    LogError("Set temp fix IP: " + status.ToString());
   }
-  return jc.ToJsonString(error);
+  return jc.ToJsonString(status);
 }
 
-::std::string NetworkConfigBrain::GetDipSwitchConfig(::std::string& data) const {
+::std::string NetworkConfigBrain::GetDipSwitchConfig(::std::string &data) const {
   DipSwitchIpConfig dip_switch_ip_config;
-  Error status = persistence_provider_.Read(dip_switch_ip_config);
+  Status status = persistence_provider_.Read(dip_switch_ip_config);
 
   auto dip_switch_config = DipSwitchConfig(dip_switch_ip_config, ip_dip_switch_.GetMode(), ip_dip_switch_.GetValue());
 
-
   data = jc.ToJsonString(dip_switch_config);
 
-  return jc.ToJsonString(Error::Ok());
+  return jc.ToJsonString(Status::Ok());
 }
 
 ::std::string NetworkConfigBrain::SetDipSwitchConfig(const ::std::string &config) {
   if (ip_dip_switch_.GetMode() == DipSwitchMode::HW_NOT_AVAILABLE) {
-    return jc.ToJsonString(Error{ErrorCode::DIP_NOT_AVAILABLE});
+    return jc.ToJsonString(Status { StatusCode::DIP_NOT_AVAILABLE });
   }
 
   DipSwitchIpConfig dip_switch_ip_config;
 
-  auto error = jc.FromJsonString(config, dip_switch_ip_config);
+  auto status = jc.FromJsonString(config, dip_switch_ip_config);
 
-  if (error.IsOk()) {
-    error = ip_manager_.ApplyIpConfiguration(dip_switch_ip_config);
+  if (status.IsOk()) {
+    status = ip_manager_.ApplyIpConfiguration(dip_switch_ip_config);
   }
 
-  if (error.IsOk()) {
+  if (status.IsOk()) {
     event_manager_.ProcessEvents();
   }
 
-  if (error.IsNotOk()) {
-    LogError("DIP Switch: "+ error.ToString());
+  if (status.IsNotOk()) {
+    LogError("DIP Switch: " + status.ToString());
   }
 
-  return jc.ToJsonString(error);
+  return jc.ToJsonString(status);
 }
 
 } /* namespace netconf */

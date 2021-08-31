@@ -2,7 +2,7 @@
 #pragma once
 
 #include <string>
-
+#include <optional>
 #include "Types.hpp"
 
 namespace netconf {
@@ -38,4 +38,19 @@ IPConfigs& ComplementNetmasks(IPConfigs& ip_configs);
 
 void RemoveUnnecessaryIPParameter(IPConfigs &ip_configs);
 
+/**
+ * Increment the number representation of the given IP address string by the given increment value.
+ * @param address The IP address to be incremented.
+ * @param increment The increment value
+ * @return The incremented address
+ */
+Address IpAddressV4Increment(const Address& , uint32_t increment = 1);
+
+/**
+ * Extract the interface index from an interface name.
+ * The name must start with characters followed by any number, e.g. eth0, br2, wwan5, myif42
+ *
+ * @return The index part of the interface name as optional integer.
+ */
+std::optional<int> ExtractInterfaceIndex(const std::string& bridgename);
 }

@@ -3,7 +3,8 @@
 
 #include <string>
 #include <utility>
-#include "Error.hpp"
+
+#include "Status.hpp"
 #include "DbusError.hpp"
 #include "JsonConverter.hpp"
 
@@ -14,7 +15,7 @@ struct DbusResult {
   explicit DbusResult(::std::string error): error_{MakeError(error)}{}
   explicit DbusResult(const DbusError& dbus_error) {
     if(dbus_error.IsSet()){
-      error_.Set(ErrorCode::DBUS, dbus_error.GetName(), dbus_error.GetMessage());
+      error_.Set(StatusCode::DBUS, dbus_error.GetName(), dbus_error.GetMessage());
     }
   }
 
@@ -22,9 +23,9 @@ struct DbusResult {
 
   }
 
-  static Error MakeError(const ::std::string& error_json){
+  static Status MakeError(const ::std::string& error_json){
       JsonConverter jc;
-      Error e;
+      Status e;
       auto convert_error = jc.FromJsonString(error_json, e);
       if(convert_error.IsNotOk()){
         e = convert_error;
@@ -33,6 +34,6 @@ struct DbusResult {
   }
 
   ::std::string value_json_;
-  Error error_;
+  Status error_;
 };
 } // namespace

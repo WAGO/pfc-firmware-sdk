@@ -12,15 +12,21 @@
 #
 # We provide this package
 #
+ifndef PTXCONF_VALGRIND_SKIP_TARGETINSTALL
 PACKAGES-$(PTXCONF_ARCH_X86)-$(PTXCONF_VALGRIND) += valgrind
 PACKAGES-$(PTXCONF_ARCH_PPC)-$(PTXCONF_VALGRIND) += valgrind
 PACKAGES-$(PTXCONF_ARCH_ARM)-$(PTXCONF_VALGRIND) += valgrind
+else
+LAZY_PACKAGES-$(PTXCONF_ARCH_X86)-$(PTXCONF_VALGRIND) += valgrind
+LAZY_PACKAGES-$(PTXCONF_ARCH_PPC)-$(PTXCONF_VALGRIND) += valgrind
+LAZY_PACKAGES-$(PTXCONF_ARCH_ARM)-$(PTXCONF_VALGRIND) += valgrind
+endif
 
 #
 # Paths and names
 #
-VALGRIND_VERSION	:= 3.14.0
-VALGRIND_MD5		:= 74175426afa280184b62591b58c671b3
+VALGRIND_VERSION	:= 3.17.0
+VALGRIND_MD5		:= afe11b5572c3121a781433b7c0ab741b
 VALGRIND		:= valgrind-$(VALGRIND_VERSION)
 VALGRIND_SUFFIX		:= tar.bz2
 VALGRIND_URL		:= http://valgrind.org/downloads/$(VALGRIND).$(VALGRIND_SUFFIX)
@@ -70,7 +76,6 @@ VALGRIND_CONF_OPT	:= \
 
 $(STATEDIR)/valgrind.targetinstall:
 	@$(call targetinfo)
-ifndef PTXCONF_VALGRIND_SKIP_TARGETINSTALL
 
 	@$(call install_init, valgrind)
 	@$(call install_fixup, valgrind,PRIORITY,optional)
@@ -83,11 +88,10 @@ ifndef PTXCONF_VALGRIND_SKIP_TARGETINSTALL
 		$(call install_copy, valgrind, 0, 0, 0755, -, /$$file, n) \
 	done
 
-	@$(call install_glob, valgrind, 0, 0, -, /usr/lib/valgrind,,*.a)
+	@$(call install_glob, valgrind, 0, 0, -, /usr/libexec/valgrind,,*.a)
 
 	@$(call install_finish, valgrind)
 
-endif
 	@$(call touch)
 
 # vim: syntax=make

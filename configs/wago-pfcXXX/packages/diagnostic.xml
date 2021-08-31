@@ -27,13 +27,13 @@
     <led name="NS" state="STATIC_OFF">
     </led>
     <string>
-        <en>not active</en>
+        <en>Not active</en>
       </string>
     
   </event>
   <event id="x0005" name="IpConflict">
     <string>
-	      <en>IP address conflict detected. See /var/log/messages for details.</en>
+        <en>IP address conflict detected. See /var/log/messages for details.</en>
       </string>
     
   </event>
@@ -43,7 +43,7 @@
       <off>500</off>
     </led>
     <string>
-        <en>factory reset initiated by OMS</en>
+        <en>Factory reset initiated by OMS</en>
       </string>
     
   </event>
@@ -51,7 +51,7 @@
     <led name="RUN" state="STATIC_OFF">
     </led>
     <string>
-        <en>unexpected stop of runtime</en>
+        <en>Unexpected stop of runtime</en>
       </string>
     
   </event>
@@ -59,7 +59,7 @@
     <led name="IO" state="STATIC_OFF">
     </led>
     <string>
-        <en>unexpected stop of runtime</en>
+        <en>Unexpected stop of runtime</en>
       </string>
     
   </event>
@@ -69,7 +69,7 @@
       <off>1000</off>
     </led>
     <string>
-        <en>copy firmware</en>
+        <en>Copy firmware</en>
       </string>
     
   </event>
@@ -77,7 +77,7 @@
     <led name="MS" state="STATIC_OFF">
     </led>
     <string>
-        <en>no extended error code active</en>
+        <en>No extended error code active</en>
       </string>
     
   </event>
@@ -125,6 +125,12 @@
     <string>
         <en>Modem Manager is not in operation</en>
         <de>Modem Manager ist nicht in Betrieb</de>
+      </string>
+    
+  </event>
+  <event id="x0012" name="system_start_done" persistent="yes">
+    <string>
+        <en>System Booted</en>
       </string>
     
   </event>

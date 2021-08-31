@@ -3,6 +3,7 @@
 config HOST_GLIB
 	tristate
 	default y if ALLYES
-	select HOST_ZLIB
 	select HOST_LIBFFI
 	select HOST_LIBPCRE
+	select HOST_MESON
+	select HOST_ZLIB

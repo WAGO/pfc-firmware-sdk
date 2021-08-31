@@ -76,7 +76,7 @@ class State {
   Value value_;
 };
 
-Error WriteNetworkInterfacesXML(IFileEditor &file_editor_, const BridgeConfig& bridge_config, const IPConfigs& ip_configs,
+Status WriteNetworkInterfacesXML(IFileEditor &file_editor_, const BridgeConfig& bridge_config, const IPConfigs& ip_configs,
                                  const InterfaceConfigs& port_configs);
 
 } /* namespace netconf */

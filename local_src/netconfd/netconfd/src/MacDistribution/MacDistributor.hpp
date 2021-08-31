@@ -37,8 +37,6 @@ class MacDistributor : public IMacDistributor{
   void AssignSingleMacSupport(NetDevs &net_devs);
   void AssignMultipleMacSupport(NetDevs &net_devs);
 
-  void AssignEthernetMacs(NetDevs &net_devs);
-
   void AssignMac(NetDevPtr net_dev, MacAddress mac);
   void AssignMac(NetDevPtr net_dev);
   void AssignMacAndIncrement(NetDevPtr net_dev);

@@ -313,12 +313,6 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     }
 
-    // Only support our expected NAND size
-    if (mi.oobsize != 64) {
-        fprintf(stderr, "oobsize %d not supported\n", mi.oobsize);
-        exit(EXIT_FAILURE);
-    }
-
     if (mi.writesize != 2048) {
         fprintf(stderr, "writesize %d not supported\n", mi.writesize);
         exit(EXIT_FAILURE);

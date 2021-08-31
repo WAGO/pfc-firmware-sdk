@@ -35,7 +35,7 @@ prompt = no
 nsCertType=server
 subjectAltName=IP:192.168.1.1
 extendedKeyUsage=serverAuth
-keyUsage=digitalSignature, nonRepudiation, keyEncipherment, keyAgreement
+keyUsage=digitalSignature, nonRepudiation, keyEncipherment, keyAgreement, keyCertSign
 subjectKeyIdentifier=hash
 basicConstraints=critical,CA:FALSE
 EOF

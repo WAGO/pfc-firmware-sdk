@@ -4,8 +4,6 @@
 #               2003-2008 by Pengutronix e.K., Hildesheim, Germany
 #               2009, 2010, 2012 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -18,8 +16,8 @@ PACKAGES-$(PTXCONF_STRACE) += strace
 #
 # Paths and names
 #
-STRACE_VERSION	:= 4.26
-STRACE_MD5	:= daa51acc0c7c696221ec03cf0b30a7af
+STRACE_VERSION	:= 5.7
+STRACE_MD5	:= 8c35b8ebf187b2ec18209bd7bbd16e7a
 STRACE		:= strace-$(STRACE_VERSION)
 STRACE_SUFFIX	:= tar.xz
 STRACE_URL	:= https://strace.io/files/$(STRACE_VERSION)/$(STRACE).$(STRACE_SUFFIX)

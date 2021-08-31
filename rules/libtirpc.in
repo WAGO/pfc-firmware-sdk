@@ -1,0 +1,7 @@
+## SECTION=networking
+
+config LIBTIRPC
+	tristate
+	prompt "libtirpc"
+	help
+	  transport-independent RPC library

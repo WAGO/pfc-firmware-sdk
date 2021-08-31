@@ -6,6 +6,11 @@ menuconfig AIDE
 	select ZLIB
 	select LIBGCRYPT
 	select LIBGPG_ERROR
+#	# Depending on Config-Tools for "/etc/config-tools/backup-restore/"
+#	# folder
+	select CONFIG_TOOLS
+#	# Depending on INITMETHOD_BBINIT for folder "/etc/init.d/"
+	select INITMETHOD_BBINIT if AIDE_CHECK_STARTSCRIPT
 	prompt "aide"
 	help
 	  FIXME

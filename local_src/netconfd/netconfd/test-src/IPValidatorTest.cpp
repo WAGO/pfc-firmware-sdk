@@ -53,7 +53,7 @@ namespace netconf {
   TEST_F(AnIPValidator, ShouldValidateAnIPConfig) {
 
     IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -61,7 +61,7 @@ namespace netconf {
   TEST_F(AnIPValidator, ShouldValidateAnIPConfigWithoutBroadcast) {
 
     IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -71,7 +71,7 @@ namespace netconf {
     IPConfigs ip_configs = {
         {"br0", IPSource::STATIC, "192.168.1.1", "255.255.255.0"},
         {"br1", IPSource::STATIC, "192.168.2.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -82,7 +82,7 @@ namespace netconf {
         {"br0", IPSource::STATIC, ZeroIP, ZeroIP},
         {"br1", IPSource::STATIC, "192.168.2.1", "255.255.255.0"},
         {"br2", IPSource::STATIC, ZeroIP, ZeroIP}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_FALSE(status.IsOk());
   }
@@ -93,7 +93,7 @@ namespace netconf {
         {"br0", IPSource::NONE, ZeroIP, ZeroIP},
         {"br1", IPSource::STATIC, "192.168.2.1", "255.255.255.0"},
         {"br2", IPSource::NONE, ZeroIP, ZeroIP}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -101,7 +101,7 @@ namespace netconf {
   TEST_F(AnIPValidator, FailedToValidateAnStaticIPConfigWhichContainsAnInterfaceThatNotExist) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -109,7 +109,7 @@ namespace netconf {
   TEST_F(AnIPValidator, FailedToValidatesADHCPIPConfigWhichContainsAnInterfaceThatNotExist) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::DHCP, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -117,7 +117,7 @@ namespace netconf {
   TEST_F(AnIPValidator, FailedToValidatesABootpIPConfigWhichContainsAnInterfaceThatNotExist) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::BOOTP, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -125,7 +125,7 @@ namespace netconf {
   TEST_F(AnIPValidator, FailedToValidateAStaticIPConfigWhichContainsAnInterfaceThatIsNotAssignable) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -133,7 +133,7 @@ namespace netconf {
   TEST_F(AnIPValidator, FailedToValidateADHCPIPConfigWhichContainsAnInterfaceThatIsNotAssignable) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::DHCP, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -141,7 +141,7 @@ namespace netconf {
   TEST_F(AnIPValidator, FailedToValidateABootpIPConfigWhichContainsAnInterfaceThatIsNotAssignable) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::BOOTP, "192.168.1.1", "255.255.255.0"}};
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
     EXPECT_TRUE(status.IsOk());
   }
@@ -152,9 +152,9 @@ namespace netconf {
         {"ethX1", IPSource::STATIC, "192.168.2.1", "255.255.255.0"},
         {"ethX1", IPSource::STATIC, "192.168.1.1", "255.255.255.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
+    Status status = validator_.ValidateIPConfigs(ip_configs);
 
-    EXPECT_EQ(ErrorCode::ENTRY_DUPLICATE, status.GetErrorCode()) << status.ToString();
+    EXPECT_EQ(StatusCode::ENTRY_DUPLICATE, status.GetStatusCode()) << status.ToString();
   }
 
   TEST_F(AnIPValidator, AssigningNetworkAddressAsHostIsAccepted) {
@@ -163,56 +163,56 @@ namespace netconf {
 
     IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.128", "255.255.255.128"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::OK, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::OK, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichContainsAnInvalidAddress) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.1111", "255.255.255.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::IP_INVALID, status.GetErrorCode()) << status.ToString();
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::IP_INVALID, status.GetStatusCode()) << status.ToString();
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichAddressContainsOnlyOnes) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, "255.255.255.255", "255.255.255.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::IP_INVALID, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::IP_INVALID, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichAddressContainsZeros) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, ZeroIP, "255.255.255.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::IP_INVALID, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::IP_INVALID, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichContainsAnInvalidNetmask) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.1", "255.X.255.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::NETMASK_INVALID, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::NETMASK_INVALID, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichContainsZeroNetmask) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.1", ZeroIP}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::NETMASK_INVALID, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::NETMASK_INVALID, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichSubnetmaskContainsZeros) {
 
     IPConfigs ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.1", "255.111.255.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::NETMASK_INVALID, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::NETMASK_INVALID, status.GetStatusCode());
   }
 
 
@@ -223,8 +223,8 @@ namespace netconf {
         {"ethX2", IPSource::STATIC, "192.168.2.1", "255.255.0.0", },
         {"ethX3", IPSource::STATIC, "192.168.1.1", "255.0.0.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::IP_DISTRIBUTED_MULTIPLE_TIMES, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::IP_DISTRIBUTED_MULTIPLE_TIMES, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateIPConfigsWithSeveralNetworks) {
@@ -234,8 +234,8 @@ namespace netconf {
         {"ethX2", IPSource::STATIC, "192.168.1.2", "255.255.255.0"},
         {"ethX3", IPSource::STATIC, "192.168.2.1", "255.255.255.0"}};
 
-    Error status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::NETWORK_CONFLICT, status.GetErrorCode());
+    Status status = validator_.ValidateIPConfigs(ip_configs);
+    EXPECT_EQ(StatusCode::NETWORK_CONFLICT, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateOverlappingNetmask) {
@@ -243,8 +243,8 @@ namespace netconf {
     IPConfigs new_ip_configs = {{"ethX2", IPSource::STATIC, "192.168.1.1", "255.255.255.0"}};
     IPConfigs remain_ip_configs = {{"ethX1", IPSource::DHCP, "192.168.1.2", "255.255.0.0"}};
 
-    Error status = validator_.ValidateCombinabilityOfIPConfigs(new_ip_configs, remain_ip_configs);
-    EXPECT_EQ(ErrorCode::NETWORK_CONFLICT, status.GetErrorCode());
+    Status status = validator_.ValidateCombinabilityOfIPConfigs(new_ip_configs, remain_ip_configs);
+    EXPECT_EQ(StatusCode::NETWORK_CONFLICT, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichIPIsAlreadyAssignedOnTheSystem) {
@@ -252,8 +252,8 @@ namespace netconf {
     IPConfigs remain_ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.1", "255.255.0.0"}};
     IPConfigs new_ip_configs = {{"ethX2", IPSource::STATIC, "192.168.1.1", "255.255.255.0"}};
 
-    Error status = validator_.ValidateCombinabilityOfIPConfigs(new_ip_configs, remain_ip_configs);
-    EXPECT_EQ(ErrorCode::NETWORK_CONFLICT, status.GetErrorCode());
+    Status status = validator_.ValidateCombinabilityOfIPConfigs(new_ip_configs, remain_ip_configs);
+    EXPECT_EQ(StatusCode::NETWORK_CONFLICT, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichNetworkAlreadyExistsOnTheSystem) {
@@ -261,8 +261,8 @@ namespace netconf {
     IPConfigs remain_ip_configs = {{"ethX1", IPSource::STATIC, "192.168.1.2", "255.255.0.0"}};
     IPConfigs new_ip_configs = {{"ethX2", IPSource::STATIC, "192.168.1.1", "255.255.0.0"}};
 
-    Error status = validator_.ValidateCombinabilityOfIPConfigs(new_ip_configs, remain_ip_configs);
-    EXPECT_EQ(ErrorCode::NETWORK_CONFLICT, status.GetErrorCode());
+    Status status = validator_.ValidateCombinabilityOfIPConfigs(new_ip_configs, remain_ip_configs);
+    EXPECT_EQ(StatusCode::NETWORK_CONFLICT, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, FailedToValidateMultipleIPConfigsWhichIPAndNetworkAlreadyExistsOnTheSystem) {
@@ -277,8 +277,8 @@ namespace netconf {
         {"ethX5", IPSource::STATIC, "192.168.2.1", "255.255.255.0"},
         {"ethX6", IPSource::STATIC, "192.168.3.2", "255.255.255.0"}};
 
-    Error status = validator_.ValidateCombinabilityOfIPConfigs(ip_configs, actual_ip_configs);
-    EXPECT_EQ(ErrorCode::NETWORK_CONFLICT, status.GetErrorCode());
+    Status status = validator_.ValidateCombinabilityOfIPConfigs(ip_configs, actual_ip_configs);
+    EXPECT_EQ(StatusCode::NETWORK_CONFLICT, status.GetStatusCode());
   }
 
   TEST_F(AnIPValidator, ShouldAcceptRFC3021Ips) {
@@ -292,7 +292,7 @@ namespace netconf {
 
     auto status = validator_.ValidateIPConfigs(netmask_30);
 
-    EXPECT_EQ(ErrorCode::OK, status.GetErrorCode()) << status.ToString();
+    EXPECT_EQ(StatusCode::OK, status.GetStatusCode()) << status.ToString();
   }
 
   TEST_F(AnIPValidator, validateOverlappingNetworksAsInvalidInCaseOfStaticIP) {
@@ -302,7 +302,7 @@ namespace netconf {
     IPConfigs ip_configs{ip_config_1, ip_config_2};
 
     auto status = validator_.ValidateIPConfigs(ip_configs);
-    EXPECT_EQ(ErrorCode::NETWORK_CONFLICT, status.GetErrorCode()) << status.ToString();
+    EXPECT_EQ(StatusCode::NETWORK_CONFLICT, status.GetStatusCode()) << status.ToString();
   }
 
   TEST_F(AnIPValidator, shouldValidateMultipleIPConfigs) {
@@ -314,12 +314,12 @@ namespace netconf {
     IPConfig ip_config_3 = {"ethX3", IPSource::STATIC, "192.168.30.10", "255.255.255.0"};
     IPConfigs ip_configs_3 = {ip_config_3};
 
-    Error status = validator_.ValidateCombinabilityOfIPConfigs(ip_configs_2, ip_configs_1);
-    EXPECT_EQ(ErrorCode::OK, status.GetErrorCode());
+    Status status = validator_.ValidateCombinabilityOfIPConfigs(ip_configs_2, ip_configs_1);
+    EXPECT_EQ(StatusCode::OK, status.GetStatusCode());
 
     IPConfigs ip_configs_12 = {ip_config_1, ip_config_2};
 
     status = validator_.ValidateCombinabilityOfIPConfigs(ip_configs_3, ip_configs_12);
-    EXPECT_EQ(ErrorCode::OK, status.GetErrorCode());
+    EXPECT_EQ(StatusCode::OK, status.GetStatusCode());
   }
 }

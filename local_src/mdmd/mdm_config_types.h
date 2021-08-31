@@ -45,6 +45,18 @@ enum class NW_SCAN_SEQ
     UMTS_PRIOR = 2,
 };
 
+enum class GPRS_ACCESS_STATE
+{
+    DISABLED = 0,
+    ENABLED = 1,
+};
+
+enum class MODEM_PORT_STATE
+{
+    DISABLED = 0,
+    ENABLED = 1,
+};
+
 
 class GprsAccessConfig
 {

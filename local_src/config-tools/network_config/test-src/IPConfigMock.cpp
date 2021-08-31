@@ -15,28 +15,28 @@ MockIPConfig::~MockIPConfig() {
   activeMock.reset();
 }
 
-Error GetIPConfigs(IPConfigs& config) {
+Status GetIPConfigs(IPConfigs& config) {
   if (activeMock) {
     return activeMock->GetIPConfigs(config);
   }
   throw std::runtime_error("No active mock! Instantiate MockIPConfig in your test");
 }
 
-Error GetCurrentIPConfigs(IPConfigs& config) {
+Status GetCurrentIPConfigs(IPConfigs& config) {
   if (activeMock) {
     return activeMock->GetCurrentIPConfigs(config);
   }
   throw std::runtime_error("No active mock! Instantiate MockIPConfig in your test");
 }
 
-Error SetIPConfigs(const IPConfigs &config) {
+Status SetIPConfigs(const IPConfigs &config) {
   if (activeMock) {
     return activeMock->SetIPConfigs(config);
   }
   throw std::runtime_error("No active mock! Instantiate MockIPConfig in your test");
 }
 
-Error SetTempFixIp() {
+Status SetTempFixIp() {
   if (activeMock) {
     return activeMock->SetTempFixIp();
   }

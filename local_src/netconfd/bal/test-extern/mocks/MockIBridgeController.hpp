@@ -9,13 +9,13 @@ namespace netconf {
 class MockIBridgeController : public IBridgeController {
  public:
   MOCK_CONST_METHOD1(AddBridge,
-      Error(const Bridge& bridge));
+      Status(const Bridge& bridge));
   MOCK_CONST_METHOD1(DeleteBridge,
-      Error(const Bridge& bridge));
+      Status(const Bridge& bridge));
   MOCK_CONST_METHOD2(AddInterface,
-      Error(const Bridge& bridge, const Interface& interface));
+      Status(const Bridge& bridge, const Interface& interface));
   MOCK_CONST_METHOD2(DeleteInterface,
-      Error(const Bridge& bridge, const Interface& interface));
+      Status(const Bridge& bridge, const Interface& interface));
   MOCK_CONST_METHOD0(GetBridges,
       Bridges());
   MOCK_CONST_METHOD1(GetBridgeInterfaces,
@@ -23,11 +23,11 @@ class MockIBridgeController : public IBridgeController {
   MOCK_CONST_METHOD0(GetInterfaces,
       Interfaces());
   MOCK_CONST_METHOD1(SetInterfaceUp,
-      Error(const ::std::string& name));
+      Status(const ::std::string& name));
   MOCK_CONST_METHOD1(SetInterfaceDown,
-      Error(const ::std::string& name));
+      Status(const ::std::string& name));
   MOCK_CONST_METHOD2(IsInterfaceUp,
-      Error(const ::std::string& name, bool& is_up));
+      Status(const ::std::string& name, bool& is_up));
   MOCK_CONST_METHOD2(SetAgetime,
       void(const Bridge& bridge, int seconds));
 };

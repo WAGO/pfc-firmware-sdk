@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------------
 #pragma once
 
-#include "Error.hpp"
+#include "Status.hpp"
 
 namespace netconf {
 

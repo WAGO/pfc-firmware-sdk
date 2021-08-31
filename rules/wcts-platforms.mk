@@ -29,3 +29,6 @@ ifeq ($(PTXCONF_PLATFORM), vtp-ctp)
 WCTS_PLATFORMCONFIG             := Lin32PTXdistPfcXXX
 endif
 
+ifeq ($(PTXCONF_PLATFORM), cc100)
+WCTS_PLATFORMCONFIG             := Lin32PTXdistPfcXXX
+endif

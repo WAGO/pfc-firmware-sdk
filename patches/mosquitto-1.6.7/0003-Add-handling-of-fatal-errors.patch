@@ -1,0 +1,52 @@
+--- mosquitto-1.6.7/lib/loop.c	2019-02-22 11:10:35.586964071 +0100
++++ mosquitto-1.6.7/lib/loop.c	2021-03-16 18:07:01.286962962 +0100
+@@ -34,6 +34,8 @@
+ #define HAVE_PSELECT
+ #endif
+ 
++static void _mosquitto_handle_fatal_error(struct mosquitto *mosq, int errorCode);
++
+ int mosquitto_loop(struct mosquitto *mosq, int timeout, int max_packets)
+ {
+ #ifdef HAVE_PSELECT
+@@ -223,11 +225,15 @@
+ 			case MOSQ_ERR_UNKNOWN:
+ 			case MOSQ_ERR_EAI:
+ 			case MOSQ_ERR_PROXY:
++				log__printf(mosq, MOSQ_LOG_ERR, "mosquitto_loop_forever: fatal error %i: %s", rc, mosquitto_strerror(rc));
++				_mosquitto_handle_fatal_error(mosq, MOSQ_ERR_LOOP_FOREVER_EXITED);
+ 				return rc;
+ 			case MOSQ_ERR_ERRNO:
+ 				break;
+ 		}
+ 		if(errno == EPROTO){
++			log__printf(mosq, MOSQ_LOG_ERR, "mosquitto_loop_forever: fatal error errno == EPROTO, rc = %i: %s", rc, mosquitto_strerror(rc));
++			_mosquitto_handle_fatal_error(mosq, MOSQ_ERR_LOOP_FOREVER_EXITED);
+ 			return rc;
+ 		}
+ 		do{
+@@ -271,6 +277,8 @@
+ 			}
+ 		}while(run && rc != MOSQ_ERR_SUCCESS);
+ 	}
++	log__printf(mosq, MOSQ_LOG_ERR, "mosquitto_loop_forever: Exiting with run = %i, rc = %i: %s", run, rc, mosquitto_strerror(rc));
++	_mosquitto_handle_fatal_error(mosq, MOSQ_ERR_LOOP_FOREVER_EXITED);
+ 	return rc;
+ }
+ 
+@@ -379,3 +387,15 @@
+ 	return rc;
+ }
+ 
++static void _mosquitto_handle_fatal_error(struct mosquitto *mosq, int errorCode)
++{
++	pthread_mutex_lock(&mosq->callback_mutex);
++	if (mosq->on_disconnect)
++	{
++		mosq->in_callback = true;
++		mosq->on_disconnect(mosq, mosq->userdata, errorCode);
++		mosq->in_callback = false;
++	}
++	pthread_mutex_unlock(&mosq->callback_mutex);
++}
++

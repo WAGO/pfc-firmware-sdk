@@ -4,7 +4,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "Error.hpp"
+
+#include "Status.hpp"
 #include "Types.hpp"
 
 
@@ -114,11 +115,18 @@ class BridgeConfig {
 };
 
 /**
- * @brief Converts the bridge configuration to its JSON representation.
+ * @brief Converts the bridge configuration to its compact json representation.
  *
  * @return ::std::string The json string
  */
 ::std::string ToJson(const BridgeConfig& config) noexcept;
+
+/**
+ * @brief Converts the bridge configuration to its human readable json representation.
+ *
+ * @return ::std::string The json string
+ */
+::std::string ToPrettyJson(const BridgeConfig& config) noexcept;
 
 /**
  * Convert the bridge configuration to a textual representation
@@ -129,14 +137,14 @@ class BridgeConfig {
 ::std::string ToString(const BridgeConfig& config) noexcept;
 
 
-Error MakeBridgeConfig(const std::string& json_str, BridgeConfig& config);
+Status MakeBridgeConfig(const std::string& json_str, BridgeConfig& config);
 
 /**
  * @brief Get the Bridge Config from the netconfd network config daemon *
  * @param config
- * @return error
+ * @return Status
  */
-Error GetBridgeConfig(BridgeConfig& config);
+Status GetBridgeConfig(BridgeConfig& config);
 
 /**
  * @brief Set the Bridge Config for the netconfd network config daemon.
@@ -145,7 +153,7 @@ Error GetBridgeConfig(BridgeConfig& config);
  * @param config The configuration to set.
  * @return Status @see Status::OK on success.
  */
-Error SetBridgeConfig(const BridgeConfig &config);
+Status SetBridgeConfig(const BridgeConfig &config);
 
 bool operator==(const BridgeConfig& rhs, const BridgeConfig& lhs);
 

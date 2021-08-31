@@ -15,8 +15,6 @@ menuconfig LIGHTTPD
 	select BZIP2_LIBBZ2		if LIGHTTPD_BZ2LIB
 	select ATTR			if LIGHTTPD_ATTR
 	select LIBPCRE			if LIGHTTPD_PCRE
-	select FAM			if LIGHTTPD_FAM
-	select FAM_LIBRARY		if LIGHTTPD_FAM
 	select LIBXML2			if LIGHTTPD_WEBDAV_PROPS
 	select SQLITE			if LIGHTTPD_WEBDAV_PROPS
 	select LIBUUID			if LIGHTTPD_WEBDAV_LOCKS
@@ -52,13 +50,6 @@ config LIGHTTPD_ATTR
 	prompt "extended attribute support"
 	help
 	  Enable extended attribute support.
-
-config LIGHTTPD_FAM
-	bool
-	depends on STAGING
-	prompt "fam"
-	help
-	  fam/gamin for reducing number of stat() calls.
 
 config LIGHTTPD_LUA
 	bool
@@ -154,6 +145,7 @@ if LIGHTTPD_MOD_FASTCGI
 
 config LIGHTTPD_MOD_FASTCGI_PHP
 	bool
+	depends on STAGING
 	prompt "setup php handling with fastcgi"
 	help
 	  Enables the necessary packages and configuration files
@@ -176,14 +168,6 @@ config LIGHTTPD_MOD_REWRITE
 	prompt "mod_rewrite"
 	help
 	  Module for URL rewriting
-
-config LIGHTTPD_MOD_SETENV
-	bool
-	prompt "mod_setenv"
-	help
-	  The setenv module allows influencing the environment external
-	  applications are spawned in and the response headers the server
-	  sends to the clients.
 
 config LIGHTTPD_MOD_TRIGGER_B4_DL
 	bool

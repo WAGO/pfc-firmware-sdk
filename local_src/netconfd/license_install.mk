@@ -39,8 +39,9 @@ $(LICENSE_OUT_DIR)/license_install_rules.mk: $(MK_FILES) | $(GEN_DIRS)
 	{ \
 		$(foreach BUILDTARGET,$(BUILDTARGETS), \
 			$(if $($(BUILDTARGET)_INSTALL_LICENSE), \
-  			echo '$(call create_license_target,$(basename $(BUILDTARGET)),$($(BUILDTARGET)_VERSION),$($(BUILDTARGET)_INSTALL_LICENSE))'; \
-  			echo ; \
-  		,) \
+				echo '$(call create_license_target,$(basename $(BUILDTARGET)),$($(BUILDTARGET)_VERSION),$($(BUILDTARGET)_INSTALL_LICENSE))'; \
+				echo ; \
+			,) \
 		) \
+		echo "no-op to avoid syntax error if the foreach loop yields an empty list" > /dev/null; \
 	} > $@

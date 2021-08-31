@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_MODEM_NG) += wbm-ng-plugin-modem-ng
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_MODEM_NG_VERSION        := 1.0.20
+WBM_NG_PLUGIN_MODEM_NG_VERSION        := 1.1.0
 WBM_NG_PLUGIN_MODEM_NG                := wbm-modem-ng-$(WBM_NG_PLUGIN_MODEM_NG_VERSION)
 WBM_NG_PLUGIN_MODEM_NG_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_MODEM_NG)
 WBM_NG_PLUGIN_MODEM_NG_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_MODEM_NG_URL))
@@ -92,10 +92,10 @@ $(STATEDIR)/wbm-ng-plugin-modem-ng.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_MODEM_NG_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-modem-ng, 0, 0, 0644, $(WBM_NG_PLUGIN_MODEM_NG_DIR)/$$object, $(WBM_NG_PLUGIN_MODEM_NG_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-modem-ng, 0, 0, 0755, $(WBM_NG_PLUGIN_MODEM_NG_TARGET_DIR)/$$object); \
 		fi; \
 	done;

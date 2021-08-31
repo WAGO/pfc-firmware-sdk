@@ -1,10 +1,9 @@
-## SECTION=hosttools_noprompt
+## SECTION=hosttools_noprompt_ptx
 
 config HOST_FAKEROOT
 	tristate
-	default y
 	select HOST_ACL
-    select HOST_LIBCAP
+	select HOST_LIBCAP
 	help
 	  fakeroot lets you create archives with "real" owners and
 	  permissions, without being root.

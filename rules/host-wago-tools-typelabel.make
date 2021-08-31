@@ -97,30 +97,10 @@ endif
 # ----------------------------------------------------------------------------
 # Target-Install
 # ----------------------------------------------------------------------------
-
-$(STATEDIR)/host-typelabel.targetinstall:
-	@$(call targetinfo)
-	@$(call install_init, host-typelabel)
-	@$(call install_fixup, host-typelabel,PRIORITY,optional)
-	@$(call install_fixup, host-typelabel,SECTION,base)
-	@$(call install_fixup, host-typelabel,AUTHOR,"WAGO <www.WAGO.com>")
-	@$(call install_fixup, host-typelabel,DESCRIPTION,missing)
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-	# Extract precompiled binaries from archive
-	@rm -rf $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/*
-	@cd $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/$(HOST_TYPELABEL_PACKAGE_NAME).ipk
-	@$(call install_archive, typelabel, 0, 0, $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, /)
-else
-	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-	@$(call install_copy, typelabel, 0, 0, 0755, -, /usr/lib/libtypelabel.so)
-endif
-	@$(call install_finish, host-typelabel)
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
-	# Backup binaries in configs/@platform@/packages/
-	cp $(PKGDIR)/$(HOST_TYPELABEL_PACKAGE_NAME).ipk $(HOST_TYPELABEL_PLATFORMCONFIGPACKAGEDIR)/
-endif
-	@$(call touch)
+# Host, image and cross packages don’t need to install anything in the target
+# file system. Therefore, PTXdist only respects the targetinstall and
+# targetinstall.post stages for packages whose name doesn’t start with host-,
+# image-, or cross-.
 
 # ----------------------------------------------------------------------------
 # Clean

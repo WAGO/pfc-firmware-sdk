@@ -99,9 +99,12 @@ aide_check_or_update ()
 
 aide_readlog ()
 {
-  cat ${AIDE_LOG_FILE}* 2>/dev/null || \
-    echo 'AIDE log files do no exist. Please execute the AIDE "check" command.' | \
-    tail -n ${max_lines_of_logs}
+  if [[ ! -f "${AIDE_LOG_FILE}" ]]; then
+    echo 'AIDE log files do no exist. Please execute the AIDE "check" command.'
+    return
+  fi
+
+  cat "${AIDE_LOG_FILE}" 2>/dev/null | tail -n ${max_lines_of_logs}
 }
 
 if [ "${1}" = "-h" ] || [ "${1}" = "--help" ]; then

@@ -1,0 +1,33 @@
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+Date: Sun, 30 Oct 2011 22:16:53 +0100
+Subject: [PATCH] make fakeroot relocatable
+
+Calculate the libdir relative to the fakeroot binary.
+
+Not for upstream.
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ scripts/fakeroot.in | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/scripts/fakeroot.in b/scripts/fakeroot.in
+index eaf3f56f05aa..8ff3125a3d5b 100755
+--- a/scripts/fakeroot.in
++++ b/scripts/fakeroot.in
+@@ -30,12 +30,12 @@ fatal ()
+ }
+ 
+ # strip /bin/fakeroot to find install prefix
+-FAKEROOT_PREFIX=@prefix@
+-FAKEROOT_BINDIR=@bindir@
++FAKEROOT_BINDIR="`dirname "$0"`"
++FAKEROOT_PREFIX="`dirname "$FAKEROOT_BINDIR"`"
+ 
+ USEABSLIBPATH=@LDPRELOADABS@
+ LIB=lib@fakeroot_transformed@@DLSUFFIX@
+-PATHS=@libdir@:${FAKEROOT_PREFIX}/lib64/libfakeroot:${FAKEROOT_PREFIX}/lib32/libfakeroot
++PATHS="${FAKEROOT_PREFIX}@libdir@":${FAKEROOT_PREFIX}/lib64/libfakeroot:${FAKEROOT_PREFIX}/lib32/libfakeroot
+ FAKED=${FAKEROOT_BINDIR}/@faked_transformed@
+ 
+ FAKED_MODE="unknown-is-root"

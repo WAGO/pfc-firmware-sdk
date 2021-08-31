@@ -169,13 +169,13 @@ $(STATEDIR)/wretain.targetinstall:
 
 ifdef PTXCONF_WRETAIN_LINK_TYPE_DIRECT
 	@$(call install_lib, wretain, 0, 0, 0644, libwretain_direct)
-	@$(call install_alternative, wretain, 0, 0, 0644, /etc/wretain_direct.conf)
+	@$(call install_alternative, wretain, 0, 0, 0640, /etc/wretain_direct.conf)
 	@$(call install_link, wretain, libwretain_direct.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so)
 	@$(call install_link, wretain, libwretain_direct.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_MAJOR_VERSION))
 	@$(call install_link, wretain, libwretain_direct.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_SO_VERSION))
 else
 	@$(call install_lib, wretain, 0, 0, 0644, libwretain_serial)
-	@$(call install_alternative, wretain, 0, 0, 0644, /etc/wretain_serial.conf)
+	@$(call install_alternative, wretain, 0, 0, 0640, /etc/wretain_serial.conf)
 	@$(call install_link, wretain, libwretain_serial.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so)
 	@$(call install_link, wretain, libwretain_serial.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_MAJOR_VERSION))
 	@$(call install_link, wretain, libwretain_serial.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_SO_VERSION))

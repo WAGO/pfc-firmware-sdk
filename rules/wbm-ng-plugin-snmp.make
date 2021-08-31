@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_SNMP) += wbm-ng-plugin-snmp
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_SNMP_VERSION        := 1.0.0
+WBM_NG_PLUGIN_SNMP_VERSION        := 1.1.0
 WBM_NG_PLUGIN_SNMP                := wbm-snmp-$(WBM_NG_PLUGIN_SNMP_VERSION)
 WBM_NG_PLUGIN_SNMP_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_SNMP)
 WBM_NG_PLUGIN_SNMP_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_SNMP_URL))
@@ -91,10 +91,10 @@ $(STATEDIR)/wbm-ng-plugin-snmp.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_SNMP_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-snmp, 0, 0, 0644, $(WBM_NG_PLUGIN_SNMP_DIR)/$$object, $(WBM_NG_PLUGIN_SNMP_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-snmp, 0, 0, 0755, $(WBM_NG_PLUGIN_SNMP_TARGET_DIR)/$$object); \
 		fi; \
 	done;

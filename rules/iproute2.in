@@ -10,6 +10,7 @@ menuconfig IPROUTE2
 	select LIBC_PTHREAD if IPROUTE2_ARPD
 	select GCCLIBS_GCC_S if IPROUTE2_IP || IPROUTE2_TC
 	select LIBSELINUX if GLOBAL_SELINUX
+	select LIBMNL if IPROUTE2_DEVLINK
 	help
 	  Networking and traffic control tools
 
@@ -41,6 +42,12 @@ config IPROUTE2_CTSTAT
 	prompt "ctstat"
 	help
 	  The connection status utility. Maybe linked to lnstat.
+
+config IPROUTE2_DEVLINK
+	bool
+	prompt "devlink"
+	help
+	  The devlink utility.
 
 config IPROUTE2_GENL
 	bool

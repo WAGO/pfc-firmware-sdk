@@ -7,6 +7,7 @@ menuconfig UTIL_LINUX_NG
 	select UTIL_LINUX_NG_LIBBLKID
 	select UTIL_LINUX_NG_LIBUUID		if UTIL_LINUX_NG_MKSWAP_UUID
 	select NCURSES				if UTIL_LINUX_NG_USES_NCURSES
+	select PAM				if UTIL_LINUX_NG_USES_PAM
 
 if UTIL_LINUX_NG
 
@@ -30,6 +31,9 @@ config UTIL_LINUX_NG_FDISKS
 	bool
 
 config UTIL_LINUX_NG_USES_NCURSES
+	bool
+
+config UTIL_LINUX_NG_USES_PAM
 	bool
 
 config UTIL_LINUX_NG_PARTX_TOOLS
@@ -58,6 +62,18 @@ config UTIL_LINUX_NG_LINE
 	prompt "line"
 	help
 	  The line utility.
+
+config UTIL_LINUX_NG_GETOPT
+	bool
+	prompt "getopt"
+	depends on !BUSYBOX_GETOPT || ALLYES
+	help
+	  The getopt is used to break up (parse) options in command
+	  lines for easy parsing by shell procedures, and to check
+	  for valid options.
+
+comment "BusyBox' getopt is selected!"
+	depends on BUSYBOX_GETOPT
 
 config UTIL_LINUX_NG_ADDPART
 	bool
@@ -208,6 +224,17 @@ config UTIL_LINUX_NG_UMOUNT
 comment "BusyBox' umount is selected!"
 	depends on BUSYBOX_UMOUNT
 
+config UTIL_LINUX_NG_FLOCK
+	bool
+	prompt "flock"
+	depends on !BUSYBOX_FLOCK || ALLYES
+	help
+	  The flock utility manages flock(2) locks from within
+	  shell scripts or from the command line.
+
+comment "BusyBox' flock is selected!"
+	depends on BUSYBOX_FLOCK
+
 config UTIL_LINUX_NG_FSCK
 	bool
 	prompt "fsck"
@@ -251,6 +278,20 @@ config UTIL_LINUX_NG_IPCS
 	help
 	  ipcs provides information on the ipc facilities
 	  for which the calling process has read access.
+
+config UTIL_LINUX_NG_IRQTOP
+	bool
+	select UTIL_LINUX_NG_USES_NCURSES
+	prompt "irqtop"
+	help
+	  irqtop is a tool to observe irqs and softirqs in
+          a top like fashion.
+
+config UTIL_LINUX_NG_LSIRQ
+	bool
+	prompt "lsirq"
+	help
+	  lsirq is a tool to list kernel interrupt information.
 
 comment "BusyBox' ipcs is selected!"
 	depends on BUSYBOX_IPCS
@@ -314,6 +355,12 @@ config UTIL_LINUX_NG_HWCLOCK
 
 comment "BusyBox' hwclock is selected!"
         depends on BUSYBOX_HWCLOCK
+
+config UTIL_LINUX_NG_WDCTL
+	bool
+	prompt "wdctl"
+	help
+	  wdctl - Utility to show hardware watchdog status.
 
 config UTIL_LINUX_NG_IONICE
 	bool
@@ -440,5 +487,31 @@ config UTIL_LINUX_NG_LSCPU
 	prompt "lscpu"
 	help
 	  lscpu shows information about the CPU architecture
+
+config UTIL_LINUX_NG_LOGIN
+	bool
+	select UTIL_LINUX_NG_USES_PAM
+	depends on GLOBAL_PAM && ((!BUSYBOX_LOGIN && !SHADOW) || ALLYES)
+	prompt "login"
+	help
+	  The login program is used to establish a new session with
+	  the system.
+
+comment "BusyBox' login is selected!"
+	depends on BUSYBOX_LOGIN
+
+comment "Shadow package is selected!"
+	depends on SHADOW
+
+config UTIL_LINUX_NG_SULOGIN
+	bool
+	depends on !BUSYBOX_SULOGIN || ALLYES
+	prompt "sulogin"
+	help
+	  sulogin is invoked by init when the system goes into
+	  single-user mode.
+
+comment "BusyBox' sulogin is selected!"
+	depends on BUSYBOX_SULOGIN
 
 endif

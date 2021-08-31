@@ -21,9 +21,10 @@ class NetDevManagerTest : public ::testing::Test {
   MockIDeviceProperties mock_device_properties_;
   NiceMock<MockIInterfaceMonitor> mock_itf_monitor_;
   ::std::unique_ptr<NetDevManager> netdev_manager_;
-  MockIBridgeController mock_bridge_controller_;
+  NiceMock<MockIBridgeController> mock_bridge_controller_;
   ::std::shared_ptr<IInterfaceMonitor> shared_itf_monitor_;
-  MockIMacDistributor mock_mac_distributor_;
+  NiceMock<MockIMacDistributor> mock_mac_distributor_;
+  NiceMock<MockINetDevEvents> mock_netdev_event_;
 
   void SetUp() override {
     shared_itf_monitor_ = ::std::shared_ptr<IInterfaceMonitor>(&mock_itf_monitor_, [](IInterfaceMonitor*) {
@@ -37,10 +38,11 @@ class NetDevManagerTest : public ::testing::Test {
     netdev_manager_ = ::std::make_unique<NetDevManager>(shared_itf_monitor_, mock_bridge_controller_,
                                                         mock_mac_distributor_);
 
+    netdev_manager_->RegisterForNetDevConstructionEvents(mock_netdev_event_);
+
   }
 
   void TearDown() override {
-//    netdev_manager_.reset();
   }
 
 };
@@ -152,11 +154,19 @@ TEST_F(NetDevManagerTest, RemoveBridgesAndInterfaceRelations) {
   EXPECT_FALSE(netdev_manager_->GetByName("br0"));
 }
 
+ACTION_P(SaveNetDevName, name){
+name.get() = arg0->GetName();
+}
+
 TEST_F(NetDevManagerTest, RemoveInterfaceFromBridgeAndResetRelations) {
 
+  EXPECT_CALL(mock_netdev_event_, OnNetDevChangeInterfaceRelations(_)).Times(0);
   BridgeConfig config1 = { { "br0", { "X1", "X2" } } };
 
   netdev_manager_->ConfigureBridges(config1);
+
+  ::std::string netdev_name_of_event;
+  EXPECT_CALL(mock_netdev_event_, OnNetDevChangeInterfaceRelations(_)).WillOnce(SaveNetDevName(::std::ref(netdev_name_of_event)));
 
   BridgeConfig config2 = { { "br0", { "X2" } } };
 
@@ -173,20 +183,18 @@ TEST_F(NetDevManagerTest, RemoveInterfaceFromBridgeAndResetRelations) {
 
   EXPECT_FALSE(x1->GetParent());
   EXPECT_EQ(bridge, x2->GetParent());
+
+  EXPECT_EQ("br0", netdev_name_of_event);
 }
 
-ACTION_P(SaveNetDevName, name){
-name.get() = arg0->GetName();
-}
 
 TEST_F(NetDevManagerTest, InformsRegisterdClientsAboutBridgeConstruction) {
 
-  MockINetDevConstruction construction_event;
 
-  netdev_manager_->RegisterForNetDevConstructionEvents(construction_event);
+
 
   ::std::string contructed_netdev_name;
-  EXPECT_CALL(construction_event, OnNetDevCreated(_)).WillOnce(SaveNetDevName(::std::ref(contructed_netdev_name)));
+  EXPECT_CALL(mock_netdev_event_, OnNetDevCreated(_)).WillOnce(SaveNetDevName(::std::ref(contructed_netdev_name)));
 
   BridgeConfig config = { { "br0", { "X2" } } };
   netdev_manager_->ConfigureBridges(config);

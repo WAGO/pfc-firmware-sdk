@@ -33,8 +33,6 @@ void MacDistributor::AssignMacs(NetDevs &net_devs) {
   } else {
     AssignSingleMacSupport(net_devs);
   }
-
-  AssignEthernetMacs(net_devs);
 }
 
 static bool BridgeHasMoreThenOneAssignedPort(NetDevPtr net_dev) {
@@ -70,8 +68,6 @@ void MacDistributor::AssignMacAndIncrement(NetDevPtr net_dev) {
 }
 
 void MacDistributor::AssignSingleMacSupport(NetDevs &net_devs) {
-
-  //Assign mac's
   auto assign_macs = [&](NetDevPtr &net_dev) {
     if (net_dev->GetKind() == DeviceType::Bridge || net_dev->GetKind() == DeviceType::Port) {
       AssignMac(net_dev, base_mac_address_);
@@ -82,8 +78,6 @@ void MacDistributor::AssignSingleMacSupport(NetDevs &net_devs) {
 }
 
 void MacDistributor::AssignMultipleMacSupport(NetDevs &net_devs) {
-
-  //Assign bridge mac's
   auto assign_mac_to_bridge = [&](NetDevPtr &net_dev) {
     if (net_dev->GetKind() == DeviceType::Bridge) {
       AssignMac(net_dev, base_mac_address_);
@@ -93,7 +87,6 @@ void MacDistributor::AssignMultipleMacSupport(NetDevs &net_devs) {
   ::std::for_each(net_devs.begin(), net_devs.end(), assign_mac_to_bridge);
   mac_counter_++;
 
-  //Assign port mac's
   auto assign_mac_to_ports = [&](NetDevPtr &net_dev) {
     if (net_dev->GetKind() == DeviceType::Port) {
       AssignMacAndIncrement(net_dev);
@@ -116,13 +109,11 @@ static int DetermineBridgeMacIncrement(std::string name) {
 }
 
 void MacDistributor::AssignFullMacSupport(NetDevs &net_devs) {
-
   ::std::list<int> mac_incs(mac_inc_);
   std::generate(mac_incs.begin(), mac_incs.end(), [n = 0]() mutable {
     return n++;
   });
 
-  //Assign bridge mac's
   auto assign_mac_to_bridge = [&](const NetDevPtr &net_dev) {
     if (net_dev->GetKind() == DeviceType::Bridge) {
       auto inc_num = DetermineBridgeMacIncrement(net_dev->GetName());
@@ -137,8 +128,6 @@ void MacDistributor::AssignFullMacSupport(NetDevs &net_devs) {
   };
 
   ::std::for_each(net_devs.begin(), net_devs.end(), assign_mac_to_bridge);
-
-  //Assign port mac's
 
   auto assign_from_mac_incs = [&](const NetDevPtr &netdev) {
     if (!mac_incs.empty()) {
@@ -167,18 +156,6 @@ void MacDistributor::AssignFullMacSupport(NetDevs &net_devs) {
   };
 
   ::std::for_each(net_devs.begin(), net_devs.end(), assign_mac_to_ports);
-}
-
-void MacDistributor::AssignEthernetMacs(NetDevs &net_devs) {
-
-  for (auto net_dev : net_devs) {
-
-    //assign mac for eth0
-    if (net_dev->GetKind() == DeviceType::Ethernet) {
-      AssignMac(net_dev, base_mac_address_);
-    }
-  }
-
 }
 
 bool MacDistributor::IsMacAddressAssignmentMultiple(uint32_t mac_count, uint32_t port_count) const {

@@ -8,24 +8,24 @@
 #	select WAGO_PFC_DIAGNOSTIC if LED_SERVER_2_CHOICE
 
 menuconfig LED_SERVER_META
-        bool
-        prompt "LED-Server                     "
+	bool
+	prompt "LED-Server"
 	select LED_SERVER_LEGACY if LED_SERVER_LEGACY_CHOICE
 	select LED_SERVER_2 if LED_SERVER_2_CHOICE
-        help
-                Use LED-Server.
-                
+	help
+	  Use LED-Server.
+
 if LED_SERVER_META
 
 choice
 	prompt "Select LED-Server Version"
-	default LED_SERVER_LEGACY
+	default LED_SERVER_LEGACY_CHOICE
 
 	config LED_SERVER_LEGACY_CHOICE
 		bool
 		prompt "Legacy (PFC200 only)"
 		help
-			This is the old version of the LED-Server used up to FW04 only in PFC200-devices with dual-collor LEDs
+		  This is the old version of the LED-Server used up to FW04 only in PFC200-devices with dual-collor LEDs
 
 	config LED_SERVER_2_CHOICE
 		bool

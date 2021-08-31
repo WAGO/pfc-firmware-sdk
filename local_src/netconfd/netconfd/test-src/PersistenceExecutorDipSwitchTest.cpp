@@ -21,7 +21,7 @@
 #include "MockIDipSwitch.hpp"
 #include "TypesTestHelper.hpp"
 
-#include "Error.hpp"
+#include "Status.hpp"
 
 using namespace testing;
 
@@ -55,7 +55,7 @@ namespace netconf
       {
 
         ON_CALL(mock_file_editor_, Read(path_interface_config_file_, _)).WillByDefault(
-            DoAll(SetArgReferee<1>(interface_config_file_content_), Return(Error{ })));
+            DoAll(SetArgReferee<1>(interface_config_file_content_), Return(Status{ })));
 
         persisted_ip_configs = {{"br0", IPSource::STATIC, "192.168.2.17", "255.255.255.0"}, {
             "br1", IPSource::DHCP, "172.29.233.17", "255.255.0.0"}};
@@ -72,18 +72,18 @@ namespace netconf
         DipSwitchIpConfig dipConfigWritten;
 
         ON_CALL(mock_file_editor_, Read(path_persistence_file_, _)).WillByDefault(
-            DoAll(SetArgReferee<1>(persistence_file), Return(Error{ })));
+            DoAll(SetArgReferee<1>(persistence_file), Return(Status{ })));
 
         EXPECT_CALL(mock_dip_switch_, GetMode()).WillRepeatedly(Return(dip_mode));
 
         persistence_executor_ = ::std::make_unique<PersistenceExecutor>(base_path_,
                                                                         mock_file_editor_, mock_backup_restore_,
                                                                         legacy_restore_fake_, mock_dip_switch_);
-        Error status = persistence_executor_->Write(dipConfigToWrite);
-        ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+        Status status = persistence_executor_->Write(dipConfigToWrite);
+        ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 
         status = persistence_executor_->Read(dipConfigWritten);
-        ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+        ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
         ASSERT_EQ(dipConfigToWrite, dipConfigWritten);
       }
 
@@ -171,7 +171,7 @@ namespace netconf
     DipSwitchIpConfig dipConfigWritten;
 
     ON_CALL(mock_file_editor_, Read(path_persistence_file_, _)).WillByDefault(
-        DoAll(SetArgReferee<1>(persistence_file_content), Return(Error{ })));
+        DoAll(SetArgReferee<1>(persistence_file_content), Return(Status{ })));
 
     EXPECT_CALL(mock_dip_switch_, GetMode()).WillRepeatedly(Return(DipSwitchMode::OFF));
 
@@ -179,8 +179,8 @@ namespace netconf
                                                                     mock_file_editor_, mock_backup_restore_,
                                                                     legacy_restore_fake_, mock_dip_switch_);
 
-    Error status = persistence_executor_->Read(dipConfigWritten);
-    ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+    Status status = persistence_executor_->Read(dipConfigWritten);
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
     ASSERT_EQ(DipSwitchIpConfig("192.169.42.0", "255.255.255.0"), dipConfigWritten);
   }
 
@@ -189,7 +189,7 @@ namespace netconf
     DipSwitchIpConfig dipConfigWritten;
 
     ON_CALL(mock_file_editor_, Read(path_persistence_file_, _)).WillByDefault(
-        DoAll(SetArgReferee<1>(persistence_file_content_no_dip), Return(Error{ })));
+        DoAll(SetArgReferee<1>(persistence_file_content_no_dip), Return(Status{ })));
 
     EXPECT_CALL(mock_dip_switch_, GetMode()).WillRepeatedly(Return(DipSwitchMode::OFF));
 
@@ -197,8 +197,8 @@ namespace netconf
                                                                     mock_file_editor_, mock_backup_restore_,
                                                                     legacy_restore_fake_, mock_dip_switch_);
 
-    Error status = persistence_executor_->Read(dipConfigWritten);
-    ASSERT_EQ(ErrorCode::PERSISTENCE_READ, status.GetErrorCode());
+    Status status = persistence_executor_->Read(dipConfigWritten);
+    ASSERT_EQ(StatusCode::PERSISTENCE_READ, status.GetStatusCode());
     ASSERT_EQ(DipSwitchIpConfig(), dipConfigWritten);
   }
 

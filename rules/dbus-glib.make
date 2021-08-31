@@ -3,8 +3,6 @@
 # Copyright (C) 2007 by Robert Schwebel
 #               2009 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -43,8 +41,8 @@ DBUS_GLIB_CONF_OPT	:= \
 	--disable-asserts \
 	--enable-checks \
 	--disable-gtk-doc \
-	--with-dbus-binding-tool=$(PTXCONF_SYSROOT_HOST)/bin/dbus-binding-tool \
-	--with-introspect-xml=$(PTXCONF_SYSROOT_HOST)/share/dbus-glib/dbus-bus-introspect.xml
+	--with-dbus-binding-tool=$(PTXDIST_SYSROOT_HOST)/bin/dbus-binding-tool \
+	--with-introspect-xml=$(PTXDIST_SYSROOT_HOST)/share/dbus-glib/dbus-bus-introspect.xml
 
 # ----------------------------------------------------------------------------
 # Target-Install

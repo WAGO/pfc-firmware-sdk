@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG) += wbm-ng
 #
 # Paths and names
 #
-WBM_NG_VERSION        := 2.10.5
+WBM_NG_VERSION        := 2.11.0
 WBM_NG                := wbm-pfc-$(WBM_NG_VERSION)
 WBM_NG_URL            := $(call jfrog_template_to_url, WBM_NG)
 WBM_NG_SUFFIX         := $(suffix $(WBM_NG_URL))
@@ -99,12 +99,13 @@ $(STATEDIR)/wbm-ng.targetinstall:
 	@$(call install_copy, wbm-ng, 0, 0, 0755, $(WBM_NG_TARGET_DIR))
 
 	# loop over all files and subdirectories (deep)
-	# additionally apply a filter to the ./plugins folder, to filter out plugins named in the blacklist
+	# additionally apply a filter to the ./plugins folder, to filter out
+	# plugins named in the blacklist
 	@cd $(WBM_NG_DIR) && \
-	for object in $$( find $$( printf " -path ./plugins/%s -prune -o " $(WBM_NG_PLUGINS_BLACKLIST) ) -print ); do \
-		if test -f $$object; then \
+	for object in $$( find $$( printf " -path ./plugins/%s -prune -o " $(WBM_NG_PLUGINS_BLACKLIST) ) \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng, 0, 0, 0644, $(WBM_NG_DIR)/$$object, $(WBM_NG_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng, 0, 0, 0755, $(WBM_NG_TARGET_DIR)/$$object); \
 		fi; \
 	done;

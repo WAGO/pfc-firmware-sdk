@@ -197,7 +197,7 @@ else
 		@$(call install_link,   libmbs, $(LIBMBS).so.$(LIBMBS_VERSION), /usr/lib/$(LIBMBS).so)
 		@$(call install_link,   libmbs, $(LIBMBS).so.$(LIBMBS_VERSION), /usr/lib/$(LIBMBS).so.$(LIBMBS_VERSION_MAJOR))
 		@$(call install_link,   libmbs, ../$(LIBMBS).so.$(LIBMBS_VERSION), /usr/lib/dal/$(LIBMBS).so)
-		@$(call install_copy,   libmbs, 0, 0, 0644, $(LIBMBS_CONFDIR)/mbslog.conf, /etc/specific/mbslog.conf)
+		@$(call install_copy,   libmbs, 0, 0, 0640, $(LIBMBS_CONFDIR)/mbslog.conf, /etc/specific/mbslog.conf)
 endif
 		@$(call install_finish, libmbs)
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE

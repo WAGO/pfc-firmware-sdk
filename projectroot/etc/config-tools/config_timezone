@@ -100,33 +100,28 @@ init_zone_by_str()
 	SETTED=false;
 	ifsbak=$IFS;
 	IFS=$'\n';
-	for i in `cat /usr/share/zoneinfo/zoneinfos` 
-	do
-		if [ "$(echo -e $i | cut -d' ' -f1)" == "$tzSearch"  ]
-		then
-			newTzString=$(echo $i | cut -d' ' -f2)
-			newTzName=$(echo $i | cut -d' ' -f1)
-			init_zone "$newTzName" "$newTzString"
-			newTzString=""
-			SETTED=true;
-			sync
-			break;
-		fi
-	done
-	if [ $SETTED ]
-	then
-		for i in `cat /usr/share/zoneinfo/zoneinfos` 
+	for filename in zoneinfos allzones
+	do 
+		for i in `cat /usr/share/zoneinfo/$filename | grep "$tzSearch"` 
 		do
-			if [ "$(echo -e $i | cut -d' ' -f2)" == "$tzSearch"  ]
+			if [ "$(echo -e $i | cut -d' ' -f1)" == "$tzSearch"  ] || [ "$(echo -e $i | cut -d' ' -f2)" == "$tzSearch"  ]
 			then
 				newTzString=$(echo $i | cut -d' ' -f2)
 				newTzName=$(echo $i | cut -d' ' -f1)
 				init_zone "$newTzName" "$newTzString"
 				newTzString=""
+				SETTED=true;
 				sync
 				break;
 			fi
 		done
+		if [ "true" == "$SETTED" ]; then
+			break
+		fi
+	done
+	if [ "false" == "$SETTED" ]; then
+		SetLastError "invalid tz-string"
+		status=$INVALID_PARAMETER
 	fi
 	IFS=$ifsbak;
 }
@@ -159,8 +154,6 @@ if [ -n "$newTimezone" ] && [ "$UNKNOWN" != "$newTimezone" ]; then
       if [ "$?" == "0" ]
       then
           found=1
-          grep "$newTimezone" /usr/share/zoneinfo/allzones >> /usr/share/zoneinfo/zoneinfos
-          sync
       fi
     fi
     
@@ -171,17 +164,33 @@ if [ -n "$newTimezone" ] && [ "$UNKNOWN" != "$newTimezone" ]; then
     then
       ifsbak=$IFS;
       IFS=$'\n';
-      for i in `cat /usr/share/zoneinfo/zoneinfos` 
+      isTimezoneSet=false
+      for i in `cat /usr/share/zoneinfo/zoneinfos | grep "$newTimezone"` 
       do
-        if [ "$(echo -e $i | cut -d' ' -f3-)" == "$newTimezone"  ]
+        if [ "$(echo -e $i | cut -d' ' -f3-)" == "$newTimezone"  ] || [ "$(echo -e $i | cut -d' ' -f1)" == "$newTimezone" ]
         then
           newTzString=$(echo $i | cut -d' ' -f2)
           newTzName=$(echo $i | cut -d' ' -f1)
           init_zone $newTzName $newTzString
           newTzString=""
+          isTimezoneSet=true
           break;
         fi
       done
+      if [ "${isTimezoneSet}" != "true" ]
+      then
+        for i in `cat /usr/share/zoneinfo/allzones | grep "$newTimezone"` 
+        do
+          if [ "$(echo -e $i | cut -d' ' -f3-)" == "$newTimezone"  ] || [ "$(echo -e $i | cut -d' ' -f1)" == "$newTimezone" ]
+          then
+            newTzString=$(echo $i | cut -d' ' -f2)
+            newTzName=$(echo $i | cut -d' ' -f1)
+            init_zone $newTzName $newTzString
+            newTzString=""
+            break;
+          fi
+        done
+      fi
       IFS=$ifsbak;	
     fi
   fi
@@ -199,8 +208,6 @@ if [ -n "$newTzString" ]; then
 		if [ "$?" == "0" ]
 		then
 			if [ $(echo $newTzString | wc -c) -gt 3 ]; then
-			grep "$newTzString" /usr/share/zoneinfo/allzones >> /usr/share/zoneinfo/zoneinfos
-			sync
 			init_zone_by_str $newTzString
 			fi
 		else

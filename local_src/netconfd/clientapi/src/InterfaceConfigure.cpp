@@ -14,13 +14,13 @@
 namespace netconf {
 namespace api {
 
-Error SetInterfaceConfigs(const InterfaceConfigs &config) {
+Status SetInterfaceConfigs(const InterfaceConfigs &config) {
   NetconfdDbusClient client;
   auto result = client.SetInterfaceConfigs(ToJson(config));
   return result.error_;
 }
 
-Error GetInterfaceConfigs(InterfaceConfigs& config) {
+Status GetInterfaceConfigs(InterfaceConfigs& config) {
   NetconfdDbusClient client;
   auto result = client.GetInterfaceConfigs();
 
@@ -34,6 +34,51 @@ Error GetInterfaceConfigs(InterfaceConfigs& config) {
 
   return error;
 }
+
+Status GetInterfaceStatuses(InterfaceStatuses &statuses){
+  NetconfdDbusClient client;
+  auto result = client.GetInterfaceStatuses();
+
+  auto error = result.error_;
+  if(error.Ok()){
+    JsonConverter jc;
+    netconf::InterfaceStatuses nis;
+    error = jc.FromJsonString(result.value_json_, nis);
+    statuses = InterfaceStatuses{nis};
+  }
+
+  return error;
+}
+
+
+MacAddress GetMacAddress(const ::std::string &interface_name) {
+  EthernetInterface interface { interface_name };
+  return interface.GetMac();
+}
+
+Status SetInterfaceState(const ::std::string &interface_name, InterfaceState state)
+{
+  try{
+    EthernetInterface interface { interface_name };
+    interface.SetState(state);
+  }catch(::std::exception& e){
+    return Status{StatusCode::SYSTEM_CALL, e.what()};
+  }
+  return Status::Ok();
+}
+
+Status GetInterfaceState(const ::std::string &interface_name, InterfaceState &state)
+{
+  try{
+    EthernetInterface interface { interface_name };
+    state = interface.GetState();
+  }catch(::std::exception& e){
+    return Status{StatusCode::SYSTEM_CALL, e.what()};
+  }
+  return Status::Ok();
+}
+
+
 
 }  // namespace api
 }  // namespace netconf

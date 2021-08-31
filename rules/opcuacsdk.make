@@ -189,6 +189,7 @@ else
 
 	@$(call world/install, OPCUACSDK)
 	cd $(OPCUACSDK_PKGDIR)/usr ; mv include ua ; mkdir -p include ; mv ua include
+	mkdir $(OPCUACSDK_PKGDIR)/usr/lib/pkgconfig; cp $(OPCUACSDK_DIR)/uacsdk.pc $(OPCUACSDK_PKGDIR)/usr/lib/pkgconfig/
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@mkdir -p $(OPCUACSDK_PLATFORMCONFIGPACKAGEDIR)

@@ -2,13 +2,13 @@
 
 #pragma once
 
+#include "NetworkConfiguratorSettings.hpp"
 #include "IDeviceProperties.hpp"
 #include "IPersistenceProvider.hpp"
 #include "IEventManager.hpp"
 #include "IDipSwitch.hpp"
 #include "InterfaceConfigManager.hpp"
 #include "MappedChangeDetector.hpp"
-#include "IControllable.hpp"
 #include "IBridgeManager.hpp"
 #include "IIPManager.hpp"
 #include "JsonConverter.hpp"
@@ -21,7 +21,7 @@ class IInterfaceInformation;
 class ITaskQueue;
 class INetDevManager;
 
-class NetworkConfigBrain : public IControllable{
+class NetworkConfigBrain {
  public:
   NetworkConfigBrain(IBridgeManager& interface_manager,
                      IBridgeInformation& itf_info, IIPManager& ip_manager,
@@ -38,18 +38,20 @@ class NetworkConfigBrain : public IControllable{
   NetworkConfigBrain(const NetworkConfigBrain&&) = delete;
   NetworkConfigBrain& operator=(const NetworkConfigBrain&&) = delete;
 
-  void Start() override;
+  void Start(StartWithPortstate startwithportstate);
 
   ::std::string SetBridgeConfig(::std::string const& product_config);
   ::std::string GetBridgeConfig(::std::string&) const;
   ::std::string GetInterfaceInformation(::std::string&) const;
   ::std::string SetInterfaceConfig(::std::string const& config);
   ::std::string GetInterfaceConfig(::std::string&) const;
+  ::std::string GetInterfaceStatuses(::std::string&) const;
+
 
   ::std::string GetDipSwitchConfig(::std::string&) const;
   ::std::string GetAllIPConfigs(::std::string&) const;
   ::std::string GetIPConfig(const ::std::string& config, ::std::string&) const;
-  ::std::string GetAllCurrentIPConfigs(::std::string&) const;
+  ::std::string GetCurrentIPConfigs(::std::string&) const;
   ::std::string SetDipSwitchConfig(const ::std::string&);
   ::std::string SetAllIPConfigs(const ::std::string&);
   ::std::string SetIPConfig(const ::std::string&);
@@ -62,11 +64,9 @@ class NetworkConfigBrain : public IControllable{
 
  private:
   bool HasToApplyDipSwitchConfig() const;
-  void ModifyIpConfigByDipSwitch(IPConfigs& ip_configs);
-  void ModifyIpConfigByDipSwitch(IPConfigs& ip_configs, const DipSwitchIpConfig& dip_switch_ip_config);
-  Error ApplyConfig(BridgeConfig& product_config, const IPConfigs& ip_configs) const;
-  Error ApplyFallbackConfig();
-  Error StopDynamicIPClientsOfBridgesToBeRemoved(const BridgeConfig &product_config) const;
+  Status ApplyConfig(BridgeConfig& product_config, const IPConfigs& ip_configs) const;
+  Status ApplyFallbackConfig();
+  Status StopDynamicIPClientsOfBridgesToBeRemoved(const BridgeConfig &product_config) const;
   void RemoveEmptyBridges(BridgeConfig& config) const;
   void RemoveUnsupportedInterfaces(BridgeConfig& config, Interfaces &supported_interfaces) const;
   void FilterRequiredIpConfigs(IPConfigs &ip_configs, const BridgeConfig &bridge_config) const;
@@ -81,9 +81,9 @@ class NetworkConfigBrain : public IControllable{
 
   void GetValidIpConfigsSubset(const IPConfigs& configs, IPConfigs& subset);
 
-  Error ApplyIpConfiguration(const IPConfigs& config);
-  Error ApplyIpConfiguration(const IPConfigs& config, const DipSwitchIpConfig& dip_switch_config);
-  Error PersistIpConfiguration(const IPConfigs& config);
+  Status ApplyIpConfiguration(const IPConfigs& config);
+  Status ApplyIpConfiguration(const IPConfigs& config, const DipSwitchIpConfig& dip_switch_config);
+  Status PersistIpConfiguration(const IPConfigs& config);
   JsonConverter jc;
   IBridgeManager& bridge_manager_;
   IBridgeInformation& bridge_information_;

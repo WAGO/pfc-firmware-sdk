@@ -1,0 +1,13 @@
+## SECTION=hosttools_noprompt
+
+config HOST_LIBCAP
+	tristate
+	default y if ALLYES
+	help
+	  support for getting/setting POSIX.1e capabilities
+
+	  This library implements the user-space interfaces to the
+	  POSIX 1003.1e capabilities available in Linux kernels.
+	  These capabilities are a partitioning of the all powerful
+	  root privilege into a set of distinct privileges.  Note that
+	  it will not provide any functionality with kernels below 2.2

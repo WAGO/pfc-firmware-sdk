@@ -12,20 +12,18 @@
 #
 # We provide this package
 #
-ifdef PTXCONF_PROFINETDEMO_LAZY
-LAZY_PACKAGES-$(PTXCONF_PROFINETDEMO) += profinetdemo
-else
 PACKAGES-$(PTXCONF_PROFINETDEMO) += profinetdemo
-endif
-
 
 #
 # Paths and names
 #
 PROFINETDEMO_VERSION := 0.0.1
 PROFINETDEMO   := profinetdemo
+PROFINETDEMO_PKGDIR := $(PKGDIR)/$(PROFINETDEMO)-$(PROFINETDEMO_VERSION)
 PROFINETDEMO_URL := file://$(SRCDIR)/profinetdemo
 PROFINETDEMO_DIR := $(BUILDDIR)/$(PROFINETDEMO)
+PROFINETDEMO_SUBDIR := idevice
+PROFINETDEMO_MAKE_ENV 	:= $(CROSS_ENV)
 
 # ----------------------------------------------------------------------------
 # Get
@@ -57,21 +55,17 @@ $(STATEDIR)/profinetdemo.prepare:
 # Compile
 # ----------------------------------------------------------------------------
 
-PROFINETDEMO_PATH	:= PATH=$(CROSS_PATH)
-PROFINETDEMO_ENV 	:= $(CROSS_ENV)
-
-$(STATEDIR)/profinetdemo.compile:
-	@$(call targetinfo, $@)
-	@cd $(PROFINETDEMO_DIR)/idevice && $(PROFINETDEMO_PATH) $(PROFINETDEMO_ENV) $(MAKE)
-	@$(call touch, $@)
+#$(STATEDIR)/profinetdemo.compile:
+#	@$(call targetinfo, $@)
+#	@$(call touch, $@)
 
 # ----------------------------------------------------------------------------
 # Install
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/profinetdemo.install:
-	@$(call targetinfo, $@)
-	@$(call touch, $@)
+#$(STATEDIR)/profinetdemo.install:
+#	@$(call targetinfo, $@)
+#	@$(call touch, $@)
 
 # ----------------------------------------------------------------------------
 # Target-Install
@@ -79,7 +73,7 @@ $(STATEDIR)/profinetdemo.install:
 
 $(STATEDIR)/profinetdemo.targetinstall:
 	@$(call targetinfo, $@)
-
+ifndef PTXCONF_PROFINETDEMO_SKIP_TARGETINSTALL
 	@$(call install_init,profinetdemo)
 	@$(call install_fixup,profinetdemo,PRIORITY,optional)
 	@$(call install_fixup,profinetdemo,VERSION,$(PROFINETDEMO_VERSION)) 
@@ -93,6 +87,7 @@ $(STATEDIR)/profinetdemo.targetinstall:
 #
 	@$(call install_copy,profinetdemo, 0, 0, 0755, $(PROFINETDEMO_DIR)/idevice/profinetdemo_idevice, /usr/sbin/profinetdemo_idevice)
 	@$(call install_finish,profinetdemo)
+endif
 	@$(call touch, $@)
 
 # ----------------------------------------------------------------------------
@@ -103,4 +98,6 @@ $(STATEDIR)/profinetdemo.clean:
 	@rm -rf $(STATEDIR)/profinetdemo.*
 	@rm -rf $(PROFINETDEMO_DIR)
 	@rm -rf $(PTXCONF_SYSROOT_TARGET)/usr/sbin/$(PROFINETDEMO)
+	@rm -rf $(PROFINETDEMO_PKGDIR)
+
 # vim: syntax=make

@@ -612,6 +612,19 @@ function ValidateParameter
   fi
 }
 
+function DeviceSupportsPortSpeedDuplexConfiguration
+{
+	
+	local ordernr=$(/etc/config-tools/get_coupler_details order-number)
+	
+	if [[ $ordernr == "750-8211"* ]]; then
+ 		return 1
+ 	else
+ 		return 0
+  fi
+  
+}
+
 #-------------- main-programm ------------------------
 
 # abort if not run as root or admin

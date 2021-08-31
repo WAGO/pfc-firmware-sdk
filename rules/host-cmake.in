@@ -3,6 +3,7 @@
 config HOST_CMAKE
 	tristate
 	default y if ALLYES
+	select HOST_OPENSSL
 	help
 	  CMake is an open-source, cross-platfom
 	  build environment. It supports native

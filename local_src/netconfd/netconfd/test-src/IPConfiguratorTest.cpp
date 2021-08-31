@@ -53,139 +53,72 @@ class AnIPConfigurator : public Test {
 
 TEST_F(AnIPConfigurator, SuccessfullySetsAStaticIPConfiguration) {
 
-  IPConfigs config { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" } };
+  IPConfig config {  "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"  };
 
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[0]))).WillOnce(Return(Error(ErrorCode::OK)));
+  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config))).WillOnce(Return(Status(StatusCode::OK)));
 
   EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br0"))).Times(1);
 
   EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br0"))).Times(1);
 
-  Error status = ip_configurator_->Configure(config);
+  Status status = ip_configurator_->Configure(config);
 
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
 TEST_F(AnIPConfigurator, SuccessfullySetsADHCPConfiguration) {
 
-  IPConfigs config { { "br0", IPSource::DHCP, "192.168.1.17", "255.255.255.0" } };
+  IPConfig config {  "br0", IPSource::DHCP, "192.168.1.17", "255.255.255.0"  };
 
   IPConfig config_dhcp_flush = { "br0", IPSource::TEMPORARY, ZeroIP, ZeroIP };
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config_dhcp_flush))).WillOnce(Return(Error(ErrorCode::OK)));
+  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config_dhcp_flush))).WillOnce(Return(Status(StatusCode::OK)));
 
   EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br0"))).Times(1);
 
   EXPECT_CALL(mock_dhcp_client_controller_, GetStatus(Eq("br0"))).WillOnce(Return(DHCPClientStatus::STOPPED));
 
-  EXPECT_CALL(mock_dhcp_client_controller_, StartClient(Eq("br0"))).WillOnce(Return(Error(ErrorCode::OK)));
+  EXPECT_CALL(mock_dhcp_client_controller_, StartClient(Eq("br0"))).WillOnce(Return(Status(StatusCode::OK)));
 
-  Error status = ip_configurator_->Configure(config);
+  Status status = ip_configurator_->Configure(config);
 
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+  ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
-TEST_F(AnIPConfigurator, SuccessfullySetsTwoIPConfigurations) {
-
-  IPConfigs config { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" }, { "br1",
-      IPSource::STATIC, "", ""} };
-
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[0]))).WillOnce(Return(Error(ErrorCode::OK)));
-
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[1]))).WillOnce(Return(Error(ErrorCode::OK)));
-
-  EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br0"))).Times(1);
-
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br0"))).Times(1);
-
-  EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br1"))).Times(1);
-
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br1"))).Times(1);
-
-  Error status = ip_configurator_->Configure(config);
-
-  ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
-}
 
 TEST_F(AnIPConfigurator, TriesToSetAStaticIPConfiguration) {
 
-  IPConfigs config { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" } };
+  IPConfig config  { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"  };
 
   EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br0"))).Times(1);
 
   EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br0"))).Times(1);
 
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[0]))).WillOnce(Return(Error(ErrorCode::SET_IP)));
+  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config))).WillOnce(Return(Status(StatusCode::SET_IP)));
 
-  Error status = ip_configurator_->Configure(config);
+  Status status = ip_configurator_->Configure(config);
 
-  EXPECT_EQ(ErrorCode::SET_IP, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::SET_IP, status.GetStatusCode());
 }
 
 TEST_F(AnIPConfigurator, TriesToSetADHCPIPConfiguration) {
 
-  IPConfigs config { { "br0", IPSource::DHCP, "192.168.1.17", "255.255.255.0" } };
+  IPConfig config {  "br0", IPSource::DHCP, "192.168.1.17", "255.255.255.0"  };
 
   IPConfig config_dhcp_flush = { "br0", IPSource::TEMPORARY, ZeroIP, ZeroIP};
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config_dhcp_flush))).WillOnce(Return(Error(ErrorCode::OK)));
+  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config_dhcp_flush))).WillOnce(Return(Status(StatusCode::OK)));
 
   EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br0"))).Times(1);
 
   EXPECT_CALL(mock_dhcp_client_controller_, GetStatus(Eq("br0"))).WillOnce(Return(DHCPClientStatus::STOPPED));
 
-  EXPECT_CALL(mock_dhcp_client_controller_, StartClient(Eq("br0"))).WillOnce(Return(Error(ErrorCode::DHCP_CLIENT_START)));
+  EXPECT_CALL(mock_dhcp_client_controller_, StartClient(Eq("br0"))).WillOnce(Return(Status(StatusCode::DHCP_CLIENT_START)));
 
-  Error status = ip_configurator_->Configure(config);
+  Status status = ip_configurator_->Configure(config);
 
-  EXPECT_EQ(ErrorCode::DHCP_CLIENT_START, status.GetErrorCode());
+  EXPECT_EQ(StatusCode::DHCP_CLIENT_START, status.GetStatusCode());
 }
 
-TEST_F(AnIPConfigurator, TriesToSetThreeStaticIPConfigurations) {
 
-  IPConfigs config { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" }, { "br1",
-      IPSource::STATIC, "", "" }, { "br3", IPSource::STATIC, "", "" } };
-
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[0]))).WillOnce(Return(Error(ErrorCode::OK)));
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[1]))).WillOnce(Return(Error(ErrorCode::SET_IP)));
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[2]))).WillOnce(Return(Error(ErrorCode::OK)));
-
-  EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br0"))).Times(1);
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br0"))).Times(1);
-
-  EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br1"))).Times(1);
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br1"))).Times(1);
-
-  EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br3"))).Times(1);
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br3"))).Times(1);
-
-  Error status = ip_configurator_->Configure(config);
-
-  EXPECT_EQ(ErrorCode::SET_IP, status.GetErrorCode());
-}
-
-TEST_F(AnIPConfigurator, TriesToSetThreeStaticAndDHCPConfigurations) {
-
-  IPConfigs config { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" }, { "br1",
-      IPSource::DHCP, "", "" }, { "br3", IPSource::STATIC, "", "" } };
-
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[0]))).WillOnce(Return(Error(ErrorCode::SET_IP)));
-  IPConfig config_dhcp_flush = { "br1", IPSource::TEMPORARY, ZeroIP, ZeroIP };
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config_dhcp_flush))).WillOnce(Return(Error(ErrorCode::OK)));
-  EXPECT_CALL(mock_ip_controller_, SetIPConfig(Eq(config[2]))).WillOnce(Return(Error(ErrorCode::OK)));
-
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br0"))).Times(1);
-  EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br0"))).Times(1);
-
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br1"))).Times(1);
-  EXPECT_CALL(mock_dhcp_client_controller_, GetStatus(Eq("br1"))).WillOnce(Return(DHCPClientStatus::STOPPED));
-  EXPECT_CALL(mock_dhcp_client_controller_, StartClient(Eq("br1"))).WillOnce(Return(Error(ErrorCode::DHCP_CLIENT_START)));
-
-  EXPECT_CALL(mock_bootp_controller_, StopClient(Eq("br3"))).Times(1);
-  EXPECT_CALL(mock_dhcp_client_controller_, StopClient(Eq("br3"))).Times(1);
-
-  Error status = ip_configurator_->Configure(config);
-
-  EXPECT_EQ(ErrorCode::DHCP_CLIENT_START, status.GetErrorCode());
-}
 
 
 } /* namespace netconf */

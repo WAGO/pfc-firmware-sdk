@@ -29,8 +29,8 @@ enum class TpMdiType
   : ::std::uint8_t
   {
     Invalid = 0x00,
-  X = 0x01,
-  II = 0x02,
+  II = 0x01,
+  X = 0x02,
   Auto = 0x03,
 };
 
@@ -68,8 +68,9 @@ enum class Autoneg {
 
 
 enum class Duplex {
-  Half,
-  Full
+  Half = 0,
+  Full = 1,
+  Unknown = 255
 };
 
 

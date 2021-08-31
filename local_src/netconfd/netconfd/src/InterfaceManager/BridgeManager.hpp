@@ -34,8 +34,8 @@ class BridgeManager : public IBridgeManager, public IBridgeInformation{
   Bridges GetBridges() const override;
   BridgeConfig GetBridgeConfig() const override;
   Interfaces GetBridgeAssignedInterfaces() const override;
-  Error ApplyBridgeConfiguration(BridgeConfig& product_config) const override;
-  Error IsValid(BridgeConfig const& product_config) const override;
+  Status ApplyBridgeConfiguration(BridgeConfig& product_config) const override;
+  Status IsValid(BridgeConfig const& product_config) const override;
 
  private:
   IBridgeController& bridge_controller_;
@@ -49,10 +49,10 @@ class BridgeManager : public IBridgeManager, public IBridgeInformation{
 
 
   void UpdateAgetime() const;
-  Error SetDefaultInterfaceUp() const;
-  Error PrepareBridgeConfig(BridgeConfig const& product_config,
+  Status SetDefaultInterfaceUp() const;
+  Status PrepareBridgeConfig(BridgeConfig const& product_config,
                              BridgeConfig& os_config) const;
-  Error ApplyBridgeConfig(BridgeConfig const& os_config) const;
+  Status ApplyBridgeConfig(BridgeConfig const& os_config) const;
 };
 
 } /* namespace netconf */

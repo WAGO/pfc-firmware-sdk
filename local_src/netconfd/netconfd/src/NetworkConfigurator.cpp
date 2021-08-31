@@ -30,7 +30,7 @@ namespace netconf {
 
 class NetworkConfiguratorImpl {
  public:
-  explicit NetworkConfiguratorImpl(InterprocessCondition& start_condition);
+  explicit NetworkConfiguratorImpl(InterprocessCondition& start_condition, StartWithPortstate startWithPortState);
   virtual ~NetworkConfiguratorImpl() = default;
 
   NetworkConfiguratorImpl(const NetworkConfiguratorImpl&) = delete;
@@ -65,7 +65,7 @@ class NetworkConfiguratorImpl {
   ::UriEscape uri_escape_;
 };
 
-NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_condition)
+NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_condition, StartWithPortstate startWithPortState)
     : interface_monitor_{static_cast<::std::shared_ptr<IInterfaceMonitor>>(netlink_monitor_.Add<NetlinkLinkCache>())},
       ip_monitor_{static_cast<::std::shared_ptr<IIPMonitor>>(netlink_monitor_.Add<NetlinkAddressCache>())},
       device_properties_{bridge_controller_},
@@ -93,15 +93,15 @@ NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_co
   });
 
   dbus_handler_registry_.RegisterGetBridgeConfigHandler([this](std::string& data) -> std::string {
-    auto error = this->network_config_brain_.GetBridgeConfig(data);
+    auto status = this->network_config_brain_.GetBridgeConfig(data);
     LogDebug("DBUS Req: GetBridgeConfig: " + data);
-    return error;
+    return status;
   });
 
   dbus_handler_registry_.RegisterGetDeviceInterfacesHandler([this](std::string& data) -> std::string {
-    auto error = this->network_config_brain_.GetInterfaceInformation(data);
+    auto status = this->network_config_brain_.GetInterfaceInformation(data);
     LogDebug("DBUS Req: GetInterfaceInformation: " + data);
-    return error;
+    return status;
   });
 
   dbus_handler_registry_.RegisterSetInterfaceConfigHandler([this](std::string data) {
@@ -111,10 +111,16 @@ NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_co
   });
 
   dbus_handler_registry_.RegisterGetInterfaceConfigHandler([this](std::string& data) -> ::std::string {
-    auto error = this->network_config_brain_.GetInterfaceConfig(data);
+    auto status = this->network_config_brain_.GetInterfaceConfig(data);
     LogDebug("DBUS Req: GetInterfaceConfig" + data);
-    return error;
+    return status;
   });
+
+  dbus_handler_registry_.RegisterGetInterfaceStatusesHandler([this](std::string& data) -> ::std::string {
+     auto status = this->network_config_brain_.GetInterfaceStatuses(data);
+     LogDebug("DBUS Req: GetInterfaceStatuses" + data);
+     return status;
+   });
 
   // Backup and Restore API
   dbus_handler_registry_.RegisterGetBackupParamCountHandler([this]() -> std::string {
@@ -147,21 +153,21 @@ NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_co
   });
 
   dbus_handler_registry_.RegisterGetAllIPConfigsHandler([this](std::string& data) -> std::string {
-    auto error = this->network_config_brain_.GetAllIPConfigs(data);
+    auto status = this->network_config_brain_.GetAllIPConfigs(data);
     LogDebug("DBUS Req: GetAllIPConfigs: " + data);
-    return error;
+    return status;
   });
 
   dbus_handler_registry_.RegisterGetAllCurrentIPConfigsHandler([this](std::string& data) -> std::string {
-    auto error = this->network_config_brain_.GetAllCurrentIPConfigs(data);
+    auto status = this->network_config_brain_.GetCurrentIPConfigs(data);
     LogDebug("DBUS Req: GetAllCurrentIPConfigs: " + data);
-    return error;
+    return status;
   });
 
   dbus_handler_registry_.RegisterGetIPConfigHandler([this](std::string data_in, std::string& data) -> std::string {
-    auto error = this->network_config_brain_.GetIPConfig(data_in, data);
+    auto status = this->network_config_brain_.GetIPConfig(data_in, data);
     LogDebug("DBUS Req: GetIPConfig for itf: " + data_in);
-    return error;
+    return status;
   });
 
   dbus_handler_registry_.RegisterTempFixIpHandler([this]() -> ::std::string {
@@ -170,40 +176,29 @@ NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_co
   });
 
   dbus_handler_registry_.RegisterGetDipSwitchConfigHandler([this](std::string& data) -> std::string {
-    auto error = this->network_config_brain_.GetDipSwitchConfig(data);
+    auto status = this->network_config_brain_.GetDipSwitchConfig(data);
     LogDebug("DBUS Req: GetDipSwitchConfig" + data);
-    return error;
+    return status;
   });
 
   dbus_handler_registry_.RegisterSetDipSwitchConfigHandler([this](std::string data_in) {
-    auto error = this->network_config_brain_.SetDipSwitchConfig(data_in);
+    auto status = this->network_config_brain_.SetDipSwitchConfig(data_in);
     LogDebug("DBUS Req: SetDipSwitchConfig");
-    return error;
+    return status;
   });
   LogInfo("NetworkConfigurator completed DBUS registration");
   start_condition.Notify();
 
-  network_config_brain_.Start();
+  network_config_brain_.Start(startWithPortState);
 }
 
-NetworkConfigurator::NetworkConfigurator(InterprocessCondition& start_condition) {
-  try {
-    network_configurator_ = ::std::make_unique<NetworkConfiguratorImpl>(start_condition);
-  } catch (std::runtime_error& ex) {
-    ::std::string exception_massege(ex.what());
-    LogError("NetConf initialization exception: " + exception_massege);
-  } catch (...) {
-    LogError("NetConf unknown initialization exception");
-  }
+NetworkConfigurator::NetworkConfigurator(InterprocessCondition& start_condition, StartWithPortstate startWithPortState) {
+    network_configurator_ = ::std::make_unique<NetworkConfiguratorImpl>(start_condition, startWithPortState);
 }
 
 NetworkConfigurator::~NetworkConfigurator() {
-  try {
-    if (network_configurator_) {
-      network_configurator_.reset();
-    }
-  } catch (...) {
-    LogError("NetConf unknown termination exception");
+  if (network_configurator_) {
+    network_configurator_.reset();
   }
 }
 

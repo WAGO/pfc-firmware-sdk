@@ -10,20 +10,21 @@ if all goes well you should end up with output that looks like the following:
     The quick brown fox jumps over the lazy dog
 */
 
+#include <openssl/ssl.h>
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <string.h>
 
 
-void handleErrors(void)
+static void handleErrors(void)
 {
   ERR_print_errors_fp(stderr);
   abort();
 }
 
 
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
+static int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
   unsigned char *iv, unsigned char *ciphertext)
 {
   EVP_CIPHER_CTX *ctx;
@@ -63,7 +64,7 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
 }
 
 
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+static int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
   unsigned char *iv, unsigned char *plaintext)
 {
   EVP_CIPHER_CTX *ctx;
@@ -131,9 +132,13 @@ int main (void)
   int decryptedtext_len, ciphertext_len;
 
   /* Initialise the library */
-  ERR_load_crypto_strings();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+  SSL_load_error_strings();
+  SSL_library_init();
   OpenSSL_add_all_algorithms();
-  OPENSSL_config(NULL);
+#else
+  OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, 0);
+#endif
 
   /* Encrypt the plaintext */
   ciphertext_len = encrypt (plaintext, strlen ((char *)plaintext), key, iv,

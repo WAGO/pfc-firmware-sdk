@@ -120,7 +120,7 @@ $(STATEDIR)/serial_dispatcher.targetinstall:
 
 	@$(call install_alternative, serial_dispatcher, 0, 0, 0755, /etc/init.d/serial_dispatcher, n)
 	
-	@$(call install_alternative, serial_dispatcher, 0, 0, 0755, /etc/serial_dispatcher.conf, n)
+	@$(call install_alternative, serial_dispatcher, 0, 0, 0640, /etc/serial_dispatcher.conf, n)
 	@$(call install_replace, serial_dispatcher, /etc/serial_dispatcher.conf, @SERIAL_DISPATCHER_DEVICE@, $(SERIAL_DISPATCHER_DEVICE))
 
 

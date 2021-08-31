@@ -2,11 +2,12 @@
 #pragma once
 
 #include <ostream>
-#include "Error.hpp"
+
+#include "Status.hpp"
 
 namespace netconf {
 
-void PrintTo(const Error& bar, std::ostream* os);
-void PrintTo(const ErrorCode& bar, std::ostream* os);
+void PrintTo(const Status& bar, std::ostream* os);
+void PrintTo(const StatusCode& bar, std::ostream* os);
 
 }

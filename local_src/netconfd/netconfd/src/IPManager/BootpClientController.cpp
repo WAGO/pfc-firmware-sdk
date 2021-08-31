@@ -69,11 +69,11 @@ static pid_t GetPid(const ::std::string &process_name_pattern) {
   return 0;
 }
 
-Error BootpClientController::StartClient(const Bridge &bridge) const {
+Status BootpClientController::StartClient(const Bridge &bridge) const {
 
   if (BootpClientStatus::RUNNING == GetStatus(bridge)) {
     LogDebug("Bootp client for bridge " + bridge + " is already running");
-    return Error::Ok();
+    return Status::Ok();
   }
   LogDebug("Run Bootp client for bridge " + bridge);
 
@@ -86,9 +86,9 @@ Error BootpClientController::StartClient(const Bridge &bridge) const {
 
   if (spawned == TRUE) {
     LogDebug("BootpClientController: spawned bootpc pid#" + ::std::to_string(pid));
-    return Error::Ok();
+    return Status::Ok();
   } else {
-    return Error { ErrorCode::DHCP_CLIENT_START, bridge };
+    return Status { StatusCode::DHCP_CLIENT_START, bridge };
   }
 }
 

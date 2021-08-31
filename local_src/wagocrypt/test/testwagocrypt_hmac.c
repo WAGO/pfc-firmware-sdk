@@ -10,12 +10,12 @@
 #include <string.h>
 #include <stdint.h>
 
-
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include "../src/libwagocrypt.h"
 
 
-int sign_it(const unsigned char* msg, size_t mlen, char** sig, size_t* slen, EVP_PKEY* pkey)
+static int sign_it(const unsigned char* msg, size_t mlen, unsigned char** sig, size_t* slen, EVP_PKEY* pkey)
 {
     /* Returned to caller */
     int result = -1;
@@ -37,57 +37,57 @@ int sign_it(const unsigned char* msg, size_t mlen, char** sig, size_t* slen, EVP
     {
         ctx = EVP_MD_CTX_create();
         if(ctx == NULL) {
-            printf("EVP_MD_CTX_create failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
 
         OpenSSL_add_all_algorithms();
         const EVP_MD* md = EVP_get_digestbyname("SHA256");
         if(md == NULL) {
-            printf("EVP_get_digestbyname failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_get_digestbyname failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         int rc = EVP_DigestInit_ex(ctx, md, NULL);
         if(rc != 1) {
-            printf("EVP_DigestInit_ex failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestInit_ex failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         rc = EVP_DigestSignInit(ctx, NULL, md, NULL, pkey);
         if(rc != 1) {
-            printf("EVP_DigestSignInit failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestSignInit failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         rc = EVP_DigestSignUpdate(ctx, msg, mlen);
         if(rc != 1) {
-            printf("EVP_DigestSignUpdate failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestSignUpdate failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         size_t req = 0;
         rc = EVP_DigestSignFinal(ctx, NULL, &req);
         if(rc != 1) {
-            printf("EVP_DigestSignFinal failed (1), error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestSignFinal failed (1), error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         if(!(req > 0)) {
-            printf("EVP_DigestSignFinal failed (2), error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestSignFinal failed (2), error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         *sig = OPENSSL_malloc(req);
         if(*sig == NULL) {
-            printf("OPENSSL_malloc failed, error 0x%x\n", ERR_get_error());
+            printf("OPENSSL_malloc failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         *slen = req;
         rc = EVP_DigestSignFinal(ctx, *sig, slen);
         if(rc != 1) {
-            printf("EVP_DigestSignFinal failed (3), return code %d, error 0x%x\n", rc, ERR_get_error());
+            printf("EVP_DigestSignFinal failed (3), return code %d, error 0x%lx\n", rc, ERR_get_error());
             break; /* failed */
         }
         
@@ -110,7 +110,7 @@ int sign_it(const unsigned char* msg, size_t mlen, char** sig, size_t* slen, EVP
 }
 
 
-int verify_it(const unsigned char* msg, size_t mlen, const char* sig, size_t slen, EVP_PKEY* pkey)
+static int verify_it(const unsigned char* msg, size_t mlen, const unsigned char* sig, size_t slen, EVP_PKEY* pkey)
 {
     /* Returned to caller */
     int result = -1;
@@ -125,40 +125,40 @@ int verify_it(const unsigned char* msg, size_t mlen, const char* sig, size_t sle
     {
         ctx = EVP_MD_CTX_create();
         if(ctx == NULL) {
-            printf("EVP_MD_CTX_create failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         const EVP_MD* md = EVP_get_digestbyname("SHA256");
         if(md == NULL) {
-            printf("EVP_get_digestbyname failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_get_digestbyname failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         int rc = EVP_DigestInit_ex(ctx, md, NULL);
         if(rc != 1) {
-            printf("EVP_DigestInit_ex failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestInit_ex failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         rc = EVP_DigestSignInit(ctx, NULL, md, NULL, pkey);
         if(rc != 1) {
-            printf("EVP_DigestSignInit failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestSignInit failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
         rc = EVP_DigestSignUpdate(ctx, msg, mlen);
         if(rc != 1) {
-            printf("EVP_DigestSignUpdate failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestSignUpdate failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
-        char buff[EVP_MAX_MD_SIZE];
+        unsigned char buff[EVP_MAX_MD_SIZE];
         size_t size = sizeof(buff);
         
         rc = EVP_DigestSignFinal(ctx, buff, &size);
         if(rc != 1) {
-            printf("EVP_DigestVerifyFinal failed, error 0x%x\n", ERR_get_error());
+            printf("EVP_DigestVerifyFinal failed, error 0x%lx\n", ERR_get_error());
             break; /* failed */
         }
         
@@ -185,7 +185,7 @@ int verify_it(const unsigned char* msg, size_t mlen, const char* sig, size_t sle
 }
 
 
-void print_it(const char* label, const char* buff, size_t len)
+static void print_it(const char* label, const unsigned char* buff, size_t len)
 {
     if(!buff || !len)
         return;
@@ -205,36 +205,42 @@ int main()
 {
     const char* msg = "The quick brown fox jumps over the lazy dog";
     const char* pwd = "password";
+    const unsigned char* msg_buf = (const unsigned char*)msg;
+    const unsigned char* pwd_buf = (const unsigned char*)pwd;
     //http://www.freeformatter.com/hmac-generator.html#ad-output
     //HMAC-SHA1: ac20071d3cb2626fe2eeb59e75a7f8d050698620
     //HMAC-SHA256: f8a691703d515669c03fe5c16519c79ac27ad2e4dddcbad6a88f1015e2a756f7
     //HMAC-SHA512: da67c952e7fc5747a1e9c51445d456b4115bce090a0ce2220c1b634b8e9242487be753dbf6d831491bfa0306dfaf601ce7362774cadbfd3f8e69eee532312e57
 
-    char* sig = NULL;
-    size_t* slen = 0;
-	int ret;
+    unsigned char* sig = NULL;
+    size_t slen = 0;
+    int ret;
     EVP_PKEY* pkey; 
-   
-    pkey = EVP_PKEY_new_mac_key(EVP_PKEY_HMAC, NULL, pwd, strlen(pwd));
-    fprintf(stderr, "EVP_PKEY-obj: %x\n", pkey);
-    if(!pkey)
-        return -1;
-    
-	ret = sign_it(msg, strlen(msg), &sig, &slen, pkey);
-	fprintf(stderr, "Signing test result %d\n", ret);
 
+    pkey = EVP_PKEY_new_mac_key(EVP_PKEY_HMAC, NULL, pwd_buf, strlen(pwd));
+    fprintf(stderr, "EVP_PKEY-obj: 0x%lx\n", (unsigned long)pkey);
+    if(pkey == NULL)
+    {
+        return -1;
+    }
+    
+    ret = sign_it(msg_buf, strlen(msg), &sig, &slen, pkey);
+    fprintf(stderr, "Signing test result %d\n", ret);
 
     print_it("Signature", sig, slen);
     
-	ret = verify_it(msg, strlen(msg), sig, slen, pkey);
-	fprintf(stderr, "Verify test result %d\n", ret);
+    ret = verify_it(msg_buf, strlen(msg), sig, slen, pkey);
+    fprintf(stderr, "Verify test result %d\n", ret);
 
-   if(sig)
+    if(sig)
+    {
         OPENSSL_free(sig);
+    }
     
-   if(pkey) 
+    if(pkey)
+    {
         EVP_PKEY_free(pkey);
-
+    }
     return 1;
 }
 

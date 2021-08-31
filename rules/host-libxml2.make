@@ -3,8 +3,6 @@
 # Copyright (C) 2007 by Robert Schwebel
 #               2008 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -33,6 +31,6 @@ HOST_LIBXML2_AUTOCONF	:= \
 	$(HOST_AUTOCONF) \
 	--disable-static \
 	--with-iconv=yes \
-    --without-python
+	--without-python
 
 # vim: syntax=make

@@ -72,4 +72,18 @@ config DATAAGENT_WBM_NG
 
 endmenu
 
+config DATAAGENT_PARAMETER_PROVIDER_DAEMON
+  bool
+  default n
+  prompt "Parameter Provider Daemon"
+  help
+    Parameter Provider daemon for dataagent
+
+config DATAAGENT_PARAMETER_PROVIDER_DAEMON_STARTSCRIPT
+  bool
+  default n
+  prompt "install daemon init script into /etc/init.d/"
+  depends on INITMETHOD_BBINIT
+  depends on DATAAGENT_PARAMETER_PROVIDER_DAEMON
+
 endif

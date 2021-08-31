@@ -20,13 +20,12 @@ using ::netconf::api::InterfaceInformations;
 using ::netconf::api::InterfaceInformation;
 
 DeviceInfoHandler::DeviceInfoHandler(const po::variables_map &vm)
-    :
-    vm_ { vm } {
+    : vm_ { vm } {
 }
 
-static void KeepInfosOfName(InterfaceInformations& infos, const ::boost::optional<::std::string>& keep_name){
-  if(keep_name){
-    auto not_mathing_name_or_label = [name=*keep_name](const InterfaceInformation& info) {
+static void KeepInfosOfName(InterfaceInformations &infos, const ::boost::optional<::std::string> &keep_name) {
+  if (keep_name) {
+    auto not_mathing_name_or_label = [name=*keep_name](const InterfaceInformation &info) {
       return !((name == info.GetInterfaceName()) || (name == info.GetInterfaceLabel()));
     };
 
@@ -67,6 +66,8 @@ void DeviceInfoHandler::Execute() {
     }
   } else if (format == "json") {
     ::std::cout << netconf::api::ToJson(infos);
+  } else if (format == "pretty-json") {
+    ::std::cout << netconf::api::ToPrettyJson(infos);
   }
 }
 

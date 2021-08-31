@@ -41,17 +41,19 @@ class InterfaceConfigManagerBaseTest {
     }
     void UpdateConfig() {};
     ::std::string const& GetName() const { return name_;}
-    eth::EthernetMauType GetMauType() const { return eth::EthernetMauType::TYPE_NONE;}
     MacAddress GetMac() const { return MacAddress{mac};}
     bool GetAutonegSupport() const { return true;}
     bool GetAutonegEnabled() const {return autoneg_ == eth::Autoneg::On;}
-    ::std::uint32_t GetAutonegCapabilities() const {return 0;}
+    gsl::span<const ::std::uint32_t> GetSupportedLinkModes() const {
+      return supported_link_modes_;
+    }
     eth::MediaType GetMediaType() const {return eth::MediaType::TP;}
     eth::DeviceState GetState() const {return state_;}
     eth::InterfaceLinkState GetLinkState() const {return link_state_;}
     ::std::uint32_t GetInterfaceIndex() const {return if_index_;}
-    ::std::uint32_t GetAutonegCapabilitiesXdot3() const {return 0;}
     ::std::uint32_t GetMTU() const {return 1500;}
+    int32_t GetSpeed() const {return speed_;}
+    eth::Duplex GetDuplex() const {return duplex_;}
     void Commit() {committed_ = true;}
     void SetAutoneg(eth::Autoneg autoneg) {autoneg_ = autoneg;}
     void SetState(eth::DeviceState state) {state_ = state;}
@@ -59,6 +61,7 @@ class InterfaceConfigManagerBaseTest {
     void SetDuplex(eth::Duplex duplex) {duplex_ = duplex;}
 
     uint8_t mac[6];
+    std::array<uint32_t,1> supported_link_modes_ {{63}}; //link modes 10/100/1000 full/half
     ::std::string name_;
     InterfaceConfigManagerBaseTest& upper_;
     eth::DeviceState state_;

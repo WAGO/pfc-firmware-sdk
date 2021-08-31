@@ -1,0 +1,8 @@
+## SECTION=communication
+
+config LIBSOCKETCAN
+	tristate
+	prompt "libsocketcan"
+	help
+	  libsocketcan provides access functions to some basic socketcan
+	  operations

@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: config_default_gateway
@@ -39,15 +39,15 @@ arg_assert()
     local arg=$1
     local sel=$2
     local msg=$3
-    local valid=""
+    local is_valid="false"
 
     for val in $sel; do
-        if [ $arg = $val ]; then
-            valid=1
+        if [[ "$arg" == "$val" ]]; then
+            is_valid="true"
             break
         fi
     done
-    if [ ! $valid ]; then
+    if [ $is_valid == false ]; then
         param_error_exit "$msg"
     fi
 }
@@ -78,8 +78,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 fi
 
 CONFIG_ROUTING="/etc/config-tools/config_routing"
-STATIC_GW_FILE=/etc/specific/static_gateway.conf
-STATIC_GW_FILE_TMP=$STATIC_GW_FILE.tmp
+
 _number=1
 _state=
 _gw_ip=
@@ -141,128 +140,31 @@ done
 
 arg_assert "$_number" "1 2" "Illegal or missing default gateway number"
 
-# If routing script exists, call corresponding routing command and exit config_gateway_script.
-if [ -e "$CONFIG_ROUTING" ]; then
-    # Setup command line arguments for config-routing
-    args="static --change"
-    if [[ $_number == 1 || $_number == 2 ]]; then
-        index=$((_number-1))
-        args="$args index=$index"
-    fi
-
-    if [[ -z "$_destination" && -z "$_dest_mask" ]]; then
-        _destination="default"
-        _dest_mask="0.0.0.0"
-    fi
-
-    [[ "$_state" ]] && args="$args state=$_state"
-    [[ "$_gw_ip" ]] && args="$args gw=$_gw_ip"
-    [[ "$_metric" ]] && args="$args metric=$_metric"
-    [[ "$_destination" ]] && args="$args dest=$_destination" || args="$args dest=default"
-    [[ "$_dest_mask" ]] && args="$args dest-mask=$_dest_mask" || args="$args dest-mask=0.0.0.0"
-
-    [[ "$_persist_only" == "true" ]] && args="$args --persist-only"
-
-    # Call config-routing config-tool
-    $CONFIG_ROUTING $args
-
-    status=$?
-else
-
-    # load config file, substitute new values, write new config file.
-    [ -e $STATIC_GW_FILE ] && . $STATIC_GW_FILE
-
-    DEST_GW_VALUE_REMOVE_1=""
-    DEST_GW_MASK_REMOVE_1=""
-    DEFAULT_GW_VALUE_REMOVE_1=""
-    DEFAULT_GW_STATE_REMOVE_1=""
-    DEFAULT_GW_METRIC_REMOVE_1=""
-    DEST_GW_VALUE_REMOVE_2=""
-    DEST_GW_MASK_REMOVE_2=""
-    DEFAULT_GW_VALUE_REMOVE_2=""
-    DEFAULT_GW_STATE_REMOVE_2=""
-    DEFAULT_GW_METRIC_REMOVE_2=""
-
-    if [[ "$status" == "$SUCCESS" ]]; then
-        if [ "$_gw_ip" ]; then
-            name=DEFAULT_GW_VALUE_$_number
-            name_remove=DEFAULT_GW_VALUE_REMOVE_$_number
-            /etc/config-tools/ipdatacheck --verify-ip $_gw_ip
-            arg_assert $? "0" "Invalid gateway ip address"
-            eval $name_remove=${!name}
-            eval $name=$_gw_ip
-        fi
-
-        if [ "$_state" ]; then
-            name=DEFAULT_GW_STATE_$_number
-            name_remove=DEFAULT_GW_STATE_REMOVE_$_number
-            arg_assert $_state "enabled disabled" "Invalid gateway state"
-            eval $name_remove=${!name}
-            eval $name=$_state
-        fi
-
-        if [ "$_metric" ]; then
-            name=DEFAULT_GW_METRIC_$_number
-            name_remove=DEFAULT_GW_METRIC_REMOVE_$_number
-            /etc/config-tools/ipdatacheck --verify-unsigned $_metric
-            arg_assert $? "0" "Invalid gateway metric"
-            eval $name_remove=${!name}
-            eval $name=$_metric
-        fi
-
-        if [ "$_destination" ]; then
-            name=DEST_GW_VALUE_$_number
-            name_remove=DEST_GW_VALUE_REMOVE_$_number
-            eval $name_remove=${!name}
-            if [ "$_destination" == "default" ]; then
-                eval $name=$_destination
-            else
-                /etc/config-tools/ipdatacheck --verify-ip $_destination
-                arg_assert $? "0" "Invalid destination ip address"
-                eval $name=$_destination
-            fi
-        fi
-
-        if [ "$_dest_mask" ]; then
-            name=DEST_GW_MASK_$_number
-            name_remove=DEST_GW_MASK_REMOVE_$_number
-            /etc/config-tools/ipdatacheck --verify-netmask $_dest_mask
-            arg_assert $? "0" "Invalid netmask"
-            eval $name_remove=${!name}
-            eval $name=$_dest_mask
-        fi
-
-        > $STATIC_GW_FILE_TMP
-        echo "DEST_GW_VALUE_1=$DEST_GW_VALUE_1" >> $STATIC_GW_FILE_TMP
-        echo "DEST_GW_MASK_1=$DEST_GW_MASK_1" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_VALUE_1=$DEFAULT_GW_VALUE_1" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_STATE_1=$DEFAULT_GW_STATE_1" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_METRIC_1=$DEFAULT_GW_METRIC_1" >> $STATIC_GW_FILE_TMP
-
-        echo "DEST_GW_VALUE_REMOVE_1=$DEST_GW_VALUE_REMOVE_1" >> $STATIC_GW_FILE_TMP
-        echo "DEST_GW_MASK_REMOVE_1=$DEST_GW_MASK_REMOVE_1" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_VALUE_REMOVE_1=$DEFAULT_GW_VALUE_REMOVE_1" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_STATE_REMOVE_1=$DEFAULT_GW_STATE_REMOVE_1" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_METRIC_REMOVE_1=$DEFAULT_GW_METRIC_REMOVE_1" >> $STATIC_GW_FILE_TMP
-
-        echo "DEST_GW_VALUE_2=$DEST_GW_VALUE_2" >> $STATIC_GW_FILE_TMP
-        echo "DEST_GW_MASK_2=$DEST_GW_MASK_2" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_VALUE_2=$DEFAULT_GW_VALUE_2" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_STATE_2=$DEFAULT_GW_STATE_2" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_METRIC_2=$DEFAULT_GW_METRIC_2" >> $STATIC_GW_FILE_TMP
-
-        echo "DEST_GW_VALUE_REMOVE_2=$DEST_GW_VALUE_REMOVE_2" >> $STATIC_GW_FILE_TMP
-        echo "DEST_GW_MASK_REMOVE_2=$DEST_GW_MASK_REMOVE_2" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_VALUE_REMOVE_2=$DEFAULT_GW_VALUE_REMOVE_2" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_STATE_REMOVE_2=$DEFAULT_GW_STATE_REMOVE_2" >> $STATIC_GW_FILE_TMP
-        echo "DEFAULT_GW_METRIC_REMOVE_2=$DEFAULT_GW_METRIC_REMOVE_2" >> $STATIC_GW_FILE_TMP
-
-        sync
-        mv $STATIC_GW_FILE_TMP $STATIC_GW_FILE
-    fi
+# Setup command line arguments for config-routing
+args="static --change"
+if [[ $_number == 1 || $_number == 2 ]]; then
+    index=$((_number-1))
+    args="$args index=$index"
 fi
 
-    # trigger update of system
-    [[ $status == $SUCCESS && "false" == $_persist_only && -e /etc/config-tools/events/networking ]] && run-parts -a config /etc/config-tools/events/networking/
+if [[ -z "$_destination" && -z "$_dest_mask" ]]; then
+    _destination="default"
+    _dest_mask="0.0.0.0"
+fi
+
+[[ "$_state" ]] && args="$args state=$_state"
+[[ "$_gw_ip" ]] && args="$args gw=$_gw_ip"
+[[ "$_metric" ]] && args="$args metric=$_metric"
+[[ "$_destination" ]] && args="$args dest=$_destination" || args="$args dest=default"
+[[ "$_dest_mask" ]] && args="$args dest-mask=$_dest_mask" || args="$args dest-mask=0.0.0.0"
+
+[[ "$_persist_only" == "true" ]] && args="$args --persist-only"
+
+# Call config-routing config-tool
+$CONFIG_ROUTING $args
+status=$?
+
+# trigger update of system
+[[ $status -eq $SUCCESS && "false" == "$_persist_only" && -e /etc/config-tools/events/networking ]] && run-parts -a config /etc/config-tools/events/networking/
 
 exit $status

@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_MASSSTORAGE) += wbm-ng-plugin-massstorage
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_MASSSTORAGE_VERSION        := 1.1.0
+WBM_NG_PLUGIN_MASSSTORAGE_VERSION        := 1.2.0
 WBM_NG_PLUGIN_MASSSTORAGE                := wbm-massstorage-$(WBM_NG_PLUGIN_MASSSTORAGE_VERSION)
 WBM_NG_PLUGIN_MASSSTORAGE_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_MASSSTORAGE)
 WBM_NG_PLUGIN_MASSSTORAGE_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_MASSSTORAGE_URL))
@@ -91,10 +91,10 @@ $(STATEDIR)/wbm-ng-plugin-massstorage.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_MASSSTORAGE_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-massstorage, 0, 0, 0644, $(WBM_NG_PLUGIN_MASSSTORAGE_DIR)/$$object, $(WBM_NG_PLUGIN_MASSSTORAGE_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-massstorage, 0, 0, 0755, $(WBM_NG_PLUGIN_MASSSTORAGE_TARGET_DIR)/$$object); \
 		fi; \
 	done;

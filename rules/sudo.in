@@ -6,7 +6,7 @@ menuconfig SUDO
 	select LIBC_UTIL
 	select LIBC_DL
 	select ZLIB
-	select LINUX_PAM if SUDO_PAM
+	select PAM if SUDO_PAM
 	help
 	  Sudo is a program designed to allow a sysadmin
 	  to give limited root privileges to users and log

@@ -31,11 +31,6 @@ ifeq ($(WITH_LIBMODBUSCONFIG),yes)
 override LDLIBS+= -lModbusConfig
 endif
 
-ifeq ($(WITH_LIBBACNETCONFIG),yes)
-override CFLAGS += -I$(_SYSROOT)/usr/include/bacnet
-override LDLIBS += -lbacnetconfig
-endif
-
 ifeq ($(WITH_LIBCONFIGMDMD),yes)
 override LDLIBS+= -ldiagnostic
 endif
@@ -70,7 +65,7 @@ NEWNET :=  set_network_interfaces get_actual_eth_config get_eth_config config_et
 SPECIAL := get_filesystem_data get_rts_info
 
 # Complete list of all config-tools
-MAIN_LIST := wdialog show_video_mode crypt config_linux_user get_coupler_details get_rts3scfg_value get_user get_touchscreen_config get_dns_server get_clock_data get_port_state calculate_broadcast print_program_output get_device_data get_snmp_data string_encode get_uimage_size get_typelabel_value get_run_stop_switch_value get_possible_runtimes modbus_config config_mdmd urlencode set_serial_mode bacnet_config bacnet_backup_restore ${NEWNET}
+MAIN_LIST := wdialog show_video_mode crypt config_linux_user get_coupler_details get_rts3scfg_value get_user get_touchscreen_config get_dns_server get_clock_data get_port_state calculate_broadcast print_program_output get_device_data get_snmp_data string_encode get_uimage_size get_typelabel_value get_run_stop_switch_value get_possible_runtimes modbus_config config_mdmd urlencode set_serial_mode ${NEWNET}
 
 # Config tools build in their own subdirectories with their own makefiles
 SUBDIRS := firewall vpncfg
@@ -135,6 +130,6 @@ get_rts_info: get_rts_info.o config_tool_msg_com.o libctcommon.so
 	$(CC) $(LDFLAGS) -o $@ get_rts_info.o config_tool_msg_com.o config_tool_lib.o $(LDLIBS$(LDLIBS-$(@))) -lrt -lctcommon
 
 clean:
-	-rm -f wdialog set_network_interfaces get_actual_eth_config show_video_mode crypt config_linux_user get_rts3scfg_value get_ntp_config get_user get_coupler_details get_eth_config get_touchscreen_config get_dns_server get_clock_data get_port_state calculate_broadcast get_filesystem_data print_program_output get_rts_info get_filesystem_data get_device_data get_snmp_data string_encode get_uimage_size pfc200_ethtool get_typelabel_value get_run_stop_switch_value get_possible_runtimes modbus_config config_mdmd urlencode bacnet_config bacnet_backup_restore *.gdb *.o
+	-rm -f wdialog set_network_interfaces get_actual_eth_config show_video_mode crypt config_linux_user get_rts3scfg_value get_ntp_config get_user get_coupler_details get_eth_config get_touchscreen_config get_dns_server get_clock_data get_port_state calculate_broadcast get_filesystem_data print_program_output get_rts_info get_filesystem_data get_device_data get_snmp_data string_encode get_uimage_size pfc200_ethtool get_typelabel_value get_run_stop_switch_value get_possible_runtimes modbus_config config_mdmd urlencode *.gdb *.o
 
 rebuild: clean all

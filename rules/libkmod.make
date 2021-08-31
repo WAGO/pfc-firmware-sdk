@@ -2,8 +2,6 @@
 #
 # Copyright (C) 2011 by Juergen Beisert <jbe@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -16,8 +14,8 @@ PACKAGES-$(PTXCONF_LIBKMOD) += libkmod
 #
 # Paths and names
 #
-LIBKMOD_VERSION	:= 26
-LIBKMOD_MD5	:= 1129c243199bdd7db01b55a61aa19601
+LIBKMOD_VERSION	:= 27
+LIBKMOD_MD5	:= 3973a74786670d3062d89a827e266581
 LIBKMOD		:= kmod-$(LIBKMOD_VERSION)
 LIBKMOD_SUFFIX	:= tar.xz
 LIBKMOD_URL	:= $(call ptx/mirror, KERNEL, utils/kernel/kmod/$(LIBKMOD).$(LIBKMOD_SUFFIX))
@@ -45,11 +43,9 @@ LIBKMOD_CONF_OPT	:= \
 	--$(call ptx/endis, PTXCONF_LIBKMOD_DEBUG)-debug \
 	--disable-python \
 	--disable-coverage \
-	--disable-gtk-doc \
-	--disable-gtk-doc-html \
-	--disable-gtk-doc-pdf \
 	--without-xz \
-	--$(call ptx/wwo, PTXCONF_LIBKMOD_ZLIB)-zlib
+	--$(call ptx/wwo, PTXCONF_LIBKMOD_ZLIB)-zlib \
+	--without-openssl
 
 # ----------------------------------------------------------------------------
 # Target-Install

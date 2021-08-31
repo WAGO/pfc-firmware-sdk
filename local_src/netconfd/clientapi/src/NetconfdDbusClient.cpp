@@ -238,6 +238,11 @@ DbusResult NetconfdDbusClient::GetInterfaceConfigs() {
   return GetStrings(conn_, msg, timeout_millis_);
 }
 
+DbusResult NetconfdDbusClient::GetInterfaceStatuses() {
+  auto msg = CreateInterfaceMessage("getinterfacestatuses");
+  return GetStrings(conn_, msg, timeout_millis_);
+}
+
 DbusResult NetconfdDbusClient::SetInterfaceConfigs(const ::std::string &config) {
   auto msg = CreateInterfaceMessage("setinterfaceconfig");
   return Send(msg, config);

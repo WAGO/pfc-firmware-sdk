@@ -20,13 +20,13 @@ endif
 #
 # Paths and names
 #
-DOCKER_VERSION	:= 18.09.0
-DOCKER_MD5	:= ffa897485efd58ed034171ed75fd1a1a
-DOCKER		:= docker-$(DOCKER_VERSION)
-DOCKER_SUFFIX	:= tgz
-DOCKER_URL	:= https://download.docker.com/linux/static/stable/armhf/$(DOCKER).$(DOCKER_SUFFIX)
-DOCKER_SOURCE	:= $(SRCDIR)/$(DOCKER).$(DOCKER_SUFFIX)
-DOCKER_DIR	:= $(BUILDDIR)/$(DOCKER)
+DOCKER_VERSION	:= 19.03.8
+DOCKER_MD5			:= 328f19218783795cb902450e5891a520
+DOCKER					:= docker-$(DOCKER_VERSION)
+DOCKER_SUFFIX		:= tgz
+DOCKER_URL			:= https://download.docker.com/linux/static/stable/armhf/$(DOCKER).$(DOCKER_SUFFIX)
+DOCKER_SOURCE		:= $(SRCDIR)/$(DOCKER).$(DOCKER_SUFFIX)
+DOCKER_DIR			:= $(BUILDDIR)/$(DOCKER)
 DOCKER_LICENSE	:= Apache 2.0
 
 # ----------------------------------------------------------------------------
@@ -35,6 +35,12 @@ DOCKER_LICENSE	:= Apache 2.0
 
 $(STATEDIR)/docker.prepare:
 	@$(call targetinfo)
+		
+	# create archive with docker binaries
+	@cd $(DOCKER_DIR) \
+    && tar cvf docker-binaries.tar.xz --use-compress-program='xz -9' * \
+    && find . -type f -not -name "*.tar.xz" -delete
+	
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -66,22 +72,24 @@ $(STATEDIR)/docker.targetinstall:
 	@$(call install_fixup, docker,AUTHOR,"Oleg Karfich <oleg.karfich@wago.com>")
 	@$(call install_fixup, docker,DESCRIPTION,"Docker daemon $(DOCKER_VERSION)")
 
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/docker, /usr/bin/docker)
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/containerd, /usr/bin/containerd)
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/ctr, /usr/bin/ctr)
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/containerd-shim, /usr/bin/containerd-shim)
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/docker-init, /usr/bin/docker-init)
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/docker-proxy, /usr/bin/docker-proxy)
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/runc, /usr/bin/runc)
-	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/dockerd, /usr/bin/dockerd)
+	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/docker-binaries.tar.xz, /home/wago-docker/docker-binaries.tar.xz)
 
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/init.d/dockerd)
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/docker/daemon.json)
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/config-tools/events/firewall/iptables/docker)
 	@$(call install_alternative, docker, 0, 0, 0755, /opt/wago-docker/sbin/iptables)
+	
+	@$(call install_link, docker, /home/wago-docker/containerd, /usr/bin/containerd)
+	@$(call install_link, docker, /home/wago-docker/containerd-shim, /usr/bin/containerd-shim)
+	@$(call install_link, docker, /home/wago-docker/ctr, /usr/bin/ctr)
+	@$(call install_link, docker, /home/wago-docker/docker, /usr/bin/docker)
+	@$(call install_link, docker, /home/wago-docker/dockerd, /usr/bin/dockerd)
+	@$(call install_link, docker, /home/wago-docker/docker-init, /usr/bin/docker-init)
+	@$(call install_link, docker, /home/wago-docker/docker-proxy, /usr/bin/docker-proxy)
+	@$(call install_link, docker, /home/wago-docker/runc, /usr/bin/runc)
 
-	@$(call install_link, docker, /etc/init.d/dockerd, /etc/rc.d/S99_docker)
-
+	@$(call install_link, docker, /etc/init.d/dockerd, /etc/rc.d/disabled/S99_docker)
+	
 	@$(call install_finish, docker)
 
 	@$(call touch)

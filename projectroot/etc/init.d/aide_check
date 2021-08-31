@@ -15,9 +15,9 @@ case $1 in
   start) 
     echo "Checking file integrity with aide..."
     if [ -f "/var/lib/aide/aide.db" ]; then
-      /etc/config-tools/manage_integrity check 80
+      start-stop-daemon -b -x /etc/config-tools/manage_integrity -S -- check 80
     else
-      /etc/config-tools/manage_integrity init 80
+      start-stop-daemon -b -x /etc/config-tools/manage_integrity -S -- init 80
     fi
     ;;
 

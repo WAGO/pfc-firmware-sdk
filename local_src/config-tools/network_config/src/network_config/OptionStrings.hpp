@@ -54,7 +54,7 @@ struct Options {
 
   // Format options
   const Option format
-    { "format,f", "Set the output format of get requests, default is 'text'" };
+    { "format,f", "Choose how to format the output. <text|json|pretty-json>" };
 
   // Miscellaneous options
   const Option help

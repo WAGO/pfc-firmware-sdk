@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "BridgeManager.hpp"
-#include "INetDevConstruction.hpp"
 #include "MockIBridgeController.hpp"
 #include "MockINetDevManager.hpp"
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <INetDevEvents.hpp>
 #include <MockIDeviceProperties.hpp>
 #include <memory>
 
@@ -28,7 +28,7 @@ class InterfaceManagerTest : public Test {
     any_interfaces_of_br0 = Interfaces { "ethX1" };
     any_interfaces_of_br1 = Interfaces { "ethX2", "ethX3" };
 
-    EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(_)).WillOnce(Return(Error()));
+    EXPECT_CALL(mock_bridge_controller_, SetInterfaceUp(_)).WillOnce(Return(Status()));
     interface_manager_ = ::std::make_unique<BridgeManager>(mock_bridge_controller_, mock_properties_provider_,
                                                            mock_netdev_manager_);
   }

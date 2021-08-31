@@ -3,14 +3,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: edit_dns_server
 #
 # Edit names of DNS-server or delete them
 #
-# $Revision$
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------#
 
@@ -25,38 +24,12 @@ fi
 STATIC_DNS_FILE="/etc/dns_static_list"
 EVENTDIR=/etc/config-tools/events/networking
 
-function GetDnsServerLine
-{
-  local dnsServerNr=$1
-
-  dnsServerLineNr=0
-  fileLineNr=0
-  fileDnsServerNr=0
-  while read line; do
-    fileLineNr=$(($fileLineNr + 1))
-    logger -t TOM "Line $line Nr:$fileLineNr"
-    echo $line | grep -q "^nameserver"
-    if [ "$?" = "$SUCCESS" ]; then
-      fileDnsServerNr=$(($fileDnsServerNr + 1))
-      if [ "$fileDnsServerNr" = "$dnsServerNr" ]; then
-        dnsServerLineNr=$fileLineNr
-        break
-      fi
-    fi
-  done < $STATIC_DNS_FILE
-
-  printf "$dnsServerLineNr"
-}
-
-
-status=$SUCCESS
-
 # show help-text if requested
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo
   echo "* Change, delete or add dns-server and set domain name *"
   echo
-  echo "Usage: edit_dns_server < change=change | delete=delete | add=add >" 
+  echo "Usage: edit_dns_server < change=change | delete=delete | add=add >"
   echo "                       [ dns-server-nr=dns-server-nr-value ]"
   echo "                       [ dns-server-name=dns-server-name-value ]"
   echo
@@ -65,136 +38,191 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo "change / delete / add: (exactly) one of the parameters must be given. The parameter determines"
   echo "                       the operation. The value of the parameter is ignored but may not be empty"
   echo "dns-server-nr: sequential number of DNS-server (in resolv.conf-file) which should be changed or deleted"
-  echo "dns-server-name: name of DNS-server which should be changed or added"
-  echo 
-  exit $status
+  echo "dns-server-name: name of DNS-server which should be changed, added or deleted"
+  echo
+  exit $SUCCESS
 fi
 
+function log {
+  local msg="$1"
+  /usr/bin/logger -t edit_dns_server "$msg"
+}
 
-dnsServerNr=`GetParameterValue $DNS_SERVER_NR $*`
-dnsServerName=`GetParameterValue $DNS_SERVER_NAME $*`
-change=`GetParameterValue change $*`
-delete=`GetParameterValue delete $*`
-add=`GetParameterValue add $*`
+function GetDnsServerLineByIndex {
+  local dnsServerNr=$1
 
-
-logger -t "TOM" "Nr:$dnsServerNr Name:$dnsServerName CH:$change DEL:$delete ADD:$add"
-
-#echo "dnsServerNr:"$dnsServerNr "change:"$change "delete:"$delete "add:"$add 
-
-# is parameter an ip address?
-#if [[ "$dnsServerName" 
-
-# check whether config-file exists if not method are edit or delete
-if [[ ! -f $STATIC_DNS_FILE ]] && [[ "$edit" || "$delete" ]]; then
-        logger -t TOM "BLBLBLBLB"
-  ReportError $CONFIG_FILE_MISSING "($STATIC_DNS_FILE)"
-  SetLastError "Error while execution, DNS config file is missing"
-  exit $CONFIG_FILE_MISSING
-fi
-
-# if new server name is given (method add or edit), check it
-if [[ -n "$add" ]] || [[ -n "$edit" ]] ; then
-
-  echo $dnsServerName | egrep "^$IP_ADDRESS_REGEX$" > /dev/null
-  if [ $? != $SUCCESS ]; then
-    ReportError $INVALID_PARAMETER "(DNS server name)"
-    SetLastError "Invalid DNS server name"
-    exit $INVALID_PARAMETER
-  fi
-fi
-
-
-# if we should change the dns-server-name
-if [ -n "$change" ]; then
-
-  #echo "change dns-server nr" $dnsServerNr "to" $dnsServerName
-  dnsServerLine=`GetDnsServerLine $dnsServerNr`
-  #echo "dnsServerLine:"$dnsServerLine
-
-  # read line with expected dns-server-declaration
-  lineString=`sed -n ''$dnsServerLine'p' $STATIC_DNS_FILE`
-  #echo "dns-server-line:"$lineString
-
-  # check if line really includes a dns-server-declaration
-  echo $lineString | egrep -q "^nameserver $IP_ADDRESS_REGEX$"
-  if [ $? != "$SUCCESS" ]; then
-    ReportError $CONFIG_FILE_INCONSITENT "($STATIC_DNS_FILE)"
-    status=$CONFIG_FILE_INCONSITENT
-    SetLastError "Error while execution, DNS config file is inconsistent"
-  else
-    # write new name to file
-    sudo $SED -i ''$dnsServerLine'c\nameserver '"$dnsServerName"'' $STATIC_DNS_FILE
-    
-    # write buffered filesystem-blocks to disk
-    sync
-  fi
-
-elif [ -n "$add" ]; then
-
-  #if file does not exist create it
-  if [ ! -f $STATIC_DNS_FILE ]; then
-      > $STATIC_DNS_FILE
-  fi
-
-  #echo "write dns-server to end of file"
-  echo "nameserver" $dnsServerName >> $STATIC_DNS_FILE
-
-  # write buffered filesystem-blocks to disk
-  sync
-
-elif [ -n "$delete" ]; then
-
-  #echo "delete dns-server, name:"$dnsServerName "nr:"$dnsServerNr
-  dnsServerLine=`GetDnsServerLine $dnsServerNr`
-  #echo "dnsServerLineNr:" $dnsServerLineNr
-
-  # read line with expected dns-server-declaration (line-number is dns-server-number)
-  lineString=`sed -n ''$dnsServerLine'p' $STATIC_DNS_FILE`
-  #echo "dns-server-line:"$lineString
-
-  # check if line really includes a dns-server-declaration
-  echo $lineString | egrep "^nameserver $IP_ADDRESS_REGEX$" > /dev/null
-  if [ $? != "$SUCCESS" ]; then
-    ReportError $CONFIG_FILE_INCONSISTENT "($STATIC_DNS_FILE)"
-    status=$CONFIG_FILE_INCONSISTENT
-    SetLastError "Error while execution, DNS config file is inconsistent"
-  else
-    # delete line
-    #echo "delete line" $dnsServerNr
-    sudo $SED -i ''$dnsServerLine'd' $STATIC_DNS_FILE
-    
-    # write buffered filesystem-blocks to disk
-    sync
-
-  fi
-
-# probably domain-name should be changed
-# existing only for compatibility - domain name now is change with configtool change_hostname
-else
-
-  # check if domain-name is given as parameter (domain name itself is no clue, because it can be an empty string)
-  echo $* | grep "domain-name" > /dev/null 2> /dev/null
-  if [ $? = $SUCCESS ]; then
-    # filter value of domain name from parameter list
-    domainName=`GetParameterValue $DOMAIN_NAME $*`
-    
-    # workaroud: actualy, config_hostname must must get the url encoded string for domain name
-    # easier way here is to check the string ourself (empty string is ok), and stop if name is invalid
-    if [ "$domainName" ]; then
-      /etc/config-tools/ipdatacheck --verify-domain "$domainName"
-      if [ "$?" -ne 0 ]; then
-        ReportError $INVALID_PARAMETER "($domainName)"
-        SetLastError "Domainname invalid"
-        exit $INVALID_PARAMETER
+  local dnsServerLineNr=0
+  local fileLineNr=0
+  local fileDnsServerNr=0
+  while read line; do
+    fileLineNr=$(($fileLineNr + 1))
+    if [[ "$line" =~ ^nameserver* ]]; then
+      fileDnsServerNr=$(($fileDnsServerNr + 1))
+      if [ "$fileDnsServerNr" = "$dnsServerNr" ]; then
+        dnsServerLineNr=$fileLineNr
+        break
       fi
     fi
-    /etc/config-tools/change_hostname "dnsdomain=$domainName"
-    status=$?
+  done <$STATIC_DNS_FILE
+
+  printf "$dnsServerLineNr"
+}
+
+function GetDnsServerFileLineByIPAddress {
+
+  local ip="$1"
+
+  local fileLineNr=0
+  local dnsServerLineNr=0
+
+  while read line; do
+    fileLineNr=$(($fileLineNr + 1))
+    if [[ "$line" =~ ^nameserver* ]]; then
+      local dns_server_ip=${line##nameserver}
+      dns_server_ip=${dns_server_ip// /}
+
+      if [[ "$dns_server_ip" == "$ip" ]]; then
+        dnsServerLineNr=$fileLineNr
+        break
+      fi
+    fi
+  done <$STATIC_DNS_FILE
+
+  echo -n "$dnsServerLineNr"
+}
+
+function main {
+  status=$SUCCESS
+
+  dnsServerNr=$(GetParameterValue "$DNS_SERVER_NR" "$@")
+  dnsServerName=$(GetParameterValue "$DNS_SERVER_NAME" "$@")
+  change=$(GetParameterValue change "$@")
+  delete=$(GetParameterValue delete "$@")
+  add=$(GetParameterValue add "$@")
+
+  log "args: $*"
+	
+  # check whether config-file exists if not method are change or delete
+  if [[ ! -f $STATIC_DNS_FILE ]] && [[ "$change" || "$delete" ]]; then
+    ReportError $CONFIG_FILE_MISSING "($STATIC_DNS_FILE)"
+    SetLastError "Error while execution, DNS config file is missing"
+    exit $CONFIG_FILE_MISSING
   fi
-fi
 
-#call update script
-[ -d $EVENTDIR ] && run-parts -a config $EVENTDIR
+  # if new server name is given (method add or change), check it
+  if [[ -n "$add" ]] || [[ -n "$change" ]]; then
 
-exit $status
+    echo "$dnsServerName" | egrep "^$IP_ADDRESS_REGEX$" >/dev/null
+    if [ $? != $SUCCESS ]; then
+      ReportError $INVALID_PARAMETER "(DNS server IP)"
+      SetLastError "Invalid DNS server IP"
+      exit $INVALID_PARAMETER
+    fi
+
+    #Check for duplicate entries
+    local lineNumber
+    lineNumber=$(GetDnsServerFileLineByIPAddress "$dnsServerName")
+    if [[ $lineNumber -ne 0 ]]; then
+      # Found duplicate entry.
+      ReportError $INVALID_PARAMETER "(DNS server IP)"
+      SetLastError "Duplicate DNS server IP"
+      exit $INVALID_PARAMETER
+    fi
+
+  fi
+
+  # if we should change the dns-server-name
+  if [ -n "$change" ]; then
+
+    dnsServerLine=$(GetDnsServerLineByIndex $dnsServerNr)
+
+    # read line with expected dns-server-declaration
+    lineString=$(sed -n ''$dnsServerLine'p' $STATIC_DNS_FILE)
+
+    # check if line realy includes a dns-server-declaration
+    echo "$lineString" | egrep -q "^nameserver $IP_ADDRESS_REGEX$"
+    if [ $? != "$SUCCESS" ]; then
+      ReportError $CONFIG_FILE_INCONSITENT "($STATIC_DNS_FILE)"
+      status=$CONFIG_FILE_INCONSITENT
+      SetLastError "Error while execution, DNS config file is inconsistent"
+    else
+      # write new name to file
+      sudo $SED -i ''$dnsServerLine'c\nameserver '"$dnsServerName"'' $STATIC_DNS_FILE
+
+      # write buffered filesystem-blocks to disk
+      sync
+    fi
+
+  elif [ -n "$add" ]; then
+
+    echo "nameserver" "$dnsServerName" >>$STATIC_DNS_FILE
+
+    # write buffered filesystem-blocks to disk
+    sync
+
+  elif [ -n "$delete" ]; then
+
+    if [[ -n "$dnsServerNr" ]]; then
+      dnsServerLine=$(GetDnsServerLineByIndex $dnsServerNr)
+    elif [[ -n "$dnsServerName" ]]; then
+      dnsServerLine=$(GetDnsServerFileLineByIPAddress $dnsServerName)
+    else
+      ReportError $MISSING_PARAMETER "(At least DNS server index or DNS server IP address have to be given.)"
+      SetLastError "At least DNS server index or DNS server IP address have to be given."
+      exit $MISSING_PARAMETER
+    fi
+
+    if [[ $dnsServerLine -eq 0 ]]; then
+      # Nothing to be done.
+      exit $SUCCESS
+    fi
+
+    # read line with expected dns-server-declaration (line-number is dns-server-number)
+    lineString=$(sed -n ''$dnsServerLine'p' $STATIC_DNS_FILE)
+
+    # check if line realy includes a dns-server-declaration
+    echo "$lineString" | grep -E "^nameserver $IP_ADDRESS_REGEX$" >/dev/null
+    if [ $? != "$SUCCESS" ]; then
+      ReportError $CONFIG_FILE_INCONSISTENT "($STATIC_DNS_FILE)"
+      status=$CONFIG_FILE_INCONSISTENT
+      SetLastError "Error while execution, DNS config file is inconsistent"
+    else
+      # delete line
+      sudo $SED -i ''$dnsServerLine'd' $STATIC_DNS_FILE
+
+      # write buffered filesystem-blocks to disk
+      sync
+    fi
+
+  # probably domain-name should be changed
+  # existing only for compatibility - domain name now is change with configtool change_hostname
+  else
+
+    # check if domain-name is given as parameter (domain name itself is no clue, because it can be an empty string)
+    echo "$*" | grep "domain-name" >/dev/null 2>/dev/null
+    if [ $? = $SUCCESS ]; then
+      # filter value of domain name from parameter list
+      domainName=$(GetParameterValue "$DOMAIN_NAME" "$@")
+
+      # workaround: actually, config_hostname must get the url encoded string for domain name
+      # easier way here is to check the string ourself (empty string is ok), and stop if name is invalid
+      if [ "$domainName" ]; then
+        /etc/config-tools/ipdatacheck --verify-domain "$domainName"
+        if [ $? -ne 0 ]; then
+          ReportError $INVALID_PARAMETER "($domainName)"
+          SetLastError "Domainname invalid"
+          exit $INVALID_PARAMETER
+        fi
+      fi
+      /etc/config-tools/change_hostname "dnsdomain=$domainName"
+      status=$?
+    fi
+  fi
+
+  #call update script
+  [ -d $EVENTDIR ] && run-parts -a config $EVENTDIR
+
+  exit $status
+}
+
+( trap "flock --unlock 189" EXIT; flock 189; main "$@"; ) 189> /var/lock/edit_dns_server.lock

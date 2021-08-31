@@ -55,7 +55,7 @@ TEST_F(IPConfigTest, RemoveIpConfig) {
 
 TEST_F(IPConfigTest, CreateFromJsonString) {
   IPConfigs config;
-  auto error = MakeIPConfigs(R"({ "itf" : { "source": "dhcp" }})", config);
+  auto status = MakeIPConfigs(R"({ "itf" : { "source": "dhcp" }})", config);
 
   auto actual = config.GetIPConfig("itf");
   IPConfig expected{"itf", IPSource::DHCP, ZeroIP, ZeroIP};
@@ -68,7 +68,7 @@ TEST_F(IPConfigTest, ToJson) {
   auto expected = json::parse(json_str);
 
   IPConfigs config;
-  auto error = MakeIPConfigs(json_str, config);
+  auto status = MakeIPConfigs(json_str, config);
 
   JsonConverter jc;
   auto actual_str = jc.ToJsonString(config.GetConfig());

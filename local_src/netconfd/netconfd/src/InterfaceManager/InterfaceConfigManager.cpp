@@ -5,6 +5,7 @@
 #include <boost/format.hpp>
 
 #include "Logger.hpp"
+#include "LinkModeConversion.hpp"
 
 namespace netconf {
 
@@ -24,9 +25,8 @@ auto generate_default_port_config = [](const auto &netdev) noexcept {  // NOLINT
 InterfaceConfigManager::InterfaceConfigManager(INetDevManager &netdev_manager,
                                                IPersistence<InterfaceConfigs> &persistence_provider,
                                                IEthernetInterfaceFactory &eth_factory)
-    :
-    persistence_provider_ { persistence_provider },
-    ethernet_interface_factory_ { eth_factory } {
+    : persistence_provider_ { persistence_provider },
+      ethernet_interface_factory_ { eth_factory } {
 
   InterfaceConfigs peristet_configs;
   auto read_persistence_data_status = persistence_provider.Read(peristet_configs);
@@ -43,11 +43,19 @@ InterfaceConfigManager::InterfaceConfigManager(INetDevManager &netdev_manager,
   persistence_provider_.Write(current_config_);
 }
 
-void InterfaceConfigManager::InitializePorts() {
-  ApplyPortConfigs(current_config_);
+void InterfaceConfigManager::InitializePorts(InterfaceState initalPortState) {
+  auto inital_config = current_config_;
+  if(initalPortState != InterfaceState::UNKNOWN)
+  {
+    for(auto& portcfg: inital_config){
+      portcfg.state_ = initalPortState;
+    }
+  }
+
+  ApplyPortConfigs(inital_config);
 }
 
-Error InterfaceConfigManager::Configure(InterfaceConfigs &port_configs) {
+Status InterfaceConfigManager::Configure(InterfaceConfigs &port_configs) {
   auto status = IsPortConfigValid(port_configs);
   if (status.IsNotOk()) {
     return status;
@@ -72,6 +80,54 @@ const InterfaceConfigs& InterfaceConfigManager::GetPortConfigs() {
   return current_config_;
 }
 
+static InterfaceState EthDeviceStateToInterfaceState(eth::DeviceState state) {
+  return (state == eth::DeviceState::Up) ? InterfaceState::UP : InterfaceState::DOWN;
+}
+
+static LinkState EthLinkStateToLinkState(eth::InterfaceLinkState state) {
+  return (state == eth::InterfaceLinkState::Up) ? LinkState::UP : LinkState::DOWN;
+}
+
+InterfaceStatuses InterfaceConfigManager::GetCurrentPortStatuses() {
+
+  InterfaceStatuses statuses;
+  for (auto& [itf, eth_itf] : ethernet_interfaces_) {
+    InterfaceStatus itf_status;
+
+    itf_status.device_name_ = itf;
+
+    eth_itf->UpdateConfig();
+    auto state = eth_itf->GetState();
+    itf_status.state_ = EthDeviceStateToInterfaceState(state);
+
+    itf_status.duplex_ = static_cast<Duplex>(eth_itf->GetDuplex());
+    itf_status.speed_ = eth_itf->GetSpeed();
+
+    auto link_state = eth_itf->GetLinkState();
+    itf_status.link_state_ = EthLinkStateToLinkState(link_state);
+
+    itf_status.mac_ = eth_itf->GetMac();
+
+    statuses.emplace_back(itf_status);
+
+  }
+  return statuses;
+}
+
+InterfaceInformation InterfaceConfigManager::GetInterfaceInformation(const NetDev &netdev) const {
+
+  if (netdev.GetKind() == DeviceType::Port && ethernet_interfaces_.count(netdev.GetLabel())) {
+    auto &eif = ethernet_interfaces_.at(netdev.GetLabel());
+    return InterfaceInformation { netdev.GetName(), netdev.GetLabel(), netdev.GetKind(), netdev.IsIpConfigReadonly(),
+        eif->GetAutonegSupport() ? AutonegotiationSupported::YES : AutonegotiationSupported::NO, ToLinkModes(
+        eif->GetSupportedLinkModes()) };
+
+  } else {
+    return InterfaceInformation { netdev.GetName(), netdev.GetLabel(), netdev.GetKind(), netdev.IsIpConfigReadonly() };
+  }
+
+}
+
 void InterfaceConfigManager::InitializeEthernetInterfaceMap(const NetDevs &netdevs) {
   auto create_ethernet_interface = [&](auto netdev) {
     return ::std::make_pair(netdev->GetLabel(), ethernet_interface_factory_.getEthernetInterface(netdev->GetName()));
@@ -89,19 +145,45 @@ void InterfaceConfigManager::InitializeCurrentConfigs(const NetDevs &netdevs,
   UpdateCurrentInterfaceConfigs(persistet_configs);
 }
 
-Error InterfaceConfigManager::IsPortConfigValid(const InterfaceConfigs &port_configs) {
-  auto device_does_not_exist = [this](const auto &port_config) {
-    return ethernet_interfaces_.count(port_config.device_name_) == 0;
-  };
+Status InterfaceConfigManager::IsPortConfigValid(const InterfaceConfigs &port_configs) {
 
-  auto none_existing_entry = find_if(port_configs.begin(), port_configs.end(), device_does_not_exist);
-  if (none_existing_entry != port_configs.end()) {
-    return Error { ErrorCode::INTERFACE_NOT_EXISTING, none_existing_entry->device_name_};
+  for (auto &port_config : port_configs) {
+
+    if (ethernet_interfaces_.count(port_config.device_name_) == 0) {
+      return Status { StatusCode::INTERFACE_NOT_EXISTING, port_config.device_name_ };
+    }
+
+    auto& eif = ethernet_interfaces_.at(port_config.device_name_);
+
+    if (port_config.autoneg_ != Autonegotiation::UNKNOWN) {
+      auto autoneg_supported = eif->GetAutonegSupport() ? AutonegotiationSupported::YES : AutonegotiationSupported::NO;
+      if (port_config.autoneg_ == Autonegotiation::ON) {
+        if (autoneg_supported == AutonegotiationSupported::NO) {
+          return Status { StatusCode::AUTONEGOTIATION_NOT_SUPPORTED, port_config.device_name_ };
+        }
+        // if auto negotiation is on we do not have to check the link mode any more
+        continue;
+      }
+    }
+
+    if (port_config.speed_ != InterfaceBase::UNKNOWN_SPEED && port_config.duplex_ != Duplex::UNKNOWN) {
+      LinkModes link_modes = ToLinkModes(eif->GetSupportedLinkModes());
+      auto link_mode_unsupported = ::std::find(link_modes.begin(), link_modes.end(),
+                  LinkMode { port_config.speed_, port_config.duplex_ }) == link_modes.end();
+
+      if (link_mode_unsupported) {
+        ::std::string duplex = (port_config.duplex_ == Duplex::HALF) ? "half" : "full";
+        return Status {
+          StatusCode::LINK_MODE_NOT_SUPPORTED,
+          port_config.device_name_, ::std::to_string(port_config.speed_), duplex };
+      }
+    }
   }
-  return Error::Ok();
+
+  return Status::Ok();
 }
 
-Error InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
+Status InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
 
   auto &eif = ethernet_interfaces_.at(cfg.device_name_);
   if (cfg.autoneg_ != Autonegotiation::UNKNOWN) {
@@ -120,14 +202,14 @@ Error InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
   try {
     eif->Commit();
   } catch (std::exception &e) {
-    return Error { ErrorCode::SET_INTERFACE, cfg.device_name_ };
+    return Status { StatusCode::SET_INTERFACE, cfg.device_name_ };
   }
-  return Error { ErrorCode::OK };
+  return Status { StatusCode::OK };
 
 }
 
-Error InterfaceConfigManager::ApplyPortConfigs(InterfaceConfigs &port_configs) {
-  ::std::vector<Error> applyResults;
+Status InterfaceConfigManager::ApplyPortConfigs(InterfaceConfigs &port_configs) {
+  ::std::vector<Status> applyResults;
   std::transform(port_configs.begin(), port_configs.end(), ::std::back_inserter(applyResults),
                  [this](auto &port_config) {
                    return this->ApplyPortConfig(port_config);
@@ -141,7 +223,7 @@ Error InterfaceConfigManager::ApplyPortConfigs(InterfaceConfigs &port_configs) {
     return *first_negative_status;
   }
 
-  return Error { ErrorCode::OK };
+  return Status { StatusCode::OK };
 }
 
 void InterfaceConfigManager::UpdateCurrentInterfaceConfigs(const InterfaceConfigs &port_configs) {

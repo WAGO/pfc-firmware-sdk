@@ -29,16 +29,16 @@ endif
 #
 # Paths and names
 #
-KERNEL			:= linux-$(KERNEL_VERSION)
-KERNEL_MD5		:= $(call remove_quotes,$(PTXCONF_KERNEL_MD5))
+KERNEL					:= linux-$(KERNEL_VERSION)
+KERNEL_MD5			:= $(call remove_quotes,$(PTXCONF_KERNEL_MD5))
 KERNEL_SUFFIX		:= tar.xz
-KERNEL_DIR		:= $(KERNEL_BDIR)/$(KERNEL)
+KERNEL_DIR			:= $(KERNEL_BDIR)/$(KERNEL)
 KERNEL_CONFIG		:= $(call remove_quotes, $(PTXDIST_PLATFORMCONFIGDIR)/$(PTXCONF_KERNEL_CONFIG))
 KERNEL_LICENSE		:= GPL-2.0
-KERNEL_URL		:= $(call kernel-url, KERNEL)
+KERNEL_URL			:= $(call kernel-url, KERNEL)
 KERNEL_SOURCE		:= $(SRCDIR)/$(KERNEL).$(KERNEL_SUFFIX)
 KERNEL_DEVPKG		:= NO
-DEFCONFIG 	        := $(findstring _defconfig,$(PTXCONF_KERNEL_CONFIG))
+DEFCONFIG				:= $(findstring _defconfig,$(PTXCONF_KERNEL_CONFIG))
 
 # ----------------------------------------------------------------------------
 # Include
@@ -296,13 +296,19 @@ ifdef PTXCONF_KERNEL_TOOL_PERF
 endif
 
 ifdef PTXCONF_KERNEL_TOOL_IIO
-	@$(call install_copy, kernel, 0, 0, 0755, $(KERNEL_DIR)/tools/iio/generic_buffer, \
+	@$(call install_copy, kernel, 0, 0, 0755, $(KERNEL_DIR)/tools/iio/iio_generic_buffer, \
 		/usr/bin/iio_generic_buffer)
 	@$(call install_copy, kernel, 0, 0, 0755, $(KERNEL_DIR)/tools/iio/lsiio, \
 		/usr/bin/lsiio)
 	@$(call install_copy, kernel, 0, 0, 0755, $(KERNEL_DIR)/tools/iio/iio_event_monitor, \
 		/usr/bin/iio_event_monitor)
 endif
+
+	@cp $(KERNEL_DIR)/LICENSES/exceptions/Linux-syscall-note $(KERNEL_DIR)/license
+	@echo -e "----------------------------------------\n" >> $(KERNEL_DIR)/license
+	@cat $(KERNEL_DIR)/LICENSES/preferred/GPL-2.0 >> $(KERNEL_DIR)/license
+
+	@$(call install_copy, kernel, 0, 0, 0644, $(KERNEL_DIR)/license, /usr/share/licenses/oss/license.kernel_$(KERNEL_VERSION).txt)
 
 	@$(call install_finish, kernel)
 endif
@@ -331,7 +337,7 @@ ifdef PTXCONF_KERNEL_MODULES_INSTALL
 	@$(call install_fixup, kernel-modules, DESCRIPTION,missing)
 
 	@$(call install_glob, kernel-modules, 0, 0, -, /lib/modules, *.ko,, k)
-	@$(call install_glob, kernel-modules, 0, 0, -, /lib/modules,, *.ko */build */source, n)
+	@$(call install_glob, kernel-modules, 0, 0, -, /lib/modules,, *.ko */build */source, n)	
 
 	@$(call install_finish, kernel-modules)
 endif

@@ -86,13 +86,10 @@ $(STATEDIR)/hostlibloader.install:
 # ----------------------------------------------------------------------------
 # Target-Install
 # ----------------------------------------------------------------------------
-
-$(STATEDIR)/hostlibloader.targetinstall:
-	@$(call targetinfo)
-
-# Packet contains no artifcats.
-
-	@$(call touch)
+# Host, image and cross packages don’t need to install anything in the target
+# file system. Therefore, PTXdist only respects the targetinstall and
+# targetinstall.post stages for packages whose name doesn’t start with host-,
+# image-, or cross-.
 
 # ----------------------------------------------------------------------------
 # Clean

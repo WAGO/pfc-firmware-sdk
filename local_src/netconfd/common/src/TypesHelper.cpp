@@ -4,6 +4,7 @@
 #include "Helper.hpp"
 #include <algorithm>
 #include <boost/asio/ip/address.hpp>
+#include <regex>
 #include <sstream>
 #include <tuple>
 
@@ -163,7 +164,26 @@ void RemoveUnnecessaryIPParameter(IPConfigs &ip_configs) {
 }
 
 
+std::optional<int> ExtractInterfaceIndex(const std::string& interfacename) {
+  ::std::regex expr{"^([a-zA-Z]+)([0-9]+)$"};
+  ::std::smatch what;
+  if (::std::regex_search(interfacename, what, expr)) {
+    return {::std::stoi(what[2])};
+  }
+  return ::std::nullopt;
+}
 
+
+Address IpAddressV4Increment(const Address& address , uint32_t increment){
+  try {
+    auto ipv4 = boost::asio::ip::make_address_v4(address);
+    auto ipv4_inc = boost::asio::ip::make_address_v4(ipv4.to_uint() + increment);
+    return ipv4_inc.to_string();
+  } catch (...) {
+    /* nothing to do here */
+  }
+  return {};
+}
 
 
 } /* namespace netconf */

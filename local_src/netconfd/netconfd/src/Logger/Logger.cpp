@@ -151,7 +151,7 @@ void LogDebug(::std::string const& message) {
   GetLogger().LogDebug(message);
 }
 
-void LogStatus_(::std::string const& file, ::std::string const& line, ::std::string const& message, Error const& status) {
+void LogStatus_(::std::string const& file, ::std::string const& line, ::std::string const& message, Status const& status) {
   if (status.IsNotOk()) {
     auto msg = file +":" + line + ": " + message + ": " + status.ToString();
     LogDebug(msg);

@@ -3,8 +3,6 @@
 # Copyright (C) 2003-2008 by Pengutronix e.K., Hildesheim, Germany
 #               2009 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,14 +15,16 @@ PACKAGES-$(PTXCONF_MTD_UTILS) += mtd-utils
 #
 # Paths and names
 #
-MTD_UTILS_VERSION	:= 2.0.2
-MTD_UTILS_MD5		:= 3f05981551e73f1c6de28b2ea4edec7c
+MTD_UTILS_VERSION	:= 2.1.1
+MTD_UTILS_MD5		:= 94bbd31b217a5169ae26ab8c0442f691
 MTD_UTILS		:= mtd-utils-$(MTD_UTILS_VERSION)
 MTD_UTILS_SUFFIX	:= tar.bz2
 MTD_UTILS_URL		:= ftp://ftp.infradead.org/pub/mtd-utils/$(MTD_UTILS).$(MTD_UTILS_SUFFIX)
 MTD_UTILS_SOURCE	:= $(SRCDIR)/$(MTD_UTILS).$(MTD_UTILS_SUFFIX)
 MTD_UTILS_DIR		:= $(BUILDDIR)/$(MTD_UTILS)
 MTD_UTILS_LICENSE	:= GPL-2.0-or-later
+MTD_UTILS_LICENSE_FILES	:= file://COPYING;md5=0636e73ff0215e8d672dc4c32c317bb3
+
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -36,10 +36,14 @@ MTD_UTILS_CONF_OPT	:= \
 	--disable-unit-tests \
 	--disable-tests \
 	--disable-install-tests \
+	--$(call ptx/endis, PTXCONF_MTD_UTILS_LSMTD)-lsmtd \
 	--$(call ptx/wwo, PTXCONF_MTD_UTILS_JFFS)-jffs \
 	--$(call ptx/wwo, PTXCONF_MTD_UTILS_UBIFS)-ubifs \
 	--without-xattr \
-	--$(call ptx/wwo, PTXCONF_MTD_UTILS_USE_LIBLZO)-lzo
+	--$(call ptx/wwo, PTXCONF_MTD_UTILS_USE_LIBLZO)-lzo \
+	--without-zstd \
+	--$(call ptx/wwo, PTXCONF_GLOBAL_SELINUX)-selinux \
+	--without-crypto
 
 # ----------------------------------------------------------------------------
 # Target-Install
@@ -105,6 +109,10 @@ endif
 ifdef PTXCONF_MTD_UTILS_FTL_FORMAT
 	@$(call install_copy, mtd-utils, 0, 0, 0755, -, \
 		/usr/sbin/ftl_format)
+endif
+ifdef PTXCONF_MTD_UTILS_LSMTD
+	@$(call install_copy, mtd-utils, 0, 0, 0755, -, \
+		/usr/sbin/lsmtd)
 endif
 ifdef PTXCONF_MTD_UTILS_JFFS2_DUMP
 	@$(call install_copy, mtd-utils, 0, 0, 0755, -, \

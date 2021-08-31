@@ -1,8 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2015 by Mark Lindner <unknow@unknown.com>
-#
-# See CREDITS for details about who has contributed to this project.
+# Copyright (C) 2014 by Bernhard Walle <bernhard@bwalle.de>
 #
 # For further information about the PTXdist project and license conditions
 # see the README file.
@@ -16,53 +14,27 @@ PACKAGES-$(PTXCONF_LIBCONFIG) += libconfig
 #
 # Paths and names
 #
-LIBCONFIG_VERSION	:= 1.4.9
-LIBCONFIG_MD5		:= b6ee0ce2b3ef844bad7cac2803a90634
+LIBCONFIG_VERSION	:= 1.7.2
+LIBCONFIG_MD5		:= 6bd98ee3a6e6b9126c82c916d7a9e690
 LIBCONFIG		:= libconfig-$(LIBCONFIG_VERSION)
 LIBCONFIG_SUFFIX	:= tar.gz
-LIBCONFIG_URL		:= http://www.hyperrealm.com/libconfig/$(LIBCONFIG).$(LIBCONFIG_SUFFIX)
+LIBCONFIG_URL		:= http://hyperrealm.github.io/libconfig/dist/$(LIBCONFIG).$(LIBCONFIG_SUFFIX)
 LIBCONFIG_SOURCE	:= $(SRCDIR)/$(LIBCONFIG).$(LIBCONFIG_SUFFIX)
 LIBCONFIG_DIR		:= $(BUILDDIR)/$(LIBCONFIG)
-LIBCONFIG_LICENSE	:= unknown
+LIBCONFIG_LICENSE	:= LGPL-2.1-only
 
 # ----------------------------------------------------------------------------
 # Prepare
 # ----------------------------------------------------------------------------
 
-LIBCONFIG_PATH := PATH=$(CROSS_PATH)
-LIBCONFIG_ENV  := $(CROSS_ENV)
-
-LIBCONFIG_COMPILE_ENV := \
-	$(CROSS_ENV_CFLAGS) \
-	$(CROSS_ENV_CPPFLAGS) \
-	$(CROSS_ENV_LDFLAGS) \
-	$(CROSS_ENV_AR)
-
 #
 # autoconf
 #
-LIBCONFIG_AUTOCONF := \
-	$(CROSS_AUTOCONF_USR)
-
-# 	--enable-protochain \
-# 	--disable-optimizer-dbg \
-# 	--disable-yydebug \
-# 	--with-libnl \
-# 	--without-dag \
-# 	--without-septel
-
-# ifdef PTXCONF_ARCH_MINGW
-# LIBCONFIG_AUTOCONF += --with-pcap=null
-# LIBCONFIG_ENV += ac_cv_lbl_gcc_fixincludes=yes
-# else
-# LIBCONFIG_AUTOCONF += --with-pcap=linux
-# endif
-
-# ifdef PTXCONF_LIBCONFIG_USE_DBUS
-# LIBCONFIG_AUTOCONF += --enable-dbus 
-# else
-# LIBCONFIG_AUTOCONF += --disable-dbus
-# endif
+LIBCONFIG_CONF_TOOL	:= autoconf
+LIBCONFIG_CONF_OPT	:= \
+	$(CROSS_AUTOCONF_USR) \
+	--$(call ptx/endis, PTXCONF_LIBCONFIG_CXX)-cxx \
+	--disable-examples
 
 # ----------------------------------------------------------------------------
 # Target-Install
@@ -71,16 +43,16 @@ LIBCONFIG_AUTOCONF := \
 $(STATEDIR)/libconfig.targetinstall:
 	@$(call targetinfo)
 
-	@$(call install_init,  libconfig)
+	@$(call install_init, libconfig)
 	@$(call install_fixup, libconfig,PRIORITY,optional)
 	@$(call install_fixup, libconfig,SECTION,base)
-	@$(call install_fixup, libconfig,AUTHOR,"Heinrich Toews <heinrich.toews@wago.com>")
+	@$(call install_fixup, libconfig,AUTHOR,"Bernhard Walle <bernhard@bwalle.de>")
 	@$(call install_fixup, libconfig,DESCRIPTION,missing)
 
 	@$(call install_lib, libconfig, 0, 0, 0644, libconfig)
-	@$(call install_copy, libconfig, 0, 0, 0755, $(LIBCONFIG_DIR)/examples/c/example1, /usr/bin/example1)
-	@$(call install_copy, libconfig, 0, 0, 0755, $(LIBCONFIG_DIR)/examples/c/example2, /usr/bin/example2)
-	@$(call install_copy, libconfig, 0, 0, 0755, $(LIBCONFIG_DIR)/examples/c/example3, /usr/bin/example3)
+ifdef PTXCONF_LIBCONFIG_CXX
+	@$(call install_lib, libconfig, 0, 0, 0644, libconfig++)
+endif
 
 	@$(call install_finish, libconfig)
 

@@ -18,7 +18,7 @@ InterfaceInformations GetInterfaceInformation() {
   auto result = client.GetDeviceInterfaces();
   auto status = jc.FromJsonString(result.value_json_, iis);
   if (status.IsNotOk()) {
-    /* TODO PND: appropriate error response */
+    /* TODO PND: appropriate status response */
   }
   return iis;
 }
@@ -30,7 +30,7 @@ InterfaceInformations GetInterfaceInformation(DeviceType type) {
   auto result = client.GetDeviceInterfaces();
   auto status = jc.FromJsonString(result.value_json_, iis);
   if (status.IsNotOk()) {
-    /* TODO PND: appropriate error response */
+    /* TODO PND: appropriate status response */
     return iis;
   }
 
@@ -45,7 +45,24 @@ InterfaceInformations GetInterfaceInformation(DeviceType type) {
   ss << "device=" << info.GetInterfaceName();
   ss << " label=" << info.GetInterfaceLabel();
   ss << " type=" << ToString(info.GetType());
-  ss << " ip-readonly=" << ::std::boolalpha << info.IsIpConfigurationReadonly();
+  ss << " ipreadonly=" << ::std::boolalpha << info.IsIpConfigurationReadonly();
+
+  auto link_modes = info.GetSupportedlinkModes();
+  if(!link_modes.empty()){
+    ss << " supportedlinkmodes=";
+    for(auto mode : link_modes){
+      ::std::string duplex = mode.duplex_ == Duplex::FULL ? "full" : "half";
+      ss << mode.speed_ << "/" << duplex << ",";
+    }
+    ss.seekp(-1, ::std::ios_base::end);
+  }
+
+  auto autoneg_supported = info.GetAutonegSupported();
+   if(autoneg_supported != AutonegotiationSupported::UNKNOWN){
+     auto autoneg = (autoneg_supported == AutonegotiationSupported::NO) ? "false" : "true";
+     ss << " autonegsupported=" << autoneg;
+   }
+
   return ss.str();
 }
 
@@ -63,6 +80,16 @@ InterfaceInformations GetInterfaceInformation(DeviceType type) {
 ::std::string ToJson(const InterfaceInformations &info) noexcept{
   JsonConverter jc;
   return jc.ToJsonString(info);
+}
+
+::std::string ToPrettyJson(const InterfaceInformation &info) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(info, JsonFormat::PRETTY);
+}
+
+::std::string ToPrettyJson(const InterfaceInformations &info) noexcept{
+  JsonConverter jc;
+  return jc.ToJsonString(info, JsonFormat::PRETTY);
 }
 
 }  // namespace api

@@ -9,7 +9,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 DAEMON="pure-ftpd"
 NAME="pure-ftpd"
 PREFIX="pure-ftpd: "
-DAEMON_OPTIONS="-C 10 -E -p 32000:32100 -b"
+DAEMON_OPTIONS="-C 10 -E -p 32000:32100 -b -H"
 DAEMON_PIDFILE=/var/run/pure-ftpd.pid
 
 HELPER="pure-uploadscript"

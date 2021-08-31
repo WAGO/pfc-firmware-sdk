@@ -91,10 +91,10 @@ $(STATEDIR)/host-dal.install:
 # ----------------------------------------------------------------------------
 # Target-Install
 # ----------------------------------------------------------------------------
-
-$(STATEDIR)/host-dal.targetinstall:
-	@$(call targetinfo)
-	@$(call touch)
+# Host, image and cross packages don’t need to install anything in the target
+# file system. Therefore, PTXdist only respects the targetinstall and
+# targetinstall.post stages for packages whose name doesn’t start with host-,
+# image-, or cross-.
 
 # ----------------------------------------------------------------------------
 # Clean

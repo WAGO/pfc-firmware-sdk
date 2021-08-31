@@ -60,8 +60,4 @@ MacAddressAssignment::Mode MacAddressAssignment::GetMode() {
   return properties_provider_.GetIncrementedMac(0);
 }
 
-::std::string MacAddressAssignment::GetIncementedMac(uint32_t index) const {
-  return properties_provider_.GetIncrementedMac(index);
-}
-
 }

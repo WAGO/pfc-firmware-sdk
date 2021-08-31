@@ -6,10 +6,10 @@
 #include <memory>
 #include <vector>
 
+#include "../IPManager/INetDevEvents.hpp"
 #include "IInterfaceMonitor.hpp"
 #include "IDeviceProperties.hpp"
 #include "NetDev.hpp"
-#include "INetDevConstruction.hpp"
 #include "INetDevManager.hpp"
 #include "IBridgeController.hpp"
 #include "IMacDistributor.hpp"
@@ -34,7 +34,7 @@ class NetDevManager : public INetDevManager, public IInterfaceEvent {
   NetDevs GetNetDevs(DeviceType kind) override;
   void ConfigureBridges(const BridgeConfig& config) override;
   void LinkChange(::std::uint32_t if_index, ::std::uint32_t flags) override;
-  void RegisterForNetDevConstructionEvents(INetDevConstruction& netdev_construction) override;
+  void RegisterForNetDevConstructionEvents(INetDevEvents& netdev_construction) override;
 
   static bool ExistsByName(::std::string name, const NetDevs& netdevs);
   static bool DoesNotExistByName(::std::string name, const NetDevs& netdevs);
@@ -50,6 +50,7 @@ class NetDevManager : public INetDevManager, public IInterfaceEvent {
 
   void OnNetDevCreated(NetDevPtr netdev) const;
   void OnNetDevRemoved(NetDevPtr netdev) const;
+  void OnNetDevChangeInterfaceRelations(NetDevPtr netdev) const;
   NetDevPtr CreateNetdev(::std::string name, ::std::string label, DeviceType kind);
   static bool Exists(const NetDevs& netdevs, NetDevPredicate predicate);
   static NetDevPtr FindIf(const NetDevs& netdevs, NetDevPredicate predicate);
@@ -61,7 +62,7 @@ class NetDevManager : public INetDevManager, public IInterfaceEvent {
 
   ::std::shared_ptr<IInterfaceMonitor> interface_monitor_;
   ::std::vector<::std::shared_ptr<NetDev>> net_devs_;
-  INetDevConstruction* netdev_construction_;
+  INetDevEvents* netdev_construction_;
 
   IBridgeController &bridge_controller_;
   IMacDistributor& mac_distributor_;

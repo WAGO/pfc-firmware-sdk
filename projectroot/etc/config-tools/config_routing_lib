@@ -1,0 +1,468 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
+
+# shellcheck disable=SC2129
+
+#-----------------------------------------------------------------------------
+# Script-name: config_routing_lib
+#
+# Provide common routing functionality.
+#
+# Author: WAGO Kontakttechnik GmbH & Co. KG.
+#-----------------------------------------------------------------------------
+
+#bash "include guard"
+if [[ ${CONFIG_ROUTING_LIB_:-} != "config_routing_lib" ]]; then
+readonly CONFIG_ROUTING_LIB_="config_routing_lib"
+
+
+# Set error on use of undefined shell variables
+set -u
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+    echo "config_tool_lib missing"
+    exit 64
+fi
+
+. "/etc/config-tools/config_tool_lib"
+
+readonly ROUTING_CONFIG_FILE="/etc/specific/routing.conf"
+readonly ROUTING_CONFIG_REMOVE_FILE="/tmp/routing_remove.conf"
+readonly VALIDATE_GATEWAY_CONFIG="/etc/init.d/validate_gateway_config"
+
+readonly GATEWAY_DEFAULT_METRIC=20
+readonly GATEWAY_DEFAULT_VALUE=""
+
+readonly ROUTING_SOURCE_STATIC="STATIC"
+readonly ROUTING_SOURCE_DHCP="DHCP"
+
+# Check that all static routing arrays are set.
+#
+# Input:  static routing array names
+# Return: 0, if all arrays are set
+#         1, otherwise
+#
+function static_route_arrays_are_set
+{
+    # Get reference to keys first. If key set is empty, the corresponding array is unset. 
+    # shellcheck disable=SC2016
+    local -a 'dest_arr=("${!'"$1"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'dest_mask_arr=("${!'"$2"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'gw_arr=("${!'"$3"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'interface_arr=("${!'"$4"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'metric_arr=("${!'"$5"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'routing_type_arr=("${!'"$6"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'state_arr=("${!'"$7"'[@]}")'
+    
+    if [[ "${dest_arr[*]+xxx}" && "${dest_mask_arr[*]+xxx}" && "${gw_arr[*]+xxx}" && "${interface_arr[*]+xxx}" && "${metric_arr[*]+xxx}" && "${routing_type_arr[*]+xxx}" && "${state_arr[*]+xxx}" ]]; then
+        return 0 # true, all arrays are set
+    fi
+
+    return 1 # false, at least one array is unset
+}
+
+# Check that all static routing arrays are unset.
+#
+# Input:  static routing array names
+# Return: 0, if all arrays are unset
+#         1, otherwise
+#
+function static_route_arrays_are_unset
+{
+    # Get reference to keys first. If key set is empty, the corresponding array is unset. 
+    # shellcheck disable=SC2016
+    local -a 'dest_arr=("${!'"$1"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'dest_mask_arr=("${!'"$2"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'gw_arr=("${!'"$3"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'interface_arr=("${!'"$4"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'metric_arr=("${!'"$5"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'routing_type_arr=("${!'"$6"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'state_arr=("${!'"$7"'[@]}")'
+    
+    if [[ "${dest_arr[*]-xxx}" && "${dest_mask_arr[*]-xxx}" && "${gw_arr[*]-xxx}" && "${interface_arr[*]-xxx}" && "${metric_arr[*]-xxx}" && "${routing_type_arr[*]-xxx}" && "${state_arr[*]-xxx}" ]]; then
+        return 0 # true, all arrays are unset
+    fi
+
+    return 1 # false, at least one array is set
+}
+
+function replace_default_gw_destination_by_quad_zero
+{
+    # shellcheck disable=SC2016
+    local -a 'dest_arr=("${!'"$1"'[@]}")'
+
+    local count=${#dest_arr[@]}
+    local index=0
+    while [[ $index -lt $count ]]; do
+        [[ ${dest_arr[$index]} == "default" ]] && dest_arr[$index]="0.0.0.0"
+        ((index++))
+    done
+}
+
+# Check that all static routing arrays have the same length.
+#
+# Input:  static routing array names
+# Return: 0, if all arrays have the same length.
+#         1, otherwise
+#
+function static_route_arrays_have_same_length
+{
+    # shellcheck disable=SC2016
+    local -a 'dest_arr=("${!'"$1"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'dest_mask_arr=("${!'"$2"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'gw_arr=("${!'"$3"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'interface_arr=("${!'"$4"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'metric_arr=("${!'"$5"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'routing_type_arr=("${!'"$6"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'state_arr=("${!'"$7"'[@]}")'
+
+    local count_dest=${#dest_arr[@]}
+    local count_dest_mask=${#dest_mask_arr[@]}
+    local count_gw=${#gw_arr[@]}
+    local count_interface=${#interface_arr[@]}
+    local count_metric=${#metric_arr[@]}
+    local count_type=${#routing_type_arr[@]}
+    local count_state=${#state_arr[@]}
+    
+    if [[   $count_dest_mask -eq $count_dest
+         && $count_gw -eq $count_dest
+         && $count_interface -eq $count_dest
+         && $count_metric -eq $count_dest
+         && $count_type -eq $count_dest
+         && $count_state -eq $count_dest ]]; then
+        return 0 # true, all arrays have the same length
+    else
+        return 1 # false, arrays have different lengths
+    fi
+}
+
+# Check that all masquerading arrays have the same length.
+#
+# Input:  masquerading array names
+# Return: 0, if all arrays have the same length.
+#         1, otherwise
+#
+function masquerading_arrays_have_same_length
+{
+    # shellcheck disable=SC2016
+    local -a 'interface_arr=("${!'"$1"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'state_arr=("${!'"$2"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'type_arr=("${!'"$3"'[@]}")'
+    
+    local count_interface=${#interface_arr[@]}
+    local count_type=${#type_arr[@]}
+    local count_state=${#state_arr[@]}
+    
+    if [[   $count_type -eq $count_interface
+         && $count_state -eq $count_interface ]]; then
+        return 0 # true, all arrays have the same length
+    else
+        return 1 # false, arrays have different lengths
+    fi
+}
+
+# Check that all port forwarding arrays have the same length.
+#
+# Input:  port forwarding array names
+# Return: 0, if all arrays have the same length.
+#         1, otherwise
+#
+function port_forwarding_arrays_have_same_length
+{
+    # shellcheck disable=SC2016
+    local -a 'state_arr=("${!'"$1"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'interface_arr=("${!'"$2"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'port_arr=("${!'"$3"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'protocol_arr=("${!'"$4"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'forward_ip_arr=("${!'"$5"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'forward_port_arr=("${!'"$6"'[@]}")'
+
+    local count_itf=${#interface_arr[@]}
+    local count_state=${#state_arr[@]}
+    local count_port=${#port_arr[@]}
+    local count_protocol=${#protocol_arr[@]}
+    local count_fw_ip=${#forward_ip_arr[@]}
+    local count_fw_port=${#forward_port_arr[@]}
+
+    if [[ $count_port == "$count_itf"
+          && $count_protocol == "$count_itf"
+          && $count_fw_ip == "$count_itf"
+          && $count_fw_port == "$count_itf" 
+          && $count_state == "$count_itf" ]] ; then
+        return 0 # true, all arrays have the same length
+    else
+        return 1 # false, arrays have different lengths
+    fi
+}
+
+# Print routing table for static or dynamic routes to stdout.
+#
+# Input:  routing source: STATIC or DHCP, see ROUTING_SOURCE_* defines
+# Input:  output type: shell or json
+# Input:  static or dynamic routing array names
+# Output: static or dynamic routing arrays in form of a routing table
+#
+function print_routes
+{
+    local -r routing_source="$1"
+    local -r output="$2"
+
+    if ! static_route_arrays_are_set "$3" "$4" "$5" "$6" "$7" "$8" "$9" ; then
+        # Found unset arrays.
+        if static_route_arrays_are_unset "$3" "$4" "$5" "$6" "$7" "$8" "$9" ; then
+            local part=staticRoutes
+            [[ "$routing_source" == "$ROUTING_SOURCE_DHCP" ]] && part=dynamicRoutes
+            [[ "$output" == "json" ]] && echo -n "\"$part\": []"
+                    return "$SUCCESS"
+        fi
+        return "$CONFIG_FILE_INCONSISTENT"
+    fi
+
+    # No unset arrays, thus reference them directly.
+    # shellcheck disable=SC2016
+    local -a 'dest_arr=("${'"$3"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'dest_mask_arr=("${'"$4"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'gw_arr=("${'"$5"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'interface_arr=("${'"$6"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'metric_arr=("${'"$7"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'routing_type_arr=("${'"$8"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'state_arr=("${'"$9"'[@]}")'
+
+    local status=$SUCCESS
+    
+    local index
+    local count=0
+    [[ -n "${dest_arr[*]-}" ]] && count="${#dest_arr[@]}"
+    # Ensure all arrays have the same element count.
+    if [[   ${#dest_mask_arr[@]} -ne $count
+            || ${#gw_arr[@]} -ne $count
+            || ${#interface_arr[@]} -ne $count
+            || ${#metric_arr[@]} -ne $count
+            || ${#routing_type_arr[@]} -ne $count
+            || ${#state_arr[@]} -ne $count ]]; then
+        status=$CONFIG_FILE_INCONSISTENT
+        SetLastError "Found inconsistent routing configuration data."
+    fi
+
+    if [[ $status == "$SUCCESS" ]]; then
+        if [[ $output == "shell" ]]; then
+            index=0
+            while [[ $index -lt $count ]]; do
+                local gw="${gw_arr[$index]}"
+                [[ -z "$gw" ]] && gw="-"
+                local itf="${interface_arr[$index]}"
+                [[ -z "$itf" ]] && itf="-"
+                printf "%-16s %-16s %-16s %6s %s %s %s %s\n" "${dest_arr[$index]}" "${dest_mask_arr[$index]}" "$gw" "$itf" "${metric_arr[$index]}" "${routing_type_arr[$index]}" "${state_arr[$index]}" "$routing_source"
+                ((index++))
+            done
+        elif [[ $output == "json" ]]; then
+            local part
+            [[ "$routing_source" == "$ROUTING_SOURCE_DHCP" ]] && part=dynamicRoutes || part=staticRoutes
+            echo -n "\"$part\": ["
+            if [[ $count -gt 0 ]]; then
+                index=0
+                local ROUTE_STRING_JSON="{\"destination\":\"${dest_arr[$index]}\",\"destinationMask\":\"${dest_mask_arr[$index]}\",\"gateway\":\"${gw_arr[$index]}\",\"interface\":\"${interface_arr[$index]}\",\"metric\":\"${metric_arr[$index]}\",\"routingType\":\"${routing_type_arr[$index]}\",\"state\":\"${state_arr[$index]}\",\"source\":\"$routing_source\"}"
+                echo -n "$ROUTE_STRING_JSON"
+                ((index++))
+                while [[ $index -lt $count ]]; do
+                    ROUTE_STRING_JSON="{\"destination\":\"${dest_arr[$index]}\",\"destinationMask\":\"${dest_mask_arr[$index]}\",\"gateway\":\"${gw_arr[$index]}\",\"interface\":\"${interface_arr[$index]}\",\"metric\":\"${metric_arr[$index]}\",\"routingType\":\"${routing_type_arr[$index]}\",\"state\":\"${state_arr[$index]}\",\"source\":\"$routing_source\"}"
+                    echo -n ",$ROUTE_STRING_JSON"
+                    ((index++))
+                done
+            fi
+            echo -n "]"
+        else
+            status=$INVALID_PARAMETER
+            SetLastError "Invalid ouput format: $output"
+        fi
+    fi
+
+    return "$status"
+}
+
+# Read data from given routing configuration file.
+#
+# Input:  File path of the routing configuration file.
+# Output: Static routes, ip masquerading and port forwarding data stored to corresponding arrays.
+# Return: 0, if file exists and the array groups of static routes, ip masquerading and port forwarding each have the same length.
+#
+function read_config_file
+{
+    local -r routing_config_file="$1"
+    
+    if [[ -f $routing_config_file ]]; then
+        . "$routing_config_file"
+
+        # Validate data read from config file.
+        if ! static_route_arrays_have_same_length static_dest static_dest_mask static_gw static_interface static_metric static_routing_type static_state ; then
+            return $CONFIG_FILE_INCONSISTENT
+        fi
+        if ! masquerading_arrays_have_same_length masquerading_interface masquerading_routing_type masquerading_state ; then
+            return $CONFIG_FILE_INCONSISTENT
+        fi
+        if ! port_forwarding_arrays_have_same_length port_forwarding_state port_forwarding_interface port_forwarding_port port_forwarding_protocol port_forwarding_forward_ip port_forwarding_forward_port ; then
+            return $CONFIG_FILE_INCONSISTENT
+        fi
+    fi
+
+    replace_default_gw_destination_by_quad_zero static_dest
+
+    return $SUCCESS
+}
+
+# Write static routes to default routing configuration file.
+#
+# The static routes data given via the input parameter arrays, while the
+# ip masquerading and port forwarding data is read from the default routing
+# configuration file.
+#
+# Input:  static routing arrays
+# Output: Replace static routing entries of configuration file by given static routing entries.
+# Return: 0, if updating configration file was successful,
+#         error code, otherwise.
+function write_static_routes_to_file
+{
+    if ! static_route_arrays_are_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" ; then
+        # Found unset arrays.
+        return $CONFIG_DATA_ERROR
+    fi
+    
+    # No unset arrays, thus reference them directly.
+    # The key references are no longer needed, therefore they are overwritten.
+    # shellcheck disable=SC2016
+    local -a 'dest_arr=("${'"$1"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'dest_mask_arr=("${'"$2"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'gw_arr=("${'"$3"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'interface_arr=("${'"$4"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'metric_arr=("${'"$5"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'routing_type_arr=("${'"$6"'[@]}")'
+    # shellcheck disable=SC2016
+    local -a 'state_arr=("${'"$7"'[@]}")'
+
+    # Routing enabled/IP forwarding state
+    local state=disabled
+
+    # Masquerading parameters
+    local -a masquerading_interface=( )
+    local -a masquerading_state=( )
+    local -a masquerading_routing_type=( ) # Cannot be modified by user.
+
+    # Port-Forwarding parameters
+    local -a port_forwarding_state=( )
+    local -a port_forwarding_interface=( )
+    local -a port_forwarding_port=( )
+    local -a port_forwarding_protocol=( )
+    local -a port_forwarding_forward_ip=( )
+    local -a port_forwarding_forward_port=( )
+
+    local tmp_file="/tmp/config_routing.tmp"
+    local read_status
+    read_config_file $ROUTING_CONFIG_FILE
+    read_status=$?
+
+    if [[ $read_status -ne $SUCCESS ]];  then
+        return $read_status
+    fi
+
+    # Write temporary file first. After write operation is completed move temporary file to routing config file.
+
+    # Write general routing parameters
+    echo "state=$state" > "$tmp_file"
+
+    #Write static routing parameters
+    local index=0
+    local count="${#dest_arr[@]}"
+    echo >> "$tmp_file"
+    while [[ $index -lt $count ]]; do
+        echo "static_dest[$index]=${dest_arr[$index]}" >> "$tmp_file"
+        echo "static_dest_mask[$index]=${dest_mask_arr[$index]}" >> "$tmp_file"
+        echo "static_gw[$index]=${gw_arr[$index]}" >> "$tmp_file"
+        echo "static_interface[$index]=${interface_arr[$index]}" >> "$tmp_file"
+        echo "static_metric[$index]=${metric_arr[$index]}" >> "$tmp_file"
+        echo "static_routing_type[$index]=${routing_type_arr[$index]}" >> "$tmp_file"
+        echo "static_state[$index]=${state_arr[$index]}" >> "$tmp_file"
+        ((index++))
+    done
+
+    # Write masquerading parameters
+    index=0
+    count="${#masquerading_interface[@]}"
+    echo >> "$tmp_file"
+    while [[ $index -lt $count ]]; do
+        echo "masquerading_interface[$index]=${masquerading_interface[$index]}" >> "$tmp_file"
+        echo "masquerading_state[$index]=${masquerading_state[$index]}" >> "$tmp_file"
+        echo "masquerading_routing_type[$index]=${masquerading_routing_type[$index]}" >> "$tmp_file"
+        ((index++))
+    done
+
+    # Write port-forwarding parameters
+    index=0
+    count="${#port_forwarding_interface[@]}"
+    echo >> "$tmp_file"
+    while [[ $index -lt $count ]]; do
+        echo "port_forwarding_interface[$index]=${port_forwarding_interface[$index]}" >> "$tmp_file"
+        echo "port_forwarding_state[$index]=${port_forwarding_state[$index]}" >> "$tmp_file"
+        echo "port_forwarding_port[$index]=${port_forwarding_port[$index]}" >> "$tmp_file"
+        echo "port_forwarding_protocol[$index]=${port_forwarding_protocol[$index]}" >> "$tmp_file"
+        echo "port_forwarding_forward_ip[$index]=${port_forwarding_forward_ip[$index]}" >> "$tmp_file"
+        echo "port_forwarding_forward_port[$index]=${port_forwarding_forward_port[$index]}" >> "$tmp_file"
+        ((index++))
+    done
+    sync
+    /usr/bin/mv "$tmp_file" "$ROUTING_CONFIG_FILE"
+    sync
+
+    return $SUCCESS
+}
+
+function is_valid_interface
+{
+    local itf=$1
+    local ret="false"
+    pat='^[^[:space:]/]{1,15}$'
+    [[ "${itf}" =~ $pat ]] && ret="true"
+    echo "$ret"
+}
+
+fi #if [[ ${CONFIG_ROUTING_LIB_:-} != "config_routing_lib" ]]; then

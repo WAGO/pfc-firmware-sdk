@@ -20,8 +20,8 @@ config VALGRIND_SKIP_TARGETINSTALL
   bool "skip valgrind's targetinstall stage"
   default y
   help
-    Skip valgrind's targetinstall stage in order to save memory inside the target device.
-    The install stage will create the package files into $(PTXDIST_PLATFORMDIR)/packages.
+    Do not include valgrind into firmware image in order to save memory inside the target device.
+    Use ptxdist targetinstall to create IPK file.
 
 endif
 

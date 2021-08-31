@@ -9,7 +9,7 @@ namespace netconf {
 class MockIDHCPClientController : public IDHCPClientController {
  public:
 
-  MOCK_CONST_METHOD1(StartClient, Error(const Bridge& bridge) );
+  MOCK_CONST_METHOD1(StartClient, Status(const Bridge& bridge) );
   MOCK_CONST_METHOD1(StopClient, void(const Bridge& bridge) );
   MOCK_CONST_METHOD1(GetStatus, DHCPClientStatus(const Bridge& bridge) );
 

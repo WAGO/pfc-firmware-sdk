@@ -1,0 +1,28 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Fri, 6 Nov 2009 09:19:58 +0100
+Subject: [PATCH] reactivate check for tty
+
+The busybox crew switched of the test for a tty in silentoldconfig,
+we use this feature to break when oldconfig needs interaction
+in automated build.
+
+This patch reactivates this feature.
+
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+---
+ scripts/kconfig/conf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/kconfig/conf.c b/scripts/kconfig/conf.c
+index 57734b590ace..b9cf03d76f55 100644
+--- a/scripts/kconfig/conf.c
++++ b/scripts/kconfig/conf.c
+@@ -537,7 +537,7 @@ int main(int ac, char **av)
+ 			break;
+ 		case 's':
+ 			input_mode = ask_silent;
+-			valid_stdin = isatty(0); //bbox: && isatty(1) && isatty(2);
++			valid_stdin = isatty(0) && isatty(1) && isatty(2);
+ 			break;
+ 		case 'd':
+ 			input_mode = set_default;

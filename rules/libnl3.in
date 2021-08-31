@@ -1,0 +1,38 @@
+## SECTION=system_libraries
+
+menuconfig LIBNL3
+	tristate
+	prompt "libnl3                        "
+	select LIBC_M
+	select LIBC_PTHREAD
+	select GCCLIBS_GCC_S
+	select HOST_FLEX
+	help
+	  libnl3 is a library for applications dealing with netlink
+	  sockets. The library provides an interface for raw
+	  netlink messaging and various netlink family specific
+	  interfaces.
+
+if LIBNL3
+
+config LIBNL3_ENABLE_CLI
+	bool
+	default y
+	prompt "Enable command line tools"
+	help
+	  Do build the following command line interface utils:
+	  genl-ctrl-list
+	  nl-class-add
+	  nl-class-delete
+	  nl-classid-lookup
+	  nl-class-list
+	  nl-cls-add
+	  nl-cls-delete
+	  nl-cls-list
+	  nl-link-list
+	  nl-pktloc-lookup
+	  nl-qdisc-add
+	  nl-qdisc-delete
+	  nl-qdisc-list
+
+endif

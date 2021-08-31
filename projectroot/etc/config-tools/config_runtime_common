@@ -62,9 +62,11 @@ build_get_command()
 # Create config file /etc/specific/runtimes.conf
 read_config_data()
 {
-    local params="DEFAULT_WEBPAGE CODESYS_HOMEDIR_SDCARD V2_WEBSERVER_STATE V2_SERVICE_DISABLED V2_SERVICE_PORT_NO V2_PORT_AUTH"
+    local params="CODESYS_HOMEDIR_SDCARD V2_WEBSERVER_STATE V2_SERVICE_DISABLED V2_SERVICE_PORT_NO V2_PORT_AUTH"
     params="$params V3_WEBSERVER_STATE V3_PORT_AUTH V2_SERIAL_PROGRAMMING V3_SERIAL_PROGRAMMING"
 
+    touch $RUNTIME_CONFIG
+	chmod 640 $RUNTIME_CONFIG
     echo "# Generated file. Created by config_runtime or get_runtime_config" > $RUNTIME_CONFIG
     echo "# Cache of PLC runtime systems configuration data" >> $RUNTIME_CONFIG
     echo "# Holds configuration data of codesys2 (V2_*) and e!Runtime aka codesys3 (V3_*)." >> $RUNTIME_CONFIG

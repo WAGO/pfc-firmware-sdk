@@ -7,7 +7,7 @@ config LIBBACNETCONFIG
 	select HOST_CT_BUILD
 	select GOOGLETEST
 	select TYPELABEL
-	select LIBCTCALLHELPER
-	prompt "BACnet configuration tool"
+	select CONFIG_TOOL_BASE
+	prompt "BACnet configuration library"
 	help
-	  BACnet configuration tool
+	  BACnet configuration library

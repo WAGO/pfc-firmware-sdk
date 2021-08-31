@@ -9,8 +9,8 @@ namespace netconf {
 class MockIIPController : public IIPController {
  public:
 
-  MOCK_CONST_METHOD2(GetIPConfig, Error(const Interface&, IPConfig&) );
-  MOCK_CONST_METHOD1(SetIPConfig, Error(const IPConfig&) );
+  MOCK_CONST_METHOD2(GetIPConfig, Status(const Interface&, IPConfig&) );
+  MOCK_CONST_METHOD1(SetIPConfig, Status(const IPConfig&) );
 
 };
 

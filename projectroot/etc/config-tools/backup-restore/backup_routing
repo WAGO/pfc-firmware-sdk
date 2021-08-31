@@ -4,23 +4,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2021 WAGO Kontakttechnik GmbH & Co. KG
 
 set -u
 
-ROUTING_CONFIG_FILE="/etc/specific/routing.conf"
-ROUTING_CONFIG_TMP_FILE="/etc/specific/routing.conf.tmp"
-ROUTING_CONFIG_PREFIX="routing"
-MOVE="/bin/mv"
-
 # load general definitions and functions
-if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
-    print_dbg "config_tool_lib missing"
+if [ ! -f "/etc/config-tools/config_routing_lib" ]; then
+    print_dbg "config_routing_lib missing"
     exit 64
 fi
 
-. "/etc/config-tools/config_tool_lib"
+. "/etc/config-tools/config_routing_lib"
 
+ROUTING_CONFIG_TMP_FILE="/etc/specific/routing.conf.tmp"
+ROUTING_CONFIG_PREFIX="routing"
+ROUTING_CONFIG_PREFIX_V2="routing-v2"
+MOVE="/bin/mv"
 
 function PrintUsage
 {
@@ -36,7 +35,7 @@ function PrintUsage
 #
 function Log
 {
-    [[ $# > 0 ]] && logger -t "backup-routing" "$1"
+    [[ $# -gt 0 ]] && logger -t "backup-routing" "$1"
 }
 
 
@@ -71,24 +70,27 @@ function ReadConfigFile
 function WriteConfigFile
 {
     # Write temporary file first. After write operation is completed move temporary file to routing config file.
-    local count
-    local index
     local status=$SUCCESS
-
+    
     # Write general routing parameters
     if [[ "${state-}" ]]; then
         echo "state=$state" > $ROUTING_CONFIG_TMP_FILE
 
         # Write static route parameters
-        if [[ $(IsValidStaticRouteEntries) == "true" ]]; then
-            index=0
-            count=0
-            [[ -n "${static_dest[@]-}" ]] && count="${#static_dest[@]}"
+        if [[ $(IsValidStaticRouteEntries v2) == "true" ]]; then
+            local index=0
+            local count="${#static_dest[@]}"
             [[ $count -gt 0 ]] && echo >> $ROUTING_CONFIG_TMP_FILE
             while [[ $index -lt $count ]]; do
-                echo "static_dest[$index]=${static_dest[$index]}" >> $ROUTING_CONFIG_TMP_FILE
+                local dest="${static_dest[$index]}"
+                local itf=""
+                [[ $dest == "default" ]] && dest="0.0.0.0"
+                [[ "${static_interface[*]}" ]] && itf=${static_interface[$index]}
+
+                echo "static_dest[$index]=$dest" >> $ROUTING_CONFIG_TMP_FILE
                 echo "static_dest_mask[$index]=${static_dest_mask[$index]}" >> $ROUTING_CONFIG_TMP_FILE
                 echo "static_gw[$index]=${static_gw[$index]}" >> $ROUTING_CONFIG_TMP_FILE
+                echo "static_interface[$index]=$itf" >> $ROUTING_CONFIG_TMP_FILE
                 echo "static_metric[$index]=${static_metric[$index]}" >> $ROUTING_CONFIG_TMP_FILE
                 echo "static_routing_type[$index]=${static_routing_type[$index]}" >> $ROUTING_CONFIG_TMP_FILE
                 echo "static_state[$index]=${static_state[$index]}" >> $ROUTING_CONFIG_TMP_FILE
@@ -102,7 +104,7 @@ function WriteConfigFile
         if [[ $(IsValidMasquerading) == "true" ]]; then
             index=0
             count=0
-            [[ -n "${masquerading_interface[@]-}" ]] && count="${#masquerading_interface[@]}"
+            [[ -n "${masquerading_interface[*]-}" ]] && count="${#masquerading_interface[@]}"
             [[ $count -gt 0 ]] && echo >> $ROUTING_CONFIG_TMP_FILE
             while [[ $index -lt $count ]]; do
                 echo "masquerading_interface[$index]=${masquerading_interface[$index]}" >> $ROUTING_CONFIG_TMP_FILE
@@ -118,7 +120,7 @@ function WriteConfigFile
         if [[ $(IsValidPortForwarding) == "true" ]]; then
             index=0
             count=0
-            [[ -n "${port_forwarding_interface[@]-}" ]] && count="${#port_forwarding_interface[@]}"
+            [[ -n "${port_forwarding_interface[*]-}" ]] && count="${#port_forwarding_interface[@]}"
             [[ $count -gt 0 ]] && echo >> $ROUTING_CONFIG_TMP_FILE
             while [[ $index -lt $count ]]; do
                 echo "port_forwarding_interface[$index]=${port_forwarding_interface[$index]}" >> $ROUTING_CONFIG_TMP_FILE
@@ -145,60 +147,100 @@ function WriteConfigFile
 
 # Check if all arrays representing the static route configuration are defined and equal sized.
 #
-# Output: true,  in case all arrays are defined and have same element count or all arrays are undefined, representing an element count of zero.
+# Output: true,  in case all arrays are defined and have same element count.
 #         false, in case array sizes differ or only part of arrays are undefined
 #
 function IsValidStaticRouteEntries
 {
-    if [[ "${static_dest_mask-}" && "${static_gw-}" && "${static_metric-}" && "${static_routing_type-}" && "${static_state-}" ]]; then
-         
-        local count=${#static_dest[@]}
-        if [[   ${#static_dest_mask[@]} == $count
-             && ${#static_gw[@]} == $count
-             && ${#static_metric[@]} == $count
-             && ${#static_routing_type[@]} == $count
-             && ${#static_state[@]} == $count ]]; then
-            echo "true"
-        else
-            echo "false"
-        fi
+    local version="$1"
+    local isValid="false"
+    local count=${#static_dest[@]}
+    if [[   ${#static_dest_mask[@]} -eq $count
+            && ${#static_gw[@]} -eq $count
+            && ${#static_metric[@]} -eq $count
+            && ${#static_routing_type[@]} -eq $count
+            && ${#static_state[@]} -eq $count ]]; then
+        isValid="true"
     else
-        if [[ "${static_dest_mask-}" || "${static_gw-}" || "${static_metric-}" || "${static_routing_type-}" || "${static_state-}" ]]; then
-            echo "false"
-        else
-            # All entries are zero; no static routes were specified.
-            echo "true"
-        fi
+        isValid="false"
     fi
+
+    if [[ $isValid == "true" && $version == "v2" ]]; then
+        [[ ${#static_interface[@]} -ne $count ]] && isValid="false"
+    fi
+
+    echo $isValid
 }
 
+function PrintStaticRouteEntryV1
+{
+    local count=$1
+    local file=$2
+
+    local index=0
+    local v1Index=0 # In case of version 1 we do not save array entries containing interface data.
+    while [[ $index -lt $count ]]; do
+        if [[ -z "${static_interface[$index]}" ]]; then
+            # For version V1 we expect a maximum of two default gateways labed with "fixed" routing type.
+            # If we find more than two default gateways they are relabeled to "default" routing type.
+            local type=${static_routing_type[$index]}
+            [[ $v1Index -gt 1 ]] && type=default
+
+            local gw="${static_gw[$index]}"
+            [[ -z "$gw" ]] && gw="0.0.0.0"
+
+            echo "${ROUTING_CONFIG_PREFIX}-static-dest=$v1Index|${static_dest[$index]}" >> $file
+            echo "${ROUTING_CONFIG_PREFIX}-static-dest-mask=$v1Index|${static_dest_mask[$index]}" >> $file
+            echo "${ROUTING_CONFIG_PREFIX}-static-gw=$v1Index|$gw" >> $file
+            echo "${ROUTING_CONFIG_PREFIX}-static-metric=$v1Index|${static_metric[$index]}" >> $file
+            echo "${ROUTING_CONFIG_PREFIX}-static-routing-type=$v1Index|$type" >> $file
+            echo "${ROUTING_CONFIG_PREFIX}-static-state=$v1Index|${static_state[$index]}" >> $file
+            ((v1Index++))
+        fi
+        ((index++))
+    done
+}
+
+function PrintStaticRouteEntryV2
+{
+    local count=$1
+    local file=$2
+
+    local index=0
+    while [[ $index -lt $count ]]; do
+        echo "${ROUTING_CONFIG_PREFIX_V2}-static-dest=$index|${static_dest[$index]}" >> $file
+        echo "${ROUTING_CONFIG_PREFIX_V2}-static-dest-mask=$index|${static_dest_mask[$index]}" >> $file
+        echo "${ROUTING_CONFIG_PREFIX_V2}-static-gw=$index|${static_gw[$index]}" >> $file
+        echo "${ROUTING_CONFIG_PREFIX_V2}-static-interface=$index|${static_interface[$index]}" >> $file
+        echo "${ROUTING_CONFIG_PREFIX_V2}-static-metric=$index|${static_metric[$index]}" >> $file
+        echo "${ROUTING_CONFIG_PREFIX_V2}-static-routing-type=$index|${static_routing_type[$index]}" >> $file
+        echo "${ROUTING_CONFIG_PREFIX_V2}-static-state=$index|${static_state[$index]}" >> $file
+        ((index++))
+    done
+}
 
 # Append static route configuration to backup file.
+#
+# In version 2 it is possible to specify an interface for a static route.
 #
 # Output: returns config tool status, see /etc/config-tools/config_tool_defines.
 #
 function PrintStaticRouteEntries
 {
-    local count=0
-    local index=0
-    local status=$SUCCESS
-    local file=$1
-    
-    [[ -n "${static_dest[@]-}" ]] && count="${#static_dest[@]}"
-    [[ $(IsValidStaticRouteEntries) == "false" ]] && status=$CONFIG_FILE_INCONSISTENT
+    local version=$1
+    local file=$2
 
-    if [[ $status == $SUCCESS ]]; then
-        while [[ $index -lt $count ]]; do
-            echo "${ROUTING_CONFIG_PREFIX}-static-dest=$index|${static_dest[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-static-dest-mask=$index|${static_dest_mask[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-static-gw=$index|${static_gw[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-static-metric=$index|${static_metric[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-static-routing-type=$index|${static_routing_type[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-static-state=$index|${static_state[$index]}" >> $file
-            ((index++))
-        done
-    fi
+    local status=$SUCCESS
     
+    local count="${#static_dest[@]}"
+    [[ $(IsValidStaticRouteEntries $version) == "false" ]] && status=$CONFIG_FILE_INCONSISTENT
+
+    if [[ "$version" == "v1" ]]; then
+        PrintStaticRouteEntryV1 $count $file
+    else
+        PrintStaticRouteEntryV2 $count $file
+    fi
+
     return $status
 }
 
@@ -212,8 +254,8 @@ function IsValidMasquerading
 {
     if [[ "${masquerading_interface-}" && "${masquerading_state-}" && "${masquerading_routing_type-}" ]]; then
         local count=${#masquerading_interface[@]}
-        if [[    ${#masquerading_state[@]} == $count
-              && ${#masquerading_routing_type[@]} == $count ]]; then
+        if [[    ${#masquerading_state[@]} -eq $count
+              && ${#masquerading_routing_type[@]} -eq $count ]]; then
             echo "true"
         else
             echo "false"
@@ -238,17 +280,21 @@ function PrintMasqueradingEntries
     local count=0
     local index=0
     local status=$SUCCESS
-    local file=$1
+    local version=$1
+    local file=$2
+
+    local prefix=$ROUTING_CONFIG_PREFIX_V2
+    [[ "$version" == v1 ]] && prefix=$ROUTING_CONFIG_PREFIX
 
     # Ensure all arrays have the same element count.
-    [[ -n "${masquerading_interface[@]-}" ]] && count=${#masquerading_interface[@]}
+    [[ -n "${masquerading_interface[*]-}" ]] && count=${#masquerading_interface[@]}
     [[ $(IsValidMasquerading) == "false" ]] && status=$CONFIG_FILE_INCONSISTENT
 
-    if [[ $status == $SUCCESS ]]; then
+    if [[ $status -eq $SUCCESS ]]; then
         while [[ $index -lt $count ]]; do
-            echo "${ROUTING_CONFIG_PREFIX}-masquerading-interface=$index|${masquerading_interface[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-masquerading-state=$index|${masquerading_state[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-masquerading-routing-type=$index|${masquerading_routing_type[$index]}" >> $file
+            echo "${prefix}-masquerading-interface=$index|${masquerading_interface[$index]}" >> $file
+            echo "${prefix}-masquerading-state=$index|${masquerading_state[$index]}" >> $file
+            echo "${prefix}-masquerading-routing-type=$index|${masquerading_routing_type[$index]}" >> $file
             ((index++))
         done
     fi
@@ -266,11 +312,11 @@ function IsValidPortForwarding
 {
     if [[ "${port_forwarding_state-}" && "${port_forwarding_port-}" && "${port_forwarding_protocol-}" && "${port_forwarding_forward_ip-}" && "${port_forwarding_forward_port-}" ]]; then
         local count=${#port_forwarding_interface[@]}
-        if [[    ${#port_forwarding_state[@]} == $count
-              && ${#port_forwarding_port[@]} == $count
-              && ${#port_forwarding_protocol[@]} == $count
-              && ${#port_forwarding_forward_ip[@]} == $count
-              && ${#port_forwarding_forward_port[@]} == $count ]]; then
+        if [[    ${#port_forwarding_state[@]} -eq $count
+              && ${#port_forwarding_port[@]} -eq $count
+              && ${#port_forwarding_protocol[@]} -eq $count
+              && ${#port_forwarding_forward_ip[@]} -eq $count
+              && ${#port_forwarding_forward_port[@]} -eq $count ]]; then
             echo "true"
         else
             echo "false"
@@ -295,19 +341,23 @@ function PrintPortForwardingEntries
     local count=0
     local index=0
     local status=$SUCCESS
-    local file=$1
-    
-    [[ -n "${port_forwarding_interface[@]-}" ]] && count="${#port_forwarding_interface[@]}"
+    local version=$1
+    local file=$2
+
+    local prefix=$ROUTING_CONFIG_PREFIX_V2
+    [[ "$version" == v1 ]] && prefix=$ROUTING_CONFIG_PREFIX
+
+    [[ -n "${port_forwarding_interface[*]-}" ]] && count="${#port_forwarding_interface[@]}"
     [[ $(IsValidPortForwarding) == "false" ]] && status=$CONFIG_FILE_INCONSISTENT
 
-    if [[ $status == $SUCCESS ]]; then
+    if [[ $status -eq $SUCCESS ]]; then
         while [[ $index -lt $count ]]; do
-            echo "${ROUTING_CONFIG_PREFIX}-port-forwarding-interface=$index|${port_forwarding_interface[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-port-forwarding-state=$index|${port_forwarding_state[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-port-forwarding-port=$index|${port_forwarding_port[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-port-forwarding-protocol=$index|${port_forwarding_protocol[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-port-forwarding-forward-ip=$index|${port_forwarding_forward_ip[$index]}" >> $file
-            echo "${ROUTING_CONFIG_PREFIX}-port-forwarding-forward-port=$index|${port_forwarding_forward_port[$index]}" >> $file
+            echo "${prefix}-port-forwarding-interface=$index|${port_forwarding_interface[$index]}" >> $file
+            echo "${prefix}-port-forwarding-state=$index|${port_forwarding_state[$index]}" >> $file
+            echo "${prefix}-port-forwarding-port=$index|${port_forwarding_port[$index]}" >> $file
+            echo "${prefix}-port-forwarding-protocol=$index|${port_forwarding_protocol[$index]}" >> $file
+            echo "${prefix}-port-forwarding-forward-ip=$index|${port_forwarding_forward_ip[$index]}" >> $file
+            echo "${prefix}-port-forwarding-forward-port=$index|${port_forwarding_forward_port[$index]}" >> $file
             ((index++))
         done
     fi
@@ -328,26 +378,56 @@ function GetParameterCount
     local status
     local count=0
     
-    # Subsequent variables and arrays might be set during ReadConfigFile call.
-    declare state
-    declare -a static_dest
-    declare -a masquerading_interface
-    declare -a port_forwarding_interface
-    
     ReadConfigFile
     status=$?
     
-    if [[ $status == $SUCCESS ]]; then
+    if [[ $status -eq $SUCCESS ]]; then
         # add 1 for general routing state
         [[ "${state-}" ]] && ((count++))
         # add array sizes
-        [[ "${static_dest-}" ]] && (( count+=(${#static_dest[@]} * 6) ))
-        [[ "${masquerading_interface-}" ]] && (( count+=(${#masquerading_interface[@]} * 3) ))
-        [[ "${port_forwarding_interface-}" ]] && (( count+=(${#port_forwarding_interface[@]} * 6) ))
+        (( count+=(${#static_dest[@]} * 7) ))
+        (( count+=(${#masquerading_interface[@]} * 3) ))
+        (( count+=(${#port_forwarding_interface[@]} * 6) ))
     fi
     
     echo $count
     return $status
+}
+
+function PrintBackupFileContent
+{
+    local version="$1"
+    
+    local prefix=$ROUTING_CONFIG_PREFIX_V2
+    [[ "$version" == v1 ]] && prefix=$ROUTING_CONFIG_PREFIX
+
+    # general routing state
+    echo "${prefix}-state=$state" >> $file
+    # arrays
+    PrintStaticRouteEntries $version $file
+    [[ $? -ne $SUCCESS ]] && Log "File contains inconsistent static routing entries: $file."
+    PrintMasqueradingEntries $version $file
+    [[ $? -ne $SUCCESS ]] && Log "File contains inconsistent ip masquerading entries: $file."
+    PrintPortForwardingEntries $version $file
+    [[ $? -ne $SUCCESS ]] && Log "File contains inconsistent port forwarding entries: $file."
+}
+
+# Extend data of version 1 to fit requirements of version 2 (add interface entry).
+function ExtendToVersion2
+{
+    if [[ $(IsValidStaticRouteEntries v1) == "false" ]]; then
+        status=$CONFIG_FILE_INCONSISTENT
+        return $status
+    fi
+
+    local count=${#static_dest[@]}
+    local i=0
+    while [[ $i -lt $count ]]; do
+        static_interface[$i]=""
+        ((i++))
+    done
+
+    return $SUCCESS
 }
 
 
@@ -361,25 +441,15 @@ function Save
     local status
     local file=$1
     
-    # Subsequent variables and arrays might be set during ReadConfigFile call.
-    declare state
-    declare -a static_dest
-    declare -a masquerading_interface
-    declare -a port_forwarding_interface
-    
     # Read config file: . "$CONFIG_FILE"
     ReadConfigFile
     status=$?
     
     # Write arrays to file, adding prefix.
-    if [[ $status == $SUCCESS ]]; then
+    if [[ $status -eq $SUCCESS ]]; then
         if [[ "${state-}" ]]; then
-            # general routing state
-            echo "${ROUTING_CONFIG_PREFIX}-state=$state" >> $file
-            # arrays
-            [[ "${static_dest-}" ]] && (PrintStaticRouteEntries $file; status=$?)
-            [[ "${masquerading_interface-}" && $status == $SUCCESS ]] && (PrintMasqueradingEntries $file; status=$?)
-            [[ "${port_forwarding_interface-}" && $status == $SUCCESS ]] && (PrintPortForwardingEntries $file; status=$?)
+            PrintBackupFileContent v1 $file
+            PrintBackupFileContent v2 $file
         else
             Log "$0: Inconsistent routing configuration file. General routing state parameter missing."
             status=$CONFIG_FILE_INCONSISTENT
@@ -399,60 +469,52 @@ function Restore
 {
     local status=$SUCCESS
     local file=$1
+    local prefix=$ROUTING_CONFIG_PREFIX_V2
     declare -a routing_params
-    declare state
-    
-    # Subsequent variables and arrays might be set during file parse process.
-    # Static route parameters
-    declare -a static_dest
-    declare -a static_dest_mask
-    declare -a static_gw
-    declare -a static_metric
-    declare -a static_routing_type # Cannot be modified by user.
-    declare -a static_state # read only
-
-    # Masquerading parameters
-    declare -a masquerading_interface
-    declare -a masquerading_state
-    declare -a masquerading_routing_type # Cannot be modified by user.
-
-    # Port-Forwarding parameters
-    declare -a port_forwarding_state
-    declare -a port_forwarding_interface
-    declare -a port_forwarding_port
-    declare -a port_forwarding_protocol
-    declare -a port_forwarding_forward_ip
-    declare -a port_forwarding_forward_port
-    
     
     # Get routing relevant data from file: grep for prefix
     # Store each line to array.
-    if [[ $status == $SUCCESS ]]; then
+    
+    routing_params=($(grep ^$ROUTING_CONFIG_PREFIX_V2 $file))
+    if [[ -z "${routing_params-}" ]]; then
         routing_params=($(grep ^$ROUTING_CONFIG_PREFIX $file))
-        [[ -z "${routing_params-}" ]] && status=$CONFIG_FILE_INCONSISTENT
+        [[ "${routing_params-}" ]] && prefix=$ROUTING_CONFIG_PREFIX || status=$CONFIG_FILE_INCONSISTENT
     fi
     
-    if [[ $status == $SUCCESS ]]; then
+    if [[ $status -eq $SUCCESS ]]; then
         # TODO: Do we realy need to backup the internal field separator here?
         IFS_BKP=$IFS
 
         # Parse array entries
-        for entry in ${routing_params[@]}; do
+        for entry in "${routing_params[@]}"; do
             IFS='=|' # reset internal field separator
             param=($entry)
             if [[ ${#param[@]} == 3 ]]; then
-                name=${param[0]/${ROUTING_CONFIG_PREFIX}-/}
+                name=${param[0]/${prefix}-/}
                 # Initialize array element
-                read "${name//-/_}[${param[1]}]" <<< ${param[2]}
+                read "${name//-/_}[${param[1]}]" <<< "${param[2]}"
                 
             elif [[ ${#param[@]} == 2 ]]; then
-                name=${param[0]/${ROUTING_CONFIG_PREFIX}-/}
-                printf -v "${name//-/_}" "${param[1]}"
+                name=${param[0]/${prefix}-/}
+                local pat='static-gw|static-interface' # gw or interface might be empty
+                if [[ "$name" =~ $pat  ]]; then
+                    read "${name//-/_}[${param[1]}]" <<< ""
+                else
+                    printf -v "${name//-/_}" "${param[1]}"
+                fi
             fi
         done
         
+        if [[ $status -eq $SUCCESS && "$prefix" == "$ROUTING_CONFIG_PREFIX" ]]; then
+            ExtendToVersion2
+            status=$?
+        fi
+
         # Write configuration file.
-        [[ $status == $SUCCESS ]] && WriteConfigFile
+        if [[ $status -eq $SUCCESS ]]; then
+            WriteConfigFile
+            "$VALIDATE_GATEWAY_CONFIG" start
+        fi
     fi
     
     return $status
@@ -462,6 +524,32 @@ function Restore
 #### MAIN ##########################################################################################
 
 status=$SUCCESS
+
+# Subsequent variables and arrays might be set during file parse process.
+state=""
+
+# Static route parameters
+declare -a static_dest=( )
+declare -a static_dest_mask=( )
+declare -a static_gw=( )
+declare -a static_interface=( )
+declare -a static_metric=( )
+declare -a static_routing_type=( ) # Cannot be modified by user.
+declare -a static_state=( ) # read only
+
+# Masquerading parameters
+declare -a masquerading_interface=( )
+declare -a masquerading_state=( )
+declare -a masquerading_routing_type=( ) # Cannot be modified by user.
+
+# Port-Forwarding parameters
+declare -a port_forwarding_state=( )
+declare -a port_forwarding_interface=( )
+declare -a port_forwarding_port=( )
+declare -a port_forwarding_protocol=( )
+declare -a port_forwarding_forward_ip=( )
+declare -a port_forwarding_forward_port=( )
+
 
 if [[ $# -ge 1 ]]; then
     operation=$1

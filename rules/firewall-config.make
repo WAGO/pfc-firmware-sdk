@@ -33,10 +33,20 @@ FIREWALL_CONFIG_MAKE_ENV       := $(CROSS_ENV) \
 BUILDCONFIG=$(FIREWALL_CONFIG_BUILDCONFIG) \
 BIN_DIR=$(FIREWALL_CONFIG_BUILD_DIR) \
 SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
+
+# ptxdist update: ptx/get_alternative has been renamed to ptx/get-alternative.
+# FIXME PTXDIST_UPDATE
+ifeq ($(PTXCONF_CONFIGFILE_VERSION),"2020.08.0")
+FIREWALL_CONFIG_IPTABLES        := $(call ptx/get-alternative, projectroot, etc/firewall/iptables)
+FIREWALL_CONFIG_EBTABLES        := $(call ptx/get-alternative, projectroot, etc/firewall/ebtables)
+FIREWALL_CONFIG_SERVICES        := $(call ptx/get-alternative, projectroot, etc/firewall/services)
+FIREWALL_CONFIG_TEMPLATES       := $(call ptx/get-alternative, projectroot, etc/firewall/templates)
+else
 FIREWALL_CONFIG_IPTABLES        := $(call ptx/get_alternative, projectroot, etc/firewall/iptables)
 FIREWALL_CONFIG_EBTABLES        := $(call ptx/get_alternative, projectroot, etc/firewall/ebtables)
 FIREWALL_CONFIG_SERVICES        := $(call ptx/get_alternative, projectroot, etc/firewall/services)
 FIREWALL_CONFIG_TEMPLATES       := $(call ptx/get_alternative, projectroot, etc/firewall/templates)
+endif
 
 # ----------------------------------------------------------------------------
 # Extract
@@ -160,6 +170,7 @@ endif
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iec60870_5_104/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/iec61850_mms/firewall)
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/profinet/firewall)
+	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/config-tools/events/opcua/firewall)
 
 ifdef PTXCONF_INITMETHOD_BBINIT
 	@$(call install_alternative, firewall-config, 0, 0, 0700, /etc/init.d/firewall)

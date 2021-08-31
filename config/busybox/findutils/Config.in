@@ -4,39 +4,39 @@
 # see docs/Kconfig-language.txt.
 #
 
-menu "Busybox Finding Utilities"
+menu "Finding Utilities"
 
 config BUSYBOX_FIND
 	bool "find (14 kb)"
 	default y
 	help
-	  find is used to search your system to find specified files.
+	find is used to search your system to find specified files.
 
 config BUSYBOX_FEATURE_FIND_PRINT0
 	bool "Enable -print0: NUL-terminated output"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Causes output names to be separated by a NUL character
-	  rather than a newline. This allows names that contain
-	  newlines and other whitespace to be more easily
-	  interpreted by other programs.
+	Causes output names to be separated by a NUL character
+	rather than a newline. This allows names that contain
+	newlines and other whitespace to be more easily
+	interpreted by other programs.
 
 config BUSYBOX_FEATURE_FIND_MTIME
 	bool "Enable -mtime: modified time matching"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Allow searching based on the modification time of
-	  files, in days.
+	Allow searching based on the modification time of
+	files, in days.
 
 config BUSYBOX_FEATURE_FIND_MMIN
 	bool "Enable -mmin: modified time matching by minutes"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Allow searching based on the modification time of
-	  files, in minutes.
+	Allow searching based on the modification time of
+	files, in minutes.
 
 config BUSYBOX_FEATURE_FIND_PERM
 	bool "Enable -perm: permissions matching"
@@ -48,8 +48,8 @@ config BUSYBOX_FEATURE_FIND_TYPE
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Enable searching based on file type (file,
-	  directory, socket, device, etc.).
+	Enable searching based on file type (file,
+	directory, socket, device, etc.).
 
 config BUSYBOX_FEATURE_FIND_EXECUTABLE
 	bool "Enable -executable: file is executable"
@@ -71,8 +71,8 @@ config BUSYBOX_FEATURE_FIND_NEWER
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Support the 'find -newer' option for finding any files which have
-	  modification time that is more recent than the specified FILE.
+	Support the 'find -newer' option for finding any files which have
+	modification time that is more recent than the specified FILE.
 
 config BUSYBOX_FEATURE_FIND_INUM
 	bool "Enable -inum: inode number matching"
@@ -84,18 +84,18 @@ config BUSYBOX_FEATURE_FIND_EXEC
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Support the 'find -exec' option for executing commands based upon
-	  the files matched.
+	Support the 'find -exec' option for executing commands based upon
+	the files matched.
 
 config BUSYBOX_FEATURE_FIND_EXEC_PLUS
 	bool "Enable -exec ... {} +"
 	default y
 	depends on BUSYBOX_FEATURE_FIND_EXEC
 	help
-	  Support the 'find -exec ... {} +' option for executing commands
-	  for all matched files at once.
-	  Without this option, -exec + is a synonym for -exec ;
-	  (IOW: it works correctly, but without expected speedup)
+	Support the 'find -exec ... {} +' option for executing commands
+	for all matched files at once.
+	Without this option, -exec + is a synonym for -exec ;
+	(IOW: it works correctly, but without expected speedup)
 
 config BUSYBOX_FEATURE_FIND_USER
 	bool "Enable -user: username/uid matching"
@@ -112,23 +112,23 @@ config BUSYBOX_FEATURE_FIND_NOT
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Support the '!' operator to invert the test results.
-	  If 'Enable full-blown desktop' is enabled, then will also support
-	  the non-POSIX notation '-not'.
+	Support the '!' operator to invert the test results.
+	If 'Enable full-blown desktop' is enabled, then will also support
+	the non-POSIX notation '-not'.
 
 config BUSYBOX_FEATURE_FIND_DEPTH
 	bool "Enable -depth"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Process each directory's contents before the directory itself.
+	Process each directory's contents before the directory itself.
 
 config BUSYBOX_FEATURE_FIND_PAREN
 	bool "Enable parens in options"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Enable usage of parens '(' to specify logical order of arguments.
+	Enable usage of parens '(' to specify logical order of arguments.
 
 config BUSYBOX_FEATURE_FIND_SIZE
 	bool "Enable -size: file size matching"
@@ -140,125 +140,123 @@ config BUSYBOX_FEATURE_FIND_PRUNE
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  If the file is a directory, don't descend into it. Useful for
-	  exclusion .svn and CVS directories.
+	If the file is a directory, don't descend into it. Useful for
+	exclusion .svn and CVS directories.
 
 config BUSYBOX_FEATURE_FIND_QUIT
 	bool "Enable -quit: exit"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  If this action is reached, 'find' exits.
+	If this action is reached, 'find' exits.
 
 config BUSYBOX_FEATURE_FIND_DELETE
 	bool "Enable -delete: delete files/dirs"
 	default y
 	depends on BUSYBOX_FIND && BUSYBOX_FEATURE_FIND_DEPTH
 	help
-	  Support the 'find -delete' option for deleting files and directories.
-	  WARNING: This option can do much harm if used wrong. Busybox will not
-	  try to protect the user from doing stupid things. Use with care.
+	Support the 'find -delete' option for deleting files and directories.
+	WARNING: This option can do much harm if used wrong. Busybox will not
+	try to protect the user from doing stupid things. Use with care.
 
 config BUSYBOX_FEATURE_FIND_PATH
 	bool "Enable -path: match pathname with shell pattern"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  The -path option matches whole pathname instead of just filename.
+	The -path option matches whole pathname instead of just filename.
 
 config BUSYBOX_FEATURE_FIND_REGEX
 	bool "Enable -regex: match pathname with regex"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  The -regex option matches whole pathname against regular expression.
+	The -regex option matches whole pathname against regular expression.
 
 config BUSYBOX_FEATURE_FIND_CONTEXT
 	bool "Enable -context: security context matching"
 	default n
 	depends on BUSYBOX_FIND && BUSYBOX_SELINUX
 	help
-	  Support the 'find -context' option for matching security context.
+	Support the 'find -context' option for matching security context.
 
 config BUSYBOX_FEATURE_FIND_LINKS
 	bool "Enable -links: link count matching"
 	default y
 	depends on BUSYBOX_FIND
 	help
-	  Support the 'find -links' option for matching number of links.
-
+	Support the 'find -links' option for matching number of links.
 config BUSYBOX_GREP
 	bool "grep (8.6 kb)"
 	default y
 	help
-	  grep is used to search files for a specified pattern.
+	grep is used to search files for a specified pattern.
 
 config BUSYBOX_EGREP
 	bool "egrep (7.8 kb)"
 	default y
 	help
-	  Alias to "grep -E".
+	Alias to "grep -E".
 
 config BUSYBOX_FGREP
 	bool "fgrep (7.8 kb)"
 	default y
 	help
-	  Alias to "grep -F".
+	Alias to "grep -F".
 
 config BUSYBOX_FEATURE_GREP_CONTEXT
 	bool "Enable before and after context flags (-A, -B and -C)"
 	default y
 	depends on BUSYBOX_GREP || BUSYBOX_EGREP || BUSYBOX_FGREP
 	help
-	  Print the specified number of leading (-B) and/or trailing (-A)
-	  context surrounding our matching lines.
-	  Print the specified number of context lines (-C).
-
+	Print the specified number of leading (-B) and/or trailing (-A)
+	context surrounding our matching lines.
+	Print the specified number of context lines (-C).
 config BUSYBOX_XARGS
 	bool "xargs (7.2 kb)"
 	default y
 	help
-	  xargs is used to execute a specified command for
-	  every item from standard input.
+	xargs is used to execute a specified command for
+	every item from standard input.
 
 config BUSYBOX_FEATURE_XARGS_SUPPORT_CONFIRMATION
 	bool "Enable -p: prompt and confirmation"
 	default y
 	depends on BUSYBOX_XARGS
 	help
-	  Support -p: prompt the user whether to run each command
-	  line and read a line from the terminal.
+	Support -p: prompt the user whether to run each command
+	line and read a line from the terminal.
 
 config BUSYBOX_FEATURE_XARGS_SUPPORT_QUOTES
 	bool "Enable single and double quotes and backslash"
 	default y
 	depends on BUSYBOX_XARGS
 	help
-	  Support quoting in the input.
+	Support quoting in the input.
 
 config BUSYBOX_FEATURE_XARGS_SUPPORT_TERMOPT
 	bool "Enable -x: exit if -s or -n is exceeded"
 	default y
 	depends on BUSYBOX_XARGS
 	help
-	  Support -x: exit if the command size (see the -s or -n option)
-	  is exceeded.
+	Support -x: exit if the command size (see the -s or -n option)
+	is exceeded.
 
 config BUSYBOX_FEATURE_XARGS_SUPPORT_ZERO_TERM
 	bool "Enable -0: NUL-terminated input"
 	default y
 	depends on BUSYBOX_XARGS
 	help
-	  Support -0: input items are terminated by a NUL character
-	  instead of whitespace, and the quotes and backslash
-	  are not special.
+	Support -0: input items are terminated by a NUL character
+	instead of whitespace, and the quotes and backslash
+	are not special.
 
 config BUSYBOX_FEATURE_XARGS_SUPPORT_REPL_STR
 	bool "Enable -I STR: string to replace"
 	default y
 	depends on BUSYBOX_XARGS
 	help
-	  Support -I STR and -i[STR] options.
+	Support -I STR and -i[STR] options.
 
 config BUSYBOX_FEATURE_XARGS_SUPPORT_PARALLEL
 	bool "Enable -P N: processes to run in parallel"

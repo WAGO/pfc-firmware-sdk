@@ -32,6 +32,8 @@ DBusHandlerRegistry::DBusHandlerRegistry() {
 
   GSignalConnect(interface_config_, "handle-getinterfaceconfig", GetInterfaceConfig, this);
 
+  GSignalConnect(interface_config_, "handle-getinterfacestatuses", GetInterfaceStatuses, this);
+
   // ip_config
   ip_object_ = netconfd_object_skeleton_new("/de/wago/netconfd/ip_config");
   ip_config_ = netconfd_ip_config_skeleton_new();
@@ -159,6 +161,21 @@ gboolean DBusHandlerRegistry::GetInterfaceConfig(netconfdInterface_config *objec
   } else {
     g_dbus_method_invocation_return_dbus_error(
         invocation, "de.wago.netconfd1.interface_config.Error.GetInterfaceConfig", "No Handler for Get request");
+  }
+  return true;
+}
+
+gboolean DBusHandlerRegistry::GetInterfaceStatuses(netconfdInterface_config *object, GDBusMethodInvocation *invocation,
+                                                 gpointer user_data) {
+  auto this_ = reinterpret_cast<DBusHandlerRegistry *>(user_data);
+
+  if (this_->get_interface_statuses_handler_) {
+    string data;
+    auto result = this_->get_interface_statuses_handler_(data);
+    netconfd_interface_config_complete_getinterfacestatuses(object, invocation, data.c_str(), result.c_str());
+  } else {
+    g_dbus_method_invocation_return_dbus_error(
+        invocation, "de.wago.netconfd1.interface_config.Error.GetInterfaceStatuses", "No Handler for Get request");
   }
   return true;
 }

@@ -13,37 +13,37 @@ namespace api {
  * The part of the implementation of IPConfig.hpp that can be mocked by means of link time substitution
  */
 
-static Error ToIPConfigs(const DbusResult& result, IPConfigs& config){
-  auto error = result.error_;
-  if (error.Ok()) {
+static Status ToIPConfigs(const DbusResult& result, IPConfigs& config){
+  auto status = result.error_;
+  if (status.Ok()) {
     JsonConverter jc;
     netconf::IPConfigs nip;
 
-    error = jc.FromJsonString(result.value_json_, nip);
+    status = jc.FromJsonString(result.value_json_, nip);
     config = IPConfigs{nip};
   }
-  return error;
+  return status;
 }
 
-Error GetIPConfigs(IPConfigs& config) {
+Status GetIPConfigs(IPConfigs& config) {
   NetconfdDbusClient client;
   auto result = client.GetIpConfigs();
   return ToIPConfigs(result, config);
 }
 
-Error GetCurrentIPConfigs(IPConfigs& config) {
+Status GetCurrentIPConfigs(IPConfigs& config) {
   NetconfdDbusClient client;
   auto result = client.GetCurrentIpConfigs();
   return ToIPConfigs(result, config);
 }
 
-Error SetIPConfigs(const IPConfigs &config) {
+Status SetIPConfigs(const IPConfigs &config) {
   NetconfdDbusClient client;
   auto result = client.SetIpConfigs(ToJson(config));
   return result.error_;
 }
 
-Error SetTempFixIp() {
+Status SetTempFixIp() {
   NetconfdDbusClient client;
   auto result = client.SetTemporaryFixedIpAddress();
   return result.error_;

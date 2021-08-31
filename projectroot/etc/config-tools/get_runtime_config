@@ -38,6 +38,7 @@ fi
 # Map config tool values to config_runtime version.
 # Config file holds values according to other config tools due to
 # compatibility reasons.
+DEFAULT_WEBPAGE=$(/etc/config-tools/get_coupler_details default-webserver)
 if [ "$DEFAULT_WEBPAGE" = "Webserver" ]; then
     DEFAULT_WEBPAGE="WBM"
 else

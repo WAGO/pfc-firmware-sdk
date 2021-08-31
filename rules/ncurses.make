@@ -1,8 +1,6 @@
 # -*-makefile-*-
 #
 # Copyright (C) 2002-2009 by Pengutronix e.K., Hildesheim, Germany
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -15,41 +13,16 @@ PACKAGES-$(PTXCONF_NCURSES) += ncurses
 #
 # Paths and names
 #
-NCURSES_BASEVERSION	:= 6.1
-NCURSES_VERSION	:= $(NCURSES_BASEVERSION)-20181020
-NCURSES_MAJOR	:= $(word 1,$(subst ., ,$(NCURSES_BASEVERSION)))
-NCURSES_MD5	:= 98c889aaf8d23910d2b92d65be2e737a
-NCURSES		:= ncurses-$(NCURSES_BASEVERSION)
+NCURSES_VERSION	:= 6.2
+NCURSES_MAJOR	:= $(word 1,$(subst ., ,$(NCURSES_VERSION)))
+NCURSES_MD5	:= e812da327b1c2214ac1aed440ea3ae8d
+NCURSES		:= ncurses-$(NCURSES_VERSION)
 NCURSES_SUFFIX	:= tar.gz
 NCURSES_URL	:= $(call ptx/mirror, GNU, ncurses/$(NCURSES).$(NCURSES_SUFFIX))
 NCURSES_SOURCE	:= $(SRCDIR)/$(NCURSES).$(NCURSES_SUFFIX)
 NCURSES_DIR	:= $(BUILDDIR)/$(NCURSES)
 NCURSES_LICENSE	:= MIT
-NCURSES_LICENSE_FILES	:= \
-	file://include/curses.h.in;startline=2;endline=26;md5=12de1a79061c9246decc146201452dc5
-
-# ----------------------------------------------------------------------------
-# Extract
-# ----------------------------------------------------------------------------
-NCURSES_PATCHDIR=$(PTXDIST_WORKSPACE)/patches/$(NCURSES)
-
-$(STATEDIR)/ncurses.extract:
-	@$(call targetinfo)
-	@$(call clean, $(NCURSES_DIR))
-	@$(call extract, NCURSES)
-
-# Applying upstream patch using their custom patching approach involving a shell script.
-	@if [[ -d $(NCURSES_PATCHDIR) ]]; then \
-		for script in $(shell ls $(NCURSES_PATCHDIR)/ncurses-*-patch.sh); do\
-			cp $$script $(NCURSES_DIR) && \
-			cd $(NCURSES_DIR) && \
-			chmod 755 $$(basename $$script) && \
-			./$$(basename $$script); \
-		done; \
-	fi
-
-	@$(call patchin, NCURSES)
-	@$(call touch)
+NCURSES_LICENSE_FILES := file://COPYING;md5=910e05334f7e0b7631da6b4ebb1e1aab
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -60,9 +33,12 @@ NCURSES_CONF_ENV := \
 	$(CROSS_ENV) \
 	TIC_PATH="$(PTXDIST_SYSROOT_HOST)/bin/tic"
 
+NCURSES_SHARED_TARGET	:= y
+NCURSES_SHARED_HOST	:=
+
 # NOTE: reentrant enables opaque, which breaks other packages
 # pthread enables reentrant, so don't enable it either
-NCURSES_AUTOCONF_SHARED := \
+NCURSES_AUTOCONF_SHARED = \
 	--without-ada \
 	--without-cxx \
 	--without-cxx-binding \
@@ -72,9 +48,10 @@ NCURSES_AUTOCONF_SHARED := \
 	--without-tests \
 	--with-curses-h \
 	--with-pkg-config-libdir=/usr/lib/pkgconfig \
-	--enable-pc-files \
+	--$(call ptx/endis,$(1))-pc-files \
 	--enable-mixed-case \
 	--without-libtool \
+	--$(call ptx/wwo,$(1))-shared \
 	--with-normal \
 	--without-debug \
 	--without-profile \
@@ -83,6 +60,7 @@ NCURSES_AUTOCONF_SHARED := \
 	--without-ticlib \
 	--without-gpm \
 	--without-dlsym \
+	--without-pcre2 \
 	--without-sysmouse \
 	--disable-rpath \
 	--disable-relink \
@@ -109,9 +87,7 @@ NCURSES_AUTOCONF_SHARED := \
 
 NCURSES_CONF_OPT := \
 	$(CROSS_AUTOCONF_USR) \
-	$(NCURSES_AUTOCONF_SHARED) \
-	--without-progs \
-	--with-shared
+	$(call NCURSES_AUTOCONF_SHARED,NCURSES_SHARED_TARGET)
 
 # ----------------------------------------------------------------------------
 # Install
@@ -165,7 +141,7 @@ endif
 $(STATEDIR)/ncurses.install.post:
 	@$(call targetinfo)
 	@$(call world/install.post, NCURSES)
-	@cp -dp -- "$(NCURSES_PKGDIR)/usr/bin/"*config* "$(PTXCONF_SYSROOT_CROSS)/bin"
+	@cp -dp -- "$(NCURSES_PKGDIR)/usr/bin/"*config* "$(PTXDIST_SYSROOT_CROSS)/bin"
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -184,22 +160,22 @@ $(STATEDIR)/ncurses.targetinstall:
 	@$(call install_lib, ncurses, 0, 0, 0644, libncurses$(NCURSES_WIDE))
 
 ifdef PTXCONF_NCURSES_BACKWARD_COMPATIBLE_NON_WIDE_CHAR
-	@$(call install_link, ncurses, libncursesw.so.$(NCURSES_BASEVERSION), \
-		/$(CROSS_LIB_DIR)/libncurses.so.$(NCURSES_BASEVERSION))
-	@$(call install_link, ncurses, libncursesw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libncursesw.so.$(NCURSES_VERSION), \
+		/$(CROSS_LIB_DIR)/libncurses.so.$(NCURSES_VERSION))
+	@$(call install_link, ncurses, libncursesw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libncurses.so.$(NCURSES_MAJOR))
-	@$(call install_link, ncurses, libncursesw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libncursesw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libncurses.so)
 endif
 
 ifdef PTXCONF_NCURSES_FORM
 	@$(call install_lib, ncurses, 0, 0, 0644, libform$(NCURSES_WIDE))
 ifdef PTXCONF_NCURSES_BACKWARD_COMPATIBLE_NON_WIDE_CHAR
-	@$(call install_link, ncurses, libformw.so.$(NCURSES_BASEVERSION), \
-		/$(CROSS_LIB_DIR)/libform.so.$(NCURSES_BASEVERSION))
-	@$(call install_link, ncurses, libformw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libformw.so.$(NCURSES_VERSION), \
+		/$(CROSS_LIB_DIR)/libform.so.$(NCURSES_VERSION))
+	@$(call install_link, ncurses, libformw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libform.so.$(NCURSES_MAJOR))
-	@$(call install_link, ncurses, libformw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libformw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libform.so)
 endif
 endif
@@ -208,11 +184,11 @@ endif
 ifdef PTXCONF_NCURSES_MENU
 	@$(call install_lib, ncurses, 0, 0, 0644, libmenu$(NCURSES_WIDE))
 ifdef PTXCONF_NCURSES_BACKWARD_COMPATIBLE_NON_WIDE_CHAR
-	@$(call install_link, ncurses, libmenuw.so.$(NCURSES_BASEVERSION), \
-		/$(CROSS_LIB_DIR)/libmenu.so.$(NCURSES_BASEVERSION))
-	@$(call install_link, ncurses, libmenuw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libmenuw.so.$(NCURSES_VERSION), \
+		/$(CROSS_LIB_DIR)/libmenu.so.$(NCURSES_VERSION))
+	@$(call install_link, ncurses, libmenuw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libmenu.so.$(NCURSES_MAJOR))
-	@$(call install_link, ncurses, libmenuw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libmenuw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libmenu.so)
 endif
 endif
@@ -221,11 +197,11 @@ endif
 ifdef PTXCONF_NCURSES_PANEL
 	@$(call install_lib, ncurses, 0, 0, 0644, libpanel$(NCURSES_WIDE))
 ifdef PTXCONF_NCURSES_BACKWARD_COMPATIBLE_NON_WIDE_CHAR
-	@$(call install_link, ncurses, libpanelw.so.$(NCURSES_BASEVERSION), \
-		/$(CROSS_LIB_DIR)/libpanel.so.$(NCURSES_BASEVERSION))
-	@$(call install_link, ncurses, libpanelw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libpanelw.so.$(NCURSES_VERSION), \
+		/$(CROSS_LIB_DIR)/libpanel.so.$(NCURSES_VERSION))
+	@$(call install_link, ncurses, libpanelw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libpanel.so.$(NCURSES_MAJOR))
-	@$(call install_link, ncurses, libpanelw.so.$(NCURSES_BASEVERSION), \
+	@$(call install_link, ncurses, libpanelw.so.$(NCURSES_VERSION), \
 		/$(CROSS_LIB_DIR)/libpanel.so)
 endif
 endif

@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2020-2021 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: update_ipwatchd
@@ -15,17 +15,25 @@
 
 set -u      # error exit on undefined shell variables
 
+# force IFS default value
+IFS=$' \t\n'
+
+function Log
+{
+    [[ $# -gt 0 ]] && logger -t "update_ipwatchd" "$1"
+}
+
 IPWATCHD_CONF="/etc/ipwatchd.conf"
 IPWATCHD="/etc/init.d/ipwatchd"
 
-bridges=($(brctl show | tail -n +2 | cut -d$'\t' -f1))
+BRCTL=/sbin/brctl
+TAIL=/usr/bin/tail
+CUT=/usr/bin/cut
 
 function update_ipwatchd() {
+    local bridges=($($BRCTL show | $TAIL -n +2 | $CUT -d$'\t' -f1))
 
-    local ifaces=""
-
-
-    cat <<-EOF > $IPWATCHD_CONF.new
+    cat <<-*heredoc* > $IPWATCHD_CONF.new
 # Note: This file is generated and will be overriden
 # IPwatchD configuration file to support gratuitous ARP for WAGO PFC200.
 # See ipwatchd.conf(5) for more details
@@ -34,28 +42,30 @@ function update_ipwatchd() {
 # wrong arp cache entries on other hosts.
 iface_configuration manual
 
-EOF
+*heredoc*
+
+    Log "Acitvate IPWatchD for interfaces: ${bridges[*]}"
 
     for bridge in "${bridges[@]}"; do
         echo "iface $bridge passive" >> $IPWATCHD_CONF.new
     done
 
-    cat <<-EOF >> $IPWATCHD_CONF.new
+    cat <<-*heredoc* >> $IPWATCHD_CONF.new
 
 defend_interval 10
 user_script /usr/sbin/ipwatchd-script
 syslog_facility daemon
-EOF
+*heredoc*
 
-diff $IPWATCHD_CONF.new $IPWATCHD_CONF > /dev/null
-if [ "$?" -eq 1 ]; then
-    sync
-    mv $IPWATCHD_CONF.new $IPWATCHD_CONF
-    sync
-    $IPWATCHD restart
-else
-    rm $IPWATCHD_CONF.new
-fi
+    diff -q $IPWATCHD_CONF.new $IPWATCHD_CONF > /dev/null
+    if [ "$?" -eq 1 ]; then
+        sync
+        mv $IPWATCHD_CONF.new $IPWATCHD_CONF
+        sync
+        $IPWATCHD restart &> /dev/null
+    else
+        rm $IPWATCHD_CONF.new
+    fi
 
 }
 

@@ -65,6 +65,25 @@ enum class SIM_INIT_STATUS
 };
 
 
+enum class PDP_CONTEXT_STATE
+{
+    DEACTIVATED = 0,
+    ACTIVATED = 1,
+};
+
+enum class AUTOCONNECT_STATE
+{
+    DEACTIVATED = 0,
+    ACTIVATED = 1,
+};
+
+enum class GPRS_STATE
+{
+    DETACHED = 0,
+    ATTACHED = 1,
+};
+
+
 class OperNameMap : public std::map<int, std::string>{};
 class OperMap : public std::map<int, Oper>{};
 class SmsList : public std::list<Sms>{};
@@ -78,7 +97,7 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     MdmSMPort *_port;
     std::string _port_read_buffer;
     int        _port_wait_count;
-    int        _cfun_wait_count;
+    bool       _cfun_wait_flag;
     bool       _siminit_wait_flag;
     bool       _sim_sms_support_flag;
     MdmTimeout *_timeout;
@@ -116,6 +135,8 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
 
     SmsList _sms_list;
     std::string _pdp_addr;
+/* Vorbereitung Abfrage ServingCellState */
+//    std::string _servingcell_state;
 
     int execute_command(const std::string &cmd, std::string &cmd_output, std::string &cmd_error);
     bool wwan_get_status(bool &is_enabled, bool &is_configured);
@@ -150,10 +171,10 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     bool is_port_enabled() const;
     void set_port_enabled(bool enabled);
     void modem_reset(ModemResetMode reset_mode);
-    int  get_cfun_wait_count() const { return _cfun_wait_count; }
-    int  inc_cfun_wait_count() { _cfun_wait_count++; return _cfun_wait_count; }
     bool get_siminit_wait_flag() const { return _siminit_wait_flag; }
     void set_siminit_wait_flag() { _siminit_wait_flag = true; }
+    bool get_cfun_wait_flag() const { return _cfun_wait_flag; }
+    void set_cfun_wait_flag() { _cfun_wait_flag = true; }
     bool get_sim_sms_support_flag() const { return _sim_sms_support_flag; }
     void set_sim_sms_support_flag() { _sim_sms_support_flag = true; }
 
@@ -190,6 +211,10 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
     void set_pdp_address( const std::string &pdp_addr );
     std::string get_pdp_address() const { return _pdp_addr; }
 
+/* Vorbereitung Abfrage ServingCellState */
+//    void set_servingcell_state( const std::string &servingcell_state );
+//    std::string get_servingcell_state() const { return _servingcell_state; }
+
     void clear_current_oper();
     void set_current_oper(int mode, int id, int act);
     void set_current_oper_csq(int ber, int rssi);
@@ -215,7 +240,7 @@ class MdmStatemachine : public StateMachine<MdmStatemachine>
 
     
     MdmErrorState get_error_state() const { return _diagnostic.get_error_state(); }
-    void set_error_state(MdmErrorState newErrorState) { _diagnostic.set_error_state(newErrorState); }
+    bool set_error_state(MdmErrorState newErrorState) { return _diagnostic.set_error_state(newErrorState); }
 
     void event_report_last_read();
 

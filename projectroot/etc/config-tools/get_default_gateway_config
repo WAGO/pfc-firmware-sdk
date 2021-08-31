@@ -8,7 +8,7 @@
 #-----------------------------------------------------------------------------#
 # Script-name: get_default_gateway_config
 #
-# Get the configuration of the default-gateways. 
+# Get the configuration of the default-gateways.
 #
 # Author: WAGO Kontakttechnik GmbH
 #-----------------------------------------------------------------------------#
@@ -23,15 +23,14 @@ arg_assert()
     local valid=""
 
     for val in $sel; do
-        if [ $arg = $val ]; then
+        if [[ "$arg" == "$val" ]]; then
             valid=1
             break
         fi
     done
-    if [ ! $valid ]; then
-        status=$INVALID_PARAMETER
+    if [[ ! $valid ]]; then
         SetLastError "$msg"
-        exit $status
+        exit $INVALID_PARAMETER
     fi
 }
 
@@ -39,15 +38,15 @@ arg_assert()
 function get_routing_entries
 {
     local status=0
-    
+
     IFS_BKP=$IFS # Save original IFS value
     IFS=$'\n'
-    
+
     routing_entries=( $(/etc/config-tools/config_routing --get static ) )
     status=$?
-    
+
     IFS=$IFS_BKP # Restore IFS value
-    
+
     return $status
 }
 
@@ -58,7 +57,7 @@ function print_json
     get_routing_entries
     ret=$?
 
-    if [[ $ret == $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
+    if [[ $ret -eq $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
         JSON_DATA="{"
         DELIM=""
         for number in 1 2; do
@@ -66,7 +65,7 @@ function print_json
             line=( ${routing_entries[$((number-1))]} )
             IFS=$IFS_BKP # Restore IFS value
 
-            if [[ ${#line[@]} == $ROUTE_ENTRY_COUNT ]]; then
+            if [[ ${#line[@]} -eq $ROUTE_ENTRY_COUNT ]]; then
                 JSON_DATA="$JSON_DATA$DELIM\"$number\": {"
                 JSON_DATA="$JSON_DATA\"defaultGatewayState\": \"${line[$STATE_INDEX]}\", "
 
@@ -83,7 +82,7 @@ function print_json
                 JSON_DATA="$JSON_DATA\"dest_mask\": \"${line[DEST_MASK_INDEX]}\"}"
 
                 DELIM=", "
-            
+
             else
                 ret=$INTERNAL_ERROR
                 SetLastError "Found invalid amount of values in routing entry. Expected $ROUTE_ENTRY_COUNT; Got ${#line[@]}."
@@ -104,13 +103,13 @@ function print_shell
     get_routing_entries
     ret=$?
 
-    if [[ $ret == $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
+    if [[ $ret -eq $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
         for number in 1 2; do
             IFS=' '
             line=( ${routing_entries[$((number-1))]} )
             IFS=$IFS_BKP # Restore IFS value
 
-            if [[ ${#line[@]} == $ROUTE_ENTRY_COUNT ]]; then
+            if [[ ${#line[@]} -eq $ROUTE_ENTRY_COUNT ]]; then
                 varname="DEFAULT_GW_STATE_$number"
                 echo "$varname=${line[$STATE_INDEX]}"
                 varname="DEFAULT_GW_VALUE_$number"
@@ -140,36 +139,35 @@ function print_parameter
     get_routing_entries
     ret=$?
 
-    if [[ $ret == $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
+    if [[ $ret -eq $SUCCESS && ${#routing_entries[@]} -gt 0 ]]; then
 
         IFS=' '
         line=( ${routing_entries[$number]} )
         IFS=$IFS_BKP # Restore IFS value
-        
-        if [[ ${#line[@]} == $ROUTE_ENTRY_COUNT ]]; then
-        
+
+        if [[ ${#line[@]} -eq $ROUTE_ENTRY_COUNT ]]; then
+
             while [ $# -ne 0 ]; do
                 case "$1" in
-                    value)
-                        line_index=$GW_INDEX
-                        echo -n ${line[2]}
-                        ;;
-                    state)
-                        line_index=$STATE_INDEX
-                        echo -n ${line[5]}
-                        ;;
-                    metric)
-                        line_index=$METRIC_INDEX
-                        echo -n ${line[3]}
-                        ;;
                     destination)
-                        line_index=$DEST_INDEX
-                        echo -n ${line[0]}
+                        echo -n "${line[$DEST_INDEX]}"
                         ;;
                     dest_mask)
-                        line_index=$DEST_MASK_INDEX
-                        echo -n ${line[1]}
+                        echo -n "${line[$DEST_MASK_INDEX]}"
                         ;;
+                    value)
+                        echo -n "${line[$GW_INDEX]}"
+                        ;;
+                    value-if-enabled)
+                        [[ "${line[$STATE_INDEX]}" == "enabled" ]] && echo -n "${line[$GW_INDEX]}"
+                        ;;
+                    metric)
+                        echo -n "${line[$METRIC_INDEX]}"
+                        ;;
+                    state)
+                        echo -n "${line[$STATE_INDEX]}"
+                        ;;
+
                     *)
                         status=$INVALID_PARAMETER
                         SetLastError "Invalid argument"
@@ -190,23 +188,23 @@ function print_parameter
 
 
 # main program: set some global variables
-STATIC_GW_FILE=/etc/specific/static_gateway.conf
-LIST_STATIC_GW="1 2"
+LIST_STATIC_GW="1 2 3 4"
 ERROR_MSG="Invalid static gateway number"
 DEST_INDEX=0
 DEST_MASK_INDEX=1
 GW_INDEX=2
-METRIC_INDEX=3
-ROUTING_TYPE_INDEX=4
-STATE_INDEX=5
-SOURCE_INDEX=6
-ROUTE_ENTRY_COUNT=7
+ITF_INDEX=3
+METRIC_INDEX=4
+ROUTING_TYPE_INDEX=5
+STATE_INDEX=6
+SOURCE_INDEX=7
+ROUTE_ENTRY_COUNT=8
 
-status=0
+status=$SUCCESS
 declare -a routing_entries
 
 # show help-text if requested
-if [ "$1" = "-h" -o "$1" = "--help" ]; then
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     echo
     echo "* Get default gateway configuration *"
     echo
@@ -228,15 +226,14 @@ fi
 . /etc/config-tools/config_tool_lib
 
 
-# get config data and print json data if requested
-. $STATIC_GW_FILE
-if [ "$1" = "-j" -o "$1" = "--json" ]; then
+# print json data if requested
+if [[ "$1" == "-j" || "$1" == "--json" ]]; then
     print_json
     exit 0
 fi
 
 # print shell variable list if requested
-if [ "$1" = "-s" -o "$1" = "--shell-var" ]; then
+if [[ "$1" = "-s" || "$1" = "--shell-var" ]]; then
     print_shell
     exit 0
 fi
@@ -251,8 +248,8 @@ if [[ $# -gt 0 ]]; then
         shift 1
     fi
     number=$((number-1))
-    
-    print_parameter $@
+
+    print_parameter "$@"
 fi
 
 exit $status

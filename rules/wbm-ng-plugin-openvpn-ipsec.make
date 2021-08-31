@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_OPENVPN_IPSEC) += wbm-ng-plugin-openvpn-ipsec
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_OPENVPN_IPSEC_VERSION        := 1.0.2
+WBM_NG_PLUGIN_OPENVPN_IPSEC_VERSION        := 1.1.0
 WBM_NG_PLUGIN_OPENVPN_IPSEC                := wbm-openvpn-ipsec-$(WBM_NG_PLUGIN_OPENVPN_IPSEC_VERSION)
 WBM_NG_PLUGIN_OPENVPN_IPSEC_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_OPENVPN_IPSEC)
 WBM_NG_PLUGIN_OPENVPN_IPSEC_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_OPENVPN_IPSEC_URL))
@@ -91,10 +91,10 @@ $(STATEDIR)/wbm-ng-plugin-openvpn-ipsec.targetinstall:
 
 	# loop over all files and subdirectories (deep)
 	@cd $(WBM_NG_PLUGIN_OPENVPN_IPSEC_DIR) && \
-	for object in $$( find ./* -print ); do \
-		if test -f $$object; then \
+	for object in $$( find ./* \( -path './series' -o -path './.ptxdist*' -o -path './.pc*' \) -prune -o -print ); do \
+		if test -f $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-openvpn-ipsec, 0, 0, 0644, $(WBM_NG_PLUGIN_OPENVPN_IPSEC_DIR)/$$object, $(WBM_NG_PLUGIN_OPENVPN_IPSEC_TARGET_DIR)/$$object); \
-		elif test -d $$object; then \
+		elif test -d $$object -a ! -h $$object; then \
 			$(call install_copy, wbm-ng-plugin-openvpn-ipsec, 0, 0, 0755, $(WBM_NG_PLUGIN_OPENVPN_IPSEC_TARGET_DIR)/$$object); \
 		fi; \
 	done;

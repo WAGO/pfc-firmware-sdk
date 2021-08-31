@@ -24,8 +24,8 @@ PACKAGES-$(PTXCONF_NLOHMANN_JSON) += nlohmann-json
 #
 # Paths and names
 #
-NLOHMANN_JSON_VERSION      := 3.7.0
-NLOHMANN_JSON_MD5          := 4755f892ee7770ecee31296b29d43fef
+NLOHMANN_JSON_VERSION      := 3.9.1
+NLOHMANN_JSON_MD5          := e386222fb57dd2fcb8a7879fc016d037
 NLOHMANN_JSON              := nlohmann-json-v$(NLOHMANN_JSON_VERSION)
 NLOHMANN_JSON_SUFFIX       := tar.gz
 NLOHMANN_JSON_URL          := https://github.com/nlohmann/json/archive/v$(NLOHMANN_JSON_VERSION).$(NLOHMANN_JSON_SUFFIX)

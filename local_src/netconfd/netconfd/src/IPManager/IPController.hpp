@@ -16,7 +16,7 @@ class IPController : public IIPController {
   IPController(const IPController&&) = delete;
   IPController& operator=(const IPController&&) = delete;
 
-  Error SetIPConfig(const IPConfig& config) const override;
+  Status SetIPConfig(const IPConfig& config) const override;
 
 };
 

@@ -113,8 +113,8 @@ function UpdateHostConf()
     [ "$DNSDOMAIN" ] && validdomain=$DNSDOMAIN
 
     # now load dynamic dhcp names of newest file
-    if [ "$(find /tmp -maxdepth 1 -name 'dhcp-bootp-data-*' -type f -printf . | wc -c)" -gt 0 ]; then
-        cfgfile=$(ls -rt "$DHCP_DATA_FILE_TEMPLATE"* | tail -1)
+    if [ "$(find /tmp -maxdepth 1 -name 'dhcp-bootp-data-*' -user root -type f -printf . | wc -c)" -gt 0 ]; then
+        cfgfile=$(ls -rt $(find /tmp -maxdepth 1 -name 'dhcp-bootp-data-*' -user root -type f) | tail -1)
         DHCPHOSTNAME=
         DHCPDOMAIN=
         . "$cfgfile"

@@ -16,7 +16,7 @@ class BootpClientController : public IBootpClientController {
   BootpClientController(const BootpClientController&&) = delete;
   BootpClientController& operator=(const BootpClientController&&) = delete;
 
-  Error StartClient(const Bridge& bridge) const override;
+  Status StartClient(const Bridge& bridge) const override;
   void StopClient(const Bridge& bridge) const override;
   BootpClientStatus GetStatus(const Bridge& bridge) const override;
   void DeleteTempFiles(const Bridge& bridge) const;

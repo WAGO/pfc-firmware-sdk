@@ -35,8 +35,12 @@ boost::optional<InterfaceConfig> InterfaceConfigs::GetInterfaceConfig(const ::st
 
 ::std::string ToJson(const InterfaceConfigs& configs) noexcept {
   JsonConverter jc;
-
   return jc.ToJsonString(configs.GetConfig());
+}
+
+::std::string ToPrettyJson(const InterfaceConfigs& configs) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(configs.GetConfig(), JsonFormat::PRETTY);
 }
 
 ::std::string ToString(const InterfaceConfigs& configs) noexcept {
@@ -46,34 +50,6 @@ boost::optional<InterfaceConfig> InterfaceConfigs::GetInterfaceConfig(const ::st
   }
   return ss.str();
 }
-
-MacAddress GetMacAddress(const ::std::string &interface_name) {
-  EthernetInterface interface { interface_name };
-  return interface.GetMac();
-}
-
-Error SetInterfaceState(const ::std::string &interface_name, InterfaceState state)
-{
-  try{
-    EthernetInterface interface { interface_name };
-    interface.SetState(state);
-  }catch(::std::exception& e){
-    return Error{ErrorCode::SYSTEM_CALL, e.what()};
-  }
-  return Error::Ok();
-}
-
-Error GetInterfaceState(const ::std::string &interface_name, InterfaceState &state)
-{
-  try{
-    EthernetInterface interface { interface_name };
-    state = interface.GetState();
-  }catch(::std::exception& e){
-    return Error{ErrorCode::SYSTEM_CALL, e.what()};
-  }
-  return Error::Ok();
-}
-
 
 ::std::string ToString(const netconf::InterfaceConfig& config, const ::std::string& sep) noexcept{
   ::std::vector<::std::string> values;
@@ -102,12 +78,17 @@ Error GetInterfaceState(const ::std::string &interface_name, InterfaceState &sta
   return jc.ToJsonString(config);
 }
 
-Error MakeInterfaceConfigs(const ::std::string &json_str, InterfaceConfigs& config) {
+::std::string ToPrettyJson(const netconf::InterfaceConfig &config) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(config, JsonFormat::PRETTY);
+}
+
+Status MakeInterfaceConfigs(const ::std::string &json_str, InterfaceConfigs& config) {
   JsonConverter jc;
   netconf::InterfaceConfigs ic;
-  Error error = jc.FromJsonString(json_str, ic);
+  Status status = jc.FromJsonString(json_str, ic);
   config = InterfaceConfigs{ic};
-  return error;
+  return status;
 }
 
 

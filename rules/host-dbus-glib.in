@@ -1,0 +1,8 @@
+## SECTION=hosttools_noprompt
+
+config HOST_DBUS_GLIB
+	tristate
+	select HOST_DBUS
+	select HOST_GLIB
+	select HOST_EXPAT
+	default y if ALLYES

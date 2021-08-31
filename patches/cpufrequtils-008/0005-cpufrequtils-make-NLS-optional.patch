@@ -1,0 +1,91 @@
+From: Sergey Dryabzhinsky <sergey.dryabzhinsky@gmail.com>
+Date: Sat, 13 Aug 2011 23:02:20 -0400
+Subject: [PATCH] cpufrequtils: make NLS optional
+
+https://bugs.gentoo.org/205576
+
+Signed-off-by: Matt Turner <mattst88@gmail.com>
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+
+Imported from cpufrequtils_008-1.1.debian.tar.xz
+
+Signed-off-by: Michael Olbrich <m.olbrich@pengutronix.de>
+---
+ Makefile     |  1 +
+ utils/info.c | 10 +++++++++-
+ utils/set.c  | 10 +++++++++-
+ 3 files changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 3ef2af762e1f..83963cf30bf5 100644
+--- a/Makefile
++++ b/Makefile
+@@ -140,6 +140,7 @@ endif
+ ifeq ($(strip $(NLS)),true)
+ 	INSTALL_NLS += install-gmo
+ 	COMPILE_NLS += update-gmo
++	CPPFLAGS += -DNLS
+ endif
+ 
+ ifeq ($(strip $(CPUFRQ_BENCH)),true)
+diff --git a/utils/info.c b/utils/info.c
+index 38d906abdc41..155e604f59fb 100644
+--- a/utils/info.c
++++ b/utils/info.c
+@@ -10,7 +10,6 @@
+ #include <errno.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <libintl.h>
+ #include <locale.h>
+ 
+ #include <getopt.h>
+@@ -18,9 +17,18 @@
+ #include "cpufreq.h"
+ 
+ 
++#ifdef NLS
++#include <libintl.h>
+ #define _(String) gettext (String)
+ #define gettext_noop(String) String
+ #define N_(String) gettext_noop (String)
++#else
++#define gettext_noop(String) String
++#define _(String) gettext_noop (String)
++#define gettext(String) gettext_noop (String)
++#define N_(String) gettext_noop (String)
++#define textdomain(String)
++#endif
+ 
+ #define LINE_LEN 10
+ 
+diff --git a/utils/set.c b/utils/set.c
+index 2ece47e46115..bfca4656088a 100644
+--- a/utils/set.c
++++ b/utils/set.c
+@@ -12,16 +12,24 @@
+ #include <limits.h>
+ #include <string.h>
+ #include <ctype.h>
+-#include <libintl.h>
+ #include <locale.h>
+ 
+ #include <getopt.h>
+ 
+ #include "cpufreq.h"
+ 
++#ifdef NLS
++#include <libintl.h>
+ #define _(String) gettext(String)
+ #define gettext_noop(String) String
+ #define N_(String) gettext_noop(String)
++#else
++#define gettext_noop(String) String
++#define _(String) gettext_noop (String)
++#define gettext(String) gettext_noop (String)
++#define N_(String) gettext_noop (String)
++#define textdomain(String)
++#endif
+ 
+ #define NORM_FREQ_LEN 32
+ 

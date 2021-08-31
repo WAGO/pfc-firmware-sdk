@@ -1,0 +1,26 @@
+From 0e20f34e3b32621c7aefac682c361c0cf2980eea Mon Sep 17 00:00:00 2001
+From: Benjamin Czytrich <benjamin.czytrich@wago.com>
+Date: Tue, 22 Oct 2019 09:26:57 +0200
+Subject: [PATCH] Add error message for keepalive timeout
+
+Signed-off-by: Benjamin Czytrich <benjamin.czytrich@wago.com>
+---
+ lib/mosquitto.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/mosquitto.c b/lib/mosquitto.c
+index eab1d99..d1510bc 100644
+--- a/lib/mosquitto.c
++++ b/lib/mosquitto.c
+@@ -374,6 +374,8 @@ const char *mosquitto_strerror(int mosq_errno)
+ 			return "Lookup error.";
+ 		case MOSQ_ERR_PROXY:
+ 			return "Proxy error.";
++		case MOSQ_ERR_KEEPALIVE:
++			return "Keepalive timeout.";
+ 		case MOSQ_ERR_MALFORMED_UTF8:
+ 			return "Malformed UTF-8";
+ 		default:
+-- 
+2.7.4
+

@@ -1,0 +1,35 @@
+From: Richard Purdie <richard.purdie@linuxfoundation.org>
+Date: Wed, 5 Feb 2020 12:08:39 +0000
+Subject: [PATCH] Fix reproducibility issues in opkg-build
+
+There is a sorting problem with opkg-build where the ipk generated is depending
+upon the order of files on disk. The reason is the --sort option to tar only
+influences the orders of files tar reads, not those passed by the -T option.
+
+Add in a sort call to resolve this issue. To ensure consistent sorting we
+also need to force to a specific locale (C) else the results are still not
+deterministic.
+
+Signed-off-by: Richard Purdie <richard.purdie@linuxfoundation.org>
+Signed-off-by: Alejandro del Castillo <alejandro.delcastillo@ni.com>
+---
+ opkg-build | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/opkg-build b/opkg-build
+index 8b3d7a9f78de..1b564166a7a4 100755
+--- a/opkg-build
++++ b/opkg-build
+@@ -305,8 +305,10 @@ if [ ! -z "$SOURCE_DATE_EPOCH"  ]; then
+     mtime_args="--mtime=@$build_date --clamp-mtime"
+ fi
+ 
+-( cd $pkg_dir/$CONTROL && find . -type f > $tmp_dir/control_list )
+-( cd $pkg_dir && find . -path ./$CONTROL -prune -o -path . -o -print  > $tmp_dir/file_list )
++export LANG=C
++export LC_ALL=C
++( cd $pkg_dir/$CONTROL && find . -type f | sort > $tmp_dir/control_list )
++( cd $pkg_dir && find . -path ./$CONTROL -prune -o -path . -o -print  | sort > $tmp_dir/file_list )
+ ( cd $pkg_dir && tar $ogargs $tsortargs --no-recursion $mtime_args -c $tarformat -T $tmp_dir/file_list | $compressor $compressorargs > $tmp_dir/data.tar.$cext )
+ ( cd $pkg_dir/$CONTROL && tar $ogargs $tsortargs --no-recursion --mtime=@$build_date -c $tarformat -T $tmp_dir/control_list | gzip $zipargs > $tmp_dir/control.tar.gz )
+ rm $tmp_dir/file_list

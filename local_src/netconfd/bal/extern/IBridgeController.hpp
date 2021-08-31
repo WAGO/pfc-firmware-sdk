@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "Error.hpp"
+#include "../../extern/Status.hpp"
 #include "Types.hpp"
 
 
@@ -23,18 +23,18 @@ class IBridgeController {
   IBridgeController& operator=(IBridgeController&&) = default;
 
 
-  virtual Error AddBridge(const Bridge& bridge) const = 0;
-  virtual Error DeleteBridge(const Bridge& bridge) const = 0;
-  virtual Error AddInterface(const Bridge& bridge, const Interface& interface) const = 0;
-  virtual Error DeleteInterface(const Bridge& bridge, const Interface& interface) const = 0;
+  virtual Status AddBridge(const Bridge& bridge) const = 0;
+  virtual Status DeleteBridge(const Bridge& bridge) const = 0;
+  virtual Status AddInterface(const Bridge& bridge, const Interface& interface) const = 0;
+  virtual Status DeleteInterface(const Bridge& bridge, const Interface& interface) const = 0;
 
   virtual Bridges GetBridges() const = 0;
   virtual Interfaces GetBridgeInterfaces(const Bridge& bridge) const = 0;
 
   virtual Interfaces GetInterfaces() const = 0;
 
-  virtual Error SetInterfaceUp(const ::std::string& name) const = 0;
-  virtual Error SetInterfaceDown(const ::std::string& name) const = 0;
+  virtual Status SetInterfaceUp(const ::std::string& name) const = 0;
+  virtual Status SetInterfaceDown(const ::std::string& name) const = 0;
 
   virtual void SetAgetime(const Bridge& bridge, int seconds) const = 0;
 };

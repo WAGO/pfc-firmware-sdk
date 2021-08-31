@@ -1,0 +1,98 @@
+## SECTION=system_libraries
+
+menuconfig LIBKMOD
+	tristate
+	select ZLIB if LIBKMOD_ZLIB
+	prompt "libkmod                       "
+	help
+	  libkmod is a library with a set of tools frontends to handle common
+	  tasks with Linux kernel modules like insert, remove, list, check
+	  properties, resolve dependencies and aliases.
+
+if LIBKMOD
+
+config LIBKMOD_TOOLS
+	bool
+
+config LIBKMOD_INSMOD
+	bool
+	prompt "Install insmod"
+	depends on (!BUSYBOX_INSMOD && !BUSYBOX_MODPROBE_SMALL) || ALLYES
+	select LIBKMOD_TOOLS
+	help
+	  simple program to insert a module into the Linux Kernel
+
+comment "BusyBox' insmod is selected!"
+	depends on BUSYBOX_INSMOD || BUSYBOX_MODPROBE_SMALL
+
+config LIBKMOD_RMMOD
+	bool
+	prompt "Install rmmod"
+	depends on (!BUSYBOX_RMMOD && !BUSYBOX_MODPROBE_SMALL) || ALLYES
+	select LIBKMOD_TOOLS
+	help
+	  simple program to remove a module from the Linux Kernel
+
+comment "BusyBox' rmmod is selected!"
+	depends on BUSYBOX_RMMOD || BUSYBOX_MODPROBE_SMALL
+
+config LIBKMOD_LSMOD
+	bool
+	prompt "Install lsmod"
+	depends on !BUSYBOX_LSMOD || ALLYES
+	select LIBKMOD_TOOLS
+	help
+	  program to show the status of modules in the Linux Kernel
+
+comment "BusyBox' lsmod is selected!"
+	depends on BUSYBOX_LSMOD
+
+config LIBKMOD_MODINFO
+	bool
+	prompt "Install modinfo"
+	depends on !BUSYBOX_MODINFO || ALLYES
+	select LIBKMOD_TOOLS
+	help
+	  program to show information about a Linux Kernel module
+
+comment "BusyBox' modinfo is selected!"
+	depends on BUSYBOX_MODINFO
+
+config LIBKMOD_MODPROBE
+	bool
+	prompt "Install modprobe"
+	depends on (!BUSYBOX_MODPROBE && !BUSYBOX_MODPROBE_SMALL) || ALLYES
+	select LIBKMOD_TOOLS
+	help
+	  program to add and remove modules from the Linux Kernel
+
+comment "BusyBox' modprobe is selected!"
+	depends on BUSYBOX_MODPROBE || BUSYBOX_MODPROBE_SMALL
+
+config LIBKMOD_DEPMOD
+	bool
+	prompt "Install depmod"
+	depends on !BUSYBOX_DEPMOD || ALLYES
+	select LIBKMOD_TOOLS
+	help
+	  program to generate modules.dep and map files
+
+config LIBKMOD_ZLIB
+	bool
+	prompt "use zlib"
+	help
+	  Use the 'zlib' to handle compressed modules
+
+config LIBKMOD_LOGGING
+	bool
+	prompt "enable syslog"
+	help
+	  Enable syslog based logging
+
+config LIBKMOD_DEBUG
+	bool
+	prompt "enable debug output"
+	help
+	  Make the package more noisy
+
+endif

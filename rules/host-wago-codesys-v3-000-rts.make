@@ -154,49 +154,10 @@ endif
 # ----------------------------------------------------------------------------
 # Target-Install
 # ----------------------------------------------------------------------------
-
-$(STATEDIR)/host-codesys3.targetinstall:
-	@$(call targetinfo)
-	@$(call install_init, host-codesys3)
-
-	@$(call install_fixup,host-codesys3,PRIORITY,optional)
-	@$(call install_fixup,host-codesys3,SECTION,base)
-	@$(call install_fixup,host-codesys3,AUTHOR,"3S")
-	@$(call install_fixup,host-codesys3,DESCRIPTION,missing)
-
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-
-	# Extract precompiled binaries from archive
-	rm -rf $(HOST_CODESYS3_PLATFORMCONFIGPACKAGEDIR)/tmp/*
-	cd $(HOST_CODESYS3_PLATFORMCONFIGPACKAGEDIR)/tmp && \
-	ar -xov $(HOST_CODESYS3_PLATFORMCONFIGPACKAGEDIR)/$(HOST_CODESYS3_PACKAGE_NAME).ipk
-	@$(call install_archive, host-codesys3, 0, 0, $(HOST_CODESYS3_PLATFORMCONFIGPACKAGEDIR)/tmp/data.tar.gz, )
-else
-	# WAGO_TOOLS_BUILD_VERSION_TRUNK | WAGO_TOOLS_BUILD_VERSION_RELEASE
-
-	@$(call install_copy, host-codesys3, 0, 0, 0644, $(HOST_CODESYS3_DIR)/Platforms/Linux/CoDeSysSP/CoDeSysSP.cfg, /etc/CoDeSysSP.cfg, n)
-	@$(call install_copy, host-codesys3, 0, 0, 0755, $(HOST_CODESYS3_DIR)/Platforms/Linux/CoDeSysSP/codesyssp_linux-arm-testversion, /usr/bin/codesyssp_linux-arm-testversion)
-	@$(call install_link, host-codesys3, ./codesyssp_linux-arm-testversion, /usr/bin/codesys_v3)
-	@$(call install_alternative, host-codesys3, 0, 0, 0755, /etc/init.d/codesys3, n)
-	cd $(HOST_CODESYS3_DIR)/Platforms/Linux/CoDeSysSP; \
-	for file in `find -name "*.so*"`; do \
-    if [[ -h $$file ]]; then \
-      $(call install_link, host-codesys3, ./$$(readlink $$file), /usr/lib/$$file); \
-		elif [[ -f $$file ]]; then \
-      $(call install_copy, host-codesys3, 0, 0, 0755, $(HOST_CODESYS3_DIR)/Platforms/Linux/CoDeSysSP/$$file, \
-	  	/usr/lib/$$file, n); \
-   fi; \
-	done
-
-
-
-endif
-	@$(call install_finish,host-codesys3)
-ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
-	# Backup binaries in configs/@platform@/packages/
-	cp $(PKGDIR)/$(HOST_CODESYS3_PACKAGE_NAME).ipk $(HOST_CODESYS3_PLATFORMCONFIGPACKAGEDIR)/
-endif
-	@$(call touch)
+# Host, image and cross packages don’t need to install anything in the target
+# file system. Therefore, PTXdist only respects the targetinstall and
+# targetinstall.post stages for packages whose name doesn’t start with host-,
+# image-, or cross-.
 
 # ----------------------------------------------------------------------------
 # Clean

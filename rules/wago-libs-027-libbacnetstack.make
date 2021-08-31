@@ -34,7 +34,7 @@ endif
 
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY
 LIBBACNETSTACK_REVISION          := 14
-LIBBACNETSTACK_SO_VERSION        := 0.0.1
+LIBBACNETSTACK_SO_VERSION        := 1.5.2
 LIBBACNETSTACK_FOLDER            := libbacnetstack
 endif
 
@@ -50,6 +50,7 @@ endif
 LIBBACNETSTACK_REL_PATH          := wago_intern/device/bacnet/$(LIBBACNETSTACK_FOLDER)
 LIBBACNETSTACK_SRC_DIR           := $(PTXDIST_WORKSPACE)/$(LIBBACNETSTACK_REL_PATH)
 LIBBACNETSTACK_VERSION           := rev$(LIBBACNETSTACK_REVISION)_$(LIBBACNETSTACK_SO_VERSION)$(LIBBACNETSTACK_BUILD_ID_SUFFIX)
+LIBBACNETSTACK_ENV_VENDOR        := WAGO
 
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
 LIBBACNETSTACK_URL               := $(call jfrog_template_to_url, LIBBACNETSTACK)
@@ -78,9 +79,9 @@ LIBBACNETSTACK_MAKE_ENV          := $(CROSS_ENV) \
               BIN_DIR=$(LIBBACNETSTACK_BUILD_DIR) \
               TARGET_ARCH=$(PTXCONF_ARCH_STRING) \
               ARM_ARCH_VERSION=7 \
+              LIBBACNETSTACK_BUILD_ENV=$(LIBBACNETSTACK_ENV_VENDOR) \
               SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
-#LIBBACNETSTACK_BUILD_ENV         := WAGO
-#LIBBACNETSTACK_BUILD_ENV         := CS_LABS
+
 LIBBACNETSTACK_PATH              := PATH=$(CROSS_PATH)
 LIBBACNETSTACK_PACKAGE_NAME      := $(LIBBACNETSTACK)_$(LIBBACNETSTACK_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
 LIBBACNETSTACK_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
@@ -215,7 +216,9 @@ $(STATEDIR)/libbacnetstack.targetinstall:
 
 	@$(call install_copy, libbacnetstack, ${PTXCONF_ROOTFS_PASSWD_USER_UID}, ${PTXCONF_ROOTFS_PASSWD_USER_GID}, 0755, /home/user)
 	@$(call install_copy, libbacnetstack, 0, 0, 0755, /home/user/bacnet)
-
+ifndef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY 
+	@$(call install_copy, libbacnetstack, 0, 0, 0750, -, /etc/config-tools/events/networking/update_zzz_bacnet)
+endif
 	@$(call install_finish, libbacnetstack)
 
 	@$(call touch)

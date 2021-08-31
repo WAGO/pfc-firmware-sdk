@@ -52,9 +52,9 @@ namespace netconf
       {
 
         ON_CALL(mock_file_editor_, Read(path_persistence_file_, _)).WillByDefault(
-            DoAll(SetArgReferee<1>(persistence_file_content), Return(Error{ })));
+            DoAll(SetArgReferee<1>(persistence_file_content), Return(Status{ })));
         ON_CALL(mock_file_editor_, Read(path_interface_config_file_, _)).WillByDefault(
-            DoAll(SetArgReferee<1>(interface_config_file_content_), Return(Error{ })));
+            DoAll(SetArgReferee<1>(interface_config_file_content_), Return(Status{ })));
 
         persisted_ip_configs = {{"br0", IPSource::STATIC, "192.168.2.17", "255.255.255.0"}, {
             "br1", IPSource::DHCP, "172.29.233.17", "255.255.0.0"}};
@@ -125,8 +125,8 @@ namespace netconf
     IPConfigs ip_configs = { };
     ::std::string config_str = "{\"br0\": [\"X1\"]}";
 
-    Error status = persistence_executor_->Write(bridge_config);
-    ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+    Status status = persistence_executor_->Write(bridge_config);
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
   }
 
   TEST_F(APersistenceExecutor, PersistsIPConfigs)
@@ -135,25 +135,25 @@ namespace netconf
     IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"}};
     ::std::string config_str = R"({"br0": ["X1"]})";
 
-    Error status = persistence_executor_->Write(ip_configs);
-    ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+    Status status = persistence_executor_->Write(ip_configs);
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
   }
 
   TEST_F(APersistenceExecutor, ReadsABridgeConfigFromPersistence)
   {
     BridgeConfig config_read;
-    Error status = persistence_executor_->Read(config_read);
+    Status status = persistence_executor_->Read(config_read);
 
-    ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
     EXPECT_TRUE(IsEqual(persisted_bridge_config, config_read));
   }
 
   TEST_F(APersistenceExecutor, ReadsIPConfigsFromPersistence)
   {
     IPConfigs config_read;
-    Error status = persistence_executor_->Read(config_read);
+    Status status = persistence_executor_->Read(config_read);
 
-    ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
     EXPECT_EQ(persisted_ip_configs, config_read);
   }
 
@@ -162,9 +162,9 @@ namespace netconf
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_config_read;
-    Error status = persistence_executor_->Read(bridge_config_read, ip_config_read);
+    Status status = persistence_executor_->Read(bridge_config_read, ip_config_read);
 
-    ASSERT_EQ(ErrorCode::OK, status.GetErrorCode());
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
     EXPECT_TRUE(IsEqual(persisted_bridge_config, bridge_config_read));
     EXPECT_TRUE(IsEqual(persisted_ip_configs, ip_config_read));
 
@@ -176,11 +176,11 @@ namespace netconf
     ::std::string config_str =
         R"("{"bridge-config":{},"interface-config":{"autonegotiation":"on","device":"X1","duplex":"full","speed":100,"state":"up"},"ip-config":{}}")";
 
-    EXPECT_CALL(mock_backup_restore_, Backup(path_persistence_file_,_,_,_)).WillOnce(Return(Error(ErrorCode::OK)));
+    EXPECT_CALL(mock_backup_restore_, Backup(path_persistence_file_,_,_,_)).WillOnce(Return(Status(StatusCode::OK)));
 
-    Error error = persistence_executor_->Backup(path_persistence_file_,"");
+    Status status = persistence_executor_->Backup(path_persistence_file_,"");
 
-    ASSERT_EQ(ErrorCode::OK, error.GetErrorCode());
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
   }
 
   TEST_F(APersistenceExecutor, RestoresAConfig)
@@ -188,15 +188,15 @@ namespace netconf
 
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
         DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(backup_dipswitch_data_content),
-              SetArgReferee<3>(1), Return(Error(ErrorCode::OK))));
+              SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
     DipSwitchIpConfig dip_ip_config_read;
-    Error error = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
+    Status status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
                                                    interface_configs, dip_ip_config_read);
 
-    ASSERT_EQ(ErrorCode::OK, error.GetErrorCode());
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 
     EXPECT_THAT(bridge_config_read, ContainerEq(BridgeConfig{{"br0", {"X1"}}, {"br1", {"X2"}}}));
     EXPECT_THAT(interface_configs, ElementsAre(InterfaceConfig{"X1", InterfaceState::UP, Autonegotiation::ON, 100,
@@ -209,15 +209,15 @@ namespace netconf
 
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
         DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(""),
-              SetArgReferee<3>(1), Return(Error(ErrorCode::OK))));
+              SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
     DipSwitchIpConfig dip_ip_config_read;
-    Error error = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
+    Status status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
                                                    interface_configs, dip_ip_config_read);
 
-    ASSERT_EQ(ErrorCode::OK, error.GetErrorCode());
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 
     EXPECT_THAT(bridge_config_read, ContainerEq(BridgeConfig{{"br0", {"X1"}}, {"br1", {"X2"}}}));
     EXPECT_THAT(interface_configs, ElementsAre(InterfaceConfig{"X1", InterfaceState::UP, Autonegotiation::ON, 100,
@@ -228,16 +228,16 @@ namespace netconf
   {
 
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
-        DoAll(SetArgReferee<1>(""), SetArgReferee<2>(""), SetArgReferee<3>(1), Return(Error(ErrorCode::FILE_READ))));
-    legacy_restore_fake_.restore_status = Error(ErrorCode::FILE_READ);
+        DoAll(SetArgReferee<1>(""), SetArgReferee<2>(""), SetArgReferee<3>(1), Return(Status(StatusCode::FILE_READ))));
+    legacy_restore_fake_.restore_status = Status(StatusCode::FILE_READ);
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
     DipSwitchIpConfig dip_ip_config_read;
-    Error status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
+    Status status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
                                                    interface_configs, dip_ip_config_read);
 
-    EXPECT_EQ(ErrorCode::FILE_READ, status.GetErrorCode());
+    EXPECT_EQ(StatusCode::FILE_READ, status.GetStatusCode());
     EXPECT_TRUE(bridge_config_read.empty());
     EXPECT_TRUE(ip_configs_read.empty());
   }
@@ -248,19 +248,19 @@ namespace netconf
     ::std::string config_str = "XXX";
 
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
-        DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(backup_dipswitch_data_content),SetArgReferee<3>(1), Return(Error(ErrorCode::OK))));
+        DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(backup_dipswitch_data_content),SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
 
     EXPECT_CALL(mock_file_editor_, Write(path_persistence_file_, _)).WillOnce(
-        Return(Error{ErrorCode::FILE_WRITE}));
-    EXPECT_CALL(mock_file_editor_, Write(path_network_interfaces_xml_, _)).WillOnce(Return(Error{ErrorCode::OK}));
+        Return(Status{StatusCode::FILE_WRITE}));
+    EXPECT_CALL(mock_file_editor_, Write(path_network_interfaces_xml_, _)).WillOnce(Return(Status{StatusCode::OK}));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
     DipSwitchIpConfig dip_ip_config_read;
-    Error status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
+    Status status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
                                                    interface_configs, dip_ip_config_read);
 
-    EXPECT_EQ(ErrorCode::FILE_WRITE, status.GetErrorCode());
+    EXPECT_EQ(StatusCode::FILE_WRITE, status.GetStatusCode());
     EXPECT_TRUE(bridge_config_read.empty());
     EXPECT_TRUE(ip_configs_read.empty());
   }
@@ -271,20 +271,20 @@ namespace netconf
     ::std::string config_str = "XXX";
 
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
-        DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(backup_dipswitch_data_content),SetArgReferee<3>(1), Return(Error(ErrorCode::OK))));
+        DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(backup_dipswitch_data_content),SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
 
-    EXPECT_CALL(mock_file_editor_, Write(path_persistence_file_, _)).WillOnce(Return(Error{ErrorCode::OK}));
-    EXPECT_CALL(mock_file_editor_, Write(path_interface_config_file_, _)).WillOnce(Return(Error{
-        ErrorCode::FILE_WRITE}));
-    EXPECT_CALL(mock_file_editor_, Write(path_network_interfaces_xml_, _)).WillOnce(Return(Error{ErrorCode::OK}));
+    EXPECT_CALL(mock_file_editor_, Write(path_persistence_file_, _)).WillOnce(Return(Status{StatusCode::OK}));
+    EXPECT_CALL(mock_file_editor_, Write(path_interface_config_file_, _)).WillOnce(Return(Status{
+        StatusCode::FILE_WRITE}));
+    EXPECT_CALL(mock_file_editor_, Write(path_network_interfaces_xml_, _)).WillOnce(Return(Status{StatusCode::OK}));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
     DipSwitchIpConfig dip_ip_config_read;
-    Error error = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
+    Status status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
                                                    interface_configs, dip_ip_config_read);
 
-    EXPECT_EQ(ErrorCode::FILE_WRITE, error.GetErrorCode());
+    EXPECT_EQ(StatusCode::FILE_WRITE, status.GetStatusCode());
     EXPECT_TRUE(bridge_config_read.empty());
     EXPECT_TRUE(ip_configs_read.empty());
   }
@@ -296,15 +296,15 @@ namespace netconf
     ::std::uint32_t version = 0;
 
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
-        DoAll(SetArgReferee<1>(config_str), SetArgReferee<2>(version), Return(Error(ErrorCode::OK))));
+        DoAll(SetArgReferee<1>(config_str), SetArgReferee<2>(version), Return(Status(StatusCode::OK))));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
     DipSwitchIpConfig dip_ip_config_read;
-    Error error = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
+    Status status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
                                                    interface_configs, dip_ip_config_read);
 
-    EXPECT_EQ(ErrorCode::BACKUP_VERSION, error.GetErrorCode());
+    EXPECT_EQ(StatusCode::BACKUP_VERSION, status.GetStatusCode());
     EXPECT_TRUE(bridge_config_read.empty());
     EXPECT_TRUE(ip_configs_read.empty());
   }
@@ -316,15 +316,15 @@ namespace netconf
     ::std::uint32_t higher_version = 42;
 
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
-        DoAll(SetArgReferee<1>(config_str), SetArgReferee<2>(higher_version), Return(Error(ErrorCode::OK))));
+        DoAll(SetArgReferee<1>(config_str), SetArgReferee<2>(higher_version), Return(Status(StatusCode::OK))));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
     DipSwitchIpConfig dip_ip_config_read;
-    Error error = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
+    Status status = persistence_executor_->Restore(path_persistence_file_, bridge_config_read, ip_configs_read,
                                                    interface_configs, dip_ip_config_read);
 
-    EXPECT_EQ(ErrorCode::BACKUP_VERSION, error.GetErrorCode());
+    EXPECT_EQ(StatusCode::BACKUP_VERSION, status.GetStatusCode());
     EXPECT_TRUE(bridge_config_read.empty());
     EXPECT_TRUE(ip_configs_read.empty());
   }

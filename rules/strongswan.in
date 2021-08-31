@@ -1,7 +1,7 @@
 ## SECTION=networking
 
 menuconfig STRONGSWAN
-	bool
+	tristate
 	prompt "strongswan                    "
 	select LIBGMP
 	select LIBCURL if STRONGSWAN_LIBCURL
@@ -49,9 +49,14 @@ config STRONGSWAN_AFALG
 config STRONGSWAN_SYSTEMD_UNIT
 	bool
 	default y
-	# uses old systemd-daemon / libsystemd-journal libs
-	depends on BROKEN
 	depends on INITMETHOD_SYSTEMD
 	prompt "install systemd service file"
+
+config STRONGSWAN_SWANCTL
+	bool
+	prompt "Use swanctl for configuration"
+	help
+	  Swanctl is a new, portable command line utility to configure,
+	  control and monitor the IKE daemon charon using the vici interface.
 
 endif

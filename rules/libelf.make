@@ -3,8 +3,6 @@
 # Copyright (C) 2006, 2008, 2009 by Marc Kleine-Budde <mkl@pengutronix.de>
 #               2016 by Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_LIBELF) += libelf
 #
 # Paths and names
 #
-LIBELF_VERSION	:= 0.176
-LIBELF_MD5	:= 077e4f49320cad82bf17a997068b1db9
+LIBELF_VERSION	:= 0.180
+LIBELF_MD5	:= 23feddb1b3859b03ffdbaf53ba6bd09b
 LIBELF		:= elfutils-$(LIBELF_VERSION)
 LIBELF_SUFFIX	:= tar.bz2
 LIBELF_URL	:= https://sourceware.org/elfutils/ftp/$(LIBELF_VERSION)/$(LIBELF).$(LIBELF_SUFFIX)
@@ -44,11 +42,13 @@ LIBELF_CONF_OPT	:= \
 	--disable-gcov \
 	--disable-sanitize-undefined \
 	--disable-valgrind \
+	--disable-valgrind-annotations \
 	--disable-tests-rpath \
-	--enable-libebl-subdir=elfutils \
 	--enable-textrelcheck \
 	--enable-symbol-versioning \
 	--disable-nls \
+	--disable-debuginfod \
+	--without-valgrind \
 	--with-zlib \
 	--without-bzlib \
 	--without-lzma \
@@ -57,10 +57,6 @@ LIBELF_CONF_OPT	:= \
 LIBELF_ARCH := $(call remove_quotes,$(PTXCONF_ARCH_STRING))
 ifdef PTXCONF_ARCH_ARM64
 LIBELF_ARCH := aarch64
-endif
-
-ifdef PTXDIST_ICECC
-LIBELF_CFLAGS := -C
 endif
 
 # ----------------------------------------------------------------------------
@@ -80,8 +76,6 @@ $(STATEDIR)/libelf.targetinstall:
 
 ifdef PTXCONF_LIBELF_LIBDW
 	@$(call install_lib, libelf, 0, 0, 0644, libdw-$(LIBELF_VERSION))
-	@$(call install_lib, libelf, 0, 0, 0644, \
-		elfutils/libebl_$(LIBELF_ARCH)-$(LIBELF_VERSION))
 endif
 
 ifdef PTXCONF_LIBELF_LIBASM
@@ -95,6 +89,8 @@ ifdef PTXCONF_LIBELF_ELFSUTILS
 		$(call install_copy, libelf, 0, 0, 0755, -, \
 		/usr/bin/eu-$(bin));)
 endif
+
+	$(call install_copy, libelf, 0, 0, 0644, $(LIBELF_DIR)/COPYING, /usr/share/licenses/oss/license.libelf_$(LIBELF_VERSION).txt)
 
 	@$(call install_finish, libelf)
 

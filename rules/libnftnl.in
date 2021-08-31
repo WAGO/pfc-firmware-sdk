@@ -1,21 +1,12 @@
 ## SECTION=networking
 
-menuconfig LIBNFTNL
+config LIBNFTNL
 	tristate
 	select LIBMNL
-	select JANSSON if LIBNFTNL_JSON
-	prompt "libnftnl                      "
+	prompt "libnftnl"
 	help
 	  libnftnl is a userspace library providing a low-level netlink
 	  programming interface (API) to the in-kernel nf_tables subsystem.
 	  The library libnftnl has been previously known as libnftables.
 	  This library is currently used by nftables.
 
-if LIBNFTNL
-
-config LIBNFTNL_JSON
-	bool
-	depends on LIBNFTNL
-	prompt "JSON parsing support"
-
-endif

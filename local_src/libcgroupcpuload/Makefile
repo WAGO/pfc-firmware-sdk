@@ -35,6 +35,7 @@ MAIN_BUILDTARGETS += \
 	libcgroupcpuload.so \
 	loadcompare.elf \
 	checkcpu.elf \
+	cpuload.elf \
 	bellysmile.elf \
 	testapp.elf \
 	cpuloadmonitor.elf
@@ -74,6 +75,14 @@ loadcompare.elf_CFLAGS								+= -I $(SRC_DIR)/cgroupcpuload/
 loadcompare.elf_CFLAGS								+= $(SHARED_CFLAGS)
 loadcompare.elf_LDFLAGS								+= $(call option_lib_raw,$(loadcompare.elf_LIBS))
 loadcompare.elf_PREREQUISITES					+= $(call lib_buildtarget_raw,$(loadcompare.elf_LIBS))
+
+cpuload.elf_SOURCES								+= $(call glob_r,$(addprefix $(SRC_DIR)/cpuload/**/*.,$(SOURCE_FILE_EXTENSIONS)))
+cpuload.elf_LIBS									+= cgroupcpuload
+cpuload.elf_CFLAGS								+= $(call option_disable_warning, unused-function)
+cpuload.elf_CFLAGS								+= -I $(SRC_DIR)/cgroupcpuload/
+cpuload.elf_CFLAGS								+= $(SHARED_CFLAGS) -static
+cpuload.elf_LDFLAGS								+= $(call option_lib_raw,$(cpuload.elf_LIBS)) -static
+cpuload.elf_PREREQUISITES					+= $(call lib_buildtarget_raw,$(cpuload.elf_LIBS))
 
 checkcpu.elf_SOURCES									+= $(call glob_r,$(addprefix $(SRC_DIR)/checkcpu/**/*.,$(SOURCE_FILE_EXTENSIONS)))
 checkcpu.elf_LIBS											+= cgroupcpuload

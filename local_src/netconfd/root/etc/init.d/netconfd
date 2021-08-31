@@ -10,20 +10,74 @@ RUNDIR="/var/run/netconfd"
 PIDFILE="netconfd.pid"
 PATHPIDFILE=$RUNDIR/$PIDFILE
 NETCONFD="/usr/bin/netconfd"
-STARTCMD="$NETCONFD --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=debug"
+STARTCMD="$NETCONFD --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=error"
 
 set -e
 
-function stop_netconfd {
-    start-stop-daemon --stop --pidfile $PATHPIDFILE --retry=TERM/20/KILL/10 --oknodo --exec $NETCONFD
+
+function Log() {
+    [[ $# -gt 0 ]] && logger -t "netconfd init script" "$1"
+}
+
+function modify_start_cmd() {
+  # Check if FW update is running its first boot,
+  # in this case we must keep the ethernet ports down
+  # in order to prevent default bridge configuration (all ports switched)
+  source "/usr/sbin/fwupdate_basic_defines"
+  if [ -f "${WAGO_FW_UPDATE_FIRST_BOOT_MARKER}" ]; then
+    Log "FW update detected: netconfd is starting with all ports down!"
+    STARTCMD="$STARTCMD --startup-ports-down"
+  fi
+}
+
+function is_pid_alive() {
+    if [ -n "$1" ] && ps -p $1 >/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+function stop_netconfd() {
+    if [ ! -f "$PATHPIDFILE" ]; then
+        Log "Pid file $PATHPIDFILE does not exist. Doing nothing!"
+        return 0
+    fi
+
+    local pid="$(cat $PATHPIDFILE)"
+
+    if is_pid_alive $pid; then
+        Log "Terminate pid $pid"
+        kill $pid
+        local timeout=30
+        while [[ $timeout > 0 ]]; do
+            is_pid_alive $pid || break
+            : $((timeout--))
+            sleep 1
+        done
+        if is_pid_alive $pid; then
+            kill -9 $pid
+            Log "Failed to terminate $pid, send kill"
+        fi
+    else
+        Log "pid $pid is already dead"
+    fi
     /usr/bin/rm -f $PATHPIDFILE
+    return 0
+}
+
+function start_netconfd() {
+  # First action is to modify the start command based on the current environment
+  modify_start_cmd
+  
+  $STARTCMD
+  
+  echo "done"
 }
 
 
 case $1 in
 start)
-    $STARTCMD
-    echo "done"
+    start_netconfd
     ;;
 
 stop)
@@ -33,11 +87,11 @@ stop)
 
 restart)
     echo "Restart network configuration daemon"
-    stop_netconfd
-    $STARTCMD
-    echo "done"
+    stop_netconfd || : # ignore failing stop result
+		start_netconfd
     ;;
 
 *)
-    echo "Usage $0 start | stop | restart"
+    echo "Usage: $0 start | stop | restart"
+    ;;
 esac

@@ -4,7 +4,7 @@
 # see docs/Kconfig-language.txt.
 #
 
-menu "Busybox SELinux Utilities"
+menu "SELinux Utilities"
 	depends on BUSYBOX_SELINUX
 
 config BUSYBOX_CHCON
@@ -12,98 +12,88 @@ config BUSYBOX_CHCON
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to change the security context of file.
-
+	Enable support to change the security context of file.
 config BUSYBOX_GETENFORCE
 	bool "getenforce (1.7 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to get the current mode of SELinux.
-
+	Enable support to get the current mode of SELinux.
 config BUSYBOX_GETSEBOOL
 	bool "getsebool (5.5 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to get SELinux boolean values.
-
+	Enable support to get SELinux boolean values.
 config BUSYBOX_LOAD_POLICY
 	bool "load_policy (1.6 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to load SELinux policy.
-
+	Enable support to load SELinux policy.
 config BUSYBOX_MATCHPATHCON
 	bool "matchpathcon (6.1 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to get default security context of the
-	  specified path from the file contexts configuration.
-
+	Enable support to get default security context of the
+	specified path from the file contexts configuration.
 config BUSYBOX_RUNCON
 	bool "runcon (6.6 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to run command in specified security context.
-
+	Enable support to run command in specified security context.
 config BUSYBOX_SELINUXENABLED
 	bool "selinuxenabled (321 bytes)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support for this command to be used within shell scripts
-	  to determine if selinux is enabled.
-
+	Enable support for this command to be used within shell scripts
+	to determine if selinux is enabled.
 config BUSYBOX_SESTATUS
 	bool "sestatus (12 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Displays the status of SELinux.
-
+	Displays the status of SELinux.
 config BUSYBOX_SETENFORCE
 	bool "setenforce (2.1 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to modify the mode SELinux is running in.
-
+	Enable support to modify the mode SELinux is running in.
 config BUSYBOX_SETFILES
 	bool "setfiles (13 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to modify to relabel files.
-	  Notice: If you built libselinux with -D_FILE_OFFSET_BITS=64,
-	  (It is default in libselinux's Makefile), you _must_ enable
-	  CONFIG_LFS.
+	Enable support to modify to relabel files.
+	Notice: If you built libselinux with -D_FILE_OFFSET_BITS=64,
+	(It is default in libselinux's Makefile), you _must_ enable
+	CONFIG_LFS.
 
 config BUSYBOX_FEATURE_SETFILES_CHECK_OPTION
 	bool "Enable check option"
 	default n
 	depends on BUSYBOX_SETFILES
 	help
-	  Support "-c" option (check the validity of the contexts against
-	  the specified binary policy) for setfiles. Requires libsepol.
+	Support "-c" option (check the validity of the contexts against
+	the specified binary policy) for setfiles. Requires libsepol.
 
 config BUSYBOX_RESTORECON
 	bool "restorecon (12 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support to relabel files. The feature is almost
-	  the same as setfiles, but usage is a little different.
-
+	Enable support to relabel files. The feature is almost
+	the same as setfiles, but usage is a little different.
 config BUSYBOX_SETSEBOOL
 	bool "setsebool (1.7 kb)"
 	default n
 	depends on BUSYBOX_SELINUX
 	help
-	  Enable support for change boolean.
-	  semanage and -P option is not supported yet.
+	Enable support for change boolean.
+	semanage and -P option is not supported yet.
 
 endmenu

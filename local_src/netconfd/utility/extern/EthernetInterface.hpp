@@ -1,37 +1,39 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 #pragma once
 
-#include <Socket.h>
 #include <linux/if.h>
 #include <mutex>
 #include <gsl/gsl>
 
+#include "Socket.hpp"
 #include "NetworkInterfaceConstants.hpp"
 #include "IEthernetInterface.hpp"
-
+#include "EthTool.hpp"
 
 namespace netconf {
-
-
 
 class EthernetInterface : public IEthernetInterface {
  public:
   explicit EthernetInterface(::std::string name);
-  explicit EthernetInterface(::std::uint32_t ifindex);
-  EthernetInterface(EthernetInterface&& other) noexcept;
+  virtual ~EthernetInterface() = default;
+  EthernetInterface(const EthernetInterface& other) = default;
+  EthernetInterface& operator=(const EthernetInterface& other) = default;
+  EthernetInterface(EthernetInterface&& other) = default;
+  EthernetInterface& operator=(EthernetInterface&& other) = default;
 
   void UpdateConfig() override;
-  eth::EthernetMauType GetMauType() const override;
   MacAddress GetMac() const override;
   bool GetAutonegSupport() const override;
   bool GetAutonegEnabled() const override;
-  ::std::uint32_t GetAutonegCapabilities() const override;
   eth::MediaType GetMediaType() const override;
   eth::DeviceState GetState() const override;
   eth::InterfaceLinkState GetLinkState() const override;
   ::std::uint32_t GetInterfaceIndex() const override;
-  ::std::uint32_t GetAutonegCapabilitiesXdot3() const override;
   ::std::uint32_t GetMTU() const override;
+  gsl::span<const uint32_t> GetSupportedLinkModes() const override;
+
+  ::std::int32_t GetSpeed() const override;
+  eth::Duplex GetDuplex() const override;
 
   void Commit() override;
 
@@ -45,20 +47,7 @@ class EthernetInterface : public IEthernetInterface {
  private:
   void SetIfFlags(int16_t if_flags);
   int16_t GetIfFlags() const;
-  void FillDataFromMauType(eth::EthernetMauType mau_type);
   void InitializeData();
-
-  struct Data {
-    bool autoneg_enabled_;
-    ::std::uint32_t autoneg_supported_;
-    ::std::uint32_t autoneg_advertising_;
-    eth::MediaType media_type_;
-    ::std::uint8_t duplex_;
-    ::std::uint32_t speed_;
-    eth::TpMdiType mdix_state_;
-    eth::DeviceState if_state_;
-    eth::InterfaceLinkState if_link_state_;
-  };
 
   mutable ::std::mutex data_mutex_;
   uint8_t mac_[6];
@@ -68,9 +57,11 @@ class EthernetInterface : public IEthernetInterface {
 
   ::ifreq ifreq_;
   Socket socket_;
-  Data data_get_;
-  Data data_set_;
   ::std::size_t mtu_;
+
+  EthTool ethtool_;
+  EthToolSettings ethtool_settings_r_;
+  EthToolSettings ethtool_settings_w_;
 
 };
 

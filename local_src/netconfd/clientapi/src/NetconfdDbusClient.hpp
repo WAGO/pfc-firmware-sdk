@@ -32,6 +32,7 @@ namespace netconf
 
       DbusResult SetInterfaceConfigs(const ::std::string &config);
       DbusResult GetInterfaceConfigs();
+      DbusResult GetInterfaceStatuses();
 
       DbusResult GetDeviceInterfaces();
 

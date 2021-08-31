@@ -9,13 +9,11 @@
 
 #include "OptionParser.hpp"
 
-namespace network_config
-{
+namespace network_config {
 
-class HandlerFactory
-{
-  public:
-    static ::std::unique_ptr<IHandler> CreateHandler(const OptionParser& parser);
+class HandlerFactory {
+ public:
+  static ::std::unique_ptr<IHandler> CreateHandler(const OptionParser &parser);
 };
 
 }

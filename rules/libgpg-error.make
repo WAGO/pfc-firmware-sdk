@@ -3,8 +3,6 @@
 # Copyright (C) 2009 by Erwin Rol
 #               2010, 2013 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,8 +15,8 @@ PACKAGES-$(PTXCONF_LIBGPG_ERROR) += libgpg-error
 #
 # Paths and names
 #
-LIBGPG_ERROR_VERSION	:= 1.35
-LIBGPG_ERROR_MD5	:= 2808a9e044f883f7554c5ba6a380b711
+LIBGPG_ERROR_VERSION	:= 1.36
+LIBGPG_ERROR_MD5	:= eff437f397e858a9127b76c0d87fa5ed
 LIBGPG_ERROR		:= libgpg-error-$(LIBGPG_ERROR_VERSION)
 LIBGPG_ERROR_SUFFIX	:= tar.bz2
 LIBGPG_ERROR_URL	:= \

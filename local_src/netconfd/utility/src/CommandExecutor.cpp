@@ -13,18 +13,18 @@ using namespace std::string_literals;
 
 namespace netconf {
 
-Error CommandExecutor::Execute(const ::std::string& command) const {
+Status CommandExecutor::Execute(const ::std::string& command) const {
   ::std::string tmp;
   return Execute(command, tmp);
 }
 
-Error CommandExecutor::Execute(const ::std::string& command,
+Status CommandExecutor::Execute(const ::std::string& command,
                                 ::std::string & result) const {
   FILE* file;
   file = popen(command.c_str(), "r");  //NOLINT(cert-env33-c) TODO(PND): kann evtl. anders gelöst werden.
 
   if (file == nullptr) {
-    return Error{ErrorCode::SYSTEM_EXECUTE, ::std::to_string(errno)};
+    return Status{StatusCode::SYSTEM_EXECUTE, ::std::to_string(errno)};
   }
 
   std::array<char, 100> buffer { };
@@ -36,11 +36,11 @@ Error CommandExecutor::Execute(const ::std::string& command,
   int st = pclose(file);
   if (WIFEXITED(st)) {
     if (0 != WEXITSTATUS(st)) {
-      return Error{ErrorCode::SYSTEM_EXECUTE, ::std::to_string(WEXITSTATUS(st))};
+      return Status{StatusCode::SYSTEM_EXECUTE, ::std::to_string(WEXITSTATUS(st))};
     }
   }
 
-  return Error::Ok();
+  return Status::Ok();
 }
 
 }  // namespace netconf

@@ -12,6 +12,7 @@ config CODESYS3
 	select HOST_CT_BUILD
 	select OPENSSL
 	select WAGO_DBUS if CDS3_RTS_PRODUCT_VTPCTP
+	select PAM
 	help
 		Builds and installs the CODESYS v3 plc.
 
@@ -42,29 +43,28 @@ if CODESYS3
 menu "Codesys 3 Settings"
 
 config CDS3_PLCCONFIGFILE
-	string "Codesys 3 config file."
-	default RtsMain.cfg
+	string "Codesys 3 config file"
+	default "RtsMain.cfg"
 	help
-		Path and file name on the target.
-		
+	  Path and file name on the target
+
 config CDS3_PLCCONFIGDIR
-	string "Codesys 3 config dir."
-	default /etc/codesys3.d
+	string "Codesys 3 config dir"
+	default "/etc/codesys3.d"
 	help
-		Path and file name on the target.
-		
+	  Path and file name on the target
 
 config CDS3_HOME_PATH
 	string "Codesys 3 home"
-	default /home/codesys
+	default "/home/codesys"
 	help
-	    Path to the codesys 3 home folder. This is where codesys 3 starts bootprojects from.
+	  Path to the codesys 3 home folder
 
 config CDS3_HOME
 	bool "install /home/codesys"
 	default y
 	help
-	 Installs Codesys v3 fonts and other files into /home/codesys
+		Installs Codesys v3 fonts and other files into /home/codesys
 
 choice
 	prompt "Select Platform implementation of Runtime"
@@ -162,6 +162,13 @@ choice
                 prompt "e!DISPLAY"
                 help
                         Use e!DISPLAY Products
+                        
+	config CDS3_RTS_PRODUCT_CC100
+                bool
+                prompt "CC100"
+                help
+                        Use CC100 Products
+
 
 endchoice
 
@@ -606,6 +613,7 @@ config CDS3_RTS_FEATURE_TARGETVISU
 config CDS3_RTS_FEATURE_USER_MANAGEMENT
         tristate "User Management"
         default n
+	select PAM
         help
                 If you want to have the user Management say Y here
 

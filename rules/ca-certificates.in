@@ -2,12 +2,13 @@
 
 menuconfig CA_CERTIFICATES
 	tristate
+	select HOST_SYSTEM_PYTHON3
 	select HOST_SYSTEM_PERL	if CA_CERTIFICATES_CERTS
 	select HOST_OPENSSL	if CA_CERTIFICATES_CERTS
 	select OPENSSL		if CA_CERTIFICATES_CERTS && BUILDTIME
 	prompt "ca-certificates               "
 	help
-	  Common CA certificates from Mozilla
+	  Common CA certificates
 
 if CA_CERTIFICATES
 
