@@ -62,7 +62,7 @@ CFLAGS += -I$(SYSROOT)/usr/include
 # Linker flags
 #------------------------------------------------------------------------------
 
-LDFLAGS += -lprofinet 
+LDFLAGS += -lelf -lprofinet
 LDFLAGS += -DLINUX -lpthread -lboost_system -lboost_thread -lrt
 
 #------------------------------------------------------------------------------
