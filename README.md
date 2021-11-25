@@ -35,10 +35,6 @@ which make a uniquely defined host environment mandatory. Ubuntu 16.04 (64bit) f
 others may or may not.
 
 # PREREQUISITES
-You need a internet connection on your development host. Because during image creation the source file
-"nlohmann-json-v3.7.0.tar.gz" will be downloaded automatically.
-In case you do not have a internet connetion on your development host. Please refer to section
-[ 4.6) Download packages ].
 
 # Installation and building STEP-BY-STEP:
 
