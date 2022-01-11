@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2021 WAGO Kontakttechnik GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
@@ -9,13 +9,12 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///
-///  \file     get_clock_data.c
+///  \file
 ///
-///  \version  $Revision: 55301 $1
-///
-///  \brief    
+///  \brief    Config-tool to get various system time and timezone information.
 ///
 ///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+///                           WF : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -24,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 
@@ -37,23 +37,14 @@
 // Local macros
 //------------------------------------------------------------------------------
 
-// show errors on screen? Normally not, because they would be also displayed e.g. on WBM
-#define SHOW_ERRORS                       0
-
-// maximum length of the string to search for in the system-call output
-//#define MAX_LENGTH_SEARCH_STRING        40
-
-// maximum length of string for the output of the requested parameter
+/// \brief Maximum length of string for the output of the requested parameter.
 #define MAX_LENGTH_CLOCK_OUTPUT           100
 
-#define MAX_LENGTH_TZ_STRING              200
-#define MAX_LENGTH_PLAIN_TIMEZONE_STRING  200
-
-// output-strings for display-modes
+/// \brief Display mode of 12-hour-format as string
 #define HOUR_FORMAT_12                    "12-hour-format"
+
+/// \brief Display mode of 24-hour-format as string
 #define HOUR_FORMAT_24                    "24-hour-format"
-
-
 
 //------------------------------------------------------------------------------
 // External variables
@@ -63,87 +54,223 @@
 // Local typedefs
 //------------------------------------------------------------------------------
 
-// Pointer to funktion to search the requested parameter
-typedef int (*tFktGetParameter)(char* pAdditionalParam,
-                                char* pOutputString);
-
-// struct to join the possible input-strings with the processing-function to get them
+/// \brief Context for sub command function calls.
+///
+/// Encapsulates function arguments and return values to achieve a common
+/// interface for sub command calls.
 typedef struct
 {
-  // input-string from command-line
-  char              inputString[MAX_LENGTH_INPUT_STRING];
+  char * pAdditionalParam;  ///< additional argument of sub command
+  char * pOutputString;     ///< return value of the sub command
+} tstContext;
 
-  // processing function to get the requested parameter
-  tFktGetParameter  pFktGetParameter;
+/// \brief Common interface for sun command function calls.
+typedef int (*tFunGetParameter)(tstContext * pContext);
 
+/// \brief Entry of the table containing names and function pointers of sub commands.
+typedef struct
+{
+  char const * inputString;             ///< input-string from command-line
+  tFunGetParameter  pFunGetParameter;   ///< processing function to get the requested parameter
 } tstParameterJumptab;
 
-
-// struct to assign the TZ-string to the plain-text for user
-typedef struct 
-{
-  // tz-string from TZ-file
-  char  tzString[MAX_LENGTH_TZ_STRING];
-
-  // timezone-string in plain-text
-  char  plainTimezoneString[MAX_LENGTH_PLAIN_TIMEZONE_STRING];
-
-} tstTimezoneStringAssign;
 
 
 //------------------------------------------------------------------------------
 // Local variables
 //------------------------------------------------------------------------------
 
-// get the actual configured clock-display-mode (12- or 24-hour)
-int GetDisplayMode(char* pValueString,
-                   char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get the string which describes the time-format (12-hour-format or
+///        24-hour-format).
+///
+/// Display mode is returned as string in pContext->pOutputString.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetDisplayMode(tstContext * pContext);
 
-// function to get local-time
-int GetTimeLocal(char* pAdditionalParam,
-                 char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get local time.
+///
+/// Local time is returned as string in pContext->pOutputString, either in 24-
+/// or 12-hour format, depending on the actual settings.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetTimeLocal(tstContext * pContext);
 
-// function to get UTC-time
-int GetTimeUtc(char* pAdditionalParam,
-               char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get UTC-time.
+///
+/// UTC time is returned as string in pContext->pOutputString, either in 24-
+/// or 12-hour format, depending on the actual settings.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetTimeUtc(tstContext * pContext);
 
-// function to get local date
-int GetDateLocal(char* pAdditionalParam,
-                 char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get local date.
+///
+/// Local date is returned as string in context->pOutputString.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetDateLocal(tstContext * pContext);
 
-// function to get UTC date
-int GetDateUtc(char* pAdditionalParam,
-               char* pOutputString);
 
-// function to get UTC date 
-int GetDate(char* pAdditionalParam,
-            char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get date in UTC-time.
+///
+/// UTC date is returned as string in pContext->pOutputString.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetDateUtc(tstContext * pContext);
 
-// function to get tz-string
-int GetTzString(char* pAdditionalParam,
-                char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get date in UTC-time.
+///
+/// UTC date is returned as string in pContext->pOutputString.
+///
+/// \note This sub command is still existing by compatibility reasons,
+///       since we now distinguish between UTC and local time.
+///
+/// \param pContext Pointer to call context.
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetDate(tstContext * pContext);
 
-int GetTimezonePlainStringByNr(char* pNrString,
-                               char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get TZ-string directly from file /etc/TZ.
+///
+/// TZ-string is returned as string in pContext->pOutputString.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetTzString(tstContext * pContext);
 
-int GetAllTimezonePlainStrings(char* pNrString,
-                               char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get a plain description of a timezone by a given index.
+///
+/// Timezone index is provided as string by pContext->pAdditionParam.
+/// Timezone description is returned as string in pContext->pOutputString.
+/// If there is no matching timezone for the given index, an empty string is
+/// returned.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetTimezonePlainStringByNr(tstContext * pContext);
 
-int GetAllTimezonePlainStringsJson(char* pNrString,
-                                   char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Prints all known timezones to stdout.
+///
+/// Timezones are printed as plain strings, separated by a pipe ('|').
+///
+/// \param pContext unused
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetAllTimezonePlainStrings(tstContext * pContext);
 
-int GetActualTimezonePlainString(char* pAdditionalParam,
-                                 char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Prints all known timezones to stdout.
+///
+/// Timezones are printes as JSON array.
+///
+/// \param pContext unused
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetAllTimezonePlainStringsJson(tstContext * pContext);
 
-int GetTimezoneSelection(char* pNrString,
-                         char* pOutputString);
+//------------------------------------------------------------------------------
+/// \brief Get a description of the actual configured timezone.
+///
+/// Timezone description is returned in pContext->pOutputString.
+///
+/// \param pContext Pointer to call context
+///
+/// \return SUCCESS of success, otherwise error-code
+//------------------------------------------------------------------------------
+static int GetActualTimezonePlainString(tstContext * pContext);
 
+//------------------------------------------------------------------------------
+/// \brief Show description and usage of program on stdout.
+//------------------------------------------------------------------------------
+static void ShowHelpText(void);
+
+
+/// \brief Initializes a call context to invoke sub commands.
+///
+/// \param pContext         Pointer to context to initialize
+/// \param pAdditionalParam Pointer to additional parameter of the cal
+//------------------------------------------------------------------------------
+static void InitContext(tstContext * pContext,
+                        char * pAdditionalParam);
+
+//------------------------------------------------------------------------------
+/// \brief Cleans up a call context of a sub command.
+///
+/// \param pContext Pointer to context to clean up.
+//------------------------------------------------------------------------------
+static void CleanupContext(tstContext * pContext);
+
+//------------------------------------------------------------------------------
+/// \brief Returns the size of a file
+///
+/// \param pFileName name of the file
+///
+/// \return Size of the file or 0 on error.
+//------------------------------------------------------------------------------
 static off_t GetFileSize(char const * pFileName);
 
+//------------------------------------------------------------------------------
+/// \brief Initializes TZ variable
+///
+//------------------------------------------------------------------------------
 static void SetTZVariable(void);
 
-// array of all possible requested parameter (input-strings, strings to search for, processing-function to get them)
-static tstParameterJumptab astParameterJumptab[] =
+//------------------------------------------------------------------------------
+/// \brief Return true if a given string is a number.
+///
+/// \param pValue String to investigate
+///
+/// \return true of the string is a number, otherwise false
+//------------------------------------------------------------------------------
+static bool IsNumber(char const * pValue);
+
+//------------------------------------------------------------------------------
+/// \brief Copys a string to a buffer.
+///
+/// Ensures that the buffer contains a NULL-terminated string afterwards.
+///
+/// \param pBuffer Buffer to copy the string to
+/// \param pSource String to copy
+/// \param bufferSize Size of the buffer
+//------------------------------------------------------------------------------
+static void CopyString(char * pBuffer,
+                       char const * pSource,
+                       size_t bufferSize);
+
+/// \brief Table containing names of sub commands and function pointers.
+static tstParameterJumptab const astParameterJumptab[] =
 {
   { "display-mode",           GetDisplayMode },
   { "time-local",             GetTimeLocal },
@@ -156,28 +283,9 @@ static tstParameterJumptab astParameterJumptab[] =
   { "all-timezone-strings",   GetAllTimezonePlainStrings },
   { "timezone-strings-json",  GetAllTimezonePlainStringsJson },
   { "timezone-string",        GetActualTimezonePlainString }, 
-  { "timezone-selection",     GetTimezoneSelection },
 
   // this line must always be the last one - don't remove it!
   { "", NULL }
-};
-
-
-static tstTimezoneStringAssign astTimezoneStringAssign[] =
-{
-  { "AST4ADT,M3.2.0,M11.1.0",       "AST/ADT: Altzantic Standard Time, Halifax" },
-  { "EST5EDT,M3.2.0,M11.1.0",       "EST/EDT: Eastern Standard Time, New York, Toronto" },
-  { "CST6CDT,M3.2.0,M11.1.0",       "CST/CDT: Central Standard Time, Chicago, Winnipeg" },
-  { "MST7MDT,M3.2.0,M11.1.0",       "MST/MDT: Mountain Standard Time, Denver, Edmonton" },
-  { "PST8DPT,M3.2.0,M11.1.0",       "PST/PDT: Pacific Standard Time, Los Angeles, Whitehorse" },
-  { "GMT0BST,M3.5.0/1,M10.5.0",     "GTM/BST: Greenwich Main Time, GB, P, IRL, IS, ..." },
-  { "CET-1CEST,M3.5.0,M10.5.0/3", "CET/CEST: Central European Time, B, DK, D, F, I, CRO, NL, ..." },
-  { "EET-2EEST,M3.5.0/3,M10.5.0/4", "EET/EEST: East European Time, BUL, FI, GR, TR, ..." },
-  { "CST-8",                        "CST: China Standard Time" },
-  { "JST-9",                        "JST: Japan / Korea Standard Time" },
-
-  // this line must always be the last one - don't remove it!
-  { "", "" }
 };
 
 
@@ -191,54 +299,32 @@ static tstTimezoneStringAssign astTimezoneStringAssign[] =
 //------------------------------------------------------------------------------
 
 
-void ShowHelpText(void)
-//
-// Show describtion and usage of program on stdout
-//
+//------------------------------------------------------------------------------
+static void ShowHelpText(void)
 {
-  int parameterIndex = 0;
-
   printf("\n* Get clock data *\n\n");
   printf("Usage: get_clock_data <parameter> [parameter-value]\n\n");
   printf("parameter:");
 
   // read the possible strings for parameter from array and show them like this: "param1 | param2 | param3"
-  while(strlen(astParameterJumptab[parameterIndex].inputString) > 0)
+  for(size_t i = 0; '\0' != astParameterJumptab[i].inputString[0]; i++)
   {
-    if(parameterIndex != 0) printf("| ");
-    printf("%s ", astParameterJumptab[parameterIndex].inputString);
-    ++parameterIndex;
+    if(i != 0) printf("| ");
+    printf("%s ", astParameterJumptab[i].inputString);
   }
 
   printf("\n");
-  printf("parameter-value: output is \"checked\", if the result is the same as the given string (else no output).\n");
-  printf("\nNote: needs the bash-script \"get_local_time\" to get the local-time-value.\n");
-  //printf("                 This is useful for the display of the result in the context of a checkbox on a html-page.\n");
+  printf("parameter-value: is used by timezone-string-by-nr to identify the timezone-string\n");
   printf("\n");
 }
 
 
-int GetDisplayMode(char* pValueString,
-                   char* pOutputString)
-//
-// Get the string which describes the time-format (12-hour-format or 24-hour-format).
-//
-// output: string with the time-format - must be allocated by calling function!
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetDisplayMode(tstContext * pContext)
 {
   int   status                  = SUCCESS;
   char* pTimeFormatFileContent  = NULL;
  
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
-
   // get content of fieldbus-info-file
   pTimeFormatFileContent = FileContent_Get("/etc/config-tools/TIME_FORMAT");
 
@@ -247,7 +333,7 @@ int GetDisplayMode(char* pValueString,
   {
     system("echo display-mode=24-hour-format >> /etc/config-tools/TIME_FORMAT");
     system("sync");
-    strncpy(pOutputString, HOUR_FORMAT_24, MAX_LENGTH_CLOCK_OUTPUT);
+    CopyString(pContext->pOutputString, HOUR_FORMAT_24, MAX_LENGTH_CLOCK_OUTPUT);
   }
   else
   {
@@ -256,17 +342,18 @@ int GetDisplayMode(char* pValueString,
 
     // loop over the lines of time-format-file until we find the line with the fieldbus-information
     lineNr = 1;
-    while((SUCCESS == FileContent_GetLineByNr(pTimeFormatFileContent, lineNr, timeFormatFileLine)) && (strlen(pOutputString) == 0))
+    while((SUCCESS == FileContent_GetLineByNr(pTimeFormatFileContent, lineNr, timeFormatFileLine)) && ('\0' == pContext->pOutputString[0]))
     {   
       // first search for the string which is always directly in front of the time-format-string 
-      const char beginOfTimeFormatString[] = "display-mode=";
+      char const   beginOfTimeFormatString[] = "display-mode=";
+      size_t const beginOfTimeFormatString_len = sizeof(beginOfTimeFormatString) - 1;
 
       // if the line is no comment and introducing string was found
-      if((timeFormatFileLine[0] != COMMENT_CHAR) && (strstr(timeFormatFileLine, beginOfTimeFormatString) != NULL))
+      if(0 == strncmp(timeFormatFileLine, beginOfTimeFormatString, beginOfTimeFormatString_len))
       {
         // read the time-fomat behind it 
-        strncpy(pOutputString, timeFormatFileLine + strlen(beginOfTimeFormatString), MAX_LENGTH_CLOCK_OUTPUT);
-        CutWord(pOutputString, MAX_LENGTH_CLOCK_OUTPUT);
+        CopyString(pContext->pOutputString, timeFormatFileLine + beginOfTimeFormatString_len, MAX_LENGTH_CLOCK_OUTPUT);
+        CutWord(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT);
       }
 
       ++lineNr;
@@ -274,228 +361,133 @@ int GetDisplayMode(char* pValueString,
 
     FileContent_Destruct(&pTimeFormatFileContent);
 
-    // if a comparison with a special value should be made for html-page, do it and set output-string accordingly
-    if(pValueString != NULL)
-    {
-      if(strncmp(pValueString, pOutputString, MAX_LENGTH_CLOCK_OUTPUT) == 0)
-      {
-        strncpy(pOutputString, "checked", MAX_LENGTH_CLOCK_OUTPUT);
-      }
-      else
-      {
-        strncpy(pOutputString, "", MAX_LENGTH_CLOCK_OUTPUT);
-      }
-    }
+
+//    // if a comparison with a special value should be made for html-page, do it and set output-string accordingly
+//    if(pAdditionalParam != NULL)
+//    {
+//      if(strncmp(pAdditionalParam, pOutputString, MAX_LENGTH_CLOCK_OUTPUT) == 0)
+//      {
+//        CopyString(pOutputString, "checked", MAX_LENGTH_CLOCK_OUTPUT);
+//      }
+//      else
+//      {
+//        CopyString(pOutputString, "", MAX_LENGTH_CLOCK_OUTPUT);
+//      }
+//    }
   }
 
   return(status);
 }
 
 
-int GetTimeLocal(char* pAdditionalParam,
-                 char* pOutputString)
-//
-// Get local time.
-//
-// input: pAdditionalParam: ignored
-//
-// output: String with local time, either in 24- or 12-hour-format, depending on the according settings.
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetTimeLocal(tstContext * pContext)
 {
-  char        displayModeString[MAX_LENGTH_CLOCK_OUTPUT] = "";
-  time_t      tTime                                      = 0;
+  time_t      tTime = 0;
   struct tm*  stTmTime;
+  tstContext  displayModeString;
 
-  char*       pTimeString                                = NULL;
-
-  // check input-parameter
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
+  InitContext(&displayModeString, NULL);
 
   // get time-value (first get system-time, then convert it to time-struct as local-time)
   time(&tTime);
   stTmTime = localtime(&tTime);
 
   // get the display-format from config-file and put time to string depending on it 
-  if(SUCCESS == GetDisplayMode(NULL, displayModeString))
+  if(SUCCESS == GetDisplayMode(&displayModeString))
   {
-    if(strcmp(displayModeString, HOUR_FORMAT_24) == 0)
+    if(strcmp(displayModeString.pOutputString, HOUR_FORMAT_24) == 0)
     {
       // 24-hour-format
-      strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%H:%M:%S", stTmTime);
+      strftime(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%H:%M:%S", stTmTime);
     }
     else
     {
       // 12-hour-format
-      strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%I:%M:%S %p", stTmTime);
+      strftime(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%I:%M:%S %p", stTmTime);
     }
   }
 
+  CleanupContext(&displayModeString);
   return(SUCCESS);
 }
 
 
-int GetTimeUtc(char* pAdditionalParam,
-               char* pOutputString)
-//
-// Get UTC-time.
-//
-// input: pAdditionalParam: ignored
-//
-// output: String with UTC-time, either in 24- or 12-hour-format, depending on the according settings.
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetTimeUtc(tstContext * pContext)
 {
-  char        displayModeString[MAX_LENGTH_CLOCK_OUTPUT] = "";
-
-  time_t      tTime     = 0;
+  time_t      tTime = 0;
   struct tm*  stTmTime;
+  tstContext  displayModeString;
 
-  // check input-parameter
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
+  InitContext(&displayModeString, NULL);
 
   // get time-value (first get system-time, then convert it to time-struct as utc-time)
   time(&tTime);
   stTmTime = gmtime(&tTime);
 
   // get the display-format from config-file and put time to string depending on it 
-  if(SUCCESS == GetDisplayMode(NULL, displayModeString))
+  if(SUCCESS == GetDisplayMode(&displayModeString))
   {
-    if(strcmp(displayModeString, HOUR_FORMAT_24) == 0)
+    if(strcmp(displayModeString.pOutputString, HOUR_FORMAT_24) == 0)
     {
       // 24-hour-format
-      strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%H:%M:%S", stTmTime);
+      strftime(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%H:%M:%S", stTmTime);
     }
     else
     {
       // 12-hour-format
-      strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%I:%M:%S %p", stTmTime);
+      strftime(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%I:%M:%S %p", stTmTime);
     }
   }
 
+  CleanupContext(&displayModeString);
   return(SUCCESS);
 }
 
 
-int GetDateLocal(char* pAdditionalParam,
-                 char* pOutputString)
-//
-// Get local date.
-//
-// input: pAdditionalParam: ignored
-//
-// output: String with local date
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetDateLocal(tstContext * pContext)
 {
-  char* pDateString = NULL;
   time_t      tTime     = 0;
   struct tm*  stTmTime;
-
-  // check input-parameter
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
 
    // get time-value (first get system-time, then convert it to time-struct as utc-time) and at least put date to string
   time(&tTime);
   stTmTime = localtime(&tTime);
-  strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%d.%m.%Y", stTmTime);
+  strftime(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%d.%m.%Y", stTmTime);
  
   return SUCCESS;
 }
 
 
-int GetDateUtc(char* pAdditionalParam,
-               char* pOutputString)
-//
-// Get date.
-//
-// input: pAdditionalParam: ignored
-//
-// output: String with date (format dd.mm.yyyy)
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetDateUtc(tstContext * pContext)
 {
   time_t      tTime     = 0;
   struct tm*  stTmTime;
 
-  // check input-parameter
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
-
   // get time-value (first get system-time, then convert it to time-struct as utc-time) and at least put date to string
   time(&tTime);
   stTmTime = gmtime(&tTime);
-  strftime(pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%d.%m.%Y", stTmTime);
+  strftime(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT, "%d.%m.%Y", stTmTime);
 
   return(SUCCESS);
 }
 
 
-int GetDate(char* pAdditionalParam,
-            char* pOutputString)
-//
-// Get date in UTC-time (still existing by compability reason, now we differ between UTC and local).
-//
-// input: pAdditionalParam: ignored
-//
-// output: String with date (format dd.mm.yyyy)
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetDate(tstContext * pContext)
 {
-  GetDateUtc(pAdditionalParam, pOutputString);
+  return GetDateUtc(pContext);
 }
 
 
-int GetTzString(char* pAdditionalParam,
-                char* pOutputString)
-//
-// Get TZ-string directly from file TZ.
-//
-// input: pAdditionalParam: ignored
-//
-// output: content of TZ-string - must be allocated by calling function!
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetTzString(tstContext * pContext)
 {
   int   status          = SUCCESS;
   char* pTzFileContent  = NULL;
- 
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
 
   // get content of fieldbus-info-file
   pTzFileContent = FileContent_Get("/etc/TZ");
@@ -542,46 +534,28 @@ int GetTzString(char* pAdditionalParam,
     }
     else
     {
-      strncpy(pOutputString, pTzFileContent, MAX_LENGTH_CLOCK_OUTPUT);
-      CutWord(pOutputString, MAX_LENGTH_CLOCK_OUTPUT);
-      //FileContent_Destruct(&pTzFileContent);
-      free(pTzFileContent);
+      free(pContext->pOutputString);
+      pContext->pOutputString = pTzFileContent;
+      CutWord(pContext->pOutputString, strlen(pTzFileContent) + 1);
     }
   }
   else
   {
-    // copy tz-string from file-buffer to output-string
-    strncpy(pOutputString, pTzFileContent, MAX_LENGTH_CLOCK_OUTPUT);
-    CutWord(pOutputString, MAX_LENGTH_CLOCK_OUTPUT);
-
+    free(pContext->pOutputString);
+    pContext->pOutputString = strdup(pTzFileContent);
+    CutWord(pContext->pOutputString, strlen(pTzFileContent) + 1);
     FileContent_Destruct(&pTzFileContent);
   }
 
   return(status);
 }
 
-int GetTzName(char* pAdditionalParam,
-                char* pOutputString)
-//
-// Get TZ-string directly from file TZ.
-//
-// input: pAdditionalParam: ignored
-//
-// output: content of TZ-string - must be allocated by calling function!
-//
-// return: error-code: SUCCESS: no error
-//
+
+//------------------------------------------------------------------------------
+static int GetTzName(tstContext * pContext)
 {
   int   status          = SUCCESS;
   char* pTzFileContent  = NULL;
-
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
 
   // get content of fieldbus-info-file
   pTzFileContent = FileContent_Get("/etc/TZname");
@@ -593,8 +567,8 @@ int GetTzName(char* pAdditionalParam,
   else
   {
     // copy tz-string from file-buffer to output-string
-    strncpy(pOutputString, pTzFileContent, MAX_LENGTH_CLOCK_OUTPUT);
-    CutWord(pOutputString, MAX_LENGTH_CLOCK_OUTPUT);
+    CopyString(pContext->pOutputString, pTzFileContent, MAX_LENGTH_CLOCK_OUTPUT);
+    CutWord(pContext->pOutputString, MAX_LENGTH_CLOCK_OUTPUT);
 
     FileContent_Destruct(&pTzFileContent);
   }
@@ -602,14 +576,18 @@ int GetTzName(char* pAdditionalParam,
   return(status);
 }
 
-int GetAllTimezonePlainStrings(char* pNrString,
-                               char* pOutputString)
+
+//------------------------------------------------------------------------------
+static int GetAllTimezonePlainStrings(tstContext * pContext)
 {
-    UNUSED_PARAMETER(pNrString);
+    UNUSED_PARAMETER(pContext);
 
     int status = SUCCESS;
     int cnt = 1;
     char tzStrNr[4] = ""; // up to 999 timezone strings supported
+    tstContext timezoneString;
+
+    InitContext(&timezoneString, tzStrNr);
 
     do
     {
@@ -621,8 +599,8 @@ int GetAllTimezonePlainStrings(char* pNrString,
 
         snprintf(tzStrNr, sizeof(tzStrNr), "%d", cnt);
 
-        status = GetTimezonePlainStringByNr(tzStrNr, pOutputString); 
-
+        timezoneString.pOutputString[0] = '\0';
+        status = GetTimezonePlainStringByNr(&timezoneString);
         if(SUCCESS == status)
         {
             if(cnt > 1)
@@ -630,31 +608,34 @@ int GetAllTimezonePlainStrings(char* pNrString,
                 printf("|");
             }
 
-            printf("%s", pOutputString);
+            printf("%s", timezoneString.pOutputString);
         
             ++cnt; // no endless loop possible: SUCCESS != status is an abort criterium
         }
     }
-    while( (SUCCESS == status) && (0 != strcmp("", pOutputString)) );
+    while( (SUCCESS == status) && ('\0' != timezoneString.pOutputString[0]) );
 
     if(cnt > 1) // at least one entry was found
     {
         status = SUCCESS; // GetTimezonePlainStringByNr returns "" and ERROR for the one-after-last element
     }
 
+    CleanupContext(&timezoneString);
     return status;
 }
 
 
-int GetAllTimezonePlainStringsJson(char* pNrString,
-                                   char* pOutputString)
+//------------------------------------------------------------------------------
+static int GetAllTimezonePlainStringsJson(tstContext * pContext)
 {
-    UNUSED_PARAMETER(pNrString);
+    UNUSED_PARAMETER(pContext);
 
     int status = SUCCESS;
     int cnt = 1;
     char tzStrNr[4] = ""; // up to 999 timezone strings supported
+    tstContext timezoneString;
 
+    InitContext(&timezoneString, tzStrNr);
     printf("[ ");
     do
     {
@@ -666,8 +647,8 @@ int GetAllTimezonePlainStringsJson(char* pNrString,
 
         snprintf(tzStrNr, sizeof(tzStrNr), "%d", cnt);
 
-        status = GetTimezonePlainStringByNr(tzStrNr, pOutputString);
-
+        timezoneString.pOutputString[0] = '\0';
+        status = GetTimezonePlainStringByNr(&timezoneString);
         if(SUCCESS == status)
         {
             if(cnt > 1)
@@ -675,12 +656,12 @@ int GetAllTimezonePlainStringsJson(char* pNrString,
                 printf(", ");
             }
 
-            printf("\"%s\"", pOutputString);
+            printf("\"%s\"", timezoneString.pOutputString);
 
             ++cnt; // no endless loop possible: SUCCESS != status is an abort criterium
         }
     }
-    while( (SUCCESS == status) && (0 != strcmp("", pOutputString)) );
+    while( (SUCCESS == status) && ('\0' != timezoneString.pOutputString[0]) );
 
     printf("]");
 
@@ -690,46 +671,24 @@ int GetAllTimezonePlainStringsJson(char* pNrString,
         status = SUCCESS; // GetTimezonePlainStringByNr returns "" and ERROR for the one-after-last element
     }
 
+    CleanupContext(&timezoneString);
     return status;
 }
 
 
-int GetTimezonePlainStringByNr(char* pNrString,
-                               char* pOutputString)
-//
-// Get plain describtion-text for timezone from the list of all plain-strings which were offered for timezone on WBM.
-//
-// input: number of text in the list of all possible ones.
-//
-// output: content of timezone-plain-string - must be allocated by calling function!
-//         if a text for this number is not existing, the returned string is empty
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetTimezonePlainStringByNr(tstContext * pContext)
 {
   int status      = ERROR;
   int timezoneNr  = 0;
 
-
-  if(pOutputString == NULL)
+  if (!IsNumber(pContext->pAdditionalParam))
   {
-    return(INVALID_PARAMETER);
+      return INVALID_PARAMETER;
   }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
 
   // convert the requested timezone-number from input-string
-  sscanf(pNrString, "%d", &timezoneNr);
-#if 0
-  timezoneNr--;
-  // check if the timezone-number is existing in timezone-assign-table
-  if((timezoneNr >= 0) && (timezoneNr < (sizeof(astTimezoneStringAssign) / sizeof(astTimezoneStringAssign[0]))))
-  {
-    // copy timezone-string to output-buffer
-    strncpy(pOutputString, astTimezoneStringAssign[timezoneNr].plainTimezoneString, MAX_LENGTH_CLOCK_OUTPUT);
-  }
-#else
+  sscanf(pContext->pAdditionalParam, "%d", &timezoneNr);
   if((timezoneNr > 0))
   {
     int i;
@@ -764,7 +723,7 @@ int GetTimezonePlainStringByNr(char* pNrString,
           pbuf = strchr(++pbuf,' ');
           if(pbuf == NULL)break;
           pbuf++;
-          strncpy(pOutputString, pbuf, MAX_LENGTH_CLOCK_OUTPUT);
+          CopyString(pContext->pOutputString, pbuf, MAX_LENGTH_CLOCK_OUTPUT);
         }while(0);
       }
       free(lineBuffer);
@@ -772,51 +731,22 @@ int GetTimezonePlainStringByNr(char* pNrString,
     }
 
   }
-#endif
 
   return(status);
 }
 
 
-int GetActualTimezonePlainString(char* pAdditionalParam,
-                                 char* pOutputString)
-//
-// Get plain describtion-text of the actual configured timezone.
-//
-// input: number of text in the list of all possible ones.
-//
-// output: content of actual configured timezone-plain-string - must be allocated by calling function!
-//
-// return: error-code: SUCCESS: no error
-//
+//------------------------------------------------------------------------------
+static int GetActualTimezonePlainString(tstContext * pContext)
 {
-  char  tzString[MAX_LENGTH_CLOCK_OUTPUT]  = "";
   int   status                             = SUCCESS;
+  tstContext tzString;
 
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
-
-  status = GetTzName(NULL, tzString);
-  strncat(tzString, " ", (MAX_LENGTH_CLOCK_OUTPUT - strlen(tzString) - 1));
+  InitContext(&tzString, NULL);
+  status = GetTzName(&tzString);
+  strncat(tzString.pOutputString, " ", (MAX_LENGTH_CLOCK_OUTPUT - strlen(tzString.pOutputString) - 1));
   if(SUCCESS == status)
   {
-#if 0
-    int timezoneIndex = 0;
-    
-    while((strlen(astTimezoneStringAssign[timezoneIndex].tzString) > 0) && (strlen(pOutputString) == 0))
-    {
-      if(strcmp(tzString, astTimezoneStringAssign[timezoneIndex].tzString) == 0)
-      {
-        strncpy(pOutputString, astTimezoneStringAssign[timezoneIndex].plainTimezoneString, MAX_LENGTH_CLOCK_OUTPUT);
-      }
-      ++timezoneIndex;
-    }
-#else
     FILE *fp;
     fp = fopen("/usr/share/zoneinfo/allzones","r");
     if(fp != NULL)
@@ -832,7 +762,7 @@ int GetActualTimezonePlainString(char* pAdditionalParam,
         char * pTZ = NULL;
         memset(fileBuffer,0,fileSize+1);
         fread(fileBuffer, 1, fileSize, fp);
-        pTZ = strstr(fileBuffer, tzString);
+        pTZ = strstr(fileBuffer, tzString.pOutputString);
         if(pTZ != NULL)
         {
           char * pPlain = strchr(pTZ,' ');
@@ -844,7 +774,7 @@ int GetActualTimezonePlainString(char* pAdditionalParam,
             pPlain = strchr(pPlain,' ');
             if(pPlain != NULL)
             {
-              strncpy(pOutputString, ++pPlain, MAX_LENGTH_CLOCK_OUTPUT);
+              CopyString(pContext->pOutputString, ++pPlain, MAX_LENGTH_CLOCK_OUTPUT);
             }
           }
         }
@@ -852,79 +782,14 @@ int GetActualTimezonePlainString(char* pAdditionalParam,
       }
       fclose(fp);
     }
-#endif
   }
 
+  CleanupContext(&tzString);
   return(status);
 }
 
 
-
-int GetTimezoneSelection(char* pAdditionalParam,
-                         char* pOutputString)
-//
-// Show the html-code of a selection-menu about all plain-strings for timezone which where inserted to the list for WBM.
-// The actual configured timezone is showed as selected menu-point. If none of the timezone-plain-strings of the list
-// represents the actual configured timezone (only the most chosen timezones where represented by the list),
-//  an additional line with the text "Unknown" will be showed selected.
-//
-// input: pAdditionalParam: ignored
-//
-// output: empty string - all the outputs of the function where directly send to stdout.
-//
-// return: error-code: SUCCESS: no error
-//
-{
-  char  tzString[MAX_LENGTH_CLOCK_OUTPUT] = "";
-  int   status                            = SUCCESS;
-
-  if(pOutputString == NULL)
-  {
-    return(INVALID_PARAMETER);
-  }
-
-  // initialise output-string
-  sprintf(pOutputString, "");
-
-  // get actual configured tz-string
-  if(SUCCESS == GetTzString(NULL, tzString))
-  {
-    char timezonePlainString[MAX_LENGTH_CLOCK_OUTPUT] = "";
-    int  timezoneIndex                                = 0;
-    int  found                                        = FALSE;
-
-    // start selection-menu
-    printf("\n        <select class=\"wide\" name=\"timezone\" size=\"1\">\n");
-
-    // loop over all timezone-plain-strings of our internal list
-    while(strlen(astTimezoneStringAssign[timezoneIndex].tzString) > 0)
-    {
-      // show the string as menu-line; if the string represents the actual configured timezone, show it selected
-      if(strcmp(astTimezoneStringAssign[timezoneIndex].tzString, tzString) == 0)
-      {
-        printf("          <option selected>%s</option>\n", astTimezoneStringAssign[timezoneIndex].plainTimezoneString);
-        found = TRUE;
-      }
-      else
-      {
-        printf("          <option>%s</option>\n", astTimezoneStringAssign[timezoneIndex].plainTimezoneString);
-      }
-      ++timezoneIndex;
-    }
-
-    // if no timezone was showed selected until now, show an extra-menu-line with text "Unknown" as selected
-    if(found == FALSE)
-    {
-      printf("          <option selected>Unknown</option>\n");
-    }
-    
-    printf("        </select>\n");
-  }
-
-  return(status);
-}
-
-                                  
+//------------------------------------------------------------------------------
 static off_t GetFileSize(char const * pFileName)
 {
   off_t result = 0;
@@ -959,6 +824,58 @@ static void SetTZVariable(void)
 }
 
 
+//------------------------------------------------------------------------------
+static bool IsNumber(char const * pValue)
+{
+    if ((NULL == pValue) || ('\0' == *pValue))
+    {
+        return false;
+    }
+
+    while ('\0' != *pValue)
+    {
+        if ((*pValue < '0') || ('9' < *pValue))
+        {
+            return false;
+        }
+
+        pValue++;
+    }
+
+    return true;
+}
+
+
+//------------------------------------------------------------------------------
+static void CopyString(char * pBuffer,
+                       char const * pSource,
+                       size_t bufferSize)
+{
+    size_t const sourceLength = strlen(pSource) + 1;
+    size_t const bytesToCopy = bufferSize < sourceLength ? bufferSize : sourceLength;
+    memcpy(pBuffer, pSource, bytesToCopy);
+    pBuffer[bytesToCopy - 1] = '\0';
+}
+
+
+//------------------------------------------------------------------------------
+static void InitContext(tstContext * pContext,
+                        char * pAdditionalParam)
+{
+    pContext->pAdditionalParam = pAdditionalParam;
+    pContext->pOutputString = malloc(MAX_LENGTH_CLOCK_OUTPUT);
+    pContext->pOutputString[0] = '\0';
+}
+
+
+//------------------------------------------------------------------------------
+static void CleanupContext(tstContext * pContext)
+{
+    free(pContext->pOutputString);
+}
+
+
+//------------------------------------------------------------------------------
 int main(int    argc, 
          char** argv)
 {
@@ -991,7 +908,7 @@ int main(int    argc,
       int  parameterIndex = 0;
 
       status = INVALID_PARAMETER;
-      while((strlen(astParameterJumptab[parameterIndex].inputString) > 0) && (status == INVALID_PARAMETER))
+      while(('\0' != astParameterJumptab[parameterIndex].inputString[0]) && (status == INVALID_PARAMETER))
       {
         // success - parameter-string is equal to one of our list
         if(strcmp(astParameterJumptab[parameterIndex].inputString, pParameterString) == 0)
@@ -1007,22 +924,16 @@ int main(int    argc,
       // parameter was found -> start processing (get the fitting function from parameter-list)
       if(status == SUCCESS)
       {
-        char outputString[MAX_LENGTH_CLOCK_OUTPUT] = "";
-        status = astParameterJumptab[parameterIndex].pFktGetParameter(pAdditionalParam, outputString);
+        tstContext context;
+        InitContext(&context, pAdditionalParam);
+        status = astParameterJumptab[parameterIndex].pFunGetParameter(&context);
 
         // send result to stdout
-        printf("%s", outputString);
+        printf("%s", context.pOutputString);
+        CleanupContext(&context);
       }
     }
   }
-
-  #if SHOW_ERRORS
-  if(status != SUCCESS)
-  {
-    ShowErrorText(status, "");
-    ShowHelpText();
-  }
-  #endif
 
   return(status);
 }

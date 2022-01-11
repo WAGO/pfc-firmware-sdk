@@ -4,10 +4,8 @@
 Find the table of supported devices at the end of the document [Link to table](#supported-devices)
 
 # ..:: Attention ::.. 
-## Starting with firmware 19, the PFC200 of the second generation has its own image and release notes.
-## For FW18 a new toolchain is required!
-Follow the steps in chapter "Install "cross-toolchain" also
-check the installation path.
+## Starting with firmware 20.1 you need to update the ptxdist buildsystem. 
+[Ptxdist-Buildsystem](https://github.com/WAGO/ptxdist)
 
 # Install WAGO-PFC-SDK on Ubuntu 16.04.5 (64bit) LTS
 

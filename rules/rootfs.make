@@ -155,6 +155,36 @@ ifdef PTXCONF_ROOTFS_PASSWD
 		@USER_VISUALISATION@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_PASSWD_VISUALISATION_ENTRY)))
 
+	@$(call install_replace, rootfs, /etc/passwd, \
+		@USER_CODESYS3@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_PASSWD_CODESYS3_ENTRY)))
+
+
+
+ifdef PTXCONF_CONFIG_TOOLS
+	@$(call install_alternative, rootfs, 0, 0, 0644, /etc/config-tools/default-settings/passwd.default)
+	
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/passwd.default, \
+		@USER_ADMIN@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_PASSWD_ADMIN_ENTRY)))
+
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/passwd.default, \
+		@USER_USER@, \
+		$(PTXCONF_ROOTFS_PASSWD_USER_ENTRY))
+
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/passwd.default, \
+		@USER_GUEST@, \
+		$(PTXCONF_ROOTFS_PASSWD_GUEST_ENTRY))
+
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/passwd.default, \
+		@USER_VISUALISATION@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_PASSWD_VISUALISATION_ENTRY)))
+
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/passwd.default, \
+		@USER_CODESYS3@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_PASSWD_CODESYS3_ENTRY)))
+
+endif
 endif
 
 ifdef PTXCONF_ROOTFS_SHADOW
@@ -172,6 +202,7 @@ ifdef PTXCONF_ROOTFS_SHADOW
 	@$(call install_replace, rootfs, /etc/shadow, \
 		@USER_GUEST@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_GUEST_ENTRY)))
+
 ifdef PTXCONF_CONFIG_TOOLS
 # ugly: the actual /etc/shadow is picked via install_alternative which does not accept destination paths.
 #	@$(call install_copy, rootfs, 0, 0, 0640,  $(PTXDIST_WORKSPACE)/projectroot/etc/shadow, /etc/config-tools/default-settings/shadow.default)
@@ -190,8 +221,10 @@ ifdef PTXCONF_CONFIG_TOOLS
 	@$(call install_replace, rootfs, /etc/config-tools/default-settings/shadow.default, \
 		@USER_VISUALISATION@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_VISUALISATION_ENTRY)))
+
 endif
 endif
+
 ifdef PTXCONF_ROOTFS_GROUP
 	@$(call install_alternative, rootfs, 0, 0, 0644, /etc/group)
 	@$(call install_replace, rootfs, /etc/group, \
@@ -203,7 +236,28 @@ ifdef PTXCONF_ROOTFS_GROUP
 	@$(call install_replace, rootfs, /etc/group, \
 		@GROUP_USER@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_USER_ENTRY)))
+	@$(call install_replace, rootfs, /etc/group, \
+		@GROUP_CODESYS3@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_CODESYS3_ENTRY)))
+
+ifdef PTXCONF_CONFIG_TOOLS
+	@$(call install_alternative, rootfs, 0, 0, 0644, /etc/config-tools/default-settings/group.default)
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/group.default, \
+		@GROUP_ADMIN@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_ADMIN_ENTRY)))
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/group.default, \
+		@GROUP_VISUALISATION@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_VISUALISATION_ENTRY)))
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/group.default, \
+		@GROUP_USER@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_USER_ENTRY)))
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/group.default, \
+		@GROUP_CODESYS3@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_GROUP_CODESYS3_ENTRY)))
+		
 endif
+endif
+
 ifdef PTXCONF_ROOTFS_GSHADOW
 	@$(call install_alternative, rootfs, 0, 0, 0640, /etc/gshadow)
 endif

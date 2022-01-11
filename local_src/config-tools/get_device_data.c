@@ -11,7 +11,7 @@
 ///
 ///  \file     get_device_data.c
 ///
-///  \version  $Revision: 33614 $1
+///  \version  $Revision: 59625 $1
 ///
 ///  \brief    
 ///
@@ -303,7 +303,6 @@ int GetDeviceMediumByName(char* pacRequestedDeviceName,
 {
   int   status                                    = NOT_FOUND;
   char  deviceMediaLine[MAX_LENGTH_OUTPUT_LINE]   = "";
-  char* pcPartitionNo                             = NULL;
   char  acPureDeviceName[MAX_LENGTH_OUTPUT_LINE]  = "";
   //printf("pacRequestedDeviceName:%s\n", pacRequestedDeviceName);
 
@@ -314,7 +313,7 @@ int GetDeviceMediumByName(char* pacRequestedDeviceName,
   }
 
   // initialise output-string
-  sprintf(pacDeviceMedium, "");
+  pacDeviceMedium[0] = '\0';
 
   if(SUCCESS == (status = GetPureDeviceName(pacRequestedDeviceName, acPureDeviceName, sizeof(acPureDeviceName))))
   {
@@ -417,7 +416,7 @@ int GetBootflagByName(char* pacRequestedDeviceName,
   }
 
   // initialise output-string
-  sprintf(pacBootflag, "");
+  pacBootflag[0] = '\0';
 
   // filter pure device name without path or partition number
   if(SUCCESS == (status = GetPureDeviceName(pacRequestedDeviceName, acPureDeviceName, sizeof(acPureDeviceName))))
@@ -491,7 +490,7 @@ int GetEntireSizeByName(char* pacRequestedDeviceName,
   }
 
   // initialise output-string
-  sprintf(pacSize, "");
+  pacSize[0] = '\0';
 
   if(pacRequestedDeviceName != strstr(pacRequestedDeviceName, "/dev/"))
   { // pacDeviceName has no '/dev/' prefix => construct full path
@@ -589,7 +588,7 @@ int GetLabelByName(char* pacDeviceName,
   }
 
   // Initialize output-string
-  sprintf(pacLabel, "");
+  pacLabel[0] = '\0';
 
   // filter pure device name without path or partition number
   if(SUCCESS == (status = GetPureDeviceName(pacDeviceName, acPureDeviceName, sizeof(acPureDeviceName))))
@@ -645,8 +644,6 @@ void ShowHelpText(void)
 // Show describtion and usage of program on stdout
 //
 {
-  int parameterIndex = 0;
-
   printf("\n* Get medium of specified device or partition *\n\n");
   printf("Usage: Usage: get_device_data <\"name\" | \"medium\" | \"bootflag\" | \"label\" > <device | medium>\n\n");
   printf("device: name of device (hda, hdb, ...), given by medium\n");

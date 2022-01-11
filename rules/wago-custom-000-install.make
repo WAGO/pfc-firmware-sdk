@@ -352,15 +352,6 @@ ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_CREATE_HOME_INT_TOOL
 		/usr/sbin/create_home_int, n)
 endif
 
-ifdef PTXCONF_WAGO_CUSTOM_INSTALL_LIGHTTPD_PASSWD_COPY
-	@$(call install_copy, wago-custom-install, 0, 0, 0755, /etc/config-tools/default-settings);
-
-# /etc/config-tools/default-settings/lighttpd-htpasswd.user.default is a link to /etc/lighttpd/lighttpd-htpasswd.user
-# thus we can use install_alternative
-	@$(call install_alternative, wago-custom-install, 0, 102, 0640, \
-		/etc/config-tools/default-settings/lighttpd-htpasswd.user.default, n)
-endif
-
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_BACKUP_ACCOUNT_SETTINGS
 # backup and restore user, system account setting and groups
 	@$(call install_copy, wago-custom-install, 0, 0, 0755, \
@@ -694,11 +685,6 @@ endif #WAGO_ADJUST_DEFAULT_SETTINGS
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
 	@touch $(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/tftp
 	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/tftp)
-endif
-
-ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
-	@touch $(PKGDIR)/$(WAGO_CUSTOM_INSTALL)/etc/specific/features/telnet
-	@$(call install_copy, wago-custom-install, 0, 0, 0644, -, /etc/specific/features/telnet)
 endif
 
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_BOOTP_ON

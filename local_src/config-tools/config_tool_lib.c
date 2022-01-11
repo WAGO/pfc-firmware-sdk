@@ -210,8 +210,6 @@ char *SystemCall_GetOutput(char const * szSystemCallString)
 //         NULL if an error occured
 //
 {
-  FILE* fOutputFile   = NULL;
-  int   fileIndex     = 0;
   char* pOutputBuffer = NULL;
 
   char  completeSystemCallString[MAX_LENGTH_SYSTEM_CALL]  = "";

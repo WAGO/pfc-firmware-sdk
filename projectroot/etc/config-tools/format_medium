@@ -52,6 +52,17 @@ function UnmountDevice
   done
 }
 
+function DeleteGptPartitions
+{
+  local device=$1
+  #delete mbr
+  dd if=/dev/zero of=${device} bs=512 count=1
+
+/sbin/sfdisk ${device} <<EOF
+,,L
+EOF
+
+}
 
 # show help-text if requested
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
@@ -119,6 +130,12 @@ else
     # add path to device name
     deviceName="/dev/${pureDeviceName}"
     #echo "deviceName:${deviceName}"
+    
+    # GPT handling - CC100 sd-cards
+    ptype=$(blkid -o value -s PTTYPE $deviceName)
+    case $ptype in
+        gpt)  DeleteGptPartitions $deviceName;;
+    esac
 
     # prevent udev from remounting the device...
     udevadm control --env __SD_AUTOMOUNT="0"
@@ -185,6 +202,7 @@ else
     # write buffered filesystem-blocks to disk
     # FIXME (AGa): needed?
     sync
+    udevadm settle
 
   fi
 

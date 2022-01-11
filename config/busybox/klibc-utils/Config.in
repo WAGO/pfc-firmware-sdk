@@ -13,7 +13,7 @@ config BUSYBOX_MINIPS
 	Alias to "ps".
 config BUSYBOX_NUKE
 	bool "nuke (2.9 kb)"
-	default y
+	default n  # off by default: too "accidentally destructive"
 	help
 	Alias to "rm -rf".
 config BUSYBOX_RESUME

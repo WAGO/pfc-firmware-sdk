@@ -268,12 +268,6 @@ config LIGHTTPD_INSTALL_CONF_LINK_HTTPS
 	help
 	  Install /etc/lighttpd/mode.conf as link to [...]/mode_https.conf
 
-config LIGHTTPD_INSTALL_CONF_LINK_HTTP
-	bool
-	prompt "http"
-	help
-	  Install /etc/lighttpd/mode.conf as link to [...]/mode_http.conf
-
 endchoice
 
 #
@@ -288,7 +282,7 @@ config LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STANDARD
 	prompt "standard (compatibility)"
 	depends on LIGHTTPD_HTTPS
 	help
-	  Install /etc/lighttpd/tls.conf as link to [...]/tls-standard.conf
+	  Install /etc/lighttpd/tls.conf as link to [...]/tls-extended-compatibility.conf
 
 config LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STRONG
 	bool

@@ -124,7 +124,7 @@ UserIdOf ()
 HandleParamAccessGroup ()
 {
   if ! (ExistGroup $LINUX_GROUP_NAME_PARAMACCESS) ; then
-    addgroup -g $LINUX_GROUP_ID_PARAMACCESS $LINUX_GROUP_NAME_PARAMACCESS
+    groupadd -g $LINUX_GROUP_ID_PARAMACCESS $LINUX_GROUP_NAME_PARAMACCESS
     if [ $? -eq 0 ]; then
     	logmessage "INFO" "CREATE of GROUP $LINUX_GROUP_NAME_PARAMACCESS [OK]"
     else
@@ -151,7 +151,7 @@ HandleParamAccessGroup ()
 HandleOpcUser ()
 {
   if ! (ExistUser $LINUX_USER_NAME_OPC) ; then
-    adduser -u $LINUX_USER_ID_OPC $LINUX_USER_NAME_OPC -D -h /dev/null -s /bin/false 
+    useradd -u $LINUX_USER_ID_OPC $LINUX_USER_NAME_OPC -d /dev/null -s /bin/false 
     if [ $? -eq 0 ] ; then
     	logmessage "INFO" "CREATE of user $LINUX_USER_NAME_OPC [OK]"
     else
@@ -180,7 +180,7 @@ HandleOpcGroup ()
 {
   if ! (ExistGroup $LINUX_USER_NAME_OPC) ; then
     logmessage "ADD GROUP $LINUX_USER_NAME_OPC"
-    addgroup -g $LINUX_GROUP_ID_OPC $LINUX_USER_NAME_OPC
+    groupadd -g $LINUX_GROUP_ID_OPC $LINUX_USER_NAME_OPC
     if ! $? ; then
     	logmessage "ERROR" "CREATE of GROUP $LINUX_GROUP_NAME_OPC [FAIL] $?"
     else
@@ -202,18 +202,18 @@ HandleOpcGroup ()
 ##################################################
 HandleAddUserToGroup ()
 {
-	addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_PARAMACCESS
+	usermod -a -G $LINUX_GROUP_NAME_PARAMACCESS $LINUX_USER_NAME_OPC
 	if [ $? -eq 0 ] ; then
-		addgroup root $LINUX_GROUP_NAME_PARAMACCESS
+		usermod -a -G $LINUX_GROUP_NAME_PARAMACCESS root
 		if [ $? -ne 0 ] ; then
-			logmessage "ERROR" "addgroup root $LINUX_GROUP_NAME_PARAMACCESS [FAIL]"
+			logmessage "ERROR" "usermod -a -G $LINUX_GROUP_NAME_PARAMACCESS root [FAIL]"
 		fi
-		addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_DRM
+		usermod -a -G $LINUX_GROUP_NAME_DRM $LINUX_USER_NAME_OPC
 		if [ $? -ne 0 ] ; then
-			logmessage "ERROR" "addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_DRM [FAIL]"
+			logmessage "ERROR" "usermod -a -G $LINUX_GROUP_NAME_DRM $LINUX_USER_NAME_OPC [FAIL]"
 		fi
 	else
-	  logmessage "ERROR" "addgroup $LINUX_USER_NAME_OPC $LINUX_GROUP_NAME_PARAMACCESS [FAIL]"
+	  logmessage "ERROR" "usermod -a -G $LINUX_GROUP_NAME_PARAMACCESS $LINUX_USER_NAME_OPC [FAIL]"
 	fi
 	return $?
 }

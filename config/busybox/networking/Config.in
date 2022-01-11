@@ -289,6 +289,45 @@ config BUSYBOX_FEATURE_HTTPD_GZIP
 	help
 	Makes httpd send files using GZIP content encoding if the
 	client supports it and a pre-compressed <file>.gz exists.
+
+config BUSYBOX_FEATURE_HTTPD_ETAG
+	bool "Support caching via ETag header"
+	default y
+	depends on BUSYBOX_HTTPD
+	help
+	If server responds with ETag then next time client (browser)
+	resend it via If-None-Match header.
+	Then httpd will check if file wasn't modified and if not,
+	return 304 Not Modified status code.
+	The ETag value is constructed from last modification date
+	in unix epoch, and size: "hex(last_mod)-hex(file_size)".
+	It's not completely reliable as hash functions but fair enough.
+
+config BUSYBOX_FEATURE_HTTPD_LAST_MODIFIED
+	bool "Add Last-Modified header to response"
+	default y
+	depends on BUSYBOX_HTTPD
+	help
+	The Last-Modified header is used for cache validation.
+	The client sends last seen mtime to server in If-Modified-Since.
+	Both headers MUST be an RFC 1123 formatted, which is hard to parse.
+	Use ETag header instead.
+
+config BUSYBOX_FEATURE_HTTPD_DATE
+	bool "Add Date header to response"
+	default y
+	depends on BUSYBOX_HTTPD
+	help
+	RFC2616 says that server MUST add Date header to response.
+	But it is almost useless and can be omitted.
+
+config BUSYBOX_FEATURE_HTTPD_ACL_IP
+	bool "ACL IP"
+	default y
+	depends on BUSYBOX_HTTPD
+	help
+	Support IP deny/allow rules
+
 config BUSYBOX_IFCONFIG
 	bool "ifconfig (12 kb)"
 	default y
@@ -1071,6 +1110,13 @@ config BUSYBOX_FEATURE_WGET_STATUSBAR
 	default y
 	depends on BUSYBOX_WGET
 
+config BUSYBOX_FEATURE_WGET_FTP
+	bool "Enable FTP protocol (+1k)"
+	default y
+	depends on BUSYBOX_WGET
+	help
+	To support FTPS, enable FEATURE_WGET_HTTPS as well.
+
 config BUSYBOX_FEATURE_WGET_AUTHENTICATION
 	bool "Enable HTTP authentication"
 	default y
@@ -1099,6 +1145,7 @@ config BUSYBOX_FEATURE_WGET_HTTPS
 	select BUSYBOX_TLS
 	help
 	wget will use internal TLS code to connect to https:// URLs.
+	It also enables FTPS support, but it's not well tested yet.
 	Note:
 	On NOMMU machines, ssl_helper applet should be available
 	in the $PATH for this to work. Make sure to select that applet.

@@ -66,20 +66,40 @@ if [[ -c "/dev/mtd8" ]]; then
     fi
 else
     # static partitions for systems with internal flash emmc
-    PARTITION_EMMC_BOOT_DEV_NAME="mmcblk1p1"
-    PARTITION_EMMC_BOOT_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_BOOT_DEV_NAME")"
-    PARTITION_EMMC_ROOTFS1_DEV_NAME="mmcblk1p7"
-    PARTITION_EMMC_ROOTFS1_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_ROOTFS1_DEV_NAME")"
-    PARTITION_EMMC_ROOTFS2_DEV_NAME="mmcblk1p10"
-    PARTITION_EMMC_ROOTFS2_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_ROOTFS2_DEV_NAME")"
-    PARTITION_EMMC_HOME1_DEV_NAME="mmcblk1p8"
-    PARTITION_EMMC_HOME1_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_HOME1_DEV_NAME")"
-    PARTITION_EMMC_HOME2_DEV_NAME="mmcblk1p9"
-    PARTITION_EMMC_HOME2_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_HOME2_DEV_NAME")"
-    PARTITION_EMMC_LOG_DEV_NAME="mmcblk1p5"
-    PARTITION_EMMC_LOG_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_LOG_DEV_NAME")"
-    PARTITION_EMMC_SETTINGS_DEV_NAME="mmcblk1p6"
-    PARTITION_EMMC_SETTINGS_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_SETTINGS_DEV_NAME")"
+    ORDER="$(/etc/config-tools/get_typelabel_value ORDER)"
+    if [ "${ORDER:0:5}" == "751-9" ]; then
+      #CC100
+      PARTITION_EMMC_BOOT_DEV_NAME="mmcblk1p2"
+      PARTITION_EMMC_BOOT_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_BOOT_DEV_NAME")"
+      PARTITION_EMMC_ROOTFS1_DEV_NAME="mmcblk1p5"
+      PARTITION_EMMC_ROOTFS1_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_ROOTFS1_DEV_NAME")"
+      PARTITION_EMMC_ROOTFS2_DEV_NAME="mmcblk1p8"
+      PARTITION_EMMC_ROOTFS2_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_ROOTFS2_DEV_NAME")"
+      PARTITION_EMMC_HOME1_DEV_NAME="mmcblk1p6"
+      PARTITION_EMMC_HOME1_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_HOME1_DEV_NAME")"
+      PARTITION_EMMC_HOME2_DEV_NAME="mmcblk1p7"
+      PARTITION_EMMC_HOME2_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_HOME2_DEV_NAME")"
+      PARTITION_EMMC_LOG_DEV_NAME="mmcblk1p3"
+      PARTITION_EMMC_LOG_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_LOG_DEV_NAME")"
+      PARTITION_EMMC_SETTINGS_DEV_NAME="mmcblk1p4"
+      PARTITION_EMMC_SETTINGS_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_SETTINGS_DEV_NAME")"
+    else
+      #TP600
+      PARTITION_EMMC_BOOT_DEV_NAME="mmcblk1p1"
+      PARTITION_EMMC_BOOT_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_BOOT_DEV_NAME")"
+      PARTITION_EMMC_ROOTFS1_DEV_NAME="mmcblk1p7"
+      PARTITION_EMMC_ROOTFS1_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_ROOTFS1_DEV_NAME")"
+      PARTITION_EMMC_ROOTFS2_DEV_NAME="mmcblk1p10"
+      PARTITION_EMMC_ROOTFS2_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_ROOTFS2_DEV_NAME")"
+      PARTITION_EMMC_HOME1_DEV_NAME="mmcblk1p8"
+      PARTITION_EMMC_HOME1_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_HOME1_DEV_NAME")"
+      PARTITION_EMMC_HOME2_DEV_NAME="mmcblk1p9"
+      PARTITION_EMMC_HOME2_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_HOME2_DEV_NAME")"
+      PARTITION_EMMC_LOG_DEV_NAME="mmcblk1p5"
+      PARTITION_EMMC_LOG_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_LOG_DEV_NAME")"
+      PARTITION_EMMC_SETTINGS_DEV_NAME="mmcblk1p6"
+      PARTITION_EMMC_SETTINGS_LINK_NAME="/dev/partition_$(extract_emmc_label "$PARTITION_EMMC_SETTINGS_DEV_NAME")"
+    fi
 fi
 
 # get configured kbus uart from sys-fs
@@ -99,6 +119,10 @@ SERVICE_TTY_PFCXXX_LINK_NAME="/dev/service"
 # the device does always exist in all PFCs and displays
 GSM_MODEM_TTY_PFCXXX_DEV_NAME="ttyMdm0"
 GSM_MODEM_TTY_PFCXXX_LINK_NAME="/dev/ttyRUNTIME66"
+
+# CC100
+TTY_CC100_RS485_DEV_NAME="ttySTM1"
+TTY_CC100_RS485_LINK_NAME="/dev/ttyRUNTIME0"
 
 # profibus dp uio device names
 PROFIBUS_DP_UIO_XINT_NAME="UIO_DPC31_XINT"
@@ -188,6 +212,12 @@ case $1 in
                 ln -s /dev/${PARTITION_EMMC_LOG_DEV_NAME}        "${PARTITION_EMMC_LOG_LINK_NAME}"
                 ln -s /dev/${PARTITION_EMMC_SETTINGS_DEV_NAME}   "${PARTITION_EMMC_SETTINGS_LINK_NAME}"
         fi
+
+        # CC100 RS485
+        if [ -c "/dev/${TTY_CC100_RS485_DEV_NAME}" ]; then
+            ln -s /dev/${TTY_CC100_RS485_DEV_NAME} "${TTY_CC100_RS485_LINK_NAME}"
+        fi
+
   ;;
   stop)
   ;;

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # vim:set et sw=4:
 #
 # certdata2pem.py - splits certdata.txt into multiple files
@@ -25,13 +25,19 @@ import os.path
 import re
 import sys
 import textwrap
+import io
 
 objects = []
 
 # Dirty file parser.
 in_data, in_multiline, in_obj = False, False, False
 field, type, value, obj = None, None, None, dict()
-for line in open('certdata.txt', 'r'):
+
+# Python 3 will not let us decode non-ascii characters if we
+# have not specified an encoding, but Python 2's open does not
+# have an option to set the encoding. Python 3's open is io.open
+# and io.open has been backported to Python 2.6 and 2.7, so use io.open.
+for line in io.open('certdata.txt', 'rt', encoding='utf8'):
     # Ignore the file header.
     if not in_data:
         if line.startswith('BEGINDATA'):
@@ -53,7 +59,7 @@ for line in open('certdata.txt', 'r'):
             if type == 'MULTILINE_OCTAL':
                 line = line.strip()
                 for i in re.finditer(r'\\([0-3][0-7][0-7])', line):
-                    value += chr(int(i.group(1), 8))
+                    value.append(int(i.group(1), 8))
             else:
                 value += line
             continue
@@ -70,13 +76,13 @@ for line in open('certdata.txt', 'r'):
         field, type = line_parts
         value = None
     else:
-        raise NotImplementedError, 'line_parts < 2 not supported.'
+        raise NotImplementedError('line_parts < 2 not supported.')
     if type == 'MULTILINE_OCTAL':
         in_multiline = True
-        value = ""
+        value = bytearray()
         continue
     obj[field] = value
-if len(obj.items()) > 0:
+if len(obj) > 0:
     objects.append(obj)
 
 # Read blacklist.
@@ -95,7 +101,7 @@ for obj in objects:
     if obj['CKA_CLASS'] not in ('CKO_NETSCAPE_TRUST', 'CKO_NSS_TRUST'):
         continue
     if obj['CKA_LABEL'] in blacklist:
-        print "Certificate %s blacklisted, ignoring." % obj['CKA_LABEL']
+        print("Certificate %s blacklisted, ignoring." % obj['CKA_LABEL'])
     elif obj['CKA_TRUST_SERVER_AUTH'] in ('CKT_NETSCAPE_TRUSTED_DELEGATOR',
                                           'CKT_NSS_TRUSTED_DELEGATOR'):
         trust[obj['CKA_LABEL']] = True
@@ -104,13 +110,13 @@ for obj in objects:
         trust[obj['CKA_LABEL']] = True
     elif obj['CKA_TRUST_SERVER_AUTH'] in ('CKT_NETSCAPE_UNTRUSTED',
                                           'CKT_NSS_NOT_TRUSTED'):
-        print '!'*74
-        print "UNTRUSTED BUT NOT BLACKLISTED CERTIFICATE FOUND: %s" % obj['CKA_LABEL']
-        print '!'*74
+        print('!'*74)
+        print("UNTRUSTED BUT NOT BLACKLISTED CERTIFICATE FOUND: %s" % obj['CKA_LABEL'])
+        print('!'*74)
     else:
-        print "Ignoring certificate %s.  SAUTH=%s, EPROT=%s" % \
+        print("Ignoring certificate %s.  SAUTH=%s, EPROT=%s" % \
               (obj['CKA_LABEL'], obj['CKA_TRUST_SERVER_AUTH'],
-               obj['CKA_TRUST_EMAIL_PROTECTION'])
+               obj['CKA_TRUST_EMAIL_PROTECTION']))
 
 for obj in objects:
     if obj['CKA_CLASS'] == 'CKO_CERTIFICATE':
@@ -121,13 +127,31 @@ for obj in objects:
                                       .replace('(', '=')\
                                       .replace(')', '=')\
                                       .replace(',', '_')
-        bname = bname.decode('string_escape')
-        fname = bname + '.crt'
+
+        # this is the only way to decode the way NSS stores multi-byte UTF-8
+        # and we need an escaped string for checking existence of things
+        # otherwise we're dependant on the user's current locale.
+        if bytes != str:
+            # We're in python 3, convert the utf-8 string to a
+            # sequence of bytes that represents this utf-8 string
+            # then encode the byte-sequence as an escaped string that
+            # can be passed to open() and os.path.exists()
+            bname = bname.encode('utf-8').decode('unicode_escape').encode('latin-1')
+        else:
+            # Python 2
+            # Convert the unicode string back to its original byte form
+            # (contents of files returned by io.open are returned as
+            #  unicode strings)
+            # then to an escaped string that can be passed to open()
+            # and os.path.exists()
+            bname = bname.encode('utf-8').decode('string_escape')
+
+        fname = bname + b'.crt'
         if os.path.exists(fname):
-            print "Found duplicate certificate name %s, renaming." % bname
-            fname = bname + '_2.crt'
+            print("Found duplicate certificate name %s, renaming." % bname)
+            fname = bname + b'_2.crt'
         f = open(fname, 'w')
         f.write("-----BEGIN CERTIFICATE-----\n")
-        f.write("\n".join(textwrap.wrap(base64.b64encode(obj['CKA_VALUE']), 64)))
+        encoded = base64.b64encode(obj['CKA_VALUE']).decode('utf-8')
+        f.write("\n".join(textwrap.wrap(encoded, 64)))
         f.write("\n-----END CERTIFICATE-----\n")
-

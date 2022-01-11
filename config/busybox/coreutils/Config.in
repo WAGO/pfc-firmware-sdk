@@ -63,8 +63,10 @@ config BUSYBOX_CHROOT
 config BUSYBOX_CKSUM
 	bool "cksum (4.1 kb)"
 	default y
-	help
-	cksum is used to calculate the CRC32 checksum of a file.
+
+config BUSYBOX_CRC32
+	bool "crc32 (4.1 kb)"
+	default y
 config BUSYBOX_COMM
 	bool "comm (4.2 kb)"
 	default y
@@ -95,6 +97,14 @@ config BUSYBOX_CUT
 	help
 	cut is used to print selected parts of lines from
 	each file to stdout.
+
+config BUSYBOX_FEATURE_CUT_REGEX
+	bool "cut -F"
+	default y
+	depends on BUSYBOX_CUT
+	help
+	Allow regex based delimiters.
+
 config BUSYBOX_DATE
 	bool "date (7 kb)"
 	default y
@@ -742,16 +752,8 @@ config BUSYBOX_TOUCH
 	touch is used to create or change the access and/or
 	modification timestamp of specified files.
 
-config BUSYBOX_FEATURE_TOUCH_NODEREF
-	bool "Add support for -h"
-	default y
-	depends on BUSYBOX_TOUCH
-	help
-	Enable touch to have the -h option.
-	This requires libc support for lutimes() function.
-
 config BUSYBOX_FEATURE_TOUCH_SUSV3
-	bool "Add support for SUSV3 features (-d -t -r)"
+	bool "Add support for SUSV3 features (-a -d -m -t -r)"
 	default y
 	depends on BUSYBOX_TOUCH
 	help
@@ -837,6 +839,11 @@ config BUSYBOX_UUDECODE
 	default y
 	help
 	uudecode is used to decode a uuencoded file.
+config BUSYBOX_BASE32
+	bool "base32 (4.9 kb)"
+	default y
+	help
+	Base32 encode and decode
 config BUSYBOX_BASE64
 	bool "base64 (4.9 kb)"
 	default y

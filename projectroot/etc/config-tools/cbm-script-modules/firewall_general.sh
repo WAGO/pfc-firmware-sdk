@@ -26,7 +26,6 @@ firewall_reqecho_limit='xmlstarlet sel -N f=http://www.wago.com/security/firewal
 firewall_reqecho_burst='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:echo/f:request[@if=\"${interface}\"]/@burst /etc/firewall/iptables/ipcmn.xml'
 
 #SERVICES
-firewall_service_telnet='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/telnet.xml'
 firewall_service_ftp='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/ftp.xml'
 firewall_service_ftps='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/ftps.xml'
 firewall_service_http='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/http.xml'
@@ -36,7 +35,6 @@ firewall_service_codesysr='xmlstarlet sel -N f=http://www.wago.com/security/fire
 firewall_service_codesysw='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/codesysw.xml'
 firewall_service_codesysw='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/codesysw.xml'
 firewall_service_ssh='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/ssh.xml'
-firewall_service_tftp='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/tftp.xml'
 firewall_service_dhcpd='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/dhcpd.xml'
 firewall_service_dns='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/dns.xml'
 firewall_service_modbus_tcp='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:ipv4/f:service/f:interfaces/f:interface[@if=\"${interface}\"]/@state /etc/firewall/services/modbus_tcp.xml'
@@ -318,7 +316,6 @@ function FirewallInterface
     local burst=$(`eval echo $firewall_reqecho_burst`)
 
     #SERVICES
-    local service_telnet=$(`eval echo $firewall_service_telnet`)
     local service_ftp=$(`eval echo $firewall_service_ftp`)
     local service_ftps=$(`eval echo $firewall_service_ftps`)
     local service_http=$(`eval echo $firewall_service_http`)
@@ -353,22 +350,20 @@ function FirewallInterface
             "2. ICMP Policy.....................${policy:-drop}" \
             "3. ICMP Limit......................${limit:-disabled}" \
             "4. ICMP Burst......................${burst:-disabled}" \
-            "5. Telnet..........................${service_telnet}" \
-            "6. FTP.............................${service_ftp}" \
-            "7. FTPS............................${service_ftps}" \
-            "8. HTTP............................${service_http}" \
-            "9. HTTPS...........................${service_https}" \
-            "10.I/O-Check.......................${service_iocheck}" \
-            "11.PLC Runtime.....................${service_codesysr}" \
-            "12.PLC WebVisu (Port 8080).........${service_codesysw}" \
-            "13.SSH.............................${service_ssh}" \
-            "14.TFTP............................${service_tftp}" \
-            "15.BootP/DHCP......................${service_dhcpd}" \
-            "16.DNS.............................${service_dns}" \
-            "17.MODBUS TCP......................${service_modbus_tcp}" \
-            "18.MODBUS UDP......................${service_modbus_udp}" \
-            "19.SNMP............................${service_snmp}" \
-			"20.OPC UA..........................${service_opcua}"
+            "5. FTP.............................${service_ftp}" \
+            "6. FTPS............................${service_ftps}" \
+            "7. HTTP............................${service_http}" \
+            "8. HTTPS...........................${service_https}" \
+            "9.I/O-Check.......................${service_iocheck}" \
+            "10.PLC Runtime.....................${service_codesysr}" \
+            "11.PLC WebVisu (Port 8080).........${service_codesysw}" \
+            "12.SSH.............................${service_ssh}" \
+            "13.BootP/DHCP......................${service_dhcpd}" \
+            "14.DNS.............................${service_dns}" \
+            "15.MODBUS TCP......................${service_modbus_tcp}" \
+            "16.MODBUS UDP......................${service_modbus_udp}" \
+            "17.SNMP............................${service_snmp}" \
+            "18.OPC UA..........................${service_opcua}"
        
         case "$selection" in
 
@@ -396,67 +391,59 @@ function FirewallInterface
                 FirewallInterfaceBurst ${interface} ${policy:-drop} ${limit:--} ${burst:--}
                 local burst=$(`eval echo $firewall_reqecho_burst`)
                 ;;
-            5) #Telnet
-                FirewallServiceConf ${interface} "telnet"
-                local service_telnet=$(`eval echo $firewall_service_telnet`)
-                ;;
-            6) #FTP
+            5) #FTP
                 FirewallServiceConf ${interface} "ftp"
                 local service_ftp=$(`eval echo $firewall_service_ftp`)
                 ;;
-            7) #FTPS
+            6) #FTPS
                 FirewallServiceConf ${interface} "ftps"
                 local service_ftps=$(`eval echo $firewall_service_ftps`)
                 ;;
-            8) #HTTP
+            7) #HTTP
                 FirewallServiceConf ${interface} "http"
                 local service_http=$(`eval echo $firewall_service_http`)
                 ;;
-            9) #HTTPS
+            8) #HTTPS
                 FirewallServiceConf ${interface} "https"
                 local service_https=$(`eval echo $firewall_service_https`)
                 ;;
-           10) #I/O-Check
+           9) #I/O-Check
                 FirewallServiceConf ${interface} "iocheck"
                 local service_iocheck=$(`eval echo $firewall_service_iocheck`)
                 ;;
-           11) #PLC Runtime
+           10) #PLC Runtime
                 FirewallServiceConf ${interface} "codesysr"
                 local service_codesysr=$(`eval echo $firewall_service_codesysr`)
                 ;;
-           12) #PLC WebVisu
+           11) #PLC WebVisu
                 FirewallServiceConf ${interface} "codesysw"
                 local service_codesysw=$(`eval echo $firewall_service_codesysw`)
                 ;;
-           13) #SSH
+           12) #SSH
                 FirewallServiceConf ${interface} "ssh"
                 local service_ssh=$(`eval echo $firewall_service_ssh`)
                 ;;
-           14) #TFTP
-                FirewallServiceConf ${interface} "tftp"
-                local service_tftp=$(`eval echo $firewall_service_tftp`)
-                ;;
-           15) #BootP/DHCP
+           13) #BootP/DHCP
                 FirewallServiceConf ${interface} "dhcpd"
                 local service_dhcpd=$(`eval echo $firewall_service_dhcpd`)
                 ;;
-           16) #DNS
+           14) #DNS
                 FirewallServiceConf ${interface} "dns"
                 local service_dns=$(`eval echo $firewall_service_dns`)
                 ;;
-           17) #MODBUS TCP
+           15) #MODBUS TCP
                 FirewallServiceConf ${interface} "modbus_tcp"
                 local service_modbus_tcp=$(`eval echo $firewall_service_modbus_tcp`)
                 ;;
-           18) #MODBUS UDP
+           16) #MODBUS UDP
                 FirewallServiceConf ${interface} "modbus_udp"
                 local service_modbus_udp=$(`eval echo $firewall_service_modbus_udp`)
                 ;;
-           19) #SNMP
+           17) #SNMP
                 FirewallServiceConf ${interface} "snmp"
                 local service_snmp=$(`eval echo $firewall_service_snmp`)
                 ;;
-           20) #OPC UA
+           18) #OPC UA
                 FirewallServiceConf ${interface} "opcua"
                 local service_opcua=$(`eval echo $firewall_service_opcua`)
                 ;;

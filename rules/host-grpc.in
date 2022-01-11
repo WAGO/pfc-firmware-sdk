@@ -2,6 +2,7 @@
 
 config HOST_GRPC
 	tristate
+	select HOST_CMAKE
 	select HOST_ABSEIL_CPP
 	select HOST_C_ARES
 	select HOST_OPENSSL

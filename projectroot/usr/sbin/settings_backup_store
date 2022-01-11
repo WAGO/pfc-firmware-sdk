@@ -246,13 +246,6 @@ createBackupFile()
       authName=`/etc/config-tools/get_snmp_data v3-auth-name $userNo`
     done
 
-    count=0
-    while read line; do
-      SaveBackupValue "wbm-user-${count}" $(/etc/config-tools/urlencode -e $line) "$backupFile"
-      count=$((count+1))
-    done < /etc/lighttpd/lighttpd-htpasswd.user
-    ProcessErrBackupOperation $? "Cannot save to lighttpd-htpasswd.user"
-
     # admin user password hash
     SaveBackupValue "linux-admin-pwd-info" $(/etc/config-tools/urlencode -e $(/etc/config-tools/get_user_hash --shadow-get-info admin)) "$backupFile"
 

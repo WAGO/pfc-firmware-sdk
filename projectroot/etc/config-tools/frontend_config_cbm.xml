@@ -59,14 +59,12 @@
       <simple_level ressource="downloads_upd.sh" text="Update Script......" dyn_state_ressource="downloads_upd_state.sh" uid="DL_SCRIPT"/>
     </simple_level>
     <simple_level ressource="port.sh" text="Ports and Services" uid="PORT">
-      <simple_level ressource="port_telnet.sh" text="Telnet............." dyn_state_ressource="port_telnet_state.sh" uid="PORT_TELNET"/>
       <simple_level ressource="port_ftp.sh" text="FTP................" dyn_state_ressource="port_ftp_state.sh" uid="PORT_FTP"/>
       <simple_level ressource="port_ftps.sh" text="FTPS..............." dyn_state_ressource="port_ftps_state.sh" uid="PORT_FTPS"/>
       <simple_level ressource="port_http.sh" text="HTTP..............." dyn_state_ressource="port_http_state.sh" uid="PORT_HTTP"/>
       <simple_level ressource="port_https.sh" text="HTTPS.............." dyn_state_ressource="port_https_state.sh" uid="PORT_HTTPS"/>
       <simple_level ressource="port_ntp.sh" text="NTP................" dyn_state_ressource="port_ntp_state.sh" uid="PORT_NTP"/>
       <simple_level ressource="port_ssh.sh" text="SSH................" dyn_state_ressource="port_ssh_state.sh" uid="PORT_SSH"/>
-      <simple_level ressource="port_tftp.sh" text="TFTP..............." dyn_state_ressource="port_tftp_state.sh" uid="PORT_TFTP"/>
       <simple_level ressource="port_dhcpd.sh" text="DHCPD.............." dyn_state_ressource="port_dhcpd_state.sh" uid="PORT_DHCPD"/>
       <simple_level ressource="port_dns.sh" text="DNS................" dyn_state_ressource="port_dns_state.sh" uid="PORT_DNS"/>
       <simple_level ressource="port_iocheck.sh" text="IOCHECK PORT......." dyn_state_ressource="port_iocheck_state.sh" uid="PORT_IOCHECK"/>

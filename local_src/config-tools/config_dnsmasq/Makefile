@@ -118,7 +118,7 @@ config_dnsmasq_c.elf_CXXFLAGS         += $(SHARED_CXXFLAGS)
 config_dnsmasq_c.elf_CXXFLAGS         += $(config_dnsmasq_c.elf_CCXXFLAGS)
 config_dnsmasq_c.elf_CXXFLAGS         += $(call pkg_config_cxxflags,$(config_dnsmasq_c.elf_PKG_CONFIGS))
 config_dnsmasq_c.elf_LDFLAGS          += $(call option_lib,$(config_dnsmasq_c.elf_LIBS),config_dnsmasq_c.elf)
-config_dnsmasq_c.elf_LDFLAGS          += $(call pkg_config_ldflags,$(config_dnsmasq_c.elf_PKG_CONFIGS))
+config_dnsmasq_c.elf_LDFLAGS          += $(call pkg_config_ldflags,$(config_dnsmasq_c.elf_PKG_CONFIGS), --static)
 
 
 #######################################################################################################################

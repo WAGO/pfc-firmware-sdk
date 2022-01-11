@@ -3,7 +3,6 @@
 menuconfig KERNEL
 	bool
 	default y
-	select IMAGE_KERNEL
 	select HOST_U_BOOT_TOOLS	if KERNEL_IMAGE_U || (KERNEL_IMAGE_SIMPLE && ARCH_MICROBLAZE)
 	select HOST_XZ			if KERNEL_XZ
 	select HOST_LZOP		if KERNEL_LZOP
@@ -11,6 +10,7 @@ menuconfig KERNEL
 	select HOST_LIBKMOD		if KERNEL_MODULES
 	select HOST_SYSTEM_BC
 	select HOST_OPENSSL		if KERNEL_OPENSSL
+	select HOST_LIBELF		if KERNEL_LIBELF
 	prompt "Linux kernel                  "
 
 if KERNEL
@@ -37,82 +37,14 @@ config KERNEL_MODULES_INSTALL
 	prompt "Install modules into /lib/modules"
 	depends on KERNEL_MODULES
 
-config KERNEL_MODULES_BUILD
-	depends on KERNEL_MODULES
-	string
-	default "modules"
-
 config KERNEL_VERSION
 	prompt "kernel version"
 	string
-	default "3.10"
+	default "4.15"
 
 config KERNEL_MD5
 	prompt "kernel source md5sum"
 	string
-
-choice
-	prompt "kernel architecture "
-	depends on ARCH_PPC || ARCH_X86
-	default KERNEL_ARCH_POWERPC	if ARCH_PPC
-	default KERNEL_ARCH_X86		if ARCH_X86
-	help
-	  For x86 and PowerPC there are different possibilities to set the kernel
-	  architecture:
-
-	  - The old variant for PowerPC is ppc, the newer one is powerpc.
-	  - The old variant for x86 is i386 for 32 bit and x86_64 for 64 bit,
-	    kernels later than 2.6.24 use x86.
-
-	config KERNEL_ARCH_PPC
-		bool
-		depends on ARCH_PPC
-		prompt "ppc    "
-
-	config KERNEL_ARCH_POWERPC
-		bool
-		depends on ARCH_PPC
-		prompt "powerpc"
-
-	config KERNEL_ARCH_X86
-		bool
-		depends on ARCH_X86
-		prompt "x86    "
-
-	config KERNEL_ARCH_I386
-		bool
-		depends on ARCH_X86
-		prompt "i386   "
-
-	config KERNEL_ARCH_X86_64
-		bool
-		depends on ARCH_X86
-		prompt "x86_64 "
-
-endchoice
-
-config KERNEL_ARCH_STRING
-	string
-	default "arm"			if ARCH_ARM
-	default "arm64"			if ARCH_ARM64
-	default "armnommu"		if ARCH_ARM && !HAS_MMU
-	default "alpha"			if ARCH_ALPHA
-	default "avr32"			if ARCH_AVR32
-	default "blackfin"		if ARCH_BLACKFIN
-	default "m68k"			if ARCH_M68K
-	default "sparc"			if ARCH_SPARC
-	default "microblaze"		if ARCH_MICROBLAZE
-	default "mips"			if ARCH_MIPS
-	default "mips"			if ARCH_MIPSEL
-	default "cris"			if ARCH_CRIS
-	default "parisc"		if ARCH_PARISC
-	default "sh"			if ARCH_SH
-
-	default "ppc"			if KERNEL_ARCH_PPC
-	default "powerpc"		if KERNEL_ARCH_POWERPC
-	default "x86"			if KERNEL_ARCH_X86
-	default "i386"			if KERNEL_ARCH_I386
-	default "x86_64"		if KERNEL_ARCH_X86_64
 
 choice
 	prompt "Image Type          "
@@ -137,7 +69,7 @@ choice
 		bool
 		prompt "xipImage"
 		help
-		  Create eXecute In Place Image
+		  Create eXecute In Place Image.
 
 	config KERNEL_IMAGE_U
 		bool
@@ -161,18 +93,24 @@ choice
 		 This is the target to get the kernel image as an ELF. Mostly
 		 used for debugging purposes.
 
+	config KERNEL_IMAGE_VMLINUZ
+		bool
+		prompt "vmlinuz"
+		help
+		 This is the target to get the compressed kernel image as an ELF.
+		 Mostly used for debugging purposes or for MIPS.
+
 	config KERNEL_IMAGE_RAW
 		bool
 		prompt "Image"
 		help
 		 This is the target to get the kernel image as an raw uncompressed
 		 binary file.
-
 	config KERNEL_IMAGE_SIMPLE
 		bool
 		prompt "simpleImage"
 		help
-		  Create a simple Image with embedded DTB
+		  Create a simple Image with embedded DTB.
 endchoice
 
 if KERNEL_IMAGE_U
@@ -203,7 +141,7 @@ config KERNEL_IMAGE_SIMPLE_DTS
 	  This specifies the "dts" file used to create your simple
 	  image.
 
-	  The default is "${PTXDIST_PLATFORMCONFIGDIR}/simpleImage.dts"
+	  The default is "${PTXDIST_PLATFORMCONFIGDIR}/simpleImage.dts".
 
 	  The path "${PTXDIST_PLATFORMCONFIGDIR}" is the directory
 	  where your platformconfig file is located.
@@ -219,20 +157,17 @@ config KERNEL_IMAGE
 	default "${PTXCONF_KERNEL_IMAGE_U_TARGET}"  if KERNEL_IMAGE_U
 	default "vmImage" if KERNEL_IMAGE_VM
 	default "vmlinux" if KERNEL_IMAGE_VMLINUX
+	default "vmlinuz" if KERNEL_IMAGE_VMLINUZ
 	default "Image"   if KERNEL_IMAGE_RAW
-	default "simpleImage.${PTXCONF_KERNEL_IMAGE_SIMPLE_TARGET}.elf" if KERNEL_IMAGE_SIMPLE && KERNEL_ARCH_POWERPC
-	default "simpleImage.${PTXCONF_KERNEL_IMAGE_SIMPLE_TARGET}" if KERNEL_IMAGE_SIMPLE && ARCH_MICROBLAZE
-
-config KERNEL_DTC
-	bool
+	default "simpleImage.${PTXCONF_KERNEL_IMAGE_SIMPLE_TARGET}.elf" if KERNEL_IMAGE_SIMPLE
 
 config KERNEL_XZ
 	prompt "build xz-utils hosttool"
 	bool
 	help
 	  Select this if you're going to build your kernel compressed
-	  with lzma and your host system is lacking the proper tools.
-	  ("xz-utils" or the deprecated "lzma" package)
+	  with lzma and your host system is lacking the proper tools
+	  ("xz-utils" or the deprecated "lzma" package).
 
 	  Select this if you're unsure, as it won't hurt. It just
 	  increases the build time.
@@ -242,8 +177,8 @@ config KERNEL_LZOP
 	bool
 	help
 	  Select this if you're going to build your kernel compressed
-	  with lzo and your host system is lacking the proper tools.
-	  (the "lzop" package)
+	  with lzo and your host system is lacking the proper tools
+	  (the "lzop" package).
 
 	  Select this if you're unsure, as it won't hurt. It just
 	  increases the build time.
@@ -253,8 +188,8 @@ config KERNEL_LZ4
 	bool
 	help
 	  Select this if you're going to build your kernel compressed
-	  with lz4 and your host system is lacking the proper tools.
-	  (the "lz4" package)
+	  with lz4 and your host system is lacking the proper tools
+	  (the "lz4" package).
 
 	  Select this if you're unsure, as it won't hurt. It just
 	  increases the build time.
@@ -264,10 +199,46 @@ config KERNEL_OPENSSL
 	bool
 	help
 	  Select this if you're going to build your kernel with support for
-	  module signing, IMA etc. where openssl is need as hosttool
+	  module signing, IMA etc. where openssl is need as hosttool.
 
 	  Select this if you're unsure, as it won't hurt. It just
 	  increases the build time.
+
+config KERNEL_LIBELF
+	prompt "build libelf host library"
+	bool
+	help
+	  Select this if you're going to build your kernel with
+	  STACK_VALIDATION enabled. Stack validation is used for the orc
+	  unwinder for kernel version >= v4.14 on x86_64.
+
+config KERNEL_GCC_PLUGINS
+	prompt "allow gcc plugins"
+	bool
+	help
+	  The kernel kconfig options to enable gcc plugins depend on a
+	  sufficiently new host compiler. As a result, the kernel config
+	  may change with a different host compiler version.
+	  If this option is disabled then the environment is manipulated
+	  to ensure that the compiler check always fails. This keeps the
+	  kernel config stable.
+	  Enable this option when the kernel gcc plugins are used.
+
+config KERNEL_CONFIG_BASE_VERSION
+	prompt "use base version in the kernelconfig"
+	bool
+	help
+	  When the BSP contains a patch stack for the kernel, then it is
+	  often useful to modify EXTRAVERSION with one of the patches. This
+	  makes it easier to detect which version of the patch stack was
+	  used to build the currently running kernel.
+	  However, this means that the comment at the beginning of the
+	  kernel config changes with each new revision of the patch stack.
+
+	  When this option is enabled, then the version in the kernel
+	  config is overwritten with the version from
+	  PTXCONF_KERNEL_VERSION. The version built into the kernel remains
+	  unchanged.
 
 menu "patching & configuration      "
 
@@ -277,7 +248,7 @@ config KERNEL_SERIES
 	default "series"
 	help
 	  This entry specifies a patch series file which has to live in
-	  the kernel patches directory:
+	  the kernel patches directory.
 
 	  The series file contains lines with names of patch files which
 	  are then being applied to the kernel.
@@ -287,7 +258,7 @@ config KERNEL_CONFIG
 	string
 	default "kernelconfig-${PTXCONF_KERNEL_VERSION}"
 	help
-	  this entry specifies the .config file used to compile your kernel
+	  This entry specifies the .config file used to compile your kernel.
 
 endmenu
 
@@ -311,9 +282,9 @@ config KERNEL_EXTRA_MAKEVARS
 	  Changing this entry will rebuild the whole kernel.
 
 	  * C=1
-	  Run sparse when compiling
+	  Run sparse when compiling.
 
 	  * V=1
-	  Increase verbosity when compiling
+	  Increase verbosity when compiling.
 
 endif	# KERNEL

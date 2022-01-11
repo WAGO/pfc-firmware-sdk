@@ -1,5 +1,5 @@
 target: libwagosnmp-tests.compile
-make -C /slave/workspace/firmware/pfc/wago-pfc200/V03.07.xx/pfcXXX.bsp/pfc/local_src/libwagosnmp --no-print-directory GNUMAKEFLAGS=--no-builtin-rules --output-sync SCRIPT_DIR=/slave/workspace/firmware/pfc/wago-pfc200/V03.07.xx/pfcXXX.bsp/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-host/lib/ct-build BUILDCONFIG=Debug PTXDIST_WORKSPACE=/workspace/pfc/ptxproj.2013.03.0 PTXDIST_PLATFORMDIR=/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX PTXDIST_PLATFORMCONFIG=/workspace/pfc/ptxproj.2013.03.0/configs/wago-pfcXXX/platformconfig PTXDIST_RCFILE=/slave/workspace/firmware/pfc/wago-pfc200/V03.07.xx/pfcXXX.bsp/ptxdistrc PTXCONF_SETUP_CCACHE=y PTXDIST_CCACHE=/usr/bin/ccache ENABLE_TESTS=T DISABLE_GCOV= DISABLE_GCOV_ADDITIONAL_BUILD_WITHOUT_GCOV= PROJECT_NAME=libwagosnmp -f Makefile DISABLE_GCOV=T DISABLE_GCOV_ADDITIONAL_BUILD_WITHOUT_GCOV=T
+make -C /slave/workspace/firmware/pfc/wago-pfc200/V03.08.xx/pfcXXX.bsp/pfc/local_src/libwagosnmp --no-print-directory GNUMAKEFLAGS=--no-builtin-rules --output-sync SCRIPT_DIR=/slave/workspace/firmware/pfc/wago-pfc200/V03.08.xx/pfcXXX.bsp/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-host/lib/ct-build BUILDCONFIG=Debug PTXDIST_WORKSPACE=/workspace/pfc/ptxproj.2013.03.0 PTXDIST_PLATFORMDIR=/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX PTXDIST_PLATFORMCONFIG=/workspace/pfc/ptxproj.2013.03.0/configs/wago-pfcXXX/platformconfig PTXDIST_RCFILE=/slave/workspace/firmware/pfc/wago-pfc200/V03.08.xx/pfcXXX.bsp/ptxdistrc PTXCONF_SETUP_CCACHE=y PTXDIST_CCACHE=/usr/bin/ccache ENABLE_TESTS=T DISABLE_GCOV= DISABLE_GCOV_ADDITIONAL_BUILD_WITHOUT_GCOV= PROJECT_NAME=libwagosnmp -f Makefile DISABLE_GCOV=T DISABLE_GCOV_ADDITIONAL_BUILD_WITHOUT_GCOV=T
 cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/libwagosnmp.so/agent.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fprofile-arcs -ftest-coverage -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c agent.c
 In file included from agent.c:21:
 wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
@@ -88,78 +88,6 @@ wagosnmp_internal.h:79:38: warning: conversion to ‘int’ from ‘unsigned int
 agent.c:564:5: note: in expansion of macro ‘CALC_OBJ_SIZE’
   564 |     CALC_OBJ_SIZE(objectSize,stData->val_len,stData->val.string == stData->buf);
       |     ^~~~~~~~~~~~~
-cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/libwagosnmp.so/internal.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fprofile-arcs -ftest-coverage -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c internal.c
-In file included from internal.c:21:
-wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
-  111 |     uint32_t index;
-      |              ^~~~~
-wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
-  112 |     size_t   objLen;
-      |              ^~~~~~
-wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
-  122 |     int         oidShmSize;
-      |                 ^~~~~~~~~~
-wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
-  123 |     int         oidCount;
-      |                 ^~~~~~~~
-wagosnmp_internal.h:125:1: warning: packed attribute causes inefficient alignment [-Wpacked]
-  125 | }__attribute__ ((packed)) tOidShm;
-      | ^
-internal.c: In function ‘_SprintReallocValue’:
-internal.c:43:37: warning: unused parameter ‘objid’ [-Wunused-parameter]
-   43 |                         const oid * objid, size_t objidlen,
-      |                         ~~~~~~~~~~~~^~~~~
-internal.c:43:51: warning: unused parameter ‘objidlen’ [-Wunused-parameter]
-   43 |                         const oid * objid, size_t objidlen,
-      |                                            ~~~~~~~^~~~~~~~
-internal.c: In function ‘INTERNAL_SnmpInput’:
-internal.c:237:41: warning: unused parameter ‘operation’ [-Wunused-parameter]
-  237 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation,
-      |                                     ~~~~^~~~~~~~~
-internal.c:238:30: warning: unused parameter ‘session’ [-Wunused-parameter]
-  238 |            netsnmp_session * session,
-      |            ~~~~~~~~~~~~~~~~~~^~~~~~~
-internal.c:239:16: warning: unused parameter ‘reqid’ [-Wunused-parameter]
-  239 |            int reqid, netsnmp_pdu *pdu, void *magic)
-      |            ~~~~^~~~~
-internal.c:239:36: warning: unused parameter ‘pdu’ [-Wunused-parameter]
-  239 |            int reqid, netsnmp_pdu *pdu, void *magic)
-      |                       ~~~~~~~~~~~~~^~~
-internal.c:239:47: warning: unused parameter ‘magic’ [-Wunused-parameter]
-  239 |            int reqid, netsnmp_pdu *pdu, void *magic)
-      |                                         ~~~~~~^~~~~
-internal.c: In function ‘INTERNAL_GetSnmpPdu’:
-internal.c:539:36: warning: declaration of ‘objid_sysuptime’ shadows a global declaration [-Wshadow]
-  539 |       static const oid             objid_sysuptime[] = { 1, 3, 6, 1, 2, 1, 1, 3, 0 };
-      |                                    ^~~~~~~~~~~~~~~
-internal.c:30:30: note: shadowed declaration is here
-   30 | static const oid             objid_sysuptime[] = { 1, 3, 6, 1, 2, 1, 1, 3, 0 };
-      |                              ^~~~~~~~~~~~~~~
-internal.c:540:36: warning: declaration of ‘objid_snmptrap’ shadows a global declaration [-Wshadow]
-  540 |       static const oid             objid_snmptrap[] = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
-      |                                    ^~~~~~~~~~~~~~
-internal.c:31:30: note: shadowed declaration is here
-   31 | static const oid             objid_snmptrap[] = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
-      |                              ^~~~~~~~~~~~~~
-internal.c:554:16: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
-  554 |       uptime = get_uptime();
-      |                ^~~~~~~~~~
-internal.c: In function ‘INTERNAL_ConvertTlvToTrapVar’:
-internal.c:703:12: warning: conversion from ‘size_t’ {aka ‘unsigned int’} to ‘uint16_t’ {aka ‘short unsigned int’} may change value [-Wconversion]
-  703 |   var->len=stData->val_len;
-      |            ^~~~~~
-internal.c: In function ‘INTERNAL_AddVarAndSend’:
-internal.c:853:63: warning: conversion from ‘uint16_t’ {aka ‘short unsigned int’} to ‘u_char’ {aka ‘unsigned char’} may change value [-Wconversion]
-  853 |       if (NULL == snmp_pdu_add_variable(pdu,OID,OID_length,var.type ,var.buf,var.len))
-      |                                                            ~~~^~~~~
-internal.c: In function ‘INTERNAL_GetTrap2PDU_v2_v3’:
-internal.c:887:12: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
-  887 |   uptime = get_uptime();
-      |            ^~~~~~~~~~
-internal.c: At top level:
-internal.c:920:13: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
-  920 | static void snmp_mutex_init()
-      |             ^~~~~~~~~~~~~~~
 cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/libwagosnmp.so/libwagosnmp.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fprofile-arcs -ftest-coverage -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c libwagosnmp.c
 In file included from libwagosnmp.c:15:
 wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
@@ -202,6 +130,78 @@ In file included from test-src/test.cpp:26:
 ./wagosnmp_internal.h:121:16: warning: packed attribute causes inefficient alignment for ‘._140’ [-Wpacked]
   121 | typedef struct {
       |                ^
+cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/libwagosnmp.so/internal.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fprofile-arcs -ftest-coverage -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c internal.c
+In file included from internal.c:22:
+wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
+  111 |     uint32_t index;
+      |              ^~~~~
+wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
+  112 |     size_t   objLen;
+      |              ^~~~~~
+wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
+  122 |     int         oidShmSize;
+      |                 ^~~~~~~~~~
+wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
+  123 |     int         oidCount;
+      |                 ^~~~~~~~
+wagosnmp_internal.h:125:1: warning: packed attribute causes inefficient alignment [-Wpacked]
+  125 | }__attribute__ ((packed)) tOidShm;
+      | ^
+internal.c: In function ‘_SprintReallocValue’:
+internal.c:40:110: warning: unused parameter ‘objid’ [-Wunused-parameter]
+   40 | static int _SprintReallocValue(u_char **buf, size_t *buf_len, size_t *out_len, int allow_realloc, const oid *objid,
+      |                                                                                                   ~~~~~~~~~~~^~~~~
+internal.c:41:39: warning: unused parameter ‘objidlen’ [-Wunused-parameter]
+   41 |                                size_t objidlen, const netsnmp_variable_list *variable) {
+      |                                ~~~~~~~^~~~~~~~
+internal.c: In function ‘INTERNAL_SnmpInput’:
+internal.c:202:41: warning: unused parameter ‘operation’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                     ~~~~^~~~~~~~~
+internal.c:202:69: warning: unused parameter ‘session’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                    ~~~~~~~~~~~~~~~~~^~~~~~~
+internal.c:202:82: warning: unused parameter ‘reqid’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                                              ~~~~^~~~~
+internal.c:202:102: warning: unused parameter ‘pdu’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                                                         ~~~~~~~~~~~~~^~~
+internal.c:202:113: warning: unused parameter ‘magic’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                                                                           ~~~~~~^~~~~
+internal.c: In function ‘INTERNAL_GetSnmpPdu’:
+internal.c:442:24: warning: declaration of ‘objid_sysuptime’ shadows a global declaration [-Wshadow]
+  442 |       static const oid objid_sysuptime[] = {1, 3, 6, 1, 2, 1, 1, 3, 0};
+      |                        ^~~~~~~~~~~~~~~
+internal.c:29:18: note: shadowed declaration is here
+   29 | static const oid objid_sysuptime[] = {1, 3, 6, 1, 2, 1, 1, 3, 0};
+      |                  ^~~~~~~~~~~~~~~
+internal.c:443:24: warning: declaration of ‘objid_snmptrap’ shadows a global declaration [-Wshadow]
+  443 |       static const oid objid_snmptrap[]  = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};
+      |                        ^~~~~~~~~~~~~~
+internal.c:30:18: note: shadowed declaration is here
+   30 | static const oid objid_snmptrap[]  = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};
+      |                  ^~~~~~~~~~~~~~
+internal.c:456:16: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
+  456 |       uptime = get_uptime();
+      |                ^~~~~~~~~~
+internal.c: In function ‘INTERNAL_ConvertTlvToTrapVar’:
+internal.c:576:15: warning: conversion from ‘size_t’ {aka ‘unsigned int’} to ‘uint16_t’ {aka ‘short unsigned int’} may change value [-Wconversion]
+  576 |   var->len  = stData->val_len;
+      |               ^~~~~~
+internal.c: In function ‘INTERNAL_AddVarAndSend’:
+internal.c:696:64: warning: conversion from ‘uint16_t’ {aka ‘short unsigned int’} to ‘u_char’ {aka ‘unsigned char’} may change value [-Wconversion]
+  696 |     if (NULL == snmp_pdu_add_variable(pdu, OID, OID_length, var.type, var.buf, var.len)) {
+      |                                                             ~~~^~~~~
+internal.c: In function ‘INTERNAL_GetTrap2PDU_v2_v3’:
+internal.c:726:12: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
+  726 |   uptime = get_uptime();
+      |            ^~~~~~~~~~
+internal.c: At top level:
+internal.c:754:13: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+  754 | static void snmp_mutex_init() {
+      |             ^~~~~~~~~~~~~~~
 linking shared library out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/libwagosnmp.so.dbg
 splitting debug symbols from out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/libwagosnmp.so.dbg
 ld -o out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/alltests.elf.dbg ./out/gcc_9_2_arm-linux-gnueabihf/Debug_gcov/alltests.elf/test-src/test.cpp.o -L./bin/gcc_9_2_arm-linux-gnueabihf/Debug_gcov -L/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/../../../../arm-linux-gnueabihf/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/../../../../arm-linux-gnueabihf/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/lib/ -pthread -fuse-linker-plugin -Wl,-Bdynamic -lwagosnmp -Wl,-Bstatic -lgmock_main -Wl,-Bstatic -lgmock -Wl,-Bstatic -lgtest -Wl,-Bdynamic -fprofile-arcs -ftest-coverage -lgcov -Wl,-rpath,$ORIGIN -Wl,-Bdynamic
@@ -294,7 +294,6 @@ wagosnmp_internal.h:79:38: warning: conversion to ‘int’ from ‘unsigned int
 agent.c:564:5: note: in expansion of macro ‘CALC_OBJ_SIZE’
   564 |     CALC_OBJ_SIZE(objectSize,stData->val_len,stData->val.string == stData->buf);
       |     ^~~~~~~~~~~~~
-cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug/libwagosnmp.so/libwagosnmp.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c libwagosnmp.c
 In file included from libwagosnmp.c:15:
 wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
   111 |     uint32_t index;
@@ -319,78 +318,8 @@ libwagosnmp.c: In function ‘libwagosnmp_SendTrapToAdrV3’:
 libwagosnmp.c:691:24: warning: conversion to ‘u_int’ {aka ‘unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
   691 |     tmpss.engineTime = get_uptime();  /* but it'll work. Sort of. */
       |                        ^~~~~~~~~~
-cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug/libwagosnmp.so/internal.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c internal.c
-In file included from internal.c:21:
-wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
-  111 |     uint32_t index;
-      |              ^~~~~
-wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
-  112 |     size_t   objLen;
-      |              ^~~~~~
-wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
-  122 |     int         oidShmSize;
-      |                 ^~~~~~~~~~
-wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
-  123 |     int         oidCount;
-      |                 ^~~~~~~~
-wagosnmp_internal.h:125:1: warning: packed attribute causes inefficient alignment [-Wpacked]
-  125 | }__attribute__ ((packed)) tOidShm;
-      | ^
-internal.c: In function ‘_SprintReallocValue’:
-internal.c:43:37: warning: unused parameter ‘objid’ [-Wunused-parameter]
-   43 |                         const oid * objid, size_t objidlen,
-      |                         ~~~~~~~~~~~~^~~~~
-internal.c:43:51: warning: unused parameter ‘objidlen’ [-Wunused-parameter]
-   43 |                         const oid * objid, size_t objidlen,
-      |                                            ~~~~~~~^~~~~~~~
-internal.c: In function ‘INTERNAL_SnmpInput’:
-internal.c:237:41: warning: unused parameter ‘operation’ [-Wunused-parameter]
-  237 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation,
-      |                                     ~~~~^~~~~~~~~
-internal.c:238:30: warning: unused parameter ‘session’ [-Wunused-parameter]
-  238 |            netsnmp_session * session,
-      |            ~~~~~~~~~~~~~~~~~~^~~~~~~
-internal.c:239:16: warning: unused parameter ‘reqid’ [-Wunused-parameter]
-  239 |            int reqid, netsnmp_pdu *pdu, void *magic)
-      |            ~~~~^~~~~
-internal.c:239:36: warning: unused parameter ‘pdu’ [-Wunused-parameter]
-  239 |            int reqid, netsnmp_pdu *pdu, void *magic)
-      |                       ~~~~~~~~~~~~~^~~
-internal.c:239:47: warning: unused parameter ‘magic’ [-Wunused-parameter]
-  239 |            int reqid, netsnmp_pdu *pdu, void *magic)
-      |                                         ~~~~~~^~~~~
-internal.c: In function ‘INTERNAL_GetSnmpPdu’:
-internal.c:539:36: warning: declaration of ‘objid_sysuptime’ shadows a global declaration [-Wshadow]
-  539 |       static const oid             objid_sysuptime[] = { 1, 3, 6, 1, 2, 1, 1, 3, 0 };
-      |                                    ^~~~~~~~~~~~~~~
-internal.c:30:30: note: shadowed declaration is here
-   30 | static const oid             objid_sysuptime[] = { 1, 3, 6, 1, 2, 1, 1, 3, 0 };
-      |                              ^~~~~~~~~~~~~~~
-internal.c:540:36: warning: declaration of ‘objid_snmptrap’ shadows a global declaration [-Wshadow]
-  540 |       static const oid             objid_snmptrap[] = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
-      |                                    ^~~~~~~~~~~~~~
-internal.c:31:30: note: shadowed declaration is here
-   31 | static const oid             objid_snmptrap[] = { 1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0 };
-      |                              ^~~~~~~~~~~~~~
-internal.c:554:16: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
-  554 |       uptime = get_uptime();
-      |                ^~~~~~~~~~
-internal.c: In function ‘INTERNAL_ConvertTlvToTrapVar’:
-internal.c:703:12: warning: conversion from ‘size_t’ {aka ‘unsigned int’} to ‘uint16_t’ {aka ‘short unsigned int’} may change value [-Wconversion]
-  703 |   var->len=stData->val_len;
-      |            ^~~~~~
-internal.c: In function ‘INTERNAL_AddVarAndSend’:
-internal.c:853:63: warning: conversion from ‘uint16_t’ {aka ‘short unsigned int’} to ‘u_char’ {aka ‘unsigned char’} may change value [-Wconversion]
-  853 |       if (NULL == snmp_pdu_add_variable(pdu,OID,OID_length,var.type ,var.buf,var.len))
-      |                                                            ~~~^~~~~
-internal.c: In function ‘INTERNAL_GetTrap2PDU_v2_v3’:
-internal.c:887:12: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
-  887 |   uptime = get_uptime();
-      |            ^~~~~~~~~~
-internal.c: At top level:
-internal.c:920:13: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
-  920 | static void snmp_mutex_init()
-      |             ^~~~~~~~~~~~~~~
+cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug/libwagosnmp.so/libwagosnmp.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c libwagosnmp.c
+cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug/alltests.elf/test-src/test.cpp.o -xc++ -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wctor-dtor-privacy -Wdelete-non-virtual-dtor -Wnon-virtual-dtor -Wpmf-conversions -Winherited-variadic-ctor -Wliteral-suffix -Wuseless-cast -Wvirtual-move-assign -Wconditionally-supported -Wdelete-incomplete -Wc++14-compat -Wodr -Wsized-deallocation -Wsizeof-array-argument -Wsuggest-final-methods -Wsuggest-final-types -Wsuggest-override -Wswitch-bool -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Wc++0x-compat -Wconversion-null -Winvalid-offsetof -Wnarrowing -Wnoexcept -Wnon-template-friend -Woverloaded-virtual -Wreorder -Wsign-promo -Wstrict-null-sentinel -Wsynth -Wnormalized=id -Wno-aggregate-return -std=gnu++11 -iquote. -c test-src/test.cpp
 In file included from test-src/test.cpp:26:
 ./wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘<unnamed struct>::index’ [-Wattributes]
   111 |     uint32_t index;
@@ -407,7 +336,78 @@ In file included from test-src/test.cpp:26:
 ./wagosnmp_internal.h:121:16: warning: packed attribute causes inefficient alignment for ‘._140’ [-Wpacked]
   121 | typedef struct {
       |                ^
-cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug/alltests.elf/test-src/test.cpp.o -xc++ -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wctor-dtor-privacy -Wdelete-non-virtual-dtor -Wnon-virtual-dtor -Wpmf-conversions -Winherited-variadic-ctor -Wliteral-suffix -Wuseless-cast -Wvirtual-move-assign -Wconditionally-supported -Wdelete-incomplete -Wc++14-compat -Wodr -Wsized-deallocation -Wsizeof-array-argument -Wsuggest-final-methods -Wsuggest-final-types -Wsuggest-override -Wswitch-bool -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Wc++0x-compat -Wconversion-null -Winvalid-offsetof -Wnarrowing -Wnoexcept -Wnon-template-friend -Woverloaded-virtual -Wreorder -Wsign-promo -Wstrict-null-sentinel -Wsynth -Wnormalized=id -Wno-aggregate-return -std=gnu++11 -iquote. -c test-src/test.cpp
+cc -o out/gcc_9_2_arm-linux-gnueabihf/Debug/libwagosnmp.so/internal.c.o -xc -fmessage-length=0 -ffunction-sections -fdata-sections -ggdb -pthread -O0 -fstack-protector-all -Wabi -Waddress -Warray-bounds -Wattributes -Wbuiltin-macro-redefined -Wcast-qual -Wclobbered -Wcomment -Wcomments -Wcoverage-mismatch -Wcpp -Wdeprecated -Wdeprecated-declarations -Wdiv-by-zero -Wempty-body -Wenum-compare -Wfloat-equal -Wfree-nonheap-object -Winit-self -Wint-to-pointer-cast -Winvalid-memory-model -Winvalid-pch -Wmaybe-uninitialized -Wnarrowing -Wnonnull -Woverflow -Wpragmas -Wreturn-type -Wstrict-overflow=1 -Wtrigraphs -Wuninitialized -Wvolatile-register-var -Waggressive-loop-optimizations -Wreturn-local-addr -Wsizeof-pointer-memaccess -Wvarargs -Wopenmp-simd -Warray-bounds=1 -Wbool-compare -Wformat-signedness -Wlogical-not-parentheses -Wmemset-transposed-args -Wshift-count-negative -Wshift-count-overflow -Wno-abi -Wbad-function-cast -Wimplicit -Wimplicit-int -Wjump-misses-init -Wmissing-parameter-type -Wold-style-declaration -Wpointer-sign -Wpointer-to-int-cast -Wc99-c11-compat -Wdesignated-init -Wdiscarded-array-qualifiers -Wdiscarded-qualifiers -Wincompatible-pointer-types -Wint-conversion -Waggregate-return -Wchar-subscripts -Wconversion -Wdisabled-optimization -Wdouble-promotion -Wendif-labels -Wformat -Wignored-qualifiers -Winline -Wlogical-op -Wmain -Wmissing-braces -Wmissing-declarations -Wmissing-field-initializers -Wmissing-format-attribute -Wmissing-include-dirs -Wmissing-noreturn -Wmultichar -Woverlength-strings -Wpacked -Wpacked-bitfield-compat -Wparentheses -Wpointer-arith -Wsequence-point -Wshadow -Wsign-compare -Wstack-protector -Wstrict-aliasing -Wstrict-overflow -Wswitch -Wsync-nand -Wtrampolines -Wtype-limits -Wunknown-pragmas -Wunused -Wunused-but-set-variable -Wunused-but-set-parameter -Wunused-function -Wunused-label -Wunused-local-typedefs -Wunused-macros -Wunused-parameter -Wunused-result -Wunused-value -Wunused-variable -Wvariadic-macros -Wvla -Wwrite-strings -Wsuggest-attribute=noreturn -Wunsafe-loop-optimizations -Wvector-operation-performance -Wdate-time -Wfloat-conversion -Werror=implicit-function-declaration -Wmissing-prototypes -Wnested-externs -Woverride-init -Wunsuffixed-float-constants -Wstrict-prototypes -std=gnu99 -fPIC -DNETSNMP_NO_INLINE -c internal.c
+In file included from internal.c:22:
+wagosnmp_internal.h:111:14: warning: packed attribute causes inefficient alignment for ‘index’ [-Wattributes]
+  111 |     uint32_t index;
+      |              ^~~~~
+wagosnmp_internal.h:112:14: warning: packed attribute causes inefficient alignment for ‘objLen’ [-Wattributes]
+  112 |     size_t   objLen;
+      |              ^~~~~~
+wagosnmp_internal.h:122:17: warning: packed attribute causes inefficient alignment for ‘oidShmSize’ [-Wattributes]
+  122 |     int         oidShmSize;
+      |                 ^~~~~~~~~~
+wagosnmp_internal.h:123:17: warning: packed attribute causes inefficient alignment for ‘oidCount’ [-Wattributes]
+  123 |     int         oidCount;
+      |                 ^~~~~~~~
+wagosnmp_internal.h:125:1: warning: packed attribute causes inefficient alignment [-Wpacked]
+  125 | }__attribute__ ((packed)) tOidShm;
+      | ^
+internal.c: In function ‘_SprintReallocValue’:
+internal.c:40:110: warning: unused parameter ‘objid’ [-Wunused-parameter]
+   40 | static int _SprintReallocValue(u_char **buf, size_t *buf_len, size_t *out_len, int allow_realloc, const oid *objid,
+      |                                                                                                   ~~~~~~~~~~~^~~~~
+internal.c:41:39: warning: unused parameter ‘objidlen’ [-Wunused-parameter]
+   41 |                                size_t objidlen, const netsnmp_variable_list *variable) {
+      |                                ~~~~~~~^~~~~~~~
+internal.c: In function ‘INTERNAL_SnmpInput’:
+internal.c:202:41: warning: unused parameter ‘operation’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                     ~~~~^~~~~~~~~
+internal.c:202:69: warning: unused parameter ‘session’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                    ~~~~~~~~~~~~~~~~~^~~~~~~
+internal.c:202:82: warning: unused parameter ‘reqid’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                                              ~~~~^~~~~
+internal.c:202:102: warning: unused parameter ‘pdu’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                                                         ~~~~~~~~~~~~~^~~
+internal.c:202:113: warning: unused parameter ‘magic’ [-Wunused-parameter]
+  202 | INTERNAL_SYM int INTERNAL_SnmpInput(int operation, netsnmp_session *session, int reqid, netsnmp_pdu *pdu, void *magic) {
+      |                                                                                                           ~~~~~~^~~~~
+internal.c: In function ‘INTERNAL_GetSnmpPdu’:
+internal.c:442:24: warning: declaration of ‘objid_sysuptime’ shadows a global declaration [-Wshadow]
+  442 |       static const oid objid_sysuptime[] = {1, 3, 6, 1, 2, 1, 1, 3, 0};
+      |                        ^~~~~~~~~~~~~~~
+internal.c:29:18: note: shadowed declaration is here
+   29 | static const oid objid_sysuptime[] = {1, 3, 6, 1, 2, 1, 1, 3, 0};
+      |                  ^~~~~~~~~~~~~~~
+internal.c:443:24: warning: declaration of ‘objid_snmptrap’ shadows a global declaration [-Wshadow]
+  443 |       static const oid objid_snmptrap[]  = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};
+      |                        ^~~~~~~~~~~~~~
+internal.c:30:18: note: shadowed declaration is here
+   30 | static const oid objid_snmptrap[]  = {1, 3, 6, 1, 6, 3, 1, 1, 4, 1, 0};
+      |                  ^~~~~~~~~~~~~~
+internal.c:456:16: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
+  456 |       uptime = get_uptime();
+      |                ^~~~~~~~~~
+internal.c: In function ‘INTERNAL_ConvertTlvToTrapVar’:
+internal.c:576:15: warning: conversion from ‘size_t’ {aka ‘unsigned int’} to ‘uint16_t’ {aka ‘short unsigned int’} may change value [-Wconversion]
+  576 |   var->len  = stData->val_len;
+      |               ^~~~~~
+internal.c: In function ‘INTERNAL_AddVarAndSend’:
+internal.c:696:64: warning: conversion from ‘uint16_t’ {aka ‘short unsigned int’} to ‘u_char’ {aka ‘unsigned char’} may change value [-Wconversion]
+  696 |     if (NULL == snmp_pdu_add_variable(pdu, OID, OID_length, var.type, var.buf, var.len)) {
+      |                                                             ~~~^~~~~
+internal.c: In function ‘INTERNAL_GetTrap2PDU_v2_v3’:
+internal.c:726:12: warning: conversion to ‘u_long’ {aka ‘long unsigned int’} from ‘long int’ may change the sign of the result [-Wsign-conversion]
+  726 |   uptime = get_uptime();
+      |            ^~~~~~~~~~
+internal.c: At top level:
+internal.c:754:13: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+  754 | static void snmp_mutex_init() {
+      |             ^~~~~~~~~~~~~~~
 linking shared library out/gcc_9_2_arm-linux-gnueabihf/Debug/libwagosnmp.so.dbg
 splitting debug symbols from out/gcc_9_2_arm-linux-gnueabihf/Debug/libwagosnmp.so.dbg
 ld -o out/gcc_9_2_arm-linux-gnueabihf/Debug/alltests.elf.dbg ./out/gcc_9_2_arm-linux-gnueabihf/Debug/alltests.elf/test-src/test.cpp.o -L./bin/gcc_9_2_arm-linux-gnueabihf/Debug -L/workspace/pfc/ptxproj.2013.03.0/platform-wago-pfcXXX/sysroot-target/usr/lib -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/../../../../arm-linux-gnueabihf/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/9.2.1/../../../../arm-linux-gnueabihf/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/lib/ -L/opt/LINARO.Toolchain-2019.12/arm-linux-gnueabihf/bin/../arm-linux-gnueabihf/libc/usr/lib/ -pthread -fuse-linker-plugin -Wl,-Bdynamic -lwagosnmp -Wl,-Bstatic -lgmock_main -Wl,-Bstatic -lgmock -Wl,-Bstatic -lgtest -Wl,-Bdynamic -lgcov -Wl,-rpath,$ORIGIN -Wl,-Bdynamic

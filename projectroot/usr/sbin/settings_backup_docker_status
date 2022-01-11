@@ -1,0 +1,51 @@
+#!/bin/bash
+
+#-----------------------------------------------------------------------------#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# This file is part of PTXdist package docker.
+#
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+#-----------------------------------------------------------------------------#
+# Script:   settings_backup_docker_status
+#
+# Brief:    Save docker status settings to stdout or restore 
+#           them from stdin.
+#
+# Author:   MWW: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+		echo "config_tool_lib missing"
+		exit 64
+fi
+
+readonly operation="$1"
+
+
+if [[ $operation = "get-status" ]]; then
+		ret="$(/etc/config-tools/get_docker_config install-status)" status=$?
+		if [[ $ret = "installed" ]]; then
+				ret="$(/etc/config-tools/get_docker_config activation-status)" status=$?
+		fi
+		
+		if [[ $ret = "not installed" ]]; then
+				echo "remove"
+		elif [[ $ret = "inactive" ]]; then
+				echo "install"
+		else
+				echo "activate"
+		fi
+else
+		echo
+		echo "* backup or restore Docker status settings *"
+		echo
+		echo "Usage: $(basename "$0") get-status -- converts status of docker to config_docker input statement"
+		echo
+fi
+
+exit $status

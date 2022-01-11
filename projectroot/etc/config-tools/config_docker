@@ -1,0 +1,134 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: config_docker
+#
+# Configure docker settings.
+#
+# Author: WAGO Kontakttechnik GmbH & Co.KG
+#-----------------------------------------------------------------------------#
+
+# load general definitions and functions
+if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+  SetLastError "Config_tool_lib missing"
+  status=255
+  exit $status
+fi
+
+. /etc/config-tools/config_tool_lib
+
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter).
+#--------------------------------------------------------------------
+
+# show help-text if requested
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo
+  echo "* Change docker settings *"
+  echo
+  echo "Usage: config_docker -h, --help or"
+  echo "       config_docker <<argument>>"
+  echo
+  echo "-h --help            Prints this help"
+  echo
+  echo "The config-tool can be called with the following arguments:"
+  echo
+  echo "install              Installs docker on the system"
+  echo "remove               Removes docker from the system"
+  echo "activate             Activates docker on startup"
+  echo "deactivate           Deactivates docker on startup"
+  echo
+  exit $SUCCESS
+fi
+
+
+DOCKER=docker
+DOCKER_PATH=/opt/wago-docker
+DOCKER_DAEMON=dockerd
+DOCKER_START_SCRIPT=S99_docker
+
+#--------------------------------------------------------------------
+# functions
+#--------------------------------------------------------------------
+
+checkBootDevice() {
+  if [ $(/etc/config-tools/get_filesystem_data active-partition-medium) = "sd-card" ]; then
+    SetLastError "Device is booted from sd-card"
+    status=-2
+    exit $status
+  fi
+}
+
+install() {
+    if [ -d $DOCKER_PATH ]; then
+        DOCKER_IPK=$(ls $DOCKER_PATH | tail -1)
+        opkg install "${DOCKER_PATH}/${DOCKER_IPK}" > /dev/null 2>&1
+        if [ -f "/etc/rc.d/${DOCKER_START_SCRIPT}" ]; then
+            mv "/etc/rc.d/${DOCKER_START_SCRIPT}" "/etc/rc.d/disabled/${DOCKER_START_SCRIPT}" 
+        fi
+    fi
+    STATUS=$(/etc/config-tools/get_docker_config install-status)
+    if [[ $STATUS != "installed" ]]; then
+    		SetLastError "internal error"
+        status=$INTERNAL_ERROR
+    fi 
+}
+
+remove() {
+    STATUS=$(/etc/config-tools/get_docker_config activation-status)
+    if [[ $STATUS == "active" ]]; then
+    		deactivate
+    fi
+    opkg remove $DOCKER > /dev/null 2>&1
+}
+
+activate() {
+    STATUS=$(/etc/config-tools/get_docker_config install-status)
+    if [[ $STATUS == "not installed" ]]; then
+    		install
+    fi
+    
+    if [ -f /etc/rc.d/disabled/S99_docker ]; then
+        mv /etc/rc.d/disabled/S99_docker /etc/rc.d
+    fi
+    /etc/init.d/$DOCKER_DAEMON start > /dev/null 2>&1
+}
+
+deactivate() {
+    if [ -f /etc/rc.d/S99_docker ]; then
+        mv /etc/rc.d/S99_docker /etc/rc.d/disabled
+    fi
+    /etc/init.d/$DOCKER_DAEMON stop > /dev/null 2>&1
+    if pidof dockerd; then
+        killall dockerd
+    fi
+}
+
+#--------------------------------------------------------------------
+# main
+#--------------------------------------------------------------------
+
+status=$SUCCESS
+
+checkBootDevice
+
+if [ "$1" = "install" ]; then
+    install
+elif [ "$1" = "remove" ]; then
+    remove
+elif [ "$1" = "activate" ]; then
+    activate
+elif [ "$1" = "deactivate" ]; then
+    deactivate
+else
+    SetLastError "Invalid input parameter ($1)"
+    status=$INVALID_PARAMETER
+fi
+
+exit $status

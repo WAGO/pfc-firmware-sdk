@@ -313,16 +313,6 @@ config BUSYBOX_HEXDUMP
 	The hexdump utility is used to display binary data in a readable
 	way that is comparable to the output from most hex editors.
 
-config BUSYBOX_FEATURE_HEXDUMP_REVERSE
-	bool "Support -R, reverse of 'hexdump -Cv'"
-	default y
-	depends on BUSYBOX_HEXDUMP
-	help
-	The hexdump utility is used to display binary data in an ascii
-	readable way. This option creates binary data from an ascii input.
-	NB: this option is non-standard. It's unwise to use it in scripts
-	aimed to be portable.
-
 config BUSYBOX_HD
 	bool "hd (7.8 kb)"
 	default y
@@ -685,7 +675,7 @@ config BUSYBOX_NOLOGIN
 
 config BUSYBOX_NOLOGIN_DEPENDENCIES
 	bool "Enable dependencies for nologin"
-	default y
+	default n
 	depends on BUSYBOX_NOLOGIN
 	select BUSYBOX_CAT
 	select BUSYBOX_ECHO
@@ -900,6 +890,13 @@ config BUSYBOX_FEATURE_TASKSET_FANCY
 	Needed for machines with more than 32-64 CPUs:
 	affinity parameter 0xHHHHHHHHHHHHHHHHHHHH can be arbitrarily long
 	in this case. Otherwise, it is limited to sizeof(long).
+config BUSYBOX_FEATURE_TASKSET_CPULIST
+	bool "CPU list support (-c option)"
+	default y
+	depends on FEATURE_TASKSET_FANCY
+	help
+	Add support for taking/printing affinity as CPU list when '-c'
+	option is used. For example, it prints '0-3,7' instead of mask '8f'.
 config BUSYBOX_UEVENT
 	bool "uevent (3.1 kb)"
 	default y

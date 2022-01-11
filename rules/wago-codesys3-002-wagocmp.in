@@ -236,7 +236,7 @@ config CDS3_TSCFUSE
 	default n
 	select CODESYS3
 	select CDS3_INCLUDES
-	select FUSE
+	select FUSE3
 	select LIBOSLINUX
 	select LIBUIO
 	select LIBNL3
@@ -602,10 +602,11 @@ config CDS3_IODRVRLB
 config TSCPARAMSERV
     bool "TscParamServ"
     default n
-    select CODESYS3
-    select CDS3_INCLUDES
     select HOST_CT_BUILD
     select GOOGLETEST
+    select CDS3_INCLUDES
+    select CODESYS3
+    select CDS3_INCLUDES
     help
         This component implements access to parameter service in CODESYSv3 / e!RUNTIME
 

@@ -2,17 +2,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2012-2021 WAGO Kontakttechnik GmbH & Co. KG
 
 . ./cbm-script-modules/port_interfaces.sh
 
 function MainPortHttpsStatus
 {
-  local portOutputText="HTTPS"
-  local portParameterText="https"
   local state=`./config_ssl https-status`
 
-  MainPortGeneric "${portOutputText}" "${portParameterText}" "${state}"
+  ./wdialog "--msgbox" \
+            "$TITLE " \
+            "HTTPS Port Configuration ($state)" \
+            "" \
+            "The HTTPS port can be blocked via the firewall." \
+            ""
 }
 
 function MainPortHttps

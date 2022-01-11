@@ -390,7 +390,6 @@ if ROOTFS_PASSWD_GUEST
       default "guest:$1$3IzLJXEB$cJvtQuaWhvgdX1RfC0wQr/:14174:0:99999:7:::"
       prompt "shadow entry"
 endif
-
 endif
 
 config ROOTFS_SHADOW
@@ -463,6 +462,26 @@ if ROOTFS_GROUP_VISUALISATION
     string 
     default "visualisation:x:${ROOTFS_GROUP_VISUALISATION_GID}:"
     prompt "group entry"
+
+endif
+endif
+
+if ROOTFS_GROUP
+    menuconfig ROOTFS_GROUP_CODESYS3
+    bool
+    default y
+    prompt "Enable group 'codesys3'"
+
+if ROOTFS_GROUP_CODESYS3
+    config ROOTFS_GROUP_CODESYS3_GID
+    string 
+    default "1004"
+    prompt "GID for linux group 'codesys3'"
+
+    config ROOTFS_GROUP_CODESYS3_ENTRY
+    string 
+    default "codesys3:x:1004:admin"
+    prompt "codesys3 group entry"
 
 endif
 endif

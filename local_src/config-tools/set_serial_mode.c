@@ -10,7 +10,7 @@
 ///
 ///  \file     set_serial_mode.c
 ///
-///  \version  $Revision: 39634 $
+///  \version  $Revision: 61045 $
 ///
 ///  \brief    This config tool sets the PFCXXX transceiver to RS232 or RS485
 ///           Based on tty0modeswitch
@@ -37,6 +37,23 @@
 #define TTY "/dev/serial"
 #define VTPCTP_BROWSER "/usr/bin/webenginebrowser"
 #define RS_SEL_PATH "/sys/class/leds/rs-sel/brightness"
+#define BOARD_PATH "/sys/class/wago/system/board_variant"
+
+int ReadBoardVariant(char * pszOut, int iMaxLen)
+{
+  int fd;
+  int iRet = -1;
+  fd = open((const char *)BOARD_PATH, O_RDONLY);
+  if (fd >= 0)
+  {
+    if (read(fd, pszOut, iMaxLen) > 0)
+    {
+      iRet = 0;
+    }
+    close(fd);
+  }
+  return iRet;
+}
 
 void usage(const char *bin)
 {
@@ -74,6 +91,24 @@ int main(int argc, char **argv)
         usage(argv[0]);
         exit(SUCCESS);
     }
+
+    // detect CC100 device, only rs485 available no switching possible
+    if (ReadBoardVariant(&szOut[0], sizeof(szOut)) == 0)
+    {
+      if (strncmp(szOut, "CC100", 5) == 0)
+      {
+        if(strcmp(argv[1], "rs485") == 0)
+        {
+          return 0; //success
+        }
+        if (strcmp(argv[1], "rs232") == 0)
+        {
+          //perror("ERROR: rs232 is not available ");
+          return -1; //not available
+        }
+      }
+    }
+    szOut[0] = '\0';
 
     if(SUCCESS == ret)
     {

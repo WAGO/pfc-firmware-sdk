@@ -78,11 +78,16 @@ void GetRandomBytes(ctutil_Resources_t const * const pstResources,
   // If first random source does not get enough bytes use second source
   WC_ASSERT(bufferSize <= INT_MAX);
   int const requested = (int)bufferSize;
+
   if(rbytes < requested)
   {
     size_t const received = (rbytes > 0) ? (size_t)rbytes : 0U;
     fd = open(pstResources->pstSpecificResources->szRandomSource2, O_RDONLY);
-    read(fd, arBuffer+received, bufferSize-received); // FIXME: Return value not honored, no error handling
+    ssize_t read_bytes = read(fd, arBuffer+received, bufferSize-received);
+    if ((read_bytes <= 0) && (0 == strcmp(pstResources->pstSpecificResources->szRandomSource2, "/dev/zero")))
+    {
+      memset (arBuffer+received, 0, bufferSize-received);
+    }
     close(fd);
   }
 }

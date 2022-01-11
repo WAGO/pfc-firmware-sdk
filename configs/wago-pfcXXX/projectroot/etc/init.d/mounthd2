@@ -98,10 +98,10 @@ function umount_point
     sync
 
     # Try to unmount
-    echo -n "Unmounting ${mntpoint}..."
+    echo "Unmounting ${mntpoint}..."
     local timeout=3
     while [ "$timeout" -gt "0" ] && check_mounted "${mntpoint}" >/dev/null 2>&1; do
-      umount "${mntpoint}" >/dev/null 2>&1
+      umount -v "${mntpoint}" 2>&1
       sleep 1
       timeout=$(( $timeout - 1 ))
     done

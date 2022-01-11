@@ -7,7 +7,7 @@
 function MainPortGeneric
 #
 # Processing of menu Main -> Port
-# See and change the state of telnet, CODESYS-webserver and FTP-port
+# See and change the state of CODESYS-webserver and FTP-port
 #
 {
   local portOutputText=$1

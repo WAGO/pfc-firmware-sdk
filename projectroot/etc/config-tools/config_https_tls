@@ -3,15 +3,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2016-2021 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
-# Script-name: config_https_tls
+# Script:   /etc/config-tools/config_https_tls
 #
-# Switch between strong and normal cipher lists. Older web browsers do not
-# support the strong list.
+# Brief:    Switch between cipher list pre-sets "strong" and "extended-compatibility".
+#           Older web browsers may not support the strong list.
 #
-# Author: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # make use of undefined variables an error
@@ -20,18 +21,18 @@ set -u
 # Check argument value against a selection of values.
 arg_assert()
 {
-    local arg=$1
+    local arg="$1"
     local sel=$2
-    local msg=$3
+    local msg="$3"
     local valid=""
 
     for val in $sel; do
-        if [ $arg = $val ]; then
+        if [[ "$arg" == "$val" ]]; then
             valid=1
             break
         fi
     done
-    if [ ! $valid ]; then
+    if [[ ! $valid ]]; then
         status=$INVALID_PARAMETER
         SetLastError "$msg"
         exit $status
@@ -39,26 +40,28 @@ arg_assert()
 }
 
 # load general definitions and functions
-if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+if [[ ! -f "/etc/config-tools/config_tool_lib" ]]; then
     echo "config_tool_lib missing"
     exit 255
 fi
-. /etc/config-tools/config_tool_lib
+source /etc/config-tools/config_tool_lib
 
-if [ "$#" -eq "0" ]; then
+if [[ $# -eq 0 ]]; then
     SetLastError "Missing argument"
     exit $MISSING_PARAMETER
 fi
 status=$SUCCESS
 
 # show help-text if requested
-if [ "$1" = "-h" -o "$1" = "--help" ]; then
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     echo
-    echo "* Configure https tls cipher list *"
+    echo "* Configure HTTPS TLS cipher list set *"
     echo
-    echo "Usage: $0 cipher-list=standard|strong [restart-webserver=YES|NO]"
-    echo "Default cipher is standard. Default restart-webserver value is YES"
+    echo "Usage: $0 cipher-list=<standard|extended-compatibility|strong> [restart-webserver=<YES|NO>]"
+    echo "Default cipher is \"extended-compatibility\". Default restart-webserver value is \"YES\""
     echo "restart-webserver=NO is intended for WBM use"
+    echo
+    echo "Cipher option \"standard\" is an alias for \"extended-compatibility\""
     echo
     exit $status
 fi
@@ -68,10 +71,13 @@ INITSCRIPT="/etc/init.d/lighttpd"
 ciphers=""
 websrestart="YES"
 
-for ARG in $@; do
+for ARG in "$@"; do
     case "$ARG" in
         cipher-list=*)
             ciphers=${ARG#cipher-list=}
+            if [[ "$ciphers" == "standard" ]]; then
+                ciphers="extended-compatibility"
+            fi
             ;;
         restart-webserver=*)
             websrestart=${ARG#restart-webserver=}
@@ -85,11 +91,11 @@ for ARG in $@; do
 done
 
 newlink="tls-$ciphers.conf"
-if [ "$status" -eq "0" -a "$ciphers" -a $(readlink $SYMLINK) != "$newlink" ]; then
-    ln -sf $newlink $SYMLINK
+if [[ $status -eq 0 && "$ciphers" && "$(readlink $SYMLINK)" != "$newlink" ]]; then
+    ln -sf "$newlink" "$SYMLINK"
     status=$?
-    if [ "$status" -eq "0" ]; then
-        if [ "$websrestart" = "YES" ]; then
+    if [[ $status -eq 0 ]]; then
+        if [[ "$websrestart" == "YES" ]]; then
             $INITSCRIPT stop &> /dev/null
             $INITSCRIPT start &> /dev/null
         fi

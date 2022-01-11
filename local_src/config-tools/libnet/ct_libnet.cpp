@@ -1848,7 +1848,7 @@ int ct_libnet_is_pfc100(void){
 }
 
 #define PORT_MIRROR_DEFAULT "0"
-const char *port_mirror_arg_list[] = {"0","1","2", NULL};
+const char *port_mirror_arg_list[] = {"0","1","2","3", NULL};
 } // namespace -> static linkage
 
 

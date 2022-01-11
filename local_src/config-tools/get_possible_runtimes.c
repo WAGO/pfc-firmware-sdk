@@ -10,7 +10,7 @@
 ///
 ///  \file     get_possible_runtimes.c
 ///
-///  \version  $Rev: 17623 $
+///  \version  $Rev: 59631 $
 ///
 ///  \brief    <Insert description here>
 ///
@@ -122,11 +122,9 @@ void jsonTrueFalse(const char * start,const char * key,uint32_t trueFalse,const 
 
 static void printTrueFalse(uint32_t runtime,uint32_t runtimeBits,uint8_t json)
 {
-  int result=(runtimeBits & runtime);
-
   if(json)
   {
-    char * pRuntime = NULL;
+    char const * pRuntime = NULL;
     switch(runtime)
     {
       case CUSTOM:

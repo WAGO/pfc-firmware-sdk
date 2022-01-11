@@ -11,7 +11,7 @@
 ///
 ///  \file     get_dns_server.c
 ///
-///  \version  $Revision: 33100 $1
+///  \version  $Revision: 59625 $1
 ///
 ///  \brief    
 ///
@@ -75,8 +75,6 @@ void ShowHelpText(void)
 // Show describtion and usage of program on stdout
 //
 {
-  int parameterIndex = 0;
-
   printf("\n* Get the names of the configured DNS-server *\n\n");
   printf("Usage: get_dns_server < DNS-Server-Number | \"%s\" | \"%s\" | \"%s\" >\n\n", SHOW_FORMS_INPUT_COMMAND, SHOW_ALL_INPUT_COMMAND, GET_COMPLETE_COMMAND, GET_DYNAMIC_COMMAND);
   printf("DNS-Server-Number: sequential number of DNS-server in resolv.conf-file\n");
@@ -112,7 +110,7 @@ int GetDnsServerNameByNr(int    requestedDnsServerNr,
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   // get the content of the resolv-conf-file in a buffer 
   pFileContent = FileContent_Get(fileName);

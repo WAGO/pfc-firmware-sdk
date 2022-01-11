@@ -10,6 +10,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "Utils.hpp"
+#include "InterfaceInformationApi.hpp"
 
 namespace po = boost::program_options;
 
@@ -60,13 +61,19 @@ void BridgeConfigHandler::GetConfig() {
 
 void BridgeConfigHandler::SetConfig() {
   napi::BridgeConfig bridge_config;
-  auto error = napi::MakeBridgeConfig(GetValueOfSet(vm_), bridge_config);
-  if (error.IsOk()) {
-    error = napi::SetBridgeConfig(bridge_config);
+  auto status = napi::MakeBridgeConfig(GetValueOfSet(vm_), bridge_config);
+
+  const auto &options = GetOptions();
+  if (status.IsOk()) {
+    if (Contains(vm_, options.dryrun)) {
+      status = napi::ValidateBridgeConfig(bridge_config, napi::GetInterfaceInformation());
+    } else {
+      status = napi::SetBridgeConfig(bridge_config);
+    }
   }
 
-  if (error.IsNotOk()) {
-    throw NetconfStatus { error };
+  if (status.IsNotOk()) {
+    throw NetconfStatus { status };
   }
 }
 

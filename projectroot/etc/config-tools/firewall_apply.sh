@@ -177,13 +177,6 @@ firewall_get_service_state()
         fi
         ;;
 
-    telnet)
-        running=$(/etc/config-tools/get_port_state telnet)
-        if [[ "enabled" == "$running" ]] ; then
-            active=1
-        fi
-        ;;
-
     tftp)
         running=$(/etc/config-tools/get_tftp_config state)
         if [[ "enabled" == "$running" ]] ; then

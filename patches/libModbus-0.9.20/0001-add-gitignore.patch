@@ -1,0 +1,22 @@
+From 2b69dd81d77e416b9e1982fb608303b290126a09 Mon Sep 17 00:00:00 2001
+From: Timur Celik <timur.celik@wago.com>
+Date: Wed, 30 Apr 2014 15:39:05 +0200
+Subject: [PATCH] add gitignore
+
+---
+ .gitignore | 3 +++
+ 1 file changed, 3 insertions(+)
+ create mode 100644 .gitignore
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..9c0321e
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,3 @@
++# eclipse specific files
++.project
++.cproject
+-- 
+1.9.0
+

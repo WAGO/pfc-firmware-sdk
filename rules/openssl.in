@@ -4,6 +4,7 @@ menuconfig OPENSSL
 	tristate
 	select LIBC_DL
 	select GCCLIBS_GCC_S
+	select CRYPTODEV_API		if OPENSSL_CRYPTODEV && BUILDTIME
 	prompt "openssl                       "
 	help
 	  Secure Socket Layer (SSL) binary and related cryptographic tools
@@ -27,5 +28,11 @@ config OPENSSL_BIN
 	bool "install openssl tools"
 	help
 	  Whether to build and install OpenSSL binary.
+
+config OPENSSL_CRYPTODEV
+	bool
+	prompt "use cryptodev hw acceleration"
+	help
+	  Enable the BSD cryptodev engine even if we are not using BSD.
 
 endif

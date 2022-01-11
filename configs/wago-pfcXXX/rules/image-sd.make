@@ -20,7 +20,11 @@ IMAGE_SD	:= image-sd
 IMAGE_SD_DIR	:= $(BUILDDIR)/$(IMAGE_SD)
 IMAGE_SD_IMAGE	:= $(IMAGEDIR)/sd.hdimg
 IMAGE_SD_FILES	:= $(IMAGEDIR)/root.tgz
-IMAGE_SD_CONFIG	:= sd.config
+ifdef PTXCONF_PFC_200_G2
+	IMAGE_SD_CONFIG	:= sd_g2.config
+else
+  IMAGE_SD_CONFIG	:= sd.config
+endif
 
 # ----------------------------------------------------------------------------
 # Image

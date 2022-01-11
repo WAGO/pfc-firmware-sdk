@@ -6,7 +6,7 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2021 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_accounts
@@ -18,7 +18,7 @@
 
 
 # Load general definitions and functions
-if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+if [[ ! -f "/etc/config-tools/config_tool_lib" ]]; then
    echo "config tool_lib missing"
    exit 64
 fi
@@ -52,11 +52,12 @@ declare -a new_UIDs
 declare -a backuped_usernames
 # List of backuped UIDs
 declare -a backuped_UIDs
+# List of merged group members
+declare -a merged_group_member
 
 #-----------------------------------------------------------------------------#
 # functions
 #-----------------------------------------------------------------------------#
-
 
 # Function to get a list of new users and UIDs
 #
@@ -73,15 +74,14 @@ list_account_data_new_users ()
    while read variable
    do
       if [ -n "$variable" ]; then
-   			param=$(echo $variable | cut -d: -f1)
-        new_usernames[$index]="$param"
-        param=$(echo $variable | cut -d: -f3)
-        new_UIDs[$index]="$param"
-        index=$(( $index+1 ))
+         param=$(echo $variable | cut -d: -f1)
+         new_usernames[$index]="$param"
+         param=$(echo $variable | cut -d: -f3)
+         new_UIDs[$index]="$param"
+         index=$(( $index+1 ))
       fi
    done < "$account_file"
 }
-
 
 # Function to get a list of backuped users and UIDs
 #
@@ -107,6 +107,32 @@ list_account_data_backuped_users ()
    done < "$account_file"
 }
 
+# Function to get a list of backuped group members for any group
+#
+# Param 1: File to read group members (groups)
+# Param 2: Group name
+#
+# See also: list_account_data_new_users()
+#-----------------------------------------------------------------------------#
+list_group_members()
+{
+   local account_file="$1"
+   local group_name="$2"
+   local param=" "
+   
+   merged_group_member=()
+   while read variable
+   do
+      if [ -n "$variable" ]; then
+      	param=$(echo $variable | cut -d: -f1)
+         if [[ $param == $group_name ]]; then
+            param="$(echo "$variable" | cut -d: -f4)"
+            merged_group_member=($(awk -F, '{$1=$1} 1' <<<"${param}"))
+         fi
+      fi
+   done < "$account_file"
+   # echo "group: " "$group_name"  " : " "${merged_group_member[@]}"
+}
 
 # Function to check of presence of UID in backuped passwd file
 #
@@ -116,7 +142,7 @@ list_account_data_backuped_users ()
 #-----------------------------------------------------------------------------#
 check_UID_presence()
 {
-	 local uid=$1
+   local uid=$1
    local uid_found=0
    local index_backuped_uid=0
 
@@ -126,7 +152,7 @@ check_UID_presence()
       	uid_found=1
         break;
       fi
-   		index_backuped_uid=$(( $index_backuped_uid+1 ))
+   		index_backuped_uid=$(( index_backuped_uid+1 ))
    done
 
    return $uid_found
@@ -142,54 +168,44 @@ check_UID_presence()
 check_GID_presence ()
 {
    local gid=$1
-	 local group_file="$2"
+   local group_file="$2"
    local index=0
    local gid_found=0
    local param=" "
 
    while read variable
    do
-      if [ -n "$variable" ]; then
+      if [[ -n "$variable" ]]; then
         param=$(echo $variable | cut -d: -f1)
-        if [ "$param" == $gid ]; then
-        		gid_found=1
-          	break
-				fi
-        index=$(( $index+1 ))
+        if [[ "$param" == $gid ]]; then
+            gid_found=1
+            break
+        fi
+        index=$(( index+1 ))
       fi
    done < "$group_file"
 
    return $gid_found
 }
 
-# Function to check of presence of group name in backuped group config file
+# Function to check of presence of group member in backuped group members
 #
-# Param 1: group name to check
-# Param 2: group config file to check
+# Param 1: group member name to check
 #
-# Return: 0: group name is not found, 1: group name is found
+# Return: 0: group member is not found, 1: group member is found
 #-----------------------------------------------------------------------------#
-check_group_presence ()
-{
-   local groupname="$1"
-	 local group_file="$2"
-   local index=0
-   local group_found=0
-   local param=" "
 
-   while read variable
-   do
-	   if [ -n "$variable" ]; then
-      	param=$(echo $variable | cut -d: -f1)
-      	if [ "$param" == "$groupname" ]; then
-      		 group_found=1
-        break
-				fi
-      	index=$(( $index+1 ))
-	   fi
-   done < "$group_file"
-
-   return $group_found
+array_contains_in_merged () {
+    local seeking=$1
+    local in=0
+    for element in "${!merged_group_member[@]}"
+    do
+        if [[ "${merged_group_member[$element]}" == "$seeking" ]]; then
+            in=1
+            break
+        fi
+    done
+    return $in
 }
 
 
@@ -198,8 +214,8 @@ check_group_presence ()
 #-------------------------------------------------------------
 
 if [[ "${prefix}" == "--prefix="* ]]; then
-  LOG_PREFIX="$(echo "$prefix" | cut -d"=" -f2)"
-  export LOG_PREFIX
+    LOG_PREFIX="$(echo "$prefix" | cut -d"=" -f2)"
+    export LOG_PREFIX
 fi
 
 #-------------------------------------------------------------
@@ -214,7 +230,7 @@ if [ "$operation" = "restore" ]; then
 
   cp -f -r "$acc_backup_file" "$group_backup_file" "$shadow_backup_file" "$backup_dir_merged"
   if [[  $? != 0 ]]; then
-  	 exit $WRITE_FILE_ERROR
+     exit $WRITE_FILE_ERROR
   fi
   sync
   # Create list of all new users
@@ -226,72 +242,140 @@ if [ "$operation" = "restore" ]; then
   index_new=0
   while [ $index_new -lt ${#new_usernames[*]} ]
   do
-		# Search for given username in backuped config file
+    # Search for given username in backuped config file
     user_found=false
     index_backuped=0
     while [ $index_backuped -lt ${#backuped_usernames[*]} ]
     do
-     	if [[ "${new_usernames[$index_new]}" ==  "${backuped_usernames[$index_backuped]}" ]]; then
-        	user_found=true
-        	break
-     	fi
-     	index_backuped=$(( $index_backuped+1 ))
+       if [[ "${new_usernames[$index_new]}" ==  "${backuped_usernames[$index_backuped]}" ]]; then
+          user_found=true
+          break
+       fi
+       index_backuped=$(( index_backuped+1 ))
     done
 
     if [[ $user_found == false ]]; then
-	 			# Username is not present
-				current_uid=${new_UIDs[$index_new]}
-      	current_username="${new_usernames[$index_new]}"
-      	# Check whether the UID is already present
-      	check_UID_presence $current_uid
-      	if [[  $? == 0 ]]; then
-        		# UID not found, add user record
-        		awk -F: -v pat="$current_username" 'BEGIN{OFS=":"}$1~pat{print}' /etc/passwd >> "$backup_dir_merged/passwd"
-        		# Add account password
-			  		awk -F: -v pat="$current_username" 'BEGIN{OFS=":"}$1~pat{print}' /etc/shadow >> "$backup_dir_merged/shadow"
-        		report_info "user with UID '$current_uid' is added as '$current_username'" "$LOG_PREFIX"
-      	elif [[ $? == 1 ]]; then
-      			# UID found, ressource conflict
-        		report_error "UID '$current_uid' is already used by user '$current_username'" "$LOG_PREFIX"
-        		exit $CONFIG_DATA_ERROR
-      	fi
-  	fi
-    index_new=$(( $index_new+1 ))
+        # Username is not present
+	      current_uid=${new_UIDs[$index_new]}
+        current_username="${new_usernames[$index_new]}"
+        # Check whether the UID is already present
+        check_UID_presence "$current_uid"
+        if [[  $? == 0 ]]; then
+            # UID not found, add user record
+            awk -F: -v pat="$current_username" 'BEGIN{OFS=":"}$1~pat{print}' /etc/passwd >> "$backup_dir_merged/passwd"
+            # Add account password
+            awk -F: -v pat="$current_username" 'BEGIN{OFS=":"}$1~pat{print}' /etc/shadow >> "$backup_dir_merged/shadow"
+            report_info "user with UID '$current_uid' is added as '$current_username'" "$LOG_PREFIX"
+        elif [[ $? == 1 ]]; then
+            # UID found, ressource conflict
+            report_error "UID '$current_uid' is already used by user '$current_username'" "$LOG_PREFIX"
+            exit $CONFIG_DATA_ERROR
+        fi
+    fi
+    index_new=$(( index_new+1 ))
   done
 
   # Check group by name in the backuped group config file
-
+  
   if [ -s "${backup_dir_merged}/group" -a "$(tail -c 1 "${backup_dir_merged}/group")" != '' ]; then
     echo '' >>"${backup_dir_merged}/group"
   fi
 
   while read group_data
   do
-    if [ -n "$group_data" ]; then
- 				groupname="$(echo $group_data | cut -d: -f1)"
-      	# Check group presence and get GID from new group file
-      	var=$(awk -F: -v pat="$groupname" 'BEGIN{OFS=":"}$1~pat{print $1}' "$group_backup_file")
-      	if [ -z "$var" ]; then
-      	   # Group not found, check presence of GID
-           gid=$(echo $group_data | cut -d: -f3)
-			  	 var=$(awk -F: -v pat="$gid" 'BEGIN{OFS=":"}$3~pat{print $1}' "$group_backup_file")
-			  	 if [ -z "$var" ]; then
-              # GID not used, copy group data
-           	  echo "$group_data" >> "$backup_dir_merged"/group
-        	 else
-           	  # GID is already used
-					 	  report_error "GID '$gid' is already used by group '$groupname'" "$LOG_PREFIX"
-					 	  exit $CONFIG_DATA_ERROR
-        	fi
-      	fi
-    fi
+      if [[ -n "$group_data" ]]; then
+        groupname="$(echo "$group_data" | cut -d: -f1)"
+        gid=$(echo $group_data | cut -d: -f3)  
+        # Check group presence and get GID from backuped group file
+        var=$(awk -F: -v pat="$groupname" 'BEGIN{OFS=":"}$1~pat{print $1}' "$group_backup_file")
+
+        if [[ -z "$var" ]]; then
+            # Group not found, check presence of GID
+            var=$(awk -F: -v pat="$gid" 'BEGIN{OFS=":"}$3~pat{print $1}' "$group_backup_file")
+            if [[ -z "$var" ]]; then
+                # GID not used, copy group data
+                echo "$group_data" >> "$backup_dir_merged"/group_merged
+            else
+                # GID is already used
+                report_error "GID '$gid' is already used by group '$groupname'" "$LOG_PREFIX"
+                exit $CONFIG_DATA_ERROR
+            fi
+        else
+            # group found, get group data from backuped group file
+            var=$(awk -F: -v pat="$groupname" 'BEGIN{OFS=":"}$1~pat{print}' "$group_backup_file")
+            
+            if [[ "$group_data" == "$var" ]]; then
+                # identical group data, copy it to merged file
+                echo "$group_data" >> "$backup_dir_merged"/group_merged
+            else    
+                list_group_members "$group_backup_file" "$groupname" 
+                # clean and list current group members
+                current_group_member=()
+                member="$(echo "$group_data" | cut -d: -f4)"
+                current_group_member=($(awk -F, '{$1=$1} 1' <<<"${member}"))
+
+                let len=${#merged_group_member[@]}
+
+                for index in "${!current_group_member[@]}"
+                do
+                    array_contains_in_merged "${current_group_member[$index]}"
+                    if [[ 0 == "$?" ]]; then
+                        # group member is not found, add it to merged array
+                        merged_group_member[$len]="${current_group_member[$index]}"
+                    fi
+                done
+            
+                password="$(echo $group_data | cut -d: -f2)"
+                printf "%s:%s:%s:" "$groupname" "$password" "$gid" >> /$backup_dir_merged/group_merged
+                len=${#merged_group_member[@]}
+
+                for element in "${!merged_group_member[@]}"
+                do
+                    if [[ $(( element+1 )) -eq $len ]]; then 
+                        printf "%s" "${merged_group_member[$element]}" >> /$backup_dir_merged/group_merged
+                    else   
+                        printf "%s," "${merged_group_member[$element]}" >> /$backup_dir_merged/group_merged
+                    fi
+                done
+                printf "\n" >> /$backup_dir_merged/group_merged
+            fi
+       fi
+     fi     
   done < "/etc/group"
+  
+  # add groups from backuped file
+
+  while read group_data
+  do
+      if [[ -n "$group_data" ]]; then
+        groupname="$(echo "$group_data" | cut -d: -f1)"
+        gid=$(echo $group_data | cut -d: -f3)  
+        # Check group presence
+        var=$(awk -F: -v pat="$groupname" 'BEGIN{OFS=":"}$1~pat{print $1}' "/etc/group")
+        if [[ -z "$var" ]]; then
+            # Group not found, check presence of GID
+            var=$(awk -F: -v pat="$gid" 'BEGIN{OFS=":"}$3~pat{print $1}' "/etc/group")
+            if [[ -z "$var" ]]; then
+                # GID not used, copy group data
+                echo "$group_data" >> "$backup_dir_merged"/group_merged
+            else
+                # GID is already used
+                report_error "GID '$gid' is already used by group '$groupname'" "$LOG_PREFIX"
+                exit $CONFIG_DATA_ERROR
+            fi            
+        fi
+  fi      
+  done < "$group_backup_file"   
 
   sync
-
   cp -f -r "$backup_dir_merged"/* /etc
   if [[  $? != 0 ]]; then
-  		status=$WRITE_FILE_ERROR
+     status=$WRITE_FILE_ERROR
+  fi
+  
+  mv -f /etc/group_merged /etc/group
+  if [[  $? != 0 ]]; then
+     status=$WRITE_FILE_ERROR
   fi
   sync
 
@@ -301,29 +385,29 @@ if [ "$operation" = "restore" ]; then
 # backup account settings
 #-------------------------------------------------------------
 
-elif [ "$operation" = "backup" ]; then
+elif [[ "$operation" = "backup" ]]; then
     mkdir -p "$settings_backup_dir"
 
     cp /etc/passwd  "$acc_backup_file"
     if [[  $? != 0 ]]; then
-    	 exit $WRITE_FILE_ERROR
+    	 exit "$WRITE_FILE_ERROR"
     fi
 
     cp /etc/group  "$group_backup_file"
     if [[  $? != 0 ]]; then
-    	exit $WRITE_FILE_ERROR
+    	exit "$WRITE_FILE_ERROR"
     fi
 
     awk -F: '{print $1}' /etc/passwd | tee - |egrep -f - /etc/shadow > "$shadow_backup_file"
     if [[  $? != 0 ]]; then
-    	 exit $WRITE_FILE_ERROR
+    	 exit "$WRITE_FILE_ERROR"
     fi
     sync
 else
     echo
     echo "* Get or set system and user account settings plus group settings. *"
     echo
-    echo "Usage: settings_backup_accounts < backup | restore  backup_directory >"
+    echo "Usage: settings_backup_accounts < backup | restore  backup_directory | log prefix >"
     echo
 fi
-exit $status
+exit "$status"

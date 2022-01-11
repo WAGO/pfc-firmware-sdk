@@ -1,0 +1,9 @@
+## SECTION=scripting_languages
+
+config PHP_PAM
+	tristate
+	prompt "php7-pam"
+	select PHP7
+	select PAM
+	help
+	  PHP PAM module

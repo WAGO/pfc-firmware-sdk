@@ -3,14 +3,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2008-2021 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
-# Script-name: config_port
+#-----------------------------------------------------------------------------#
+# Script:   /etc/config-tools/config_port
 #
-# Change the configuration of the telnet-, NTP- and CoDeSys-Webserver-Port
+# Brief:    Change the configuration of the NTP-, CoDeSys-Webserver-
+#           and other Ports.
 #
-# Author: WAGO Kontakttechnik GmbH
+# Author:   SM:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -33,7 +37,7 @@ NTPCLIENT_SEARCH_STRING="\/usr\/sbin\/ntpclient"
 
 
 
-#-------------- main-programm ------------------------#
+#-------------- main-program ------------------------#
 
 status=$SUCCESS
 
@@ -44,7 +48,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo
   echo "Usage: config_port < port=port-value state=state-value >"
   echo
-  echo "port-value: telnet | ftp | ftps | http | https | codesys-webserver | snmp" 
+  echo "port-value: ftp | ftps | http | codesys-webserver | snmp" 
   echo "state-value: enabled | disabled"
   exit $status
 fi
@@ -58,11 +62,6 @@ newState=`GetParameterValue $STATE $*`
 # evaluate names of links and exe-files depending on the requested port
 case "$port" in
 
-  $TELNET )             
-                        link="/etc/rc.d/S07_telnetd"
-                        exe=$TELNET_EXE
-                        startSkript="/etc/init.d/telnetd"
-                        ;;
   $CODESYS_WEBSERVER )
                         link="/etc/rc.d/S56_codesys_webserver"
                         exe=$CODESYS_WEBSERVER_EXE
@@ -125,22 +124,6 @@ case "$port" in
                         esac
                         
                         ;;
-  $HTTPS )
-                       case "$newState" in
-                          enabled)
-                            /etc/config-tools/config_ssl enable-https
-                            exit $?
-                          ;;
-                          disabled)
-                            /etc/config-tools/config_ssl disable-https
-                            exit $?
-                          ;;
-                          *)
-                            exit $INVALID_PARAMETER
-                          ;;
-                        esac
-                
-                        ;;
   $SNMP ) 
                        case "$newState" in
 			 enabled)
@@ -195,9 +178,6 @@ if [ -n "$newState" ] && [ "$actualState" == "$ENABLED" ] && [ "$newState" == "$
     fi
 
     case "$port" in
-        telnet)
-            [[ -d /etc/config-tools/events/telnet/ ]] && run-parts -a stop /etc/config-tools/events/telnet/
-            ;;
         *)
             echo "Stopping firewall for ${port} is unimplemented."
             ;;

@@ -92,6 +92,14 @@
 #define WC_TYPEOF(variable)                                                 void
 #endif // !Lint / Lint
 
+/// \def WC_ARRAY_TO_PTR(array)
+/// Returns the pointer of the first array member.
+//lint -estring(961, WC_ARRAY_TO_PTR) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                    function-like macro defined
+//lint -estring(960, WC_ARRAY_TO_PTR) to disable Rule 19.4 it is necessary to disable all 960 messages,
+//                                    disallowed definition for macro
+#define WC_ARRAY_TO_PTR(array)                                   (&((array)[0]))
+
 /// \def WC_CONTAINER_OF(container, member, pMember)
 /// Returns the container pointer for a pointer of its member.
 //lint -estring(961, WC_CONTAINER_OF) to disable Rule 19.7 it is necessary to disable all 961 messages,
@@ -149,7 +157,7 @@
 /// Helper macro to explicitly define a variable as unused.
 //lint -estring(961, WC_UNUSED_DATA) to disable Rule 19.7 it is necessary to disable all 961 messages,
 //                                   function-like macro defined
-#define WC_UNUSED_DATA(x) ((void)x)
+#define WC_UNUSED_DATA(x) ((void)(x))
 
 /// \def WC_DEPRECATED(func)
 /// Helper macro to indicate a deprecated function.
@@ -161,6 +169,57 @@
 #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
 #define WC_DEPRECATED(func) func //lint !e960 !e961 No parentheses possible!
 #endif
+
+/// \def WC_INTERFACE_CLASS(x)
+/// Helper macro to explicitly create copy, assign, move, move assign, constructor and virtual destructor for a class.
+//lint -estring(961, WC_INTERFACE_CLASS) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                       function-like macro defined
+#ifdef __cplusplus // C++
+#if (__cplusplus >= 201103L) // C++ >= 201103
+#define WC_INTERFACE_CLASS(x) \
+  protected: \
+    x() = default; \
+    x(x const &) = default; \
+    x(x&&) = default; \
+    x& operator=(const x&) = default; \
+    x& operator=(x&&) = default; \
+  public: \
+    virtual ~x() = default; \
+  private:
+#else // C++ < 201103
+#define WC_INTERFACE_CLASS(x) \
+  protected: \
+    x() {}; \
+    x(x const &) {}; \
+    x& operator=(const x&) {}; \
+  public: \
+    virtual ~x() {}; \
+  private:
+#endif // C++ >= 201103 / C++ < 201103
+#else // !C++
+#define WC_INTERFACE_CLASS(x)
+#endif // C++ / !C++
+
+/// \def WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE_ASSIGN(x)
+/// Helper macro to disable copy, assign, move and move assign for a class.
+//lint -estring(961, WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE_ASSIGN) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                                                 function-like macro defined
+#ifdef __cplusplus // C++
+#if (__cplusplus >= 201103L) // C++ >= 201103
+#define WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE_ASSIGN(x) \
+  x(x const &) = delete; \
+  x(x&&) = delete; \
+  x& operator=(const x&) = delete; \
+  x& operator=(x&&) = delete;
+#else // C++ < 201103
+#define WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE_ASSIGN(x) \
+  private: \
+    x(x const &); \
+    x& operator=(const x&);
+#endif // C++ >= 201103 / C++ < 201103
+#else // !C++
+#define WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE_ASSIGN(x)
+#endif // C++ / !C++
 
 /// \def WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE(x)
 /// Helper macro to disable copy, assign and move for a class.
@@ -175,7 +234,7 @@
 #else // C++ < 201103
 #define WC_DISBALE_CLASS_COPY_ASSIGN_AND_MOVE(x) \
   private: \
-    x(x const &);
+    x(x const &); \
     x& operator=(const x&);
 #endif // C++ >= 201103 / C++ < 201103
 #else // !C++
@@ -194,11 +253,27 @@
 #else // C++ < 201103
 #define WC_DISBALE_CLASS_COPY_AND_ASSIGN(x) \
   private: \
-    x(x const &);
+    x(x const &); \
     x& operator=(const x&);
 #endif // C++ >= 201103 / C++ < 201103
 #else // !C++
 #define WC_DISBALE_CLASS_COPY_AND_ASSIGN(x)
+#endif // C++ / !C++
+
+/// \def WC_DISBALE_CLASS_MOVE_ASSIGN(x)
+/// Helper macro to disable move and move assign for a class.
+//lint -estring(961, WC_DISBALE_CLASS_MOVE_ASSIGN) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                                 function-like macro defined
+#ifdef __cplusplus // C++
+#if (__cplusplus >= 201103L) // C++ >= 201103
+#define WC_DISBALE_CLASS_MOVE_ASSIGN(x) \
+  x(x&&) = delete; \
+  x& operator=(x&&) = delete;
+#else // C++ < 201103
+#define WC_DISBALE_CLASS_MOVE_ASSIGN(x)
+#endif // C++ >= 201103 / C++ < 201103
+#else // !C++
+#define WC_DISBALE_CLASS_MOVE_ASSIGN(x)
 #endif // C++ / !C++
 
 /// \def WC_DISBALE_CLASS_MOVE(x)

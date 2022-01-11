@@ -1,6 +1,6 @@
 root:x:0:
 daemon:x:1:
-shadow:x:42:opc,paramd
+shadow:x:42:opc,paramd,www
 www:x:102:
 messagebus:x:104:
 cdrom:x:105:
@@ -16,6 +16,7 @@ sdcard:x:114:root,admin,iot
 @GROUP_ADMIN@
 @GROUP_USER@
 @GROUP_VISUALISATION@
+@GROUP_CODESYS3@
 nogroup:x:65534:
 rts:x:3540:admin
 paramaccess:x:116:opc,root
@@ -27,3 +28,5 @@ paramd:x:121:
 wdxprov:x:122:
 wdaadm:x:123:
 docker:x:1001:
+wbmuser:x:130:user,admin
+wbmadmin:x:131:admin

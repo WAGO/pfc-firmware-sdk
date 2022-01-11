@@ -23,6 +23,12 @@ config BUSYBOX_FEATURE_VOLUMEID_CRAMFS
 	bool "cramfs filesystem"
 	default y
 	depends on BUSYBOX_VOLUMEID
+config FEATURE_VOLUMEID_EROFS
+	bool "erofs filesystem"
+	default y
+	depends on BUSYBOX_VOLUMEID
+	help
+	Erofs is a compressed readonly filesystem for Linux.
 config BUSYBOX_FEATURE_VOLUMEID_EXFAT
 	bool "exFAT filesystem"
 	default y

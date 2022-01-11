@@ -13,6 +13,12 @@ config BUSYBOX_ADJTIMEX
 	help
 	Adjtimex reads and optionally sets adjustment parameters for
 	the Linux clock adjustment algorithm.
+config BUSYBOX_ASCII
+	bool "ascii"
+	default y
+	help
+	Print ascii table.
+
 config BUSYBOX_BBCONFIG
 	bool "bbconfig (9.7 kb)"
 	default n
@@ -629,6 +635,13 @@ config BUSYBOX_MICROCOM
 	default y
 	help
 	The poor man's minicom utility for chatting with serial port devices.
+config BUSYBOX_MIM
+	bool "mim (0.5 kb)"
+	default y
+	depends on BUSYBOX_FEATURE_SH_EMBEDDED_SCRIPTS
+	help
+	Run a script from a Makefile-like specification file.
+	Unlike 'make' dependencies aren't supported.
 config BUSYBOX_MT
 	bool "mt (2.5 kb)"
 	default y
@@ -804,5 +817,20 @@ config BUSYBOX_WATCHDOG
 	watchdog applet ever fails to write the magic character within a
 	certain amount of time, the watchdog device assumes the system has
 	hung, and will cause the hardware to reboot.
+
+config BUSYBOX_FEATURE_WATCHDOG_OPEN_TWICE
+	bool "Open watchdog device twice, closing it gracefully in between"
+	depends on BUSYBOX_WATCHDOG
+	default n   # this behavior was essentially a hack for a broken driver
+	help
+	When enabled, the watchdog device is opened and then immediately
+	magic-closed, before being opened a second time. This may be necessary
+	for some watchdog devices, but can cause spurious warnings in the
+	kernel log if the nowayout feature is enabled. If this workaround
+	is really needed for you machine to work properly, consider whether
+	it should be fixed in the kernel driver instead. Even when disabled,
+	the behaviour is easily emulated with a "printf 'V' > /dev/watchdog"
+	immediately before starting the busybox watchdog daemon. Say n unless
+	you know that you absolutely need this.
 
 endmenu

@@ -1,0 +1,29 @@
+--- a/src/Makefile.am	2020-01-12 14:19:28.000000000 +0100
++++ b/src/Makefile.am	2020-03-31 17:52:18.198468031 +0200
+@@ -50,10 +50,11 @@
+ 	useradd \
+ 	userdel \
+ 	usermod \
+-	vipw
++	vipw \
++	sulogin
+ 
+ # id and groups are from gnu, sulogin from sysvinit
+-noinst_PROGRAMS = id sulogin
++noinst_PROGRAMS = id
+ 
+ suidusbins     =
+ suidbins       =
+--- a/src/Makefile.in	2020-01-23 21:57:50.000000000 +0100
++++ b/src/Makefile.in	2020-04-01 07:23:26.011818180 +0200
+@@ -101,8 +101,8 @@
+ 	grpunconv$(EXEEXT) logoutd$(EXEEXT) newusers$(EXEEXT) \
+ 	pwck$(EXEEXT) pwconv$(EXEEXT) pwunconv$(EXEEXT) \
+ 	useradd$(EXEEXT) userdel$(EXEEXT) usermod$(EXEEXT) \
+-	vipw$(EXEEXT)
+-noinst_PROGRAMS = id$(EXEEXT) sulogin$(EXEEXT)
++	vipw$(EXEEXT) sulogin$(EXEEXT)
++noinst_PROGRAMS = id$(EXEEXT)
+ @WITH_SU_TRUE@am__append_3 = su
+ @WITH_TCB_FALSE@am__append_4 = passwd
+ @ACCT_TOOLS_SETUID_TRUE@am__append_5 = chgpasswd chpasswd groupadd groupdel groupmod newusers useradd userdel usermod

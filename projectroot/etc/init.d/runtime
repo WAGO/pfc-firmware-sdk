@@ -8,8 +8,15 @@
 
 DAEMONIZE="/sbin/start-stop-daemon"
 
-# read typelabel ORDER number to detect TP600 devices
+# read typelabel ORDER number to detect TP600/CC100 devices
 ORDER="$(/etc/config-tools/get_typelabel_value ORDER)"
+if [ "${ORDER:0:5}" == "751-9" ]; then
+  #CC100
+  SD_BOOT_DEV_NAME="/dev/mmcblk0p4"
+else
+  #PFC/TP600
+  SD_BOOT_DEV_NAME="/dev/mmcblk0p1"
+fi
 
 # no qt5/x11 graphic without sourcing profile variables
 if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]; then
@@ -78,7 +85,7 @@ prepare_home_dir()
       chown -R $(whoami):admin $CDS_ROOT_DIR
       chmod g+s $CDS_ROOT_DIR
   fi
-  mount | grep -q "/dev/mmcblk0p1"
+  mount | grep -q "$SD_BOOT_DEV_NAME"
   local sd_is_mounted=$?
   . $RUNTIME_CONFIG
   if [ -z "$(pidof codesys3)" -a -z "$(pidof plclinux_rt)" ]; then

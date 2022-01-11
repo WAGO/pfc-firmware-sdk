@@ -1,0 +1,282 @@
+## SECTION=shell_and_console
+menuconfig SHADOW
+	tristate
+	select LIBC_CRYPT
+	select LIBSELINUX	if GLOBAL_SELINUX
+	select PAM        if SHADOW_PAM
+	select WAGO_CUSTOM_ROOTFS_SHELLS
+	prompt "shadow                        "
+	help
+	  Password and account management tool suite with support
+	  for shadow files and PAM.
+
+if SHADOW
+
+config SHADOW_PAM
+	bool
+	default n
+	prompt "Support Linux-PAM"
+	help
+	  FIXME
+
+config SHADOW_FAILLOG
+	bool
+	default n
+	prompt "faillog"
+	help
+	  display faillog records or set login failure limits
+
+config SHADOW_GROUPS
+	bool
+	default n
+	depends on !BUSYBOX_GROUPS || ALLYES
+	prompt "groups"
+	help
+	  print the groups a user is in
+
+comment "BusyBox' groups is selected"
+	depends on BUSYBOX_GROUPS
+
+config SHADOW_LASTLOG
+	bool
+	default n
+	prompt "lastlog"
+	help
+	  reports the most recent login of all users or of a given
+	  user
+
+config SHADOW_LOGIN
+	bool
+	default n
+	depends on !BUSYBOX_LOGIN || ALLYES
+	prompt "login"
+	help
+	  begin session on the system
+
+comment "BusyBox' login is selected"
+	depends on BUSYBOX_LOGIN
+
+config SHADOW_SU
+	bool
+	default n
+	depends on !BUSYBOX_SU || ALLYES
+	prompt "su"
+	help
+	  run a command with substitute user and group ID
+
+comment "BusyBox' su is selected"
+	depends on BUSYBOX_SU
+
+config SHADOW_SULOGIN
+       bool
+       depends on !BUSYBOX_SULOGIN || ALLYES
+       prompt "sulogin"
+       help
+         single-user login
+
+comment "BusyBox' sulogin is selected"
+       depends on BUSYBOX_SULOGIN
+
+config SHADOW_NOLOGIN
+	bool
+	default n
+	depends on !BUSYBOX_NOLOGIN || ALLYES
+	prompt "nologin"
+	help
+	  politely refuse a login
+
+comment "BusyBox' nologin is selected"
+	depends on BUSYBOX_NOLOGIN
+
+config SHADOW_CHAGE
+	bool
+	default n
+	prompt "chage"
+	help
+	  change user password expiry information
+
+config SHADOW_CHFN
+	bool
+	default n
+	prompt "chfn"
+	help
+	  change your finger information
+
+config SHADOW_CHSH
+	bool
+	default n
+	prompt "chsh"
+	help
+	  change your login shell
+
+config SHADOW_EXPIRY
+	bool
+	default n
+	prompt "expiry"
+	help
+	  check and enforce password expiration policy
+
+config SHADOW_GPASSWD
+	bool
+	default n
+	prompt "gpasswd"
+	help
+	  administer /etc/group and /etc/gshadow
+
+config SHADOW_NEWGIDMAP
+	bool
+	default n
+	prompt "newgidmap"
+	help
+	  set the gid mapping of a user namespace
+
+config SHADOW_NEWGRP
+	bool
+	default n
+	prompt "newgrp"
+	help
+	  log in to a new group
+
+config SHADOW_NEWUIDMAP
+	bool
+	default n
+	prompt "newuidmap"
+	help
+	  set the uid mapping of a user namespace
+
+config SHADOW_PASSWD
+	bool
+	default n
+	depends on !BUSYBOX_PASSWD || ALLYES
+	prompt "passwd"
+	help
+	  change user password
+
+comment "BusyBox' passwd is selected"
+	depends on BUSYBOX_PASSWD
+
+config SHADOW_CHGPASSWD
+	bool
+	default n
+	prompt "chgpasswd"
+	help
+	  update group passwords in batch mode
+
+config SHADOW_CHPASSWD
+	bool
+	default n
+	depends on !BUSYBOX_CHPASSWD || ALLYES
+	prompt "chpasswd"
+	help
+	  update passwords in batch mode
+
+comment "BusyBox' chpasswd is selected"
+	depends on BUSYBOX_CHPASSWD
+
+config SHADOW_GROUPADD
+	bool
+	default n
+	prompt "groupadd"
+	help
+	  create a new group
+
+config SHADOW_GROUPDEL
+	bool
+	default n
+	prompt "groupdel"
+	help
+	  delete a group
+
+config SHADOW_GROUPMEMS
+	bool
+	default n
+	prompt "groupmems"
+	help
+	  administer members of a user's primary group
+
+config SHADOW_GROUPMOD
+	bool
+	default n
+	prompt "groupmod"
+	help
+	  modify a group definition on the system
+
+config SHADOW_GRPCK
+	bool
+	default n
+	prompt "grpck"
+	help
+	  verify integrity of group files
+
+config SHADOW_GRPCONV
+	bool
+	default n
+	prompt "grpconv"
+	help
+	  convert to and from shadow passwords and groups
+
+config SHADOW_GRPUNCONV
+	bool
+	default n
+	prompt "grpunconv"
+	help
+	  convert to and from shadow passwords and groups
+
+config SHADOW_NEWUSERS
+	bool
+	default n
+	prompt "newusers"
+	help
+	  update and create new users in batch
+
+config SHADOW_PWCK
+	bool
+	default n
+	prompt "pwck"
+	help
+	  verify integrity of password files
+
+config SHADOW_PWCONV
+	bool
+	default n
+	prompt "pwconv"
+	help
+	  convert to and from shadow passwords and groups
+
+config SHADOW_PWUNCONV
+	bool
+	default n
+	prompt "pwunconv"
+	help
+	  convert to and from shadow passwords and groups
+
+config SHADOW_USERADD
+	bool
+	default n
+	prompt "useradd"
+	help
+	  create a new user or update default new user information
+
+config SHADOW_USERDEL
+	bool
+	default n
+	prompt "userdel"
+	help
+	  delete a user account and related files
+
+config SHADOW_USERMOD
+	bool
+	default n
+	prompt "usermod"
+	help
+	  modify a user account
+
+config SHADOW_VIPW
+	bool
+	default n
+	prompt "vipw"
+	help
+	  edit the password, group, shadow-password or shadow-group
+	  file
+
+endif

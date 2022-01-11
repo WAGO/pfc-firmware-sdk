@@ -1,3 +1,19 @@
+get_clock_data.c:
+
+- removed sub command get-timezone-selection:
+  - was used by old WBM only and is not needed anymore
+  
+- removed additional parameter for sub command display-mode
+  - was used by old WBM only and is not needed anymore
+  
+- fixed crash when running sub command timeone-string-by-nr without arguments
+
+- fixed invalid usage of strncpy
+
+- fixed some compiler warnings
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 get_filesystem_data.c:
 
 - adjusted GetActivePartition: 

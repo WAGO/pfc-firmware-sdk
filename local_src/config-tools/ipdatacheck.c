@@ -11,7 +11,7 @@
 ///
 ///  \file     ipdatacheck.c
 ///
-///  \version  $Revision: 50494 $
+///  \version  $Revision: 59630 $
 ///
 ///  \brief    Check functions of network parameters.
 ///
@@ -124,7 +124,6 @@ static uint32_t ascto32(char *str, int *err)
 {
     uint32_t res = 0;
     uint32_t newres;
-    uint32_t dig;
     int idx = 0;
     int c;
     int rc = 1;
@@ -275,8 +274,7 @@ static int conv_netmask2dec(char *netmask, uint32_t *mask_dec)
                     else if (found_first_zero == false)
                     {
                         //check each bit
-                        int bit = 7;
-                        for (bit; bit >=0; bit--)
+                        for (int bit = 7; bit >=0; bit--)
                         {
                             if (( (part >> bit) & 0x01) == 0x01)
                             {
@@ -424,7 +422,6 @@ static int eval_options(int argc, char **argv, prgconf_t *prgconf)
 int main(int argc, char **argv)
 {
     static prgconf_t prgconf;
-    int debugmode = false;
     int exitcode = 0;
 
     // Check for running as root and evaluate command line.
@@ -435,10 +432,6 @@ int main(int argc, char **argv)
     if(NULL == prgconf.dbg_root)
     {
         erh_assert(0 == getuid(), SYSTEM_CALL_ERROR, "Not running as root. Abort.", "");
-    }
-    else
-    {
-        debugmode = true;
     }
 
     // Start selected program function. argc holds the count of the remaining arguments. argv[] the

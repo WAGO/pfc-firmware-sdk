@@ -310,7 +310,7 @@ ifdef PTXCONF_PHP7_EXT_GD
 PHP7_AUTOCONF += --with-gd=$(SYSROOT)/usr
 PHP7_AUTOCONF += --with-jpeg-dir=$(SYSROOT)/usr
 PHP7_AUTOCONF += --with-png-dir=$(SYSROOT)/usr
-PHP7_AUTOCONF += --without-xpm-dir
+PHP7_AUTOCONF += --with-xpm-dir=$(SYSROOT)/usr
 endif
 
 

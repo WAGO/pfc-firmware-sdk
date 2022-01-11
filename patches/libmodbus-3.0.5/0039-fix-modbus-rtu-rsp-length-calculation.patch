@@ -1,0 +1,71 @@
+Index: libmodbus-3.0.5/src/modbus.c
+===================================================================
+--- libmodbus-3.0.5.orig/src/modbus.c
++++ libmodbus-3.0.5/src/modbus.c
+@@ -2056,7 +2056,7 @@ static int read_io_status(modbus_t *ctx,
+         if (rc == -1)
+             return -1;
+ 
+-        for (i = ctx->backend->header_length + 2; (i < rsp_length); i++) {
++        for (i = ctx->backend->header_length + 2; (i < (rsp_length-ctx->backend->checksum_length)); i++) {
+             /* Shift reg hi_byte to temp */
+             int const temp = rsp[i];
+             int bit;
+@@ -2130,7 +2130,7 @@ static int read_registers(modbus_t *ctx,
+         if (rc == -1)
+             return -1;
+ 
+-        for (i = ctx->backend->header_length + 2; (i < rsp_length); i++) {
++        for (i = ctx->backend->header_length + 2; (i < (rsp_length-ctx->backend->checksum_length)); i++) {
+             if (hi_byte != FALSE) {
+                 dest[nb_dest] = (uint16_t)((uint16_t)rsp[i] << 8);
+                 hi_byte = FALSE;
+@@ -2217,7 +2217,7 @@ int modbus_read_input_registers_fc66(mod
+         if (rc == -1)
+             return -1;
+ 
+-        for (i = ctx->backend->header_length + _FC66_CNF_META_LENGTH; (i < rsp_length); i++) {
++        for (i = ctx->backend->header_length + _FC66_CNF_META_LENGTH; (i < (rsp_length-ctx->backend->checksum_length)); i++) {
+             if (hi_byte != FALSE) {
+                 dest[nb_dest] = (uint16_t)((uint16_t)rsp[i] << 8);
+                 hi_byte = FALSE;
+@@ -2490,7 +2490,7 @@ int modbus_write_and_read_registers(modb
+         if (rc == -1)
+             return -1;
+ 
+-        for (i = ctx->backend->header_length + _FC23_CNF_META_LENGTH; (i < rsp_length); i++) {
++        for (i = ctx->backend->header_length + _FC23_CNF_META_LENGTH; (i < (rsp_length-ctx->backend->checksum_length)); i++) {
+             if (hi_byte != FALSE) {
+                 dest[nb_dest] = (uint16_t)((uint16_t)rsp[i] << 8);
+                 hi_byte = FALSE;
+@@ -2565,7 +2565,7 @@ int modbus_diagnostics(modbus_t *ctx, in
+         if (rc == -1)
+             return -1;
+ 
+-        for (i = ctx->backend->header_length + _FC08_META_LENGTH; (i < rsp_length) && (nb < nb_dest); i++) {
++        for (i = ctx->backend->header_length + _FC08_META_LENGTH; (i < (rsp_length-ctx->backend->checksum_length)) && (nb < nb_dest); i++) {
+             if (hi_byte != FALSE) {
+                 dest[nb] = (uint16_t)((uint16_t)rsp[i] << 8);
+                 hi_byte = FALSE;
+@@ -2619,7 +2619,7 @@ int modbus_report_slave_id(modbus_t *ctx
+             return -1;
+ 
+         //copy all after function code (byte count, slave id, run indicator status, additional data)
+-        for (i = ctx->backend->header_length + 1; (i < rsp_length); i++) {
++        for (i = ctx->backend->header_length + 1; (i < (rsp_length-ctx->backend->checksum_length)); i++) {
+             dest[nb_dest] = rsp[i];
+             nb_dest++;
+         }
+Index: libmodbus-3.0.5/configure.ac
+===================================================================
+--- libmodbus-3.0.5.orig/configure.ac
++++ libmodbus-3.0.5/configure.ac
+@@ -41,7 +41,7 @@ AC_SUBST(LIBMODBUS_VERSION)
+ # ABI version
+ # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+ LIBMODBUS_LD_CURRENT=750
+-LIBMODBUS_LD_REVISION=38
++LIBMODBUS_LD_REVISION=39
+ LIBMODBUS_LD_AGE=0
+ LIBMODBUS_LT_VERSION_INFO=$LIBMODBUS_LD_CURRENT:$LIBMODBUS_LD_REVISION:$LIBMODBUS_LD_AGE
+ AC_SUBST(LIBMODBUS_LT_VERSION_INFO)

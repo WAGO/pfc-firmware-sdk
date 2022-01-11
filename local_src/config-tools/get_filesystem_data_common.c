@@ -11,7 +11,7 @@
 ///
 ///  \file     get_filesystem_data.c
 ///
-///  \version  $Revision: 57368 $1
+///  \version  $Revision: 59625 $1
 ///
 ///  \brief
 ///
@@ -764,7 +764,7 @@ static int GetActivePartitionMedium(char* pOutputString,
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   (void)GetHomeDevice(completeHomeDeviceString, 0);
   //printf("completeHomeDeviceString:%s\n", completeHomeDeviceString);
@@ -817,7 +817,7 @@ static int GetActivePartitionMediumText(char* pOutputString,
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   if(SUCCESS == (status = GetActivePartitionMedium(activePartitionMediumString, 0)))
   {
@@ -852,7 +852,7 @@ static int GetMediumByIndex(char* pOutputString,
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   //printf("requestedMediumIndex:%d\n", requestedMediumIndex);
   if(SUCCESS != GetDeviceByIndex(acDevice, requestedMediumIndex))

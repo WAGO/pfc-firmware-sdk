@@ -10,7 +10,7 @@
 ///
 ///  \file     $File:     $:
 ///
-///  \version  $Revision: 34100 $:
+///  \version  $Revision: 59635 $:
 ///
 ///  \brief    <Part of the config-tools package: read the start/stop switch value>
 ///
@@ -32,6 +32,9 @@
 
 int main(int argc, char **argv)
 {
+  UNUSED_PARAMETER(argc);
+  UNUSED_PARAMETER(argv);
+
   int ret = SUCCESS;
   int switchState = -1;
   

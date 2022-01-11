@@ -5,11 +5,6 @@
 export PATH="$PATH:/usr/bin:/bin:/sbin:/usr/sbin"
 export LANG="de_DE.UTF-8"
 
-# This fixes the backspace when telnetting in.
-if [ "$TERM" != "linux" ]; then
-        stty erase ^H
-fi
-
 PS1="\\u@\\h:\\w "
 PS2=" >"
 PS4="+ "

@@ -17,9 +17,9 @@ PACKAGES-$(PTXCONF_AZURE) += azure
 # Paths and names
 #
 
-AZURE_VERSION       := 1.2.9
+AZURE_VERSION       := 1.6.0
 AZURE_SUFFIX        := tar.gz
-AZURE_MD5           := c7d81ddf737c01405309e0214ff76533
+AZURE_MD5           := 7f1d2c011e11d9979826d0997d00b7d2
 
 AZURE_URL           := https://github.com/Azure/azure-iot-sdk-c/archive/$(AZURE_VERSION).$(AZURE_SUFFIX) 
                     # Placeholder: Url is not working!!! 
@@ -113,6 +113,18 @@ $(STATEDIR)/azure.install:
 	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/deps/parson
 	@install -m 0644 $(AZURE_DIR)/deps/parson/*.h \
 		$(PKGDIR)/$(AZURE)/usr/include/azure/deps/parson
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/deps/azure-macro-utils-c/inc/azure_macro_utils/
+	@install -m 0644 $(AZURE_DIR)/deps/azure-macro-utils-c/inc/azure_macro_utils/*.h \
+		$(PKGDIR)/$(AZURE)/usr/include/azure/deps/azure-macro-utils-c/inc/azure_macro_utils
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/deps/umock-c/inc/umock_c/
+	@install -m 0644 $(AZURE_DIR)/deps/umock-c/inc/umock_c/*.h \
+		$(PKGDIR)/$(AZURE)/usr/include/azure/deps/umock-c/inc/umock_c
+
+	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/deps/umock-c/inc/umock_c/aux_inc/
+	@install -m 0644 $(AZURE_DIR)/deps/umock-c/inc/umock_c/aux_inc/* \
+		$(PKGDIR)/$(AZURE)/usr/include/azure/deps/umock-c/inc/umock_c/aux_inc
 
 	@mkdir -p $(PKGDIR)/$(AZURE)/usr/include/azure/iothub_client/inc
 	@install -m 0644 $(AZURE_DIR)/iothub_client/inc/*.h \

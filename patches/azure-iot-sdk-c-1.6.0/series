@@ -1,0 +1,2 @@
+# This patch disbales the compiler flag -Werror set in CMakeLists.txt of Azure SDK
+0001-do-not-handle-build-warning-as-build-error.patch

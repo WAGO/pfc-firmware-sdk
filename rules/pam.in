@@ -278,12 +278,5 @@ config PAM_PAM_UNIX
 	help
 	  FIXME
 
-config PAM_PAM_CRACKLIB
-	bool
-	default n
-	prompt "pam_cracklib (deprecated)"
-	help
-	  FIXME
-
 endif # if PAM
 

@@ -306,29 +306,6 @@ if [ -n "${backupFile}" ]; then
     /etc/config-tools/config_linux_user user=admin hash=$adminShadowInfo
     ProcessErrRestoreOperation $? "Failed to set linux-admin-pwd-info."
 
-    # restore default wbm login/password file
-    htpasswd=""
-    wbmUserNo=0
-    wbmUser=`GetBackupValue "wbm-user-${wbmUserNo}" "$backupFile"`
-    ProcessErrRestoreOperation $? "Failed to get wbm-user for wbmUserNo:" $wbmUserNo
-    while [ -n "$wbmUser" ]; do
-      htpasswd="${htpasswd}${wbmUser}\\n"
-      wbmUserNo=$[$wbmUserNo + 1]
-      wbmUser=`GetBackupValue "wbm-user-${wbmUserNo}" "$backupFile"`
-    done
-  
-    # primitive sanity check before overwriting lighttpd's htpasswd (prevent locking oneself out from WBM):
-    # users "admin" and "user" have to exist and the hash line has to have roughly correct syntax
-    # %3A => ':', %24 => '%'
-    old_umask="$(umask)"
-    umask 0137
-    echo $htpasswd | egrep -q 'admin\%3A\%24.*%24.*\%24' && \
-    echo $htpasswd | egrep -q 'user\%3A\%24.*%24.*\%24'  && \
-    rm -f '/etc/lighttpd/lighttpd-htpasswd.user' && \
-    printf $(/etc/config-tools/urlencode -d $htpasswd) >/etc/lighttpd/lighttpd-htpasswd.user && \
-    chown root:www '/etc/lighttpd/lighttpd-htpasswd.user' && sync
-    umask "${old_umask}"
-
     # restore firewall settings
     if [[ -x /etc/config-tools/firewall ]]; then
         cat "$backupFile" | /etc/config-tools/firewall firewall --restore

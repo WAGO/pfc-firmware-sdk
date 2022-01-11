@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_USER) += wbm-ng-plugin-user
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_USER_VERSION        := 1.2.2
+WBM_NG_PLUGIN_USER_VERSION        := 1.4.0
 WBM_NG_PLUGIN_USER                := wbm-user-$(WBM_NG_PLUGIN_USER_VERSION)
 WBM_NG_PLUGIN_USER_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_USER)
 WBM_NG_PLUGIN_USER_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_USER_URL))

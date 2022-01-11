@@ -18,7 +18,6 @@ The following directories
 /etc/config-tools/events/snmp           - snmp demon
 /etc/config-tools/events/ssh            - ssh demon
 /etc/config-tools/events/ssl            - lighttpd and pureftp demons
-/etc/config-tools/events/telnet         - telnet demon
 /etc/config-tools/events/tftp           - tftp demon
 /etc/config-tools/events/iocheckport    - block/unblock access to iocheck demon.
 /etc/config-tools/events/networking     - network config hostname, domainname,

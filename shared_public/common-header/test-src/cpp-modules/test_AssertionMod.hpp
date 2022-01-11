@@ -36,8 +36,8 @@ extern "C"
 
   void TriggerSuccessCPP(void);
   void TriggerFailCPP(void);
-  int  TriggerSuccessReturnCPP(int const value);
-  int  TriggerFailReturnCPP(int const value);
+  int  TriggerSuccessReturnCPP(int value);
+  int  TriggerFailReturnCPP(int value);
 
 #ifdef __cplusplus
 } // extern "C"

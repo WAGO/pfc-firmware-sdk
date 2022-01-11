@@ -136,7 +136,7 @@ function ntpgettime
         # hwclock is assumed to hold UTC
         echo $server_found > $NTP_SERVER_FILE
         while true; do
-            ntpclientcall $server_found -s && /sbin/hwclock -uw || break
+            ntpclientcall $server_found -s && /sbin/hwclock -uw || logger -t ntpclient "Time server $server_found failed. Retrying..."
             sleep $NTP_UPDATE_TIME
         done
 

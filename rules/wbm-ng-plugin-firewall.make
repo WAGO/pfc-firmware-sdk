@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_FIREWALL) += wbm-ng-plugin-firewall
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_FIREWALL_VERSION        := 1.5.0
+WBM_NG_PLUGIN_FIREWALL_VERSION        := 1.6.2
 WBM_NG_PLUGIN_FIREWALL                := wbm-firewall-$(WBM_NG_PLUGIN_FIREWALL_VERSION)
 WBM_NG_PLUGIN_FIREWALL_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_FIREWALL)
 WBM_NG_PLUGIN_FIREWALL_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_FIREWALL_URL))

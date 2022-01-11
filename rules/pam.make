@@ -49,8 +49,7 @@ PAM_LICENSE       := GPLv2
 # autoconf
 #
 PAM_AUTOCONF := \
-        $(CROSS_AUTOCONF_USR) \
-	--$(call ptx/endis, PTXCONF_PAM_PAM_CRACKLIB)-cracklib
+        $(CROSS_AUTOCONF_USR)
 
 #$(STATEDIR)/pam.prepare:
 #	@$(call targetinfo)
@@ -79,7 +78,6 @@ PAM_AUTOCONF := \
 #
 # Linux-PAM modules WITHOUT any (default) configuration files
 #
-PAM_MODULES-$(PTXCONF_PAM_PAM_CRACKLIB)   += pam_cracklib.so
 PAM_MODULES-$(PTXCONF_PAM_PAM_DEBUG)      += pam_debug.so
 PAM_MODULES-$(PTXCONF_PAM_PAM_DENY)       += pam_deny.so
 PAM_MODULES-$(PTXCONF_PAM_PAM_ECHO)       += pam_echo.so

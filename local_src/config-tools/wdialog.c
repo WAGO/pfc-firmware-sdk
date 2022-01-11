@@ -11,7 +11,7 @@
 ///
 ///  \file     wdialog.c
 ///
-///  \version  $Revision: 29292 $1
+///  \version  $Revision: 59638 $1
 ///
 ///  \brief
 ///
@@ -282,7 +282,7 @@ int Getkey(void)
       ufds.fd = 0;
       ufds.events = POLLIN;
 
-      if(rv = poll(&ufds, 1, 20) > 0) // poll timeout = 20ms
+      if((rv = poll(&ufds, 1, 20)) > 0) // poll timeout = 20ms
       {
         if( (rv = read(STDIN_FILENO, readSeq + charSeqIndex, 1)) < 1)
         {
@@ -518,6 +518,9 @@ int Clear(int    lineCount,
 // Clears the screen
 //
 {
+  (void) lineCount;     // unused
+  (void) ppLineStrings; // unused
+
   system("clear");
   return(SUCCESS);
 }
@@ -529,6 +532,9 @@ int Help(int    lineCount,
 // Show help-text
 //
 {
+  (void) lineCount;     // unused
+  (void) ppLineStrings; // unused
+
   ShowErrorText();
 
   printf("Description:\n");
@@ -604,8 +610,6 @@ int InfoBox(int    lineCount,
 // Don't wait for a reaction of the user.
 //
 {
-  int lineIndex = 0;
-
   if(lineCount < 3)
   {
     return(MISSING_PARAMETER);
@@ -1158,7 +1162,6 @@ int main(int argc, char** argv)
 {
   tWindowJumptab *pWindowJumptabEntry = &astWindowJumptab[0];
   int             returnValue         = SUCCESS;
-  int             status              = SUCCESS;
 
   setlocale(LC_ALL, "");
 

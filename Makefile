@@ -40,7 +40,6 @@ TARGETROOT ?= $(shell ptxdist print ROOTDIR)
 PLATFORM_PROJECTROOT ?= projectroot.$(PLATFORM)
 BUILDSUPPORTDIR ?= shared_public/build
 XMLSTARLET ?= xmlstarlet
-WUP_CONTROLFILE_GENERATOR ?= shared_public/build/create_wup_controlfile.sh
 
 #Firmware information
 FIRMWARE_REVISION_STRING := $(shell cat $(TARGETROOT)/etc/REVISIONS)
@@ -85,7 +84,13 @@ SD_IMAGE_ORIGINAL ?= $(PLATFORMDIR)/images/sd.hdimg
 # WAGO Update Package
 WUP ?= $(OUT_DIR)/$(FIRMWARE_PLATFORM)_update_$(IMAGE_ID).wup
 WUP_CONTROLFILE ?= $(OUT_DIR)/package-info.xml
+ifeq ($(PLATFORM),wago-pfc-adv)
+WUP_CONTROLFILE_SCHEMA ?= $(BUILDSUPPORTDIR)/WagoUpdatePackage_2_0.xsd
+WUP_CONTROLFILE_GENERATOR ?= shared_public/build/create_wup2_controlfile.sh
+else
 WUP_CONTROLFILE_SCHEMA ?= $(BUILDSUPPORTDIR)/FWUPFC-Linux_1_0.xsd
+WUP_CONTROLFILE_GENERATOR ?= shared_public/build/create_wup_controlfile.sh
+endif
 export WUP_PASSWORD ?= 
 WUP_ATTACHMENTS +=
 WUP_FILES = $(WUP_CONTROLFILE)

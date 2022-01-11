@@ -2,7 +2,7 @@
 # platforms/Kconfig: main menu structure for platform configuration
 #
 
-mainmenu "PTXdist $PLATFORMCONFIG_VERSION"
+mainmenu "PTXdist $(PTXDIST_VERSION_FULL)"
 
 source "generated/platform_version.in"
 
@@ -27,9 +27,6 @@ endmenu
 
 menu "image creation options        "
 source "generated/image.in"
-endmenu
-
-menu "new image creation options    "
 source "generated/image2.in"
 endmenu
 
@@ -37,4 +34,9 @@ menu "Wago Platform Specific        "
 source "generated/wago_platform_specific.in"
 endmenu
 
+source "generated/code_signing.in"
+
+source "generated/hosttools_noprompt.in"
 source "generated/hosttools_platform.in"
+
+source "generated/platform_project_specific.in"

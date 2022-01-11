@@ -98,6 +98,18 @@ size_t GetSizeOfElementMacroCPP()
 }
 
 
+int  * GetArrayPointerPlainCPP(int array[])
+{
+    return &(array[0]);
+}
+
+
+int  * GetArrayPointerMacroCPP(int array[])
+{
+    return WC_ARRAY_TO_PTR(array);
+}
+
+
 void * GetContainerAddressPlainCPP()
 {
   return &stTestContainer;

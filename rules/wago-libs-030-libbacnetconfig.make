@@ -15,23 +15,29 @@ PACKAGES-$(PTXCONF_LIBBACNETCONFIG) += libbacnetconfig
 #
 #--- paths and names --------------------------------------------------------- 
 #
-# configure BACnet version (IPK)
-BACNET_VERSION       := 1.5.1
 
 # select BACnet stack revision
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_DEV
 BACNETSTACK_REVISION := 22
+# configure BACnet version (IPK)
+BACNET_VERSION       := 1.6.0
+LIBBACNETCONFIG_VERSION           := 1.6.0
 endif
 
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
 BACNETSTACK_REVISION := 22
+# configure BACnet version (IPK)
+BACNET_VERSION       := 1.6.0
+LIBBACNETCONFIG_VERSION           := 1.6.0
 endif
 
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY
 BACNETSTACK_REVISION := 14
+# configure BACnet version (IPK)
+BACNET_VERSION       := 1.5.1
+LIBBACNETCONFIG_VERSION           := 1.5.1
 endif
 
-LIBBACNETCONFIG_VERSION           := 1.5.0
 LIBBACNETCONFIG_MD5               :=
 LIBBACNETCONFIG                   := libbacnetconfig
 LIBBACNETCONFIG_URL               := file://$(PTXDIST_WORKSPACE)/wago_intern/device/bacnet/$(LIBBACNETCONFIG)
@@ -51,6 +57,7 @@ LIBBACNETCONFIG_MAKE_ENV          := $(CROSS_ENV) \
 																		ARM_ARCH_VERSION=7 \
 																		BACNET_VERSION=$(BACNET_VERSION) \
 																		LIBBACNETSTACK_REV=$(BACNETSTACK_REVISION) \
+																		LIBBACNETCONFIG_VERSION_CT_BUILD=$(LIBBACNETCONFIG_VERSION) \
 																		SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
 
 LIBBACNETCONFIG_PATH              := PATH=$(CROSS_PATH)

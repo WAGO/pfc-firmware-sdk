@@ -3,44 +3,51 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# This file is part of PTXdist package config-tools.
+#
+# Copyright (c) 2013-2021 WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
+# Script:   /etc/config-tools/get_user_info
+#
+# Brief:    Query login/password related information.
+#
+# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#-----------------------------------------------------------------------------#
 
-#-----------------------------------------------------------------------------#
-# Script-name: get_user_info
-#
-# Query login/password related information.
-#
-# Author: WAGO Kontakttechnik GmbH
-#-----------------------------------------------------------------------------#
+CURRENT_AUTH_FILE_LINUX="/etc/shadow"
+DEFAULT_AUTH_FILE_LINUX="/etc/config-tools/default-settings/shadow.default"
 
 
 # show help-text if requested
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+if [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
   echo
   echo "* Get information about user settings *"
   echo
   echo "Usage: "
-  echo "       $0 --is-default-pwd [<user>]       : prints 1 if the default password is still being used (for webserver users)"
-  echo "       $0 --is-default-pwd-linux [<user>] : prints 1 if the default password is still being used (for linux users)"
+  echo "       $0 --is-default-pwd <user>       : prints 1 if the default password is still being used (for webserver users)"
+  echo "       $0 --is-default-pwd-linux <user> : prints 1 if the default password is still being used (for linux users)"
   echo
-  exit $status
+  echo "Since linux users are also used as webserver users both options are equivalent"
+  echo
+  exit 0
 fi
 
 # load general definitions and functions
-if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+if [[ ! -f "/etc/config-tools/config_tool_lib" ]]; then
   echo "config_tool_lib missing"
   exit 255
 fi
 
-. /etc/config-tools/config_tool_lib
+source /etc/config-tools/config_tool_lib
 
 function CompareDefaultWithCurrent
 {
   local defaultSettingsFile="$1"
   local currentSettingsFile="$2"
-  
-  local default_hash=$(awk -F: -v _login="$login" '$1~_login {print $2}' "$defaultSettingsFile") 
-  local current_hash=$(awk -F: -v _login="$login" '$1~_login {print $2}' "$currentSettingsFile")
+
+  local default_hash; default_hash=$(awk -F: -v _login="$login" '$1~_login {print $2}' "$defaultSettingsFile")
+  local current_hash; current_hash=$(awk -F: -v _login="$login" '$1~_login {print $2}' "$currentSettingsFile")
 
   if [[ "$current_hash" == "" ]]; then # user no longer exists -> error
     SetLastError "Invalid parameter"
@@ -54,74 +61,39 @@ function CompareDefaultWithCurrent
   return $SUCCESS
 }
 
-#-------------- main-programm ------------------------#
+#-------------- start of main-programm ------------------------#
 
-CURRENT_AUTH_FILE_WEBSERV="/etc/lighttpd/lighttpd-htpasswd.user"
-DEFAULT_AUTH_FILE_WEBSERV="/etc/config-tools/default-settings/lighttpd-htpasswd.user.default"
-
-CURRENT_AUTH_FILE_LINUX="/etc/shadow"
-DEFAULT_AUTH_FILE_LINUX="/etc/config-tools/default-settings/shadow.default"
 
 status=$SUCCESS
 
 #-------------- basic sanity checks -------------------#
 
-if [[ ! -f $DEFAULT_AUTH_FILE_WEBSERV ]]; then
-
-   status=$CONFIG_FILE_MISSING
-   ReportError $CONFIG_FILE_MISSING "($DEFAULT_AUTH_FILE_WEBSERV)"
-   SetLastError "Settings file is missing"
-
-elif [[ ! -f $CURRENT_AUTH_FILE_WEBSERV ]]; then   
-
-   status=$CONFIG_FILE_MISSING
-   ReportError $CONFIG_FILE_MISSING "($CURRENT_AUTH_FILE_WEBSERV)"
-   SetLastError "Settings file is missing"
-
-elif [[ ! -f $DEFAULT_AUTH_FILE_LINUX ]]; then  
-
-   status=$CONFIG_FILE_MISSING
-   ReportError $CONFIG_FILE_MISSING "($DEFAULT_AUTH_FILE_LINUX)"
-   SetLastError "Settings file is missing"
-
-elif [[ ! -f $CURRENT_AUTH_FILE_LINUX ]]; then  
-
-   status=$CONFIG_FILE_MISSING
-   ReportError $CONFIG_FILE_MISSING "($CURRENT_AUTH_FILE_LINUX)"
-   SetLastError "Settings file is missing"
-
+if [[ ! -f $DEFAULT_AUTH_FILE_LINUX ]]; then
+  status=$CONFIG_FILE_MISSING
+  ReportError $CONFIG_FILE_MISSING "($DEFAULT_AUTH_FILE_LINUX)"
+  SetLastError "Settings file is missing"
+  exit $status
+fi
+if [[ ! -f $CURRENT_AUTH_FILE_LINUX ]]; then
+  status=$CONFIG_FILE_MISSING
+  ReportError $CONFIG_FILE_MISSING "($CURRENT_AUTH_FILE_LINUX)"
+  SetLastError "Settings file is missing"
+  exit $status
 fi
 
-#-------------- parse variables ----------------------#
+#-------------- get information ----------------------#
 
 case "$1" in
 
   "--is-default-pwd"|"--is-default-pwd-linux")
     login="$2"
+    CompareDefaultWithCurrent $DEFAULT_AUTH_FILE_LINUX $CURRENT_AUTH_FILE_LINUX
+    status=$?
     ;;
   *)
     status=$MISSING_PARAMETER
     SetLastError "Missing input parameter"
     ;;
 esac
-
-#-------------- get information ----------------------#
-
-if [[ "$status" == "$SUCCESS" ]]; then
-
-  case "$1" in
-
-    "--is-default-pwd")
-      CompareDefaultWithCurrent $DEFAULT_AUTH_FILE_WEBSERV $CURRENT_AUTH_FILE_WEBSERV
-      status=$?
-    ;;
-   
-    "--is-default-pwd-linux")
-      CompareDefaultWithCurrent $DEFAULT_AUTH_FILE_LINUX $CURRENT_AUTH_FILE_LINUX
-      status=$?
-    ;;
-  esac
-
-fi
 
 exit $status

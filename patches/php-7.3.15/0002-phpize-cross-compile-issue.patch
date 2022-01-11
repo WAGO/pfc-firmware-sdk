@@ -1,0 +1,17 @@
+--- php-7.3.5/scripts/phpize.in.orig	2019-06-13 11:10:44.905664160 +0200
++++ php-7.3.5/scripts/phpize.in		2019-06-13 11:11:16.261664160 +0200
+@@ -1,10 +1,10 @@
+ #!/bin/sh
+ 
+ # Variable declaration
+-prefix='@prefix@'
+-datarootdir='@datarootdir@'
+-exec_prefix="`eval echo @exec_prefix@`"
+-phpdir="`eval echo @libdir@`/build"
++prefix='${PTXDIST_PATH_SYSROOT}/usr'
++datarootdir='${PTXDIST_PATH_SYSROOT}/usr/php'
++exec_prefix="`eval echo ${prefix}`"
++phpdir="`eval echo ${PTXDIST_PATH_SYSROOT}/usr/lib`/build"
+ includedir="`eval echo @includedir@`/php"
+ builddir="`pwd`"
+ SED="@SED@"

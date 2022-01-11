@@ -8,6 +8,7 @@
 #include <exception>
 
 #include "Utils.hpp"
+#include "InterfaceInformationApi.hpp"
 
 namespace network_config {
 namespace po = ::boost::program_options;
@@ -60,7 +61,14 @@ void InterfaceConfigHandler::GetConfig() {
 
 void InterfaceConfigHandler::SetConfig() {
   auto interface_configs = CreateInterfaceConfigs();
-  auto status = napi::SetInterfaceConfigs(interface_configs);
+
+  netconf::Status status;
+  auto &options = GetOptions();
+  if (Contains(vm_, options.dryrun)) {
+    status = napi::ValidateInterfaceConfigs(interface_configs, napi::GetInterfaceInformation());
+  } else {
+    status = napi::SetInterfaceConfigs(interface_configs);
+  }
 
   if (status.IsNotOk()) {
     throw NetconfStatus { status };

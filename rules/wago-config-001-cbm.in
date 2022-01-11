@@ -661,17 +661,6 @@ help
  Tools for port configuration.
   __XML: simple_level text="Ports and Services" ressource="port.sh"
 
-config CT_MENU_CBM_PORT_TELNET
-bool
-default n
-prompt "Telnet"
-depends on CT_MENU_CBM_PORT
-help
- Tools for port configuration.
-  __XML: simple_level text="Telnet............." 
-                      ressource="port_telnet.sh"
-                      dyn_state_ressource="port_telnet_state.sh"
-
 
 config CT_MENU_CBM_PORT_FTP
 bool
@@ -740,17 +729,6 @@ help
   __XML: simple_level text="SSH................" 
                       ressource="port_ssh.sh"
                       dyn_state_ressource="port_ssh_state.sh"
-
-config CT_MENU_CBM_PORT_TFTP
-bool
-default n
-prompt "TFTP"
-depends on CT_MENU_CBM_PORT
-help
- Tools for port configuration.
-  __XML: simple_level text="TFTP..............." 
-                      ressource="port_tftp.sh"
-                      dyn_state_ressource="port_tftp_state.sh"
 
 config CT_MENU_CBM_PORT_DHCPD
 bool

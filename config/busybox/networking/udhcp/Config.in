@@ -144,6 +144,14 @@ config BUSYBOX_FEATURE_UDHCPC6_RFC5970
 comment "Common options for DHCP applets"
         depends on BUSYBOX_UDHCPD || BUSYBOX_UDHCPC || BUSYBOX_UDHCPC6 || BUSYBOX_DHCPRELAY
 
+config BUSYBOX_UDHCPC_DEFAULT_INTERFACE
+	string "Default interface name"
+	default "eth0"
+	depends on BUSYBOX_UDHCPC || BUSYBOX_UDHCPC6
+	help
+	The interface that will be used if no other interface is
+	specified on the commandline.
+
 config BUSYBOX_FEATURE_UDHCP_PORT
 	bool "Enable '-P port' option for udhcpd and udhcpc"
 	default n

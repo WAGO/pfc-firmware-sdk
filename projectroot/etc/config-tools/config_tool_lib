@@ -126,12 +126,10 @@ GERMAN=German
 ENGLISH=English
 
 # definitions for ports 
-TELNET_EXE=telnetd
 NTPCLIENT_EXE=ntpclient
 CODESYS_WEBSERVER_EXE=webserver
 FTP_EXE=pure-ftpd
 
-TELNET=telnet
 FTP=ftp
 FTPS=ftps
 HTTP=http

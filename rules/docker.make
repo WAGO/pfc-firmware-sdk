@@ -20,14 +20,16 @@ endif
 #
 # Paths and names
 #
-DOCKER_VERSION	:= 19.03.8
-DOCKER_MD5			:= 328f19218783795cb902450e5891a520
-DOCKER					:= docker-$(DOCKER_VERSION)
-DOCKER_SUFFIX		:= tgz
-DOCKER_URL			:= https://download.docker.com/linux/static/stable/armhf/$(DOCKER).$(DOCKER_SUFFIX)
-DOCKER_SOURCE		:= $(SRCDIR)/$(DOCKER).$(DOCKER_SUFFIX)
-DOCKER_DIR			:= $(BUILDDIR)/$(DOCKER)
-DOCKER_LICENSE	:= Apache 2.0
+DOCKER_VERSION				:= 20_10_8
+DOCKER_VERSION_SUFFIX := wago_static-linux_arm_v7
+DOCKER_MD5						:= 72eb023440b66764a5b97a8477b94313
+DOCKER								:= docker-$(DOCKER_VERSION)-$(DOCKER_VERSION_SUFFIX)
+DOCKER_SUFFIX					:= tar.gz
+DOCKER_URL						:= https://github.com/WAGO/docker-engine/releases/download/v$(DOCKER_VERSION)-wago/docker-$(subst .,_,$(DOCKER_VERSION))-$(DOCKER_VERSION_SUFFIX).tar.gz
+DOCKER_SOURCE					:= $(SRCDIR)/$(DOCKER).$(DOCKER_SUFFIX)
+DOCKER_DIR						:= $(BUILDDIR)/$(DOCKER)
+DOCKER_STRIP_LEVEL 		:= 0
+DOCKER_LICENSE				:= Apache 2.0
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -38,7 +40,7 @@ $(STATEDIR)/docker.prepare:
 		
 	# create archive with docker binaries
 	@cd $(DOCKER_DIR) \
-    && tar cvf docker-binaries.tar.xz --use-compress-program='xz -9' * \
+    && tar --exclude='*.md5' --exclude='*.sha256' -cvf docker-binaries.tar.xz --use-compress-program='xz -9' * \
     && find . -type f -not -name "*.tar.xz" -delete
 	
 	@$(call touch)
@@ -73,6 +75,8 @@ $(STATEDIR)/docker.targetinstall:
 	@$(call install_fixup, docker,DESCRIPTION,"Docker daemon $(DOCKER_VERSION)")
 
 	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/docker-binaries.tar.xz, /home/wago-docker/docker-binaries.tar.xz)
+	
+	@$(call install_alternative, docker, 0, 0, 0750, /usr/sbin/settings_backup_docker_status)
 
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/init.d/dockerd)
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/docker/daemon.json)

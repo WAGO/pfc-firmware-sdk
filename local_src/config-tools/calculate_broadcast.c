@@ -11,7 +11,7 @@
 ///
 ///  \file     calculate_broadcast.c
 ///
-///  \version  $Revision: 8122 $1
+///  \version  $Revision: 59621 $1
 ///
 ///  \brief    
 ///
@@ -65,8 +65,6 @@ void ShowHelpText(void)
     // Show describtion and usage of program on stdout
     //
 {
-    int parameterIndex = 0;
-
     printf("\n* Calculate broadcast from IP-address and subnet-mask *\n\n");
     printf("Usage: calculate_broadcast <IP-address> <subnet-mask>\n\n");
     printf("\n");

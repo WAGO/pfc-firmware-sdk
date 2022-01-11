@@ -110,6 +110,14 @@ config BUSYBOX_FEATURE_VI_COLON
 	Enable a limited set of colon commands. This does not
 	provide an "ex" mode.
 
+config BUSYBOX_FEATURE_VI_COLON_EXPAND
+	bool "Expand \"%\" and \"#\" in colon commands"
+	default y
+	depends on BUSYBOX_FEATURE_VI_COLON
+	help
+	Expand the special characters \"%\" (current filename)
+	and \"#\" (alternate filename) in colon commands.
+
 config BUSYBOX_FEATURE_VI_YANKMARK
 	bool "Enable yank/put commands and mark cmds"
 	default y
@@ -216,6 +224,14 @@ config BUSYBOX_FEATURE_VI_UNDO_QUEUE_MAX
 	and will generally malloc() larger objects and less frequently.
 	Unless you want more (or less) frequent "undo points" while typing,
 	you should probably leave this unchanged.
+
+config BUSYBOX_FEATURE_VI_VERBOSE_STATUS
+	bool "Enable verbose status reporting"
+	default y
+	depends on BUSYBOX_VI
+	help
+	Enable more verbose reporting of the results of yank, change,
+	delete, undo and substitution commands.
 
 config BUSYBOX_FEATURE_ALLOW_EXEC
 	bool "Allow vi and awk to execute shell commands"

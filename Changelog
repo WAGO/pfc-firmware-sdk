@@ -1,3 +1,49 @@
+Firmware Release 03.08.08 (99)
+
+System:
+[NEW] Users of WBM and Linux where harmonized.
+[NEW] "Codesys port authentication password" can no longer be changed via WBM.
+[NEW] From FW20 the HTTPS port is always active and cannot be disabled via WBM 
+      or configtool. Please note that this will be the state after a firmware
+      update, regardless which state was configured before. If nec-essary, the
+      HTTPS port can be blocked via the firewall.
+[NEW] PTXdist update to version 2020.8.0
+[NEW] openSSL update to version 1.1.1.L
+[NEW] Busybox update to version 1.34.1
+[FIXED] IPsec: SHA512 based ESP algorithms not available.
+[FIXED] Kernel does not boot correctly during FW update.
+
+Runtime System:
+[FIXED] Fix possible deadlock when using multiple tasks in an e!Cockpit 
+        applica-tion on PFC based controllers leading to a KBus watchdog 
+        timeout (sig-nalled by IO LED error blinkcode 9-5)
+[FIXED] Fixed CODESYS 2.3 webserver vulnerabilities regarding CODESYS 
+        advisory 2021-15_LCDS-358
+[FIXED] Fixed CODESYS 2.3 runtime vulnerabilities regarding CODESYS 
+        advisory 2021-16_LCDS-361
+[FIXED] Fixed CODESYS 2.3 runtime vulnerabilities regarding CODESYS
+        advisory 2021-17_LCDS-362
+
+Fieldbus Interface & Protocols:
+-OPC UA
+ [FIXED] The OPC UA port is now correctly opened in the firewall after restart.
+-CAN
+ [NEW] It is now possible to use extended CAN configuration in e!COCKPIT
+-Cloud Connectivity
+ [NEW] Cloud Connectivity: Update Azure SDK to 1.6.0
+-SNMP
+ [FIXED] Sender of SNMP "Informs" not changeable via IEC Libraries.
+
+Functional change:
+[DEPRECATED] Config tool function get_telecontrol_state will be removed in 
+             future releases. The config tool was used to determine whether
+             a device is a telecontrol. Since telecontrol services can be 
+             added by dynamic licensing, the tool is no longer needed.
+[REMOVED] Removed Telnet server, use SSH instead.
+[REMOVED] Removed TFTP server.
+
+################################################################################
+
 Firmware Release 03.07.14 (99)
 
 Starting with firmware 19, the PFC200 of the second generation has its own 

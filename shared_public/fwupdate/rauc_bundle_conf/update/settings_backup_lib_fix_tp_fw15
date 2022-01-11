@@ -92,7 +92,6 @@ configParam=(
 
   "service-interface-owner;   /etc/config-tools/get_service_interface_config mode -b;           /etc/config-tools/config_service_interface mode="
   "rs232Owner;                /etc/config-tools/get_coupler_details RS232-owner;                /etc/config-tools/config_RS232 owner="
-  "telnet-state;              /etc/config-tools/get_port_state telnet;                          /etc/config-tools/config_port port=telnet state="
   "codesys-webserver-state;   /etc/config-tools/get_runtime_config cfg-version=2 webserver-state; /etc/config-tools/config_runtime cfg-version=2 webserver-state="
   "codesys3-webserver-state;  /etc/config-tools/get_runtime_config cfg-version=3 webserver-state; /etc/config-tools/config_runtime cfg-version=3 webserver-state="
   "ftp-state;                 /etc/config-tools/config_ssl ftp-status;                          /etc/config-tools/config_port port=ftp state="

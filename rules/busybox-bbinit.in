@@ -1,0 +1,43 @@
+## SECTION=initmethod_bbinit
+
+config BUSYBOX_INETD_BBINIT_LINK
+	string
+	depends on BUSYBOX_INETD_STARTSCRIPT
+	prompt "inetd"
+	default "S95inetd"
+
+config BUSYBOX_SYSLOGD_BBINIT_LINK
+	string
+	depends on BUSYBOX_SYSLOGD_STARTSCRIPT
+	prompt "syslogd"
+	default "S08syslogd"
+
+config BUSYBOX_CROND_BBINIT_LINK
+	string
+	depends on BUSYBOX_CROND_STARTSCRIPT
+	prompt "crond"
+	default "S10crond"
+
+config BUSYBOX_HWCLOCK_BBINIT_LINK
+	string
+	depends on BUSYBOX_HWCLOCK_STARTSCRIPT
+	prompt "hwclock"
+	default "S12hwclock"
+
+config BUSYBOX_TELNETD_BBINIT_LINK
+	string
+	depends on BUSYBOX_TELNETD_STARTSCRIPT
+	prompt "telnetd"
+	default "S16telnetd"
+
+config BUSYBOX_UDHCPD_BBINIT_LINK
+	string
+	depends on BUSYBOX_UDHCPD_STARTSCRIPT
+	prompt "udhcpd"
+	default "S60udpcpd"
+
+config BUSYBOX_BB_SYSCTL_BBINIT_LINK
+	string
+	depends on BUSYBOX_BB_SYSCTL_STARTSCRIPT
+	prompt "sysctl"
+	default "S17sysctl"

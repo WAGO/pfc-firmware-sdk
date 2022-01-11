@@ -40,76 +40,24 @@ $(wildcard $(PROJECT_ROOT)/suppress.lnt)
 # Build target configuration
 
 MODULES += \
-bal/module.mk \
-netconfd/module.mk \
-dbus/module.mk \
-utility/module.mk \
-common/module.mk \
-clientapi/module.mk
+modules/netconfd/module.mk \
+modules/dbus/module.mk \
+modules/utility/module.mk \
+modules/common/module.mk \
+modules/clientapi/module.mk
 
 MK_FILES += $(MODULES)
-
-MAIN_BUILDTARGETS += \
-netconfd.elf
-
-INSTALL_TARGETS += \
-$(DESTDIR)/usr/bin/netconfd.elf
 
 BUILDTARGETS += $(MAIN_BUILDTARGETS) $(TEST_BUILDTARGETS)
 
 OPTION_HIDE_SYMBOLS ?= -fvisibility=hidden
 
 NETCONFD_SHARED_INCLUDES :=     \
--I$(PROJECT_ROOT)/extern/       \
--I$(PROJECT_ROOT)/common/extern \
+-I$(PROJECT_ROOT)/modules/common/inc \
+-I$(PROJECT_ROOT)/modules/common/extern
  
 
-netconfd.elf_INCLUDES =           \
-  $(NETCONFD_SHARED_INCLUDES)     \
--I$(PROJECT_ROOT)/src/            \
--I$(PROJECT_ROOT)/extern/         \
--I$(PROJECT_ROOT)/common/extern   \
--I$(PROJECT_ROOT)/netconfd/extern/
 
-netonfd_common_sources = $(call fglob_r,$(PROJECT_ROOT)/common/src,$(SOURCE_FILE_EXTENSIONS))
-netonfd_common_includes = $(PROJECT_ROOT)/common/extern $(PROJECT_ROOT)common/src
-
-#######################################################################################################################
-# Settings for build target netconfd
-
-netconfd.elf_VERSION = $(NETCONFD_VERSION)
-
-netconfd.elf_DISABLEDWARNINGS += packed
-netconfd.elf_CDISABLEDWARNINGS += $(netconfd.so_DISABLEDWARNINGS)  
-netconfd.elf_CXXDISABLEDWARNINGS += $(netconfd.so_DISABLEDWARNINGS) abi-tag useless-cast
-netconfd.elf_STATICALLYLINKED += netconfd bal utility netconfddbus
-netconfd.elf_LIBS += netconfd bal boost_log utility boost_thread boost_system boost_filesystem boost_serialization netconfddbus rt
-netconfd.elf_PKG_CONFIGS += $(call uniq,$(libbal.a_PKG_CONFIGS) $(libbridge.a_PKG_CONFIGS) $(libnetconfddbus.a_PKG_CONFIGS) $(libutility.a_PKG_CONFIGS))
-netconfd.elf_PKG_CONFIG_LIBS += $(call uniq,$(libbal.a_PKG_CONFIG_LIBS) $(libbridge.a_PKG_CONFIG_LIBS))
-netconfd.elf_PREREQUISITES += $(call lib_buildtarget_raw, $(netconfd.elf_LIBS) $(netconfd.elf_PKG_CONFIG_LIBS),$(netconfd.elf_STATICALLYLINKED))
-netconfd.elf_INCLUDES += $(call uniq,$(libnetconfd.a_INCLUDES) $(libbal.a_INCLUDES) $(libbridge.a_INCLUDES) $(libnetconfddbus.a_INCLUDES))
-netconfd.elf_INCLUDES += -I$(PROJECT_ROOT)/extern/
-netconfd.elf_DEFINES += $(call uniq,$(libbal.a_DEFINES)) -DBOOST_LOG_DYN_LINK -DNETCONFD_VERSION=$(netconfd.elf_VERSION)
-netconfd.elf_CPPFLAGS += $(netconfd.elf_INCLUDES)
-netconfd.elf_CPPFLAGS += $(netconfd.elf_DEFINES)
-netconfd.elf_CPPFLAGS += $(call pkg_config_cppflags,$(netconfd.elf_PKG_CONFIGS))
-netconfd.elf_CCXXFLAGS += $(OPTION_HIDE_SYMBOLS)
-netconfd.elf_CCXXFLAGS += $(OPTION_PIC)
-netconfd.elf_CCXXFLAGS += $(netconfd.elf_DEFINES)
-netconfd.elf_CXXFLAGS += $(call option_disable_warning,$(netconfd.elf_CXXDISABLEDWARNINGS))
-netconfd.elf_CXXFLAGS += $(call pkg_config_cxxflags,$(netconfd.elf_PKG_CONFIGS))
-netconfd.elf_CXXFLAGS += $(netconfd.elf_CCXXFLAGS)
-netconfd.elf_CFLAGS += $(netconfd.elf_CCXXFLAGS)
-netconfd.elf_CFLAGS += $(call option_disable_warning,$(netconfd.elf_CDISABLEDWARNINGS))
-netconfd.elf_LDFLAGS += $(OPTION_PIC)
-netconfd.elf_LDFLAGS += -Wl,--no-undefined
-netconfd.elf_LDFLAGS += -Wl,--exclude-libs=ALL
-netconfd.elf_LDFLAGS += $(call option_lib,$(netconfd.elf_LIBS),netconfd.elf)
-netconfd.elf_LDFLAGS += $(call pkg_config_ldflags,$(netconfd.elf_PKG_CONFIGS))
-netconfd.elf_SOURCES += $(call fglob_r,$(PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
-netconfd.elf_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
-netconfd.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-netconfd.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 
 #######################################################################################################################
 # Settings for module build targets

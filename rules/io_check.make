@@ -67,7 +67,9 @@ endif
 ifdef PTXCONF_IO_CHECK_DEBUGGING
 	IO_CHECK_CONF_OPT += --enable-debug 
 endif
-
+ifndef PTXCONF_IO_CHECK_MDMD_NG
+	IO_CHECK_CONF_OPT	+=  --disable-mdmdng
+endif
 #Tables
 ifndef PTXCONF_IO_CHECK_TABLE_0
 	IO_CHECK_CONF_OPT	+=  --disable-table0

@@ -11,6 +11,7 @@
 #include "Utils.hpp"
 #include "OptionStrings.hpp"
 #include "NetconfStatus.hpp"
+#include "InterfaceInformationApi.hpp"
 
 namespace po = boost::program_options;
 
@@ -124,10 +125,20 @@ void IPConfigHandler::GetConfig(TypeFilter filter) {
 
 void IPConfigHandler::SetConfig() {
   auto ip_configs = CreateIPConfigs();
-  auto error = SetIPConfigs(ip_configs);
+  const auto &options = GetOptions();
+  netconf::Status result;
+  if (Contains(vm_, options.dryrun)) {
+    napi::IPConfigs current_configs;
+    result = GetCurrentIPConfigs(current_configs);
+    if (result.IsOk()) {
+      result = napi::ValidateIpConfigs(ip_configs, current_configs, napi::GetInterfaceInformation());
+    }
+  } else {
+    result = SetIPConfigs(ip_configs);
+  }
 
-  if (error.IsNotOk()) {
-    throw NetconfStatus { error };
+  if (result.IsNotOk()) {
+    throw NetconfStatus { result };
   }
 }
 
@@ -171,8 +182,7 @@ IPConfigHandler::IPConfigHandler(IPConfigHandler &&other)
 
 }
 
-::std::string IPConfigHandler::ConstructString(
-    const netconf::IPConfig& ip_config, const ::std::string format) const {
+::std::string IPConfigHandler::ConstructString(const netconf::IPConfig &ip_config, const ::std::string format) const {
   ::std::stringstream output;
   if (format == "text") {
     output << "device=" << ip_config.interface_;
@@ -189,8 +199,8 @@ IPConfigHandler::IPConfigHandler(IPConfigHandler &&other)
   return output.str();
 }
 
-::std::string IPConfigHandler::ConstructString(
-    const netconf::api::IPConfigs& ip_configs, const ::std::string format) const {
+::std::string IPConfigHandler::ConstructString(const netconf::api::IPConfigs &ip_configs,
+                                               const ::std::string format) const {
   if (format == "text") {
     for (auto &ip_config : ip_configs.GetConfig()) {
       return ConstructString(ip_config, format);

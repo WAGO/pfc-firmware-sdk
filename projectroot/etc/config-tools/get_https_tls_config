@@ -3,39 +3,42 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2016-2021 WAGO Kontakttechnik GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
-# Script-name: get_https_tls_config
+# Script:   /etc/config-tools/get_https_tls_config
 #
-# Read status of cipher list: standard or strong
+# Brief:    Read status of current cipher list set: extended compatibility or strong.
 #
-# Author: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # make use of undefined variables an error
 set -u
 
 # load general definitions and functions
-if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
+if [[ ! -f "/etc/config-tools/config_tool_lib" ]]; then
     echo "config_tool_lib missing"
     exit 255
 fi
-. /etc/config-tools/config_tool_lib
+source /etc/config-tools/config_tool_lib
 
-if [ "$#" -eq "0" ]; then
+if [[ $# -eq 0 ]]; then
     SetLastError "Missing argument"
     exit $MISSING_PARAMETER
 fi
 status=$SUCCESS
 
 # show help-text if requested
-if [ "$1" = "-h" -o "$1" = "--help" ]; then
+if [[ "$1" = "-h" || "$1" = "--help" ]]; then
     echo
-    echo "* Get https tls parameter value *"
+    echo "* Get HTTPS TLS parameter value *"
     echo
-    echo "Usage: $0 <cipher-list>"
-    echo "       Returns standard or strong on stdout"
+    echo "Usage: $0 cipher-list"
+    echo "       Returns \"standard\" or \"strong\" on stdout"
+    echo "       Result \"standard\" is the old value for \"extended-compatibility\""
+    echo 
     echo
     exit $status
 fi
@@ -45,11 +48,15 @@ LINKTARGET=""
 
 case "$1" in
     cipher-list)
-        LINKTARGET=$(readlink $SYMLINK)
+        LINKTARGET="$(readlink $SYMLINK)"
         status=$?
-        if [ "$status" -eq "$SUCCESS" ]; then
-        case $LINKTARGET in
+        if [[ $status -eq $SUCCESS ]]; then
+        case "$LINKTARGET" in
             tls-standard.conf)
+                # Alias for next option
+                ;&
+            tls-extended-compatibility.conf)
+                # "standard" is the old value for "extended-compatibility" option
                 printf standard
                 ;;
             tls-strong.conf)

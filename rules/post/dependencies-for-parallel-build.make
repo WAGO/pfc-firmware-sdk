@@ -34,9 +34,9 @@ define add-order
 	$(if $(filter-out $(PTX_PACKAGES_UNSELECTED),$(1)), \
 		$(if $(filter-out $(PTX_PACKAGES_UNSELECTED),$(2)), \
 			$(if $(findstring host-,$(2)), \
-				$(STATEDIR)/$(1).extract: $(STATEDIR)/$(2).install.post \
+				$(STATEDIR)/$(1).prepare: $(STATEDIR)/$(2).install.post \
 			, \
-				$(STATEDIR)/$(1).extract: $(STATEDIR)/$(2).targetinstall.post \
+				$(STATEDIR)/$(1).prepare: $(STATEDIR)/$(2).targetinstall.post \
 			) \
 		, \
 			$(if $(filter $(2),autogen-tools), \
@@ -103,14 +103,14 @@ $(call add-order,libpcre,zlib)
 #$(call add-order,libxml2,host-libxml2)
 $(call add-order,libxml2,host-libxslt)
 ###$(call add-order,lighttpd,host-libuuid)
-$(call add-order,lighttpd,libuuid)
+#$(call add-order,lighttpd,libuuid)
 $(call add-order,lighttpd,zlib)
 $(call add-order,memedit,flex)
 $(call add-order,memedit,host-libarchive)
 #$(call add-order,nfsutils,host-e2fsprogs)
 $(call add-order,nfsutils,e2fsprogs)
 #$(call add-order,ntfs-3g,host-libuuid)
-$(call add-order,ntfs-3g,libuuid)
+#$(call add-order,ntfs-3g,libuuid)
 $(call add-order,openssh,host-libcap)
 #$(call add-order,pureftpd,host-libcap)
 $(call add-order,pureftpd,libcap)

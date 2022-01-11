@@ -156,12 +156,13 @@ config BUSYBOX_FEATURE_PIDFILE
 config BUSYBOX_PID_FILE_PATH
 	string "Directory for pidfiles"
 	default "/var/run"
-	depends on BUSYBOX_FEATURE_PIDFILE
+	depends on BUSYBOX_FEATURE_PIDFILE || BUSYBOX_FEATURE_CROND_SPECIAL_TIMES
 	help
 	This is the default path where pidfiles are created.  Applets which
 	allow you to set the pidfile path on the command line will override
 	this value.  The option has no effect on applets that require you to
-	specify a pidfile path.
+	specify a pidfile path. When crond has the 'Support special times'
+	option enabled, the 'crond.reboot' file is also stored here.
 
 config BUSYBOX_BUSYBOX
 	bool "Include busybox applet"
@@ -540,6 +541,14 @@ config BUSYBOX_STACK_OPTIMIZATION_386
 	do not work with it (they use SSE instructions without
 	ensuring stack alignment).
 
+config BUSYBOX_STATIC_LIBGCC
+	bool "Use -static-libgcc"
+	default y
+	help
+	This option instructs gcc to link in a static version of its
+	support library, libgcc. This means that the binary will require
+	one fewer dynamic library at run time.
+
 comment 'Installation Options ("make install" behavior)'
 
 choice
@@ -652,6 +661,19 @@ config BUSYBOX_UNIT_TEST
 	Say Y here if you want to build unit tests (both the framework and
 	test cases) as an applet. This results in bigger code, so you
 	probably don't want this option in production builds.
+
+config BUSYBOX_WARN_SIMPLE_MSG
+	bool "Warn about single parameter bb_xx_msg calls"
+	default n
+	help
+	This will cause warnings to be shown for any instances of
+	bb_error_msg(), bb_error_msg_and_die(), bb_perror_msg(),
+	bb_perror_msg_and_die(), bb_herror_msg() or bb_herror_msg_and_die()
+	being called with a single parameter. In these cases the equivalent
+	bb_simple_xx_msg function should be used instead.
+	Note that use of STRERROR_FMT may give false positives.
+
+	If you aren't developing busybox, say N here.
 
 config BUSYBOX_WERROR
 	bool "Abort compilation on any warning"

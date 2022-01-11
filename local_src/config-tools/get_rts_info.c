@@ -130,8 +130,6 @@ void ShowHelpText(void)
 // Show describtion and usage of program on stdout
 //
 {
-  int parameterIndex = 0;
-
   printf("\n* Get informations about the PLC; state, project info and task infos *\n\n");
   printf("Usage: get_rts_infos <parameter area> [task number] [parameter]\n\n");
   printf("parameter area: \"state\" | \"project\" | \"task\" | \"task-list\" | \"task-list-json\" | \"nr-of-tasks\"\n");

@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_CONFIG_TOOLS) += config-tools
 #
 # Paths and names
 #
-CONFIG_TOOLS_VERSION 	      := 1.3.0
+CONFIG_TOOLS_VERSION 	      := 1.3.2
 CONFIG_TOOLS		            := config-tools
 CONFIG_TOOLS_URL            := file://$(PTXDIST_WORKSPACE)/local_src/$(CONFIG_TOOLS)
 CONFIG_TOOLS_DIR	          := $(BUILDDIR)/$(CONFIG_TOOLS)
@@ -795,11 +795,6 @@ ifdef PTXCONF_CT_LIBCTNETWORK
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/ssl/);
 
 
-ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
-# Does not install /etc/config-tools/events/telnet if Telnet protocol is not available (default for PFC_ADV)
-	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/telnet/);
-endif
-
 ifdef PTXCONF_WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
   # Does not install /etc/config-tools/events/tftp if TPTF service is not available (default for PFC_ADV)
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/events/tftp/);
@@ -872,8 +867,8 @@ ifdef PTXCONF_CT_CONF_INTERNAL_BOOT
 endif
 
 ifdef PTXCONF_CT_DOCKER
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot.wago-pfc-adv/etc/config-tools/config_docker, /etc/config-tools/config_docker);
-	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot.wago-pfc-adv/etc/config-tools/get_docker_config, /etc/config-tools/get_docker_config);
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/config_docker, /etc/config-tools/config_docker);
+	@$(call install_copy, config-tools, 0, 0, 0750, $(PTXDIST_WORKSPACE)/projectroot/etc/config-tools/get_docker_config, /etc/config-tools/get_docker_config);
 endif
 
 ifdef PTXCONF_IPWATCHD

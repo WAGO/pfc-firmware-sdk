@@ -11,7 +11,7 @@
 ///
 ///  \file     get_coupler_details.c
 ///
-///  \version  $Revision: 57110 $1
+///  \version  $Revision: 60083 $1
 ///
 ///  \brief
 ///
@@ -452,7 +452,7 @@ int GetFieldbusType(char* pFieldbusTypeString)
   }
 
   // initialise output-string
-  sprintf(pFieldbusTypeString, "");
+  pFieldbusTypeString[0] = '\0';
 
   // get content of fieldbus-info-file
   pFieldbusTypeFileContent = FileContent_Get("/sys/class/uio/uio0/name");
@@ -523,7 +523,7 @@ int GetFirmwareRevision(char *pFirmwareRevisionString)
   }
 
   // initialise output-string
-  sprintf(pFirmwareRevisionString, "");
+  pFirmwareRevisionString[0] = '\0';
 
   // get content of revisions-file
   pRevisionsFileContent = FileContent_Get("/etc/REVISIONS");
@@ -580,7 +580,7 @@ int GetLicenseInformation(char* pLicenseInformationString)
   }
 
   // initialise output-string
-  sprintf(pLicenseInformationString, "");
+  pLicenseInformationString[0] = '\0';
 
   // get content of revisions-file
   pLicenseFileContent = FileContent_Get("/etc/LICENSE");
@@ -638,7 +638,7 @@ int GetHtmlPagesRevision(char* pHtmlPagesRevisionString)
   }
 
   // initialise output-string
-  sprintf(pHtmlPagesRevisionString, "");
+  pHtmlPagesRevisionString[0] = '\0';
 
   // get content of revisions-file
   pRevisionsFileContent = FileContent_Get("/var/www/wbm/REVISIONS");
@@ -898,7 +898,7 @@ int GetKeyboardLayout(char *pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   // get content of revisions-file
   pKeymapFileContent = FileContent_Get("/etc/init.d/keymap");
@@ -966,7 +966,7 @@ int GetPossibleBackup(char *pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   status = GetProcessorType(processorTypeString);
   //printf("processorTpye:%s\n", processorTypeString);
@@ -1035,7 +1035,7 @@ int GetBootLocation(char *pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   status = GetProcessorType(processorTypeString);
   //printf("processorTpye:%s\n", processorTypeString);
@@ -1052,7 +1052,6 @@ int GetBootLocation(char *pOutputString)
     else
     {
       char  menuLstLine[MAX_LENGTH_OUTPUT_LINE]         = "";
-      char  rootString[MAX_LENGTH_OUTPUT_LINE]          = "";
       int   lineNr                                      = 0;
 
       // loop over the lines of menu.lst-file until we find the line with the line with the root-string
@@ -1182,7 +1181,6 @@ int RS232LinuxIsOwner(void)
   if(pMenuLstFileContent != NULL)
   {
     char  menuLstLine[MAX_LENGTH_OUTPUT_LINE]         = "";
-    char  rootString[MAX_LENGTH_OUTPUT_LINE]          = "";
     int   lineNr                                      = 0;
 
     lineNr = 1;
@@ -1288,7 +1286,6 @@ int GetRS232Owner(char *pOutputString)
 //
 {
   int   status                  = SUCCESS;
-  char* pRS232OwnerFileContent  = NULL;
 
   if(pOutputString == NULL)
   {
@@ -1296,7 +1293,7 @@ int GetRS232Owner(char *pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   /*if(RS232CodesysIsOwner()) strncpy(pOutputString, "CoDeSys", MAX_LENGTH_COUPLER_DETAIL_STRING);
   else*/ if(RS232LinuxIsOwner()) strncpy(pOutputString, "Linux", MAX_LENGTH_COUPLER_DETAIL_STRING);
@@ -1325,7 +1322,7 @@ int GetKBusFirmwareRevision(char* pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   // get content of revisions-file
   pRevisionsFileContent = FileContent_Get("/tmp/fw_index_read");
@@ -1337,7 +1334,6 @@ int GetKBusFirmwareRevision(char* pOutputString)
   else
   {
     char  revisionsLine[MAX_LENGTH_OUTPUT_LINE] = "";
-    int   lineNr                                = 0;
 
     // the first line of revision-file includes the searched string - read it
     if(SUCCESS == FileContent_GetLineByNr(pRevisionsFileContent, 1, revisionsLine))
@@ -1364,7 +1360,6 @@ int GetWebvisuPort(char* pOutputString)
 //
 {
   int   status                    = SUCCESS;
-  char* pLighttpdConfFileContent  = NULL;
   char* pX86ConfFileContent       = NULL;
 
   if(pOutputString == NULL)
@@ -1373,7 +1368,7 @@ int GetWebvisuPort(char* pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   // get content of the configuration file
   pX86ConfFileContent = FileContent_Get("/etc/webserver_conf.xml");
@@ -1429,7 +1424,6 @@ int GetWebserverPort(char* pOutputString)
 {
   int   status                    = SUCCESS;
   char* pLighttpdConfFileContent  = NULL;
-  char* pX86ConfFileContent       = NULL;
 
   if(pOutputString == NULL)
   {
@@ -1437,7 +1431,7 @@ int GetWebserverPort(char* pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   // get content of the webserver configuration files
   pLighttpdConfFileContent  = FileContent_Get("/etc/lighttpd/http_port_nr.inc");
@@ -1560,7 +1554,7 @@ int GetBootloaderVersion(char *pOutputString)
     }
 
     // initialise output-string
-    sprintf(pOutputString, "");
+    pOutputString[0] = '\0';
 
     // get content of revisions-file
     pRevisionsFileContent = FileContent_Get("/sys/class/wago/system/bootversion");
@@ -1572,7 +1566,6 @@ int GetBootloaderVersion(char *pOutputString)
     else
     {
       char  revisionsLine[MAX_LENGTH_OUTPUT_LINE] = "";
-      int   lineNr                                = 0;
 
       // the first line of revision-file includes the searched string - read it
       if(SUCCESS == FileContent_GetLineByNr(pRevisionsFileContent, 1, revisionsLine))
@@ -1592,7 +1585,6 @@ int GetBootloaderVersion(char *pOutputString)
 int GetSerialNumber(char *pOutputString)
 {
   int   status                 = SUCCESS;
-  char* pRevisionsFileContent  = NULL;
   char  stPrgdate[MAX_LENGTH_COUPLER_DETAIL_STRING + 1] = "";
   char  stWagoNr[MAX_LENGTH_COUPLER_DETAIL_STRING + 1] = "";
   uint32_t iWagoNr = 0;
@@ -1606,7 +1598,7 @@ int GetSerialNumber(char *pOutputString)
   }
 
   // initialise output-string
-  sprintf(pOutputString, "");
+  pOutputString[0] = '\0';
 
   do{
     if(SUCCESS != GetValueFromTypelabel(stMarking, TYPELABEL_MARKING))
@@ -1637,17 +1629,13 @@ int GetSerialNumber(char *pOutputString)
 
     if(SUCCESS != GetValueFromTypelabel(stTmp, TYPELABEL_WAGONR))
     {
-      // Sonderbehandlung fuer Panels
-      if ((strncmp(stMarking, "TP", 2) == 0) || (strncmp(stMarking, "EC", 2) == 0))
+      // Sonderbehandlung fuer Geraete ohne WAGONR (Panels, PFC_ADV, ..)
+      if(SUCCESS == GetValueFromTypelabel(stTmp, "UII"))
       {
-        if(SUCCESS == GetValueFromTypelabel(stTmp, "UII"))
+        size_t uiiLgt = strlen(stTmp);
+        if (uiiLgt >= serialNbLgt)
         {
-          size_t uiiLgt = strlen(stTmp);
-          if (uiiLgt >= serialNbLgt)
-          {
-            strncpy(stWagoNr, &stTmp[uiiLgt-serialNbLgt], serialNbLgt);
-          }
-          else break;
+          strncpy(stWagoNr, &stTmp[uiiLgt-serialNbLgt], serialNbLgt);
         }
         else break;
       }

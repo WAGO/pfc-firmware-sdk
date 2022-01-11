@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBWAGOSNMP) += libwagosnmp
 #
 # Paths and names
 #
-LIBWAGOSNMP_VERSION        := 0.0.3
+LIBWAGOSNMP_VERSION        := 0.0.4
 LIBWAGOSNMP_MD5            :=
 LIBWAGOSNMP                := libwagosnmp
 LIBWAGOSNMP_URL            := file://local_src/$(LIBWAGOSNMP)

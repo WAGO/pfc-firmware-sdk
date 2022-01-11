@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_SECURITY) += wbm-ng-plugin-security
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_SECURITY_VERSION        := 1.2.0
+WBM_NG_PLUGIN_SECURITY_VERSION        := 1.3.0
 WBM_NG_PLUGIN_SECURITY                := wbm-security-$(WBM_NG_PLUGIN_SECURITY_VERSION)
 WBM_NG_PLUGIN_SECURITY_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_SECURITY)
 WBM_NG_PLUGIN_SECURITY_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_SECURITY_URL))

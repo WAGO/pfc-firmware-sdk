@@ -103,8 +103,8 @@ $(STATEDIR)/cds3-tscwebsocketserver.targetinstall:
 
 	@$(call install_lib, cds3-tscwebsocketserver, 0, 0, 0755, libCmpWSServer)
 	@$(call install_lib, cds3-tscwebsocketserver, 0, 0, 0755, libSysUtil)
-	@$(call install_link, cds3-tscwebsocketserver, ../libCmpWSServer.so, /usr/lib/cds3-custom-components/libCmpWSServer.so)
-	@$(call install_link, cds3-tscwebsocketserver, ../libSysUtil.so, /usr/lib/cds3-custom-components/libSysUtil.so)
+	@$(call install_link, cds3-tscwebsocketserver, ../libCmpWSServer.so.$(CDS3_TSCWEBSOCKETSERVER_VERSION), /usr/lib/cds3-custom-components/libCmpWSServer.so)
+	@$(call install_link, cds3-tscwebsocketserver, ../libSysUtil.so.$(CDS3_TSCWEBSOCKETSERVER_VERSION), /usr/lib/cds3-custom-components/libSysUtil.so)
 
 	@$(call install_alternative, cds3-tscwebsocketserver , 0, 0, 0644, $(PTXCONF_CDS3_PLCCONFIGDIR)/$(CDS3_TSCWEBSOCKETSERVER_CONFIGFILE))
 

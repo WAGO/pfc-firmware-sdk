@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 ///  \file     modbus_config.c
 ///
-///  \version  $Revision: 18092 $1
+///  \version  $Revision: 59635 $1
 ///
 ///  \brief    <short description of the file contents>
 ///
@@ -310,6 +310,8 @@ static void set_service(mbcfg_Context_type *pCtx, mbcfg_ServiceProtocol_type ser
 
 static void get_statistics(const uint8_t fResetFlag)
 {
+  (void) fResetFlag; // unused
+
   com_tConnection con;
   if (0 == com_GEN_Init(&con))
   {

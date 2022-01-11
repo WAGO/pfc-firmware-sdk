@@ -11,7 +11,7 @@
 ///
 ///  \file     config_tool_msg_com.c
 ///
-///  \version  $Revision: 10645 $1
+///  \version  $Revision: 59635 $1
 ///
 ///  \brief    Communicate with PLC via message queue.
 ///
@@ -84,6 +84,8 @@ int ipcMsgCom_Send(int    messageType,
                    int    responseRequested,
                    int    timeout)
 {
+  UNUSED_PARAMETER(timeout);
+
   int                   status      = SUCCESS;
   ipcMsgCom_tstMessage  stMessage;
 
@@ -122,9 +124,6 @@ int ipcMsgCom_Send(int    messageType,
     }
     else if(responseRequested == TRUE)
     {
-      pid_t pidParent = 0;
-      pid_t pidChild  = 0;
-
       ipcMsgCom_tstMessage stResponseMessage;
       int ret;
       __sighandler_t oldVal;

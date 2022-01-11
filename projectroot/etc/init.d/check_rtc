@@ -36,7 +36,7 @@ usage() {
 #-----------------------------------------------------------------------------#
 get_build_date()
 {
-    cat /etc/SVNREVISION | grep -Eo "[0-9]{8,8}"
+    cut -b1-8 /etc/SVNREVISION | grep -Eo "[0-9]{8,8}"
 }
 
 # Function to set build date as system time.
@@ -65,6 +65,28 @@ set_build_date()
     return $result
 }
 
+# Function to set hwclock to build date.
+#
+# Return: 0 on success, unequal to 0 otherwise
+#-----------------------------------------------------------------------------#
+set_hwclock_to_builddate()
+{
+    local result=0
+
+    set_build_date &&
+      hwclock -w &&
+      echo "Warning: RTC failure. Set date to '$(/usr/bin/date -I)'" 1>&2
+    result=$?
+    mkdir -p "$EARLYLOG_DIR"
+    if [[ $? -ne 0 ]]; then
+        echo "Failed to create log directory for early log messages \"$EARLYLOG_DIR\"" 1>&2
+    else
+        date "+%a %b %d %Y %X.000000 0x8000000C init: S" >>"$EARLYLOG_DIR/$EARLYLOG_FILE"
+    fi
+    return $result
+
+}
+ 
 # Function to check RTC status.
 #
 # Return: 0 on success, unequal to 0 otherwise
@@ -74,22 +96,19 @@ check_rtc()
     local result=0
 
     local hwclock_datestring
+    local hwclock_datestring_1s
     hwclock_datestring="$(/sbin/hwclock 2>/dev/null)"
     if [[ $? -ne 0 ]]; then
-        set_build_date &&
-          hwclock -w &&
-          echo "Warning: RTC failure. Set date to '$(/usr/bin/date -I)'" 1>&2
-        result=$?
-        mkdir -p "$EARLYLOG_DIR"
-        if [[ $? -ne 0 ]]; then
-            echo "Failed to create log directory for early log messages \"$EARLYLOG_DIR\"" 1>&2
-        else
-            date "+%a %b %d %Y %X.000000 0x8000000C init: S" >>"$EARLYLOG_DIR/$EARLYLOG_FILE"
-        fi
+       set_hwclock_to_builddate
     else
-        echo "RTC ok: $hwclock_datestring"
+       sleep 1
+       hwclock_datestring_1s="$(/sbin/hwclock 2>/dev/null)"
+       if [[ $hwclock_datestring = $hwclock_datestring_1s ]]; then
+          set_hwclock_to_builddate
+       else
+          echo "RTC ok: $hwclock_datestring"
+       fi
     fi
-
     return $result
 }
 

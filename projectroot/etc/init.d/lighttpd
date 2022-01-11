@@ -79,6 +79,9 @@ reload()
 		done
 		if start; then
 			retval=0
+		# Startup may fail rarely, try once more in that case
+		elif sleep 1 && start; then
+			retval=0
 		fi
 	fi
     remove_pidfile

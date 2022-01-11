@@ -215,14 +215,6 @@ config WAGO_CUSTOM_INSTALL_OPENSSH_DEFAULT_KEYS
        default n
        prompt "openssh: install default RSA/DSA keys"
 
-config WAGO_CUSTOM_INSTALL_LIGHTTPD_PASSWD_COPY
-    bool
-    depends on LIGHTTPD && CONFIG_TOOLS
-    default n
-    prompt "lighttpd: install copy of htpasswd"
-    help
- 	 Install copy of default htpasswd file to check for password changes
-
 config WAGO_CUSTOM_INSTALL_LINKIN_DEVS
     bool
     default n
@@ -338,12 +330,6 @@ config WAGO_CUSTOM_INSTALL_PROTOCOL_TFTP_ON
     help
 	Install to enable TFTP service in wbm/firewall
 
-config WAGO_CUSTOM_INSTALL_PROTOCOL_TELNET_ON
-    bool
-    default n
-    prompt "install /etc/special/features/telnet"
-    help
-	Install to enable Telnet protocol in wbm/firewall
 
 config WAGO_CUSTOM_INSTALL_PROTOCOL_BOOTP_ON
     bool

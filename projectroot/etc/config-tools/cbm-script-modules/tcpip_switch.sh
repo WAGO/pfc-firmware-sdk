@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
 
-readonly DATA_EXCHANGE_FILE=/tmp/cbm_data_exchange
+DATA_EXCHANGE_FILE=/tmp/cbm_data_exchange
 
 function GetSourceLabel {
   local source="$1"

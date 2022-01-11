@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_DATAAGENT) += dataagent
 #
 # Paths and names
 #
-DATAAGENT_VERSION       := 1.9
+DATAAGENT_VERSION       := 1.10
 DATAAGENT               := DataAgent
 DATAAGENT_URL           := file://wago_intern/$(DATAAGENT)
 DATAAGENT_BUILDCONFIG   := Release

@@ -69,7 +69,7 @@ KERNEL_MAKEVARS := \
 	$(PARALLELMFLAGS) \
 	V=$(PTXDIST_VERBOSE) \
 	HOSTCC=$(HOSTCC) \
-	ARCH=$(PTXCONF_KERNEL_ARCH_STRING) \
+	ARCH=$(GENERIC_KERNEL_ARCH) \
 	CROSS_COMPILE=$(KERNEL_CROSS_COMPILE) \
 	INSTALL_MOD_PATH=$(KERNEL_PKGDIR) \
 	PTX_KERNEL_DIR=$(KERNEL_DIR) \
@@ -88,12 +88,12 @@ KERNEL_IMAGE_SUFFIX := $(call remove_quotes, $(PTXCONF_BOOT_ADD_LINUX_SUFFIX))
 KERNEL_BUILD_IMAGE = "uImage"
 
 # these are sane default
-KERNEL_IMAGE_PATH_y := $(KERNEL_DIR)/arch/$(PTXCONF_KERNEL_ARCH_STRING)/boot/$(KERNEL_BUILD_IMAGE)
+KERNEL_IMAGE_PATH_y := $(KERNEL_DIR)/arch/$(GENERIC_KERNEL_ARCH)/boot/$(KERNEL_BUILD_IMAGE)
 
 # vmlinux is special
 KERNEL_IMAGE_PATH_$(PTXCONF_KERNEL_IMAGE_VMLINUX) := $(KERNEL_DIR)/vmlinux
 # avr32 is also special
-KERNEL_IMAGE_PATH_$(PTXCONF_ARCH_AVR32) := $(KERNEL_DIR)/arch/$(PTXCONF_KERNEL_ARCH_STRING)/boot/images/$(KERNEL_IMAGE)
+KERNEL_IMAGE_PATH_$(PTXCONF_ARCH_AVR32) := $(KERNEL_DIR)/arch/$(GENERIC_KERNEL_ARCH)/boot/images/$(KERNEL_IMAGE)
 
 
 ifndef PTXCONF_PROJECT_USE_PRODUCTION
@@ -132,7 +132,7 @@ ifneq ("$(wildcard $(KERNEL_CONFIG))","")
 	@install -m 644 "$(<)" "$(KERNEL_DIR)/.config"
 ifdef PTXCONF_KERNEL_IMAGE_SIMPLE
 	cp $(PTXCONF_KERNEL_IMAGE_SIMPLE_DTS) \
-		$(KERNEL_DIR)/arch/$(PTXCONF_KERNEL_ARCH_STRING)/boot/dts/$(PTXCONF_KERNEL_IMAGE_SIMPLE_TARGET).dts
+		$(KERNEL_DIR)/arch/$(GENERIC_KERNEL_ARCH)/boot/dts/$(PTXCONF_KERNEL_IMAGE_SIMPLE_TARGET).dts
 endif
 
 ifdef KERNEL_INITRAMFS_SOURCE_y
@@ -219,7 +219,7 @@ $(STATEDIR)/kernel.compile:
 		$(KERNEL_DIR)/usr/initramfs_data.cpio.* \
 		$(KERNEL_DIR)/usr/.initramfs_data.cpio.*
 	@cd $(KERNEL_DIR) && $(KERNEL_PATH) $(KERNEL_ENV) $(MAKE) \
-		$(KERNEL_MAKEVARS) $(KERNEL_BUILD_IMAGE) $(PTXCONF_KERNEL_MODULES_BUILD)
+		$(KERNEL_MAKEVARS) $(KERNEL_BUILD_IMAGE) $(call ptx/ifdef, PTXCONF_KERNEL_MODULES,modules)
 ifdef PTXCONF_KERNEL_TOOL_PERF
 	@+cd $(KERNEL_DIR) && $(KERNEL_PATH) $(KERNEL_ENV) $(MAKE) \
 		$(KERNEL_MAKEVARS) $(KERNEL_TOOL_PERF_OPTS) -C tools/perf
@@ -271,7 +271,7 @@ $(STATEDIR)/kernel.targetinstall:
 	@$(call targetinfo)
 
 # delete the kernel image, it might be out-of-date
-	@rm -f $(IMAGEDIR)/linuximage
+##	@rm -f $(IMAGEDIR)/linuximage
 
 ifneq ($(PTXCONF_KERNEL_INSTALL)$(PTXCONF_KERNEL_VMLINUX),)
 	@$(call install_init,  kernel)

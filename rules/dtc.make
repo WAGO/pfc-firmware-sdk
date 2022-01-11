@@ -23,7 +23,7 @@ DTC_LICENSE := ignore
 # ----------------------------------------------------------------------------
 
 ptx/dtb = $(notdir $(basename $(strip $(1)))).dtb
-PTXCONF_DTC_OFTREE_DTS_PATH=${PTXDIST_PLATFORMCONFIGDIR}/dts-${PTXCONF_KERNEL_VERSION}:${KERNEL_DIR}/arch/${PTXCONF_KERNEL_ARCH_STRING}/boot/dts
+PTXCONF_DTC_OFTREE_DTS_PATH=${PTXDIST_PLATFORMCONFIGDIR}/dts-${PTXCONF_KERNEL_VERSION}:${KERNEL_DIR}/arch/${GENERIC_KERNEL_ARCH}/boot/dts
 ptx/dts = $(shell p=$(PTXCONF_DTC_OFTREE_DTS_PATH) ptxd_in_path p "$(strip $(1))" && echo "$${ptxd_reply}")
 
 ifdef PTXCONF_DTC_OFTREE_DTS

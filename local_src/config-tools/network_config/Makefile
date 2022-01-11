@@ -92,7 +92,7 @@ alltests.elf_CXXFLAGS         += $(SHARED_CXXFLAGS)
 alltests.elf_CXXFLAGS         += $(alltests.elf_CCXXFLAGS)
 alltests.elf_CXXFLAGS         += $(call pkg_config_cxxflags,$(alltests.elf_PKG_CONFIGS))
 alltests.elf_LDFLAGS          += $(call option_lib,$(alltests.elf_LIBS),alltests.elf)
-alltests.elf_LDFLAGS          += $(call pkg_config_ldflags,$(alltests.elf_PKG_CONFIGS))
+alltests.elf_LDFLAGS          += $(call pkg_config_ldflags,$(alltests.elf_PKG_CONFIGS), --static)
 alltests.elf_CLANG_TIDY_CHECKS += $(GTEST_CLANG_TIDY_CHECKS)
 alltests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 
@@ -116,7 +116,7 @@ network_config.elf_CXXFLAGS         += $(SHARED_CXXFLAGS)
 network_config.elf_CXXFLAGS         += $(network_config.elf_CCXXFLAGS)
 network_config.elf_CXXFLAGS         += $(call pkg_config_cxxflags,$(network_config.elf_PKG_CONFIGS))
 network_config.elf_LDFLAGS          += $(call option_lib,$(network_config.elf_LIBS),network_config.elf)
-network_config.elf_LDFLAGS          += $(call pkg_config_ldflags,$(network_config.elf_PKG_CONFIGS))
+network_config.elf_LDFLAGS          += $(call pkg_config_ldflags,$(network_config.elf_PKG_CONFIGS), --static)
 network_config.elf_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
 network_config.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 

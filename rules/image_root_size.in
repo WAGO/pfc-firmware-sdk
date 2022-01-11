@@ -1,0 +1,8 @@
+## SECTION=wago_specific
+
+config IMAGE_ROOT_SIZE
+	string
+	prompt "image root size"
+	default 150M
+	help
+		will set PTXCONF_IMAGE_ROOT_EXT_SIZE

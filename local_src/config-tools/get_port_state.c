@@ -11,7 +11,7 @@
 ///
 ///  \file     get_port_config.c
 ///
-///  \version  $Revision: 13987 $1
+///  \version  $Revision: 61019 $1
 ///
 ///  \brief    
 ///
@@ -71,7 +71,6 @@ typedef struct
 // array of all possible requested parameter (input-strings, strings to search for, processing-function to get them)
 static tExeNameAssign astExeNameAssignTab[] =
 {
-  { "telnet",             "telnetd" },
   { "codesys-webserver",  "webserver" },
   { "codesys3-webserver", "" },
   { "ftp",                "pure-ftpd" },
@@ -96,7 +95,6 @@ static tExeNameAssign astExeNameAssignTab[] =
 // WebserverPortNr == 0 means disabled
 
 #define MAX_CONFIGFILE_SIZE     (64 * 1024)
-static char ConfigFileBuffer[MAX_CONFIGFILE_SIZE + 2];      // Allow for adding \n\0.
 
 static int getCs3State(void)
 {

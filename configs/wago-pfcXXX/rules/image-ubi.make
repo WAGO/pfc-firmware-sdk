@@ -20,7 +20,11 @@ IMAGE_DATA_UBI			:= image-data-ubi
 # use separate folder per image to support parallel build
 IMAGE_DATA_UBI_DIR		= $(BUILDDIR)/$(IMAGE_DATA_UBI)/$(notdir $@)
 IMAGE_DATA_UBI_ROOT		:= $(IMAGEDIR)/root.tgz
-IMAGE_DATA_UBI_CONFIG		:= data-ubi.config
+ifdef PTXCONF_PFC_200_G2
+	IMAGE_DATA_UBI_CONFIG		:= data-ubi_g2.config
+else
+	IMAGE_DATA_UBI_CONFIG		:= data-ubi.config
+endif
 
 # create a list with all available boot*.tgz file in IMAGEDIR
 IMAGE_DATA_UBI_BOOT_FILES       := $(strip $(call remove_quotes, $(PTXCONF_IMAGE_DATA_UBI_BOOT_FILES)))

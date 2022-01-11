@@ -63,6 +63,8 @@ struct Options {
     { "quiet", "Suppress any outout to the console" };
   const Option error_msg_dst
     { "error-msg-dst", "filename where error messages are put into", "<filename>" };
+  const Option dryrun
+    { "dryrun", "do not actually write anything just validate the request" };
   // @formatter:on
 };
 

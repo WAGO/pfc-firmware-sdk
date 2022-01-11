@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_NETWORK_CONFIG) += network_config
 #
 # Paths and names
 #
-NETWORK_CONFIG_VERSION        := 1.0.0
+NETWORK_CONFIG_VERSION        := 1.1.0
 NETWORK_CONFIG_MD5            :=
 NETWORK_CONFIG                := network_config
 NETWORK_CONFIG_BUILDCONFIG    := Release

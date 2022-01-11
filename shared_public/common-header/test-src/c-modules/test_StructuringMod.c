@@ -98,6 +98,18 @@ size_t GetSizeOfElementMacroC()
 }
 
 
+int  * GetArrayPointerPlainC(int array[])
+{
+    return &(array[0]);
+}
+
+
+int  * GetArrayPointerMacroC(int array[])
+{
+    return WC_ARRAY_TO_PTR(array);
+}
+
+
 void * GetContainerAddressPlainC()
 {
   return &stTestContainer;

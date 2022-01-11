@@ -1,0 +1,7 @@
+#
+# /etc/pam.d/groupadd - "groupadd" configuration for Linux-PAM
+#
+
+auth     sufficient  pam_rootok.so
+auth     include     common-auth
+account  include     common-account

@@ -1,5 +1,0 @@
-## SECTION=hosttools_noprompt
-
-config HOST_LIBKMOD
-	tristate
-	default y if ALLYES

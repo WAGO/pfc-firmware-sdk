@@ -184,11 +184,7 @@ endif
 	@$(call install_alternative, lighttpd, 0, 0, 0600, \
 		/etc/lighttpd/mime_types.conf)
 	@$(call install_alternative, lighttpd, 0, 0, 0600, \
-		/etc/lighttpd/mode_off.conf)
-	@$(call install_alternative, lighttpd, 0, 0, 0600, \
-		/etc/lighttpd/tls-standard.conf)
-	@$(call install_alternative, lighttpd, 0, 0, 0600, \
-		/etc/lighttpd/mode_http.conf)
+		/etc/lighttpd/tls-extended-compatibility.conf)
 	@$(call install_alternative, lighttpd, 0, 0, 0600, \
 		/etc/lighttpd/mod_fastcgi.conf)
 	@$(call install_alternative, lighttpd, 0, 0, 0600, \
@@ -223,19 +219,11 @@ ifdef PTXCONF_LIGHTTPD_INSTALL_CONF_LINK_HTTPS_STRONG
 	@$(call install_link, lighttpd, tls-strong.conf, \
 		/etc/lighttpd/tls.conf)
 else
-	@$(call install_link, lighttpd, tls-standard.conf, \
+	@$(call install_link, lighttpd, tls-extended-compatibility.conf, \
 		/etc/lighttpd/tls.conf)
 endif
 
 endif # PTXCONF_LIGHTTPD_HTTPS
-
-#	#
-#	# Default mode (http)
-#	#
-ifdef PTXCONF_LIGHTTPD_INSTALL_CONF_LINK_HTTP
-	@$(call install_link, lighttpd, mode_http.conf, \
-		/etc/lighttpd/mode.conf)
-endif
 
 #	#
 #	# Certificates and keys
@@ -272,12 +260,6 @@ endif
 
 	@$(call install_link, lighttpd, redirect_wbm.conf, \
 		/etc/lighttpd/redirect_default.conf)
-
-#	#
-#	# WBM user database
-#	#
-	@$(call install_alternative, lighttpd, 0, 102, 0640, \
-		/etc/lighttpd/lighttpd-htpasswd.user)
 
 #	#
 #	# busybox init: start script

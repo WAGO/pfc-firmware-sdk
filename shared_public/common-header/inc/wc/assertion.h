@@ -23,6 +23,7 @@
 //------------------------------------------------------------------------------
 #include "wc/compiler.h"
 #include "wc/preprocessing.h"
+#include "wc/structuring.h"
 
 //------------------------------------------------------------------------------
 // defines; structure, enumeration and type definitions
@@ -50,8 +51,8 @@
 #define WC_FAIL_SOURCE_FUNC "[unknown function]"
 #define WC_FAIL_SOURCE_LINE (0)
 #else
-#define WC_FAIL_SOURCE_FILE (__FILE__)
-#define WC_FAIL_SOURCE_FUNC (__func__)
+#define WC_FAIL_SOURCE_FILE (WC_ARRAY_TO_PTR(__FILE__))
+#define WC_FAIL_SOURCE_FUNC (WC_ARRAY_TO_PTR(__func__))
 #define WC_FAIL_SOURCE_LINE (__LINE__)
 #endif
 
@@ -77,10 +78,10 @@ extern "C"
   /// \param line
   ///   Line number of failure source in source file.
   //------------------------------------------------------------------------------
-  void wc_Fail(char const * const szReason,
-               char const * const szFile,
-               char const * const szFunction,
-               int const line);
+  void wc_Fail(char const *szReason,
+               char const *szFile,
+               char const *szFunction,
+               int         line);
 
 #ifdef __cplusplus
 } // extern "C"
@@ -161,8 +162,13 @@ extern "C"
 //                                     disallowed definition for macro
 //lint -estring(961, WC_ASSERT_RETURN) to disable Rule 19.7 it is necessary to disable all 961 messages,
 //                                     function-like macro defined
+#ifndef NDEBUG
 #define WC_ASSERT_RETURN(e, result) \
-  WC_ASSERT(#e); if(!(e)) return (result) //lint -e 506 Constant value Boolean
+  (e) ? (void)0 : WC_FAIL(WC_ASSERT_PREFIX #e); if(!(e)) return (result) //lint -e 506 Constant value Boolean
+#else // NDEBUG
+/// Release version of assert only returning error value
+#define WC_ASSERT_RETURN(e, result) if(!(e)) return (result) //lint -e 506 Constant value Boolean
+#endif // NDEBUG
 
 
 /// \def WC_FAIL(reason)

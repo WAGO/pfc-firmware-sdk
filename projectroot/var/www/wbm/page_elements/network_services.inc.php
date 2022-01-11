@@ -15,9 +15,6 @@
 
     <div id="network_services_interface_state_area">
 
-      <h3>Telnet</h3>
-      <div id="telnet_service_config_area"></div>
-
       <h3>FTP</h3>
       <div id="ftp_service_config_area"></div>
 

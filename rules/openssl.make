@@ -4,8 +4,6 @@
 #               2003-2008 by Pengutronix e.K., Hildesheim, Germany
 #		2009 by Marc Kleine-Budde <mkl@pengutronix.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -18,10 +16,10 @@ PACKAGES-$(PTXCONF_OPENSSL) += openssl
 #
 # Paths and names
 #
-OPENSSL_BASE	:= 1.0.2
-OPENSSL_BUGFIX	:= u
+OPENSSL_BASE	:= 1.1.1
+OPENSSL_BUGFIX	:= l
 OPENSSL_VERSION	:= $(OPENSSL_BASE)$(OPENSSL_BUGFIX)
-OPENSSL_MD5	:= cdc2638f789ecc2db2c91488265686c1
+OPENSSL_MD5	:= ac0d4387f3ba0ad741b0580dd45f6ff3
 OPENSSL		:= openssl-$(OPENSSL_VERSION)
 OPENSSL_SUFFIX	:= tar.gz
 OPENSSL_URL	:= \
@@ -37,28 +35,22 @@ OPENSSL_LICENSE	:= OpenSSL
 
 OPENSSL_CONF_ENV	:= $(CROSS_ENV)
 
-OPENSSL_ARCH-$(PTXCONF_ARCH_X86_I386)	+= debian-i386
-OPENSSL_ARCH-$(PTXCONF_ARCH_X86_I486)	+= debian-i386-i486
-OPENSSL_ARCH-$(PTXCONF_ARCH_X86_I586)	+= debian-i386-i586
-OPENSSL_ARCH-$(PTXCONF_ARCH_X86_I686)	+= debian-i386-i686/cmov
-OPENSSL_ARCH-$(PTXCONF_ARCH_X86_P2)	+= debian-i386-i686/cmov
-OPENSSL_ARCH-$(PTXCONF_ARCH_X86_P3M)	+= debian-i386-i686/cmov
-OPENSSL_ARCH-$(PTXCONF_ARCH_X86_64)	+= debian-amd64
-OPENSSL_ARCH-$(PTXCONF_ARCH_M68K)	+= debian-m68k
-OPENSSL_ARCH-$(PTXCONF_ARCH_PPC)	+= debian-powerpc
-OPENSSL_ARCH-$(PTXCONF_ARCH_SPARC)	+= debian-sparc
-OPENSSL_ARCH-$(PTXCONF_ARCH_ARM64)	+= debian-arm64
+OPENSSL_ARCH-$(PTXCONF_ARCH_X86)	:= debian-i386
+OPENSSL_ARCH-$(PTXCONF_ARCH_X86_64)	:= debian-amd64
+OPENSSL_ARCH-$(PTXCONF_ARCH_M68K)	:= debian-m68k
+OPENSSL_ARCH-$(PTXCONF_ARCH_PPC)	:= debian-powerpc
+OPENSSL_ARCH-$(PTXCONF_ARCH_SPARC)	:= debian-sparc
+OPENSSL_ARCH-$(PTXCONF_ARCH_ARM64)	:= debian-arm64
 
 ifdef PTXCONF_ENDIAN_LITTLE
-OPENSSL_ARCH-$(PTXCONF_ARCH_ARM)	+= debian-armel
-OPENSSL_ARCH-$(PTXCONF_ARCH_MIPS)	+= debian-mipsel
-OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH3)	+= debian-sh3
-OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH4)	+= debian-sh4
+OPENSSL_ARCH-$(PTXCONF_ARCH_ARM)	:= debian-armel
+OPENSSL_ARCH-$(PTXCONF_ARCH_MIPS)	:= debian-mipsel
+OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH3)	:= debian-sh3
+OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH4)	:= debian-sh4
 else
-OPENSSL_ARCH-$(PTXCONF_ARCH_ARM)	+= debian-armeb
-OPENSSL_ARCH-$(PTXCONF_ARCH_MIPS)	+= debian-mips
-OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH3)	+= debian-sh3eb
-OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH4)	+= debian-sh4eb
+OPENSSL_ARCH-$(PTXCONF_ARCH_MIPS)	:= debian-mips
+OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH3)	:= debian-sh3eb
+OPENSSL_ARCH-$(PTXCONF_ARCH_SH_SH4)	:= debian-sh4eb
 endif
 
 ifdef PTXCONF_OPENSSL
@@ -73,12 +65,20 @@ endif
 #
 OPENSSL_CONF_OPT := \
 	--prefix=/usr \
+	--libdir=/usr/lib \
 	--openssldir=/usr/lib/ssl \
-	--install_prefix=$(OPENSSL_PKGDIR) \
-	shared
+	shared \
+	$(call ptx/ifdef, PTXCONF_OPENSSL_CRYPTODEV, enable-devcryptoeng, no-devcryptoeng) \
+	no-idea \
+	no-mdc2 \
+	no-rc5 \
+	no-zlib \
+	no-ssl3 \
+	no-ssl3-method
 
 OPENSSL_INSTALL_OPT := \
-	install_sw
+	install_sw \
+	install_ssldirs
 
 $(STATEDIR)/openssl.prepare:
 	@$(call targetinfo)

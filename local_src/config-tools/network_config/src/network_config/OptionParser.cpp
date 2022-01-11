@@ -196,7 +196,8 @@ po::options_description OptionParser::CreateDescriptions() const {
     (options_.quiet.name, options_.quiet.description)
     (options_.error_msg_dst.name,
      po::value<::std::string>()->value_name(options_.error_msg_dst.parameter),
-     options_.error_msg_dst.description);
+     options_.error_msg_dst.description)
+    (options_.dryrun.name, options_.dryrun.description);
   // @formatter:on
 
   options.add(operations).add(fields).add(formats).add(misc);

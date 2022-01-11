@@ -3,7 +3,7 @@
 config DRM
 	bool
 	select OPENSSL
-	select FUSE
+	select FUSE3
 	select TYPELABEL
 	select HOST_CT_BUILD
 	select GOOGLETEST
@@ -11,3 +11,4 @@ config DRM
 	prompt "DRM"
 	help
 	  Digital Rights Management
+

@@ -7,7 +7,7 @@
 # Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
 
 #
-# Firewall: opcua-server events handler
+# Firewall: opcua events handler
 #
 
 enabled=$(/etc/config-tools/firewall firewall --is-enabled)
@@ -16,13 +16,23 @@ enabled=$(/etc/config-tools/firewall firewall --is-enabled)
 
 start()
 {
-    running=$(/etc/config-tools/config-opcua --get=\"state\")
-    if [ "{\"state\":\"enable\"}" == "$running" ] ; then
-        action="up"
+    local state=""
+    
+    # cds3 opcua running state
+    if [[ -f "/etc/config-tools/config_opcua" ]]; then
+        state=$(/etc/config-tools/config_opcua state)
+    fi
+    
+    # wago opcua running state
+    if [[ -f "/etc/config-tools/config-opcua" ]]; then
+        state=$(/etc/config-tools/config-opcua --get=\"state\")
+    fi
 
+    # check state
+    if [ "{\"state\":\"enable\"}" == "$state" ] || [ "enabled" == "$state" ]; then
+        action="up"
     else
         action="down"
-
     fi
 
     /etc/config-tools/firewall opcua --apply ${action} >/dev/null 2>&1

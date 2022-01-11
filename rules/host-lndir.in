@@ -1,0 +1,6 @@
+## SECTION=hosttools_noprompt
+
+config HOST_LNDIR
+	bool
+	default y
+	select HOST_XORGPROTO

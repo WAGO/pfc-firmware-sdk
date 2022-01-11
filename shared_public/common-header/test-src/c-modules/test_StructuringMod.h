@@ -45,6 +45,8 @@ extern "C"
   size_t GetSizeOfMemberMacroC(void);
   size_t GetSizeOfElementPlainC(void);
   size_t GetSizeOfElementMacroC(void);
+  int  * GetArrayPointerPlainC(int array[]);
+  int  * GetArrayPointerMacroC(int array[]);
   void * GetContainerAddressPlainC(void);
   void * GetContainerAddressMacroC(void);
   void const * GetContainerAddressReadonlyPlainC(void);

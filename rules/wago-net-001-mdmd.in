@@ -9,7 +9,7 @@ config MDMD
 	select LED_SERVER_META
 	select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
 	select GLIB
-	select FUSE
+	select FUSE3
 	select TYPELABEL
 	select CT_WWAN_INTERFACE
 	select LIBOSLINUX

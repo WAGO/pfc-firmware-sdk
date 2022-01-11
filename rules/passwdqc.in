@@ -1,0 +1,49 @@
+## SECTION=shell_and_console
+
+menuconfig PASSWDQC
+	select LIBC_CRYPT
+	select PAM          if PASSWDQC_PAM_PASSWDQC
+	tristate
+	prompt "passwdqc"
+	help
+	  FIXME
+
+if PASSWDQC
+
+config PASSWDQC_PWDQC_CONF
+	depends on PASSWDQC_PWQCHECK || PASSWDQC_PWQFILTER || PASSWDQC_PWQCGEN
+	bool
+	default n
+	prompt "install /etc/passwdqc.conf"
+	help
+	  FIXME
+
+config PASSWDQC_PWQCHECK
+	bool
+	default n
+	prompt "pwqcheck"
+	help
+	  FIXME
+
+config PASSWDQC_PWQFILTER
+	bool
+	default n
+	prompt "pwqfilter"
+	help
+	  FIXME
+
+config PASSWDQC_PWQGEN
+	bool
+	default n
+	prompt "pwqgen"
+	help
+	  FIXME
+
+config PASSWDQC_PAM_PASSWDQC
+	bool
+	default n
+	prompt "install pam_passwdqc"
+	help
+	  FIXME
+
+endif # if PASSWDQC

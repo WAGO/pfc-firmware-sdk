@@ -21,8 +21,9 @@ config WBM_NG
 	default n
 	prompt "Base WBM"
 
-	depends on LIGHTTPD
-	depends on PHP5 || PHP7
+	select LIGHTTPD
+	select PHP7
+	select PHP_PAM
 
 	help
 	 "Modular Web-based-Management"

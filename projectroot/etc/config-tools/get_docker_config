@@ -1,0 +1,77 @@
+#!/bin/bash
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+
+#-----------------------------------------------------------------------------#
+# Script-name: get_docker_config
+#
+# Config Tools: Get docker settings.
+#
+# Author: WAGO Kontakttechnik GmbH & Co.KG
+#-----------------------------------------------------------------------------#
+
+. /etc/config-tools/config_tool_lib
+
+
+#--------------------------------------------------------------------
+# help text (requested with specified parameter).
+#--------------------------------------------------------------------
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo
+    echo "* Get docker settings *"
+    echo
+	  echo "Usage: get_docker_config -h, --help or"
+	  echo "       get_docker_config <<argument>>"
+	  echo
+	  echo "-h --help            Prints this help"
+	  echo
+	  echo "The config-tool can be called with the following arguments:"
+    echo
+    echo "install-status       Returns \"installed\" or \"not installed\""
+    echo "activation-status    Returns \"active\" or \"inactive\""
+    echo
+    exit $SUCCESS
+fi
+
+#--------------------------------------------------------------------
+# functions
+#--------------------------------------------------------------------
+
+get_docker_install_status() {
+    if docker -v > /dev/null 2>&1; then
+        printf "installed"
+    else
+        printf "not installed"
+    fi
+}
+
+get_docker_activation_status() {
+    if [ -f /etc/init.d/dockerd ]; then
+        if pidof dockerd > /dev/null 2>&1; then
+            printf "active"
+        else
+            printf "inactive"
+        fi
+    else
+        printf "inactive"
+    fi
+}
+
+#--------------------------------------------------------------------
+# main
+#--------------------------------------------------------------------
+
+status=$SUCCESS
+if [ "$1" = "install-status" ]; then
+    get_docker_install_status
+elif [ "$1" = "activation-status" ]; then
+    get_docker_activation_status
+else
+    SetLastError "Invalid input parameter ($1)"
+    status=$INVALID_PARAMETER
+fi
+
+exit $status

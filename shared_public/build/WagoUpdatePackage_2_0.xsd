@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+  <xs:element name="FirmwareUpdateFile">
+    <xs:annotation>
+      <xs:documentation xml:lang="de">
+        Ist das Root-Element der Informationsdatei "package-info.xml", die fester Bestandteil eines WAGO Update Packages (WUP) ist. Der Name der Informationsdatei "package-info.xml" ist verbindlich für ein WUP festgelegt.
+        Ein WUP ist ein ZIP-Kontainer der die Firmware eines Gerätes repräsentiert. Er enthält die Informationsdatei und eine oder mehrere Dateien mit der eigentlichen Gerätefirmware.
+        Die Informationsdatei beschreibt den Aufbau des Kontainers und liefert zusätzliche Informationen zu welchen Geräten und Gerätefirmwareversionen ein WUP kompatibel ist. 
+        Ein WUP definiert exakt eine Firmwareversion. Es ist das Eingangsformat für einen Update Client, über den ein Firmwareupdate auf ein Gerät durchgeführt wird.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="FirmwareDescription"/>
+        <xs:element ref="ArticleList"/>
+        <xs:element ref="GroupList"/>
+      </xs:sequence>
+      <xs:attribute name="StructureVersion" type="xs:string" use="required" fixed="2.0">
+        <xs:annotation>
+          <xs:documentation>
+            Versioniert die Struktur der Informationsdatei. Die Struktur ist über diese Schema-Datei festgelegt. Damit ist die StructureVersion gleich der Version dieses Schemas. Die Schema-Version ist Teil des Namens der Schemadatei. Die StructureVersion ist produktlinienübergreifend verbindlich festgelegt.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute name="Revision" type="xs:positiveInteger" use="required">
+        <xs:annotation>
+          <xs:documentation>Versioniert die Änderungen an den Zusatzinformationen zu einer Firmwareversion. Die Revision muss z. B. erhöht werden, wenn die Artikelliste (ArticleList) oder sich die Kompatibilitätseinträge verändern, die Firmwaredateien jedoch gleich bleiben.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FirmwareDescription">
+    <xs:annotation>
+      <xs:documentation>Beschreibt die Version und die Bestandteile, die eine Firmwareversion ausmacht.</xs:documentation>
+    </xs:annotation>  
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="AssociatedFiles"/>
+      </xs:sequence>
+      <xs:attribute name="Revision" type="FirmwareRevisionType" use="required">
+        <xs:annotation>
+          <xs:documentation>
+            Beinhaltet die ersten drei Stellen der Version einer Firmware. Diese vollständige Firmwareversion (Revision und ReleaseIndex) kann direkt aus dem Gerät ausgelesen werden und dient als Grundlage für Kompatibilitätsprüfungen.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute name="ReleaseIndex" type="ReleaseIndexType" use="required">
+        <xs:annotation>
+          <xs:documentation>
+            Wert, der in der bei WAGO üblichen Schreibweise für eine vollständige Firmwareversion in Klammern steht.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="AssociatedFiles">
+    <xs:annotation>
+      <xs:documentation>Ist das Root-Element unter dem die Dateien, die zu einer Firmwarversion gehören, aufgelistet sind.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="File" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="File">
+    <xs:annotation>
+      <xs:documentation>Beschreibt eine einzelne Firmwaredatei näher.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="RefID" type="RefIDType" use="required">
+        <xs:annotation>
+          <xs:documentation>Eindeutige Kennzeichnung einer Datei innerhalb der Liste "AssociatedFiles".</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute name="Type" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Beschreibt den Typ einer Firmwaredatei. Beispiele für Typen sind "hex" oder "rauc"  </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute name="Name" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Name der Firmwaredatei.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="ArticleList">
+    <xs:annotation>
+      <xs:documentation>Ist das Root-Element für die Liste der Geräte für die das WUP gilt</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Article" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Article">
+    <xs:annotation>
+      <xs:documentation>Beschreibt ein einzelnes Gerät, dessen Firmware mit diesem WUP ersetzt werden kann.</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="OrderNo" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Ist die lange WAGO Artikelnummer, kennzeichnet darüber Geräte und Gerätevarianten</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute name="GroupRef" type="xs:string" use="required">
+        <xs:annotation>
+          <xs:documentation>Referenz auf die Artikelgruppe, die die für diese Variante notwendigen Kompatibilitätsinformationen enthält.</xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="GroupList">
+    <xs:annotation>
+      <xs:documentation>
+        Ist das Root-Element für Gruppen. Gruppen fassen gleichartige Kompatibilitätsinformationen zusammen.
+        Ein Zusammenfassen zu Gruppen vermeidet ein Aufführen derselben Informationen für jeden einzelnen Artikel.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Group" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Group">
+    <xs:annotation>
+      <xs:documentation>
+        Beschreibt eine Gruppe mit Kompatibilitätsinformationen zu einem Firmware-Upgrade und einem Firmware-Downgrade.
+        Eine Gruppe wird über die RefID mit einem Artikel verbunden. 
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Upgrade" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="Downgrade" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+      <xs:attribute name="RefID" type="RefIDType" use="required">
+        <xs:annotation>
+          <xs:documentation>
+            Eindeutige Kennung für eine Gruppe. Über diese Kennung stellt ein "Article" die Verbindung zu einer Gruppe her.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Upgrade">
+    <xs:annotation>
+      <xs:documentation>
+        Legt die Kompatibilitätsinformationen für ein Upgrade fest. "Upgrade" beinhaltet eine Liste von Versionsinformationen ("VersionList").
+        Es handelt sich um ein Upgrade, wenn die aus dem Gerät ausgelesene Version kleiner als die Zielversion im WUP ist.
+        Die Zielversion ist durch die Attribute "Revision" und "ReleaseIndex" im Element "FirmwareDescription" festgelegt. 
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="VersionList" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="VersionList">
+    <xs:annotation>
+      <xs:documentation>
+        Ist das Root-Element für eine beliebige Anzahl von "VersionRange"-Elementen, die die eigentlichen Versionsinformationen für ein Upgrade oder Downgrade enthalten.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="VersionRange" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="VersionRange">
+    <xs:annotation>
+      <xs:documentation>
+        Beschreibt einen Bereich von Versionen, die untereinander bezüglich eines Upgrades bzw. Downgrade dieselben Eigenschaften haben.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="SoftwareRevision" type="SoftwareRevisionType" use="optional" default="0.0.0-99.99.99">
+        <xs:annotation>
+          <xs:documentation>
+            Beschreibt den Bereich der kompatiblen Revisionen.
+            Ist das Attribut nicht vorhanden, so wird ein Bereich „00.00.00-99.99.99“ (=immer kompatibel) angenommen.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+
+      <xs:attribute name="HardwareReleaseIndex" type="HardwareReleaseIndexType" use="optional" default="00-99">
+        <xs:annotation>
+          <xs:documentation>
+            Kennzeichnet die zugrunde liegende Hardware.
+            Ist das Attribut nicht vorhanden, so wird „00-99“ (=immer kompatibel) angenommen. In diesem Fall findet keine weitere Auswertung im Client statt. Der HardwareReleaseIndex wird dann nicht aus dem Gerät gelesen.
+            Ist das Attribut vorhanden wertet der Client den Wert entsprechend aus. Dazu muss der HardwareReleaseIndex zwingend aus dem Gerät ausgelesen werden können.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Downgrade">
+    <xs:annotation>
+      <xs:documentation>
+        Ein "Downgrade" ist formal genauso beschrieben wie ein "Upgrade".
+        Es handelt sich um ein Downgrade, wenn die aus dem Gerät ausgelesene Version größer als die Zielversion im WUP ist.
+        Die VersionList enthält alle Versionen, zu denen ein Downgrade möglich ist.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="VersionList" minOccurs="1" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="FirmwareRevisionType">
+    <xs:annotation>
+      <xs:documentation>
+        Definiert die ersten drei Stellen der Version einer Firmware. Zusammen mit dem ReleaseIndex ergibt sich die vollständige Version einer Firmwareversion.
+        Die bei WAGO übliche Schreibweise für eine vollständige Firmwareversion ist 99.99.99(99), wobei jede 9 für eine beliebige Ziffer steht und der ReleseIndex in Klammern steht.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{1,2}.\d{1,2}.\d{1,2}" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ReleaseIndexType">
+    <xs:annotation>
+      <xs:documentation>Der ReleaseÍndex ist als zweistellige Ziffernfolge definiert (00-99).</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{2}" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="RefIDType">
+    <xs:annotation>
+      <xs:documentation>Mindesten ein Zeichen lange, eindeutige Kennung.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="SoftwareRevisionType">
+    <xs:annotation>
+      <xs:documentation>
+        Definiert den Bereich für die Revision, also der ersten 3 Stellen einer Firmwareversion (vgl. FirmwareDescription)
+        Das Format ist wie folgt definiert: [MM.mm.ff | MM.mm.ff-MM.mm.ff]
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{1,2}.\d{1,2}.\d{1,2}|\d{1,2}.\d{1,2}.\d{1,2}-\d{1,2}.\d{1,2}.\d{1,2}" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="HardwareReleaseIndexType">
+    <xs:annotation>
+      <xs:documentation>
+        Definiert die zugrunde liegende Hardware.
+        Das Format ist wie folgt definiert: [RI | RI-RI]
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{1,2}|\d{1,2}-\d{1,2}" />
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

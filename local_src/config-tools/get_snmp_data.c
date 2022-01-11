@@ -11,7 +11,7 @@
 ///
 ///  \file     get_snmp_data
 ///
-///  \version  $Revision: 16995 $1
+///  \version  $Revision: 59796 $1
 ///
 ///  \brief    
 ///
@@ -194,7 +194,7 @@ int GetSnmpConfParameter(char* pacParameterName,
   }
 
   // initialise output-string
-  sprintf(pacParameterValue, "");
+  pacParameterValue[0] = '\0';
   //printf("pacParameterName:%s\n", pacParameterName);
 
   // get partitions (only _without_ partition numbers from /proc/partitions
@@ -217,7 +217,7 @@ int GetSnmpConfParameter(char* pacParameterName,
 
       if(NULL != (pacFoundString = strstr(acSnmpConfLine, pacParameterName)))
       {
-        if(pacFoundString = GetNextWord(pacFoundString))
+        if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
         {
           CutLine(pacFoundString, sizeof(acSnmpConfLine));
           strncpy(pacParameterValue, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
@@ -240,6 +240,8 @@ int GetSnmpConfParameter(char* pacParameterName,
 int GetDeviceName(char* pacDummy,
                   char* pacParameterValue)
 {
+  UNUSED_PARAMETER(pacDummy);
+
   return(GetSnmpConfParameter("sysName", pacParameterValue));
 }
 
@@ -247,6 +249,8 @@ int GetDeviceName(char* pacDummy,
 int GetDescription(char* pacDummy,
                    char* pacParameterValue)
 {
+  UNUSED_PARAMETER(pacDummy);
+
   return(GetSnmpConfParameter("sysDescr", pacParameterValue));
 }
 
@@ -254,6 +258,8 @@ int GetDescription(char* pacDummy,
 int GetPhysicalLocation(char* pacDummy,
                         char* pacParameterValue)
 {
+  UNUSED_PARAMETER(pacDummy);
+
   return(GetSnmpConfParameter("sysLocation", pacParameterValue));
 }
 
@@ -261,12 +267,16 @@ int GetPhysicalLocation(char* pacDummy,
 int GetContact(char* pacDummy,
                char* pacParameterValue)
 {
+  UNUSED_PARAMETER(pacDummy);
+
   return(GetSnmpConfParameter("sysContact", pacParameterValue));
 }
 
 int GetObjectID(char* pacDummy,
                 char* pacParameterValue)
 {
+  UNUSED_PARAMETER(pacDummy);
+
   return(GetSnmpConfParameter("sysObjectID", pacParameterValue));
 }
 
@@ -344,6 +354,8 @@ int GetV1V2cCommunityName(char* pacDummy,
 // so we ignore such lines.
 //
 {
+  UNUSED_PARAMETER(pacDummy);
+
   char  acGrepCommand[MAX_LENGTH_OUTPUT_LINE] = "";
   char* pacGrepResult  = NULL;
   int   status                = NOT_FOUND;
@@ -355,7 +367,7 @@ int GetV1V2cCommunityName(char* pacDummy,
   }
 
   // initialise output-string
-  sprintf(pacParameterValue, "");
+  pacParameterValue[0] = '\0';
 
   // define and execute grep command to search after line(s) with community name definition
   // - no command character in front of line, variable count of spaces between words:
@@ -384,7 +396,7 @@ int GetV1V2cCommunityName(char* pacDummy,
       if(NULL != (pacFoundString = strstr(acCommunityNameLine, "rwcommunity")))
       {
         // get start of next word (= community name), cut the rest of line after it
-        if(pacFoundString = GetNextWord(pacFoundString))
+        if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
         {
           CutWord(pacFoundString, sizeof(acCommunityNameLine));
           strncpy(pacParameterValue, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
@@ -411,6 +423,8 @@ int GetV1V2cState(char* pacDummy,
 // (should be equal in all lines, if more then one is existing).
 //
 {
+  UNUSED_PARAMETER(pacDummy);
+
   char  acCommunityName[MAX_LENGTH_OUTPUT_STRING] = "";
 
   // check input parameter
@@ -460,7 +474,7 @@ int GetV1V2cTrapReceiverLine(int    trapReceiverNo,
     if(SUCCESS == (status = SystemCall_GetLineByNr(pacGrepResult, trapReceiverNo, acTrapAddressLine)))
     {
       //printf("acTrapAddressLine:%s\n", acTrapAddressLine);
-      if(strlen(acTrapAddressLine) > (sizeofReceiverLine - 1))
+      if((int)strnlen(acTrapAddressLine, sizeof(acTrapAddressLine)) > (sizeofReceiverLine - 1))
       {
         status = INVALID_PARAMETER;
       }
@@ -492,7 +506,7 @@ int GetV1V2cTrapReceiverAddress(char* pacTrapReceiverNo,
   }
 
   // initialise output-string
-  sprintf(pacParameterValue, "");
+  pacParameterValue[0] = '\0';
 
   if(pacTrapReceiverNo)
   {
@@ -511,7 +525,7 @@ int GetV1V2cTrapReceiverAddress(char* pacTrapReceiverNo,
       if(NULL != (pacFoundString = strstr(acTrapReceiverLine, "sink")))
       {
         // get end of word "sink" and start of next (= ip address), cut the rest of line after it
-        if(pacFoundString = GetNextWord(pacFoundString))
+        if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
         {
           CutWord(pacFoundString, sizeof(acTrapReceiverLine));
           strncpy(pacParameterValue, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
@@ -538,7 +552,7 @@ int GetV1V2cTrapReceiverCommunityName(char* pacTrapReceiverNo,
   }
 
   // initialise output-string
-  sprintf(pacParameterValue, "");
+  pacParameterValue[0] = '\0';
 
   if(pacTrapReceiverNo)
   {
@@ -585,7 +599,7 @@ int GetV1V2cTrapReceiverVersion(char* pacTrapReceiverNo,
   }
 
   // initialise output-string
-  sprintf(pacParameterValue, "");
+  pacParameterValue[0] = '\0';
 
   if(pacTrapReceiverNo)
   {
@@ -646,7 +660,7 @@ int GetV3UserConfigLine(int    userNo,
     if(SUCCESS == (status = SystemCall_GetLineByNr(pacGrepResult, userNo, acV3UserLine)))
     {
       //printf("acTrapAddressLine:%s\n", acTrapAddressLine);
-      if(strlen(acV3UserLine) > (sizeofV3UserLine - 1))
+      if((int)strnlen(acV3UserLine, sizeof(acV3UserLine)) > (sizeofV3UserLine - 1))
       {
         status = INVALID_PARAMETER;
       }
@@ -677,7 +691,7 @@ int GetV3AuthName(char* pacUserNo,
   }
 
   // initialize output-string
-  sprintf(pacAuthName, "");
+  pacAuthName[0] = '\0';
 
   if(pacUserNo)
   {
@@ -729,7 +743,7 @@ int GetV3AuthType(char* pacUserNo,
   }
 
   // initialize output-string
-  sprintf(pacAuthType, "");
+  pacAuthType[0] = '\0';
 
   if(pacUserNo)
   {
@@ -769,7 +783,7 @@ int GetV3AuthKey(char* pacUserNo,
   }
 
   // initialize output-string
-  sprintf(pacAuthKey, "");
+  pacAuthKey[0] = '\0';
 
   if(pacUserNo)
   {
@@ -798,7 +812,7 @@ int GetV3AuthKey(char* pacUserNo,
     {
       // ... search this string and jump behind it to next word (= auth key) - copy this to output variable
       char* pacFoundString = strstr(acV3UserLine, acLeadingString);
-      if(pacFoundString = GetNextWord(pacFoundString))
+      if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
       {
         CutWord(pacFoundString, MAX_LENGTH_OUTPUT_LINE);
         if(strcmp(pacFoundString, "DES") && strcmp(pacFoundString, "AES"))
@@ -827,7 +841,7 @@ int GetV3Privacy(char* pacUserNo,
   }
 
   // initialize output-string
-  sprintf(pacPrivacy, "");
+  pacPrivacy[0] = '\0';
 
   if(pacUserNo)
   {
@@ -866,7 +880,7 @@ int GetV3PrivacyKey(char* pacUserNo,
   }
 
   // initialize output-string
-  sprintf(pacPrivacyKey, "");
+  pacPrivacyKey[0] = '\0';
 
   if(pacUserNo)
   {
@@ -895,7 +909,7 @@ int GetV3PrivacyKey(char* pacUserNo,
       // ... search this string and jump behind it to next word (= privacy key) - copy this to output variable
       char* pacFoundString = strstr(acV3UserLine, acLeadingString);
       //printf("pacFoundString:%s\n", pacFoundString);
-      if(pacFoundString = GetNextWord(pacFoundString))
+      if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
       {
         //printf("GetNextWord pacFoundString:%s\n", pacFoundString);
         CutWord(pacFoundString, MAX_LENGTH_OUTPUT_LINE);
@@ -914,7 +928,6 @@ int GetV3NotificationReceiver(char* pacUserNo,
   int   status                                              = NOT_FOUND;
   int   userNo                                              = 1;
   //char  acV3UserLine[MAX_LENGTH_OUTPUT_LINE]  = "";
-  char  acNotificationReceiverLine[MAX_LENGTH_OUTPUT_LINE]  = "";
   char  acAuthName[MAX_LENGTH_OUTPUT_LINE]                  = "";
   char  acAuthType[MAX_LENGTH_OUTPUT_LINE]                  = "";
   char  acAuthKey[MAX_LENGTH_OUTPUT_LINE]                   = "";
@@ -926,7 +939,7 @@ int GetV3NotificationReceiver(char* pacUserNo,
   }
 
   // initialize output-string
-  sprintf(pacNotificationReceiver, "");
+  pacNotificationReceiver[0] = '\0';
 
   if(pacUserNo)
   {
@@ -938,14 +951,8 @@ int GetV3NotificationReceiver(char* pacUserNo,
      && (SUCCESS == (status = GetV3AuthType(pacUserNo, acAuthType)))
      && (SUCCESS == (status = GetV3AuthKey(pacUserNo, acAuthKey))) )
   {
-    char  acGrepCommand[MAX_LENGTH_OUTPUT_LINE]     = "";
+    char  acGrepCommand[2*MAX_LENGTH_OUTPUT_LINE]     = "";
     char* pacGrepResult                             = NULL;
-    char  acAuthTypeOption[MAX_LENGTH_OUTPUT_LINE]  = "";
-
-    if(strcmp(acAuthType, "none"))
-    {
-      sprintf(acAuthTypeOption, "-a %s", acAuthType);
-    }
 
     // define and execute grep command to search after line(s) with trap address definition
     // - no command character in front of line, variable count of spaces between words:
@@ -993,6 +1000,9 @@ int GetV3NotificationReceiver(char* pacUserNo,
 
 int GetV1V2cTrapReceiverListJson(char* pacDummyInput, char* pacDummyOutput)
 {
+  UNUSED_PARAMETER(pacDummyInput);
+  UNUSED_PARAMETER(pacDummyOutput);
+
   int status      = SUCCESS;
   int receiverNo  = 1;
 
@@ -1034,6 +1044,9 @@ int GetV1V2cTrapReceiverListJson(char* pacDummyInput, char* pacDummyOutput)
 
 int GetV3UserListJson(char* pacDummyInput, char* pacDummyOutput)
 {
+  UNUSED_PARAMETER(pacDummyInput);
+  UNUSED_PARAMETER(pacDummyOutput);
+
   int status      = SUCCESS;
   int userNo      = 1;
 

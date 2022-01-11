@@ -18,6 +18,7 @@ choice
 config BUSYBOX_SH_IS_ASH
 	depends on !BUSYBOX_NOMMU
 	bool "ash"
+	select BUSYBOX_SHELL_ASH
 	help
 	Choose ash to be the shell executed by 'sh' name.
 	The ash code will be built into busybox. If you don't select
@@ -26,6 +27,7 @@ config BUSYBOX_SH_IS_ASH
 
 config BUSYBOX_SH_IS_HUSH
 	bool "hush"
+	select BUSYBOX_SHELL_HUSH
 	help
 	Choose hush to be the shell executed by 'sh' name.
 	The hush code will be built into busybox. If you don't select
@@ -58,6 +60,7 @@ choice
 config BUSYBOX_BASH_IS_ASH
 	depends on !BUSYBOX_NOMMU
 	bool "ash"
+	select BUSYBOX_SHELL_ASH
 	help
 	Choose ash to be the shell executed by 'bash' name.
 	The ash code will be built into busybox. If you don't select
@@ -66,6 +69,7 @@ config BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_BASH_IS_HUSH
 	bool "hush"
+	select BUSYBOX_SHELL_HUSH
 	help
 	Choose hush to be the shell executed by 'bash' name.
 	The hush code will be built into busybox. If you don't select
@@ -77,11 +81,15 @@ config BUSYBOX_BASH_IS_NONE
 
 endchoice
 
+config BUSYBOX_SHELL_ASH
+	bool #hidden option
+	depends on !NOMMU
 
 config BUSYBOX_ASH
 	bool "ash (78 kb)"
 	default y
 	depends on !BUSYBOX_NOMMU
+	select BUSYBOX_SHELL_ASH
 	help
 	The most complete and most pedantically correct shell included with
 	busybox. This shell is actually a derivative of the Debian 'dash'
@@ -91,17 +99,17 @@ config BUSYBOX_ASH
 # ash options
 # note: Don't remove !NOMMU part in the next line; it would break
 # menuconfig's indenting.
-if !BUSYBOX_NOMMU && (BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH)
+if !BUSYBOX_NOMMU && (BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH)
 
 config BUSYBOX_ASH_OPTIMIZE_FOR_SIZE
 	bool "Optimize for size instead of speed"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_INTERNAL_GLOB
 	bool "Use internal glob() implementation"
 	default y	# Y is bigger, but because of uclibc glob() bug, let Y be default for now
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 	help
 	Do not use glob() function from libc, use internal implementation.
 	Use this if you are getting "glob.h: No such file or directory"
@@ -112,7 +120,7 @@ config BUSYBOX_ASH_INTERNAL_GLOB
 config BUSYBOX_ASH_BASH_COMPAT
 	bool "bash-compatible extensions"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_BASH_SOURCE_CURDIR
 	bool "'source' and '.' builtins search current directory after $PATH"
@@ -133,17 +141,17 @@ config BUSYBOX_ASH_BASH_NOT_FOUND_HOOK
 config BUSYBOX_ASH_JOB_CONTROL
 	bool "Job control"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_ALIAS
 	bool "Alias support"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_RANDOM_SUPPORT
 	bool "Pseudorandom generator and $RANDOM variable"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 	help
 	Enable pseudorandom generator and dynamic variable "$RANDOM".
 	Each read of "$RANDOM" will generate a new pseudorandom value.
@@ -154,7 +162,7 @@ config BUSYBOX_ASH_RANDOM_SUPPORT
 config BUSYBOX_ASH_EXPAND_PRMT
 	bool "Expand prompt string"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 	help
 	$PS# may contain volatile content, such as backquote commands.
 	This option recreates the prompt string from the environment
@@ -163,14 +171,14 @@ config BUSYBOX_ASH_EXPAND_PRMT
 config BUSYBOX_ASH_IDLE_TIMEOUT
 	bool "Idle timeout variable $TMOUT"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 	help
 	Enable bash-like auto-logout after $TMOUT seconds of idle time.
 
 config BUSYBOX_ASH_MAIL
 	bool "Check for new mail in interactive shell"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 	help
 	Enable "check for new mail" function:
 	if set, $BUSYBOX_MAIL file and $BUSYBOX_MAILPATH list of files
@@ -180,32 +188,32 @@ config BUSYBOX_ASH_MAIL
 config BUSYBOX_ASH_ECHO
 	bool "echo builtin"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_PRINTF
 	bool "printf builtin"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_TEST
 	bool "test builtin"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_HELP
 	bool "help builtin"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_GETOPTS
 	bool "getopts builtin"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 
 config BUSYBOX_ASH_CMDCMD
 	bool "command builtin"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH
 	help
 	Enable support for the 'command' builtin, which allows
 	you to run the specified command or builtin,
@@ -258,6 +266,7 @@ config BUSYBOX_CTTYHACK
 config BUSYBOX_HUSH
 	bool "hush (68 kb)"
 	default y
+	select BUSYBOX_SHELL_HUSH
 	help
 	hush is a small shell. It handles the normal flow control
 	constructs such as if/then/elif/else/fi, for/in/do/done, while loops,
@@ -269,10 +278,18 @@ config BUSYBOX_HUSH
 	It does not handle select, aliases, tilde expansion,
 	&>file and >&file redirection of stdout+stderr.
 
+config BUSYBOX_SHELL_HUSH
+	bool "Internal shell for embedded script support"
+	default n
+
+# hush options
+# It's only needed to get "nice" menuconfig indenting.
+if BUSYBOX_SHELL_HUSH || BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+
 config BUSYBOX_HUSH_BASH_COMPAT
 	bool "bash-compatible extensions"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_BRACE_EXPANSION
 	bool "Brace expansion"
@@ -293,10 +310,15 @@ config BUSYBOX_HUSH_BASH_SOURCE_CURDIR
 	help
 	This is not compliant with standards. Avoid if possible.
 
+config BUSYBOX_HUSH_LINENO_VAR
+	bool "$LINENO variable (bashism)"
+	default y
+	depends on BUSYBOX_SHELL_HUSH
+
 config BUSYBOX_HUSH_INTERACTIVE
 	bool "Interactive mode"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable interactive mode (prompt and command editing).
 	Without this, hush simply reads and executes commands
@@ -322,31 +344,31 @@ config BUSYBOX_HUSH_JOB
 config BUSYBOX_HUSH_TICK
 	bool "Support command substitution"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable `command` and $(command).
 
 config BUSYBOX_HUSH_IF
 	bool "Support if/then/elif/else/fi"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_LOOPS
 	bool "Support for, while and until loops"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_CASE
 	bool "Support case ... esac statement"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable case ... esac statement. +400 bytes.
 
 config BUSYBOX_HUSH_FUNCTIONS
 	bool "Support funcname() { commands; } syntax"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable support for shell functions. +800 bytes.
 
@@ -360,7 +382,7 @@ config BUSYBOX_HUSH_LOCAL
 config BUSYBOX_HUSH_RANDOM_SUPPORT
 	bool "Pseudorandom generator and $RANDOM variable"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable pseudorandom generator and dynamic variable "$RANDOM".
 	Each read of "$RANDOM" will generate a new pseudorandom value.
@@ -368,7 +390,7 @@ config BUSYBOX_HUSH_RANDOM_SUPPORT
 config BUSYBOX_HUSH_MODE_X
 	bool "Support 'hush -x' option and 'set -x' command"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	This instructs hush to print commands before execution.
 	Adds ~300 bytes.
@@ -376,27 +398,27 @@ config BUSYBOX_HUSH_MODE_X
 config BUSYBOX_HUSH_ECHO
 	bool "echo builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_PRINTF
 	bool "printf builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_TEST
 	bool "test builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_HELP
 	bool "help builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_EXPORT
 	bool "export builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_EXPORT_N
 	bool "Support 'export -n' option"
@@ -408,83 +430,85 @@ config BUSYBOX_HUSH_EXPORT_N
 config BUSYBOX_HUSH_READONLY
 	bool "readonly builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable support for read-only variables.
 
 config BUSYBOX_HUSH_KILL
 	bool "kill builtin (supports kill %jobspec)"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_WAIT
 	bool "wait builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_COMMAND
 	bool "command builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_TRAP
 	bool "trap builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_TYPE
 	bool "type builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_TIMES
 	bool "times builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_READ
 	bool "read builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_SET
 	bool "set builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_UNSET
 	bool "unset builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_ULIMIT
 	bool "ulimit builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_UMASK
 	bool "umask builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_GETOPTS
 	bool "getopts builtin"
 	default y
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_HUSH_MEMLEAK
 	bool "memleak builtin (debugging)"
 	default n
-	depends on BUSYBOX_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
+
+endif # hush options
 
 comment "Options common to all shells"
-if BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+if BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 
 config BUSYBOX_FEATURE_SH_MATH
 	bool "POSIX math support"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable math support in the shell via $((...)) syntax.
 
@@ -505,14 +529,14 @@ config BUSYBOX_FEATURE_SH_MATH_BASE
 config BUSYBOX_FEATURE_SH_EXTRA_QUIET
 	bool "Hide message on interactive shell startup"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Remove the busybox introduction when starting a shell.
 
 config BUSYBOX_FEATURE_SH_STANDALONE
 	bool "Standalone shell"
 	default n
-	depends on BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	This option causes busybox shells to use busybox applets
 	in preference to executables in the PATH whenever possible. For
@@ -533,7 +557,7 @@ config BUSYBOX_FEATURE_SH_STANDALONE
 config BUSYBOX_FEATURE_SH_NOFORK
 	bool "Run 'nofork' applets directly"
 	default n
-	depends on BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	This option causes busybox shells to not execute typical
 	fork/exec/wait sequence, but call <applet>_main directly,
@@ -551,14 +575,14 @@ config BUSYBOX_FEATURE_SH_NOFORK
 config BUSYBOX_FEATURE_SH_READ_FRAC
 	bool "read -t N.NNN support (+110 bytes)"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Enable support for fractional second timeout in read builtin.
 
 config BUSYBOX_FEATURE_SH_HISTFILESIZE
 	bool "Use $HISTFILESIZE"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	This option makes busybox shells to use $HISTFILESIZE variable
 	to set shell history size. Note that its max value is capped
@@ -567,7 +591,7 @@ config BUSYBOX_FEATURE_SH_HISTFILESIZE
 config BUSYBOX_FEATURE_SH_EMBEDDED_SCRIPTS
 	bool "Embed scripts in the binary"
 	default y
-	depends on BUSYBOX_ASH || BUSYBOX_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
+	depends on BUSYBOX_SHELL_ASH || BUSYBOX_SHELL_HUSH || BUSYBOX_SH_IS_ASH || BUSYBOX_BASH_IS_ASH || BUSYBOX_SH_IS_HUSH || BUSYBOX_BASH_IS_HUSH
 	help
 	Allow scripts to be compressed and embedded in the busybox
 	binary. The scripts should be placed in the 'embed' directory
