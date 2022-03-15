@@ -9,6 +9,6 @@ namespace netconf {
  * Touches a file.
  * The file will be created if necessary.
  */
-void TouchFile(::std::string path);
+void TouchFile(::std::string& path);
 
 }  // namespace netconf

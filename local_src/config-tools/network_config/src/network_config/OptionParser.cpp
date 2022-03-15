@@ -15,11 +15,10 @@ namespace po = boost::program_options;
 namespace network_config {
 
 OptionParser::OptionParser()
-    :
-    options_ { GetOptions() },
-    fields_ { GetFields() },
-    descriptions_ { CreateDescriptions() },
-    parsed_options_ { nullptr } {
+    : options_ { GetOptions() },
+      fields_ { GetFields() },
+      descriptions_ { CreateDescriptions() },
+      parsed_options_ { nullptr } {
 }
 
 template<typename T>
@@ -75,10 +74,7 @@ static void validate(boost::any &v, std::vector<std::string> const &values, Dupl
   });
 }
 
-static void ExpectValueOrField(
-    const po::variables_map &map,
-    const ::std::string &option,
-    const ::std::string &field) {
+static void ExpectValueOrField(const po::variables_map &map, const ::std::string &option, const ::std::string &field) {
   if (map.count(option) == 0) {
     return;
   }
@@ -110,7 +106,9 @@ po::options_description OptionParser::CreateDescriptions() const {
     )
     (options_.get_backup_parameter_count.name, options_.get_backup_parameter_count.description)
     (options_.dsa_mode.name, options_.dsa_mode.description)
-    (options_.fix_ip.name, options_.fix_ip.description);
+    (options_.fix_ip.name, options_.fix_ip.description)
+    (options_.dynamic_ip_event.name, options_.dynamic_ip_event.description)
+    (options_.reload_host_conf.name, options_.reload_host_conf.description);
 
   po::options_description operations("Operations");
   operations.add_options()
@@ -177,7 +175,10 @@ po::options_description OptionParser::CreateDescriptions() const {
       fields_.duplex.description)
     ( fields_.backup_version.name,
       po::value<::std::string>()->value_name(fields_.backup_version.parameter),
-      fields_.backup_version.description
+      fields_.backup_version.description)
+    ( fields_.action.name,
+      po::value<::std::string>()->value_name(fields_.action.parameter),
+      fields_.action.description
   );
 
   po::options_description formats("Format");
@@ -199,7 +200,6 @@ po::options_description OptionParser::CreateDescriptions() const {
      options_.error_msg_dst.description)
     (options_.dryrun.name, options_.dryrun.description);
   // @formatter:on
-
   options.add(operations).add(fields).add(formats).add(misc);
 
   return options;
@@ -211,11 +211,10 @@ void OptionParser::Parse(int argc, const char **argv) {
   po::store(parsed_options_, map_);
   po::notify(map_);
 
-  MutuallyExclusiveAndOnlyOnce(map_,
-      options_.bridge_config, options_.interface_config, options_.ip_config,
-      options_.dip_switch_config, options_.mac_address, options_.device_info,
-      options_.backup, options_.restore, options_.get_backup_parameter_count,
-      options_.dsa_mode, options_.fix_ip, options_.help);
+  MutuallyExclusiveAndOnlyOnce(map_, options_.bridge_config, options_.interface_config, options_.ip_config,
+                               options_.dip_switch_config, options_.mac_address, options_.device_info, options_.backup,
+                               options_.restore, options_.get_backup_parameter_count, options_.dsa_mode,
+                               options_.fix_ip, options_.dynamic_ip_event, options_.reload_host_conf, options_.help);
 
   OptionalAndMutuallyExclusive(map_, options_.error_msg_dst, options_.quiet);
 

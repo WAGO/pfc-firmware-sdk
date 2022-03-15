@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2018 by Oleg Karfich <oleg.karfich@wago.com>
+# Copyright (C) 2021 by MWW WAGO GmbH & Co.KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -71,7 +71,7 @@ $(STATEDIR)/docker.targetinstall:
 	@$(call install_init, docker)
 	@$(call install_fixup, docker,PRIORITY,optional)
 	@$(call install_fixup, docker,SECTION,base)
-	@$(call install_fixup, docker,AUTHOR,"Oleg Karfich <oleg.karfich@wago.com>")
+	@$(call install_fixup, docker,AUTHOR,"MWW <marius.warning@wago.com>")
 	@$(call install_fixup, docker,DESCRIPTION,"Docker daemon $(DOCKER_VERSION)")
 
 	@$(call install_copy, docker, 0, 0, 0755, $(DOCKER_DIR)/docker-binaries.tar.xz, /home/wago-docker/docker-binaries.tar.xz)
@@ -80,6 +80,7 @@ $(STATEDIR)/docker.targetinstall:
 
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/init.d/dockerd)
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/docker/daemon.json)
+	
 	@$(call install_alternative, docker, 0, 0, 0755, /etc/config-tools/events/firewall/iptables/docker)
 	@$(call install_alternative, docker, 0, 0, 0755, /opt/wago-docker/sbin/iptables)
 	

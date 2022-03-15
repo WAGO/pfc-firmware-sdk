@@ -13,7 +13,12 @@ struct LinkMode {
 
   LinkMode(){};
   LinkMode(int speed, Duplex duplex): speed_{speed}, duplex_{duplex}{};
-  ~LinkMode() = default;
+  virtual ~LinkMode() = default;
+  LinkMode(const LinkMode&) = default;
+
+  LinkMode& operator=(const LinkMode&) = delete;
+  LinkMode(LinkMode&&) = delete;
+  LinkMode& operator=(LinkMode&&) = delete;
 
   int speed_ = 0;
   Duplex duplex_ = Duplex::UNKNOWN;

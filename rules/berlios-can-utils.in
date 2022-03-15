@@ -1,0 +1,128 @@
+## SECTION=communication
+
+menuconfig BERLIOS_CAN_UTILS
+	tristate
+	prompt "berlios-can-utils             "
+	help
+	  The can-utils (berlios flavour) package contains tools to
+	  configure and test the Socket CAN framework.
+
+if BERLIOS_CAN_UTILS
+
+config BERLIOS_CAN_UTILS_SKIP_TARGETINSTALL
+	bool "skip berlios-can-utils targetinstall stage"
+	default y
+	help
+	  Skip berlios-can-utils targetinstall stage in order to save memory
+	  inside the target device. The install stage will create the package
+	  files into $(PTXDIST_PLATFORMDIR)/packages.
+
+config BERLIOS_CAN_UTILS_ASC2LOG
+	bool
+	prompt "asc2log"
+
+config BERLIOS_CAN_UTILS_BCMSERVER
+	bool
+	prompt "bcmserver"
+
+config BERLIOS_CAN_UTILS_CANBUSLOAD
+	bool
+	prompt "canbusload"
+
+config BERLIOS_CAN_UTILS_CANDUMP
+	bool
+	prompt "candump"
+
+config BERLIOS_CAN_UTILS_CANFDTEST
+	bool
+	prompt "canfdtest"
+
+config BERLIOS_CAN_UTILS_CANGEN
+	bool
+	prompt "cangen"
+
+config BERLIOS_CAN_UTILS_CANGW
+	bool
+	prompt "cangw"
+
+config BERLIOS_CAN_UTILS_CANLOGSERVER
+	bool
+	prompt "canlogserver"
+
+config BERLIOS_CAN_UTILS_CANPLAYER
+	bool
+	prompt "canplayer"
+
+config BERLIOS_CAN_UTILS_CANSEND
+	bool
+	prompt "cansend"
+
+config BERLIOS_CAN_UTILS_CANSNIFFER
+	bool
+	prompt "cansniffer"
+
+config BERLIOS_CAN_UTILS_ISOTPDUMP
+	bool
+	prompt "isotpdump"
+
+config BERLIOS_CAN_UTILS_ISOTPRECV
+	bool
+	prompt "isotprecv"
+
+config BERLIOS_CAN_UTILS_ISOTPSEND
+	bool
+	prompt "isotpsend"
+
+config BERLIOS_CAN_UTILS_ISOTPSERVER
+	bool
+	prompt "isotpserver"
+
+config BERLIOS_CAN_UTILS_ISOTPSNIFFER
+	bool
+	prompt "isotpsniffer"
+
+config BERLIOS_CAN_UTILS_ISOTPTUN
+	bool
+	prompt "isotptun"
+
+config BERLIOS_CAN_UTILS_LOG2ASC
+	bool
+	prompt "log2asc"
+
+config BERLIOS_CAN_UTILS_LOG2LONG
+	bool
+	prompt "log2long"
+
+config BERLIOS_CAN_UTILS_SLCAN_ATTACH
+	bool
+	prompt "slcan_attach"
+
+config BERLIOS_CAN_UTILS_SLCAND
+	bool
+	prompt "slcand"
+
+config BERLIOS_CAN_UTILS_SLCANPTY
+	bool
+	prompt "slcanpty"
+
+config BERLIOS_CAN_UTILS_JSPY
+	bool
+	prompt "jspy"
+
+config BERLIOS_CAN_UTILS_JSR
+	bool
+	prompt "jsr"
+
+config BERLIOS_CAN_UTILS_JACD
+	bool
+	prompt "jacd"
+
+config BERLIOS_CAN_UTILS_JCAT
+	bool
+	prompt "jcat"
+
+config BERLIOS_CAN_UTILS_TESTJ1939
+	bool
+	prompt "testj1939"
+
+endif

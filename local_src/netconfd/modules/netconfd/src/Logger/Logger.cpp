@@ -5,7 +5,6 @@
 #include <memory>
 #include <iostream>
 #define BOOST_LOG_USE_NATIVE_SYSLOG 1
-//#include <boost/log/detail/config.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/sinks/syslog_backend.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>
@@ -148,16 +147,9 @@ void LogError(::std::string const& message) {
 }
 
 void LogDebug(::std::string const& message) {
-  GetLogger().LogDebug(message);
+  ::std::string func{__func__}; //
+  GetLogger().LogDebug(func + ": " + message);
 }
-
-void LogStatus_(::std::string const& file, ::std::string const& line, ::std::string const& message, Status const& status) {
-  if (status.IsNotOk()) {
-    auto msg = file +":" + line + ": " + message + ": " + status.ToString();
-    LogDebug(msg);
-  }
-}
-
 
 LogLevel LogLevelFromString(::std::string const& level) {
 

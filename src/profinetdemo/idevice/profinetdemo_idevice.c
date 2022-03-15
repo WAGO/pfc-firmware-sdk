@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <stdio.h>
 
 #include "profinet/pndevice.h"
 #include "profinet/processdata.h"

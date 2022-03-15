@@ -34,7 +34,10 @@ $(NETCONFD_SHARED_INCLUDES)	\
 -I$(libnetconfd_PROJECT_ROOT)/src/Logger \
 -I$(libnetconfd_PROJECT_ROOT)/src/EventManager \
 -I$(libnetconfd_PROJECT_ROOT)/src/IPManager \
+-I$(libnetconfd_PROJECT_ROOT)/src/IPManager/DynamicIPClient \
+-I$(libnetconfd_PROJECT_ROOT)/src/IPManager/GratuitousArp \
 -I$(libnetconfd_PROJECT_ROOT)/src/NetDevs \
+-I$(libnetconfd_PROJECT_ROOT)/src/Hostname \
 -I$(libnetconfd_PROJECT_ROOT)/src/MacDistribution/ \
 
 
@@ -62,8 +65,7 @@ libnetconfd.a_CXXFLAGS += $(libnetconfd.a_CCXXFLAGS)
 libnetconfd.a_SOURCES += $(call fglob_r,$(libnetconfd_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
 libnetconfd.a_SOURCES += $(netonfd_common_sources)
 libnetconfd.a_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
-libnetconfd.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-libnetconfd.a_CLANG_TIDY_CHECKS += -google-runtime-references
+libnetconfd.a_CLANG_TIDY_CHECKS += $(SHARED_CLANG_TIDY_CHECKS)
 
 
 #######################################################################################################################
@@ -104,8 +106,7 @@ netconfd.elf_LDFLAGS += $(call option_lib,$(netconfd.elf_LIBS),netconfd.elf)
 netconfd.elf_LDFLAGS += $(call pkg_config_ldflags,$(netconfd.elf_PKG_CONFIGS))
 netconfd.elf_SOURCES += $(call fglob_r,$(libnetconfd_PROJECT_ROOT)/main,$(SOURCE_FILE_EXTENSIONS))
 netconfd.elf_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
-netconfd.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-netconfd.elf_CLANG_TIDY_CHECKS += -google-runtime-references
+netconfd.elf_CLANG_TIDY_CHECKS += $(SHARED_CLANG_TIDY_CHECKS)
 
 
 #######################################################################################################################
@@ -139,8 +140,6 @@ netconfd_tests.elf_LDFLAGS += $(call option_lib,$(netconfd_tests.elf_LIBS),netco
 netconfd_tests.elf_LDFLAGS += $(call pkg_config_ldflags,$(netconfd_tests.elf_PKG_CONFIGS))
 netconfd_tests.elf_SOURCES += $(call fglob_r,$(libnetconfd_PROJECT_ROOT)/test-src,$(SOURCE_FILE_EXTENSIONS))
 netconfd_tests.elf_DISABLE_CLANG_TIDY = T
-netconfd_tests.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-netconfd_tests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 # filter only source files in this sub-module
 netconfd_tests.elf_GCOVR_FILTER += $(libnetconfd_PROJECT_ROOT)
 # modules to include into this test's coverage report 

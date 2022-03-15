@@ -5,6 +5,7 @@ menuconfig SHADOW
 	select LIBSELINUX	if GLOBAL_SELINUX
 	select PAM        if SHADOW_PAM
 	select WAGO_CUSTOM_ROOTFS_SHELLS
+	select HOST_GETTEXT
 	prompt "shadow                        "
 	help
 	  Password and account management tool suite with support

@@ -86,8 +86,7 @@ if [ "$newDomainnamePresent" -ne "0" ]; then
 fi
 
 if [ "$configChanged" ]; then
-    EVENTDIR=/etc/config-tools/events/networking
-    [ -d $EVENTDIR ] && run-parts -a config $EVENTDIR
+    /etc/config-tools/network_config --reload-host-conf
 fi
 
 # write buffered filesystem-blocks to disk

@@ -1,0 +1,98 @@
+The Rasterman (Carsten Haitzler) <raster@rasterman.com> <raster@valinux.com>
+Ryan Gustafson <ryan_gustafson@yahoo.com>
+Mandrake (Geoff Harrison) <mandrake@mandrake.net>
+Willem Monsuwe <willem@stack.nl>
+KainX (Michael Jennings) <mej@eterm.org>
+Eric Dorland <dorland@lords.com>
+Chutt (Isaac Richards) <ijr@po.cwru.edu>
+giblet (Tom Gilbert) <tom@linuxbrit.co.uk>
+Takis <takis@lumumba.luc.ac.be>
+Dan Maas <dmaas@dcine.com>
+Platon Fomichev <pla@cland.ru>
+boris (Chris Ross) <chris@darkrock.co.uk>
+Martin Grimm <grimm.martin@gmx.de>
+Matt McClanahan <cardinal@dodds.net>
+Steve Langasek <vorlon@dodds.net>
+Christophe Tronche <ch.tronche@computer.org>
+Nathan Ingersoll <ningerso@d.umn.edu>
+Masa(Masahiko) Mori <masa@engr.sgi.com>
+Term (Lyle Kempler) <term@twistedpath.org>
+Adam Kisiel <kisiel@if.pw.edu.pl>
+Carsten Pfeiffer <carpdjih@sp.zrz.tu-berlin.de>
+Lightman (Franz Marini) <marini@pcmenelao.mi.infn.it>
+Mark Bainter <mark-e@cymry.org>
+Brian Lindholm <brian_lindholm@users.sourceforge.net>
+Renchi Raju <renchi@pooh.tam.uiuc.edu>
+Yuri Hudobin <glassy_ape@users.sourceforge.net>
+Radoslaw Grzanka <radekg2@poczta.onet.pl>
+Kim Woelders <kim@woelders.dk>
+Nick Blievers <nickb@sgi.com>
+Mike Castle <dalgoda@ix.netcom.com>
+R.Ramkumar <andyetitmoves@gmail.com>
+Dmitry Antipov <dmantipov@yandex.ru>
+Laslo Hunhold <dev@frign.de>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies of the Software and its Copyright notices. In addition publicly
+documented acknowledgment must be given that this software has been used if no
+source code of this software is made available publicly. Making the source
+available publicly means including the source for this software with the
+distribution, or a method to get this software via some reasonable mechanism
+(electronic transfer via a network or media) as well as making an offer to
+supply the source on request. This Copyright notice serves as an offer to
+supply the source on on request as well. Instead of this, supplying
+acknowledgments of use of this software in either Copyright notices, Manuals,
+Publicity and Marketing documents or any documentation provided with any
+product containing this software. This License does not apply to any software
+that links to the libraries provided by this software (statically or
+dynamically), but only to the software provided.
+
+Please see the COPYING-PLAIN for a plain-english explanation of this notice
+and its intent.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Plain English Copyright Notice
+
+This file is not intended to be the actual License. The reason this file
+exists is that we here are programmers and engineers. We aren't lawyers. We
+provide licenses that we THINK say the right things, but we have our own
+intentions at heart. This is a plain-english explanation of what those
+intentions are, and if you follow them you will be within the "spirit" of
+the license.
+
+The intent is for us to enjoy writing software that is useful to us (the
+AUTHORS) and allow others to use it freely and also benefit from the work we
+put into making it. We don't want to restrict others using it. They should
+not *HAVE* to make the source code of the applications they write that
+simply link to these libraries (be that statically or dynamically), or for
+them to be limited as to what license they choose to use (be it open, closed
+or anything else). But we would like to know you are using these libraries.
+We simply would like to know that it has been useful to someone. This is why
+we ask for acknowledgement of some sort.
+
+You can do what you want with the source of this software - it doesn't
+matter. We still have it here for ourselves and it is open and free to use
+and download and play with. It can't be taken away. We don't really mind what
+you do with the source to your software. We would simply like to know that
+you are using it - especially if it makes it to a commercial product. If you
+simply e-mail all the AUTHORS (see COPYING and AUTHORS files) telling us, and
+then make sure you include a paragraph or page in the manual for the product
+with the copyright notice and state that you used this software, we will be
+very happy. If you want to contribute back modifications and fixes you may have
+made we will welcome those too with open arms (generally). If you want help
+with changes needed, ports needed or features to be added, arrangements can
+be easily made with some dialogue.
+
+Carsten Haitzler <raster@rasterman.com>

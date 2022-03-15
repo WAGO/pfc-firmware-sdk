@@ -4,6 +4,7 @@
 
 #include "Status.hpp"
 #include "Types.hpp"
+#include "DynamicIPEventAction.hpp"
 
 namespace netconf {
 
@@ -22,12 +23,13 @@ class IIPManager {
   virtual Status ApplyDipConfiguration(const DipSwitchIpConfig &dip_switch_ip_config) = 0;
   virtual Status ApplyIpConfiguration(const IPConfigs &ip_configs, const DipSwitchIpConfig &dip_switch_ip_config) = 0;
 
-  virtual void ClearIpConfiguration() = 0;
-
   virtual Status ValidateIPConfigs(const IPConfigs &configs) const = 0;
   virtual IPConfigs GetIPConfigs() const = 0;
   virtual IPConfigs GetIPConfigs(const Bridges &bridges) const = 0;
   virtual IPConfigs GetCurrentIPConfigs() const = 0;
+
+  virtual void OnDynamicIPEvent(const ::std::string& interface, DynamicIPEventAction action) = 0;
+  virtual void OnHostnameChanged() = 0;
 
 };
 

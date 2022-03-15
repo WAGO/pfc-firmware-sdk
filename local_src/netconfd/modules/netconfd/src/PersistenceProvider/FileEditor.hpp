@@ -14,13 +14,14 @@ class FileEditor : public IFileEditor {
   FileEditor() = default;
   ~FileEditor() override = default;
 
-  FileEditor(const FileEditor&) = delete;
+  FileEditor(const FileEditor&) = default;
   FileEditor& operator=(const FileEditor&) = delete;
   FileEditor(const FileEditor&&) = delete;
   FileEditor& operator=(const FileEditor&&) = delete;
 
   Status Read(const ::std::string& file_path, ::std::string& data) const override;
   Status Write(const ::std::string& file_path, const ::std::string& data) const override;
+  Status WriteAndReplace(const ::std::string& file_path, const ::std::string& data) const override;
   Status Append(const ::std::string& file_path, const ::std::string& data) const override;
 
 };

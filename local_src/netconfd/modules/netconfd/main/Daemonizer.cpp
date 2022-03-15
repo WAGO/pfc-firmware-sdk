@@ -8,54 +8,51 @@
 //------------------------------------------------------------------------------
 #include "Daemonizer.hpp"
 
-#include <boost/format.hpp>
 #include <fcntl.h>
-#include <unistd.h>
-#include <cstdlib>
-#include <csignal>
 #include <sys/stat.h>
+#include <unistd.h>
+
+#include <boost/format.hpp>
+#include <chrono>
+#include <csignal>
+#include <cstdlib>
 #include <cstring>
 
-#include "Logger.hpp"
 #include "CommandExecutor.hpp"
+#include "Logger.hpp"
 #include "Status.hpp"
-
-#include <chrono>
 
 namespace netconf {
 
 using namespace ::std::chrono_literals;
 
 Daemonizer::Daemonizer(::std::string const &run_directory, ::std::string const &pid_file_name)
-    : run_directory_ { run_directory },
-      pid_file_name_ { pid_file_name },
-      pid_file_handle_ { -1 } {
+    : run_directory_{run_directory}, pid_file_name_{pid_file_name}, pid_file_handle_{-1} {
 }
 
 static bool ExistsFile(char const *const szName) {
-  struct stat buffer { };
+  struct stat buffer {};
   return (stat(szName, &buffer) == 0);
 }
 
 static void ExitDaemonCallback(int stat, void *arg) {
-  (void) stat;
-  unlink(static_cast<char const*>(arg));
+  (void)stat;
+  unlink(static_cast<char const *>(arg));
 }
 
 // Lock file region using nonblocking F_SETLK
 int static lockRegion(int fd, int16_t type, int16_t whence, int start, int16_t len) {
-  struct flock lock = { };
+  struct flock lock = {};
 
-  lock.l_type = type;
+  lock.l_type   = type;
   lock.l_whence = whence;
-  lock.l_start = start;
-  lock.l_len = len;
+  lock.l_start  = start;
+  lock.l_len    = len;
 
   return fcntl(fd, F_SETLK, &lock);
 }
 
 Status Daemonizer::Daemonize(InterprocessCondition &condition) {
-
   Status status;
   pid_t pid;
 
@@ -67,19 +64,19 @@ Status Daemonizer::Daemonize(InterprocessCondition &condition) {
     LogInfo("Daemonizer: initial process exits");
     exit(EXIT_SUCCESS);
   } else if (pid < 0) {
-    return MakeSystemCallError();
+    return MakeSystemCallError("fork");
   }
 
   // Become session leader
   if (setsid() < 0) {
-    return MakeSystemCallError();
+    return MakeSystemCallError("setsid");
   }
 
   signal(SIGHUP, SIG_IGN);  // NOLINT old style cast in system definition
 
   pid = fork();
   if (pid < 0) {
-    return MakeSystemCallError();
+    return MakeSystemCallError("fork");
   }
 
   // Exit first child process.
@@ -90,7 +87,7 @@ Status Daemonizer::Daemonize(InterprocessCondition &condition) {
   // Set working directory.
   umask(0);
   if (chdir("/") < 0) {
-    return MakeSystemCallError();
+    return MakeSystemCallError("chdir");
   }
 
   // Close file descriptors
@@ -103,7 +100,7 @@ Status Daemonizer::Daemonize(InterprocessCondition &condition) {
   auto fd1 = dup(fd0);
   auto fd2 = dup(fd0);
   if (fd0 != 0 || fd1 != 1 || fd2 != 2) {
-    return MakeSystemCallError();
+    return MakeSystemCallError("open or dup");
   }
   return Status::Ok();
 }
@@ -121,7 +118,7 @@ Status Daemonizer::PreparePidDir() const {
     // Setup dir
     if (!ExistsFile(run_directory_.c_str())) {
       if (0 != mkdir(run_directory_.c_str(), 0644)) {
-        status = MakeSystemCallError();
+        status = MakeSystemCallError("mkdir");
       }
     }
   }
@@ -130,12 +127,10 @@ Status Daemonizer::PreparePidDir() const {
 }
 
 bool Daemonizer::IsPidFileLocked() const {
-  bool isLocked = false;
+  bool isLocked             = false;
   ::std::string pidFilePath = run_directory_ + "/" + pid_file_name_;
 
-  int pidFd = open(static_cast<const char*>(pidFilePath.c_str()),
-  O_RDWR | O_CREAT,
-                   0644);
+  int pidFd = open(static_cast<const char *>(pidFilePath.c_str()), O_RDWR | O_CREAT, 0644);
   if (pidFd < 0) {
     return isLocked;
   }
@@ -156,28 +151,27 @@ bool Daemonizer::IsPidFileLocked() const {
 Status Daemonizer::OpenAndLockPidFile() {
   ::std::string pidFilePath = run_directory_ + "/" + pid_file_name_;
 
-  pid_file_handle_ = open(static_cast<const char*>(pidFilePath.c_str()),  O_RDWR | O_CREAT, 0644);
+  pid_file_handle_ = open(static_cast<const char *>(pidFilePath.c_str()), O_RDWR | O_CREAT, 0644);
   if (pid_file_handle_ < 0) {
-    return MakeSystemCallError();
+    return MakeSystemCallError("open");
   }
 
   if (lockRegion(pid_file_handle_, F_WRLCK, SEEK_SET, 0, 0) == -1) {
     if (errno == EAGAIN || errno == EACCES) {
-      return MakeSystemCallError();
+      return MakeSystemCallError("fcntl");
     }
   }
   return Status::Ok();
 }
 
 Status Daemonizer::WritePidFile() {
-
   ::std::string pidFilePath = run_directory_ + "/" + pid_file_name_;
 
   Status status = OpenAndLockPidFile();
 
   if (status.IsOk()) {
     if (ftruncate(pid_file_handle_, 0) == -1) {
-      status = MakeSystemCallError();
+      status = MakeSystemCallError("ftruncate");
     }
   }
 
@@ -185,11 +179,11 @@ Status Daemonizer::WritePidFile() {
     int const pid = getpid();
     char szPid[sizeof("32768\n")];  // 32768 is max pid for 32 bit systems
 
-    int const pidLength = sprintf(static_cast<char*>(szPid), "%d\n", pid);
+    int const pidLength = sprintf(static_cast<char *>(szPid), "%d\n", pid);
     if (pidLength > 0) {
-      ssize_t bytesWritten = write(pid_file_handle_, static_cast<char*>(szPid), static_cast<size_t>(pidLength));
+      ssize_t bytesWritten = write(pid_file_handle_, static_cast<char *>(szPid), static_cast<size_t>(pidLength));
       if (bytesWritten <= 0) {
-        status = MakeSystemCallError();
+        status = MakeSystemCallError("write");
       }
     }
   }
@@ -207,14 +201,14 @@ Status Daemonizer::SetCloseOnExecFlag() const {
 
   int flags = fcntl(pid_file_handle_, F_GETFD);
   if (flags == -1) {
-    status = MakeSystemCallError();
+    status = MakeSystemCallError("fcntl");
   }
 
   if (status.IsOk()) {
     flags |= FD_CLOEXEC;
 
     if (fcntl(pid_file_handle_, F_SETFD, flags) == -1) {
-      status = MakeSystemCallError();
+      status = MakeSystemCallError("fcntl");
     }
   }
 

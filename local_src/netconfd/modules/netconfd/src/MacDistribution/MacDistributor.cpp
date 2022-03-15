@@ -1,22 +1,52 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "MacDistributor.hpp"
-#include "Logger.hpp"
-#include "alphanum.hpp"
+
 #include <boost/algorithm/string.hpp>
 #include <gsl/gsl>
 
+#include "Logger.hpp"
+#include "alphanum.hpp"
+
 namespace netconf {
 
-MacDistributor::MacDistributor(MacAddress mac_address, uint32_t mac_inc, IMacController &mac_controller)
-    : base_mac_address_ { ::std::move(mac_address) },
-      mac_inc_ { mac_inc },
-      mac_controller_ { mac_controller } {
+namespace {
 
+bool BridgeHasMoreThenOneAssignedPort(NetDevPtr &net_dev) {
+  if (net_dev) {
+    auto children = net_dev->GetChildren();
+    return (children.size() > 1);
+  }
+  return false;
+}
+
+bool BridgeHasOneAssignedPort(NetDevPtr &net_dev) {
+  if (net_dev) {
+    auto children = net_dev->GetChildren();
+    return (children.size() == 1);
+  }
+  return false;
+}
+
+int DetermineBridgeMacIncrement(std::string &name) {
+  auto last_index = name.find_last_not_of("0123456789");
+  if (last_index != ::std::string::npos) {
+    try {
+      return std::stoi(name.substr(last_index + 1));
+    } catch (...) {
+      /* NOP */
+    }
+  }
+  return -1;
+}
+
+}  // namespace
+
+MacDistributor::MacDistributor(MacAddress mac_address, uint32_t mac_inc, IMacController &mac_controller)
+    : base_mac_address_{mac_address}, mac_inc_{mac_inc}, mac_controller_{mac_controller}, mac_counter_{0} {
 }
 
 void MacDistributor::AssignMacs(NetDevs &net_devs) {
-
   auto sort_alphanum = [](const NetDevPtr &lhs, const NetDevPtr &rhs) {
     return doj::alphanum_comp(lhs->GetName(), rhs->GetName()) < 0;
   };
@@ -24,7 +54,8 @@ void MacDistributor::AssignMacs(NetDevs &net_devs) {
 
   mac_counter_ = 0;
 
-  auto port_count = ::std::count_if(net_devs.begin(), net_devs.end(), TypeMatches(DeviceType::Port));
+  auto port_count = static_cast<uint32_t>(::std::count_if(net_devs.begin(), net_devs.end(),
+                                                              TypeMatches(DeviceType::Port)));
 
   if (IsMacAddressAssignmentFull(mac_inc_, port_count)) {
     AssignFullMacSupport(net_devs);
@@ -35,33 +66,17 @@ void MacDistributor::AssignMacs(NetDevs &net_devs) {
   }
 }
 
-static bool BridgeHasMoreThenOneAssignedPort(NetDevPtr net_dev) {
-  if (net_dev) {
-    auto children = net_dev->GetChildren();
-    return (children.size() > 1);
-  }
-  return false;
-}
-
-static bool BridgeHasOneAssignedPort(NetDevPtr net_dev) {
-  if (net_dev) {
-    auto children = net_dev->GetChildren();
-    return (children.size() == 1);
-  }
-  return false;
-}
-
-void MacDistributor::AssignMac(NetDevPtr net_dev, MacAddress mac) {
+void MacDistributor::AssignMac(NetDevPtr &net_dev, MacAddress mac) {
   mac_controller_.SetMac(mac, net_dev->GetName());
   net_dev->SetMac(mac);
 }
 
-void MacDistributor::AssignMac(NetDevPtr net_dev) {
+void MacDistributor::AssignMac(NetDevPtr &net_dev) {
   auto mac = base_mac_address_.Increment(mac_counter_);
   AssignMac(net_dev, mac);
 }
 
-void MacDistributor::AssignMacAndIncrement(NetDevPtr net_dev) {
+void MacDistributor::AssignMacAndIncrement(NetDevPtr &net_dev) {
   auto mac = base_mac_address_.Increment(mac_counter_);
   AssignMac(net_dev, mac);
   mac_counter_++;
@@ -96,29 +111,16 @@ void MacDistributor::AssignMultipleMacSupport(NetDevs &net_devs) {
   ::std::for_each(net_devs.begin(), net_devs.end(), assign_mac_to_ports);
 }
 
-static int DetermineBridgeMacIncrement(std::string name) {
-  auto last_index = name.find_last_not_of("0123456789");
-  if (last_index != ::std::string::npos) {
-    try {
-      return std::stoi(name.substr(last_index + 1));
-    } catch (...) {
-      /* NOP */
-    }
-  }
-  return -1;
-}
-
 void MacDistributor::AssignFullMacSupport(NetDevs &net_devs) {
-  ::std::list<int> mac_incs(mac_inc_);
-  std::generate(mac_incs.begin(), mac_incs.end(), [n = 0]() mutable {
-    return n++;
-  });
+  ::std::list<uint32_t> mac_incs(mac_inc_);
+  std::generate(mac_incs.begin(), mac_incs.end(), [n = 0]() mutable { return n++; });
 
-  auto assign_mac_to_bridge = [&](const NetDevPtr &net_dev) {
+  auto assign_mac_to_bridge = [&](NetDevPtr &net_dev) {
     if (net_dev->GetKind() == DeviceType::Bridge) {
-      auto inc_num = DetermineBridgeMacIncrement(net_dev->GetName());
+      auto name    = net_dev->GetName();
+      auto inc_num = DetermineBridgeMacIncrement(name);
       if ((inc_num >= 0) && (static_cast<uint32_t>(inc_num) < mac_inc_)) {
-        AssignMac(net_dev, base_mac_address_.Increment(inc_num));
+        AssignMac(net_dev, base_mac_address_.Increment(static_cast<uint32_t>(inc_num)));
         mac_incs.erase(::std::find(mac_incs.begin(), mac_incs.end(), inc_num));
       } else {
         LogWarning("MAC increment couldn't be determined, taking base: " + net_dev->GetName());
@@ -129,7 +131,7 @@ void MacDistributor::AssignFullMacSupport(NetDevs &net_devs) {
 
   ::std::for_each(net_devs.begin(), net_devs.end(), assign_mac_to_bridge);
 
-  auto assign_from_mac_incs = [&](const NetDevPtr &netdev) {
+  auto assign_from_mac_incs = [&](NetDevPtr &netdev) {
     if (!mac_incs.empty()) {
       auto mac = base_mac_address_.Increment(mac_incs.front());
       mac_incs.pop_front();
@@ -159,7 +161,7 @@ void MacDistributor::AssignFullMacSupport(NetDevs &net_devs) {
 }
 
 bool MacDistributor::IsMacAddressAssignmentMultiple(uint32_t mac_count, uint32_t port_count) const {
-  if (not IsMacAddressAssignmentFull(mac_count, port_count) && not (mac_count == 1)) {
+  if (not IsMacAddressAssignmentFull(mac_count, port_count) && not(mac_count == 1)) {
     if (mac_count >= port_count) {
       return true;
     }
@@ -169,12 +171,8 @@ bool MacDistributor::IsMacAddressAssignmentMultiple(uint32_t mac_count, uint32_t
 
 bool MacDistributor::IsMacAddressAssignmentFull(uint32_t mac_count, uint32_t port_count) const {
   auto max_bridges_with_exclusiv_mac = port_count / 2;
-  auto required_macs = port_count + max_bridges_with_exclusiv_mac;
+  auto required_macs                 = port_count + max_bridges_with_exclusiv_mac;
 
-  if (mac_count >= required_macs) {
-    return true;
-  }
-  return false;
+  return mac_count >= required_macs;
 }
-
-}
+}  // namespace netconf

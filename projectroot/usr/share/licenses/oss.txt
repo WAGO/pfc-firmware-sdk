@@ -9,4 +9,4 @@ Phone: +49 (571) 887 44555
 Fax: +49 (571) 887 844555
 Email: support@wago.com
 
-WAGO Kontakttechnik GmbH & Co. KG allows the purchaser of this product to process WAGO’s proprietary components, which are linked to LGPL-licensed open-source components, and permits reverse engineering to debug the processed components. The reverse engineering results shall not be disclosed and the processed software shall not be distributed to third parties.
+WAGO GmbH & Co. KG allows the purchaser of this product to process WAGO’s proprietary components, which are linked to LGPL-licensed open-source components, and permits reverse engineering to debug the processed components. The reverse engineering results shall not be disclosed and the processed software shall not be distributed to third parties.

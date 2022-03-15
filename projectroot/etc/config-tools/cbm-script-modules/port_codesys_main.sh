@@ -111,7 +111,7 @@ function ShowPLCRuntimeServicesMenu
   while [ "${quit}" = "$FALSE" ]; do
     
     # we have to rebuild the menu lines each time because of the dynamic lines,
-    # i.e. Telnet....enabled
+    # i.e. FTP....enabled
     local ifsBackup=$IFS
     IFS=":"
   

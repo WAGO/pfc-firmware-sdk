@@ -416,7 +416,7 @@ typedef struct xml_param {
 
     erh_assert(result, INVALID_PARAMETER, "Invalid DHCPD lease time value.");
   }
-  
+
   // Example value: 01:02:03:04:05:06_192.168.0.44,hostname_192.168.0.44.
   // Value may be the empty string.
   void xml_check_dhcpdhost(const ::std::string &value) {
@@ -622,7 +622,7 @@ typedef struct xml_param {
     ::std::string port = pdt.port_name_;
     auto state = ct_dnsmasq_get_value(xmlhandle, DHCPD, port, "dhcpd-state");
 
-    if (state != "enabled") {
+    if (state != "enabled" || pdt.ip_addr_bin_ == 0) {
       return;
     }
 
@@ -654,7 +654,7 @@ typedef struct xml_param {
       range.resetNetwork(interface_net);
 
       auto value = range.toString();
-      erh_assert(!value.empty(), INVALID_PARAMETER, "Invalid dhcpd range config parameter.");
+      erh_assert(!value.empty(), INVALID_PARAMETER, "Empty dhcpd range config parameter.");
       ct_dnsmasq_set_value(xmlhandle, DHCPD, port, "dhcpd-range", value);
 
       // Adjust net part of fix ip addresses.
@@ -674,10 +674,11 @@ typedef struct xml_param {
     }
   }
 
+
   // Check if DSA mode or netmask part of ip address changed.
   // If required, disables ports and adapt ip addresses.
   void ct_dnsmasq_check_ip_dependencies(
-      IpConfiguration &data, dnsmasq_handle_t &xmlhandle, std::vector<std::string>legal_ports) {
+      IpConfiguration &data, dnsmasq_handle_t &xmlhandle, const std::vector<std::string> &legal_ports) {
 
     for (auto& port : legal_ports) {
       auto it = ::std::find(data.port_name_list.begin(), data.port_name_list.end(), port);
@@ -685,7 +686,7 @@ typedef struct xml_param {
         ct_dnsmasq_set_value(xmlhandle, DHCPD, port, "dhcpd-state", "disabled");
       } else {
         auto pdt = data.getPortData(port);
-        if (pdt.state_ == "disabled" || pdt.type_ != "static") {
+        if (pdt.state_ == "disabled" || pdt.type_ != "static" ) {
           ct_dnsmasq_set_value(xmlhandle, DHCPD, port, "dhcpd-state", "disabled");
         } else {
           ct_dnsmasq_adjust_net(xmlhandle, pdt);
@@ -813,14 +814,6 @@ typedef struct xml_param {
     return content;
   }
 
-  void append_dns_configuration_by_ip_config(std::stringstream &stream, IpConfiguration &ipConfig) {
-    for (auto port : ipConfig.port_data_list) {
-      if (port.state_ == "enabled" && port.type_ == "static") {
-        stream << boost::format("%-16s %s\n") % port.ip_addr_ % ipConfig.host_name;
-      }
-    }
-  }
-
   void append_dns_configuration_by_ip_persistence(std::stringstream &stream, dnsmasq_handle_t &handle) {
 
     ::std::string hosts_str = ct_dnsmasq_get_value(handle, DNS, "", "dns-fix-host", "");
@@ -846,12 +839,11 @@ typedef struct xml_param {
     }
   }
 
-  std::string create_dns_configuration(IpConfiguration &ipConfig, dnsmasq_handle_t &serviceFileHandle) {
+  std::string create_dns_configuration(dnsmasq_handle_t &serviceFileHandle) {
     std::stringstream stream;
 
     stream << etc_host_marker;
     stream << etc_host_marker_description;
-    append_dns_configuration_by_ip_config(stream, ipConfig);
     append_dns_configuration_by_ip_persistence(stream, serviceFileHandle);
     stream << etc_host_marker;
 
@@ -920,8 +912,8 @@ typedef struct xml_param {
   // Edit /etc/hosts
   // Remember /etc/hosts content up to marker ETC_HOST_MARKER and content from second marker to end.
   // Finally write first part, generated part with markers, and second part to a temporary file.
-  void ct_dnsmasq_edit_etc_hosts(dnsmasq_handle_t &xmlhandle, IpConfiguration &data, const ::std::string &etchosts) {
-    auto dns_config_section = create_dns_configuration(data, xmlhandle);
+  void ct_dnsmasq_edit_etc_hosts(dnsmasq_handle_t &xmlhandle, const ::std::string &etchosts) {
+    auto dns_config_section = create_dns_configuration(xmlhandle);
     insert_dns_configuration(etchosts, dns_config_section);
   }
 
@@ -1339,7 +1331,7 @@ typedef struct xml_param {
 
     return bridge;
   }
-  
+
   // Evaluate command line options. Get and set (-g, -s) do not require option arguments because
   // these functions will interpret non option arguments as list of settings or list of
   // config parameter names to print.
@@ -1526,6 +1518,7 @@ void set_config(const service_t &service, const std::string &port, int argc, cha
     auto param = ct_dnsmasq_parse_option(argv[idx], service, port, ip_config);
     ct_dnsmasq_set_value(session, service, port, param.name_, param.value_);
   }
+
   ct_dnsmasq_save_xml_file(session);
 
   if (prgconf.dnsmasq_restart) {
@@ -1545,7 +1538,7 @@ void generate_config_file(const prgconf_t &prgconf, dnsmasq_handle_t &session, I
                           const std::vector<::std::string> &ports) {
   ct_dnsmasq_check_ip_dependencies(ip_config, session, ports);
   ct_dnsmasq_save_xml_file (session);
-  ct_dnsmasq_edit_etc_hosts(session, ip_config, prgconf.etchosts);
+  ct_dnsmasq_edit_etc_hosts(session, prgconf.etchosts);
   ct_dnsmasq_generate_conf(session, prgconf.dnsmasq_conf_tmp, ports, ip_config);
   rename_file(prgconf.dnsmasq_conf, prgconf.dnsmasq_conf_tmp);
 }
@@ -1672,7 +1665,7 @@ int execute(int argc, char **argv) {
   } else {
     debugmode = true;
   }
-    
+
   // Assert unmodified config file and valid port name, if given.
   // Open xml file session to network-services.xml, read all required configuration data.
   ct_dnsmasq_assert_conf_not_compromised(prgconf.dnsmasq_conf);

@@ -390,6 +390,34 @@ if ROOTFS_PASSWD_GUEST
       default "guest:$1$3IzLJXEB$cJvtQuaWhvgdX1RfC0wQr/:14174:0:99999:7:::"
       prompt "shadow entry"
 endif
+
+      menuconfig ROOTFS_PASSWD_CODESYS3
+      bool
+      default y
+      prompt "Enable user 'codesys3'"
+
+if ROOTFS_PASSWD_CODESYS3
+      config ROOTFS_PASSWD_CODESYS3_UID
+      string 
+      default "500"
+      prompt "UID for system user 'codesys3'"
+
+      config ROOTFS_PASSWD_CODESYS3_GID
+      string 
+      default "500"
+      prompt "GID for system user 'codesys3'"
+
+      config ROOTFS_PASSWD_CODESYS3_ENTRY
+      string 
+      default "codesys3:x:${PTXCONF_ROOTFS_PASSWD_CODESYS3_UID}:${PTXCONF_ROOTFS_PASSWD_CODESYS3_GID}:/home/doesnotexist:/bin/false"
+      prompt "passwd entry"
+      
+      config ROOTFS_SHADOW_CODESYS3_ENTRY
+      string 
+      default "codesys3:!:19032::::::"
+      prompt "shadow entry"
+endif
+
 endif
 
 config ROOTFS_SHADOW
@@ -475,12 +503,12 @@ if ROOTFS_GROUP
 if ROOTFS_GROUP_CODESYS3
     config ROOTFS_GROUP_CODESYS3_GID
     string 
-    default "1004"
+    default "500"
     prompt "GID for linux group 'codesys3'"
 
     config ROOTFS_GROUP_CODESYS3_ENTRY
     string 
-    default "codesys3:x:1004:admin"
+    default "codesys3:x:500:admin,codesys3"
     prompt "codesys3 group entry"
 
 endif

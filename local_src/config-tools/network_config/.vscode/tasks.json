@@ -1,0 +1,163 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "all",
+			"command": "/usr/bin/schroot",
+			"args": [
+				"-pc",
+				"flippy",
+				"--",
+				"make-wrapper",
+				"-j",
+				"all",
+				"|",
+				"tee",
+				".vscode/compile.log"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+		},
+		{
+			"type": "shell",
+			"label": "all with tests",
+			"command": "/usr/bin/schroot",
+			"args": [
+				"-pc",
+				"flippy",
+				"--",
+				"make-wrapper",
+				"ENABLE_TESTS=T",
+				"-j",
+				"all",
+				"|",
+				"tee",
+				".vscode/compile.log"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+		},
+		{
+			"type": "shell",
+			"label": "clean",
+			"command": "/usr/bin/schroot",
+			"args": [
+				"-pc",
+				"flippy",
+				"--",
+				"make-wrapper",
+				"-j",
+				"clean"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+		},
+		{
+			"type": "shell",
+			"label": "clang-tidy",
+			"command": "/usr/bin/schroot",
+			"args": [
+				"-pc",
+				"flippy",
+				"--",
+				"make-wrapper",
+				"-j",
+				"clang-tidy"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+		},
+		{
+			"type": "shell",
+			"label": "clean clang-tidy",
+			"command": "/usr/bin/schroot",
+			"args": [
+				"-pc",
+				"flippy",
+				"--",
+				"make-wrapper",
+				"-j",
+				"clean-clang-tidy"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+		},
+		{
+			"type": "shell",
+			"label": "rebuild",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"clean",
+				"all"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build"
+		},
+		{
+			"type": "shell",
+			"label": "check",
+			"command": "/usr/bin/schroot",
+			"args": [
+				"-pc",
+				"flippy",
+				"--",
+				"make-wrapper",
+				"-j",
+				"check"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+		},
+		{
+			"type": "shell",
+			"label": "compiledb",
+			"command": "~/.local/bin/compiledb",
+			"args": [
+				"-p",
+				"./.vscode/compile.log",
+				"-o",
+				"./.vscode/compile_commands.json"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+		},
+	]
+}

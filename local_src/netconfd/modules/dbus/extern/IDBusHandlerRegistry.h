@@ -25,6 +25,7 @@ class IDBusHandlerRegistry {
   virtual GDBusObjectSkeleton* GetInterfaceObject() const = 0;
   virtual GDBusObjectSkeleton* GetIPObject() const = 0;
   virtual GDBusObjectSkeleton* GetBackupObject() const = 0;
+  virtual GDBusObjectSkeleton* GetEventObject() const = 0;
 };
 
 } /* namespace dbus */

@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>       // std::string
 #include <sstream>      // std::stringbuf
+#include <algorithm>    // std::find
 
 #include "config_tool_lib.h"
 //------------------------------------------------------------------------------
@@ -123,10 +124,20 @@ int main(int    argc,
     if(0 != buffer_oc) {
       switch(buffer_oc) {
         case 'r':
-          status = PrintFileContent(buffer_filename,
-                                    g_syslogPath,
-                                    buffer_limit,
-                                    std::cout);
+          status = INVALID_PARAMETER;
+          // check filename characters
+          if(buffer_filename.find('/') == std::string::npos)
+          {
+            // check filename exist
+            std::vector<std::string> files = GetFilenames(g_syslogPath);
+            if(std::find(files.begin(), files.end(), buffer_filename) != files.end())
+            {
+              status = PrintFileContent(buffer_filename,
+                                        g_syslogPath,
+                                        buffer_limit,
+                                        std::cout);
+            }
+          }
           break;
         case 's':
           status = PrintExistingFiles(g_syslogPath,

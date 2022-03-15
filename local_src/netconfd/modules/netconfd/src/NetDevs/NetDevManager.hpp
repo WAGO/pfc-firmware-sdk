@@ -13,6 +13,7 @@
 #include "INetDevManager.hpp"
 #include "IBridgeController.hpp"
 #include "IMacDistributor.hpp"
+#include "IEventManager.hpp"
 
 namespace netconf {
 
@@ -23,7 +24,8 @@ class NetDevManager : public INetDevManager, public IInterfaceEvent {
 
   NetDevManager(::std::shared_ptr<IInterfaceMonitor> interface_monitor,
                 IBridgeController &bridge_controller,
-                IMacDistributor& mac_distributor);
+                IMacDistributor& mac_distributor,
+                IEventManager& event_manager);
   NetDevPtr GetByName(::std::string name) override;
   NetDevPtr GetByLabel(::std::string name) override;
   NetDevPtr GetByIfIndex(::std::uint32_t if_index) override;
@@ -32,15 +34,15 @@ class NetDevManager : public INetDevManager, public IInterfaceEvent {
   NetDevs GetPortNetDevs() override;
   NetDevs GetNetDevs() override;
   NetDevs GetNetDevs(DeviceType kind) override;
-  void ConfigureBridges(const BridgeConfig& config) override;
-  void LinkChange(::std::uint32_t if_index, ::std::uint32_t flags) override;
-  void RegisterForNetDevConstructionEvents(INetDevEvents& netdev_construction) override;
+  void ConfigureBridges(const BridgeConfig &config) override;
+  void LinkChange(::std::uint32_t if_index, ::std::uint32_t flags, IInterfaceEvent::Action action) override;
+  void RegisterForNetDevConstructionEvents(INetDevEvents &netdev_construction) override;
 
-  static bool ExistsByName(::std::string name, const NetDevs& netdevs);
-  static bool DoesNotExistByName(::std::string name, const NetDevs& netdevs);
-  static bool ExistsByLabel(::std::string label, const NetDevs& netdevs);
-  static bool DoesNotExistByLabel(::std::string label, const NetDevs& netdevs);
-  static DeviceType DetermineNetDevKind(const ::std::string& name);
+  static bool ExistsByName(::std::string name, const NetDevs &netdevs);
+  static bool DoesNotExistByName(::std::string name, const NetDevs &netdevs);
+  static bool ExistsByLabel(::std::string label, const NetDevs &netdevs);
+  static bool DoesNotExistByLabel(::std::string label, const NetDevs &netdevs);
+  static DeviceType DetermineNetDevKind(const ::std::string &name);
 
  private:
 
@@ -52,21 +54,24 @@ class NetDevManager : public INetDevManager, public IInterfaceEvent {
   void OnNetDevRemoved(NetDevPtr netdev) const;
   void OnNetDevChangeInterfaceRelations(NetDevPtr netdev) const;
   NetDevPtr CreateNetdev(::std::string name, ::std::string label, DeviceType kind);
-  static bool Exists(const NetDevs& netdevs, NetDevPredicate predicate);
-  static NetDevPtr FindIf(const NetDevs& netdevs, NetDevPredicate predicate);
-  void RemoveObsoleteBridgeNetdevs(const BridgeConfig& config);
-  void RemoveObsoleteInterfaceRelations(const BridgeConfig& config);
-  void CreateBridgesAndRelateToInterfaces(const BridgeConfig& config);
+  static bool Exists(const NetDevs &netdevs, NetDevPredicate predicate);
+  static NetDevPtr FindIf(const NetDevs &netdevs, NetDevPredicate predicate);
+  void RemoveObsoleteBridgeNetdevs(const BridgeConfig &config);
+  void RemoveObsoleteInterfaceRelations(const BridgeConfig &config);
+  void CreateBridgesAndRelateToInterfaces(const BridgeConfig &config);
   NetDevs GetNetdevs(const Interfaces &interfaces) const;
   BridgeConfig GetActualBridgeConfig();
 
+  void CreateAndRemoveWwanNetdevWhenTheKernelResetsTheInterface(::std::uint32_t if_index,
+                                                                IInterfaceEvent::Action action);
+
   ::std::shared_ptr<IInterfaceMonitor> interface_monitor_;
   ::std::vector<::std::shared_ptr<NetDev>> net_devs_;
-  INetDevEvents* netdev_construction_;
+  INetDevEvents *netdev_construction_;
 
   IBridgeController &bridge_controller_;
-  IMacDistributor& mac_distributor_;
+  IMacDistributor &mac_distributor_;
+  IEventManager &event_manager_;
 };
-
 
 }

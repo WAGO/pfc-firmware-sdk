@@ -40,7 +40,7 @@ class MockIEthernetInterface : public IEthernetInterface {
   MOCK_CONST_METHOD0(GetMTU,
       ::std::uint32_t());
   MOCK_CONST_METHOD0(GetSpeed,
-      ::std::int32_t());
+      ::std::uint32_t());
   MOCK_CONST_METHOD0(GetDuplex,
       eth::Duplex());
   MOCK_METHOD0(Commit,

@@ -63,6 +63,13 @@ function networking_start
     # set arp accept to send replies on gratuitous arp's with our own ip address.
     echo 1 > /proc/sys/net/ipv4/conf/all/arp_accept
 
+    # workaround: on g1 pfc (820X) the interfaces have no mac address assigned
+    mac=$(/etc/config-tools/get_typelabel_value MAC)
+    echo $mac
+    ifconfig eth0 hw ether $mac
+    ifconfig ethX1 hw ether $mac
+    ifconfig ethX2 hw ether $mac
+
     do_ifupdown UP
 }
 

@@ -41,6 +41,10 @@ struct Options {
     { "fix-ip", "Set fixed ip (192.168.1.17)" };
   const Option dip_switch_config
     { "dip-switch-config", "Set or get DIP switch configuration. Caution: mode and last address byte cannot be changed." };
+  const Option dynamic_ip_event
+    { "dynamic-ip-event", "Propagate a dynamic ip event. e.g. (UDHCP event: bound, renew, ...)" };
+  const Option reload_host_conf
+    { "reload-host-conf", "Trigger reload of /etc/host.conf" };
 
   // Operations
   const Option get
@@ -97,6 +101,8 @@ struct Fields {
     { "duplex", "Duplexity <half|full>" ,"<value>"};
   const Option backup_version
     { "backup-targetversion", "Target version, e.g. V03.03.02" ,"<value>"};
+  const Option action
+      { "action", "action <bound|renew|release|nak>" ,"<value>"};
   // @formatter:on
 };
 

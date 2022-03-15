@@ -1,0 +1,53 @@
+### SECTION=bootloader
+#
+#config BAREBOX_MLO_LEGACY
+#	tristate
+#	prompt "barebox (mlo_legacy)"
+#	help
+#	  FIXME
+
+## SECTION=bootloader
+
+menuconfig BAREBOX_MLO_LEGACY
+	prompt "barebox mlo-legacy           "
+	select HOST_LZOP if BAREBOX_MLO_LEGACY_NEEDS_HOST_LZOP
+	bool
+	help
+	  Build mlo from barebox sources.
+
+if BAREBOX_MLO_LEGACY
+
+config BAREBOX_MLO_LEGACY_VERSION
+	prompt "barebox version"
+	string
+	default "${PTXCONF_BAREBOX_VERSION}"	if BAREBOX
+	default "2014.01.0"			if !BAREBOX
+
+config BAREBOX_MLO_LEGACY_MD5
+	prompt "barebox source md5sum"
+	string
+	default "${PTXCONF_BAREBOX_MD5}"	if BAREBOX
+
+config BAREBOX_MLO_LEGACY_ARCH_STRING
+	string
+	default "arm"			if ARCH_ARM
+	default "blackfin"		if ARCH_BLACKFIN
+	default "ppc"			if ARCH_PPC
+	default "x86"			if ARCH_X86
+
+config BAREBOX_MLO_LEGACY_CONFIG
+	prompt "mlo config file"
+	string
+	default "barebox_mlo.config"
+	help
+	  This entry specifies the .config file used to compile mlo.
+
+config BAREBOX_MLO_LEGACY_NEEDS_HOST_LZOP
+	prompt "barebox needs lzop"
+	bool
+	help
+	  The barebox executable can be compressed. Select this if
+	  lzop is used in order to compile lzop for your development
+	  host.
+
+endif

@@ -1638,11 +1638,12 @@ bool ct_libnet_swconfig_is(const char* alias)
 {
   swconfigSession_t *sessionHandle = NULL;
   int status = ct_swconfig_start_session(SWCONFIG_SWITCH_NAME, &sessionHandle);
-  const char *found_alias = "";
+  bool is_equal = false;
 
   if(SUCCESS == status)
   {
-    found_alias = ct_swconfig_get_switch_alias(sessionHandle);
+    const char *found_alias = ct_swconfig_get_switch_alias(sessionHandle);
+    is_equal = strcmp(alias, found_alias) == 0;
   }
 
   if(NULL != sessionHandle)
@@ -1650,7 +1651,7 @@ bool ct_libnet_swconfig_is(const char* alias)
       ct_swconfig_finish_session(sessionHandle);
   }
 
-  return strcmp(alias, found_alias) == 0;
+  return is_equal;
 }
 
 static bool ct_libnet_swconfig_is_unsupported_switch(void)

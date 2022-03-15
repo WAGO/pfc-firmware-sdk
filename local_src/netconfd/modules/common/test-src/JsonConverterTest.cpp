@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <Status.hpp>
-#include "TypesHelper.hpp"
+#include <gtest/gtest.h>
+
 #include <memory>
 
 #include "JsonConverter.hpp"
+#include "Status.hpp"
+#include "TypesHelper.hpp"
 
 using namespace testing;
 
@@ -24,7 +25,6 @@ class AJsonConfigConverter : public Test {
   }
 
   void TearDown() override {
-
   }
 
   ::std::string const json_valid_config_ =
@@ -45,8 +45,7 @@ class AJsonConfigConverter : public Test {
   }
   )";
 
-  BridgeConfig bridge_config_emptybridge = { { "br0", { "X1", "X2" } }, { "br1", { } }, { "br2", { } }, { "br3",
-      { "X12" } } };
+  BridgeConfig bridge_config_emptybridge = {{"br0", {"X1", "X2"}}, {"br1", {}}, {"br2", {}}, {"br3", {"X12"}}};
 
   ::std::string const json_emptybridge_config_ =
       R"(
@@ -75,7 +74,7 @@ class AJsonConfigConverter : public Test {
    }
    )";
 
-  IPConfigs one_ip_config_ { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" } };
+  IPConfigs one_ip_config_{{"br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"}};
   ::std::string const json_one_ip_config_ =
       R"(
   {
@@ -88,7 +87,8 @@ class AJsonConfigConverter : public Test {
   }
    )";
 
-  IPConfigs two_ip_config_ { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"}, { "br1", IPSource::STATIC, "192.168.2.17", "255.255.0.0"} };
+  IPConfigs two_ip_config_{{"br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"},
+                           {"br1", IPSource::STATIC, "192.168.2.17", "255.255.0.0"}};
 
   ::std::string const json_two_ip_config_ =
       R"(
@@ -108,7 +108,7 @@ class AJsonConfigConverter : public Test {
   }
    )";
 
-  IPConfigs one_ip_config_empty_elements_ { { "", IPSource::NONE, "", "255.255.255.0" } };
+  IPConfigs one_ip_config_empty_elements_{{"", IPSource::NONE, "", "255.255.255.0"}};
 
   ::std::string const json_one_ip_config_empty_elements_ =
       R"(
@@ -121,12 +121,9 @@ class AJsonConfigConverter : public Test {
     }
   }
    )";
-
 };
 
-static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected,
-                                                ::std::string value) {
-
+static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected, ::std::string value) {
   expected.erase(std::remove(expected.begin(), expected.end(), '\n'), expected.end());
   expected.erase(std::remove(expected.begin(), expected.end(), ' '), expected.end());
 
@@ -136,10 +133,9 @@ static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected,
   EXPECT_EQ(expected, value);
 }
 
-//Convert bridge configuration tests
+// Convert bridge configuration tests
 
 TEST_F(AJsonConfigConverter, ConvertsAJsonConfiguration) {
-
   BridgeConfig bridge_config;
   Status status = parser_->FromJsonString(json_valid_config_, bridge_config);
 
@@ -148,21 +144,17 @@ TEST_F(AJsonConfigConverter, ConvertsAJsonConfiguration) {
   EXPECT_EQ(bridge_config["br1"][0], "X11");
   EXPECT_EQ(bridge_config["br2"][0], "X12");
   ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
-
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnInvalidJsonConfiguration) {
-
   BridgeConfig bridge_config;
   Status status = parser_->FromJsonString(json_invalid_config_, bridge_config);
 
   EXPECT_EQ(0, bridge_config.size());
   EXPECT_EQ(StatusCode::JSON_CONVERT, status.GetStatusCode());
-
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnEmptyJsonBridgeConfiguration) {
-
   BridgeConfig bridge_config;
   Status status = parser_->FromJsonString(json_emptybridge_config_, bridge_config);
 
@@ -172,36 +164,28 @@ TEST_F(AJsonConfigConverter, ConvertsAnEmptyJsonBridgeConfiguration) {
   EXPECT_EQ(bridge_config["br2"].size(), 0);
   EXPECT_EQ(bridge_config["br3"][0], "X12");
   ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
-
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnEmptyBridgeNameJsonConfiguration) {
-
   BridgeConfig bridge_config;
-  Status status = parser_->FromJsonString(json_emptybridgename_config_,
-                                              bridge_config);
+  Status status = parser_->FromJsonString(json_emptybridgename_config_, bridge_config);
 
   EXPECT_EQ(0, bridge_config.size());
   EXPECT_EQ(StatusCode::NAME_EMPTY, status.GetStatusCode()) << status.ToString();
 }
 
 TEST_F(AJsonConfigConverter, ConvertsAnInvalidJsonConfigurationWithTwoIdenticalNamedBridges) {
-
   BridgeConfig bridge_config;
-  Status status = parser_->FromJsonString(json_invalid_config_duplicat_bridge_name_,
-                                              bridge_config);
+  Status status = parser_->FromJsonString(json_invalid_config_duplicat_bridge_name_, bridge_config);
 
   EXPECT_EQ(0, bridge_config.size());
   EXPECT_EQ(StatusCode::JSON_CONVERT, status.GetStatusCode());
-
 }
 
 // Converts json configuration tests
 
 TEST_F(AJsonConfigConverter, ConvertsABridgeConfiguration) {
-
-  BridgeConfig bridge_config = { { "br0", { "X1", "X2" } }, { "br1", { "X11" } }, { "br2",
-      { "X12" } } };
+  BridgeConfig bridge_config = {{"br0", {"X1", "X2"}}, {"br1", {"X11"}}, {"br2", {"X12"}}};
 
   ::std::string json = parser_->ToJsonString(bridge_config);
 
@@ -209,9 +193,7 @@ TEST_F(AJsonConfigConverter, ConvertsABridgeConfiguration) {
 }
 
 TEST_F(AJsonConfigConverter, ConvertsABridgeConfigurationWithoutInterface) {
-
-  BridgeConfig bridge_config = { { "br0", { "X1", "X2"} }, { "br1", { } }, { "br2",
-      { } }, { "br3", { "X12" } } };
+  BridgeConfig bridge_config = {{"br0", {"X1", "X2"}}, {"br1", {}}, {"br2", {}}, {"br3", {"X12"}}};
 
   ::std::string json = parser_->ToJsonString(bridge_config);
 
@@ -233,4 +215,4 @@ TEST_F(AJsonConfigConverter, ConvertsBackAndForth) {
   ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
 
-}
+}  // namespace netconf

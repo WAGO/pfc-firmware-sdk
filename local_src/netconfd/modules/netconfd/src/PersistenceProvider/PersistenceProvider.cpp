@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <PersistenceProvider.hpp>
+#include "PersistenceProvider.hpp"
+
 #include "TypesHelper.hpp"
 
 namespace netconf {
 
 PersistenceProvider::PersistenceProvider(const ::std::string &persistence_path, IDeviceProperties &properties_provider,
                                          DipSwitch &dip_switch)
-    : properties_provider_ { properties_provider },
-      backup_restore_ { file_editor_, 75 },
-      restore_legacy_ { file_editor_, properties_provider },
-      persistence_executor_ { persistence_path, file_editor_, backup_restore_, restore_legacy_, dip_switch } {
+    : properties_provider_{properties_provider},
+      backup_restore_{file_editor_, 75},
+      restore_legacy_{file_editor_, properties_provider},
+      persistence_executor_{persistence_path, file_editor_, backup_restore_, restore_legacy_, dip_switch} {
 }
 
 Status PersistenceProvider::Write(const BridgeConfig &config) {
@@ -64,4 +65,4 @@ Status PersistenceProvider::Write(const DipSwitchIpConfig &config) {
   return persistence_executor_.Write(config);
 }
 
-}
+}  // namespace netconf

@@ -9,8 +9,9 @@
 
 namespace netconf {
 
-// TODO(JSo): modernize constexpr type when new cpp-std is available
-constexpr char ZeroIP[] = "0.0.0.0";
+// TODO(SB): modernize with constexpr type when new cpp-std is available.
+// Use static string to prevent Lint warning [cppcoreguidelines-pro-bounds-array-to-pointer-decay]
+static ::std::string ZeroIP = "0.0.0.0";
 
 struct Interface : public ::std::string {
   Interface()
@@ -65,7 +66,6 @@ enum class IPSource {
   DHCP,
   BOOTP,
   EXTERNAL,
-  TEMPORARY,
   FIXIP
 };
 
@@ -75,7 +75,7 @@ enum class IPSource {
  *  The @see IPConfig::interface_ field must be set always.
  *  For the sources @see IPSource::NONE, @see IPSource::DHCP, @see IPSource::BOOTP and @see IPSource::EXTERNAL
  *  setting set the @see IPConfig::source_ field is sufficient.
- *  For the sources @see IPSource::STATIC and @see IPSource::TEMPORARY the @see IPConfig::address_ fields needs to be
+ *  For the sources @see IPSource::STATIC and @see IPConfig::address_ fields needs to be
  * set also.
  *
  */
@@ -87,22 +87,22 @@ struct IPConfig {
         netmask_ { ZeroIP } {
   }
 
-  IPConfig(const Interface &interface, const IPSource source = IPSource::NONE)
-      : interface_ { interface },
+  IPConfig(Interface interface, const IPSource source = IPSource::NONE)
+      : interface_ { ::std::move(interface) },
         source_ { source },
         address_ { ZeroIP },
         netmask_ { ZeroIP } {
   }
 
-  IPConfig(const Interface &interface, const IPSource source, const Address &address, const Netmask &netmask)
-      : interface_ { interface },
+  IPConfig(Interface interface, const IPSource source, const Address &address, const Netmask &netmask)
+      : interface_ { ::std::move(interface) },
         source_ { source },
         address_ { address },
         netmask_ { netmask } {
   }
 
-  static IPConfig CreateDefault(const Interface &interface) {
-    return IPConfig(interface, IPSource::STATIC, ZeroIP, ZeroIP);
+  static IPConfig CreateDefault(Interface interface) {
+    return IPConfig(::std::move(interface), IPSource::STATIC, ZeroIP, ZeroIP);
   }
 
   void Clear() {

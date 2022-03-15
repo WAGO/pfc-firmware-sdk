@@ -345,7 +345,43 @@
       </doc:doc>
     </method>
   </interface>
-  <interface name="de.wago.netconfd1.backup">
+  <interface name="de.wago.netconfd1.event">
+    <method name="dynamicip">
+      <arg name="config" direction="in" type="s">
+        <doc:doc>
+          <doc:summary>Dynamic IP event </doc:summary>
+        </doc:doc>
+      </arg>
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Trigger an event.
+            Example:
+            { "interface": "br0", "action": "renew" }
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+    <method name="reloadhostconf">
+      <arg name="result" direction="out" type="s">
+        <doc:doc>
+          <doc:summary>Error object containing the result</doc:summary>
+        </doc:doc>
+      </arg>
+      <doc:doc>
+        <doc:description>
+          <doc:para>
+            Trigger reload of /etc/host.conf and propagate host/domain changes to the system.
+          </doc:para>
+        </doc:description>
+      </doc:doc>
+    </method>
+  </interface><interface name="de.wago.netconfd1.backup">
     <method name="getbackupparamcount">
       <arg name="count" direction="out" type="s">
         <doc:doc>
@@ -407,4 +443,5 @@
       </doc:doc>
     </method>
   </interface>
+  
 </node>

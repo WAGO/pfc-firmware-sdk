@@ -129,7 +129,7 @@ echo "    do"                                    >> ${BUILD_DIR}/control/postins
 echo "		    usleep 100000"                     >> ${BUILD_DIR}/control/postinst
 echo "    done"                                  >> ${BUILD_DIR}/control/postinst
 echo "    export PREPARE_MODE=@PREPARE_MODE@"    >> ${BUILD_DIR}/control/postinst
-echo "    /root/install_3s_opcuaserver.sh 2>&1 |  tee -a /var/log/opcua.log" >> ${BUILD_DIR}/control/postinst
+echo "    /root/install_3s_opcuaserver.sh 2>&1 |  tee -a /var/log/opcuaserver.log" >> ${BUILD_DIR}/control/postinst
 echo "    sync"                                  >> ${BUILD_DIR}/control/postinst
 echo "}"                                         >> ${BUILD_DIR}/control/postinst
 echo ""                                          >> ${BUILD_DIR}/control/postinst
@@ -149,6 +149,7 @@ echo ""                                                           >> ${BUILD_DIR
 echo "/etc/init.d/runtime stop"                                   >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "/etc/init.d/opcua-server stop"                              >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "opkg remove pp-opcua"                                       >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
+echo "opkg remove opcuaclient"                                    >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "opkg remove opcuaserver"                                    >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "opkg remove opcuacsdk"                                      >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh
 echo "cp -au /tmp_libs/usr/lib/ /usr/"                            >> ${BUILD_DIR}/data/root/install_3s_opcuaserver.sh

@@ -47,8 +47,7 @@ libutility.a_CXXFLAGS += $(call option_disable_warning,$(libutility.a_CXXDISABLE
 libutility.a_CXXFLAGS += $(libutility.a_CCXXFLAGS)
 libutility.a_SOURCES += $(call fglob_r,$(libutility_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
 libutility.a_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
-libutility.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-libutility.a_CLANG_TIDY_CHECKS += -google-runtime-references
+libutility.a_CLANG_TIDY_CHECKS += $(SHARED_CLANG_TIDY_CHECKS)
 
 #######################################################################################################################
 # Settings for build target utility_tests.elf
@@ -81,8 +80,7 @@ utility_tests.elf_LDFLAGS += $(call option_lib,$(utility_tests.elf_LIBS),utility
 utility_tests.elf_LDFLAGS += $(call pkg_config_ldflags,$(utility_tests.elf_PKG_CONFIGS))
 utility_tests.elf_SOURCES += $(call fglob_r,$(libutility_PROJECT_ROOT)/test-src,$(SOURCE_FILE_EXTENSIONS))
 utility_tests.elf_DISABLE_CLANG_TIDY = T
-utility_tests.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-utility_tests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
+
 # filter only source files in this sub-module
 utility_tests.elf_GCOVR_FILTER += $(libutility_PROJECT_ROOT)
 # modules to include into this test's coverage report 

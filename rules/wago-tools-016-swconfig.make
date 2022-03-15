@@ -32,7 +32,7 @@ $(STATEDIR)/swconfig.extract: $(STATEDIR)/autogen-tools
 	@$(call targetinfo)
 	@$(call clean, $(SWCONFIG_DIR))
 #	@$(call extract, SWCONFIG)
-	@rsync -a $(SWCONFIG_SRC)  $(BUILDDIR) 
+	@rsync -a $(SWCONFIG_SRC)  $(BUILDDIR)
 	@$(call patchin, SWCONFIG)
 	cd $(SWCONFIG_DIR) && sh autogen.sh
 	@$(call touch)
@@ -48,7 +48,7 @@ SWCONFIG_PATH		:= PATH=$(CROSS_PATH)
 # autoconf
 #
 SWCONFIG_CONF_TOOL	:= autoconf
-SWCONFIG_CONF_OPT	:= $(CROSS_AUTOCONF_USR)
+SWCONFIG_CONF_OPT	:= $(CROSS_AUTOCONF_USR) --enable-debug=no
 
 $(STATEDIR)/swconfig.prepare:
 	@$(call targetinfo)

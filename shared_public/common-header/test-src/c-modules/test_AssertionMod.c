@@ -66,5 +66,17 @@ int TriggerFailReturnC(int const value)
 }
 
 
+void TriggerSuccessReturnVoidC(void)
+{
+  WC_ASSERT_RETURN_VOID(ONE==ONE); //lint -e 506 Constant value Boolean
+}
+
+
+void TriggerFailReturnVoidC(void)
+{
+  WC_ASSERT_RETURN_VOID(ONE==ZERO); //lint -e 506 Constant value Boolean
+}
+
+
 //---- End of source file ------------------------------------------------------
 

@@ -13,7 +13,7 @@ class MockINetDevEvents : public INetDevEvents {
   MOCK_METHOD1(OnNetDevCreated,void(NetDevPtr netdev));
   MOCK_METHOD1(OnNetDevRemoved, void(NetDevPtr netdev));
   MOCK_METHOD1(OnNetDevChangeInterfaceRelations, void(NetDevPtr netdev));
-
+  MOCK_METHOD1(OnLinkChange, void(NetDevPtr netdev));
 };
 
 

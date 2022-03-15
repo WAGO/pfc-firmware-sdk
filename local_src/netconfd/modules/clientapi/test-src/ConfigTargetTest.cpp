@@ -81,21 +81,22 @@ TEST_F(ConfigTest_Target, SetAndGetIpConfig) {
 
 TEST_F(ConfigTest_Target, DeleteIpConfig) {
   SetBridgeConfig(seperated_);
+  ::std::string bridge1{"br1"};
 
-  IPConfig ip_config1_br1_ { "br1", IPSource::STATIC, "192.168.5.5", "255.255.255.0" };
+  IPConfig ip_config1_br1_ { bridge1, IPSource::STATIC, "192.168.5.5", "255.255.255.0" };
 
   IPConfigs ip_configs1;
   ip_configs1.AddIPConfig(ip_config1_br1_);
   SetIPConfigs(ip_configs1);
   IPConfigs actual_1;
   GetIPConfigs(actual_1);
-  ASSERT_EQ(ip_config1_br1_, actual_1.GetIPConfig("br1"));
+  ASSERT_EQ(ip_config1_br1_, actual_1.GetIPConfig(bridge1));
 
-  DeleteIPConfig("br1");
+  DeleteIPConfig(bridge1);
   IPConfigs actual_2;
   GetIPConfigs(actual_2);
-  IPConfig expected { "br1", IPSource::NONE, netconf::ZeroIP, netconf::ZeroIP };
-  EXPECT_EQ(expected, *actual_2.GetIPConfig("br1"));
+  IPConfig expected { bridge1, IPSource::NONE, netconf::ZeroIP, netconf::ZeroIP };
+  EXPECT_EQ(expected, *actual_2.GetIPConfig(bridge1));
 }
 
 }  // namespace api

@@ -3,7 +3,7 @@
 #include "BridgeConfigHelper.hpp"
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "Helper.hpp"
+#include "CollectionUtils.hpp"
 #include "boost/algorithm/string/join.hpp"
 
 using namespace testing;

@@ -1,24 +1,22 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "DeviceTypeLabelProvider.hpp"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/ini_parser.hpp>
+
 #include <boost/foreach.hpp>
-#include <EthernetInterface.hpp>
+#include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <iomanip>
 
-#include "Logger.hpp"
 #include "CommandExecutor.hpp"
+#include "EthernetInterface.hpp"
+#include "Logger.hpp"
 
 namespace netconf {
-
 
 using boost::property_tree::ptree;
 using namespace std::literals;
 
-DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor)
-    : executor_(executor) {
-
+DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor) : executor_(executor) {
   ::std::string type_label_ini;
   Status status = executor_.Execute("/etc/config-tools/get_typelabel_value -a", type_label_ini);
 
@@ -35,7 +33,7 @@ DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor)
     boost::property_tree::read_ini(type_label_stringstream, type_label_values);
 
     order_number_ = type_label_values.get<::std::string>("ORDER");
-    mac_ = type_label_values.get<::std::string>("MAC");
+    mac_          = type_label_values.get<::std::string>("MAC");
 
     if (type_label_values.count("MAC_ID_INC") == 0) {
       mac_count_ = 1;
@@ -44,7 +42,7 @@ DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor)
     }
 
   } catch (std::exception& e) {
-    LogError("Failed to extract typelabel values! Taking fallback values. ("s.append(e.what()).append(")") );
+    LogError("Failed to extract typelabel values! Taking fallback values. ("s.append(e.what()).append(")"));
     if (order_number_.empty()) {
       GetOrderFallback();
     }
@@ -52,7 +50,6 @@ DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor)
       GetMacFallback();
     }
   }
-
 }
 
 ::std::string DeviceTypeLabelProvider::GetOrderNumber() const {
@@ -64,7 +61,6 @@ DeviceTypeLabelProvider::DeviceTypeLabelProvider(CommandExecutor& executor)
 }
 
 static std::string IntToMac(uint64_t mac) {
-
   std::stringstream stream;
   stream << std::setfill('0') << std::setw(12) << std::hex << mac;
 
@@ -81,7 +77,6 @@ static std::string IntToMac(uint64_t mac) {
 }
 
 static uint64_t MacToInt(::std::string const& mac) {
-
   ::std::string mac_copy = mac;
 
   mac_copy.erase(std::remove(mac_copy.begin(), mac_copy.end(), ':'), mac_copy.end());
@@ -90,12 +85,9 @@ static uint64_t MacToInt(::std::string const& mac) {
 }
 
 ::std::string DeviceTypeLabelProvider::GetIncrementedMac(uint32_t inc) const {
-
   ::std::string incremented_mac;
   if (inc < mac_count_) {
-
     try {
-
       uint64_t mac = MacToInt(mac_);
       mac += inc;
       incremented_mac = IntToMac(mac);
@@ -114,8 +106,7 @@ uint32_t DeviceTypeLabelProvider::GetMacCount() const {
 }
 
 void DeviceTypeLabelProvider::GetMacFallback() {
-
-  EthernetInterface eth0If { "eth0" };
+  EthernetInterface eth0If{"eth0"};
 
   mac_.assign(eth0If.GetMac().ToString());
 }
@@ -124,6 +115,4 @@ void DeviceTypeLabelProvider::GetOrderFallback() {
   order_number_ = "wago-pfc";
 }
 
-
-
-}
+}  // namespace netconf

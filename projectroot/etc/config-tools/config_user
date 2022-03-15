@@ -5,7 +5,7 @@
 #
 # This file is part of PTXdist package config-tools.
 #
-# Copyright (c) 2009-2021 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2009-2022 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 # Script:   /etc/config-tools/config_user
 #
@@ -131,6 +131,14 @@ fi
 
 LC_ALL=$LC_ALL_OLD
 
+# check if user is member of one of the WBM groups
+if ! is_wbm_user "$userName"; then
+  status=$INVALID_PARAMETER
+  ReportError $status "(user is not member of one of the WBM groups)"
+  SetLastError "Invalid user name!"
+  exit $status
+fi
+
 # check if current password of user is correct
 currHash="$(grep "^${userName}:" <"$LOCAL_PASSWD_FILENAME" | cut -d':' -f2 | cut -d'$' -f4)"
 oldHash="$(mkpasswd -m sha512 "$oldPassword" "$(grep "^${userName}:" <"$LOCAL_PASSWD_FILENAME" | cut -d'$' -f3)" | cut -d'$' -f4)"
@@ -142,14 +150,6 @@ if [[ "$oldHash" != "$currHash" ]]; then
 fi
 
 #echo "change Password for" $userName "to" $newPassword
-
-  # check if user is member of one of the WBM groups
-if ! is_wbm_user "$userName"; then
-  status=$INVALID_PARAMETER
-  ReportError $status "(user is not member of one of the WBM groups)"
-  SetLastError "Invalid user name!"
-  exit $status
-fi
 
 # set new password for user, passwd will synchronise passwords with remote backends (LDAP etc.)
 newEscapedPassword="$(sed 's/\\/\//g' <<<"$newPassword")"

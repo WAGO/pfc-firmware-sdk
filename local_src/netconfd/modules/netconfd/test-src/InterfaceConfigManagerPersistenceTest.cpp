@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <MockIPersistencePortConfigs.hpp>
+
 #include <memory>
 
-#include "InterfaceConfigManager.hpp"
 #include "IEthernetInterfaceFactory.hpp"
+#include "InterfaceConfigManager.hpp"
 #include "InterfaceConfigManagerBaseTest.h"
-
-#include "MockINetDevManager.hpp"
 #include "MockIEthernetInterface.hpp"
+#include "MockINetDevManager.hpp"
+#include "MockIPersistencePortConfigs.hpp"
 
+using namespace testing;
 namespace netconf {
 
 using namespace ::std;
 using namespace ::testing;
-
-
 
 static std::ostream& operator<<(std::ostream& os, const InterfaceConfig& pc) {
   os << "{Device: " << pc.device_name_ << ", ";
@@ -29,7 +29,6 @@ static std::ostream& operator<<(std::ostream& os, const InterfaceConfig& pc) {
 
 class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseTest, public Test {
  public:
-
   NiceMock<MockINetDevManager> netdev_manager_;
   NiceMock<MockIPersistencePortConfigs> persist_portconfig_mock;
   MockIEthernetInterface ethernet_interface_mock;
@@ -58,8 +57,7 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
    int speed_;
    Duplex duplex_;
    */
-  void SetUp() override
-  {
+  void SetUp() override {
     persisted_matching_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
     persisted_matching_port_config.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF);
 
@@ -84,29 +82,25 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
     new_port_configs_full.emplace_back("X1", InterfaceState::DOWN, Autonegotiation::OFF, 1000, Duplex::HALF);
     new_port_configs_full.emplace_back("X2", InterfaceState::DOWN, Autonegotiation::ON, 10, Duplex::FULL);
 
-    netdevs_.insert(netdevs_.begin(), {
-        ::std::make_shared<NetDev>(0,"ethX1", "X1", DeviceType::Port),
-         ::std::make_shared<NetDev>(0,"ethX2", "X2", DeviceType::Port),
-    });
+    netdevs_.insert(
+        netdevs_.begin(),
+        {
+            ::std::make_shared<NetDev>(0, "ethX1", "X1", DeviceType::Port, false, eth::InterfaceLinkState::Down),
+            ::std::make_shared<NetDev>(0, "ethX2", "X2", DeviceType::Port, false, eth::InterfaceLinkState::Down),
+        });
 
-    ON_CALL(persist_portconfig_mock, Write(_)).WillByDefault(Return(Status { StatusCode::OK }));
-    ON_CALL(persist_portconfig_mock, Read(_)).WillByDefault(Return(Status { StatusCode::PERSISTENCE_READ }));
+    ON_CALL(persist_portconfig_mock, Write(_)).WillByDefault(Return(Status{StatusCode::OK}));
+    ON_CALL(persist_portconfig_mock, Read(_)).WillByDefault(Return(Status{StatusCode::PERSISTENCE_READ}));
 
     fake_fac_ = make_unique<FakeEthernetInterfaceFactory>(*this);
-
-
-
   }
 
   void InstantiateSut() {
-    sut = make_unique<InterfaceConfigManager>(netdev_manager_, persist_portconfig_mock,
-                                              *fake_fac_);
+    sut = make_unique<InterfaceConfigManager>(netdev_manager_, persist_portconfig_mock, *fake_fac_);
     sut->InitializePorts();
     EXPECT_EQ(netdevs_.size(), created_ethernet_interfaces.size());
   }
-
-  }
-  ;
+};
 
 // TEST list
 // 1. Starten ohne Persistenz Datei
@@ -115,39 +109,38 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
 // 4. Starten mit zu wenig PortConfigs in der Persistenz Datei
 // 6. Änderungen werden Persistiert
 
-  TEST_F(InterfaceConfigManagerPersistenceTest, StartWithoutPersistenceData) {
-    EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
-    EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(Return(Status { StatusCode::FILE_READ}));
+TEST_F(InterfaceConfigManagerPersistenceTest, StartWithoutPersistenceData) {
+  EXPECT_CALL(netdev_manager_, GetPortNetDevs()).WillOnce(Return(netdevs_));
+  EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(Return(Status{StatusCode::FILE_READ}));
 
-    InstantiateSut();
+  InstantiateSut();
 
-    auto itf_X1 = FindCreatedEthernetInterface("ethX1");
-    auto itf_X2 = FindCreatedEthernetInterface("ethX2");
+  auto itf_X1 = FindCreatedEthernetInterface("ethX1");
+  auto itf_X2 = FindCreatedEthernetInterface("ethX2");
 
-    ASSERT_THAT(itf_X1, NotNull());
-    ASSERT_THAT(itf_X2, NotNull());
+  ASSERT_THAT(itf_X1, NotNull());
+  ASSERT_THAT(itf_X2, NotNull());
 
-    EXPECT_TRUE(itf_X1->committed_);
-    EXPECT_TRUE(itf_X2->committed_);
+  EXPECT_TRUE(itf_X1->committed_);
+  EXPECT_TRUE(itf_X2->committed_);
 
-    EXPECT_EQ(eth::Autoneg::On, itf_X1->autoneg_);
-    EXPECT_EQ(eth::Autoneg::On, itf_X2->autoneg_);
+  EXPECT_EQ(eth::Autoneg::On, itf_X1->autoneg_);
+  EXPECT_EQ(eth::Autoneg::On, itf_X2->autoneg_);
 
-    EXPECT_EQ(eth::DeviceState::Up, itf_X1->state_);
-    EXPECT_EQ(eth::DeviceState::Up, itf_X2->state_);
+  EXPECT_EQ(eth::DeviceState::Up, itf_X1->state_);
+  EXPECT_EQ(eth::DeviceState::Up, itf_X2->state_);
+}
 
-  }
-
-  ACTION_P(FillPortConfigs, port_configs){
+ACTION_P(FillPortConfigs, port_configs) {
   InterfaceConfigs& dst_port_cfg = arg0;
   dst_port_cfg.insert(dst_port_cfg.begin(), port_configs.begin(), port_configs.end());
 }
 
 TEST_F(InterfaceConfigManagerPersistenceTest, StartWithMatchingPersistenceData) {
-  EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
+  EXPECT_CALL(netdev_manager_, GetPortNetDevs()).WillOnce(Return(netdevs_));
 
-  EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_matching_port_config), Return(Status { StatusCode::OK })));
+  EXPECT_CALL(persist_portconfig_mock, Read(_))
+      .WillOnce(DoAll(FillPortConfigs(persisted_matching_port_config), Return(Status{StatusCode::OK})));
 
   InstantiateSut();
 
@@ -174,9 +167,9 @@ TEST_F(InterfaceConfigManagerPersistenceTest, StartWithMatchingPersistenceData) 
 }
 
 TEST_F(InterfaceConfigManagerPersistenceTest, StartWithOversizedPersistenceData) {
-  EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
-  EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_oversized_port_config), Return(Status { StatusCode::OK })));
+  EXPECT_CALL(netdev_manager_, GetPortNetDevs()).WillOnce(Return(netdevs_));
+  EXPECT_CALL(persist_portconfig_mock, Read(_))
+      .WillOnce(DoAll(FillPortConfigs(persisted_oversized_port_config), Return(Status{StatusCode::OK})));
 
   InstantiateSut();
 
@@ -207,9 +200,9 @@ TEST_F(InterfaceConfigManagerPersistenceTest, StartWithOversizedPersistenceData)
 }
 
 TEST_F(InterfaceConfigManagerPersistenceTest, StartMissingPortConfigsInPersistenceData) {
-  EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
-  EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_missing_port_config), Return(Status { StatusCode::OK })));
+  EXPECT_CALL(netdev_manager_, GetPortNetDevs()).WillOnce(Return(netdevs_));
+  EXPECT_CALL(persist_portconfig_mock, Read(_))
+      .WillOnce(DoAll(FillPortConfigs(persisted_missing_port_config), Return(Status{StatusCode::OK})));
 
   InstantiateSut();
 
@@ -237,32 +230,31 @@ TEST_F(InterfaceConfigManagerPersistenceTest, StartMissingPortConfigsInPersisten
   EXPECT_EQ(eth::Duplex::Full, itf_X2->duplex_);
 }
 
-ACTION_P(CopyToVector, vector){
-std::copy(arg0.begin(), arg0.end(), std::back_inserter(vector.get()));
+ACTION_P(CopyToVector, vector) {
+  std::copy(arg0.begin(), arg0.end(), std::back_inserter(vector.get()));
 }
 
 TEST_F(InterfaceConfigManagerPersistenceTest, PersistPartialNewConfig) {
-  EXPECT_CALL(netdev_manager_, GetNetDevs() ).WillRepeatedly(Return(netdevs_));
-  EXPECT_CALL(netdev_manager_, GetPortNetDevs() ).WillOnce(Return(netdevs_));
-  EXPECT_CALL(persist_portconfig_mock, Read(_)).WillOnce(
-      DoAll(FillPortConfigs(persisted_matching_port_config), Return(Status { StatusCode::OK })));
+  EXPECT_CALL(netdev_manager_, GetNetDevs()).WillRepeatedly(Return(netdevs_));
+  EXPECT_CALL(netdev_manager_, GetPortNetDevs()).WillOnce(Return(netdevs_));
+  EXPECT_CALL(persist_portconfig_mock, Read(_))
+      .WillOnce(DoAll(FillPortConfigs(persisted_matching_port_config), Return(Status{StatusCode::OK})));
 
   InstantiateSut();
 
   InterfaceConfigs written_configs;
-  EXPECT_CALL(persist_portconfig_mock, Write(_)).WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Status {
-      StatusCode::OK })));
+  EXPECT_CALL(persist_portconfig_mock, Write(_))
+      .WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Status{StatusCode::OK})));
   sut->Configure(new_port_configs_partial);
 
   EXPECT_THAT(written_configs, ContainerEq(persisted_new_port_configs_partial));
 
   written_configs.clear();
 
-  EXPECT_CALL(persist_portconfig_mock, Write(_)).WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Status {
-      StatusCode::OK })));
+  EXPECT_CALL(persist_portconfig_mock, Write(_))
+      .WillOnce(DoAll(CopyToVector(std::ref(written_configs)), Return(Status{StatusCode::OK})));
   sut->Configure(new_port_configs_full);
   EXPECT_THAT(written_configs, ContainerEq(new_port_configs_full));
-
 }
 
 }  // namespace netconf

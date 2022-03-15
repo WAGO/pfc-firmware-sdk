@@ -207,7 +207,7 @@ echo "    do" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "        usleep 100000" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "    done" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "    export PREPARE_MODE=@PREPARE_MODE@" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
-echo "    /root/install_opcuaserver.sh 2>&1 |  tee -a /var/log/opcua.log" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
+echo "    /root/install_opcuaserver.sh 2>&1 |  tee -a /var/log/opcuaserver.log" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "    sync" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "}" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "" >> ${BUILD_DIR}opc-ipkg-src/control/postinst

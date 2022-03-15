@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_DATAAGENT) += dataagent
 #
 # Paths and names
 #
-DATAAGENT_VERSION       := 1.10
+DATAAGENT_VERSION       := 1.11
 DATAAGENT               := DataAgent
 DATAAGENT_URL           := file://wago_intern/$(DATAAGENT)
 DATAAGENT_BUILDCONFIG   := Release
@@ -135,10 +135,10 @@ $(STATEDIR)/dataagent.targetinstall:
 	@$(call install_copy, dataagent, 0, 0, 0750, -, /etc/config-tools/config_cloudconnectivity)
 
 ifdef PTXCONF_DATAAGENT_PARAMETER_PROVIDER_DAEMON
-	@$(call install_copy, dataagent, 0, 0, 0755, -, /etc/init.d/pp_cloudconnectivity)
+	@$(call install_copy, dataagent, 0, 0, 0755, -, /usr/bin/pp_cloudconnect)
 ifdef PTXCONF_INITMETHOD_BBINIT
 ifdef PTXCONF_DATAAGENT_PARAMETER_PROVIDER_DAEMON_STARTSCRIPT
-	@$(call install_copy, dataagent, 0, 0, 0755, -, /usr/bin/pp_cloudconnect)
+	@$(call install_copy, dataagent, 0, 0, 0755, -, /etc/init.d/pp_cloudconnectivity)
 
 ifneq ($(call remove_quotes, $(PTXCONF_DATAAGENT_PARAMETER_PROVIDER_DAEMON_STARTSCRIPT_BBINIT_LINK)),)
 	@$(call install_link, dataagent, \

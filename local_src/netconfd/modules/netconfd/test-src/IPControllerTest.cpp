@@ -55,7 +55,7 @@ class AnIPController_Target : public Test {
 TEST_F(AnIPController_Target, SetsAnEmptyBroadcast) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.42", "255.255.255.0");
-  Status status = ip_controller_->SetIPConfig(config);
+  Status status = ip_controller_->Configure(config);
 
   ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
 }
@@ -63,7 +63,7 @@ TEST_F(AnIPController_Target, SetsAnEmptyBroadcast) {
 TEST_F(AnIPController_Target, TriesToSetAnEmptyNetmask) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.42", "");
-  Status status = ip_controller_->SetIPConfig(config);
+  Status status = ip_controller_->Configure(config);
 
   EXPECT_EQ(StatusCode::SET_IP, status.GetStatusCode());
 }
@@ -71,7 +71,7 @@ TEST_F(AnIPController_Target, TriesToSetAnEmptyNetmask) {
 TEST_F(AnIPController_Target, TriesToSetAnInvalidIPAddress) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.555", "255.255.255.0");
-  Status status = ip_controller_->SetIPConfig(config);
+  Status status = ip_controller_->Configure(config);
 
   EXPECT_EQ(StatusCode::SET_IP, status.GetStatusCode());
 }
@@ -79,7 +79,7 @@ TEST_F(AnIPController_Target, TriesToSetAnInvalidIPAddress) {
 TEST_F(AnIPController_Target, TriesToSetAnInvalidNetmask) {
 
   IPConfig config(bridge_, IPSource::STATIC,"192.168.42.42", "255.255.255");
-  Status status = ip_controller_->SetIPConfig(config);
+  Status status = ip_controller_->Configure(config);
 
   EXPECT_EQ(StatusCode::SET_IP, status.GetStatusCode());
 }
@@ -87,7 +87,7 @@ TEST_F(AnIPController_Target, TriesToSetAnInvalidNetmask) {
 TEST_F(AnIPController_Target, TriesToSetAnZeroIPAddress) {
 
   IPConfig config(bridge_, IPSource::STATIC,"", "255.255.255.0");
-  Status status = ip_controller_->SetIPConfig(config);
+  Status status = ip_controller_->Configure(config);
 
   EXPECT_EQ(StatusCode::SET_IP, status.GetStatusCode());
 }

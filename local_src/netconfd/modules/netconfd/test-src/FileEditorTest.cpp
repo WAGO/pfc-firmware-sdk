@@ -11,15 +11,16 @@
 // include files
 //------------------------------------------------------------------------------
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "FileEditor.hpp"
-#include <memory>
-#include <iostream>
-#include <fstream>
+#include <gtest/gtest.h>
 #include <stdio.h>
 
-#include <Status.hpp>
+#include <fstream>
+#include <iostream>
+#include <memory>
+
+#include "FileEditor.hpp"
+#include "Status.hpp"
 
 using namespace testing;
 
@@ -29,8 +30,8 @@ class AFileEditor : public Test {
  public:
   ::std::unique_ptr<FileEditor> file_editor;
 
-  const ::std::string path_ = "persistence_provider_test.json";
-  const ::std::string empty_path_ = "";
+  const ::std::string path_         = "persistence_provider_test.json";
+  const ::std::string empty_path_   = "";
   const ::std::string missing_path_ = "persistence_provider_test.json.missing";
 
   AFileEditor() {
@@ -43,7 +44,6 @@ class AFileEditor : public Test {
   }
 
   void TearDown() override {
-
   }
 
   ::std::string data_ = R"(
@@ -52,26 +52,21 @@ class AFileEditor : public Test {
   )";
 
   void WriteConfigFile(const ::std::string& file, const ::std::string& content) {
-
     ::std::ofstream config_stream(file);
     config_stream << content;
     config_stream.close();
   }
 
   ::std::string ReadConfigFile(const ::std::string& file) {
-
     ::std::ifstream config_stream(file);
-    ::std::string json_config((std::istreambuf_iterator<char>(config_stream)),
-                              std::istreambuf_iterator<char>());
+    ::std::string json_config((std::istreambuf_iterator<char>(config_stream)), std::istreambuf_iterator<char>());
     config_stream.close();
 
     return json_config;
   }
-
 };
 
 TEST_F(AFileEditor, ReadsAConfiguration) {
-
   WriteConfigFile(path_, data_);
 
   ::std::string data;
@@ -79,11 +74,9 @@ TEST_F(AFileEditor, ReadsAConfiguration) {
 
   EXPECT_EQ(data, data_);
   EXPECT_TRUE(status.IsOk());
-
 }
 
 TEST_F(AFileEditor, TriesToReadAMissingFile) {
-
   ::std::string data;
   Status status = file_editor->Read(missing_path_, data);
 
@@ -92,31 +85,25 @@ TEST_F(AFileEditor, TriesToReadAMissingFile) {
 }
 
 TEST_F(AFileEditor, WritesAConfiguration) {
-
-  Status status = file_editor->Write(path_, data_);
+  Status status = file_editor->WriteAndReplace(path_, data_);
   EXPECT_TRUE(status.IsOk());
 
   EXPECT_EQ(data_, ReadConfigFile(path_));
-
 }
 
 TEST_F(AFileEditor, AppensAConfiguration) {
-
   WriteConfigFile(path_, data_);
 
-  Status status = file_editor->Append(path_,data_);
+  Status status = file_editor->Append(path_, data_);
 
   EXPECT_TRUE(status.IsOk());
-  EXPECT_EQ(data_+data_, ReadConfigFile(path_));
-
+  EXPECT_EQ(data_ + data_, ReadConfigFile(path_));
 }
 
 TEST_F(AFileEditor, TriesToAppendAMissingFile) {
-
-  Status status = file_editor->Append(missing_path_,data_);
+  Status status = file_editor->Append(missing_path_, data_);
 
   EXPECT_EQ(StatusCode::FILE_WRITE, status.GetStatusCode());
-
 }
 
-}
+}  // namespace netconf

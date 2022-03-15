@@ -3,7 +3,7 @@
 <ledconfig>
 <led name="SYS" number="0" state="STATIC_GRN" id="000000C0" />
 <led name="RUN" number="1" state="STATIC_OFF" id="00040004" />
-<led name="USR" number="2" state="STATIC_OFF" id="00010000" />
+<led name="U1" number="2" state="STATIC_OFF" id="00010000" />
 <led name="H11" number="3" state="STATIC_OFF" id="0000000B" />
 <led name="H12" number="4" state="STATIC_OFF" id="00000004" />
 </ledconfig>

@@ -66,5 +66,17 @@ int TriggerFailReturnCPP(int const value)
 }
 
 
+void TriggerSuccessReturnVoidCPP()
+{
+  WC_ASSERT_RETURN_VOID(ONE==ONE);
+}
+
+
+void TriggerFailReturnVoidCPP()
+{
+  WC_ASSERT_RETURN_VOID(ONE==ZERO);
+}
+
+
 //---- End of source file ------------------------------------------------------
 

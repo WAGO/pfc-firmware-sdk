@@ -50,8 +50,7 @@ libcommon.a_CXXFLAGS += $(libcommon.a_CCXXFLAGS)
 libcommon.a_SOURCES += $(call fglob_r,$(common_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
 libcommon.a_SOURCES += $(netonfd_common_sources)
 libcommon.a_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
-libcommon.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-libcommon.a_CLANG_TIDY_CHECKS += -google-runtime-references
+libcommon.a_CLANG_TIDY_CHECKS += $(SHARED_CLANG_TIDY_CHECKS)
 libcommon.a_VERSION := $(NETCONFD_VERSION)
 
 
@@ -84,8 +83,6 @@ common_tests.elf_LDFLAGS += $(call option_lib,$(common_tests.elf_LIBS),common_te
 common_tests.elf_LDFLAGS += $(call pkg_config_ldflags,$(common_tests.elf_PKG_CONFIGS))
 common_tests.elf_SOURCES += $(call fglob_r,$(common_PROJECT_ROOT)/test-src,$(SOURCE_FILE_EXTENSIONS))
 common_tests.elf_DISABLE_CLANG_TIDY = T
-common_tests.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-common_tests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 # filter only source files in this sub-module
 common_tests.elf_GCOVR_FILTER += $(common_PROJECT_ROOT)
 # modules to include into this test's coverage report 

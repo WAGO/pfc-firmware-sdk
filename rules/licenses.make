@@ -16,21 +16,14 @@ PACKAGES-$(PTXCONF_LICENSES) += licenses
 #
 # Paths and names
 #
-LICENSES                := licenses
-LICENSES_SRC_DIR				:= /usr/share/licenses
-LICENSES_TARGET_DIR			:= /var/www/wbm/licenses
-LICENSES_DIR						:= $(BUILDDIR)/$(LICENSES)
+LICENSES		:= licenses
+LICENSES_TARGET_DIR	:= /usr/share/licenses
+LICENSES_WBM_DIR	:= /var/www/wbm/licenses
+LICENSES_PATH		:= $(PTXDIST_WORKSPACE)/projectroot$(LICENSES_TARGET_DIR)/oss
+LICENSES_DIR		:= $(BUILDDIR)/$(LICENSES)
 LICENSES_VERSION        := 1.0
-ifeq ($(PTXCONF_CONFIGFILE_VERSION),"2020.08.0")
-LICENSES_PATH						:= $(call ptx/get-alternative, projectroot, $(LICENSES_SRC_DIR)/oss)
-else
-LICENSES_PATH						:= $(call ptx/get_alternative, projectroot, $(LICENSES_SRC_DIR)/oss)
-endif
-ifdef PTXCONF_PFC_200_G2
-LICENSES_PATH						:= $(LICENSES_PATH)_g2
-endif
 LICENSES_PACKAGE_NAME 	:= $(LICENSES)_$(LICENSES_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
-LICENSES_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
+LICENSES_PLATFORMCONFIGPACKAGEDIR	:= $(PTXDIST_PLATFORMCONFIGDIR)/packages
 
 LICENSES_LICENSE        := unknown
 LICENSES_MAKE_ENV       :=
@@ -71,23 +64,35 @@ $(STATEDIR)/licenses.install:
 	@$(call targetinfo)
 	
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
-#		# BSP mode: install by extracting tgz file
+#	# BSP mode: install by extracting tgz file
 	@mkdir -p $(LICENSES_DIR) && \
-		tar xvzf $(LICENSES_PLATFORMCONFIGPACKAGEDIR)/$(LICENSES_PACKAGE_NAME).tgz -C $(LICENSES_DIR)
+	  tar xvzf $(LICENSES_PLATFORMCONFIGPACKAGEDIR)/$(LICENSES_PACKAGE_NAME).tgz \
+	    -C $(LICENSES_DIR)
 else
-#		normal mode, call "make install" 
-	
-	@# WBM can only show UTF-8 format, so test and convert licenses
-	@$(PTXDIST_WORKSPACE)/wago_intern/tools/create-license-infos/convert_dynamically.sh $(LICENSES_PATH)
-	@# license files need a lot of space, so package them and copy to build-target
-	@$(PTXDIST_WORKSPACE)/wago_intern/tools/create-license-infos/pack_licenses.sh $(LICENSES_PATH) $(LICENSES_DIR)
+	@$(shell mkdir -p $(LICENSES_DIR))
+#	# copy only needed licences, i.e. for selected packages, to working directory
+#	# and then work with the copies. do NOT modify them directly in */projectroot*/...
+	@$(foreach pkg, $(IMAGE_ROOT_TGZ_PKGS), \
+	  $(shell test -f $(LICENSES_PATH)/license.$(subst _,-,$(pkg))_*.txt && \
+	  cp $(LICENSES_PATH)/license.$(subst _,-,$(pkg))_*.txt $(LICENSES_DIR)/) \
+	  $(shell [[ "$(pkg)" == "udev-legacy" ]] && \
+	  cp $(LICENSES_PATH)/license.udev_*.txt $(LICENSES_DIR)/) \
+	)
+
+#	# WBM can only show UTF-8 format, so test and convert licenses
+	@$(PTXDIST_WORKSPACE)/wago_intern/tools/create-license-infos/convert_dynamically.sh \
+	  $(LICENSES_DIR)
+#	# license files need a lot of space, so package them and copy to build-target
+	@$(PTXDIST_WORKSPACE)/wago_intern/tools/create-license-infos/pack_licenses.sh \
+	  $(LICENSES_DIR)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
-#		# save install directory to tgz for BSP mode
+#	# save install directory to tgz for BSP mode
 	@mkdir -p $(LICENSES_PLATFORMCONFIGPACKAGEDIR)
-	@cd $(LICENSES_DIR) && tar cvzf $(LICENSES_PLATFORMCONFIGPACKAGEDIR)/$(LICENSES_PACKAGE_NAME).tgz *
-endif
-endif
+	@cd $(LICENSES_DIR) && \
+	  tar cvzf $(LICENSES_PLATFORMCONFIGPACKAGEDIR)/$(LICENSES_PACKAGE_NAME).tgz *.xz
+endif # PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
+endif # PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 
 	@$(call touch)
 
@@ -104,15 +109,18 @@ $(STATEDIR)/licenses.targetinstall:
 	@$(call install_fixup, licenses, AUTHOR,"Henrik Lampe, WAGO Kontakttechnik GmbH \& Co. KG")
 	@$(call install_fixup, licenses, DESCRIPTION, missing)
 
-	
-	@# install license files from build-target to plattform.../root/
-	@$(call install_tree, licenses, 0, 0, $(LICENSES_DIR), $(LICENSES_SRC_DIR)/oss/)
-	@# install general licenses
-	@$(call install_alternative, licenses, 0, 0, 0644, $(LICENSES_SRC_DIR)/oss.txt)
-	@$(call install_alternative, licenses, 0, 0, 0644, $(LICENSES_SRC_DIR)/wago.txt)
-	@$(call install_alternative_tree, licenses, 0, 0, $(LICENSES_SRC_DIR)/oss/generic/)
-	@# install link from destination place
-	@$(call install_link, licenses, $(LICENSES_SRC_DIR), $(LICENSES_TARGET_DIR))
+#	# install general licenses
+	@$(call install_alternative, licenses, 0, 0, 0644, $(LICENSES_TARGET_DIR)/oss.txt)
+	@$(call install_alternative, licenses, 0, 0, 0644, $(LICENSES_TARGET_DIR)/wago.txt)
+
+#	# _generic_ licenses, i.e. do not depend on selected packages - GPL etc.
+	@$(call install_alternative_tree, licenses, 0, 0, $(LICENSES_TARGET_DIR)/oss/generic/)
+
+#	# OSS licenses depending on selected(!) and INSTALLED packages
+	@$(call install_glob, licenses, 0, 0, $(LICENSES_DIR), $(LICENSES_TARGET_DIR)/oss/, *.xz, *.txt)
+
+#	# install link to target dir inside WBM dir
+	@$(call install_link, licenses, $(LICENSES_TARGET_DIR), $(LICENSES_WBM_DIR))
 
 	@$(call install_finish, licenses)
 	@$(call touch)

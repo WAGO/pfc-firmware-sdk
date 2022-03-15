@@ -2,19 +2,32 @@
 
 #include "NetDevManager.hpp"
 
+extern "C" {
+// clang-format off
+#include <net/if.h>
+#include <sys/socket.h>
+#include <linux/if.h>
+// clang-format on
+}
+
 #include <boost/algorithm/string/predicate.hpp>
 #include <functional>
-#include <net/if.h>
 
-#include "Helper.hpp"
+#include "CollectionUtils.hpp"
+#include "Logger.hpp"
 
 namespace netconf {
 
-using std::string;
 using std::make_shared;
+using std::string;
 using namespace std::literals;
 
-constexpr DeviceType DeviceTypesAllowingIP = DeviceType::Bridge | DeviceType::Wwan;
+namespace {
+
+eth::InterfaceLinkState InterfaceFlagsToState(::std::uint32_t flags) {
+  return (flags & IFF_LOWER_UP) == IFF_LOWER_UP ? eth::InterfaceLinkState::Up : eth::InterfaceLinkState::Down;
+}
+}  // namespace
 
 DeviceType NetDevManager::DetermineNetDevKind(const ::std::string &name) {
   if (boost::starts_with(name, "ethX")) {
@@ -41,7 +54,7 @@ DeviceType NetDevManager::DetermineNetDevKind(const ::std::string &name) {
 
 void NetDevManager::InitializeNetDevs() {
 
-  for (auto name : bridge_controller_.GetInterfaces()) {
+  for (auto &name : bridge_controller_.GetInterfaces()) {
     auto kind = DetermineNetDevKind(name);
 
     if (kind == DeviceType::Ethernet) {
@@ -77,23 +90,22 @@ BridgeConfig NetDevManager::GetActualBridgeConfig() {
 }
 
 NetDevManager::NetDevManager(::std::shared_ptr<IInterfaceMonitor> interface_monitor,
-                             IBridgeController &bridge_controller, IMacDistributor &mac_distributor)
-    : interface_monitor_ { interface_monitor },
+                             IBridgeController &bridge_controller, IMacDistributor &mac_distributor,
+                             IEventManager &event_manager)
+    : interface_monitor_ { ::std::move(interface_monitor) },
       netdev_construction_ { nullptr },
       bridge_controller_ { bridge_controller },
-      mac_distributor_ { mac_distributor } {
+      mac_distributor_ { mac_distributor },
+      event_manager_ { event_manager } {
 
   InitializeNetDevs();
-
-  BridgeConfig bridge_config = GetActualBridgeConfig();
-  ConfigureBridges(bridge_config);
 
   interface_monitor_->RegisterEventHandler(*this);
 }
 
 NetDevPtr NetDevManager::FindIf(const NetDevs &netdevs, NetDevPredicate predicate) {
 
-  auto it = ::std::find_if(netdevs.begin(), netdevs.end(), predicate);
+  auto it = ::std::find_if(netdevs.begin(), netdevs.end(), ::std::move(predicate));
   return it != netdevs.end() ? *it : NetDevPtr { nullptr };
 }
 
@@ -103,8 +115,9 @@ NetDevPtr NetDevManager::CreateNetdev(::std::string name, ::std::string label, D
   if (not netdev) {
     auto if_index = if_nametoindex(name.c_str());
 
-    netdev = make_shared < NetDev > (if_index, name, label, kind, not (DeviceTypesAllowingIP && kind));
-    netdev->SetIfFlags(interface_monitor_->GetIffFlags(if_index));
+    DeviceType ip_addressable_device_types = DeviceType::Bridge | DeviceType::Wwan;
+    netdev = make_shared<NetDev>(if_index, name, label, kind, (ip_addressable_device_types && kind),
+                                 InterfaceFlagsToState(interface_monitor_->GetIffFlags(if_index)));
 
     net_devs_.push_back(netdev);
     OnNetDevCreated(netdev);
@@ -134,15 +147,14 @@ void NetDevManager::RemoveObsoleteInterfaceRelations(const BridgeConfig &config)
     bool change_ift_relations = false;
     for (auto &netdev_itf : netdev_itfs) {
       auto label = netdev_itf->GetLabel();
-      auto not_found = ::std::find(itf_labels.begin(), itf_labels.end(), label)
-          == itf_labels.end();
+      auto not_found = ::std::find(itf_labels.begin(), itf_labels.end(), label) == itf_labels.end();
       if (not_found) {
         NetDev::RemoveParent(netdev_itf);
         change_ift_relations = true;
       }
     }
-    if(change_ift_relations){
-      OnNetDevChangeInterfaceRelations(bridge_netdev);
+    OnNetDevChangeInterfaceRelations(bridge_netdev);
+    if (change_ift_relations) {
     }
   }
 }
@@ -164,8 +176,8 @@ NetDevs NetDevManager::GetNetdevs(const Interfaces &interfaces) const {
 
 void NetDevManager::CreateBridgesAndRelateToInterfaces(const BridgeConfig &config) {
   for (auto &cfg : config) {
-    auto &bridge_name = ::std::get < 0 > (cfg);
-    auto &interfaces = ::std::get < 1 > (cfg);
+    auto &bridge_name = ::std::get<0>(cfg);
+    auto &interfaces = ::std::get<1>(cfg);
     auto bridge_netdev = CreateNetdev(bridge_name, bridge_name, DeviceType::Bridge);
 
     auto establish_relation = [&](auto &netdev) {
@@ -188,23 +200,17 @@ void NetDevManager::ConfigureBridges(const BridgeConfig &config) {
 }
 
 NetDevPtr NetDevManager::GetByName(::std::string name) {
-  auto pred = [&name](const auto &net_dev) {
-    return net_dev->GetName() == name;
-  };
+  auto pred = [&name](const auto &net_dev) { return net_dev->GetName() == name; };
   return FindIf(net_devs_, pred);
 }
 
 NetDevPtr NetDevManager::GetByLabel(::std::string name) {
-  auto pred = [&name](const auto &net_dev) {
-    return net_dev->GetLabel() == name;
-  };
+  auto pred = [&name](const auto &net_dev) { return net_dev->GetLabel() == name; };
   return FindIf(net_devs_, pred);
 }
 
 NetDevPtr NetDevManager::GetByIfIndex(::std::uint32_t if_index) {
-  auto pred = [=](const auto &net_dev) {
-    return net_dev->GetIndex() == if_index;
-  };
+  auto pred = [=](const auto &net_dev) { return net_dev->GetIndex() == if_index; };
   return FindIf(net_devs_, pred);
 }
 
@@ -247,14 +253,12 @@ NetDevs NetDevManager::GetPortNetDevs() {
 }
 
 bool NetDevManager::Exists(const NetDevs &netdevs, NetDevPredicate predicate) {
-  auto it = ::std::find_if(netdevs.begin(), netdevs.end(), predicate);
+  auto it = ::std::find_if(netdevs.begin(), netdevs.end(), ::std::move(predicate));
   return (it != netdevs.end());
 }
 
 bool NetDevManager::ExistsByName(::std::string name, const NetDevs &netdevs) {
-  auto names_are_equal = [&](const auto &net_dev) {
-    return net_dev->GetName() == name;
-  };
+  auto names_are_equal = [&](const auto &net_dev) { return net_dev->GetName() == name; };
   return NetDevManager::Exists(netdevs, names_are_equal);
 }
 
@@ -263,9 +267,7 @@ bool NetDevManager::DoesNotExistByName(::std::string name, const NetDevs &netdev
 }
 
 bool NetDevManager::ExistsByLabel(::std::string label, const NetDevs &netdevs) {
-  auto labels_are_equal = [&label](const auto &net_dev) {
-    return net_dev->GetLabel() == label;
-  };
+  auto labels_are_equal = [&label](const auto &net_dev) { return net_dev->GetLabel() == label; };
   return NetDevManager::Exists(netdevs, labels_are_equal);
 }
 
@@ -273,12 +275,58 @@ bool NetDevManager::DoesNotExistByLabel(::std::string label, const NetDevs &netd
   return !ExistsByLabel(::std::move(label), netdevs);
 }
 
-void NetDevManager::LinkChange(::std::uint32_t if_index, ::std::uint32_t flags) {
+void NetDevManager::CreateAndRemoveWwanNetdevWhenTheKernelResetsTheInterface(::std::uint32_t if_index,
+                                                                             IInterfaceEvent::Action action) {
 
+  if (action == IInterfaceEvent::Action::DEL) {
+    auto netdev = GetByIfIndex(if_index);
+    if (netdev && netdev->GetKind() == DeviceType::Wwan) {
+      auto it = ::std::find(net_devs_.begin(), net_devs_.end(), netdev);
+      if (it != net_devs_.end()) {
+        OnNetDevRemoved(netdev);
+        net_devs_.erase(it);
+      }
+    }
+  }
+
+  if (action == IInterfaceEvent::Action::NEW) {
+    char buffer[IF_NAMESIZE];
+    if_indextoname(if_index, buffer);
+    ::std::string name(buffer);
+    auto kind = DetermineNetDevKind(name);
+    if (kind == DeviceType::Wwan) {
+      CreateNetdev(name, name, kind);
+    }
+  }
+
+}
+
+void NetDevManager::LinkChange(::std::uint32_t if_index, ::std::uint32_t flags, IInterfaceEvent::Action action) {
+
+  LogDebug("NetDevManager::LinkChange intex: " + ::std::to_string(if_index) + " action: " + IInterfaceEvent::ActionToString(action));
+  auto link_state = InterfaceFlagsToState(flags);
   auto netdev = GetByIfIndex(if_index);
   if (netdev) {
-    netdev->SetIfFlags(flags);
+    auto old_state = netdev->GetLinkState();
+    if (netdev_construction_ != nullptr && old_state != link_state) {
+      netdev->SetLinkState(link_state);
+      netdev_construction_->OnLinkChange(netdev);
+    }
+    if (action == IInterfaceEvent::Action::NEW || action == IInterfaceEvent::Action::DEL) {
+      event_manager_.NotifyNetworkChanges(EventLayer::EVENT_FOLDER, netdev->GetName());
+    }
   }
+
+  /*
+   * Quick fix before refactoring the detection of interface changes (del / new interface).
+   * The quick fix is necessary for the upcoming FW20, as the kernel re-initializes the wwan interface with a modem reset.
+   * This leads to the new wwan interface being given a different interface index.
+   * The netconf does not know this new interface index and does not take over the IP settings.
+   * The event folder is also not called, which means that the default gateway is not entered.
+   * TODO: remove quick fix when refactoring is implemented
+   */
+  CreateAndRemoveWwanNetdevWhenTheKernelResetsTheInterface(if_index, action);
+
 }
 
 void NetDevManager::RegisterForNetDevConstructionEvents(INetDevEvents &netdev_construction) {

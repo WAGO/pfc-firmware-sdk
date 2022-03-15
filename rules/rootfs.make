@@ -202,6 +202,9 @@ ifdef PTXCONF_ROOTFS_SHADOW
 	@$(call install_replace, rootfs, /etc/shadow, \
 		@USER_GUEST@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_GUEST_ENTRY)))
+	@$(call install_replace, rootfs, /etc/shadow, \
+	  @USER_CODESYS3@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_CODESYS3_ENTRY)))	
 
 ifdef PTXCONF_CONFIG_TOOLS
 # ugly: the actual /etc/shadow is picked via install_alternative which does not accept destination paths.
@@ -221,6 +224,9 @@ ifdef PTXCONF_CONFIG_TOOLS
 	@$(call install_replace, rootfs, /etc/config-tools/default-settings/shadow.default, \
 		@USER_VISUALISATION@, \
 		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_VISUALISATION_ENTRY)))
+	@$(call install_replace, rootfs, /etc/config-tools/default-settings/shadow.default, \
+		@USER_CODESYS3@, \
+		$(call remove_quotes,$(PTXCONF_ROOTFS_SHADOW_CODESYS3_ENTRY)))
 
 endif
 endif

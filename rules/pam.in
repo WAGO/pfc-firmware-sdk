@@ -278,5 +278,12 @@ config PAM_PAM_UNIX
 	help
 	  FIXME
 
+config PAM_PAM_FAILLOCK
+	bool
+	default n
+	prompt "pam_faillock"
+	help
+	  FIXME
+
 endif # if PAM
 

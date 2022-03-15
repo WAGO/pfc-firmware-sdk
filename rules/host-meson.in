@@ -1,0 +1,8 @@
+## SECTION=hosttools_noprompt
+
+config HOST_MESON
+	tristate
+	select HOST_SYSTEM_PYTHON3
+	select HOST_SYSTEM_PYTHON3_SETUPTOOLS
+	select HOST_NINJA
+	default y if ALLYES

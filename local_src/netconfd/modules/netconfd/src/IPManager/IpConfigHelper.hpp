@@ -22,7 +22,7 @@ IPConfig CreateIpConfigFromDipInfos(const DipSwitchIpConfig& dipIpConfig, const 
 
 void ModifyIpConfigByDipSwitch(IPConfigs &config, const DipSwitchIpConfig &dip_switch_config, const DipSwitchState dipSwitchState);
 
-void RemoveIpConfigsWithConflicsTo(const IPConfig& testee, IPConfigs& fromConfigs, IPSource havingSource = IPSource::STATIC);
+void DeactivateIpConfigsWithConflicsTo(const IPConfig& testee, IPConfigs& fromConfigs, IPSource havingSource = IPSource::STATIC);
 }  // namespace netconf
 
 //---- End of header file ------------------------------------------------------

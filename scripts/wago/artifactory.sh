@@ -74,7 +74,16 @@ function _fetch_source {
 
     echo "Downloading ${url}..."
 
-    curl -H "X-JFrog-Art-API:${JFROG_APIKEY}" -X GET "${url}" -f -L > "${file}"
+    wget \
+        --passive-ftp \
+        --progress=bar:force \
+        --timeout=30 \
+        --tries=5 \
+        --user-agent="PTXdist ${PTXDIST_VERSION_FULL}" \
+        ${PTXDIST_QUIET:+--quiet} \
+        --header="X-JFrog-Art-API:${JFROG_APIKEY}" \
+        -O "${file}" \
+        "${url}"
 }
 
 function _get_md5sum {

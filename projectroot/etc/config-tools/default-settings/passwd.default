@@ -9,5 +9,6 @@ paramd:x:121:121:WAGO Parameter Service Linux User,,,:/dev/null:/bin/false
 @USER_GUEST@
 @USER_ADMIN@
 @USER_VISUALISATION@
+@USER_CODESYS3@
 rpcuser:x:65533:65534:RPC user:/dev/null:/bin/false
 nobody:x:65534:65534:Unprivileged Nobody:/dev/null:/bin/false

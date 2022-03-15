@@ -19,8 +19,13 @@ PTXDIST_PACKAGE_MK_FILE ?= $(PTXDIST_WORKSPACE)/rules/netconfd.make
 INCLUDES += \
 -I$(PROJECT_ROOT)/src/
 
-CFLAGS += $(call option_std,c99)
-CXXFLAGS += $(call option_std,c++17)
+# JSON_HAS_CPP_14: nlohmann: Prevent ambiguous call error [clang-diagnostic-error]
+CFLAGS += $(call option_std,c99) -DJSON_HAS_CPP_14
+CXXFLAGS += $(call option_std,c++17) -DJSON_HAS_CPP_14
+
+SHARED_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat 
+SHARED_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-c++14-compat
+SHARED_CLANG_TIDY_CHECKS += -google-runtime-references
 
 CLANG_TIDY_HEADER_FILTER :=
 

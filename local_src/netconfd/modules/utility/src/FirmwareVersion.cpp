@@ -18,7 +18,7 @@ FirmwareVersion::FirmwareVersion(::std::string complete_version)
 
   try {
 
-    auto parts = Split(complete_version, ".()");
+    auto parts = Split(::std::move(complete_version), ".()");
 
     if (parts.size() >= 4) {
       major_ = ::std::stoi(parts[0]);

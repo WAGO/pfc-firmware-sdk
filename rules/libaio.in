@@ -1,0 +1,19 @@
+## SECTION=system_libraries
+
+config LIBAIO
+	tristate
+	prompt "libaio"
+	help
+	  Library for asynchronous I/O access
+
+if LIBAIO
+
+config LIBAIO_SKIP_TARGETINSTALL
+	bool "skip libaio targetinstall stage"
+	default y
+	help
+	  Skip libaio targetinstall stage in order to save memory
+	  inside the target device. The install stage will create the package
+	  files into $(PTXDIST_PLATFORMDIR)/packages.
+
+endif

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#ifndef NETCONFD_SRC_INTERPROCESSCONDITION_H_
-#define NETCONFD_SRC_INTERPROCESSCONDITION_H_
+#pragma once
 
 #include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/sync/named_condition.hpp>
@@ -14,7 +13,7 @@ namespace netconf {
 class InterprocessCondition {
 
  public:
-  explicit InterprocessCondition(::std::string name);
+  explicit InterprocessCondition(const ::std::string& name);
   ~InterprocessCondition() = default;
 
   bool Wait(std::chrono::milliseconds timeout);
@@ -34,4 +33,3 @@ class InterprocessCondition {
 
 } /* namespace netconf */
 
-#endif /* NETCONFD_SRC_INTERPROCESSCONDITION_H_ */

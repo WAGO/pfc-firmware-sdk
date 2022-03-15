@@ -43,7 +43,7 @@ constexpr bool operator &&(const DeviceType lhs, const DeviceType rhs) {
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
 
-::std::string ToString(const DeviceType type);
+::std::string ToString(const DeviceType kind);
 DeviceType DeviceTypeFromString(const ::std::string& str);
 
 inline std::ostream& operator <<(::std::ostream &os, const DeviceType type) {

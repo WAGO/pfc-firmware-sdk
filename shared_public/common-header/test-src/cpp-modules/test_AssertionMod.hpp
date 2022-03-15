@@ -34,10 +34,12 @@ extern "C"
 {
 #endif // __cplusplus
 
-  void TriggerSuccessCPP(void);
-  void TriggerFailCPP(void);
+  void TriggerSuccessCPP();
+  void TriggerFailCPP();
   int  TriggerSuccessReturnCPP(int value);
   int  TriggerFailReturnCPP(int value);
+  void TriggerSuccessReturnVoidCPP();
+  void TriggerFailReturnVoidCPP();
 
 #ifdef __cplusplus
 } // extern "C"

@@ -4,6 +4,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <execinfo.h>
+#include <csignal>
+
 #include <gio/gio.h>
 
 #include <cstring>
@@ -50,6 +53,24 @@ static char const *const version_text = "%s version " STR(NETCONFD_VERSION) "\n"
 std::optional<GMainLoop*> mainloop;
 bool terminate = false;
 
+[[noreturn]]
+static void segfaul_handler(int sig) {
+  void *array[10];
+  int size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
+static void install_segfault_handler() {
+  signal(SIGSEGV, segfaul_handler);
+}
+
 int main(int argc, char *argv[]) {
 
   ::std::string run_dir = "/var/run/netconfd";
@@ -57,6 +78,8 @@ int main(int argc, char *argv[]) {
   ::std::string loglevel = "debug";
   netconf::StartWithPortstate startupPortState = netconf::StartWithPortstate::Normal;
   printf("Starting network configuration daemon... \n");
+
+  install_segfault_handler();
 
   int option_index = 0;
   auto daemonize = false;
@@ -142,14 +165,14 @@ int main(int argc, char *argv[]) {
   auto loop = g_main_loop_new(context, 0);
   mainloop = loop;
   struct sigaction action { };
-  action.sa_handler = [](int) {
+  action.sa_handler = [](int) { //NOLINT(cppcoreguidelines-pro-type-union-access)
     terminate = true;
     if (mainloop) {
       g_main_loop_quit(*mainloop);
     }
   };
 
-  sigaction(SIGTERM, &action, NULL);
+  sigaction(SIGTERM, &action, nullptr);
 
   try {
     netconf::NetworkConfigurator network_configurator { start_condition , startupPortState};

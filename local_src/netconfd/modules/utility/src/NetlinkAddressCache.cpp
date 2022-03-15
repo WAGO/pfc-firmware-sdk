@@ -102,7 +102,7 @@ class NetlinkAddressCache::Impl {
 
   ::std::string GetNetmask(::std::uint32_t if_index) {
     auto rtnl_addr = GetRtnlAddress(static_cast<int>(if_index));
-    return rtnl_addr == nullptr ? static_cast<const char*>(ZeroIP) : GetNetmask(rtnl_addr);
+    return rtnl_addr == nullptr ? ZeroIP : GetNetmask(rtnl_addr);
   }
 
   ::std::string GetIPAddress(rtnl_addr* rtnl_addr) {
@@ -122,7 +122,7 @@ class NetlinkAddressCache::Impl {
 
   ::std::string GetIPAddress(::std::uint32_t if_index) {
     auto rtnl_addr = GetRtnlAddress(static_cast<int>(if_index));
-    return rtnl_addr == nullptr ? std::string{ZeroIP} : GetIPAddress(rtnl_addr);
+    return rtnl_addr == nullptr ? ZeroIP : GetIPAddress(rtnl_addr);
   }
 
   IIPEvent* event_handler_;

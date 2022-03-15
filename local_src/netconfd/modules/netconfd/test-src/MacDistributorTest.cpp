@@ -38,15 +38,15 @@ class AMacDistributor : public Test {
   using AssigmentPair = std::pair<::std::string, ::netconf::MacAddress>;
   std::list<AssigmentPair> mac_assingment_list;
 
-  NetDevPtr br0 = MakeNetDev(1, "br0", DeviceType::Bridge);
-  NetDevPtr br1 = MakeNetDev(1, "br1", DeviceType::Bridge);
-  NetDevPtr br2 = MakeNetDev(1, "br2", DeviceType::Bridge);
-  NetDevPtr br3 = MakeNetDev(1, "br3", DeviceType::Bridge);
-  NetDevPtr wwan0 = MakeNetDev(1, "wwan0", DeviceType::Wwan);
-  NetDevPtr ethX1 = MakeNetDev(2, "ethX1", DeviceType::Port);
-  NetDevPtr ethX2 = MakeNetDev(3, "ethX2", DeviceType::Port);
-  NetDevPtr ethX11 = MakeNetDev(4, "ethX11", DeviceType::Port);
-  NetDevPtr ethX12 = MakeNetDev(4, "ethX12", DeviceType::Port);
+  NetDevPtr br0 = MakeNetDev(1, "br0", "br0", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr br1 = MakeNetDev(1, "br1", "br1", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr br2 = MakeNetDev(1, "br2", "br2", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr br3 = MakeNetDev(1, "br3", "br3", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr wwan0 = MakeNetDev(1, "wwan0", "wwan0", DeviceType::Wwan, true, eth::InterfaceLinkState::Down);
+  NetDevPtr ethX1 = MakeNetDev(2, "ethX1", "ethX1", DeviceType::Port, false, eth::InterfaceLinkState::Down);
+  NetDevPtr ethX2 = MakeNetDev(3, "ethX2", "ethX2", DeviceType::Port, false, eth::InterfaceLinkState::Down);
+  NetDevPtr ethX11 = MakeNetDev(4, "ethX11", "ethX11", DeviceType::Port, false, eth::InterfaceLinkState::Down);
+  NetDevPtr ethX12 = MakeNetDev(4, "ethX12", "ethX12", DeviceType::Port, false, eth::InterfaceLinkState::Down);
 
   void SetUp() override {
     mac_assingment_list.clear();

@@ -1,0 +1,171 @@
+## SECTION=shell_and_console
+
+config UDEV
+	tristate
+	select VIRTUAL
+	select SYSTEMD		if INITMETHOD_SYSTEMD
+	select UDEV_LEGACY	if !INITMETHOD_SYSTEMD
+
+if UDEV
+
+config UDEV_LIBUDEV
+	bool
+	select UDEV_LEGACY_LIBUDEV	if UDEV_LEGACY
+
+endif
+
+menuconfig UDEV_LEGACY
+	tristate
+	prompt "udev (legacy)                 "
+	select ROOTFS_DEV
+	select ROOTFS_RUN
+	select LIBC_RT
+	select LIBKMOD
+	select LIBBLKID
+	select HOST_GPERF	if UDEV_LEGACY_KEYMAPS
+	depends on SYSTEMD = n
+	help
+	  udev provides a dynamic device directory containing only the files for
+	  actually present devices. It creates or removes device node files in the
+	  /dev directory, or it renames network interfaces.
+
+	  Usually udev runs as udevd(8) and receives uevents directly from the
+	  kernel if a device is added or removed from the system.
+
+	  If udev receives a device event, it matches its configured rules against
+	  the available device attributes provided in sysfs to identify the
+	  device. Rules that match, may provide additional device information or
+	  specify a device node name and multiple symlink names and instruct udev
+	  to run additional programs as part of the device event handling.
+
+	  Ensure: This udev implementation requires at least kernel 2.6.32 and
+	  must have sysfs, unix domain sockets, networking and devtmpfs enabled.
+
+if UDEV_LEGACY
+
+menu "build options                 "
+
+config UDEV_LEGACY_DEBUG
+	bool
+	prompt "enable debug messages"
+	help
+	  If enabled, very verbose debugging messages will be compiled
+	  into the udev binaries. The actual level of debugging is specified
+	  in the udev config file (refer entry "udev_log")
+
+config UDEV_LEGACY_SYSLOG
+	bool
+	prompt "enable system logging"
+	help
+	  If enabled, udev is able to pass errors or debug information
+	  to syslog. This is very useful to see what udev is doing or not doing.
+	  Note: To use this feature the syslog daemon must start before udev
+
+endmenu
+
+menu "install options               "
+
+config UDEV_LEGACY_ETC_CONF
+	bool
+	default y
+	prompt "install udev.conf"
+	help
+	  Installs /etc/udev/udev.conf. If you don't wish to install the
+	  generic udev.conf, just put a copy of your own udev.conf file into
+	  your own projectroot/etc/udev/
+
+config UDEV_LEGACY_DRIVERS_RULES
+	bool
+	prompt "install udev driver rules"
+	help
+	  This will install the generic udev drivers rules files from the udev package
+	  under /usr/lib/udev/rules.d/,
+	  These rules are required to automatically load kernel modules on
+	  udev start.
+	  If unsure say Y.
+
+config UDEV_LEGACY_KEYMAPS
+	bool
+	prompt "install keymaps"
+	help
+	  This will install the keymaps shipped with udev. These are mostly
+	  to map custom hardware's multimedia keys of various laptops
+
+config UDEV_LEGACY_CUST_RULES
+	bool
+	prompt "install customized udev rules"
+	help
+	  This will install the customized udev rules files from
+	  projectroot/usr/usr/lib/udev/rules.d into /lib/udev/rules.d
+
+config UDEV_LEGACY_LIBUDEV
+	bool
+	prompt "install libudev"
+	help
+	  Install libudev.so on the target.
+
+config UDEV_LEGACY_STARTSCRIPT
+	bool
+	default y
+	prompt "install /etc/init.d/udev"
+	help
+	  Install the startup magic for bbinit.
+	  Select Y here, as this is what you usually want.
+
+endmenu
+
+menu "persistent device node links  "
+
+config UDEV_LEGACY_PERSISTENT_ATA
+	bool
+	prompt "ata"
+
+config UDEV_LEGACY_PERSISTENT_CDROM
+	bool
+	prompt "cdrom"
+
+config UDEV_LEGACY_PERSISTENT_GENERATOR
+	bool
+	prompt "cd / network generator"
+	help
+	  This will generate udev-based persistent naming rules for
+	  your CD/DVD media and network devices
+	  Warning: this needs write access to /etc/udev/rules.d/
+
+config UDEV_LEGACY_PERSISTENT_SCSI
+	bool
+	prompt "scsi"
+
+config UDEV_LEGACY_PERSISTENT_V4L
+	bool
+	prompt "v4l"
+
+endmenu
+
+menu "misc helper                   "
+
+config UDEV_LEGACY_ACCELEROMETER
+	bool
+	depends on SYSTEMD = n
+	prompt "accelerometer"
+	help
+	  When an "change" event is received on an accelerometer,
+	  open its device node, and from the value, as well as the previous
+	  value of the property, calculate the device's new orientation,
+	  and export it as ID_INPUT_ACCELEROMETER_ORIENTATION.
+
+config UDEV_LEGACY_COLLECT
+	bool
+	prompt "collect"
+	help
+	  Collect variables across events
+
+config UDEV_LEGACY_MTD_PROBE
+	bool
+	prompt "mtd_probe"
+	help
+	  autoloads FTL module for mtd devices
+
+endmenu
+
+endif

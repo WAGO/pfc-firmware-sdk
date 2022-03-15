@@ -52,12 +52,15 @@ $(STATEDIR)/host-wago-cm-production.compile:
 $(STATEDIR)/host-wago-cm-production.install:
 	@$(call targetinfo)
 
+ifdef PTXCONF_PFC_200_G2
 	# this file is for the commissioning guy (e.g. ihlemann)
 	@cp $(HOST_WAGO_CM_PRODUCTION_DIR)/emmc-no-setupfw.hdimg $(IMAGEDIR)/emmc-commission-pfc200v3.hdimg
 	@cp $(HOST_WAGO_CM_PRODUCTION_DIR)/emmc-wago-production-pfc200v3.hdimg $(IMAGEDIR)/
+else
 	@cp $(HOST_WAGO_CM_PRODUCTION_DIR)/pfc100-setupfw.ubi $(IMAGEDIR)/nand-wago-production-pfc100.ubi
 	@cp $(HOST_WAGO_CM_PRODUCTION_DIR)/pfc200v2-setupfw.ubi $(IMAGEDIR)/nand-wago-production-pfc200v2.ubi
 	@cp $(HOST_WAGO_CM_PRODUCTION_DIR)/barebox-am35xx-pfc200-*-cm-wago.img $(IMAGEDIR)/nand-wago-production-pfc200.img
+endif
 # ATTENTION: temporary workaround for new src image. Needs to be removed after
 # PFC switched to new production image.
 ifdef PTXCONF_IMAGE_FIRMWARE_IMAGE_TAR_SRC

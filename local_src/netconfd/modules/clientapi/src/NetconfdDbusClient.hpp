@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "DbusResult.hpp"
+#include "SharedSemaphore.hpp"
 
 struct DBusConnection;
 
@@ -45,13 +46,22 @@ namespace netconf
       DbusResult Restore(const ::std::string &backup_file_path);
       DbusResult GetBackupParameterCount();
 
+      DbusResult NotifyDynamicIPAction(const ::std::string &event);
+      DbusResult ReloadHostConf();
+
     private:
       DBusConnection *conn_;
       int timeout_millis_;
 
+      /**
+       * semaphore to serialize the access to netconfds' dbus interface. workaround for an internal issue in netconfd.
+       */
+      SharedSemaphore dbus_access_semaphore_;
+
       DBusConnection* ConnectToDbus(::std::chrono::seconds timeout);
       DbusResult Send(const DbusMsgPtr &msg, const ::std::string &content);
       DbusResult Send(const DbusMsgPtr &msg);
+      DbusResult GetStrings(const DbusMsgPtr &msg);
 
 
   };

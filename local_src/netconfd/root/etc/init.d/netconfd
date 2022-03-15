@@ -10,7 +10,7 @@ RUNDIR="/var/run/netconfd"
 PIDFILE="netconfd.pid"
 PATHPIDFILE=$RUNDIR/$PIDFILE
 NETCONFD="/usr/bin/netconfd"
-STARTCMD="$NETCONFD --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=error"
+STARTCMD="$NETCONFD --daemon --rundir=$RUNDIR --pidfile=$PIDFILE --loglevel=debug"
 
 set -e
 
@@ -66,6 +66,9 @@ function stop_netconfd() {
 }
 
 function start_netconfd() {
+
+  killall -9 udhcpc > /dev/null 2>&1 || true
+  
   # First action is to modify the start command based on the current environment
   modify_start_cmd
   

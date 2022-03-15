@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # DHCP client script. Set parameters gained via DHCP_ACK.
@@ -14,70 +14,80 @@
 
 [[ -z "$1" ]] && echo "Error: should be called from udhcpc" && exit 1
 
-DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
 NETWORK_CONFIG=/etc/config-tools/network_config
+LEASE_FILE="/tmp/dhcp-bootp-data-$interface"
 
-set_ip_config () {
+notify_event () {
   local iface="$1"
-  local source="$2"
-  local address="$3"
-  local mask="$4"
+  local action="$2"
 
-  local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'"}}'
+  local json_config='{"interface":"'$iface'" , "action":"'$action'" }'
 
-  out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
+  out=$($NETWORK_CONFIG --dynamic-ip-event --set "${json_config}" --format=json)
 
   if [[ $? != 0 ]]; then
-    logger -t "udhcpc-script" "failed to set ip via network_config tool: $out"
+    logger -t "udhcpc-script" "failed to send dynamic ip event: $out"
   fi
 }
 
-[[ -n "$subnet" ]] && NETMASK="netmask $subnet"
+create_lease_file () {
+
+  echo "IPADDRESS=$ip" > "$LEASE_FILE"
+  echo "NETMASK=$subnet" >> "$LEASE_FILE"
+  
+  if [[ -n "$router" ]] ; then
+      index=1
+      for i in $router; do
+          echo "DEFAULT_GATEWAY_$index=$i" >> "$LEASE_FILE"
+          index=$((index + 1))
+      done
+  fi
+  
+  # Write hostname and dns domainname
+  [[ -n "$hostname" ]] && echo "DHCPHOSTNAME=$hostname" >> "$LEASE_FILE"
+  [[ -n "$domain" ]] && echo "DHCPDOMAIN=$domain" >> "$LEASE_FILE"
+
+  # Write dns server to tmp file
+  if [[ -n "$dns" ]] ; then
+      index=1
+      for i in $dns; do
+          echo "DNS_SERVER_$index=$i" >> "$LEASE_FILE"
+          index=$((index + 1))
+      done
+  fi
+
+  # Write ntp server to tmp file
+  if [[ -n "$ntpsrv" ]] ; then
+      index=1
+      for i in $ntpsrv; do
+          echo "NTP_SERVER_$index=$i" >> "$LEASE_FILE"
+          index=$((index + 1))
+      done
+  fi
+
+}
 
 case "$1" in
-    deconfig)
-        set_ip_config $interface temporary 0.0.0.0 0.0.0.0
-        /sbin/route del -net 224.0.0.0 netmask 224.0.0.0 "$interface" || true
+    bound)
+        /sbin/route add -net 224.0.0.0 netmask 224.0.0.0 "$interface" || true
+        create_lease_file
+        notify_event "$interface" bound
         ;;
 
-    renew|bound)
+    renew)
         /sbin/route add -net 224.0.0.0 netmask 224.0.0.0 "$interface" || true
+        create_lease_file
+        notify_event "$interface" renew
+        ;;
 
-        FILE="$DHCP_DATA_FILE_TEMPLATE$interface"
-        > "$FILE"
-        if [[ -n "$router" ]] ; then
-            index=1
-            for i in $router; do
-                echo "DEFAULT_GATEWAY_$index=$i" >> "$FILE"
-                index=$((index + 1))
-            done
-        fi
+    deconfig)
+        /sbin/route del -net 224.0.0.0 netmask 224.0.0.0 "$interface" || true
+    		/bin/rm -f "$LEASE_FILE"
+    		notify_event "$interface" release
+        ;;
         
-		# Write hostname and dns domainname
-        [[ -n "$hostname" ]] && echo "DHCPHOSTNAME=$hostname" >> "$FILE"
-        [[ -n "$domain" ]] && echo "DHCPDOMAIN=$domain" >> "$FILE"
-
-        # Write dns server to tmp file
-        if [[ -n "$dns" ]] ; then
-            index=1
-            for i in $dns; do
-                echo "DNS_SERVER_$index=$i" >> "$FILE"
-                index=$((index + 1))
-            done
-        fi
-
-        # Write ntp server to tmp file
-        if [[ -n "$ntpsrv" ]] ; then
-            index=1
-            for i in $ntpsrv; do
-                echo "NTP_SERVER_$index=$i" >> "$FILE"
-                index=$((index + 1))
-            done
-        fi
-
-
-        set_ip_config "$interface" temporary "$ip" "$subnet"
-
+    nak)
+    		notify_event "$interface" nak
         ;;
 esac
 exit 0

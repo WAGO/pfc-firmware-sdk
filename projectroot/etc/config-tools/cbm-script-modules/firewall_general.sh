@@ -324,7 +324,6 @@ function FirewallInterface
     local service_codesysr=$(`eval echo $firewall_service_codesysr`)
     local service_codesysw=$(`eval echo $firewall_service_codesysw`)
     local service_ssh=$(`eval echo $firewall_service_ssh`)
-    local service_tftp=$(`eval echo $firewall_service_tftp`)
     local service_dhcpd=$(`eval echo $firewall_service_dhcpd`)
     local service_dns=$(`eval echo $firewall_service_dns`)
     local service_modbus_tcp=$(`eval echo $firewall_service_modbus_tcp`)

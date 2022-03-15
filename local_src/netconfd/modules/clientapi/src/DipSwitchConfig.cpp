@@ -55,7 +55,6 @@ Status SetDipSwitchConfig(const netconf::DipSwitchConfig &config) {
 }
 
 ::std::string ToString(const netconf::DipSwitchConfig &config, const char sep) noexcept {
-  // TODO implement this
   auto &ip_config = config.ip_config_;
   ::std::stringstream output;
   output << "ipaddr=" << ip_config.address_;

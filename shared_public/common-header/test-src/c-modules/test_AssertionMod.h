@@ -38,6 +38,8 @@ extern "C"
   void TriggerFailC(void);
   int  TriggerSuccessReturnC(int value);
   int  TriggerFailReturnC(int value);
+  void TriggerSuccessReturnVoidC(void);
+  void TriggerFailReturnVoidC(void);
 
 #ifdef __cplusplus
 } // extern "C"

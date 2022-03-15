@@ -5,7 +5,7 @@
 #
 # This file is part of PTXdist package nlohmann-json.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019-2021 WAGO Kontakttechnik GmbH & Co. KG
 #
 # Contributors:
 #   PEn: WAGO Kontakttechnik GmbH & Co. KG
@@ -24,8 +24,8 @@ PACKAGES-$(PTXCONF_NLOHMANN_JSON) += nlohmann-json
 #
 # Paths and names
 #
-NLOHMANN_JSON_VERSION      := 3.9.1
-NLOHMANN_JSON_MD5          := e386222fb57dd2fcb8a7879fc016d037
+NLOHMANN_JSON_VERSION      := 3.10.4
+NLOHMANN_JSON_MD5          := d1de947a7fe0030ce3f5f36304945563
 NLOHMANN_JSON              := nlohmann-json-v$(NLOHMANN_JSON_VERSION)
 NLOHMANN_JSON_SUFFIX       := tar.gz
 NLOHMANN_JSON_URL          := https://github.com/nlohmann/json/archive/v$(NLOHMANN_JSON_VERSION).$(NLOHMANN_JSON_SUFFIX)
@@ -98,6 +98,7 @@ $(STATEDIR)/nlohmann-json.targetinstall:
 	@$(call install_fixup, nlohmann-json,DESCRIPTION,missing)
 
 	@$(call install_copy, nlohmann-json, 0, 0, 0644, $(NLOHMANN_JSON_DIR)/$(NLOHMANN_JSON_LICENSE_FILE), /usr/share/licenses/oss/license.nlohmann-json_$(NLOHMANN_JSON_VERSION).txt)
+
 	@$(call install_finish, nlohmann-json)
 	@$(call touch)
 

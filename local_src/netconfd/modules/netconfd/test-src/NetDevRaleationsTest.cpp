@@ -12,8 +12,8 @@ class NetDevRelationsTest : public Test {
 
 TEST_F(NetDevRelationsTest, NewRelation) {
 
-  NetDevPtr parent = MakeNetDev(0,"parent", DeviceType::Bridge);
-  NetDevPtr child = MakeNetDev(0,"child", DeviceType::Ethernet);
+  NetDevPtr parent = MakeNetDev(0,"parent","parent", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr child = MakeNetDev(0,"child","child", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
 
 
   NetDev::SetRelation(child, parent);
@@ -25,12 +25,12 @@ TEST_F(NetDevRelationsTest, NewRelation) {
 
 TEST_F(NetDevRelationsTest, AppendRelation) {
 
-  NetDevPtr parent = MakeNetDev(0,"parent", DeviceType::Bridge);
-  NetDevPtr child1 = MakeNetDev(0,"child1", DeviceType::Ethernet);
+  NetDevPtr parent = MakeNetDev(0,"parent","parent", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr child1 = MakeNetDev(0,"child1","child1", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
 
   NetDev::SetRelation(child1, parent);
 
-  NetDevPtr child2 = MakeNetDev(0,"child2", DeviceType::Ethernet);
+  NetDevPtr child2 = MakeNetDev(0,"child2","child2", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
 
   NetDev::SetRelation(child2, parent);
 
@@ -42,12 +42,12 @@ TEST_F(NetDevRelationsTest, AppendRelation) {
 
 TEST_F(NetDevRelationsTest, MoveRelation) {
 
-  NetDevPtr parent1 = MakeNetDev(0,"parent1", DeviceType::Bridge);
-  NetDevPtr child = MakeNetDev(0,"child1", DeviceType::Ethernet);
+  NetDevPtr parent1 = MakeNetDev(0,"parent1","parent1", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr child = MakeNetDev(0,"child1","child1", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
 
   NetDev::SetRelation(child, parent1);
 
-  NetDevPtr parent2 = MakeNetDev(0,"parent2", DeviceType::Bridge);
+  NetDevPtr parent2 = MakeNetDev(0,"parent2","parent2", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
 
   NetDev::SetRelation(child, parent2);
 
@@ -65,8 +65,8 @@ TEST_F(NetDevRelationsTest, MoveRelation) {
 
 TEST_F(NetDevRelationsTest, RemoveParentRelation) {
 
-  NetDevPtr parent = MakeNetDev(0,"parent", DeviceType::Bridge);
-  NetDevPtr child = MakeNetDev(0,"child", DeviceType::Ethernet);
+  NetDevPtr parent = MakeNetDev(0,"parent","parent", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr child = MakeNetDev(0,"child","child", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
 
   NetDev::SetRelation(child, parent);
 
@@ -78,10 +78,10 @@ TEST_F(NetDevRelationsTest, RemoveParentRelation) {
 
 TEST_F(NetDevRelationsTest, RemoveOnlyWhenRelated) {
 
-  NetDevPtr parent = MakeNetDev(0,"parent", DeviceType::Bridge);
-  NetDevPtr parent2 = MakeNetDev(0,"parent2", DeviceType::Bridge);
-  NetDevPtr child = MakeNetDev(0,"child", DeviceType::Ethernet);
-  NetDevPtr child2 = MakeNetDev(0,"child2", DeviceType::Ethernet);
+  NetDevPtr parent = MakeNetDev(0,"parent","parent", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr parent2 = MakeNetDev(0,"parent2","parent2", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr child = MakeNetDev(0,"child","child", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
+  NetDevPtr child2 = MakeNetDev(0,"child2","child2", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
 
   NetDev::SetRelation(child, parent);
   NetDev::SetRelation(child2, parent2);
@@ -96,12 +96,12 @@ TEST_F(NetDevRelationsTest, RemoveOnlyWhenRelated) {
   EXPECT_EQ(child, *std::find(parent->GetChildren().begin(), parent->GetChildren().end(), child));
 
 
-  NetDev::RemoveRelation(NetDevPtr{}, parent);
+  auto netdev = NetDevPtr{};
+  NetDev::RemoveRelation(netdev, parent);
   EXPECT_EQ(parent, child->GetParent());
   EXPECT_EQ(child, *std::find(parent->GetChildren().begin(), parent->GetChildren().end(), child));
 
-
-  NetDev::RemoveRelation(child, NetDevPtr{});
+  NetDev::RemoveRelation(child, netdev);
   EXPECT_EQ(parent, child->GetParent());
   EXPECT_EQ(child, *std::find(parent->GetChildren().begin(), parent->GetChildren().end(), child));
 
@@ -111,8 +111,8 @@ TEST_F(NetDevRelationsTest, RemoveOnlyWhenRelated) {
 
 TEST_F(NetDevRelationsTest, NoDuplicateRelations) {
 
-  NetDevPtr parent = MakeNetDev(0,"parent", DeviceType::Bridge);
-  NetDevPtr child = MakeNetDev(0,"child", DeviceType::Ethernet);
+  NetDevPtr parent = MakeNetDev(0,"parent","parent", DeviceType::Bridge, true, eth::InterfaceLinkState::Down);
+  NetDevPtr child = MakeNetDev(0,"child","child", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down);
 
   NetDev::SetRelation(child, parent);
   NetDev::SetRelation(child, parent);

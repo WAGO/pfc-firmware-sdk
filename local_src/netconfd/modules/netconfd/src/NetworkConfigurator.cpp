@@ -1,31 +1,33 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <BridgeController.hpp>
+#include <HostnameController.hpp>
 #include "NetworkConfigurator.hpp"
-#include <DeviceProperties.hpp>
-#include "BridgeManager.hpp"
 
 #include <cerrno>
 #include <cstring>
 #include <utility>
 
-#include "MacController.hpp"
+#include "BridgeController.hpp"
+#include "BridgeManager.hpp"
 #include "DBusHandlerRegistry.h"
+#include "DeviceProperties.hpp"
 #include "DipSwitch.hpp"
+#include "DynamicIPClientAdministrator.hpp"
 #include "EthernetInterfaceFactory.hpp"
 #include "EventManager.hpp"
 #include "IPManager.hpp"
 #include "Logger.hpp"
+#include "MacController.hpp"
+#include "MacDistributor.hpp"
 #include "NetDevManager.hpp"
 #include "NetlinkAddressCache.hpp"
 #include "NetlinkLinkCache.hpp"
 #include "NetlinkMonitor.hpp"
 #include "NetworkConfigBrain.hpp"
 #include "PersistenceProvider.hpp"
-#include "MacDistributor.hpp"
 #include "Server.h"
 #include "UriEscape.hpp"
-#include "Hostname/HostnameWatcher.hpp"
+#include "HostnameManager.hpp"
 
 namespace netconf {
 
@@ -33,17 +35,17 @@ using namespace std::string_literals;
 
 class NetworkConfiguratorImpl {
  public:
-  explicit NetworkConfiguratorImpl(InterprocessCondition& start_condition, StartWithPortstate startWithPortState);
+  explicit NetworkConfiguratorImpl(InterprocessCondition &start_condition, StartWithPortstate startWithPortState);
   virtual ~NetworkConfiguratorImpl() = default;
 
   NetworkConfiguratorImpl(const NetworkConfiguratorImpl&) = delete;
   NetworkConfiguratorImpl& operator=(const NetworkConfiguratorImpl&) = delete;
-  NetworkConfiguratorImpl(const NetworkConfiguratorImpl&&)           = delete;
+  NetworkConfiguratorImpl(const NetworkConfiguratorImpl&&) = delete;
   NetworkConfiguratorImpl& operator=(const NetworkConfiguratorImpl&&) = delete;
 
  private:
   const ::std::string persistence_file_path = "/etc/specific"s;
-  const ::std::string DEV_DIP_SWITCH_VALUE  = "/dev/dip-switch/value"s;
+  const ::std::string DEV_DIP_SWITCH_VALUE = "/dev/dip-switch/value"s;
 
   BridgeController bridge_controller_;
 
@@ -53,80 +55,80 @@ class NetworkConfiguratorImpl {
   DeviceProperties device_properties_;
   MacController mac_controller_;
   MacDistributor mac_distributor_;
+  EventManager event_manager_;
   NetDevManager netdev_manager_;
   DipSwitch ip_dip_switch_;
   PersistenceProvider persistence_provider_;
-  EventManager event_manager_;
   BridgeManager bridge_manager_;
   EthernetInterfaceFactory ethernet_interface_factory_;
   InterfaceConfigManager interface_manager_;
+  DynamicIPClientAdministrator dyn_ip_client_admin_;
+  IPController ip_controller_;
+  HostnameManager hostname_manager_;
   IPManager ip_manager_;
   NetworkConfigBrain network_config_brain_;
 
   dbus::Server dbus_server_;
   dbus::DBusHandlerRegistry dbus_handler_registry_;
   ::UriEscape uri_escape_;
-  HostnameWatcher hostnameWatcher_;
 };
 
-NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_condition, StartWithPortstate startWithPortState)
-    : interface_monitor_{static_cast<::std::shared_ptr<IInterfaceMonitor>>(netlink_monitor_.Add<NetlinkLinkCache>())},
-      ip_monitor_{static_cast<::std::shared_ptr<IIPMonitor>>(netlink_monitor_.Add<NetlinkAddressCache>())},
-      device_properties_{bridge_controller_},
-      mac_distributor_{device_properties_.GetMac(), device_properties_.GetMacCount(), mac_controller_},
-      netdev_manager_{interface_monitor_, bridge_controller_, mac_distributor_},
-      ip_dip_switch_{DEV_DIP_SWITCH_VALUE},
-      persistence_provider_{persistence_file_path, device_properties_, ip_dip_switch_},
-      event_manager_{netdev_manager_},
+NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition &start_condition,
+                                                 StartWithPortstate startWithPortState)
+    : interface_monitor_ { static_cast<::std::shared_ptr<IInterfaceMonitor>>(netlink_monitor_.Add<NetlinkLinkCache>()) },
+      ip_monitor_ { static_cast<::std::shared_ptr<IIPMonitor>>(netlink_monitor_.Add<NetlinkAddressCache>()) },
+      device_properties_ { bridge_controller_ },
+      mac_distributor_ { device_properties_.GetMac(), device_properties_.GetMacCount(), mac_controller_ },
+      netdev_manager_ { interface_monitor_, bridge_controller_, mac_distributor_, event_manager_ },
+      ip_dip_switch_ { DEV_DIP_SWITCH_VALUE },
+      persistence_provider_ { persistence_file_path, device_properties_, ip_dip_switch_ },
       bridge_manager_ { bridge_controller_, device_properties_, netdev_manager_ },
       interface_manager_ { netdev_manager_, persistence_provider_, ethernet_interface_factory_ },
-      ip_manager_ { device_properties_, event_manager_, persistence_provider_, netdev_manager_,
-          ip_dip_switch_,interface_manager_, ip_monitor_ },
+      dyn_ip_client_admin_ {device_properties_.GetOrderNumber() },
+      ip_manager_ { event_manager_, persistence_provider_, netdev_manager_, ip_dip_switch_, interface_manager_,
+          dyn_ip_client_admin_, ip_controller_, ip_monitor_, hostname_manager_},
       network_config_brain_ { bridge_manager_, bridge_manager_, ip_manager_, event_manager_, device_properties_,
-          persistence_provider_, ip_dip_switch_, interface_manager_, netdev_manager_ },
-      hostnameWatcher_{[](std::string newhostname){LogDebug("New Hostname: "s + newhostname);}}
-{
+          persistence_provider_, ip_dip_switch_, interface_manager_, netdev_manager_, hostname_manager_ } {
 
-
-  event_manager_.RegisterNetworkInformation(bridge_manager_, ip_manager_, interface_manager_);
+  event_manager_.RegisterNetworkInformation(bridge_manager_, ip_manager_, interface_manager_, netdev_manager_);
 
   dbus_server_.AddInterface(dbus_handler_registry_);
 
   dbus_handler_registry_.RegisterSetBridgeConfigHandler([this](std::string data) {
-    data = this->uri_escape_.Unescape(data);
     LogDebug("DBUS Req: SetBridgeConfig: " + data);
+    data = this->uri_escape_.Unescape(data);
     return this->network_config_brain_.SetBridgeConfig(data);
   });
 
-  dbus_handler_registry_.RegisterGetBridgeConfigHandler([this](std::string& data) -> std::string {
+  dbus_handler_registry_.RegisterGetBridgeConfigHandler([this](std::string &data) -> std::string {
     auto status = this->network_config_brain_.GetBridgeConfig(data);
     LogDebug("DBUS Req: GetBridgeConfig: " + data);
     return status;
   });
 
-  dbus_handler_registry_.RegisterGetDeviceInterfacesHandler([this](std::string& data) -> std::string {
+  dbus_handler_registry_.RegisterGetDeviceInterfacesHandler([this](std::string &data) -> std::string {
     auto status = this->network_config_brain_.GetInterfaceInformation(data);
     LogDebug("DBUS Req: GetInterfaceInformation: " + data);
     return status;
   });
 
   dbus_handler_registry_.RegisterSetInterfaceConfigHandler([this](std::string data) {
-    data = this->uri_escape_.Unescape(data);
     LogDebug("DBUS Req: SetInterfaceConfig " + data);
+    data = this->uri_escape_.Unescape(data);
     return this->network_config_brain_.SetInterfaceConfig(data);
   });
 
-  dbus_handler_registry_.RegisterGetInterfaceConfigHandler([this](std::string& data) -> ::std::string {
+  dbus_handler_registry_.RegisterGetInterfaceConfigHandler([this](std::string &data) -> ::std::string {
     auto status = this->network_config_brain_.GetInterfaceConfig(data);
     LogDebug("DBUS Req: GetInterfaceConfig" + data);
     return status;
   });
 
-  dbus_handler_registry_.RegisterGetInterfaceStatusesHandler([this](std::string& data) -> ::std::string {
-     auto status = this->network_config_brain_.GetInterfaceStatuses(data);
-     LogDebug("DBUS Req: GetInterfaceStatuses" + data);
-     return status;
-   });
+  dbus_handler_registry_.RegisterGetInterfaceStatusesHandler([this](std::string &data) -> ::std::string {
+    auto status = this->network_config_brain_.GetInterfaceStatuses(data);
+    LogDebug("DBUS Req: GetInterfaceStatuses" + data);
+    return status;
+  });
 
   // Backup and Restore API
   dbus_handler_registry_.RegisterGetBackupParamCountHandler([this]() -> std::string {
@@ -147,30 +149,30 @@ NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_co
 
   // IP config
   dbus_handler_registry_.RegisterSetAllIPConfigsHandler([this](std::string data) {
-    data = this->uri_escape_.Unescape(data);
     LogDebug("DBUS Req: SetAllIPConfigs : " + data);
+    data = this->uri_escape_.Unescape(data);
     return this->network_config_brain_.SetAllIPConfigs(data);
   });
 
   dbus_handler_registry_.RegisterSetIPConfigHandler([this](std::string data) {
-    data = this->uri_escape_.Unescape(data);
     LogDebug("DBUS Req: SetIPConfig : " + data);
+    data = this->uri_escape_.Unescape(data);
     return this->network_config_brain_.SetIPConfig(data);
   });
 
-  dbus_handler_registry_.RegisterGetAllIPConfigsHandler([this](std::string& data) -> std::string {
+  dbus_handler_registry_.RegisterGetAllIPConfigsHandler([this](std::string &data) -> std::string {
     auto status = this->network_config_brain_.GetAllIPConfigs(data);
     LogDebug("DBUS Req: GetAllIPConfigs: " + data);
     return status;
   });
 
-  dbus_handler_registry_.RegisterGetAllCurrentIPConfigsHandler([this](std::string& data) -> std::string {
+  dbus_handler_registry_.RegisterGetAllCurrentIPConfigsHandler([this](std::string &data) -> std::string {
     auto status = this->network_config_brain_.GetCurrentIPConfigs(data);
     LogDebug("DBUS Req: GetAllCurrentIPConfigs: " + data);
     return status;
   });
 
-  dbus_handler_registry_.RegisterGetIPConfigHandler([this](std::string data_in, std::string& data) -> std::string {
+  dbus_handler_registry_.RegisterGetIPConfigHandler([this](std::string data_in, std::string &data) -> std::string {
     auto status = this->network_config_brain_.GetIPConfig(data_in, data);
     LogDebug("DBUS Req: GetIPConfig for itf: " + data_in);
     return status;
@@ -181,25 +183,41 @@ NetworkConfiguratorImpl::NetworkConfiguratorImpl(InterprocessCondition& start_co
     return this->network_config_brain_.TempFixIp();
   });
 
-  dbus_handler_registry_.RegisterGetDipSwitchConfigHandler([this](std::string& data) -> std::string {
+  dbus_handler_registry_.RegisterGetDipSwitchConfigHandler([this](std::string &data) -> std::string {
     auto status = this->network_config_brain_.GetDipSwitchConfig(data);
     LogDebug("DBUS Req: GetDipSwitchConfig" + data);
     return status;
   });
 
   dbus_handler_registry_.RegisterSetDipSwitchConfigHandler([this](std::string data_in) {
-    auto status = this->network_config_brain_.SetDipSwitchConfig(data_in);
     LogDebug("DBUS Req: SetDipSwitchConfig");
+    auto status = this->network_config_brain_.SetDipSwitchConfig(data_in);
     return status;
   });
+
+  // events
+  dbus_handler_registry_.RegisterDynamicIPEventHandler([this](std::string data) {
+    LogDebug("DBUS Req: ReceiveDynamicIPEvent" + data);
+    auto status = this->network_config_brain_.ReceiveDynamicIPEvent(data);
+    return status;
+  });
+
+  dbus_handler_registry_.RegisterReloadHostConfEventHandler([this]() {
+    LogDebug("DBUS Req: RegisterReloadHostConfEventHandler");
+    auto status = this->network_config_brain_.ReceiveReloadHostConfEvent();
+    return status;
+  });
+
   LogInfo("NetworkConfigurator completed DBUS registration");
   start_condition.Notify();
 
   network_config_brain_.Start(startWithPortState);
+  LogInfo("NetworkConfigurator ready");
 }
 
-NetworkConfigurator::NetworkConfigurator(InterprocessCondition& start_condition, StartWithPortstate startWithPortState) {
-    network_configurator_ = ::std::make_unique<NetworkConfiguratorImpl>(start_condition, startWithPortState);
+NetworkConfigurator::NetworkConfigurator(InterprocessCondition &start_condition,
+                                         StartWithPortstate startWithPortState) {
+  network_configurator_ = ::std::make_unique<NetworkConfiguratorImpl>(start_condition, startWithPortState);
 }
 
 NetworkConfigurator::~NetworkConfigurator() {
@@ -209,5 +227,3 @@ NetworkConfigurator::~NetworkConfigurator() {
 }
 
 }  // namespace netconf
-
-//---- End of source file ------------------------------------------------------

@@ -17,18 +17,18 @@ PACKAGES-$(PTXCONF_LIBBACNETSTACK) += libbacnetstack
 #--- paths and names --------------------------------------------------------- 
 #
 LIBBACNETSTACK                   := libbacnetstack
-
+ 
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_DEV
 LIBBACNETSTACK_REVISION          := 22
-LIBBACNETSTACK_SO_VERSION        := 1.6.0
+LIBBACNETSTACK_SO_VERSION        := 1.6.2
 LIBBACNETSTACK_GIT_URL           := ssh://svtfs01007:22/tfs/ProductDevelopment/_git/BACnet_Stack
 LIBBACNETSTACK_FOLDER            := libbacnetstack_rev$(LIBBACNETSTACK_REVISION)
 endif
 
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
 LIBBACNETSTACK_REVISION          := 22
-LIBBACNETSTACK_SO_VERSION        := 1.6.0
-LIBBACNETSTACK_BUILD_ID          := 15972403399
+LIBBACNETSTACK_SO_VERSION        := 1.6.3
+LIBBACNETSTACK_BUILD_ID          := 16448251224
 LIBBACNETSTACK_FOLDER            := libbacnetstack_rev$(LIBBACNETSTACK_REVISION)
 endif
 
@@ -51,6 +51,7 @@ LIBBACNETSTACK_REL_PATH          := wago_intern/device/bacnet/$(LIBBACNETSTACK_F
 LIBBACNETSTACK_SRC_DIR           := $(PTXDIST_WORKSPACE)/$(LIBBACNETSTACK_REL_PATH)
 LIBBACNETSTACK_VERSION           := rev$(LIBBACNETSTACK_REVISION)_$(LIBBACNETSTACK_SO_VERSION)$(LIBBACNETSTACK_BUILD_ID_SUFFIX)
 LIBBACNETSTACK_ENV_VENDOR        := WAGO
+#LIBBACNETSTACK_ENV_VENDOR        := CS_LABS
 
 ifdef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
 LIBBACNETSTACK_URL               := $(call jfrog_template_to_url, LIBBACNETSTACK)
@@ -121,7 +122,6 @@ endif
 # Extract
 # ----------------------------------------------------------------------------
 
-
 $(STATEDIR)/libbacnetstack.extract:
 	@$(call targetinfo)
 	@mkdir -p $(LIBBACNETSTACK_BUILDROOT_DIR)
@@ -137,6 +137,7 @@ ifndef PTXCONF_LIBBACNETSTACK_SOURCE_RELEASED
 	fi
 endif
 endif
+#	@cd $(LIBBACNETSTACK_SRC_DIR)/source/bacnet_stack/wss && $(LIBBACNETSTACK_SRC_DIR)/source/bacnet_stack/wss/makebuild.sh
 	@$(call touch)
 
 
@@ -217,7 +218,9 @@ $(STATEDIR)/libbacnetstack.targetinstall:
 	@$(call install_copy, libbacnetstack, ${PTXCONF_ROOTFS_PASSWD_USER_UID}, ${PTXCONF_ROOTFS_PASSWD_USER_GID}, 0755, /home/user)
 	@$(call install_copy, libbacnetstack, 0, 0, 0755, /home/user/bacnet)
 ifndef PTXCONF_LIBBACNETSTACK_SOURCE_LEGACY 
+ifeq ($(LIBBACNETSTACK_ENV_VENDOR), WAGO)
 	@$(call install_copy, libbacnetstack, 0, 0, 0750, -, /etc/config-tools/events/networking/update_zzz_bacnet)
+endif
 endif
 	@$(call install_finish, libbacnetstack)
 

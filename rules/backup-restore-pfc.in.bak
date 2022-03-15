@@ -1,0 +1,12 @@
+## SECTION=project_specific
+
+config BACKUP_RESTORE_PFC
+	bool
+	prompt "backup-restore-pfc"
+	select HOST_CMAKE
+	select HS_UTILS
+        select WAGO_PARAMETER_SERVICE_CORE	
+	select WAGO_PARAMETER_SERVICE_MODEL_FILES
+        select WAGO_PARAMETER_SERVICE_COM
+        help
+	  FIXME

@@ -32,7 +32,7 @@ class EthernetInterface : public IEthernetInterface {
   ::std::uint32_t GetMTU() const override;
   gsl::span<const uint32_t> GetSupportedLinkModes() const override;
 
-  ::std::int32_t GetSpeed() const override;
+  ::std::uint32_t GetSpeed() const override;
   eth::Duplex GetDuplex() const override;
 
   void Commit() override;

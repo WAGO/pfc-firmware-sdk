@@ -1,59 +1,59 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <MockIBridgeController.hpp>
-#include <MockIDeviceProperties.hpp>
-#include "NetDevManager.hpp"
-#include "MockIInterfaceMonitor.hpp"
-#include "MockINetDevConstruction.hpp"
-#include "MockIMacDistributor.hpp"
+#include <gtest/gtest.h>
+#include <string.h>
+
 #include <limits>
 #include <memory>
-#include <string.h>
+
+#include "MockIBridgeController.hpp"
+#include "MockIDeviceProperties.hpp"
+#include "MockIEventManager.hpp"
+#include "MockIInterfaceMonitor.hpp"
+#include "MockIMacDistributor.hpp"
+#include "MockINetDevConstruction.hpp"
+#include "NetDevManager.hpp"
 
 using namespace testing;
 namespace netconf {
 
 class NetDevManagerTest : public ::testing::Test {
  public:
-
   MockIDeviceProperties mock_device_properties_;
   NiceMock<MockIInterfaceMonitor> mock_itf_monitor_;
   ::std::unique_ptr<NetDevManager> netdev_manager_;
   NiceMock<MockIBridgeController> mock_bridge_controller_;
   ::std::shared_ptr<IInterfaceMonitor> shared_itf_monitor_;
   NiceMock<MockIMacDistributor> mock_mac_distributor_;
+  NiceMock<MockIEventManager> mock_event_manager_;
   NiceMock<MockINetDevEvents> mock_netdev_event_;
 
   void SetUp() override {
-    shared_itf_monitor_ = ::std::shared_ptr<IInterfaceMonitor>(&mock_itf_monitor_, [](IInterfaceMonitor*) {
-    });
+    shared_itf_monitor_ = ::std::shared_ptr<IInterfaceMonitor>(&mock_itf_monitor_, [](IInterfaceMonitor*) {});
 
-    Interfaces itfs = { "ethX1", "ethX2", "ethX3", "ethX4", "eth0" };
+    Interfaces itfs = {"ethX1", "ethX2", "ethX3", "ethX4", "eth0"};
 
     EXPECT_CALL(mock_itf_monitor_, RegisterEventHandler(_));
     EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(Return(itfs));
 
     netdev_manager_ = ::std::make_unique<NetDevManager>(shared_itf_monitor_, mock_bridge_controller_,
-                                                        mock_mac_distributor_);
+                                                        mock_mac_distributor_, mock_event_manager_);
 
     netdev_manager_->RegisterForNetDevConstructionEvents(mock_netdev_event_);
-
   }
 
   void TearDown() override {
   }
-
 };
 
 TEST_F(NetDevManagerTest, CreatesNetDevsForEachSystemInterface) {
-
-  Interfaces itfs = { "ethX1", "ethX2" };
+  Interfaces itfs = {"ethX1", "ethX2"};
 
   EXPECT_CALL(mock_itf_monitor_, RegisterEventHandler(_));
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(Return(itfs));
-  NetDevManager netdev_manager { shared_itf_monitor_, mock_bridge_controller_, mock_mac_distributor_ };
+  NetDevManager netdev_manager{shared_itf_monitor_, mock_bridge_controller_, mock_mac_distributor_,
+                               mock_event_manager_};
 
   auto netdev = netdev_manager.GetByName("ethX1");
 
@@ -66,31 +66,29 @@ TEST_F(NetDevManagerTest, CreatesNetDevsForEachSystemInterface) {
   EXPECT_NE(nullptr, netdev.get());
   EXPECT_EQ("ethX2", netdev->GetName());
   EXPECT_EQ("X2", netdev->GetLabel());
-
 }
 
 TEST_F(NetDevManagerTest, ProvidesAllPortNetDevs) {
-
-  Interfaces itfs = { "eth0", "ethX3" };
+  Interfaces itfs = {"eth0", "ethX3"};
 
   EXPECT_CALL(mock_itf_monitor_, RegisterEventHandler(_));
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(Return(itfs));
-  NetDevManager netdev_manager { shared_itf_monitor_, mock_bridge_controller_, mock_mac_distributor_ };
+  NetDevManager netdev_manager{shared_itf_monitor_, mock_bridge_controller_, mock_mac_distributor_,
+                               mock_event_manager_};
 
   auto netdevs = netdev_manager.GetPortNetDevs();
 
   EXPECT_EQ(1, netdevs.size());
   EXPECT_EQ("ethX3", netdevs.front()->GetName());
-
 }
 
 TEST_F(NetDevManagerTest, DoesNotCopyNetdevObjects) {
-
-  Interfaces itfs = { "ethX1" };
+  Interfaces itfs = {"ethX1"};
 
   EXPECT_CALL(mock_itf_monitor_, RegisterEventHandler(_));
   EXPECT_CALL(mock_bridge_controller_, GetInterfaces()).WillOnce(Return(itfs));
-  NetDevManager netdev_manager { shared_itf_monitor_, mock_bridge_controller_, mock_mac_distributor_ };
+  NetDevManager netdev_manager{shared_itf_monitor_, mock_bridge_controller_, mock_mac_distributor_,
+                               mock_event_manager_};
 
   auto get_by_label = netdev_manager.GetByLabel("X1");
   auto get_ethernet = netdev_manager.GetPortNetDevs().front();
@@ -100,8 +98,7 @@ TEST_F(NetDevManagerTest, DoesNotCopyNetdevObjects) {
 }
 
 TEST_F(NetDevManagerTest, CreateBridgeAndInterfaceRelations) {
-
-  BridgeConfig config = { { "br0", { "X1" } } };
+  BridgeConfig config = {{"br0", {"X1"}}};
 
   netdev_manager_->ConfigureBridges(config);
 
@@ -116,12 +113,11 @@ TEST_F(NetDevManagerTest, CreateBridgeAndInterfaceRelations) {
 }
 
 TEST_F(NetDevManagerTest, AddInterfaceRelationsToBridge) {
-
-  BridgeConfig config1 = { { "br0", { "X1" } } };
+  BridgeConfig config1 = {{"br0", {"X1"}}};
 
   netdev_manager_->ConfigureBridges(config1);
 
-  BridgeConfig config2 = { { "br0", { "X1", "X2" } } };
+  BridgeConfig config2 = {{"br0", {"X1", "X2"}}};
 
   netdev_manager_->ConfigureBridges(config2);
 
@@ -136,16 +132,14 @@ TEST_F(NetDevManagerTest, AddInterfaceRelationsToBridge) {
 
   EXPECT_EQ(bridge, x1->GetParent());
   EXPECT_EQ(bridge, x2->GetParent());
-
 }
 
 TEST_F(NetDevManagerTest, RemoveBridgesAndInterfaceRelations) {
-
-  BridgeConfig config1 = { { "br0", { "X1" } } };
+  BridgeConfig config1 = {{"br0", {"X1"}}};
 
   netdev_manager_->ConfigureBridges(config1);
 
-  BridgeConfig config2 { };
+  BridgeConfig config2{};
 
   netdev_manager_->ConfigureBridges(config2);
 
@@ -154,21 +148,21 @@ TEST_F(NetDevManagerTest, RemoveBridgesAndInterfaceRelations) {
   EXPECT_FALSE(netdev_manager_->GetByName("br0"));
 }
 
-ACTION_P(SaveNetDevName, name){
-name.get() = arg0->GetName();
+ACTION_P(SaveNetDevName, name) {
+  name.get() = arg0->GetName();
 }
 
 TEST_F(NetDevManagerTest, RemoveInterfaceFromBridgeAndResetRelations) {
-
   EXPECT_CALL(mock_netdev_event_, OnNetDevChangeInterfaceRelations(_)).Times(0);
-  BridgeConfig config1 = { { "br0", { "X1", "X2" } } };
+  BridgeConfig config1 = {{"br0", {"X1", "X2"}}};
 
   netdev_manager_->ConfigureBridges(config1);
 
   ::std::string netdev_name_of_event;
-  EXPECT_CALL(mock_netdev_event_, OnNetDevChangeInterfaceRelations(_)).WillOnce(SaveNetDevName(::std::ref(netdev_name_of_event)));
+  EXPECT_CALL(mock_netdev_event_, OnNetDevChangeInterfaceRelations(_))
+      .WillOnce(SaveNetDevName(::std::ref(netdev_name_of_event)));
 
-  BridgeConfig config2 = { { "br0", { "X2" } } };
+  BridgeConfig config2 = {{"br0", {"X2"}}};
 
   netdev_manager_->ConfigureBridges(config2);
 
@@ -187,20 +181,14 @@ TEST_F(NetDevManagerTest, RemoveInterfaceFromBridgeAndResetRelations) {
   EXPECT_EQ("br0", netdev_name_of_event);
 }
 
-
 TEST_F(NetDevManagerTest, InformsRegisterdClientsAboutBridgeConstruction) {
-
-
-
-
   ::std::string contructed_netdev_name;
   EXPECT_CALL(mock_netdev_event_, OnNetDevCreated(_)).WillOnce(SaveNetDevName(::std::ref(contructed_netdev_name)));
 
-  BridgeConfig config = { { "br0", { "X2" } } };
+  BridgeConfig config = {{"br0", {"X2"}}};
   netdev_manager_->ConfigureBridges(config);
 
   EXPECT_EQ("br0", contructed_netdev_name);
-
 }
 
-}
+}  // namespace netconf

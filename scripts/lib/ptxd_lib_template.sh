@@ -1,7 +1,7 @@
 ptxd_template_new_ct_build() {
     ptxd_template_read_name &&
     ptxd_template_read "enter version number" VERSION "0.1.0" &&
-    export AUTHOR="WAGO Kontakttechnik GmbH \\\\\& Co. KG" &&
+    export AUTHOR="WAGO GmbH \\\\\& Co. KG" &&
     ptxd_template_read_section "wago_specific" &&
     ptxd_template_read "enter base folder" BASE_FOLDER "wago_intern" &&
     if [[ ${BASE_FOLDER} != wago_intern* ]]; then export IS_WAGO_INTERN="#remove#"; else export IS_WAGO_INTERN=""; fi &&

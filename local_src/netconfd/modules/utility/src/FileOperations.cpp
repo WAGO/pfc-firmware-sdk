@@ -8,7 +8,7 @@
 namespace netconf {
 
 
-void TouchFile(::std::string path){
+void TouchFile(::std::string& path){
   int fd = open(path.c_str(), O_CREAT | O_WRONLY,
   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 

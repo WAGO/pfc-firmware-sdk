@@ -353,8 +353,7 @@ endif
 	@$(call install_link, strongswan, /etc/certificates, /etc/ipsec.d/certs)
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/crls)
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/ocspcerts)
-	#@$(call install_copy, strongswan, 0, 0, 0600, /etc/ipsec.d/private)
-	@$(call install_link, strongswan, /etc/certificates/keys, /etc/ipsec.d/private)
+	@$(call install_copy, strongswan, 0, 0, 0700, /etc/ipsec.d/private)
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/reqs)
 
 	@$(call install_finish, strongswan)

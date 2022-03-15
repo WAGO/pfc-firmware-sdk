@@ -19,12 +19,14 @@ else
 fi
 
 # no qt5/x11 graphic without sourcing profile variables
+# create hidden directories in /root
 if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]; then
    if [ -e "/var/run/framebuffer.mode" ]; then
       #framebuffer mode is active - no Xorg available
       exit 0
    fi
 . /etc/profile 2>&1 > /dev/null
+export HOME=/root
 fi
 
 # only TP600 show countdown message waithittouch

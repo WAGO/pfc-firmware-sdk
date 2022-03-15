@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # BOOTP handling
@@ -14,87 +14,88 @@
 # Author: WAGO Kontakttechnik GmbH & Co. KG.
 #-----------------------------------------------------------------------------#
 
-DHCP_DATA_FILE_TEMPLATE=/tmp/dhcp-bootp-data-
+
+
+interface=$2
 NETWORK_CONFIG=/etc/config-tools/network_config
+LEASE_FILE="/tmp/dhcp-bootp-data-$interface"
 
-set_ip_config () {
+notify_event () {
   local iface="$1"
-  local source="$2"
-  local address="$3"
-  local mask="$4"
-  local bcast="$5"
+  local action="$2"
 
-  local json_config='{"'$iface'":{"source":"'$source'", "ipaddr":"'$address'", "netmask":"'$mask'", "bcast":"'$bcast'"}}'
+  local json_config='{"interface":"'$iface'" , "action":"'$action'" }'
 
-  out=$($NETWORK_CONFIG --ip-config --set "${json_config}" --format=json)
-  
+  out=$($NETWORK_CONFIG --dynamic-ip-event --set "${json_config}" --format=json)
+
   if [[ $? != 0 ]]; then
-    logger -t "bootpc-startup.default" "failed to set ip via network_config tool: $out"
+    logger -t "bootpc-startup.default" "failed to send dynamic ip event: $out"
   fi
 }
 
-interface_name=$1
-FILE=$DHCP_DATA_FILE_TEMPLATE$interface_name
+start () {
 
-/sbin/route add default "$interface_name"
+    # Open firewall ports if firewall is enabled.
+    if [[ $(/etc/config-tools/firewall firewall --is-enabled) == "enabled" ]]; then
+        /etc/config-tools/firewall bootp --set-if on "$interface" --apply up
+        trap "/etc/config-tools/set_bootp_config $interface close" EXIT
+    fi
 
-# Open firewall ports if firewall is enabled.
-if [[ $(/etc/config-tools/firewall firewall --is-enabled) == "enabled" ]]; then
-
-	/etc/config-tools/firewall bootp --set-if on "$interface_name" --apply up
-    
-    trap "/etc/config-tools/set_bootp_config $interface_name close" EXIT
-fi
-
-while [ -z "$IPADDR" ]
-do
-    eval $(/sbin/bootpc --dev "$interface_name" --serverbcast --returniffail --timeoutwait 0) >> /dev/null
-    sleep 3
-done
-
-# Close firewall ports
-if [[ $(/etc/config-tools/firewall firewall --is-enabled) == "enabled" ]]; then
-    /etc/config-tools/firewall bootp --set-if off "$interface_name" --apply up
-    trap "" EXIT
-fi
-
-if [[ -n "$GATEWAYS" || -n "$DNSSRVS" || -n "$NTPSRVS" || -n "$HOSTNAME" || -n "$DOMAIN" ]]; then
-    > "$FILE"
-fi
-
-# Save default gateways
-if [[ -n "$GATEWAYS" ]] ; then
-    index=1
-    for i in $GATEWAYS; do
-        echo "DEFAULT_GATEWAY_$index=$i" >> "$FILE"
-        index=$((index + 1))
+    while [ -z "$IPADDR" ]
+    do
+        eval $(/sbin/bootpc --dev "$interface" --serverbcast --returniffail --timeoutwait 0) >> /dev/null
+        sleep 3
     done
-fi
 
-# Write hostname and dns domainname
-[[ -n "$HOSTNAME" ]] && echo "DHCPHOSTNAME=$HOSTNAME" >> "$FILE"
-[[ -n "$DOMAIN" ]] && echo "DHCPDOMAIN=$DOMAIN" >> "$FILE"
+    # Close firewall ports
+    if [[ $(/etc/config-tools/firewall firewall --is-enabled) == "enabled" ]]; then
+        /etc/config-tools/firewall bootp --set-if off "$interface" --apply up
+        trap "" EXIT
+    fi
 
-# Write dns server to tmp file
-if [[ -n "$DNSSRVS" ]] ; then
-    index=1
-    for i in $DNSSRVS; do
-        echo "DNS_SERVER_$index=$i" >> "$FILE"
-        index=$((index + 1))
-    done
-fi
+    echo "IPADDRESS=$IPADDR" > "$LEASE_FILE"
+    echo "NETMASK=$NETMASK" >> "$LEASE_FILE"
 
-# Write ntp server to tmp file
-if [[ -n "$NTPSRVS" ]] ; then
-    index=1
-    for i in $NTPSRVS; do
-        echo "NTP_SERVER_$index=$i" >> "$FILE"
-        index=$((index + 1))
-    done
-fi
+    # Save default gateways
+    if [[ -n "$GATEWAYS" ]] ; then
+        index=1
+        for i in $GATEWAYS; do
+            echo "DEFAULT_GATEWAY_$index=$i" >> "$LEASE_FILE"
+            index=$((index + 1))
+        done
+    fi
 
+    # Write hostname and dns domainname
+    [[ -n "$HOSTNAME" ]] && echo "DHCPHOSTNAME=$HOSTNAME" >> "$LEASE_FILE"
+    [[ -n "$DOMAIN" ]] && echo "DHCPDOMAIN=$DOMAIN" >> "$LEASE_FILE"
 
-set_ip_config "$interface_name" temporary "$IPADDR" "$NETMASK" "$BROADCAST"
+    # Write dns server to tmp file
+    if [[ -n "$DNSSRVS" ]] ; then
+        index=1
+        for i in $DNSSRVS; do
+            echo "DNS_SERVER_$index=$i" >> "$LEASE_FILE"
+            index=$((index + 1))
+        done
+    fi
 
-# send gratuitous ARP.
-arping -I "$interface" -c1 -s "$ip" "$ip"
+    # Write ntp server to tmp file
+    if [[ -n "$NTPSRVS" ]] ; then
+        index=1
+        for i in $NTPSRVS; do
+            echo "NTP_SERVER_$index=$i" >> "$LEASE_FILE"
+            index=$((index + 1))
+        done
+    fi
+}
+
+case "$1" in
+    start)
+        start
+        notify_event "$interface" bound
+        ;;
+
+    deconfig)
+    	/bin/rm -f "$LEASE_FILE"
+        ;;
+        
+esac

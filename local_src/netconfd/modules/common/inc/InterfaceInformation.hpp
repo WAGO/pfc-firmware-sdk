@@ -13,7 +13,7 @@ class InterfaceInformation {
  public:
 
   InterfaceInformation() = default;
-  InterfaceInformation(const ::std::string &interface_name, const ::std::string &interface_label, DeviceType type,
+  InterfaceInformation(::std::string interface_name, ::std::string interface_label, DeviceType type,
                        bool ip_configuration_readonly = false, AutonegotiationSupported autoneg_supported = {
                            AutonegotiationSupported::UNKNOWN },
                        LinkModes link_modes = LinkModes { });

@@ -2,6 +2,8 @@
 
 config OMS
 	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
 	prompt "oms (oprating mode switch)"
 	default n
 	help

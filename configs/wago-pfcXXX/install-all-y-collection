@@ -1,0 +1,23 @@
+#
+# Automatically generated file; DO NOT EDIT.
+# PTXdist 2020.08.0
+#
+PTXCONF__collectionconfig_MAGIC__=y
+# PTXCONF_COLLECTION_NONE is not set
+PTXCONF_COLLECTION_MANUAL=y
+# PTXCONF_COLLECTION_ALL is not set
+# PTXCONF_ACL is not set
+# PTXCONF_ATTR is not set
+# PTXCONF_CMOCKA is not set
+# PTXCONF_CYRUS_SASL is not set
+# PTXCONF_DING_LIBS is not set
+# PTXCONF_KEYUTILS is not set
+# PTXCONF_KRB5 is not set
+# PTXCONF_LDB is not set
+# PTXCONF_OPENLDAP is not set
+# PTXCONF_P11_KIT is not set
+# PTXCONF_SAMBA is not set
+# PTXCONF_SSSD is not set
+# PTXCONF_TALLOC is not set
+# PTXCONF_TDB is not set
+# PTXCONF_TEVENT is not set

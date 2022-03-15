@@ -3,6 +3,8 @@
 
 #include <string>
 #include <memory>
+#include "IPLink.hpp"
+#include "Status.hpp"
 
 namespace netconf {
 
@@ -16,7 +18,8 @@ class IIPConfigure {
   IIPConfigure(IIPConfigure&&) = delete;
   IIPConfigure& operator=(IIPConfigure&&) = delete;
 
-  virtual Status Configure(const IPConfig& config) const = 0;
+  virtual Status Configure(const IPLinkPtr link) const = 0;
+  virtual void Flush(const IPLinkPtr link) const = 0;
 
 };
 

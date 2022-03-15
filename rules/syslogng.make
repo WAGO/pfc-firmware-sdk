@@ -83,6 +83,7 @@ $(STATEDIR)/syslogng.targetinstall:
 ifdef PTXCONF_SYSLOGNG_CONFIG
 	@$(call install_alternative, syslogng, 0, 0, 0644, /etc/syslog-ng.conf, n)
 	@$(call install_alternative, syslogng, 0, 0, 0644, /etc/syslog_wago_plc.conf, n)
+	@$(call install_copy,        syslogng, 0, 0, 0755, /etc/syslog-ng.conf.d)
 endif
 
 #	# bb init: start scripts

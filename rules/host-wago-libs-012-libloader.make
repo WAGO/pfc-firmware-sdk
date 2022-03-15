@@ -20,17 +20,12 @@ HOSTLIBLOADER_VERSION	:= 1.0
 HOSTLIBLOADER			:= LibraryLoader
 HOSTLIBLOADER_SUFFIX		:= 
 HOSTLIBLOADER_URL		:= 
-HOSTLIBLOADER_SOURCE		:= $(SRCDIR)/$(HOSTLIBLOADER)
 HOSTLIBLOADER_DIR		:= $(HOST_BUILDDIR)/$(HOSTLIBLOADER)
 HOSTLIBLOADER_LICENSE	:= unknown
 
 # ----------------------------------------------------------------------------
 # Get
 # ----------------------------------------------------------------------------
-
-$(HOSTLIBLOADER_SOURCE):
-	@$(call targetinfo)
-	@$(call touch)
 
 $(STATEDIR)/hostlibloader.get:
 	@$(call targetinfo)
@@ -47,7 +42,7 @@ $(STATEDIR)/hostlibloader.extract: $(STATEDIR)/autogen-tools
 			--exclude=project/objs_test/ \
 			--exclude=lib \
 			--exclude=project/lib_test\
-			 $(HOSTLIBLOADER_SOURCE)/* $(HOSTLIBLOADER_DIR)/
+			 $(SRCDIR)/$(LIBLIBLOADER) $(HOST_BUILDDIR)
 	@$(call touch)
 	
 

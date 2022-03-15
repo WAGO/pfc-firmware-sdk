@@ -6,4 +6,5 @@
 0004-Set-OPCUA_P_SERVER_PREFER_INET6-to-OPCUA_CONFIG_NO-T.patch
 0005-Fix-Segmentation-fail-in-Server-during-working-with-.patch
 0006-Fix-in-Translate-layer-of-csdk.-Add-during-WAT-33056.patch
-# 9413bb3e168bf85ccd5e646293630ee1  - git-ptx-patches magic
+0007-fix-client-password-length-when-encrypting.-Unified-.patch
+# 252addb1e38a816e622162fe9859fe40  - git-ptx-patches magic

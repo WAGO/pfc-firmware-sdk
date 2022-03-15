@@ -60,8 +60,6 @@ static ::std::string IPSourceToString(::netconf::IPSource source) {
     value = "bootp";
   } else if (source == ::netconf::IPSource::EXTERNAL) {
     value = "external";
-  } else if (source == ::netconf::IPSource::TEMPORARY) {
-    value = "temporary";
   }
   return value;
 }

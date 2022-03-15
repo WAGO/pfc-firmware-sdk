@@ -171,6 +171,27 @@ extern "C"
 #endif // NDEBUG
 
 
+/// \def WC_ASSERT_RETURN_VOID(e)
+/// Helper macro, proves expression satisfies true.
+/// In case expression evaluates to false a run-time error is issued (NDEBUG not set)
+/// and function returned.
+/// This macro is intended for pre-execution checks, e. g. to check function/method parameters.
+///
+/// \note To use this macro you have to provide an implementation for the C function \link wc_Fail \endlink.
+/// \see wc_Fail
+//lint -estring(960, WC_ASSERT_RETURN_VOID) to disable Rule 19.4 it is necessary to disable all 960 messages,
+//                                          disallowed definition for macro
+//lint -estring(961, WC_ASSERT_RETURN_VOID) to disable Rule 19.7 it is necessary to disable all 961 messages,
+//                                          function-like macro defined
+#ifndef NDEBUG
+#define WC_ASSERT_RETURN_VOID(e) \
+  (e) ? (void)0 : WC_FAIL(WC_ASSERT_PREFIX #e); if(!(e)) return //lint -e 506 Constant value Boolean
+#else // NDEBUG
+/// Release version of assert only returning error value
+#define WC_ASSERT_RETURN_VOID(e) if(!(e)) return //lint -e 506 Constant value Boolean
+#endif // NDEBUG
+
+
 /// \def WC_FAIL(reason)
 /// Helper macro, fails every time.
 /// A run-time error is issued (NDEBUG not set) and reason string may be shown.

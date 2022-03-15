@@ -3,7 +3,7 @@
 #include "IpConfigHelper.hpp"
 #include "Logger.hpp"
 #include "NetDevManager.hpp"
-#include "Helper.hpp"
+#include "CollectionUtils.hpp"
 #include "IpAddressManipulator.hpp"
 
 #include "IPValidator.hpp"
@@ -28,10 +28,9 @@ void CleanWithRespectToSystem(IPConfigs &ip_configs, const NetDevs &netdevs,
 
   auto first_deleted_it = ::std::remove_if(ip_configs.begin(), ip_configs.end(), [&](auto &ip_config) {
     const Interface &interface = ip_config.interface_;
-    if (NetDevManager::DoesNotExistByName(interface, netdevs) || IsIncluded(interface, not_assignable_interfaces)) {
-      return true;
-    }
-    return false;
+
+    return (NetDevManager::DoesNotExistByName(interface, netdevs) || IsIncluded(interface, not_assignable_interfaces));
+
   });
 
   std::for_each(first_deleted_it, ip_configs.end(), [](auto &deleted_ipcfg) {
@@ -56,6 +55,7 @@ IPConfig CreateIpConfigFromDipInfos(const DipSwitchIpConfig &dipIpConfig, const 
     }
     ipConfig.source_ = IPSource::STATIC;
   }
+
   return ipConfig;
 }
 
@@ -70,29 +70,17 @@ void ModifyIpConfigByDipSwitch(IPConfigs &configs, const DipSwitchIpConfig &dip_
     return;
   }
 
-
-  if (itDipIpConfig->source_ == IPSource::TEMPORARY && dipSwitchState.mode == DipSwitchMode::DHCP) {
-    // Dont touch the DHCP IP request.
-    return;
-  }
-
   *itDipIpConfig = CreateIpConfigFromDipInfos(dip_switch_config, dipSwitchState);
-
 }
 
-
-void RemoveIpConfigsWithConflicsTo(const IPConfig& testee, IPConfigs& fromConfigs, IPSource havingSource)
+void DeactivateIpConfigsWithConflicsTo(const IPConfig& testee, IPConfigs& fromConfigs, IPSource havingSource)
 {
-  // remove conflicting ip configs on other interfaces
-  fromConfigs.erase(
-      ::std::remove_if(
-          fromConfigs.begin(),
-          fromConfigs.end(),
-          [&](const IPConfig& ipconfig) {
-            return ipconfig.interface_ != testee.interface_ && ipconfig.source_ == havingSource
-                && IPValidator::IsSameSubnet(ipconfig, testee);
-          })
-      , fromConfigs.end());
+    for(auto& ip_config : fromConfigs) {
+        if(ip_config.interface_ != testee.interface_ && ip_config.source_ == havingSource
+              && IPValidator::IsSameSubnet(ip_config, testee)){
+          ip_config.source_ = IPSource::NONE;
+        }
+    }
 }
 
 }  // namespace netconf

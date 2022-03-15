@@ -16,7 +16,12 @@ class IPController : public IIPController {
   IPController(IPController&&) = delete;
   IPController& operator=(IPController&&) = delete;
 
-  Status SetIPConfig(const IPConfig& config) const override;
+  Status Configure(const Interface &itf_name, const Address &address, const Netmask &netmask) const override;
+  Status Configure(const IPConfig &config) const override;
+  void Flush(const Interface &itf_name) const override;
+
+ private:
+  Status SetIPConfig(const Interface &itf_name, const Address &address, const Netmask &netmask) const;
 
 };
 

@@ -1,0 +1,16 @@
+## SECTION=wago_specific
+
+comment "------------------------------------"
+
+menu "Build collection configuration"
+
+config WAGO_BUILD_COLLECTION
+    string
+    default ""
+    prompt "Select a collection to build, leave blank to disable."
+    help
+     "Which build collection to use, if unsure, leave blank."
+
+endmenu
+
+comment "------------------------------------"

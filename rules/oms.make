@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <Hans Florian Scholz>
+# Copyright (C) 2022 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,58 +16,49 @@ PACKAGES-$(PTXCONF_OMS) += oms
 #
 # Paths and names
 #
-ifdef PTXCONF_OMS_TRUNK
-OMS_VERSION	:= 0.1
-else
-OMS_VERSION	:= 0.1
-endif
-OMS		:= oms-$(OMS_VERSION)
-OMS_URL		:= file://$(SRCDIR)/$(OMS)
-OMS_SRC		:= $(SRCDIR)/$(OMS)
-OMS_DIR		:= $(BUILDDIR)/$(OMS)
-OMS_BUILD_OOT	:= NO
-OMS_LICENSE	:= unknown
+OMS_VERSION        := 0.2.0
+OMS_MD5            :=
+OMS                := oms
+OMS_BUILDCONFIG    := Release
+OMS_SRC_DIR        := $(PTXDIST_WORKSPACE)/src/$(OMS)
+OMS_BUILDROOT_DIR  := $(BUILDDIR)/$(OMS)
+OMS_DIR            := $(OMS_BUILDROOT_DIR)/src
+OMS_BUILD_DIR      := $(OMS_BUILDROOT_DIR)/bin/$(OMS_BUILDCONFIG)
+OMS_LICENSE        := WAGO
+OMS_CONF_TOOL      := NO
+OMS_MAKE_ENV       := $(CROSS_ENV) \
+BUILDCONFIG=$(OMS_BUILDCONFIG) \
+BIN_DIR=$(OMS_BUILD_DIR) \
+SCRIPT_DIR=$(PTXDIST_SYSROOT_HOST)/lib/ct-build
+
+OMS_PACKAGE_NAME             := $(OMS)_$(OMS_VERSION)_$(PTXDIST_IPKG_ARCH_STRING)
+OMS_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
+
 
 # ----------------------------------------------------------------------------
 # Extract
 # ----------------------------------------------------------------------------
 
-$(STATEDIR)/oms.extract: $(STATEDIR)/autogen-tools
+
+$(STATEDIR)/oms.extract: 
 	@$(call targetinfo)
-	@$(call clean, $(OMS_DIR))
-	#@$(call extract, OMS)
-	@mkdir -p $(OMS_DIR)
-	@rsync -a --exclude=".project" --exclude=".cproject"  $(OMS_SRC) $(BUILDDIR)
-#	@$(call patchin, OMS)
-
-ifdef PTXCONF_OMS_TRUNK
-	cd $(OMS_DIR) && sh autogen.sh
-else
-	#cd $(OMS_DIR) && [ -f configure ] || sh autogen.sh
-	cd $(OMS_DIR) && sh autogen.sh
+	@mkdir -p $(OMS_BUILDROOT_DIR)
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@if [ ! -L $(OMS_DIR) ]; then \
+	  ln -s $(OMS_SRC_DIR) $(OMS_DIR); \
+	fi
 endif
-
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Prepare
 # ----------------------------------------------------------------------------
 
-#OMS_CONF_ENV	:= $(CROSS_ENV)
-
-#
-# autoconf
-#
-OMS_CONF_TOOL	:= autoconf
-OMS_CONF_OPT	:= $(CROSS_AUTOCONF_USR)
-
-ifndef PTXCONF_OMS_OMSD
-	OMS_CONF_OPT += --disable-omsd
-endif
-
 $(STATEDIR)/oms.prepare:
 	@$(call targetinfo)
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@$(call world/prepare, OMS)
+endif
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -76,18 +67,31 @@ $(STATEDIR)/oms.prepare:
 
 $(STATEDIR)/oms.compile:
 	@$(call targetinfo)
-	@rsync -a --exclude=".project" --exclude=".cproject"  $(OMS_SRC) $(BUILDDIR)
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
 	@$(call world/compile, OMS)
+endif
 	@$(call touch)
-
 # ----------------------------------------------------------------------------
 # Install
 # ----------------------------------------------------------------------------
 
-#$(STATEDIR)/oms.install:
-#	@$(call targetinfo)
-#	@$(call world/install, OMS)
-#	@$(call touch)
+$(STATEDIR)/oms.install:
+	@$(call targetinfo)
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+# BSP mode: install by extracting tgz file
+	@mkdir -p $(OMS_PKGDIR) && \
+	  tar xvzf $(OMS_PLATFORMCONFIGPACKAGEDIR)/$(OMS_PACKAGE_NAME).tgz -C $(OMS_PKGDIR)
+else
+# normal mode, call "make install"
+
+	@$(call world/install, OMS)
+
+ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
+# save install directory to tgz for BSP mode
+	@mkdir -p $(OMS_PLATFORMCONFIGPACKAGEDIR)
+	@cd $(OMS_PKGDIR) && tar cvzf $(OMS_PLATFORMCONFIGPACKAGEDIR)/$(OMS_PACKAGE_NAME).tgz *
+endif
+endif
 
 # ----------------------------------------------------------------------------
 # Target-Install
@@ -97,48 +101,32 @@ $(STATEDIR)/oms.targetinstall:
 	@$(call targetinfo)
 
 	@$(call install_init, oms)
-	@$(call install_fixup, oms, PRIORITY, optional)
-	@$(call install_fixup, oms, SECTION, base)
-	@$(call install_fixup, oms, AUTHOR, "<Hans Florian Scholz>")
-	@$(call install_fixup, oms, DESCRIPTION, missing)
+	@$(call install_fixup, oms,PRIORITY,optional)
+	@$(call install_fixup, oms,SECTION,base)
+	@$(call install_fixup, oms,AUTHOR, "<Hans Florian Scholz>")
+	@$(call install_fixup, oms,DESCRIPTION,missing)
 
-#	#
-#	# example code:; copy all libraries, links and binaries
-#	#
-
+	@$(call install_lib, oms, 0, 0, 0644, liboms)
+	
+ifdef PTXCONF_OMS_OMSD
 	@for i in $(shell cd $(OMS_PKGDIR) && find bin sbin usr/bin usr/sbin -type f); do \
 		$(call install_copy, oms, 0, 0, 0755, -, /$$i); \
 	done
-#	@for i in $(shell cd $(OMS_PKGDIR) && find lib usr/lib -name "*.so*"); do \
-#		$(call install_copy, oms, 0, 0, 0644, -, /$$i); \
-#	done
-	@$(call install_copy, oms, 0, 0, 0644, -, /usr/lib/liboms.so)
-#	@$(call install_copy, oms, 0, 0, 0644, $(OMS_PKGDIR)/usr/lib/wide/liboms_codesys.so, /usr/lib/wide/liboms.so)
-
-	@links="$(shell cd $(OMS_PKGDIR) && find lib usr/lib -type l)"; \
-	if [ -n "$$links" ]; then \
-		for i in $$links; do \
-			from="`readlink $(OMS_PKGDIR)/$$i`"; \
-			to="/$$i"; \
-			$(call install_link, oms, $$from, $$to); \
-		done; \
-	fi
+	
 	@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/omsd.conf,n)
 	@$(call install_alternative, oms, 0, 0, 0770, /etc/oms.d/power_on_reset.sh,n)
+	@$(call install_copy, oms, 0, 0, 0755, -, /etc/init.d/omsdaemon)
+	
 ifdef PTXCONF_OMS_FIX_IP
 	@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/pfc/fix_ip.conf,n)
 	@$(call install_alternative, oms, 0, 0, 0770, /etc/oms.d/fix_ip.sh,n)
 endif
 ifdef PTXCONF_OMS_FACTORY_DEFUALTS
 	@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/pfc/factory_defaults.conf,n)
-	#@$(call install_alternative, oms, 0, 0, 0640, /etc/oms.d/src/factory_defaults.conf,n)
 	@$(call install_alternative, oms, 0, 0, 0770, /etc/oms.d/set_factory_defaults.sh,n)
 endif
-	@$(call install_copy, oms, 0, 0, 0755, -, /etc/init.d/omsdaemon)
 
-#	#
-#	# FIXME: add all necessary things here
-#	#
+endif
 
 	@$(call install_finish, oms)
 
@@ -150,9 +138,10 @@ endif
 
 $(STATEDIR)/oms.clean:
 	@$(call targetinfo)
-	#rm -f $(OMS_DIR)/{configure,config.sub,config.guess}
+	@if [ -d $(OMS_DIR) ]; then \
+		$(OMS_MAKE_ENV) $(OMS_PATH) $(MAKE) $(MFLAGS) -C $(OMS_DIR) clean; \
+	fi
 	@$(call clean_pkg, OMS)
-	@-rm -rf $(OMS_DIR)
-
+	@rm -rf $(OMS_BUILDROOT_DIR)
 
 # vim: syntax=make

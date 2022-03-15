@@ -2,22 +2,26 @@
 
 #include "NetconfdDbusClient.hpp"
 
-#include <dbus/dbus.h>
-
 #include <chrono>
 #include <memory>
+#include <mutex>
+#include <exception>
+#include <thread>
+#include <type_traits>
+
+#include <dbus/dbus.h>
+#include <sys/stat.h>
+
 #include "DbusError.hpp"
 #include "Types.hpp"
-#include <exception>
-#include <type_traits>
-#include <thread>
+#include "SharedSemaphore.hpp"
 
 namespace netconf {
 
-using ::std::string;
-
 static constexpr auto dbus_target = "de.wago.netconfd";
 static constexpr auto send_timeout = 60000;
+static constexpr auto dbus_access_semaphore_path = "/netconfapi";
+static constexpr auto dbus_access_semaphore_init_value = 1;
 
 class DbusMsgPtr : public ::std::unique_ptr<DBusMessage, decltype(dbus_message_unref)*> {
  public:
@@ -35,7 +39,7 @@ class DbusMsgContent {
     dbus_message_iter_init_append(msg.get(), &iter);
   }
 
-  void Add(const string &str) {
+  void Add(const ::std::string &str) {
     auto content_cstr = str.c_str();
     dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &content_cstr);
   }
@@ -45,17 +49,21 @@ class DbusMsgContent {
 };
 
 NetconfdDbusClient::NetconfdDbusClient(int dbus_timeout_millis)
-    : conn_{ConnectToDbus(::std::chrono::seconds{60})}, timeout_millis_{dbus_timeout_millis} {
+    : conn_ { ConnectToDbus(::std::chrono::seconds { 60 }) },
+      timeout_millis_ { dbus_timeout_millis },
+      dbus_access_semaphore_{dbus_access_semaphore_path, dbus_access_semaphore_init_value} {
   if (conn_ == nullptr) {
     throw ::std::runtime_error("connection to dbus failed.");
   }
 
-  if (not CheckServiceAvailability(::std::chrono::seconds{60})) {
+  if (not CheckServiceAvailability(::std::chrono::seconds { 60 })) {
     throw ::std::runtime_error("netconfd dbus interface not available.");
   }
 }
 
-NetconfdDbusClient::NetconfdDbusClient() : NetconfdDbusClient(send_timeout) {
+NetconfdDbusClient::NetconfdDbusClient()
+    : NetconfdDbusClient(send_timeout) {
+
 }
 
 NetconfdDbusClient::~NetconfdDbusClient() {
@@ -68,15 +76,13 @@ DBusConnection* NetconfdDbusClient::ConnectToDbus(::std::chrono::seconds timeout
   DBusConnection *connection;
   do {
     connection = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
-    if (connection == nullptr || dbus_error_is_set(&err)) {
+    if (connection == nullptr || dbus_error_is_set(&err) != 0) {
       dbus_error_free(&err);
-      ::std::this_thread::sleep_for(::std::chrono::seconds{1});
+      ::std::this_thread::sleep_for(::std::chrono::seconds { 1 });
     }
   } while (connection == nullptr && std::chrono::steady_clock::now() < end);
   return connection;
 }
-
-
 
 static DbusMsgPtr CreateBackupMessage(::std::string method_name)  // NOLINT(performance-unnecessary-value-param)
     {                                                                    // NOLINT(performance-unnecessary-value-param)
@@ -89,6 +95,13 @@ static DbusMsgPtr CreateInterfaceMessage(::std::string method_name)  // NOLINT(p
     {                                                                    // NOLINT(performance-unnecessary-value-param)
   return DbusMsgPtr(dbus_message_new_method_call(dbus_target, "/de/wago/netconfd/interface_config",  // object to call on
                                                  "de.wago.netconfd1.interface_config",  // interface to call on
+                                                 method_name.c_str()));
+}
+
+static DbusMsgPtr CreateEventMessage(::std::string method_name)  // NOLINT(performance-unnecessary-value-param)
+    {                                                                    // NOLINT(performance-unnecessary-value-param)
+  return DbusMsgPtr(dbus_message_new_method_call(dbus_target, "/de/wago/netconfd/event",  // object to call on
+                                                 "de.wago.netconfd1.event",  // interface to call on
                                                  method_name.c_str()));
 }
 
@@ -168,7 +181,7 @@ bool NetconfdDbusClient::CheckServiceAvailability(std::chrono::seconds timeout) 
 static ::std::vector<::std::string> GetMessageStrings(const netconf::DbusMsgPtr &replymsg) {
   ::std::vector<::std::string> strings;
   DBusMessageIter args;
-  for (auto has_argument = dbus_message_iter_init(replymsg.get(), &args); has_argument == true; has_argument =
+  for (auto has_argument = dbus_message_iter_init(replymsg.get(), &args); static_cast<bool>(has_argument); has_argument =
       dbus_message_iter_next(&args)) {
     if (DBUS_TYPE_STRING == dbus_message_iter_get_arg_type(&args)) {
       char *response = nullptr;
@@ -179,23 +192,14 @@ static ::std::vector<::std::string> GetMessageStrings(const netconf::DbusMsgPtr 
   return strings;
 }
 
-static DbusResult GetStrings(DBusConnection *conn_, const DbusMsgPtr &msg, int timeout_millis) {
-  // send message and get a handle for a reply
-  DbusError error;
-  auto replymsg = DbusMsgPtr { dbus_connection_send_with_reply_and_block(conn_, msg.get(), timeout_millis, &error) };
-
-  // read the parameters
-  if (error.IsSet()) {
-    return DbusResult { error };
-  }
-
-  ::std::vector<::std::string> strings = GetMessageStrings(replymsg);
-  return DbusResult { strings[0], strings.size() >= 2 ? strings[1] : "" };
+DbusResult NetconfdDbusClient::GetBackupParameterCount() {
+  auto msg = CreateBackupMessage("getbackupparamcount");
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::GetBridgeConfig() {
   auto msg = CreateInterfaceMessage("get");
-  return GetStrings(conn_, msg, timeout_millis_);
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::SetBridgeConfig(const ::std::string &json_config) {
@@ -205,12 +209,12 @@ DbusResult NetconfdDbusClient::SetBridgeConfig(const ::std::string &json_config)
 
 DbusResult NetconfdDbusClient::GetIpConfigs() {
   auto msg = CreateIpMessage("getall");
-  return GetStrings(conn_, msg, timeout_millis_);
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::GetCurrentIpConfigs() {
   auto msg = CreateIpMessage("getallcurrent");
-  return GetStrings(conn_, msg, timeout_millis_);
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::SetIpConfigs(const ::std::string &json_config) {
@@ -225,7 +229,7 @@ DbusResult NetconfdDbusClient::SetTemporaryFixedIpAddress() {
 
 DbusResult NetconfdDbusClient::GetDipSwitchConfig() {
   auto msg = CreateIpMessage("getdipswitchconfig");
-  return GetStrings(conn_, msg, timeout_millis_);
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::SetDipSwitchConfig(const ::std::string &config) {
@@ -235,12 +239,12 @@ DbusResult NetconfdDbusClient::SetDipSwitchConfig(const ::std::string &config) {
 
 DbusResult NetconfdDbusClient::GetInterfaceConfigs() {
   auto msg = CreateInterfaceMessage("getinterfaceconfig");
-  return GetStrings(conn_, msg, timeout_millis_);
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::GetInterfaceStatuses() {
   auto msg = CreateInterfaceMessage("getinterfacestatuses");
-  return GetStrings(conn_, msg, timeout_millis_);
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::SetInterfaceConfigs(const ::std::string &config) {
@@ -250,7 +254,7 @@ DbusResult NetconfdDbusClient::SetInterfaceConfigs(const ::std::string &config) 
 
 DbusResult NetconfdDbusClient::GetDeviceInterfaces() {
   auto msg = CreateInterfaceMessage("getdeviceinterfaces");
-  return GetStrings(conn_, msg, timeout_millis_);
+  return GetStrings(msg);
 }
 
 DbusResult NetconfdDbusClient::Backup(const ::std::string &backup_file_path, const ::std::string &targetversion) {
@@ -266,30 +270,14 @@ DbusResult NetconfdDbusClient::Restore(const ::std::string &backup_file_path) {
   return Send(msg, backup_file_path);
 }
 
-DbusResult NetconfdDbusClient::GetBackupParameterCount() {
-  auto msg = CreateBackupMessage("getbackupparamcount");
-  DbusError error;
-  // send message and get a handle for a reply
-  auto replymsg = DbusMsgPtr { dbus_connection_send_with_reply_and_block(conn_, msg.get(), timeout_millis_, &error) };
-  if(error.IsSet()){
-    return DbusResult{error};
-  }
-  auto strings = GetMessageStrings(replymsg);
-  DbusResult result;
-  result.value_json_ = strings[0];
-  return result;
+DbusResult NetconfdDbusClient::NotifyDynamicIPAction(const ::std::string &event) {
+  auto msg = CreateEventMessage("dynamicip");
+  return Send(msg, event);
 }
 
-DbusResult NetconfdDbusClient::Send(const DbusMsgPtr &msg) {
-  DbusError error;
-  // send message and get a handle for a reply
-  auto replymsg = DbusMsgPtr { dbus_connection_send_with_reply_and_block(conn_, msg.get(), timeout_millis_, &error) };
-
-  if(error.IsSet()){
-    return DbusResult{error};
-  }
-  auto strings = GetMessageStrings(replymsg);
-  return DbusResult{strings[0]};
+DbusResult NetconfdDbusClient::ReloadHostConf() {
+  auto msg = CreateEventMessage("reloadhostconf");
+  return Send(msg);
 }
 
 DbusResult NetconfdDbusClient::Send(const DbusMsgPtr &msg, const ::std::string &content) {
@@ -301,6 +289,37 @@ DbusResult NetconfdDbusClient::Send(const DbusMsgPtr &msg, const ::std::string &
 
   // send message and get a handle for a reply
   return Send(msg);
+}
+
+DbusResult NetconfdDbusClient::Send(const DbusMsgPtr &msg) {
+
+  // WORKAROUND: guard to serialize access to the dbus interface of netconfd to work around an issue of
+  // netconfd's internal event handling (namely the lack of synchronization between dbus and netlink events)
+  const ::std::lock_guard<SharedSemaphore> dbus_access_lock(dbus_access_semaphore_);
+  DbusError error;
+  auto replymsg = DbusMsgPtr { dbus_connection_send_with_reply_and_block(conn_, msg.get(), timeout_millis_, &error) };
+
+  if (error.IsSet()) {
+    return DbusResult { error };
+  }
+  auto strings = GetMessageStrings(replymsg);
+  return DbusResult { strings[0] };
+}
+
+DbusResult NetconfdDbusClient::GetStrings(const DbusMsgPtr &msg) {
+
+  // WORKAROUND: guard to serialize access to the dbus interface of netconfd to work around an issue of
+  // netconfd's internal event handling (namely the lack of synchronization between dbus and netlink events)
+  const ::std::lock_guard<SharedSemaphore> dbus_access_lock(dbus_access_semaphore_);
+  DbusError error;
+  auto replymsg = DbusMsgPtr { dbus_connection_send_with_reply_and_block(conn_, msg.get(), timeout_millis_, &error) };
+
+  if (error.IsSet()) {
+    return DbusResult { error };
+  }
+
+  ::std::vector<::std::string> strings = GetMessageStrings(replymsg);
+  return DbusResult { strings[0], strings.size() >= 2 ? strings[1] : "" };
 }
 
 }  // namespace netconf

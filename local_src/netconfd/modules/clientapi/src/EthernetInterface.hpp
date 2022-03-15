@@ -25,14 +25,14 @@ class EthernetInterface {
  private:
   void InitializeData();
 
-  MacAddress mac_;
+  MacAddress mac_{};
 
-  ::std::string name_;
-  ::std::uint32_t if_index_;
-  uint16_t if_flags_;
+  ::std::string name_{};
+  ::std::uint32_t if_index_{};
+  uint16_t if_flags_{};
 
-  ::ifreq ifreq_;
-  Socket socket_;
+  ::ifreq ifreq_{};
+  Socket socket_{};
 };
 
 }  // namespace api

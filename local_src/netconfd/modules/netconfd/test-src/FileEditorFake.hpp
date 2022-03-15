@@ -26,6 +26,12 @@ class FileEditorFake : public IFileEditor {
   }
 
   Status Write(const ::std::string& file_path, const ::std::string& data) const override {
+     (void) file_path;
+     content_ = data;
+     return return_status;
+   }
+
+  Status WriteAndReplace(const ::std::string& file_path, const ::std::string& data) const override {
     (void) file_path;
     content_ = data;
     return return_status;

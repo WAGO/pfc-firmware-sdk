@@ -7,6 +7,7 @@
 #include "Status.hpp"
 #include "Types.hpp"
 #include "FirmwareVersion.hpp"
+#include "DynamicIPEventAction.hpp"
 
 namespace netconf {
 
@@ -21,8 +22,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(Autonegotiation, { {Autonegotiation::UNKNOWN, nullp
                              {Autonegotiation::OFF, "off"}, {Autonegotiation::ON, true}, {Autonegotiation::OFF,
                              false} })
 
-NLOHMANN_JSON_SERIALIZE_ENUM(AutonegotiationSupported, { {AutonegotiationSupported::UNKNOWN, nullptr}, {AutonegotiationSupported::YES, true},
-                             {AutonegotiationSupported::NO, false} })
+NLOHMANN_JSON_SERIALIZE_ENUM(AutonegotiationSupported, { {AutonegotiationSupported::UNKNOWN, nullptr},
+                             {AutonegotiationSupported::YES, true}, {AutonegotiationSupported::NO, false} })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(InterfaceState, { {InterfaceState::UNKNOWN, nullptr}, {InterfaceState::DOWN, "down"},
                              {InterfaceState::UP, "up"} })
@@ -31,8 +32,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(LinkState, { {LinkState::UNKNOWN, nullptr}, {LinkSt
                              "up"} })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(IPSource, { {IPSource::UNKNOWN, nullptr }, {IPSource::NONE, "none" }, {IPSource::STATIC,
-                             "static" }, {IPSource::DHCP, "dhcp" }, {IPSource::BOOTP, "bootp" }, {IPSource::TEMPORARY,
-                             "temporary"}, {IPSource::EXTERNAL, "external"}, {IPSource::FIXIP, "fixip"}});
+                             "static" }, {IPSource::DHCP, "dhcp" }, {IPSource::BOOTP, "bootp" }, {IPSource::EXTERNAL,
+                             "external"}, {IPSource::FIXIP, "fixip"}});
 
 NLOHMANN_JSON_SERIALIZE_ENUM(DipSwitchMode, { {DipSwitchMode::OFF, "off"}, {DipSwitchMode::STATIC, "static"},
                              {DipSwitchMode::DHCP, "dhcp"}, {DipSwitchMode::HW_NOT_AVAILABLE, "hw-not-available"} });
@@ -41,6 +42,10 @@ NLOHMANN_JSON_SERIALIZE_ENUM(DeviceType, {{DeviceType::Ethernet, "ethernet" }, {
                              {DeviceType::Virtual, "virtual" }, {DeviceType::Wwan, "wwan" }, {DeviceType::Loopback,
                              "loopback" }, {DeviceType::Port, "port" }, {DeviceType::Service, "service" },
                              {DeviceType::Other, "other" } });
+
+NLOHMANN_JSON_SERIALIZE_ENUM(DynamicIPEventAction, { {DynamicIPEventAction::UNKNOWN, nullptr},
+                             {DynamicIPEventAction::BOUND, "bound"}, {DynamicIPEventAction::RELEASE, "release"},
+                             {DynamicIPEventAction::RENEW, "renew"}, {DynamicIPEventAction::NAK, "nak"}})
 
 static Status MissingJsonKeyError(const std::string &keyname) {
   return Status { StatusCode::JSON_KEY_MISSING, keyname };
@@ -100,6 +105,7 @@ Status NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs);
 Status NJsonToInterfaceConfigs(const json &json_object, InterfaceConfigs &interface_configs);
 Status NJsonToInterfaceStatuses(const nlohmann::json &json_object, InterfaceStatuses &interface_statuses);
 Status NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information);
+Status NJsonToDynamicIPEvent(const json &json_object, ::std::string &itf_name, DynamicIPEventAction &action);
 
 Status GetAddressFromJson(const std::string &json_field, const json &from, std::string &to);
 InterfaceConfig InterfaceConfigFromJson(const json &config);

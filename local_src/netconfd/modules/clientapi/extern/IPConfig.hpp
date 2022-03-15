@@ -25,7 +25,12 @@ class IPConfigs: public detail::ConfigBase<netconf::IPConfig> {
  public:
   IPConfigs() = default;
   explicit IPConfigs(const netconf::IPConfigs& configs);
-  ~IPConfigs() = default;
+  virtual ~IPConfigs() = default;
+
+  IPConfigs(const IPConfigs&) = default;
+  IPConfigs& operator=(const IPConfigs&) = default;
+  IPConfigs(IPConfigs&&) = default;
+  IPConfigs& operator=(IPConfigs&&) = default;
 
   /**
    * @brief Add or replace an @see IPConfig
@@ -151,7 +156,7 @@ Status SetIPConfigs(const IPConfigs& config);
  *
  * @param interface_name
  */
-void DeleteIPConfig(::std::string interface_name);
+void DeleteIPConfig(const ::std::string& interface_name);
 
 /**
  * @brief Set the Temp Fix Ip

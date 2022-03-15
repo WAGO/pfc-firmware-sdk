@@ -106,6 +106,7 @@ PAM_MODULES-$(PTXCONF_PAM_PAM_USERDB)     += pam_userdb.so
 PAM_MODULES-$(PTXCONF_PAM_PAM_WARN)       += pam_warn.so
 PAM_MODULES-$(PTXCONF_PAM_PAM_WHEEL)      += pam_wheel.so
 PAM_MODULES-$(PTXCONF_PAM_PAM_XAUTH)      += pam_xauth.so
+PAM_MODULES-$(PTXCONF_PAM_PAM_FAILLOCK)   += pam_faillock.so
 
 $(STATEDIR)/pam.targetinstall:
 	@$(call targetinfo)

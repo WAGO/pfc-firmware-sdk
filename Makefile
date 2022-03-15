@@ -1,4 +1,4 @@
-#######################################################################################################################
+	#######################################################################################################################
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -24,7 +24,6 @@ BUILDTYPE ?= development
 IMAGE_DIR ?= $(PLATFORMDIR)/images
 OUT_DIR ?= $(IMAGE_DIR)
 PLATFORM ?= $(shell echo $(PTXCONF_PLATFORM))
-SELECTED_PTXCONFIG ?= $(shell basename `readlink selected_ptxconfig`)
 SD_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_SD)$(PTXCONF_IMAGE_SRC_SD)" | grep --only-matching y)
 ifeq ($(PLATFORM),wago-pfc-adv)
 PRODUCTION_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_PRODUCTION)")
@@ -53,7 +52,7 @@ FIRMWARE_SVNREVISION := $(shell cat $(TARGETROOT)/etc/SVNREVISION | head -n1 | c
 
 # Map platform/project names to more user friendly target names
 ifeq ($(PLATFORM),wago-pfcXXX)
-ifeq ($(SELECTED_PTXCONFIG),ptxconfig_pfc_g2)
+ifdef PTXCONF_PFC_200_G2
 FIRMWARE_PLATFORM ?= PFC-G2-Linux
 else
 FIRMWARE_PLATFORM ?= PFC-Linux
@@ -61,11 +60,20 @@ endif
 else ifeq ($(PLATFORM),wago-pfc-adv)
 FIRMWARE_PLATFORM ?= PFC_ADV-Linux
 else ifeq ($(PLATFORM),wago-pfcXXX-hardened)
-FIRMWARE_PLATFORM ?= PFC_Hardened-Linux
+ifdef PTXCONF_PFC_200_G2
+FIRMWARE_PLATFORM ?= PFC-G2-Linux-hardened
+else
+FIRMWARE_PLATFORM ?= PFC-Linux-hardened
+endif
 else ifeq ($(PLATFORM),vtp-ctp)
 FIRMWARE_PLATFORM ?= TP-Linux
 else ifeq ($(PLATFORM),cc100)
 FIRMWARE_PLATFORM ?= CC100-Linux
+fsbl := stm32mp1-tf-a-stm32mp151-cc100.stm32
+DIST_TARGETS += $(OUT_DIR)/$(fsbl)
+$(OUT_DIR)/$(fsbl): $(IMAGE_DIR)/$(fsbl) | $(OUT_DIR)
+	@echo "Create cc100 fsbl $(fsbl) by copy: $<"
+	cp $< $@
 else
 FIRMWARE_PLATFORM ?= $(PLATFORM)_$(PROJECT)
 endif
@@ -118,18 +126,25 @@ RAUC_DISTINCT_KEYRING = $(RAUC_CERTIFICATE)
 # Lazy packages to build
 ADDITIONAL_PACKAGES ?= $(shell ptxdist print LAZY_PACKAGES-y | sed 's/host-[^ ]*//g' | sed 's/cross-[^ ]*//g')
 
-# Downgrade images
+# genimage configs
+GENIMAGE_CONFIGS := $(addprefix $(OUT_DIR)/,$(notdir $(wildcard $(IMAGE_DIR)/*.config)))
+
+# Specific downgrade and production images
+ifeq ($(PLATFORM),$(filter $(PLATFORM),wago-pfcXXX wago-pfcXXX-hardened))
+ifdef PTXCONF_PFC_200_G2
+PRODUCTION_IMAGES += $(OUT_DIR)/emmc-wago-production-pfc200v3_$(IMAGE_ID).img
+PRODUCTION_IMAGES += $(OUT_DIR)/emmc-commission-pfc200v3_$(IMAGE_ID).img
+else
 DOWNGRADE_IMAGES += $(OUT_DIR)/sd-downgrade-firmware-02-pfc200_$(IMAGE_ID).img
 DOWNGRADE_IMAGES += $(OUT_DIR)/sd-downgrade-firmware-03-pfc200_$(IMAGE_ID).img
 DOWNGRADE_IMAGES += $(OUT_DIR)/sd-downgrade-firmware-04-pfc200_$(IMAGE_ID).img
-
-# Production images
-ifneq ($(PLATFORM),wago-pfc-adv)
 PRODUCTION_IMAGES += $(OUT_DIR)/nand-wago-production-pfc100_$(IMAGE_ID).ubi
 PRODUCTION_IMAGES += $(OUT_DIR)/nand-wago-production-pfc200_$(IMAGE_ID).img
 PRODUCTION_IMAGES += $(OUT_DIR)/nand-wago-production-pfc200v2_$(IMAGE_ID).ubi
-PRODUCTION_IMAGES += $(OUT_DIR)/emmc-wago-production-pfc200v3_$(IMAGE_ID).img
-PRODUCTION_IMAGES += $(OUT_DIR)/emmc-commission-pfc200v3_$(IMAGE_ID).img
+endif
+endif
+
+ifneq ($(PLATFORM),wago-pfc-adv)
 PRODUCTION_IMAGES += $(OUT_DIR)/firmware_$(IMAGE_ID).hex
 else
 PRODUCTION_IMAGES += $(OUT_DIR)/production_$(IMAGE_ID).zip
@@ -145,7 +160,12 @@ FW_DESC_FILES += $(OUT_DIR)/REVISIONS
 IMAGES_ARCHIVE += $(OUT_DIR)/images_$(IMAGE_ID).tar.gz
 ROOT_DEBUG_ARCHIVE += $(OUT_DIR)/root-debug_$(IMAGE_ID).tar.gz
 
+INDEX ?= $(OUT_DIR)/index.json
+INDEX_GENERATOR ?= shared_public/build/create_index.sh
+
 # Select default dist targets
+DIST_TARGETS += $(OUT_DIR)/root.tgz
+DIST_TARGETS += $(GENIMAGE_CONFIGS)
 DIST_TARGETS ?=
 DIST_TARGETS += $(FW_DESC_FILES)
 ifeq ($(SD_ACTIVATED),y)
@@ -164,10 +184,10 @@ DIST_TARGETS += $(WUP)
 endif
 ifneq ($(IMAGE_DIR),$(OUT_DIR))
 # Don't create archives when executed locally
-DIST_TARGETS += $(IMAGES_ARCHIVE)
+#DIST_TARGETS += $(IMAGES_ARCHIVE)
 DIST_TARGETS += $(ROOT_DEBUG_ARCHIVE)
 endif
-
+#DIST_TARGETS += $(INDEX)
 
 .PHONY: default
 default: dist
@@ -180,7 +200,7 @@ default: dist
 
 # Main targets
 #######################################################################################################################
-.PHONY: dist distclean sdcard wup updatefile updatepack production_images downgrade_images additional_packages fw_desc_files
+.PHONY: dist distclean sdcard wup updatefile updatepack production_images downgrade_images additional_packages fw_desc_files index
 
 
 dist: $(DIST_TARGETS) additional_packages
@@ -199,6 +219,8 @@ fw_desc_files: $(FW_DESC_FILES)
 
 additional_packages:
 	ptxdist targetinstall $(ADDITIONAL_PACKAGES)
+
+index: $(INDEX)
 
 distclean:
 	   rm -f $(DIST_TARGETS) \
@@ -247,6 +269,14 @@ $(OUT_DIR)/production_$(IMAGE_ID).zip: $(IMAGE_DIR)/production.zip | $(OUT_DIR)
 	@echo "Create versioned production image by copy: $<"
 	cp $< $@
 
+$(OUT_DIR)/%.config: $(IMAGE_DIR)/%.config | $(OUT_DIR)
+	@echo "Create image configs by copy: $<"
+	cp $< $@
+
+$(OUT_DIR)/root.tgz: $(IMAGE_DIR)/root.tgz | $(OUT_DIR)
+	@echo "Create versioned root.tgz and image configs by copy: $<"
+	cp $< $@
+
 $(IMAGES_ARCHIVE): $(OUT_DIR)/ptxdist.images.stage | $(OUT_DIR)
 	@echo "Create image archive"
 	tar -cvzf $@ -C $(IMAGE_DIR) .
@@ -284,6 +314,17 @@ $(WUP_CONTROLFILE): $(WUP_CONTROLFILE_SCHEMA) $(WUP_CONTROLFILE_GENERATOR) $(RAU
 	                                $(RAUC_UPDATEFILE)\
 	                                $(FIRMWARE_PLATFORM)\
 	&& $(XMLSTARLET) validate --xsd $< $@
+
+$(INDEX): $(INDEX_GENERATOR) Makefile | $(OUT_DIR)
+		$(INDEX_GENERATOR) $@ $(FIRMWARE_PLATFORM)\
+	                                $(FIRMWARE_REVISION_MAJOR)\
+	                                $(FIRMWARE_REVISION_MINOR)\
+	                                $(FIRMWARE_REVISION_BUGFIX)\
+	                                $(FIRMWARE_RELEASE_INDEX)\
+	                                $(FIRMWARE_SVNREVISION) \
+	                                $(SD_IMAGE) \
+	                                $(RAUC_UPDATEFILE)\
+	                                $(WUP)\
 
 $(OUT_DIR):
 	mkdir -p $@

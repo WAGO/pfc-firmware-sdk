@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2019 by WAGO Kontakttechnik GmbH
+# Copyright (C) 2019 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -18,12 +18,12 @@ PACKAGES-$(PTXCONF_WRETAIN) += wretain
 #
 WRETAIN_MAJOR_VERSION := 1
 WRETAIN_MINOR_VERSION := 0
-WRETAIN_PATCH_VERSION := 3
+WRETAIN_PATCH_VERSION := 4
 
 ifdef PTXCONF_WRETAIN_DEV
 WRETAIN_BUILD_ID      := -$(call remove_quotes,$(PTXCONF_WRETAIN_DEV_BRANCH))
 else
-WRETAIN_BUILD_ID      := -159229425162
+WRETAIN_BUILD_ID      := -164189501667
 endif
 
 WRETAIN		          := wretain
@@ -164,7 +164,7 @@ $(STATEDIR)/wretain.targetinstall:
 	@$(call install_init, wretain)
 	@$(call install_fixup, wretain,PRIORITY,optional)
 	@$(call install_fixup, wretain,SECTION,base)
-	@$(call install_fixup, wretain,AUTHOR,"WAGO Kontakttechnik GmbH")
+	@$(call install_fixup, wretain,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wretain,DESCRIPTION,missing)
 
 ifdef PTXCONF_WRETAIN_LINK_TYPE_DIRECT

@@ -72,8 +72,7 @@ libnetconf.so_LDFLAGS += $(call pkg_config_ldflags,$(libnetconf.so_PKG_CONFIGS))
 libnetconf.so_SOURCES += $(call fglob_r,$(libnetconf_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
 libnetconf.so_SOURCES += $(netonfd_common_sources)
 libnetconf.so_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
-libnetconf.so_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-libnetconf.so_CLANG_TIDY_CHECKS += -google-runtime-references
+libnetconf.so_CLANG_TIDY_CHECKS += $(SHARED_CLANG_TIDY_CHECKS)
 
 #######################################################################################################################
 # Settings for build target libnetconf.a
@@ -108,8 +107,7 @@ libnetconf.a_CXXFLAGS += $(libnetconf.a_CCXXFLAGS)
 libnetconf.a_SOURCES += $(call fglob_r,$(libnetconf_PROJECT_ROOT)/src,$(SOURCE_FILE_EXTENSIONS))
 libnetconf.a_SOURCES += $(netonfd_common_sources)
 libnetconf.a_CLANG_TIDY_RULESET = $(CLANG_TIDY_CHECKS)
-libnetconf.a_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-libnetconf.a_CLANG_TIDY_CHECKS += -google-runtime-references
+libnetconf.a_CLANG_TIDY_CHECKS += $(SHARED_CLANG_TIDY_CHECKS)
 
 
 #######################################################################################################################
@@ -141,8 +139,6 @@ libnetconf_tests.elf_LDFLAGS += $(call option_lib,$(libnetconf_tests.elf_LIBS),l
 libnetconf_tests.elf_LDFLAGS += $(call pkg_config_ldflags,$(libnetconf_tests.elf_PKG_CONFIGS))
 libnetconf_tests.elf_SOURCES += $(call fglob_r,$(libnetconf_PROJECT_ROOT)/test-src,$(SOURCE_FILE_EXTENSIONS))
 libnetconf_tests.elf_DISABLE_CLANG_TIDY = T
-libnetconf_tests.elf_CLANG_TIDY_CHECKS += -clang-diagnostic-c++98-c++11-compat
-libnetconf_tests.elf_CLANG_TIDY_CHECKS += -google-runtime-references
 # filter only source files in this sub-module
 libnetconf_tests.elf_GCOVR_FILTER += $(libnetconf_PROJECT_ROOT)
 # modules to include into this test's coverage report 

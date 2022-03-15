@@ -25,8 +25,6 @@ inline std::string IpSourceToString(::netconf::IPSource s) {
       return "DHCP";
     case ::netconf::IPSource::STATIC:
       return "STATIC";
-    case ::netconf::IPSource::TEMPORARY:
-      return "TEMPORARY";
     case ::netconf::IPSource::NONE:
       return "NONE";
     case ::netconf::IPSource::UNKNOWN:

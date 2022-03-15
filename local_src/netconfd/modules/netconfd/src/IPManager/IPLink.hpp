@@ -2,61 +2,42 @@
 #pragma once
 
 #include <functional>
+#include <list>
 
-#include "Status.hpp"
-#include "IEventManager.hpp"
-#include "IGratuitousArp.hpp"
-#include "IIPEvent.hpp"
-#include "IIPLinks.hpp"
-#include "NetDev.hpp"
 #include "Types.hpp"
+#include "NetworkInterfaceConstants.hpp"
 
 namespace netconf {
-
-class IPLink;
-class IIPConfigure;
-
-using IPLinks = ::std::list<::std::shared_ptr<IPLink>>;
 
 class IPLink {
  public:
 
-  IPLink(IIPConfigure &configurator, IEventManager &event_manager, IGratuitousArp &gratuitous_arp, IIPLinks &ip_links, NetDevPtr netdev, const ::std::string &init_address = ZeroIP, const ::std::string &init_netmask = ZeroIP);
-  ~IPLink();
+  IPLink(uint32_t index,const ::std::string& itf_name, ::std::string address = ZeroIP,
+         ::std::string netmask = ZeroIP, eth::InterfaceLinkState state = eth::InterfaceLinkState::Down);
+  ~IPLink() = default;
 
-  Status SetIPConfig(const IPConfig new_ip_config);
-  void RefreshIP();
+  void SetIPConfig(const IPConfig new_ip_config);
+  void SetLinkState(eth::InterfaceLinkState state);
+  void SetAddress(const ::std::string &address, const ::std::string &netmask);
 
   IPConfig GetIPConfig() const;
   IPConfig GetCurrentIPConfig() const;
   uint32_t GetIfIndex() const;
+  IPSource GetSource() const;
+  eth::InterfaceLinkState GetLinkState() const;
   ::std::string GetName() const;
-
-  void Enable();
-  void Disable();
-
-  void OnAddressChange(IIPEvent::ChangeType change_type, const ::std::string &address, const ::std::string &netmask);
+  ::std::string GetAddress() const;
 
  private:
-  IIPConfigure &ip_configure_;
-  IEventManager &event_manager_;
-  IGratuitousArp &gratuitous_arp_;
-  IIPLinks &ip_links_;
-  NetDevPtr netdev_;
-  IPConfig ip_config_;
+  uint32_t index_;
+  ::std::string name_;
   ::std::string address_;
   ::std::string netmask_;
-  bool enabled_;
-  bool shall_trigger_event_folder_;
-
-  bool IsDifferentFromCurrentIpAddress(const IPConfig &new_ip_config) const;
-  Status Configure(const IPConfig &new_ip_config);
-  void AcceptNewConfig(const IPConfig &new_ip_config);
-  void NotifyChanges(const IPConfig &new_ip_config);
-
-  void SendGratuitousArpOnBridge();
-  void SendGratuitousArpOnPortIfAssociatedBridgeIsConfigured();
-  void NotifyNetworkChanges();
+  eth::InterfaceLinkState link_state_;
+  IPConfig ip_config_;
 };
+
+using IPLinks = ::std::list<::std::shared_ptr<IPLink>>;
+using IPLinkPtr = ::std::shared_ptr<IPLink>;
 
 }  // namespace netconf

@@ -21,31 +21,15 @@ FIRMWARE_REVISION="${FIRMWARE_BASE}.${FIRMWARE_BUGFIX}"
 RAUC_UPDATEFILE="$(basename "$6")"
 PLATFORM="$7"
 
-case "$PLATFORM" in
-
-    PFC_ADV-Linux)
-        echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>" > "$FILE"
-        echo "<!-- Caution! Elements and attributes in this file are case sensitive! -->" >> "$FILE"
-        echo "<FirmwareUpdateFile StructureVersion=\"2.0\" Revision=\"1\">" >> "$FILE"
-        echo "  <FirmwareDescription Revision=\"${FIRMWARE_REVISION}\" ReleaseIndex=\"${FIRMWARE_INDEX}\">" >> "$FILE"
-        echo "    <AssociatedFiles>" >> "$FILE"
-        echo "      <File RefID=\"RAUC-File\" Type=\"rauc\" Name=\"$RAUC_UPDATEFILE\"/>" >> "$FILE"
-        echo "    </AssociatedFiles>" >> "$FILE"
-        echo "  </FirmwareDescription>" >> "$FILE"
-        echo "  <ArticleList>" >> "$FILE"
-        ;;
-    *)
-        echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>" > "$FILE"
-        echo "<!-- Caution! Elements and attributes in this file are case sensitive! -->" >> "$FILE"
-        echo "<FirmwareUpdateFile StructureVersion=\"1.0\" Revision=\"1\" System=\"PFC-Linux\">" >> "$FILE"
-        echo "  <FirmwareDescription Revision=\"${FIRMWARE_REVISION}\" ReleaseIndex=\"${FIRMWARE_INDEX}\">" >> "$FILE"
-        echo "    <AssociatedFiles>" >> "$FILE"
-        echo "      <File RefID=\"RAUC-File\" Type=\"rauc\" Name=\"$RAUC_UPDATEFILE\" TargetPath=\"/tmp/fwupdate/update_${FIRMWARE_INDEX}_${FIRMWARE_REVISION_LONG}.raucb\"/>" >> "$FILE"
-        echo "    </AssociatedFiles>" >> "$FILE"
-        echo "  </FirmwareDescription>" >> "$FILE"
-        echo "  <ArticleList>" >> "$FILE"
-        ;;
-esac
+echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>" > "$FILE"
+echo "<!-- Caution! Elements and attributes in this file are case sensitive! -->" >> "$FILE"
+echo "<FirmwareUpdateFile StructureVersion=\"1.0\" Revision=\"1\" System=\"PFC-Linux\">" >> "$FILE"
+echo "  <FirmwareDescription Revision=\"${FIRMWARE_REVISION}\" ReleaseIndex=\"${FIRMWARE_INDEX}\">" >> "$FILE"
+echo "    <AssociatedFiles>" >> "$FILE"
+echo "      <File RefID=\"RAUC-File\" Type=\"rauc\" Name=\"$RAUC_UPDATEFILE\" TargetPath=\"/tmp/fwupdate/update_${FIRMWARE_INDEX}_${FIRMWARE_REVISION_LONG}.raucb\"/>" >> "$FILE"
+echo "    </AssociatedFiles>" >> "$FILE"
+echo "  </FirmwareDescription>" >> "$FILE"
+echo "  <ArticleList>" >> "$FILE"
 
 case "$PLATFORM" in
 
@@ -92,7 +76,7 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8208/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         ;;
 
-    PFC_Hardened-Linux)
+    PFC-Linux-hardened)
         echo "    <Article OrderNo=\"0750-8100\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8101\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8101/0000-0010\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
@@ -133,37 +117,6 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8208\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8208/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8208/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8210\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8210/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8210/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8210/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8211\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8211/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8211/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212/0000-0100\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212/0025-0002\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8212/0040-0010\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8213\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8213/0040-0010\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8214\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8215\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8215/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8216/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/K000-0002\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/K000-0006\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/0600-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/0625-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         ;;
         
     PFC-G2-Linux)
@@ -192,12 +145,34 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8216/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/K000-0002\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/K000-0006\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/0600-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
-        echo "    <Article OrderNo=\"0750-8217/0625-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        ;;
+
+    PFC-G2-Linux-hardened)
+        echo "    <Article OrderNo=\"0750-8210\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8210/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8210/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8210/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8211\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8211/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8211/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212/0000-0100\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212/0025-0002\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212/0040-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8212/0040-0010\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8213\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8213/0040-0010\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8214\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8215\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8215/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8216\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8216/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8216/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8216/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8216/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         ;;
 
     TP-Linux)
@@ -252,7 +227,7 @@ echo "  </ArticleList>" >> "$FILE"
 echo "  <GroupList>" >> "$FILE"
 
 case "$PLATFORM" in
-    PFC-Linux|PFC-G2-Linux|PFC_Hardened-Linux)
+    PFC-Linux|PFC-G2-Linux|PFC-Linux-hardened|PFC-G2-Linux-hardened)
         echo "    <Group RefID=\"PFC-Common\">" >> "$FILE"
         echo "      <Upgrade>" >> "$FILE"
         echo "        <VersionList>" >> "$FILE"

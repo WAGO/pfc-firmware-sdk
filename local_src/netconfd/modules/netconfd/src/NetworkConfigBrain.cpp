@@ -2,43 +2,46 @@
 
 #include "NetworkConfigBrain.hpp"
 
-#include <string>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <string>
 
-
-#include "Logger.hpp"
-#include "Helper.hpp"
-#include "IpAddressManipulator.hpp"
-#include "IInterfaceMonitor.hpp"
 #include "EthernetInterface.hpp"
-#include "InterfaceConfigManager.hpp"
-#include "NetDevManager.hpp"
-#include "IpConfigHelper.hpp"
+#include "CollectionUtils.hpp"
 #include "IBridgeInformation.hpp"
-#include "TypesHelper.hpp"
+#include "IInterfaceMonitor.hpp"
+#include "InterfaceConfigManager.hpp"
+#include "IpAddressManipulator.hpp"
+#include "IpConfigHelper.hpp"
 #include "JsonConverter.hpp"
 #include "LinkMode.hpp"
+#include "Logger.hpp"
+#include "NetDevManager.hpp"
+#include "TypesHelper.hpp"
 
 namespace netconf {
 
 using namespace ::std::literals;
 
-NetworkConfigBrain::NetworkConfigBrain(IBridgeManager &interface_manager, IBridgeInformation &itf_info,
-                                       IIPManager &ip_manager, IEventManager &event_manager,
-                                       IDeviceProperties &device_properties_provider,
-                                       IPersistenceProvider &persistence_provider, IDipSwitch &ip_dip_switch,
-                                       InterfaceConfigManager &interface_config_manager, INetDevManager &netdev_manager)
+NetworkConfigBrain::NetworkConfigBrain(IBridgeManager& interface_manager,
+                                       IBridgeInformation& itf_info, IIPManager& ip_manager,
+                                       IEventManager& event_manager,
+                                       IDeviceProperties& device_properties_provider,
+                                       IPersistenceProvider& persistence_provider, IDipSwitch& ip_dip_switch,
+                                       InterfaceConfigManager& interface_config_manager,
+                                       INetDevManager& netdev_manager,
+                                       IHostnameWillChange& hostname_manager)
 
-    : bridge_manager_ { interface_manager },
-      bridge_information_ { itf_info },
-      interface_config_manager_ { interface_config_manager },
-      ip_manager_ { ip_manager },
-      event_manager_ { event_manager },
-      device_properties_provider_ { device_properties_provider },
-      persistence_provider_ { persistence_provider },
-      netdev_manager_ { netdev_manager },
-      ip_dip_switch_ { ip_dip_switch } {
+    : bridge_manager_{interface_manager},
+      bridge_information_{itf_info},
+      interface_config_manager_{interface_config_manager},
+      ip_manager_{ip_manager},
+      event_manager_{event_manager},
+      device_properties_provider_{device_properties_provider},
+      persistence_provider_{persistence_provider},
+      netdev_manager_{netdev_manager},
+      ip_dip_switch_{ip_dip_switch},
+      hostname_will_change_{hostname_manager}{
 }
 
 void NetworkConfigBrain::Start(StartWithPortstate startwithportstate) {
@@ -57,8 +60,8 @@ void NetworkConfigBrain::Start(StartWithPortstate startwithportstate) {
     return;
   }
 
-  statusBridgeConfig = persistence_provider_.Read(bridge_config);
-  statusIPConfig = persistence_provider_.Read(ip_configs);
+  statusBridgeConfig      = persistence_provider_.Read(bridge_config);
+  statusIPConfig          = persistence_provider_.Read(ip_configs);
   statusDIPSwitchIPConfig = persistence_provider_.Read(dip_switch_ip_config);
 
   if (statusBridgeConfig.IsOk()) {
@@ -85,7 +88,7 @@ void NetworkConfigBrain::Start(StartWithPortstate startwithportstate) {
   if (status.IsNotOk()) {
     LogWarning("Start: IP validation failed. Reset IP configuration.");
     ResetIpConfigsToDefault(ip_configs);
-    status = Status { };
+    status = Status{};
   }
 
   // At this point bridge and IP configs should be valid.
@@ -105,10 +108,9 @@ void NetworkConfigBrain::Start(StartWithPortstate startwithportstate) {
 
   interface_config_manager_.InitializePorts(static_cast<InterfaceState>(startwithportstate));
 
-
-
   if (status.IsOk()) {
-    event_manager_.ProcessEvents();
+    event_manager_.NotifyNetworkChanges(EventLayer::EVENT_FOLDER);
+    event_manager_.ProcessPendingEvents();
   }
 
   if (status.IsNotOk()) {
@@ -129,15 +131,15 @@ void NetworkConfigBrain::GetValidIpConfigsSubset(const IPConfigs &configs, IPCon
 }
 
 void NetworkConfigBrain::ResetBridgeConfigToDefault(Interfaces product_interfaces, BridgeConfig &config) {
-  config = { { "br0", product_interfaces } };
+  config = {{"br0", product_interfaces}};
 }
 
 void NetworkConfigBrain::ResetIpConfigsToDefault(IPConfigs &configs) {
-  configs = { { "br0", IPSource::DHCP, ZeroIP, ZeroIP } };
+  configs = {{"br0", IPSource::DHCP, ZeroIP, ZeroIP}};
 }
 
 void NetworkConfigBrain::ResetDIPSwitchIPConfigToDefault(DipSwitchIpConfig &config) {
-  config = { "192.168.1.0", "255.255.255.0" };
+  config = {"192.168.1.0", "255.255.255.0"};
 }
 
 void NetworkConfigBrain::RemoveEmptyBridges(BridgeConfig &config) const {
@@ -152,7 +154,6 @@ void NetworkConfigBrain::RemoveEmptyBridges(BridgeConfig &config) const {
 }
 
 void NetworkConfigBrain::FilterRequiredIpConfigs(IPConfigs &ip_configs, const BridgeConfig &bridge_config) const {
-
   Interfaces bridges_to_remove;
   for (auto &ip_config : ip_configs) {
     if (bridge_config.count(ip_config.interface_) == 0) {
@@ -161,10 +162,9 @@ void NetworkConfigBrain::FilterRequiredIpConfigs(IPConfigs &ip_configs, const Br
   }
 
   for (auto bridge : bridges_to_remove) {
-    ip_configs.erase(::std::remove_if(ip_configs.begin(), ip_configs.end(), [&](IPConfig &ip_config) {
-      return ip_config.interface_ == bridge;
-    })
-                     , ip_configs.end());
+    ip_configs.erase(::std::remove_if(ip_configs.begin(), ip_configs.end(),
+                                      [&](IPConfig &ip_config) { return ip_config.interface_ == bridge; }),
+                     ip_configs.end());
   }
 }
 
@@ -186,22 +186,18 @@ void NetworkConfigBrain::RemoveUnsupportedInterfaces(BridgeConfig &config, Inter
 
 IPConfigs NetworkConfigBrain::FilterRequiredIPConfigs(const IPConfigs &ip_configs,
                                                       const BridgeConfig &product_config) const {
-
   IPConfigs required_ip_configs;
   for (auto &ip_config : ip_configs) {
-
     auto it = product_config.find(ip_config.interface_);
     if (it != product_config.end()) {
       required_ip_configs.push_back(ip_config);
     }
-
   }
   return required_ip_configs;
-
 }
 
-Status NetworkConfigBrain::ApplyConfig(BridgeConfig &product_config, const IPConfigs &ip_configs, const DipSwitchIpConfig& dipIpConfig) const {
-
+Status NetworkConfigBrain::ApplyConfig(BridgeConfig &product_config, const IPConfigs &ip_configs,
+                                       const DipSwitchIpConfig &dipIpConfig) const {
   Status status = bridge_manager_.ApplyBridgeConfiguration(product_config);
 
   if (status.IsOk()) {
@@ -212,7 +208,6 @@ Status NetworkConfigBrain::ApplyConfig(BridgeConfig &product_config, const IPCon
 }
 
 void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) const {
-
   auto convert_to_product_interfaces = [&](auto &bridge) {
     Interfaces itfs = bridge.second;
     device_properties_provider_.ConvertOSToProductInterfaces(itfs);
@@ -220,11 +215,9 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   };
 
   ::std::for_each(config.begin(), config.end(), convert_to_product_interfaces);
-
 }
 
 ::std::string NetworkConfigBrain::SetBridgeConfig(::std::string const &product_config_json) {
-
   BridgeConfig product_config;
 
   Status status = jc.FromJsonString(product_config_json, product_config);
@@ -252,7 +245,8 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   }
 
   if (status.IsOk()) {
-    event_manager_.NotifyNetworkChanges(EventType::SYSTEM, EventLayer::EVENT_FOLDER);
+    event_manager_.NotifyNetworkChanges(EventLayer::EVENT_FOLDER);
+    event_manager_.ProcessPendingEvents();
   }
 
   if (persistence_status.IsNotOk()) {
@@ -267,7 +261,6 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 }
 
 ::std::string NetworkConfigBrain::GetBridgeConfig(::std::string &data) const {
-
   BridgeConfig product_config = bridge_manager_.GetBridgeConfig();
 
   data = jc.ToJsonString(product_config);
@@ -276,12 +269,10 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 }
 
 ::std::string NetworkConfigBrain::GetInterfaceInformation(::std::string &data) const {
-
   auto iis = interface_config_manager_.GetInterfaceInformations();
-  data = jc.ToJsonString(iis);
+  data     = jc.ToJsonString(iis);
 
   return jc.ToJsonString(Status::Ok());
-
 }
 
 ::std::string NetworkConfigBrain::SetInterfaceConfig(const ::std::string &config) {
@@ -294,7 +285,7 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   }
 
   if (status.IsOk()) {
-    event_manager_.ProcessEvents();
+    event_manager_.ProcessPendingEvents();
   }
 
   if (status.IsNotOk()) {
@@ -336,7 +327,6 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 }
 
 ::std::string NetworkConfigBrain::GetIPConfig(const ::std::string &config, ::std::string &data) const {
-
   IPConfigs ip_configs;
 
   Status status = jc.FromJsonString(config, ip_configs);
@@ -351,7 +341,7 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
     }
 
     configs = ip_manager_.GetIPConfigs(bridges);
-    data = jc.ToJsonString(configs);
+    data    = jc.ToJsonString(configs);
   }
 
   if (status.IsNotOk()) {
@@ -372,13 +362,11 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
     status = ip_manager_.ApplyIpConfiguration(ip_configs);
   }
 
-  if (status.IsOk()) {
-    event_manager_.ProcessEvents();
-  }
-
   if (status.IsNotOk()) {
     LogError("SetAllIPConfigs: " + status.ToString());
   }
+
+  event_manager_.ProcessPendingEvents();
 
   return jc.ToJsonString(status);
 }
@@ -402,7 +390,6 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 }
 
 ::std::string NetworkConfigBrain::Restore(const std::string &file_path) {
-
   BridgeConfig bridge_config;
   IPConfigs ip_configs;
   InterfaceConfigs interface_configs;
@@ -412,9 +399,8 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   IPConfigs persisted_ip_configs;
   Status status = persistence_provider_.Read(persisted_bridge_config, persisted_ip_configs);
   if (status.IsOk()) {
-    // TODO (PND): Cleanup the backup data before restoring it, might contain data that is not applicable!!!
-    status = persistence_provider_.Restore(file_path, bridge_config, ip_configs, interface_configs,
-                                          dip_switch_ip_config);
+    status =
+        persistence_provider_.Restore(file_path, bridge_config, ip_configs, interface_configs, dip_switch_ip_config);
   }
 
   if (status.IsOk()) {
@@ -427,7 +413,6 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
       LogError("Failed to restore bridge configuration from file:"s + file_path);
     }
 
-    ip_manager_.ClearIpConfiguration();
     /* Clean out ip configs that are not available,
      * the restore data might contain unnecessary ip data from former netconfd releases. */
     CleanWithRespectToSystem(ip_configs, netdev_manager_.GetNetDevs(),
@@ -447,7 +432,7 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   }
 
   if (status.IsOk()) {
-    event_manager_.ProcessEvents();
+    event_manager_.ProcessPendingEvents();
   }
 
   if (status.IsNotOk()) {
@@ -461,7 +446,7 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   auto status = ip_manager_.ApplyTempFixIpConfiguration();
 
   if (status.IsOk()) {
-    event_manager_.ProcessEvents();
+    event_manager_.ProcessPendingEvents();
   } else {
     LogError("Set temp fix IP: " + status.ToString());
   }
@@ -481,7 +466,7 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
 
 ::std::string NetworkConfigBrain::SetDipSwitchConfig(const ::std::string &config) {
   if (ip_dip_switch_.GetMode() == DipSwitchMode::HW_NOT_AVAILABLE) {
-    return jc.ToJsonString(Status { StatusCode::DIP_NOT_AVAILABLE });
+    return jc.ToJsonString(Status{StatusCode::DIP_NOT_AVAILABLE});
   }
 
   DipSwitchIpConfig dip_switch_ip_config;
@@ -493,7 +478,7 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   }
 
   if (status.IsOk()) {
-    event_manager_.ProcessEvents();
+    event_manager_.ProcessPendingEvents();
   }
 
   if (status.IsNotOk()) {
@@ -501,6 +486,27 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
   }
 
   return jc.ToJsonString(status);
+}
+
+::std::string NetworkConfigBrain::ReceiveDynamicIPEvent(const ::std::string &data) {
+  ::std::string interface;
+  DynamicIPEventAction action;
+  auto status = jc.FromJsonString(data, interface, action);
+
+  if (status.IsOk()) {
+    ip_manager_.OnDynamicIPEvent(interface, action);
+  }
+
+  return jc.ToJsonString(status);
+}
+
+::std::string NetworkConfigBrain::ReceiveReloadHostConfEvent(){
+  hostname_will_change_.OnReloadHostConf();
+
+  event_manager_.NotifyNetworkChanges(EventLayer::EVENT_FOLDER);
+  event_manager_.ProcessPendingEvents();
+
+  return jc.ToJsonString(Status().Ok());
 }
 
 } /* namespace netconf */

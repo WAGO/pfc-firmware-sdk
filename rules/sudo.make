@@ -120,6 +120,10 @@ ifdef PTXCONF_SUDO_INSTALL_VISUDO
 	@$(call install_copy, sudo, 0, 0, 755, -, /usr/sbin/visudo)
 endif
 
+ifdef PTXCONF_SUDO_PAM
+	@$(call install_alternative, sudo, 0, 0, 644, /etc/pam.d/sudo)
+endif
+
 	@$(call install_finish, sudo)
 	@$(call touch)
 

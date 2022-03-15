@@ -17,7 +17,9 @@ class IIPController {
   IIPController(IIPController&&) = delete;
   IIPController& operator=(IIPController&&) = delete;
 
-  virtual Status SetIPConfig(const IPConfig& config) const = 0;
+  virtual Status Configure(const Interface &itf_name, const Address &address, const Netmask &netmask) const  = 0;
+  virtual Status Configure(const IPConfig &config) const  = 0;
+  virtual void Flush(const Interface &itf_name) const  = 0;
 
 };
 

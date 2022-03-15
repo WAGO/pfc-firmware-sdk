@@ -18,6 +18,7 @@ class INetDevEvents {
   virtual void OnNetDevCreated(NetDevPtr netdev) = 0;
   virtual void OnNetDevRemoved(NetDevPtr netdev) = 0;
   virtual void OnNetDevChangeInterfaceRelations(NetDevPtr netdev) = 0;
+  virtual void OnLinkChange(NetDevPtr netdev) = 0;
 };
 
 }

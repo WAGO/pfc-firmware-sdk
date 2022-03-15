@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <Status.hpp>
-#include "TypesHelper.hpp"
-#include <memory>
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <cctype>
+#include <memory>
 
 #include "JsonConverter.hpp"
+#include "Status.hpp"
+#include "TypesHelper.hpp"
 
 using namespace testing;
 
@@ -26,10 +27,9 @@ class JsonConverterIPConfigTest : public Test {
   }
 
   void TearDown() override {
-
   }
 
-  IPConfigs one_ip_config_ { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0" } };
+  IPConfigs one_ip_config_{{"br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"}};
   ::std::string const json_one_ip_config_ =
       R"(
   {
@@ -42,7 +42,8 @@ class JsonConverterIPConfigTest : public Test {
   }
    )";
 
-  IPConfigs two_ip_config_ { { "br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"}, { "br1", IPSource::STATIC, "192.168.2.17", "255.255.0.0"} };
+  IPConfigs two_ip_config_{{"br0", IPSource::STATIC, "192.168.1.17", "255.255.255.0"},
+                           {"br1", IPSource::STATIC, "192.168.2.17", "255.255.0.0"}};
 
   ::std::string const json_two_ip_config_ =
       R"(
@@ -62,7 +63,7 @@ class JsonConverterIPConfigTest : public Test {
   }
    )";
 
-  IPConfigs one_ip_config_empty_elements_ { {} };
+  IPConfigs one_ip_config_empty_elements_{{}};
 
   ::std::string const json_one_ip_config_empty_elements_ =
       R"(
@@ -75,18 +76,15 @@ class JsonConverterIPConfigTest : public Test {
     }
   }
    )";
-
 };
 
-static std::string& RemoveWhitespaces(std::string& str){
+static std::string& RemoveWhitespaces(std::string& str) {
   auto f = [](unsigned char const c) { return std::isspace(c); };
   str.erase(std::remove_if(str.begin(), str.end(), f), str.end());
   return str;
 }
 
-static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected,
-                                                ::std::string value) {
-
+static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected, ::std::string value) {
   RemoveWhitespaces(expected);
   RemoveWhitespaces(value);
 
@@ -95,7 +93,6 @@ static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected,
 
 // Convert IP configuration tests
 TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingOneConfigToIPConfig) {
-
   IPConfigs configs;
   Status status = parser_->FromJsonString(json_one_ip_config_, configs);
 
@@ -104,7 +101,6 @@ TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingOneConfigToIPConfig) {
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingTwoConfigToIPConfig) {
-
   IPConfigs configs;
   Status status = parser_->FromJsonString(json_two_ip_config_, configs);
 
@@ -114,7 +110,6 @@ TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingTwoConfigToIPConfig) {
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingEmptyElements) {
-
   IPConfigs configs;
   Status status = parser_->FromJsonString(json_one_ip_config_empty_elements_, configs);
 
@@ -123,24 +118,21 @@ TEST_F(JsonConverterIPConfigTest, ParsesJsonContainingEmptyElements) {
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesOneIPConfigToJson) {
-
   auto json = parser_->ToJsonString(one_ip_config_);
 
   ExpectStringEqIgnoreNewlineAndBlank(json_one_ip_config_, json);
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesTwoToJsonString) {
-
   auto json = parser_->ToJsonString(two_ip_config_);
 
   ExpectStringEqIgnoreNewlineAndBlank(json_two_ip_config_, json);
 }
 
 TEST_F(JsonConverterIPConfigTest, ParsesToJsonStringInCaseOfMissingInterface) {
-
   auto json = parser_->ToJsonString(one_ip_config_empty_elements_);
 
   ExpectStringEqIgnoreNewlineAndBlank(json_one_ip_config_empty_elements_, json);
 }
 
-}
+}  // namespace netconf

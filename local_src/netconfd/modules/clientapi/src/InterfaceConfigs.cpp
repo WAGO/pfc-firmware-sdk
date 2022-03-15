@@ -65,7 +65,7 @@ boost::optional<InterfaceConfig> InterfaceConfigs::GetInterfaceConfig(const ::st
     values.push_back("autonegotiation=" + autoneg);
   }
   if (config.duplex_ != Duplex::UNKNOWN) {
-    auto duplex = ::std::string(config.duplex_ == Duplex::FULL ? "full" : "half");
+    auto duplex = config.duplex_ == Duplex::FULL ? ::std::string("full") : ::std::string("half");
     values.push_back("duplex=" + duplex);
   }
   if (config.speed_ != InterfaceConfig::UNKNOWN_SPEED) {

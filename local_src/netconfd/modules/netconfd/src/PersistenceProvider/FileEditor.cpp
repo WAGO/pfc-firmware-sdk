@@ -30,6 +30,25 @@ Status FileEditor::Write(const ::std::string& file_path,
                          const ::std::string& data) const {
   Status status(StatusCode::OK);
 
+  ::std::ofstream stream(file_path,::std::ofstream::trunc);
+
+  if (stream.good()) {
+
+    stream << data;
+    stream.flush();
+    stream.close();
+
+  } else {
+    return Status{StatusCode::FILE_WRITE, file_path};
+  }
+
+  return status;
+}
+
+Status FileEditor::WriteAndReplace(const ::std::string& file_path,
+                         const ::std::string& data) const {
+  Status status(StatusCode::OK);
+
   ::std::string file_path_tmp = file_path + ".tmp";
 
   umask(0022);

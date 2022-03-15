@@ -52,7 +52,7 @@ Address IpAddressV4Increment(const Address& , uint32_t increment = 1);
  *
  * @return The index part of the interface name as optional integer.
  */
-std::optional<int> ExtractInterfaceIndex(const std::string& bridgename);
+std::optional<uint32_t> ExtractInterfaceIndex(const std::string& bridgename);
 
 /**
  * Get an iterator to an IPConfig in the IPConfigs matching the desired interface name.

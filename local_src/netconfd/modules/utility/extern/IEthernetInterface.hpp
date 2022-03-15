@@ -17,7 +17,7 @@ class IEthernetInterface {
   virtual bool GetAutonegSupport() const = 0;
   virtual bool GetAutonegEnabled() const = 0;
   virtual eth::MediaType GetMediaType() const = 0;
-  virtual ::std::int32_t GetSpeed() const = 0;
+  virtual ::std::uint32_t GetSpeed() const = 0;
   virtual eth::Duplex GetDuplex() const = 0;
   virtual eth::DeviceState GetState() const = 0;
   virtual eth::InterfaceLinkState GetLinkState() const = 0;

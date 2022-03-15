@@ -10,7 +10,7 @@ namespace netconf {
 
 using KindConversion = ::std::tuple<const char*, DeviceType>;
 
-constexpr ::std::array<KindConversion,7> conversions {{
+constexpr ::std::array<KindConversion,7> conversions {{ //NOLINT(cert-err58-cpp)
     KindConversion{"bridge", DeviceType::Bridge},
     KindConversion{"wwan", DeviceType::Wwan},
     KindConversion{"virtual", DeviceType::Virtual},
@@ -24,7 +24,7 @@ constexpr ::std::array<KindConversion,7> conversions {{
 
 DeviceType DeviceTypeFromString(const ::std::string& str)
 {
-  DeviceType t = static_cast<DeviceType>(0); // Make empty at first;
+  auto t = static_cast<DeviceType>(0); // Make empty at first;
   ::std::vector<::std::string> parts;
   boost::algorithm::split(parts, str, boost::is_any_of("|"), boost::algorithm::token_compress_on );
 

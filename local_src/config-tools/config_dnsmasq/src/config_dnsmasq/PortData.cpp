@@ -77,6 +77,7 @@ void PortData::setType(const netconf::IPConfig &ip_config) {
   }
 }
 
+// We do not check lower-down state here.
 bool PortData::areAllBridgeInterfacesDown(
   const std::string &bridge_name,
   const napi::BridgeConfig& bridge_config,

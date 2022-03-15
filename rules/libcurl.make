@@ -15,8 +15,8 @@ PACKAGES-$(PTXCONF_LIBCURL) += libcurl
 #
 # Paths and names
 #
-LIBCURL_VERSION	:= 7.72.0
-LIBCURL_MD5	:= 84c557176d185661655b00c17f150fc7
+LIBCURL_VERSION	:= 7.81.0
+LIBCURL_MD5	:= f42ab772edb85374fc985ae65810439e
 LIBCURL		:= curl-$(LIBCURL_VERSION)
 LIBCURL_SUFFIX	:= tar.bz2
 LIBCURL_URL	:= https://curl.haxx.se/download/$(LIBCURL).$(LIBCURL_SUFFIX)
@@ -40,7 +40,6 @@ LIBCURL_CONF_OPT	:= \
 	--disable-werror \
 	--disable-curldebug \
 	--enable-symbol-hiding \
-	--enable-hidden-symbols \
 	--$(call ptx/endis, PTXCONF_LIBCURL_C_ARES)-ares \
 	--enable-rt \
 	--disable-code-coverage \
@@ -87,9 +86,7 @@ LIBCURL_CONF_OPT	:= \
 	--without-brotli \
 	--without-gssapi \
 	--with-default-ssl-backend=$(call ptx/ifdef, PTXCONF_LIBCURL_SSL,openssl,no) \
-	--without-winssl \
 	--without-schannel \
-	--without-darwinssl \
 	--without-secure-transport \
 	--without-amissl \
 	--with-ssl=$(call ptx/ifdef, PTXCONF_LIBCURL_SSL,$(SYSROOT)/usr,no) \
@@ -102,7 +99,6 @@ LIBCURL_CONF_OPT	:= \
 	--with-ca-path=$(PTXCONF_LIBCURL_SSL_CAPATH_PATH) \
 	--without-ca-fallback \
 	--without-libpsl \
-	--without-libmetalink \
 	--$(call ptx/wwo, PTXCONF_LIBCURL_LIBSSH2)-libssh2 \
 	--without-libssh \
 	--without-librtmp \

@@ -6,14 +6,14 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2018-2021 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_accounts
 #
 # Brief:    Save or restore account and group settings.
 #
-# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 
@@ -370,12 +370,14 @@ if [ "$operation" = "restore" ]; then
   sync
   cp -f -r "$backup_dir_merged"/* /etc
   if [[  $? != 0 ]]; then
+     report_error "error by merge backup directory" "$LOG_PREFIX"
      status=$WRITE_FILE_ERROR
   fi
   
   mv -f /etc/group_merged /etc/group
   if [[  $? != 0 ]]; then
-     status=$WRITE_FILE_ERROR
+     report_error "error by merge group directory" "$LOG_PREFIX" 
+     status=$WRITE_FILE_ERROR 
   fi
   sync
 
@@ -390,16 +392,19 @@ elif [[ "$operation" = "backup" ]]; then
 
     cp /etc/passwd  "$acc_backup_file"
     if [[  $? != 0 ]]; then
+       report_error "error by copying passwd" "$LOG_PREFIX"
     	 exit "$WRITE_FILE_ERROR"
     fi
 
-    cp /etc/group  "$group_backup_file"
+    cp /etc/group  "$group_backup_file"  
     if [[  $? != 0 ]]; then
+      report_error "error by copying group backup file" "$LOG_PREFIX"
     	exit "$WRITE_FILE_ERROR"
     fi
 
     awk -F: '{print $1}' /etc/passwd | tee - |egrep -f - /etc/shadow > "$shadow_backup_file"
     if [[  $? != 0 ]]; then
+       report_error "error by copying shadow file" "$LOG_PREFIX"
     	 exit "$WRITE_FILE_ERROR"
     fi
     sync
@@ -407,7 +412,7 @@ else
     echo
     echo "* Get or set system and user account settings plus group settings. *"
     echo
-    echo "Usage: settings_backup_accounts < backup | restore  backup_directory | log prefix >"
+    echo "Usage: settings_backup_accounts < backup | restore  backup_directory | --prefix=[log prefix] >"
     echo
 fi
 exit "$status"

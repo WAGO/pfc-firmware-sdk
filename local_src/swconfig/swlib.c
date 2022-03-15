@@ -85,7 +85,7 @@ swlib_call(int cmd, int (*call)(struct nl_msg *, void *),
 	struct nl_cb *cb = NULL;
 	int finished;
 	int flags = 0;
-	int err;
+	int err = -1;
 
 	msg = nlmsg_alloc();
 	if (!msg) {
@@ -505,7 +505,7 @@ swlib_scan(struct switch_dev *dev)
 struct switch_attr *swlib_lookup_attr(struct switch_dev *dev,
 		enum swlib_attr_group atype, const char *name)
 {
-	struct switch_attr *head;
+	struct switch_attr *head = NULL;
 
 	if (!name || !dev)
 		return NULL;
@@ -533,10 +533,20 @@ struct switch_attr *swlib_lookup_attr(struct switch_dev *dev,
 static void
 swlib_priv_free(void)
 {
-	if (cache)
-		nl_cache_free(cache);
-	if (handle)
-		nl_socket_free(handle);
+  DPRINTF("swlib_priv_free\n");
+  if(family){
+    DPRINTF("swlib_priv_free family \n");
+    genl_family_put(family);
+  }
+	if (cache){
+	  DPRINTF("swlib_priv_free chache \n");
+	  nl_cache_free(cache);
+	}
+	if (handle){
+	  DPRINTF("swlib_priv_free handle\n");
+	  nl_socket_free(handle);
+	}
+	family = NULL;
 	handle = NULL;
 	cache = NULL;
 }
@@ -547,6 +557,7 @@ swlib_priv_init(void)
 	int ret;
 
 	handle = nl_socket_alloc();
+  DPRINTF("swlib_priv_init \n");
 	if (!handle) {
 		DPRINTF("Failed to create handle\n");
 		goto err;
@@ -568,6 +579,8 @@ swlib_priv_init(void)
 		DPRINTF("Switch API not present\n");
 		goto err;
 	}
+
+	DPRINTF("swlib_priv_init end\n");
 	return 0;
 
 err:
@@ -663,6 +676,7 @@ add_switch(struct nl_msg *msg, void *arg)
 	}
 
 	refcount++;
+	DPRINTF("add_switch incement %i\n", refcount);
 done:
 	return NL_SKIP;
 }
@@ -730,8 +744,11 @@ swlib_connect(const char *name)
 	struct swlib_scan_arg arg;
 
 	if (!refcount) {
-		if (swlib_priv_init() < 0)
+	  DPRINTF("swlib_connect init %i\n", refcount);
+		if (swlib_priv_init() < 0){
+		  DPRINTF("swlib_connect <0 %i\n", refcount);
 			return NULL;
+		}
 	}
 
 	arg.head = NULL;
@@ -739,8 +756,10 @@ swlib_connect(const char *name)
 	arg.name = name;
 	swlib_call(SWITCH_CMD_GET_SWITCH, add_switch, NULL, &arg);
 
-	if (!refcount)
+	if (!refcount){
+	  DPRINTF("swlib_connect free %i\n", refcount);
 		swlib_priv_free();
+	}
 
 	return arg.head;
 }
@@ -753,10 +772,20 @@ swlib_free_attributes(struct switch_attr **head)
 
 	while (a) {
 		next = a->next;
+    free((char *)a->name);
+		free((char *)a->description);
 		free(a);
 		a = next;
 	}
 	*head = NULL;
+}
+
+static void
+swlib_free_portmap(struct switch_portmap *portmaps, int port_count){
+  for(int i=0; i<port_count; i++){
+    free((char *)portmaps[1].segment);
+  }
+  free(portmaps);
 }
 
 void
@@ -765,10 +794,21 @@ swlib_free(struct switch_dev *dev)
 	swlib_free_attributes(&dev->ops);
 	swlib_free_attributes(&dev->port_ops);
 	swlib_free_attributes(&dev->vlan_ops);
+	swlib_free_portmap(dev->maps, dev->ports);
+	if(dev->alias){
+	  free((char*)dev->alias);
+	}
+	if(dev->name){
+	  free((char*)dev->name);
+	}
+
 	free(dev);
 
-	if (--refcount == 0)
+	DPRINTF("swlib_free %i\n", refcount);
+	if (--refcount == 0){
+	  DPRINTF("swlib_free do%i\n", refcount);
 		swlib_priv_free();
+	}
 }
 
 void

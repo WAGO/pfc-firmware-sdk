@@ -14,6 +14,7 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
   using Getter = ::std::function<::std::string(::std::string&)>;
   using GetterStringKey = ::std::function<::std::string(::std::string, ::std::string&)>;
   using Setter = ::std::function<::std::string(::std::string)>;
+  using Trigger = ::std::function<::std::string()>;
 
   DBusHandlerRegistry();
   ~DBusHandlerRegistry() override;
@@ -26,6 +27,7 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
   GDBusObjectSkeleton* GetInterfaceObject() const override;
   GDBusObjectSkeleton* GetIPObject() const override;
   GDBusObjectSkeleton* GetBackupObject() const override;
+  GDBusObjectSkeleton* GetEventObject() const override;
 
   void RegisterSetBridgeConfigHandler(Setter&& handler) {
     set_bridge_config_handler_ = ::std::forward<Setter>(handler);
@@ -95,6 +97,14 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
     set_dip_switch_config_handler_ = std::forward<Setter>(handler);
   }
 
+  void RegisterDynamicIPEventHandler(Setter&& handler) {
+    set_dynamic_ip_event_handler_ = std::forward<Setter>(handler);
+  }
+
+  void RegisterReloadHostConfEventHandler(Trigger&& handler) {
+      reload_host_conf_handler_ = std::forward<Trigger>(handler);
+  }
+
  private:
   static gboolean SetBridgeConfig(netconfdInterface_config *object,
                                   GDBusMethodInvocation *invocation,
@@ -154,6 +164,12 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
                                  GDBusMethodInvocation *invocation,
                                  const gchar *arg_config, gpointer user_data);
 
+  static gboolean DynamicIPEvent(netconfdEvent *object,
+                                  GDBusMethodInvocation *invocation,
+                                  const gchar *arg_config, gpointer user_data);
+
+  static gboolean ReloadHostConf(_netconfdEvent *object, GDBusMethodInvocation *invocation,
+                                  gpointer user_data);
 
   static gboolean GetBackupParamCount(netconfdBackup *object,
                                       GDBusMethodInvocation *invocation,
@@ -178,7 +194,7 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
   Setter set_interface_config_handler_;
   Getter get_interface_config_handler_;
   Getter get_interface_statuses_handler_;
-  ::std::function<::std::string(void)> get_backup_param_count_handler_;
+  Trigger get_backup_param_count_handler_;
 
 
   //ip_config
@@ -192,7 +208,14 @@ class DBusHandlerRegistry : public IDBusHandlerRegistry {
   Getter get_dip_switch_config_handler_;
   Setter set_dip_switch_config_handler_;
   GetterStringKey get_ip_config_handler_;
-  ::std::function<::std::string(void)> tempfixip_handler_;
+  Trigger tempfixip_handler_;
+
+  //event
+  netconfdObjectSkeleton *event_object_;
+  netconfdEvent* event_;
+  Setter set_dynamic_ip_event_handler_;
+  Trigger reload_host_conf_handler_;
+
 
   //backup & restore
   netconfdObjectSkeleton *backup_object_;

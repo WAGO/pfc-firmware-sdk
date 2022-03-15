@@ -6,26 +6,25 @@
 ///
 ///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#include <DeviceTypeLabelProvider.hpp>
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <MockCommandExecutor.hpp>
+#include <gtest/gtest.h>
+
+#include "DeviceTypeLabelProvider.hpp"
+#include "MockCommandExecutor.hpp"
 
 using namespace testing;
 
 namespace netconf {
 
-class ADeviceTypeLabelProvider : public Test {
+class ADeviceTypeLabelProvider_Host : public Test {
  public:
-
-  ADeviceTypeLabelProvider() {
+  ADeviceTypeLabelProvider_Host() {
   }
 
   void SetUp() override {
   }
 
   void TearDown() override {
-
   }
 
   MockCommandExecutor mock_executor_;
@@ -64,132 +63,103 @@ class ADeviceTypeLabelProvider : public Test {
     DISPLAYRES_V
     DISPLAYRES_H=0
   )";
-
 };
 
-TEST_F(ADeviceTypeLabelProvider, GetsAnOrderNumber) {
+TEST_F(ADeviceTypeLabelProvider_Host, GetsAnOrderNumber) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetOrderNumber();
   EXPECT_EQ("750-8215", value);
 }
 
-TEST_F(ADeviceTypeLabelProvider, GetsAMacAddress) {
+TEST_F(ADeviceTypeLabelProvider_Host, GetsAMacAddress) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetMac();
   EXPECT_EQ("00:30:DE:11:11:11", value);
 }
 
-TEST_F(ADeviceTypeLabelProvider, IsNotAbleToExecuteTypelabelToolSuccessfully) {
+TEST_F(ADeviceTypeLabelProvider_Host, IsNotAbleToExecuteTypelabelToolSuccessfully) {
+  EXPECT_CALL(mock_executor_, Execute(_, _)).WillOnce(Return(Status(StatusCode::SYSTEM_EXECUTE)));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(Return(Status(StatusCode::SYSTEM_EXECUTE)));
-
-  EXPECT_THROW(::std::make_unique<DeviceTypeLabelProvider>(mock_executor_),
-               ::std::runtime_error);
-
+  EXPECT_THROW(::std::make_unique<DeviceTypeLabelProvider>(mock_executor_), ::std::runtime_error);
 }
 
-TEST_F(ADeviceTypeLabelProvider, FailedToReadMissingTypelabelValue) {
+TEST_F(ADeviceTypeLabelProvider_Host, FailedToReadMissingTypelabelValue) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_missing_value_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_missing_value_),
-            Return(Status(StatusCode::OK))));
-
-  EXPECT_THROW(::std::make_unique<DeviceTypeLabelProvider>(mock_executor_),
-               ::std::runtime_error);
-
+  EXPECT_THROW(::std::make_unique<DeviceTypeLabelProvider>(mock_executor_), ::std::runtime_error);
 }
 
-TEST_F(ADeviceTypeLabelProvider, FailedToReadCorruptTypelabelIniFile) {
+TEST_F(ADeviceTypeLabelProvider_Host, FailedToReadCorruptTypelabelIniFile) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_corrupt_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_corrupt_), Return(Status(StatusCode::OK))));
-
-  EXPECT_THROW(::std::make_unique<DeviceTypeLabelProvider>(mock_executor_),
-               ::std::runtime_error);
-
+  EXPECT_THROW(::std::make_unique<DeviceTypeLabelProvider>(mock_executor_), ::std::runtime_error);
 }
 
-TEST_F(ADeviceTypeLabelProvider, GetsAByOneIncementedMac) {
+TEST_F(ADeviceTypeLabelProvider_Host, GetsAByOneIncementedMac) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetIncrementedMac(1);
   EXPECT_EQ("00:30:DE:11:11:12", value);
 }
 
-TEST_F(ADeviceTypeLabelProvider, GetsAByZeroIncementedMac) {
+TEST_F(ADeviceTypeLabelProvider_Host, GetsAByZeroIncementedMac) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetIncrementedMac(0);
   EXPECT_EQ("00:30:DE:11:11:11", value);
 }
 
-TEST_F(ADeviceTypeLabelProvider, InvalidIncementGetsBaseMac) {
+TEST_F(ADeviceTypeLabelProvider_Host, InvalidIncementGetsBaseMac) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_), Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetIncrementedMac(5);
   EXPECT_EQ("00:30:DE:11:11:11", value);
 }
 
-TEST_F(ADeviceTypeLabelProvider, GetsBaseMacInCaseOfMissingMacIdInc) {
+TEST_F(ADeviceTypeLabelProvider_Host, GetsBaseMacInCaseOfMissingMacIdInc) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_missing_mac_id_inc), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_missing_mac_id_inc), Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetIncrementedMac(1);
   EXPECT_EQ("00:30:DE:11:11:11", value);
 }
 
-TEST_F(ADeviceTypeLabelProvider, GetsAnIncementedMacInCaseOfOverflowInTheFirstByte) {
+TEST_F(ADeviceTypeLabelProvider_Host, GetsAnIncementedMacInCaseOfOverflowInTheFirstByte) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_mac_overflow_first_byte_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_mac_overflow_first_byte_),
-            Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetIncrementedMac(4);
   EXPECT_EQ("00:30:DE:11:12:03", value);
 }
 
-TEST_F(ADeviceTypeLabelProvider, GetsAnIncementedMacInCaseOfOverflowInTheSecondByte) {
+TEST_F(ADeviceTypeLabelProvider_Host, GetsAnIncementedMacInCaseOfOverflowInTheSecondByte) {
+  EXPECT_CALL(mock_executor_, Execute(_, _))
+      .WillOnce(DoAll(SetArgReferee<1>(type_label_ini_mac_overflow_second_byte_), Return(Status(StatusCode::OK))));
 
-  EXPECT_CALL(mock_executor_, Execute(_,_)).WillOnce(
-      DoAll(SetArgReferee<1>(type_label_ini_mac_overflow_second_byte_),
-            Return(Status(StatusCode::OK))));
-
-  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(
-      mock_executor_);
+  auto type_label_provider = ::std::make_unique<DeviceTypeLabelProvider>(mock_executor_);
 
   ::std::string value = type_label_provider->GetIncrementedMac(1);
   EXPECT_EQ("00:30:DE:12:00:00", value);

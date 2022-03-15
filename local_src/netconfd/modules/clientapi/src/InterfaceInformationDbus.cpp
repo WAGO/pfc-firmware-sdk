@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "NetconfdDbusClient.hpp"
-#include "JsonConverter.hpp"
-#include <InterfaceInformationApi.hpp>
 #include <algorithm>
 #include <sstream>
 #include <vector>
+
+#include "InterfaceInformationApi.hpp"
+#include "JsonConverter.hpp"
+#include "NetconfdDbusClient.hpp"
 
 /*
  * This code is separated in order to allow link seams in unit tests.
@@ -37,11 +38,10 @@ InterfaceInformations GetInterfaceInformation(DeviceType type) {
     return iis;
   }
 
-  iis.erase(std::remove_if(iis.begin(), iis.end(), [type=type](const auto &i) {
-    return !(i.GetType() && type);
-  }), iis.end());
+  iis.erase(std::remove_if(iis.begin(), iis.end(), [type = type](const auto &i) { return !(i.GetType() && type); }),
+            iis.end());
   return iis;
 }
 
-}
-}
+}  // namespace api
+}  // namespace netconf

@@ -23,9 +23,7 @@ namespace netconf {
 
 using eth::DeviceState;
 using eth::Autoneg;
-using eth::TpMdiType;
 using eth::MediaType;
-using eth::EthernetMauType;
 using eth::InterfaceLinkState;
 using gsl::span;
 using namespace std::literals;
@@ -76,7 +74,7 @@ void EthernetInterface::UpdateConfig() {
   ethtool_.Update(ethtool_settings_r_);
 }
 
-::std::int32_t EthernetInterface::GetSpeed() const {
+::std::uint32_t EthernetInterface::GetSpeed() const {
   return ethtool_settings_r_.GetSpeed();
 }
 

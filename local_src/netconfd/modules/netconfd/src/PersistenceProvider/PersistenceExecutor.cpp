@@ -47,7 +47,7 @@ Status PersistenceExecutor::UpdateNetconfdJson() const {
         "dip-ip-config", current_dip_switch_config_);
     json_str = jb.ToString(JsonFormat::PRETTY);
   }
-  return file_editor_.Write(persistence_path_, json_str);
+  return file_editor_.WriteAndReplace(persistence_path_, json_str);
 }
 
 void PersistenceExecutor::UpdateInterfacesXml() const {
@@ -172,7 +172,7 @@ Status PersistenceExecutor::Write(const InterfaceConfigs &configs) {
   JsonConverter jc;
   auto json_str = jc.ToJsonString(current_interface_configs_, JsonFormat::PRETTY);
 
-  Status status = file_editor_.Write(interface_config_file_path_, json_str);
+  Status status = file_editor_.WriteAndReplace(interface_config_file_path_, json_str);
 
   UpdateInterfacesXml();
 
@@ -218,7 +218,7 @@ static void AddLegacyIpParameter(IPConfigs &ip_configs, ::std::string bridge, ::
 static void AddLegacyInterfaceParameter(InterfaceConfigs &itf_configs, ::std::string itf,
                                         ::std::string &legacy_itf_config) {
 
-  ::std::string itf_index = ::std::string(itf == "X1" ? "0" : "1");
+  ::std::string itf_index = ::std::string(itf == "X1" ? ::std::string("0") : ::std::string("1"));
 
   auto find_itf = [&](InterfaceConfig itf_config) {
     return itf_config.device_name_ == itf;
@@ -237,7 +237,7 @@ static void AddLegacyInterfaceParameter(InterfaceConfigs &itf_configs, ::std::st
     auto speed = ::std::to_string(it->speed_);
     legacy_itf_config.append("eth" + itf_index + "-speed=" + speed + "\n");
 
-    auto duplex = ::std::string(it->duplex_ == Duplex::FULL ? "full" : "half");
+    auto duplex = ::std::string(it->duplex_ == Duplex::FULL ? ::std::string("full") : ::std::string("half"));
     legacy_itf_config.append("eth" + itf_index + "-duplex=" + duplex + "\n");
 
   } else {
@@ -357,7 +357,7 @@ Status PersistenceExecutor::Restore(const ::std::string &file_path, BridgeConfig
   }
 
   if (status.IsOk()) {
-    status = file_editor_.Write(persistence_path_, json_str);
+    status = file_editor_.WriteAndReplace(persistence_path_, json_str);
     current_bridge_config_ = bridge_config;
     current_ip_configs_ = ip_configs;
     current_dip_switch_config_ = dip_switch_config;
@@ -367,7 +367,7 @@ Status PersistenceExecutor::Restore(const ::std::string &file_path, BridgeConfig
     JsonConverter jc;
     auto json_string = jc.ToJsonString(interface_configs, JsonFormat::PRETTY);
     current_interface_configs_ = interface_configs;
-    status = file_editor_.Write(interface_config_file_path_, json_string);
+    status = file_editor_.WriteAndReplace(interface_config_file_path_, json_string);
   }
 
   if (status.IsNotOk()) {

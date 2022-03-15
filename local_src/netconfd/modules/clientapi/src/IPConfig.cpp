@@ -98,9 +98,9 @@ Status GetCurrentIPConfigs(DeviceType type, IPConfigs& configs) {
   return status;
 }
 
-void DeleteIPConfig(::std::string interface_name) {
+void DeleteIPConfig(const ::std::string& interface_name) {
   IPConfigs ip_configs;
-  IPConfig ip_config { ::std::move(interface_name), IPSource::NONE, "", "" };
+  IPConfig ip_config { interface_name, IPSource::NONE, "", "" };
   ip_configs.AddIPConfig(ip_config);
   SetIPConfigs(ip_configs);
 }

@@ -17,7 +17,6 @@
 
 #include "MockIFileEditor.hpp"
 #include "MockIBackupRestore.hpp"
-#include "MockIJsonConvert.hpp"
 #include "MockIDipSwitch.hpp"
 #include "Status.hpp"
 #include "TypesTestHelper.hpp"
@@ -33,7 +32,6 @@ namespace netconf
 
       NiceMock<MockIFileEditor> mock_file_editor_;
       MockIBackupRestore mock_backup_restore_;
-      MockIJsonConvert<InterfaceConfigs> mock_port_configs_converter_;
       MockIDipSwitch mock_dip_switch_;
       BackupRestoreFake legacy_restore_fake_;
 

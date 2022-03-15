@@ -118,8 +118,6 @@ $(STATEDIR)/barebox_mlo.install:
 
 $(STATEDIR)/barebox_mlo.targetinstall:
 	@$(call targetinfo)
-#	#barebox renamed barebox.bin.ift to MLO, so fall back to barebox.bin.ift
-	@rm -f $(IMAGEDIR)/MLO*
 	@for image in `ls $(BAREBOX_MLO_DIR)/images/barebox-*.img`; do \
 		> $(IMAGEDIR)/MLO; \
 		_suffix=$$(basename $$(echo $${image} | sed 's/-mlo.img//g')); \
@@ -137,16 +135,6 @@ $(STATEDIR)/barebox_mlo.targetinstall:
 		rm -f $(IMAGEDIR)/MLO; \
 	fi
 	
-#   #check MLO size for PFC 750-820x (PFC200 Generation 1)
-	@for MLO_PATH in `ls $(BAREBOX_MLO_DIR)/images/barebox-*820x-mlo.img`; do \
-		MLO_SIZE=`stat --format=%s $$MLO_PATH`; \
-		if [ -e $$MLO_PATH ]; then \
-			if [ $$MLO_SIZE -gt $(BAREBOX_MLO_PFC200_G1_MAX_SIZE) ]; then \
-				echo "## ERROR: PFC200 G1 MLO size: $$MLO_SIZE is over limit "$(BAREBOX_MLO_PFC200_G1_MAX_SIZE)" bytes ##"; \
-				exit 1; \
-			fi ; \
-		fi ;\
-	done	
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -156,16 +144,6 @@ $(STATEDIR)/barebox_mlo.targetinstall:
 $(STATEDIR)/barebox_mlo.clean:
 	@$(call targetinfo)
 	@$(call clean_pkg, BAREBOX_MLO)
-	rm -rf $(IMAGEDIR)/MLO*
-
-#       dont remove "normal" barebox-files, they will be deleted by its corrosponding package
-	@for image in $$(ls $(IMAGEDIR)/barebox-*.img); do \
-		image_name=$$(basename $${image}); \
-		if [ $$(echo $${image_name} | grep "mlo") ]; then \
-			echo $${image}; \
-			rm -f $${image}; \
-		fi \
-	done
 
 # ----------------------------------------------------------------------------
 # oldconfig / menuconfig

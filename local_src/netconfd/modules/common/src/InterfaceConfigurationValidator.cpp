@@ -31,7 +31,7 @@ Status InterfaceConfigurationValidator::Validate(const InterfaceConfigs &port_co
                     LinkMode { port_config.speed_, port_config.duplex_ }) == link_modes.end();
 
         if (link_mode_unsupported) {
-          ::std::string duplex = (port_config.duplex_ == Duplex::HALF) ? "half" : "full";
+          ::std::string duplex = (port_config.duplex_ == Duplex::HALF) ? ::std::string("half") : ::std::string("full");
           return Status {
             StatusCode::LINK_MODE_NOT_SUPPORTED,
             port_config.device_name_, ::std::to_string(port_config.speed_), duplex };

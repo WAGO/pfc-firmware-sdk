@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-
-#include <NetlinkMonitor.hpp>
+#include "NetlinkMonitor.hpp"
 
 #include <gio/gio.h>
 #include <netlink/cache.h>
@@ -8,10 +7,10 @@
 #include <netlink/route/link.h>
 #include <netlink/types.h>
 
+#include <boost/format.hpp>
 #include <system_error>
 #include <vector>
 
-#include <boost/format.hpp>
 #include "Logger.hpp"
 
 namespace netconf {
@@ -68,7 +67,7 @@ class NetlinkMonitor::Impl {
   Impl &operator=(const Impl &) = delete;
   Impl &operator=(Impl &&) = delete;
 
-  void AddCache(::std::shared_ptr<NetlinkCache> cache) {
+  void AddCache(::std::shared_ptr<NetlinkCache> &cache) {
     caches_.push_back(cache);
   }
 
@@ -89,7 +88,6 @@ class NetlinkMonitor::Impl {
     auto result = nl_cache_mngr_data_ready(monitor->nl_mngr_);
     if (result < 0) {
       auto message = (boost::format("NetlinkDataReady: error #%1%, manually resync cache") % result).str();
-      //TODO LogDebug(message);
 
       for (auto &cache : monitor->caches_) {
         cache->Resync(monitor->nl_sock_);
@@ -126,4 +124,3 @@ void NetlinkMonitor::AddCache(::std::shared_ptr<NetlinkCache> cache) {
 NetlinkMonitor::~NetlinkMonitor() = default;
 
 }  // namespace netconf
-//---- End of source file ------------------------------------------------------

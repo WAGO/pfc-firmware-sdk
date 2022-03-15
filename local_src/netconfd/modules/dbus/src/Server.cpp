@@ -25,7 +25,7 @@ void Server::AddInterface(IDBusHandlerRegistry& interface)
   g_dbus_object_manager_server_export (manager, interface.GetInterfaceObject());
   g_dbus_object_manager_server_export (manager, interface.GetIPObject());
   g_dbus_object_manager_server_export (manager, interface.GetBackupObject());
-
+  g_dbus_object_manager_server_export (manager, interface.GetEventObject());
 }
 
 void Server::OnBusAcquired(GDBusConnection *connection, const gchar *name, gpointer user_data)

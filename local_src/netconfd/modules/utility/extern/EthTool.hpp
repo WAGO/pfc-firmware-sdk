@@ -75,7 +75,7 @@ class EthToolSettings {
   void SetAutonegEnabled(bool autoneg_enabled);
   eth::Duplex GetDuplex() const;
   void SetDuplex(eth::Duplex duplex);
-  int GetSpeed() const;
+  ::std::uint32_t GetSpeed() const;
   void SetSpeed(int speed);
   eth::InterfaceLinkState GetIfLinkState() const;
   eth::DeviceState GetIfState() const;
@@ -106,9 +106,9 @@ class EthTool {
     return supports_link_settings_;
   }
  private:
-  int link_mode_masks_nwords_;
+  int link_mode_masks_nwords_ = 0;
   Socket socket_;
-  bool supports_link_settings_;
+  bool supports_link_settings_ = false;
   ::ifreq ifreq_;
 
   EthToolSettings ReadCurrent();

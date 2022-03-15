@@ -638,3 +638,11 @@ config CDS3_TSCIODRVCC100
     help
         IoDrv for CC100 (currently elrest)
 
+config CDS3_TSCGW750ASYNCCOM
+    bool "TscGW750AsyncCom"
+    default n
+    select CODESYS3
+    select CDS3_INCLUDES
+    select TSCPARAMSERV
+    help
+        CODESYS Component for GW750 async communication

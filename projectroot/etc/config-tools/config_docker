@@ -97,6 +97,12 @@ activate() {
     if [ -f /etc/rc.d/disabled/S99_docker ]; then
         mv /etc/rc.d/disabled/S99_docker /etc/rc.d
     fi
+    
+    IP_FORWARDING=$(/etc/config-tools/config_routing -g general)
+    if [[ $IP_FORWARDING == "state=disabled" ]]; then
+        /etc/config-tools/config_routing -c general state=enabled > /dev/null 2>&1
+    fi
+    
     /etc/init.d/$DOCKER_DAEMON start > /dev/null 2>&1
 }
 

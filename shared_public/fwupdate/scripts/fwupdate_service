@@ -6,15 +6,15 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   /etc/init.d/fwupdate_service
 #
 # Brief:    System V init script for WAGO firmware update.
 #
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
+# Author:   MLa: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 
@@ -27,10 +27,11 @@ fi
 source "$WAGO_ST_DIR/fwupdate_common"
 
 
+
 # General definitions
 readonly FAILEXIT=$INTERNAL_ERROR
 readonly WAGO_FWUPDATE_FRONTEND="/etc/config-tools/fwupdate"
-
+readonly LOCAL_LOG_PREFIX="S15_fwupdate_service"
 
 # Function to print usage to stdout.
 #
@@ -417,8 +418,9 @@ fwupdate_service_restore_settings()
         fwupdate_abort 500 "Can not find settings file \"$SETTINGS_FILE\""
     else
         fwupdate_report_info "Restore settings from \"$SETTINGS_FILE\""
-        "$WAGO_CT_DIR/settings_backup" restore "$SETTINGS_FILE"
-        if [[ "$?" -ne "0" ]]; then
+        "$WAGO_CT_DIR/settings_backup" restore "$SETTINGS_FILE" "--prefix=$LOCAL_LOG_PREFIX"
+        RESULT="$?"
+        if [ "$RESULT" -ne "0" ]; then  
             fwupdate_abort 500 "Settings restore failed (return code $RESULT)"
         fi
     fi
@@ -444,8 +446,9 @@ fwupdate_service_restore_accounts()
         fwupdate_abort 500 "Can not find account settings directory \"$WAGO_FW_UPDATE_ACCOUNTS_DIR\""
     else
         fwupdate_report_info "Restore account settings from \"$WAGO_FW_UPDATE_ACCOUNTS_DIR\""
-        "$WAGO_ST_DIR/settings_backup_accounts" restore "$WAGO_FW_UPDATE_ACCOUNTS_DIR"
-        if [ "$?" -ne "0" ]; then
+        "$WAGO_ST_DIR/settings_backup_accounts" restore "$WAGO_FW_UPDATE_ACCOUNTS_DIR" "--prefix=$LOCAL_LOG_PREFIX"
+        RESULT="$?"
+        if [ "$RESULT" -ne "0" ]; then          
             fwupdate_abort 500 "Accounts restore failed (return code $RESULT)"
         fi
     fi

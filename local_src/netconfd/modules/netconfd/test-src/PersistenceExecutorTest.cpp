@@ -17,7 +17,6 @@
 
 #include "MockIFileEditor.hpp"
 #include "MockIBackupRestore.hpp"
-#include "MockIJsonConvert.hpp"
 
 #include "TypesTestHelper.hpp"
 #include "DipSwitchFake.hpp"
@@ -33,7 +32,6 @@ namespace netconf
 
       NiceMock<MockIFileEditor> mock_file_editor_;
       MockIBackupRestore mock_backup_restore_;
-      MockIJsonConvert<InterfaceConfigs> mock_port_configs_converter_;
       DipSwitchFake dip_switch_fake_;
       BackupRestoreFake legacy_restore_fake_;
 
@@ -251,9 +249,9 @@ namespace netconf
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
         DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(backup_dipswitch_data_content),SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
 
-    EXPECT_CALL(mock_file_editor_, Write(path_persistence_file_, _)).WillOnce(
+    EXPECT_CALL(mock_file_editor_, WriteAndReplace(path_persistence_file_, _)).WillOnce(
         Return(Status{StatusCode::FILE_WRITE}));
-    EXPECT_CALL(mock_file_editor_, Write(path_network_interfaces_xml_, _)).WillOnce(Return(Status{StatusCode::OK}));
+    EXPECT_CALL(mock_file_editor_, WriteAndReplace(path_network_interfaces_xml_, _)).WillOnce(Return(Status{StatusCode::OK}));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;
@@ -274,10 +272,10 @@ namespace netconf
     EXPECT_CALL(mock_backup_restore_, Restore(path_persistence_file_,_,_,_)).WillOnce(
         DoAll(SetArgReferee<1>(backup_network_data_content), SetArgReferee<2>(backup_dipswitch_data_content),SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
 
-    EXPECT_CALL(mock_file_editor_, Write(path_persistence_file_, _)).WillOnce(Return(Status{StatusCode::OK}));
-    EXPECT_CALL(mock_file_editor_, Write(path_interface_config_file_, _)).WillOnce(Return(Status{
+    EXPECT_CALL(mock_file_editor_, WriteAndReplace(path_persistence_file_, _)).WillOnce(Return(Status{StatusCode::OK}));
+    EXPECT_CALL(mock_file_editor_, WriteAndReplace(path_interface_config_file_, _)).WillOnce(Return(Status{
         StatusCode::FILE_WRITE}));
-    EXPECT_CALL(mock_file_editor_, Write(path_network_interfaces_xml_, _)).WillOnce(Return(Status{StatusCode::OK}));
+    EXPECT_CALL(mock_file_editor_, WriteAndReplace(path_network_interfaces_xml_, _)).WillOnce(Return(Status{StatusCode::OK}));
 
     BridgeConfig bridge_config_read;
     IPConfigs ip_configs_read;

@@ -35,7 +35,7 @@ TEST_F(AnIpAddressManipulator, DoesNotChangeZeroAddress)
 
   auto new_config = IpAddressManipulator::ChangeLastAddressOctet(test_config, 123);
 
-  EXPECT_STREQ(ZeroIP, new_config.address_.c_str());
+  EXPECT_EQ(ZeroIP, new_config.address_);
 
 }
 

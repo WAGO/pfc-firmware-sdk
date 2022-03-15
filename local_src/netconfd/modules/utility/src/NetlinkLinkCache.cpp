@@ -11,13 +11,50 @@
 #include <exception>
 #include <system_error>
 
+#include <net/if.h>
+
 #include "Logger.hpp"
 
 namespace netconf {
 
+namespace nl {
+auto nl_obj_put_deleter = [](nl_object *o) { //NOLINT(cert-err58-cpp)
+  if (o != nullptr){
+    nl_object_put(o);
+  }
+};
+
+using nl_object_ptr = std::unique_ptr<struct nl_object, decltype(nl_obj_put_deleter) >;
+
+inline nl_object_ptr GetFromCache(nl_cache *cache, nl_object *obj) {
+  return nl_object_ptr { nl_cache_find(cache, obj), nl_obj_put_deleter };
+}
+
+inline uint32_t GetIfIndex(struct nl_object *obj) {
+  auto l = reinterpret_cast<rtnl_link*>(nl_object_priv(obj));  // NOLINT: Need reinterpret_cast to cast from void*.
+  return static_cast<uint32_t>(rtnl_link_get_ifindex(l));
+}
+
+inline bool IsMasterEvent(struct nl_object *obj) {
+  auto l = reinterpret_cast<rtnl_link*>(nl_object_priv(obj));  // NOLINT: Need reinterpret_cast to cast from void*.
+  if (rtnl_link_get_family(l) == AF_BRIDGE) {
+    if (rtnl_link_get_master(l) != 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+inline uint32_t GetIfFlags(struct nl_object *obj) {
+  auto l = reinterpret_cast<rtnl_link*>(nl_object_priv(obj));  // NOLINT: Need reinterpret_cast to cast from void*.
+  return rtnl_link_get_flags(l);
+}
+
+}  // namespace nl
+
 class NetlinkLinkCache::Impl {
  public:
-  Impl(struct nl_sock* nl_sock, struct nl_cache_mngr* nl_cache_mgr) {
+  Impl(struct nl_sock *nl_sock, struct nl_cache_mngr *nl_cache_mgr){
     if (rtnl_link_alloc_cache(nl_sock, AF_UNSPEC, &nl_cache_) < 0) {
       throw ::std::system_error(EINVAL, ::std::system_category(), "Error allocating rtnl cache");
     }
@@ -26,57 +63,54 @@ class NetlinkLinkCache::Impl {
       throw ::std::system_error(EINVAL, ::std::system_category(), "Error adding cache to manager");
     }
   }
+  virtual ~Impl() = default;
 
-  ~Impl() = default;
+  Impl(const Impl&) = delete;
+  Impl& operator=(const Impl&) = delete;
+  Impl(const Impl&&) = delete;
+  Impl& operator=(const Impl&&) = delete;
 
-  static void CacheChange(struct nl_cache* cache, struct nl_object* obj, int action, void* user) {
-    (void)cache;
-    (void)action;
-    auto* link_cache_impl = reinterpret_cast<Impl*>(user);  // NOLINT: Need reinterpret_cast to cast from void*.
+  static void CacheChange(struct nl_cache *cache, struct nl_object *old_obj, int action, void *user) {
+    static_assert(NL_ACT_NEW == static_cast<int>(IInterfaceEvent::Action::NEW));
 
-    auto cache_obj = nl_cache_find(cache, obj);
-    if(cache_obj == nullptr)
+    auto cache_obj = nl::GetFromCache(cache, old_obj);
+    auto obj = cache_obj ? cache_obj.get() : old_obj;
+
+    /* Skip entry in context of bridge:
+     * e.g.: bridge ethX12 ether 00:30:de:44:bd:99 master br0 <broadcast,multicast,up,running,lowerup> slave-of eth0
+     * We only want the entries without the bridge context
+     */
+    if (nl::IsMasterEvent(obj)) {
       return;
-
-    auto* l = reinterpret_cast<rtnl_link*>(nl_object_priv(cache_obj));  // NOLINT: Need reinterpret_cast to cast from void*.
-    if(rtnl_link_get_family(l) == AF_BRIDGE){
-      if(rtnl_link_get_master(l) != 0){
-        /* Skip entry in context of bridge:
-         * e.g.: bridge ethX12 ether 00:30:de:44:bd:99 master br0 <broadcast,multicast,up,running,lowerup> slave-of eth0
-         * We only want the entries without the bridge context
-         */
-        nl_object_put(cache_obj);
-        return;
-      }
     }
 
-    uint32_t flags = rtnl_link_get_flags(l);
-    auto if_index  = static_cast<uint32_t>(rtnl_link_get_ifindex(l));
+    auto if_index = nl::GetIfIndex(obj);
+    auto if_flags = nl::GetIfFlags(obj);
+    auto if_action = static_cast<IInterfaceEvent::Action>(action);
 
-    link_cache_impl->CallEventHandler(if_index, flags);
+    auto this_ = reinterpret_cast<Impl*>(user);  // NOLINT
+    this_->CallEventHandler(if_index, if_flags, if_action);
 
-    nl_object_put(cache_obj);
   }
 
-  void CallEventHandler(uint32_t if_index, uint32_t flags) {
+  void CallEventHandler(uint32_t if_index, uint32_t flags, IInterfaceEvent::Action action) {
     if (event_handler_ != nullptr) {
-      event_handler_->LinkChange(if_index, flags);
+      event_handler_->LinkChange(if_index, flags, action);
     }
   }
 
-  IInterfaceEvent* event_handler_;
-  struct nl_cache* nl_cache_;
+  IInterfaceEvent *event_handler_ = nullptr;
+  struct nl_cache *nl_cache_ = nullptr;
 };
 
-NetlinkLinkCache::NetlinkLinkCache(struct nl_sock* nl_sock, struct nl_cache_mngr* nl_cache_mgr) {
+NetlinkLinkCache::NetlinkLinkCache(struct nl_sock *nl_sock, struct nl_cache_mngr *nl_cache_mgr) {
   impl_ = ::std::make_unique<NetlinkLinkCache::Impl>(nl_sock, nl_cache_mgr);
 }
 
 NetlinkLinkCache::~NetlinkLinkCache() = default;
 
-void NetlinkLinkCache::Resync(struct nl_sock* nl_sock) {
-  auto resync_result =
-      nl_cache_resync(nl_sock, impl_->nl_cache_, &NetlinkLinkCache::Impl::CacheChange, impl_.get());
+void NetlinkLinkCache::Resync(struct nl_sock *nl_sock) {
+  auto resync_result = nl_cache_resync(nl_sock, impl_->nl_cache_, &NetlinkLinkCache::Impl::CacheChange, impl_.get());
   if (resync_result < 0) {
     auto message = (boost::format("NetlinkDataReady: resync error #%1%") % resync_result).str();
     LogError(message);
@@ -84,7 +118,7 @@ void NetlinkLinkCache::Resync(struct nl_sock* nl_sock) {
 }
 
 ::std::int32_t NetlinkLinkCache::GetAddressFamily(::std::uint32_t if_index) {
-  struct rtnl_link * link = rtnl_link_get(impl_->nl_cache_, static_cast<int32_t>(if_index));
+  struct rtnl_link *link = rtnl_link_get(impl_->nl_cache_, static_cast<int32_t>(if_index));
   int32_t family = 0;
   if (link != nullptr) {
     family = rtnl_link_get_family(link);
@@ -95,7 +129,7 @@ void NetlinkLinkCache::Resync(struct nl_sock* nl_sock) {
 }
 
 ::std::uint32_t NetlinkLinkCache::GetIffFlags(::std::uint32_t if_index) {
-  struct rtnl_link * link = rtnl_link_get(impl_->nl_cache_, static_cast<std::int32_t>(if_index));
+  struct rtnl_link *link = rtnl_link_get(impl_->nl_cache_, static_cast<std::int32_t>(if_index));
   uint32_t flags = 0;
   if (link != nullptr) {
     flags = rtnl_link_get_flags(link);
@@ -105,11 +139,14 @@ void NetlinkLinkCache::Resync(struct nl_sock* nl_sock) {
   return flags;
 }
 
-void NetlinkLinkCache::RegisterEventHandler(IInterfaceEvent& event_handler) {
+void NetlinkLinkCache::RegisterEventHandler(IInterfaceEvent &event_handler) {
   impl_->event_handler_ = &event_handler;
 }
-void NetlinkLinkCache::UnregisterEventHandler(IInterfaceEvent& event_handler) {
-  if (impl_->event_handler_ == &event_handler) impl_->event_handler_ = nullptr;
+void NetlinkLinkCache::UnregisterEventHandler(IInterfaceEvent &event_handler) {
+  if (impl_->event_handler_ == &event_handler){
+    impl_->event_handler_ = nullptr;
+  }
 }
 
 }  // namespace netconf
+

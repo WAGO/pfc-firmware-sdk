@@ -8,7 +8,7 @@
 #include "NetworkHelper.hpp"
 #include "TypesHelper.hpp"
 #include "Types.hpp"
-#include "Helper.hpp"
+#include "CollectionUtils.hpp"
 #include "JsonKeyList.hpp"
 #include "JsonHelper.hpp"
 #include "JsonHelper.hpp"
@@ -32,9 +32,8 @@ constexpr auto PORT_CFG_KEY_LINKSTATE = "link";
 constexpr auto PORT_CFG_KEY_MAC = "mac";
 constexpr auto PORT_CFG_KEY_SUPPORTED_LINK_MODES = "supportedlinkmodes";
 
-
-JsonKeyList interface_config_keys_ { PORT_CFG_KEY_DEVICE, PORT_CFG_KEY_STATE, PORT_CFG_KEY_AUTONEG, PORT_CFG_KEY_AUTONEG_SUPPORTED, PORT_CFG_KEY_SPEED,
-    PORT_CFG_KEY_DUPLEX, PORT_CFG_KEY_LINKSTATE, PORT_CFG_KEY_MAC };
+JsonKeyList interface_config_keys_ { PORT_CFG_KEY_DEVICE, PORT_CFG_KEY_STATE, PORT_CFG_KEY_AUTONEG,  //NOLINT(cert-err58-cpp)
+    PORT_CFG_KEY_AUTONEG_SUPPORTED, PORT_CFG_KEY_SPEED, PORT_CFG_KEY_DUPLEX, PORT_CFG_KEY_LINKSTATE, PORT_CFG_KEY_MAC };
 
 json DipSwitchIpConfigToNJson(const DipSwitchIpConfig &ip_config) {
   return json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ } };
@@ -420,7 +419,7 @@ json InterfaceInformationToNJson(const InterfaceInformation &obj) {
   json j { { "name", obj.GetInterfaceName() }, { "label", obj.GetInterfaceLabel() }, { "type", obj.GetType() }, {
       "ipreadonly", obj.IsIpConfigurationReadonly() } };
 
-  if(obj.GetAutonegSupported() != AutonegotiationSupported::UNKNOWN){
+  if (obj.GetAutonegSupported() != AutonegotiationSupported::UNKNOWN) {
     j[PORT_CFG_KEY_AUTONEG_SUPPORTED] = obj.GetAutonegSupported();
   }
 
@@ -481,6 +480,15 @@ Status NJsonToInterfaceInformation(const json &json_object, InterfaceInformation
     interface_information = InterfaceInformation { name, label, type, ip_config_ro, autoneg_supported, link_modes };
   }
 
+  return status;
+}
+
+Status NJsonToDynamicIPEvent(const json &json_object, ::std::string &itf_name, DynamicIPEventAction &action) {
+
+  Status status = get_to_or_error("interface", json_object, itf_name);
+  if (status.IsOk()) {
+    status = get_to_or_error("action", json_object, action);
+  }
   return status;
 }
 

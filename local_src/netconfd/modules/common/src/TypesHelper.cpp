@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "TypesHelper.hpp"
-#include "Helper.hpp"
+#include "CollectionUtils.hpp"
 #include <algorithm>
 #include <boost/asio/ip/address.hpp>
 #include <regex>
@@ -18,8 +18,6 @@ namespace netconf {
       return "dhcp";
     case IPSource::BOOTP:
       return "bootp";
-    case IPSource::TEMPORARY:
-      return "temporary";
     case IPSource::NONE:
       return "none";
     default:
@@ -36,9 +34,6 @@ IPSource StringToIPSource(const ::std::string &value) {
   }
   if (value == "bootp") {
     return IPSource::BOOTP;
-  }
-  if (value == "temporary") {
-    return IPSource::TEMPORARY;
   }
   if (value == "none") {
     return IPSource::NONE;
@@ -163,10 +158,10 @@ void RemoveUnnecessaryIPParameter(IPConfigs &ip_configs) {
 }
 
 
-std::optional<int> ExtractInterfaceIndex(const std::string& interfacename) {
+std::optional<uint32_t> ExtractInterfaceIndex(const std::string& bridgename) {
   ::std::regex expr{"^([a-zA-Z]+)([0-9]+)$"};
   ::std::smatch what;
-  if (::std::regex_search(interfacename, what, expr)) {
+  if (::std::regex_search(bridgename, what, expr)) {
     return {::std::stoi(what[2])};
   }
   return ::std::nullopt;

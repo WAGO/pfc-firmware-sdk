@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2019 by WAGO Kontakttechnik GmbH
+# Copyright (C) 2019 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -19,10 +19,10 @@ PACKAGES-$(PTXCONF_WSTD) += wstd
 ifdef PTXCONF_WSTD_DEV
 WSTD_BUILD_ID      := -$(call remove_quotes,$(PTXCONF_WSTD_DEV_BRANCH))
 else
-WSTD_BUILD_ID      := -162486690073
+WSTD_BUILD_ID      := -164189503076
 endif
 
-WSTD_VERSION	:= 1.2.3$(WSTD_BUILD_ID)
+WSTD_VERSION	:= 1.2.4$(WSTD_BUILD_ID)
 WSTD		    := wstd
 ifndef PTXCONF_WSTD_DEV
 WSTD_URL        := $(call jfrog_template_to_url, WSTD)
@@ -166,7 +166,7 @@ $(STATEDIR)/wstd.targetinstall:
 	@$(call install_init, wstd)
 	@$(call install_fixup, wstd,PRIORITY,optional)
 	@$(call install_fixup, wstd,SECTION,base)
-	@$(call install_fixup, wstd,AUTHOR,"WAGO Kontakttechnik GmbH")
+	@$(call install_fixup, wstd,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wstd,DESCRIPTION,missing)
 
 	@$(call install_lib, wstd, 0, 0, 0755, libwstd)

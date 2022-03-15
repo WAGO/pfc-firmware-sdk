@@ -34,7 +34,10 @@ class BridgeConfig {
    *
    */
   explicit BridgeConfig(const netconf::BridgeConfig&);
-  ~BridgeConfig();
+  ~BridgeConfig() = default;
+
+  BridgeConfig& operator=(const BridgeConfig&) = default;
+
 
   /**
    * @brief Adds a bridge to the configuration

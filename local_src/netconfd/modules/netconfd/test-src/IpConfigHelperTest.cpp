@@ -18,10 +18,10 @@ class IpConfigHelperTest : public ::testing::Test {
 
   void SetUp() override {
 
-    netdevs_.insert(netdevs_.begin(), { ::std::make_shared<NetDev>(0, "ethX1", "X1", DeviceType::Ethernet),
-                        ::std::make_shared<NetDev>(0, "ethX2", "X2", DeviceType::Ethernet),
-                        ::std::make_shared<NetDev>(0, "br0", "br0", DeviceType::Bridge),
-                        ::std::make_shared<NetDev>(0, "br2", "br0", DeviceType::Bridge), });
+    netdevs_.insert(netdevs_.begin(), { ::std::make_shared<NetDev>(0, "ethX1", "X1", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down),
+                        ::std::make_shared<NetDev>(0, "ethX2", "X2", DeviceType::Ethernet, false, eth::InterfaceLinkState::Down),
+                        ::std::make_shared<NetDev>(0, "br0", "br0", DeviceType::Bridge, true, eth::InterfaceLinkState::Down),
+                        ::std::make_shared<NetDev>(0, "br2", "br0", DeviceType::Bridge, true, eth::InterfaceLinkState::Down), });
 
     unassignable_interfaces_.assign( { "ethX1" });
 
@@ -56,22 +56,22 @@ TEST_F(IpConfigHelperTest, InterfaceFiltered) {
   EXPECT_EQ(known, config_to_be_set.at(0));
 }
 
-TEST_F(IpConfigHelperTest, RemoveConflictsFromIpConfig){
+TEST_F(IpConfigHelperTest, DeactivateConflictsFromIpConfig){
   IPConfig testee{ "br0", IPSource::STATIC, "192.168.0.1", "255.255.255.0" };
   IPConfigs config_withconflicts {testee, { "br1", IPSource::STATIC, "192.168.0.100", "255.255.255.0" }};
   IPConfigs config_withoutconflicts {testee, { "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }};
   IPConfigs config_withboth {testee, { "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }, { "br2", IPSource::STATIC, "192.168.0.100", "255.255.255.0" }};
   IPConfigs config_withdifferentsubnets {testee, { "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }, { "br2", IPSource::STATIC, "192.168.3.100", "255.255.0.0" }};
 
-  RemoveIpConfigsWithConflicsTo(testee, config_withconflicts);
-  RemoveIpConfigsWithConflicsTo(testee, config_withoutconflicts);
-  RemoveIpConfigsWithConflicsTo(testee, config_withboth);
-  RemoveIpConfigsWithConflicsTo(testee, config_withdifferentsubnets);
+  DeactivateIpConfigsWithConflicsTo(testee, config_withconflicts);
+  DeactivateIpConfigsWithConflicsTo(testee, config_withoutconflicts);
+  DeactivateIpConfigsWithConflicsTo(testee, config_withboth);
+  DeactivateIpConfigsWithConflicsTo(testee, config_withdifferentsubnets);
 
-  EXPECT_THAT(config_withconflicts, ElementsAre(testee));
+  EXPECT_THAT(config_withconflicts, ElementsAre(testee, IPConfig{ "br1", IPSource::NONE, "192.168.0.100", "255.255.255.0" }));
   EXPECT_THAT(config_withoutconflicts, ElementsAre(testee, IPConfig{ "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }));
-  EXPECT_THAT(config_withboth, ElementsAre(testee, IPConfig{ "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }));
-  EXPECT_THAT(config_withdifferentsubnets, ElementsAre(testee, IPConfig{ "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }));
+  EXPECT_THAT(config_withboth, ElementsAre(testee, IPConfig{ "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }, IPConfig{ "br2", IPSource::NONE, "192.168.0.100", "255.255.255.0" }));
+  EXPECT_THAT(config_withdifferentsubnets, ElementsAre(testee, IPConfig{ "br1", IPSource::STATIC, "192.168.2.100", "255.255.255.0" }, IPConfig{ "br2", IPSource::NONE, "192.168.3.100", "255.255.0.0" }));
 
 }
 

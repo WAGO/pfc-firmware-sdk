@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG) += wbm-ng
 #
 # Paths and names
 #
-WBM_NG_VERSION        := 2.15.0
+WBM_NG_VERSION        := 2.16.2
 WBM_NG                := wbm-pfc-$(WBM_NG_VERSION)
 WBM_NG_URL            := $(call jfrog_template_to_url, WBM_NG)
 WBM_NG_SUFFIX         := $(suffix $(WBM_NG_URL))

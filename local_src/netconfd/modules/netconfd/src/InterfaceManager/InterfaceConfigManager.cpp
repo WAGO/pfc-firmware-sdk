@@ -12,21 +12,15 @@ namespace netconf {
 
 using namespace std::literals;
 
-using ::std::copy_if;
 using ::std::find_if;
 using ::std::inserter;
 using ::std::back_inserter;
 using ::std::transform;
 
-auto generate_default_port_config = [](const auto &netdev) noexcept {  // NOLINT(cert-err58-cpp): There will nothing be thrown here
-  // Create the PortConfig object without the 'eth' prefix.
-  return InterfaceConfig { netdev->GetLabel(), InterfaceState::UP, Autonegotiation::ON };
-};
-
 InterfaceConfigManager::InterfaceConfigManager(INetDevManager &netdev_manager,
                                                IPersistence<InterfaceConfigs> &persistence_provider,
                                                IEthernetInterfaceFactory &eth_factory)
-    : netdev_manager_{netdev_manager},
+    : netdev_manager_ { netdev_manager },
       persistence_provider_ { persistence_provider },
       ethernet_interface_factory_ { eth_factory } {
 
@@ -47,9 +41,8 @@ InterfaceConfigManager::InterfaceConfigManager(INetDevManager &netdev_manager,
 
 void InterfaceConfigManager::InitializePorts(InterfaceState initalPortState) {
   auto inital_config = current_config_;
-  if(initalPortState != InterfaceState::UNKNOWN)
-  {
-    for(auto& portcfg: inital_config){
+  if (initalPortState != InterfaceState::UNKNOWN) {
+    for (auto &portcfg : inital_config) {
       portcfg.state_ = initalPortState;
     }
   }
@@ -103,7 +96,7 @@ InterfaceStatuses InterfaceConfigManager::GetCurrentPortStatuses() {
     itf_status.state_ = EthDeviceStateToInterfaceState(state);
 
     itf_status.duplex_ = static_cast<Duplex>(eth_itf->GetDuplex());
-    itf_status.speed_ = eth_itf->GetSpeed();
+    itf_status.speed_ = static_cast<::std::int32_t>(eth_itf->GetSpeed());
 
     auto link_state = eth_itf->GetLinkState();
     itf_status.link_state_ = EthLinkStateToLinkState(link_state);
@@ -118,15 +111,14 @@ InterfaceStatuses InterfaceConfigManager::GetCurrentPortStatuses() {
 
 InterfaceInformation InterfaceConfigManager::GetInterfaceInformation(const NetDev &netdev) const {
 
-  if (netdev.GetKind() == DeviceType::Port && ethernet_interfaces_.count(netdev.GetLabel())) {
+  if (netdev.GetKind() == DeviceType::Port && ethernet_interfaces_.count(netdev.GetLabel()) != 0) {
     auto &eif = ethernet_interfaces_.at(netdev.GetLabel());
-    return InterfaceInformation { netdev.GetName(), netdev.GetLabel(), netdev.GetKind(), netdev.IsIpConfigReadonly(),
+    return InterfaceInformation { netdev.GetName(), netdev.GetLabel(), netdev.GetKind(), not netdev.IsIpAddressable(),
         eif->GetAutonegSupport() ? AutonegotiationSupported::YES : AutonegotiationSupported::NO, ToLinkModes(
         eif->GetSupportedLinkModes()) };
 
-  } else {
-    return InterfaceInformation { netdev.GetName(), netdev.GetLabel(), netdev.GetKind(), netdev.IsIpConfigReadonly() };
   }
+  return InterfaceInformation { netdev.GetName(), netdev.GetLabel(), netdev.GetKind(), not netdev.IsIpAddressable() };
 
 }
 
@@ -146,7 +138,6 @@ void InterfaceConfigManager::InitializeCurrentConfigs(const NetDevs &netdevs,
   }
   UpdateCurrentInterfaceConfigs(persistet_configs);
 }
-
 
 Status InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
 
@@ -222,16 +213,15 @@ void InterfaceConfigManager::UpdateCurrentInterfaceConfigs(const InterfaceConfig
   }
 }
 
-
 InterfaceInformations InterfaceConfigManager::GetInterfaceInformations() {
 
   auto netdevs = netdev_manager_.GetNetDevs();
   InterfaceInformations iis;
   std::transform(netdevs.begin(), netdevs.end(), ::std::back_inserter(iis), [&](const auto &netdev_ptr) {
-       return GetInterfaceInformation(*netdev_ptr);
-     });
+    return GetInterfaceInformation(*netdev_ptr);
+  });
   return iis;
 }
 
-} // namespace netconf
+}  // namespace netconf
 

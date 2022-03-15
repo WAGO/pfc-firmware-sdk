@@ -1,13 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-/*
- * InterfaceConfigManagerBaseTest.h
- *
- *  Created on: 23.10.2019
- *      Author: u014487
- */
-
-#ifndef NETCONFD_TEST_SRC_INTERFACECONFIGMANAGERBASETEST_H_
-#define NETCONFD_TEST_SRC_INTERFACECONFIGMANAGERBASETEST_H_
+#pragma once
 
 #include "InterfaceConfigManager.hpp"
 #include "IEthernetInterfaceFactory.hpp"
@@ -52,7 +43,7 @@ class InterfaceConfigManagerBaseTest {
     eth::InterfaceLinkState GetLinkState() const {return link_state_;}
     ::std::uint32_t GetInterfaceIndex() const {return if_index_;}
     ::std::uint32_t GetMTU() const {return 1500;}
-    int32_t GetSpeed() const {return speed_;}
+    uint32_t GetSpeed() const {return speed_;}
     eth::Duplex GetDuplex() const {return duplex_;}
     void Commit() {committed_ = true;}
     void SetAutoneg(eth::Autoneg autoneg) {autoneg_ = autoneg;}
@@ -118,4 +109,3 @@ class InterfaceConfigManagerBaseTest {
 
 } /* namespace netconf */
 
-#endif /* NETCONFD_TEST_SRC_INTERFACECONFIGMANAGERBASETEST_H_ */

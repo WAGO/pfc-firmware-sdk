@@ -40,7 +40,8 @@ using boost::asio::ip::network_v4;
   ::std::string broadcast = ZeroIP;
   if (address.empty() || netmask.empty()) {
     return ::std::string{};
-  } else if(address == ZeroIP || netmask == ZeroIP){
+  }
+  if(address == ZeroIP || netmask == ZeroIP){
     return broadcast;
   }
 

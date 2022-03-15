@@ -21,6 +21,11 @@ class ConfigBase {
   ConfigBase() = default;
   virtual ~ConfigBase() = default;
 
+  ConfigBase(const ConfigBase&) = default;
+  ConfigBase(ConfigBase&&) = delete;
+  ConfigBase& operator=(const ConfigBase&) = default;
+  ConfigBase& operator=(ConfigBase&&) = delete;
+
   virtual ::std::string GetCompareValue(const T&) const noexcept = 0;
   ::std::vector<T> configs_;
 

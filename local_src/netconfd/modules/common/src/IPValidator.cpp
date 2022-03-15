@@ -2,7 +2,7 @@
 
 #include "IPValidator.hpp"
 
-#include "Helper.hpp"
+#include "CollectionUtils.hpp"
 #include "BaseTypes.hpp"
 #include "TypesHelper.hpp"
 
@@ -27,7 +27,7 @@ static uint32_t ToBinaryAddress(const Address &address) {
 }
 
 static bool IPConfigParametersMustBeChecked(const IPConfig &ip_config) {
-  return IPConfig::SourceIsAnyOf(ip_config, IPSource::STATIC, IPSource::TEMPORARY);
+  return IPConfig::SourceIsAnyOf(ip_config, IPSource::STATIC);
 }
 
 static uint32_t CheckAddressFormat(const Address &address, const Interface &interface, Status &status) {
@@ -92,17 +92,13 @@ static void CheckIPConflictInOverlappingNetwork(const IPConfig &lhs, const IPCon
 
 }
 
-static bool CheckForFlushIp(const IPConfig &ip_config){
-  return ip_config.source_ == IPSource::TEMPORARY && ip_config.address_== ZeroIP && ip_config.netmask_ == ZeroIP;
-}
-
 static void CheckIpConfigCombinability(const IPConfig &ip_config_to_check, const IPConfigs &other_ip_configs, Status &status) {
   if( not IPConfig::SourceIsAnyOf(ip_config_to_check, IPSource::STATIC)) {
     return;
   }
 
   uint32_t address = ToBinaryAddress(ip_config_to_check.address_);
-  for (auto other_ip_config : other_ip_configs) {
+  for (auto& other_ip_config : other_ip_configs) {
     // Do not check against the same interface and empty/zero IP configs
     if((ip_config_to_check.interface_ == other_ip_config.interface_) || (IsEmptyOrZeroIP(other_ip_config.address_))){
       continue;
@@ -123,10 +119,6 @@ static void CheckOverlappingNetwork(const IPConfigs &ip_configs, Status &status)
 
   IPConfigs checked_ip_configs;
   for (auto &ip_config : ip_configs) {
-    if(CheckForFlushIp(ip_config)) {
-      // Allow dhcp client to flush ip address.
-      continue;
-    }
     CheckIpConfigCombinability(ip_config, checked_ip_configs, status);
     if (status.IsNotOk()) {
       break;
@@ -138,11 +130,6 @@ static void CheckOverlappingNetwork(const IPConfigs &ip_configs, Status &status)
 static void CheckIPAddressFormat(const IPConfigs &ip_configs, Status &status) {
 
   for (auto &ip_config : ip_configs) {
-
-    if(CheckForFlushIp(ip_config)) {
-      // Allow dhcp client to flush ip address.
-      continue;
-    }
     CheckAddressFormat(ip_config.address_, ip_config.interface_, status);
     if (status.IsNotOk()) {
       break;
@@ -173,7 +160,7 @@ Status IPValidator::ValidateIPConfigs(const IPConfigs &ip_configs) {
   Status status;
   CheckInterfaceIsIncludedSeveralTimes(ip_configs, status);
 
-  IPConfigs configs = FilterValidStaticAndTemporaryIPConfigs(ip_configs);
+  IPConfigs configs = FilterValidStaticIPConfigs(ip_configs);
   if (status.IsOk()) {
     CheckIPAddressFormat(configs, status);
   }
@@ -187,7 +174,7 @@ Status IPValidator::ValidateIPConfigs(const IPConfigs &ip_configs) {
   return status;
 }
 
-Status IPValidator::ValidateExistenceAndAccess(const IPConfigs &ip_configs, const InterfaceInformations interface_information) {
+Status IPValidator::ValidateExistenceAndAccess(const IPConfigs &ip_configs, const InterfaceInformations& interface_information) {
   auto status = Status { };
   for (const auto &ip_config : ip_configs) {
     const Interface &interface = ip_config.interface_;
@@ -227,7 +214,7 @@ bool IPValidator::IsSameSubnet(const IPConfig& lhs, const IPConfig& rhs) {
   return (lhs_addr & lhs_mask) == (rhs_addr & rhs_mask);
 }
 
-IPConfigs IPValidator::FilterValidStaticAndTemporaryIPConfigs(const IPConfigs &ip_configs) {
+IPConfigs IPValidator::FilterValidStaticIPConfigs(const IPConfigs &ip_configs) {
 
   IPConfigs configs;
   for (auto &ip_config : ip_configs) {

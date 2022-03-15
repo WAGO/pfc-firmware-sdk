@@ -6,12 +6,14 @@
 ///
 ///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
 //------------------------------------------------------------------------------
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <NetworkInterfacesXML.hpp>
-#include "MockIFileEditor.hpp"
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <string>
+
+#include "MockIFileEditor.hpp"
+#include "NetworkInterfacesXML.hpp"
 
 using namespace testing;
 
@@ -19,18 +21,15 @@ namespace netconf {
 
 class ANetworkInterfacesXML : public Test {
  public:
-
   MockIFileEditor mock_file_editor_;
 
   ANetworkInterfacesXML() {
-
   }
 
   void SetUp() override {
   }
 
   void TearDown() override {
-
   }
   ::std::string NetworkInterfacesXMLSeparatedContent =
       R"(
@@ -256,11 +255,9 @@ class ANetworkInterfacesXML : public Test {
  </iface>
 </interfaces>
 )";
-
 };
 
 static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected, ::std::string actual) {
-
   expected.erase(std::remove(expected.begin(), expected.end(), '\n'), expected.end());
   expected.erase(std::remove(expected.begin(), expected.end(), ' '), expected.end());
   expected.erase(std::remove(expected.begin(), expected.end(), '\t'), expected.end());
@@ -273,9 +270,9 @@ static void ExpectStringEqIgnoreNewlineAndBlank(::std::string expected, ::std::s
 }
 
 struct StrArg {
-  Status Write(const ::std::string& file_path, const ::std::string& data) {
+  Status WriteAndReplace(const ::std::string& file_path, const ::std::string& data) {
     file_path_ = file_path;
-    data_ = data;
+    data_      = data;
     return Status();
   }
 
@@ -284,16 +281,15 @@ struct StrArg {
 };
 
 TEST_F(ANetworkInterfacesXML, PersistASeperatedBridgeConfig) {
-
   StrArg actual_content;
 
-  EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
+  EXPECT_CALL(mock_file_editor_, WriteAndReplace(_, _)).WillOnce(Invoke(&actual_content, &StrArg::WriteAndReplace));
 
-  BridgeConfig bridge_config { { "br0", { "X1" } }, { "br1", { "X2" } } };
-  IPConfigs ip_configs = { { "br0", IPSource::STATIC, "192.168.10.10", "255.255.255.240" }, { "br1",
-      IPSource::STATIC, "192.168.20.20", "255.255.0.0" } };
-  InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
-      "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
+  BridgeConfig bridge_config{{"br0", {"X1"}}, {"br1", {"X2"}}};
+  IPConfigs ip_configs          = {{"br0", IPSource::STATIC, "192.168.10.10", "255.255.255.240"},
+                          {"br1", IPSource::STATIC, "192.168.20.20", "255.255.0.0"}};
+  InterfaceConfigs port_configs = {InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL),
+                                   InterfaceConfig("X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL)};
 
   WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
 
@@ -301,47 +297,44 @@ TEST_F(ANetworkInterfacesXML, PersistASeperatedBridgeConfig) {
 }
 
 TEST_F(ANetworkInterfacesXML, PersistASwitchedBridgeConfig) {
-
   StrArg actual_content;
 
-  EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
+  EXPECT_CALL(mock_file_editor_, WriteAndReplace(_, _)).WillOnce(Invoke(&actual_content, &StrArg::WriteAndReplace));
 
-  BridgeConfig bridge_config { { "br0", { "X1", "X2" } }, { "br1", { } } };
-  IPConfigs ip_configs = { { "br0", IPSource::STATIC, "192.168.10.10", "255.255.255.0" }, { "br1",
-      IPSource::STATIC, "192.168.20.20", "255.255.0.0" } };
-  InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
-      "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
+  BridgeConfig bridge_config{{"br0", {"X1", "X2"}}, {"br1", {}}};
+  IPConfigs ip_configs          = {{"br0", IPSource::STATIC, "192.168.10.10", "255.255.255.0"},
+                          {"br1", IPSource::STATIC, "192.168.20.20", "255.255.0.0"}};
+  InterfaceConfigs port_configs = {InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL),
+                                   InterfaceConfig("X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL)};
   WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
 
   ExpectStringEqIgnoreNewlineAndBlank(NetworkInterfacesXMLSwitchedContent, actual_content.data_);
 }
 
 TEST_F(ANetworkInterfacesXML, PersistsAStartupConfig) {
-
   StrArg actual_content;
 
-  EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
+  EXPECT_CALL(mock_file_editor_, WriteAndReplace(_, _)).WillOnce(Invoke(&actual_content, &StrArg::WriteAndReplace));
 
-  BridgeConfig bridge_config { { "br0", { "X1", "X2" } }};
-  IPConfigs ip_configs = { { "br0", IPSource::DHCP, ZeroIP, ZeroIP } };
-  InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
-      "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
-  auto write_result = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
+  BridgeConfig bridge_config{{"br0", {"X1", "X2"}}};
+  IPConfigs ip_configs          = {{"br0", IPSource::DHCP, ZeroIP, ZeroIP}};
+  InterfaceConfigs port_configs = {InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL),
+                                   InterfaceConfig("X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL)};
+  auto write_result             = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
   EXPECT_EQ(Status::Ok(), write_result);
   ExpectStringEqIgnoreNewlineAndBlank(NetworkInterfacesXMLStartup, actual_content.data_);
 }
 
 TEST_F(ANetworkInterfacesXML, PersistsAnZeroIPAndBridgeConfig) {
-
   StrArg actual_content;
 
-  EXPECT_CALL(mock_file_editor_, Write(_,_)).WillOnce(Invoke(&actual_content, &StrArg::Write));
+  EXPECT_CALL(mock_file_editor_, WriteAndReplace(_, _)).WillOnce(Invoke(&actual_content, &StrArg::WriteAndReplace));
 
-  BridgeConfig bridge_config {};
-  IPConfigs ip_configs = {};
-  InterfaceConfigs port_configs = { InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL), InterfaceConfig(
-      "X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL) };
-  auto write_result = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
+  BridgeConfig bridge_config{};
+  IPConfigs ip_configs          = {};
+  InterfaceConfigs port_configs = {InterfaceConfig("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL),
+                                   InterfaceConfig("X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL)};
+  auto write_result             = WriteNetworkInterfacesXML(mock_file_editor_, bridge_config, ip_configs, port_configs);
   EXPECT_EQ(Status{}, write_result);
 }
 

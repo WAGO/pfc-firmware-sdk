@@ -119,7 +119,7 @@ ifdef PTXCONF_OPENVPN_INSTALL_SAMPLE_SCRIPTS
 endif
 
 	@$(call install_copy, openvpn, 0, 0, 0755, -, /usr/sbin/openvpn)
-
+	@$(call install_copy, openvpn, 0, 0, 0755, /etc/openvpn/certificates)
 	@$(call install_finish, openvpn)
 
 	@$(call touch)

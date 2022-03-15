@@ -6,7 +6,8 @@
  *      Author: u014487
  */
 
-#include <EthernetInterfaceFactory.hpp>
+#include "EthernetInterfaceFactory.hpp"
+
 #include "EthernetInterface.hpp"
 
 namespace netconf {

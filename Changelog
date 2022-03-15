@@ -1,3 +1,31 @@
+Firmware Release 03.09.04 (99)
+
+System:
+[NEW] Improved robustness of application control with operating mode switch and
+      additional detection of invalid states.
+[NEW] Libcurl update to version 7.81.0
+[NEW] Bootloader update to version 2021.10.0
+[FIXED] Sender of SNMP "Informs" could be changed
+[FIXED] deactivate Multicast Snooping by default
+[FIXED] Security-Fix in config-tool print_log.
+[FIXED] Network bridges discard their IP address when all associated network
+        ports are disconnected.
+[FIXED] “Dirty Pipe" enables root privileges CVE-2022-0847
+
+Fieldbus Interface & Protocols:
+-CAN
+ [FIXED] CAN interface goes into BusOff by TxOverflow
+-Cloud Connectivity
+ [NEW] Proxy configuration for MS Azure + Wago Cloud in WBM configurable
+
+Functional change:
+[DEPRECATED] Config tool function get_telecontrol_state will be removed in
+			 future re-leases. The config tool was used to determine whether
+			 a device is a telecontrol. Since telecontrol services can be
+			 added by dynamic licensing, the tool is no longer needed.
+
+################################################################################
+
 Firmware Release 03.08.08 (99)
 
 System:

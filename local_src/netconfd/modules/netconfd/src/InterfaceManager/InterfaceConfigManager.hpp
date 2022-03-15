@@ -23,9 +23,9 @@ class InterfaceConfigManager : public IInterfaceInformation{
       IEthernetInterfaceFactory& eth_factory);
   virtual ~InterfaceConfigManager() = default;
 
-  virtual void InitializePorts(InterfaceState initalPortState = InterfaceState::UNKNOWN);
-  virtual Status Configure(InterfaceConfigs& port_configs);
-  virtual InterfaceConfigs const& GetPortConfigs() override;
+  void InitializePorts(InterfaceState initalPortState = InterfaceState::UNKNOWN);
+  Status Configure(InterfaceConfigs& port_configs);
+  InterfaceConfigs const& GetPortConfigs() override;
   InterfaceStatuses GetCurrentPortStatuses() override;
   InterfaceInformations GetInterfaceInformations() override;
 

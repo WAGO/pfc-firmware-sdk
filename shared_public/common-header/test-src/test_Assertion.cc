@@ -100,6 +100,20 @@ TEST(AssertReturn, FailC_DeathTest)
 }
 
 
+TEST(AssertReturnVoid, SucceedC)
+{
+  TriggerSuccessReturnVoidC();
+}
+
+
+TEST(AssertReturnVoid, FailC_DeathTest)
+{
+#ifndef NDEBUG
+  ASSERT_NO_FATAL_FAILURE(TriggerFailReturnVoidC());
+#endif
+}
+
+
 TEST(Assert, SucceedCPP)
 {
   TriggerSuccessCPP();
@@ -128,6 +142,20 @@ TEST(AssertReturn, FailCPP_DeathTest)
   int result = 0;
   ASSERT_NO_FATAL_FAILURE(result = TriggerFailReturnCPP(15));
   EXPECT_EQ(15, result);
+#endif
+}
+
+
+TEST(AssertReturnVoid, SucceedCPP)
+{
+  TriggerSuccessReturnVoidCPP();
+}
+
+
+TEST(AssertReturnVoid, FailCPP_DeathTest)
+{
+#ifndef NDEBUG
+  ASSERT_NO_FATAL_FAILURE(TriggerFailReturnVoidCPP());
 #endif
 }
 

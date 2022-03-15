@@ -1,0 +1,24 @@
+## SECTION=test_suites
+
+config STRESS_NG
+	tristate
+	prompt "stress-ng"
+	select LIBAIO
+	select LIBBSD
+	select ZLIB
+	help
+	  stress-ng will stress test a computer system in various selectable
+	  ways. It was designed to exercise various physical subsystems of a
+	  computer as well as the various operating system kernel interfaces.
+
+if STRESS_NG
+
+config STRESS_NG_SKIP_TARGETINSTALL
+	bool "skip stress-ng targetinstall stage"
+	default y
+	help
+	  Skip stress-ng targetinstall stage in order to save memory
+	  inside the target device. The install stage will create the package
+	  files into $(PTXDIST_PLATFORMDIR)/packages.
+
+endif

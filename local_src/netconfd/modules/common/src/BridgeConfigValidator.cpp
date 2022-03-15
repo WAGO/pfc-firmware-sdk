@@ -5,7 +5,7 @@
 #include <net/if.h>
 #include <algorithm>
 
-#include "Helper.hpp"
+#include "CollectionUtils.hpp"
 
 namespace netconf {
 
@@ -30,11 +30,7 @@ static Status CheckBridgeInterfaces(const Interfaces &bridge_interfaces, const I
   for (auto &interface : bridge_interfaces) {
     // Check if interface is available in the system
     if (IsNotIncluded(interface, available_interfaces)) {
-      if (interface.empty()) {
-        return Status { StatusCode::NAME_EMPTY };
-      } else {
-        return Status { StatusCode::INTERFACE_NOT_EXISTING, interface };
-      }
+      return interface.empty() ? Status { StatusCode::NAME_EMPTY }: Status { StatusCode::INTERFACE_NOT_EXISTING, interface };
     }
 
     // Check if interfaces are uniquely assigned to bridge(s)

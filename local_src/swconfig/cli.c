@@ -211,9 +211,9 @@ check_rootuser()
 
 int main(int argc, char **argv)
 {
-	struct switch_dev *dev;
-	struct switch_attr *a;
-	struct switch_val val;
+	struct switch_dev *dev = NULL;
+	struct switch_attr *a = NULL;
+	struct switch_val val = {0};
 	int i;
 
 	int cmd = CMD_NONE;
