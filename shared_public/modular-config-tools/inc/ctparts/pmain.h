@@ -5,14 +5,14 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     pmain.h
 ///
 ///  \brief    Function to prepare config tool specific main.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef INC_CTPARTS_PMAIN_H_
 #define INC_CTPARTS_PMAIN_H_

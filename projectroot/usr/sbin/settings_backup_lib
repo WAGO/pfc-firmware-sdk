@@ -6,19 +6,19 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_lib
 #
 # Brief:    General definitions and functions for the backup and restore
 #
-# Author:   StM: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MSc: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   StM: WAGO GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   HJH: WAGO GmbH & Co. KG
+# Author:   MOe: WAGO GmbH & Co. KG
+# Author:   OG:  WAGO GmbH & Co. KG
+# Author:   MSc: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -126,7 +126,6 @@ configParam+=(
 
   "switch-port-mirror;        /etc/config-tools/get_switch_settings port-mirror;                /etc/config-tools/config_switch --port-mirror="
   "switch-bcast-protect;      /etc/config-tools/get_switch_settings bcast-protect;              /etc/config-tools/config_switch --bcast-protect="
-  "switch-fast-aging;         /etc/config-tools/get_switch_settings fast-aging;                 /etc/config-tools/config_switch --fast-aging="
   "switch-rate-limit;         /etc/config-tools/get_switch_settings rate-limit;                 /etc/config-tools/config_switch --rate-limit="
 
   "ntp-port;                  /etc/config-tools/get_ntp_config port;                            /etc/config-tools/config_sntp port="

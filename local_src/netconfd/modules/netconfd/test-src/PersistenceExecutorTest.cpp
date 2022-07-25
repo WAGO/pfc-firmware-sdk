@@ -4,10 +4,11 @@
 ///
 ///  \brief    <short description of the file contents>
 ///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <author> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <regex>
 #include "TypesHelper.hpp"
 
 #include "BackupRestoreFake.hpp"
@@ -87,8 +88,8 @@ namespace netconf
 
       ::std::string interface_config_file_content_ =
           R"([
-          {"autonegotiation":"on","device":"X1","duplex":"full","speed":100,"state":"up"}, 
-          {"autonegotiation":"off","device":"X2","duplex":"half","speed":10,"state":"up"}
+          {"autonegotiation":"on","device":"X1","duplex":"full","speed":100,"state":"up","maclearning":"on"}, 
+          {"autonegotiation":"off","device":"X2","duplex":"half","speed":10,"state":"up","maclearning":"on"}
          ])";
 
       ::std::string backup_network_data_content =
@@ -109,12 +110,11 @@ namespace netconf
           "netmask" : "255.255.0.0"
         }
       },
-      "interface-config":{"autonegotiation":"on","device":"X1","duplex":"full","speed":100,"state":"up"}
+      "interface-config":{"autonegotiation":"on","device":"X1","duplex":"full","speed":100,"state":"up","maclearning":"on"}
   })";
 
       ::std::string backup_dipswitch_data_content =
           R"({"dip-ip-config":{"ipaddr":"192.168.9.0","netmask":"255.255.0.0"}})";
-
   };
 
   TEST_F(APersistenceExecutor, PersistsABridgeConfig)
@@ -199,7 +199,7 @@ namespace netconf
 
     EXPECT_THAT(bridge_config_read, ContainerEq(BridgeConfig{{"br0", {"X1"}}, {"br1", {"X2"}}}));
     EXPECT_THAT(interface_configs, ElementsAre(InterfaceConfig{"X1", InterfaceState::UP, Autonegotiation::ON, 100,
-                                                               Duplex::FULL}));
+                                                               Duplex::FULL, MacLearning::ON}));
     EXPECT_THAT(dip_ip_config_read,DipSwitchIpConfig("192.168.9.0","255.255.0.0"));
   }
 
@@ -220,7 +220,49 @@ namespace netconf
 
     EXPECT_THAT(bridge_config_read, ContainerEq(BridgeConfig{{"br0", {"X1"}}, {"br1", {"X2"}}}));
     EXPECT_THAT(interface_configs, ElementsAre(InterfaceConfig{"X1", InterfaceState::UP, Autonegotiation::ON, 100,
-                                                               Duplex::FULL}));
+                                                               Duplex::FULL, MacLearning::ON}));
+  }
+
+  TEST_F(APersistenceExecutor, RestoresAnInterfaceConfigWithoutMacLearningContent)
+  {
+    auto backup_content_without_mac_learning = ::std::regex_replace(backup_network_data_content,
+                                                          ::std::regex(::std::string { R"(",maclearning":"on")" }),
+                                                          "");
+
+    EXPECT_CALL(mock_backup_restore_, Restore(path_interface_config_file_,_,_,_)).WillOnce(
+        DoAll(SetArgReferee<1>(backup_content_without_mac_learning), SetArgReferee<2>(""),
+              SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
+
+    BridgeConfig bridge_config_read;
+    IPConfigs ip_configs_read;
+    DipSwitchIpConfig dip_ip_config_read;
+    Status status = persistence_executor_->Restore(path_interface_config_file_, bridge_config_read, ip_configs_read,
+                                                   interface_configs, dip_ip_config_read);
+
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
+    EXPECT_THAT(interface_configs, ElementsAre(InterfaceConfig{"X1", InterfaceState::UP, Autonegotiation::ON, 100,
+      Duplex::FULL, MacLearning::ON}));
+  }
+
+  TEST_F(APersistenceExecutor, RestoresAnInterfaceConfigWithMacLearningOff)
+  {
+    auto backup_content_with_mac_learning_off = ::std::regex_replace(backup_network_data_content,
+                                                          ::std::regex(::std::string{R"("maclearning":"on")"}),
+                                                          ::std::string{R"("maclearning":"off")"} );
+
+    EXPECT_CALL(mock_backup_restore_, Restore(path_interface_config_file_,_,_,_)).WillOnce(
+        DoAll(SetArgReferee<1>(backup_content_with_mac_learning_off), SetArgReferee<2>(""),
+              SetArgReferee<3>(1), Return(Status(StatusCode::OK))));
+
+    BridgeConfig bridge_config_read;
+    IPConfigs ip_configs_read;
+    DipSwitchIpConfig dip_ip_config_read;
+    Status status = persistence_executor_->Restore(path_interface_config_file_, bridge_config_read, ip_configs_read,
+                                                   interface_configs, dip_ip_config_read);
+
+    ASSERT_EQ(StatusCode::OK, status.GetStatusCode());
+    EXPECT_THAT(interface_configs, ElementsAre(InterfaceConfig{"X1", InterfaceState::UP, Autonegotiation::ON, 100,
+      Duplex::FULL, MacLearning::OFF}));
   }
 
   TEST_F(APersistenceExecutor, TriesToRestoreAConfigInCaseRestoreFailed)

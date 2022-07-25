@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,11 +11,11 @@
 ///
 ///  \file     config_linux_user.c
 ///
-///  \version  $Revision: 14792 $1
+///  \version  $Revision: 65689 $1
 ///
 ///  \brief    
 ///
-///  \author   Hans-Florian Scholz : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Hans-Florian Scholz : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

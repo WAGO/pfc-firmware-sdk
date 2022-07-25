@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2020 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -72,7 +72,7 @@ $(STATEDIR)/factory_settings.targetinstall:
 	@$(call install_init, factory_settings)
 	@$(call install_fixup,factory_settings,PRIORITY,optional)
 	@$(call install_fixup,factory_settings,SECTION,base)
-	@$(call install_fixup,factory_settings,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup,factory_settings,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup,factory_settings,DESCRIPTION,missing)
 
 	# install factory settings

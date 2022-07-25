@@ -4,19 +4,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 DAEMONIZE="/sbin/start-stop-daemon"
 
 # read typelabel ORDER number to detect TP600/CC100 devices
 ORDER="$(/etc/config-tools/get_typelabel_value ORDER)"
-if [ "${ORDER:0:5}" == "751-9" ]; then
-  #CC100
-  SD_BOOT_DEV_NAME="/dev/mmcblk0p4"
-else
-  #PFC/TP600
-  SD_BOOT_DEV_NAME="/dev/mmcblk0p1"
-fi
 
 # no qt5/x11 graphic without sourcing profile variables
 # create hidden directories in /root
@@ -87,7 +80,7 @@ prepare_home_dir()
       chown -R $(whoami):admin $CDS_ROOT_DIR
       chmod g+s $CDS_ROOT_DIR
   fi
-  mount | grep -q "$SD_BOOT_DEV_NAME"
+  mount | grep -q "/dev/mmcblk0"
   local sd_is_mounted=$?
   . $RUNTIME_CONFIG
   if [ -z "$(pidof codesys3)" -a -z "$(pidof plclinux_rt)" ]; then
@@ -170,10 +163,52 @@ start_eruntime()
   fi
 }
 
+start_codesys3()
+{
+  if [ -n "$(pidof codesys3)" ]; then
+    echo "Codesys3 already started"
+  else
+    local PROGRAM="/usr/bin/codesys3"
+    local WRAPPER="/usr/bin/rtswrapper"
+    if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]; then
+      # only TP600
+      if [ $(tp_is_multicore) == "no" ]; then
+        PROGRAM="/usr/bin/taskset 1 /usr/bin/codesys3"
+      fi
+    fi
+    echo -n "Starting Codesys3..."
+    set_licence
+    umask 0002
+    echo $PROGRAM > /var/run/runtime
+    if [ "$1" == "0" ]
+    then
+      "$DAEMONIZE" -S -x "$WRAPPER" -o -b -- "$PROGRAM"
+    else
+      "$DAEMONIZE" -S -x "$PROGRAM" -o
+    fi
+  fi
+}
 start_runtime()
 {
   prepare_home_dir
   case $1 in
+    1)
+     if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]; then
+       # only TP600
+       TP_START_MODE=$(tp_start_mode)
+       if [ "$TP_START_MODE" == "1" ]; then
+         /etc/script/start_wbm.sh 2>&1 > /dev/null &
+       elif [ "$TP_START_MODE" == "2" ]; then
+         /etc/script/start_webbrowser.sh 2>&1 > /dev/null &
+         start_codesys3 $2
+       else
+         start_codesys3 $2
+       fi
+     else
+       # all devices except TP600
+       start_codesys3 $2
+     fi
+     ;;
     2)
      start_codesys2 $2
      ;;
@@ -231,6 +266,11 @@ stop_runtime()
 
   rm -f /var/run/runtime
   case $1 in
+    1)
+      RUNTIME_NAME="codesys3"
+      RUNTIME_STRING="Codesys3"
+      RUNTIME_PATH=/usr/bin/${RUNTIME_NAME}
+      ;;
     2)
      RUNTIME_NAME="plclinux_rt"
      RUNTIME_STRING="CoDeSys v2.3"
@@ -259,14 +299,21 @@ stop_runtime()
 
 CONFIG=/etc/specific/rtsversion
 RUNTIME_CONFIG=/etc/specific/runtimes.conf
+FIRMWARE="$(cat /etc/REVISIONS)"
 
-if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]; then
-  # only TP600
-  USED_RUNTIME_VERSION=3
-  RUNTIME_ORDER="3 0"
+if [ "${FIRMWARE:10:1}" == "4" ]; then
+    # codesys 35 firmware
+    USED_RUNTIME_VERSION=1
+    RUNTIME_ORDER="1 0"
 else
-  USED_RUNTIME_VERSION=2
-  RUNTIME_ORDER="2 3 0"
+  if [ "${ORDER:0:3}" == "762" ] || [ "${ORDER:0:5}" == "752-8" ]; then
+    # only TP600
+    USED_RUNTIME_VERSION=3
+    RUNTIME_ORDER="3 0"
+  else
+    USED_RUNTIME_VERSION=2
+    RUNTIME_ORDER="2 3 0"
+  fi
 fi
 
 FOREGROUND="0"

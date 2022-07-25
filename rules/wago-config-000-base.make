@@ -5,10 +5,10 @@
 #
 # This file is part of project parameter-service (PTXdist package wago-parameter-service).
 #
-# Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2020 WAGO GmbH & Co. KG
 #
 # Contributors:
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
 #######################################################################################################################
 # Makefile for PTXdist package config-tool-base.
 #
@@ -76,7 +76,7 @@ $(STATEDIR)/config-tool-base.targetinstall:
 	@$(call install_init, config-tool-base)
 	@$(call install_fixup,config-tool-base,PRIORITY,optional)
 	@$(call install_fixup,config-tool-base,SECTION,base)
-	@$(call install_fixup,config-tool-base,AUTHOR,"Wago Kontakttechnik")
+	@$(call install_fixup,config-tool-base,AUTHOR,"WAGO")
 	@$(call install_fixup,config-tool-base,DESCRIPTION,missing)
 
 	@$(call install_finish,config-tool-base)

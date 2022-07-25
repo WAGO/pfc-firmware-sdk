@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 
 set -o nounset
 
@@ -12,6 +12,7 @@ BACKUP_PREFIX='sshd'
 DSS_HOST_KEY='/etc/dropbear/dropbear_dss_host_key'
 ECDSA_HOST_KEY='/etc/dropbear/dropbear_ecdsa_host_key'
 RSA_HOST_KEY='/etc/dropbear/dropbear_rsa_host_key'
+ED25519_HOST_KEY='/etc/dropbear/dropbear_ed25519_host_key'
 
 # load general definitions and functions
 if [ ! -f "/etc/config-tools/config_tool_lib" ]; then
@@ -26,7 +27,7 @@ function PrintUsage
     local self; self="$(basename "$0")"
     echo "${self} --save <backup-file>      backup dropbear host keys"
     echo "${self} --restore <backup-file>   restore dropbear host keys"
-    echo "${self} --param-count             get number of GridCAL parameters to save"
+    echo "${self} --param-count             get number of parameters to save"
 }
 
 # Write logging data using syslog.
@@ -48,7 +49,7 @@ function Log
 #
 function GetParameterCount
 {
-    echo 3
+    echo 4
     return $SUCCESS
 }
 
@@ -75,6 +76,7 @@ function Save
     backup_host_key 'dss-host-key' "${DSS_HOST_KEY}" >>"${backup_file}"
     backup_host_key 'ecdsa-host-key' "${ECDSA_HOST_KEY}" >>"${backup_file}"
     backup_host_key 'rsa-host-key' "${RSA_HOST_KEY}" >>"${backup_file}"
+    backup_host_key 'ed25519-host-key' "${ED25519_HOST_KEY}" >>"${backup_file}"
 
     return ${status}
 }
@@ -114,6 +116,7 @@ function Restore
     restore_host_key "${backup_file}" "dss-host-key" "${DSS_HOST_KEY}"
     restore_host_key "${backup_file}" "ecdsa-host-key" "${ECDSA_HOST_KEY}"
     restore_host_key "${backup_file}" "rsa-host-key" "${RSA_HOST_KEY}"
+    restore_host_key "${backup_file}" "ed25519-host-key" "${ED25519_HOST_KEY}"
 
     umask "${old_umask}"
 

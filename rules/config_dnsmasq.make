@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH \& Co. KG
+# Copyright (C) 2020 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -91,7 +91,7 @@ $(STATEDIR)/config_dnsmasq.targetinstall:
 	@$(call install_init, config_dnsmasq)
 	@$(call install_fixup, config_dnsmasq,PRIORITY,optional)
 	@$(call install_fixup, config_dnsmasq,SECTION,base)
-	@$(call install_fixup, config_dnsmasq,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, config_dnsmasq,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, config_dnsmasq,DESCRIPTION,missing)
 
 	@$(call install_copy, config_dnsmasq, 0, 0, 0755, $(CONFIG_DNSMASQ_BUILD_DIR)/config_dnsmasq_c.elf,/etc/config-tools/config_dnsmasq_c) 

@@ -4,21 +4,19 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: update_dns_conf
 #
-# Uses all DNS-server entries static and dynamic to create the resolv.conf 
+# Uses all DNS-server entries static and dynamic to create the resolv.conf
 # All entries will be sorted by the given sorting algorithm.
 #
-# Author: WAGO Kontakttechnik GmbH & Co. KG.
+# Author: WAGO GmbH & Co. KG.
 #-----------------------------------------------------------------------------#
 
-
-usage()
-{
-cat << EOF
+usage() {
+    cat <<EOF
 * Sorting all dynamic and static DNS-entries and build the final resolv.conf. *
 
 Usage: update_dns_conf <--dry> <config> <--help>
@@ -30,72 +28,126 @@ Usage: update_dns_conf <--dry> <config> <--help>
 EOF
 }
 
+DNS_SERVER_STATIC_FILE="/etc/dns_static_list"
+DHCP_TEMPLATE="/tmp/dhcp-bootp-data-"
+DELIMITER="="
+SORTING_ALGO="dynSingleTopStaticBelow"
+RESOLV_CONF="/etc/resolv.conf"
 
 if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-  usage
-  exit 0;
+    usage
+    exit 0
 fi
 
-DNS_SERVER_STATIC_FILE="/etc/dns_static_list"
-DNS_SERVER_STATIC_FILE_TEMP="/tmp/dns_temp_list"
+getEntryWithDelimiter() {
+    local FILENAME="$1"
+    local DELIMITER="$2"
+    local SEARCH_PARAM="$3"
+    local RETURN=""
+    local ENTRY=$(grep $SEARCH_PARAM "$FILENAME")
 
-#parameter for blender script
-BLENDER_SCRIPT="/etc/config-tools/blender.sh"
-BLENDER_SEARCH_PARAM="DNS_SERVER_"
-BLENDER_DYNAMIC_TEMPLATE="/tmp/dhcp-bootp-data-"
-BLENDER_STATIC_FILE=$DNS_SERVER_STATIC_FILE_TEMP
-BLENDER_DELIMITER="="
-BLENDER_SORTING_ALGO="dynSingleTopStaticBelow"
-BLENDER_FINAL_FILE="/etc/resolv.conf"
-
-
-#generate a temporary list which includes all nameserver for the blender script
-generateStaticList()
-{
-    local index=1
-    local entry=""
-    #create file
-    > $DNS_SERVER_STATIC_FILE_TEMP
-    while read line; do
-            echo $line | egrep -q "^nameserver"
-            if [ $? -eq "0" ]; then
-                entry=`echo $line | egrep -o '[^nameserver ]+'`
-                echo "DNS_SERVER_$index=$entry" >> $DNS_SERVER_STATIC_FILE_TEMP
-            fi
-            index=$((index+1))
-    done < $DNS_SERVER_STATIC_FILE
+    if [ -n "$DELIMITER" ]; then
+        while IFS=$DELIMITER read -r f1 f2; do
+            RETURN="$RETURN $f2"
+        done <<<"$ENTRY"
+    else
+        RETURN=$ENTRY
+    fi
+    #remove quotes
+    RETURN=$(echo "$RETURN" | tr -d '\042')
+    echo "$RETURN"
 }
 
-getList()
-{
-    generateStaticList
-    echo `$BLENDER_SCRIPT $BLENDER_SEARCH_PARAM $BLENDER_DYNAMIC_TEMPLATE $BLENDER_STATIC_FILE $BLENDER_DELIMITER $BLENDER_SORTING_ALGO`
+generateList() {
+    local data=("${!1}")
+    local data_length=$2
+    local sorting_algorithm=$3
+    local result[0]=""
+    local return_value=0
+
+    case "$sorting_algorithm" in
+    dynSingleTopStaticBelow)
+        local found_elements=1 #only for starting behaviour
+
+        local field_row=0
+        while [ $found_elements -gt 0 ]; do
+            local found_elements=0
+
+            for i in $(seq 0 "$data_length"); do
+                # dummy=(${data[$i]})
+                IFS=" " read -r -a dummy <<<"${data[$i]}"
+                local entry=${dummy[$field_row]}
+                if [ "$entry" ] && [ ${#entry} -gt 0 ]; then
+                    result=("${result[@]}" "$entry")
+                    found_elements=$((found_elements + 1))
+                fi
+            done
+            field_row=$((field_row + 1))
+        done
+        ;;
+    dynTopStaticBelow)
+        for i in $(seq 0 "$data_length"); do
+            result=("${result[@]}" "${data[$i]}")
+        done
+        ;;
+    *)
+        result=("wrong sorting algorithm")
+        return_value=1
+        ;;
+    esac
+
+    echo "${result[@]}"
+    return $return_value
 }
 
-buildServerList()
-{
-    local entries=`getList`
-	# clear old list by removing every line that contains "nameserver" entry. Avoids leftovers from previous settings/restore 
-    sed -i "/^nameserver/d" $BLENDER_FINAL_FILE
+getList() {
+    declare -a STORAGE_ARRAY=()
+
+    DYNAMIC_FILE_LIST=$(ls $DHCP_TEMPLATE* 2>/dev/null)
+    local index=0
+
+    #Read dynamic files
+    for file in $DYNAMIC_FILE_LIST; do
+        STORAGE_ARRAY[$index]=$(getEntryWithDelimiter $file $DELIMITER "DNS_SERVER_")
+        index=$((index + 1))
+    done
+
+    #Read static files
+    STORAGE_ARRAY[$index]=$(getEntryWithDelimiter $DNS_SERVER_STATIC_FILE ' ' "nameserver")
+
+    #generate the sorted list
+    list=$(generateList STORAGE_ARRAY[@] $index $SORTING_ALGO)
+
+    if [ "$?" -gt 0 ]; then
+        echo "ERROR: $list"
+        exit 1
+    fi
+
+    IFS=" " read -r -a arr <<<"$list"
+    echo "${arr[@]::3}"
+}
+
+buildServerList() {
+    local entries=$(getList)
+    # clear old list by removing every line that contains "nameserver" entry. Avoids leftovers from previous settings/restore
+    sed -i "/^nameserver/d" $RESOLV_CONF
     if [ -n "$entries" ]; then
-   
         for entry in $entries; do
-            echo "nameserver $entry" >> $BLENDER_FINAL_FILE
+            echo "nameserver $entry" >>$RESOLV_CONF
         done
     fi
 }
 
 #Only do a dryrun and print out the list of servers in the correct order
 if [ "$1" == "--dry" ]; then
-        entries=`getList`
-        echo $entries
-        exit 0
+    entries=$(getList)
+    echo $entries
+    exit 0
 fi
 
 #only if triggered from udhcp script or wbm build the new server list
 if [ "$1" == "config" ]; then
-  buildServerList
+    buildServerList
 fi
 
 exit 0
-

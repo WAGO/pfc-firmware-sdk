@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2018 by WAGO Kontakttechnik GmbH
+# Copyright (C) 2018 by WAGO GmbH
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -88,7 +88,7 @@ $(STATEDIR)/libsparkplug.targetinstall:
 	@$(call install_init, libsparkplug)
 	@$(call install_fixup, libsparkplug, PRIORITY, optional)
 	@$(call install_fixup, libsparkplug, SECTION, base)
-	@$(call install_fixup, libsparkplug, AUTHOR, "WAGO Kontakttechnik GmbH")
+	@$(call install_fixup, libsparkplug, AUTHOR, "WAGO GmbH")
 	@$(call install_fixup, libsparkplug, DESCRIPTION, missing)
 	@$(call install_copy, libsparkplug, 0, 0, 0755, $(LIBSPARKPLUG_BUILD_C_DIR)/lib/libsparkplug_b.so, /usr/lib/libsparkplug_b.so)
 	@$(call install_finish, libsparkplug)

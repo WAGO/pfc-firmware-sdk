@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------ 
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG 
+// Copyright (c) WAGO GmbH & Co. KG 
 // 
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All 
 // manufacturing, reproduction, use, and sales rights pertaining to this 
@@ -11,7 +11,7 @@
 /// 
 /// \brief Main module of firewall configuration tool.
 /// 
-/// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
+/// \author Mariusz Podlesny : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include "file_accessor.hpp"
@@ -35,7 +35,6 @@
 #include <cassert>
 #include <fstream>
 #include <sstream>
-#include <chrono>
 
 
 //
@@ -321,7 +320,6 @@ void apply_rule (const std::string& rule)
     if (file_accessor.check_file(rule) && file_accessor.check_file(FW_IPR))
     {
         std::ostringstream oss;
-        const int RESOURCE_PROBLEM = 4;
         int ret = 0;
 
         // Remove duplicate rules
@@ -331,20 +329,7 @@ void apply_rule (const std::string& rule)
         oss << FW_IPR + " -n > /dev/null 2>&1 < " << rule;
         const std::string cmd(oss.str());
 
-        // try to call iptables-restore, repeat by resource conflict
-        auto start_time = std::chrono::steady_clock::now();
-        while (1)
-        {
-            (void)exe_cmd(cmd, ret);
-
-            if (ret != RESOURCE_PROBLEM)  break;
-            auto current_time =  std::chrono::steady_clock::now();
-            if ( timeout < std::chrono::duration_cast<std::chrono::milliseconds>(current_time-start_time).count() )
-            {
-                throw  system_call_error("Timeout by calling :" + cmd);
-                break;
-            }
-        }
+        (void)exe_cmd(cmd, ret);
 #ifdef SHOW_ERRORS
         syslog(LOG_ERR, "Execute command: %s  status: %i", oss.str().c_str(), ret);
 #endif

@@ -6,15 +6,15 @@
 #
 # This file is part of project fwupdate (PTXdist fwupdate).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   fwupdate_control
 #
 # Brief:    WAGO firmware update control tool.
 #
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   LS:  WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
+# Author:   LS:  WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 

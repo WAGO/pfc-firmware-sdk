@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   docker iptables replacement
@@ -19,7 +19,7 @@
 #           (docker calls the iptables binary in conjuction with netns to create 
 #            e.g. nat-rules for dns-resolution within containers)
 #
-# Author:   Fabian Schwamborn, WAGO Kontakttechnik GmbH & Co. KG
+# Author:   Fabian Schwamborn, WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 IPTABLES_BIN="/sbin/iptables"           #correct path, otherwise this script calls itself recursively!

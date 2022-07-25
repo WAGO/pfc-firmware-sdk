@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 
 CERT_DIR=${1:-"."}
@@ -16,7 +16,7 @@ passphrase=$(dd if=/dev/urandom bs=128 count=1 | uuencode - | grep -v '^end' | s
 echo "${passphrase}" | openssl genrsa -des3 -out ${DOMAIN_FILE}.key -passout stdin 1024 || exit 1
 
 # Generate Certificate Request
-subj=/C='DE'/ST='Germany'/CN='WAGO-PFC200'/O='Wago Kontakttechnik GmbH & Co. KG'/localityName='Minden'/emailAddress='info@wago.com' 
+subj=/C='DE'/ST='Germany'/CN='WAGO-PFC200'/O='Wago GmbH & Co. KG'/localityName='Minden'/emailAddress='info@wago.com' 
 echo "${passphrase}" | openssl req -new -batch -subj "${subj}" -key ${DOMAIN_FILE}.key -out ${DOMAIN_FILE}.csr -passin stdin || exit 2
 
 # Strip passphrase out of RSA-Key to not get prompted on startup

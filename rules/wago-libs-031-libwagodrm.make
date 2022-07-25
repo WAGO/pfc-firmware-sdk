@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2018 by Wago Kontakttechnik GmbH
+# Copyright (C) 2018 by WAGO GmbH
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -115,7 +115,7 @@ $(STATEDIR)/libwagodrm.targetinstall:
 	@$(call install_init, libwagodrm)
 	@$(call install_fixup, libwagodrm,PRIORITY,optional)
 	@$(call install_fixup, libwagodrm,SECTION,base)
-	@$(call install_fixup, libwagodrm,AUTHOR,"Wago Kontakttechnik GmbH")
+	@$(call install_fixup, libwagodrm,AUTHOR,"WAGO GmbH")
 	@$(call install_fixup, libwagodrm,DESCRIPTION,missing)
 
 	@$(call install_lib, libwagodrm, 0, 0, 0644, libwagodrm)

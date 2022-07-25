@@ -22,6 +22,7 @@ while read type size md5; do
       mv "${key}.tmp" "${key}"
   fi
 done << EOF
+ed25519 256 89344f5e343eb0b9b12c2b03b44d381a
 ecdsa 521 eac949a3ca2e6e70e5992caffbde7197
 dss 1024 fa1916278bbbd44e145739677cf77b18
 rsa 4096 47933d6da5f16c79d9cd1cf8a6994f8c

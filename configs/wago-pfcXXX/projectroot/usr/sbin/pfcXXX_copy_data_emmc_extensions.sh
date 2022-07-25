@@ -6,16 +6,16 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2017-2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   pfcXXX_copy_data_emmc_extensions.sh
 #
 # Brief:    EMMC extension functions for pfcXXX_copy_data.sh.
 #
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
+# Author:   MLa: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 function reformat_emmc

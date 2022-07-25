@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG) += wbm-ng
 #
 # Paths and names
 #
-WBM_NG_VERSION        := 2.16.2
+WBM_NG_VERSION        := 2.16.7
 WBM_NG                := wbm-pfc-$(WBM_NG_VERSION)
 WBM_NG_URL            := $(call jfrog_template_to_url, WBM_NG)
 WBM_NG_SUFFIX         := $(suffix $(WBM_NG_URL))
@@ -92,7 +92,7 @@ $(STATEDIR)/wbm-ng.targetinstall:
 	@$(call install_init, wbm-ng)
 	@$(call install_fixup, wbm-ng, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng, SECTION, base)
-	@$(call install_fixup, wbm-ng, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng, DESCRIPTION, missing)
 
 	# create target directory itself

@@ -1,0 +1,9 @@
+## SECTION=image2
+
+config IMAGE_PRODUCTION_ARTIFACTS_ZIP
+	tristate
+	select IMAGE_SD
+	select IMAGE_FIRMWARE_IMAGE_TAR
+	prompt "Generate .zip with production artifacts for CIT"
+	help
+	  FIXME

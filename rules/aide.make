@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,14 +16,16 @@ PACKAGES-$(PTXCONF_AIDE) += aide
 #
 # Paths and names
 #
-AIDE_VERSION	:= 0.16
-AIDE_MD5	:= 25c616f67c667acd4088747ae7f6a9a3
+AIDE_VERSION	:= 0.17.4
+AIDE_MD5	:= adac3bc719b923d49059edb992eb95c9
 AIDE		:= aide-$(AIDE_VERSION)
 AIDE_SUFFIX	:= tar.gz
-AIDE_URL	:= https://sourceforge.net/projects/aide/files/aide/$(AIDE_VERSION)/$(AIDE).$(AIDE_SUFFIX)
+AIDE_URL	:= https://github.com/aide/aide/releases/download/v$(AIDE_VERSION)/$(AIDE).$(AIDE_SUFFIX)
 AIDE_SOURCE	:= $(SRCDIR)/$(AIDE).$(AIDE_SUFFIX)
 AIDE_DIR	:= $(BUILDDIR)/$(AIDE)
-AIDE_LICENSE	:= GPLv2
+AIDE_LICENSE		:= GPLv2
+AIDE_LICENSE_FILE	:= COPYING
+AIDE_LICENSE_FILES	:= file://$(AIDE_LICENSE_FILE);md5=b234ee4d69f5fce4486a80fdaf4a4263
 
 # ----------------------------------------------------------------------------
 # Get
@@ -39,12 +41,12 @@ AIDE_LICENSE	:= GPLv2
 
 AIDE_CONF_TOOL := autoconf
 
-AIDE_CONF_OPT	:= $(CROSS_AUTOCONF_USR)\
-			--with-gcrypt	\
-			--disable-lfs \
+AIDE_CONF_OPT	:= $(CROSS_AUTOCONF_USR) \
 			--disable-static \
-			--disable-forced-configmd \
-			--disable-forced-dbmd
+			--without-curl \
+			--without-mhash \
+			--with-gcrypt	\
+			--with-zlib
 
 # ----------------------------------------------------------------------------
 # Compile
@@ -74,7 +76,7 @@ $(STATEDIR)/aide.targetinstall:
 	@$(call install_init, aide)
 	@$(call install_fixup, aide,PRIORITY,optional)
 	@$(call install_fixup, aide,SECTION,base)
-	@$(call install_fixup, aide,AUTHOR,"Wago Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, aide,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, aide,DESCRIPTION,missing)
 
 	@$(call install_copy, aide, 0, 0, 0750, -, /usr/bin/aide)

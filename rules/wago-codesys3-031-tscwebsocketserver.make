@@ -1,7 +1,7 @@
 ## -*-makefile-*-
 # $Id$
 #
-# Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2013 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -14,12 +14,11 @@
 #
 PACKAGES-$(PTXCONF_CDS3_TSCWEBSOCKETSERVER) += cds3-tscwebsocketserver
 
-CDS3_TSCWEBSOCKETSERVER_VERSION      := 2.0.5
-CDS3_SYSUTIL_VERSION                 := 2.0.4
-#CDS3_TSCWEBSOCKETSERVER_MD5          := b975d30a668db19f04ef4020991ec851
-CDS3_TSCWEBSOCKETSERVER_MD5          := 7cce7afe8512b9461686ad1197fe615e
+CDS3_TSCWEBSOCKETSERVER_VERSION      := 2.0.8
+CDS3_SYSUTIL_VERSION                 := 2.0.8
+CDS3_TSCWEBSOCKETSERVER_MD5          := 767025c4088838877ff30dbbc2458270
 CDS3_TSCWEBSOCKETSERVER_SUFFIX       := tgz
-CDS3_TSCWEBSOCKETSERVER              := cds3_cmp_wsserver_2_0_5_wsfrontend_1_4_0
+CDS3_TSCWEBSOCKETSERVER              := cds3_cmp_wsserver_2_0_8_wsfrontend_1_4_0
 CDS3_TSCWEBSOCKETSERVER_DIR          := $(BUILDDIR)/$(CDS3_TSCWEBSOCKETSERVER)
 CDS3_TSCWEBSOCKETSERVER_URL          := http://svsv01003/svn/repo14/$(CDS3_TSCWEBSOCKETSERVER).$(CDS3_TSCWEBSOCKETSERVER_SUFFIX)
 

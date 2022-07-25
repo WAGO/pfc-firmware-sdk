@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) WAGO GmbH & Co. KG
 //
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 // manufacturing, reproduction, use and sales rights pertaining to this
@@ -9,11 +9,11 @@
 //------------------------------------------------------------------------------
 ///  \file     modbus_config.c
 ///
-///  \version  $Revision: 59635 $1
+///  \version  $Revision: 65689 $1
 ///
 ///  \brief    <short description of the file contents>
 ///
-///  \author   <u015614> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <u015614> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 // Includes

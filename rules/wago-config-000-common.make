@@ -17,7 +17,7 @@ PACKAGES-$(PTXCONF_CONFIG_TOOLS) += config-tools
 #
 # Paths and names
 #
-CONFIG_TOOLS_VERSION 	      := 1.3.2
+CONFIG_TOOLS_VERSION 	      := 1.3.3
 CONFIG_TOOLS		            := config-tools
 CONFIG_TOOLS_URL            := file://$(PTXDIST_WORKSPACE)/local_src/$(CONFIG_TOOLS)
 CONFIG_TOOLS_DIR	          := $(BUILDDIR)/$(CONFIG_TOOLS)
@@ -296,7 +296,7 @@ $(STATEDIR)/config-tools.targetinstall:
 	@$(call install_init, config-tools)
 	@$(call install_fixup,config-tools,PRIORITY,optional)
 	@$(call install_fixup,config-tools,SECTION,base)
-	@$(call install_fixup,config-tools,AUTHOR,"Wago Kontakttechnik")
+	@$(call install_fixup,config-tools,AUTHOR,"WAGO")
 	@$(call install_fixup,config-tools,DESCRIPTION,missing)
 
 	@$(call install_copy, config-tools, 0, 0, 0755, /etc/config-tools/post_netconfig.d)
@@ -686,10 +686,6 @@ endif
 ifdef PTXCONF_CT_EDIT_DNS_SERVER_DHCP
 	@$(call install_alternative, config-tools, 0, 0, 644, /etc/dns_static_list);
 	@$(call install_alternative, config-tools, 0, 0, 750, /etc/config-tools/events/networking/update_dns_conf);
-endif
-
-ifdef PTXCONF_CT_BLENDER
-	@$(call install_alternative, config-tools, 0, 0, 750, /etc/config-tools/blender.sh);
 endif
 
 ifdef PTXCONF_CT_FEATURE_DETECT

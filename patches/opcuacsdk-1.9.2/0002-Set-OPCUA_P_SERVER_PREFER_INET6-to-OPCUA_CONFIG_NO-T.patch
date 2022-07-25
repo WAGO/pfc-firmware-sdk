@@ -1,0 +1,36 @@
+From: Jobst Wellensiek <jobst.wellensiek@wago.com>
+Date: Fri, 18 Feb 2022 15:26:23 +0100
+Subject: [PATCH] Set OPCUA_P_SERVER_PREFER_INET6 to OPCUA_CONFIG_NO Therfore
+ the Server use IPv4 addresses for binding
+
+---
+ include/uastack/opcua_p_interface.h             | 2 +-
+ src/uastack/platforms/linux/opcua_p_interface.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/uastack/opcua_p_interface.h b/include/uastack/opcua_p_interface.h
+index c0e8a6af89a0..6cd7b0f69b08 100644
+--- a/include/uastack/opcua_p_interface.h
++++ b/include/uastack/opcua_p_interface.h
+@@ -49,7 +49,7 @@ OPCUA_BEGIN_EXTERN_C
+ 
+ /** @brief If OPCUA_CONFIG_YES, servers will IPv6 addresses for binding */
+ #ifndef OPCUA_P_SERVER_PREFER_INET6
+-# define OPCUA_P_SERVER_PREFER_INET6                            OPCUA_CONFIG_YES
++# define OPCUA_P_SERVER_PREFER_INET6                            OPCUA_CONFIG_NO
+ #endif
+ 
+ /** @brief If OPCUA_CONFIG_YES, clients will connect to IPv6 addresses first. */
+diff --git a/src/uastack/platforms/linux/opcua_p_interface.h b/src/uastack/platforms/linux/opcua_p_interface.h
+index c0e8a6af89a0..6cd7b0f69b08 100644
+--- a/src/uastack/platforms/linux/opcua_p_interface.h
++++ b/src/uastack/platforms/linux/opcua_p_interface.h
+@@ -49,7 +49,7 @@ OPCUA_BEGIN_EXTERN_C
+ 
+ /** @brief If OPCUA_CONFIG_YES, servers will IPv6 addresses for binding */
+ #ifndef OPCUA_P_SERVER_PREFER_INET6
+-# define OPCUA_P_SERVER_PREFER_INET6                            OPCUA_CONFIG_YES
++# define OPCUA_P_SERVER_PREFER_INET6                            OPCUA_CONFIG_NO
+ #endif
+ 
+ /** @brief If OPCUA_CONFIG_YES, clients will connect to IPv6 addresses first. */

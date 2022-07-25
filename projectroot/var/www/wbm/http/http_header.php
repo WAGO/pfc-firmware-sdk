@@ -1,7 +1,7 @@
 <?php namespace http;
 
 /*
- * Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+ * Copyright (c) 2018-2022 WAGO GmbH & Co. KG
  *
  * PROPRIETARY RIGHTS are involved in the subject matter of this material.
  */

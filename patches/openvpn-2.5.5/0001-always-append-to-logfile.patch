@@ -1,0 +1,19 @@
+--- a/src/openvpn/options.c	2022-02-24 12:24:15.004258526 +0100
++++ b/src/openvpn/options.c	2022-02-24 12:23:18.244445951 +0100
+@@ -5976,7 +5976,15 @@
+     {
+         VERIFY_PERMISSION(OPT_P_GENERAL);
+         options->log = true;
+-        redirect_stdout_stderr(p[1], false);
++
++        // To make openvpn compatible with
++        // logrotate's copytruncate option,
++        // the log file has to be always
++        // appended to rather than truncated.
++        // Effectively, "log" configuration
++        // option is mapped to "log-append"
++        // here.
++        redirect_stdout_stderr(p[1], true);
+     }
+     else if (streq(p[0], "suppress-timestamps") && !p[1])
+     {

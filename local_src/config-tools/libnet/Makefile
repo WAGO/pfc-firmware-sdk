@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #
 #######################################################################################################################
 LIBXML_CFLAGS=$$($(PKG_CONFIG) --cflags libxml-2.0)
@@ -29,6 +29,7 @@ GPROF=
 
 # Add no sign compare option to handle linux kernel 4.9 ethtool.h warning.
 override CFLAGS+= -Wall -Wextra -Wno-sign-compare -Werror -Wshadow -fPIC $(LIBXML_CFLAGS) $(LIBNL_CFLAGS) $(LIBXSLT_CFLAGS) $(GLIB_CFLAGS) $(NETCONF_CFLAGS)
+override CFLAGS+= -Os -g
 override LDLIBS+= $(LIBXML_LDLIBS) $(LIBNL_LDLIBS) $(LIBXSLT_LDLIBS) $(GLIB_LDLIBS) $(NETCONF_LDFLAGS) -lstdc++
 override CXXFLAGS += $(CFLAGS) -std=c++17
 

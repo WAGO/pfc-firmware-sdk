@@ -5,14 +5,14 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file
 ///
 ///  \brief    Header definitions for common parameter check functions.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef TEST_INC_TESTUTIL_COMMON_PARAMETER_CHECKS_H_
 #define TEST_INC_TESTUTIL_COMMON_PARAMETER_CHECKS_H_

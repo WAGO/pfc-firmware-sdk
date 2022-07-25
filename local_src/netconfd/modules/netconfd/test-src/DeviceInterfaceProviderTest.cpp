@@ -4,7 +4,7 @@
 ///
 ///  \brief    <short description of the file contents>
 ///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <author> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

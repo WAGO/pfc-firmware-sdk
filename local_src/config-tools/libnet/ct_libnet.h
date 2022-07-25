@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #ifndef __CT_LIB_NET_H__
 #define __CT_LIB_NET_H__
@@ -192,7 +192,6 @@ typedef struct {
     const char *bcastProtect;
     const char *rateLimit;
     const char *portMirror;
-    const char *fastAging;
 } ct_switch_settings_t;
 
 int ct_libnet_save_switch_settings_to_config(const char *configFile, ct_switch_settings_t *settings);

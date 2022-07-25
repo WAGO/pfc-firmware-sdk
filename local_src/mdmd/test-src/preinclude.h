@@ -5,14 +5,14 @@
 //
 // This file is part of project mdmd (PTXdist package mdmd).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     preinclude.h
 ///
 ///  \brief    Ugle preinclude to specify MDMS config file for test purposes.
 ///
-///  \author   WF : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   WF : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef TEST_SRC_PREINCLUDE_H_
 #define TEST_SRC_PREINCLUDE_H_

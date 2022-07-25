@@ -8,7 +8,7 @@
 # Copyright (c) 2018
 #
 # Contributors:
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
 #######################################################################################################################
 # Makefile for PTXdist package rauc_bundle_conf.
 #

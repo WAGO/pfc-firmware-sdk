@@ -44,13 +44,13 @@ DHCPClient::~DHCPClient() {
 }
 
 void DHCPClient::Release() {
-  LogDebug(
+  LOG_DEBUG(
       "DHCPClient::Release | Send SIGUSR2 to dhcp client for interface " + itf_name_ + " to release its ip address");
   kill(pid_, SIGUSR2);
 }
 
 void DHCPClient::Renew() {
-  LogDebug("DHCPClient::Renew | Send SIGUSR1 to dhcp client for interface " + itf_name_ + " to renew its ip address");
+  LOG_DEBUG("DHCPClient::Renew | Send SIGUSR1 to dhcp client for interface " + itf_name_ + " to renew its ip address");
   kill(pid_, SIGUSR1);
 }
 
@@ -82,11 +82,11 @@ static void OnProcessStop(GPid pid, gint status, gpointer user_data) {
   (void) user_data;
   GError *err = nullptr;
   if (g_spawn_check_exit_status(status, &err) == FALSE) {
-    LogDebug("Stopped DHCP client with pid " + ::std::to_string(pid) + " and exit status abnormally");
+    LOG_DEBUG("Stopped DHCP client with pid " + ::std::to_string(pid) + " and exit status abnormally");
   }
 
   if (err != nullptr) {
-    LogDebug("GError message: " + ::std::string(err->message));
+    LOG_DEBUG("GError message: " + ::std::string(err->message));
     g_error_free(err);
   }
 
@@ -119,9 +119,9 @@ void DHCPClient::Start(const ::std::string &hostname, const ::std::string &vendo
   auto spawned = g_spawn_async(nullptr, const_cast<gchar**>(options.data()), nullptr, G_SPAWN_DO_NOT_REAP_CHILD,  // NOLINT(cppcoreguidelines-pro-type-const-cast)
                                nullptr, nullptr, &pid_, &g_error);
 
-  LogDebug("Started DHCP Client for interface " + itf_name_ + ", pid: " + ::std::to_string(pid_));
+  LOG_DEBUG("Started DHCP Client for interface " + itf_name_ + ", pid: " + ::std::to_string(pid_));
   if (g_error != nullptr) {
-    LogDebug("g_error: code: " + ::std::to_string(g_error->code) + ", message: " + g_error->message);
+    LOG_DEBUG("g_error: code: " + ::std::to_string(g_error->code) + ", message: " + g_error->message);
   }
   /*
    * TODO: Es wurde beobachtet, dass der Spawn des DHCP-Client-Prozesses sporadisch nicht funktioniert.
@@ -148,7 +148,7 @@ void DHCPClient::Stop() {
    * das deconfig aufruft, löscht er das Lease des neu gestarteten Clients.
    */
   if (0 == kill(pid_, SIGKILL)) {
-    LogDebug("Stopped DHCP Client for interface " + itf_name_ + ", pid: " + ::std::to_string(pid_));
+    LOG_DEBUG("Stopped DHCP Client for interface " + itf_name_ + ", pid: " + ::std::to_string(pid_));
   }
 
   RemoveFile(LeaseFile::GetLeaseFilePath(itf_name_));

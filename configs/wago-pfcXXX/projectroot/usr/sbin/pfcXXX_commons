@@ -6,18 +6,18 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2014-2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2014-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   pfcXXX_commons
 #
 # Brief:    Common functions for pfcXXX_* scripts.
 #
-# Author:   HT:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   LS:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HT:  WAGO GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
+# Author:   LS:  WAGO GmbH & Co. KG
+# Author:   MLa: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 set -o nounset

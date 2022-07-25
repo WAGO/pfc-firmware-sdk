@@ -125,7 +125,7 @@ $(STATEDIR)/cbm.targetinstall:
 	@$(call install_init, cbm)
 	@$(call install_fixup,cbm,PRIORITY,optional)
 	@$(call install_fixup,cbm,SECTION,base)
-	@$(call install_fixup,cbm,AUTHOR,"Wago Kontakttechnik")
+	@$(call install_fixup,cbm,AUTHOR,"WAGO")
 	@$(call install_fixup,cbm,DESCRIPTION,missing)
 
 ifdef PTXCONF_CT_WDIALOG

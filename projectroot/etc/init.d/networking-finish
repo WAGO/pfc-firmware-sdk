@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 
 order=$(/etc/config-tools/get_typelabel_value ORDER)
@@ -58,7 +58,7 @@ function get_next_macs
 
 function marvell_update_eeprom
 {
-   /sbin/pfcXXX_config_network_switch_eeprom.sh /sys/firmware/devicetree/base/ocp/interconnect@4a000000/segment@0/target-module@100000/ethernet@0/mdio@1000/switch@0/eeprom
+   /sbin/pfcXXX_config_network_switch_eeprom.sh /sys/firmware/devicetree/base/ocp/interconnect@4a000000/segment@0/target-module@100000/switch@0/mdio@1000/switch@0/eeprom
    if [[ "$?" != "0" ]] ; then
         log "update switch eeprom failed"
    else
@@ -66,23 +66,6 @@ function marvell_update_eeprom
    fi
 }
 
-function marvell_configure_atu
-{
-    local macaddr
-    macaddr=$(/etc/config-tools/get_typelabel_value MAC | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}')
-
-    log "add own macs to atu"
-    # Get next MAC addresses and store them to macs.
-    # macs[0] contains the original MAC address ($macaddr).
-    # Add the other MACs to the ATU as well. CPU port is 6.
-    declare -a macs
-    get_next_macs "$macaddr" $mac_addr_count
-
-    swconfig dev switch0 set port_fdb_add "${macs[0]},6,0"
-    for mac in "${macs[@]}"; do
-        swconfig dev switch0 set port_fdb_add "${mac},6,0"
-    done
-}
 
 function micrel_configure_atu
 {
@@ -104,7 +87,6 @@ function networking_finish
     # NOTE: config-tools dependency here!!
     if has_marvell_switch; then
         log "found marvell switch"
-        marvell_configure_atu
         marvell_update_eeprom
     fi
     if has_micrel_switch; then

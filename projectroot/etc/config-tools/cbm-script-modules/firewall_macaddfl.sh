@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 firewall_params_interfaces='xmlstarlet sel -N f=http://www.wago.com/security/firewall -T -t -v /f:firewall/f:parameters/f:interfaces/f:interface[@ethernet="yes"]/@name /etc/firewall/params_gen.xml'
 

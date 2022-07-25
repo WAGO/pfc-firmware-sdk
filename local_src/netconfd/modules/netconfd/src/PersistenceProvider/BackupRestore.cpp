@@ -12,6 +12,7 @@
 #include <string>
 
 #include "Logger.hpp"
+#include "KeyValueParser.hpp"
 
 namespace netconf {
 
@@ -19,19 +20,15 @@ using namespace std::literals::string_literals;
 
 static Status GetKeyValue(const ::std::string &backup_content, const ::std::string &key, ::std::string &value) {
 
-  ::std::stringstream data_stream = ::std::stringstream(backup_content);
-  ::std::string subdata;
-  while (::std::getline(data_stream, subdata, '\n')) {
-    if (boost::starts_with(subdata, key)) {
-      subdata.erase(0, key.length());
-      value += subdata;
-    }
-  }
+  Status status;
+
+  value = GetValueByKey(backup_content, key);
 
   if (value.empty()) {
-    return Status { StatusCode::BACKUP_CONTENT_MISSING, key };
+    status.Set(StatusCode::BACKUP_CONTENT_MISSING, key);
+    return status;
   }
-  return Status::Ok();
+  return status;
 
 }
 
@@ -52,7 +49,7 @@ Status BackupRestore::AppendTextWithKeyAndSeparateOnNewLine(const ::std::string 
   auto lines = static_cast<uint32_t>(::std::floor(data.size() / chars_per_line_));
   for (uint32_t line = 0; line < lines; line++) {
     ::std::string substring = data.substr(line * chars_per_line_, chars_per_line_);
-    substring = key + substring + '\n';
+    substring = key + '=' + substring + '\n';
     status = file_editor_.Append(file_path, substring);
     if (status.IsNotOk()) {
       break;
@@ -62,7 +59,7 @@ Status BackupRestore::AppendTextWithKeyAndSeparateOnNewLine(const ::std::string 
   uint32_t remaining_chars = data.size() % chars_per_line_;
   if (remaining_chars > 0) {
     ::std::string substring = data.substr(lines * chars_per_line_, data.size());
-    substring = key + substring + '\n';
+    substring = key + '=' + substring + '\n';
     status = file_editor_.Append(file_path, substring);
   }
 

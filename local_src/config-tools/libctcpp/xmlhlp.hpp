@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------ 
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG 
+// Copyright (c) WAGO GmbH & Co. KG 
 // 
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All 
 // manufacturing, reproduction, use, and sales rights pertaining to this 
@@ -9,11 +9,11 @@
 //------------------------------------------------------------------------------ 
 /// \file xmlhlp.hpp
 /// 
-/// \version $Id: xmlhlp.hpp 13475 2015-06-26 14:12:20Z mariusz.podlesny@wago.com $ 
+/// \version $Id: xmlhlp.hpp 65689 2022-03-11 14:37:43Z falk.werner@wago.com $ 
 /// 
 /// \brief XML parsing/processing helpers.
 /// 
-/// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
+/// \author Mariusz Podlesny : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 

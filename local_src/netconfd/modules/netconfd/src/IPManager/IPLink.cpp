@@ -21,7 +21,7 @@ IPLink::IPLink(uint32_t index,const ::std::string& itf_name, ::std::string addre
   ip_config_.interface_ = itf_name;
 }
 
-void IPLink::SetIPConfig(const IPConfig ip_config) {
+void IPLink::SetIPConfig(const IPConfig& ip_config) {
   ip_config_ = ip_config;
 }
 

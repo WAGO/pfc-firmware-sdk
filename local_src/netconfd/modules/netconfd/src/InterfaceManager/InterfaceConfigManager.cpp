@@ -7,6 +7,7 @@
 #include "Logger.hpp"
 #include "LinkModeConversion.hpp"
 #include "InterfaceConfigurationValidator.hpp"
+#include "BridgeUtil.hpp"
 
 namespace netconf {
 
@@ -50,7 +51,7 @@ void InterfaceConfigManager::InitializePorts(InterfaceState initalPortState) {
   ApplyPortConfigs(inital_config);
 }
 
-Status InterfaceConfigManager::Configure(InterfaceConfigs &port_configs) {
+Status InterfaceConfigManager::Configure(const InterfaceConfigs &port_configs) {
   auto status = InterfaceConfigurationValidator::Validate(port_configs, GetInterfaceInformations());
   if (status.IsNotOk()) {
     return status;
@@ -84,7 +85,6 @@ static LinkState EthLinkStateToLinkState(eth::InterfaceLinkState state) {
 }
 
 InterfaceStatuses InterfaceConfigManager::GetCurrentPortStatuses() {
-
   InterfaceStatuses statuses;
   for (auto& [itf, eth_itf] : ethernet_interfaces_) {
     InterfaceStatus itf_status;
@@ -102,6 +102,8 @@ InterfaceStatuses InterfaceConfigManager::GetCurrentPortStatuses() {
     itf_status.link_state_ = EthLinkStateToLinkState(link_state);
 
     itf_status.mac_ = eth_itf->GetMac();
+
+    itf_status.mac_learning_ = GetMacLearning(eth_itf->GetInterfaceIndex());
 
     statuses.emplace_back(itf_status);
 
@@ -154,6 +156,9 @@ Status InterfaceConfigManager::ApplyPortConfig(InterfaceConfig const &cfg) {
   if (cfg.speed_ > 0) {
     eif->SetSpeed(cfg.speed_);
   }
+  if (cfg.mac_learning_ != MacLearning::UNKNOWN) {
+    SetMacLearning(eif->GetInterfaceIndex(), cfg.mac_learning_);
+  }
 
   try {
     eif->Commit();
@@ -186,30 +191,28 @@ void InterfaceConfigManager::UpdateCurrentInterfaceConfigs(const InterfaceConfig
 
   for (auto &port_config : port_configs) {
 
-    auto device_name_equels = [&](auto &config) {
+    auto device_name_equals = [&](auto &config) {
       return port_config.device_name_ == config.device_name_;
     };
-    auto it = ::std::find_if(current_config_.begin(), current_config_.end(), device_name_equels);
+    auto it = ::std::find_if(current_config_.begin(), current_config_.end(), device_name_equals);
     if (it == current_config_.end()) {
       continue;
     }
 
-    if (port_config.state_ != InterfaceState::UNKNOWN) {
-      it->state_ = port_config.state_;
-    }
+    auto apply_if_neq = [](auto &lhs, auto rhs, auto comp) {
+      if (rhs != comp) {
+        lhs = rhs;
+      }
+    };
 
-    if (port_config.autoneg_ != Autonegotiation::UNKNOWN) {
-      it->autoneg_ = port_config.autoneg_;
-    }
-
-    if (port_config.duplex_ != Duplex::UNKNOWN) {
-      it->duplex_ = port_config.duplex_;
-    }
+    apply_if_neq(it->state_, port_config.state_, InterfaceState::UNKNOWN);
+    apply_if_neq(it->autoneg_, port_config.autoneg_, Autonegotiation::UNKNOWN);
+    apply_if_neq(it->duplex_, port_config.duplex_, Duplex::UNKNOWN);
+    apply_if_neq(it->mac_learning_, port_config.mac_learning_, MacLearning::UNKNOWN);
 
     if (port_config.speed_ == 10 || port_config.speed_ == 100 || port_config.speed_ == 1000) {
       it->speed_ = port_config.speed_;
     }
-
   }
 }
 
@@ -224,4 +227,3 @@ InterfaceInformations InterfaceConfigManager::GetInterfaceInformations() {
 }
 
 }  // namespace netconf
-

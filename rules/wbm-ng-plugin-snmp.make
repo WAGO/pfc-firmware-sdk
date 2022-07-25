@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Stefanie Meihöfer (stefanie.meihoefer@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Stefanie Meihöfer (stefanie.meihoefer@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_SNMP) += wbm-ng-plugin-snmp
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_SNMP_VERSION        := 1.1.0
+WBM_NG_PLUGIN_SNMP_VERSION        := 1.1.1
 WBM_NG_PLUGIN_SNMP                := wbm-snmp-$(WBM_NG_PLUGIN_SNMP_VERSION)
 WBM_NG_PLUGIN_SNMP_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_SNMP)
 WBM_NG_PLUGIN_SNMP_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_SNMP_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-snmp.targetinstall:
 	@$(call install_init, wbm-ng-plugin-snmp)
 	@$(call install_fixup, wbm-ng-plugin-snmp, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-snmp, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-snmp, AUTHOR,"Stefanie Meihoefer, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-snmp, AUTHOR,"Stefanie Meihoefer, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-snmp, DESCRIPTION, missing)
 
 	# create target directory itself

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_CREATE_IMAGE) += wbm-ng-plugin-create-image
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_CREATE_IMAGE_VERSION        := 1.2.0
+WBM_NG_PLUGIN_CREATE_IMAGE_VERSION        := 1.2.1
 WBM_NG_PLUGIN_CREATE_IMAGE                := wbm-create-image-$(WBM_NG_PLUGIN_CREATE_IMAGE_VERSION)
 WBM_NG_PLUGIN_CREATE_IMAGE_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_CREATE_IMAGE)
 WBM_NG_PLUGIN_CREATE_IMAGE_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_CREATE_IMAGE_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-create-image.targetinstall:
 	@$(call install_init, wbm-ng-plugin-create-image)
 	@$(call install_fixup, wbm-ng-plugin-create-image, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-create-image, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-create-image, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-create-image, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-create-image, DESCRIPTION, missing)
 
 	# create target directory itself

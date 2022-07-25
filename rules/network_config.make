@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2019 by WAGO Kontakttechnik GmbH \& Co. KG
+# Copyright (C) 2019 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -91,7 +91,7 @@ $(STATEDIR)/network_config.targetinstall:
 	@$(call install_init, network_config)
 	@$(call install_fixup, network_config,PRIORITY,optional)
 	@$(call install_fixup, network_config,SECTION,base)
-	@$(call install_fixup, network_config,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, network_config,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, network_config,DESCRIPTION,missing)
 
 	@$(call install_copy, network_config, 0, 0, 0755,$(NETWORK_CONFIG_BUILD_DIR)/network_config.elf, /etc/config-tools/network_config)

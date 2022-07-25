@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #
 # NET-SNMP snmpd
@@ -28,7 +28,8 @@ function start {
             NAMES=$NAMES,$NAME
         fi
     done
-    $SNMPD -c $NAMES,$SNMPD_CONF -p $SNMPD_PID&
+    $SNMPD -c $NAMES,$SNMPD_CONF -p $SNMPD_PID
+    [[ $? == 0 ]] || exit 1
     [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a start /etc/config-tools/events/snmp/ >/dev/null 2>&1
     [[ -e $SNMP_CONFIG_AGENT_INIT ]] && $SNMP_CONFIG_AGENT_INIT start
 }
@@ -39,7 +40,11 @@ function stop {
     [[ -d /etc/config-tools/events/snmp/ ]] && run-parts -a stop /etc/config-tools/events/snmp/ >/dev/null 2>&1
 
     if [ -f $SNMPD_PID ]; then
-        kill "$(cat $SNMPD_PID)"
+        pid=$(< $SNMPD_PID)
+        start-stop-daemon --stop --exec $SNMPD  --pidfile $SNMPD_PID
+        pidof snmpd && sleep 1
+        pidof snmpd && kill -9 $pid
+        rm -f "$SNMPD_PID"
     fi
 }
 

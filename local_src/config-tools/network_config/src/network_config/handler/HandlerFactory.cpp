@@ -16,7 +16,7 @@
 #include "MacAddressHandler.hpp"
 #include "DynamicIPEventHandler.hpp"
 #include "OptionStrings.hpp"
-
+#include "InterfaceStatusHandler.hpp"
 
 namespace network_config {
 
@@ -39,6 +39,9 @@ namespace network_config {
   } else if (parser.IsSet(opts.device_info.name)) {
     return ::std::make_unique<DeviceInfoHandler>(map);
 
+  } else if (parser.IsSet(opts.interface_status.name)) {
+    return ::std::make_unique<InterfaceStatusHandler>(map);
+
   } else if (parser.IsSet(opts.backup.name) || parser.IsSet(opts.restore.name)
       || parser.IsSet(opts.get_backup_parameter_count.name)) {
     return ::std::make_unique<BackupRestoreHandler>(map);
@@ -54,7 +57,7 @@ namespace network_config {
 
   } else if (parser.IsSet(opts.dynamic_ip_event.name)) {
     return ::std::make_unique<DynamicIPEventHandler>(map);
-  
+
   } else if (parser.IsSet(opts.reload_host_conf.name)) {
     return ::std::make_unique<ReloadHostConfHandler>();
   }

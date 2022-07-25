@@ -12,7 +12,7 @@ namespace netconf {
 
 class DynamicIPClientAdministrator : public IDynamicIPClientAdministrator {
  public:
-  DynamicIPClientAdministrator(const ::std::string& vendorclass);
+  DynamicIPClientAdministrator(::std::string vendorclass);
   virtual ~DynamicIPClientAdministrator() = default;
 
   DynamicIPClientAdministrator(const DynamicIPClientAdministrator &other) = delete;

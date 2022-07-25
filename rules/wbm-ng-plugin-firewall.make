@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_FIREWALL) += wbm-ng-plugin-firewall
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_FIREWALL_VERSION        := 1.6.2
+WBM_NG_PLUGIN_FIREWALL_VERSION        := 1.6.3
 WBM_NG_PLUGIN_FIREWALL                := wbm-firewall-$(WBM_NG_PLUGIN_FIREWALL_VERSION)
 WBM_NG_PLUGIN_FIREWALL_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_FIREWALL)
 WBM_NG_PLUGIN_FIREWALL_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_FIREWALL_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-firewall.targetinstall:
 	@$(call install_init, wbm-ng-plugin-firewall)
 	@$(call install_fixup, wbm-ng-plugin-firewall, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-firewall, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-firewall, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-firewall, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-firewall, DESCRIPTION, missing)
 
 	# create target directory itself

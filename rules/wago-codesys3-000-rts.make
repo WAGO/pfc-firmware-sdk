@@ -1,7 +1,7 @@
 ## -*-makefile-*-
 # $Id$
 #
-# Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2013 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -14,7 +14,7 @@
 #
 PACKAGES-$(PTXCONF_CODESYS3) += codesys3
 
-CODESYS3_VERSION    := 3.5.16.3.2
+CODESYS3_VERSION    := 3.5.17.3.0
 CODESYS3            := codesys-3
 CODESYS3_DIR        := $(BUILDDIR)/$(CODESYS3)
 CODESYS3_URL        := file://$(PTXDIST_WORKSPACE)/wago_intern/plc/codesys/$(CODESYS3)/
@@ -397,11 +397,6 @@ endif
 	  $(call install_copy, codesys3, 0, 0, 0750, $(CODESYS3_DIR)/lib/$$(readlink libcds3uastack.so), /usr/lib/libcds3uastack.so); \
 	fi
 
-	#
-	# install Linux-PAM configuration for CODESYS
-	#
-	@$(call install_alternative, codesys3, 0, 0, 644, /etc/pam.d/rts)
-	
 endif
 	@$(call install_finish,codesys3)
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE

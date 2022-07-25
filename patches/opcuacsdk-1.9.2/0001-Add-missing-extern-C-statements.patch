@@ -1,0 +1,91 @@
+From: Jobst Wellensiek <jobst.wellensiek@wago.com>
+Date: Fri, 18 Feb 2022 12:41:57 +0100
+Subject: [PATCH] Add missing extern C statements
+
+---
+ include/uastack/opcua_simplebinarydecoder.h       | 4 ++++
+ include/uastack/opcua_simplebinaryencoder.h       | 4 ++++
+ src/uastack/utilities/opcua_simplebinarydecoder.h | 4 ++++
+ src/uastack/utilities/opcua_simplebinaryencoder.h | 4 ++++
+ 4 files changed, 16 insertions(+)
+
+diff --git a/include/uastack/opcua_simplebinarydecoder.h b/include/uastack/opcua_simplebinarydecoder.h
+index 1f65201b5587..40465e236c9e 100644
+--- a/include/uastack/opcua_simplebinarydecoder.h
++++ b/include/uastack/opcua_simplebinarydecoder.h
+@@ -31,6 +31,8 @@
+ #include <opcua_encoder.h>
+ #include <opcua_decoder.h>
+ 
++OPCUA_BEGIN_EXTERN_C
++
+ typedef struct _OpcUa_SimpleBinaryDecoder
+ {
+     OpcUa_InputStream *pInputStream;
+@@ -78,4 +80,6 @@ OpcUa_StatusCode OpcUa_SimpleBinaryDecoder_ReadDataValue(OpcUa_SimpleBinaryDecod
+ OpcUa_StatusCode OpcUa_SimpleBinaryDecoder_ReadVariant(OpcUa_SimpleBinaryDecoder *a_pDecoder, OpcUa_Variant *pValue);
+ OpcUa_StatusCode OpcUa_SimpleBinaryDecoder_ReadDiagnosticInfo(OpcUa_SimpleBinaryDecoder *a_pDecoder, OpcUa_DiagnosticInfo *pValue);
+ 
++OPCUA_END_EXTERN_C
++
+ #endif /* OPCUA_SIMPLEBINARYDECODER_H */
+diff --git a/include/uastack/opcua_simplebinaryencoder.h b/include/uastack/opcua_simplebinaryencoder.h
+index 7dcd86a81aa8..7673fab2092c 100644
+--- a/include/uastack/opcua_simplebinaryencoder.h
++++ b/include/uastack/opcua_simplebinaryencoder.h
+@@ -30,6 +30,8 @@
+ #include <opcua_proxystub.h>
+ #include <opcua_encoder.h>
+ 
++OPCUA_BEGIN_EXTERN_C
++
+ typedef struct _OpcUa_SimpleBinaryEncoder
+ {
+     OpcUa_OutputStream *pOutputStream;
+@@ -77,4 +79,6 @@ OpcUa_StatusCode OpcUa_SimpleBinaryEncoder_WriteDataValue(OpcUa_SimpleBinaryEnco
+ OpcUa_StatusCode OpcUa_SimpleBinaryEncoder_WriteVariant(OpcUa_SimpleBinaryEncoder *a_pEncoder, OpcUa_Variant *pValue);
+ OpcUa_StatusCode OpcUa_SimpleBinaryEncoder_WriteDiagnosticInfo(OpcUa_SimpleBinaryEncoder *a_pEncoder, OpcUa_DiagnosticInfo *pValue);
+ 
++OPCUA_END_EXTERN_C
++
+ #endif /* OPCUA_SIMPLEBINARYENCODER_H */
+diff --git a/src/uastack/utilities/opcua_simplebinarydecoder.h b/src/uastack/utilities/opcua_simplebinarydecoder.h
+index 1f65201b5587..40465e236c9e 100644
+--- a/src/uastack/utilities/opcua_simplebinarydecoder.h
++++ b/src/uastack/utilities/opcua_simplebinarydecoder.h
+@@ -31,6 +31,8 @@
+ #include <opcua_encoder.h>
+ #include <opcua_decoder.h>
+ 
++OPCUA_BEGIN_EXTERN_C
++
+ typedef struct _OpcUa_SimpleBinaryDecoder
+ {
+     OpcUa_InputStream *pInputStream;
+@@ -78,4 +80,6 @@ OpcUa_StatusCode OpcUa_SimpleBinaryDecoder_ReadDataValue(OpcUa_SimpleBinaryDecod
+ OpcUa_StatusCode OpcUa_SimpleBinaryDecoder_ReadVariant(OpcUa_SimpleBinaryDecoder *a_pDecoder, OpcUa_Variant *pValue);
+ OpcUa_StatusCode OpcUa_SimpleBinaryDecoder_ReadDiagnosticInfo(OpcUa_SimpleBinaryDecoder *a_pDecoder, OpcUa_DiagnosticInfo *pValue);
+ 
++OPCUA_END_EXTERN_C
++
+ #endif /* OPCUA_SIMPLEBINARYDECODER_H */
+diff --git a/src/uastack/utilities/opcua_simplebinaryencoder.h b/src/uastack/utilities/opcua_simplebinaryencoder.h
+index 7dcd86a81aa8..7673fab2092c 100644
+--- a/src/uastack/utilities/opcua_simplebinaryencoder.h
++++ b/src/uastack/utilities/opcua_simplebinaryencoder.h
+@@ -30,6 +30,8 @@
+ #include <opcua_proxystub.h>
+ #include <opcua_encoder.h>
+ 
++OPCUA_BEGIN_EXTERN_C
++
+ typedef struct _OpcUa_SimpleBinaryEncoder
+ {
+     OpcUa_OutputStream *pOutputStream;
+@@ -77,4 +79,6 @@ OpcUa_StatusCode OpcUa_SimpleBinaryEncoder_WriteDataValue(OpcUa_SimpleBinaryEnco
+ OpcUa_StatusCode OpcUa_SimpleBinaryEncoder_WriteVariant(OpcUa_SimpleBinaryEncoder *a_pEncoder, OpcUa_Variant *pValue);
+ OpcUa_StatusCode OpcUa_SimpleBinaryEncoder_WriteDiagnosticInfo(OpcUa_SimpleBinaryEncoder *a_pEncoder, OpcUa_DiagnosticInfo *pValue);
+ 
++OPCUA_END_EXTERN_C
++
+ #endif /* OPCUA_SIMPLEBINARYENCODER_H */

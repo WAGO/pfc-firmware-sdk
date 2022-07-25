@@ -5,11 +5,11 @@
 #
 # This file is part of WAGO PFC BSP.
 #
-# Copyright (c) 2018-2021 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #
 # Contributors:
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
-#   AGa: WAGO Kontakttechnik GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
+#   AGa: WAGO GmbH & Co. KG
 #######################################################################################################################
 
 -include selected_platformconfig
@@ -25,11 +25,7 @@ IMAGE_DIR ?= $(PLATFORMDIR)/images
 OUT_DIR ?= $(IMAGE_DIR)
 PLATFORM ?= $(shell echo $(PTXCONF_PLATFORM))
 SD_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_SD)$(PTXCONF_IMAGE_SRC_SD)" | grep --only-matching y)
-ifeq ($(PLATFORM),wago-pfc-adv)
-PRODUCTION_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_PRODUCTION)")
-else
 PRODUCTION_ACTIVATED = $(shell echo "$(PTXCONF_HOST_WAGO_CM_PRODUCTION)")
-endif
 DOWNGRADE_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_SD_DOWNGRADE)")
 RAUC_ACTIVATED = $(shell echo "$(PTXCONF_IMAGE_RAUC)")
 PROJECT ?= $(shell echo $(PTXCONF_PROJECT))
@@ -57,8 +53,6 @@ FIRMWARE_PLATFORM ?= PFC-G2-Linux
 else
 FIRMWARE_PLATFORM ?= PFC-Linux
 endif
-else ifeq ($(PLATFORM),wago-pfc-adv)
-FIRMWARE_PLATFORM ?= PFC_ADV-Linux
 else ifeq ($(PLATFORM),wago-pfcXXX-hardened)
 ifdef PTXCONF_PFC_200_G2
 FIRMWARE_PLATFORM ?= PFC-G2-Linux-hardened
@@ -92,13 +86,8 @@ SD_IMAGE_ORIGINAL ?= $(PLATFORMDIR)/images/sd.hdimg
 # WAGO Update Package
 WUP ?= $(OUT_DIR)/$(FIRMWARE_PLATFORM)_update_$(IMAGE_ID).wup
 WUP_CONTROLFILE ?= $(OUT_DIR)/package-info.xml
-ifeq ($(PLATFORM),wago-pfc-adv)
-WUP_CONTROLFILE_SCHEMA ?= $(BUILDSUPPORTDIR)/WagoUpdatePackage_2_0.xsd
-WUP_CONTROLFILE_GENERATOR ?= shared_public/build/create_wup2_controlfile.sh
-else
 WUP_CONTROLFILE_SCHEMA ?= $(BUILDSUPPORTDIR)/FWUPFC-Linux_1_0.xsd
 WUP_CONTROLFILE_GENERATOR ?= shared_public/build/create_wup_controlfile.sh
-endif
 export WUP_PASSWORD ?= 
 WUP_ATTACHMENTS +=
 WUP_FILES = $(WUP_CONTROLFILE)
@@ -144,12 +133,7 @@ PRODUCTION_IMAGES += $(OUT_DIR)/nand-wago-production-pfc200v2_$(IMAGE_ID).ubi
 endif
 endif
 
-ifneq ($(PLATFORM),wago-pfc-adv)
 PRODUCTION_IMAGES += $(OUT_DIR)/firmware_$(IMAGE_ID).hex
-else
-PRODUCTION_IMAGES += $(OUT_DIR)/production_$(IMAGE_ID).zip
-endif
-
 PRODUCTION_IMAGES += $(OUT_DIR)/vmlinux_$(IMAGE_ID)
 
 # Firmware description files

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -12,15 +12,18 @@
 ///
 ///  \brief    Error handling.
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
-///  \author   MOe : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
+///  \author   MOe : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include "error_handling.hpp"
 
 #include <cassert>
+#include <syslog.h>
 
-::std::string erh_prgname;
+namespace configdnsmasq {
+
+::std::unique_ptr<configdnsmasq::Logger> logger;
 
 /**
  * Table to convert error codes to text.
@@ -41,8 +44,9 @@ static erh_code_to_message_t code_to_msg[] = {
     { SUCCESS, "UNDEFINED" }                   // End marker, don't remove.
 };
 
+
 void erh_init(const ::std::string &prgname) {
-  erh_prgname = prgname;
+  logger = ::std::make_unique<configdnsmasq::Logger>(prgname);
 
   erh_code_to_message_t *p = code_to_msg;
   do {
@@ -54,6 +58,8 @@ void erh_init(const ::std::string &prgname) {
 void erh_set_error(enum eStatusCode code, const std::string &message, bool exit_on_error) {
   erh_code_to_message_t *p = code_to_msg;
 
+  erh_log(::std::string{"exit_on_error: "} + (exit_on_error ? "true" : "false"));
+
   do {
     if (p->code == code) {
       break;
@@ -61,11 +67,12 @@ void erh_set_error(enum eStatusCode code, const std::string &message, bool exit_
     p++;
   } while (p->code != SUCCESS);
 
-  auto m = (boost::format("%s: " + message) % erh_prgname).str();
+  auto m = (boost::format("%s: " + message) % logger->identifier_).str();
 
   ct_liblog_setLastError(m.c_str());
 
   fprintf(stderr, "%s: %s; code: %d\n", p->text, m.c_str(), code);
+  syslog(LOG_DEBUG, "%s: %s; code: %d\n", p->text, message.c_str(), code);
 
   if (exit_on_error) {
     exit(code);
@@ -81,3 +88,9 @@ void erh_assert(bool condition, enum eStatusCode code, const std::string &messag
 void erh_assert(bool condition, enum eStatusCode code, const boost::format &message, bool exit_on_error) {
   erh_assert(condition, code, message.str(), exit_on_error);
 }
+
+void erh_log(const std::string &message) {
+  syslog(LOG_DEBUG, "%s\n", message.c_str());
+}
+
+} // namespace configdnsmasq

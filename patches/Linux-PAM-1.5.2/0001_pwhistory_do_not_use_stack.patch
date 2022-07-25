@@ -1,0 +1,46 @@
+--- a/modules/pam_pwhistory/opasswd.c	2022-05-02 13:09:11.473166719 +0200
++++ b/modules/pam_pwhistory/opasswd.c	2022-05-02 13:08:51.189229741 +0200
+@@ -66,6 +66,7 @@
+ #include <security/pam_modutil.h>
+ #include <security/pam_ext.h>
+ #endif
++#include <security/_pam_macros.h> // x_strdup
+ #include <security/pam_modules.h>
+ 
+ #include "opasswd.h"
+@@ -126,18 +126,28 @@
+ static int
+ compare_password(const char *newpass, const char *oldpass)
+ {
+-  char *outval;
++  int retval;
++  char *outval = NULL;
+ #ifdef HAVE_CRYPT_R
+-  struct crypt_data output;
+-
+-  output.initialized = 0;
++  struct crypt_data *output;
+ 
+-  outval = crypt_r (newpass, oldpass, &output);
++  output = calloc(1, sizeof(*output));
++  if(output != NULL)
++  {
++    outval = x_strdup(crypt_r (newpass, oldpass, output));
++    memset(output, '\0', sizeof(*output));
++    free(output);
++  }
+ #else
+-  outval = crypt (newpass, oldpass);
++  outval = x_strdup(crypt (newpass, oldpass));
+ #endif
+ 
+-  return outval != NULL && strcmp(outval, oldpass) == 0;
++  retval = outval != NULL && strcmp(outval, oldpass) == 0;
++
++  if(outval)
++    free(outval);
++
++  return retval;
+ }
+ 
+ /* Check, if the new password is already in the opasswd file.  */

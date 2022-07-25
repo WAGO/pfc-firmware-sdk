@@ -6,14 +6,14 @@
 #
 # This file is part of project ct-board-specific-extensions.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   pfcXXX_config_network_switch_eeprom.sh
 #
 # Brief:    Setup EEPROM of network switch.
 #
-# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MOe: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # Set error on use of undefined shell variables

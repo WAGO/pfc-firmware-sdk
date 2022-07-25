@@ -1,0 +1,18 @@
+#/# For a description of pkg-config, see
+#/# https://people.freedesktop.org/~dbn/pkg-config-guide.html
+
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: snmp-config-lib
+Description: An example on how to use WAGO ct-build
+Version: 0.1.0
+Requires: 
+Requires.private: 
+#/# If this library installs its headers into a non-standard folder, an additional entry to the
+#/# include search path is necessary.
+Libs: -L${libdir} -lsnmpconfig
+Cflags: -I${includedir}/snmp-config-lib
+Libs.private:

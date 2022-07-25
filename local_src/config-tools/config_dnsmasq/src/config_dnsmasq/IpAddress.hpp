@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,13 +11,15 @@
 ///
 ///  \brief    Class representation of a port configuration
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #ifndef SRC_CONFIG_DNSMASQ_IPADDRESS_HPP_
 #define SRC_CONFIG_DNSMASQ_IPADDRESS_HPP_
 
 #include <string>
+
+namespace configdnsmasq {
 
 class IpAddress {
  public:
@@ -33,5 +35,7 @@ class IpAddress {
   std::string string_;
   uint32_t binary_;
 };
+
+} // namespace configdnsmasq
 
 #endif /* SRC_CONFIG_DNSMASQ_IPADDRESS_HPP_ */

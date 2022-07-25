@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2014 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2014-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,11 +11,11 @@
 ///
 ///  \file     config_switch.c
 ///
-///  \version  $Revision: 50494 $1
+///  \version  $Revision: 66689 $1
 ///
 ///  \brief    
 ///
-///  \author   AGa : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   AGa : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -136,18 +136,6 @@ static int __ct_get_missing_opts(struct options *opts)
             }
         }
     }
-    
-    if(SUCCESS == status && NULL == opts->fastAging)
-    {
-        char fastAging[2];
-        fastAging[0] = '\0';
-        status = ct_libnet_get_fast_aging(opts->switchName, fastAging, sizeof(fastAging));
-
-        if(SUCCESS == status)
-        {
-            opts->fastAging = g_strdup(fastAging);
-        }
-    }   
 
     return status;
 }
@@ -339,7 +327,6 @@ int main(int argc, char **argv)
 
                 settings.bcastProtect = opts.bcastProtect;
                 settings.portMirror = opts.portMirror;
-                settings.fastAging = opts.fastAging;
                 settings.rateLimit = opts.rateLimit;
 
                 status = ct_libnet_save_switch_settings_to_config(SWITCH_SETTINGS_CONF, &settings);

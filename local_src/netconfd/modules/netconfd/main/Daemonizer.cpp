@@ -4,7 +4,7 @@
 ///
 ///  \brief    Create daemon and corresponding pid-file.
 ///
-///  \author   WAGO Kontakttechnik GmbH & Co. KG
+///  \author   WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #include "Daemonizer.hpp"
 
@@ -64,19 +64,19 @@ Status Daemonizer::Daemonize(InterprocessCondition &condition) {
     LogInfo("Daemonizer: initial process exits");
     exit(EXIT_SUCCESS);
   } else if (pid < 0) {
-    return MakeSystemCallError("fork");
+    return MAKE_SYSTEMCALL_ERROR("fork");
   }
 
   // Become session leader
   if (setsid() < 0) {
-    return MakeSystemCallError("setsid");
+    return MAKE_SYSTEMCALL_ERROR("setsid");
   }
 
   signal(SIGHUP, SIG_IGN);  // NOLINT old style cast in system definition
 
   pid = fork();
   if (pid < 0) {
-    return MakeSystemCallError("fork");
+    return MAKE_SYSTEMCALL_ERROR("fork");
   }
 
   // Exit first child process.
@@ -87,7 +87,7 @@ Status Daemonizer::Daemonize(InterprocessCondition &condition) {
   // Set working directory.
   umask(0);
   if (chdir("/") < 0) {
-    return MakeSystemCallError("chdir");
+    return MAKE_SYSTEMCALL_ERROR("chdir");
   }
 
   // Close file descriptors
@@ -100,7 +100,7 @@ Status Daemonizer::Daemonize(InterprocessCondition &condition) {
   auto fd1 = dup(fd0);
   auto fd2 = dup(fd0);
   if (fd0 != 0 || fd1 != 1 || fd2 != 2) {
-    return MakeSystemCallError("open or dup");
+    return MAKE_SYSTEMCALL_ERROR("open or dup");
   }
   return Status::Ok();
 }
@@ -118,7 +118,7 @@ Status Daemonizer::PreparePidDir() const {
     // Setup dir
     if (!ExistsFile(run_directory_.c_str())) {
       if (0 != mkdir(run_directory_.c_str(), 0644)) {
-        status = MakeSystemCallError("mkdir");
+        status = MAKE_SYSTEMCALL_ERROR("mkdir");
       }
     }
   }
@@ -153,12 +153,12 @@ Status Daemonizer::OpenAndLockPidFile() {
 
   pid_file_handle_ = open(static_cast<const char *>(pidFilePath.c_str()), O_RDWR | O_CREAT, 0644);
   if (pid_file_handle_ < 0) {
-    return MakeSystemCallError("open");
+    return MAKE_SYSTEMCALL_ERROR("open");
   }
 
   if (lockRegion(pid_file_handle_, F_WRLCK, SEEK_SET, 0, 0) == -1) {
     if (errno == EAGAIN || errno == EACCES) {
-      return MakeSystemCallError("fcntl");
+      return MAKE_SYSTEMCALL_ERROR("fcntl");
     }
   }
   return Status::Ok();
@@ -171,7 +171,7 @@ Status Daemonizer::WritePidFile() {
 
   if (status.IsOk()) {
     if (ftruncate(pid_file_handle_, 0) == -1) {
-      status = MakeSystemCallError("ftruncate");
+      status = MAKE_SYSTEMCALL_ERROR("ftruncate");
     }
   }
 
@@ -183,7 +183,7 @@ Status Daemonizer::WritePidFile() {
     if (pidLength > 0) {
       ssize_t bytesWritten = write(pid_file_handle_, static_cast<char *>(szPid), static_cast<size_t>(pidLength));
       if (bytesWritten <= 0) {
-        status = MakeSystemCallError("write");
+        status = MAKE_SYSTEMCALL_ERROR("write");
       }
     }
   }
@@ -201,14 +201,14 @@ Status Daemonizer::SetCloseOnExecFlag() const {
 
   int flags = fcntl(pid_file_handle_, F_GETFD);
   if (flags == -1) {
-    status = MakeSystemCallError("fcntl");
+    status = MAKE_SYSTEMCALL_ERROR("fcntl");
   }
 
   if (status.IsOk()) {
     flags |= FD_CLOEXEC;
 
     if (fcntl(pid_file_handle_, F_SETFD, flags) == -1) {
-      status = MakeSystemCallError("fcntl");
+      status = MAKE_SYSTEMCALL_ERROR("fcntl");
     }
   }
 

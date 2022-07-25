@@ -3,11 +3,11 @@
 config SNMPCONFIGAGENT
 	bool
 	select GLIB
-	select PROGEXECD
 	select NET_SNMP
+	select SNMP_CONFIG_LIB
 	prompt "SNMP Config Agent"
 	help
-	  Daemon providing read and write support for following entries:
+	  Daemon providing read and write support for the following entries:
 	  - sysContact,  OID: .1.3.6.1.2.1.1.4.0
 	  - sysName,     OID: .1.3.6.1.2.1.1.5.0
 	  - sysLocation, OID: .1.3.6.1.2.1.1.6.0

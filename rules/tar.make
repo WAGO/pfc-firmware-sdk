@@ -40,10 +40,19 @@ TAR_CONF_OPT	:= \
 	--disable-rpath \
 	--disable-nls \
 	--disable-backup-scripts \
-	--with-posix-acls \
 	--with-included-regex \
 	--without-selinux \
 	--with-xattrs
+
+# tar has a silent dependency to libacl! if libacl was build and
+# "with-posix-acls" is set in configure, then tar will have a
+# runtime dependency to libacl which might not be installed within
+# targetimage, e.g. libacl is build as module
+ifeq ($(PTXCONF_ACL),y)
+	TAR_CONF_OPT	+= --with-posix-acls
+else
+	TAR_CONF_OPT	+= --without-posix-acls
+endif
 
 # ----------------------------------------------------------------------------
 # Target-Install

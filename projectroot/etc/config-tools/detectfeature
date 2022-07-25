@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: features/exist
@@ -13,8 +13,8 @@
 #######################################################
 # Check if a specific feature exist in the actual feature set
 #
-# Author:   JO:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   JO:  WAGO GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 #------------------------------------------------------------------------------

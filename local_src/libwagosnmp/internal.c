@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,11 +10,11 @@
 ///
 ///  \file     internal.c
 ///
-///  \version  $Rev: 63521 $
+///  \version  $Rev: 66937 $
 ///
 ///  \brief    <Insert description here>
 ///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <author> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include "error.h"
@@ -591,7 +591,7 @@ INTERNAL_SYM int INTERNAL_SendTrapMsg(tWagoSnmpMsg *msg) {
     if (0 < poll(&fdsnd, 1, -1)) {
       ret = mq_send(mq, (const char *)msg, sizeof(tWagoSnmpMsg), 0);
     }
-    close(mq);
+    mq_close(mq);
   }
   return ret;
 }
@@ -611,7 +611,7 @@ INTERNAL_SYM int INTERNAL_SendReleaseOIDs(void) {
     if (0 < poll(&fdsnd, 1, -1)) {
       ret = mq_send(mq, (const char *)&msg, sizeof(tWagoSnmpMsg), 0);
     }
-    close(mq);
+    mq_close(mq);
   }
   return ret;
 }
@@ -636,7 +636,7 @@ INTERNAL_SYM int INTERNAL_InformForNewOid(tOidObject *object) {
     if (0 < poll(&fdsnd, 1, -1)) {
       ret = mq_send(mq, (const char *)&msg, sizeof(tWagoSnmpMsg), 0);
     }
-    close(mq);
+    mq_close(mq);
   }
   return ret;
 }

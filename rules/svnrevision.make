@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2013 by WAGO Kontakttechnik GmbH.>
+# Copyright (C) 2013 by WAGO GmbH.>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -36,6 +36,7 @@ ETC_SVNREVISION_BUILD_DATE="$(call assert,$(shell date),"Error: cannot determine
 ETC_SVNREVISION_BUILD_DATE_BASIC="$(call assert,$(shell date +%Y%m%d),"Error: cannot determine current basic date. Aborting!")"
 ETC_SVNREVISION_BUILD_URL="$(call assert,$(shell ptxd_get_svn_build_url '@$(PTXCONF_PLATFORM)'),"Error: cannot determine SVN URL. Aborting!")"
 ETC_SVNREVISION_BUILD_CONFIG="$(call assert,$(shell basename '$(shell readlink $(PTXDIST_WORKSPACE)/selected_ptxconfig)'),"Error: cannot determine config. Aborting!")"
+ETC_SVNREVISION_BUILD_TAG="$(call assert,$(shell ptxd_get_jenkins_env),"Error: cannot determine TestEnv. Aborting!")"
 
 endif
 
@@ -46,7 +47,7 @@ $(STATEDIR)/svnrevision.targetinstall: $(PTXDIST_PTXCONFIG) $(PTXDIST_PLATFORMCO
 
 	@$(call install_fixup,svnrevision,PRIORITY,optional)
 	@$(call install_fixup,svnrevision,SECTION,base)
-	@$(call install_fixup,svnrevision,AUTHOR,"WAGO Kontakttechnik GmbH.")
+	@$(call install_fixup,svnrevision,AUTHOR,"WAGO GmbH.")
 	@$(call install_fixup,svnrevision,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
@@ -74,6 +75,9 @@ else
 
 	@$(call install_replace, svnrevision, /etc/SVNREVISION, \
 		@SVN_BUILD_CONFIG@, $(ETC_SVNREVISION_BUILD_CONFIG))
+		
+	$(call install_replace, svnrevision, /etc/SVNREVISION, \
+		@SVN_BUILD_TAG@, $(ETC_SVNREVISION_BUILD_TAG))
 
 endif
 	@$(call install_finish,svnrevision)

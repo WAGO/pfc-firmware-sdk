@@ -16,8 +16,7 @@
 #include <cstring>
 #include <gsl/gsl>
 
-
-extern "C" char *if_indextoname(unsigned int __ifindex, char *__ifname);
+extern "C" char* if_indextoname(unsigned int __ifindex, char *__ifname);
 
 namespace netconf {
 
@@ -35,10 +34,9 @@ EthernetInterface::EthernetInterface(::std::string name)
       ifreq_ { },
       socket_ { AF_INET, SOCK_DGRAM, IPPROTO_IP },
       mtu_ { },
-      ethtool_{socket_, name_} ,
-      ethtool_settings_r_{ethtool_.Create()},
-      ethtool_settings_w_{ethtool_.Create()}
-      {
+      ethtool_ { socket_, name_ },
+      ethtool_settings_r_ { ethtool_.Create() },
+      ethtool_settings_w_ { ethtool_.Create() } {
 
   strncpy(ifreq_.ifr_name, name_.c_str(), name_.size());  // NOLINT: must access union members in legacy data structures.
 
@@ -50,12 +48,7 @@ EthernetInterface::EthernetInterface(::std::string name)
   InitializeData();
 }
 
-void EthernetInterface::InitializeData() {
-
-  if (ioctl(socket_, SIOCGIFMTU, &ifreq_) < 0) {
-    throw ::std::system_error(errno, ::std::system_category(), "EthernetInterface: ioctl() SIOCGIFHWADDR failed");
-  }
-  mtu_ = static_cast<std::size_t>(ifreq_.ifr_mtu);  // NOLINT: must access union members in legacy data structures.
+void EthernetInterface::UpdateMac() {
   if (ioctl(socket_, SIOCGIFHWADDR, &ifreq_) < 0) {
     throw ::std::system_error(errno, ::std::system_category(), "EthernetInterface: ioctl() SIOCGIFHWADDR failed");
   }
@@ -66,11 +59,23 @@ void EthernetInterface::InitializeData() {
   mac_[4] = static_cast<uint8_t>(ifreq_.ifr_hwaddr.sa_data[4]);  // NOLINT: must access union members in legacy data structures.
   mac_[5] = static_cast<uint8_t>(ifreq_.ifr_hwaddr.sa_data[5]);  // NOLINT: must access union members in legacy data structures.
 
-  ethtool_.Update(ethtool_settings_r_);
+}
+
+void EthernetInterface::UpdateMtu() {
+  if (ioctl(socket_, SIOCGIFMTU, &ifreq_) < 0) {
+    throw ::std::system_error(errno, ::std::system_category(), "EthernetInterface: ioctl() SIOCGIFHWADDR failed");
+  }
+  mtu_ = static_cast<std::size_t>(ifreq_.ifr_mtu);  // NOLINT: must access union members in legacy data structures.
+}
+
+void EthernetInterface::InitializeData() {
+  UpdateConfig();
   ethtool_settings_w_ = ethtool_settings_r_;
 }
 
 void EthernetInterface::UpdateConfig() {
+  UpdateMtu();
+  UpdateMac();
   ethtool_.Update(ethtool_settings_r_);
 }
 
@@ -120,7 +125,6 @@ int16_t EthernetInterface::GetIfFlags() const {
   }
   return ifreq_.ifr_flags;  // NOLINT: must access union members in legacy data structures.
 }
-
 
 DeviceState EthernetInterface::GetState() const {
   return ethtool_settings_r_.GetIfState();

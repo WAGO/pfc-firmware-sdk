@@ -6,19 +6,19 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_store
 #
 # Brief:    Save the actual configuration settings of PFC.
 #
-# Author:   StM: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MSc: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   StM: WAGO GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   HJH: WAGO GmbH & Co. KG
+# Author:   MOe: WAGO GmbH & Co. KG
+# Author:   OG:  WAGO GmbH & Co. KG
+# Author:   MSc: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load common backup/restore functions
@@ -331,7 +331,7 @@ if ! setupBackupFile; then
 fi
 
 # display progress bar
-if [ -x "$(which pv)" ]; then
+if [ -x "$(which pv)" -a "$NOPV" = "" ]; then
     # start backup as subprocess (we start progress bar in parallel and have to
     # know when the backup is over
     createBackupFile &

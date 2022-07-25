@@ -41,7 +41,7 @@ void MacController::SetMac(const MacAddress &mac, ::std::string const &interface
     int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (socket_fd != -1) {
       if (ioctl(socket_fd, SIOCSIFHWADDR, &ifr) == -1) {
-        status = MakeSystemCallError("ioctl");
+        status = MAKE_SYSTEMCALL_ERROR("ioctl");
       }
       close(socket_fd);
     }

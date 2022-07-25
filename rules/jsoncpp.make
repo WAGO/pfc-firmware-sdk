@@ -5,7 +5,7 @@
 #
 # This file is part of PTXdist package nlohmann-json.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019 WAGO GmbH & Co. KG
 #######################################################################################################################
 # Makefile for PTXdist package jsoncpp.
 #

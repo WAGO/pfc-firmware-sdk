@@ -5,7 +5,7 @@
 # Copyright by Pengutronix.
 #
 # Adapted to create XML configurations from Kconfig-style menus
-# by WAGO Kontakttechnik GmbH und Co. KG
+# by WAGO GmbH und Co. KG
 #
 
 #Note: PTXdist is a build system which generates a distribution for 

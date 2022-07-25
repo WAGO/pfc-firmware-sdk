@@ -2,7 +2,7 @@
 
 # Build ipkg for installing 3s opcuaserver on pfc firmware
 #
-# WAGO Kontakttechnik GmbH & Co. KG
+# WAGO GmbH & Co. KG
 
 PTXPROJ=$(pwd)
 
@@ -107,7 +107,7 @@ echo "Priority: optional"                                  >> ${BUILD_DIR}/contr
 echo "Version:  $OPCUA_IPK_VERSION"                        >> ${BUILD_DIR}/control/control
 echo "Section:    base"                                    >> ${BUILD_DIR}/control/control
 echo "Architecture: armhf"                                 >> ${BUILD_DIR}/control/control
-echo "Maintainer: \"WAGO Kontakttechnik GmbH & Co. KG \" " >> ${BUILD_DIR}/control/control
+echo "Maintainer: \"WAGO GmbH & Co. KG \" " >> ${BUILD_DIR}/control/control
 echo "Depends: "                                           >> ${BUILD_DIR}/control/control
 echo "Source: "                                            >> ${BUILD_DIR}/control/control
 echo "Description:  Installation for 3s opcuaserver. This packet is a meta packet including all parts need for server." >> ${BUILD_DIR}/control/control
@@ -118,7 +118,7 @@ echo "              This packet is build for Firmware Version $FW_VERSION" >> ${
 #---------------------------------------------------------
 echo "#!/bin/bash"                                > ${BUILD_DIR}/control/postinst
 echo "#"                                         >> ${BUILD_DIR}/control/postinst
-echo "# WAGO Kontakttechnik GmbH & Co. KG"       >> ${BUILD_DIR}/control/postinst
+echo "# WAGO GmbH & Co. KG"       >> ${BUILD_DIR}/control/postinst
 echo ""                                          >> ${BUILD_DIR}/control/postinst
 echo "source /etc/profile &>/dev/null"           >> ${BUILD_DIR}/control/postinst
 echo "function start_update"                     >> ${BUILD_DIR}/control/postinst

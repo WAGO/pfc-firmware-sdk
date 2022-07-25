@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_RUNTIME_SERVICES) += wbm-ng-plugin-runtime-serv
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_RUNTIME_SERVICES_VERSION        := 1.2.0
+WBM_NG_PLUGIN_RUNTIME_SERVICES_VERSION        := 1.3.0
 WBM_NG_PLUGIN_RUNTIME_SERVICES                := wbm-runtime-services-$(WBM_NG_PLUGIN_RUNTIME_SERVICES_VERSION)
 WBM_NG_PLUGIN_RUNTIME_SERVICES_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_RUNTIME_SERVICES)
 WBM_NG_PLUGIN_RUNTIME_SERVICES_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_RUNTIME_SERVICES_URL))
@@ -84,7 +84,7 @@ $(STATEDIR)/wbm-ng-plugin-runtime-services.targetinstall:
 	@$(call install_init, wbm-ng-plugin-runtime-services)
 	@$(call install_fixup, wbm-ng-plugin-runtime-services, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-runtime-services, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-runtime-services, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-runtime-services, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-runtime-services, DESCRIPTION, missing)
 
 	# create target directory itself

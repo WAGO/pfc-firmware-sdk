@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2012 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -125,7 +125,7 @@ $(STATEDIR)/libdbuskbuscommon.targetinstall:
 	@$(call install_init, libdbuskbuscommon)
 	@$(call install_fixup, libdbuskbuscommon,PRIORITY,optional)
 	@$(call install_fixup, libdbuskbuscommon,SECTION,base)
-	@$(call install_fixup, libdbuskbuscommon,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
+	@$(call install_fixup, libdbuskbuscommon,AUTHOR,"<WAGO GmbH \& Co. KG>")
 	@$(call install_fixup, libdbuskbuscommon,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES

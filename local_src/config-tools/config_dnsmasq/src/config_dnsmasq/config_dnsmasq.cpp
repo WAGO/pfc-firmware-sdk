@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2014-2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2014-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,9 +11,9 @@
 ///
 ///  \brief    Configuration tool to configure DNS and DHCP service.
 ///
-///  \author   HJH, WAGO Kontakttechnik GmbH & Co. KG.
-///  \author   MSc, WAGO Kontakttechnik GmbH & Co. KG.
-///  \author   MOe, WAGO Kontakttechnik GmbH & Co. KG.
+///  \author   HJH, WAGO GmbH & Co. KG.
+///  \author   MSc, WAGO GmbH & Co. KG.
+///  \author   MOe, WAGO GmbH & Co. KG.
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -58,8 +58,9 @@
 #define DNSMASQ_RESTART_CMD     "/etc/init.d/dnsmasq restart"
 #define DNSMASQ_LEASE_FILE      "/var/lib/misc/dnsmasq.leases"
 #define DNS_DEFAULT_CACHE       500
-#define MAX_STATIC_HOSTS           15
+#define MAX_STATIC_HOSTS        15
 
+namespace configdnsmasq {
 
 namespace {
 
@@ -493,7 +494,7 @@ typedef struct xml_param {
     handle.xml_session = NULL;
     handle.modified = false;
     if (SUCCESS != (status = ct_xml_start_session(xml_file.c_str(), &(handle.xml_session)))) {
-      erh_set_error((eStatusCode)status, "XML config file missing or wrong format", "");
+      erh_set_error((eStatusCode)status, "XML config file missing or wrong format");
     }
     return handle;
   }
@@ -952,7 +953,7 @@ typedef struct xml_param {
     auto it = dnsmasq_conf_content.find(DNSMASQ_DONT_CHANGE_MARKER);
 
     if (it != ::std::string::npos) {
-      erh_set_error(CONFIG_FILE_INCONSISTENT, "Detected manually edited dnsmasq.conf.", "");
+      erh_set_error(CONFIG_FILE_INCONSISTENT, "Detected manually edited dnsmasq.conf.");
     }
   }
 
@@ -1027,7 +1028,7 @@ typedef struct xml_param {
     auto dnsstate = ct_dnsmasq_get_value(handle, DNS, "", "dns-state");
     if (dnsstate == "enabled") {
       for (auto &port : ip_config.port_data_list) {
-        if (port.state_ == "enabled") {
+        if (port.state_ == "enabled" && port.has_valid_ip_config()) {
             stream << "interface=" << port.port_name_ << "\n";
         }
       }
@@ -1421,7 +1422,11 @@ typedef struct xml_param {
               break;
               /*NOTREACHED*/
           default:
-              erh_set_error(INVALID_PARAMETER, "Illegal command line option", "");
+              if(argc > 0 && optind > 0) {
+                ::std::string option{argv[optind-1]};
+                erh_set_error(INVALID_PARAMETER, "Illegal command line option: " + option);
+              }
+              erh_set_error(INVALID_PARAMETER, "Illegal command line option.");
               break;
           }
       }
@@ -1536,7 +1541,8 @@ void set_config(const service_t &service, const std::string &port, int argc, cha
  */
 void generate_config_file(const prgconf_t &prgconf, dnsmasq_handle_t &session, IpConfiguration &ip_config,
                           const std::vector<::std::string> &ports) {
-  ct_dnsmasq_check_ip_dependencies(ip_config, session, ports);
+
+  ct_dnsmasq_check_ip_dependencies(ip_config, session, ports); // DHCP part
   ct_dnsmasq_save_xml_file (session);
   ct_dnsmasq_edit_etc_hosts(session, prgconf.etchosts);
   ct_dnsmasq_generate_conf(session, prgconf.dnsmasq_conf_tmp, ports, ip_config);
@@ -1697,3 +1703,5 @@ int execute(int argc, char **argv) {
 
   return 0;
 }
+
+} // namespace configdnsmasq

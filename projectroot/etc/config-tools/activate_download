@@ -3,14 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: activate_download
 #
 # Activate a previously loaded download-file
 #
-# Author: WAGO Kontakttechnik GmbH
+# Author: WAGO GmbH
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -72,7 +72,7 @@ else
   filename=`ls $path`
 
   # check if there is a file in directory at all
-  if [ -z $filename ]; then
+  if [ -z "$filename" ]; then
     status=$INTERNAL_ERROR
     ReportError $status "(path $path is empty)"
     SetLastError "No Download-File found"
@@ -115,7 +115,7 @@ else
                 fi
               fi
                           # delete download-file
-                          rm $path/$filename
+                          rm "$path/$filename"
                           if [ $? != $SUCCESS ]; then
                             status=$SHELL_ERROR
                             ReportError $status "(rm $path/$filename)"

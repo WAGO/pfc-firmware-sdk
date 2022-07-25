@@ -16,10 +16,10 @@ class EthernetInterface : public IEthernetInterface {
  public:
   explicit EthernetInterface(::std::string name);
   virtual ~EthernetInterface() = default;
-  EthernetInterface(const EthernetInterface& other) = default;
-  EthernetInterface& operator=(const EthernetInterface& other) = default;
-  EthernetInterface(EthernetInterface&& other) = default;
-  EthernetInterface& operator=(EthernetInterface&& other) = default;
+  EthernetInterface(const EthernetInterface& other) = delete;
+  EthernetInterface& operator=(const EthernetInterface& other) = delete;
+  EthernetInterface(EthernetInterface&& other) = delete;
+  EthernetInterface& operator=(EthernetInterface&& other) = delete;
 
   void UpdateConfig() override;
   MacAddress GetMac() const override;
@@ -48,6 +48,8 @@ class EthernetInterface : public IEthernetInterface {
   void SetIfFlags(int16_t if_flags);
   int16_t GetIfFlags() const;
   void InitializeData();
+  void UpdateMac();
+  void UpdateMtu();
 
   mutable ::std::mutex data_mutex_;
   uint8_t mac_[6];

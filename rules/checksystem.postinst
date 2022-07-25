@@ -1,6 +1,6 @@
 #!/bin/bash
 # checksystem post install script: create crontab entry to start  check_system.sh
-# WAGO Kontakttechnik GmbH & Co. KG
+# WAGO GmbH & Co. KG
 
 setcrontab()
 {

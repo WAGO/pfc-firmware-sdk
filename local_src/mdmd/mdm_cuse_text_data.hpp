@@ -5,14 +5,14 @@
 //
 // This file is part of project mdmd (PTXdist package mdmd).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     mdm_cuse_text_data.hpp
 ///
 ///  \brief    Text data functions for MDMD CUSE.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef MDM_CUSE_TEXT_DATA_H_
 #define MDM_CUSE_TEXT_DATA_H_

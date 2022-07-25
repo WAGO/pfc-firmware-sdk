@@ -6,15 +6,15 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2015-2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2015-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   pfcXXX_update_bootloader.sh
 #
 # Brief:    Update script for PFC bootloaders.
 #
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 #

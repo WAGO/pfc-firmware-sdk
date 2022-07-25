@@ -1,0 +1,5 @@
+## SECTION=hosttools_noprompt
+
+config HOST_RE2
+	select HOST_CMAKE
+	tristate

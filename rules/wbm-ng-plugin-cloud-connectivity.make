@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2019 WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_CLOUDCONNECTIVITY) += wbm-ng-plugin-cloudconnec
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_CLOUDCONNECTIVITY_VERSION        := 1.11.5
+WBM_NG_PLUGIN_CLOUDCONNECTIVITY_VERSION        := 1.12.5
 WBM_NG_PLUGIN_CLOUDCONNECTIVITY                := wbm-cloud-connectivity-$(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_VERSION)
 WBM_NG_PLUGIN_CLOUDCONNECTIVITY_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_CLOUDCONNECTIVITY)
 WBM_NG_PLUGIN_CLOUDCONNECTIVITY_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_CLOUDCONNECTIVITY_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-cloudconnectivity.targetinstall:
 	@$(call install_init, wbm-ng-plugin-cloudconnectivity)
 	@$(call install_fixup, wbm-ng-plugin-cloudconnectivity, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-cloudconnectivity, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-cloudconnectivity, AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-cloudconnectivity, AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-cloudconnectivity, DESCRIPTION, missing)
 
 	# create target directory itself

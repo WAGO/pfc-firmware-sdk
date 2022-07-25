@@ -5,10 +5,10 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018 WAGO GmbH & Co. KG
 #
 # Contributors:
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
 #######################################################################################################################
 # Makefile for PTXdist package wago-fwupdate.
 #

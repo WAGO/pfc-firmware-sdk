@@ -6,16 +6,16 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2014-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2014-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   mounthd2
 #
 # Brief:    Script to mount target specific devices and folders.
 #
-# Author:   HT:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HT:  WAGO GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
+# Author:   MLa: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 

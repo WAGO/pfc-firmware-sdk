@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,11 +10,11 @@
 ///
 ///  \file     led_blink_periodic.c
 ///
-///  \version  $Revision: 12545 $
+///  \version  $Revision: 65689 $
 ///
 ///  \brief    This File serves all functions for periodical blinking
 ///
-///  \author   Hans Florian Scholz : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Hans Florian Scholz : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

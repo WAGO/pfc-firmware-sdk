@@ -262,9 +262,9 @@ if [ "$operation" = "restore" ]; then
         check_UID_presence "$current_uid"
         if [[  $? == 0 ]]; then
             # UID not found, add user record
-            awk -F: -v pat="$current_username" 'BEGIN{OFS=":"}$1~pat{print}' /etc/passwd >> "$backup_dir_merged/passwd"
+            awk -F: -v user="$current_username" '$1==user{print}' /etc/passwd >> "$backup_dir_merged/passwd"
             # Add account password
-            awk -F: -v pat="$current_username" 'BEGIN{OFS=":"}$1~pat{print}' /etc/shadow >> "$backup_dir_merged/shadow"
+            awk -F: -v user="$current_username" '$1==user{print}' /etc/shadow >> "$backup_dir_merged/shadow"
             report_info "user with UID '$current_uid' is added as '$current_username'" "$LOG_PREFIX"
         elif [[ $? == 1 ]]; then
             # UID found, ressource conflict
@@ -287,11 +287,11 @@ if [ "$operation" = "restore" ]; then
         groupname="$(echo "$group_data" | cut -d: -f1)"
         gid=$(echo $group_data | cut -d: -f3)  
         # Check group presence and get GID from backuped group file
-        var=$(awk -F: -v pat="$groupname" 'BEGIN{OFS=":"}$1~pat{print $1}' "$group_backup_file")
+        var=$(awk -F: -v group="$groupname" '$1==group{print $1}' "$group_backup_file")
 
         if [[ -z "$var" ]]; then
             # Group not found, check presence of GID
-            var=$(awk -F: -v pat="$gid" 'BEGIN{OFS=":"}$3~pat{print $1}' "$group_backup_file")
+            var=$(awk -F: -v group="$gid" '$3==group{print $1}' "$group_backup_file")
             if [[ -z "$var" ]]; then
                 # GID not used, copy group data
                 echo "$group_data" >> "$backup_dir_merged"/group_merged
@@ -302,7 +302,7 @@ if [ "$operation" = "restore" ]; then
             fi
         else
             # group found, get group data from backuped group file
-            var=$(awk -F: -v pat="$groupname" 'BEGIN{OFS=":"}$1~pat{print}' "$group_backup_file")
+            var=$(awk -F: -v group="$groupname" '$1==group{print}' "$group_backup_file")
             
             if [[ "$group_data" == "$var" ]]; then
                 # identical group data, copy it to merged file
@@ -351,10 +351,10 @@ if [ "$operation" = "restore" ]; then
         groupname="$(echo "$group_data" | cut -d: -f1)"
         gid=$(echo $group_data | cut -d: -f3)  
         # Check group presence
-        var=$(awk -F: -v pat="$groupname" 'BEGIN{OFS=":"}$1~pat{print $1}' "/etc/group")
+        var=$(awk -F: -v group="$groupname" '$1==group{print $1}' "/etc/group")
         if [[ -z "$var" ]]; then
             # Group not found, check presence of GID
-            var=$(awk -F: -v pat="$gid" 'BEGIN{OFS=":"}$3~pat{print $1}' "/etc/group")
+            var=$(awk -F: -v group="$gid" '$3==group{print $1}' "/etc/group")
             if [[ -z "$var" ]]; then
                 # GID not used, copy group data
                 echo "$group_data" >> "$backup_dir_merged"/group_merged

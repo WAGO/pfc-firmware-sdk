@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_PACKAGE_SERVER) += wbm-ng-plugin-package-server
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_PACKAGE_SERVER_VERSION        := 1.3.0
+WBM_NG_PLUGIN_PACKAGE_SERVER_VERSION        := 1.3.2
 WBM_NG_PLUGIN_PACKAGE_SERVER                := wbm-package-server-$(WBM_NG_PLUGIN_PACKAGE_SERVER_VERSION)
 WBM_NG_PLUGIN_PACKAGE_SERVER_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_PACKAGE_SERVER)
 WBM_NG_PLUGIN_PACKAGE_SERVER_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_PACKAGE_SERVER_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-package-server.targetinstall:
 	@$(call install_init, wbm-ng-plugin-package-server)
 	@$(call install_fixup, wbm-ng-plugin-package-server, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-package-server, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-package-server, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-package-server, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-package-server, DESCRIPTION, missing)
 
 	# create target directory itself

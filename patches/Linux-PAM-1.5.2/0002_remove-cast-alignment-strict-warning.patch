@@ -1,0 +1,10 @@
+--- a/m4/warn_lang_flags.m4	2022-05-03 06:39:45.794928782 +0200
++++ b/m4/warn_lang_flags.m4	2022-05-03 06:39:25.587009844 +0200
+@@ -5,7 +5,6 @@
+ gl_WARN_ADD([-Wall])
+ gl_WARN_ADD([-Wbad-function-cast])
+ gl_WARN_ADD([-Wcast-align])
+-gl_WARN_ADD([-Wcast-align=strict])
+ gl_WARN_ADD([-Wcast-qual])
+ gl_WARN_ADD([-Wdeprecated])
+ gl_WARN_ADD([-Winline])

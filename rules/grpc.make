@@ -16,11 +16,11 @@ PACKAGES-$(PTXCONF_GRPC) += grpc
 #
 # Paths and names
 #
-GRPC_VERSION  := 1.30.0
-GRPC_MD5    := 316b30c89b48b8ae0ad005bb12ac566a
+GRPC_VERSION  := 1.44.0
+GRPC_MD5    := 8568318e89b78f9f6cb71041e7e7bb4a
 GRPC			:= grpc-$(GRPC_VERSION)
 GRPC_SUFFIX		:= tar.gz
-GRPC_URL		:= https://github.com/grpc/grpc/archive/v$(GRPC_VERSION).$(GRPC_SUFFIX)
+GRPC_URL		:= https://github.com/grpc/grpc/archive/refs/tags/v$(GRPC_VERSION).$(GRPC_SUFFIX)
 GRPC_SOURCE		:= $(SRCDIR)/$(GRPC).$(GRPC_SUFFIX)
 GRPC_DIR		:= $(BUILDDIR)/$(GRPC)
 GRPC_LICENSE	:= Apache-2.0
@@ -43,6 +43,7 @@ GRPC_CONF_OPT	+= -DCMAKE_C_FLAGS="-pipe -Os -flto"
 GRPC_CONF_OPT	+= -DCMAKE_CXX_FLAGS="-pipe -Os -flto"
 GRPC_CONF_OPT	+= -DgRPC_ABSL_PROVIDER=package
 GRPC_CONF_OPT	+= -DgRPC_CARES_PROVIDER=package
+GRPC_CONF_OPT	+= -DgRPC_RE2_PROVIDER=package
 GRPC_CONF_OPT	+= -DgRPC_PROTOBUF_PROVIDER=package
 GRPC_CONF_OPT	+= -DgRPC_SSL_PROVIDER=package
 GRPC_CONF_OPT	+= -DgRPC_ZLIB_PROVIDER=package

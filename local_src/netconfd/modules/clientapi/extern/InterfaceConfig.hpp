@@ -75,6 +75,12 @@ class InterfaceConfigs: public detail::ConfigBase<netconf::InterfaceConfig> {
 ::std::string ToPrettyJson(const InterfaceConfigs& configs) noexcept;
 ::std::string ToString(const InterfaceConfigs& configs) noexcept;
 
+::std::string ToJson(const InterfaceStatuses& states) noexcept;
+::std::string ToPrettyJson(const InterfaceStatuses& states) noexcept;
+::std::string ToString(const InterfaceStatuses& states) noexcept;
+::std::string ToString(const netconf::InterfaceStatus &state, const ::std::string &sep) noexcept;
+
+
 /**
  * Create a InterfaceConfigs from a json string.
  * @return InterfaceConfigs object.

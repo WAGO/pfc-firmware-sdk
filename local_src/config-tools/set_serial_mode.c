@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,12 +10,12 @@
 ///
 ///  \file     set_serial_mode.c
 ///
-///  \version  $Revision: 61045 $
+///  \version  $Revision: 65689 $
 ///
 ///  \brief    This config tool sets the PFCXXX transceiver to RS232 or RS485
 ///           Based on tty0modeswitch
 ///
-///  \author   WAGO Kontakttechnik GmbH & Co. KG
+///  \author   WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

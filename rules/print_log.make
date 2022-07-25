@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH \& Co. KG
+# Copyright (C) 2020 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -91,7 +91,7 @@ $(STATEDIR)/print_log.targetinstall:
 	@$(call install_init, print_log)
 	@$(call install_fixup, print_log,PRIORITY,optional)
 	@$(call install_fixup, print_log,SECTION,base)
-	@$(call install_fixup, print_log,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, print_log,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, print_log,DESCRIPTION,missing)
 
 	@$(call install_copy, print_log, 0, 0, 0755, $(PRINT_LOG_BUILD_DIR)/print_log.elf, /etc/config-tools/print_log) 

@@ -1,7 +1,7 @@
 ## -*-makefile-*-
 # $Id: wago-codesys3-030-cmpmodbusdiag.make $
 #
-# Copyright (C) 2017 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #

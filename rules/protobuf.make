@@ -17,11 +17,11 @@ PACKAGES-$(PTXCONF_PROTOBUF) += protobuf
 #
 # Paths and names
 #
-PROTOBUF_VERSION	:= 3.12.3
-PROTOBUF_MD5		:= bf452e9c50168bddf80be32e3848750e
-PROTOBUF		:= protobuf-$(PROTOBUF_VERSION)
+PROTOBUF_VERSION	:= 3.19.4
+PROTOBUF_MD5		:= ccedd5b7b09a9eda37e8654155baca5a
+PROTOBUF		:= protobuf-cpp-$(PROTOBUF_VERSION)
 PROTOBUF_SUFFIX		:= tar.gz
-PROTOBUF_URL		:= https://github.com/google/protobuf/archive/v$(PROTOBUF_VERSION).$(PROTOBUF_SUFFIX)
+PROTOBUF_URL		:= https://github.com/protocolbuffers/protobuf/releases/download/v$(PROTOBUF_VERSION).$(PROTOBUF_SUFFIX)
 PROTOBUF_SOURCE		:= $(SRCDIR)/$(PROTOBUF).$(PROTOBUF_SUFFIX)
 PROTOBUF_DIR		:= $(BUILDDIR)/$(PROTOBUF)
 PROTOBUF_LICENSE	:= BSD-3-Clause

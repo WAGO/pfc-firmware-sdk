@@ -6,14 +6,14 @@
 #
 # This file is part of project fwupdate (PTXdist package rauc_bundle_conf).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   hooks.sh
 #
 # Brief:    WAGO firmware update hook script for RAUC.
 #
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # Workaround rauc install lock, so lock is released while hooks called

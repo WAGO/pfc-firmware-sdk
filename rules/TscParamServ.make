@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH \& Co. KG
+# Copyright (C) 2020 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -109,7 +109,7 @@ $(STATEDIR)/tscparamserv.targetinstall:
 	@$(call install_init, tscparamserv)
 	@$(call install_fixup, tscparamserv,PRIORITY,optional)
 	@$(call install_fixup, tscparamserv,SECTION,base)
-	@$(call install_fixup, tscparamserv,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, tscparamserv,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, tscparamserv,DESCRIPTION,missing)
 
 	@$(call install_lib, tscparamserv, 0, 0, 0644, libTscParamServ)

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_MODEM) += wbm-ng-plugin-modem
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_MODEM_VERSION        := 1.3.0
+WBM_NG_PLUGIN_MODEM_VERSION        := 1.3.1
 WBM_NG_PLUGIN_MODEM                := wbm-modem-$(WBM_NG_PLUGIN_MODEM_VERSION)
 WBM_NG_PLUGIN_MODEM_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_MODEM)
 WBM_NG_PLUGIN_MODEM_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_MODEM_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-modem.targetinstall:
 	@$(call install_init, wbm-ng-plugin-modem)
 	@$(call install_fixup, wbm-ng-plugin-modem, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-modem, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-modem, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-modem, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-modem, DESCRIPTION, missing)
 
 	# create target directory itself

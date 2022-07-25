@@ -5,7 +5,7 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2019-2020 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     resources.c
@@ -13,7 +13,7 @@
 ///  \brief    Config tool specific resource definition and handling for
 ///            detect_feature.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

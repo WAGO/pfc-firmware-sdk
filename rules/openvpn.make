@@ -2,8 +2,6 @@
 #
 # Copyright (C) 2007 by Carsten Schlote <c.schlote@konzeptpark.de>
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -16,13 +14,20 @@ PACKAGES-$(PTXCONF_OPENVPN) += openvpn
 #
 # Paths and names
 #
-OPENVPN_VERSION		:= 2.4.6
-OPENVPN_MD5		:= 3a1f3f63bdaede443b4df49957df9405
+OPENVPN_VERSION		:= 2.5.5
+OPENVPN_MD5		:= e469f55a223677b4cb6c7f4541065f5a
 OPENVPN			:= openvpn-$(OPENVPN_VERSION)
 OPENVPN_SUFFIX		:= tar.xz
 OPENVPN_URL		:= http://swupdate.openvpn.org/community/releases/$(OPENVPN).$(OPENVPN_SUFFIX)
 OPENVPN_SOURCE		:= $(SRCDIR)/$(OPENVPN).$(OPENVPN_SUFFIX)
 OPENVPN_DIR		:= $(BUILDDIR)/$(OPENVPN)
+OPENVPN_LICENSE		:= GPL-2.0-only WITH openvpn-openssl-exception AND BSD-2-Clause AND BSD-3-Clause
+OPENVPN_LICENSE_FILES := \
+	file://COPYING;md5=7aee596ed2deefe3e8a861e24292abba \
+	file://COPYRIGHT.GPL;md5=52cadf4008002e3c314a47a54fa7306c \
+	file://src/openvpn/openvpn.c;startline=2;endline=21;md5=0f37ee042b428e513bda42b430344d42 \
+	file://src/openvpn/base64.c;startline=2;endline=31;md5=f4debd767645b13107fc5912faf2ad8f \
+	file://src/compat/compat-lz4.c;startline=13;endline=38;md5=5f66cf078523624965e41518eed881e2
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -50,10 +55,8 @@ OPENVPN_CONF_OPT	:= \
 	--$(call ptx/endis, PTXCONF_OPENVPN_LZO)-lzo \
 	--disable-lz4 \
 	--disable-comp-stub \
-	--enable-crypto \
 	--enable-ofb-cfb \
 	--disable-x509-alt-username \
-	--enable-server \
 	--disable-plugins \
 	--enable-management \
 	--disable-pkcs11 \
@@ -74,6 +77,7 @@ OPENVPN_CONF_OPT	:= \
 	--disable-selinux \
 	--$(call ptx/endis, PTXCONF_OPENVPN_SYSTEMD)-systemd \
 	--disable-async-push \
+	--disable-unit-tests
 	--with-crypto-library=openssl
 
 OPENVPN_INSTALL_SAMPLE_CONFIG_FILES := \
@@ -120,6 +124,7 @@ endif
 
 	@$(call install_copy, openvpn, 0, 0, 0755, -, /usr/sbin/openvpn)
 	@$(call install_copy, openvpn, 0, 0, 0755, /etc/openvpn/certificates)
+
 	@$(call install_finish, openvpn)
 
 	@$(call touch)

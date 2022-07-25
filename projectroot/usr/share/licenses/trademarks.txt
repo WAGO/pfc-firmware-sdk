@@ -1,0 +1,18 @@
+- Adobe® and Acrobat® are registered trademarks of Adobe Systems Inc.
+- AS-Interface® is a registered trademark of AS-International Association.
+- BACnet® is a registered trademark of American Society of Heating, Refrigerating and Air Conditioning Engineers, Inc. (ASHRAE).
+- Bluetooth® is a registered trademark of the Bluetooth SIG, Inc.
+- CiA® and CANopen® are registered trademarks of CAN in AUTOMATION - International Users and Manufacturers Group e.V.
+- DALI is a registered trademark of Digital Illumination Interface Alliance (DiiA).
+- EtherCAT® is a registered trademark and patented technology of Beckhoff Automation GmbH.
+- EtherNet/IP™ is a registered trademark of Open DeviceNet Vendor Association, Inc (ODVA).
+- EnOcean® is a registered trademark of EnOcean GmbH.
+- IO-Link is a registered trademark of PROFIBUS Nutzerorganisation e.V.
+- KNX® is a registered trademark of KNX Association cvba.
+- Linux® is a registered trademark of Linus Torvalds.
+- LON® is a registered trademark of Echelon Corporation.
+- Modbus® is a registered trademark of Schneider Electric, licensed to the Modbus Organization, Inc.
+- PROFIBUS® is a registered trademark of Siemens AG.
+- PROFINET® is a registered trademark of Siemens AG.
+- Subversion® is a registered trademark of Apache Software Foundation.
+- Windows® is a registered trademark of Microsoft Corporation

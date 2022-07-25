@@ -1,7 +1,7 @@
 ## -*-makefile-*-
 # $Id$
 #
-# Copyright (C) 2014 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2014 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #

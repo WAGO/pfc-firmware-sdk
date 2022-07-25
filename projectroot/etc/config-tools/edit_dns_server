@@ -3,14 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2021-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: edit_dns_server
 #
 # Edit names of DNS-server or delete them
 #
-# Author: WAGO Kontakttechnik GmbH & Co. KG.
+# Author: WAGO GmbH & Co. KG.
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -100,8 +100,6 @@ function main {
   delete=$(GetParameterValue delete "$@")
   add=$(GetParameterValue add "$@")
 
-  log "args: $*"
-	
   # check whether config-file exists if not method are change or delete
   if [[ ! -f $STATIC_DNS_FILE ]] && [[ "$change" || "$delete" ]]; then
     ReportError $CONFIG_FILE_MISSING "($STATIC_DNS_FILE)"
@@ -155,10 +153,14 @@ function main {
 
   elif [ -n "$add" ]; then
 
-    echo "nameserver" "$dnsServerName" >>$STATIC_DNS_FILE
-
-    # write buffered filesystem-blocks to disk
-    sync
+    local count=$(grep -c "^nameserver" $STATIC_DNS_FILE)
+    if [[ $count -lt 3 ]]; then
+      echo "nameserver" "$dnsServerName" >>$STATIC_DNS_FILE
+      sync
+    else
+      SetLastError "The number of manually assignable DNS servers is limited to 3."
+      exit $INVALID_PARAMETER
+    fi
 
   elif [ -n "$delete" ]; then
 

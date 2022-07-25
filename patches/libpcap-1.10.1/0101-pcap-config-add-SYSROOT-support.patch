@@ -1,0 +1,33 @@
+From: Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Sun, 10 Jan 2010 00:49:07 +0100
+Subject: [PATCH] pcap-config: add SYSROOT support
+
+Signed-off-by: Alexander Aring <alex.aring@gmail.com>
+---
+ pcap-config.in | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/pcap-config.in b/pcap-config.in
+index 54ca42f07bc5..23b06c300577 100644
+--- a/pcap-config.in
++++ b/pcap-config.in
+@@ -10,8 +10,8 @@
+ #
+ prefix="@prefix@"
+ exec_prefix="@exec_prefix@"
+-includedir="@includedir@"
+-libdir="@libdir@"
++includedir="${SYSROOT}@includedir@"
++libdir="${SYSROOT}@libdir@"
+ V_RPATH_OPT="@V_RPATH_OPT@"
+ LIBS="@LIBS@"
+ PACKAGE_NAME="@PACKAGE_NAME@"
+@@ -46,7 +46,7 @@ then
+ 	#
+ 	# If libdir isn't /usr/lib, add it to the run-time linker path.
+ 	#
+-	if [ "$libdir" != "/usr/lib" ]
++	if [ "$libdir" != "${SYSROOT}/usr/lib" ]
+ 	then
+ 		RPATH=$V_RPATH_OPT$libdir
+ 	fi

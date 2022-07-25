@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,13 +10,13 @@
 ///
 ///  \file     get_uimage_size.c
 ///
-///  \version  $Revision: 6731 $
+///  \version  $Revision: 65689 $
 ///
 ///  \brief    This config tool extracts the file size info from u-boot-style
 ///           uImage header. The size info is needed to copy the kernel file
 ///           from a NAND/MTD device to the file system.
 ///
-///  \author   <AGa> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <AGa> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

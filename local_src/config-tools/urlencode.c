@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,11 +10,11 @@
 ///
 ///  \file     $File:     $:
 ///
-///  \version  $Revision: 6569 $:
+///  \version  $Revision: 65689 $:
 ///
 ///  \brief    <Part of the config-tools package: encode URL args, decode HTML>
 ///
-///  \author   <AGa> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <AGa> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include <stdio.h>

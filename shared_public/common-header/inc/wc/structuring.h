@@ -5,7 +5,7 @@
 //
 // This file is part of project common-header (PTXdist package libcommonheader).
 //
-// Copyright (c) 2017-2019 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     structuring.h
@@ -13,8 +13,8 @@
 ///  \brief    Helper macros for structuring with member sizes, containers,
 ///            alignments and so on
 ///
-///  \author   PEn : WAGO Kontakttechnik GmbH & Co. KG
-///  \author   OELH: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn : WAGO GmbH & Co. KG
+///  \author   OELH: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef INC_WC_STRUCTURING_H_
 #define INC_WC_STRUCTURING_H_

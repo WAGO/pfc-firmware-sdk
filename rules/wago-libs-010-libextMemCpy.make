@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2012 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_LIBEXTMEMCPY) += libextmemcpy
 
 LIBEXTMEMCPY_VERSION    := trunk
 LIBEXTMEMCPY_NAME       := libextMemCpy
-LIBEXTMEMCPY_URL        := file://$(SRCDIR)/$(LIBEXTMEMCPY_NAME)-$(LIBEXTMEMCPY_VERSION)
+LIBEXTMEMCPY_URL        := file://local_src/$(LIBEXTMEMCPY_NAME)-$(LIBEXTMEMCPY_VERSION)
 LIBEXTMEMCPY_DIR        := $(BUILDDIR)/$(LIBEXTMEMCPY_NAME)-$(LIBEXTMEMCPY_VERSION)
 LIBEXTMEMCPY_LICENSE    :=
 LIBEXTMEMCPY_TARGET_PLATFORM    := ptx-dist
@@ -35,7 +35,7 @@ LIBEXTMEMCPY_MAKE_PARAMETER     := CROSS_COMPILE=$(COMPILER_PREFIX) \
 $(STATEDIR)/libextmemcpy.get:
 	@$(call targetinfo)
 	@mkdir -p $(LIBEXTMEMCPY_DIR)
-	@rsync -a --exclude=output/ $(SRCDIR)/$(LIBEXTMEMCPY_NAME)-$(LIBEXTMEMCPY_VERSION) $(BUILDDIR)
+	@rsync -a --exclude=output/ $(PTXDIST_WORKSPACE)/local_src/$(LIBEXTMEMCPY_NAME)-$(LIBEXTMEMCPY_VERSION) $(BUILDDIR)
 	@$(call touch)
 
 # ----------------------------------------------------------------------------

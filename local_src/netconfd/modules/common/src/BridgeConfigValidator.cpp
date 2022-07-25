@@ -59,6 +59,10 @@ Status BridgeConfigValidator::Validate(BridgeConfig const &config, const Interfa
         break;
       }
     }
+    //check if at least one port has been added to a bridge. Otherwise the device can no longer be reached.
+    if(found_interfaces.empty()){
+      status.Set(StatusCode::JSON_INCOMPLETE);
+    }
   }
   return status;
 }

@@ -1,5 +1,5 @@
 ###############################################################################
-#  Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+#  Copyright (c) WAGO GmbH & Co. KG
 #
 #  PROPRIETARY RIGHTS are involved in the subject matter of this material.
 #  All manufacturing, reproduction, use and sales rights pertaining to this
@@ -21,7 +21,7 @@ endif
 GLIB_LDLIBS = -lglib-2.0
 
 override LDFLAGS += -D$(EXTRAS) -L. -L./libnet -L./liblog -Wl,--as-needed
-override LDLIBS += -ludev -lcrypt $(GLIB_LDLIBS)
+override LDLIBS += -ludev -lcrypt $(GLIB_LDLIBS) -lbsd
 
 ifeq ($(WITH_LIBOMS),yes)
 override LDLIBS+= -loms

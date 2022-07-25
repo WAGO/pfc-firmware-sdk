@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 
 #include "ct_libnet.h"
 
@@ -2005,22 +2005,78 @@ void ct_libnet_print_fast_aging_args(void)
 }
 
 int ct_libnet_set_fast_aging(const char *dev, const char *value)
-{
-    if (ct_libnet_swconfig_is_unsupported_switch())
-        return strcmp(FAST_AGING_DEFAULT, value);
+{ 
+    (void) dev;
 
-    return swconfig_set_attr(dev, "fast_aging", value, fast_aging_arg_list);
+    if(value[0] != '0' && value[0] != '1') {
+      return INVALID_PARAMETER;
+    }
+
+    netconf::Status netconf_status;
+    try {
+        napi::InterfaceConfigs interface_configs;
+        netconf_status = napi::GetInterfaceConfigs(interface_configs);
+        if(!netconf_status.Ok()) {
+            return MISSING_PARAMETER;
+        }
+
+        auto mac_learning = (value[0] == '1') ? MacLearning::OFF : MacLearning::ON;
+
+        napi::InterfaceConfigs new_interface_configs{};
+        for(auto &config : interface_configs.GetConfig()) {
+            if((config.device_name_ == "X1" || config.device_name_ == "X2")) {
+                config.mac_learning_ = mac_learning;
+            }
+            new_interface_configs.AddConfig(config);
+        }
+
+        netconf_status = napi::SetInterfaceConfigs(new_interface_configs);
+    }
+    catch(...)
+    {
+      return MISSING_PARAMETER;
+    }
+
+    return (netconf_status.Ok()) ? SUCCESS : ERROR;
 }
 
 int ct_libnet_get_fast_aging(const char *dev, char *value, size_t valueLen)
 {
+    (void) dev;
+
+    int status = SUCCESS;
+    int fast_aging = 0;
+
     assert(NULL != value);
     assert(valueLen > 1);
 
-    if (ct_libnet_swconfig_default_for_unsupported_switch(FAST_AGING_DEFAULT, value, valueLen))
-      return 0;
+    try {
+      napi::InterfaceConfigs interface_configs;
+      auto netconf_status = napi::GetInterfaceConfigs(interface_configs);
+      if(netconf_status.Ok()) {
+        auto itf_configs = interface_configs.GetConfig();
 
-    return swconfig_get_attr(dev, "fast_aging", value, valueLen);
+        int number_of_mac_learning_off_itfs = ::std::count_if(itf_configs.cbegin(), itf_configs.cend(), [](const InterfaceConfig& ic) {
+          return (ic.device_name_ == "X1" || ic.device_name_ == "X2")
+              && (ic.mac_learning_ == MacLearning::OFF);
+        });
+
+        if(number_of_mac_learning_off_itfs == 2) {
+          // MAC learning is disabled for both interfaces X1 and X2, therefore, set global fast aging option to off.
+          fast_aging = 1;
+        }
+      } else {
+        status = MISSING_PARAMETER;
+      }
+    }
+    catch(...)
+    {
+      status = MISSING_PARAMETER;
+    }
+
+    snprintf(value, valueLen, "%d", fast_aging);
+
+    return status;
 }
 
 int ct_libnet_save_switch_settings_to_config(const char *configFile, ct_switch_settings_t *settings)
@@ -2053,14 +2109,13 @@ int ct_libnet_save_switch_settings_to_config(const char *configFile, ct_switch_s
 
     if(SUCCESS == status)
     {
-        const char *configFileContents = "#Auto-generated configuration file. Do not change!\n\nPORT_MIRROR=%s\nBCAST_PROTECT=%s\nRATE_LIMIT=%s\nFAST_AGING=%s\n";
+        const char *configFileContents = "#Auto-generated configuration file. Do not change!\n\nPORT_MIRROR=%s\nBCAST_PROTECT=%s\nRATE_LIMIT=%s\n";
 
         status = dprintf(tmpFd,
                          configFileContents,
                          settings->portMirror,
                          settings->bcastProtect,
-                         settings->rateLimit,
-                         settings->fastAging);
+                         settings->rateLimit);
 
         if(-1 == status)
         {

@@ -14,11 +14,11 @@
 namespace netconf {
 namespace api {
 
-
-InterfaceConfigs::InterfaceConfigs(const netconf::InterfaceConfigs& config): ConfigBase<netconf::InterfaceConfig>(config){
+InterfaceConfigs::InterfaceConfigs(const netconf::InterfaceConfigs &config)
+    : ConfigBase<netconf::InterfaceConfig>(config) {
 }
 
-std::string InterfaceConfigs::GetCompareValue(const netconf::InterfaceConfig& ic) const noexcept {
+std::string InterfaceConfigs::GetCompareValue(const netconf::InterfaceConfig &ic) const noexcept {
   return ic.device_name_;
 }
 
@@ -34,25 +34,25 @@ boost::optional<InterfaceConfig> InterfaceConfigs::GetInterfaceConfig(const ::st
   return GetConfig(interface_name);
 }
 
-::std::string ToJson(const InterfaceConfigs& configs) noexcept {
+::std::string ToJson(const InterfaceConfigs &configs) noexcept {
   JsonConverter jc;
   return jc.ToJsonString(configs.GetConfig());
 }
 
-::std::string ToPrettyJson(const InterfaceConfigs& configs) noexcept {
+::std::string ToPrettyJson(const InterfaceConfigs &configs) noexcept {
   JsonConverter jc;
   return jc.ToJsonString(configs.GetConfig(), JsonFormat::PRETTY);
 }
 
-::std::string ToString(const InterfaceConfigs& configs) noexcept {
+::std::string ToString(const InterfaceConfigs &configs) noexcept {
   ::std::stringstream ss;
-  for(const auto& config: configs.GetConfig()){
+  for (const auto &config : configs.GetConfig()) {
     ss << api::ToString(config) << " ";
   }
   return ss.str();
 }
 
-::std::string ToString(const netconf::InterfaceConfig& config, const ::std::string& sep) noexcept{
+static ::std::string InterfaceConfigToString(const netconf::InterfaceConfig &config, const ::std::string &sep) {
   ::std::vector<::std::string> values;
   values.push_back("device=" + config.device_name_);
 
@@ -71,7 +71,15 @@ boost::optional<InterfaceConfig> InterfaceConfigs::GetInterfaceConfig(const ::st
   if (config.speed_ != InterfaceConfig::UNKNOWN_SPEED) {
     values.push_back("speed=" + std::to_string(config.speed_));
   }
+  if (config.mac_learning_ != MacLearning::UNKNOWN) {
+    auto learning = ::std::string(config.mac_learning_ == MacLearning::ON ? "on" : "off");
+    values.push_back("state=" + learning);
+  }
   return boost::algorithm::join(values, sep);
+}
+
+::std::string ToString(const netconf::InterfaceConfig &config, const ::std::string &sep) noexcept {
+  return InterfaceConfigToString(config, sep);
 }
 
 ::std::string ToJson(const netconf::InterfaceConfig &config) noexcept {
@@ -84,18 +92,50 @@ boost::optional<InterfaceConfig> InterfaceConfigs::GetInterfaceConfig(const ::st
   return jc.ToJsonString(config, JsonFormat::PRETTY);
 }
 
-Status MakeInterfaceConfigs(const ::std::string &json_str, InterfaceConfigs& config) {
+::std::string ToJson(const InterfaceStatuses &states) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(states);
+}
+
+::std::string ToPrettyJson(const InterfaceStatuses &states) noexcept {
+  JsonConverter jc;
+  return jc.ToJsonString(states, JsonFormat::PRETTY);
+}
+
+::std::string ToString(const netconf::InterfaceStatus &state, const ::std::string &sep) noexcept {
+  ::std::vector<::std::string> values;
+
+  values.push_back(InterfaceConfigToString(state, sep));
+
+  values.push_back("mac-address=" + state.mac_.ToString());
+
+  if (state.link_state_ != LinkState::UNKNOWN) {
+    auto link_state = ::std::string(state.link_state_ == LinkState::UP ? "up" : "down");
+    values.push_back("link-state=" + link_state);
+  }
+
+  return boost::algorithm::join(values, sep);
+}
+
+::std::string ToString(const InterfaceStatuses &states) noexcept {
+  ::std::stringstream ss;
+  for (const auto &state : states) {
+    ss << api::ToString(state) << " ";
+  }
+  return ss.str();
+}
+
+Status MakeInterfaceConfigs(const ::std::string &json_str, InterfaceConfigs &config) {
   JsonConverter jc;
   netconf::InterfaceConfigs ic;
   Status status = jc.FromJsonString(json_str, ic);
-  config = InterfaceConfigs{ic};
+  config = InterfaceConfigs { ic };
   return status;
 }
 
-Status ValidateInterfaceConfigs(const InterfaceConfigs &configs, const InterfaceInformations& interface_infos )
-{
+Status ValidateInterfaceConfigs(const InterfaceConfigs &configs, const InterfaceInformations &interface_infos) {
   return netconf::InterfaceConfigurationValidator::Validate(configs.GetConfig(), interface_infos);
 }
 
-} //namespace api
-} //namespace netconf
+}  //namespace api
+}  //namespace netconf

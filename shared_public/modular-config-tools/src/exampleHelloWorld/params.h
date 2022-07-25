@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Copyright 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright 2017 WAGO GmbH & Co. KG
 //
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,7 +28,7 @@
 ///  \brief    Config tool specific parameter definition and handling for
 ///            HelloWorld example.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef SRC_EXAMPLEHELLOWORLD_PARAMS_H_
 #define SRC_EXAMPLEHELLOWORLD_PARAMS_H_

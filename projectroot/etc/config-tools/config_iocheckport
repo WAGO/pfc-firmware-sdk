@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: config_iocheckport
@@ -17,7 +17,7 @@
 # Communication via service cable keeps unaffected. Blocking the port is
 # done by reconfiguring inetd. The iocheck demon keeps unaffected.
 #
-# Author: HJH, WAGO Kontakttechnik GmbH
+# Author: HJH, WAGO GmbH
 #-----------------------------------------------------------------------------#
 
 SERVICE_CONFIG="/etc/specific/network-services.xml"

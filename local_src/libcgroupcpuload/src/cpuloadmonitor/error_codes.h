@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) WAGO GmbH & Co. KG
 //
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 // manufacturing, reproduction, use and sales rights pertaining to this
@@ -11,7 +11,7 @@
 ///
 ///  \brief    <short description of the file contents>
 ///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <author> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef SRC_CPULOADMONITOR_ERROR_CODES_H_
 #define SRC_CPULOADMONITOR_ERROR_CODES_H_

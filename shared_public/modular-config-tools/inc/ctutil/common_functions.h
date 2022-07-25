@@ -5,14 +5,14 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     common_functions.h
 ///
 ///  \brief    Commonly used function prototypes and function pointer types.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef INC_CTUTIL_COMMON_FUNCTIONS_H_
 #define INC_CTUTIL_COMMON_FUNCTIONS_H_

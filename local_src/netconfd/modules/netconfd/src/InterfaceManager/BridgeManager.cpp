@@ -21,13 +21,9 @@ BridgeManager::BridgeManager(IBridgeController &bridge_controller, IDeviceProper
       properies_provider_(properies_provider),
       netdev_manager_ { netdev_manager },
       bridge_configurator_(bridge_controller_),
-      bridge_config_transformator_(properies_provider_),
-      switch_config_ { "/etc/switch_settings.conf" },
-      switch_settings_file_monitor_ { "/etc/switch_settings.conf", [this](FileMonitor&) {
-        this->UpdateAgetime();
-      } } {
-  SetDefaultInterfaceUp();
-  UpdateAgetime();
+      bridge_config_transformator_(properies_provider_) {
+
+    SetDefaultInterfaceUp();
 }
 
 Status BridgeManager::SetDefaultInterfaceUp() const {
@@ -94,24 +90,11 @@ Status BridgeManager::ApplyBridgeConfiguration(BridgeConfig &product_config) con
     netdev_manager_.ConfigureBridges(product_config);
   }
 
-  if (status.IsOk()) {
-    UpdateAgetime();
-  }
-
   return status;
 }
 
 Interfaces BridgeManager::GetBridgeAssignedInterfaces() const {
   return bridge_configurator_.GetBridgeAssignedInterfaces();
-}
-
-void BridgeManager::UpdateAgetime() const {
-  auto bridges = bridge_controller_.GetBridges();
-  auto age_time = switch_config_.GetFastAgeing() ? 0 : 300;
-  LogInfo("UpdateAgetime");
-  ::std::for_each(bridges.begin(), bridges.end(), [age_time, this](Bridge &b) {
-    this->bridge_controller_.SetAgetime(b, age_time);
-  });
 }
 
 } /* namespace netconf */

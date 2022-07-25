@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,11 +10,11 @@
 ///
 ///  \file     seq_special.h
 ///
-///  \version  $Revision: 12545 $
+///  \version  $Revision: 65689 $
 ///
 ///  \brief    <Insert description here>
 ///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <author> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef LED_MULTI_H_
 #define LED_MULTI_H_

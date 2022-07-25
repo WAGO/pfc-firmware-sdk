@@ -17,12 +17,12 @@ PACKAGES-$(PTXCONF_C_ARES) += c-ares
 #
 # Paths and names
 #
-C_ARES_VERSION  := 1.16.1
-C_ARES_MD5  := 62dece8675590445d739b23111d93692
+C_ARES_VERSION  := 1.18.1
+C_ARES_MD5  := bf770c0d3131ec0dd0575a0d2dcab226
 C_ARES		:= c-ares-$(C_ARES_VERSION)
 C_ARES_SUFFIX	:= tar.gz
 # NOTE: The haxx.se tarball is missing the cmake files that we need
-C_ARES_URL	:= https://github.com/c-ares/c-ares/archive/cares-1_16_1.$(C_ARES_SUFFIX)
+C_ARES_URL	:= https://github.com/c-ares/c-ares/releases/tag/$(C_ARES).$(C_ARES_SUFFIX)
 #C_ARES_URL	:= http://c-ares.haxx.se/download/$(C_ARES).$(C_ARES_SUFFIX)
 C_ARES_SOURCE	:= $(SRCDIR)/$(C_ARES).$(C_ARES_SUFFIX)
 C_ARES_DIR	:= $(BUILDDIR)/$(C_ARES)

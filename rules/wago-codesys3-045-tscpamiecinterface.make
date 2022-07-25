@@ -1,7 +1,7 @@
 ## -*-makefile-*-
-# $Id: wago-codesys3-045-tscpamiecinterface.make 43384 2019-10-07 12:15:20Z charline.wueste@wago.com $
+# $Id: wago-codesys3-045-tscpamiecinterface.make 65677 2022-03-11 11:28:13Z falk.werner@wago.com $
 #
-# Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2013 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #

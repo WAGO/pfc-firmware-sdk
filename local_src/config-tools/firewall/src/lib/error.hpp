@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------ 
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG 
+// Copyright (c) WAGO GmbH & Co. KG 
 // 
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All 
 // manufacturing, reproduction, use, and sales rights pertaining to this 
@@ -12,7 +12,7 @@
 /// \brief Error helper routines, such as standard messages, logging function
 ///        and extended exception class.
 /// 
-/// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
+/// \author Mariusz Podlesny : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #ifndef WAGO_FIREWALL_ERROR_HPP_

@@ -6,15 +6,15 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   fwupdate_basic_defines
 #
 # Brief:    General definitions for WAGO firmware update.
 #
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   Maxim Laschinsky: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
+# Author:   Maxim Laschinsky: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 #bash "include guard"

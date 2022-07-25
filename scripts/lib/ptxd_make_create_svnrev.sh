@@ -51,3 +51,18 @@ ptxd_get_svn_build_url() {
 }
 
 export -f ptxd_get_svn_build_url
+
+ptxd_get_jenkins_env() {
+  local build_tag="$BUILD_TAG"
+  local docker_reg="$DOCKER_REGISTRY"
+  
+  if [ -n "$build_tag" ]; then
+    printf -- '%s' "$build_tag"
+  elif [ -n "$docker_reg" ]; then
+    printf -- '%s' "Unknown (Make sure that the BUILD_TAG variable is included in the envWhitelist in the build section of the jenkinsfile)"
+  else
+    printf -- '%s' "Localbuild"
+  fi
+}
+
+export -f ptxd_get_jenkins_env

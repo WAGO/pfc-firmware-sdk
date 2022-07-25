@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#  Copyright 2018 WAGO Kontakttechnik GmbH & Co. KG
+#  Copyright 2018-2022 WAGO GmbH & Co. KG
 #
 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy

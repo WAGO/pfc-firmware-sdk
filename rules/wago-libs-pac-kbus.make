@@ -130,7 +130,7 @@ $(STATEDIR)/libpackbus.targetinstall:
 	@$(call install_init, libpackbus)	
 	@$(call install_fixup, libpackbus,PRIORITY,optional)
 	@$(call install_fixup, libpackbus,SECTION,base)
-	@$(call install_fixup, libpackbus,AUTHOR,"Lars Friedrich : WAGO Kontakttechnik GmbH \& Co. KG <www.WAGO.com>")
+	@$(call install_fixup, libpackbus,AUTHOR,"Lars Friedrich : WAGO GmbH \& Co. KG <www.WAGO.com>")
 	@$(call install_fixup, libpackbus,DESCRIPTION, "DAL device library for the kbus terminal rail")
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 
 # Extract precompiled binaries from archive

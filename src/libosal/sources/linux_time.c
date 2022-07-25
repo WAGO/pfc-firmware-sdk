@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2000 - 2009 WAGO Kontakttechnik GmbH & Co. KG
+ * Copyright (c) 2000 - 2022 WAGO GmbH & Co. KG
  * 
- * PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+ * PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
  * the subject matter of this material. All manufacturing, reproduction,
  * use, and sales rights pertaining to this subject matter are governed
  * by the license agreement. The recipient of this software implicitly
@@ -13,7 +13,7 @@
  * Last Modification:
  *  $Author: ea $
  *  $Modtime: 29.03.2010 $
- *  $Revision: 36787 $
+ *  $Revision: 65684 $
  */
 
 

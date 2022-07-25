@@ -1,7 +1,7 @@
 ## -*-makefile-*-
-# $Id: wago-codesys3-009-wagocmpcanopen.make 54507 2020-12-14 15:09:28Z karsten.nuenthel@wago.com $
+# $Id: wago-codesys3-009-wagocmpcanopen.make 65677 2022-03-11 11:28:13Z falk.werner@wago.com $
 #
-# Copyright (C) 2014 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2014 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -110,7 +110,7 @@ $(STATEDIR)/progexecd.targetinstall:
 	@$(call install_init, progexecd)
 	@$(call install_fixup, progexecd,PRIORITY,optional)
 	@$(call install_fixup, progexecd,SECTION,base)
-	@$(call install_fixup, progexecd,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, progexecd,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, progexecd,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 

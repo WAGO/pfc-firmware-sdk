@@ -1,6 +1,6 @@
 # *-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH
+# Copyright (C) 2020 by WAGO GmbH
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -44,7 +44,7 @@ $(STATEDIR)/gsl.targetinstall:
 	@$(call install_init, gsl)
 	@$(call install_fixup, gsl,PRIORITY,optional)
 	@$(call install_fixup, gsl,SECTION,base)
-	@$(call install_fixup, gsl,AUTHOR,"WAGO Kontakttechnik GmbH")
+	@$(call install_fixup, gsl,AUTHOR,"WAGO GmbH")
 	@$(call install_fixup, gsl,DESCRIPTION,missing)
 
 	@$(call install_copy, gsl, 0, 0, 0644, $(GSL_DIR)/$(GSL_LICENSE_FILE), /usr/share/licenses/oss/license.gsl_$(GSL_VERSION).txt)

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------ 
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG 
+// Copyright (c) WAGO GmbH & Co. KG 
 // 
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All 
 // manufacturing, reproduction, use, and sales rights pertaining to this 
@@ -11,19 +11,17 @@
 /// 
 /// \brief XML parsing/processing helpers.
 /// 
-/// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
+/// \author Mariusz Podlesny : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 
 #include "xmlhlp.hpp"
 #include "error.hpp"
-#include "system.hpp"
 
 #include <libxml/xpathInternals.h>
 #include <cstring>
 #include <stdexcept>
 #include <unistd.h>
-#include <chrono>
 
 
 namespace wago {
@@ -227,17 +225,10 @@ void store_file(const std::string& fname, const xmldoc& doc)
     else
     {
         sync();
-        // wait for complete of synchronization
-        auto start_time = std::chrono::steady_clock::now();
-        while(1)
+        if (0 != rename(temp_file.c_str(), fname.c_str()))
         {
-            if (0 == rename(temp_file.c_str(), fname.c_str())) break;
-            auto current_time =  std::chrono::steady_clock::now();
-            if ( timeout < std::chrono::duration_cast<std::chrono::milliseconds>(current_time-start_time).count() )
-            {
-                throw file_close_error("Timeout by removing of file:" + temp_file);
-                break;
-            }
+            remove (temp_file.c_str());
+            throw invalid_param_error("Couldn't rename file: " + temp_file);
         }
     }
 }

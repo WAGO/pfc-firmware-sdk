@@ -2,11 +2,41 @@
 
 #include "DynamicIPClientAdministrator.hpp"
 
+#include <exception>
+#include <filesystem>
+#include <iostream>
+#include <string>
+#include <vector>
+
+#include "Logger.hpp"
+
 namespace netconf {
 
-DynamicIPClientAdministrator::DynamicIPClientAdministrator(const ::std::string& vendorclass)
-    : vendorclass_ { vendorclass } {
+namespace {
 
+void DeleteAllLeaseFiles() {
+  try {
+    ::std::vector<::std::string> files;
+    for (const auto &file : ::std::filesystem::directory_iterator("/tmp")) {
+      files.emplace_back(file.path());
+    }
+
+    for (const auto &file : files) {
+      if (file.rfind("/tmp/dhcp-bootp-data-", 0) == 0) {
+        ::std::remove(file.c_str());
+      }
+    }
+  } catch (const std::exception &e) {
+    LogError("Error during initialization. An error occurred while deleting the existing lease files: " +
+             ::std::string{e.what()});
+  }
+}
+
+}  // namespace
+
+DynamicIPClientAdministrator::DynamicIPClientAdministrator(::std::string vendorclass)
+    : vendorclass_{::std::move(vendorclass)} {
+  DeleteAllLeaseFiles();
 }
 
 IDynamicIPClientPtr DynamicIPClientAdministrator::AddClient(DynamicIPType type, const ::std::string &itf_name,

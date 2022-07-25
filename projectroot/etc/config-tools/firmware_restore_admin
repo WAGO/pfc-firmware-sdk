@@ -6,7 +6,7 @@
 #
 # This file is part of PTXdist package config-tools.
 #
-# Copyright (c) 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   firmware_restore_admin
@@ -14,7 +14,7 @@
 # Brief:    Start firmware restore process as a background task.
 #           Read state of firmware restore process.
 #
-# Author:   Moe: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   Moe: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------
 
 # load general definitions and functions

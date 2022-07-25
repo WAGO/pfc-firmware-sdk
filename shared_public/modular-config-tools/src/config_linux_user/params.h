@@ -5,7 +5,7 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     params.h
@@ -13,7 +13,7 @@
 ///  \brief    Config tool specific parameter definition and handling for
 ///            config_linux_user.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef SRC_CONFIG_LINUX_USER_PARAMS_H_
 #define SRC_CONFIG_LINUX_USER_PARAMS_H_

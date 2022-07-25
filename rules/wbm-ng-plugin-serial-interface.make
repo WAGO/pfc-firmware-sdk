@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Stefanie Meihöfer (stefanie.meihoefer@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Stefanie Meihöfer (stefanie.meihoefer@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-serial-interface.targetinstall:
 	@$(call install_init, wbm-ng-plugin-serial-interface)
 	@$(call install_fixup, wbm-ng-plugin-serial-interface, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-serial-interface, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-serial-interface, AUTHOR,"Stefanie Meihoefer, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-serial-interface, AUTHOR,"Stefanie Meihoefer, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-serial-interface, DESCRIPTION, missing)
 
 	# create target directory itself

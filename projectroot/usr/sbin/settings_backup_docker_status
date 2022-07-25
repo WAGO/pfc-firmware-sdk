@@ -7,7 +7,7 @@
 #
 # This file is part of PTXdist package docker.
 #
-# Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2021-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_docker_status
@@ -15,7 +15,7 @@
 # Brief:    Save docker status settings to stdout or restore 
 #           them from stdin.
 #
-# Author:   MWW: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MWW: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions

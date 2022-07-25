@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2016 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2016 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -135,7 +135,7 @@ $(STATEDIR)/libmodbusconfig.targetinstall:
 
 	@$(call install_fixup, libmodbusconfig,PRIORITY,optional)
 	@$(call install_fixup, libmodbusconfig,SECTION,base)
-	@$(call install_fixup, libmodbusconfig,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
+	@$(call install_fixup, libmodbusconfig,AUTHOR,"<WAGO GmbH \& Co. KG>")
 	@$(call install_fixup, libmodbusconfig,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 

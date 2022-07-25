@@ -170,6 +170,7 @@ menuconfig CONFIG_TOOLS
   select OPENSSL
   select BOOST
   select JSONCPP
+  select LIBBSD
 
 # dependencies of single config-tools
   select CT_IPC_MSG_HEADER if PLCLINUXRT && (CT_GET_RTS_INFO || CT_GET_PLC_CONFIG)
@@ -177,7 +178,6 @@ menuconfig CONFIG_TOOLS
   select OMS if CT_GET_RUN_STOP_SWITCH_VALUE
   select LIBNL3 if CT_LIBCTNETWORK
   select LIBMODBUSCONFIG if CT_MODBUS_CONFIG
-  select LIBBACNETCONFIG if CT_BACNET_CONFIG || CT_BACNET_BACKUP_RESTORE || CT_BACNET_WBM_DIAGLIST
 
   select MDMD if CT_CONFIG_MDMD
   select NETCONFD if CT_GET_ACTUAL_ETH_CONFIG
@@ -379,7 +379,6 @@ config CT_EDIT_DNS_SERVER_DHCP
   default n
   prompt "use DNS server from DHCP offer"
   depends on CONFIG_TOOLS && (CT_EDIT_DNS_SERVER || CT_GET_DNS_SERVER)
-  select CT_BLENDER
   help
    use given dns server from dhcp offer and mix them static assigned ones.
 
@@ -417,18 +416,6 @@ config CT_WBM_MANAGE_AIDE
 #################################################################
 comment "Helper scripts"
 depends on CONFIG_TOOLS
-
-config CT_BLENDER
-  bool
-  default n
-  depends on CONFIG_TOOLS
-  prompt "blender.sh"
-  help
-    It is just a little helper script which is needed to sort given entries.
-    It will be used for sorting DNS and NTP entries which are comming from DHCP
-    and static assigned ones.
-    DNS and NTP entries have special sorting algorithms.
-
 
 config CT_FEATURE_DETECT
   bool

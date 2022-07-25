@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2021 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2021 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -62,9 +62,8 @@ $(STATEDIR)/php-pam.prepare:
 	@$(call clean, $(PHP_PAM_DIR)/config.cache)
 	cd $(PHP_PAM_DIR) && \
 		$(PHP_PAM_CONF_ENV) \
-		$(PTXDIST_SYSROOT_TARGET)/usr/bin/phpize && \
-		aclocal && libtoolize --force && autoreconf && \
-		./configure $(PHP_PAM_CONF_OPT)
+		$(PTXDIST_SYSROOT_TARGET)/usr/bin/phpize
+	@$(call world/prepare, PHP_PAM)
 	@$(call touch)
 
 # ----------------------------------------------------------------------------
@@ -76,7 +75,7 @@ $(STATEDIR)/php-pam.targetinstall:
 	@$(call install_init, php-pam)
 	@$(call install_fixup, php-pam,PRIORITY,optional)
 	@$(call install_fixup, php-pam,SECTION,base)
-	@$(call install_fixup, php-pam,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, php-pam,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, php-pam,DESCRIPTION,missing)
 
 	@$(call install_copy, php-pam, 0, 0, 0755, $(PHP_PAM_DIR)/modules/pam.so, /usr/lib/php/pam.so)

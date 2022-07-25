@@ -19,7 +19,6 @@ menuconfig LIGHTTPD
 	select SQLITE			if LIGHTTPD_WEBDAV_PROPS
 	select LIBUUID			if LIGHTTPD_WEBDAV_LOCKS
 	select OPENSSL			if LIGHTTPD_OPENSSL
-	select LIBMEMCACHED		if LIGHTTPD_MEMCACHED
 	select LUA			if LIGHTTPD_LUA
 	select LUA_INSTALL_LIBLUA	if LIGHTTPD_LUA
 	select PHP7			if LIGHTTPD_MOD_FASTCGI_PHP && RUNTIME && !PHP5
@@ -55,15 +54,7 @@ config LIGHTTPD_LUA
 	bool
 	prompt "lua engine"
 	help
-	  lua engine for mod_cml and mod_magnet
-
-config LIGHTTPD_MEMCACHED
-	bool
-	prompt "memcached storage"
-	# fails to build with current libmemcached version
-	depends on BROKEN
-	help
-	  memcached storage for mod_trigger_b4_dl and mod_cml
+	  lua engine for mod_magnet
 
 config LIGHTTPD_OPENSSL
 	bool
@@ -108,13 +99,6 @@ config LIGHTTPD_MOD_AUTH
 	default y
 	help
 	  User authentication
-
-config LIGHTTPD_MOD_CML
-	bool
-	select LIGHTTPD_LUA
-	prompt "mod_cml"
-	help
-	  Cache Meta Language
 
 config LIGHTTPD_MOD_COMPRESS
 	bool
@@ -168,16 +152,6 @@ config LIGHTTPD_MOD_REWRITE
 	prompt "mod_rewrite"
 	help
 	  Module for URL rewriting
-
-config LIGHTTPD_MOD_TRIGGER_B4_DL
-	bool
-	select LIGHTTPD_MEMCACHED
-	select LIGHTTPD_PCRE
-	# needs (currently broken) LIGHTTPD_MEMCACHED
-	depends on BROKEN
-	prompt "mod_trigger_b4_dl"
-	help
-	  Module for Anti Hotlinking
 
 config LIGHTTPD_MOD_WEBDAV
 	bool

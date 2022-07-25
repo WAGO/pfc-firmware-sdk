@@ -1,0 +1,21 @@
+## SECTION=wago_specific_tools
+menuconfig MODBUS_TESTS
+	bool
+	prompt "modbus-tests"
+	default n
+	select KERNEL_HEADER
+	select LIBMODBUS
+	help
+	  This is a collection of tools to test modbus on top of libmodbus
+
+if MODBUS_TESTS
+
+config MODBUS_TESTS_SKIP_TARGETINSTALL
+	bool "skip modbus-tests targetinstall stage"
+	default y
+	help
+	  Skip modbus-tests targetinstall stage in order to save memory
+	  inside the target device. The install stage will create the package
+	  files into $(PTXDIST_PLATFORMDIR)/packages.
+
+endif

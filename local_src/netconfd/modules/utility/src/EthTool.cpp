@@ -28,14 +28,17 @@ struct SetRequestHasChangesVisitor {
 
   bool operator()(const EthToolLinkSettings &getdata, const EthToolLinkSettings &setdata) {
     /* r/w values*/
+    if (setdata.s_.link_mode_masks_nwords < 0 || getdata.s_.link_mode_masks_nwords < 0) {
+      return false;
+    }
 
+    auto nwords = static_cast<::std::uint8_t>(setdata.s_.link_mode_masks_nwords);
     return std::tie(getdata.s_.speed, getdata.s_.duplex, getdata.s_.autoneg)
         != std::tie(setdata.s_.speed, setdata.s_.duplex, setdata.s_.autoneg)
         || (getdata.s_.eth_tp_mdix != setdata.s_.eth_tp_mdix_ctrl)
-        || (memcmp(&getdata.link_mode_masks_[setdata.s_.link_mode_masks_nwords],
-                   &setdata.link_mode_masks_[setdata.s_.link_mode_masks_nwords],
-                   setdata.s_.link_mode_masks_nwords * 3 * sizeof(uint32_t)) != 0);
-
+        || (memcmp(&getdata.link_mode_masks_[nwords],
+                   &setdata.link_mode_masks_[nwords],
+                   nwords * 3 * sizeof(uint32_t)) != 0);
   }
 
   bool operator()([[maybe_unused]] const EthToolLinkSettings &getdata, [[maybe_unused]] const ethtool_cmd &setdata) {

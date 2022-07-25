@@ -63,7 +63,7 @@ Netmask BOOTPClient::GetNetmaskFromLease() {
 
 void BOOTPClient::Start() {
 
-  LogDebug("Run Bootp client for interface " + itf_name_);
+  LOG_DEBUG("Run Bootp client for interface " + itf_name_);
 
   auto argv_array = make_array(BOOTP_SCRIPT_PATH.c_str(), "start", itf_name_.c_str(), nullptr);
 
@@ -79,7 +79,7 @@ void BOOTPClient::Start() {
 void BOOTPClient::Stop() {
 
   if (0 == kill(pid_, SIGKILL)) {
-    LogDebug("Stopped DHCP Client for interface " + itf_name_);
+    LOG_DEBUG("Stopped DHCP Client for interface " + itf_name_);
   }
 
   RemoveFile(LeaseFile::GetLeaseFilePath(itf_name_));

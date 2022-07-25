@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,11 +10,11 @@
 ///
 ///  \file     common.h
 ///
-///  \version  $Revision: 12545 $
+///  \version  $Revision: 65689 $
 ///
 ///  \brief    <Insert description here>
 ///
-///  \author   HFS : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   HFS : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef COMMON_H_
 #define COMMON_H_

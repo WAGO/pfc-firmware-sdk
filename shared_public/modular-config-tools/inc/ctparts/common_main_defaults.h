@@ -5,14 +5,14 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     common_main_defaults.h
 ///
 ///  \brief    Commonly used prototypes for config tool common main function.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef INC_CTPARTS_COMMON_MAIN_DEFAULTS_H_
 #define INC_CTPARTS_COMMON_MAIN_DEFAULTS_H_

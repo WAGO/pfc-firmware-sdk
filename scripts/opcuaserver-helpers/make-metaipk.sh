@@ -2,7 +2,7 @@
 
 # Build ipkg for installing opcuaserver on pfc firmware
 #
-# WAGO Kontakttechnik GmbH & Co. KG
+# WAGO GmbH & Co. KG
 
 PTXPROJ=$(pwd)
 
@@ -176,7 +176,7 @@ echo "Priority: optional" >> ${BUILD_DIR}opc-ipkg-src/control/control
 echo "Version:  $OPCUA_IPK_VERSION" >> ${BUILD_DIR}opc-ipkg-src/control/control
 echo "Section:    base" >> ${BUILD_DIR}opc-ipkg-src/control/control
 echo "Architecture: armhf" >> ${BUILD_DIR}opc-ipkg-src/control/control
-echo "Maintainer: \"WAGO Kontakttechnik GmbH & Co. KG (jobst.wellensiek@wago.com)\" ">> ${BUILD_DIR}opc-ipkg-src/control/control
+echo "Maintainer: \"WAGO GmbH & Co. KG (jobst.wellensiek@wago.com)\" ">> ${BUILD_DIR}opc-ipkg-src/control/control
 echo "Depends: ">> ${BUILD_DIR}opc-ipkg-src/control/control
 echo "Source: ">> ${BUILD_DIR}opc-ipkg-src/control/control
 echo "Description:  Installation for WAGO opcuaserver. This packet is a meta packet including all parts need for server." >> ${BUILD_DIR}opc-ipkg-src/control/control
@@ -191,7 +191,7 @@ echo "              The packet install a local repo only. Use opkg update and op
 #---------------------------------------------------------
 echo "#!/bin/bash" > ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "#" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
-echo "# WAGO Kontakttechnik GmbH & Co. KG" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
+echo "# WAGO GmbH & Co. KG" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 echo "" >> ${BUILD_DIR}opc-ipkg-src/control/postinst
 
 echo 'sed -i -e "s/src ptxdist http:\/\/www.example.org\/ptxdist\/PFC\/dists\/PFCPFC-trunk/src\/gz local file:\/\/\/root\/packages/g" /etc/opkg/opkg.conf' >> ${BUILD_DIR}opc-ipkg-src/control/postinst

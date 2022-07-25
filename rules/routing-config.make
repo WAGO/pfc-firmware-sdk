@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -104,7 +104,7 @@ $(STATEDIR)/routing-config.targetinstall:
 	@$(call install_init, routing-config)
 	@$(call install_fixup,routing-config,PRIORITY,optional)
 	@$(call install_fixup,routing-config,SECTION,base)
-	@$(call install_fixup,routing-config,AUTHOR,"WAGO Kontakttechnik GmbH")
+	@$(call install_fixup,routing-config,AUTHOR,"WAGO GmbH")
 	@$(call install_fixup,routing-config,DESCRIPTION,"This packet provides config-tools supporting configuration of static routing, IP-masquerading and port-forwarding.")
 
 # Files that should be copied to the target

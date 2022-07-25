@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------ 
-## Copyright (c) WAGO Kontakttechnik GmbH & Co. KG 
+## Copyright (c) WAGO GmbH & Co. KG 
 ## 
 ## TODO: license terms
 ##
@@ -16,7 +16,7 @@
 ## and the python classes generated from the XSD configuration describing the
 ## layout of the corresponding xml elements.
 ## 
-## \author Andrej Gantvorg : WAGO Kontakttechnik GmbH & Co. KG
+## \author Andrej Gantvorg : WAGO GmbH & Co. KG
 #------------------------------------------------------------------------------
 
 #

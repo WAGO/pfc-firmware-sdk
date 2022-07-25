@@ -5,15 +5,15 @@
 //
 // This file is part of project common-header (PTXdist package libcommonheader).
 //
-// Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file
 ///
 ///  \brief    Test for assertion helper macros.
 ///
-///  \author   MaHe: WAGO Kontakttechnik GmbH & Co. KG
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MaHe: WAGO GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

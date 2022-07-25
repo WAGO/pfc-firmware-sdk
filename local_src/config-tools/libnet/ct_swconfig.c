@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
-// Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #include "ct_swconfig.h"
 
@@ -144,9 +144,7 @@ int ct_swconfig_get_attr(const char *attrName, char *attrValue, size_t attrValue
             break;
 	    case SWITCH_TYPE_STRING:
             (void) g_snprintf(attrValue, attrValueLen, "%s", val.value.s);
-            // swlib.h: val.value.s is to be freed by caller
-            // BUT: val.value.s is const char *
-            // free(val.value.s);
+            free((void *)val.value.s);
             break;
         default:
             status = INVALID_PARAMETER;

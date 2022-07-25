@@ -6,14 +6,14 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2017-2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   barebox-state_failsafe.sh
 #
 # Brief:    "barebox-state" wrapper with retries in case of blocked resources
 #
-# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 declare readonly BAREBOX="/usr/bin/barebox-state"

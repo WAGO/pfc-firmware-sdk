@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_IPK_UPLOADS) += wbm-ng-plugin-ipk-uploads
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_IPK_UPLOADS_VERSION        := 1.1.0
+WBM_NG_PLUGIN_IPK_UPLOADS_VERSION        := 1.1.1
 WBM_NG_PLUGIN_IPK_UPLOADS                := wbm-ipk-uploads-$(WBM_NG_PLUGIN_IPK_UPLOADS_VERSION)
 WBM_NG_PLUGIN_IPK_UPLOADS_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_IPK_UPLOADS)
 WBM_NG_PLUGIN_IPK_UPLOADS_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_IPK_UPLOADS_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-ipk-uploads.targetinstall:
 	@$(call install_init, wbm-ng-plugin-ipk-uploads)
 	@$(call install_fixup, wbm-ng-plugin-ipk-uploads, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-ipk-uploads, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-ipk-uploads, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-ipk-uploads, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-ipk-uploads, DESCRIPTION, missing)
 
 	# create a directory owned by user and group "www" to store the uploaded file for configtool

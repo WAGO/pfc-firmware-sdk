@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2021 by MWW WAGO GmbH & Co.KG
+# Copyright (C) 2022 by WAGO GmbH & Co.KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -20,9 +20,9 @@ endif
 #
 # Paths and names
 #
-DOCKER_VERSION				:= 20_10_8
+DOCKER_VERSION				:= 20_10_14
 DOCKER_VERSION_SUFFIX := wago_static-linux_arm_v7
-DOCKER_MD5						:= 72eb023440b66764a5b97a8477b94313
+DOCKER_MD5						:= 194f6e6691115917be03db163e512f0a
 DOCKER								:= docker-$(DOCKER_VERSION)-$(DOCKER_VERSION_SUFFIX)
 DOCKER_SUFFIX					:= tar.gz
 DOCKER_URL						:= https://github.com/WAGO/docker-engine/releases/download/v$(DOCKER_VERSION)-wago/docker-$(subst .,_,$(DOCKER_VERSION))-$(DOCKER_VERSION_SUFFIX).tar.gz

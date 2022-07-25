@@ -27,5 +27,7 @@ wdxprov:x:122:
 wdaadm:x:123:
 docker:x:1001:
 iot:x:118:iot
-wbmuser:x:130:user,admin
-wbmadmin:x:131:admin
+wagoupload:x:234:wagoupload,admin
+wbmuser:x:130:user,admin,root
+wbmadmin:x:131:admin,root
+netconf:x:501:admin,iot,opc

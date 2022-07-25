@@ -5,12 +5,12 @@
 #
 # This file is part of project mdmd (PTXdist package mdmd).
 #
-# Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 #
 # Contributors:
-#   JB: WAGO Kontakttechnik GmbH & Co. KG
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
-#   MMy: WAGO Kontakttechnik GmbH & Co. KG
+#   JB: WAGO GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
+#   MMy: WAGO GmbH & Co. KG
 #######################################################################################################################
 # Makefile for tests in PTXdist package mdmd
 # This makefile uses the infrastructure provided by ct-build.

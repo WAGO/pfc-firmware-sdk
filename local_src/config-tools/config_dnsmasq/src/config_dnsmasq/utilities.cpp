@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,8 +11,8 @@
 ///
 ///  \brief    Collection of utility functions.
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
-///  \author   MOe : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
+///  \author   MOe : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include <boost/algorithm/string.hpp>
@@ -25,7 +25,7 @@
 using ::boost::asio::ip::make_address_v4;
 using ::boost::system::error_code;
 
-namespace utilities {
+namespace configdnsmasq::utilities {
 
 namespace {
 
@@ -224,4 +224,4 @@ bool conv_is_valid_mac(const ::std::string &mac_in) {
   }
   return result;
 }
-}  //namespace utilities
+}  //namespace configdnsmasq::utilities

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_STATUSDATE) += wbm-ng-plugin-statusdate
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_STATUSDATE_VERSION        := 1.1.0
+WBM_NG_PLUGIN_STATUSDATE_VERSION        := 1.1.3
 WBM_NG_PLUGIN_STATUSDATE                := wbm-statusdate-$(WBM_NG_PLUGIN_STATUSDATE_VERSION)
 WBM_NG_PLUGIN_STATUSDATE_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_STATUSDATE)
 WBM_NG_PLUGIN_STATUSDATE_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_STATUSDATE_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-statusdate.targetinstall:
 	@$(call install_init, wbm-ng-plugin-statusdate)
 	@$(call install_fixup, wbm-ng-plugin-statusdate, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-statusdate, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-statusdate, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-statusdate, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-statusdate, DESCRIPTION, missing)
 
 	# create target directory itself

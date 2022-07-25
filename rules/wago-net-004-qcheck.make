@@ -115,7 +115,7 @@ $(STATEDIR)/qcheck.targetinstall:
 
 	@$(call install_fixup, qcheck,PRIORITY,optional)
 	@$(call install_fixup, qcheck,SECTION,base)
-	@$(call install_fixup, qcheck,AUTHOR,"Karsten Nünthel : WAGO Kontakttechnik GmbH \& Co. KG <www.wago.com>")
+	@$(call install_fixup, qcheck,AUTHOR,"Karsten Nünthel : WAGO GmbH \& Co. KG <www.wago.com>")
 	@$(call install_fixup, qcheck,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 

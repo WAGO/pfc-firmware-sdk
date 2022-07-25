@@ -24,17 +24,18 @@ config CDS3_IODRVDAL
 menu "Codesys 3 Configuration Libraries"
 
 
-config CDS3_IODRVKBUS
+menuconfig CDS3_IODRVKBUS
 	bool "Io Driver Kbus"
 	default n
-	select LIBDBUSKBUSCOMMON
 	select LIBPACKBUS
-	select CDS3_TSCLED
 	select CDS3_IODRVDAL
 	select CDS3_INCLUDES
 	select CDS3_TSCEXTTASK
+	select CDS3_TSCLED
 	help
 		Builds and installs the Kbus device Driver.
+
+
 
 config CDS3_IODRVDPS
 	bool "Io Driver Profibus Slave"
@@ -110,7 +111,6 @@ config CDS3_IODRVSERIAL
 config CDS3_IODRVPNC
   bool "Io Driver PROFINET Controller"
   default n
-  select LIBPROFINET
   select CDS3_INCLUDES
   help
     Builds and installs the Profinet Controller Driver.
@@ -120,7 +120,6 @@ config CDS3_IODRVPN
   default n
   select HOST_CT_BUILD
   select GOOGLETEST
-  select LIBPROFINET
   select CDS3_INCLUDES
   select DBUS
   select DAL
@@ -197,7 +196,6 @@ config CDS3_CMPKBUSASYNCCOM
 	select CDS3_IODRVDAL
 	select CDS3_IODRVKBUS
 	select LIBPACKBUS
-	select OMS
 	help
 		Builds and installs the CoDeSys 3 component for KBus asynchronous communication library.
 
@@ -446,7 +444,6 @@ config CDS3_TSCSYSPN
 	select HOST_CT_BUILD
 	select GOOGLETEST
 	select CDS3_IODRVPN
-	select LIBPROFINET
 	select CDS3_INCLUDES
 	help
 		Profinet specific services for Controller/Device record and diagnosis requests
@@ -515,7 +512,54 @@ config CDS3_TSCIOBACNET
 	select CDS3_IODRVBACNET
 	select LIBBACNET
 	help
-		BACnet for CODESYS V3	
+		BACnet for CODESYS V3
+
+if CDS3_TSCIOBACNET
+
+choice
+        prompt "Origin of Code"
+        default CDS3_TSCIOBACNET_SOURCE_RELEASED
+
+        config CDS3_TSCIOBACNET_SOURCE_RELEASED
+                bool
+                prompt "released / Artifactory"
+                help
+                  Use released version of source code, taken from Artifactory.
+
+        config CDS3_TSCIOBACNET_SOURCE_DEV
+                bool
+                prompt "development / Git"
+                help
+                  Instead of released version use source code directly checked-out from repository.
+                  Use only for development!
+
+endchoice
+
+if CDS3_TSCIOBACNET_SOURCE_DEV
+
+config CDS3_TSCIOBACNET_DEV_BRANCH
+	string
+	prompt "Branch to be checked-out."
+	default "master"
+	help
+	  Name of branch which should be checked out or empty for default.
+
+endif
+
+if CDS3_TSCIOBACNET_SOURCE_RELEASED
+
+config CDS3_TSCIOBACNET_URL_TEMPLATE
+	string
+    depends on CDS3_TSCIOBACNET
+	prompt "URL template"
+	default "%ARTIFACTORY_BASE_URL%/pl_controller-generic-prod-local/wago_intern/TscIoBacnet-Source/TscIoBacnet-Source-%VERSION%.tgz"
+	help
+	  Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+	  See Confluence for further details.
+
+endif
+
+endif
 
 config CDS3_TSCWEBSOCKETSERVER
   bool "cds3-tscwebsocketserver"
@@ -585,20 +629,6 @@ config CDS3_TSCSYNCBOOTPROJECT
     help  
         This component synchronizes the bootproject to the storage after it has been uploaded to the controller
         
-config CDS3_IODRVRLB
-    bool "IO driver rocket local bus"
-    default n
-    select HOST_CT_BUILD
-    select CDS3_INCLUDES
-    select CODESYS3
-    select LIBUIO
-    select LIBCOMMONHEADER
-    select TSCPARAMSERV
-    select LED_SERVER_META
-    select WAGO_PFC_DIAGNOSTIC if !LED_SERVER_LEGACY
-    help
-        This component implements the process data communication between codesys3 and rocket local bus
-
 config TSCPARAMSERV
     bool "TscParamServ"
     default n
@@ -638,11 +668,3 @@ config CDS3_TSCIODRVCC100
     help
         IoDrv for CC100 (currently elrest)
 
-config CDS3_TSCGW750ASYNCCOM
-    bool "TscGW750AsyncCom"
-    default n
-    select CODESYS3
-    select CDS3_INCLUDES
-    select TSCPARAMSERV
-    help
-        CODESYS Component for GW750 async communication

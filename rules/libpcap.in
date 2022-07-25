@@ -1,0 +1,34 @@
+## SECTION=networking
+
+menuconfig LIBPCAP
+	tristate
+	prompt "libpcap                       "
+	select GCCLIBS_GCC_S
+	select LIBNL3
+	help
+	  libpcap is a system-independent interface for user-level packet capture.
+	  libpcap provides a portable framework for low-level network monitoring.
+	  Applications include network statistics collection, security monitoring,
+	  network debugging, etc.  Since almost every system vendor provides a
+	  different interface for packet capture, and since we've developed
+	  several tools that require this functionality, we've created this
+	  system-independent API to ease in porting and to alleviate the need for
+	  several system-dependent packet capture modules in each application.
+
+	  In order to run this library the kernel must support some features.
+	  This note from the 2.6 kernel says:
+	  CONFIG_PACKET:
+	   The Packet protocol is used by applications which communicate directly
+	   with network devices without an intermediate network protocol
+	   implemented in the kernel, e.g. tcpdump. If you want them to work,
+	   choose Y.
+
+if LIBPCAP
+
+config LIBPCAP_BLUETOOTH
+	bool
+	prompt "bluetooth sniffing support"
+	help
+	  Enable this if you require bluetooth sniffing support.
+
+endif

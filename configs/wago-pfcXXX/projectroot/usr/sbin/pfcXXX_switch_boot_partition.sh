@@ -6,7 +6,7 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   pfcXXX_switch_boot_partition.sh
@@ -21,7 +21,7 @@
 #
 # Note: Use "rauc status" to see which system is marked as "active"
 #
-# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MLa: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 if [ ! -f "/etc/config-tools/board_specific_defines" ]; then
     echo "Missing dependency board_specific_defines"

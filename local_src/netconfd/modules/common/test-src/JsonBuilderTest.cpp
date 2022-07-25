@@ -15,14 +15,34 @@ TEST(JsonBuilderTest, BuildInterfaceConfig) {
   nlohmann::json expected_json =
       nlohmann::json::parse(
           R"({"interface-config":[
+      {"autonegotiation":"on", "device":"br0","duplex":"full", "speed":100, "state":"up", "maclearning":"on"},
+      {"autonegotiation":"off", "device":"br1","duplex":"half", "speed":10, "state":"up", "maclearning":"off"}
+]})");
+
+  InterfaceConfigs itfcfg { { "br0", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON }, { "br1",
+      InterfaceState::UP, Autonegotiation::OFF, 10, Duplex::HALF, MacLearning::OFF } };
+
+  jb.Append("interface-config", itfcfg);
+
+  EXPECT_EQ(expected_json.dump(), jb.ToString());
+
+}
+
+TEST(JsonBuilderTest, BuildInterfaceConfig_lt_fw22) {
+
+  JsonBuilder jb;
+
+  nlohmann::json expected_json =
+      nlohmann::json::parse(
+          R"({"interface-config":[
       {"autonegotiation":"on", "device":"br0","duplex":"full", "speed":100, "state":"up"},
       {"autonegotiation":"off", "device":"br1","duplex":"half", "speed":10, "state":"up"}
 ]})");
 
-  InterfaceConfigs itfcfg { { "br0", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL }, { "br1",
-      InterfaceState::UP, Autonegotiation::OFF, 10, Duplex::HALF } };
+  InterfaceConfigs itfcfg { { "br0", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON }, { "br1",
+      InterfaceState::UP, Autonegotiation::OFF, 10, Duplex::HALF, MacLearning::OFF } };
 
-  jb.Append("interface-config", itfcfg);
+  jb.Append("interface-config", itfcfg, FirmwareVersion { 3, 3, 10, 21});
 
   EXPECT_EQ(expected_json.dump(), jb.ToString());
 
@@ -39,13 +59,12 @@ TEST(JsonBuilderTest, BuildInterfaceConfigFw15) {
       {"autonegotiation":false, "device":"br1","duplex":"half", "speed":10, "state":"up"}
 ]})");
 
-  InterfaceConfigs itfcfg { { "br0", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL }, { "br1",
-      InterfaceState::UP, Autonegotiation::OFF, 10, Duplex::HALF } };
+  InterfaceConfigs itfcfg { { "br0", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::OFF }, { "br1",
+      InterfaceState::UP, Autonegotiation::OFF, 10, Duplex::HALF, MacLearning::ON } };
 
   jb.Append("interface-config", itfcfg, FirmwareVersion { 3, 3, 10, 15 });
 
   EXPECT_EQ(expected_json.dump(), jb.ToString());
-
 }
 
 TEST(JsonBuilderTest, BuildBridgeConfig) {

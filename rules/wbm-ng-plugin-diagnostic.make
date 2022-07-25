@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_DIAGNOSTIC) += wbm-ng-plugin-diagnostic
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_DIAGNOSTIC_VERSION        := 1.2.0
+WBM_NG_PLUGIN_DIAGNOSTIC_VERSION        := 1.2.2
 WBM_NG_PLUGIN_DIAGNOSTIC                := wbm-diagnostic-$(WBM_NG_PLUGIN_DIAGNOSTIC_VERSION)
 WBM_NG_PLUGIN_DIAGNOSTIC_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_DIAGNOSTIC)
 WBM_NG_PLUGIN_DIAGNOSTIC_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_DIAGNOSTIC_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-diagnostic.targetinstall:
 	@$(call install_init, wbm-ng-plugin-diagnostic)
 	@$(call install_fixup, wbm-ng-plugin-diagnostic, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-diagnostic, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-diagnostic, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-diagnostic, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-diagnostic, DESCRIPTION, missing)
 
 	# create target directory itself

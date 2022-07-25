@@ -6,20 +6,20 @@
 #
 # This file is part of PTXdist package config-tools.
 #
-# Copyright (c) 2013-2020  WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2013-2022  WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   config_interfaces
 #
 #  Brief:   Change the configuration of the interfaces.
 #
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   HFS: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   FR:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MSc: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   HJH: WAGO GmbH & Co. KG
+# Author:   HFS: WAGO GmbH & Co. KG
+# Author:   FR:  WAGO GmbH & Co. KG
+# Author:   OG:  WAGO GmbH & Co. KG
+# Author:   MSc: WAGO GmbH & Co. KG
+# Author:   MOe: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions

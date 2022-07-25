@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,7 +11,7 @@
 ///
 ///  \brief    Write data to and read data from files.
 ///
-///  \author   WAGO Kontakttechnik GmbH & Co. KG
+///  \author   WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include "FileEditor.hpp"
@@ -20,6 +20,8 @@
 #include <fstream>
 #include <unistd.h>
 #include <sys/stat.h>
+
+namespace configdnsmasq {
 
 eStatusCode FileEditor::Read(const ::std::string& file_path, ::std::string& data) const {
 
@@ -36,7 +38,6 @@ eStatusCode FileEditor::Read(const ::std::string& file_path, ::std::string& data
   }
 
   return status;
-
 }
 
 eStatusCode FileEditor::Write(const ::std::string& file_path,
@@ -94,3 +95,5 @@ eStatusCode FileEditor::Append(const ::std::string& file_path,
 
   return status;
 }
+
+} // namespace configdnsmasq

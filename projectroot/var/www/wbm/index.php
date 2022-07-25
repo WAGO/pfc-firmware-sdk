@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+ * Copyright (c) 2018-2022 WAGO GmbH & Co. KG
  *
  * PROPRIETARY RIGHTS are involved in the subject matter of this material.
  */
@@ -36,7 +36,7 @@ $username   = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
 <head>
 <title>WAGO Ethernet Web-based Management</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="author" content="WAGO Kontakttechnik GmbH & Co. KG">
+<meta name="author" content="WAGO GmbH & Co. KG">
 
 
 <link rel="stylesheet" type="text/css" href="css/styles.css">

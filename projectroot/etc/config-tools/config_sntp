@@ -3,14 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: config_sntp
 #
 # Change the configuration of the ntpclient parameter.
 #
-# Author: WAGO Kontakttechnik GmbH
+# Author: WAGO GmbH
 #-----------------------------------------------------------------------------#
 
 set -u
@@ -74,7 +74,7 @@ SetConfig()
     if [ "$parvalue" ]; then
         case $parname in
             NTP_SERVER_*)
-                echo $parvalue | egrep -q "^$IP_ADDRESS_REGEX$"
+                echo $parvalue | egrep -q "^[-0-9a-zA-Z.]+$"
                 status=$?
             ;;
         esac

@@ -5,14 +5,14 @@
 //
 // This file is part of project common-header (PTXdist package libcommonheader).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     test_Assertion.h
 ///
 ///  \brief    Test for assertion helper macros.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef TEST_SRC_TEST_ASSERTION_H_
 #define TEST_SRC_TEST_ASSERTION_H_

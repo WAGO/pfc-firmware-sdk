@@ -6,16 +6,16 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2016-2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2016-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_mdmd
 #
 # Brief:    Save or restore MDMD settings.
 #
-# Author:   AnK: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   KN: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   AnK: WAGO GmbH & Co. KG
+# Author:   KN: WAGO GmbH & Co. KG
+# Author:   OG: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -86,13 +86,15 @@ if [ "$operation" = "restore" ]; then
         status=$?
         ;;         
     net-selection-mode)
+        #for backward compatibility keep following net-selection-mode restore by number 
         if [ $3 -ge 0 ] && [ $3 -lt ${#NetworkSelectionEnum[*]} ] 
         then
            NetworkSelectionValue=${NetworkSelectionEnum[$3]}
            "$md_config_tool" --set --network NetworkSelection=$NetworkSelectionValue
            status=$?  
         else 
-          status=$INVALID_PARAMETER  
+          "$md_config_tool" --set --network NetworkSelection=$3
+          status=$?
         fi
         ;;       
     dummy)  
@@ -136,12 +138,8 @@ elif [ "$operation" = "backup" ]; then
 		  fi  
       ;;
 		net-selection-mode) 
-		  if grep -q "net_selection_mode" "$md_config"; then 
-		  	cat "$md_config" |  awk -F = '$1=="net_selection_mode" { printf $2 }' 
-		    status=$SUCCESS
-		  else
-		    status=$CONFIG_FILE_INCONSISTENT
-		  fi  
+      "$md_config_tool" --get --network | grep NetworkSelection | cut -d'=' -f 2
+      status=$?
 		  ;;
 		gprs-apn)
 		  "$md_config_tool" --get --gprsaccess  | grep GprsAccessPointName | cut -d'=' -f 2

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,11 +11,11 @@
 ///
 ///  \file     get_coupler_details.c
 ///
-///  \version  $Revision: 60083 $1
+///  \version  $Revision: 65689 $1
 ///
 ///  \brief
 ///
-///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Stefanie Meihöfer : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -1598,6 +1598,14 @@ int GetSerialNumber(char *pOutputString)
   }
 
   // initialise output-string
+  pOutputString[0] = '\0';
+
+  if(SUCCESS == GetValueFromTypelabel(pOutputString, "UII"))
+  {
+    return SUCCESS;
+  }
+
+  // clear output-string
   pOutputString[0] = '\0';
 
   do{

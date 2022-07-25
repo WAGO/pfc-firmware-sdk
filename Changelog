@@ -1,3 +1,69 @@
+Firmware Release 03.10.08 (99)
+
+System:
+[NEW] Uptdated lighttpd to version 1.4.64 Updated PHP to version 7.4.28
+[NEW] Allow to specify NTP server via hostname (additonal to IP address)
+[NEW] Updated ca-certificates to version NSS_3_78_RTM
+[NEW] Allow to configure NTP servers by hostname also (previously only IP
+      addresses were allowed).
+[FIXED] OpenSSL updated to 1.1.1n
+[FIXED] Fixed CVE-2021-29155
+[FIXED] Fixed data race during restore (WAGOupload failed to complete restore
+        during controller reboot).
+[FIXED] Updated libxml2 to 2.9.13 (fixes CVE-2022-23308)
+[FIXED] Updated expat to 2.4.7 (fixes CVE-2022-25235, CVE-2022-25236,
+        CVE-2022-25313, CVE-2022-25314, CVE-2022-25315)
+[FIXED] Fixed integer in XML_GetBuffer
+
+Operating System:
+[NEW] Updated Kernel to version 5.15 (LTS). Fixes CVE-2022-23222.
+[FIXED] Fixed CVE-2021-4023, CVE-2021-3732
+[FIXED] Fixed CVE-2022-0847
+[FIXED] Fixed CVE-2021-22600
+[FIXED] Fixed CVE-2021-4150, CVE-2021-4148, CVE-2021-4197, CVE-2022-0995
+[FIXED] Fixed CVE-2021-45868, CVE-2022-27666
+
+Runtime System:
+[NEW] e!RUNTIME Upgrade to version 3.5.17.3
+      (based on CODESYS 3.5, SP 17,Patch 3)
+      Fixed CVE-2021-29242, CVE-2021-36765, CVE-2021-33485, CVE-2021-36763,
+            CVE-2021-36764, CVE-2022-1989
+
+Fieldbus Interface & Protocols:
+-CAN
+[FIXED] PFC CANopen Slave sends no heartbeat when bus detection fails
+
+Web Based Management:
+[NEW] root now has the same access rights to WBM like user "admin". By login
+      with username "root", the user can change the password of linux user
+      root and is not in need to change root password via SSH.
+      For security reasons, only users which are part of a WBM user group are
+      able to access WBM. All other users will rejected at WBM login.
+[NEW] WBM provides information about the used trademarks.
+[NEW] Force booting from the internal flash only and prohibit booting from SD
+      card. Notice: if you force booting from internal flash, an update is
+      only possibled via ETHERNET. There is a risk that you will no longer be
+      able to connect to the device if there are any problems.
+[FIXED] No Cross-site Scripting via wrong configtool name.
+[FIXED] Enhanced user guidance and error message in case of wrong/missing
+        label text while creating new filesystem on memory card.
+
+Functional change:
+[CHANGED] The Fast Aging function has been replaced by the MAC Learning
+          function. A device with MAC Learning enabled on all ethernet
+          interfaces behaves in the same way as a device with Fast Aging
+          disabled behaved in the past. NEW: MAC Learning is also available on
+          all 4-port devices (0750-8210,750-8211 and 750-8215).
+[DEPRECATED] Config tool function get_telecontrol_state will be removed in
+             future re-leases. The config tool was used to determine whether a
+             device is a telecontrol. Since telecontrol services can be added
+             by dynamic licensing, the tool is no longer needed.
+[DEPRECATED] DHCP and DNS Server will be removed in future releases. For the
+             transition, it will be included for now. In the next release, the
+             servers will still be partd of the firmware.
+
+################################################################################
+
 Firmware Release 03.09.04 (99)
 
 System:

@@ -27,6 +27,8 @@ struct Options {
     { "mac-address", "Get mac address of an device. The device name must be given using the --device option." };
   const Option device_info
     { "device-info", "Get information about ports and/or bridges." };
+  const Option interface_status
+    { "interface-status", "Get information about ports states." };
   const Option backup_targetversion
     { "backup-targetversion", "Backup made for the specific firmware version [targetversion], e.g. V03.03.02" };
   const Option backup

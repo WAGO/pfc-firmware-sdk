@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2014 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2014-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,12 +11,12 @@
 ///
 ///  \file     config_mdmd.c
 ///
-///  \version  $Revision: 50237 $
+///  \version  $Revision: 65689 $
 ///
 ///  \brief    Configuration tool for WAGO Modem Management Daemon. 
 ///
-///  \author   KNu : WAGO Kontakttechnik GmbH & Co. KG
-///  \author   PEn : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   KNu : WAGO GmbH & Co. KG
+///  \author   PEn : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include <assert.h>

@@ -6,17 +6,17 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2014-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2014-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   pfcXXX_copy_data.sh
 #
 # Brief:    Script to copy system data from/to devices (eg. NAND/EMMC/SD card).
 #
-# Author:   HT:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MLa: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HT:  WAGO GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
+# Author:   MLa: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # Load general definitions and functions.

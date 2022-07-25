@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -15,7 +15,7 @@
 ///  \brief    Dieses Programm erzeugt eine Eventnachricht, die im
 ///            led-Error-server einen Protokolleintrag erzeugt.
 ///
-///  \author   Hans Florian Scholz : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Hans Florian Scholz : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

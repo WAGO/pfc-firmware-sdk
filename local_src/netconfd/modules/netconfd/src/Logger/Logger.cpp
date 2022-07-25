@@ -147,8 +147,7 @@ void LogError(::std::string const& message) {
 }
 
 void LogDebug(::std::string const& message) {
-  ::std::string func{__func__}; //
-  GetLogger().LogDebug(func + ": " + message);
+  GetLogger().LogDebug(message);
 }
 
 LogLevel LogLevelFromString(::std::string const& level) {

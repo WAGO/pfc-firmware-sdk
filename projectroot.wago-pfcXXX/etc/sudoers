@@ -31,6 +31,8 @@ iot ALL=NOPASSWD: /etc/config-tools/get_runtime_config, /etc/config-tools/get_ty
 # Same thing without a password
 # %wheel  ALL=(ALL) NOPASSWD: SETENV: ALL
 
+%wagoupload ALL=NOPASSWD: /etc/config-tools/get_runtime_config, /etc/config-tools/terminate_codesys, /etc/config-tools/config_runtime, /bin/df, /etc/init.d/runtime, /etc/config-tools/get_typelabel_value, /etc/config-tools/get_coupler_details, /etc/config-tools/get_actual_eth_config, /etc/config-tools/get_eth_config, /etc/config-tools/get_possible_runtimes, /etc/config-tools/get_iocheckport_config, /usr/bin/firewall, /etc/config-tools/config_iocheckport, /etc/config-tools/get_ssh_config, /etc/config-tools/config_ssh, /sbin/retain_data, /etc/config-tools/firmware_backup, /etc/config-tools/firmware_restore_admin, /bin/opkg
+
 # Samples
 # %users  ALL=/sbin/mount /cdrom,/sbin/umount /cdrom
 # %users  localhost=/sbin/shutdown -h now

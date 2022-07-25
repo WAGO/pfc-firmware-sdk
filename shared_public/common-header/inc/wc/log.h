@@ -5,7 +5,7 @@
 //
 // This file is part of project common-header (PTXdist package libcommonheader).
 //
-// Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file
@@ -15,8 +15,8 @@
 ///            output functions
 ///            (\link wc_get_log_level \endlink /\link wc_log_output \endlink).
 ///
-///  \author   MaHe: WAGO Kontakttechnik GmbH & Co. KG
-///  \author   PEn : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MaHe: WAGO GmbH & Co. KG
+///  \author   PEn : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef INC_WC_LOG_H_
 #define INC_WC_LOG_H_
@@ -26,6 +26,7 @@
 //------------------------------------------------------------------------------
 #include "wc/assertion.h"
 #include "wc/compiler.h"
+#include "wc/structuring.h"
 #include "wc/std_includes.h"
 
 #ifdef __cplusplus
@@ -118,7 +119,7 @@ typedef enum log_level
 //lint -estring(960, WC_DEBUG_LOG) to disable Rule 19.4 it is necessary to disable all 960 messages,
 //                                 disallowed definition for macro
 #ifndef NDEBUG
-#define WC_DEBUG_LOG(message)                              wc_log_advanced(__FILE__, __func__, __LINE__, debug, message)
+#define WC_DEBUG_LOG(message)                              wc_log_advanced(__FILE__, WC_ARRAY_TO_PTR(__func__), __LINE__, debug, message)
 #else
 #define WC_DEBUG_LOG(message)                                                                             (void)message
 #endif

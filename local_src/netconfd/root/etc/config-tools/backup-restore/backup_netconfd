@@ -4,15 +4,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   backup_netconfd
 #
 # Brief:    Backup and restore network configuration accessed by netconfd.
 #
-# Author:   StB: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   StB: WAGO GmbH & Co. KG
+# Author:   MOe: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 set -u

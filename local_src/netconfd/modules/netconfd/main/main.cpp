@@ -59,11 +59,11 @@ static void segfaul_handler(int sig) {
   int size;
 
   // get void*'s for all entries on the stack
-  size = backtrace(array, 10);
+  size = backtrace(&array[0], 10);
 
   // print out all the frames to stderr
   fprintf(stderr, "Error: signal %d:\n", sig);
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  backtrace_symbols_fd(&array[0], size, STDERR_FILENO);
   exit(1);
 }
 

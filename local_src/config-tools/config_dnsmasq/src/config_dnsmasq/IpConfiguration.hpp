@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,7 +11,7 @@
 ///
 ///  \brief    Class representation of a port configuration
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #ifndef SRC_CONFIG_DNSMASQ_IPCONFIGURATION_HPP_
@@ -20,6 +20,8 @@
 #include <list>
 
 #include "PortData.hpp"
+
+namespace configdnsmasq {
 
 class IpConfiguration {
  public:
@@ -33,5 +35,7 @@ class IpConfiguration {
   bool portIsAvailable(const std::string &port);
   PortData getPortData(const std::string& port);
 };
+
+} // namespace configdnsmasq
 
 #endif /* SRC_CONFIG_DNSMASQ_IPCONFIGURATION_HPP_ */

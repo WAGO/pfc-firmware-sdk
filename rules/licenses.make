@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Henrik Lampe (henrik.lampe@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Henrik Lampe (henrik.lampe@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -106,12 +106,13 @@ $(STATEDIR)/licenses.targetinstall:
 	@$(call install_init, licenses)
 	@$(call install_fixup, licenses, PRIORITY, optional)
 	@$(call install_fixup, licenses, SECTION, base)
-	@$(call install_fixup, licenses, AUTHOR,"Henrik Lampe, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, licenses, AUTHOR,"Henrik Lampe, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, licenses, DESCRIPTION, missing)
 
 #	# install general licenses
 	@$(call install_alternative, licenses, 0, 0, 0644, $(LICENSES_TARGET_DIR)/oss.txt)
 	@$(call install_alternative, licenses, 0, 0, 0644, $(LICENSES_TARGET_DIR)/wago.txt)
+	@$(call install_alternative, licenses, 0, 0, 0644, $(LICENSES_TARGET_DIR)/trademarks.txt)
 
 #	# _generic_ licenses, i.e. do not depend on selected packages - GPL etc.
 	@$(call install_alternative_tree, licenses, 0, 0, $(LICENSES_TARGET_DIR)/oss/generic/)

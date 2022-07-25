@@ -9,6 +9,7 @@
 #include <boost/system/error_code.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ip/network_v4.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 namespace netconf {
 using namespace std::literals;
@@ -17,6 +18,7 @@ using boost_address = boost::asio::ip::address;
 using boost_address_v4 = boost::asio::ip::address_v4;
 using boost_net = boost::asio::ip::network_v4;
 using boost_error = boost::system::error_code;
+using boost_network_v4 = boost::asio::ip::network_v4;
 
 using Addresses = ::std::vector<uint32_t>;
 
@@ -30,7 +32,7 @@ static bool IPConfigParametersMustBeChecked(const IPConfig &ip_config) {
   return IPConfig::SourceIsAnyOf(ip_config, IPSource::STATIC);
 }
 
-static uint32_t CheckAddressFormat(const Address &address, const Interface &interface, Status &status) {
+static boost_address_v4 CheckAddressFormat(const Address &address, const Interface &interface, Status &status) {
 
   boost_error error_code;
   boost_address boost_ipaddress = boost_address::from_string(address, error_code);
@@ -43,10 +45,11 @@ static uint32_t CheckAddressFormat(const Address &address, const Interface &inte
     }
   }
 
-  return boost_ipaddress.to_v4().to_uint();
+  return boost_ipaddress.to_v4();
 }
 
-static uint32_t CheckNetmaskFormat(const Netmask &netmask, const Interface &interface, Status &status) {
+
+static boost_address_v4 CheckNetmaskFormat(const Netmask &netmask, const Interface &interface, Status &status) {
 
   boost_error error_code;
   boost_address binary_netmask = boost_address::from_string(netmask, error_code);
@@ -59,7 +62,24 @@ static uint32_t CheckNetmaskFormat(const Netmask &netmask, const Interface &inte
     }
   }
 
-  return binary_netmask.to_v4().to_uint();
+  return binary_netmask.to_v4();
+}
+
+
+static void CheckValidHostAddress(const boost_address_v4 &address, const boost_address_v4 &netmask,
+                                  const Interface &interface, Status &status) {
+
+  auto network = boost_network_v4(address, netmask);
+
+  // RFC3021 defines that subnet mask 255.255.255.254 contains exactly 2 hosts without broadcast address.
+  // This is used in Point-to-Point IP links.
+  // Further 255.255.255.255 is used to define exactly one IP address.
+  if ( network.prefix_length() <= 30 && !boost::starts_with(interface, "wwan") ) {
+    if( address == network.network() || address == network.broadcast())  {
+      status.Set(StatusCode::IP_INVALID, address.to_string());
+    }
+  }
+
 }
 
 static void CheckIPAddressExistMoreOften(const IPConfigs &ip_configs, Status &status) {
@@ -130,11 +150,15 @@ static void CheckOverlappingNetwork(const IPConfigs &ip_configs, Status &status)
 static void CheckIPAddressFormat(const IPConfigs &ip_configs, Status &status) {
 
   for (auto &ip_config : ip_configs) {
-    CheckAddressFormat(ip_config.address_, ip_config.interface_, status);
+    auto ip_address = CheckAddressFormat(ip_config.address_, ip_config.interface_, status);
     if (status.IsNotOk()) {
       break;
     }
-    CheckNetmaskFormat(ip_config.netmask_, ip_config.interface_, status);
+    auto netmask = CheckNetmaskFormat(ip_config.netmask_, ip_config.interface_, status);
+    if (status.IsNotOk()) {
+      break;
+    }
+    CheckValidHostAddress(ip_address, netmask, ip_config.interface_, status);
     if (status.IsNotOk()) {
       break;
     }

@@ -1,7 +1,7 @@
 ## -*-makefile-*-
 # $Id: wago-codesys3-015-cmpopcua.make 7242 2014-06-24 15:44:38Z timur.celik@wago.com $
 #
-# Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2013 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #

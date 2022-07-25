@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2021 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2021 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -95,7 +95,7 @@ $(STATEDIR)/passwdqc.targetinstall:
 	@$(call install_init, passwdqc)
 	@$(call install_fixup, passwdqc,PRIORITY,optional)
 	@$(call install_fixup, passwdqc,SECTION,base)
-	@$(call install_fixup, passwdqc,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, passwdqc,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, passwdqc,DESCRIPTION,missing)
 
 

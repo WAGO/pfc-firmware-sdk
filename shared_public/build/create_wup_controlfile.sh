@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 FILE="$1"
 
@@ -145,6 +145,12 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8216/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/K000-0002\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/K000-0006\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/0600-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/0625-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         ;;
 
     PFC-G2-Linux-hardened)
@@ -173,6 +179,12 @@ case "$PLATFORM" in
         echo "    <Article OrderNo=\"0750-8216/0025-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/0040-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         echo "    <Article OrderNo=\"0750-8216/K000-0001\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217\"                      GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/0025-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/K000-0002\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/K000-0006\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/0600-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
+        echo "    <Article OrderNo=\"0750-8217/0625-0000\"            GroupRef=\"PFC-Common\"/>" >> "$FILE"
         ;;
 
     TP-Linux)

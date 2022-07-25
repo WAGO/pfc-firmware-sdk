@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: config_runtime
@@ -12,7 +12,7 @@
 # This script abstracts the usage of different config tools to set
 # CODESYS runtime parameters for CODESYS2 as well as CODESYS3.
 #
-# Author: WAGO Kontakttechnik GmbH
+# Author: WAGO GmbH
 #-----------------------------------------------------------------------------#
 
 # Build config tool command to change a parameter.
@@ -352,7 +352,7 @@ fi
 # Get and check the runtime version the configuration is for.
 if [ ! "$NEW_RUNTIME_VERSION" -a ! "$NEW_DEFAULT_WEBPAGE" -a ! "$NEW_HOMEDIR_SD" ]; then
     CONFIG_SET=${CFG_VERSION:-$CURRENT_RUNTIME_VERSION}
-    if [ "$CONFIG_SET" != "2" -a "$CONFIG_SET" != "3" ]; then
+    if [ "$CONFIG_SET" != "1" -a "$CONFIG_SET" != "2" -a "$CONFIG_SET" != "3" ]; then
         status=$INVALID_PARAMETER
         SetLastError "Need valid runtime version to change config for"
         exit $status
@@ -462,19 +462,28 @@ elif [ "$NEW_RUNTIME_VERSION" ] && [ "$NEW_RUNTIME_VERSION" != "$CURRENT_RUNTIME
         0)  $CTDIR/change_default_webserver default-webserver=Webserver $RESTART_SERVER
             ;;
 
+        1)  bg_wbm_webserver "$RESTART_SERVER" &
+            sleep 5
+            start_runtime
+            if [ "$WAIT_OPTION" ]; then
+                wait
+                sleep 10
+            fi
+            ;;
+
         2)  bg_cds_webserver &
             bg_wbm_webserver "$RESTART_SERVER" &
-            sleep 2
+            sleep 5
             start_runtime
             [ "$WAIT_OPTION" ] && wait
             ;;
 
         3)  bg_wbm_webserver "$RESTART_SERVER" &
-            sleep 2
+            sleep 5
             start_runtime
             if [ "$WAIT_OPTION" ]; then
                 wait
-                sleep 5
+                sleep 10
             fi
             ;;
 

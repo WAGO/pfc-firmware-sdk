@@ -1,7 +1,7 @@
 ## -*-makefile-*-
-# $Rev: 57438 $
+# $Rev: 66127 $
 #
-# Copyright (C) 2021 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2021 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -12,7 +12,7 @@
 #
 # We provide this package
 #
-PACKAGES-$(PTXCONF_CDS3_TSCMOFWUP) += cds3-tscmofwup
+LAZY_PACKAGES-$(PTXCONF_CDS3_TSCMOFWUP) += cds3-tscmofwup
 
 CDS3_TSCMOFWUP_VERSION      := 0.0.2
 CDS3_TSCMOFWUP              := TscMoFwUp

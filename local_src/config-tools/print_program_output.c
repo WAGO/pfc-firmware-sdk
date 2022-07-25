@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,7 +11,7 @@
 ///
 ///  \file     print_program_output.c
 ///
-///  \version  $Revision: 6731 $1
+///  \version  $Revision: 65689 $1
 ///
 ///  \brief    Get the output-string of another program as input-parameter and
 ///            write it to stdout.
@@ -21,7 +21,7 @@
 ///            by bash, the line-feeds disapear. This program shows the 
 ///            linefeeds correctly.
 ///
-///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Stefanie Meihöfer : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

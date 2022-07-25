@@ -1,7 +1,7 @@
 ## -*-makefile-*-
-# $Id: wago-codesys3-044-tscdrmiecinterface.make 56269 2021-03-09 08:10:09Z william.dubbert@wago.com $
+# $Id: wago-codesys3-044-tscdrmiecinterface.make 65677 2022-03-11 11:28:13Z falk.werner@wago.com $
 #
-# Copyright (C) 2013 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2013 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2012 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -104,7 +104,7 @@ $(STATEDIR)/libdaldummy.targetinstall:
 	@$(call install_init, libdaldummy)
 	@$(call install_fixup, libdaldummy,PRIORITY,optional)
 	@$(call install_fixup, libdaldummy,SECTION,base)
-	@$(call install_fixup, libdaldummy,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
+	@$(call install_fixup, libdaldummy,AUTHOR,"<WAGO GmbH \& Co. KG>")
 	@$(call install_fixup, libdaldummy,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES

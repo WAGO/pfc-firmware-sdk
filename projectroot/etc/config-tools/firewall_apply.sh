@@ -4,17 +4,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   firewall_apply.sh
 #
 # Brief:    Config tool to apply firewall rules for known services.
 #
-# Author:   MP:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG:  WAGO Kontakttechnik GmbH & Co. KG
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   MP:  WAGO GmbH & Co. KG
+# Author:   MOe: WAGO GmbH & Co. KG
+# Author:   OG:  WAGO GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 

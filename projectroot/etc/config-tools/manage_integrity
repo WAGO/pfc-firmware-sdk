@@ -4,14 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: manage_integrity
 #
 # Manage system integrity data for displaying in WBM
 #
-# Author: WAGO Kontakttechnik GmbH & Co. KG
+# Author: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -25,8 +25,8 @@ fi
 umask 037
 
 AIDE_CFG='/etc/aide.conf'
-AIDE_VERBOSE_LVL=2
-AIDE="/usr/bin/aide --verbose=${AIDE_VERBOSE_LVL}"
+AIDE_LOG_LEVEL="notice"
+AIDE="/usr/bin/aide --log-level=${AIDE_LOG_LEVEL}"
 AIDE_CHECK='/etc/init.d/aide_check'
 AIDE_CHECK_LNK='/etc/rc.d/S99_aide_check'
 AIDE_REF_DB='/var/lib/aide/aide.db'

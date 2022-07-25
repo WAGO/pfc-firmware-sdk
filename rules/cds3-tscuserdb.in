@@ -1,0 +1,14 @@
+## SECTION=wago_specific_codesys_3_wagocmp
+
+config CDS3_TSCUSERDB
+	bool
+    depends on CDS3_RTS_FEATURE_USER_MANAGEMENT
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select CDS3_INCLUDES
+	select GLIB
+	select PAM
+	select PLCHANDLER
+    prompt "cds3-tscuserdb"
+	help
+	  implementation of wago codesys user management

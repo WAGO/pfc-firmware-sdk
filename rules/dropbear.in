@@ -11,9 +11,9 @@ menuconfig DROPBEAR
 	select BUSYBOX_START_STOP_DAEMON			if DROPBEAR_STARTSCRIPT
 	select BUSYBOX_FEATURE_START_STOP_DAEMON_FANCY		if DROPBEAR_STARTSCRIPT
 	select BUSYBOX_FEATURE_START_STOP_DAEMON_LONG_OPTIONS	if DROPBEAR_STARTSCRIPT
-	select PAM                                        if DROPBEAR_PAM
+	select PAM						if DROPBEAR_PAM
 	help
-	  dropbear is a SSH 2 server and client designed
+	  dropbear is an SSH 2 server and client designed
 	  to be small enough to be used in small memory
 	  environments, while still being functional and
 	  secure enough for general use.
@@ -32,11 +32,18 @@ config DROPBEAR_KEY_DIR
 	help
 	  This is the directory where dropbear stores the keys.
 
+config DROPBEAR_MOTD
+	bool
+	default n
+	prompt "print message of the day (MOTD)"
+	help
+	  Whether to print the message of the day (MOTD).
+
 config DROPBEAR_ZLIB
 	bool
 	prompt "zlib support"
 	help
-	  Disable compresion in Dropbear by dropping use of
+	  Disable compression in Dropbear by dropping use of
 	  zlib.
 	  If you disable zlib, you must explicitly disable
 	  compression for the client - OpenSSH is possibly
@@ -53,15 +60,6 @@ config DROPBEAR_DIS_OPENPTY
 	  to create all the /dev/pty?? and /dev/tty?? devices, which can be
 	  problematic for devfs. In general, openpty() is the best way to allocate
 	  PTYs, so it's best to try and get it working.
-
-config DROPBEAR_PAM
-	bool
-	depends on DROPBEAR_PASSWD
-#	#depends on PAM
-	default n
-	prompt "Include Linux-PAM (Pluggable Authentication Module) support"
-	help
-	  FIXME
 
 config DROPBEAR_DIS_SYSLOG
 	bool
@@ -121,11 +119,12 @@ config DROPBEAR_DIS_PUTUTXLINE
 	help
 	  pututxline is needed to write to the utmpx structure.
 
-comment features
+comment "features"
 
 config DROPBEAR_DIS_X11
 	bool
 	prompt "disable X11 Forwarding"
+	default y
 	help
 	  X11 forwarding means passing X11 (graphical interface)
 	  information over the SSH connection.
@@ -141,8 +140,27 @@ config DROPBEAR_DIS_AGENT
 	bool
 	prompt "disable Authentication Agent Forwarding"
 	help
-	  Authentication agent is a program to automatize the
+	  Authentication agent is a program to automate the
 	  use of authentication private keys.
+
+config DROPBEAR_DIS_SFTPSERVER
+	bool
+	default n
+	prompt "disable running an sftp server"
+	help
+	  If you want to enable running an sftp server (such as the
+	  one included with OpenSSH), set the path below and set
+	  DROPBEAR_SFTPSERVER. The sftp-server program is not provided
+	  by Dropbear itself
+
+config DROPBEAR_SFTPSERVER
+	string
+	depends on !DROPBEAR_DIS_SFTPSERVER
+	default "/usr/sbin/sftp-server"
+	prompt "set the path to the sftp-server program"
+	help
+	  Set the path to the sftp-server program. The
+	  sftp-server program is not provided by Dropbear itself
 
 comment "Encryption, at least one required --- RFC Draft requires 3DES and recommends AES128"
 
@@ -159,7 +177,6 @@ config DROPBEAR_AES128
 config DROPBEAR_3DES
 	bool
 	prompt "3DES"
-	default y
 	help
 	  DES is an IBM algorithm designed during the 1970s.
 	  In 1976, NIST has officially adopted it as an encryption
@@ -179,17 +196,6 @@ config DROPBEAR_AES256
 	  algorithm that may be used by U.S. Government organizations
 	  (and others) to protect sensitive information.
 
-
-config DROPBEAR_BLOWFISH
-	bool
-	prompt "Blowfish"
-	help
-	  Blowfish, by Bruce Schneier, combines a Feistel network,
-	  key-dependent S-Boxes, with a non-invertible f function.
-	  This block cipher iterates a simple encryption function
-	  16 times.
-	  Blowfish was designed with a variable key length ranging
-	  from 32 bits to 448 bits.
 
 config DROPBEAR_TWOFISH128
 	bool
@@ -213,6 +219,58 @@ config DROPBEAR_TWOFISH256
 	  bijective f function made by four key-dependent
 	  8x8-bit S-boxes.
 
+config DROPBEAR_CHACHA20POLY1305
+	bool
+	prompt "ChaCha20Poly1305"
+	help
+	  Enable Chacha20-Poly1305 authenticated encryption mode. This
+	  is generally faster than AES256 on CPU w/o dedicated AES
+	  instructions, having the same key size. Recommended.
+	  Compiling in will add ~5,5kB to binary size on x86-64
+
+config DROPBEAR_DH_GROUP14_SHA1
+	bool
+	prompt "dh group14 sha1"
+	help
+	  Diffie-Hellman (DH) groups determine the strength of the key
+	  used in the key exchange process.
+	  This method uses [RFC3526] group14 (a 2048-bit MODP group).
+	  DH group14 with SHA-1 is supported by most implementations.
+
+config DROPBEAR_DH_GROUP14_SHA256
+	bool
+	prompt "dh group14 sha256"
+	help
+	  Diffie-Hellman (DH) groups determine the strength of the key used
+	  in the key exchange process.
+	  This key exchange uses the group14 (a 2048-bit MODP group) along
+	  with a SHA-2 (SHA2-256) hash.
+
+config DROPBEAR_DH_GROUP16_SHA256
+	bool
+	prompt "dh group16 sha256"
+	help
+	  Diffie-Hellman (DH) groups determine the strength of the key used
+	  in the key exchange process.
+	  This modulus (4096-bit) is larger than that required by [CNSA-SUITE]
+	  and should be sufficient to inter-operate with more paranoid
+	  nation-states.
+
+config DROPBEAR_DH_GROUP1_SHA1
+	bool
+	prompt "dh group1 sha1"
+	default n
+	help
+	  Diffie-Hellman (DH) groups determine the strength of the key used in
+	  the key exchange process. This method uses [RFC7296] Oakley Group 2
+	  (a 1024-bit MODP group) and SHA-1 [RFC3174]. Due to recent security
+	  concerns with SHA-1 [RFC6194] and with MODP groups with less than 2048
+	  bits (see [LOGJAM] and [NIST-SP-800-131Ar1]), this method is considered
+	  insecure.
+	  This option is for compatibility with old server implementations. There
+	  are many old implementations out there that may still need to use this key
+	  exchange.
+
 config DROPBEAR_CBC_CIPHERS
 	bool
 	prompt "CBC mode ciphers"
@@ -229,7 +287,18 @@ config DROPBEAR_CTR_CIPHERS
 	  CBC mode against certain attacks. This adds around 1kB to binary
 	  size and is recommended for most cases.
 
-comment "Integrity, at least one required --- RFC Draft requires sha1-hmac and recommends sha1-96"
+config DROPBEAR_GCM_CIPHERS
+	bool
+	prompt "Galois/Counter mode ciphers"
+	default n
+	help
+          Enable "Galois/Counter Mode" for ciphers. This authenticated
+          encryption mode is combination of CTR mode and GHASH. Recommended
+          for security and forwards compatibility, but slower than CTR on
+          CPU w/o dedicated AES/GHASH instructions.
+          Compiling in will add ~6kB to binary size on x86-64
+
+comment "Integrity, at least one required --- sha2-256 is recommended as a default, sha1 for compatibility"
 
 config DROPBEAR_SHA1
 	bool
@@ -281,65 +350,43 @@ config DROPBEAR_SHA512
 	  SHA-1. SHA-2 consists of a set of four hash functions with digests
 	  that are 224, 256, 384 or 512 bits.
 
-config DROPBEAR_MD5
-	bool
-	prompt "md5"
-	help
-	  MD5 was developed by Professor Ronald L. Rivest in 1994.
-	  Its 128 bit (16 byte) message digest makes it a faster
-	  implementation than SHA-1.
-
-comment "Hostkey/public key algorithms, at least one required --- SSH2 RFC Draft requires dss, recommends rsa"
-
-config DROPBEAR_RSA
-	bool
-	prompt "rsa"
-	help
-	  RSA was announced in 1978. The security of the RSA system
-	  is based upon the RSA Problem (RSAP). This problem is
-	  conjectured (but not proven) to be equivalent to the
-	  Integer Factorisation Problem (IFP).
+comment "Hostkey/public key algorithms, at least one required ---"
 
 config DROPBEAR_DSS
 	bool
 	prompt "dss"
 	default y
 	help
-	  DSS stands for Digital Signature Standard.
-	  DSS employs the ElGamal and Schnorr PK systems to produce
-	  a fixed width signature (irrespective of the public/private
-	  key size). In contrast, RSA signature length is a function
-	  of the key length employed.
+	  DSS (Digital Signature Standard), aka DSA (D.S. Algorithm), may be
+	  necessary to connect to some systems though is not recommended for
+	  new keys
+
+config DROPBEAR_RSA
+	bool
+	prompt "rsa"
+	default y
+	help
+	  RSA was announced in 1978. The security of the RSA system
+	  is based upon the RSA Problem (RSAP). This problem is
+	  conjectured (but not proven) to be equivalent to the
+	  Integer Factorisation Problem (IFP).
 
 config DROPBEAR_ECDSA
 	bool
 	prompt "ecdsa"
 	help
 	  ECDSA stands for Elliptic Curve Digital Signature Algorithm.
-	  ECDSA is significantly faster than RSA or DSS.
+	  ECDSA is significantly faster than RSA.
 
-config DROPBEAR_DH_GROUP14_SHA1
-  bool
-  prompt "dh group14 sha1"
-  help
-    Diffie-Hellman (DH) groups determine the strength of the key used in the key exchange process.
-    This method uses [RFC3526] group14 (a 2048-bit MODP group).
-    DH group14 with SHA-1 is supported by most implementations.
+config DROPBEAR_ED25519
+	bool
+	prompt "ed25519"
+	help
+	  Ed25519 is faster than ECDSA.
+	  Compiling in Ed25519 code increases binary size - around
+	  7,5kB on x86-64
 
-config DROPBEAR_DH_GROUP14_SHA256
-  bool
-  prompt "dh group14 sha256"
-  help
-    Diffie-Hellman (DH) groups determine the strength of the key used in the key exchange process.
-    This key exchange uses the group14 (a 2048-bit MODP group) along with a SHA-2 (SHA2-256) hash.
-
-config DROPBEAR_DH_GROUP16_SHA256
-  bool
-  prompt "dh group16 sha256"
-  help
-    Diffie-Hellman (DH) groups determine the strength of the key used in the key exchange process.
-    This modulus (4096-bit) is larger than that required by [CNSA-SUITE] and should be sufficient
-    to inter-operate with more paranoid nation-states.
+comment "Key exchange algorithm ---"
 
 config DROPBEAR_ECDH
 	bool
@@ -358,27 +405,14 @@ config DROPBEAR_CURVE25519
 	  and gives us more security confidence against a possible
 	  backdoor in nistp-256 curve.
 
-config DROPBEAR_DH_GROUP1_SHA1
-  bool
-  prompt "dh group1 sha1"
-  default n
-  help
-    Diffie-Hellman (DH) groups determine the strength of the key used in the key exchange process.
-    This method uses [RFC7296] Oakley Group 2 (a 1024-bit MODP group) and SHA-1 [RFC3174].
-    Due to recent security concerns with SHA-1 [RFC6194] and with MODP groups with less than 2048 bits
-    (see [LOGJAM] and [NIST-SP-800-131Ar1]), this method is considered insecure.
-    This option is for compatibility with old server implementations. There are many old implementations
-    out there that may still need to use this key exchange.
-
 config DROPBEAR_KEXGUESS2
 	bool
-	prompt "kexguess2@matt.ucc.asn.au"
+	prompt "kexguess2 extension"
 	default y
 	help
-	  Client will send an initial key exchange guess to save a round trip.
-	  Dropbear implements an extension kexguess2@matt.ucc.asn.au to allow the first
-	  packet guess to succeed in wider circumstances than the standard behaviour.
-	  When communicating with other implementations the standard behaviour is used.
+	  Protocol extension to allow \"first follows\" to succeed more frequently.
+	  This is currently Dropbear-specific but will gracefully fallback when
+	  connecting to other implementations.
 
 comment "Authentication types, at least one required --- RFC Draft requires pubkey auth"
 
@@ -388,6 +422,15 @@ config DROPBEAR_PASSWD
 	default y
 	help
 	  Use password authentication
+
+config DROPBEAR_PAM
+	bool
+	depends on DROPBEAR_PASSWD
+#      #depends on PAM
+	default n
+	prompt "Include Linux-PAM (Pluggable Authentication Module) support"
+	help
+	  FIXME
 
 config DROPBEAR_PUBKEY
 	bool
@@ -403,6 +446,7 @@ config DROPBEAR_DROPBEAR
 	prompt "Install dropbear SSH server"
 	default y
 	select DROPBEAR_DROPBEAR_KEY
+	select DROPBEAR_RSA
 	select BUSYBOX_START_STOP_DAEMON if BUSYBOX
 	help
 	  Installs the dropbar server in /usr/sbin/dropbear on the target
@@ -431,11 +475,12 @@ config DROPBEAR_SCP
 comment "OpenSSH scp is selected!"
 	depends on OPENSSH_SCP
 
-comment "runtime options   ---"
+comment "runtime options        ---"
 
 config DROPBEAR_STARTSCRIPT
 	bool
 	default y
+	depends on INITMETHOD_BBINIT
 	prompt "install /etc/init.d/dropbear"
 
 endif

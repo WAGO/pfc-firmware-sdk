@@ -119,6 +119,7 @@ NetDevPtr NetDevManager::CreateNetdev(::std::string name, ::std::string label, D
     netdev = make_shared<NetDev>(if_index, name, label, kind, (ip_addressable_device_types && kind),
                                  InterfaceFlagsToState(interface_monitor_->GetIffFlags(if_index)));
 
+    LOG_DEBUG("Create netdev for interface " + name + " with index " + ::std::to_string(if_index));
     net_devs_.push_back(netdev);
     OnNetDevCreated(netdev);
   }
@@ -126,17 +127,21 @@ NetDevPtr NetDevManager::CreateNetdev(::std::string name, ::std::string label, D
   return netdev;
 }
 
+void NetDevManager::RemoveNetdev(NetDevPtr netdev) {
+  auto it = ::std::find(net_devs_.begin(), net_devs_.end(), netdev);
+  if (it != net_devs_.end()) {
+    LOG_DEBUG("Remove netdev for interface " + netdev->GetName() + " with index " + ::std::to_string(netdev->GetIndex()));
+    OnNetDevRemoved(netdev);
+    NetDev::RemoveChildren(netdev);
+    net_devs_.erase(it);
+  }
+}
+
 void NetDevManager::RemoveObsoleteBridgeNetdevs(const BridgeConfig &config) {
   for (auto &bridge_netdev : GetBridgeNetDevs()) {
     if (config.count(bridge_netdev->GetName()) == 0) {
-      OnNetDevRemoved(bridge_netdev);
-      NetDev::RemoveChildren(bridge_netdev);
-
-      auto it = ::std::find(net_devs_.begin(), net_devs_.end(), bridge_netdev);
-      assert((it != net_devs_.end()));  //NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-      net_devs_.erase(it);
+      RemoveNetdev(bridge_netdev);
     }
-
   }
 }
 
@@ -277,33 +282,35 @@ bool NetDevManager::DoesNotExistByLabel(::std::string label, const NetDevs &netd
 
 void NetDevManager::CreateAndRemoveWwanNetdevWhenTheKernelResetsTheInterface(::std::uint32_t if_index,
                                                                              IInterfaceEvent::Action action) {
-
+  //DEL: indicates that an interface has been removed from system
   if (action == IInterfaceEvent::Action::DEL) {
     auto netdev = GetByIfIndex(if_index);
     if (netdev && netdev->GetKind() == DeviceType::Wwan) {
-      auto it = ::std::find(net_devs_.begin(), net_devs_.end(), netdev);
-      if (it != net_devs_.end()) {
-        OnNetDevRemoved(netdev);
-        net_devs_.erase(it);
-      }
+      RemoveNetdev(netdev);
     }
   }
 
-  if (action == IInterfaceEvent::Action::NEW) {
+  //NEW: indicates that a new interface has been created in the system
+  //CHANGE: change indicates, among other things, that an existing interface has been renamed.
+  //This case is important because with a 5G modem the linux interface is first created by the kernel as usb0 and then renamed to wwan0
+  if (action == IInterfaceEvent::Action::NEW || action == IInterfaceEvent::Action::CHANGE) {
     char buffer[IF_NAMESIZE];
-    if_indextoname(if_index, buffer);
-    ::std::string name(buffer);
+    if_indextoname(if_index, &buffer[0]);
+    ::std::string name(&buffer[0]);
     auto kind = DetermineNetDevKind(name);
     if (kind == DeviceType::Wwan) {
       CreateNetdev(name, name, kind);
     }
   }
-
 }
 
 void NetDevManager::LinkChange(::std::uint32_t if_index, ::std::uint32_t flags, IInterfaceEvent::Action action) {
 
-  LogDebug("NetDevManager::LinkChange intex: " + ::std::to_string(if_index) + " action: " + IInterfaceEvent::ActionToString(action));
+  char buffer[IF_NAMESIZE];
+  if_indextoname(if_index, &buffer[0]);
+  ::std::string name(&buffer[0]);
+  LOG_DEBUG("NetDevManager: Netlinkevent for name: " + name + " index: " + ::std::to_string(if_index) + " action: " + IInterfaceEvent::ActionToString(action));
+
   auto link_state = InterfaceFlagsToState(flags);
   auto netdev = GetByIfIndex(if_index);
   if (netdev) {

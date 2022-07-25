@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH \& Co. KG
+# Copyright (C) 2020 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -105,7 +105,7 @@ $(STATEDIR)/sfp-tool.targetinstall:
 	@$(call install_init, sfp-tool)
 	@$(call install_fixup, sfp-tool,PRIORITY,optional)
 	@$(call install_fixup, sfp-tool,SECTION,base)
-	@$(call install_fixup, sfp-tool,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, sfp-tool,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, sfp-tool,DESCRIPTION,"WAGO SFP tooling")
 
 

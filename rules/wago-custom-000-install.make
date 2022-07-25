@@ -381,8 +381,15 @@ endif
 #
 
 ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_REVISIONS
+#temporary code for CODESYS3 Transistion
+ifdef PTXCONF_PFC_200_G2_CDS3
+	@$(call install_copy, wago-custom-install, 0, 0, 0644, \
+		$(PTXDIST_WORKSPACE)/projectroot/etc/REVISIONS_CDS3, \
+		/etc/REVISIONS, n)
+else
 	@$(call install_alternative, wago-custom-install, 0, 0, 0644, \
 		/etc/REVISIONS)
+endif
 endif
 
 ifdef PTXCONF_WAGO_CUSTOM_ROOTFS_SHELLS
@@ -710,8 +717,7 @@ endif
 #build IPK's 
 ifdef PTXCONF_CDS3_TSCIOBACNET
 	#--- bacnet ipk ---
-	$(PTXDIST_WORKSPACE)/scripts/bacnet-helpers/make-metaipk_bacnet.sh $(BACNET_VERSION) $(BACNETSTACK_REVISION) \
-		$(PTXCONF_PROJECT) $(PTXCONF_PROJECT_VERSION) $(PTXCONF_OPKG_OPKG_CONF_HOST)
+	$(PTXDIST_WORKSPACE)/scripts/bacnet-helpers/make-metaipk_bacnet.sh $(BACNET_VERSION) $(BACNETSTACK_REVISION) $(PTXCONF_OPKG_OPKG_CONF_URL)
 endif
 
 	@$(call install_finish, wago-custom-install)

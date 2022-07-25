@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2019 by Maxim Laschinsky (maxim.laschinsky@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2019 by Maxim Laschinsky (maxim.laschinsky@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -69,7 +69,7 @@ $(STATEDIR)/license-info.targetinstall:
 	@$(call install_init,  license-info)
 	@$(call install_fixup, license-info, PRIORITY, optional)
 	@$(call install_fixup, license-info, SECTION, base)
-	@$(call install_fixup, license-info, AUTHOR,"Maxim Laschinsky, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, license-info, AUTHOR,"Maxim Laschinsky, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, license-info, DESCRIPTION, missing)
 
   # copy license infos

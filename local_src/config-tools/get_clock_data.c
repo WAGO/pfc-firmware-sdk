@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2021 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -13,8 +13,8 @@
 ///
 ///  \brief    Config-tool to get various system time and timezone information.
 ///
-///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
-///                           WF : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Stefanie Meihöfer : WAGO GmbH & Co. KG
+///                           WF : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

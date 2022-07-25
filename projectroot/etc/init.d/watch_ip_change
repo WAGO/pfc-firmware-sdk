@@ -6,7 +6,7 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   watch_ip_change
@@ -18,7 +18,7 @@
 #           configuration of given interface.
 #           An application can be watch this access through "inotify" command.
 #
-# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 IP_CHANGE_NOTIFIED_FILE_DIR="/var/run/ipv4"

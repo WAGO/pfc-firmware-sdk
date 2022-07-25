@@ -1,0 +1,181 @@
+##----------------------------------------------------------------------------------------------------------------------
+### Copyright (c) WAGO GmbH & Co. KG
+###
+### PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
+### the subject matter of this material. All manufacturing, reproduction,
+### use, and sales rights pertaining to this subject matter are governed
+### by the license agreement. The recipient of this software implicitly
+### accepts the terms of the license.
+###
+##----------------------------------------------------------------------------------------------------------------------
+##----------------------------------------------------------------------------------------------------------------------
+###
+###  \file     makefile
+###
+###  \version  $Id:
+###
+###  \brief    This is the makefile of the software component "libextMemCpy"
+###							Makefile parameters are:
+###							- CROSS_COMPILE            cross compiler specific präfix(e.g. <arm->)
+###							- SYSROOT_TARGET           path to the targets system root (base path for header and libraries)
+###							- TARGET_PLATFORM          name of the target platform is used for output directory name
+###							- TARGET_OS                operating system of the target (<LINUX>,<ECOS>,<WIN32>)
+###							- DEBUG          					 <n> : build as release else build with debug information
+###
+###  \author   Wauer : WAGO GmbH & Co. KG
+##----------------------------------------------------------------------------------------------------------------------
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Defines
+#-----------------------------------------------------------------------------------------------------------------------
+
+# environment
+CC = $(CROSS_COMPILE)gcc
+LD = $(CROSS_COMPILE)ld
+AR = $(CROSS_COMPILE)ar
+
+# target name
+TARGET = extMemCpy
+
+# target version
+VERSION = trunk
+
+# target library name
+TARGET_STATIC_LIB = $(addsuffix .a,$(addprefix lib,$(TARGET)))
+
+# target library name
+TARGET_SHARED_OBJ = $(addsuffix .so,$(addprefix lib,$(TARGET)))
+
+# target executable name
+TARGET_EXEC = $(TARGET)
+
+# path to the project root
+PATH_TO_PROJECT_ROOT = ..
+
+# source directory
+SRC_DIR = $(PATH_TO_PROJECT_ROOT)/sources
+
+# output directory
+ifeq ($(DEBUG),n)
+  OUT_DIR = output/$(TARGET_PLATFORM)/release
+else
+  OUT_DIR = output/$(TARGET_PLATFORM)/debug
+endif
+
+# common make targets
+MAKE_TARGETS = targets.mak
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Build options (these have to be defined here)
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Source files
+#-----------------------------------------------------------------------------------------------------------------------
+
+# all source files in specific directories
+SRC  = $(SRC_DIR)/copyEng/copyEng_API.c
+SRC += $(SRC_DIR)/copyJobGen/copyJobGen_API.c
+SRC += $(SRC_DIR)/extMemCpy/extMemCpy_API.c
+SRC += $(SRC_DIR)/extMemCpy/extMemCpy.c
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Compiler flags
+#-----------------------------------------------------------------------------------------------------------------------
+
+# Debug
+ifeq ($(DEBUG),n)
+CFLAGS += -O3
+else
+CFLAGS += -O0 -ggdb3
+endif
+
+# warning options
+CFLAGS += -Werror -Wall -Wextra -Wstrict-prototypes -fno-strict-aliasing \
+          -Wfloat-equal -Wshadow -Wpointer-arith \
+          -Wcast-qual -Wlogical-op -Waggregate-return -Wold-style-definition
+
+# position-independent code (for shared objects)
+CFLAGS += -fPIC
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Compiler definitions
+#-----------------------------------------------------------------------------------------------------------------------
+
+# osal defines
+CFLAGS += -D$(TARGET_OS)
+
+# Target architecture ARM definition
+ifeq ($(TARGET_ARCH),arm)
+CFLAGS += -D__ARM_ARCH__=$(ARM_ARCH_VERSION)
+endif
+
+# trace defines
+CFLAGS += -DTRACE_ENABLE
+CFLAGS += -DTRACE_DST_PRINTF=1
+CFLAGS += -DTRACE_SRC_BIT_FIELD=0xFFFFFFFF
+CFLAGS += -DTRACE_SEV_BIT_FIELD=0x00000000
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Compiler includes
+#-----------------------------------------------------------------------------------------------------------------------
+
+# system include paths
+CFLAGS += -isystem $(SYSROOT_TARGET)/usr/include
+
+# common include paths
+CFLAGS += -I$(SRC_DIR)/extMemCpy
+CFLAGS += -I$(SRC_DIR)/copyJobGen
+CFLAGS += -I$(SRC_DIR)/copyEng
+CFLAGS += -I$(SRC_DIR)/trace
+
+
+# osal includes paths
+CFLAGS += -I$(SYSROOT_TARGET)/usr/include/osal
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Linker flags
+#-----------------------------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Linker libraries
+#-----------------------------------------------------------------------------------------------------------------------
+
+# osal library
+LDDFLAGS += -losal
+
+# real time library
+LDDFLAGS += -lrt
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Linker search directories
+#-----------------------------------------------------------------------------------------------------------------------
+
+LDDFLAGS += -L$(SYSROOT_TARGET)/usr/lib
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Object files
+#-----------------------------------------------------------------------------------------------------------------------
+
+# Generate a object list from the source files
+OBJ            = $(subst .c,.o,$(SRC))
+
+# Generate a output object list from the object list
+OUT_OBJ        = $(addprefix $(OUT_DIR)/,$(subst $(PATH_TO_PROJECT_ROOT)/,,$(OBJ)))
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Common object file lists
+#-----------------------------------------------------------------------------------------------------------------------
+
+# object to be compiled (with '.c' preefix sources)
+CC_OUT_OBJ 				 = $(OUT_OBJ)
+# object files for the static library
+STATIC_LIB_OUT_OBJ = $(OUT_OBJ)
+# object files for the shared library
+SHARED_LIB_OUT_OBJ = $(OUT_OBJ) $(SYSROOT_TARGET)/usr/lib/libosal.a
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Include common targets
+#-----------------------------------------------------------------------------------------------------------------------
+include $(MAKE_TARGETS)

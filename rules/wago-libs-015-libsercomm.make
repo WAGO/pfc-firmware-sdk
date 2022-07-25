@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2012 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -102,7 +102,7 @@ $(STATEDIR)/libsercomm.targetinstall:
 	@$(call install_init, libsercomm)
 	@$(call install_fixup, libsercomm,PRIORITY,optional)
 	@$(call install_fixup, libsercomm,SECTION,base)
-	@$(call install_fixup, libsercomm,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
+	@$(call install_fixup, libsercomm,AUTHOR,"<WAGO GmbH \& Co. KG>")
 	@$(call install_fixup, libsercomm,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES

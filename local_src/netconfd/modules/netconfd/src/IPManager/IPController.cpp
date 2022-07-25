@@ -34,7 +34,7 @@ static Status SetIPParameter(int fd, uint16_t flag, const Interface &interface, 
   struct sockaddr_in *sock_value = reinterpret_cast<struct sockaddr_in*>(&if_req.ifr_addr);  // NOLINT: do not access members of unions is unavoidable at this point
   sock_value->sin_addr.s_addr = value;
   if (ioctl(fd, flag, &if_req) < 0) {
-    return MakeSystemCallError("ioctl");
+    return MAKE_SYSTEMCALL_ERROR("ioctl");
   }
 
   return Status::Ok();

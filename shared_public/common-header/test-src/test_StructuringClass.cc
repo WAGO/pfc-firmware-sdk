@@ -5,14 +5,14 @@
 //
 // This file is part of project common-header (PTXdist package libcommonheader).
 //
-// Copyright (c) 2021 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2021-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     test_Structuring.cc
 ///
 ///  \brief    Test for structuring helper macros targeting classes.
 ///
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

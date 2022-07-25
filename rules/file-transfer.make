@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -103,7 +103,7 @@ $(STATEDIR)/file-transfer.targetinstall:
 	@$(call install_init, file-transfer)
 	@$(call install_fixup,file-transfer,PRIORITY,optional)
 	@$(call install_fixup,file-transfer,SECTION,base)
-	@$(call install_fixup,file-transfer,AUTHOR,"WAGO Kontakttechnik GmbH")
+	@$(call install_fixup,file-transfer,AUTHOR,"WAGO GmbH")
 	@$(call install_fixup,file-transfer,DESCRIPTION,"This config-tool supports preparation and cleanup of file transfers.")
 
 # Files that should be copied to the target

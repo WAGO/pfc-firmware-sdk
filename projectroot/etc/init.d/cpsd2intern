@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 # Copy sd card to internal flash.
 #
@@ -17,7 +17,7 @@
 #    Use argument makelink to create a symbolic link in /etc/rc.d.
 #    This enables automatic copy on system startup.
 #
-# Author:   HJH : WAGO Kontakttechnik GmbH & Co. KG
+# Author:   HJH : WAGO GmbH & Co. KG
 
 PATH=/usr/bin:/usr/sbin:/bin:/sbin
 CFGPATH=/etc/config-tools

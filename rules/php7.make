@@ -18,8 +18,8 @@ PACKAGES-$(PTXCONF_PHP7) += php7
 #
 # Paths and names
 #
-PHP7_VERSION	:= 7.3.31
-PHP7_MD5	:= 16e5a72f33e44895d9f9e7f88a82be18
+PHP7_VERSION	:= 7.4.28
+PHP7_MD5	:= ca4f40f41d028465bc810c007c3ed935
 PHP7		:= php-$(PHP7_VERSION)
 PHP7_SUFFIX	:= tar.xz
 PHP7_SOURCE	:= $(SRCDIR)/$(PHP7).$(PHP7_SUFFIX)
@@ -32,9 +32,22 @@ PHP7_LICENSE		:= PHP License
 # URL first
 #
 PHP7_URL := \
+	https://www.php.net/distributions/$(PHP7).$(PHP7_SUFFIX) \
 	http://museum.php.net/php7/$(PHP7).$(PHP7_SUFFIX) \
 	http://de.php.net/distributions/$(PHP7).$(PHP7_SUFFIX) \
 	http://de2.php.net/get/$(PHP7).$(PHP7_SUFFIX)/from/this/mirror
+
+# ----------------------------------------------------------------------------
+# Extract
+# ----------------------------------------------------------------------------
+
+$(STATEDIR)/php7.extract: $(STATEDIR)/autogen-tools
+	@$(call targetinfo)
+	@$(call clean, $(PHP7_DIR))
+	@$(call extract, PHP7)
+	@$(call patchin, PHP7)
+	@cd $(PHP7_DIR) && ./buildconf --force
+	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -43,6 +56,7 @@ PHP7_URL := \
 PHP7_CONF_ENV := \
 	$(CROSS_ENV) \
 	CFLAGS="$(CROSS_CFLAGS) -Os" \
+	PHP_LDFLAGS="-ldl" \
 	ac_cv_prog_cc_cross=yes \
 	ac_cv_c_bigendian_php=$(call ptx/yesno, PTXCONF_ENDIAN_BIG)
 
@@ -71,13 +85,13 @@ else
 endif
 
 ifdef PTXCONF_PHP7_SAPI_APXS2FILTER
-PHP7_AUTOCONF += --with-apxs2filter=$(PTXDIST_SYSROOT_TARGET)/usr/bin/apxs
+PHP7_AUTOCONF += --with-apxs2filter=/usr/bin/apxs
 else
 #PHP7_AUTOCONF += --without-apxs2filter
 endif
 
 ifdef PTXCONF_PHP7_SAPI_APXS2
-PHP7_AUTOCONF += --with-apxs2=$(PTXDIST_SYSROOT_TARGET)/usr/bin/apxs
+PHP7_AUTOCONF += --with-apxs2=/usr/bin/apxs
 else
 # PHP7_AUTOCONF += --without-apxs2
 endif
@@ -184,10 +198,9 @@ endif
 
 ifdef PTXCONF_PHP7_XML_LIBXML2
 PHP7_AUTOCONF += \
-	--enable-libxml \
-	--with-libxml-dir=$(SYSROOT)/usr
+	--with-libxml
 else
-PHP7_AUTOCONF += --disable-libxml
+PHP7_AUTOCONF += --without-libxml
 endif
 
 ifdef PTXCONF_PHP7_XML_LIBXML2_READER
@@ -209,7 +222,7 @@ PHP7_AUTOCONF += --disable-dom
 endif
 
 ifdef PTXCONF_PHP7_XML_LIBXML2_XSLT
-PHP7_AUTOCONF += --with-xsl=$(SYSROOT)/usr
+PHP7_AUTOCONF += --with-xsl=/usr
 else
 PHP7_AUTOCONF += --without-xsl
 endif
@@ -222,39 +235,37 @@ endif
 
 ifdef PTXCONF_PHP7_XML_LIBXML2_XMLRPC
 PHP7_AUTOCONF += --with-xmlrpc
-else
-PHP7_AUTOCONF += --without-xmlrpc
 endif
 
 ifdef PTXCONF_PHP7_EXT_ZLIB
-PHP7_AUTOCONF += --with-zlib=$(SYSROOT)/usr
+PHP7_AUTOCONF += --with-zlib=/usr
 else
 PHP7_AUTOCONF += --without-zlib
 endif
 
 ifdef PTXCONF_PHP7_EXT_ZIP
-PHP7_AUTOCONF += --enable-zip
+PHP7_AUTOCONF += --with-zip
 else
-PHP7_AUTOCONF += --disable-zip
+PHP7_AUTOCONF += --without-zip
 endif
 
 ifdef PTXCONF_PHP7_EXT_OPENSSL
-PHP7_AUTOCONF += --with-openssl=$(SYSROOT)/usr
+PHP7_AUTOCONF += --with-openssl=/usr
 else
 PHP7_AUTOCONF += --without-openssl
 endif
 
 ifdef PTXCONF_PHP7_EXT_CURL
 PHP7_AUTOCONF += \
-	--with-curl=$(SYSROOT)/usr
+	--with-curl=/usr
 else
 PHP7_AUTOCONF += --without-curl
 endif
 
 ifdef PTXCONF_PHP7_EXT_MYSQL
 PHP7_AUTOCONF += \
-	--with-pdo-mysql=$(SYSROOT)/usr \
-	--with-mysqli=$(SYSROOT)/usr/bin/mysql_config
+	--with-pdo-mysql=/usr \
+	--with-mysqli=/usr/bin/mysql_config
 else
 PHP7_AUTOCONF += --without-pdo-mysql --without-mysqli
 endif
@@ -273,8 +284,8 @@ endif
 
 ifdef PTXCONF_PHP7_EXT_SQLITE3
 PHP7_AUTOCONF += \
-	--with-sqlite3=$(PTXDIST_SYSROOT_TARGET)/usr \
-	--with-pdo-sqlite=$(PTXDIST_SYSROOT_TARGET)/usr
+	--with-sqlite3=/usr \
+	--with-pdo-sqlite=/usr
 # broken config system: sqlite3 (local copy) uses it
 # but it is only linked to if used by external dependencies
 #PHP7_CONF_ENV += PHP_LDFLAGS="-ldl -lpthread"
@@ -301,16 +312,15 @@ PHP7_AUTOCONF += --disable-mbstring
 endif
 
 ifdef PTXCONF_PHP7_EXT_ICONV
-PHP7_AUTOCONF += --with-iconv=$(PTXDIST_SYSROOT_TARGET)/usr
+PHP7_AUTOCONF += --with-iconv=/usr
 else
 PHP7_AUTOCONF += --without-iconv
 endif
 
 ifdef PTXCONF_PHP7_EXT_GD
-PHP7_AUTOCONF += --with-gd=$(SYSROOT)/usr
-PHP7_AUTOCONF += --with-jpeg-dir=$(SYSROOT)/usr
-PHP7_AUTOCONF += --with-png-dir=$(SYSROOT)/usr
-PHP7_AUTOCONF += --with-xpm-dir=$(SYSROOT)/usr
+PHP7_AUTOCONF += --enable-gd
+PHP7_AUTOCONF += --with-jpeg
+PHP7_AUTOCONF += --with-xpm
 endif
 
 

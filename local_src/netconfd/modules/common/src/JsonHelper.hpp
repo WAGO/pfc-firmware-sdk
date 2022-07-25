@@ -47,6 +47,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(DynamicIPEventAction, { {DynamicIPEventAction::UNKN
                              {DynamicIPEventAction::BOUND, "bound"}, {DynamicIPEventAction::RELEASE, "release"},
                              {DynamicIPEventAction::RENEW, "renew"}, {DynamicIPEventAction::NAK, "nak"}})
 
+NLOHMANN_JSON_SERIALIZE_ENUM(MacLearning, { {MacLearning::UNKNOWN, nullptr}, {MacLearning::OFF, "off"}, {MacLearning::ON, "on"} })
+
 static Status MissingJsonKeyError(const std::string &keyname) {
   return Status { StatusCode::JSON_KEY_MISSING, keyname };
 }

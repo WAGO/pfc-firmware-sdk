@@ -1,4 +1,4 @@
-//  Copyright 2012 WAGO Kontakttechnik GmbH & Co. KG
+//  Copyright (c) 2012-2022 WAGO GmbH & Co. KG
 //
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2012 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -14,7 +14,7 @@ PACKAGES-$(PTXCONF_LIBDPC31STACK) += libdpc31stack
 
 #--- paths and names --------------------------------------------------------- 
 
-LIBDPC31STACK_VERSION						:= trunk
+LIBDPC31STACK_VERSION						:= main
 LIBDPC31STACK_NAME							:= libdpc31Stack
 LIBDPC31STACK_SUFFIX						:= 
 #LIBDPC31STACK_URL								:= file://$(SRCDIR)/$(LIBDPC31STACK_NAME)-$(LIBDPC31STACK_VERSION)

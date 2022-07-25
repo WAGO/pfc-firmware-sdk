@@ -14,7 +14,7 @@ set -o pipefail
 
 find_ipk ()
 {
-  find "${1}" -iname "${2}"'_*.ipk' | grep '.*'
+  find "${1}" -maxdepth 1 -iname "${2}"'_*.ipk' | grep '.*'
 }
 
 copy_deps ()
@@ -92,7 +92,8 @@ build_ipk ()
 
 # Arguments:
 SSSD_REPO_VERSION=$1
-SSSD_BUILD_DIR=$2
+FW_VERSION=$2
+SSSD_BUILD_DIR=$3
 
 # PTXdist defines:
 PTXPROJ="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -101,14 +102,11 @@ PTXPROJ="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PTXDIST_PACKAGES_DIR="${PTXDIST_PLATFORMDIR}/packages/"
 PTXDIST_LICENSES_DIR="${PTXDIST_WORKSPACE}/projectroot/usr/share/licenses/oss/"
 
-FW_VERSION="$(grep 'FIRMWARE=' "${PTXDIST_PLATFORMDIR}/root/etc/REVISIONS" | \
-                cut -d= -f2 | sed -e 's/(/_/g;s/)//g')"
-
 SSSD_REPO_NAME='sssd_repo'
 SSSD_REPO_FILE_NAME="${SSSD_REPO_NAME}_${SSSD_REPO_VERSION}_FW${FW_VERSION}.repo"
 
 # dependencies which are needed and already in right order!
-PACKAGES='attr acl ding-libs openldap libbsd talloc tevent tdb cmocka ldb keyutils krb5 p11-kit samba cyrus-sasl sssd'
+PACKAGES='attr acl ding-libs openldap libbsd talloc tevent tdb cmocka ldb keyutils krb5 p11-kit samba cyrus-sasl libunistring libpcre2 sssd'
 
 # this is our working dir structure
 SSSD_META_IPK_BUILD_DIR="${SSSD_BUILD_DIR}/sssd-meta-ipk"
@@ -178,10 +176,10 @@ EOF_IPKG_MAKE_INDEX_SH
 
 chmod +x "${SSSD_META_IPK_PACKAGES_DIR}/ipkg-make-index.sh"
 
-pushd "${SSSD_META_IPK_PACKAGES_DIR}"
+pushd "${SSSD_META_IPK_PACKAGES_DIR}" 1>/dev/null
 ./ipkg-make-index.sh ./ >Packages
 gzip Packages
-popd
+popd 1>/dev/null
 
 rm ${SSSD_META_IPK_PACKAGES_DIR}/ipkg-make-index.sh
 
@@ -191,7 +189,7 @@ cat <<-EOF_CONTROL_FILE >"${SSSD_META_IPK_CONTROL_DIR}/control"
 	Version:  ${SSSD_REPO_VERSION}
 	Section:    base
 	Architecture: armhf
-	Maintainer: "WAGO Kontakttechnik GmbH & Co. KG"
+	Maintainer: "WAGO GmbH & Co. KG"
 	Depends:
 	Source:
 	Description:  Installation for sssd. This packet is a meta packet including all

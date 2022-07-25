@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019 WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,8 +16,8 @@ PACKAGES-$(PTXCONF_PAM) += pam
 #
 # Paths and names
 #
-PAM_VERSION       := 1.4.0
-PAM_MD5           := 39fca0523bccec6af4b63b5322276c84
+PAM_VERSION       := 1.5.2
+PAM_MD5           := 895e8adfa14af334f679bbeb28503f66
 PAM               := Linux-PAM-$(PAM_VERSION)
 PAM_SUFFIX        := tar.xz
 PAM_URL           := https://github.com/linux-pam/linux-pam/releases/download/v$(PAM_VERSION)/$(PAM).$(PAM_SUFFIX)
@@ -114,7 +114,7 @@ $(STATEDIR)/pam.targetinstall:
 	@$(call install_init,  pam)
 	@$(call install_fixup, pam, PRIORITY, optional)
 	@$(call install_fixup, pam, SECTION, base)
-	@$(call install_fixup, pam, AUTHOR, "WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, pam, AUTHOR, "WAGO GmbH \& Co. KG")
 	@$(call install_fixup, pam, DESCRIPTION, missing)
 
 	#
@@ -152,7 +152,6 @@ $(STATEDIR)/pam.targetinstall:
 	#
 ifdef PTXCONF_PAM_PAM_ACCESS
 	@$(call install_copy, pam, 0, 0, 0755, -, /usr/lib/security/pam_access.so)
-	@$(call install_alternative, pam, 0, 0, 0644, /etc/security/access.conf)
 endif
 
 ifdef PTXCONF_PAM_PAM_ENV

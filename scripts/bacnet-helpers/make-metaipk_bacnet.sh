@@ -2,14 +2,15 @@
 
 # Build repo for installing BACnet on pfc firmware
 #
-# WAGO Kontakttechnik GmbH & Co. KG
+# WAGO GmbH & Co. KG
 
 # Arguments:
 BACNET_VERSION=$1
 BACNET_REV=$2
-PTXCONF_PROJ=$3
-PTXCONF_PROJ_VERSION=$4
-PTXCONF_OPKG_CONF_HOST=$5
+PTXCONF_OPKG_OPKG_CONF_URL=$3
+
+# Prepare URL for sed ()
+PTXCONF_OPKG_OPKG_CONF_URL_SED=${PTXCONF_OPKG_OPKG_CONF_URL//$'/'/$'\/'}
 
 # PTXdist defines:
 PTXPROJ=$(pwd)
@@ -63,22 +64,21 @@ REPO_NAME="bacnet_rev${BACNET_REV}_${VERSION}_FW${FW_VERSION}.repo"
 #--------------------------------------
 # Print variables
 #--------------------------------------
-#echo PTXPROJ=$PTXPROJ
-#echo PTX_WORKSPACE=$PTX_WORKSPACE
-#echo PTX_PLATFORMDIR=$PTX_PLATFORMDIR
+echo PTXPROJ=$PTXPROJ
+echo PTX_WORKSPACE=$PTX_WORKSPACE
+echo PTX_PLATFORMDIR=$PTX_PLATFORMDIR
 
-#echo BACNET_VERSION=$BACNET_VERSION
-#echo BACNET_REV=$BACNET_REV
+echo BACNET_VERSION=$BACNET_VERSION
+echo BACNET_REV=$BACNET_REV
 
-#echo PTXCONF_PROJ=$PTXCONF_PROJ
-#echo PTXCONF_PROJ_VERSION=$PTXCONF_PROJ_VERSION
-#echo PTXCONF_OPKG_CONF_HOST=$PTXCONF_OPKG_CONF_HOST
+echo PTXCONF_OPKG_OPKG_CONF_URL=$PTXCONF_OPKG_OPKG_CONF_URL
+echo PTXCONF_OPKG_OPKG_CONF_URL_SED=$PTXCONF_OPKG_OPKG_CONF_URL_SED
 
-#echo BUILD_DIR=$BUILD_DIR
-#echo FW_VERSION=$FW_VERSION
-#echo PACKAGES=$PACKAGES
-#echo VERSION=$VERSION
-#echo REPO_NAME=$REPO_NAME
+echo BUILD_DIR=$BUILD_DIR
+echo FW_VERSION=$FW_VERSION
+echo PACKAGES=$PACKAGES
+echo VERSION=$VERSION
+echo REPO_NAME=$REPO_NAME
 
 #--------------------------------------
 # Cleanup function
@@ -167,7 +167,7 @@ echo "Priority: optional"                                       >> ${BUILD_DIR}b
 echo "Version:  $VERSION"                                       >> ${BUILD_DIR}bacnet-repo-src/control/control
 echo "Section:    base"                                         >> ${BUILD_DIR}bacnet-repo-src/control/control
 echo "Architecture: armhf"                                      >> ${BUILD_DIR}bacnet-repo-src/control/control
-echo "Maintainer: \"WAGO Kontakttechnik GmbH & Co. KG (SEp)\" " >> ${BUILD_DIR}bacnet-repo-src/control/control
+echo "Maintainer: \"WAGO GmbH & Co. KG (SEp)\" " >> ${BUILD_DIR}bacnet-repo-src/control/control
 echo "Depends: "                                                >> ${BUILD_DIR}bacnet-repo-src/control/control
 echo "Source: "                                                 >> ${BUILD_DIR}bacnet-repo-src/control/control
 echo "Description:  Installation for WAGO BACnet. This packet is a meta packet including all parts need for BACnet." >> ${BUILD_DIR}bacnet-repo-src/control/control
@@ -183,9 +183,9 @@ echo "              The packet install a local repo only. Use opkg update and op
 #---------------------------------------------------------
 echo "#!/bin/bash"                                               > ${BUILD_DIR}bacnet-repo-src/control/postinst
 echo "#"                                                        >> ${BUILD_DIR}bacnet-repo-src/control/postinst
-echo "# WAGO Kontakttechnik GmbH & Co. KG"                      >> ${BUILD_DIR}bacnet-repo-src/control/postinst
+echo "# WAGO GmbH & Co. KG"                      >> ${BUILD_DIR}bacnet-repo-src/control/postinst
 echo ""                                                         >> ${BUILD_DIR}bacnet-repo-src/control/postinst
-echo "sed -i -e \"s/src ptxdist http:\/\/${PTXCONF_OPKG_CONF_HOST}\/ptxdist\/${PTXCONF_PROJ}\/dists\/${PTXCONF_PROJ}${PTXCONF_PROJ_VERSION}/src\/gz local file:\/\/\/root\/packages/g\" /etc/opkg/opkg.conf" >> ${BUILD_DIR}bacnet-repo-src/control/postinst
+echo "sed -i -e \"s/$PTXCONF_OPKG_OPKG_CONF_URL_SED/src\/gz local file:\/\/\/root\/packages/g\" /etc/opkg/opkg.conf" >> ${BUILD_DIR}bacnet-repo-src/control/postinst
 echo "source /etc/profile &>/dev/null"                          >> ${BUILD_DIR}bacnet-repo-src/control/postinst
 echo "function start_update"                                    >> ${BUILD_DIR}bacnet-repo-src/control/postinst
 echo "{"                                                        >> ${BUILD_DIR}bacnet-repo-src/control/postinst

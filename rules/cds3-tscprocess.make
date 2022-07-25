@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH \& Co. KG
+# Copyright (C) 2020 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -106,7 +106,7 @@ $(STATEDIR)/cds3-tscprocess.targetinstall:
 	@$(call install_init, cds3-tscprocess)
 	@$(call install_fixup, cds3-tscprocess,PRIORITY,optional)
 	@$(call install_fixup, cds3-tscprocess,SECTION,base)
-	@$(call install_fixup, cds3-tscprocess,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, cds3-tscprocess,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, cds3-tscprocess,DESCRIPTION,missing)
 
 	@$(call install_lib, cds3-tscprocess, 0, 0, 0644, libcds3-tscprocess)

@@ -207,10 +207,6 @@ inline Status MakeSystemCallError(::std::string syscall, ::std::string function,
                 function + ":" + ::std::to_string(line) + " " + syscall + ": " + ::std::strerror(errno)};
 }
 
-inline Status MakeSystemCallError(::std::string syscall) {
-  ::std::string func{__func__};
-  return MakeSystemCallError(syscall, func, __LINE__);
-}
-
+#define MAKE_SYSTEMCALL_ERROR(syscall) MakeSystemCallError(syscall, &__func__[0], __LINE__)
 
 }  // namespace netconf

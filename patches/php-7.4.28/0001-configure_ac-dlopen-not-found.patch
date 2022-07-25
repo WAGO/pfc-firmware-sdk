@@ -1,0 +1,11 @@
+--- php-7.3.5/configure.ac.orig 2019-06-19 13:35:26.171011707 +0200
++++ php-7.3.5/configure.ac  2019-06-19 13:35:24.160017707 +0200
+@@ -403,7 +403,7 @@
+ PHP_CHECK_FUNC(gethostbyaddr, nsl)
+ PHP_CHECK_FUNC(dlopen, dl)
+ PHP_CHECK_FUNC(dlsym, dl)
+-if test "$ac_cv_func_dlopen" = "yes"; then
++if test "$ac_cv_func_dlopen" = "yes" || test "$ac_cv_lib_dl_dlopen" = "yes"; then
+   AC_DEFINE(HAVE_LIBDL, 1, [ ])
+ fi
+ AC_CHECK_LIB(m, sin)

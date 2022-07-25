@@ -53,6 +53,7 @@ SYSLOGNG_AUTOCONF := \
 	--$(call ptx/endis, PTXCONF_SYSLOGNG_TCP_WRAPPER)-tcp-wrapper \
 	--with-systemd-journal=$(call ptx/ifdef, PTXCONF_SYSLOGNG_SYSTEMD,system,no) \
 	--with-systemdsystemunitdir=/usr/lib/systemd/system \
+	--without-net-snmp \
 	--localstatedir=/var/run \
 	--with-libnet=$(SYSROOT)/usr/bin \
     --disable-java

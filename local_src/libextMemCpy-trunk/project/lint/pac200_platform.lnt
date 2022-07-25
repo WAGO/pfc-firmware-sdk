@@ -1,0 +1,82 @@
+//----------------------------------------------------------------------------------------------------------------------
+/// Copyright (c) 2000 - 2022 WAGO GmbH & Co. KG
+///
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
+/// the subject matter of this material. All manufacturing, reproduction,
+/// use, and sales rights pertaining to this subject matter are governed
+/// by the license agreement. The recipient of this software implicitly
+/// accepts the terms of the license.
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+///
+///  \file     pac200_platform.lnt
+///
+///  \version  $Id:
+///
+///  \brief    This file is the main lint configuration file.
+///
+///  \author   Wauer : WAGO GmbH & Co. KG
+///
+//----------------------------------------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------------------------------------
+/// Include specific LINT files
+//----------------------------------------------------------------------------------------------------------------------
+
+_builder/lint/specific/co-gnu3.lnt
+_builder/lint/specific/co-gnu3_ext.lnt
+_builder/lint/specific/eclipse.lnt
+_builder/lint/specific/arm_gcc.lnt
+_builder/lint/common/wago_csg_speedway_strict.lnt
+_builder/lint/specific/arm_cortex_a8.lnt
+
+//----------------------------------------------------------------------------------------------------------------------
+/// Exclude source files
+//----------------------------------------------------------------------------------------------------------------------
+
+//+libm()
+
+//----------------------------------------------------------------------------------------------------------------------
+/// Search paths
+//----------------------------------------------------------------------------------------------------------------------
+
+-I"_builder/lint/common"
+
+-I"/opt/toolchain/OSELAS.Toolchain-2011.03.0/arm-cortexa8-linux-gnueabi/gcc-4.5.2-glibc-2.13-binutils-2.21-kernel-2.6.36-sanitized/sysroot-arm-cortexa8-linux-gnueabi/include"
+-I"/opt/toolchain/OSELAS.Toolchain-2011.03.0/arm-cortexa8-linux-gnueabi/gcc-4.5.2-glibc-2.13-binutils-2.21-kernel-2.6.36-sanitized/sysroot-arm-cortexa8-linux-gnueabi/usr/include"
+-I"/opt/toolchain/OSELAS.Toolchain-2011.03.0/arm-cortexa8-linux-gnueabi/gcc-4.5.2-glibc-2.13-binutils-2.21-kernel-2.6.36-sanitized/lib/gcc/arm-cortexa8-linux-gnueabi/4.5.2/include"
+
+-I"/home/remote/workspace/IPC/trunk/ipc-dist/platform-wago-pfc200/sysroot-target/usr/include"
+-I"/home/remote/workspace/IPC/trunk/ipc-dist/platform-wago-pfc200/sysroot-target/usr/include/glib-2.0"
+-I"/home/remote/workspace/IPC/trunk/ipc-dist/platform-wago-pfc200/sysroot-target/usr/lib/glib-2.0/include"
+
+-I"../sources/extMemCpy"
+-I"../sources/copyJobGen"
+-I"../sources/copyEng"
+-I"../sources/trace"
+-I"../sources/test"
+
+-I"/home/remote/workspace/IPC/trunk/ipc-dist/platform-wago-pfc200/sysroot-target/usr/include/osal"
+
+//----------------------------------------------------------------------------------------------------------------------
+/// Defines
+//----------------------------------------------------------------------------------------------------------------------
+
+-dLINUX
+-d__GNUC__
+-d_GCC_LIMITS_H_
+-d__STDC__
+-d__CC_ARM
+-d__arm__
+
+-dTRACE_ENABLE
+-dTRACE_DST_LED_SERVER=1
+-dTRACE_DST_PRINTF=0
+-dTRACE_SRC_BIT_FIELD=0xFFFFFFFF
+-dTRACE_SEV_BIT_FIELD=0x00000007
+
+-sem(__errno_location, @p==1) // __errno_location does never return NULL
+
+-limit(100)
+
+-estring(793, "*external*identifiers*")

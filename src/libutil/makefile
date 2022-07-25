@@ -1,7 +1,7 @@
 ##----------------------------------------------------------------------------------------------------------------------
-### Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+### Copyright (c) WAGO GmbH & Co. KG
 ###
-### PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+### PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 ### the subject matter of this material. All manufacturing, reproduction,
 ### use, and sales rights pertaining to this subject matter are governed
 ### by the license agreement. The recipient of this software implicitly
@@ -22,7 +22,7 @@
 ###							- TARGET_OS                operating system of the target (<LINUX>,<ECOS>,<WIN32>)
 ###							- DEBUG          					 <n> : build as release else build with debug information
 ###
-###  \author   Wauer : WAGO Kontakttechnik GmbH & Co. KG
+###  \author   Wauer : WAGO GmbH & Co. KG
 ##----------------------------------------------------------------------------------------------------------------------
 
 

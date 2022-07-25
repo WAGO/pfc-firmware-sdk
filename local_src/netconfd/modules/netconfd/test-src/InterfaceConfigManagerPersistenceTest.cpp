@@ -23,6 +23,7 @@ static std::ostream& operator<<(std::ostream& os, const InterfaceConfig& pc) {
   os << "State: " << static_cast<int>(pc.state_) << ", ";
   os << "Autoneg: " << static_cast<int>(pc.autoneg_) << ", ";
   os << "Speed: " << pc.speed_ << ", ";
+  os << "MacLearning" << static_cast<int>(pc.mac_learning_) << ", ";
   os << "Duplex: " << static_cast<int>(pc.duplex_) << "}";
   return os;
 }
@@ -58,29 +59,29 @@ class InterfaceConfigManagerPersistenceTest : public InterfaceConfigManagerBaseT
    Duplex duplex_;
    */
   void SetUp() override {
-    persisted_matching_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
-    persisted_matching_port_config.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF);
+    persisted_matching_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON);
+    persisted_matching_port_config.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF, MacLearning::ON);
 
-    persisted_missing_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
+    persisted_missing_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON);
 
-    expected_port_config_missing.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
-    expected_port_config_missing.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
+    expected_port_config_missing.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON);
+    expected_port_config_missing.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON);
 
-    persisted_oversized_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
-    persisted_oversized_port_config.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF);
-    persisted_oversized_port_config.emplace_back("X12", InterfaceState::UP, Autonegotiation::ON, 10, Duplex::FULL);
-    persisted_oversized_port_config.emplace_back("X11", InterfaceState::DOWN, Autonegotiation::OFF, 100, Duplex::FULL);
+    persisted_oversized_port_config.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON);
+    persisted_oversized_port_config.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF, MacLearning::ON);
+    persisted_oversized_port_config.emplace_back("X12", InterfaceState::UP, Autonegotiation::ON, 10, Duplex::FULL, MacLearning::ON);
+    persisted_oversized_port_config.emplace_back("X11", InterfaceState::DOWN, Autonegotiation::OFF, 100, Duplex::FULL, MacLearning::ON);
 
-    expected_port_config_oversized.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
-    expected_port_config_oversized.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF);
+    expected_port_config_oversized.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON);
+    expected_port_config_oversized.emplace_back("X2", InterfaceState::UP, Autonegotiation::OFF, 1000, Duplex::HALF, MacLearning::ON);
 
-    new_port_configs_partial.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, 10, Duplex::FULL);
+    new_port_configs_partial.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, 10, Duplex::FULL, MacLearning::ON);
 
-    persisted_new_port_configs_partial.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL);
-    persisted_new_port_configs_partial.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, 10, Duplex::FULL);
+    persisted_new_port_configs_partial.emplace_back("X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON);
+    persisted_new_port_configs_partial.emplace_back("X2", InterfaceState::UP, Autonegotiation::ON, 10, Duplex::FULL, MacLearning::ON);
 
-    new_port_configs_full.emplace_back("X1", InterfaceState::DOWN, Autonegotiation::OFF, 1000, Duplex::HALF);
-    new_port_configs_full.emplace_back("X2", InterfaceState::DOWN, Autonegotiation::ON, 10, Duplex::FULL);
+    new_port_configs_full.emplace_back("X1", InterfaceState::DOWN, Autonegotiation::OFF, 1000, Duplex::HALF, MacLearning::ON);
+    new_port_configs_full.emplace_back("X2", InterfaceState::DOWN, Autonegotiation::ON, 10, Duplex::FULL, MacLearning::ON);
 
     netdevs_.insert(
         netdevs_.begin(),

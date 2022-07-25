@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -97,7 +97,7 @@ $(STATEDIR)/firewall-config.targetinstall:
 	@$(call install_init, firewall-config)
 	@$(call install_fixup, firewall-config,PRIORITY,optional)
 	@$(call install_fixup, firewall-config,SECTION,base)
-	@$(call install_fixup, firewall-config,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, firewall-config,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, firewall-config,DESCRIPTION,missing)
 
 	@$(call install_copy, firewall-config, 0, 0, 0750, $(PTXDIST_SYSROOT_TARGET)/usr/bin/firewall.elf, /usr/bin/firewall);

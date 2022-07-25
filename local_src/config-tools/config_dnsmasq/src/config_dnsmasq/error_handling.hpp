@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,8 +11,8 @@
 ///
 ///  \brief    Error handling.
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
-///  \author   MOe : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
+///  \author   MOe : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #ifndef SRC_CONFIG_DNSMASQ_ERROR_HANDLING_HPP_
@@ -24,12 +24,17 @@ extern "C" {
 
 #include <ct_liblog.h>
 
+
 #ifdef __cplusplus
 }
 #endif
 
 #include <boost/format.hpp>
 #include <string>
+
+#include "Logger.hpp"
+
+namespace configdnsmasq {
 
 typedef struct {
     enum eStatusCode code;
@@ -71,5 +76,10 @@ void erh_assert(bool condition, enum eStatusCode code, const std::string &messag
  * @param exit_on_error
  */
 void erh_assert(bool condition, enum eStatusCode code, const boost::format &message, bool exit_on_error = true);
+
+
+void erh_log(const std::string &message);
+
+} // namespace configdnsmasq
 
 #endif /* SRC_CONFIG_DNSMASQ_ERROR_HANDLING_HPP_ */

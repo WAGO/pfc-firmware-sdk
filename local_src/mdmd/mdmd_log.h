@@ -1,5 +1,5 @@
 //--------------------------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -9,7 +9,7 @@
 //--------------------------------------------------------------------------------------------------
 /// \file       mdmd_log.h
 ///
-/// \version    $Revision: 46753 $
+/// \version    $Revision: 65689 $
 ///
 /// \par        <b>Software Package</b>:
 ///             Modem Management Daemon (mdmd)
@@ -19,7 +19,7 @@
 /// \details    This global interface provides all resources and functionalities
 ///             allowing debug prints
 ///
-/// \author     K.Nuenthel : WAGO Kontakttechnik GmbH & Co. KG
+/// \author     K.Nuenthel : WAGO GmbH & Co. KG
 //--------------------------------------------------------------------------------------------------
 #ifndef MDMD_LOG_H_
 #define MDMD_LOG_H_

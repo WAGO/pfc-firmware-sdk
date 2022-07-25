@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by Patrick Enns (patrick.enns@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2020 by Patrick Enns (patrick.enns@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-profibus.targetinstall:
 	@$(call install_init, wbm-ng-plugin-profibus)
 	@$(call install_fixup, wbm-ng-plugin-profibus, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-profibus, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-profibus, AUTHOR, "Patrick Enns, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-profibus, AUTHOR, "Patrick Enns, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-profibus, DESCRIPTION, missing)
 
 	# create target directory itself

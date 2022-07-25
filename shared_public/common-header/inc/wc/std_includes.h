@@ -5,15 +5,15 @@
 //
 // This file is part of project common-header (PTXdist package libcommonheader).
 //
-// Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     std_includes.h
 ///
 ///  \brief    Standard includes normally used in a C **and** C++ compatible way.
 ///
-///  \author   OELH: WAGO Kontakttechnik GmbH & Co. KG
-///  \author   PEn : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   OELH: WAGO GmbH & Co. KG
+///  \author   PEn : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef INC_WC_STD_INCLUDES_H_
 #define INC_WC_STD_INCLUDES_H_

@@ -4,6 +4,7 @@ config CONFIG_DNSMASQ
 	bool
 	select HOST_CT_BUILD
 	select GOOGLETEST
+	select LIBCOMMONHEADER
 	select DNSMASQ
 	select CT_LIBCTNETWORK
 	select NETCONFD

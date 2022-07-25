@@ -4,7 +4,7 @@
 ///
 ///  \brief    How shall an interface be treated by netconfd's internals
 ///
-///  \author   u014487 : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   u014487 : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #pragma once
 

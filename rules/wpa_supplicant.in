@@ -19,10 +19,10 @@ config WPA_SUPPLICANT_CTRL_IFACE_DBUS
 
 config WPA_SUPPLICANT_PASSPHRASE
 	bool
-	prompt "installl wpa_passphrase"
+	prompt "install wpa_passphrase"
 	help
 	  Install wpa_passphrase tool (Generate a WPA PSK from an ASCII
-	  passphrase for a SSID)
+	  passphrase for an SSID)
 
 config WPA_SUPPLICANT_INSTALL_CLI
 	bool

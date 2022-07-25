@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_INFORMATION) += wbm-ng-plugin-information
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_INFORMATION_VERSION        := 2.2.2
+WBM_NG_PLUGIN_INFORMATION_VERSION        := 2.4.2
 WBM_NG_PLUGIN_INFORMATION                := wbm-information-$(WBM_NG_PLUGIN_INFORMATION_VERSION)
 WBM_NG_PLUGIN_INFORMATION_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_INFORMATION)
 WBM_NG_PLUGIN_INFORMATION_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_INFORMATION_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-information.targetinstall:
 	@$(call install_init, wbm-ng-plugin-information)
 	@$(call install_fixup, wbm-ng-plugin-information, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-information, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-information, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-information, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-information, DESCRIPTION, missing)
 
 	# create target directory itself

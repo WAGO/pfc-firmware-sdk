@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_STATUSPLCSWITCH) += wbm-ng-plugin-statusplcswit
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_STATUSPLCSWITCH_VERSION        := 1.1.0
+WBM_NG_PLUGIN_STATUSPLCSWITCH_VERSION        := 1.1.1
 WBM_NG_PLUGIN_STATUSPLCSWITCH                := wbm-statusplcswitch-$(WBM_NG_PLUGIN_STATUSPLCSWITCH_VERSION)
 WBM_NG_PLUGIN_STATUSPLCSWITCH_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_STATUSPLCSWITCH)
 WBM_NG_PLUGIN_STATUSPLCSWITCH_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_STATUSPLCSWITCH_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-statusplcswitch.targetinstall:
 	@$(call install_init, wbm-ng-plugin-statusplcswitch)
 	@$(call install_fixup, wbm-ng-plugin-statusplcswitch, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-statusplcswitch, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-statusplcswitch, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-statusplcswitch, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-statusplcswitch, DESCRIPTION, missing)
 
 	# create target directory itself

@@ -6,7 +6,7 @@
 #
 # This file is part of project fwupdate (PTXdist package wago-fwupdate).
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   get_systeminfo
@@ -14,7 +14,7 @@
 # Brief:    This config tool returns system information:
 #             - numner, active, configured and state (see info text)
 #
-# Author:   Maxim Laschinsky: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   Maxim Laschinsky: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions

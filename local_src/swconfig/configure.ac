@@ -60,7 +60,7 @@ if test "${CONFIG_DEBUG}" = "yes"; then
     CFLAGS="${CFLAGS} -Wsign-compare -Wfloat-equal -Wformat-security -ggdb -O0"
     AC_DEFINE(DEBUG, 1, [debugging])
 else
-    CFLAGS="${CFLAGS} -O2"
+    CFLAGS="${CFLAGS} -g -O2"
 fi
 
 
@@ -68,4 +68,3 @@ AC_CONFIG_FILES([
 	Makefile
 ])
 AC_OUTPUT
-

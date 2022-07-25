@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2011-2021 WAGO GmbH & Co. KG
+# Copyright (c) 2011-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   /etc/init.d/lighttpd
@@ -22,6 +22,8 @@ LIGHTTPD_CONF="/etc/lighttpd/lighttpd.conf"
 LIGHTTPD_LOGDIR="/var/log/lighttpd"
 LIGHTTPD_PHP_SESSION_DIR="/var/run/php/sessions"
 START_STOP_DAEMON="/sbin/start-stop-daemon"
+# According to setting "server.graceful-shutdown-timeout" in lighttpd.conf
+WAIT_FOR_STOP_TIMEOUT=60 
 
 # Somehow we rarly get SIGHUP signals, which can cause
 # "start" or "stop" to be interrupted unexpectedly.
@@ -106,12 +108,12 @@ wait_for_stop()
     local try_count=0
     while $START_STOP_DAEMON --stop -t --quiet --exec "${LIGHTTPD}"; do
         try_count=$((try_count+1))
-        if [[ $try_count -gt 20 ]]; then
+        if [[ $try_count -gt ${WAIT_FOR_STOP_TIMEOUT} ]]; then
             result=1
             break
         fi
         echo -n "."
-        usleep 100000
+        sleep 1
     done
     echo ""
 

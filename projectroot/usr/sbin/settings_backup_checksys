@@ -7,7 +7,7 @@
 #
 # This file is part of PTXdist package wago-custom-install.
 #
-# Copyright (c) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup_checksys
@@ -15,7 +15,7 @@
 # Brief:    Save all Check-System configuration settings to stdout or restore 
 #           them from stdin.
 #
-# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   OG: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load common backup/restore functions

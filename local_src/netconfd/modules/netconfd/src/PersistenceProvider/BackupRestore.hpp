@@ -25,9 +25,9 @@ class BackupRestore : public IBackupRestore {
   Status Backup(const ::std::string& file_path, const ::std::string& network_data, const ::std::string& dip_switch_data, uint32_t version) const override;
   Status Restore(const ::std::string& file_path, ::std::string& backup_network_data, ::std::string& backup_dipswitch_data, uint32_t& version) const override;
 
-  const ::std::string KEY_NETCONFD_VERSION = "network.version=";
-  const ::std::string KEY_NETCONFD_NETWORK_DATA = "network.data=";
-  const ::std::string KEY_NETCONFD_DIPSWITCH_DATA = "network.dipswitch=";
+  const ::std::string KEY_NETCONFD_VERSION = "network.version";
+  const ::std::string KEY_NETCONFD_NETWORK_DATA = "network.data";
+  const ::std::string KEY_NETCONFD_DIPSWITCH_DATA = "network.dipswitch";
  private:
 
   Status AppendTextWithKeyAndSeparateOnNewLine(const ::std::string& file_path, const ::std::string& key, const ::std::string& data) const;

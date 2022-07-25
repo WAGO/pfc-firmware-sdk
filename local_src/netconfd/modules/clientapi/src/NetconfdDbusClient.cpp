@@ -20,7 +20,7 @@ namespace netconf {
 
 static constexpr auto dbus_target = "de.wago.netconfd";
 static constexpr auto send_timeout = 60000;
-static constexpr auto dbus_access_semaphore_path = "/netconfapi";
+static constexpr auto dbus_access_semaphore_name = "netconfapi";
 static constexpr auto dbus_access_semaphore_init_value = 1;
 
 class DbusMsgPtr : public ::std::unique_ptr<DBusMessage, decltype(dbus_message_unref)*> {
@@ -51,7 +51,7 @@ class DbusMsgContent {
 NetconfdDbusClient::NetconfdDbusClient(int dbus_timeout_millis)
     : conn_ { ConnectToDbus(::std::chrono::seconds { 60 }) },
       timeout_millis_ { dbus_timeout_millis },
-      dbus_access_semaphore_{dbus_access_semaphore_path, dbus_access_semaphore_init_value} {
+      dbus_access_semaphore_{dbus_access_semaphore_name, dbus_access_semaphore_init_value} {
   if (conn_ == nullptr) {
     throw ::std::runtime_error("connection to dbus failed.");
   }

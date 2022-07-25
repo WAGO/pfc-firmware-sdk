@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include "JsonConverter.hpp"
-#include <nlohmann/json.hpp>
+#include "JsonHelper.hpp"
+
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/ip/network_v4.hpp>
 #include <boost/system/error_code.hpp>
-#include "NetworkHelper.hpp"
-#include "TypesHelper.hpp"
-#include "Types.hpp"
+#include <nlohmann/json.hpp>
+
 #include "CollectionUtils.hpp"
+#include "JsonConverter.hpp"
+#include "JsonHelper.hpp"
 #include "JsonKeyList.hpp"
-#include "JsonHelper.hpp"
-#include "JsonHelper.hpp"
+#include "NetworkHelper.hpp"
 #include "Status.hpp"
+#include "Types.hpp"
+#include "TypesHelper.hpp"
 
 namespace netconf {
 
@@ -20,34 +22,47 @@ using namespace ::std::literals;
 using nlohmann::json;
 
 using boost_address = boost::asio::ip::address;
-using boost_error = boost::system::error_code;
+using boost_error   = boost::system::error_code;
 
-constexpr auto PORT_CFG_KEY_DEVICE = "device";
-constexpr auto PORT_CFG_KEY_STATE = "state";
-constexpr auto PORT_CFG_KEY_AUTONEG = "autonegotiation";
-constexpr auto PORT_CFG_KEY_AUTONEG_SUPPORTED = "autonegsupported";
-constexpr auto PORT_CFG_KEY_SPEED = "speed";
-constexpr auto PORT_CFG_KEY_DUPLEX = "duplex";
-constexpr auto PORT_CFG_KEY_LINKSTATE = "link";
-constexpr auto PORT_CFG_KEY_MAC = "mac";
+constexpr auto PORT_CFG_KEY_DEVICE               = "device";
+constexpr auto PORT_CFG_KEY_STATE                = "state";
+constexpr auto PORT_CFG_KEY_AUTONEG              = "autonegotiation";
+constexpr auto PORT_CFG_KEY_AUTONEG_SUPPORTED    = "autonegsupported";
+constexpr auto PORT_CFG_KEY_SPEED                = "speed";
+constexpr auto PORT_CFG_KEY_DUPLEX               = "duplex";
+constexpr auto PORT_CFG_KEY_LINKSTATE            = "link";
+constexpr auto PORT_CFG_KEY_MAC                  = "mac";
 constexpr auto PORT_CFG_KEY_SUPPORTED_LINK_MODES = "supportedlinkmodes";
+constexpr auto PORT_CFG_KEY_MAC_LEARNING         = "maclearning";
 
-JsonKeyList interface_config_keys_ { PORT_CFG_KEY_DEVICE, PORT_CFG_KEY_STATE, PORT_CFG_KEY_AUTONEG,  //NOLINT(cert-err58-cpp)
-    PORT_CFG_KEY_AUTONEG_SUPPORTED, PORT_CFG_KEY_SPEED, PORT_CFG_KEY_DUPLEX, PORT_CFG_KEY_LINKSTATE, PORT_CFG_KEY_MAC };
+static bool isValidInterfaceConfigKey(json const &j) {
+  static JsonKeyList interface_config_keys{PORT_CFG_KEY_DEVICE,
+                                           PORT_CFG_KEY_STATE,
+                                           PORT_CFG_KEY_AUTONEG,
+                                           PORT_CFG_KEY_AUTONEG_SUPPORTED,
+                                           PORT_CFG_KEY_SPEED,
+                                           PORT_CFG_KEY_DUPLEX,
+                                           PORT_CFG_KEY_LINKSTATE,
+                                           PORT_CFG_KEY_MAC,
+                                           PORT_CFG_KEY_MAC_LEARNING};
+
+  return interface_config_keys.matchesJsonObject(j);
+}
 
 json DipSwitchIpConfigToNJson(const DipSwitchIpConfig &ip_config) {
-  return json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ } };
+  return json{{"ipaddr", ip_config.address_}, {"netmask", ip_config.netmask_}};
 }
 
 json IpConfigToNJson(const IPConfig &ip_config) {
-  json json_ip_config = json { { "ipaddr", ip_config.address_ }, { "netmask", ip_config.netmask_ }, { "bcast",
-      GetBroadcast(ip_config.address_, ip_config.netmask_) } };
+  json json_ip_config = json{{"ipaddr", ip_config.address_},
+                             {"netmask", ip_config.netmask_},
+                             {"bcast", GetBroadcast(ip_config.address_, ip_config.netmask_)}};
   to_json(json_ip_config["source"], ip_config.source_);
   return json_ip_config;
 }
 
 json IPConfigsToNJson(const IPConfigs &ip_configs) {
-  json json_out( { });
+  json json_out({});
   for (const auto &ip_config : ip_configs) {
     json_out[ip_config.interface_] = IpConfigToNJson(ip_config);
   }
@@ -70,8 +85,10 @@ json BridgeConfigToNJson(const BridgeConfig &bridge_config, const FirmwareVersio
 }
 
 json DipSwitchConfigToNJson(const DipSwitchConfig &config) {
-  return json { { "ipaddr", config.ip_config_.address_ }, { "netmask", config.ip_config_.netmask_ }, { "value", config
-      .value_ }, { "mode", config.mode_ } };
+  return json{{"ipaddr", config.ip_config_.address_},
+              {"netmask", config.ip_config_.netmask_},
+              {"value", config.value_},
+              {"mode", config.mode_}};
 }
 
 ::std::string DipSwitchConfigToJson(const DipSwitchConfig &config) {
@@ -79,15 +96,10 @@ json DipSwitchConfigToNJson(const DipSwitchConfig &config) {
 }
 
 Status JsonToNJson(::std::string const &json_str, json &json_object) {
-
   try {
-
     class throwing_sax : public nlohmann::detail::json_sax_dom_parser<nlohmann::json> {
      public:
-      explicit throwing_sax(nlohmann::json &j)
-          : nlohmann::detail::json_sax_dom_parser<nlohmann::json>(j) {
-      }
-      ;
+      explicit throwing_sax(nlohmann::json &j) : nlohmann::detail::json_sax_dom_parser<nlohmann::json>(j){};
 
       bool key(json::string_t &val) {
         if (ref_stack.back()->contains(val)) {
@@ -100,22 +112,18 @@ Status JsonToNJson(::std::string const &json_str, json &json_object) {
     json::sax_parse(json_str, &sax_consumer);
 
   } catch (std::exception const &e) {
-    return Status { StatusCode::JSON_CONVERT, e.what() };
+    return Status{StatusCode::JSON_CONVERT, e.what()};
   }
   return Status::Ok();
-
 }
 
 ::std::string InterfacesToJson(const Interfaces &interfaces) {
-
   ::std::string json_string = "["s;
   if (!interfaces.empty()) {
-
     for (uint32_t i = 0; i < interfaces.size() - 1; i++) {
       json_string += "\"" + interfaces[i] + "\",";
     }
     json_string += "\"" + interfaces[interfaces.size() - 1] + "\"";
-
   }
 
   json_string += "]";
@@ -123,7 +131,6 @@ Status JsonToNJson(::std::string const &json_str, json &json_object) {
 }
 
 Status GetAddressFromJson(const std::string &json_field, const json &from, std::string &to) {
-
   try {
     auto iter = from.find(json_field);
     if (iter != from.end()) {
@@ -132,27 +139,28 @@ Status GetAddressFromJson(const std::string &json_field, const json &from, std::
       boost_error error_code;
       boost_address::from_string(to, error_code);
       if (error_code) {
-        return Status { StatusCode::IPV4_FORMAT, ::std::to_string(error_code.value()) };
+        return Status{StatusCode::IPV4_FORMAT, ::std::to_string(error_code.value())};
       }
     }
 
   } catch (std::exception const &e) {
     to.clear();
-    return Status { StatusCode::JSON_CONVERT, e.what() };
+    return Status{StatusCode::JSON_CONVERT, e.what()};
   } catch (...) {
     to.clear();
-    return Status { StatusCode::JSON_CONVERT, "General JSON error" };
+    return Status{StatusCode::JSON_CONVERT, "General JSON error"};
   }
 
   return Status::Ok();
-
 }
 
 Status NJsonToBridgeConfig(const json &json_object, BridgeConfig &bridge_config) {
   Status status;
 
   for (const auto &bridge_cfg_json : json_object.items()) {
-    auto bridge_cfg_pair = std::make_pair<Bridge, Interfaces>(bridge_cfg_json.key(), bridge_cfg_json.value());  // NOLINT: Need to express types in make_pair to get it working.
+    auto bridge_cfg_pair = std::make_pair<Bridge, Interfaces>(
+        bridge_cfg_json.key(),
+        bridge_cfg_json.value());  // NOLINT: Need to express types in make_pair to get it working.
 
     if (bridge_cfg_pair.first.empty()) {
       status.Set(StatusCode::NAME_EMPTY);
@@ -202,14 +210,13 @@ Status JsonToDipSwitchConfig(const ::std::string &json_string, DipSwitchConfig &
 }
 
 Status NJsonToIPConfigs(const json &json_object, IPConfigs &ip_configs) {
-
   try {
     auto items = json_object.items();
     ::std::transform(items.begin(), items.end(), ::std::back_inserter(ip_configs), parse_ip_config);
   } catch (std::exception const &e) {
-    return Status { StatusCode::JSON_CONVERT, e.what() };
+    return Status{StatusCode::JSON_CONVERT, e.what()};
   } catch (...) {
-    return Status { StatusCode::JSON_CONVERT, "General JSON error" };
+    return Status{StatusCode::JSON_CONVERT, "General JSON error"};
   }
 
   return Status::Ok();
@@ -235,6 +242,10 @@ static json InterfaceBaseToNJson(const InterfaceBase &interface_config) {
   if (interface_config.duplex_ != Duplex::UNKNOWN) {
     j[PORT_CFG_KEY_DUPLEX] = interface_config.duplex_;
   }
+
+  if (interface_config.mac_learning_ != MacLearning::UNKNOWN) {
+    j[PORT_CFG_KEY_MAC_LEARNING] = interface_config.mac_learning_;
+  }
   return j;
 }
 
@@ -242,8 +253,13 @@ json InterfaceConfigToNJson(const InterfaceConfig &interface_config) {
   return InterfaceBaseToNJson(interface_config);
 }
 
-json InterfaceStatusToNJson(const InterfaceStatus &interface_status) {
+static json InterfaceConfigToNJson_lower_than_fw22(const InterfaceConfig &interface_config) {
+  auto interface_config_without_maclearning          = interface_config;
+  interface_config_without_maclearning.mac_learning_ = MacLearning::UNKNOWN;
+  return InterfaceBaseToNJson(interface_config_without_maclearning);
+}
 
+json InterfaceStatusToNJson(const InterfaceStatus &interface_status) {
   json j = InterfaceBaseToNJson(interface_status);
 
   if (interface_status.link_state_ != LinkState::UNKNOWN) {
@@ -279,38 +295,38 @@ static json InterfaceConfigToNJson_fw15(const InterfaceConfig &interface_config)
 }
 
 json InterfaceConfigsToNJson(const InterfaceConfigs &interface_configs, const FirmwareVersion &target_fw) {
-
   /* We changed the interface config json format in fw 16, so we need this ugly hack to generate a different config */
 
-  auto interfaceConfigToNJsonFn =
-      (target_fw.GetFirmwareIndex() == 15) ? &InterfaceConfigToNJson_fw15 : &InterfaceConfigToNJson;
+  auto interfaceConfigToNJsonFn = (target_fw.GetFirmwareIndex() == 15) ? &InterfaceConfigToNJson_fw15
+                                  : (target_fw.GetFirmwareIndex() > 15 && target_fw.GetFirmwareIndex() < 22)
+                                      ? &InterfaceConfigToNJson_lower_than_fw22
+                                      : &InterfaceConfigToNJson;
 
   if (interface_configs.size() > 1) {
-    nlohmann::json jarray { };
+    nlohmann::json jarray{};
     for (const auto &config : interface_configs) {
       jarray.push_back(interfaceConfigToNJsonFn(config));
     }
     return jarray;
   }
 
-  return interface_configs.size() == 1 ? InterfaceConfigToNJson(interface_configs.at(0)) : nlohmann::json( { });
+  return interface_configs.size() == 1 ? InterfaceConfigToNJson(interface_configs.at(0)) : nlohmann::json({});
 }
 
 json InterfaceStatusesToNJson(const InterfaceStatuses &interface_status) {
-
   if (interface_status.size() > 1) {
-    nlohmann::json jarray { };
+    nlohmann::json jarray{};
     for (const auto &config : interface_status) {
       jarray.push_back(InterfaceStatusToNJson(config));
     }
     return jarray;
   }
 
-  return interface_status.size() == 1 ? InterfaceStatusToNJson(interface_status.at(0)) : nlohmann::json( { });
+  return interface_status.size() == 1 ? InterfaceStatusToNJson(interface_status.at(0)) : nlohmann::json({});
 }
 
 static InterfaceBase InterfaceBaseFromJson(const json &config) {
-  InterfaceBase p { config.at(PORT_CFG_KEY_DEVICE).get<::std::string>() };
+  InterfaceBase p{config.at(PORT_CFG_KEY_DEVICE).get<::std::string>()};
 
   auto autoneg_opt = config.find(PORT_CFG_KEY_AUTONEG) != config.end();
   if (autoneg_opt) {
@@ -331,18 +347,21 @@ static InterfaceBase InterfaceBaseFromJson(const json &config) {
   if (speed_opt) {
     p.speed_ = config.at(PORT_CFG_KEY_SPEED).get<int>();
   }
+
+  auto mac_learning_opt = config.find(PORT_CFG_KEY_MAC_LEARNING) != config.end();
+  if (mac_learning_opt) {
+    p.mac_learning_ = config.at(PORT_CFG_KEY_MAC_LEARNING).get<MacLearning>();
+  }
   return p;
 }
 
 InterfaceConfig InterfaceConfigFromJson(const json &config) {
-
-  InterfaceConfig p { ::std::move(InterfaceBaseFromJson(config)) };
+  InterfaceConfig p{::std::move(InterfaceBaseFromJson(config))};
   return p;
 }
 
 InterfaceStatus InterfaceStatusFromJson(const json &config) {
-
-  InterfaceStatus p { ::std::move(InterfaceBaseFromJson(config)) };
+  InterfaceStatus p{::std::move(InterfaceBaseFromJson(config))};
 
   auto link_opt = config.find(PORT_CFG_KEY_LINKSTATE) != config.end();
   if (link_opt) {
@@ -352,7 +371,7 @@ InterfaceStatus InterfaceStatusFromJson(const json &config) {
   auto mac_opt = config.find(PORT_CFG_KEY_MAC) != config.end();
   if (mac_opt) {
     auto mac = config.at(PORT_CFG_KEY_MAC).get<::std::string>();
-    p.mac_ = MacAddress::FromString(mac);
+    p.mac_   = MacAddress::FromString(mac);
   }
 
   return p;
@@ -360,18 +379,18 @@ InterfaceStatus InterfaceStatusFromJson(const json &config) {
 
 Status NJsonToInterfaceConfigs(const nlohmann::json &json_object, InterfaceConfigs &interface_configs) {
   if (json_object.empty()) {
-    return Status { StatusCode::JSON_INCOMPLETE };
+    return Status{StatusCode::JSON_INCOMPLETE};
   }
   if (json_object.is_array()) {
     for (auto &jentry : json_object) {
-      if (!interface_config_keys_.matchesJsonObject(jentry)) {
-        return Status { StatusCode::JSON_INCOMPLETE };
+      if (!isValidInterfaceConfigKey(jentry)) {
+        return Status{StatusCode::JSON_INCOMPLETE};
       }
       interface_configs.push_back(InterfaceConfigFromJson(jentry));
     }
   } else {
-    if (!interface_config_keys_.matchesJsonObject(json_object)) {
-      return Status { StatusCode::JSON_INCOMPLETE };
+    if (!isValidInterfaceConfigKey(json_object)) {
+      return Status{StatusCode::JSON_INCOMPLETE};
     }
     interface_configs.push_back(InterfaceConfigFromJson(json_object));
   }
@@ -380,18 +399,18 @@ Status NJsonToInterfaceConfigs(const nlohmann::json &json_object, InterfaceConfi
 
 Status NJsonToInterfaceStatuses(const nlohmann::json &json_object, InterfaceStatuses &interface_statuses) {
   if (json_object.empty()) {
-    return Status { StatusCode::JSON_INCOMPLETE };
+    return Status{StatusCode::JSON_INCOMPLETE};
   }
   if (json_object.is_array()) {
     for (auto &jentry : json_object) {
-      if (!interface_config_keys_.matchesJsonObject(jentry)) {
-        return Status { StatusCode::JSON_INCOMPLETE };
+      if (!isValidInterfaceConfigKey(jentry)) {
+        return Status{StatusCode::JSON_INCOMPLETE};
       }
       interface_statuses.push_back(InterfaceStatusFromJson(jentry));
     }
   } else {
-    if (!interface_config_keys_.matchesJsonObject(json_object)) {
-      return Status { StatusCode::JSON_INCOMPLETE };
+    if (!isValidInterfaceConfigKey(json_object)) {
+      return Status{StatusCode::JSON_INCOMPLETE};
     }
     interface_statuses.push_back(InterfaceStatusFromJson(json_object));
   }
@@ -401,7 +420,6 @@ Status NJsonToInterfaceStatuses(const nlohmann::json &json_object, InterfaceStat
 static json LinkModesToNJson(const LinkModes &link_modes) {
   json array;
   for (auto link_mode : link_modes) {
-
     json j;
     if (link_mode.speed_ > 0) {
       j[PORT_CFG_KEY_SPEED] = link_mode.speed_;
@@ -416,8 +434,10 @@ static json LinkModesToNJson(const LinkModes &link_modes) {
 }
 
 json InterfaceInformationToNJson(const InterfaceInformation &obj) {
-  json j { { "name", obj.GetInterfaceName() }, { "label", obj.GetInterfaceLabel() }, { "type", obj.GetType() }, {
-      "ipreadonly", obj.IsIpConfigurationReadonly() } };
+  json j{{"name", obj.GetInterfaceName()},
+         {"label", obj.GetInterfaceLabel()},
+         {"type", obj.GetType()},
+         {"ipreadonly", obj.IsIpConfigurationReadonly()}};
 
   if (obj.GetAutonegSupported() != AutonegotiationSupported::UNKNOWN) {
     j[PORT_CFG_KEY_AUTONEG_SUPPORTED] = obj.GetAutonegSupported();
@@ -431,10 +451,8 @@ json InterfaceInformationToNJson(const InterfaceInformation &obj) {
 }
 
 static void parse_link_modes(const json &json_object, LinkModes &link_modes) {
-
   if (json_object.find(PORT_CFG_KEY_SUPPORTED_LINK_MODES) != json_object.end()) {
     for (auto &link_mode : json_object[PORT_CFG_KEY_SUPPORTED_LINK_MODES]) {
-
       LinkMode lm;
       auto duplex_opt = link_mode.find(PORT_CFG_KEY_DUPLEX) != link_mode.end();
       if (duplex_opt) {
@@ -449,16 +467,15 @@ static void parse_link_modes(const json &json_object, LinkModes &link_modes) {
       link_modes.emplace_back(lm);
     }
   }
-
 }
 
 Status NJsonToInterfaceInformation(const json &json_object, InterfaceInformation &interface_information) {
   ::std::string name;
   ::std::string label;
-  DeviceType type = DeviceType::Other;
-  bool ip_config_ro = true;
+  DeviceType type                            = DeviceType::Other;
+  bool ip_config_ro                          = true;
   AutonegotiationSupported autoneg_supported = AutonegotiationSupported::UNKNOWN;
-  LinkModes link_modes { };
+  LinkModes link_modes{};
   Status status = get_to_or_error("name", json_object, name);
   if (status.IsOk()) {
     status = get_to_or_error("label", json_object, label);
@@ -477,14 +494,13 @@ Status NJsonToInterfaceInformation(const json &json_object, InterfaceInformation
   }
 
   if (status.IsOk()) {
-    interface_information = InterfaceInformation { name, label, type, ip_config_ro, autoneg_supported, link_modes };
+    interface_information = InterfaceInformation{name, label, type, ip_config_ro, autoneg_supported, link_modes};
   }
 
   return status;
 }
 
 Status NJsonToDynamicIPEvent(const json &json_object, ::std::string &itf_name, DynamicIPEventAction &action) {
-
   Status status = get_to_or_error("interface", json_object, itf_name);
   if (status.IsOk()) {
     status = get_to_or_error("action", json_object, action);
@@ -492,4 +508,4 @@ Status NJsonToDynamicIPEvent(const json &json_object, ::std::string &itf_name, D
   return status;
 }
 
-}
+}  // namespace netconf

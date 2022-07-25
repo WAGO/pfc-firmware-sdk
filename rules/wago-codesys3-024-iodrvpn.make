@@ -1,6 +1,6 @@
 ## -*-makefile-*-
 #
-# Copyright (C) 2018 by Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2018 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #

@@ -3,14 +3,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: config_snmp
 #
 # Change the configuration of the SNMP parameter
 #
-# Author: WAGO Kontakttechnik GmbH
+# Author: WAGO GmbH
 #-----------------------------------------------------------------------------#
 
 # load general definitions and functions
@@ -96,7 +96,7 @@ fi
 #--------------------------------------------------------------------
 # enable/disable snmp
 #--------------------------------------------------------------------
-setSnmp=$(GetParameterValue set-snmp $*)
+setSnmp=$(GetParameterValue set-snmp "$@")
 if [ "$status" = "$SUCCESS" ] && [ -n "$setSnmp" ]; then
   if [ "$setSnmp" = "enabled" ]; then
     ln -sf ../init.d/net-snmptrapd /etc/rc.d/S22netsnmptrapd &> /dev/null
@@ -114,7 +114,7 @@ fi
 #--------------------------------------------------------------------
 # device name
 #--------------------------------------------------------------------
-newDeviceName=$(GetParameterValue device-name $*)
+newDeviceName=$(GetParameterValue device-name "$@")
 #echo "newDeviceName:"$newDeviceName "newDescription:"$newDescription
 if [ "$status" = "$SUCCESS" ] && [ -n "$newDeviceName" ]; then
 
@@ -150,7 +150,7 @@ fi
 #--------------------------------------------------------------------
 # description
 #--------------------------------------------------------------------
-newDescription=$(GetParameterValue description $*)
+newDescription=$(GetParameterValue description "$@")
 if [ "$status" = "$SUCCESS" ] && [ -n "$newDescription" ]; then
 
   # no value check - any string is ok for description
@@ -184,7 +184,7 @@ fi
 #--------------------------------------------------------------------
 # physical location
 #--------------------------------------------------------------------
-newPhysicalLocation=$(GetParameterValue physical-location $*)
+newPhysicalLocation=$(GetParameterValue physical-location "$@")
 if [ "$status" = "$SUCCESS" ] && [ -n "$newPhysicalLocation" ]; then
 
   # no value check - any string is ok for location
@@ -210,7 +210,7 @@ fi
 #--------------------------------------------------------------------
 # contact
 #--------------------------------------------------------------------
-newContact=$(GetParameterValue contact $*)
+newContact=$(GetParameterValue contact "$@")
 if [ "$status" = "$SUCCESS" ] && [ -n "$newContact" ]; then
 
   # no value check - any string is ok for contact
@@ -236,7 +236,7 @@ fi
 #--------------------------------------------------------------------
 # sysObjectID
 #--------------------------------------------------------------------
-newObjectID=$(GetParameterValue objectID $*)
+newObjectID=$(GetParameterValue objectID "$@")
 if [ "$status" = "$SUCCESS" ] && [ -n "$newObjectID" ]; then
 
   # no value check - any string is ok for contact
@@ -262,7 +262,7 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c state - old version
 #--------------------------------------------------------------------
-newV1V2cState=$(GetParameterValue v1-v2c-state $*)
+newV1V2cState=$(GetParameterValue v1-v2c-state "$@")
 
 if [ 0 = 1 ] && [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
 
@@ -298,7 +298,7 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c state
 #--------------------------------------------------------------------
-newV1V2cState=$(GetParameterValue v1-v2c-state $*)
+newV1V2cState=$(GetParameterValue v1-v2c-state "$@")
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
 
@@ -314,7 +314,7 @@ if [ "$status" = "$SUCCESS" ] && [ -n "$newV1V2cState" ]; then
       
   elif [ "enabled" = "$newV1V2cState" ]; then
     
-    newCommunityName=$(GetParameterValue v1-v2c-community-name $*)
+    newCommunityName=$(GetParameterValue v1-v2c-community-name "$@")
     if [ -z "$newCommunityName" ]; then
       status=$MISSING_PARAMETER
       SetLastError "Missing parameter: community name"
@@ -330,7 +330,7 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c commmunity name
 #--------------------------------------------------------------------
-newCommunityName=$(GetParameterValue v1-v2c-community-name $*)
+newCommunityName=$(GetParameterValue v1-v2c-community-name "$@")
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$newCommunityName" ]; then
 
@@ -382,14 +382,14 @@ fi
 #--------------------------------------------------------------------
 # v1/v2c trap receiver edit
 #--------------------------------------------------------------------
-trapReceiverEdit=$(GetParameterValue v1-v2c-trap-receiver-edit $*)
+trapReceiverEdit=$(GetParameterValue v1-v2c-trap-receiver-edit "$@")
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$trapReceiverEdit" ]; then
 
   # get parameter from input
-  address=$(GetParameterValue v1-v2c-trap-receiver-address $*)
-  communityName=$(GetParameterValue v1-v2c-trap-receiver-community-name $*)
-  version=$(GetParameterValue v1-v2c-trap-receiver-version $*)
+  address=$(GetParameterValue v1-v2c-trap-receiver-address "$@")
+  communityName=$(GetParameterValue v1-v2c-trap-receiver-community-name "$@")
+  version=$(GetParameterValue v1-v2c-trap-receiver-version "$@")
   #echo "address:${address} communityName:${communityName} version:${version}"
 
   if [ -z "$address" ] || [ -z "$communityName" ] || [ -z "$version" ]; then
@@ -480,17 +480,17 @@ fi
 #--------------------------------------------------------------------
 # v3 edit
 #--------------------------------------------------------------------
-v3Edit=$(GetParameterValue v3-edit $*)
+v3Edit=$(GetParameterValue v3-edit "$@")
 
 if [ "$status" = "$SUCCESS" ] && [ -n "$v3Edit" ]; then
 
   # get parameter from input
-  authName=$(GetParameterValue v3-auth-name $*)
-  authType=$(GetParameterValue v3-auth-type $*)
-  authKey=$(GetParameterValue v3-auth-key $*)
-  privacy=$(GetParameterValue v3-privacy $*)
-  privacyKey=$(GetParameterValue v3-privacy-key $*)
-  notificationReceiver=$(GetParameterValue v3-notification-receiver $*)
+  authName=$(GetParameterValue v3-auth-name "$@")
+  authType=$(GetParameterValue v3-auth-type "$@")
+  authKey=$(GetParameterValue v3-auth-key "$@")
+  privacy=$(GetParameterValue v3-privacy "$@")
+  privacyKey=$(GetParameterValue v3-privacy-key "$@")
+  notificationReceiver=$(GetParameterValue v3-notification-receiver "$@")
   echo "authName:"$authName "authType:"$authType "authKey:"$authKey 
   echo "privacy:"$privacy "privacyKey:"$privacyKey "notificationReceiver:"$notificationReceiver
 

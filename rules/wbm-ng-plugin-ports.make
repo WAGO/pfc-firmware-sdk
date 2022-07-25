@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_PORTS) += wbm-ng-plugin-ports
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_PORTS_VERSION        := 1.11.1
+WBM_NG_PLUGIN_PORTS_VERSION        := 1.11.2
 WBM_NG_PLUGIN_PORTS                := wbm-ports-$(WBM_NG_PLUGIN_PORTS_VERSION)
 WBM_NG_PLUGIN_PORTS_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_PORTS)
 WBM_NG_PLUGIN_PORTS_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_PORTS_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-ports.targetinstall:
 	@$(call install_init, wbm-ng-plugin-ports)
 	@$(call install_fixup, wbm-ng-plugin-ports, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-ports, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-ports, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-ports, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-ports, DESCRIPTION, missing)
 
 	# create target directory itself

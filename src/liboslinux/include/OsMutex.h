@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 /// SPDX-License-Identifier: MPL-2.0
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -8,7 +8,7 @@
 ///        When an onwer dies a message is printed and the mutex is made consistent
 ///        again.
 ///
-/// \author WAGO Kontakttechnik GmbH & Co. KG
+/// \author WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef D_OsMutex_H
 #define D_OsMutex_H

@@ -2,7 +2,7 @@
 #define D_Posix_helper_H
 
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 /// manufacturing, reproduction, use, and sales rights pertaining to this
@@ -17,7 +17,7 @@
 /// \brief This module provides function pointers to some posix functions.
 ///        This way we can mock calls to posix functions during unit testing.
 ///
-/// \author ${user} : WAGO Kontakttechnik GmbH & Co. KG
+/// \author ${user} : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

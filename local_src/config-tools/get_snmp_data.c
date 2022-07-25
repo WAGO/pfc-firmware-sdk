@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2000 - 2006 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2000 - 2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,11 +11,11 @@
 ///
 ///  \file     get_snmp_data
 ///
-///  \version  $Revision: 59796 $1
+///  \version  $Revision: 66894 $1
 ///
-///  \brief    
+///  \brief
 ///
-///  \author   Stefanie Meihöfer : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Stefanie Meihöfer : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <bsd/string.h>
 
 #include "config_tool_lib.h"
 
@@ -38,6 +39,7 @@
 #define SNMP_TRAP_FILE                      "/etc/snmp/snmptrapd.conf"
 #define SNMP_V3_CONF_FILE                   "/var/lib/net-snmp/snmpd.conf"
 
+#define SNMP_MAX_LENGTH_OUTPUT_STRING       256
 //------------------------------------------------------------------------------
 // External variables
 //------------------------------------------------------------------------------
@@ -220,7 +222,8 @@ int GetSnmpConfParameter(char* pacParameterName,
         if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
         {
           CutLine(pacFoundString, sizeof(acSnmpConfLine));
-          strncpy(pacParameterValue, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
+          if( strlcpy(pacParameterValue, pacFoundString, SNMP_MAX_LENGTH_OUTPUT_STRING) >= SNMP_MAX_LENGTH_OUTPUT_STRING)
+            SetLastError("get_snmp_data: /etc/snmp/snmpd.conf: line too long");
         }
       }
 
@@ -399,7 +402,8 @@ int GetV1V2cCommunityName(char* pacDummy,
         if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
         {
           CutWord(pacFoundString, sizeof(acCommunityNameLine));
-          strncpy(pacParameterValue, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
+          if( strlcpy(pacParameterValue, pacFoundString, SNMP_MAX_LENGTH_OUTPUT_STRING) >= SNMP_MAX_LENGTH_OUTPUT_STRING)
+            SetLastError("get_snmp_data: /etc/snmp/snmpd.conf: line too long");
         }
       }
     }
@@ -425,7 +429,7 @@ int GetV1V2cState(char* pacDummy,
 {
   UNUSED_PARAMETER(pacDummy);
 
-  char  acCommunityName[MAX_LENGTH_OUTPUT_STRING] = "";
+  char  acCommunityName[SNMP_MAX_LENGTH_OUTPUT_STRING] = "";
 
   // check input parameter
   if(pacParameterValue == NULL)
@@ -438,7 +442,7 @@ int GetV1V2cState(char* pacDummy,
 
   if((SUCCESS == GetV1V2cCommunityName(NULL, acCommunityName)) && strlen(acCommunityName))
   {
-    strncpy(pacParameterValue, "enabled", MAX_LENGTH_OUTPUT_STRING);
+    strlcpy(pacParameterValue, "enabled", SNMP_MAX_LENGTH_OUTPUT_STRING);
   }
 
   return SUCCESS;
@@ -480,7 +484,7 @@ int GetV1V2cTrapReceiverLine(int    trapReceiverNo,
       }
       else
       {
-        strncpy(pacReceiverLine, acTrapAddressLine, sizeofReceiverLine - 1);
+        strlcpy(pacReceiverLine, acTrapAddressLine, sizeofReceiverLine);
       }
     }
 
@@ -528,7 +532,7 @@ int GetV1V2cTrapReceiverAddress(char* pacTrapReceiverNo,
         if(NULL != (pacFoundString = GetNextWord(pacFoundString)))
         {
           CutWord(pacFoundString, sizeof(acTrapReceiverLine));
-          strncpy(pacParameterValue, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
+          strlcpy(pacParameterValue, pacFoundString, SNMP_MAX_LENGTH_OUTPUT_STRING);
         }
       }
     }
@@ -577,7 +581,7 @@ int GetV1V2cTrapReceiverCommunityName(char* pacTrapReceiverNo,
     if(NULL != (pacFoundString = strrchr(acTrapReceiverLine, ' ')))
     {
       // copy following word
-      strncpy(pacParameterValue, pacFoundString + 1, MAX_LENGTH_OUTPUT_STRING);
+      strlcpy(pacParameterValue, pacFoundString + 1, SNMP_MAX_LENGTH_OUTPUT_STRING);
     }
   }
 
@@ -614,11 +618,11 @@ int GetV1V2cTrapReceiverVersion(char* pacTrapReceiverNo,
     // search word "trapsink/trap2sink"
     if(NULL != strstr(acTrapReceiverLine, "trapsink"))
     {
-      strncpy(pacParameterValue, "v1", MAX_LENGTH_OUTPUT_STRING);
+      strlcpy(pacParameterValue, "v1", SNMP_MAX_LENGTH_OUTPUT_STRING);
     }
     else if(NULL != strstr(acTrapReceiverLine, "trap2sink"))
     {
-      strncpy(pacParameterValue, "v2c", MAX_LENGTH_OUTPUT_STRING);
+      strlcpy(pacParameterValue, "v2c", SNMP_MAX_LENGTH_OUTPUT_STRING);
     }
   }
 
@@ -666,7 +670,7 @@ int GetV3UserConfigLine(int    userNo,
       }
       else
       {
-        strncpy(pacV3UserLine, acV3UserLine, sizeofV3UserLine - 1);
+        strlcpy(pacV3UserLine, acV3UserLine, sizeofV3UserLine);
       }
     }
 
@@ -720,7 +724,7 @@ int GetV3AuthName(char* pacUserNo,
       if(pacFoundString)
       {
         CutWord(pacFoundString, MAX_LENGTH_OUTPUT_LINE);
-        strncpy(pacAuthName, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
+        strlcpy(pacAuthName, pacFoundString, SNMP_MAX_LENGTH_OUTPUT_STRING);
       }
     }
   }
@@ -757,11 +761,11 @@ int GetV3AuthType(char* pacUserNo,
 
     if(strstr(acV3UserLine, "MD5"))
     {
-      strncpy(pacAuthType, "MD5", MAX_LENGTH_OUTPUT_STRING);
+      strlcpy(pacAuthType, "MD5", SNMP_MAX_LENGTH_OUTPUT_STRING);
     }
     else if(strstr(acV3UserLine, "SHA"))
     {
-      strncpy(pacAuthType, "SHA", MAX_LENGTH_OUTPUT_STRING);
+      strlcpy(pacAuthType, "SHA", SNMP_MAX_LENGTH_OUTPUT_STRING);
     }
   }
 
@@ -817,7 +821,7 @@ int GetV3AuthKey(char* pacUserNo,
         CutWord(pacFoundString, MAX_LENGTH_OUTPUT_LINE);
         if(strcmp(pacFoundString, "DES") && strcmp(pacFoundString, "AES"))
         {
-          strncpy(pacAuthKey, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
+          strlcpy(pacAuthKey, pacFoundString, SNMP_MAX_LENGTH_OUTPUT_STRING);
         }
       }
     }
@@ -855,11 +859,11 @@ int GetV3Privacy(char* pacUserNo,
 
     if(strstr(acV3UserLine, "DES"))
     {
-      strncpy(pacPrivacy, "DES", MAX_LENGTH_OUTPUT_STRING);
+      strlcpy(pacPrivacy, "DES", SNMP_MAX_LENGTH_OUTPUT_STRING);
     }
     else if(strstr(acV3UserLine, "AES"))
     {
-      strncpy(pacPrivacy, "AES", MAX_LENGTH_OUTPUT_STRING);
+      strlcpy(pacPrivacy, "AES", SNMP_MAX_LENGTH_OUTPUT_STRING);
     }
   }
 
@@ -913,7 +917,7 @@ int GetV3PrivacyKey(char* pacUserNo,
       {
         //printf("GetNextWord pacFoundString:%s\n", pacFoundString);
         CutWord(pacFoundString, MAX_LENGTH_OUTPUT_LINE);
-        strncpy(pacPrivacyKey, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
+        strlcpy(pacPrivacyKey, pacFoundString, SNMP_MAX_LENGTH_OUTPUT_STRING);
       }
     }
   }
@@ -988,7 +992,7 @@ int GetV3NotificationReceiver(char* pacUserNo,
       if(pacFoundString)
       {
         CutWord(pacFoundString, MAX_LENGTH_OUTPUT_LINE);
-        strncpy(pacNotificationReceiver, pacFoundString, MAX_LENGTH_OUTPUT_STRING);
+        strlcpy(pacNotificationReceiver, pacFoundString, SNMP_MAX_LENGTH_OUTPUT_STRING);
       }
       SystemCall_Destruct(&pacGrepResult);
     }
@@ -1117,7 +1121,7 @@ void ShowHelpText(void)
 }
 
 
-int main(int    argc, 
+int main(int    argc,
          char** argv)
 {
   int   status            = SUCCESS;
@@ -1157,7 +1161,7 @@ int main(int    argc,
       // parameter was found -> start processing (get the fitting function from parameter-list)
       if(status == SUCCESS)
       {
-        char  outputString[MAX_LENGTH_OUTPUT_STRING] = "";
+        char  outputString[SNMP_MAX_LENGTH_OUTPUT_STRING] = "";
         char* pacAdditionalParam  = (argc > 2) ? argv[2] : NULL;
 
         status = astParameterJumptab[parameterIndex].pFktGetParameter(pacAdditionalParam, outputString);

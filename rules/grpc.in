@@ -6,6 +6,7 @@ config GRPC
 	select PROTOBUF
 	select ABSEIL_CPP
 	select C_ARES
+	select RE2
 	select OPENSSL
 	select ZLIB
 	prompt "grpc"

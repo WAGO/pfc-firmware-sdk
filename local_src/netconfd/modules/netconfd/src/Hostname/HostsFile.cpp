@@ -17,7 +17,7 @@ namespace {
  Thus, clan-tidy warnings can be avoided.
  */
 
-static const auto LOCAL_HOST_ENTRY = "127.0.0.1\tlocalhost";
+const auto LOCAL_HOST_ENTRY = "127.0.0.1\tlocalhost";
 
 ::std::string HOSTS_FILE_PATH() {
   return "/etc/hosts";

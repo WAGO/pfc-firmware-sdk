@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-# Copyright (C) 2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2019-2022 WAGO GmbH & Co. KG
 # Released under the terms of the GNU GPL v2.0.
 #
 

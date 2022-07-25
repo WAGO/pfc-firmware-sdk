@@ -16,7 +16,7 @@ class IPLink {
          ::std::string netmask = ZeroIP, eth::InterfaceLinkState state = eth::InterfaceLinkState::Down);
   ~IPLink() = default;
 
-  void SetIPConfig(const IPConfig new_ip_config);
+  void SetIPConfig(const IPConfig& new_ip_config);
   void SetLinkState(eth::InterfaceLinkState state);
   void SetAddress(const ::std::string &address, const ::std::string &netmask);
 

@@ -17,13 +17,13 @@ PACKAGES-$(PTXCONF_WRETAIN) += wretain
 # Paths and names
 #
 WRETAIN_MAJOR_VERSION := 1
-WRETAIN_MINOR_VERSION := 0
-WRETAIN_PATCH_VERSION := 4
+WRETAIN_MINOR_VERSION := 1
+WRETAIN_PATCH_VERSION := 0
 
 ifdef PTXCONF_WRETAIN_DEV
 WRETAIN_BUILD_ID      := -$(call remove_quotes,$(PTXCONF_WRETAIN_DEV_BRANCH))
 else
-WRETAIN_BUILD_ID      := -164189501667
+WRETAIN_BUILD_ID      := -164863386071
 endif
 
 WRETAIN		          := wretain
@@ -173,12 +173,6 @@ ifdef PTXCONF_WRETAIN_LINK_TYPE_DIRECT
 	@$(call install_link, wretain, libwretain_direct.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so)
 	@$(call install_link, wretain, libwretain_direct.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_MAJOR_VERSION))
 	@$(call install_link, wretain, libwretain_direct.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_SO_VERSION))
-else
-	@$(call install_lib, wretain, 0, 0, 0644, libwretain_serial)
-	@$(call install_alternative, wretain, 0, 0, 0640, /etc/wretain_serial.conf)
-	@$(call install_link, wretain, libwretain_serial.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so)
-	@$(call install_link, wretain, libwretain_serial.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_MAJOR_VERSION))
-	@$(call install_link, wretain, libwretain_serial.so.$(WRETAIN_SO_VERSION), /usr/lib/libwretain.so.$(WRETAIN_SO_VERSION))
 endif
 
 	@$(call install_copy, wretain, 0, 0, 0755, -, /usr/sbin/retain_data)

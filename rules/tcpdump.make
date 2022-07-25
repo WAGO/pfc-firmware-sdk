@@ -3,8 +3,6 @@
 # Copyright (C) 2004-2009 by Robert Schwebel
 # Copyright (C) 2016 Juergen Borleis
 #
-# See CREDITS for details about who has contributed to this project.
-#
 # For further information about the PTXdist project and license conditions
 # see the README file.
 #
@@ -17,14 +15,16 @@ PACKAGES-$(PTXCONF_TCPDUMP) += tcpdump
 #
 # Paths and names
 #
-TCPDUMP_VERSION	:= 4.9.3
-TCPDUMP_MD5	:= a4ead41d371f91aa0a2287f589958bae
+TCPDUMP_VERSION	:= 4.99.1
+TCPDUMP_MD5	:= 929a255c71a9933608bd7c31927760f7
 TCPDUMP		:= tcpdump-$(TCPDUMP_VERSION)
 TCPDUMP_SUFFIX	:= tar.gz
 TCPDUMP_URL	:= http://www.tcpdump.org/release/$(TCPDUMP).$(TCPDUMP_SUFFIX)
 TCPDUMP_SOURCE	:= $(SRCDIR)/$(TCPDUMP).$(TCPDUMP_SUFFIX)
 TCPDUMP_DIR	:= $(BUILDDIR)/$(TCPDUMP)
-TCPDUMP_LICENSE := BSD-3-Clause
+TCPDUMP_LICENSE	:= BSD-3-Clause
+TCPDUMP_LICENSE_FILES := \
+	file://LICENSE;md5=5eb289217c160e2920d2e35bddc36453
 
 # ----------------------------------------------------------------------------
 # Prepare
@@ -41,12 +41,13 @@ TCPDUMP_CONF_ENV	= \
 TCPDUMP_CONF_TOOL	:= autoconf
 TCPDUMP_CONF_OPT	:= \
 	$(CROSS_AUTOCONF_USR) \
+	--bindir='/usr/sbin/' \
 	--disable-universal \
 	--$(call ptx/endis,PTXCONF_TCPDUMP_SMB)-smb \
 	--with-gcc \
 	--without-smi \
 	--without-sandbox-capsicum \
-	--with-system-libpcap \
+	--disable-local-libpcap \
 	--$(call ptx/wwo,PTXCONF_TCPDUMP_ENABLE_CRYPTO)-crypto \
 	--$(call ptx/wwo,PTXCONF_TCPDUMP_ENABLE_LIBCAP_NG)-cap-ng
 

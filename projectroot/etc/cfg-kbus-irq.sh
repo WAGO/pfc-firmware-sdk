@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 IRQ=`cat /proc/interrupts | grep KBUS | sed -e "s/:.*//" -e "s/ //g"`
 TID=`ps aux | grep -m 1 "\-$IRQ" | tr -s " " "|" | cut -d '|' -f 2`

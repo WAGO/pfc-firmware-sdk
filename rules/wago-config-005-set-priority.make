@@ -1,7 +1,7 @@
 # -*-makefile-*-
 # $Id$
 #
-# Copyright (C) 2008 by WAGO Kontakttechnik GmbH & KO.KG
+# Copyright (C) 2008 by WAGO GmbH & KO.KG
 # 
 # This package installs the set_thread_priority script which
 # allows to set the priority of several threads by its name.
@@ -81,7 +81,7 @@ $(STATEDIR)/ct_set_thread_priority.targetinstall:
 	@$(call install_init, ct_set_thread_priority)
 	@$(call install_fixup,ct_set_thread_priority,PRIORITY,optional)
 	@$(call install_fixup,ct_set_thread_priority,SECTION,base)
-	@$(call install_fixup,ct_set_thread_priority,AUTHOR,"Wago Kontakttechnik")
+	@$(call install_fixup,ct_set_thread_priority,AUTHOR,"WAGO")
 	@$(call install_fixup,ct_set_thread_priority,DESCRIPTION,missing)
 
 # Install the init.d script	

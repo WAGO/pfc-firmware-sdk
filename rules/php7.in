@@ -25,6 +25,7 @@ menuconfig PHP7
 	select OPENSSL		if PHP7_EXT_OPENSSL
 	select LIBPNG		if PHP7_EXT_GD
 	select LIBGD		if PHP7_EXT_GD
+	select LIBGD_XPM    if PHP7_EXT_GD
 
 if PHP7
 

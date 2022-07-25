@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_NETWORKING) += wbm-ng-plugin-networking
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_NETWORKING_VERSION        := 1.15.0
+WBM_NG_PLUGIN_NETWORKING_VERSION        := 1.18.2
 WBM_NG_PLUGIN_NETWORKING                := wbm-networking-$(WBM_NG_PLUGIN_NETWORKING_VERSION)
 WBM_NG_PLUGIN_NETWORKING_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_NETWORKING)
 WBM_NG_PLUGIN_NETWORKING_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_NETWORKING_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-networking.targetinstall:
 	@$(call install_init, wbm-ng-plugin-networking)
 	@$(call install_fixup, wbm-ng-plugin-networking, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-networking, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-networking, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-networking, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-networking, DESCRIPTION, missing)
 
 	# create target directory itself

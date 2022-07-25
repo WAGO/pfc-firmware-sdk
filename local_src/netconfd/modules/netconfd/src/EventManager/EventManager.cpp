@@ -39,7 +39,7 @@ EventManager::EventManager() : trigger_event_folder_{false} {
 }
 
 void EventManager::ProcessPendingEvents() {
-  LogDebug("--------------> EventManager::ProcessEventsPendingEvents");
+  LOG_DEBUG("--------------> EventManager::ProcessEventsPendingEvents");
   /*
    * Pending events were previously queued into the gmain loop as a gtask.
    * We prefer this task in the processing to ensure that the event folder has been called before a dbus call returned.
@@ -60,7 +60,7 @@ void EventManager::ProcessPendingEvents() {
     g_main_context_iteration(nullptr, TRUE);
   }
 
-  LogDebug("--------------> EventManager::ProcessEventsPendingEvents finished");
+  LOG_DEBUG("--------------> EventManager::ProcessEventsPendingEvents finished");
 }
 
 void EventManager::PublishNetworkChangesToSystem() {
@@ -170,7 +170,7 @@ void EventManager::CallEventFolderSync() {
   GError *error    = nullptr;
   if (g_spawn_sync(nullptr, static_cast<gchar **>(argv), nullptr, G_SPAWN_DEFAULT, nullptr, nullptr, nullptr, nullptr,
                    &exit_status, &error) != 0) {
-    LogDebug("EventManager: called run-parts on /etc/config-tools/events/networking");
+    LOG_DEBUG("EventManager: called run-parts on /etc/config-tools/events/networking");
   } else {
     LogError("Failed to trigger /etc/config-tools/events/networking folder");
     g_error_free(error);

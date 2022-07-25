@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Stefanie Meihöfer (stefanie.meihoefer@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Stefanie Meihöfer (stefanie.meihoefer@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_MASSSTORAGE) += wbm-ng-plugin-massstorage
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_MASSSTORAGE_VERSION        := 1.2.0
+WBM_NG_PLUGIN_MASSSTORAGE_VERSION        := 1.2.2
 WBM_NG_PLUGIN_MASSSTORAGE                := wbm-massstorage-$(WBM_NG_PLUGIN_MASSSTORAGE_VERSION)
 WBM_NG_PLUGIN_MASSSTORAGE_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_MASSSTORAGE)
 WBM_NG_PLUGIN_MASSSTORAGE_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_MASSSTORAGE_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-massstorage.targetinstall:
 	@$(call install_init, wbm-ng-plugin-massstorage)
 	@$(call install_fixup, wbm-ng-plugin-massstorage, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-massstorage, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-massstorage, AUTHOR,"Stefanie Meihoefer, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-massstorage, AUTHOR,"Stefanie Meihoefer, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-massstorage, DESCRIPTION, missing)
 
 	# create target directory itself

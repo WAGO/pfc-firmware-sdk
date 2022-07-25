@@ -5,10 +5,10 @@
 #
 # This file is part of PTXdist package nlohmann-json.
 #
-# Copyright (c) 2019-2021 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2019-2021 WAGO GmbH & Co. KG
 #
 # Contributors:
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
 #######################################################################################################################
 # Makefile for PTXdist package nlohmann-json.
 #

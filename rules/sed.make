@@ -39,7 +39,16 @@ SED_ENV 	:= $(CROSS_ENV)
 #
 # autoconf
 #
-SED_AUTOCONF := $(CROSS_AUTOCONF_USR)
+SED_AUTOCONF := \
+	$(CROSS_AUTOCONF_USR)
+
+# sed has a silent dependency to libacl! if libacl was build and
+# "disable-acl" is not set in configure, then sed will have a
+# runtime dependency to libacl which might not be installed within
+# targetimage, e.g. libacl is build as module
+ifneq ($(PTXCONF_ACL),y)
+	SED_AUTOCONF	+= --disable-acl
+endif
 
 # ----------------------------------------------------------------------------
 # Target-Install

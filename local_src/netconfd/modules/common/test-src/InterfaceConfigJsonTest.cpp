@@ -16,11 +16,11 @@ class InterfaceConfigJsonTest : public ::testing::Test
 {
  public:
 
-  string single_port_config = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full" })";
-  string single_port_config_extra_member = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full","tomuchinfo":"notneeded" })";
+  string single_port_config = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full", "maclearning": "on" })";
+  string single_port_config_extra_member = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full", "maclearning": "on","tomuchinfo":"notneeded" })";
   string single_port_config_wrong = R"({"device":"X1","aasdfasd":"asdup","autonegotiation":"on","speed":100,"duplex":"full" })";
   string single_port_config_missing_state = R"({"device":"X1","autonegotiation":"on","speed":100,"duplex":"full" })";
-  string multi_port_full = R"([{"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full"},{"device":"X2","state":"down","autonegotiation":"on","speed":100,"duplex":"half"}])";
+  string multi_port_full = R"([{"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full", "maclearning": "on"},{"device":"X2","state":"down","autonegotiation":"on","speed":100,"duplex":"half", "maclearning": "on"}])";
   string multi_port_minmal = R"([{"device":"X1","duplex":"full"},{"device":"X2","state":"down"}])";
 
   JsonConverter converter;
@@ -29,11 +29,11 @@ class InterfaceConfigJsonTest : public ::testing::Test
 
   void SetUp() override {
     expectedX1 = InterfaceConfig{
-      "X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL
+      "X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON
     };
 
     expectedX2 = InterfaceConfig{
-      "X2", InterfaceState::DOWN, Autonegotiation::ON, 100, Duplex::HALF
+      "X2", InterfaceState::DOWN, Autonegotiation::ON, 100, Duplex::HALF, MacLearning::ON
     };
   }
 
@@ -43,6 +43,7 @@ class InterfaceConfigJsonTest : public ::testing::Test
      EXPECT_EQ(expected.autoneg_, actual.autoneg_);
      EXPECT_EQ(expected.speed_, actual.speed_);
      EXPECT_EQ(expected.duplex_, actual.duplex_);
+     EXPECT_EQ(expected.mac_learning_, actual.mac_learning_);
   }
 };
 
@@ -106,9 +107,9 @@ TEST_F(InterfaceConfigJsonTest, parseJsonMissingContents){
 }
 
 TEST_F(InterfaceConfigJsonTest, ConverToJson){
-  auto full_config = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full" })"_json;
+  auto full_config = R"({"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full","maclearning":"on" })"_json;
   auto port_config = InterfaceConfig{
-    "X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL
+    "X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON
   };
 
   auto pc = InterfaceConfigs{port_config};
@@ -120,15 +121,17 @@ TEST_F(InterfaceConfigJsonTest, ConverToJson){
 }
 
 TEST_F(InterfaceConfigJsonTest, ConvertMultiplePortsToJson){
-  auto full_config = R"([{"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full" }, {"device":"X2","state":"down","autonegotiation":"off","speed":42,"duplex":"half" }])"_json;
+  auto full_config = R"([{"device":"X1","state":"up","autonegotiation":"on","speed":100,"duplex":"full","maclearning":"on" }, {"device":"X2","state":"down","autonegotiation":"off","speed":42,"duplex":"half","maclearning":"off" }])"_json;
 
-  auto pc = InterfaceConfigs{{"X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL}, {"X2", InterfaceState::DOWN, Autonegotiation::OFF, 42, Duplex::HALF}};
+  auto pc = InterfaceConfigs{{"X1", InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON}, {"X2", InterfaceState::DOWN, Autonegotiation::OFF, 42, Duplex::HALF, MacLearning::OFF}};
 
   auto json = converter.ToJsonString(pc);
 
   EXPECT_EQ(full_config.dump(), json);
 
 }
+
+
 
 
 }  // namespace netconf

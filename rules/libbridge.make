@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2020 by WAGO Kontakttechnik GmbH \& Co. KG
+# Copyright (C) 2020 by WAGO GmbH \& Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -89,7 +89,7 @@ $(STATEDIR)/libbridge.targetinstall:
 	@$(call install_init, libbridge)
 	@$(call install_fixup, libbridge,PRIORITY,optional)
 	@$(call install_fixup, libbridge,SECTION,base)
-	@$(call install_fixup, libbridge,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, libbridge,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, libbridge,DESCRIPTION,missing)
 
 	@$(call install_copy, libbridge, 0, 0, 0644, $(LIBBRIDGE_SRC_DIR)/$(LIBBRIDGE_LICENSE_FILE), /usr/share/licenses/oss/license.$(LIBBRIDGE)_$(LIBBRIDGE_VERSION).txt)

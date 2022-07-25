@@ -8,6 +8,7 @@ menuconfig IMAGE_BOOT_VFAT
 	select HOST_U_BOOT_TOOLS
 	select BAREBOX
 	select BAREBOX_MLO
+	select BAREBOX_MLO_LEGACY
 	prompt "Generate images/boot.vfat     "
 	help
 	  Create a vfat boot partition. Many SoCs can boot from a special
@@ -22,11 +23,6 @@ config IMAGE_BOOT_VFAT_MLO_BAREBOX_PFC
 	bool
 	depends on ARCH_ARM
 	prompt "PFC barebox MLO"
-
-config IMAGE_BOOT_VFAT_MLO_BAREBOX_PAC
-	bool
-	depends on ARCH_ARM
-	prompt "PAC barebox MLO"
 
 endchoice
 endif

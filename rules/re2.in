@@ -1,0 +1,8 @@
+## SECTION=system_libraries
+
+config RE2
+	tristate
+	select HOST_CMAKE
+	prompt "re2"
+	help
+	  An open-source collection of C++ libraries to augment the C++ standard library

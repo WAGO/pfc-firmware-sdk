@@ -6,6 +6,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/format.hpp>
 #include <boost/asio.hpp>
+#include "KeyValueParser.hpp"
 
 namespace netconf {
 
@@ -23,14 +24,7 @@ static Status GetKeyValue(const ::std::string &backup_content, const ::std::stri
 
   Status status;
 
-  ::std::stringstream data_stream = ::std::stringstream(backup_content);
-  ::std::string subdata;
-  while (::std::getline(data_stream, subdata, '\n')) {
-    if (boost::starts_with(subdata, key)) {
-      subdata.erase(0, key.length());
-      value += subdata;
-    }
-  }
+  value = GetValueByKey(backup_content, key);
 
   if (value.empty()) {
     status.Set(StatusCode::BACKUP_CONTENT_MISSING, key);
@@ -85,13 +79,13 @@ static Status GetIPConfigsFromAPreviousFirmware(const ::std::string &backup_cont
   ::std::string eth0_subnet;
   ::std::string eth0_broadcast;
 
-  status = GetKeyValue(backup_content, "ip-config-type-eth0=", eth0_config_type);
+  status = GetKeyValue(backup_content, "ip-config-type-eth0", eth0_config_type);
 
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, "ip-address-eth0=", eth0_ip);
+    status = GetKeyValue(backup_content, "ip-address-eth0", eth0_ip);
   }
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, "subnet-mask-eth0=", eth0_subnet);
+    status = GetKeyValue(backup_content, "subnet-mask-eth0", eth0_subnet);
   }
   if (status.IsOk()) {
     status = CalculateBroadcast(eth0_ip, eth0_subnet, eth0_broadcast);
@@ -100,9 +94,6 @@ static Status GetIPConfigsFromAPreviousFirmware(const ::std::string &backup_cont
   if (status.IsOk()) {
     ip_config = R"("br0": {"source": ")" + eth0_config_type + R"(","ipaddr": ")" + eth0_ip + R"(","netmask": ")"
         + eth0_subnet + R"(","bcast": ")" + eth0_broadcast + R"("})";
-//      if(){
-//        backup_dipswitch_data = R"({})";
-//      }
   }
 
   ::std::string br1_config = { };
@@ -113,13 +104,13 @@ static Status GetIPConfigsFromAPreviousFirmware(const ::std::string &backup_cont
   ::std::string eth1_broadcast;
 
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, "ip-config-type-eth1=", eth1_config_type);
+    status = GetKeyValue(backup_content, "ip-config-type-eth1", eth1_config_type);
   }
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, "ip-address-eth1=", eth1_ip);
+    status = GetKeyValue(backup_content, "ip-address-eth1", eth1_ip);
   }
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, "subnet-mask-eth1=", eth1_subnet);
+    status = GetKeyValue(backup_content, "subnet-mask-eth1", eth1_subnet);
   }
   if (status.IsOk()) {
     status = CalculateBroadcast(eth1_ip, eth1_subnet, eth1_broadcast);
@@ -140,7 +131,7 @@ static Status GetBridgeConfigFromAPreviousFirmware(const ::std::string &backup_c
   Status status;
 
   ::std::string dsa_tag_value;
-  status = GetKeyValue(backup_content, "dsa-mode=", dsa_tag_value);
+  status = GetKeyValue(backup_content, "dsa-mode", dsa_tag_value);
   if (status.IsOk()) {
     if ("0" == dsa_tag_value) {
       bridge_config = R"("br0":["X1","X2"],"br1":[])";
@@ -160,16 +151,17 @@ static Status AppendInterfaceConfig(const string &device, const string &backup_d
   string autoneg;
   string speed;
   string duplex;
-  Status status = GetKeyValue(backup_content, backup_device + "-state=", state);
+  Status status = GetKeyValue(backup_content, backup_device + "-state", state);
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, backup_device + "-autoneg=", autoneg);
+    status = GetKeyValue(backup_content, backup_device + "-autoneg", autoneg);
   }
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, backup_device + "-speed=", speed);
+    status = GetKeyValue(backup_content, backup_device + "-speed", speed);
   }
   if (status.IsOk()) {
-    status = GetKeyValue(backup_content, backup_device + "-duplex=", duplex);
+    status = GetKeyValue(backup_content, backup_device + "-duplex", duplex);
   }
+
   autoneg = (autoneg == "enabled") ? "on" : "off";
   state = (state == "enabled") ? "up" : "down";
 

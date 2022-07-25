@@ -22,7 +22,7 @@
 +++ libmodbus-3.0.5/src/modbus-udp.h	1970-01-01 01:00:00.000000000 +0100
 @@ -1,51 +0,0 @@
 -//------------------------------------------------------------------------------
--// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+-// Copyright (c) WAGO GmbH & Co. KG
 -//
 -// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 -// manufacturing, reproduction, use and sales rights pertaining to this
@@ -36,7 +36,7 @@
 -///
 -///  \brief    <short description of the file contents>
 -///
--///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+-///  \author   <author> : WAGO GmbH & Co. KG
 -//------------------------------------------------------------------------------
 -#ifndef MODBUS_UDP_H_
 -#define MODBUS_UDP_H_
@@ -108,7 +108,7 @@
 +++ libmodbus-3.0.5/src/modbus-udp-private.h	1970-01-01 01:00:00.000000000 +0100
 @@ -1,60 +0,0 @@
 -//------------------------------------------------------------------------------
--// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+-// Copyright (c) WAGO GmbH & Co. KG
 -//
 -// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 -// manufacturing, reproduction, use and sales rights pertaining to this
@@ -122,7 +122,7 @@
 -///
 -///  \brief    <short description of the file contents>
 -///
--///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+-///  \author   <author> : WAGO GmbH & Co. KG
 -//------------------------------------------------------------------------------
 -#ifndef MODBUS_UDP_PRIVATE_H_
 -#define MODBUS_UDP_PRIVATE_H_
@@ -1543,7 +1543,7 @@
 +++ libmodbus-3.0.5/src/modbus-udp.c	1970-01-01 01:00:00.000000000 +0100
 @@ -1,96 +0,0 @@
 -//------------------------------------------------------------------------------
--// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+-// Copyright (c) WAGO GmbH & Co. KG
 -//
 -// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 -// manufacturing, reproduction, use and sales rights pertaining to this
@@ -1558,7 +1558,7 @@
 -///
 -///  \brief    <short description of the file contents>
 -///
--///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+-///  \author   <author> : WAGO GmbH & Co. KG
 -//------------------------------------------------------------------------------
 -
 -//------------------------------------------------------------------------------

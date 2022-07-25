@@ -22,4 +22,19 @@ namespace netconf {
    return values;
 
 }
+
+::std::string GetValueByKey(const ::std::string &data, const ::std::string &key) {
+
+  ::std::string value;
+  ::std::stringstream data_stream = ::std::stringstream(data);
+  ::std::string subdata;
+  while (::std::getline(data_stream, subdata, '\n')) {
+    if (boost::starts_with(subdata, key)) {
+      subdata.erase(0, key.length() + 1); // Remove the delimiter '='.
+      value += subdata;
+    }
+  }
+
+  return value;
+}
 }

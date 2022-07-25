@@ -118,7 +118,7 @@ $(STATEDIR)/barebox_mlo_legacy.install:
 
 $(STATEDIR)/barebox_mlo_legacy.targetinstall:
 	@$(call targetinfo)
-	@for image in `ls $(BAREBOX_MLO_LEGACY_DIR)/images/barebox-*.img`; do \
+	for image in `ls $(BAREBOX_MLO_LEGACY_DIR)/images/barebox-*.img`; do \
 		> $(IMAGEDIR)/MLO; \
 		_suffix=$$(basename $$(echo $${image} | sed 's/-mlo.img//g')); \
 		_suffix=$$(echo $${_suffix} | sed 's/barebox-//g'); \
@@ -127,7 +127,7 @@ $(STATEDIR)/barebox_mlo_legacy.targetinstall:
 			ln -sf `basename $$image` $(IMAGEDIR)/MLO.$${_suffix}; \
 		fi; \
 	done
-	@if [ ! -e "$(IMAGEDIR)/MLO" ]; then \
+	if [ ! -e "$(IMAGEDIR)/MLO" ]; then \
 		ptxd_get_path "$(BAREBOX_MLO_LEGACY_DIR)/MLO" \
 			"$(BAREBOX_MLO_LEGACY_DIR)/barebox.bin.ift" && \
 		install -D -m644 "$${ptxd_reply}" "$(IMAGEDIR)/MLO"; \

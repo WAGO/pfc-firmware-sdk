@@ -15,8 +15,8 @@ PACKAGES-$(PTXCONF_STRONGSWAN) += strongswan
 #
 # Paths and names
 #
-STRONGSWAN_VERSION	:= 5.8.4
-STRONGSWAN_MD5		:= 0634e7f40591bd3f6770e583c3f27d29
+STRONGSWAN_VERSION	:= 5.9.5
+STRONGSWAN_MD5		:= 53005324e3cba8592f1fb958b1c2d0e5
 STRONGSWAN		:= strongswan-$(STRONGSWAN_VERSION)
 STRONGSWAN_SUFFIX	:= tar.bz2
 STRONGSWAN_URL		:= https://download.strongswan.org/$(STRONGSWAN).$(STRONGSWAN_SUFFIX)
@@ -292,21 +292,21 @@ $(STATEDIR)/strongswan.targetinstall:
 	@$(call install_alternative, strongswan, 0, 0, 0600, /etc/ipsec.secrets)
 
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/strongswan.d)
-
 	@for i in $(shell cd $(STRONGSWAN_PKGDIR) && find etc/strongswan.d -type f); do \
 		$(call install_copy, strongswan, 0, 0, 0640, -, /$$i); \
 	done
 
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/strongswan.d/charon)
-
 	@for i in $(shell cd $(STRONGSWAN_PKGDIR) && find etc/strongswan.d/charon -type f); do \
 		$(call install_copy, strongswan, 0, 0, 0640, -, /$$i); \
 	done
 
-	#@$(call install_copy, strongswan, 0, 0, 0755, -, /usr/bin/pki)
+	#@$(call install_tree, strongswan, 0, 0, -, /usr/bin)
+	@$(call install_copy, strongswan, 0, 0, 0755, -, /usr/bin/pki)
+	#@$(call install_tree, strongswan, 0, 0, -, /usr/sbin)
 	@$(call install_copy, strongswan, 0, 0, 0755, -, /usr/sbin/ipsec)
 
-	#@$(call install_tree, strongswan, 0, 0, -, /usr/libexec/ipsec)
+	#@$(call install_tree, strongswan, 0, 0, -, /usr/libexec)
 	@for i in $(shell cd $(STRONGSWAN_PKGDIR) && find usr/libexec/ipsec -type f); do \
 		$(call install_copy, strongswan, 0, 0, 0750, -, /$$i); \
 	done
@@ -329,19 +329,19 @@ ifdef PTXCONF_STRONGSWAN_SWANCTL
 	@$(call install_lib, strongswan, 0, 0, 0644, libvici)
 	@$(call install_tree, strongswan, 0, 0, -, /etc/strongswan.d)
 	@$(call install_alternative, strongswan, 0, 0, 0644, /etc/swanctl/swanctl.conf)
-	@$(call install_copy, strongswan, 0, 0, 750, /etc/swanctl/bliss)
-	@$(call install_copy, strongswan, 0, 0, 750, /etc/swanctl/ecdsa)
-	@$(call install_copy, strongswan, 0, 0, 750, /etc/swanctl/pkcs12)
-	@$(call install_copy, strongswan, 0, 0, 750, /etc/swanctl/pkcs8)
-	@$(call install_copy, strongswan, 0, 0, 750, /etc/swanctl/private)
-	@$(call install_copy, strongswan, 0, 0, 755, /etc/swanctl/pubkey)
-	@$(call install_copy, strongswan, 0, 0, 750, /etc/swanctl/rsa)
-	@$(call install_copy, strongswan, 0, 0, 755, /etc/swanctl/x509)
-	@$(call install_copy, strongswan, 0, 0, 755, /etc/swanctl/x509aa)
-	@$(call install_copy, strongswan, 0, 0, 755, /etc/swanctl/x509ac)
-	@$(call install_copy, strongswan, 0, 0, 755, /etc/swanctl/x509ca)
-	@$(call install_copy, strongswan, 0, 0, 755, /etc/swanctl/x509crl)
-	@$(call install_copy, strongswan, 0, 0, 755, /etc/swanctl/x509ocsp)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/swanctl/bliss)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/swanctl/ecdsa)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/swanctl/pkcs12)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/swanctl/pkcs8)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/swanctl/private)
+	@$(call install_copy, strongswan, 0, 0, 0755, /etc/swanctl/pubkey)
+	@$(call install_copy, strongswan, 0, 0, 0750, /etc/swanctl/rsa)
+	@$(call install_copy, strongswan, 0, 0, 0755, /etc/swanctl/x509)
+	@$(call install_copy, strongswan, 0, 0, 0755, /etc/swanctl/x509aa)
+	@$(call install_copy, strongswan, 0, 0, 0755, /etc/swanctl/x509ac)
+	@$(call install_copy, strongswan, 0, 0, 0755, /etc/swanctl/x509ca)
+	@$(call install_copy, strongswan, 0, 0, 0755, /etc/swanctl/x509crl)
+	@$(call install_copy, strongswan, 0, 0, 0755, /etc/swanctl/x509ocsp)
 endif
 
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d)
@@ -349,7 +349,7 @@ endif
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/acerts)
 	#@$(call install_copy, strongswan, 0, 0, 0644, /etc/ipsec.d/cacerts)
 	@$(call install_link, strongswan, /etc/certificates, /etc/ipsec.d/cacerts)
-	#@$(call install_copy, strongswan, 0, 0, 0640, /etc/ipsec.d/certs)
+	#@$(call install_copy, strongswan, 0, 0, 0644, /etc/ipsec.d/certs)
 	@$(call install_link, strongswan, /etc/certificates, /etc/ipsec.d/certs)
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/crls)
 	@$(call install_copy, strongswan, 0, 0, 0750, /etc/ipsec.d/ocspcerts)

@@ -1,0 +1,25 @@
+From: Alexander Riedel <alexander.riedel@wago.com>
+Date: Thu, 10 Mar 2022 16:36:46 +0100
+Subject: [PATCH] UnifiedAutomation patch: fix certificate validation status
+ code with missing callback
+
+---
+ src/uastack/platforms/linux/opcua_p_openssl_pki.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/uastack/platforms/linux/opcua_p_openssl_pki.c b/src/uastack/platforms/linux/opcua_p_openssl_pki.c
+index 2be9563b5bb0..700395e5ef8a 100644
+--- a/src/uastack/platforms/linux/opcua_p_openssl_pki.c
++++ b/src/uastack/platforms/linux/opcua_p_openssl_pki.c
+@@ -1319,6 +1319,11 @@ OpcUa_InitializeStatus(OpcUa_Module_P_OpenSSL, "PKI_ValidateCertificate");
+                 uStatus = OpcUa_BadSecurityChecksFailed;
+             }
+         }
++        else /* callback not set */
++        {
++            /* keep fail state and mask error */
++            uStatus = OpcUa_BadSecurityChecksFailed;
++        }
+     }
+ 
+     if(OpcUa_IsGood(uStatus))

@@ -54,6 +54,7 @@ class NetDevManager : public INetDevManager, public IInterfaceEvent {
   void OnNetDevRemoved(NetDevPtr netdev) const;
   void OnNetDevChangeInterfaceRelations(NetDevPtr netdev) const;
   NetDevPtr CreateNetdev(::std::string name, ::std::string label, DeviceType kind);
+  void RemoveNetdev(NetDevPtr netdev);
   static bool Exists(const NetDevs &netdevs, NetDevPredicate predicate);
   static NetDevPtr FindIf(const NetDevs &netdevs, NetDevPredicate predicate);
   void RemoveObsoleteBridgeNetdevs(const BridgeConfig &config);

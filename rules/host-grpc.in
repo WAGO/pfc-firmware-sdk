@@ -5,6 +5,7 @@ config HOST_GRPC
 	select HOST_CMAKE
 	select HOST_ABSEIL_CPP
 	select HOST_C_ARES
+	select HOST_RE2
 	select HOST_OPENSSL
 	select HOST_PROTOBUF
 	select HOST_ZLIB

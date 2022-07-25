@@ -42,11 +42,7 @@ class BridgeManager : public IBridgeManager, public IBridgeInformation{
   INetDevManager& netdev_manager_;
   BridgeConfigurator bridge_configurator_;
   BridgeConfigTransformator bridge_config_transformator_;
-  SwitchConfigLegacy switch_config_;
-  FileMonitor switch_settings_file_monitor_;
 
-
-  void UpdateAgetime() const;
   Status SetDefaultInterfaceUp() const;
   Status PrepareBridgeConfig(BridgeConfig const& product_config,
                              BridgeConfig& os_config) const;

@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2014 by <>Wago Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2014 by <>WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -66,7 +66,7 @@ $(STATEDIR)/wago-extdummy.targetinstall:
 	@$(call install_init, wago-extdummy)
 	@$(call install_fixup, wago-extdummy,PRIORITY,optional)
 	@$(call install_fixup, wago-extdummy,SECTION,base)
-	@$(call install_fixup, wago-extdummy,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
+	@$(call install_fixup, wago-extdummy,AUTHOR,"<WAGO GmbH \& Co. KG>")
 	@$(call install_fixup, wago-extdummy,DESCRIPTION,missing)
 	
 	@$(call install_copy, wago-extdummy, 0, 0, 0755, $(WAGO_EXTDUMMY_DIR)/app.js, /var/www/extdummy/app.js)

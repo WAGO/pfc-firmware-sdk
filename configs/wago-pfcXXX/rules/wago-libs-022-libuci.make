@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2013 by WAGO
+# Copyright (C) 2013-2022 by WAGO
 #
 # See CREDITS for details about who has contributed to this project.
 #

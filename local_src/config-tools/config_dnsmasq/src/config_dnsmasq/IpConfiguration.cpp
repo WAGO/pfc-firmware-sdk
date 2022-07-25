@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,7 +11,7 @@
 ///
 ///  \brief    Class representation of a port configuration
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include "IpConfiguration.hpp"
@@ -19,6 +19,8 @@
 #include <boost/format.hpp>
 
 #include "error_handling.hpp"
+
+namespace configdnsmasq {
 
 IpConfiguration::IpConfiguration()
     :
@@ -44,3 +46,4 @@ PortData IpConfiguration::getPortData(const std::string &port) {
   return *data;
 }
 
+} // namespace configdnsmasq

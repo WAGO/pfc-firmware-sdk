@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 /// manufacturing, reproduction, use, and sales rights pertaining to this
@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 /// \file LedSchedule.c
 ///
-/// \version $Revision: 35776 $
+/// \version $Revision: 65689 $
 ///
 /// \brief the LED scheduler and related functions
 ///

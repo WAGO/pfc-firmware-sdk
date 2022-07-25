@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BridgeUtil.hpp"
 #include "InterfaceConfigManager.hpp"
 #include "IEthernetInterfaceFactory.hpp"
 #include <list>

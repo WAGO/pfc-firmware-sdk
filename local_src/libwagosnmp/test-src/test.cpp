@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) WAGO GmbH & Co. KG
 //
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 // manufacturing, reproduction, use and sales rights pertaining to this
@@ -11,7 +11,7 @@
 ///
 ///  \brief    Simple tests to show googletest working in PTXdist packet.
 ///
-///  \author   Jens Breitenstein : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   Jens Breitenstein : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

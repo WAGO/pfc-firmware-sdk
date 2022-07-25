@@ -7,11 +7,11 @@
 #
 # This file is part of project / PTXdist package modular-config-tools.
 #
-# Copyright (c) 2017 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 #
 # Contributors:
-#   OELH: WAGO Kontakttechnik GmbH & Co. KG
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#   OELH: WAGO GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
 #######################################################################################################################
 
 set -e

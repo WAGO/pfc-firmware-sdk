@@ -1,13 +1,13 @@
 /*
  * Copyright (C) 2010 Nelson Elhage
- * Copyright (C) 2018 WAGO Kontakttechnik GmbH & Co. KG
+ * Copyright (C) 2018-2022 WAGO GmbH & Co. KG
  *
  * Trivial kernel module to provoke a NULL/invalid pointer dereference.
  *
  * Based in part on provoke-crash.c
  * <http://thread.gmane.org/gmane.linux.kernel/942633>
  *
- * Changed by WAGO Kontakttechnik GmbH & Co. KG
+ * Changed by WAGO GmbH & Co. KG
  *
  * Author: Nelson Elhage <nelhage@ksplice.com>
  * Author: Patrick Enns

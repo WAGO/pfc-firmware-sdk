@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------ 
-// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG 
+// Copyright (c) WAGO GmbH & Co. KG 
 // 
 // PROPRIETARY RIGHTS are involved in the subject matter of this material. All 
 // manufacturing, reproduction, use, and sales rights pertaining to this 
@@ -11,7 +11,7 @@
 /// 
 /// \brief System related helper functions.
 /// 
-/// \author Mariusz Podlesny : WAGO Kontakttechnik GmbH & Co. KG
+/// \author Mariusz Podlesny : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef WAGO_FIREWALL_SYSTEM_HPP_
 #define WAGO_FIREWALL_SYSTEM_HPP_
@@ -22,7 +22,6 @@ namespace wago {
 namespace firewall {
 
 
-  const int timeout = 5; // timeout 5 ms
  //------------------------------------------------------------------------------
  /// Executes an external command (can be shell call).
  /// \param cmd command to be executed

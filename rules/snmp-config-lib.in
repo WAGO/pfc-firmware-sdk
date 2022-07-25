@@ -1,0 +1,11 @@
+## SECTION=wago_specific_libs
+
+config SNMP_CONFIG_LIB
+	bool
+	select HOST_CT_BUILD
+	select GOOGLETEST
+	select GLIB
+	select BOOST
+	prompt "snmp-config-lib"
+	help
+	  snmp config lib configures snmp configuration files

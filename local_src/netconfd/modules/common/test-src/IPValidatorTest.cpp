@@ -4,7 +4,7 @@
 ///
 ///  \brief    <short description of the file contents>
 ///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <author> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include <gmock/gmock.h>
@@ -127,10 +127,17 @@ TEST_F(AnIPValidator, FailedToValidateAnIPConfigWhichContainsOneInterfaceSeveral
   EXPECT_EQ(StatusCode::ENTRY_DUPLICATE, status.GetStatusCode()) << status.ToString();
 }
 
-TEST_F(AnIPValidator, AssigningNetworkAddressAsHostIsAccepted) {
+TEST_F(AnIPValidator, AssigningNetworkAddressAsHostIsRejected) {
+   IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.128", "255.255.255.128"}};
+
+  Status status = validator_.ValidateIPConfigs(ip_configs);
+  EXPECT_EQ(StatusCode::IP_INVALID, status.GetStatusCode());
+}
+
+TEST_F(AnIPValidator, AssigningNetworkAddressAsHostIsAcceptedForWwan) {
   // This is an exception for the wwan0 interface, the modem assigns such addresses :-(
 
-  IPConfigs ip_configs = {{"br0", IPSource::STATIC, "192.168.1.128", "255.255.255.128"}};
+  IPConfigs ip_configs = {{"wwan0", IPSource::STATIC, "192.168.1.128", "255.255.255.128"}};
 
   Status status = validator_.ValidateIPConfigs(ip_configs);
   EXPECT_EQ(StatusCode::OK, status.GetStatusCode());
@@ -259,9 +266,9 @@ TEST_F(AnIPValidator, ShouldAcceptRFC3021Ips) {
   // RFC3021 defines that subnet mask 255.255.255.254 contains exactly 2 hosts without broadcast address.
   // This is used in Point-to-Point IP links like modems.
   // Further 255.255.255.255 is used to define exactly one IP address.
-  auto netmask_30 = IPConfigs{{"wwan0", IPSource::STATIC, "10.12.88.128", "255.255.255.254"},
-                              {"wwan1", IPSource::STATIC, "10.12.88.133", "255.255.255.254"},
-                              {"wwan2", IPSource::STATIC, "10.12.88.130", "255.255.255.255"}};
+  auto netmask_30 = IPConfigs{{"br0", IPSource::STATIC, "10.12.88.128", "255.255.255.254"},
+                              {"br1", IPSource::STATIC, "10.12.88.133", "255.255.255.254"},
+                              {"br2", IPSource::STATIC, "10.12.88.130", "255.255.255.255"}};
 
   auto status = validator_.ValidateIPConfigs(netmask_30);
 

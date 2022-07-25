@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-//  Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+//  Copyright (c) WAGO GmbH & Co. KG
 //
 //  PROPRIETARY RIGHTS are involved in the subject matter of this material.
 //  All manufacturing, reproduction, use and sales rights pertaining to this
@@ -13,7 +13,7 @@
 ///
 ///  \brief    WIDE interface for external CoDeSys 2.3 library 'WagoLibCrypt.lib'
 ///
-///  \author   CM : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   CM : WAGO GmbH & Co. KG
 //-----------------------------------------------------------------------------
 
 #include <stdio.h>

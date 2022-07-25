@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_WBM_NG_PLUGIN_LEGAL_INFORMATION) += wbm-ng-plugin-legal-infor
 #
 # Paths and names
 #
-WBM_NG_PLUGIN_LEGAL_INFORMATION_VERSION        := 1.4.0
+WBM_NG_PLUGIN_LEGAL_INFORMATION_VERSION        := 1.5.0
 WBM_NG_PLUGIN_LEGAL_INFORMATION                := wbm-legal-information-$(WBM_NG_PLUGIN_LEGAL_INFORMATION_VERSION)
 WBM_NG_PLUGIN_LEGAL_INFORMATION_URL            := $(call jfrog_template_to_url, WBM_NG_PLUGIN_LEGAL_INFORMATION)
 WBM_NG_PLUGIN_LEGAL_INFORMATION_SUFFIX         := $(suffix $(WBM_NG_PLUGIN_LEGAL_INFORMATION_URL))
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-legal-information.targetinstall:
 	@$(call install_init, wbm-ng-plugin-legal-information)
 	@$(call install_fixup, wbm-ng-plugin-legal-information, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-legal-information, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-legal-information, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-legal-information, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-legal-information, DESCRIPTION, missing)
 
 	# create target directory itself

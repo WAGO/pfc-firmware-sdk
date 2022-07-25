@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------ 
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG 
+/// Copyright (c) WAGO GmbH & Co. KG 
 /// 
 /// TODO: license terms
 ///
@@ -14,7 +14,7 @@
 /// be parsed by the configuration frontends (either web or console based)
 /// 
 /// \author Roman Zippel <zippel@linux-m68k.org>
-/// \author Andrej Gantvorg : WAGO Kontakttechnik GmbH & Co. KG
+/// \author Andrej Gantvorg : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 /*

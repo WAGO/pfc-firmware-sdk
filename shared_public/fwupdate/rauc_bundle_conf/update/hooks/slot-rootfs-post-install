@@ -6,14 +6,14 @@
 #
 # This file is part of project fwupdate (PTXdist package rauc_bundle_conf).
 #
-# Copyright (c) 2018-2019 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   slot-rootfs-post-install
 #
 # Brief:    WAGO firmware update RAUC hook as post-install of rootfs slot.
 #
-# Author:   PEn: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   PEn: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 

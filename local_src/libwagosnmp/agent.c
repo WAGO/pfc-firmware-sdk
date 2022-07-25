@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,13 +10,14 @@
 ///
 ///  \file     server.c
 ///
-///  \version  $Rev: 15077 $
+///  \version  $Rev: 66938 $
 ///
 ///  \brief    <Insert description here>
 ///
-///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   <author> : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
+#include <unistd.h>
 #include "wagosnmp_API.h"
 #include "wagosnmp_internal.h"
 #include <net-snmp/net-snmp-config.h>

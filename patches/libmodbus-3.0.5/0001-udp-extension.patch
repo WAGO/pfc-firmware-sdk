@@ -727,7 +727,7 @@ index 0000000..ba04c8a
 +++ b/src/modbus-udp-private.h
 @@ -0,0 +1,60 @@
 +//------------------------------------------------------------------------------
-+// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
++// Copyright (c) WAGO GmbH & Co. KG
 +//
 +// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 +// manufacturing, reproduction, use and sales rights pertaining to this
@@ -741,7 +741,7 @@ index 0000000..ba04c8a
 +///
 +///  \brief    <short description of the file contents>
 +///
-+///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
++///  \author   <author> : WAGO GmbH & Co. KG
 +//------------------------------------------------------------------------------
 +#ifndef MODBUS_UDP_PRIVATE_H_
 +#define MODBUS_UDP_PRIVATE_H_
@@ -793,7 +793,7 @@ index 0000000..fa3fd04
 +++ b/src/modbus-udp.c
 @@ -0,0 +1,96 @@
 +//------------------------------------------------------------------------------
-+// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
++// Copyright (c) WAGO GmbH & Co. KG
 +//
 +// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 +// manufacturing, reproduction, use and sales rights pertaining to this
@@ -808,7 +808,7 @@ index 0000000..fa3fd04
 +///
 +///  \brief    <short description of the file contents>
 +///
-+///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
++///  \author   <author> : WAGO GmbH & Co. KG
 +//------------------------------------------------------------------------------
 +
 +//------------------------------------------------------------------------------
@@ -895,7 +895,7 @@ index 0000000..41ebc2b
 +++ b/src/modbus-udp.h
 @@ -0,0 +1,51 @@
 +//------------------------------------------------------------------------------
-+// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
++// Copyright (c) WAGO GmbH & Co. KG
 +//
 +// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 +// manufacturing, reproduction, use and sales rights pertaining to this
@@ -909,7 +909,7 @@ index 0000000..41ebc2b
 +///
 +///  \brief    <short description of the file contents>
 +///
-+///  \author   <author> : WAGO Kontakttechnik GmbH & Co. KG
++///  \author   <author> : WAGO GmbH & Co. KG
 +//------------------------------------------------------------------------------
 +#ifndef MODBUS_UDP_H_
 +#define MODBUS_UDP_H_

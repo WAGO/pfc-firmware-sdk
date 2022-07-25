@@ -3,7 +3,7 @@ See the applicable licenses for more details.
 
 
 Written Offer
-The products firmware was created via open-source software. Go to Download under www.wago.com for the software packages and their licenses, and be sure to follow the rules that are listed there. The firmware is available as a board support package (BSP). If you are interested, please indicate the exact product and the type of purchase (download or paid delivery on data media) and send your request to our support hotline:
+The products firmware was created via open-source software. Go to Download under www.wago.com for the software packages and their licenses, and be sure to follow the rules that are listed there. The firmware is available as a software development kit (SDK). If you are interested, please indicate the exact product and the type of purchase (download or paid delivery on data media) and send your request to our support hotline:
 Technical Support AUTOMATION
 Phone: +49 (571) 887 44555
 Fax: +49 (571) 887 844555

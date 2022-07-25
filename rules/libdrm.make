@@ -15,8 +15,8 @@ PACKAGES-$(PTXCONF_LIBDRM) += libdrm
 #
 # Paths and names
 #
-LIBDRM_VERSION	:= 2.4.109
-LIBDRM_MD5	:= 376523fcbba8b9e194bcb5adff142d5d
+LIBDRM_VERSION	:= 2.4.110
+LIBDRM_MD5	:= ef6449de30a41ecdf69dc7ae78e676a9
 LIBDRM		:= libdrm-$(LIBDRM_VERSION)
 LIBDRM_SUFFIX	:= tar.xz
 LIBDRM_URL	:= http://dri.freedesktop.org/libdrm/$(LIBDRM).$(LIBDRM_SUFFIX)

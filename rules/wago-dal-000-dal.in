@@ -119,11 +119,55 @@ config LIBBACNET
 	select DAL
 	select HOST_CT_BUILD
 	select GOOGLETEST
-	select LIBBACNETSTACK
 	select LIBFFI
 	select LIBWAGODRM
-	select LIBBACNETCONFIG
 	prompt "BACnet Library"
 	help
 		Build BACnet.
 
+if LIBBACNET
+
+choice
+        prompt "Origin of Code"
+        default LIBBACNET_SOURCE_RELEASED
+
+        config LIBBACNET_SOURCE_RELEASED
+                bool
+                prompt "released / Artifactory"
+                help
+                  Use released version of source code, taken from Artifactory.
+
+        config LIBBACNET_SOURCE_DEV
+                bool
+                prompt "development / Git"
+                help
+                  Instead of released version use source code directly checked-out from repository.
+                  Use only for development!
+
+endchoice
+
+if LIBBACNET_SOURCE_DEV
+
+config LIBBACNET_DEV_BRANCH
+	string
+	prompt "Branch to be checked-out."
+	default "master"
+	help
+	  Name of branch which should be checked out or empty for default.
+
+endif
+
+if LIBBACNET_SOURCE_RELEASED
+
+config LIBBACNET_URL_TEMPLATE
+	string
+    depends on LIBBACNET
+	prompt "URL template"
+	default "%ARTIFACTORY_BASE_URL%/pl_controller-generic-prod-local/wago_intern/Libbacnet-Source/Libbacnet-Source-%VERSION%.tgz"
+	help
+	  Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+	  See Confluence for further details.
+
+endif
+
+endif

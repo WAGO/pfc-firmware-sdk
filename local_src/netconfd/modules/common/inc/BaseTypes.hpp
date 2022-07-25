@@ -230,6 +230,12 @@ enum class AutonegotiationSupported {
   YES
 };
 
+enum class MacLearning {
+  UNKNOWN,
+  ON,
+  OFF,
+};
+
 struct InterfaceBase {
   static constexpr int UNKNOWN_SPEED = -1;
 
@@ -238,13 +244,15 @@ struct InterfaceBase {
       InterfaceState state = InterfaceState::UNKNOWN,
       Autonegotiation autoneg = Autonegotiation::UNKNOWN,
       int speed = UNKNOWN_SPEED,
-      Duplex duplex = Duplex::UNKNOWN) noexcept
+      Duplex duplex = Duplex::UNKNOWN,
+      MacLearning mac_learning = MacLearning::UNKNOWN) noexcept
 
       : device_name_ { std::move(device_name) },
         state_ { state },
         autoneg_ { autoneg },
         speed_ { speed },
-        duplex_ { duplex } {
+        duplex_ { duplex },
+        mac_learning_{ mac_learning}{
   }
 
   InterfaceBase() noexcept
@@ -252,7 +260,8 @@ struct InterfaceBase {
         state_ { InterfaceState::UNKNOWN },
         autoneg_ { Autonegotiation::UNKNOWN },
         speed_ { UNKNOWN_SPEED },
-        duplex_ { Duplex::UNKNOWN } {
+        duplex_ { Duplex::UNKNOWN },
+        mac_learning_ { MacLearning::UNKNOWN }{
   }
 
   bool operator==(const InterfaceBase &config) const {
@@ -260,7 +269,8 @@ struct InterfaceBase {
         && (this->device_name_ == config.device_name_)
         && (this->duplex_ == config.duplex_)
         && (this->speed_ == config.speed_)
-        && (this->state_ == config.state_));
+        && (this->state_ == config.state_)
+        && (this->mac_learning_ == config.mac_learning_));
   }
 
   void FillUpDefaults() {
@@ -268,10 +278,11 @@ struct InterfaceBase {
     autoneg_ = (autoneg_ == Autonegotiation::UNKNOWN) ? Autonegotiation::ON : autoneg_;
     speed_ = (speed_ == UNKNOWN_SPEED) ? 100 : speed_;
     duplex_ = (duplex_ == Duplex::UNKNOWN) ? Duplex::FULL : duplex_;
+    mac_learning_ = (mac_learning_ == MacLearning::UNKNOWN) ? MacLearning::ON : mac_learning_;
   }
 
   static InterfaceBase DefaultConfig(::std::string device_name) {
-    return InterfaceBase { device_name, InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL };
+    return InterfaceBase { device_name, InterfaceState::UP, Autonegotiation::ON, 100, Duplex::FULL, MacLearning::ON };
   }
 
   ::std::string device_name_;
@@ -279,6 +290,7 @@ struct InterfaceBase {
   Autonegotiation autoneg_;
   int speed_;
   Duplex duplex_;
+  MacLearning mac_learning_;
 
 };
 

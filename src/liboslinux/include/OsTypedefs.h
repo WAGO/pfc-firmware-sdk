@@ -1,9 +1,9 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 /// SPDX-License-Identifier: MPL-2.0
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-/// \author ${user} $Author$ : WAGO Kontakttechnik GmbH & Co. KG
+/// \author ${user} $Author$ : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #ifndef OS_TYPEDEFS_H_

@@ -5,15 +5,15 @@
 //
 // This file is part of project modular-config-tools (PTXdist package modular-config-tools).
 //
-// Copyright (c) 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
+// Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 ///  \file     test_FileSystem.cc
 ///
 ///  \brief    Tests for file system functions.
 ///
-///  \author   MOe: WAGO Kontakttechnik GmbH & Co. KG
-///  \author   PEn: WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MOe: WAGO GmbH & Co. KG
+///  \author   PEn: WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------

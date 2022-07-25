@@ -94,6 +94,7 @@ po::options_description OptionParser::CreateDescriptions() const {
     (options_.dip_switch_config.name, options_.dip_switch_config.description)
     (options_.mac_address.name, options_.mac_address.description)
     (options_.device_info.name, options_.device_info.description)
+    (options_.interface_status.name, options_.interface_status.description)
     (
         options_.backup.name,
         po::value<::std::string>()->value_name("file path"),
@@ -212,9 +213,10 @@ void OptionParser::Parse(int argc, const char **argv) {
   po::notify(map_);
 
   MutuallyExclusiveAndOnlyOnce(map_, options_.bridge_config, options_.interface_config, options_.ip_config,
-                               options_.dip_switch_config, options_.mac_address, options_.device_info, options_.backup,
-                               options_.restore, options_.get_backup_parameter_count, options_.dsa_mode,
-                               options_.fix_ip, options_.dynamic_ip_event, options_.reload_host_conf, options_.help);
+                               options_.dip_switch_config, options_.mac_address, options_.device_info,
+                               options_.interface_status, options_.backup, options_.restore,
+                               options_.get_backup_parameter_count, options_.dsa_mode, options_.fix_ip,
+                               options_.dynamic_ip_event, options_.reload_host_conf, options_.help);
 
   OptionalAndMutuallyExclusive(map_, options_.error_msg_dst, options_.quiet);
 

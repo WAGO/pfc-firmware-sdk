@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,7 +11,7 @@
 ///
 ///  \brief    Class representation of a port configuration
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include "IpAddress.hpp"
@@ -21,6 +21,8 @@
 
 #include "error_handling.hpp"
 #include "utilities.hpp"
+
+namespace configdnsmasq {
 
 IpAddress::IpAddress(const std::string &address) {
   string_ = address;
@@ -40,3 +42,4 @@ uint32_t IpAddress::asBinary() const { return binary_; }
 
 bool IpAddress::isZero() const { return binary_ == 0; }
 
+} // namespace configdnsmasq

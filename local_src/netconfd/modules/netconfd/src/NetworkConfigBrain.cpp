@@ -23,7 +23,7 @@ namespace netconf {
 
 using namespace ::std::literals;
 
-NetworkConfigBrain::NetworkConfigBrain(IBridgeManager& interface_manager,
+NetworkConfigBrain::NetworkConfigBrain(IBridgeManager& bridge_manager,
                                        IBridgeInformation& itf_info, IIPManager& ip_manager,
                                        IEventManager& event_manager,
                                        IDeviceProperties& device_properties_provider,
@@ -32,7 +32,7 @@ NetworkConfigBrain::NetworkConfigBrain(IBridgeManager& interface_manager,
                                        INetDevManager& netdev_manager,
                                        IHostnameWillChange& hostname_manager)
 
-    : bridge_manager_{interface_manager},
+    : bridge_manager_{bridge_manager},
       bridge_information_{itf_info},
       interface_config_manager_{interface_config_manager},
       ip_manager_{ip_manager},
@@ -73,7 +73,7 @@ void NetworkConfigBrain::Start(StartWithPortstate startwithportstate) {
   }
 
   if (statusIPConfig.IsNotOk()) {
-    LogDebug("Start: Reset IP configuration.");
+    LOG_DEBUG("Start: Reset IP configuration.");
     ResetIpConfigsToDefault(ip_configs);
   }
 
@@ -94,7 +94,7 @@ void NetworkConfigBrain::Start(StartWithPortstate startwithportstate) {
   // At this point bridge and IP configs should be valid.
 
   if (statusDIPSwitchIPConfig.IsNotOk()) {
-    LogDebug("Start: Reset DIP switch IP configuration.");
+    LOG_DEBUG("Start: Reset DIP switch IP configuration.");
     ResetDIPSwitchIPConfigToDefault(dip_switch_ip_config);
   }
 
@@ -230,13 +230,21 @@ void NetworkConfigBrain::ReplaceSystemToLabelInterfaces(BridgeConfig &config) co
     persistence_provider_.Read(current_config);
 
     if (IsEqual(product_config, current_config)) {
-      LogDebug("New bridge configuration is equal to current. Do nothing.");
+      LOG_DEBUG("New bridge configuration is equal to current. Do nothing.");
       return jc.ToJsonString(Status::Ok());
     }
   }
 
   if (status.IsOk()) {
     status = bridge_manager_.ApplyBridgeConfiguration(product_config);
+  }
+
+  if (status.IsOk()) {
+    auto const& interface_configs = interface_config_manager_.GetPortConfigs();
+    auto interface_config_status = interface_config_manager_.Configure(interface_configs);
+    if (interface_config_status.IsNotOk()) {
+      LogError("Set Bridge Config: Re-apply interface config error: " + status.ToString());
+    }
   }
 
   Status persistence_status;

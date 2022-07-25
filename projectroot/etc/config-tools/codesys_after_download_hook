@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------#
 # Script-name: codesys_after_download_hook
@@ -14,8 +14,8 @@
 # source/Linux/Standard/RtsCst.c and source/RtsApi.[ch] to implement hook calls
 # and script execution. 
 #
-# $Id: codesys_after_download_hook 36237 2019-01-29 15:01:53Z patrick.enns@wago.com $
-# Author: HJH, WAGO Kontakttechnik GmbH
+# $Id: codesys_after_download_hook 65770 2022-03-15 15:34:32Z falk.werner@wago.com $
+# Author: HJH, WAGO GmbH
 #-----------------------------------------------------------------------------#
 
 # show help-text if requested

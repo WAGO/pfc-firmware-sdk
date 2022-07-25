@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_OPCUACSDK) += opcuacsdk
 #
 # Paths and names
 #
-OPCUACSDK_VERSION	:= 1.9.0
+OPCUACSDK_VERSION	:= 1.9.2
 OPCUACSDK_MD5		:=
 OPCUACSDK		:= opcuacsdk-$(OPCUACSDK_VERSION)
 # Setting _URL to make PTXdist happy and not skip our patch(es)

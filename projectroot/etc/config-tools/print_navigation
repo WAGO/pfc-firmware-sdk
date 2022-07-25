@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #------------------------------------------------------#
 # Script-name: print_navigation
@@ -13,7 +13,7 @@
 # Input: Name of the navigation-point which should be selected.
 #        If no parameter is given, no point will be displayed selected.
 #
-# Author: WAGO Kontakttechnik GmbH
+# Author: WAGO GmbH
 #------------------------------------------------------#
 
 # take all input strings as the name of the selected navigation-point

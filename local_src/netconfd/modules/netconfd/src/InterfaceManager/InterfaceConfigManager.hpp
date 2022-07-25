@@ -15,6 +15,7 @@
 
 namespace netconf {
 
+class BridgeUtil;
 class InterfaceConfigManager : public IInterfaceInformation{
  public:
 
@@ -24,7 +25,7 @@ class InterfaceConfigManager : public IInterfaceInformation{
   virtual ~InterfaceConfigManager() = default;
 
   void InitializePorts(InterfaceState initalPortState = InterfaceState::UNKNOWN);
-  Status Configure(InterfaceConfigs& port_configs);
+  Status Configure(const InterfaceConfigs& port_configs);
   InterfaceConfigs const& GetPortConfigs() override;
   InterfaceStatuses GetCurrentPortStatuses() override;
   InterfaceInformations GetInterfaceInformations() override;

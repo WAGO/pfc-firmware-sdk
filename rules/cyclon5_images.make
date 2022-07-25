@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2019 by WAGO Kontakttechnik GmbH
+# Copyright (C) 2019 by WAGO GmbH
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -115,7 +115,7 @@ $(STATEDIR)/cyclon5_images.targetinstall:
 	@$(call install_init, cyclon5_images)
 	@$(call install_fixup, cyclon5_images, PRIORITY, optional)
 	@$(call install_fixup, cyclon5_images, SECTION, base)
-	@$(call install_fixup, cyclon5_images, AUTHOR, "WAGO Kontakttechnik GmbH")
+	@$(call install_fixup, cyclon5_images, AUTHOR, "WAGO GmbH")
 	@$(call install_fixup, cyclon5_images, DESCRIPTION, missing)
 	@mkdir -p $(IMAGEDIR)/img_pnio/;
 	@for i in $(shell cd  $(CYCLON5_IMAGES_DIR)/$(CYCLON5_IMAGES_REPO_NAME)_debug && find $(PTXCONF_CYCLON5_INIT_IMAGES)* -type f); do \

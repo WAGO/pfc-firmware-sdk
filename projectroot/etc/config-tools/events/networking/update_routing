@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 
 #-----------------------------------------------------------------------------
 # Script-name: update_routing
@@ -12,7 +12,7 @@
 # Read routing, IP masquerading and port forwarding configuration from persistence
 # and update system configuration.
 #
-# Author: WAGO Kontakttechnik GmbH & Co. KG.
+# Author: WAGO GmbH & Co. KG.
 #-----------------------------------------------------------------------------
 
 # Set error on use of undefined shell variables
@@ -150,14 +150,14 @@ function SetMulticastRoutes
     local bridges=$($BRCTL show | $GREP -E '^[[:alpha:]]' | $AWK '(NR>1)  {print $1}')
     for bridge in $bridges; do
         ret=$($ROUTE add -net 224.0.0.0 netmask 224.0.0.0 dev $bridge 2>&1)
-        # Ignore duplicates
-        ret_code=$?
-        if [[ $ret_code -ne 0 && $ret != "route: SIOCADDRT: File exists" ]]; then
-            status=$INVALID_PARAMETER
-            Log "Failed to add multicast route for bridge: $bridge"
-        else
-            Log "Set 224.0.0.0 on $bridge"
-        fi
+            # Ignore duplicates
+            ret_code=$?
+            if [[ $ret_code -ne 0 && $ret != "route: SIOCADDRT: File exists" ]]; then
+                status=$INVALID_PARAMETER
+                Log "Failed to add multicast route for bridge: $bridge"
+            else
+                Log "Set 224.0.0.0 on $bridge"
+            fi
     done
 
     echo "$status"

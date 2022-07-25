@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2012 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -15,17 +15,53 @@ PACKAGES-$(PTXCONF_LIBBACNET) += libbacnet
 #
 #--- paths and names --------------------------------------------------------- 
 #
-LIBBACNET_VERSION           := 1.5.0
-LIBBACNET_MD5               :=
 LIBBACNET                   := libbacnet
-LIBBACNET_URL               := file://$(PTXDIST_WORKSPACE)/wago_intern/device/bacnet/$(LIBBACNET)
-LIBBACNET_BUILDCONFIG       := Release
-LIBBACNET_SRC_DIR           := $(PTXDIST_WORKSPACE)/wago_intern/device/bacnet/$(LIBBACNET)
+LIBBACNET_SO_VERSION        := 1.5.0
+
+ifdef PTXCONF_LIBBACNET_SOURCE_DEV
+LIBBACNET_GIT_URL           := ssh://svtfs01007:22/tfs/ProductDevelopment/BACnet_Stack/_git/Libbacnet
+LIBBACNET_FOLDER            := libbacnet_git
+endif
+
+ifdef PTXCONF_LIBBACNET_SOURCE_RELEASED
+LIBBACNET_BUILD_ID          := 16509607405
+LIBBACNET_FOLDER            := libbacnet_git
+endif
+
+
+
+ifdef PTXCONF_LIBBACNET_SOURCE_DEV
+LIBBACNET_BUILD_ID_SUFFIX   := -$(call remove_quotes,$(PTXCONF_LIBBACNET_SOURCE_DEV_BRANCH))
+endif
+ifdef PTXCONF_LIBBACNET_SOURCE_RELEASED
+LIBBACNET_BUILD_ID_SUFFIX   := -$(LIBBACNET_BUILD_ID)
+endif
+
+LIBBACNET_REL_PATH          := wago_intern/device/bacnet/$(LIBBACNET_FOLDER)
+LIBBACNET_SRC_DIR           := $(PTXDIST_WORKSPACE)/$(LIBBACNET_REL_PATH)
+LIBBACNET_VERSION           := $(LIBBACNET_SO_VERSION)$(LIBBACNET_BUILD_ID_SUFFIX)
+LIBBACNET_ENV_VENDOR        := WAGO
+
+ifdef PTXCONF_LIBBACNET_SOURCE_RELEASED
+LIBBACNET_URL               := $(call jfrog_template_to_url, LIBBACNET)
+else
+LIBBACNET_URL               := file://$(LIBBACNET_SRC_DIR)
+endif
+LIBBACNET_SUFFIX            := $(suffix $(LIBBACNET_URL))
+LIBBACNET_MD5                = $(shell [ -f $(LIBBACNET_MD5_FILE) ] && cat $(LIBBACNET_MD5_FILE))
+LIBBACNET_MD5_FILE          := wago_intern/artifactory_sources/$(LIBBACNET)$(LIBBACNET_SUFFIX).md5
+LIBBACNET_ARTIFACT           = $(call jfrog_get_filename,$(LIBBACNET_URL))
+ifdef PTXCONF_LIBBACNET_SOURCE_RELEASED
+LIBBACNET_ARCHIVE           := $(LIBBACNET)-$(LIBBACNET_VERSION)$(LIBBACNET_SUFFIX)
+endif
+
 LIBBACNET_BUILDROOT_DIR     := $(BUILDDIR)/$(LIBBACNET)
 LIBBACNET_DIR               := $(LIBBACNET_BUILDROOT_DIR)/$(LIBBACNET)
-LIBBACNET_BUILD_DIR         := $(LIBBACNET_BUILDROOT_DIR)/bin/$(LIBBACNET_BUILDCONFIG)
 LIBBACNET_LICENSE           := unknown
-LIBBACNET_BIN               := $(LIBBACNET).so.$(LIBBACNET_VERSION)
+
+LIBBACNET_BUILDCONFIG       := Release
+LIBBACNET_BUILD_DIR         := $(LIBBACNET_BUILDROOT_DIR)/bin/$(LIBBACNET_BUILDCONFIG)
+LIBBACNET_BIN               := $(LIBBACNET).so.$(LIBBACNET_SO_VERSION)
 LIBBACNET_SO_NAME           := $(LIBBACNET).so
 LIBBACNET_CONF_TOOL         := NO
 LIBBACNET_MAKE_ENV          := $(CROSS_ENV) \
@@ -41,6 +77,36 @@ LIBBACNET_PLATFORMCONFIGPACKAGEDIR := $(PTXDIST_PLATFORMCONFIGDIR)/packages
 
 
 # ----------------------------------------------------------------------------
+# Get
+# ----------------------------------------------------------------------------
+
+ifdef PTXCONF_LIBBACNET_SOURCE_DEV
+
+$(LIBBACNET_SRC_DIR):
+	{ cd $(PTXDIST_WORKSPACE)/wago_intern && git clone $(LIBBACNET_GIT_URL) $(LIBBACNET_SRC_DIR); } \
+    || rm -fr $(LIBBACNET_SRC_DIR)
+ifdef PTXCONF_LIBBACNET_SOURCE_DEV_BRANCH
+	{ cd $(LIBBACNET_SRC_DIR) && git checkout $(PTXCONF_LIBBACNET_SOURCE_DEV_BRANCH); } \
+    || rm -fr $(LIBBACNET_SRC_DIR)
+endif
+
+$(STATEDIR)/libbacnet.get: | $(LIBBACNET_SRC_DIR)
+
+endif
+
+ifdef PTXCONF_LIBBACNET_SOURCE_RELEASED
+$(STATEDIR)/libbacnet.get:
+	@$(call targetinfo)
+
+ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+	@${PTXDIST_WORKSPACE}/scripts/wago/artifactory.sh fetch \
+    '$(LIBBACNET_URL)' wago_intern/artifactory_sources/$(LIBBACNET_ARCHIVE) '$(LIBBACNET_MD5_FILE)'
+endif
+
+	@$(call touch)
+endif
+
+# ----------------------------------------------------------------------------
 # Extract
 # ----------------------------------------------------------------------------
 
@@ -48,9 +114,16 @@ $(STATEDIR)/libbacnet.extract:
 	@$(call targetinfo)
 	@mkdir -p $(LIBBACNET_BUILDROOT_DIR)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES
+ifdef PTXCONF_LIBBACNET_SOURCE_RELEASED
+	@mkdir -p $(LIBBACNET_DIR)
+	@tar xvf wago_intern/artifactory_sources/$(LIBBACNET_ARCHIVE) -C $(LIBBACNET_DIR) --strip-components=1
+	@$(call patchin, LIBBACNET)
+endif
+ifndef PTXCONF_LIBBACNET_SOURCE_RELEASED
 	@if [ ! -L $(LIBBACNET_DIR) ]; then \
 	  	ln -s $(LIBBACNET_SRC_DIR) $(LIBBACNET_DIR); \
 	fi
+endif
 endif
 	@$(call touch)
 
@@ -67,6 +140,7 @@ endif
 # ----------------------------------------------------------------------------
 # Prepare
 # ----------------------------------------------------------------------------
+
 $(STATEDIR)/libbacnet.prepare:
 	@$(call targetinfo)
 ifndef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES

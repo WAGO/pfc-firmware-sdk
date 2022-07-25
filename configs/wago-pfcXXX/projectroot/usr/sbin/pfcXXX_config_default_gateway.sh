@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright (c) 2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2018-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 #-----------------------------------------------------------------------------#
@@ -14,7 +14,7 @@
 # 
 # Note: this is basically the IPC script with eth1 stuff removed.
 #
-# Author: Stefanie Meihöfer, WAGO Kontakttechnik GmbH
+# Author: Stefanie Meihöfer, WAGO GmbH
 #-----------------------------------------------------------------------------#
 
 . /etc/config-tools/board_specific_defines; . $(dirname $0)/${BOARD_ID}_commons

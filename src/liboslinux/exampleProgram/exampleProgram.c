@@ -3,7 +3,7 @@
  Name        : exampleProgram.c
  Author      : Jan Sondhauss
  Version     :
- Copyright   : WAGO Kontakttechnik GmbH & Co.Kg
+ Copyright   : WAGO GmbH & Co.Kg
  Description : Uses shared library to print greeting
                To run the resulting executable the LD_LIBRARY_PATH must be
                set to ${project_loc}/liboslinux/.libs

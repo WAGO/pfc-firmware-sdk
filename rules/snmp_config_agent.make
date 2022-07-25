@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -16,7 +16,7 @@ PACKAGES-$(PTXCONF_SNMPCONFIGAGENT) += snmpconfigagent
 #
 # Paths and names
 #
-SNMPCONFIGAGENT_VERSION       := 1.0.0
+SNMPCONFIGAGENT_VERSION       := 1.1.0
 SNMPCONFIGAGENT_MD5           :=
 SNMPCONFIGAGENT               := snmpconfigagent
 SNMPCONFIGAGENT_SUFFIX        := 
@@ -110,7 +110,7 @@ $(STATEDIR)/snmpconfigagent.targetinstall:
 	@$(call install_init, snmpconfigagent)
 	@$(call install_fixup, snmpconfigagent,PRIORITY,optional)
 	@$(call install_fixup, snmpconfigagent,SECTION,base)
-	@$(call install_fixup, snmpconfigagent,AUTHOR,"WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, snmpconfigagent,AUTHOR,"WAGO GmbH \& Co. KG")
 	@$(call install_fixup, snmpconfigagent,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES 

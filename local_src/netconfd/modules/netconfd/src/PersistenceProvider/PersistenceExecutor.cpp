@@ -12,6 +12,7 @@
 #include "JsonRestorer.hpp"
 #include "Logger.hpp"
 #include "FirmwareVersion.hpp"
+#include "KeyValueParser.hpp"
 
 namespace netconf {
 
@@ -19,6 +20,31 @@ constexpr auto bridge_backup_key = "bridge-config";
 constexpr auto ip_backup_key = "ip-config";
 constexpr auto dip_ip_backup_key = "dip-ip-config";
 constexpr auto interface_backup_key = "interface-config";
+constexpr auto switch_fast_aging_backup_key = "switch-fast-aging";
+
+namespace {
+
+void RestoreMacLearningFromLegacyBackup(InterfaceConfigs &interface_configs, ::std::string &backup_data) {
+  auto fast_aging = GetValueByKey(backup_data, switch_fast_aging_backup_key);
+
+  for (auto &c : interface_configs) {
+    if (c.device_name_ == "X1" || c.device_name_ == "X2") {
+      if (c.mac_learning_ == MacLearning::UNKNOWN) {
+        c.mac_learning_ = fast_aging == "1" ? MacLearning::OFF : MacLearning::ON;
+      }
+    }else{
+      c.mac_learning_ = MacLearning::ON;
+    }
+  }
+}
+
+bool IsMacLearningUnknown(InterfaceConfigs &itf_configs) {
+  return ::std::any_of(itf_configs.cbegin(), itf_configs.cend(), [](const InterfaceConfig &ic) {
+      return (ic.device_name_ == "X1" || ic.device_name_ == "X2") && ic.mac_learning_ == MacLearning::UNKNOWN;
+  });
+}
+
+}
 
 PersistenceExecutor::PersistenceExecutor(const ::std::string &persistence_path, IFileEditor &file_editor,
                                          IBackupRestore &backup_restore, IBackupRestore &legacy_restore,
@@ -249,6 +275,23 @@ static void AddLegacyInterfaceParameter(InterfaceConfigs &itf_configs, ::std::st
   }
 }
 
+static void AddLegacySwitchFastAgingParameter(InterfaceConfigs &itf_configs,::std::string &legacy_itf_config) {
+
+  ::std::string fast_aging = "0";
+
+  int number_of_mac_learning_off_itfs = ::std::count_if(itf_configs.cbegin(), itf_configs.cend(), [](const InterfaceConfig& ic) {
+    return (ic.device_name_ == "X1" || ic.device_name_ == "X2")
+        && (ic.mac_learning_ == MacLearning::OFF);
+  });
+
+  if(number_of_mac_learning_off_itfs == 2) {
+    // MAC learning is disabled for both interfaces X1 and X2, therefore, set global fast aging option to off.
+    fast_aging = "1";
+  }
+
+  legacy_itf_config.append(::std::string{switch_fast_aging_backup_key} + "=" + fast_aging + "\n");
+}
+
 void PersistenceExecutor::ModifyBr0AddressToDipSwitch(IPConfigs &ip_configs) {
 
   auto find_br0 = [&](IPConfig &ip_config) {
@@ -274,6 +317,7 @@ static ::std::string GenerateLegacyInterfaceBackup(InterfaceConfigs &itf_configs
   ::std::string legacy_interface_parameter;
   AddLegacyInterfaceParameter(itf_configs, "X1", legacy_interface_parameter);
   AddLegacyInterfaceParameter(itf_configs, "X2", legacy_interface_parameter);
+  AddLegacySwitchFastAgingParameter(itf_configs, legacy_interface_parameter);
   return legacy_interface_parameter;
 }
 
@@ -339,6 +383,16 @@ Status PersistenceExecutor::Restore(const ::std::string &file_path, BridgeConfig
   }
   if (status.IsOk()) {
     status = data_restorer.Restore(interface_backup_key, interface_configs);
+
+    // With FW22 we introduced the maclearning parameter.
+    // For firmware versions less than FW22 the maclearning parameter can be reconstructed from the fastaging parameter.
+    if (IsMacLearningUnknown(interface_configs)) {
+      auto backup_data = ::std::string { };
+      file_editor_.Read(file_path, backup_data);
+
+      RestoreMacLearningFromLegacyBackup(interface_configs, backup_data);
+    }
+
   }
 
   if (status.IsOk() && not dipswitch_data_json.empty()) {

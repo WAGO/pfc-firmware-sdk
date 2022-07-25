@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material. All
 /// manufacturing, reproduction, use, and sales rights pertaining to this
@@ -13,7 +13,7 @@
 ///
 /// \brief Macros for logging/debug output.
 ///
-/// \author <AGa> : Wago Kontakttechnik GmbH
+/// \author <AGa> : WAGO GmbH
 //------------------------------------------------------------------------------
 
 #ifndef _LibraryLoader_Logging_H

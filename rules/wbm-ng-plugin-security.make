@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (C) 2017 by Marius Hellmeier (marius.hellmeier@wago.com), WAGO GmbH & Co. KG
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -83,7 +83,7 @@ $(STATEDIR)/wbm-ng-plugin-security.targetinstall:
 	@$(call install_init, wbm-ng-plugin-security)
 	@$(call install_fixup, wbm-ng-plugin-security, PRIORITY, optional)
 	@$(call install_fixup, wbm-ng-plugin-security, SECTION, base)
-	@$(call install_fixup, wbm-ng-plugin-security, AUTHOR,"Marius Hellmeier, WAGO Kontakttechnik GmbH \& Co. KG")
+	@$(call install_fixup, wbm-ng-plugin-security, AUTHOR,"Marius Hellmeier, WAGO GmbH \& Co. KG")
 	@$(call install_fixup, wbm-ng-plugin-security, DESCRIPTION, missing)
 
 	# create target directory itself

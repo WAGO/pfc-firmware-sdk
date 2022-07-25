@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) WAGO GmbH & Co. KG
 ///
 /// PROPRIETARY RIGHTS are involved in the subject matter of this material.
 /// All manufacturing, reproduction, use and sales rights pertaining to this
@@ -10,11 +10,11 @@
 ///
 ///  \file     ledserver_API.h
 ///
-///  \version  $Revision: 12608 $
+///  \version  $Revision: 65689 $
 ///
 ///  \brief    This is the API to the LED-Server Library used to set the LEDs of PFC and PAC devices
 ///
-///  \author   HFS : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   HFS : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 #ifndef LEDSERVER_API_H_
 #define LEDSERVER_API_H_

@@ -92,6 +92,7 @@ ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_RELEASE
 	@cd $(OMS_PKGDIR) && tar cvzf $(OMS_PLATFORMCONFIGPACKAGEDIR)/$(OMS_PACKAGE_NAME).tgz *
 endif
 endif
+	@$(call touch)
 
 # ----------------------------------------------------------------------------
 # Target-Install

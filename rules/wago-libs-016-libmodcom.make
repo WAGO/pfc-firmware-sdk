@@ -1,6 +1,6 @@
 # -*-makefile-*-
 #
-# Copyright (C) 2012 by <WAGO Kontakttechnik GmbH & Co. KG>
+# Copyright (C) 2012 by <WAGO GmbH & Co. KG>
 #
 # See CREDITS for details about who has contributed to this project.
 #
@@ -105,7 +105,7 @@ $(STATEDIR)/libmodcom.targetinstall:
 	@$(call install_init, libmodcom)
 	@$(call install_fixup, libmodcom,PRIORITY,optional)
 	@$(call install_fixup, libmodcom,SECTION,base)
-	@$(call install_fixup, libmodcom,AUTHOR,"<WAGO Kontakttechnik GmbH \& Co. KG>")
+	@$(call install_fixup, libmodcom,AUTHOR,"<WAGO GmbH \& Co. KG>")
 	@$(call install_fixup, libmodcom,DESCRIPTION,missing)
 
 ifdef PTXCONF_WAGO_TOOLS_BUILD_VERSION_BINARIES

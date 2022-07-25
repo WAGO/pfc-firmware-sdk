@@ -5,11 +5,11 @@
 #
 # This file is part of project common-header (PTXdist package libcommonheader).
 #
-# Copyright (c) 2017-2020 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2017-2022 WAGO GmbH & Co. KG
 #
 # Contributors:
-#   JB: WAGO Kontakttechnik GmbH & Co. KG
-#   PEn: WAGO Kontakttechnik GmbH & Co. KG
+#   JB: WAGO GmbH & Co. KG
+#   PEn: WAGO GmbH & Co. KG
 #######################################################################################################################
 # Makefile for PTXdist package libcommonheader
 # This makefile uses the infrastructure provided by ct-build.

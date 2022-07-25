@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-/// Copyright (c) 2020 WAGO Kontakttechnik GmbH & Co. KG
+/// Copyright (c) 2020-2022 WAGO GmbH & Co. KG
 ///
-/// PROPRIETARY RIGHTS of WAGO Kontakttechnik GmbH & Co. KG are involved in
+/// PROPRIETARY RIGHTS of WAGO GmbH & Co. KG are involved in
 /// the subject matter of this material. All manufacturing, reproduction,
 /// use, and sales rights pertaining to this subject matter are governed
 /// by the license agreement. The recipient of this software implicitly
@@ -11,7 +11,7 @@
 ///
 ///  \brief    Class representation of a dhcp ip range
 ///
-///  \author   MSc : WAGO Kontakttechnik GmbH & Co. KG
+///  \author   MSc : WAGO GmbH & Co. KG
 //------------------------------------------------------------------------------
 
 #include "DhcpRange.hpp"
@@ -23,6 +23,8 @@
 
 #include "error_handling.hpp"
 #include "utilities.hpp"
+
+namespace configdnsmasq {
 
 DhcpRange DhcpRange::fromRangeString(const std::string &range, uint32_t netmask) {
   const std::regex IpRangePattern = std::regex("(.*)_(.*)");
@@ -107,3 +109,5 @@ void DhcpRange::validate() const {
     boost::format("The range %s is invalid because the first ip address must be smaller "
         "than or equal to the second so that both outline a valid ip range") % toString());
 }
+
+} // namespace configdnsmasq

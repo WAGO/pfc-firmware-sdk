@@ -105,9 +105,6 @@ menu "DAL - Device Abstraction Layer"
 source "generated/wago_specific_dal.in"
 endmenu
 
-menu "Demo                          "
-source "generated/wago_specific_demo.in"
-endmenu
 
 
 menu "Frontend config (web/console) " 

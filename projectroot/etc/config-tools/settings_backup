@@ -6,18 +6,18 @@
 #
 # This file is part of PTXdist package config-tools.
 #
-# Copyright (c) 2011-2018 WAGO Kontakttechnik GmbH & Co. KG
+# Copyright (c) 2011-2022 WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 #-----------------------------------------------------------------------------#
 # Script:   settings_backup
 #
 # Brief:    Save or restore the actual configuration settings of PFC.
 #
-# Author:   StM: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   AGa: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   HJH: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   MOe: WAGO Kontakttechnik GmbH & Co. KG
-# Author:   OG: WAGO Kontakttechnik GmbH & Co. KG
+# Author:   StM: WAGO GmbH & Co. KG
+# Author:   AGa: WAGO GmbH & Co. KG
+# Author:   HJH: WAGO GmbH & Co. KG
+# Author:   MOe: WAGO GmbH & Co. KG
+# Author:   OG: WAGO GmbH & Co. KG
 #-----------------------------------------------------------------------------#
 
 # load common backup/restore functions

@@ -1,0 +1,17 @@
+## SECTION=wago_specific_codesys_3
+
+config PLCHANDLER
+	bool
+	select HOST_CT_BUILD
+	prompt "PLC Handler"
+	help
+	  Library for PLCHandler-Connection
+
+config PLCHANDLER_URL_TEMPLATE
+      string
+      depends on PLCHANDLER
+      prompt "URL template"
+      default "%ARTIFACTORY_BASE_URL%/codesys-generic-prod-local/3S/PLCHandlerSDK/PLCHandler_SDK_Linux_%VERSION%.zip"
+      help
+        Encodes the desired artifact version. Can be configured to a specific version or to a latest compatible version of an artifact.
+        See Confluence for further details.

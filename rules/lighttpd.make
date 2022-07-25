@@ -20,12 +20,12 @@ PACKAGES-$(PTXCONF_LIGHTTPD) += lighttpd
 #
 # Paths and names
 #
-LIGHTTPD_VERSION	:= 1.4.60
-LIGHTTPD_MD5		:= 4d166b34a8afd3d206d937a9561a7874
-LIGHTTPD		:= lighttpd-$(LIGHTTPD_VERSION)
+LIGHTTPD_VERSION	:= 1.4.64
+LIGHTTPD			:= lighttpd-$(LIGHTTPD_VERSION)
 LIGHTTPD_SUFFIX		:= tar.xz
-LIGHTTPD_URL		:= http://download.lighttpd.net/lighttpd/releases-1.4.x/$(LIGHTTPD).$(LIGHTTPD_SUFFIX)
+LIGHTTPD_URL		:= https://download.lighttpd.net/lighttpd/releases-1.4.x/$(LIGHTTPD).$(LIGHTTPD_SUFFIX)
 LIGHTTPD_SOURCE		:= $(SRCDIR)/$(LIGHTTPD).$(LIGHTTPD_SUFFIX)
+LIGHTTPD_MD5		:= 02762422b074d0609db3d099d9d9e05c
 LIGHTTPD_DIR		:= $(BUILDDIR)/$(LIGHTTPD)
 LIGHTTPD_LICENSE	:= BSD-3-Clause AND BSD-2-Clause AND OML AND RSA-MD AND Apache-2.0
 LIGHTTPD_LICENSE_FILES	:= \
@@ -68,10 +68,7 @@ LIGHTTPD_CONF_OPT	:= \
 	--$(call ptx/wwo, PTXCONF_LIGHTTPD_WEBDAV_PROPS)-sqlite \
 	--$(call ptx/wwo, PTXCONF_LIGHTTPD_WEBDAV_LOCKS)-webdav-locks \
 	--$(call ptx/wwo, PTXCONF_LIGHTTPD_WEBDAV_LOCKS)-uuid \
-	--without-gdbm \
-	--without-geoip \
 	--without-maxminddb \
-	--$(call ptx/wwo, PTXCONF_LIGHTTPD_MEMCACHED)-memcached \
 	--$(call ptx/wwo, PTXCONF_LIGHTTPD_LUA)-lua
 
 # ----------------------------------------------------------------------------
@@ -92,7 +89,7 @@ ifdef PTXCONF_LIGHTTPD_HTTPS_GEN_CERT
 	export PASSPHRASE=$$(head -c 128 /dev/urandom | uuencode - | grep -v '^end' | tr '\n' 'd') && \
 DAYS_VALID=$$(echo "2038 01 18" | awk '{dt=mktime($$0 " 00 00 00")-systime(); print int(dt/86400);}') && \
 echo $$DAYS_VALID && echo "" | awk '{print systime();}' && \
-SUBJ=/C='DE'/ST='NRW'/L='Minden'/O='Wago Kontakttechnik GmbH & Co. KG'/OU='AUTOMATION'/CN='Self-signed certificate for testing' && \
+SUBJ=/C='DE'/ST='NRW'/L='Minden'/O='WAGO GmbH & Co. KG'/OU='AUTOMATION'/CN='Self-signed certificate for testing' && \
 	openssl genrsa -des3 -out $(LIGHTTPD_DIR)/server.key -passout env:PASSPHRASE 3072 && \
 	cp $(LIGHTTPD_DIR)/server.key $(LIGHTTPD_DIR)/server.key.org && \
 	openssl rsa -in $(LIGHTTPD_DIR)/server.key.org -out $(LIGHTTPD_DIR)/server.key -passin env:PASSPHRASE && \
@@ -124,13 +121,11 @@ LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_ACCESSLOG)	+= mod_accesslog
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_ALIAS)		+= mod_alias
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_AUTH)		+= mod_auth
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_AUTH)		+= mod_authn_file
-LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_CML)		+= mod_cml
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_COMPRESS)	+= mod_compress
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_FASTCGI)	+= mod_fastcgi
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_MAGNET)		+= mod_magnet
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_OPENSSL)		+= mod_openssl
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_REWRITE)	+= mod_rewrite
-LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_TRIGGER_B4_DL)	+= mod_trigger_b4_dl
 LIGHTTPD_MODULES-$(PTXCONF_LIGHTTPD_MOD_WEBDAV)		+= mod_webdav
 LIGHTTPD_MODULES-y += $(call remove_quotes,$(PTXCONF_LIGHTTPD_MOD_EXTRA))
 
@@ -189,6 +184,14 @@ endif
 		/etc/lighttpd/mod_fastcgi.conf)
 	@$(call install_alternative, lighttpd, 0, 0, 0600, \
 		/etc/lighttpd/tls-strong.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/wbm_enabled.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/wbm_disabled.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/webvisu.conf)
+	@$(call install_alternative, lighttpd, 0, 0, 0600, \
+		/etc/lighttpd/openapi.conf)
 
 # Config directory for FCGI plugins
 	@$(call install_copy, lighttpd, 0, 0, 0755, \
@@ -260,6 +263,9 @@ endif
 
 	@$(call install_link, lighttpd, redirect_wbm.conf, \
 		/etc/lighttpd/redirect_default.conf)
+
+	@$(call install_link, lighttpd, wbm_enabled.conf, \
+		/etc/lighttpd/wbm.conf)
 
 #	#
 #	# busybox init: start script
